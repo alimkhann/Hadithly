@@ -64,21 +64,37 @@ export const syncRevenueCatEntitlement = mutation({
     entitlementExpiresAt: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    const now = Date.now();
     const existing = await ctx.db
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
       .unique();
-    if (!existing) throw new Error("User not found");
+
+    if (!existing) {
+      return await ctx.db.insert("users", {
+        clerkId: args.clerkId,
+        preferredLanguage: "en",
+        subscriptionTier: args.subscriptionTier,
+        revenueCatAppUserId: args.revenueCatAppUserId,
+        entitlementProductId: args.entitlementProductId,
+        entitlementExpiresAt: args.entitlementExpiresAt,
+        entitlementUpdatedAt: now,
+        aiGenerationsThisMonth: 0,
+        aiGenerationLimit: args.subscriptionTier === "pro" ? 500 : 20,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
 
     await ctx.db.patch(existing._id, {
       subscriptionTier: args.subscriptionTier,
       revenueCatAppUserId: args.revenueCatAppUserId,
       entitlementProductId: args.entitlementProductId,
       entitlementExpiresAt: args.entitlementExpiresAt,
-      entitlementUpdatedAt: Date.now(),
+      entitlementUpdatedAt: now,
       aiGenerationLimit:
         args.subscriptionTier === "pro" ? 500 : existing.aiGenerationLimit,
-      updatedAt: Date.now(),
+      updatedAt: now,
     });
     return existing._id;
   },
