@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm --filter @hadithly/web build",
+  "outputDirectory": "apps/web/.next",
+  "framework": "nextjs",
+  "crons": [
+    {
+      "path": "/api/cron/daily-hadith",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/reset-ai-usage",
+      "schedule": "0 0 1 * *"
+    }
+  ]
+}
