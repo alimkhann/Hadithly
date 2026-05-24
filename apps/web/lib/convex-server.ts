@@ -12,9 +12,11 @@ type CachedTranslation = Translation & {
   _id?: string;
 };
 
+type CachedHadithInput = Omit<Hadith, "id" | "createdAt">;
+
 const upsertHadithPage = makeFunctionReference<
   "mutation",
-  { items: Hadith[] },
+  { items: CachedHadithInput[] },
   string[]
 >("hadiths:upsertPage");
 const getHadithByProviderRef = makeFunctionReference<
@@ -112,7 +114,12 @@ function getConvexClient() {
 export async function cacheHadithPage(items: Hadith[]) {
   const client = getConvexClient();
   if (!client || items.length === 0) return [];
-  return await client.mutation(upsertHadithPage, { items });
+  return await client.mutation(upsertHadithPage, {
+    items: items.map(({ id, createdAt, ...item }) => {
+      void id;
+      return item;
+    }),
+  });
 }
 
 export async function findCachedHadithByInternalId(internalId: string) {
