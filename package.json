@@ -1,0 +1,33 @@
+{
+  "name": "hadithly",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.30.3",
+  "scripts": {
+    "build": "turbo build",
+    "check": "turbo check",
+    "dev": "turbo dev --parallel",
+    "format": "prettier --check .",
+    "test": "turbo test",
+    "test:provider": "pnpm --filter @hadithly/hadith-provider test",
+    "typecheck": "turbo typecheck"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "convex": "^1.29.3",
+    "prettier": "^3.5.3",
+    "turbo": "^2.5.4",
+    "typescript": "^5.8.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "react": "19.2.3",
+      "react-dom": "19.2.3"
+    }
+  },
+  "dependencies": {
+    "expo": "~56.0.4",
+    "react": "19.2.3",
+    "react-native": "0.85.3"
+  }
+}
