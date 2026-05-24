@@ -3,10 +3,8 @@ import { updateRevenueCatEntitlement } from "@/lib/convex-server";
 
 export async function POST(request: Request) {
   const expected = process.env.REVENUECAT_WEBHOOK_SECRET;
-  if (
-    expected &&
-    request.headers.get("authorization") !== `Bearer ${expected}`
-  ) {
+  const provided = request.headers.get("authorization");
+  if (expected && provided !== expected && provided !== `Bearer ${expected}`) {
     return jsonError("Unauthorized", 401);
   }
   const event = await request.json().catch(() => null);
