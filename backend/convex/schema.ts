@@ -35,6 +35,9 @@ export default defineSchema({
     entitlementUpdatedAt: v.optional(v.number()),
     aiGenerationsThisMonth: v.number(),
     aiGenerationLimit: v.number(),
+    // Assigned only through the Convex dashboard/internal admin bootstrap.
+    // Admin access is never inferred from client-supplied data.
+    isAdmin: v.optional(v.boolean()),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_clerk_id", ["clerkId"]),
@@ -163,7 +166,6 @@ export default defineSchema({
       glossaryIssues: v.optional(v.array(v.string())),
       recommendation: v.union(
         v.literal("approve"),
-        v.literal("community_review"),
         v.literal("admin_review"),
         v.literal("reject"),
       ),

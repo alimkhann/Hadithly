@@ -54,7 +54,8 @@ struct ReaderCitation: Decodable, Hashable {
 }
 
 struct ReaderTranslation: Decodable {
-    let hadithId: String
+    /// Convex `translations` row id, used by the report action.
+    let translationId: String
     let translation: String
     let confidence: Double
     let riskFlags: [String]
@@ -66,6 +67,33 @@ struct ReaderTranslation: Decodable {
     let citations: [ReaderCitation]
     let sourceReferenceUrl: String?
     let cached: Bool
+}
+
+struct TranslationAIReview: Decodable, Equatable, Sendable {
+    let model: String
+    let score: Double
+    let riskFlags: [String]
+    let missingMeaning: [String]?
+    let addedMeaning: [String]?
+    let glossaryIssues: [String]?
+    let recommendation: String
+
+    var reviewNotes: [String] {
+        riskFlags
+            + (missingMeaning ?? []).map { "Missing meaning: \($0)" }
+            + (addedMeaning ?? []).map { "Added meaning: \($0)" }
+            + (glossaryIssues ?? []).map { "Terminology: \($0)" }
+    }
+}
+
+struct TranslationSubmissionResult: Decodable, Equatable, Sendable {
+    let submissionId: String
+    let aiReview: TranslationAIReview
+    let status: String
+}
+
+struct TranslationReportResult: Decodable, Equatable, Sendable {
+    let ok: Bool
 }
 
 /// Maps Convex action failures to reader-facing states. The backend reports

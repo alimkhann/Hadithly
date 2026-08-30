@@ -1,4 +1,4 @@
-import { internalMutation, query } from "./_generated/server";
+import { internalMutation, internalQuery, query } from "./_generated/server";
 import { v } from "convex/values";
 
 const citationsValidator = v.optional(
@@ -44,6 +44,12 @@ export const getDefaultForProviderRef = query({
       )
       .first();
   },
+});
+
+/** Internal: resolve a translation before accepting a replacement/report. */
+export const getById = internalQuery({
+  args: { translationId: v.id("translations") },
+  handler: async (ctx, args) => await ctx.db.get(args.translationId),
 });
 
 /**

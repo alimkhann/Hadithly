@@ -338,6 +338,8 @@ private struct HadithBlock: View {
 
     @State private var citationsTranslation: ReaderTranslation?
     @State private var isEditingNote = false
+    @State private var isSubmittingTranslation = false
+    @State private var reportedTranslation: ReaderTranslation?
 
     var body: some View {
         VStack(spacing: 16) {
@@ -359,6 +361,8 @@ private struct HadithBlock: View {
             }
 
             translationSection
+
+            contributionRow
 
             Text(hadith.referenceDisplay)
                 .font(.caption2)
@@ -388,6 +392,23 @@ private struct HadithBlock: View {
             )
             .presentationDetents([.medium])
         }
+        .sheet(isPresented: $isSubmittingTranslation) {
+            TranslationSubmissionSheet(
+                model: model,
+                hadith: hadith,
+                existingTranslation: activeTranslation,
+                initialContent: displayedTranslation ?? ""
+            )
+            .presentationDetents([.large])
+        }
+        .sheet(item: $reportedTranslation) { translation in
+            TranslationReportSheet(
+                model: model,
+                translation: translation,
+                referenceDisplay: hadith.referenceDisplay
+            )
+            .presentationDetents([.medium])
+        }
     }
 
     private var hadithMedallion: some View {
@@ -403,7 +424,7 @@ private struct HadithBlock: View {
     private var translationSection: some View {
         if language == "en" {
             if let english = hadith.englishText, !english.isEmpty {
-                translationText(english, isAI: false)
+                translationText(english)
             } else {
                 Text("No English translation available yet.")
                     .font(.caption)
@@ -428,7 +449,7 @@ private struct HadithBlock: View {
             .padding(.vertical, 6)
 
         case .loaded(let translation):
-            translationText(translation.translation, isAI: true)
+            translationText(translation.translation, storedTranslation: translation)
             if !translation.glossaryNotes.isEmpty {
                 glossaryNotes(translation.glossaryNotes)
             }
@@ -457,10 +478,15 @@ private struct HadithBlock: View {
         }
     }
 
-    private func translationText(_ text: String, isAI: Bool) -> some View {
+    private func translationText(
+        _ text: String,
+        storedTranslation: ReaderTranslation? = nil
+    ) -> some View {
         VStack(spacing: 10) {
-            if isAI {
+            if let storedTranslation, storedTranslation.source == "gemini_ai" {
                 aiBadge
+            } else if storedTranslation?.source == "community" {
+                communityBadge
             }
             Text(text)
                 .font(.system(size: 16, weight: .regular))
@@ -468,7 +494,11 @@ private struct HadithBlock: View {
                 .multilineTextAlignment(.leading)
                 .foregroundStyle(Theme.textPrimary.opacity(0.92))
                 .fixedSize(horizontal: false, vertical: true)
-                .accessibilityIdentifier(isAI ? "reader.aiTranslation" : "reader.translation")
+                .accessibilityIdentifier(
+                    storedTranslation?.source == "gemini_ai"
+                        ? "reader.aiTranslation"
+                        : "reader.translation"
+                )
         }
     }
 
@@ -498,6 +528,24 @@ private struct HadithBlock: View {
         .accessibilityIdentifier("reader.aiBadge")
     }
 
+    private var communityBadge: some View {
+        HStack(spacing: 5) {
+            Image(systemName: "checkmark.shield")
+                .font(.caption2)
+            Text("Community")
+                .font(.caption2.weight(.bold))
+            Text("· admin approved")
+                .font(.caption2)
+                .foregroundStyle(Theme.textSecondary)
+        }
+        .foregroundStyle(Theme.accent)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(Theme.accentSoft)
+        .clipShape(Capsule())
+        .accessibilityIdentifier("reader.communityBadge")
+    }
+
     private func glossaryNotes(_ notes: [String]) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             ForEach(notes, id: \.self) { note in
@@ -525,6 +573,42 @@ private struct HadithBlock: View {
             }
         }
         .padding(.vertical, 8)
+    }
+
+    private var activeTranslation: ReaderTranslation? {
+        guard case .loaded(let translation) = translationState else { return nil }
+        return translation
+    }
+
+    private var displayedTranslation: String? {
+        if language == "en" {
+            return hadith.englishText
+        }
+        return activeTranslation?.translation
+    }
+
+    private var contributionRow: some View {
+        HStack(spacing: 18) {
+            Button {
+                isSubmittingTranslation = true
+            } label: {
+                Label("Suggest translation", systemImage: "text.bubble")
+            }
+            .accessibilityIdentifier("reader.suggestTranslation")
+
+            if let activeTranslation {
+                Button {
+                    reportedTranslation = activeTranslation
+                } label: {
+                    Label("Report", systemImage: "flag")
+                }
+                .accessibilityIdentifier("reader.reportTranslation")
+            }
+        }
+        .font(.caption)
+        .foregroundStyle(Theme.textSecondary.opacity(0.8))
+        .buttonStyle(.plain)
+        .padding(.top, 2)
     }
 }
 
@@ -643,7 +727,7 @@ private struct NoteEditorSheet: View {
 }
 
 extension ReaderTranslation: Identifiable {
-    var id: String { hadithId }
+    var id: String { translationId }
 }
 
 /// A window-level pan recognizer that turns reader pages. SwiftUI gesture

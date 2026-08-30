@@ -4,7 +4,7 @@ This document is the single source of truth for the rebuild. Read it at the
 start of any session. It answers: what is this, what exists, what is next,
 and what already went wrong so you do not repeat it.
 
-Last updated: end of Phase 3 (see the phase table for status).
+Last updated: end of Phase 4 (see the phase table for status).
 
 ## What Hadithly is
 
@@ -92,7 +92,7 @@ every session builds the same app: a quiet book in a dark room.
 | 1 | Auth (Apple, Google, email) + guest mode + user sync | done, verified |
 | 2 | Reader core: pagination, chrome toggle, AI translation on demand | done, verified |
 | 3 | Tabs: Today, Library, Saved, Settings; push notification setup | done, verified |
-| 4 | Translation submissions with AI review and admin approval | not started |
+| 4 | Translation submissions with AI review and admin approval | done, verified |
 | 5 | Android (Compose) port | not started |
 | 6 | RevenueCat paywall, App Store prep, CI | not started |
 
@@ -237,6 +237,41 @@ guest data lives in SwiftData and merges on sign-in ("Merged 0 bookmarks,
 registers a real APNs token into `pushTokens`, and the cron action runs
 clean (no-op until APNs keys). 23 unit tests pass, `npm run typecheck` and
 `npx convex dev --once` clean.
+
+### Phase 4 detail (done, 2026-08-31)
+
+Translation contributions now live inside each hadith block rather than in a
+social/community tab. **Suggest translation** opens a focused editor for the
+reader's current language and calls `actions/ai:submitTranslation`; Gemini
+checks meaning fidelity and terminology, then the sheet shows the contributor
+the private verdict and review notes. Recommendations are deliberately limited
+to `approve`, `admin_review`, and `reject` — there is no community-review,
+voting, ranking, reputation, or public-stat path.
+
+Stored AI/community translations also expose a quiet **Report** action. It
+calls `actions/ai:reportTranslation` with the actual translation row id, trims
+and validates the private reason, and confirms delivery without turning the
+report into a vote or rating.
+
+Admin approval is server-authorized. `users.isAdmin` can only be assigned with
+the internal `community:setAdmin` dashboard/CLI function; the app observes
+`community:canModerate` and reveals a minimal Settings review queue only to
+admins. The queue comes from `community:listPendingSubmissions`, and approval
+calls the authenticated `community:approveSubmission` mutation. Approval is
+idempotent, writes `adminAuditLog`, demotes the prior default without deleting
+it, and publishes the approved community text as the new default. The reader
+labels it **Community · admin approved**, never as AI.
+
+Verified end to end on the Adat iPhone 17 Pro simulator with the dedicated
+`Phase4Live` XCUITest scheme: open Bukhari, select Russian, submit a proposal,
+receive and display Gemini's verdict, file a private report, approve from the
+admin queue, reopen the reader, and observe the approved community default.
+The test kept screenshots for the verdict, report confirmation, empty admin
+queue, and community badge; Convex rows were confirmed for the approved
+submission, open report, live default translation, and admin audit entry.
+24 unit tests pass, `npm run typecheck` and `npx convex dev --once` are clean.
+The live scheme intentionally calls Gemini and mutates the dev deployment, so
+it is separate from the normal `Hadithly` unit-test scheme.
 
 ## Mistakes already made, do not repeat
 

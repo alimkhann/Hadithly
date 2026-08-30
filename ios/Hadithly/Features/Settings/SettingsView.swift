@@ -12,6 +12,7 @@ struct SettingsView: View {
     @Environment(PushNotificationManager.self) private var push
 
     @State private var isSigningOut = false
+    @State private var showAdminReview = false
     @AppStorage("reader.arabicFontSize") private var arabicFontSize: Double = 26
     @AppStorage("user.preferredLanguage") private var preferredLanguage = "en"
 
@@ -28,6 +29,12 @@ struct SettingsView: View {
 
                 NotificationCard()
 
+                if environment.canModerate {
+                    AdminModerationCard {
+                        showAdminReview = true
+                    }
+                }
+
                 #if DEBUG
                 GuestDataDebugCard()
                 #endif
@@ -38,6 +45,10 @@ struct SettingsView: View {
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.large)
         .task { library.refresh() }
+        .sheet(isPresented: $showAdminReview) {
+            AdminReviewSheet()
+                .presentationDetents([.large])
+        }
     }
 
     private func signOut() async {
@@ -45,6 +56,37 @@ struct SettingsView: View {
         defer { isSigningOut = false }
         try? await Clerk.shared.auth.signOut()
         environment.handleSignOut()
+    }
+}
+
+private struct AdminModerationCard: View {
+    let openReview: () -> Void
+
+    var body: some View {
+        Button(action: openReview) {
+            HStack(spacing: 12) {
+                Image(systemName: "checkmark.shield")
+                    .font(.title3)
+                    .foregroundStyle(Theme.accent)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Translation review")
+                        .font(.headline)
+                        .foregroundStyle(Theme.textPrimary)
+                    Text("Approve AI-reviewed contributions")
+                        .font(.caption)
+                        .foregroundStyle(Theme.textSecondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Theme.textSecondary)
+            }
+            .padding(16)
+            .background(Theme.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("settings.translationReview")
     }
 }
 

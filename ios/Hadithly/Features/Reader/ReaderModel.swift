@@ -316,6 +316,39 @@ final class ReaderModel {
         }
     }
 
+    // MARK: - Translation contributions
+
+    var canContribute: Bool { isSignedIn() }
+
+    func submitTranslation(
+        for hadith: ReaderHadith,
+        proposedContent: String,
+        replacing translation: ReaderTranslation?
+    ) async throws -> TranslationSubmissionResult {
+        var args: [String: ConvexEncodable?] = [
+            "hadithInternalId": hadith.internalId as ConvexEncodable?,
+            "language": language as ConvexEncodable?,
+            "proposedContent": proposedContent as ConvexEncodable?,
+        ]
+        if let translation {
+            args["replacesTranslationId"] = translation.translationId as ConvexEncodable?
+        }
+        return try await convex.action(
+            "actions/ai:submitTranslation",
+            with: args
+        )
+    }
+
+    func reportTranslation(_ translation: ReaderTranslation, reason: String) async throws {
+        let _: TranslationReportResult = try await convex.action(
+            "actions/ai:reportTranslation",
+            with: [
+                "translationId": translation.translationId as ConvexEncodable?,
+                "reason": reason as ConvexEncodable?,
+            ]
+        )
+    }
+
     // MARK: - Saved data (bookmarks / favorites / notes / progress)
 
     private func ref(for hadith: ReaderHadith) -> HadithRef {

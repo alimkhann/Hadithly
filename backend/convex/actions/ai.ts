@@ -39,7 +39,7 @@ type HadithDoc = {
 type Citation = { url: string; title?: string; domain?: string };
 
 type TranslationResult = {
-  hadithId: string;
+  translationId: string;
   translation: string;
   confidence: number;
   riskFlags: string[];
@@ -145,7 +145,7 @@ export const translateHadith = action({
     );
     if (cached) {
       return {
-        hadithId: cached.hadithId as string,
+        translationId: cached._id as string,
         translation: cached.content,
         confidence: cached.confidence ?? 1,
         riskFlags: cached.riskFlags ?? [],
@@ -232,7 +232,7 @@ export const translateHadith = action({
     );
 
     return {
-      hadithId: translationId,
+      translationId,
       translation,
       confidence: payload?.confidence ?? 0.5,
       riskFlags: payload?.riskFlags ?? [],
@@ -257,7 +257,6 @@ type AiReview = {
   glossaryIssues?: string[];
   recommendation:
     | "approve"
-    | "community_review"
     | "admin_review"
     | "reject";
 };
@@ -273,7 +272,7 @@ async function reviewWithGemini(
     "Compare the proposal against the Arabic source and the English reference.",
     "Judge meaning fidelity, tone, and proper rendering of Islamic terms. Do not judge style preference.",
     "Be conservative: for religious text, uncertainty must escalate to human review.",
-    'Respond with ONLY a single JSON object, no prose and no code fences, in exactly this shape: {"score": number between 0 and 1, "riskFlags": string[], "missingMeaning": string[], "addedMeaning": string[], "glossaryIssues": string[], "recommendation": "approve" | "community_review" | "admin_review" | "reject"}.',
+    'Respond with ONLY a single JSON object, no prose and no code fences, in exactly this shape: {"score": number between 0 and 1, "riskFlags": string[], "missingMeaning": string[], "addedMeaning": string[], "glossaryIssues": string[], "recommendation": "approve" | "admin_review" | "reject"}.',
     "",
     `Reference: ${hadith.referenceDisplay}`,
     `Narrator: ${hadith.narrator ?? "Unknown"}`,
@@ -301,7 +300,6 @@ async function reviewWithGemini(
             type: Type.STRING,
             enum: [
               "approve",
-              "community_review",
               "admin_review",
               "reject",
             ],
@@ -317,13 +315,16 @@ async function reviewWithGemini(
       (extractObjectJson(response.text ?? "") ?? "{}") as string,
     ) as Partial<AiReview>;
     const recommendation = (
-      ["approve", "community_review", "admin_review", "reject"] as const
+      ["approve", "admin_review", "reject"] as const
     ).includes(raw.recommendation as AiReview["recommendation"])
       ? (raw.recommendation as AiReview["recommendation"])
       : "admin_review";
     return {
       model: GEMINI_REVIEW_MODEL,
-      score: typeof raw.score === "number" ? raw.score : 0.5,
+      score:
+        typeof raw.score === "number"
+          ? Math.max(0, Math.min(1, raw.score))
+          : 0.5,
       riskFlags: raw.riskFlags ?? [],
       missingMeaning: raw.missingMeaning ?? [],
       addedMeaning: raw.addedMeaning ?? [],
@@ -358,6 +359,7 @@ export const submitTranslation = action({
     hadithInternalId: v.string(),
     language: v.string(),
     proposedContent: v.string(),
+    replacesTranslationId: v.optional(v.id("translations")),
   },
   handler: async (
     ctx,
@@ -381,10 +383,25 @@ export const submitTranslation = action({
     if (!args.proposedContent.trim()) {
       throw new Error("Translation proposal must not be empty");
     }
+    const language = args.language.trim();
+    if (!language) throw new Error("Translation language must not be empty");
+
+    if (args.replacesTranslationId) {
+      const replaced = await ctx.runQuery(internal.translations.getById, {
+        translationId: args.replacesTranslationId,
+      });
+      if (
+        !replaced ||
+        replaced.hadithId !== hadith._id ||
+        replaced.language !== language
+      ) {
+        throw new Error("Replacement translation does not match this hadith");
+      }
+    }
 
     const aiReview = await reviewWithGemini(
       hadith,
-      args.language,
+      language,
       args.proposedContent,
     );
     const status =
@@ -399,8 +416,9 @@ export const submitTranslation = action({
       {
         clerkId: identity.clerkId,
         hadithId: hadith._id,
-        language: args.language,
+        language,
         proposedContent: args.proposedContent.trim(),
+        replacesTranslationId: args.replacesTranslationId,
         aiReview,
         status,
       },
@@ -421,10 +439,16 @@ export const reportTranslation = action({
     const userRow = await ctx.runQuery(internal.users.getByClerkId, {
       clerkId: identity.clerkId,
     });
+    const reason = args.reason.trim();
+    if (!reason) throw new Error("Report reason must not be empty");
+    const translation = await ctx.runQuery(internal.translations.getById, {
+      translationId: args.translationId,
+    });
+    if (!translation) throw new Error("Translation not found");
     await ctx.runMutation(internal.community.insertReport, {
       translationId: args.translationId,
       reporterUserId: userRow?._id,
-      reason: args.reason,
+      reason,
     });
     return { ok: true };
   },

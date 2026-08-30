@@ -63,7 +63,7 @@ final class ReaderModelsTests: XCTestCase {
     func testTranslationDecodes() throws {
         let json = """
         {
-          "hadithId": "tx1",
+          "translationId": "tx1",
           "translation": "Die Taten richten sich nach den Absichten.",
           "confidence": 0.9,
           "riskFlags": [],
@@ -78,9 +78,42 @@ final class ReaderModelsTests: XCTestCase {
         }
         """
         let translation = try JSONDecoder().decode(ReaderTranslation.self, from: Data(json.utf8))
+        XCTAssertEqual(translation.translationId, "tx1")
         XCTAssertEqual(translation.citations.count, 1)
         XCTAssertEqual(translation.citations[0].domain, "sunnah.com")
         XCTAssertEqual(translation.sourceLabel, "AI")
+    }
+
+    func testSubmissionVerdictDecodesAndCollectsReviewNotes() throws {
+        let json = """
+        {
+          "submissionId": "submission1",
+          "status": "needs_admin",
+          "aiReview": {
+            "model": "gemini-2.5-flash-lite",
+            "score": 0.72,
+            "riskFlags": ["ambiguous pronoun"],
+            "missingMeaning": ["chain attribution"],
+            "addedMeaning": [],
+            "glossaryIssues": ["use an established rendering"],
+            "recommendation": "admin_review"
+          }
+        }
+        """
+        let result = try JSONDecoder().decode(
+            TranslationSubmissionResult.self,
+            from: Data(json.utf8)
+        )
+        XCTAssertEqual(result.status, "needs_admin")
+        XCTAssertEqual(result.aiReview.recommendation, "admin_review")
+        XCTAssertEqual(
+            result.aiReview.reviewNotes,
+            [
+                "ambiguous pronoun",
+                "Missing meaning: chain attribution",
+                "Terminology: use an established rendering",
+            ]
+        )
     }
 
     func testTranslationFailureClassification() {

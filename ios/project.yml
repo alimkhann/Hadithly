@@ -72,6 +72,17 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.hadithly.app.tests
         GENERATE_INFOPLIST_FILE: true
+  HadithlyUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - HadithlyUITests
+    dependencies:
+      - target: Hadithly
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.hadithly.app.uitests
+        GENERATE_INFOPLIST_FILE: true
 schemes:
   Hadithly:
     build:
@@ -84,3 +95,12 @@ schemes:
       config: Debug
       targets:
         - HadithlyTests
+  Phase4Live:
+    build:
+      targets:
+        Hadithly: all
+        HadithlyUITests: [test]
+    test:
+      config: Debug
+      targets:
+        - HadithlyUITests
