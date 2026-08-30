@@ -23,7 +23,9 @@
       }
     },
     "plugins": [
+      "@clerk/expo",
       "expo-router",
+      "expo-apple-authentication",
       "expo-notifications",
       "expo-sqlite",
       [

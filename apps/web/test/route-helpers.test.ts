@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 
 import { parsePositiveInt } from "../lib/hadith-provider";
-import { requireCronSecret } from "../lib/route-auth";
+import { requireClerkAuth, requireCronSecret } from "../lib/route-auth";
 import { parseInternalHadithId, shouldUseConvex } from "../lib/convex-server";
 
 describe("parsePositiveInt", () => {
@@ -47,6 +47,46 @@ describe("requireCronSecret", () => {
     );
 
     expect(response).toBeNull();
+  });
+});
+
+describe("requireClerkAuth", () => {
+  const originalSecret = process.env.CLERK_SECRET_KEY;
+
+  afterEach(() => {
+    process.env.CLERK_SECRET_KEY = originalSecret;
+  });
+
+  it("rejects authenticated routes when Clerk is not configured", async () => {
+    delete process.env.CLERK_SECRET_KEY;
+
+    const result = await requireClerkAuth(
+      new Request("https://hadithly.test/api/translate/generate"),
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.response.status).toBe(503);
+      await expect(result.response.json()).resolves.toEqual({
+        error: "CLERK_SECRET_KEY is not configured",
+      });
+    }
+  });
+
+  it("rejects requests without a bearer token", async () => {
+    process.env.CLERK_SECRET_KEY = "secret";
+
+    const result = await requireClerkAuth(
+      new Request("https://hadithly.test/api/translate/generate"),
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.response.status).toBe(401);
+      await expect(result.response.json()).resolves.toEqual({
+        error: "Authentication required",
+      });
+    }
   });
 });
 

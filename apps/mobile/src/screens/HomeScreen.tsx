@@ -6,9 +6,15 @@ import {
   BookOpen,
   ChevronRight,
   Search,
-  Sparkles,
 } from "lucide-react-native";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
@@ -18,18 +24,35 @@ import {
   PrimaryButton,
   ProgressBar,
   SectionHeader,
-  TopicChip,
 } from "@/components/Prototype";
-import { dailyHadith, topics } from "@/data/sample";
-import { toCollectionCard, useBooks } from "@/lib/hadith";
+import {
+  toCollectionCard,
+  toReaderHadith,
+  useBooks,
+  useHadithPage,
+} from "@/lib/hadith";
 import { registerDailyHadithNotifications } from "@/lib/notifications";
+import { buildReaderHref } from "@/lib/reader-state";
 
 const t = themes.light;
 const go = (href: string) => router.push(href as never);
 
 export function HomeScreen() {
-  const { books } = useBooks();
+  const { height } = useWindowDimensions();
+  const { books, isLoading: booksLoading } = useBooks();
+  const dailyPage = useHadithPage({
+    collectionSlug: "bukhari",
+    page: 1,
+    pageSize: 1,
+  });
   const collections = books.map(toCollectionCard);
+  const dailyHadith = dailyPage.items[0]
+    ? toReaderHadith(dailyPage.items[0])
+    : null;
+  const continueCollection = collections[0];
+  const continueHref = continueCollection
+    ? buildReaderHref({ collectionSlug: continueCollection.slug, page: 1 })
+    : "/reader/bukhari?page=1&pageSize=8";
 
   return (
     <SafeAreaView edges={["top"]} style={styles.safe}>
@@ -54,79 +77,77 @@ export function HomeScreen() {
 
         <Pressable onPress={() => go("/search")} style={styles.search}>
           <Search color={t.textSec} size={17} strokeWidth={1.8} />
-          <Text style={styles.searchText}>
-            Search hadiths, collections, topics…
-          </Text>
+          <Text style={styles.searchText}>Search hadiths and collections…</Text>
         </Pressable>
 
         <View style={styles.section}>
           <SectionHeader>Today's hadith</SectionHeader>
-          <Card padding={18}>
-            <View style={styles.metaRow}>
-              <Text style={styles.ref}>1:1</Text>
-              <View style={styles.spacer} />
-              <Chip variant="outline">{dailyHadith.grade}</Chip>
-              <Chip variant="soft">
-                <View style={styles.inlineChip}>
-                  <Sparkles color={t.accent} size={10} />
-                  <Text style={styles.softChipText}>AI</Text>
+          <Card
+            padding={18}
+            style={[styles.dailyCard, { maxHeight: Math.floor(height * 0.46) }]}
+          >
+            {dailyHadith ? (
+              <>
+                <View style={styles.metaRow}>
+                  <Text style={styles.ref}>{dailyHadith.providerHadithId}</Text>
+                  <View style={styles.spacer} />
+                  <Chip variant="outline">{dailyHadith.grade}</Chip>
+                  <Chip variant="secondary">Official</Chip>
                 </View>
-              </Chip>
-              <Text style={styles.rating}>{dailyHadith.ratingPercent}%</Text>
-            </View>
-            <Text style={styles.arabic}>{dailyHadith.arabic}</Text>
-            <Text style={styles.translation}>
-              Поистине, дела оцениваются по намерениям, и каждому достанется
-              лишь то, что он намеревался обрести…
-            </Text>
-            <View style={styles.cardFooter}>
-              <Text style={styles.narrator}>Narrated by Umar (ra)</Text>
-              <Pressable onPress={() => go("/reader/bukhari")}>
-                <PrimaryButton
-                  iconRight={<ArrowRight color="#FFFFFF" size={13} />}
-                >
-                  Read today
-                </PrimaryButton>
-              </Pressable>
-            </View>
+                <Text numberOfLines={7} style={styles.arabic}>
+                  {dailyHadith.arabic}
+                </Text>
+                <Text numberOfLines={3} style={styles.translation}>
+                  {dailyHadith.translation}
+                </Text>
+                <View style={styles.cardFooter}>
+                  <Text style={styles.narrator}>
+                    {dailyHadith.narrator || dailyHadith.book}
+                  </Text>
+                  <Pressable onPress={() => go(continueHref)}>
+                    <PrimaryButton
+                      iconRight={<ArrowRight color="#FFFFFF" size={13} />}
+                    >
+                      Read today
+                    </PrimaryButton>
+                  </Pressable>
+                </View>
+              </>
+            ) : (
+              <Text style={styles.emptyText}>
+                {dailyPage.isLoading
+                  ? "Loading today's hadith..."
+                  : "Today's hadith is unavailable. Check the API connection."}
+              </Text>
+            )}
           </Card>
         </View>
 
-        <View style={styles.section}>
-          <SectionHeader>Continue reading</SectionHeader>
-          <Pressable onPress={() => go("/reader/bukhari")}>
-            <Card padding={14} style={styles.continueCard}>
-              <View style={styles.bookTile}>
-                <BookOpen color="#FFFFFF" size={22} />
-              </View>
-              <View style={styles.continueText}>
-                <Text style={styles.continueTitle}>Sahih al-Bukhari</Text>
-                <Text style={styles.continueSubtitle}>
-                  Book of Belief · Hadith 8
-                </Text>
-                <View style={styles.progressWrap}>
-                  <ProgressBar value={11} />
+        {continueCollection ? (
+          <View style={styles.section}>
+            <SectionHeader>Continue reading</SectionHeader>
+            <Pressable onPress={() => go(continueHref)}>
+              <Card padding={14} style={styles.continueCard}>
+                <View style={styles.bookTile}>
+                  <BookOpen color="#FFFFFF" size={22} />
                 </View>
-                <Text style={styles.continueTime}>11% · 2 hours ago</Text>
-              </View>
-              <ChevronRight color={t.textTer} size={18} />
-            </Card>
-          </Pressable>
-        </View>
-
-        <View style={styles.section}>
-          <SectionHeader>Browse by topic</SectionHeader>
-          <View style={styles.topicWrap}>
-            {topics.map(({ label, color }) => (
-              <Pressable
-                key={label}
-                onPress={() => go(`/topic/${label.toLowerCase()}`)}
-              >
-                <TopicChip color={color} label={label} />
-              </Pressable>
-            ))}
+                <View style={styles.continueText}>
+                  <Text style={styles.continueTitle}>
+                    {continueCollection.title}
+                  </Text>
+                  <Text style={styles.continueSubtitle}>
+                    Start reading collection
+                  </Text>
+                  <View style={styles.progressWrap}>
+                    <ProgressBar value={0} />
+                  </View>
+                  <Text style={styles.continueTime}>Page 1</Text>
+                </View>
+                <ChevronRight color={t.textTer} size={18} />
+              </Card>
+            </Pressable>
           </View>
-        </View>
+        ) : null}
 
         <View style={styles.section}>
           <SectionHeader>Collections</SectionHeader>
@@ -150,16 +171,24 @@ export function HomeScreen() {
                   <Text numberOfLines={2} style={styles.collectionTitle}>
                     {collection.title}
                   </Text>
-                  <Text style={styles.collectionArabic}>
-                    {collection.arabic}
-                  </Text>
+                  {collection.arabic ? (
+                    <Text style={styles.collectionArabic}>
+                      {collection.arabic}
+                    </Text>
+                  ) : null}
                   <Text style={styles.collectionMeta}>
-                    {collection.count.toLocaleString()} · {collection.coverage}%
-                    RU
+                    {collection.count
+                      ? `${collection.count.toLocaleString()} hadith`
+                      : "Provider collection"}
                   </Text>
                 </Card>
               </Pressable>
             ))}
+            {!booksLoading && collections.length === 0 ? (
+              <Text style={styles.emptyText}>
+                No provider collections loaded.
+              </Text>
+            ) : null}
           </ScrollView>
         </View>
       </ScrollView>
@@ -244,6 +273,14 @@ const styles = StyleSheet.create({
     color: t.textSec,
     fontSize: 10.5,
   },
+  emptyText: {
+    color: t.textSec,
+    fontSize: 13,
+    lineHeight: 20,
+  },
+  dailyCard: {
+    overflow: "hidden",
+  },
   arabic: {
     color: t.text,
     fontSize: 22,
@@ -304,11 +341,6 @@ const styles = StyleSheet.create({
     color: t.textTer,
     fontSize: 11,
     marginTop: 4,
-  },
-  topicWrap: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
   },
   collectionScroll: {
     marginHorizontal: -20,

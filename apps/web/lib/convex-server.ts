@@ -1,4 +1,9 @@
-import type { Hadith, HadithProviderName, Translation } from "@hadithly/types";
+import type {
+  Citation,
+  Hadith,
+  HadithProviderName,
+  Translation,
+} from "@hadithly/types";
 import { ConvexHttpClient } from "convex/browser";
 import { makeFunctionReference } from "convex/server";
 
@@ -42,6 +47,10 @@ const cacheGeminiTranslationForProviderRef = makeFunctionReference<
     aiModel: string;
     confidence?: number;
     riskFlags?: string[];
+    groundingUsed?: boolean;
+    groundingSourceCount?: number;
+    citations?: Citation[];
+    sourceReferenceUrl?: string;
   },
   string
 >("translations:cacheGeminiTranslationForProviderRef");
@@ -76,6 +85,21 @@ const upsertCurrentUser = makeFunctionReference<
   },
   string
 >("users:upsertCurrentUser");
+const incrementAiGeneration = makeFunctionReference<
+  "mutation",
+  { userId: string },
+  void
+>("quotas:incrementAiGeneration");
+const canGenerateAi = makeFunctionReference<
+  "query",
+  { userId: string },
+  boolean
+>("quotas:canGenerateAi");
+const resetMonthlyAiUsage = makeFunctionReference<
+  "mutation",
+  Record<string, never>,
+  number
+>("quotas:resetMonthlyAiUsage");
 const savePushToken = makeFunctionReference<
   "mutation",
   {
@@ -160,6 +184,10 @@ export async function cacheGeminiTranslation(args: {
   aiModel: string;
   confidence?: number;
   riskFlags?: string[];
+  groundingUsed?: boolean;
+  groundingSourceCount?: number;
+  citations?: Citation[];
+  sourceReferenceUrl?: string;
 }) {
   const ref = parseInternalHadithId(args.hadithId);
   const client = getConvexClient();
@@ -171,6 +199,10 @@ export async function cacheGeminiTranslation(args: {
     aiModel: args.aiModel,
     confidence: args.confidence,
     riskFlags: args.riskFlags,
+    groundingUsed: args.groundingUsed,
+    groundingSourceCount: args.groundingSourceCount,
+    citations: args.citations,
+    sourceReferenceUrl: args.sourceReferenceUrl,
   });
 }
 
@@ -216,4 +248,34 @@ export async function saveUserPushToken(args: {
     dailyTime: args.dailyTime,
     enabled: true,
   });
+}
+
+export async function upsertApiUser(args: {
+  clerkId: string;
+  email?: string;
+  displayName?: string;
+  avatarUrl?: string;
+  preferredLanguage?: string;
+}) {
+  const client = getConvexClient();
+  if (!client) return null;
+  return await client.mutation(upsertCurrentUser, args);
+}
+
+export async function incrementAiGenerationForUser(userId: string) {
+  const client = getConvexClient();
+  if (!client) return null;
+  return await client.mutation(incrementAiGeneration, { userId });
+}
+
+export async function canGenerateAiForUser(userId: string) {
+  const client = getConvexClient();
+  if (!client) return null;
+  return await client.query(canGenerateAi, { userId });
+}
+
+export async function resetMonthlyAiUsageForAll() {
+  const client = getConvexClient();
+  if (!client) return null;
+  return await client.mutation(resetMonthlyAiUsage, {});
 }

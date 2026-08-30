@@ -57,14 +57,19 @@ export function LibraryScreen() {
             </View>
             <View style={styles.copy}>
               <Text style={styles.collectionTitle}>{collection.title}</Text>
-              <Text style={styles.arabic}>{collection.arabic}</Text>
+              {collection.arabic ? (
+                <Text style={styles.arabic}>{collection.arabic}</Text>
+              ) : null}
               <Text style={styles.meta}>
-                {collection.count.toLocaleString()} hadith ·{" "}
-                {collection.coverage}% RU
+                {collection.count
+                  ? `${collection.count.toLocaleString()} hadith`
+                  : "Provider collection"}
               </Text>
-              <View style={styles.progress}>
-                <ProgressBar height={2.5} value={collection.coverage} />
-              </View>
+              {collection.coverage !== undefined ? (
+                <View style={styles.progress}>
+                  <ProgressBar height={2.5} value={collection.coverage} />
+                </View>
+              ) : null}
             </View>
             <Text style={styles.chevron}>›</Text>
           </Pressable>

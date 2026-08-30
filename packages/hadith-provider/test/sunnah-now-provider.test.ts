@@ -100,6 +100,43 @@ describe("SunnahNowProvider", () => {
     expect(result.sourceRoute).toBe("/api/early-access/book/bukhari/hadith");
   });
 
+  it("builds a trusted volume index from provider metadata without chapter-route guesses", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        jsonResponse({
+          metadata: { collection: "Sahih al-Bukhari", slug: "bukhari" },
+        }),
+      )
+      .mockResolvedValueOnce(jsonResponse(hadithResponse))
+      .mockResolvedValueOnce(jsonResponse([]));
+    const provider = new SunnahNowProvider({
+      apiKey: "test-key",
+      fetch: fetchMock,
+    });
+
+    await expect(provider.getCollectionIndex("bukhari")).resolves.toEqual({
+      book: { collection: "Sahih al-Bukhari", slug: "bukhari" },
+      volumes: [
+        {
+          volumeId: "1",
+          title: "Volume 1",
+          firstChapterTitle: "How the Divine Revelation started",
+          firstChapterArabicTitle: "باب بدء الوحي",
+          hadithCount: 1,
+          route: {
+            collectionSlug: "bukhari",
+            volumeId: "1",
+          },
+        },
+      ],
+      chapters: [],
+      indexTrusted: true,
+      source: "sunnah_now",
+      indexedAt: expect.any(Number),
+    });
+  });
+
   it("refuses direct single-hadith reads because Sunnah.now currently returns slug-unsafe results", async () => {
     const fetchMock = vi
       .fn()

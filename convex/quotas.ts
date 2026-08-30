@@ -1,5 +1,14 @@
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+
+export const canGenerateAi = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) return false;
+    return user.aiGenerationsThisMonth < user.aiGenerationLimit;
+  },
+});
 
 export const incrementAiGeneration = mutation({
   args: { userId: v.id("users") },
@@ -11,9 +20,9 @@ export const incrementAiGeneration = mutation({
     }
     await ctx.db.patch(args.userId, {
       aiGenerationsThisMonth: user.aiGenerationsThisMonth + 1,
-      updatedAt: Date.now()
+      updatedAt: Date.now(),
     });
-  }
+  },
 });
 
 export const resetMonthlyAiUsage = mutation({
@@ -24,10 +33,10 @@ export const resetMonthlyAiUsage = mutation({
       users.map((user) =>
         ctx.db.patch(user._id, {
           aiGenerationsThisMonth: 0,
-          updatedAt: Date.now()
-        })
-      )
+          updatedAt: Date.now(),
+        }),
+      ),
     );
     return users.length;
-  }
+  },
 });

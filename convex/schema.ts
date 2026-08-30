@@ -106,6 +106,16 @@ export default defineSchema({
     riskFlags: v.optional(v.array(v.string())),
     groundingUsed: v.boolean(),
     groundingSourceCount: v.optional(v.number()),
+    citations: v.optional(
+      v.array(
+        v.object({
+          url: v.string(),
+          title: v.optional(v.string()),
+          domain: v.optional(v.string()),
+        }),
+      ),
+    ),
+    sourceReferenceUrl: v.optional(v.string()),
     upvotes: v.number(),
     downvotes: v.number(),
     ratingPercent: v.optional(v.number()),

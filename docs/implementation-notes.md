@@ -17,3 +17,17 @@ Live checks showed Sunnah.now is available, but the single-hadith route may not 
 ## Mobile
 
 The Expo app is iOS/Android-first. The default monorepo `build` task typechecks mobile rather than exporting a web build; the Next app owns the web landing surface.
+
+## Auth and AI quota
+
+Mobile auth uses Clerk Expo with secure token cache. Configure the Clerk dashboard with Apple, Google, and email-code sign-in, and add the native redirect URL:
+
+```txt
+hadithly://oauth-native-callback
+```
+
+Convex should be configured with the Clerk JWT template named `convex` before using authenticated Convex mutations from mobile. New Gemini generations require a Clerk bearer token and Convex quota enforcement; cached translations remain readable without auth.
+
+## Provider-truth navigation
+
+Do not add local fake book/chapter rows to the mobile app. Collection detail may show chapter links only when they were discovered from real provider/cache metadata. Otherwise, the reader opens the collection at page 1 and uses provider paginated reads.

@@ -1,6 +1,16 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
+const citationsValidator = v.optional(
+  v.array(
+    v.object({
+      url: v.string(),
+      title: v.optional(v.string()),
+      domain: v.optional(v.string()),
+    }),
+  ),
+);
+
 export const getDefault = query({
   args: {
     hadithId: v.id("hadiths"),
@@ -61,6 +71,10 @@ export const cacheGeminiTranslation = mutation({
     confidence: v.optional(v.number()),
     riskFlags: v.optional(v.array(v.string())),
     generatedByUserId: v.optional(v.id("users")),
+    groundingUsed: v.optional(v.boolean()),
+    groundingSourceCount: v.optional(v.number()),
+    citations: citationsValidator,
+    sourceReferenceUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const now = Date.now();
@@ -77,7 +91,10 @@ export const cacheGeminiTranslation = mutation({
       isDefault: true,
       confidence: args.confidence,
       riskFlags: args.riskFlags,
-      groundingUsed: false,
+      groundingUsed: args.groundingUsed ?? false,
+      groundingSourceCount: args.groundingSourceCount,
+      citations: args.citations,
+      sourceReferenceUrl: args.sourceReferenceUrl,
       upvotes: 0,
       downvotes: 0,
       createdAt: now,
@@ -100,6 +117,10 @@ export const cacheGeminiTranslationForProviderRef = mutation({
     aiModel: v.string(),
     confidence: v.optional(v.number()),
     riskFlags: v.optional(v.array(v.string())),
+    groundingUsed: v.optional(v.boolean()),
+    groundingSourceCount: v.optional(v.number()),
+    citations: citationsValidator,
+    sourceReferenceUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const hadith = await ctx.db
@@ -137,7 +158,10 @@ export const cacheGeminiTranslationForProviderRef = mutation({
       isDefault: true,
       confidence: args.confidence,
       riskFlags: args.riskFlags,
-      groundingUsed: false,
+      groundingUsed: args.groundingUsed ?? false,
+      groundingSourceCount: args.groundingSourceCount,
+      citations: args.citations,
+      sourceReferenceUrl: args.sourceReferenceUrl,
       upvotes: 0,
       downvotes: 0,
       ratingPercent: 100,

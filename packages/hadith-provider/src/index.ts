@@ -1,5 +1,6 @@
 import type {
   Book,
+  CollectionIndex,
   Hadith,
   HadithProviderName,
   HadithSearchQuery,
@@ -30,6 +31,7 @@ type SunnahNowHadith = {
 export interface HadithProvider {
   listBooks(): Promise<Book[]>;
   getBook(slug: string): Promise<Book>;
+  getCollectionIndex(slug: string): Promise<CollectionIndex>;
   listHadiths(params: ListHadithParams): Promise<Paginated<Hadith>>;
   getHadith(slug: string, id: string): Promise<Hadith>;
   search(query: HadithSearchQuery): Promise<SearchResult[]>;
@@ -119,10 +121,76 @@ export class SunnahNowProvider implements HadithProvider {
     );
   }
 
+  async getCollectionIndex(slug: string): Promise<CollectionIndex> {
+    const book = await this.getBook(slug);
+    const volumes = new Map<string, CollectionIndex["volumes"][number]>();
+    let page = 1;
+    let hasMore = true;
+
+    while (hasMore && page <= 500) {
+      const nextPage = await this.listHadiths({
+        collectionSlug: slug,
+        page,
+        pageSize: 50,
+      });
+
+      for (const hadith of nextPage.items) {
+        if (!hadith.volumeId) continue;
+        const existing = volumes.get(hadith.volumeId);
+        const firstChapterTitle =
+          existing?.firstChapterTitle ?? hadith.chapterName;
+        const firstChapterArabicTitle =
+          existing?.firstChapterArabicTitle ?? hadith.bookName;
+        volumes.set(hadith.volumeId, {
+          volumeId: hadith.volumeId,
+          title: `Volume ${hadith.volumeId}`,
+          firstChapterTitle,
+          firstChapterArabicTitle,
+          hadithCount: (existing?.hadithCount ?? 0) + 1,
+          route: {
+            collectionSlug: slug,
+            volumeId: hadith.volumeId,
+          },
+        });
+      }
+
+      hasMore = nextPage.hasMore && nextPage.items.length > 0;
+      page += 1;
+    }
+
+    return {
+      book,
+      volumes: Array.from(volumes.values()).sort(
+        (left, right) => Number(left.volumeId) - Number(right.volumeId),
+      ),
+      chapters: [],
+      indexTrusted: volumes.size > 0,
+      source: "sunnah_now",
+      indexedAt: Date.now(),
+    };
+  }
+
   async listHadiths(params: ListHadithParams): Promise<Paginated<Hadith>> {
     const page = params.page ?? 1;
     const pageSize = params.pageSize ?? 50;
     const path = this.listPath(params);
+    if (params.volumeId) {
+      const response = await this.request<SunnahNowHadith[]>(path);
+      const normalized = response
+        .map((hadith) => normalizeHadith(params.collectionSlug, hadith))
+        .filter((hadith) =>
+          params.chapterId ? hadith.chapterId === params.chapterId : true,
+        );
+      const pages = chunkReaderHadiths(normalized, pageSize);
+      const pageIndex = Math.max(0, page - 1);
+      return {
+        items: pages[pageIndex] ?? [],
+        page,
+        pageSize,
+        hasMore: pageIndex < pages.length - 1,
+        sourceRoute: path,
+      };
+    }
     const search = new URLSearchParams({
       page: String(page),
       pageSize: String(pageSize),
@@ -159,9 +227,6 @@ export class SunnahNowProvider implements HadithProvider {
     if (params.volumeId) {
       return `/api/early-access/book/${slug}/volume/${encodeURIComponent(params.volumeId)}`;
     }
-    if (params.chapterId) {
-      return `/api/early-access/book/${slug}/chapter/${encodeURIComponent(params.chapterId)}`;
-    }
     return `/api/early-access/book/${slug}/hadith`;
   }
 
@@ -192,6 +257,7 @@ function normalizeHadith(
   const englishText = language.en?.text;
   const narrator = language.en?.narrator;
   const chapterName = chapterLanguage.en?.text || chapterLanguage.ar?.text;
+  const chapterArabicName = chapterLanguage.ar?.text;
   const collection = collectionName(collectionSlug);
   const authenticity = COLLECTION_AUTHENTICITY[collectionSlug] ?? {
     authenticityAppliesTo: "none" as const,
@@ -210,6 +276,7 @@ function normalizeHadith(
     narrator,
     referenceDisplay: `${collection} · Hadith ${providerHadithId}`,
     collectionName: collection,
+    bookName: chapterArabicName,
     chapterName,
     ...authenticity,
   };
@@ -221,4 +288,32 @@ function collectionName(slug: string) {
 
 function optionalString(value: number | string | undefined) {
   return value === undefined || value === null ? undefined : String(value);
+}
+
+function chunkReaderHadiths(items: Hadith[], requestedPageSize: number) {
+  const maxItems = Math.max(1, Math.min(10, requestedPageSize));
+  const maxChars = 5200;
+  const pages: Hadith[][] = [];
+  let current: Hadith[] = [];
+  let currentChars = 0;
+
+  for (const item of items) {
+    const itemChars =
+      item.arabicText.length +
+      (item.englishText?.length ?? 0) +
+      (item.narrator?.length ?? 0);
+    const shouldStartNext =
+      current.length > 0 &&
+      (current.length >= maxItems || currentChars + itemChars > maxChars);
+    if (shouldStartNext) {
+      pages.push(current);
+      current = [];
+      currentChars = 0;
+    }
+    current.push(item);
+    currentChars += itemChars;
+  }
+
+  if (current.length > 0) pages.push(current);
+  return pages;
 }

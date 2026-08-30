@@ -16,6 +16,43 @@ export type AuthenticityConfidence =
 export type Book = {
   collection: string;
   slug: string;
+  arabicName?: string;
+  hadithCount?: number;
+  authenticityGrade?: string;
+};
+
+export type CollectionChapter = {
+  chapterId: string;
+  title: string;
+  arabicTitle?: string;
+  hadithCount?: number;
+  route: {
+    collectionSlug: string;
+    volumeId?: string;
+    chapterId: string;
+  };
+};
+
+export type CollectionVolume = {
+  volumeId: string;
+  title: string;
+  arabicTitle?: string;
+  firstChapterTitle?: string;
+  firstChapterArabicTitle?: string;
+  hadithCount?: number;
+  route: {
+    collectionSlug: string;
+    volumeId: string;
+  };
+};
+
+export type CollectionIndex = {
+  book: Book;
+  volumes: CollectionVolume[];
+  chapters: CollectionChapter[];
+  indexTrusted: boolean;
+  source: HadithProviderName;
+  indexedAt?: number;
 };
 
 export type Hadith = {
@@ -71,6 +108,12 @@ export type SearchResult = Hadith & {
 export type TranslationSource = "official" | "gemini_ai" | "community";
 export type TranslationStatus = "live" | "pending" | "archived" | "rejected";
 
+export type Citation = {
+  url: string;
+  title?: string;
+  domain?: string;
+};
+
 export type Translation = {
   id: string;
   hadithId: string;
@@ -87,6 +130,8 @@ export type Translation = {
   riskFlags?: string[];
   groundingUsed: boolean;
   groundingSourceCount?: number;
+  citations?: Citation[];
+  sourceReferenceUrl?: string;
   upvotes: number;
   downvotes: number;
   ratingPercent?: number;
