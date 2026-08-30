@@ -1,0 +1,4 @@
+
+> @hadithly/validators@0.1.0 typecheck /Users/alim/Developer/Projects/Apps/Hadithly/packages/validators
+> tsc -p tsconfig.json --noEmit
+

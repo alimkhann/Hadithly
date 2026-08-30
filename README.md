@@ -1,27 +1,20 @@
 # Hadithly
 
-Hadithly is an Expo React Native + Next.js monorepo for a premium hadith reader with transparent Gemini-assisted translations, community review, and mobile subscriptions.
+Read the hadith collections in your language — clean, calm, and true to
+the sources.
 
-## Apps
+- **iOS** — SwiftUI (this repo, `ios/`)
+- **Android** — Jetpack Compose (Phase 5)
+- **Backend** — Convex (`backend/`): hadith data, AI translations, reading data
 
-- `apps/mobile`: Expo app for iOS and Android.
-- `apps/web`: Next.js landing page and privileged API routes.
-- `convex`: Convex schema and backend functions.
+## Product principles
 
-## Packages
+1. A reading app, not a social network. No leaderboards, votes, ratings,
+   or streaks. Translation quality comes from AI review + admin approval.
+2. Reading works signed out. Accounts are optional and only add sync.
+3. AI translations are always labeled, grounded in real sources, and never
+   presented as authoritative.
+4. Paywalls only appear when you hit the free AI-translation quota.
 
-- `@hadithly/hadith-provider`: provider abstraction and Sunnah.now adapter.
-- `@hadithly/types`: shared product and API types.
-- `@hadithly/validators`: shared Zod schemas.
-- `@hadithly/config`: server/client environment helpers.
-- `@hadithly/design-tokens`: colors, spacing, typography, and reader themes copied from the provided design direction.
-
-## Local Setup
-
-```bash
-pnpm install
-cp .env.local.example .env.local
-pnpm dev
-```
-
-Mobile secrets are never shipped directly. Sunnah.now and Gemini are called only from server-side code.
+See `AGENTS.md` for the development guide and `backend/README.md` for
+backend setup.

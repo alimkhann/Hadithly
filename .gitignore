@@ -3,16 +3,21 @@
 .env.*
 !.env.example
 !.env.local.example
-.turbo
-coverage
-dist
-node_modules
-.next
-.expo
-android
-ios
-build
-web-build
-*.log
+node_modules/
 *.tsbuildinfo
-.vercel
+
+# backend
+backend/convex/_generated/
+
+# ios
+ios/build/
+ios/DerivedData/
+ios/Secrets.xcconfig
+ios/**/xcuserdata/
+ios/**/*.xcuserstate
+
+# legacy (archived monorepo artifacts)
+legacy/**/node_modules/
+legacy/**/.next/
+legacy/**/.expo/
+legacy/**/dist/

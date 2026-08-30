@@ -1,0 +1,19 @@
+{
+  "name": "@hadithly/backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Convex-only backend: hadith data proxy, AI translations, user data, webhooks",
+  "scripts": {
+    "dev": "convex dev",
+    "deploy": "convex deploy",
+    "codegen": "convex codegen",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@google/genai": "^1.16.0",
+    "convex": "^1.29.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

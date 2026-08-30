@@ -1,0 +1,557 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 54;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0F9CA9207EAE3EA1A1AA76D0 /* MainTabsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A50BDEFB0F097AEA7D35CC9 /* MainTabsView.swift */; };
+		20B74F1EE251CAEE00BD55FD /* ClerkConvex in Frameworks */ = {isa = PBXBuildFile; productRef = 29379B7F31920A83A0638E04 /* ClerkConvex */; };
+		387B3ED9A915C443A4D6BE7F /* SupportedLanguagesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E44FCAA45E0A462774A84DA1 /* SupportedLanguagesTests.swift */; };
+		3887A0EFC119EAACD310CF7E /* ClerkKit in Frameworks */ = {isa = PBXBuildFile; productRef = 829AFCDEFFE99A7B448DB279 /* ClerkKit */; };
+		581C8B465D5BFD06642298E2 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = E152E3795F9B1126C9D136DC /* AppEnvironment.swift */; };
+		6CDB6D53D800C6E2C13C33C8 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4034D0B1DE93B6783753B19 /* Theme.swift */; };
+		849C4D4523198D349C07F38B /* ClerkKitUI in Frameworks */ = {isa = PBXBuildFile; productRef = C37EE4DED16249B3D49BDD3C /* ClerkKitUI */; };
+		9A4308D33FB86639EB1F1363 /* LanguagePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A83DB98EF37EA23342864B08 /* LanguagePickerView.swift */; };
+		A468D0669C62C5B40BC96CC5 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14379C576B39E8C048BCE832 /* RootView.swift */; };
+		B9DA9BA63624F881531942D5 /* HadithlyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 498F77309F82C41BF08E487B /* HadithlyApp.swift */; };
+		C25A571E80045E330C2F7680 /* ConvexMobile in Frameworks */ = {isa = PBXBuildFile; productRef = F836871A576A842027C728B2 /* ConvexMobile */; };
+		CEA85FC2B3F11A3B8831DD69 /* OnboardingFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA8A15927ABED222640071E /* OnboardingFlowView.swift */; };
+		CF9A54CACB315680F0F4A4BF /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC6379D7CF3A870E5D59B72 /* WelcomeView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		0C6A7D93C4ACFBBAB0893F54 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 85BFC1FCD5CD32091B4C47D3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FF6E57F5954A3B1E72AAD619;
+			remoteInfo = Hadithly;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		14379C576B39E8C048BCE832 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		21B165348425F36BB25A5B5A /* Hadithly.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Hadithly.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2A50BDEFB0F097AEA7D35CC9 /* MainTabsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabsView.swift; sourceTree = "<group>"; };
+		498F77309F82C41BF08E487B /* HadithlyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HadithlyApp.swift; sourceTree = "<group>"; };
+		6737C69F35579741FABA3C09 /* HadithlyTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = HadithlyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9EFA606946A22AF7050BA302 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		A83DB98EF37EA23342864B08 /* LanguagePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguagePickerView.swift; sourceTree = "<group>"; };
+		CEA8A15927ABED222640071E /* OnboardingFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlowView.swift; sourceTree = "<group>"; };
+		DEC6379D7CF3A870E5D59B72 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
+		E152E3795F9B1126C9D136DC /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
+		E4034D0B1DE93B6783753B19 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		E44FCAA45E0A462774A84DA1 /* SupportedLanguagesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportedLanguagesTests.swift; sourceTree = "<group>"; };
+		"TEMP_16666114-4952-47FC-8949-49AFB15B0127" /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		8199428F13960EE68E2D53BA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3887A0EFC119EAACD310CF7E /* ClerkKit in Frameworks */,
+				849C4D4523198D349C07F38B /* ClerkKitUI in Frameworks */,
+				20B74F1EE251CAEE00BD55FD /* ClerkConvex in Frameworks */,
+				C25A571E80045E330C2F7680 /* ConvexMobile in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1C268289A0F59ACA49338D81 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				A83DB98EF37EA23342864B08 /* LanguagePickerView.swift */,
+				CEA8A15927ABED222640071E /* OnboardingFlowView.swift */,
+				DEC6379D7CF3A870E5D59B72 /* WelcomeView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		231D86AFE8F36F4E1637B8DF /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				81393E168838929DF03723ED /* Theme */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		4607D9B9D38AF684621D0FC7 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				21B165348425F36BB25A5B5A /* Hadithly.app */,
+				6737C69F35579741FABA3C09 /* HadithlyTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		7FE86592B770A14A3F58A7D0 /* Main */ = {
+			isa = PBXGroup;
+			children = (
+				2A50BDEFB0F097AEA7D35CC9 /* MainTabsView.swift */,
+			);
+			path = Main;
+			sourceTree = "<group>";
+		};
+		81393E168838929DF03723ED /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				E4034D0B1DE93B6783753B19 /* Theme.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		82B6F95A78C781B1221E517E /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				7FE86592B770A14A3F58A7D0 /* Main */,
+				1C268289A0F59ACA49338D81 /* Onboarding */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		A2687033B936988259F247A4 /* Hadithly */ = {
+			isa = PBXGroup;
+			children = (
+				9EFA606946A22AF7050BA302 /* Info.plist */,
+				D8BCDEB986C1FDFF316C0306 /* App */,
+				231D86AFE8F36F4E1637B8DF /* Core */,
+				82B6F95A78C781B1221E517E /* Features */,
+			);
+			path = Hadithly;
+			sourceTree = "<group>";
+		};
+		C16688B2966273C233A5DCDA /* HadithlyTests */ = {
+			isa = PBXGroup;
+			children = (
+				E44FCAA45E0A462774A84DA1 /* SupportedLanguagesTests.swift */,
+			);
+			path = HadithlyTests;
+			sourceTree = "<group>";
+		};
+		D8BCDEB986C1FDFF316C0306 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				E152E3795F9B1126C9D136DC /* AppEnvironment.swift */,
+				498F77309F82C41BF08E487B /* HadithlyApp.swift */,
+				14379C576B39E8C048BCE832 /* RootView.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		E6B9C0A7F7EFDC045256DDCF = {
+			isa = PBXGroup;
+			children = (
+				A2687033B936988259F247A4 /* Hadithly */,
+				C16688B2966273C233A5DCDA /* HadithlyTests */,
+				4607D9B9D38AF684621D0FC7 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		"TEMP_ECD2442F-30C0-47B9-89E4-F0480A09253F" /* ios */ = {
+			isa = PBXGroup;
+			children = (
+				"TEMP_16666114-4952-47FC-8949-49AFB15B0127" /* Secrets.xcconfig */,
+			);
+			path = ios;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		08EB2E61E88F402BD4D01DE2 /* HadithlyTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 05FA93AF39C124F77A9395E8 /* Build configuration list for PBXNativeTarget "HadithlyTests" */;
+			buildPhases = (
+				3EE0089ACF1BD6CF214D86E6 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				89315A5A97BF83EE6DD03606 /* PBXTargetDependency */,
+			);
+			name = HadithlyTests;
+			productName = HadithlyTests;
+			productReference = 6737C69F35579741FABA3C09 /* HadithlyTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		FF6E57F5954A3B1E72AAD619 /* Hadithly */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9658F2FAB47B0B0E55211787 /* Build configuration list for PBXNativeTarget "Hadithly" */;
+			buildPhases = (
+				9B2D8FF915DA99990D7A687C /* Sources */,
+				8199428F13960EE68E2D53BA /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Hadithly;
+			packageProductDependencies = (
+				829AFCDEFFE99A7B448DB279 /* ClerkKit */,
+				C37EE4DED16249B3D49BDD3C /* ClerkKitUI */,
+				29379B7F31920A83A0638E04 /* ClerkConvex */,
+				F836871A576A842027C728B2 /* ConvexMobile */,
+			);
+			productName = Hadithly;
+			productReference = 21B165348425F36BB25A5B5A /* Hadithly.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		85BFC1FCD5CD32091B4C47D3 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					08EB2E61E88F402BD4D01DE2 = {
+						ProvisioningStyle = Automatic;
+					};
+					FF6E57F5954A3B1E72AAD619 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 66E362960E92D868742A8A6B /* Build configuration list for PBXProject "Hadithly" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = E6B9C0A7F7EFDC045256DDCF;
+			packageReferences = (
+				76CD1A80C0F599E2400415F1 /* XCRemoteSwiftPackageReference "clerk-convex-swift" */,
+				CFDEEBFCAA5D3ADDDB3FAD42 /* XCRemoteSwiftPackageReference "clerk-ios" */,
+				24A824E18E2D7EC3F05C9EE2 /* XCRemoteSwiftPackageReference "convex-swift" */,
+			);
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				FF6E57F5954A3B1E72AAD619 /* Hadithly */,
+				08EB2E61E88F402BD4D01DE2 /* HadithlyTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		3EE0089ACF1BD6CF214D86E6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				387B3ED9A915C443A4D6BE7F /* SupportedLanguagesTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9B2D8FF915DA99990D7A687C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				581C8B465D5BFD06642298E2 /* AppEnvironment.swift in Sources */,
+				B9DA9BA63624F881531942D5 /* HadithlyApp.swift in Sources */,
+				9A4308D33FB86639EB1F1363 /* LanguagePickerView.swift in Sources */,
+				0F9CA9207EAE3EA1A1AA76D0 /* MainTabsView.swift in Sources */,
+				CEA85FC2B3F11A3B8831DD69 /* OnboardingFlowView.swift in Sources */,
+				A468D0669C62C5B40BC96CC5 /* RootView.swift in Sources */,
+				6CDB6D53D800C6E2C13C33C8 /* Theme.swift in Sources */,
+				CF9A54CACB315680F0F4A4BF /* WelcomeView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		89315A5A97BF83EE6DD03606 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FF6E57F5954A3B1E72AAD619 /* Hadithly */;
+			targetProxy = 0C6A7D93C4ACFBBAB0893F54 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		081EA1614EAE1CB1451F28EB /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = "TEMP_16666114-4952-47FC-8949-49AFB15B0127" /* Secrets.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = Hadithly/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.hadithly.app;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		1DB6B6403B644CF2BD507A46 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = "TEMP_16666114-4952-47FC-8949-49AFB15B0127" /* Secrets.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = Hadithly/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.hadithly.app;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		4CB6FE74B354FCFA9A2778DE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.hadithly.app.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hadithly.app/Hadithly";
+			};
+			name = Debug;
+		};
+		6C07FC3E2505CF17596AAB14 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.hadithly.app.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hadithly.app/Hadithly";
+			};
+			name = Release;
+		};
+		7344FE7E9C8EBB593791141F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.10;
+			};
+			name = Debug;
+		};
+		C059B65F64A17B43963C9FEE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.10;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		05FA93AF39C124F77A9395E8 /* Build configuration list for PBXNativeTarget "HadithlyTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4CB6FE74B354FCFA9A2778DE /* Debug */,
+				6C07FC3E2505CF17596AAB14 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		66E362960E92D868742A8A6B /* Build configuration list for PBXProject "Hadithly" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7344FE7E9C8EBB593791141F /* Debug */,
+				C059B65F64A17B43963C9FEE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		9658F2FAB47B0B0E55211787 /* Build configuration list for PBXNativeTarget "Hadithly" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DB6B6403B644CF2BD507A46 /* Debug */,
+				081EA1614EAE1CB1451F28EB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		24A824E18E2D7EC3F05C9EE2 /* XCRemoteSwiftPackageReference "convex-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/get-convex/convex-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.8.0;
+			};
+		};
+		76CD1A80C0F599E2400415F1 /* XCRemoteSwiftPackageReference "clerk-convex-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/clerk/clerk-convex-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.1.0;
+			};
+		};
+		CFDEEBFCAA5D3ADDDB3FAD42 /* XCRemoteSwiftPackageReference "clerk-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/clerk/clerk-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		29379B7F31920A83A0638E04 /* ClerkConvex */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 76CD1A80C0F599E2400415F1 /* XCRemoteSwiftPackageReference "clerk-convex-swift" */;
+			productName = ClerkConvex;
+		};
+		829AFCDEFFE99A7B448DB279 /* ClerkKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CFDEEBFCAA5D3ADDDB3FAD42 /* XCRemoteSwiftPackageReference "clerk-ios" */;
+			productName = ClerkKit;
+		};
+		C37EE4DED16249B3D49BDD3C /* ClerkKitUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CFDEEBFCAA5D3ADDDB3FAD42 /* XCRemoteSwiftPackageReference "clerk-ios" */;
+			productName = ClerkKitUI;
+		};
+		F836871A576A842027C728B2 /* ConvexMobile */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 24A824E18E2D7EC3F05C9EE2 /* XCRemoteSwiftPackageReference "convex-swift" */;
+			productName = ConvexMobile;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 85BFC1FCD5CD32091B4C47D3 /* Project object */;
+}
