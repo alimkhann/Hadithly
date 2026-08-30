@@ -9,11 +9,16 @@
 /* Begin PBXBuildFile section */
 		0F9CA9207EAE3EA1A1AA76D0 /* MainTabsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A50BDEFB0F097AEA7D35CC9 /* MainTabsView.swift */; };
 		20B74F1EE251CAEE00BD55FD /* ClerkConvex in Frameworks */ = {isa = PBXBuildFile; productRef = 29379B7F31920A83A0638E04 /* ClerkConvex */; };
+		33FC99DE32E942D10DA1A0E8 /* GuestDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60ADF5B4FE4B19D653444A35 /* GuestDataStore.swift */; };
 		387B3ED9A915C443A4D6BE7F /* SupportedLanguagesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E44FCAA45E0A462774A84DA1 /* SupportedLanguagesTests.swift */; };
 		3887A0EFC119EAACD310CF7E /* ClerkKit in Frameworks */ = {isa = PBXBuildFile; productRef = 829AFCDEFFE99A7B448DB279 /* ClerkKit */; };
 		581C8B465D5BFD06642298E2 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = E152E3795F9B1126C9D136DC /* AppEnvironment.swift */; };
+		59753E4D6E90CEF1F782815D /* GuestMergePlannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A12F42BB6E8D75C76573394 /* GuestMergePlannerTests.swift */; };
+		5AC9D6E7A454C5B5DB441088 /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10894632004E617D6947770 /* SignInView.swift */; };
 		6CDB6D53D800C6E2C13C33C8 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4034D0B1DE93B6783753B19 /* Theme.swift */; };
 		849C4D4523198D349C07F38B /* ClerkKitUI in Frameworks */ = {isa = PBXBuildFile; productRef = C37EE4DED16249B3D49BDD3C /* ClerkKitUI */; };
+		92772F9145AF4DE5EDCB8AB6 /* GuestDataModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEA2F742FC0F52912AA1DAFB /* GuestDataModels.swift */; };
+		97895D6035CF1D70762E9219 /* GuestMergePlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DB77C4DAC4E74EC0E77C50C /* GuestMergePlanner.swift */; };
 		9A4308D33FB86639EB1F1363 /* LanguagePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A83DB98EF37EA23342864B08 /* LanguagePickerView.swift */; };
 		A468D0669C62C5B40BC96CC5 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14379C576B39E8C048BCE832 /* RootView.swift */; };
 		B9DA9BA63624F881531942D5 /* HadithlyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 498F77309F82C41BF08E487B /* HadithlyApp.swift */; };
@@ -36,16 +41,22 @@
 		14379C576B39E8C048BCE832 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		21B165348425F36BB25A5B5A /* Hadithly.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Hadithly.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2A50BDEFB0F097AEA7D35CC9 /* MainTabsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabsView.swift; sourceTree = "<group>"; };
+		2DB77C4DAC4E74EC0E77C50C /* GuestMergePlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestMergePlanner.swift; sourceTree = "<group>"; };
 		498F77309F82C41BF08E487B /* HadithlyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HadithlyApp.swift; sourceTree = "<group>"; };
+		60ADF5B4FE4B19D653444A35 /* GuestDataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestDataStore.swift; sourceTree = "<group>"; };
 		6737C69F35579741FABA3C09 /* HadithlyTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = HadithlyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		6A12F42BB6E8D75C76573394 /* GuestMergePlannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestMergePlannerTests.swift; sourceTree = "<group>"; };
 		9EFA606946A22AF7050BA302 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		A83DB98EF37EA23342864B08 /* LanguagePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguagePickerView.swift; sourceTree = "<group>"; };
+		B10894632004E617D6947770 /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
+		B52ABC702BC12301BA44C329 /* Hadithly.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Hadithly.entitlements; sourceTree = "<group>"; };
 		CEA8A15927ABED222640071E /* OnboardingFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlowView.swift; sourceTree = "<group>"; };
 		DEC6379D7CF3A870E5D59B72 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
 		E152E3795F9B1126C9D136DC /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		E4034D0B1DE93B6783753B19 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		E44FCAA45E0A462774A84DA1 /* SupportedLanguagesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportedLanguagesTests.swift; sourceTree = "<group>"; };
-		"TEMP_16666114-4952-47FC-8949-49AFB15B0127" /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		EEA2F742FC0F52912AA1DAFB /* GuestDataModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestDataModels.swift; sourceTree = "<group>"; };
+		"TEMP_C8140257-3802-4FF7-924B-93536E149DCC" /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,6 +74,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		11E2FA0705DE153B5FFABB0E /* GuestData */ = {
+			isa = PBXGroup;
+			children = (
+				EEA2F742FC0F52912AA1DAFB /* GuestDataModels.swift */,
+				60ADF5B4FE4B19D653444A35 /* GuestDataStore.swift */,
+				2DB77C4DAC4E74EC0E77C50C /* GuestMergePlanner.swift */,
+			);
+			path = GuestData;
+			sourceTree = "<group>";
+		};
 		1C268289A0F59ACA49338D81 /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
@@ -76,6 +97,7 @@
 		231D86AFE8F36F4E1637B8DF /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				11E2FA0705DE153B5FFABB0E /* GuestData */,
 				81393E168838929DF03723ED /* Theme */,
 			);
 			path = Core;
@@ -109,15 +131,25 @@
 		82B6F95A78C781B1221E517E /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				8B6DFC1F91CF0F3312CEEFBA /* Auth */,
 				7FE86592B770A14A3F58A7D0 /* Main */,
 				1C268289A0F59ACA49338D81 /* Onboarding */,
 			);
 			path = Features;
 			sourceTree = "<group>";
 		};
+		8B6DFC1F91CF0F3312CEEFBA /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				B10894632004E617D6947770 /* SignInView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
 		A2687033B936988259F247A4 /* Hadithly */ = {
 			isa = PBXGroup;
 			children = (
+				B52ABC702BC12301BA44C329 /* Hadithly.entitlements */,
 				9EFA606946A22AF7050BA302 /* Info.plist */,
 				D8BCDEB986C1FDFF316C0306 /* App */,
 				231D86AFE8F36F4E1637B8DF /* Core */,
@@ -129,6 +161,7 @@
 		C16688B2966273C233A5DCDA /* HadithlyTests */ = {
 			isa = PBXGroup;
 			children = (
+				6A12F42BB6E8D75C76573394 /* GuestMergePlannerTests.swift */,
 				E44FCAA45E0A462774A84DA1 /* SupportedLanguagesTests.swift */,
 			);
 			path = HadithlyTests;
@@ -153,10 +186,10 @@
 			);
 			sourceTree = "<group>";
 		};
-		"TEMP_ECD2442F-30C0-47B9-89E4-F0480A09253F" /* ios */ = {
+		"TEMP_4809D2AE-86B2-4814-BA66-EA737AB99682" /* ios */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_16666114-4952-47FC-8949-49AFB15B0127" /* Secrets.xcconfig */,
+				"TEMP_C8140257-3802-4FF7-924B-93536E149DCC" /* Secrets.xcconfig */,
 			);
 			path = ios;
 			sourceTree = "<group>";
@@ -247,6 +280,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				59753E4D6E90CEF1F782815D /* GuestMergePlannerTests.swift in Sources */,
 				387B3ED9A915C443A4D6BE7F /* SupportedLanguagesTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -256,11 +290,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				581C8B465D5BFD06642298E2 /* AppEnvironment.swift in Sources */,
+				92772F9145AF4DE5EDCB8AB6 /* GuestDataModels.swift in Sources */,
+				33FC99DE32E942D10DA1A0E8 /* GuestDataStore.swift in Sources */,
+				97895D6035CF1D70762E9219 /* GuestMergePlanner.swift in Sources */,
 				B9DA9BA63624F881531942D5 /* HadithlyApp.swift in Sources */,
 				9A4308D33FB86639EB1F1363 /* LanguagePickerView.swift in Sources */,
 				0F9CA9207EAE3EA1A1AA76D0 /* MainTabsView.swift in Sources */,
 				CEA85FC2B3F11A3B8831DD69 /* OnboardingFlowView.swift in Sources */,
 				A468D0669C62C5B40BC96CC5 /* RootView.swift in Sources */,
+				5AC9D6E7A454C5B5DB441088 /* SignInView.swift in Sources */,
 				6CDB6D53D800C6E2C13C33C8 /* Theme.swift in Sources */,
 				CF9A54CACB315680F0F4A4BF /* WelcomeView.swift in Sources */,
 			);
@@ -279,9 +317,10 @@
 /* Begin XCBuildConfiguration section */
 		081EA1614EAE1CB1451F28EB /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_16666114-4952-47FC-8949-49AFB15B0127" /* Secrets.xcconfig */;
+			baseConfigurationReference = "TEMP_C8140257-3802-4FF7-924B-93536E149DCC" /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Hadithly/Hadithly.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = Hadithly/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -297,9 +336,10 @@
 		};
 		1DB6B6403B644CF2BD507A46 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_16666114-4952-47FC-8949-49AFB15B0127" /* Secrets.xcconfig */;
+			baseConfigurationReference = "TEMP_C8140257-3802-4FF7-924B-93536E149DCC" /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Hadithly/Hadithly.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = Hadithly/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (

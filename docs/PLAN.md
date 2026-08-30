@@ -4,7 +4,7 @@ This document is the single source of truth for the rebuild. Read it at the
 start of any session. It answers: what is this, what exists, what is next,
 and what already went wrong so you do not repeat it.
 
-Last updated: end of Phase 0 (see the phase table for status).
+Last updated: end of Phase 1 (see the phase table for status).
 
 ## What Hadithly is
 
@@ -89,8 +89,8 @@ every session builds the same app: a quiet book in a dark room.
 | Phase | Scope | Status |
 | --- | --- | --- |
 | 0 | Archive legacy, Convex-only backend, SwiftUI scaffold, onboarding shell | done, verified |
-| 1 | Auth (Apple, Google, email) + guest mode + user sync | next |
-| 2 | Reader core: pagination, chrome toggle, AI translation on demand | not started |
+| 1 | Auth (Apple, Google, email) + guest mode + user sync | done, verified |
+| 2 | Reader core: pagination, chrome toggle, AI translation on demand | next |
 | 3 | Tabs: Today, Library, Saved, Settings; push notification setup | not started |
 | 4 | Translation submissions with AI review and admin approval | not started |
 | 5 | Android (Compose) port | not started |
@@ -100,23 +100,49 @@ Each phase ends with a gate: the feature works on the simulator, tests pass
 where logic exists, and the work is committed. Do not start a phase before
 the previous gate passes.
 
-### Phase 1 detail (next)
+### Phase 1 detail (done, 2026-08-30)
 
 Sign-in screen with three methods (Apple, Google, email code), all through
-ClerkKit custom flows so the UI stays ours. After first sign-in the app
-calls `users:ensureCurrentUser`. Guest mode stays available and equal:
-guests read everything, their bookmarks and notes live in SwiftData, and a
-later sign-in merges local items into Convex. The merge logic needs tests.
+ClerkKit custom flows so the UI stays ours. After sign-in the app calls
+`users:ensureCurrentUser` and then `guestMerge:mergeGuestData`, which merges
+the guest's SwiftData bookmarks and notes into Convex and clears the local
+store. The merge is idempotent: re-sent items are skipped, and note conflicts
+keep the newer `updatedAt`. Merge planning lives in
+`ios/Hadithly/Core/GuestData/GuestMergePlanner.swift` with unit tests in
+`GuestMergePlannerTests`.
 
-Clerk dashboard work the user must do by hand (agent cannot): enable Native
-API under Native applications, add the iOS app with bundle id
-`com.hadithly.app`, enable Apple and Google providers, and add the
-associated domain `webcredentials:elegant-tetra-44.clerk.accounts.dev`.
+Clerk ↔ Convex auth: the **Convex integration must be activated in the Clerk
+dashboard** (dashboard.clerk.com/apps/setup/convex). It adds `aud: "convex"`
+to session tokens, which is what `applicationID: "convex"` in
+`auth.config.ts` validates. The Convex env var is `CLERK_FRONTEND_API_URL`
+(not CLERK_JWT_ISSUER_DOMAIN). The app points at the dev instance
+`warm-yeti-51.clerk.accounts.dev` and dev deployment festive-cobra-664.
 
-Physical device install (user request): connect the iPhone, select it as
-the run destination in Xcode, sign with the personal team in Signing and
-Capabilities, then run. Free provisioning works for development builds.
-If Xcode is awkward, `xcrun devicectl device install app` after an archive.
+Verified end to end on the simulator with UI automation: onboarding as guest,
+guest data persisted across relaunches, email-code sign-in (dev test address
+`+clerk_test` with code 424242), `ensureCurrentUser` creating the user row,
+merge into Convex confirmed via `npx convex data`, idempotent re-merge, local
+clear, sign-out. Installed on the connected iPhone (team 6378AFQPXV,
+automatic signing) and launched.
+
+Still pending for full parity of all three buttons:
+
+- Clerk dashboard: enable the **Apple** provider (needs a Services ID + signing
+  key from the Apple Developer console) and the **Google** provider (Google
+  Cloud OAuth client, or Clerk's shared dev credentials for development).
+  Both buttons are wired and will work once the providers exist.
+- Clerk instance currently requires username + password at sign-up, which
+  email-code sign-up cannot satisfy from the UI; the app auto-fills generated
+  values (`fulfillMissingRequirements` in SignInView). Cleaner: in Clerk
+  dashboard set Username = off and password = optional, then that code path
+  never runs.
+- Sign in with Apple on device needs the Apple ID signed in on the device.
+
+Physical device install: the project uses automatic signing with
+DEVELOPMENT_TEAM=6378AFQPXV (the free personal team had no Xcode account and
+cannot use the Sign in with Apple entitlement). CLI builds must run with the
+login keychain unlocked (`errSecInternalComponent` otherwise), or build from
+Xcode.
 
 ### Phase 2 detail
 
@@ -145,6 +171,23 @@ Sunnah.now route; paginate and use the Convex cache.
   inside `simctl get_app_container ... data`.
 - SPM dependency naming in xcodegen: one package key per repo, products
   selected separately (clerk-ios provides both ClerkKit and ClerkKitUI).
+- `//` in an xcconfig value starts a comment. `CONVEX_URL = https://…`
+  silently became `https:`. Escape as `https:/$()/…`.
+- Clerk↔Convex: activate the **Convex integration** in the Clerk dashboard
+  (adds `aud: "convex"` to session tokens); Convex validates it via
+  `applicationID: "convex"`, and the env var is `CLERK_FRONTEND_API_URL`.
+  Without it, Convex websocket auth fails and mutations hang forever with no
+  server-side logs.
+- ClerkKit's independent auth events (`decodeIndependentEvent`) never emit
+  `signInCompleted`/`signUpCompleted` for custom service-level flows — handle
+  completion directly in the calling view (see SignInView.onAuthenticated).
+- A default Clerk instance requires username + password at sign-up; email-code
+  sign-up then ends in `missingRequirements` with no session. Either disable
+  them in the dashboard or fill generated values via `SignUp.update`.
+- Clerk restores its client asynchronously; reading `Clerk.shared.session`
+  at app start races the load. Wait for `Clerk.shared.isLoaded` first.
+- `ASWebAuthenticationSession` (Google OAuth) callbacks use the bundle id as
+  the scheme; it is registered in Info.plist via CFBundleURLTypes.
 
 ## Secrets and rotation
 

@@ -43,6 +43,10 @@ targets:
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
+        CFBundleURLTypes:
+          - CFBundleURLName: com.hadithly.app
+            CFBundleURLSchemes:
+              - com.hadithly.app
         ConvexURL: $(CONVEX_URL)
         ClerkPublishableKey: $(CLERK_PUBLISHABLE_KEY)
     settings:
@@ -50,6 +54,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.hadithly.app
         TARGETED_DEVICE_FAMILY: "1"
         SUPPORTS_MACCATALYST: false
+        CODE_SIGN_ENTITLEMENTS: Hadithly/Hadithly.entitlements
       configs:
         Debug:
           SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG

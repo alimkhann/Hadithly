@@ -9,6 +9,7 @@ struct HadithlyApp: App {
         WindowGroup {
             RootView()
                 .environment(environment)
+                .environment(environment.guestData)
                 .environment(Clerk.shared)
                 .preferredColorScheme(.dark)
         }
