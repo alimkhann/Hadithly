@@ -2,6 +2,9 @@
 
 Native mobile apps for reading the hadith collections in your language.
 
+**Start every session by reading `docs/PLAN.md`** — it holds the phase
+plan, current status, and the mistakes list.
+
 - `backend/` — Convex-only backend (data, Sunnah.now proxy, Gemini AI, webhooks, crons)
 - `ios/` — SwiftUI app (iOS 17+), built with xcodegen (`ios/project.yml`)
 - `legacy/` — archived Expo/Next.js monorepo (reference only, do not build on it)
