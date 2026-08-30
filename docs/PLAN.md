@@ -4,7 +4,7 @@ This document is the single source of truth for the rebuild. Read it at the
 start of any session. It answers: what is this, what exists, what is next,
 and what already went wrong so you do not repeat it.
 
-Last updated: end of Phase 1 (see the phase table for status).
+Last updated: end of Phase 2 (see the phase table for status).
 
 ## What Hadithly is
 
@@ -90,7 +90,7 @@ every session builds the same app: a quiet book in a dark room.
 | --- | --- | --- |
 | 0 | Archive legacy, Convex-only backend, SwiftUI scaffold, onboarding shell | done, verified |
 | 1 | Auth (Apple, Google, email) + guest mode + user sync | done, verified |
-| 2 | Reader core: pagination, chrome toggle, AI translation on demand | next |
+| 2 | Reader core: pagination, chrome toggle, AI translation on demand | done, verified |
 | 3 | Tabs: Today, Library, Saved, Settings; push notification setup | not started |
 | 4 | Translation submissions with AI review and admin approval | not started |
 | 5 | Android (Compose) port | not started |
@@ -144,15 +144,48 @@ cannot use the Sign in with Apple entitlement). CLI builds must run with the
 login keychain unlocked (`errSecInternalComponent` otherwise), or build from
 Xcode.
 
-### Phase 2 detail
+### Phase 2 detail (done, 2026-08-31)
 
-Reader over live Sunnah.now data through `actions/hadithData:getReaderPage`
-and `getCollectionOutline`. Swipe left goes forward, right goes back, no
-edge-swipe back, the Home tab is the exit. AI translation loads
-automatically for the chosen language through `actions/ai:translateHadith`
-with the quota check, always labeled, with a citations sheet. No rating UI
-anywhere. Respect the legacy provider rule: never call the single-hadith
-Sunnah.now route; paginate and use the Convex cache.
+Reader built over live Sunnah.now data through the existing Convex actions.
+`LibraryView` (ios/Hadithly/Features/Reader/LibraryView.swift) lists the seven
+collections and opens the reader full screen; the reader's close chevron is
+the exit — there is no edge-swipe back. `ReaderModel` loads the volume
+outline through `getCollectionOutline`, then pages hadiths through
+`getReaderPage` and prefetches one page ahead. Chrome (top bar with close /
+contents / settings, bottom pills with volume + page) toggles on tap.
+
+Swipe paging does NOT use TabView or a SwiftUI DragGesture — a vertical
+ScrollView inside any pager swallows horizontal pans and the swipe dies. It
+is a window-level `UIPanGestureRecognizer` (WindowSwipeRecognizer in
+ReaderView.swift) that recognizes simultaneously, never cancels touches, and
+only acts on horizontal-dominant drags; vertical scrolling inside a page
+stays native.
+
+Volume reads are now cache-first in `getReaderPage`: the first visit to a
+volume fetches it whole (new `fetchVolumeHadiths` in sunnahNow.ts), upserts
+every hadith into the `hadiths` table (new index
+`hadiths.by_collection_volume`), and all later page turns are served from
+the Convex cache via `hadiths:listByVolume`, chunked with the same
+`chunkReaderHadiths` so page boundaries match the provider path.
+
+AI translation: for non-English languages the reader auto-translates the
+current page's hadiths sequentially through `actions/ai:translateHadith`,
+with per-hadith states (loading / loaded / quota / sign-in needed / failed
++ retry). Every AI translation carries an "AI · sources" badge that opens a
+citations sheet (translation, source reference URL, grounding citations,
+model disclaimer). Guests see a quiet sign-in notice; the quota wall shows a
+quiet notice and stops further calls on the page. Reader settings (bottom
+sheet) switch translation language (resets and reloads translations) and
+Arabic type size (AppStorage `reader.arabicFontSize`). English reading uses
+the provider's englishText with no AI involvement.
+
+Verified on the simulator with UI automation: collection open, chrome
+toggle, swipe forward/back (pill page counts correct), volume switch from
+the contents sheet, Russian AI translation loading live from Gemini with
+label + glossary notes, citations sheet, close back to Library. 20 unit
+tests pass (including ReaderModelsTests for wire decoding and
+quota/sign-in error classification). `npm run typecheck` and `npx convex
+dev --once` clean.
 
 ## Mistakes already made, do not repeat
 
@@ -188,6 +221,17 @@ Sunnah.now route; paginate and use the Convex cache.
   at app start races the load. Wait for `Clerk.shared.isLoaded` first.
 - `ASWebAuthenticationSession` (Google OAuth) callbacks use the bundle id as
   the scheme; it is registered in Info.plist via CFBundleURLTypes.
+- ConvexMobile (convex-swift 0.8.x) encodes Swift `Int` args with the
+  `$integer` wrapper, which Convex action validators reject with
+  ArgumentValidationError — strings decode fine. Pass numeric args as
+  `Double`.
+- A vertical SwiftUI ScrollView swallows horizontal pan gestures, killing
+  TabView page-style swipes AND simultaneous SwiftUI DragGestures. Reader
+  paging uses a window-level UIPanGestureRecognizer (simultaneous, non-
+  canceling, horizontal-dominant only) instead.
+- A page-turn selection can legitimately sit one past the last loaded page;
+  prefetch must key off `pages.last` / `pages.count`, not
+  `pages.indices.contains(pageIndex)`.
 
 ## Secrets and rotation
 

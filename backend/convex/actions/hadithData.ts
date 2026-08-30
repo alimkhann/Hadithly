@@ -10,8 +10,10 @@ import { action } from "../_generated/server";
 import { api, internal } from "../_generated/api";
 import {
   buildCollectionOutline,
+  chunkReaderHadiths,
   fetchBooks,
   fetchReaderPage,
+  fetchVolumeHadiths,
 } from "../lib/sunnahNow";
 
 const OUTLINE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -96,8 +98,11 @@ export const getCollectionOutline = action({
 
 /**
  * Public: one reader page of hadiths for a collection (optionally scoped to
- * a volume). Provider responses are normalized and cached in the `hadiths`
- * table, which also powers search and AI translation grounding.
+ * a volume). Volume reads are cache-first: once a volume is fully cached
+ * (cached count matches the outline's hadith count), pages are served from
+ * the `hadiths` table with no provider call. Provider responses are
+ * normalized and cached in the `hadiths` table, which also powers search and
+ * AI translation grounding.
  */
 export const getReaderPage = action({
   args: {
@@ -107,19 +112,57 @@ export const getReaderPage = action({
     pageSize: v.optional(v.number()),
   },
   handler: async (ctx, args): Promise<ReaderPageResult> => {
+    const page = args.page ?? 1;
+    const pageSize = args.pageSize ?? 10;
+
+    if (args.volumeId) {
+      const outline = await ctx.runQuery(api.collections.getOutline, {
+        collectionSlug: args.collectionSlug,
+      });
+      const volume = outline?.volumes.find(
+        (entry) => entry.volumeId === args.volumeId,
+      );
+
+      if (volume && volume.hadithCount > 0) {
+        const cached = await ctx.runQuery(internal.hadiths.listByVolume, {
+          provider: "sunnah_now",
+          collectionSlug: args.collectionSlug,
+          volumeId: args.volumeId,
+        });
+        if (cached.length >= volume.hadithCount) {
+          return serveVolumeChunk(cached, page, pageSize);
+        }
+      }
+
+      // First visit to the volume: pull it once, cache it in full, then
+      // serve every later page turn from the `hadiths` table.
+      const volumeItems = await fetchVolumeHadiths({
+        collectionSlug: args.collectionSlug,
+        volumeId: args.volumeId,
+      });
+      const upsertIds = await ctx.runMutation(internal.hadiths.upsertPage, {
+        items: volumeItems,
+      });
+      const withIds = volumeItems.map((item, index) => ({
+        _id: upsertIds[index] as string,
+        ...item,
+      }));
+      return serveVolumeChunk(withIds, page, pageSize);
+    }
+
     const providerPage = await fetchReaderPage({
       collectionSlug: args.collectionSlug,
       volumeId: args.volumeId,
-      page: args.page,
-      pageSize: args.pageSize,
+      page,
+      pageSize,
     });
 
-    const ids = await ctx.runMutation(internal.hadiths.upsertPage, {
+    const upsertIds = await ctx.runMutation(internal.hadiths.upsertPage, {
       items: providerPage.items,
     });
 
     const items = providerPage.items.map((item, index) => ({
-      _id: ids[index] as string,
+      _id: upsertIds[index] as string,
       ...item,
     }));
 
@@ -132,3 +175,32 @@ export const getReaderPage = action({
     };
   },
 });
+
+/**
+ * Slices the cached volume into content-sized reader pages using the same
+ * chunking as the provider path, so page boundaries are identical whether a
+ * page comes from the cache or the provider.
+ */
+function serveVolumeChunk(
+  cached: Array<
+    import("../lib/sunnahNow").HadithRecord & {
+      _id: string;
+    }
+  >,
+  page: number,
+  pageSize: number,
+): ReaderPageResult {
+  const pages = chunkReaderHadiths(cached, pageSize);
+  const pageIndex = Math.max(0, page - 1);
+  const items = (pages[pageIndex] ?? []).map((item) => {
+    const { _id: cachedId, ...record } = item;
+    return { _id: cachedId, ...record };
+  });
+  return {
+    items,
+    page,
+    pageSize,
+    totalPages: pages.length,
+    hasMore: pageIndex < pages.length - 1,
+  };
+}

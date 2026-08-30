@@ -211,14 +211,14 @@ export type ReaderPage = {
  * Reader pages are chunked by content size (not a fixed count) so long
  * Arabic + translation pairs never produce an overwhelming screen.
  */
-export function chunkReaderHadiths(
-  items: HadithRecord[],
+export function chunkReaderHadiths<T extends HadithRecord>(
+  items: T[],
   requestedPageSize: number,
-): HadithRecord[][] {
+): T[][] {
   const maxItems = Math.max(1, Math.min(10, requestedPageSize));
   const maxChars = 5200;
-  const pages: HadithRecord[][] = [];
-  let current: HadithRecord[] = [];
+  const pages: T[][] = [];
+  let current: T[] = [];
   let currentChars = 0;
 
   for (const item of items) {
@@ -286,6 +286,20 @@ export async function fetchReaderPage(params: {
     totalPages: 1,
     hasMore: response.length >= pageSize,
   };
+}
+
+/**
+ * Fetches every hadith of one volume in a single provider call, normalized.
+ * The reader action caches the full volume so later page turns never touch
+ * the provider again.
+ */
+export async function fetchVolumeHadiths(params: {
+  collectionSlug: string;
+  volumeId: string;
+}): Promise<HadithRecord[]> {
+  const path = listPath(params);
+  const response = await request<SunnahNowHadith[]>(path);
+  return response.map((hadith) => normalizeHadith(params.collectionSlug, hadith));
 }
 
 export type VolumeOutlineEntry = {

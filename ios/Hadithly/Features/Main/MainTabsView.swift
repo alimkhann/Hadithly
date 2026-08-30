@@ -9,38 +9,38 @@ struct MainTabsView: View {
 
     var body: some View {
         TabView {
-            TodayView()
-                .tabItem { Label("Today", systemImage: "sun.max") }
+            NavigationStack {
+                TodayView()
+            }
+            .tabItem { Label("Today", systemImage: "sun.max") }
 
-            LibraryView()
-                .tabItem { Label("Library", systemImage: "books.vertical") }
+            NavigationStack {
+                LibraryView()
+            }
+            .tabItem { Label("Library", systemImage: "books.vertical") }
 
-            SavedView()
-                .tabItem { Label("Saved", systemImage: "bookmark") }
+            NavigationStack {
+                SavedView()
+            }
+            .tabItem { Label("Saved", systemImage: "bookmark") }
 
-            SettingsView(showSignIn: $showSignIn)
-                .tabItem { Label("Settings", systemImage: "gearshape") }
+            NavigationStack {
+                SettingsView(showSignIn: $showSignIn)
+            }
+            .tabItem { Label("Settings", systemImage: "gearshape") }
         }
         .tint(Theme.accent)
     }
 }
 
 // Phase 0 placeholders — each is replaced in its own phase.
+// LibraryView lives in Features/Reader/LibraryView.swift (Phase 2).
 
 struct TodayView: View {
     var body: some View {
         PlaceholderScreen(
             title: "Today",
             subtitle: "Daily hadith and continue reading land here in Phase 3."
-        )
-    }
-}
-
-struct LibraryView: View {
-    var body: some View {
-        PlaceholderScreen(
-            title: "Library",
-            subtitle: "The seven collections open here in Phase 2."
         )
     }
 }

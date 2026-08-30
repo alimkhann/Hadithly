@@ -120,6 +120,34 @@ export const getByProviderRef = internalQuery({
       .unique(),
 });
 
+/**
+ * Internal: every cached hadith of one volume, in canonical hadith-number
+ * order. The reader action uses the count to decide whether the volume is
+ * fully cached before serving pages without a provider call.
+ */
+export const listByVolume = internalQuery({
+  args: {
+    provider,
+    collectionSlug: v.string(),
+    volumeId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const items = await ctx.db
+      .query("hadiths")
+      .withIndex("by_collection_volume", (q) =>
+        q
+          .eq("provider", args.provider)
+          .eq("collectionSlug", args.collectionSlug)
+          .eq("volumeId", args.volumeId),
+      )
+      .collect();
+    return items.sort(
+      (left, right) =>
+        Number(left.providerHadithId) - Number(right.providerHadithId),
+    );
+  },
+});
+
 /** Public: full-text search over cached English text + live translations. */
 export const search = query({
   args: {

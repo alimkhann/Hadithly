@@ -8,10 +8,13 @@
 
 /* Begin PBXBuildFile section */
 		0F9CA9207EAE3EA1A1AA76D0 /* MainTabsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A50BDEFB0F097AEA7D35CC9 /* MainTabsView.swift */; };
+		1E12EC45E3933C4A5A8FA0FF /* ReaderModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1424D8A40132B5F39FA23E7D /* ReaderModel.swift */; };
 		20B74F1EE251CAEE00BD55FD /* ClerkConvex in Frameworks */ = {isa = PBXBuildFile; productRef = 29379B7F31920A83A0638E04 /* ClerkConvex */; };
 		33FC99DE32E942D10DA1A0E8 /* GuestDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60ADF5B4FE4B19D653444A35 /* GuestDataStore.swift */; };
 		387B3ED9A915C443A4D6BE7F /* SupportedLanguagesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E44FCAA45E0A462774A84DA1 /* SupportedLanguagesTests.swift */; };
 		3887A0EFC119EAACD310CF7E /* ClerkKit in Frameworks */ = {isa = PBXBuildFile; productRef = 829AFCDEFFE99A7B448DB279 /* ClerkKit */; };
+		4137E4BEC4D9AB99B0CBEB6D /* ReaderModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D35DB572137529526C5AA2 /* ReaderModels.swift */; };
+		5032362AD386E85B0C7A9003 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DFB6D276EC727353BA7A9C6 /* LibraryView.swift */; };
 		581C8B465D5BFD06642298E2 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = E152E3795F9B1126C9D136DC /* AppEnvironment.swift */; };
 		59753E4D6E90CEF1F782815D /* GuestMergePlannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A12F42BB6E8D75C76573394 /* GuestMergePlannerTests.swift */; };
 		5AC9D6E7A454C5B5DB441088 /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10894632004E617D6947770 /* SignInView.swift */; };
@@ -25,6 +28,9 @@
 		C25A571E80045E330C2F7680 /* ConvexMobile in Frameworks */ = {isa = PBXBuildFile; productRef = F836871A576A842027C728B2 /* ConvexMobile */; };
 		CEA85FC2B3F11A3B8831DD69 /* OnboardingFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA8A15927ABED222640071E /* OnboardingFlowView.swift */; };
 		CF9A54CACB315680F0F4A4BF /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC6379D7CF3A870E5D59B72 /* WelcomeView.swift */; };
+		E5BAE9CF65FCBE853C210CF7 /* ReaderSheets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10B42F7CC77C3DB5C4762941 /* ReaderSheets.swift */; };
+		EBF9EB387E5FE5A718F6AAF4 /* ReaderModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30CC2E71A270EECA2E3A0904 /* ReaderModelsTests.swift */; };
+		FD3526237B409866A7B5D4B9 /* ReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200085988107F7A5C12334EB /* ReaderView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,11 +44,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		10B42F7CC77C3DB5C4762941 /* ReaderSheets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderSheets.swift; sourceTree = "<group>"; };
+		1424D8A40132B5F39FA23E7D /* ReaderModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderModel.swift; sourceTree = "<group>"; };
 		14379C576B39E8C048BCE832 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		200085988107F7A5C12334EB /* ReaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderView.swift; sourceTree = "<group>"; };
 		21B165348425F36BB25A5B5A /* Hadithly.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Hadithly.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2A50BDEFB0F097AEA7D35CC9 /* MainTabsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabsView.swift; sourceTree = "<group>"; };
 		2DB77C4DAC4E74EC0E77C50C /* GuestMergePlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestMergePlanner.swift; sourceTree = "<group>"; };
+		30CC2E71A270EECA2E3A0904 /* ReaderModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderModelsTests.swift; sourceTree = "<group>"; };
 		498F77309F82C41BF08E487B /* HadithlyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HadithlyApp.swift; sourceTree = "<group>"; };
+		58D35DB572137529526C5AA2 /* ReaderModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderModels.swift; sourceTree = "<group>"; };
+		5DFB6D276EC727353BA7A9C6 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
 		60ADF5B4FE4B19D653444A35 /* GuestDataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestDataStore.swift; sourceTree = "<group>"; };
 		6737C69F35579741FABA3C09 /* HadithlyTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = HadithlyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6A12F42BB6E8D75C76573394 /* GuestMergePlannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestMergePlannerTests.swift; sourceTree = "<group>"; };
@@ -56,7 +68,7 @@
 		E4034D0B1DE93B6783753B19 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		E44FCAA45E0A462774A84DA1 /* SupportedLanguagesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportedLanguagesTests.swift; sourceTree = "<group>"; };
 		EEA2F742FC0F52912AA1DAFB /* GuestDataModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestDataModels.swift; sourceTree = "<group>"; };
-		"TEMP_C8140257-3802-4FF7-924B-93536E149DCC" /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		"TEMP_D1704890-A7EB-4D83-B133-A2C614E77AD6" /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -134,6 +146,7 @@
 				8B6DFC1F91CF0F3312CEEFBA /* Auth */,
 				7FE86592B770A14A3F58A7D0 /* Main */,
 				1C268289A0F59ACA49338D81 /* Onboarding */,
+				D6C543EBD272EEFC7EA24856 /* Reader */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -162,9 +175,22 @@
 			isa = PBXGroup;
 			children = (
 				6A12F42BB6E8D75C76573394 /* GuestMergePlannerTests.swift */,
+				30CC2E71A270EECA2E3A0904 /* ReaderModelsTests.swift */,
 				E44FCAA45E0A462774A84DA1 /* SupportedLanguagesTests.swift */,
 			);
 			path = HadithlyTests;
+			sourceTree = "<group>";
+		};
+		D6C543EBD272EEFC7EA24856 /* Reader */ = {
+			isa = PBXGroup;
+			children = (
+				5DFB6D276EC727353BA7A9C6 /* LibraryView.swift */,
+				1424D8A40132B5F39FA23E7D /* ReaderModel.swift */,
+				58D35DB572137529526C5AA2 /* ReaderModels.swift */,
+				10B42F7CC77C3DB5C4762941 /* ReaderSheets.swift */,
+				200085988107F7A5C12334EB /* ReaderView.swift */,
+			);
+			path = Reader;
 			sourceTree = "<group>";
 		};
 		D8BCDEB986C1FDFF316C0306 /* App */ = {
@@ -186,10 +212,10 @@
 			);
 			sourceTree = "<group>";
 		};
-		"TEMP_4809D2AE-86B2-4814-BA66-EA737AB99682" /* ios */ = {
+		"TEMP_70EC6209-9AF2-42DD-AE98-B5B838B9EE65" /* ios */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_C8140257-3802-4FF7-924B-93536E149DCC" /* Secrets.xcconfig */,
+				"TEMP_D1704890-A7EB-4D83-B133-A2C614E77AD6" /* Secrets.xcconfig */,
 			);
 			path = ios;
 			sourceTree = "<group>";
@@ -281,6 +307,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				59753E4D6E90CEF1F782815D /* GuestMergePlannerTests.swift in Sources */,
+				EBF9EB387E5FE5A718F6AAF4 /* ReaderModelsTests.swift in Sources */,
 				387B3ED9A915C443A4D6BE7F /* SupportedLanguagesTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -295,8 +322,13 @@
 				97895D6035CF1D70762E9219 /* GuestMergePlanner.swift in Sources */,
 				B9DA9BA63624F881531942D5 /* HadithlyApp.swift in Sources */,
 				9A4308D33FB86639EB1F1363 /* LanguagePickerView.swift in Sources */,
+				5032362AD386E85B0C7A9003 /* LibraryView.swift in Sources */,
 				0F9CA9207EAE3EA1A1AA76D0 /* MainTabsView.swift in Sources */,
 				CEA85FC2B3F11A3B8831DD69 /* OnboardingFlowView.swift in Sources */,
+				1E12EC45E3933C4A5A8FA0FF /* ReaderModel.swift in Sources */,
+				4137E4BEC4D9AB99B0CBEB6D /* ReaderModels.swift in Sources */,
+				E5BAE9CF65FCBE853C210CF7 /* ReaderSheets.swift in Sources */,
+				FD3526237B409866A7B5D4B9 /* ReaderView.swift in Sources */,
 				A468D0669C62C5B40BC96CC5 /* RootView.swift in Sources */,
 				5AC9D6E7A454C5B5DB441088 /* SignInView.swift in Sources */,
 				6CDB6D53D800C6E2C13C33C8 /* Theme.swift in Sources */,
@@ -317,7 +349,7 @@
 /* Begin XCBuildConfiguration section */
 		081EA1614EAE1CB1451F28EB /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_C8140257-3802-4FF7-924B-93536E149DCC" /* Secrets.xcconfig */;
+			baseConfigurationReference = "TEMP_D1704890-A7EB-4D83-B133-A2C614E77AD6" /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Hadithly/Hadithly.entitlements;
@@ -336,7 +368,7 @@
 		};
 		1DB6B6403B644CF2BD507A46 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_C8140257-3802-4FF7-924B-93536E149DCC" /* Secrets.xcconfig */;
+			baseConfigurationReference = "TEMP_D1704890-A7EB-4D83-B133-A2C614E77AD6" /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Hadithly/Hadithly.entitlements;

@@ -93,6 +93,7 @@ export default defineSchema({
     sourceUpdatedAt: v.optional(v.number()),
   })
     .index("by_provider_ref", ["provider", "collectionSlug", "providerHadithId"])
+    .index("by_collection_volume", ["provider", "collectionSlug", "volumeId"])
     .searchIndex("search_english", {
       searchField: "englishText",
       filterFields: ["collectionSlug"],
