@@ -6,6 +6,9 @@ import Observation
 /// size through `actions/hadithData:getReaderPage`, prefetches forward, and
 /// pulls AI translations for the chosen language through
 /// `actions/ai:translateHadith` with graceful quota/sign-in handling.
+/// Also owns the reader's personal-data side effects: bookmark/favorite/note
+/// toggles and private reading-progress saves (Convex when signed in,
+/// SwiftData for guests).
 @MainActor
 @Observable
 final class ReaderModel {
@@ -26,6 +29,11 @@ final class ReaderModel {
     let collectionName: String
     private let convex: ConvexClientWithAuth<String>
     private let isSignedIn: () -> Bool
+    private let library: UserLibraryModel?
+    /// Volume to open first (continue-reading / saved-item deep links).
+    private let openVolumeId: String?
+    /// Hadith number to land on within that volume.
+    private let openHadithNumber: String?
 
     // Reading state
     private(set) var phase: Phase = .loadingOutline
@@ -37,7 +45,9 @@ final class ReaderModel {
         didSet {
             guard oldValue != pageIndex else { return }
             prefetchForwardIfNeeded()
+            loadCurrentPageIfNeeded()
             scheduleTranslationsForCurrentPage()
+            saveCurrentProgress()
         }
     }
 
@@ -58,13 +68,19 @@ final class ReaderModel {
         collectionSlug: String,
         collectionName: String,
         language: String,
-        isSignedIn: @escaping () -> Bool
+        isSignedIn: @escaping () -> Bool,
+        library: UserLibraryModel? = nil,
+        openVolumeId: String? = nil,
+        openHadithNumber: String? = nil
     ) {
         self.convex = convex
         self.collectionSlug = collectionSlug
         self.collectionName = collectionName
         self.language = language
         self.isSignedIn = isSignedIn
+        self.library = library
+        self.openVolumeId = openVolumeId
+        self.openHadithNumber = openHadithNumber
     }
 
     var currentPages: [ReaderPageResult] { pages }
@@ -118,10 +134,15 @@ final class ReaderModel {
                 with: ["collectionSlug": collectionSlug as ConvexEncodable?]
             )
             volumes = result.volumes
-            let firstVolume = result.volumes.first?.volumeId
+            let requested = result.volumes.first { $0.volumeId == openVolumeId }?.volumeId
+            let firstVolume = requested ?? result.volumes.first?.volumeId
             selectedVolumeId = firstVolume
             if let firstVolume {
-                await loadPage(0, volumeId: firstVolume)
+                await loadPage(
+                    0,
+                    volumeId: firstVolume,
+                    jumpToHadithNumber: openHadithNumber
+                )
             } else {
                 phase = .failed("No volumes found for this collection.")
             }
@@ -161,31 +182,52 @@ final class ReaderModel {
     // MARK: - Paging
 
     /// Loads reader page `index` (0-based) for the given volume. Pages before
-    /// the requested one are filled with empty results so the TabView index
-    /// stays aligned.
-    private func loadPage(_ index: Int, volumeId: String) async {
+    /// the requested one are filled with empty results so the page index
+    /// stays aligned. When `jumpToHadithNumber` is set (deep link from
+    /// Today/Saved/continue reading), the backend resolves the page that
+    /// contains that hadith and it is placed at its true position.
+    private func loadPage(_ index: Int, volumeId: String, jumpToHadithNumber: String? = nil) async {
         if isLoadingPage { return }
         isLoadingPage = true
         defer { isLoadingPage = false }
         do {
-            let args: [String: ConvexEncodable?] = [
+            var args: [String: ConvexEncodable?] = [
                 "collectionSlug": collectionSlug as ConvexEncodable?,
                 "volumeId": volumeId as ConvexEncodable?,
                 "page": Double(index + 1) as ConvexEncodable?,
             ]
+            if let jumpToHadithNumber {
+                args["targetHadithNumber"] = jumpToHadithNumber as ConvexEncodable?
+            }
             let result: ReaderPageResult = try await convex.action(
                 "actions/hadithData:getReaderPage",
                 with: args
             )
-            while pages.count < index { pages.append(emptyPage()) }
-            if pages.indices.contains(index) {
-                pages[index] = result
+
+            if jumpToHadithNumber != nil {
+                // The server picked the page; slot it at its real position
+                // and land there. Earlier pages load on demand when the
+                // reader swipes back onto them.
+                let landingIndex = max(0, result.page - 1)
+                while pages.count < landingIndex { pages.append(emptyPage()) }
+                if pages.indices.contains(landingIndex) {
+                    pages[landingIndex] = result
+                } else {
+                    pages.append(result)
+                }
+                phase = .reading
+                pageIndex = landingIndex
             } else {
-                pages.append(result)
-            }
-            phase = .reading
-            if pageIndex == index {
-                scheduleTranslationsForCurrentPage()
+                while pages.count < index { pages.append(emptyPage()) }
+                if pages.indices.contains(index) {
+                    pages[index] = result
+                } else {
+                    pages.append(result)
+                }
+                phase = .reading
+                if pageIndex == index {
+                    scheduleTranslationsForCurrentPage()
+                }
             }
         } catch {
             if pages.isEmpty {
@@ -196,6 +238,15 @@ final class ReaderModel {
 
     private func emptyPage() -> ReaderPageResult {
         ReaderPageResult(items: [], page: 0, pageSize: 0, totalPages: 0, hasMore: false)
+    }
+
+    /// Swiping back onto a page that was skipped by a deep-link jump loads
+    /// it on demand. Placeholder pages carry page == 0.
+    private func loadCurrentPageIfNeeded() {
+        guard !isLoadingPage, pages.indices.contains(pageIndex) else { return }
+        guard pages[pageIndex].isPlaceholder, let volumeId = selectedVolumeId else { return }
+        pageTask?.cancel()
+        pageTask = Task { await loadPage(pageIndex, volumeId: volumeId) }
     }
 
     /// Loads the next reader page when the selection moves onto or within
@@ -263,5 +314,53 @@ final class ReaderModel {
         translationTask = Task { [weak self] in
             await self?.translateIfNeeded(hadith, generation: self?.translationGeneration ?? 0)
         }
+    }
+
+    // MARK: - Saved data (bookmarks / favorites / notes / progress)
+
+    private func ref(for hadith: ReaderHadith) -> HadithRef {
+        HadithRef(
+            hadithId: hadith._id,
+            collectionSlug: hadith.collectionSlug,
+            collectionName: hadith.collectionName,
+            volumeId: selectedVolumeId,
+            hadithNumber: hadith.providerHadithId,
+            arabicText: hadith.arabicText,
+            englishText: hadith.englishText,
+            referenceDisplay: hadith.referenceDisplay
+        )
+    }
+
+    func isBookmarked(_ hadith: ReaderHadith) -> Bool {
+        library?.isBookmarked(hadithId: hadith._id) ?? false
+    }
+
+    func isFavorite(_ hadith: ReaderHadith) -> Bool {
+        library?.isFavorite(hadithId: hadith._id) ?? false
+    }
+
+    func toggleBookmark(_ hadith: ReaderHadith) {
+        library?.toggleBookmark(ref(for: hadith))
+    }
+
+    func toggleFavorite(_ hadith: ReaderHadith) {
+        library?.toggleFavorite(ref(for: hadith))
+    }
+
+    func saveNote(_ hadith: ReaderHadith, content: String) {
+        library?.saveNote(ref(for: hadith), content: content)
+    }
+
+    func noteContent(for hadith: ReaderHadith) -> String? {
+        library?.notes.first { $0.hadith?.hadithId == hadith._id }?.noteContent
+    }
+
+    /// Persists the position of the first hadith on the current page. Runs
+    /// on every page turn and when the reader closes; the backend upserts
+    /// per collection so repeats stay cheap.
+    func saveCurrentProgress() {
+        guard phase == .reading, pages.indices.contains(pageIndex) else { return }
+        guard let first = pages[pageIndex].items.first else { return }
+        library?.saveProgress(ref(for: first))
     }
 }

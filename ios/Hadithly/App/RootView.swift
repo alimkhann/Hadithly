@@ -57,6 +57,7 @@ struct RootView: View {
         for await event in clerk.auth.events {
             if case .signedOut = event {
                 showSignIn = false
+                environment.handleSignOut()
             }
         }
     }

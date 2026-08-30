@@ -10,7 +10,13 @@ crons.monthly(
   internal.quotas.resetMonthlyAiUsage,
 );
 
-// Daily hadith push notifications land in Phase 3, once APNs/FCM
-// registration is implemented in the clients.
+// Daily hadith push notifications. The action itself only sends inside each
+// token's configured 15-minute window, so a 15-minute interval is enough.
+// No-op (with a log) until APNS_* env vars are configured.
+crons.interval(
+  "dispatch due daily hadith pushes",
+  { minutes: 15 },
+  internal.actions.daily.sendDueDailyPushes,
+);
 
 export default crons;

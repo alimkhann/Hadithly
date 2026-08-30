@@ -29,6 +29,9 @@ struct ReaderPageResult: Decodable {
     let pageSize: Int
     let totalPages: Int
     let hasMore: Bool
+
+    /// Skipped-by-jump pages start as page == 0 sentinels and load on demand.
+    var isPlaceholder: Bool { page == 0 }
 }
 
 struct OutlineVolume: Decodable, Identifiable, Equatable {
@@ -109,5 +112,14 @@ enum ReaderModels {
             return data
         }
         return error.localizedDescription
+    }
+
+    /// Reverse lookup used by guest-side saved items, which only store the
+    /// collection's display name.
+    static func collectionSlug(forName name: String?) -> String {
+        guard let name else { return "bukhari" }
+        return collections.first {
+            $0.name.caseInsensitiveCompare(name) == .orderedSame
+        }?.slug ?? "bukhari"
     }
 }

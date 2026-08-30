@@ -4,7 +4,7 @@ This document is the single source of truth for the rebuild. Read it at the
 start of any session. It answers: what is this, what exists, what is next,
 and what already went wrong so you do not repeat it.
 
-Last updated: end of Phase 2 (see the phase table for status).
+Last updated: end of Phase 3 (see the phase table for status).
 
 ## What Hadithly is
 
@@ -91,7 +91,7 @@ every session builds the same app: a quiet book in a dark room.
 | 0 | Archive legacy, Convex-only backend, SwiftUI scaffold, onboarding shell | done, verified |
 | 1 | Auth (Apple, Google, email) + guest mode + user sync | done, verified |
 | 2 | Reader core: pagination, chrome toggle, AI translation on demand | done, verified |
-| 3 | Tabs: Today, Library, Saved, Settings; push notification setup | not started |
+| 3 | Tabs: Today, Library, Saved, Settings; push notification setup | done, verified |
 | 4 | Translation submissions with AI review and admin approval | not started |
 | 5 | Android (Compose) port | not started |
 | 6 | RevenueCat paywall, App Store prep, CI | not started |
@@ -187,6 +187,57 @@ tests pass (including ReaderModelsTests for wire decoding and
 quota/sign-in error classification). `npm run typecheck` and `npx convex
 dev --once` clean.
 
+### Phase 3 detail (done, 2026-08-31)
+
+The four tabs are live. **Today** shows the daily hadith (deterministic
+per-UTC-date pick over the cached `hadiths` table via
+`actions/daily:getDailyHadith`; every reader sees the same hadith the same
+day) plus a private continue-reading card. **Library** lists the seven
+collections with cached volume/hadith counts from `collectionOutlines`
+(realtime subscriptions; collections never opened show no counts) and a
+continue-reading shortcut. **Saved** shows Bookmarks / Favorites / Notes
+cards that open bottom sheets in the Sajda style; rows show reference,
+Arabic snippet, and note text, tap reopens the reader at that exact hadith,
+and items can be removed. **Settings** holds account, Arabic type size
+(with live Arabic preview), translation language, and the daily hadith
+notification toggle + time.
+
+Personal data wiring: signed-in users get bookmarks, favorites, notes, and
+reading progress through realtime Convex subscriptions
+(`library:list*Detailed` queries join the hadith so lists render in one
+round trip); guests use SwiftData (`GuestFavorite` and
+`GuestReadingProgress` models added, plus display metadata captured on
+save). The reader has a quiet per-hadith action row (bookmark amber,
+favorite pink, note) with a note editor sheet, and saves private progress
+on every page turn and on close. Reader deep links accept
+volumeId + hadithNumber; `getReaderPage` resolves the containing page via
+`targetHadithNumber`, skipped pages load on demand when swiped back onto.
+`guestMerge:mergeGuestData` now also merges favorites and reading progress
+(latest-wins per collection), idempotently as before.
+
+Push: the app registers APNs (`Core/Push/PushNotificationManager.swift`,
+aps-environment entitlement added) and upserts the token via
+`library:savePushToken` (deduped by token, prefs never clobbered). Settings
+toggle + time persist through `library:setDailyNotification`. The cron
+(`crons.ts`, every 15 min) calls `actions/daily:sendDueDailyPushes`, which
+sends within each token's local-time window (tz offset stored per token,
+`lastSentDate` guards double sends) via `lib/apns.ts` (ES256 JWT + HTTP/2).
+It is a no-op until the APNS_* env vars are set:
+`APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_PRIVATE_KEY` (p8 PEM),
+`APNS_ENVIRONMENT` (sandbox default), `APNS_TOPIC` (defaults to
+com.hadithly.app). The p8 key must be created in the Apple Developer
+portal; simulator push registration and delivery work with sandbox.
+
+Verified on the simulator with UI automation as guest and signed in
+(email code 424242): daily hadith card opens the reader at the right
+volume/page, bookmark/favorite/note toggles round-trip through Convex and
+appear in Saved sheets, continue-reading card restores the exact position,
+guest data lives in SwiftData and merges on sign-in ("Merged 0 bookmarks,
+1 favorites, 0 notes. Restored 1 reading positions."), notification toggle
+registers a real APNs token into `pushTokens`, and the cron action runs
+clean (no-op until APNs keys). 23 unit tests pass, `npm run typecheck` and
+`npx convex dev --once` clean.
+
 ## Mistakes already made, do not repeat
 
 - Convex action handlers that use `api` or `internal` need explicit return
@@ -232,6 +283,18 @@ dev --once` clean.
 - A page-turn selection can legitimately sit one past the last loaded page;
   prefetch must key off `pages.last` / `pages.count`, not
   `pages.indices.contains(pageIndex)`.
+- Convex subscriptions opened before the Convex session activates fail with
+  Unauthenticated and stay empty forever — no data, no crash. Library
+  subscriptions must re-open on every auth-state transition (AppEnvironment
+  observes `convex.authState`) plus bounded retries.
+- A Convex lib file that imports node builtins (`node:crypto`, `node:http2`)
+  needs its own `"use node"` directive, even if it only exports plain
+  functions for a "use node" action file — the bundler resolves modules
+  per-file.
+- ConvexMobile's `subscribe` argument label is `yielding:` (external label
+  of `yielding output:`); passing `yielding output:` fails to parse.
+- Reading a raw Convex row's `v.id()` field as `string` in a validator-adjacent
+  type needs `Doc<"table">["_id"]` (this repo's generated `Doc` is generic).
 
 ## Secrets and rotation
 

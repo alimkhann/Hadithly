@@ -15,10 +15,37 @@ struct GuestMergePayload: Equatable, Sendable {
         let updatedAt: Double
     }
 
+    struct Favorite: Equatable, Sendable {
+        let hadithId: String
+        let createdAt: Double
+    }
+
+    struct Progress: Equatable, Sendable {
+        let collectionSlug: String
+        let hadithId: String
+        let updatedAt: Double
+    }
+
     let bookmarks: [Bookmark]
     let notes: [Note]
+    var favorites: [Favorite]
+    var readingProgress: [Progress]
 
-    var isEmpty: Bool { bookmarks.isEmpty && notes.isEmpty }
+    init(
+        bookmarks: [Bookmark],
+        notes: [Note],
+        favorites: [Favorite] = [],
+        readingProgress: [Progress] = []
+    ) {
+        self.bookmarks = bookmarks
+        self.notes = notes
+        self.favorites = favorites
+        self.readingProgress = readingProgress
+    }
+
+    var isEmpty: Bool {
+        bookmarks.isEmpty && notes.isEmpty && favorites.isEmpty && readingProgress.isEmpty
+    }
 }
 
 /// Builds the merge payload from local guest data. Pure and deterministic so
@@ -36,10 +63,14 @@ enum GuestMergePlanner {
 
     static func makePayload(
         bookmarks: [GuestBookmarkDraft],
-        notes: [GuestNoteDraft]
+        notes: [GuestNoteDraft],
+        favorites: [GuestFavoriteDraft] = [],
+        progress: [GuestReadingProgressDraft] = []
     ) -> GuestMergePayload {
-        let validBookmarks = dedupe(bookmarks.filter { isValidHadithId($0.hadithId) })
-        let validNotes = dedupe(notes.filter { isValidHadithId($0.hadithId) })
+        let validBookmarks = dedupeBookmarks(bookmarks.filter { isValidHadithId($0.hadithId) })
+        let validNotes = dedupeNotes(notes.filter { isValidHadithId($0.hadithId) })
+        let validFavorites = dedupeFavorites(favorites.filter { isValidHadithId($0.hadithId) })
+        let validProgress = dedupeProgress(progress.filter { isValidHadithId($0.hadithId) })
 
         return GuestMergePayload(
             bookmarks: validBookmarks
@@ -54,12 +85,24 @@ enum GuestMergePlanner {
                         createdAt: $0.createdAt.millisecondsSinceEpoch,
                         updatedAt: $0.updatedAt.millisecondsSinceEpoch
                     )
+                },
+            favorites: validFavorites
+                .sorted { $0.createdAt < $1.createdAt }
+                .map { .init(hadithId: $0.hadithId, createdAt: $0.createdAt.millisecondsSinceEpoch) },
+            readingProgress: validProgress
+                .sorted { $0.updatedAt < $1.updatedAt }
+                .map {
+                    .init(
+                        collectionSlug: $0.collectionSlug,
+                        hadithId: $0.hadithId,
+                        updatedAt: $0.updatedAt.millisecondsSinceEpoch
+                    )
                 }
         )
     }
 
     /// The same hadith bookmarked twice keeps its earliest record.
-    private static func dedupe(_ bookmarks: [GuestBookmarkDraft]) -> [GuestBookmarkDraft] {
+    private static func dedupeBookmarks(_ bookmarks: [GuestBookmarkDraft]) -> [GuestBookmarkDraft] {
         var earliestByHadith: [String: GuestBookmarkDraft] = [:]
         for bookmark in bookmarks {
             let existing = earliestByHadith[bookmark.hadithId]
@@ -71,7 +114,7 @@ enum GuestMergePlanner {
     }
 
     /// The same hadith noted twice keeps the most recently edited version.
-    private static func dedupe(_ notes: [GuestNoteDraft]) -> [GuestNoteDraft] {
+    private static func dedupeNotes(_ notes: [GuestNoteDraft]) -> [GuestNoteDraft] {
         var latestByHadith: [String: GuestNoteDraft] = [:]
         for note in notes {
             let existing = latestByHadith[note.hadithId]
@@ -80,6 +123,32 @@ enum GuestMergePlanner {
             }
         }
         return Array(latestByHadith.values)
+    }
+
+    /// The same hadith favorited twice keeps its earliest record.
+    private static func dedupeFavorites(_ favorites: [GuestFavoriteDraft]) -> [GuestFavoriteDraft] {
+        var earliestByHadith: [String: GuestFavoriteDraft] = [:]
+        for favorite in favorites {
+            let existing = earliestByHadith[favorite.hadithId]
+            if existing == nil || favorite.createdAt < existing!.createdAt {
+                earliestByHadith[favorite.hadithId] = favorite
+            }
+        }
+        return Array(earliestByHadith.values)
+    }
+
+    /// One entry per collection, keeping the newest position.
+    private static func dedupeProgress(
+        _ progress: [GuestReadingProgressDraft]
+    ) -> [GuestReadingProgressDraft] {
+        var latestByCollection: [String: GuestReadingProgressDraft] = [:]
+        for entry in progress {
+            let existing = latestByCollection[entry.collectionSlug]
+            if existing == nil || entry.updatedAt > existing!.updatedAt {
+                latestByCollection[entry.collectionSlug] = entry
+            }
+        }
+        return Array(latestByCollection.values)
     }
 }
 

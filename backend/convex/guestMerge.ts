@@ -27,6 +27,24 @@ export const mergeGuestData = mutation({
         updatedAt: v.number(),
       }),
     ),
+    // Added in Phase 3; optional so older clients keep working.
+    favorites: v.optional(
+      v.array(
+        v.object({
+          hadithId: v.id("hadiths"),
+          createdAt: v.number(),
+        }),
+      ),
+    ),
+    readingProgress: v.optional(
+      v.array(
+        v.object({
+          collectionSlug: v.string(),
+          hadithId: v.id("hadiths"),
+          updatedAt: v.number(),
+        }),
+      ),
+    ),
   },
   handler: async (ctx, args) => {
     const identity = await requireIdentity(ctx);
@@ -101,6 +119,75 @@ export const mergeGuestData = mutation({
       notesMerged += 1;
     }
 
-    return { bookmarksMerged, bookmarksSkipped, notesMerged, notesSkipped };
+    let favoritesMerged = 0;
+    let favoritesSkipped = 0;
+    for (const item of args.favorites ?? []) {
+      const hadith = await ctx.db.get(item.hadithId);
+      if (!hadith) {
+        favoritesSkipped += 1;
+        continue;
+      }
+      const existing = await ctx.db
+        .query("favorites")
+        .withIndex("by_user", (q) => q.eq("userId", user._id))
+        .collect()
+        .then((rows) => rows.find((row) => row.hadithId === item.hadithId));
+      if (existing) {
+        favoritesSkipped += 1;
+        continue;
+      }
+      await ctx.db.insert("favorites", {
+        userId: user._id,
+        hadithId: item.hadithId,
+        createdAt: item.createdAt,
+      });
+      favoritesMerged += 1;
+    }
+
+    let progressMerged = 0;
+    let progressSkipped = 0;
+    for (const item of args.readingProgress ?? []) {
+      const hadith = await ctx.db.get(item.hadithId);
+      if (!hadith) {
+        progressSkipped += 1;
+        continue;
+      }
+      const existing = await ctx.db
+        .query("readingProgress")
+        .withIndex("by_user_collection", (q) =>
+          q.eq("userId", user._id).eq("collectionSlug", item.collectionSlug),
+        )
+        .unique();
+      if (existing) {
+        if (existing.updatedAt >= item.updatedAt) {
+          progressSkipped += 1;
+          continue;
+        }
+        await ctx.db.patch(existing._id, {
+          hadithId: item.hadithId,
+          updatedAt: item.updatedAt,
+        });
+        progressMerged += 1;
+        continue;
+      }
+      await ctx.db.insert("readingProgress", {
+        userId: user._id,
+        collectionSlug: item.collectionSlug,
+        hadithId: item.hadithId,
+        updatedAt: item.updatedAt,
+      });
+      progressMerged += 1;
+    }
+
+    return {
+      bookmarksMerged,
+      bookmarksSkipped,
+      notesMerged,
+      notesSkipped,
+      favoritesMerged,
+      favoritesSkipped,
+      progressMerged,
+      progressSkipped,
+    };
   },
 });

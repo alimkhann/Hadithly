@@ -11,6 +11,8 @@ struct ReaderView: View {
 
     let collectionSlug: String
     let collectionName: String
+    var openVolumeId: String?
+    var openHadithNumber: String?
 
     @State private var model: ReaderModel?
     @State private var showIndex = false
@@ -40,12 +42,18 @@ struct ReaderView: View {
                     collectionSlug: collectionSlug,
                     collectionName: collectionName,
                     language: UserDefaults.standard.string(forKey: "user.preferredLanguage") ?? "en",
-                    isSignedIn: { clerk.session != nil }
+                    isSignedIn: { clerk.session != nil },
+                    library: environment.library,
+                    openVolumeId: openVolumeId,
+                    openHadithNumber: openHadithNumber
                 )
                 model?.start()
             }
         }
-        .onDisappear { model?.stop() }
+        .onDisappear {
+            model?.saveCurrentProgress()
+            model?.stop()
+        }
         .sheet(isPresented: $showIndex) {
             if let model {
                 CollectionOutlineSheet(model: model)
@@ -294,6 +302,7 @@ struct ReaderPageView: View {
                 VStack(spacing: 40) {
                     ForEach(hadiths) { hadith in
                         HadithBlock(
+                            model: model,
                             hadith: hadith,
                             translationState: model.translations[hadith.internalId],
                             language: model.language,
@@ -320,6 +329,7 @@ struct ReaderPageView: View {
 // MARK: - One hadith
 
 private struct HadithBlock: View {
+    let model: ReaderModel
     let hadith: ReaderHadith
     let translationState: ReaderModel.TranslationState?
     let language: String
@@ -327,6 +337,7 @@ private struct HadithBlock: View {
     let onRetry: () -> Void
 
     @State private var citationsTranslation: ReaderTranslation?
+    @State private var isEditingNote = false
 
     var body: some View {
         VStack(spacing: 16) {
@@ -352,11 +363,30 @@ private struct HadithBlock: View {
             Text(hadith.referenceDisplay)
                 .font(.caption2)
                 .foregroundStyle(Theme.textSecondary)
+
+            HadithActionRow(
+                isBookmarked: model.isBookmarked(hadith),
+                isFavorite: model.isFavorite(hadith),
+                hasNote: model.noteContent(for: hadith) != nil,
+                onBookmark: { model.toggleBookmark(hadith) },
+                onFavorite: { model.toggleFavorite(hadith) },
+                onNote: { isEditingNote = true }
+            )
         }
         .padding(.vertical, 8)
         .sheet(item: $citationsTranslation) { translation in
             TranslationCitationsSheet(translation: translation)
                 .presentationDetents([.medium, .large])
+        }
+        .sheet(isPresented: $isEditingNote) {
+            NoteEditorSheet(
+                initialContent: model.noteContent(for: hadith),
+                onSave: { content in
+                    model.saveNote(hadith, content: content)
+                    isEditingNote = false
+                }
+            )
+            .presentationDetents([.medium])
         }
     }
 
@@ -495,6 +525,120 @@ private struct HadithBlock: View {
             }
         }
         .padding(.vertical, 8)
+    }
+}
+
+// MARK: - Per-hadith actions
+
+/// The quiet action row under each hadith: bookmark (amber), favorite (pink),
+/// and a note. Nothing else on the page uses color.
+struct HadithActionRow: View {
+    let isBookmarked: Bool
+    let isFavorite: Bool
+    let hasNote: Bool
+    let onBookmark: () -> Void
+    let onFavorite: () -> Void
+    let onNote: () -> Void
+
+    var body: some View {
+        HStack(spacing: 26) {
+            actionButton(
+                "bookmark",
+                filled: isBookmarked,
+                tint: Theme.bookmark,
+                label: isBookmarked ? "Remove bookmark" : "Bookmark",
+                action: onBookmark
+            )
+            .accessibilityIdentifier("reader.bookmark")
+
+            actionButton(
+                "heart",
+                filled: isFavorite,
+                tint: Theme.favorite,
+                label: isFavorite ? "Remove favorite" : "Favorite",
+                action: onFavorite
+            )
+            .accessibilityIdentifier("reader.favorite")
+
+            actionButton(
+                "square.and.pencil",
+                filled: hasNote,
+                tint: Theme.textSecondary,
+                label: hasNote ? "Edit note" : "Add note",
+                action: onNote
+            )
+            .accessibilityIdentifier("reader.note")
+        }
+    }
+
+    private func actionButton(
+        _ systemImage: String,
+        filled: Bool,
+        tint: Color,
+        label: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: filled ? "\(systemImage).fill" : systemImage)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(filled ? tint : Theme.textSecondary.opacity(0.75))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
+    }
+}
+
+// MARK: - Note editor
+
+private struct NoteEditorSheet: View {
+    let initialContent: String?
+    let onSave: (String) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var content: String = ""
+    @FocusState private var isFocused: Bool
+
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 12) {
+                TextEditor(text: $content)
+                    .focused($isFocused)
+                    .font(.body)
+                    .foregroundStyle(Theme.textPrimary)
+                    .scrollContentBackground(.hidden)
+                    .background(Theme.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .frame(minHeight: 160)
+                    .padding(1)
+                    .background(Theme.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+            .padding(16)
+            .background(Theme.background)
+            .navigationTitle("Note")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") { dismiss() }
+                        .foregroundStyle(Theme.textSecondary)
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Save") {
+                        let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
+                        guard !trimmed.isEmpty else { return }
+                        onSave(trimmed)
+                        dismiss()
+                    }
+                    .foregroundStyle(Theme.accent)
+                    .accessibilityIdentifier("note.save")
+                }
+            }
+            .onAppear {
+                content = initialContent ?? ""
+                isFocused = true
+            }
+        }
+        .preferredColorScheme(.dark)
     }
 }
 

@@ -93,6 +93,7 @@ export default defineSchema({
     sourceUpdatedAt: v.optional(v.number()),
   })
     .index("by_provider_ref", ["provider", "collectionSlug", "providerHadithId"])
+    .index("by_collection", ["provider", "collectionSlug"])
     .index("by_collection_volume", ["provider", "collectionSlug", "volumeId"])
     .searchIndex("search_english", {
       searchField: "englishText",
@@ -212,9 +213,17 @@ export default defineSchema({
     token: v.string(),
     platform: v.union(v.literal("ios"), v.literal("android")),
     dailyTime: v.optional(v.string()),
+    // Minutes east of UTC at registration time, so the cron can compute the
+    // device's local clock without storing an IANA zone per token.
+    tzOffsetMinutes: v.optional(v.number()),
     enabled: v.boolean(),
+    // Local date (YYYY-MM-DD in the token's tz) of the last daily push
+    // actually sent, guarding the 15-minute cron against double sends.
+    lastSentDate: v.optional(v.string()),
     updatedAt: v.number(),
-  }).index("by_user", ["userId"]),
+  })
+    .index("by_user", ["userId"])
+    .index("by_token", ["token"]),
 
   translationReports: defineTable({
     translationId: v.id("translations"),

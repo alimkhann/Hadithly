@@ -32,6 +32,10 @@ struct GuestMergeResult: Decodable {
     let bookmarksSkipped: Int
     let notesMerged: Int
     let notesSkipped: Int
+    let favoritesMerged: Int
+    let favoritesSkipped: Int
+    let progressMerged: Int
+    let progressSkipped: Int
 }
 
 /// Process-wide dependency container.
@@ -42,11 +46,14 @@ final class AppEnvironment {
     let config: AppConfig
     let convex: ConvexClientWithAuth<String>
     let guestData: GuestDataStore
+    let library: UserLibraryModel
+    let push: PushNotificationManager
 
     /// Summary of the last completed sign-in sync, surfaced in Settings.
     private(set) var lastSyncSummary: String?
 
     private let authProvider: ClerkConvexAuthProvider
+    private var authStateCancellable: AnyCancellable?
 
     init(config: AppConfig = AppConfig(), guestData: GuestDataStore? = nil) {
         self.config = config
@@ -59,6 +66,32 @@ final class AppEnvironment {
             authProvider: provider
         )
         provider.bind(client: convex)
+        self.library = UserLibraryModel(
+            convex: convex,
+            guestData: self.guestData,
+            isSignedIn: { Clerk.shared.session != nil }
+        )
+        self.push = PushNotificationManager.shared
+        self.push.uploadHandler = { [weak self] token in
+            guard let self, Clerk.shared.session != nil else { return }
+            let tzOffsetMinutes = Double(-TimeZone.current.secondsFromGMT() / 60)
+            try? await self.convex.mutation(
+                "library:savePushToken",
+                with: [
+                    "token": token as ConvexEncodable?,
+                    "platform": "ios" as ConvexEncodable?,
+                    "tzOffsetMinutes": tzOffsetMinutes as ConvexEncodable?,
+                ]
+            )
+        }
+
+        // Personal-data subscriptions must follow the Convex session: a
+        // subscription opened before authentication errors and stays empty.
+        authStateCancellable = convex.authState
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.library.refresh()
+            }
     }
 
     /// Runs after a Clerk session becomes active: makes sure the user row
@@ -79,16 +112,21 @@ final class AppEnvironment {
             )
         } catch {
             lastSyncSummary = "Account sync failed: \(error.localizedDescription)"
+            library.refresh()
             return
         }
 
         let payload = GuestMergePlanner.makePayload(
             bookmarks: guestData.bookmarkDrafts(),
-            notes: guestData.noteDrafts()
+            notes: guestData.noteDrafts(),
+            favorites: guestData.favoriteDrafts(),
+            progress: guestData.progressDrafts()
         )
 
-        guard !payload.isEmpty else {
-            lastSyncSummary = "Signed in. Nothing to merge."
+        if payload.isEmpty {
+            lastSyncSummary = "Signed in."
+            library.refresh()
+            await push.uploadTokenIfNeeded()
             return
         }
 
@@ -110,16 +148,45 @@ final class AppEnvironment {
                             "updatedAt": item.updatedAt,
                         ] as [String: ConvexEncodable?]
                     },
+                    "favorites": payload.favorites.map { item in
+                        [
+                            "hadithId": item.hadithId,
+                            "createdAt": item.createdAt,
+                        ] as [String: ConvexEncodable?]
+                    },
+                    "readingProgress": payload.readingProgress.map { item in
+                        [
+                            "collectionSlug": item.collectionSlug,
+                            "hadithId": item.hadithId,
+                            "updatedAt": item.updatedAt,
+                        ] as [String: ConvexEncodable?]
+                    },
                 ]
             )
             guestData.clearAll()
-            lastSyncSummary =
-                "Signed in. Merged \(result.bookmarksMerged) bookmarks and \(result.notesMerged) notes."
-                + " (\(result.bookmarksSkipped) bookmarks and \(result.notesSkipped) notes already up to date.)"
+            lastSyncSummary = Self.syncSummary(for: result)
         } catch {
             // Local data is deliberately kept so a later sign-in can retry.
             lastSyncSummary = "Guest data merge failed: \(error.localizedDescription)"
         }
+        library.refresh()
+        await push.uploadTokenIfNeeded()
+    }
+
+    /// Called when the Clerk session ends. The SwiftData store is empty (the
+    /// merge cleared it), so the library flips back to guest mode cleanly.
+    func handleSignOut() {
+        library.refresh()
+    }
+
+    private static func syncSummary(for result: GuestMergeResult) -> String {
+        var summary =
+            "Signed in. Merged \(result.bookmarksMerged) bookmarks, "
+            + "\(result.favoritesMerged) favorites, and \(result.notesMerged) notes."
+        if result.progressMerged > 0 {
+            summary += " Restored \(result.progressMerged) reading positions."
+        }
+        return summary
     }
 
     private func waitForConvexAuthentication(timeout: TimeInterval = 15) async -> Bool {

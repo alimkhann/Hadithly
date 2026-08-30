@@ -148,6 +148,28 @@ export const listByVolume = internalQuery({
   },
 });
 
+/**
+ * Internal: every cached hadith of one collection, ordered by hadith number.
+ * Powers the deterministic daily hadith pick.
+ */
+export const listByCollection = internalQuery({
+  args: { provider, collectionSlug: v.string() },
+  handler: async (ctx, args) => {
+    const items = await ctx.db
+      .query("hadiths")
+      .withIndex("by_collection", (q) =>
+        q
+          .eq("provider", args.provider)
+          .eq("collectionSlug", args.collectionSlug),
+      )
+      .collect();
+    return items.sort(
+      (left, right) =>
+        Number(left.providerHadithId) - Number(right.providerHadithId),
+    );
+  },
+});
+
 /** Public: full-text search over cached English text + live translations. */
 export const search = query({
   args: {

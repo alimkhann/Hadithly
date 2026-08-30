@@ -92,4 +92,62 @@ final class GuestMergePlannerTests: XCTestCase {
         )
         XCTAssertEqual(payload.bookmarks.map(\.createdAt), [100_000, 200_000, 300_000])
     }
+
+    // MARK: - Favorites and reading progress (Phase 3)
+
+    func testDuplicateFavoritesKeepEarliestCreation() {
+        let payload = GuestMergePlanner.makePayload(
+            bookmarks: [],
+            notes: [],
+            favorites: [
+                GuestFavoriteDraft(hadithId: "jn7fxd3z54153q9j13kmhgzkv18df2zd", createdAt: date(900)),
+                GuestFavoriteDraft(hadithId: "jn7fxd3z54153q9j13kmhgzkv18df2zd", createdAt: date(100)),
+            ]
+        )
+        XCTAssertEqual(payload.favorites.count, 1)
+        XCTAssertEqual(payload.favorites.first?.createdAt, 100_000)
+    }
+
+    func testProgressKeepsNewestPositionPerCollection() {
+        let payload = GuestMergePlanner.makePayload(
+            bookmarks: [],
+            notes: [],
+            progress: [
+                GuestReadingProgressDraft(
+                    collectionSlug: "bukhari",
+                    collectionName: "Sahih al-Bukhari",
+                    hadithId: "jn7fxd3z54153q9j13kmhgzkv18df2zd",
+                    updatedAt: date(100)
+                ),
+                GuestReadingProgressDraft(
+                    collectionSlug: "bukhari",
+                    collectionName: "Sahih al-Bukhari",
+                    hadithId: "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1",
+                    updatedAt: date(500)
+                ),
+                GuestReadingProgressDraft(
+                    collectionSlug: "muslim",
+                    collectionName: "Sahih Muslim",
+                    hadithId: "caaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2",
+                    updatedAt: date(300)
+                ),
+            ]
+        )
+        XCTAssertEqual(payload.readingProgress.count, 2)
+        let bukhari = payload.readingProgress.first { $0.collectionSlug == "bukhari" }
+        XCTAssertEqual(bukhari?.hadithId, "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1")
+    }
+
+    func testEmptyStateIncludesNewCollections() {
+        let payload = GuestMergePlanner.makePayload(bookmarks: [], notes: [])
+        XCTAssertTrue(payload.isEmpty)
+        let withFavorite = GuestMergePlanner.makePayload(
+            bookmarks: [],
+            notes: [],
+            favorites: [
+                GuestFavoriteDraft(hadithId: "jn7fxd3z54153q9j13kmhgzkv18df2zd", createdAt: date(1)),
+            ]
+        )
+        XCTAssertFalse(withFavorite.isEmpty)
+    }
 }

@@ -110,6 +110,9 @@ export const getReaderPage = action({
     volumeId: v.optional(v.string()),
     page: v.optional(v.number()),
     pageSize: v.optional(v.number()),
+    // When set (continue-reading, saved items, daily hadith), the volume
+    // path serves the page containing this hadith number instead of `page`.
+    targetHadithNumber: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<ReaderPageResult> => {
     const page = args.page ?? 1;
@@ -130,7 +133,11 @@ export const getReaderPage = action({
           volumeId: args.volumeId,
         });
         if (cached.length >= volume.hadithCount) {
-          return serveVolumeChunk(cached, page, pageSize);
+          return serveVolumeChunk(
+            cached,
+            resolvePageNumber(cached, args, page, pageSize),
+            pageSize,
+          );
         }
       }
 
@@ -147,7 +154,11 @@ export const getReaderPage = action({
         _id: upsertIds[index] as string,
         ...item,
       }));
-      return serveVolumeChunk(withIds, page, pageSize);
+      return serveVolumeChunk(
+        withIds,
+        resolvePageNumber(withIds, args, page, pageSize),
+        pageSize,
+      );
     }
 
     const providerPage = await fetchReaderPage({
@@ -175,6 +186,24 @@ export const getReaderPage = action({
     };
   },
 });
+
+/**
+ * With a target hadith number, computes the page that contains it; without,
+ * falls back to the requested page.
+ */
+function resolvePageNumber(
+  volumeHadiths: Array<{ providerHadithId: string }>,
+  args: { targetHadithNumber?: string },
+  fallbackPage: number,
+  pageSize: number,
+): number {
+  if (!args.targetHadithNumber) return fallbackPage;
+  const index = volumeHadiths.findIndex(
+    (item) => item.providerHadithId === args.targetHadithNumber,
+  );
+  if (index < 0) return fallbackPage;
+  return Math.floor(index / pageSize) + 1;
+}
 
 /**
  * Slices the cached volume into content-sized reader pages using the same
