@@ -15,6 +15,7 @@ import {
   fetchReaderPage,
   fetchVolumeHadiths,
 } from "../lib/sunnahNow";
+import type { HadithRecord } from "../lib/sunnahNow";
 
 const OUTLINE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -192,17 +193,20 @@ export const getReaderPage = action({
  * falls back to the requested page.
  */
 function resolvePageNumber(
-  volumeHadiths: Array<{ providerHadithId: string }>,
+  volumeHadiths: HadithRecord[],
   args: { targetHadithNumber?: string },
   fallbackPage: number,
   pageSize: number,
 ): number {
   if (!args.targetHadithNumber) return fallbackPage;
-  const index = volumeHadiths.findIndex(
-    (item) => item.providerHadithId === args.targetHadithNumber,
+  const pageIndex = chunkReaderHadiths(volumeHadiths, pageSize).findIndex(
+    (items) =>
+      items.some(
+        (item) => item.providerHadithId === args.targetHadithNumber,
+      ),
   );
-  if (index < 0) return fallbackPage;
-  return Math.floor(index / pageSize) + 1;
+  if (pageIndex < 0) return fallbackPage;
+  return pageIndex + 1;
 }
 
 /**

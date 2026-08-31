@@ -41,6 +41,8 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.FormatSize
+import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.Textsms
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
@@ -70,6 +72,7 @@ import com.hadithly.app.core.data.SupportedLanguages
 import com.hadithly.app.core.data.TranslationFailure
 import com.hadithly.app.core.theme.LocalHadithlyColors
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 
 /**
@@ -83,11 +86,12 @@ fun ReaderScreen(
     collectionName: String,
     openVolumeId: String?,
     openHadithNumber: String?,
+    instanceKey: Long,
     onClose: () -> Unit,
 ) {
     val app = com.hadithly.app.features.main.rememberApp()
     val viewModel: ReaderViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-        key = "reader-$collectionSlug-${openVolumeId ?: ""}-${openHadithNumber ?: ""}",
+        key = "reader-$instanceKey",
     ) {
         ReaderViewModel(
             app = app,
@@ -97,6 +101,11 @@ fun ReaderScreen(
         )
     }
     val state by viewModel.state.collectAsStateWithLifecycle()
+    // Personal-data writes update a separate shared model. Observe its
+    // lists here so bookmark/favorite/note affordances repaint immediately.
+    val bookmarks by viewModel.library.bookmarks.collectAsStateWithLifecycle()
+    val favorites by viewModel.library.favorites.collectAsStateWithLifecycle()
+    val notes by viewModel.library.notes.collectAsStateWithLifecycle()
     val colors = LocalHadithlyColors.current
 
     var showContents by remember { mutableStateOf(false) }
@@ -206,10 +215,35 @@ private fun ReadingView(
     // triggers the load of the next page.
     val pageCount = state.pages.size + if (state.pages.lastOrNull()?.hasMore == true) 1 else 0
     val pagerState = rememberPagerState(pageCount = { maxOf(pageCount, 1) })
+    val currentFirstHadithId = state.pages
+        .getOrNull(state.pageIndex)
+        ?.items
+        ?.firstOrNull()
+        ?._id
+
+    // Persist the initial page as soon as it resolves. Previously progress
+    // was only written after a swipe, so opening Today/Saved and closing the
+    // reader without changing pages could never create Continue Reading.
+    LaunchedEffect(currentFirstHadithId) {
+        if (currentFirstHadithId != null) viewModel.saveCurrentProgress()
+    }
+
+    // Deep links resolve their containing page on the backend after the
+    // pager is created. Move the visual pager to that resolved index so
+    // Today/Saved/continue-reading never land on an earlier placeholder.
+    LaunchedEffect(state.pageIndex, pageCount) {
+        if (state.pageIndex in 0 until maxOf(pageCount, 1) && pagerState.currentPage != state.pageIndex) {
+            pagerState.scrollToPage(state.pageIndex)
+        }
+    }
 
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.settledPage }
             .distinctUntilChanged()
+            // The pager always emits its synthetic initial page (0). A
+            // reused/deep-linked ReaderViewModel may already be on another
+            // page, so that first emission must not overwrite the target.
+            .drop(1)
             .collect { index -> viewModel.onPageSettled(index) }
     }
 
@@ -315,6 +349,8 @@ private fun ReaderPage(
     val colors = LocalHadithlyColors.current
     var citationsTranslation by remember { mutableStateOf<ReaderTranslation?>(null) }
     var noteTarget by remember { mutableStateOf<ReaderHadith?>(null) }
+    var submissionTarget by remember { mutableStateOf<Pair<ReaderHadith, ReaderTranslation?>?>(null) }
+    var reportTarget by remember { mutableStateOf<Pair<ReaderHadith, ReaderTranslation>?>(null) }
 
     Box(
         modifier = Modifier
@@ -343,6 +379,8 @@ private fun ReaderPage(
                         onRetry = { viewModel.retryTranslation(hadith) },
                         onShowCitations = { citationsTranslation = it },
                         onEditNote = { noteTarget = hadith },
+                        onSuggest = { translation -> submissionTarget = hadith to translation },
+                        onReport = { translation -> reportTarget = hadith to translation },
                     )
                 }
             }
@@ -369,6 +407,35 @@ private fun ReaderPage(
                         noteTarget = null
                     },
                     onCancel = { noteTarget = null },
+                )
+            }
+        }
+
+        submissionTarget?.let { (hadith, translation) ->
+            ModalBottomSheet(
+                onDismissRequest = { submissionTarget = null },
+                containerColor = colors.background,
+            ) {
+                TranslationSubmissionSheet(
+                    viewModel = viewModel,
+                    hadith = hadith,
+                    existingTranslation = translation,
+                    initialContent = if (state.language == "en") hadith.englishText.orEmpty() else translation?.translation.orEmpty(),
+                    onDone = { submissionTarget = null },
+                )
+            }
+        }
+
+        reportTarget?.let { (hadith, translation) ->
+            ModalBottomSheet(
+                onDismissRequest = { reportTarget = null },
+                containerColor = colors.background,
+            ) {
+                TranslationReportSheet(
+                    viewModel = viewModel,
+                    translation = translation,
+                    referenceDisplay = hadith.referenceDisplay,
+                    onDone = { reportTarget = null },
                 )
             }
         }
@@ -482,6 +549,8 @@ private fun HadithBlock(
     onRetry: () -> Unit,
     onShowCitations: (ReaderTranslation) -> Unit,
     onEditNote: () -> Unit,
+    onSuggest: (ReaderTranslation?) -> Unit,
+    onReport: (ReaderTranslation) -> Unit,
 ) {
     val colors = LocalHadithlyColors.current
 
@@ -526,6 +595,17 @@ private fun HadithBlock(
             onShowCitations = onShowCitations,
         )
 
+        val activeTranslation = (translationState as? TranslationUiState.Loaded)?.translation
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(18.dp),
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+        ) {
+            ContributionAction(Icons.Filled.Textsms, "Suggest translation") { onSuggest(activeTranslation) }
+            activeTranslation?.let { translation ->
+                ContributionAction(Icons.Filled.Flag, "Report") { onReport(translation) }
+            }
+        }
+
         Text(
             text = hadith.referenceDisplay,
             fontSize = 11.sp,
@@ -542,6 +622,23 @@ private fun HadithBlock(
             onFavorite = { viewModel.toggleFavorite(hadith) },
             onNote = onEditNote,
         )
+    }
+}
+
+@Composable
+private fun ContributionAction(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    onClick: () -> Unit,
+) {
+    val colors = LocalHadithlyColors.current
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.clickable(onClick = onClick).padding(vertical = 6.dp),
+    ) {
+        Icon(icon, contentDescription = null, tint = colors.textSecondary.copy(alpha = 0.8f), modifier = Modifier.size(14.dp))
+        Text(label, fontSize = 12.sp, color = colors.textSecondary.copy(alpha = 0.8f))
     }
 }
 

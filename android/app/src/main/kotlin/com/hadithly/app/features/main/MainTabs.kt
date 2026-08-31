@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CollectionsBookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -28,6 +30,8 @@ import com.hadithly.app.core.theme.LocalHadithlyColors
 import com.hadithly.app.features.library.LibraryScreen
 import com.hadithly.app.features.reader.ReaderScreen
 import com.hadithly.app.features.settings.SettingsScreen
+import com.hadithly.app.features.saved.SavedScreen
+import com.hadithly.app.features.today.TodayScreen
 
 /** Reach the dependency graph without a DI framework. */
 @Composable
@@ -40,11 +44,13 @@ data class ReaderOpenTarget(
     val name: String,
     val volumeId: String? = null,
     val hadithNumber: String? = null,
+    /** A fresh reader session even when the same saved row is reopened. */
+    val instanceKey: Long = System.nanoTime(),
 )
 
 /**
- * The tabs shell for this phase: Library (collections + reader entry) and
- * Settings (account + reading preferences). Reader opens full screen over
+ * Four quiet destinations matching iOS: Today, Library, Saved, Settings.
+ * Reader opens full screen over
  * the tab bar; its close control — or system back — returns here.
  */
 @Composable
@@ -66,28 +72,30 @@ fun MainTabs(
                     NavigationBarItem(
                         selected = tab == 0,
                         onClick = { tab = 0 },
-                        icon = { Icon(Icons.Filled.CollectionsBookmark, contentDescription = null) },
-                        label = { Text("Library") },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = colors.accent,
-                            selectedTextColor = colors.accent,
-                            indicatorColor = colors.accentSoft,
-                            unselectedIconColor = colors.textSecondary,
-                            unselectedTextColor = colors.textSecondary,
-                        ),
+                        icon = { Icon(Icons.Filled.WbSunny, contentDescription = null) },
+                        label = { Text("Today") },
+                        colors = navigationColors(colors),
                     )
                     NavigationBarItem(
                         selected = tab == 1,
                         onClick = { tab = 1 },
+                        icon = { Icon(Icons.Filled.CollectionsBookmark, contentDescription = null) },
+                        label = { Text("Library") },
+                        colors = navigationColors(colors),
+                    )
+                    NavigationBarItem(
+                        selected = tab == 2,
+                        onClick = { tab = 2 },
+                        icon = { Icon(Icons.Filled.BookmarkBorder, contentDescription = null) },
+                        label = { Text("Saved") },
+                        colors = navigationColors(colors),
+                    )
+                    NavigationBarItem(
+                        selected = tab == 3,
+                        onClick = { tab = 3 },
                         icon = { Icon(Icons.Filled.Settings, contentDescription = null) },
                         label = { Text("Settings") },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = colors.accent,
-                            selectedTextColor = colors.accent,
-                            indicatorColor = colors.accentSoft,
-                            unselectedIconColor = colors.textSecondary,
-                            unselectedTextColor = colors.textSecondary,
-                        ),
+                        colors = navigationColors(colors),
                     )
                 }
             }
@@ -99,10 +107,12 @@ fun MainTabs(
                 .padding(padding),
         ) {
             when (tab) {
-                0 -> LibraryScreen(
+                0 -> TodayScreen(onOpenTarget = { readerTarget = it })
+                1 -> LibraryScreen(
                     onOpenCollection = { slug, name -> readerTarget = ReaderOpenTarget(slug, name) },
                     onOpenTarget = { target -> readerTarget = target },
                 )
+                2 -> SavedScreen(onOpenTarget = { readerTarget = it })
                 else -> SettingsScreen(
                     onShowSignIn = onShowSignIn,
                 )
@@ -117,8 +127,19 @@ fun MainTabs(
                 collectionName = target.name,
                 openVolumeId = target.volumeId,
                 openHadithNumber = target.hadithNumber,
+                instanceKey = target.instanceKey,
                 onClose = { readerTarget = null },
             )
         }
     }
 }
+
+@Composable
+private fun navigationColors(colors: com.hadithly.app.core.theme.HadithlyColors) =
+    NavigationBarItemDefaults.colors(
+        selectedIconColor = colors.accent,
+        selectedTextColor = colors.accent,
+        indicatorColor = colors.accentSoft,
+        unselectedIconColor = colors.textSecondary,
+        unselectedTextColor = colors.textSecondary,
+    )

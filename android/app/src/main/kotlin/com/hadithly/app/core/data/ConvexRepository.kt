@@ -77,6 +77,36 @@ class ConvexRepository(context: Context) {
             )
         }
 
+    suspend fun getDailyHadith(): DailyHadith? =
+        withContext(Dispatchers.IO) {
+            convex.action<DailyHadith?>("actions/daily:getDailyHadith", emptyMap())
+        }
+
+    suspend fun submitTranslation(
+        hadithInternalId: String,
+        language: String,
+        proposedContent: String,
+        replacesTranslationId: String?,
+    ): TranslationSubmissionResult {
+        val args = mutableMapOf<String, Any?>(
+            "hadithInternalId" to hadithInternalId,
+            "language" to language,
+            "proposedContent" to proposedContent,
+        )
+        if (replacesTranslationId != null) args["replacesTranslationId"] = replacesTranslationId
+        return withContext(Dispatchers.IO) {
+            convex.action<TranslationSubmissionResult>("actions/ai:submitTranslation", args)
+        }
+    }
+
+    suspend fun reportTranslation(translationId: String, reason: String): TranslationReportResult =
+        withContext(Dispatchers.IO) {
+            convex.action<TranslationReportResult>(
+                "actions/ai:reportTranslation",
+                mapOf("translationId" to translationId, "reason" to reason),
+            )
+        }
+
     // Account + guest merge
 
     suspend fun ensureCurrentUser(preferredLanguage: String) {
@@ -136,4 +166,31 @@ class ConvexRepository(context: Context) {
             "library:saveReadingProgress",
             mapOf("collectionSlug" to collectionSlug, "hadithId" to hadithId),
         )
+
+    // Notifications + moderation
+
+    suspend fun savePushToken(token: String, tzOffsetMinutes: Double) =
+        mutation(
+            "library:savePushToken",
+            mapOf(
+                "token" to token,
+                "platform" to "android",
+                "tzOffsetMinutes" to tzOffsetMinutes,
+            ),
+        )
+
+    suspend fun setDailyNotification(enabled: Boolean, dailyTime: String, tzOffsetMinutes: Double) =
+        withContext(Dispatchers.IO) {
+            convex.mutation<Double>(
+                "library:setDailyNotification",
+                mapOf(
+                    "enabled" to enabled,
+                    "dailyTime" to dailyTime,
+                    "tzOffsetMinutes" to tzOffsetMinutes,
+                ),
+            )
+        }
+
+    suspend fun approveSubmission(submissionId: String) =
+        mutation("community:approveSubmission", mapOf("submissionId" to submissionId))
 }

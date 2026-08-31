@@ -155,6 +155,9 @@ class UserLibraryModel(
                             referenceDisplay = ref.referenceDisplay,
                             volumeId = ref.volumeId,
                             hadithNumber = ref.hadithNumber,
+                            collectionSlug = ref.collectionSlug,
+                            arabicText = ref.arabicText,
+                            englishText = ref.englishText,
                         )
                     )
                 }
@@ -179,6 +182,9 @@ class UserLibraryModel(
                             referenceDisplay = ref.referenceDisplay,
                             volumeId = ref.volumeId,
                             hadithNumber = ref.hadithNumber,
+                            collectionSlug = ref.collectionSlug,
+                            arabicText = ref.arabicText,
+                            englishText = ref.englishText,
                         )
                     )
                 }
@@ -199,6 +205,9 @@ class UserLibraryModel(
                     referenceDisplay = ref.referenceDisplay,
                     volumeId = ref.volumeId,
                     hadithNumber = ref.hadithNumber,
+                    collectionSlug = ref.collectionSlug,
+                    arabicText = ref.arabicText,
+                    englishText = ref.englishText,
                 )
                 loadGuestData()
             }
@@ -236,6 +245,8 @@ class UserLibraryModel(
                         hadithNumber = ref.hadithNumber,
                         referenceDisplay = ref.referenceDisplay,
                         updatedAt = nowMillis(),
+                        arabicText = ref.arabicText,
+                        englishText = ref.englishText,
                     )
                 )
                 loadGuestData()
@@ -383,34 +394,34 @@ class UserLibraryModel(
 
     private fun GuestBookmarkDraft.toRef() = HadithRef(
         hadithId = hadithId,
-        collectionSlug = Collections.slugForName(collectionName),
+        collectionSlug = collectionSlug ?: Collections.slugForName(collectionName),
         collectionName = collectionName ?: "Saved hadith",
         volumeId = volumeId,
         hadithNumber = hadithNumber,
-        arabicText = "",
-        englishText = null,
+        arabicText = arabicText,
+        englishText = englishText,
         referenceDisplay = referenceDisplay ?: "",
     )
 
     private fun GuestFavoriteDraft.toRef() = HadithRef(
         hadithId = hadithId,
-        collectionSlug = Collections.slugForName(collectionName),
+        collectionSlug = collectionSlug ?: Collections.slugForName(collectionName),
         collectionName = collectionName ?: "Saved hadith",
         volumeId = volumeId,
         hadithNumber = hadithNumber,
-        arabicText = "",
-        englishText = null,
+        arabicText = arabicText,
+        englishText = englishText,
         referenceDisplay = referenceDisplay ?: "",
     )
 
     private fun GuestNoteDraft.toRef() = HadithRef(
         hadithId = hadithId,
-        collectionSlug = Collections.slugForName(collectionName),
+        collectionSlug = collectionSlug ?: Collections.slugForName(collectionName),
         collectionName = collectionName ?: "Saved hadith",
         volumeId = volumeId,
         hadithNumber = hadithNumber,
-        arabicText = "",
-        englishText = null,
+        arabicText = arabicText,
+        englishText = englishText,
         referenceDisplay = referenceDisplay ?: "",
     )
 
@@ -420,8 +431,8 @@ class UserLibraryModel(
         collectionName = collectionName,
         volumeId = volumeId,
         hadithNumber = hadithNumber,
-        arabicText = "",
-        englishText = null,
+        arabicText = arabicText,
+        englishText = englishText,
         referenceDisplay = referenceDisplay ?: "",
     )
 

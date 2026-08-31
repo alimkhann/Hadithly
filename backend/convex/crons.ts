@@ -12,7 +12,7 @@ crons.monthly(
 
 // Daily hadith push notifications. The action itself only sends inside each
 // token's configured 15-minute window, so a 15-minute interval is enough.
-// No-op (with a log) until APNS_* env vars are configured.
+// Each platform is a no-op until its APNS_* or FCM_* env vars are configured.
 crons.interval(
   "dispatch due daily hadith pushes",
   { minutes: 15 },

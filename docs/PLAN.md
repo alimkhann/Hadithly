@@ -4,7 +4,8 @@ This document is the single source of truth for the rebuild. Read it at the
 start of any session. It answers: what is this, what exists, what is next,
 and what already went wrong so you do not repeat it.
 
-Last updated: Phase 5 started (Android auth, onboarding, reader).
+Last updated: Phase 5 Android feature parity implemented and emulator-verified;
+live FCM registration awaits Firebase project credentials.
 
 ## What Hadithly is
 
@@ -41,8 +42,8 @@ android/          Compose app (minSdk 26), mirrors the iOS feature folders
   gradle/libs.versions.toml version catalog
   secrets.properties        gitignored: convex.url, clerk.publishableKey
   app/src/main/kotlin/com/hadithly/app/
-    core/{data,session,theme,settings}  Convex repo, guest store, tokens
-    features/{onboarding,auth,library,reader,settings}
+    core/{data,push,session,theme,settings}  Convex repo, guest store, FCM, tokens
+    features/{onboarding,auth,today,library,saved,reader,settings}
 legacy/           the old Expo/Next.js monorepo. Reference only. Do not build on it.
 docs/PLAN.md      this file
 ```
@@ -99,7 +100,7 @@ every session builds the same app: a quiet book in a dark room.
 | 2 | Reader core: pagination, chrome toggle, AI translation on demand | done, verified |
 | 3 | Tabs: Today, Library, Saved, Settings; push notification setup | done, verified |
 | 4 | Translation submissions with AI review and admin approval | done, verified |
-| 5 | Android (Compose) port | in progress — auth, onboarding, reader verified |
+| 5 | Android (Compose) port | done, emulator-verified except live FCM provisioning |
 | 6 | RevenueCat paywall, App Store prep, CI | not started |
 
 Each phase ends with a gate: the feature works on the simulator, tests pass
@@ -279,7 +280,7 @@ submission, open report, live default translation, and admin audit entry.
 The live scheme intentionally calls Gemini and mutates the dev deployment, so
 it is separate from the normal `Hadithly` unit-test scheme.
 
-### Phase 5 detail (in progress, started 2026-08-31)
+### Phase 5 detail (done, 2026-08-31; FCM provisioning pending)
 
 The Android app lives in `android/` (applicationId `com.hadithly.app`,
 minSdk 26, target/compileSdk 36). Toolchain: AGP 9.3.1 (built-in Kotlin),
@@ -292,8 +293,31 @@ Stack: Clerk Android SDK (`clerk-android-api` 1.1.4) + `clerk-convex-kotlin`
 authState as StateFlow) + `android-convexmobile` 0.8.0. Structure mirrors
 iOS: `core/data` (ConvexRepository, wire models, GuestDataStore + planner,
 UserLibraryModel), `core/session` (SessionManager = iOS AppEnvironment),
-`features/` (onboarding, auth, library, reader, settings), tokens in
+`features/` (onboarding, auth, today, library, saved, reader, settings), tokens in
 `core/theme/Theme.kt` synced with iOS Theme.swift.
+
+The four Material destinations now match iOS behavior without cloning iOS
+navigation chrome. **Today** calls `actions/daily:getDailyHadith` and adds the
+private continue-reading card. **Saved** has Sajda-style Material bottom
+sheets for bookmarks, favorites, and notes; joined rows carry an Arabic
+snippet and exact reader target. Guest drafts retain the same display and
+target metadata and merge idempotently on sign-in. The reader now includes
+the contextual contribution/report row: `actions/ai:submitTranslation`
+returns a contributor-private Gemini verdict, and
+`actions/ai:reportTranslation` confirms a private, non-voting report.
+Settings observes `community:canModerate` and exposes the live approval queue
+only to authorized users.
+
+Android push uses Firebase Messaging. The app conditionally enables the
+Google Services plugin when gitignored `android/app/google-services.json` is
+present, creates the `daily_hadith` notification channel, requests the Android
+13+ notification permission from the daily toggle, and upserts the current FCM
+Firebase Installation ID through `library:savePushToken` with
+`platform: "android"`. Toggle/time changes
+call `library:setDailyNotification`. The scheduled backend dispatch stays
+platform-neutral at the data boundary and routes each token to APNs or FCM;
+FCM HTTP v1 credentials are `FCM_PROJECT_ID`, `FCM_CLIENT_EMAIL`, and
+`FCM_PRIVATE_KEY`. APNs and FCM can be configured independently.
 
 Verified on an Android 16 emulator with UI automation: onboarding
 (welcome → language), Library with live cached counts from
@@ -306,8 +330,24 @@ requires username+password; generated values fill it like on iOS),
 `users:ensureCurrentUser`, `guestMerge:mergeGuestData` ("Merged 1
 bookmarks … 1 notes"), local store cleared, session restored across
 relaunch, and the reader serving the admin-approved Russian community
-default with the "Community · admin approved" badge. 14 unit tests pass
-(GuestMergePlanner, TranslationFailure, wire decoding).
+default with the "Community · admin approved" badge.
+
+The continued parity pass verified, as guest and signed in (email code
+424242), the live daily card, private Continue Reading, guest bookmark /
+favorite / note / progress persistence, sign-in merge and local-store clear,
+all three Saved sheets, and exact-hadith reader reopening. A signed-in Russian
+proposal received and displayed the live Gemini verdict, a private report was
+stored, and a temporarily authorized test moderator saw the pending queue,
+approved it, and watched the realtime queue become empty; the temporary admin
+flag was then revoked. Backend rows confirmed the approved submission and
+open report. 16 Android unit tests pass; `npm run typecheck`, `npx convex
+dev --once`, and `assembleDebug` are clean.
+
+Live FCM token registration, toggle delivery, and scheduled notification
+delivery could not be exercised in this checkout because
+`android/app/google-services.json` and the FCM service-account env vars have
+not been provisioned. The build deliberately reports this state in Settings
+and disables the toggle instead of shipping placeholder Firebase resources.
 
 Phase 5 mistakes already made, do not repeat:
 
@@ -332,6 +372,20 @@ Phase 5 mistakes already made, do not repeat:
 - The published `clerk-convex-kotlin` 0.15.0 POM pins clerk-android-api
   1.0.36 but works with 1.1.4; `Clerk.userFlow` is typed non-nullable, so
   sign-in state comes from `Clerk.sessionsFlow` instead.
+- Reader pages are content-sized, not `index / pageSize` chunks. Exact-hadith
+  target resolution on the backend must call the same `chunkReaderHadiths`
+  algorithm used to serve pages or Saved/Today links land on the wrong page.
+- Compose's pager emits a synthetic initial page 0. Drop that first settled
+  emission for deep links, scroll the visual pager when the resolved page
+  arrives, and give each reader open a fresh ViewModel key so an old reader
+  cannot overwrite a new target.
+- Save progress when the initial/deep-linked page resolves, not only after a
+  swipe; otherwise opening and closing a hadith never creates Continue
+  Reading.
+- Both clients send timezone offsets as `UTC - local` (JavaScript
+  `Date.getTimezoneOffset` convention). The cron must subtract that value to
+  derive local time. Keep `platform` only on push-token storage/dispatch;
+  shared daily-hadith and reader payloads remain platform-neutral.
 
 ## Mistakes already made, do not repeat
 

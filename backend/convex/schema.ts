@@ -215,8 +215,8 @@ export default defineSchema({
     token: v.string(),
     platform: v.union(v.literal("ios"), v.literal("android")),
     dailyTime: v.optional(v.string()),
-    // Minutes east of UTC at registration time, so the cron can compute the
-    // device's local clock without storing an IANA zone per token.
+    // UTC - local minutes at registration time (the Date.getTimezoneOffset
+    // convention), so the cron can derive the device's local clock.
     tzOffsetMinutes: v.optional(v.number()),
     enabled: v.boolean(),
     // Local date (YYYY-MM-DD in the token's tz) of the last daily push

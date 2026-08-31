@@ -76,6 +76,70 @@ data class ReaderTranslation(
     val cached: Boolean = false,
 )
 
+@Serializable
+data class DailyHadith(
+    val _id: String,
+    val providerHadithId: String,
+    val collectionSlug: String,
+    val collectionName: String,
+    val volumeId: String? = null,
+    val arabicText: String,
+    val englishText: String? = null,
+    val referenceDisplay: String,
+)
+
+@Serializable
+data class TranslationAIReview(
+    val model: String,
+    val score: Double,
+    val riskFlags: List<String> = emptyList(),
+    val missingMeaning: List<String>? = null,
+    val addedMeaning: List<String>? = null,
+    val glossaryIssues: List<String>? = null,
+    val recommendation: String,
+) {
+    val reviewNotes: List<String>
+        get() = riskFlags +
+            (missingMeaning ?: emptyList()).map { "Missing meaning: $it" } +
+            (addedMeaning ?: emptyList()).map { "Added meaning: $it" } +
+            (glossaryIssues ?: emptyList()).map { "Terminology: $it" }
+}
+
+@Serializable
+data class TranslationSubmissionResult(
+    val submissionId: String,
+    val aiReview: TranslationAIReview,
+    val status: String,
+)
+
+@Serializable
+data class TranslationReportResult(val ok: Boolean)
+
+@Serializable
+data class AdminSubmissionHadith(
+    val referenceDisplay: String,
+    val arabicText: String,
+    val englishText: String? = null,
+)
+
+@Serializable
+data class AdminSubmissionContributor(
+    val displayName: String? = null,
+    val email: String? = null,
+)
+
+@Serializable
+data class AdminTranslationSubmission(
+    val _id: String,
+    val language: String,
+    val proposedContent: String,
+    val aiReview: TranslationAIReview,
+    val status: String,
+    val createdAt: Double,
+    val hadith: AdminSubmissionHadith? = null,
+    val contributor: AdminSubmissionContributor? = null,
+)
+
 /**
  * Maps Convex action failures to reader-facing states. The backend reports
  * the quota wall with the literal message "AI_GENERATION_QUOTA_EXCEEDED"

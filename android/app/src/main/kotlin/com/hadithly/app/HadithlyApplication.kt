@@ -7,6 +7,8 @@ import com.hadithly.app.core.data.GuestDataStore
 import com.hadithly.app.core.data.UserLibraryModel
 import com.hadithly.app.core.session.SessionManager
 import com.hadithly.app.core.settings.AppSettings
+import com.hadithly.app.core.push.PushNotificationManager
+import com.google.firebase.FirebaseApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -29,6 +31,8 @@ class HadithlyApplication : Application() {
         private set
     lateinit var session: SessionManager
         private set
+    lateinit var push: PushNotificationManager
+        private set
 
     override fun onCreate() {
         super.onCreate()
@@ -38,6 +42,7 @@ class HadithlyApplication : Application() {
             "Missing CLERK_PUBLISHABLE_KEY. Copy android/secrets.properties.example to android/secrets.properties."
         }
         Clerk.initialize(context = this, publishableKey = publishableKey)
+        if (BuildConfig.FIREBASE_CONFIGURED) FirebaseApp.initializeApp(this)
 
         settings = AppSettings(this)
         repository = ConvexRepository(this)
@@ -48,14 +53,22 @@ class HadithlyApplication : Application() {
             scope = appScope,
             isSignedIn = { Clerk.sessionsFlow.value.isNotEmpty() },
         )
+        push = PushNotificationManager(
+            context = this,
+            repository = repository,
+            scope = appScope,
+            isSignedIn = { Clerk.sessionsFlow.value.isNotEmpty() },
+        )
         session = SessionManager(
             scope = appScope,
             settings = settings,
             repository = repository,
             guestData = guestData,
             library = library,
+            push = push,
         )
         session.start()
+        push.start()
     }
 
     fun isSignedIn(): Boolean = Clerk.sessionsFlow.value.isNotEmpty()

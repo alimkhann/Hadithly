@@ -12,10 +12,19 @@ val secrets = Properties().apply {
 fun secret(key: String): String =
     (secrets.getProperty(key) ?: System.getenv(key.replace(".", "_").uppercase()) ?: "PLACEHOLDER_$key")
 
+val hasGoogleServices = file("google-services.json").exists()
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+}
+
+// Keep local builds working before a Firebase project is provisioned. Once
+// app/google-services.json exists, the standard Google Services resource
+// generation is enabled automatically.
+if (hasGoogleServices) {
+    apply(plugin = "com.google.gms.google-services")
 }
 
 android {
@@ -31,6 +40,7 @@ android {
 
         buildConfigField("String", "CONVEX_URL", "\"${secret("convex.url")}\"")
         buildConfigField("String", "CLERK_PUBLISHABLE_KEY", "\"${secret("clerk.publishableKey")}\"")
+        buildConfigField("boolean", "FIREBASE_CONFIGURED", hasGoogleServices.toString())
     }
 
     buildTypes {
@@ -70,6 +80,8 @@ dependencies {
     implementation(libs.clerk.api)
     implementation(libs.clerk.convex)
     implementation(libs.convex.mobile)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
 
     testImplementation(libs.junit)
 

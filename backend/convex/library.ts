@@ -278,7 +278,7 @@ export const listReadingProgress = query({
 // ── Push tokens ──────────────────────────────────────────────────────────
 
 /**
- * Registers (or refreshes) the device's APNs token. Upserts by token so
+ * Registers (or refreshes) a device push token. Upserts by token so
  * re-registrations never pile up rows, and never clobbers the user's
  * notification preferences — those live in setDailyNotification.
  */

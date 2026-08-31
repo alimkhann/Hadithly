@@ -1,8 +1,10 @@
 package com.hadithly.app
 
 import com.hadithly.app.core.data.Collections
+import com.hadithly.app.core.data.DailyHadith
 import com.hadithly.app.core.data.ReaderPageResult
 import com.hadithly.app.core.data.ReaderTranslation
+import com.hadithly.app.core.data.TranslationSubmissionResult
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -83,5 +85,25 @@ class WireModelsTest {
         assertEquals("note", translation.glossaryNotes.first())
         assertEquals(null, translation.sourceReferenceUrl)
         assertEquals(1, translation.citations.size)
+    }
+
+    @Test
+    fun `daily hadith decodes with an optional volume`() {
+        val daily = json.decodeFromString<DailyHadith>(
+            """{"_id":"h1","providerHadithId":"25","collectionSlug":"tirmidhi","collectionName":"Jami` at-Tirmidhi","volumeId":"1","arabicText":"نص","englishText":"Text","referenceDisplay":"Jami` at-Tirmidhi · Hadith 25"}""",
+        )
+        assertEquals("tirmidhi", daily.collectionSlug)
+        assertEquals("1", daily.volumeId)
+        assertEquals("25", daily.providerHadithId)
+    }
+
+    @Test
+    fun `submission verdict keeps private AI review detail`() {
+        val result = json.decodeFromString<TranslationSubmissionResult>(
+            """{"submissionId":"s1","status":"needs_admin","aiReview":{"model":"gemini-2.5-flash-lite","score":0.72,"riskFlags":["ambiguous_wording"],"missingMeaning":["condition"],"recommendation":"admin_review"}}""",
+        )
+        assertEquals("needs_admin", result.status)
+        assertEquals(2, result.aiReview.reviewNotes.size)
+        assertTrue(result.aiReview.reviewNotes.last().contains("condition"))
     }
 }

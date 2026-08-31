@@ -2,6 +2,7 @@ package com.hadithly.app
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
@@ -11,6 +12,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.toArgb
+import com.hadithly.app.core.theme.ThemeColors
 import com.hadithly.app.core.theme.HadithlyTheme
 import com.hadithly.app.features.auth.SignInScreen
 import com.hadithly.app.features.main.MainTabs
@@ -27,7 +30,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(ThemeColors.Background.toArgb()),
+            navigationBarStyle = SystemBarStyle.dark(ThemeColors.Background.toArgb()),
+        )
         setContent {
             HadithlyTheme {
                 RootApp()

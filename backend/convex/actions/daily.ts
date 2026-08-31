@@ -2,7 +2,7 @@
 
 /**
  * Daily hadith: deterministic per-UTC-date pick over the cached `hadiths`
- * table, plus the scheduled APNs send driven by the cron in convex/crons.ts.
+ * table, plus scheduled APNs/FCM delivery driven by convex/crons.ts.
  *
  * The pick walks DEFAULT_COLLECTION_ORDER starting at a date-derived offset,
  * so every reader sees the same hadith on the same day without any shared
@@ -21,6 +21,7 @@ import {
   fetchVolumeHadiths,
 } from "../lib/sunnahNow";
 import { apnsConfigured, sendApnsPush } from "../lib/apns";
+import { fcmConfigured, sendFcmPush } from "../lib/fcm";
 
 type DailyHadith = {
   _id: string;
@@ -121,6 +122,7 @@ export const getDailyHadith = action({
 type PushTokenDoc = {
   _id: Id<"pushTokens">;
   token: string;
+  platform: "ios" | "android";
   dailyTime?: string;
   tzOffsetMinutes?: number;
   enabled: boolean;
@@ -132,14 +134,23 @@ type SendResult = {
   failed: number;
   skipped: number;
   apnsConfigured: boolean;
+  fcmConfigured: boolean;
 };
 
 /** Internal: cron entry — sends the daily hadith to every due device. */
 export const sendDueDailyPushes = internalAction({
   args: {},
   handler: async (ctx): Promise<SendResult> => {
-    if (!apnsConfigured()) {
-      return { sent: 0, failed: 0, skipped: 0, apnsConfigured: false };
+    const hasApns = apnsConfigured();
+    const hasFcm = fcmConfigured();
+    if (!hasApns && !hasFcm) {
+      return {
+        sent: 0,
+        failed: 0,
+        skipped: 0,
+        apnsConfigured: false,
+        fcmConfigured: false,
+      };
     }
 
     const now = Date.now();
@@ -164,7 +175,8 @@ export const sendDueDailyPushes = internalAction({
         sent: 0,
         failed: 0,
         skipped: tokens.length,
-        apnsConfigured: true,
+        apnsConfigured: hasApns,
+        fcmConfigured: hasFcm,
       };
     }
 
@@ -173,28 +185,51 @@ export const sendDueDailyPushes = internalAction({
       runMutation: ctx.runMutation,
     });
     if (!picked) {
-      return { sent: 0, failed: 0, skipped: due.length, apnsConfigured: true };
+      return {
+        sent: 0,
+        failed: 0,
+        skipped: due.length,
+        apnsConfigured: hasApns,
+        fcmConfigured: hasFcm,
+      };
     }
     const hadith = toDailyHadith(picked);
 
     let sent = 0;
     let failed = 0;
+    let skipped = 0;
     for (const token of due) {
       const local = localClock(now, token.tzOffsetMinutes ?? 0);
       try {
-        await sendApnsPush(token.token, {
-          alert: {
-            title: "Hadith of the day",
-            subtitle: `${hadith.collectionName} · ${hadith.referenceDisplay}`,
-            body: hadith.englishText ?? hadith.arabicText.slice(0, 180),
-          },
-          custom: {
-            hadithId: hadith._id,
-            collectionSlug: hadith.collectionSlug,
-            ...(hadith.volumeId ? { volumeId: hadith.volumeId } : {}),
-            providerHadithId: hadith.providerHadithId,
-          },
-        });
+        const title = "Hadith of the day";
+        const subtitle = `${hadith.collectionName} · ${hadith.referenceDisplay}`;
+        const body = hadith.englishText ?? hadith.arabicText.slice(0, 180);
+        const custom = {
+          hadithId: hadith._id,
+          collectionSlug: hadith.collectionSlug,
+          ...(hadith.volumeId ? { volumeId: hadith.volumeId } : {}),
+          providerHadithId: hadith.providerHadithId,
+        };
+        if (token.platform === "ios") {
+          if (!hasApns) {
+            skipped += 1;
+            continue;
+          }
+          await sendApnsPush(token.token, {
+            alert: { title, subtitle, body },
+            custom,
+          });
+        } else {
+          if (!hasFcm) {
+            skipped += 1;
+            continue;
+          }
+          await sendFcmPush(token.token, {
+            title,
+            body: `${subtitle}\n${body}`,
+            data: custom,
+          });
+        }
         await ctx.runMutation(internal.library.markPushSent, {
           tokenId: token._id,
           sentDate: local.date,
@@ -209,13 +244,21 @@ export const sendDueDailyPushes = internalAction({
       }
     }
 
-    return { sent, failed, skipped: 0, apnsConfigured: true };
+    return {
+      sent,
+      failed,
+      skipped,
+      apnsConfigured: hasApns,
+      fcmConfigured: hasFcm,
+    };
   },
 });
 
 /** Clock of the device's timezone, derived from its stored UTC offset. */
 function localClock(nowMs: number, tzOffsetMinutes: number) {
-  const shifted = new Date(nowMs + tzOffsetMinutes * 60 * 1000);
+  // Clients send the conventional UTC - local offset (matching JavaScript's
+  // Date.getTimezoneOffset and iOS's existing payload), so subtract it.
+  const shifted = new Date(nowMs - tzOffsetMinutes * 60 * 1000);
   return {
     hour: shifted.getUTCHours(),
     minute: shifted.getUTCMinutes(),

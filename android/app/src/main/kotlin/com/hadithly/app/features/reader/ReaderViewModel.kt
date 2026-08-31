@@ -9,6 +9,7 @@ import com.hadithly.app.core.data.ReaderHadith
 import com.hadithly.app.core.data.ReaderPageResult
 import com.hadithly.app.core.data.ReaderTranslation
 import com.hadithly.app.core.data.TranslationFailure
+import com.hadithly.app.core.data.TranslationSubmissionResult
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -268,6 +269,23 @@ class ReaderViewModel(
         translationJob = viewModelScope.launch {
             translateIfNeeded(hadith, translationGeneration)
         }
+    }
+
+    val canContribute: Boolean get() = app.isSignedIn()
+
+    suspend fun submitTranslation(
+        hadith: ReaderHadith,
+        proposedContent: String,
+        replacing: ReaderTranslation?,
+    ): TranslationSubmissionResult = app.repository.submitTranslation(
+        hadithInternalId = hadith.internalId,
+        language = _state.value.language,
+        proposedContent = proposedContent,
+        replacesTranslationId = replacing?.translationId,
+    )
+
+    suspend fun reportTranslation(translation: ReaderTranslation, reason: String) {
+        app.repository.reportTranslation(translation.translationId, reason)
     }
 
     // Saved data

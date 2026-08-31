@@ -23,6 +23,9 @@ data class GuestBookmarkDraft(
     val referenceDisplay: String? = null,
     val volumeId: String? = null,
     val hadithNumber: String? = null,
+    val collectionSlug: String? = null,
+    val arabicText: String = "",
+    val englishText: String? = null,
 )
 
 @Serializable
@@ -33,6 +36,9 @@ data class GuestFavoriteDraft(
     val referenceDisplay: String? = null,
     val volumeId: String? = null,
     val hadithNumber: String? = null,
+    val collectionSlug: String? = null,
+    val arabicText: String = "",
+    val englishText: String? = null,
 )
 
 @Serializable
@@ -45,6 +51,9 @@ data class GuestNoteDraft(
     val referenceDisplay: String? = null,
     val volumeId: String? = null,
     val hadithNumber: String? = null,
+    val collectionSlug: String? = null,
+    val arabicText: String = "",
+    val englishText: String? = null,
 )
 
 @Serializable
@@ -56,6 +65,8 @@ data class GuestReadingProgressDraft(
     val hadithNumber: String? = null,
     val referenceDisplay: String? = null,
     val updatedAt: Double,
+    val arabicText: String = "",
+    val englishText: String? = null,
 )
 
 @Serializable
@@ -142,6 +153,9 @@ class GuestDataStore(context: Context) {
         referenceDisplay: String?,
         volumeId: String?,
         hadithNumber: String?,
+        collectionSlug: String?,
+        arabicText: String,
+        englishText: String?,
     ) {
         val now = nowMillis()
         writeLocked { store ->
@@ -156,6 +170,9 @@ class GuestDataStore(context: Context) {
                     referenceDisplay = referenceDisplay,
                     volumeId = volumeId,
                     hadithNumber = hadithNumber,
+                    collectionSlug = collectionSlug,
+                    arabicText = arabicText,
+                    englishText = englishText,
                 )
             store.copy(notes = store.notes.filterNot { it.hadithId == hadithId } + next)
         }

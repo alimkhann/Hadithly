@@ -6,6 +6,9 @@ import com.hadithly.app.core.data.GuestDataStore
 import com.hadithly.app.core.data.GuestMergePlanner
 import com.hadithly.app.core.data.UserLibraryModel
 import com.hadithly.app.core.settings.AppSettings
+import com.hadithly.app.core.push.PushNotificationManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import dev.convex.android.AuthState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -27,10 +30,16 @@ class SessionManager(
     private val repository: ConvexRepository,
     private val guestData: GuestDataStore,
     private val library: UserLibraryModel,
+    private val push: PushNotificationManager,
 ) {
 
     private val _syncSummary = MutableStateFlow<String?>(null)
     val syncSummary: StateFlow<String?> = _syncSummary
+
+    private val _canModerate = MutableStateFlow(false)
+    val canModerate: StateFlow<Boolean> = _canModerate
+
+    private var moderationJob: Job? = null
 
     private var launchSessionSynced = false
     private var syncInFlight = false
@@ -57,8 +66,12 @@ class SessionManager(
                             completeSignIn()
                         }
                         library.refresh()
+                        observeModeration()
                     }
-                    else -> if (!isSignedIn()) library.refresh()
+                    else -> if (!isSignedIn()) {
+                        library.refresh()
+                        stopModeration()
+                    }
                 }
             }
             .launchIn(scope)
@@ -95,6 +108,7 @@ class SessionManager(
                 library.refresh()
                 return
             }
+            push.syncToken()
 
             val snapshot = guestData.snapshots()
             val payload = GuestMergePlanner.makePayload(
@@ -127,7 +141,24 @@ class SessionManager(
     /** Called when the Clerk session ends; the guest store was already cleared. */
     fun handleSignOut() {
         library.refresh()
+        stopModeration()
         _syncSummary.value = null
+    }
+
+    private fun observeModeration() {
+        if (moderationJob?.isActive == true) return
+        moderationJob = scope.launch(Dispatchers.IO) {
+            runCatching {
+                repository.subscribe<Boolean>("community:canModerate")
+                    .collect { _canModerate.value = it }
+            }.onFailure { _canModerate.value = false }
+        }
+    }
+
+    private fun stopModeration() {
+        moderationJob?.cancel()
+        moderationJob = null
+        _canModerate.value = false
     }
 
     private fun syncSummaryFor(result: com.hadithly.app.core.data.GuestMergeResult): String {
