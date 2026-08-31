@@ -16,6 +16,13 @@ ios/Secrets.xcconfig
 ios/**/xcuserdata/
 ios/**/*.xcuserstate
 
+# android
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/secrets.properties
+
 # legacy (archived monorepo artifacts)
 legacy/**/node_modules/
 legacy/**/.next/

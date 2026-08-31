@@ -4,7 +4,7 @@ This document is the single source of truth for the rebuild. Read it at the
 start of any session. It answers: what is this, what exists, what is next,
 and what already went wrong so you do not repeat it.
 
-Last updated: end of Phase 4 (see the phase table for status).
+Last updated: Phase 5 started (Android auth, onboarding, reader).
 
 ## What Hadithly is
 
@@ -37,6 +37,12 @@ ios/              SwiftUI app (iOS 17+), generated with xcodegen
   Hadithly/App/             HadithlyApp, AppEnvironment, RootView
   Hadithly/Core/Theme/      design tokens (Theme.swift)
   Hadithly/Features/        one folder per feature
+android/          Compose app (minSdk 26), mirrors the iOS feature folders
+  gradle/libs.versions.toml version catalog
+  secrets.properties        gitignored: convex.url, clerk.publishableKey
+  app/src/main/kotlin/com/hadithly/app/
+    core/{data,session,theme,settings}  Convex repo, guest store, tokens
+    features/{onboarding,auth,library,reader,settings}
 legacy/           the old Expo/Next.js monorepo. Reference only. Do not build on it.
 docs/PLAN.md      this file
 ```
@@ -93,7 +99,7 @@ every session builds the same app: a quiet book in a dark room.
 | 2 | Reader core: pagination, chrome toggle, AI translation on demand | done, verified |
 | 3 | Tabs: Today, Library, Saved, Settings; push notification setup | done, verified |
 | 4 | Translation submissions with AI review and admin approval | done, verified |
-| 5 | Android (Compose) port | not started |
+| 5 | Android (Compose) port | in progress — auth, onboarding, reader verified |
 | 6 | RevenueCat paywall, App Store prep, CI | not started |
 
 Each phase ends with a gate: the feature works on the simulator, tests pass
@@ -272,6 +278,60 @@ submission, open report, live default translation, and admin audit entry.
 24 unit tests pass, `npm run typecheck` and `npx convex dev --once` are clean.
 The live scheme intentionally calls Gemini and mutates the dev deployment, so
 it is separate from the normal `Hadithly` unit-test scheme.
+
+### Phase 5 detail (in progress, started 2026-08-31)
+
+The Android app lives in `android/` (applicationId `com.hadithly.app`,
+minSdk 26, target/compileSdk 36). Toolchain: AGP 9.3.1 (built-in Kotlin),
+Gradle wrapper 9.7.1, Kotlin 2.4.10, Compose BOM 2026.06.01. Secrets come
+from gitignored `android/secrets.properties` (`convex.url`,
+`clerk.publishableKey`), read into BuildConfig by `app/build.gradle.kts`.
+
+Stack: Clerk Android SDK (`clerk-android-api` 1.1.4) + `clerk-convex-kotlin`
+0.15.0 (`createClerkConvexClient` → `ConvexClientWithAuth<String>`,
+authState as StateFlow) + `android-convexmobile` 0.8.0. Structure mirrors
+iOS: `core/data` (ConvexRepository, wire models, GuestDataStore + planner,
+UserLibraryModel), `core/session` (SessionManager = iOS AppEnvironment),
+`features/` (onboarding, auth, library, reader, settings), tokens in
+`core/theme/Theme.kt` synced with iOS Theme.swift.
+
+Verified on an Android 16 emulator with UI automation: onboarding
+(welcome → language), Library with live cached counts from
+`collections:getOutline` subscriptions, reader over live Sunnah.now data
+(paging pill counts correct, swipe turns, chrome toggle, contents sheet
+with volume switch, settings sheet), guest translation wall ("Sign in to
+get AI translations"), guest bookmark + note, email-code sign-in (dev test
+`+clerk_test` / 424242) with automatic sign-up fallback (Clerk still
+requires username+password; generated values fill it like on iOS),
+`users:ensureCurrentUser`, `guestMerge:mergeGuestData` ("Merged 1
+bookmarks … 1 notes"), local store cleared, session restored across
+relaunch, and the reader serving the admin-approved Russian community
+default with the "Community · admin approved" badge. 14 unit tests pass
+(GuestMergePlanner, TranslationFailure, wire decoding).
+
+Phase 5 mistakes already made, do not repeat:
+
+- The Convex Android client's uniffi FFI calls (`action`, `mutation`,
+  `subscribe` registration) BLOCK the calling thread until the RPC
+  completes. Calling them on Main ANRs the app. Run every Convex call on
+  `Dispatchers.IO` — including subscription collection, not just actions.
+- Convex numbers arrive as floats (`7.0`) on the Android wire; `Int`
+  fields fail to decode. Wire-model numeric fields must be `Double`.
+- Kotlin→Convex encodes Int/Long as the `$integer` wrapper, which
+  `v.number()` validators reject (same trap as iOS) — pass numbers as
+  `Double`.
+- `mutation<T>`/`action<T>` are reified; the no-type overload decodes
+  `Unit?` and fails when the backend returns a value
+  (`users:ensureCurrentUser` returns the user id string → use
+  `mutation<String>`).
+- With edge-to-edge, the reader chrome must pad with `statusBarsPadding()`
+  or its buttons sit under the status bar, which swallows their taps.
+- Clerk sign-up fallback: the failure message is "Couldn't find your
+  account." — match that (plus "not found"/"doesn't exist") before
+  switching to the sign-up path.
+- The published `clerk-convex-kotlin` 0.15.0 POM pins clerk-android-api
+  1.0.36 but works with 1.1.4; `Clerk.userFlow` is typed non-nullable, so
+  sign-in state comes from `Clerk.sessionsFlow` instead.
 
 ## Mistakes already made, do not repeat
 

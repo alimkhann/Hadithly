@@ -1,0 +1,151 @@
+package com.hadithly.app.core.session
+
+import com.clerk.api.Clerk
+import com.hadithly.app.core.data.ConvexRepository
+import com.hadithly.app.core.data.GuestDataStore
+import com.hadithly.app.core.data.GuestMergePlanner
+import com.hadithly.app.core.data.UserLibraryModel
+import com.hadithly.app.core.settings.AppSettings
+import dev.convex.android.AuthState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+
+/**
+ * Owns the sign-in lifecycle: after a Clerk session becomes active it makes
+ * sure the Convex user row exists, merges whatever the guest collected
+ * on-device into Convex, and clears the local store. Idempotent — safe to
+ * run again. Mirrors iOS AppEnvironment.completeSignIn.
+ */
+class SessionManager(
+    private val scope: CoroutineScope,
+    private val settings: AppSettings,
+    private val repository: ConvexRepository,
+    private val guestData: GuestDataStore,
+    private val library: UserLibraryModel,
+) {
+
+    private val _syncSummary = MutableStateFlow<String?>(null)
+    val syncSummary: StateFlow<String?> = _syncSummary
+
+    private var launchSessionSynced = false
+    private var syncInFlight = false
+
+    fun start() {
+        // Clerk restores its client asynchronously; gate on isInitialized
+        // before reading the session or a restored sign-in is missed.
+        scope.launch {
+            Clerk.isInitialized.collect { initialized ->
+                if (!initialized) return@collect
+                if (!launchSessionSynced && isSignedIn()) {
+                    launchSessionSynced = true
+                    completeSignIn()
+                }
+            }
+        }
+        // Personal-data subscriptions follow the Convex session, not Clerk's.
+        repository.authState
+            .onEach { state ->
+                when (state) {
+                    is AuthState.Authenticated -> {
+                        if (!launchSessionSynced && isSignedIn()) {
+                            launchSessionSynced = true
+                            completeSignIn()
+                        }
+                        library.refresh()
+                    }
+                    else -> if (!isSignedIn()) library.refresh()
+                }
+            }
+            .launchIn(scope)
+        // Signed-out detection: the session list empties.
+        scope.launch {
+            var hadSession = false
+            Clerk.sessionsFlow.collect { sessions ->
+                if (sessions.isNotEmpty()) {
+                    hadSession = true
+                } else if (hadSession) {
+                    hadSession = false
+                    handleSignOut()
+                }
+            }
+        }
+    }
+
+    private fun isSignedIn(): Boolean = Clerk.sessionsFlow.value.isNotEmpty()
+
+    suspend fun completeSignIn() {
+        if (syncInFlight) return
+        syncInFlight = true
+        try {
+            if (!waitForConvexAuthentication()) {
+                _syncSummary.value = "Sign-in sync failed: Convex session never activated."
+                library.refresh()
+                return
+            }
+
+            try {
+                repository.ensureCurrentUser(settings.preferredLanguage.value)
+            } catch (error: Exception) {
+                _syncSummary.value = "Account sync failed: ${error.message}"
+                library.refresh()
+                return
+            }
+
+            val snapshot = guestData.snapshots()
+            val payload = GuestMergePlanner.makePayload(
+                bookmarks = snapshot.bookmarks,
+                notes = snapshot.notes,
+                favorites = snapshot.favorites,
+                progress = snapshot.progress,
+            )
+
+            if (payload.isEmpty) {
+                _syncSummary.value = "Signed in."
+                library.refresh()
+                return
+            }
+
+            try {
+                val result = repository.mergeGuestData(payload)
+                guestData.clearAll()
+                _syncSummary.value = syncSummaryFor(result)
+            } catch (error: Exception) {
+                // Local data is deliberately kept so a later sign-in retries.
+                _syncSummary.value = "Guest data merge failed: ${error.message}"
+            }
+            library.refresh()
+        } finally {
+            syncInFlight = false
+        }
+    }
+
+    /** Called when the Clerk session ends; the guest store was already cleared. */
+    fun handleSignOut() {
+        library.refresh()
+        _syncSummary.value = null
+    }
+
+    private fun syncSummaryFor(result: com.hadithly.app.core.data.GuestMergeResult): String {
+        var summary =
+            "Signed in. Merged ${result.bookmarksMerged.toInt()} bookmarks, " +
+                "${result.favoritesMerged.toInt()} favorites, and ${result.notesMerged.toInt()} notes."
+        if (result.progressMerged > 0) {
+            summary += " Restored ${result.progressMerged} reading positions."
+        }
+        return summary
+    }
+
+    private suspend fun waitForConvexAuthentication(timeoutMs: Long = 15_000): Boolean {
+        val deadline = System.currentTimeMillis() + timeoutMs
+        while (System.currentTimeMillis() < deadline) {
+            if (repository.isAuthenticated) return true
+            delay(250)
+        }
+        return repository.isAuthenticated
+    }
+}

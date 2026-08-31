@@ -7,6 +7,7 @@ plan, current status, and the mistakes list.
 
 - `backend/` — Convex-only backend (data, Sunnah.now proxy, Gemini AI, webhooks, crons)
 - `ios/` — SwiftUI app (iOS 17+), built with xcodegen (`ios/project.yml`)
+- `android/` — Compose app (Android 8.0+ / minSdk 26), Gradle + version catalog
 - `legacy/` — archived Expo/Next.js monorepo (reference only, do not build on it)
 - `docs/` — PRD and notes (`legacy/docs/prd/` holds the original product PRDs)
 
@@ -22,6 +23,11 @@ npm run typecheck     # tsc --noEmit
 cd ios && xcodegen generate
 xcodebuild -project Hadithly.xcodeproj -scheme Hadithly \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
+
+# android (JDK 21; secrets in android/secrets.properties, see .example)
+cd android
+./gradlew assembleDebug        # build
+./gradlew testDebugUnitTest    # unit tests
 ```
 
 ## Non-negotiable rules
@@ -34,8 +40,9 @@ xcodebuild -project Hadithly.xcodeproj -scheme Hadithly \
    exclusively from Convex actions; API keys live in Convex env vars.
 3. **Users never pass their own identity.** All user-scoped functions
    resolve the user from the verified Clerk JWT (`requireIdentity`).
-4. **Secrets never enter git.** `backend/.env.local`, `ios/Secrets.xcconfig`
-   are gitignored; `.example` files document their shape.
+4. **Secrets never enter git.** `backend/.env.local`, `ios/Secrets.xcconfig`,
+   `android/secrets.properties` are gitignored; `.example` files document
+   their shape.
 5. **Rotate the Sunnah.now key before production** (it leaked historically —
    see `legacy/docs/implementation-notes.md`).
 
@@ -47,4 +54,7 @@ xcodebuild -project Hadithly.xcodeproj -scheme Hadithly \
 - iOS: SwiftUI, `@Observable` state, feature folders under
   `ios/Hadithly/Features/`, design tokens in `Core/Theme/Theme.swift`.
   Regenerate the Xcode project with xcodegen — never edit `project.pbxproj`.
+- Android (Compose) mirrors the iOS feature folders under
+  `android/app/src/main/kotlin/com/hadithly/app/`; design tokens in
+  `core/theme/Theme.kt` must stay in sync with the iOS Theme.swift.
 - Android (Compose) lands in Phase 5; keep backend payloads platform-neutral.
