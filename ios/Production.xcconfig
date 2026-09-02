@@ -1,0 +1,5 @@
+// Non-secret release configuration. Public SDK keys belong in the optional,
+// gitignored ProductionSecrets.xcconfig included below.
+#include? "ProductionSecrets.xcconfig"
+
+CONVEX_URL = https:/$()/giddy-ox-648.eu-west-1.convex.cloud

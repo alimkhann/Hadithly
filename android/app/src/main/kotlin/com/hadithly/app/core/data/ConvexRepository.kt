@@ -118,6 +118,12 @@ class ConvexRepository(context: Context) {
         }
     }
 
+    suspend fun deleteCurrentUser() {
+        withContext(Dispatchers.IO) {
+            convex.mutation<Boolean>("users:deleteCurrentUser", emptyMap())
+        }
+    }
+
     suspend fun mergeGuestData(payload: GuestMergePayload): GuestMergeResult {
         val args = mapOf<String, Any?>(
             "bookmarks" to payload.bookmarks.map {

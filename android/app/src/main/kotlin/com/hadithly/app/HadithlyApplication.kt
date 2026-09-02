@@ -8,6 +8,7 @@ import com.hadithly.app.core.data.UserLibraryModel
 import com.hadithly.app.core.session.SessionManager
 import com.hadithly.app.core.settings.AppSettings
 import com.hadithly.app.core.push.PushNotificationManager
+import com.hadithly.app.core.purchases.PurchaseManager
 import com.google.firebase.FirebaseApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +34,8 @@ class HadithlyApplication : Application() {
         private set
     lateinit var push: PushNotificationManager
         private set
+    lateinit var purchases: PurchaseManager
+        private set
 
     override fun onCreate() {
         super.onCreate()
@@ -43,6 +46,7 @@ class HadithlyApplication : Application() {
         }
         Clerk.initialize(context = this, publishableKey = publishableKey)
         if (BuildConfig.FIREBASE_CONFIGURED) FirebaseApp.initializeApp(this)
+        purchases = PurchaseManager(this, BuildConfig.REVENUECAT_API_KEY)
 
         settings = AppSettings(this)
         repository = ConvexRepository(this)
@@ -66,6 +70,7 @@ class HadithlyApplication : Application() {
             guestData = guestData,
             library = library,
             push = push,
+            purchases = purchases,
         )
         session.start()
         push.start()

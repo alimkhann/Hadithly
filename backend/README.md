@@ -30,10 +30,13 @@ convex/
 | Variable | Purpose |
 | --- | --- |
 | `CONVEX_DEPLOYMENT` | set automatically by `npx convex dev` |
-| `CLERK_JWT_ISSUER_DOMAIN` | Clerk Frontend API domain (auth.config.ts) |
+| `CLERK_FRONTEND_API_URL` | Clerk Frontend API domain (auth.config.ts) |
 | `SUNNAH_NOW_API_KEY` | Sunnah.now early-access API key |
 | `GEMINI_API_KEY` | Google AI Studio key (translation + review) |
-| `REVENUECAT_WEBHOOK_SECRET` | shared secret for webhook auth header |
+| `REVENUECAT_WEBHOOK_SECRET` | Authorization secret required by `/webhooks/revenuecat` |
+| `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_PRIVATE_KEY` | Apple push provider credentials |
+| `APNS_ENVIRONMENT`, `APNS_TOPIC` | `production` at launch and `com.hadithly.app` |
+| `FCM_PROJECT_ID`, `FCM_CLIENT_EMAIL`, `FCM_PRIVATE_KEY` | Firebase HTTP v1 service account credentials |
 
 Set the secret ones with `npx convex env set KEY value`.
 

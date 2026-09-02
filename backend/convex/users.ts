@@ -58,6 +58,77 @@ export const getCurrentUser = query({
   },
 });
 
+/**
+ * Permanently removes the authenticated user's Hadithly data. The client calls
+ * this before deleting the Clerk identity so the Convex JWT is still valid.
+ * It is deliberately idempotent: a retry after a partial client-side failure
+ * can still finish deleting the Clerk account.
+ */
+export const deleteCurrentUser = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await requireIdentity(ctx);
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.clerkId))
+      .unique();
+
+    if (!user) return false;
+
+    const [
+      bookmarks,
+      favorites,
+      notes,
+      readingProgress,
+      pushTokens,
+      submissions,
+      contributedTranslations,
+      generatedTranslations,
+      reports,
+      auditRows,
+    ] = await Promise.all([
+      ctx.db.query("bookmarks").withIndex("by_user", (q) => q.eq("userId", user._id)).collect(),
+      ctx.db.query("favorites").withIndex("by_user", (q) => q.eq("userId", user._id)).collect(),
+      ctx.db.query("notes").withIndex("by_user_hadith", (q) => q.eq("userId", user._id)).collect(),
+      ctx.db.query("readingProgress").withIndex("by_user_collection", (q) => q.eq("userId", user._id)).collect(),
+      ctx.db.query("pushTokens").withIndex("by_user", (q) => q.eq("userId", user._id)).collect(),
+      ctx.db.query("communitySubmissions").withIndex("by_submitted_by", (q) => q.eq("submittedBy", user._id)).collect(),
+      ctx.db.query("translations").withIndex("by_contributor_user", (q) => q.eq("contributorUserId", user._id)).collect(),
+      ctx.db.query("translations").withIndex("by_generated_user", (q) => q.eq("generatedByUserId", user._id)).collect(),
+      ctx.db.query("translationReports").withIndex("by_reporter", (q) => q.eq("reporterUserId", user._id)).collect(),
+      ctx.db.query("adminAuditLog").withIndex("by_actor", (q) => q.eq("actorUserId", user._id)).collect(),
+    ]);
+
+    for (const row of [
+      ...bookmarks,
+      ...favorites,
+      ...notes,
+      ...readingProgress,
+      ...pushTokens,
+      ...submissions,
+      ...reports,
+    ]) {
+      await ctx.db.delete(row._id);
+    }
+
+    const contributedIds = new Set(contributedTranslations.map((row) => row._id.toString()));
+    for (const translation of contributedTranslations) {
+      await ctx.db.delete(translation._id);
+    }
+    for (const translation of generatedTranslations) {
+      if (!contributedIds.has(translation._id.toString())) {
+        await ctx.db.patch(translation._id, { generatedByUserId: undefined });
+      }
+    }
+    for (const auditRow of auditRows) {
+      await ctx.db.patch(auditRow._id, { actorUserId: undefined });
+    }
+
+    await ctx.db.delete(user._id);
+    return true;
+  },
+});
+
 /** Internal: resolve a user row by Clerk id. Safe to call from actions
  * (no auth context needed) — used by AI/webhook flows. */
 export const getByClerkId = internalQuery({
@@ -103,9 +174,9 @@ export const syncRevenueCatEntitlement = internalMutation({
         entitlementUpdatedAt: now,
         aiGenerationsThisMonth: 0,
         aiGenerationLimit:
-          args.subscriptionTier === "pro"
-            ? PRO_AI_GENERATION_LIMIT
-            : DEFAULT_AI_GENERATION_LIMIT,
+          args.subscriptionTier === "free"
+            ? DEFAULT_AI_GENERATION_LIMIT
+            : PRO_AI_GENERATION_LIMIT,
         createdAt: now,
         updatedAt: now,
       });
@@ -118,9 +189,9 @@ export const syncRevenueCatEntitlement = internalMutation({
       entitlementExpiresAt: args.entitlementExpiresAt,
       entitlementUpdatedAt: now,
       aiGenerationLimit:
-        args.subscriptionTier === "pro"
-          ? PRO_AI_GENERATION_LIMIT
-          : DEFAULT_AI_GENERATION_LIMIT,
+        args.subscriptionTier === "free"
+          ? DEFAULT_AI_GENERATION_LIMIT
+          : PRO_AI_GENERATION_LIMIT,
       updatedAt: now,
     });
     return existing._id;

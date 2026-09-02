@@ -35,6 +35,12 @@
 	<string>$(CLERK_PUBLISHABLE_KEY)</string>
 	<key>ConvexURL</key>
 	<string>$(CONVEX_URL)</string>
+	<key>PrivacyPolicyURL</key>
+	<string>$(PRIVACY_POLICY_URL)</string>
+	<key>RevenueCatAPIKey</key>
+	<string>$(REVENUECAT_API_KEY)</string>
+	<key>TermsOfUseURL</key>
+	<string>$(TERMS_OF_USE_URL)</string>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>

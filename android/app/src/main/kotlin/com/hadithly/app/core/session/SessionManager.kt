@@ -1,12 +1,16 @@
 package com.hadithly.app.core.session
 
 import com.clerk.api.Clerk
+import com.clerk.api.network.serialization.ClerkResult
+import com.clerk.api.network.serialization.errorMessage
+import com.clerk.api.user.delete
 import com.hadithly.app.core.data.ConvexRepository
 import com.hadithly.app.core.data.GuestDataStore
 import com.hadithly.app.core.data.GuestMergePlanner
 import com.hadithly.app.core.data.UserLibraryModel
 import com.hadithly.app.core.settings.AppSettings
 import com.hadithly.app.core.push.PushNotificationManager
+import com.hadithly.app.core.purchases.PurchaseManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import dev.convex.android.AuthState
@@ -31,6 +35,7 @@ class SessionManager(
     private val guestData: GuestDataStore,
     private val library: UserLibraryModel,
     private val push: PushNotificationManager,
+    private val purchases: PurchaseManager,
 ) {
 
     private val _syncSummary = MutableStateFlow<String?>(null)
@@ -108,6 +113,7 @@ class SessionManager(
                 library.refresh()
                 return
             }
+            Clerk.user?.id?.let(purchases::logIn)
             push.syncToken()
 
             val snapshot = guestData.snapshots()
@@ -143,6 +149,17 @@ class SessionManager(
         library.refresh()
         stopModeration()
         _syncSummary.value = null
+        purchases.logOut()
+    }
+
+    /** Delete backend data while authenticated, then delete the Clerk user. */
+    suspend fun deleteAccount(): Result<Unit> = runCatching {
+        repository.deleteCurrentUser()
+        val user = Clerk.user ?: return@runCatching
+        when (val result = user.delete()) {
+            is ClerkResult.Success -> purchases.logOut()
+            is ClerkResult.Failure -> error(result.errorMessage)
+        }
     }
 
     private fun observeModeration() {

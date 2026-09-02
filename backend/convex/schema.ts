@@ -144,6 +144,8 @@ export default defineSchema({
     approvedAt: v.optional(v.number()),
   })
     .index("by_hadith_language_default", ["hadithId", "language", "isDefault"])
+    .index("by_generated_user", ["generatedByUserId"])
+    .index("by_contributor_user", ["contributorUserId"])
     .searchIndex("search_content", {
       searchField: "content",
       filterFields: ["language", "status"],
@@ -178,7 +180,9 @@ export default defineSchema({
     ),
     createdAt: v.number(),
     reviewedAt: v.optional(v.number()),
-  }).index("by_status", ["status"]),
+  })
+    .index("by_status", ["status"])
+    .index("by_submitted_by", ["submittedBy"]),
 
   bookmarks: defineTable({
     userId: v.id("users"),
@@ -237,7 +241,9 @@ export default defineSchema({
       v.literal("dismissed"),
     ),
     createdAt: v.number(),
-  }).index("by_status", ["status"]),
+  })
+    .index("by_status", ["status"])
+    .index("by_reporter", ["reporterUserId"]),
 
   languageCoverage: defineTable({
     language: v.string(),
@@ -257,5 +263,7 @@ export default defineSchema({
     targetId: v.string(),
     metadata: v.optional(v.any()),
     createdAt: v.number(),
-  }).index("by_target", ["targetType", "targetId"]),
+  })
+    .index("by_target", ["targetType", "targetId"])
+    .index("by_actor", ["actorUserId"]),
 });

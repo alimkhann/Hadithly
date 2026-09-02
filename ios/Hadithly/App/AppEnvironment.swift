@@ -8,6 +8,9 @@ import ClerkKit
 struct AppConfig {
     let convexURL: String
     let clerkPublishableKey: String
+    let revenueCatAPIKey: String
+    let privacyPolicyURL: URL?
+    let termsOfUseURL: URL?
 
     init(infoDictionary: [String: Any]? = Bundle.main.infoDictionary) {
         let info = infoDictionary ?? [:]
@@ -24,6 +27,9 @@ struct AppConfig {
         }
         self.convexURL = convexURL
         self.clerkPublishableKey = clerkPublishableKey
+        self.revenueCatAPIKey = info["RevenueCatAPIKey"] as? String ?? ""
+        self.privacyPolicyURL = (info["PrivacyPolicyURL"] as? String).flatMap(URL.init(string:))
+        self.termsOfUseURL = (info["TermsOfUseURL"] as? String).flatMap(URL.init(string:))
     }
 }
 
@@ -48,6 +54,7 @@ final class AppEnvironment {
     let guestData: GuestDataStore
     let library: UserLibraryModel
     let push: PushNotificationManager
+    let purchases: PurchaseManager
 
     /// Summary of the last completed sign-in sync, surfaced in Settings.
     private(set) var lastSyncSummary: String?
@@ -62,6 +69,7 @@ final class AppEnvironment {
         self.config = config
         self.guestData = guestData ?? GuestDataStore()
         Clerk.configure(publishableKey: config.clerkPublishableKey)
+        self.purchases = PurchaseManager(apiKey: config.revenueCatAPIKey)
         let provider = ClerkConvexAuthProvider()
         self.authProvider = provider
         self.convex = ConvexClientWithAuth(
@@ -114,6 +122,9 @@ final class AppEnvironment {
                 "users:ensureCurrentUser",
                 with: ["preferredLanguage": preferredLanguage]
             )
+            if let clerkUserID = Clerk.shared.user?.id {
+                await purchases.logIn(appUserID: clerkUserID)
+            }
         } catch {
             lastSyncSummary = "Account sync failed: \(error.localizedDescription)"
             library.refresh()
@@ -184,6 +195,17 @@ final class AppEnvironment {
         moderationAccessCancellable?.cancel()
         moderationAccessCancellable = nil
         canModerate = false
+        Task { await purchases.logOut() }
+    }
+
+    /// Deletes synced Hadithly data first, while the Convex token is valid,
+    /// then removes the Clerk identity and its sessions. Safe to retry if the
+    /// second step fails because the backend mutation is idempotent.
+    func deleteAccount() async throws {
+        let _: Bool? = try await convex.mutation("users:deleteCurrentUser")
+        guard let user = Clerk.shared.user else { return }
+        try await user.delete()
+        handleSignOut()
     }
 
     private func refreshModerationAccess(for state: AuthState<String>) {
