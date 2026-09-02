@@ -12,6 +12,9 @@ struct SettingsView: View {
     @Environment(PushNotificationManager.self) private var push
 
     @State private var isSigningOut = false
+    @State private var isDeletingAccount = false
+    @State private var showDeleteConfirmation = false
+    @State private var deletionError: String?
     @State private var showAdminReview = false
     @AppStorage("reader.arabicFontSize") private var arabicFontSize: Double = 26
     @AppStorage("user.preferredLanguage") private var preferredLanguage = "en"
@@ -20,7 +23,13 @@ struct SettingsView: View {
         ScrollView {
             VStack(spacing: 12) {
                 if clerk.session != nil {
-                    AccountCard(showSignIn: $showSignIn, isSigningOut: $isSigningOut, onSignOut: signOut)
+                    AccountCard(
+                        showSignIn: $showSignIn,
+                        isSigningOut: $isSigningOut,
+                        isDeletingAccount: $isDeletingAccount,
+                        showDeleteConfirmation: $showDeleteConfirmation,
+                        onSignOut: signOut
+                    )
                 } else {
                     GuestCard(showSignIn: $showSignIn)
                 }
@@ -49,6 +58,29 @@ struct SettingsView: View {
             AdminReviewSheet()
                 .presentationDetents([.large])
         }
+        .confirmationDialog(
+            "Delete account permanently?",
+            isPresented: $showDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Delete account and data", role: .destructive) {
+                Task { await deleteAccount() }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This removes your synced bookmarks, favorites, notes, reading progress, submissions, and sign-in. It cannot be undone. Store subscriptions are not cancelled automatically.")
+        }
+        .alert(
+            "Account deletion failed",
+            isPresented: Binding(
+                get: { deletionError != nil },
+                set: { if !$0 { deletionError = nil } }
+            )
+        ) {
+            Button("OK") { deletionError = nil }
+        } message: {
+            Text(deletionError ?? "Please try again.")
+        }
     }
 
     private func signOut() async {
@@ -56,6 +88,16 @@ struct SettingsView: View {
         defer { isSigningOut = false }
         try? await Clerk.shared.auth.signOut()
         environment.handleSignOut()
+    }
+
+    private func deleteAccount() async {
+        isDeletingAccount = true
+        defer { isDeletingAccount = false }
+        do {
+            try await environment.deleteAccount()
+        } catch {
+            deletionError = error.localizedDescription
+        }
     }
 }
 
@@ -95,6 +137,8 @@ private struct AdminModerationCard: View {
 private struct AccountCard: View {
     @Binding var showSignIn: Bool
     @Binding var isSigningOut: Bool
+    @Binding var isDeletingAccount: Bool
+    @Binding var showDeleteConfirmation: Bool
     let onSignOut: () async -> Void
 
     @Environment(AppEnvironment.self) private var environment
@@ -143,6 +187,33 @@ private struct AccountCard: View {
             .clipShape(RoundedRectangle(cornerRadius: 10))
             .padding(.top, 4)
             .accessibilityIdentifier("settings.signout")
+
+            Link(
+                "Manage subscription",
+                destination: URL(string: "https://apps.apple.com/account/subscriptions")!
+            )
+            .font(.footnote.weight(.medium))
+            .foregroundStyle(Theme.textSecondary)
+            .frame(maxWidth: .infinity)
+
+            Button(role: .destructive) {
+                showDeleteConfirmation = true
+            } label: {
+                if isDeletingAccount {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                } else {
+                    Text("Delete account")
+                        .font(.footnote.weight(.semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                }
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.red)
+            .disabled(isSigningOut || isDeletingAccount)
+            .accessibilityIdentifier("settings.deleteAccount")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)

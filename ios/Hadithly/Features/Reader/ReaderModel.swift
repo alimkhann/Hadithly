@@ -316,6 +316,24 @@ final class ReaderModel {
         }
     }
 
+    var hasQuotaFailure: Bool {
+        translations.values.contains { state in
+            if case .failed(.quotaExceeded) = state { return true }
+            return false
+        }
+    }
+
+    /// RevenueCat unlocks asynchronously through the signed webhook. Clear
+    /// the local wall and retry the current page after a successful purchase;
+    /// if webhook propagation is still in flight the backend remains final.
+    func retryTranslationsAfterPurchase() {
+        translations = translations.filter { _, state in
+            if case .failed(.quotaExceeded) = state { return false }
+            return true
+        }
+        scheduleTranslationsForCurrentPage()
+    }
+
     // MARK: - Translation contributions
 
     var canContribute: Bool { isSignedIn() }

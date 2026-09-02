@@ -9,8 +9,20 @@ val secrets = Properties().apply {
     }
 }
 
+val productionSecrets = Properties().apply {
+    val file = rootProject.file("production.secrets.properties")
+    if (file.exists()) {
+        file.inputStream().use { load(it) }
+    }
+}
+
 fun secret(key: String): String =
     (secrets.getProperty(key) ?: System.getenv(key.replace(".", "_").uppercase()) ?: "PLACEHOLDER_$key")
+
+fun productionSecret(key: String): String =
+    (productionSecrets.getProperty(key)
+        ?: System.getenv("PRODUCTION_${key.replace(".", "_").uppercase()}")
+        ?: "PLACEHOLDER_production.$key")
 
 val hasGoogleServices = file("google-services.json").exists()
 
@@ -40,11 +52,19 @@ android {
 
         buildConfigField("String", "CONVEX_URL", "\"${secret("convex.url")}\"")
         buildConfigField("String", "CLERK_PUBLISHABLE_KEY", "\"${secret("clerk.publishableKey")}\"")
+        buildConfigField("String", "REVENUECAT_API_KEY", "\"${secret("revenuecat.apiKey")}\"")
+        buildConfigField("String", "PRIVACY_POLICY_URL", "\"${secret("privacy.url")}\"")
+        buildConfigField("String", "TERMS_OF_USE_URL", "\"${secret("terms.url")}\"")
         buildConfigField("boolean", "FIREBASE_CONFIGURED", hasGoogleServices.toString())
     }
 
     buildTypes {
         release {
+            buildConfigField("String", "CONVEX_URL", "\"https://giddy-ox-648.eu-west-1.convex.cloud\"")
+            buildConfigField("String", "CLERK_PUBLISHABLE_KEY", "\"${productionSecret("clerk.publishableKey")}\"")
+            buildConfigField("String", "REVENUECAT_API_KEY", "\"${productionSecret("revenuecat.apiKey")}\"")
+            buildConfigField("String", "PRIVACY_POLICY_URL", "\"${productionSecret("privacy.url")}\"")
+            buildConfigField("String", "TERMS_OF_USE_URL", "\"${productionSecret("terms.url")}\"")
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
@@ -82,6 +102,7 @@ dependencies {
     implementation(libs.convex.mobile)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
+    implementation(libs.revenuecat.purchases)
 
     testImplementation(libs.junit)
 

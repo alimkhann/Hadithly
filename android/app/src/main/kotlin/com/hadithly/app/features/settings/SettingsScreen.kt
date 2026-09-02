@@ -52,6 +52,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -115,6 +116,10 @@ private fun AccountCard(signedIn: Boolean, syncSummary: String?, onShowSignIn: (
     val app = rememberApp()
     val colors = LocalHadithlyColors.current
     val scope = rememberCoroutineScope()
+    val uriHandler = LocalUriHandler.current
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var deletingAccount by remember { mutableStateOf(false) }
+    var deletionError by remember { mutableStateOf<String?>(null) }
     CardColumn {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Box(Modifier.size(38.dp).background(colors.surfaceElevated, CircleShape), contentAlignment = Alignment.Center) {
@@ -133,6 +138,16 @@ private fun AccountCard(signedIn: Boolean, syncSummary: String?, onShowSignIn: (
             TextButton(onClick = { scope.launch { Clerk.auth.signOut() } }, modifier = Modifier.testTag("settings.signout")) {
                 Text("Sign out", color = colors.textPrimary)
             }
+            TextButton(onClick = { uriHandler.openUri("https://play.google.com/store/account/subscriptions") }) {
+                Text("Manage subscription", color = colors.textSecondary)
+            }
+            TextButton(
+                enabled = !deletingAccount,
+                onClick = { showDeleteConfirmation = true },
+                modifier = Modifier.testTag("settings.deleteAccount"),
+            ) {
+                Text(if (deletingAccount) "Deleting…" else "Delete account", color = Color(0xFFFF6B6B))
+            }
         } else {
             Button(
                 onClick = onShowSignIn,
@@ -141,6 +156,48 @@ private fun AccountCard(signedIn: Boolean, syncSummary: String?, onShowSignIn: (
                 modifier = Modifier.fillMaxWidth().testTag("settings.signin"),
             ) { Text("Sign in", fontWeight = FontWeight.SemiBold) }
         }
+    }
+
+    if (showDeleteConfirmation) {
+        AlertDialog(
+            onDismissRequest = { if (!deletingAccount) showDeleteConfirmation = false },
+            title = { Text("Delete account permanently?") },
+            text = {
+                Text("This removes your synced bookmarks, favorites, notes, reading progress, submissions, and sign-in. It cannot be undone. Store subscriptions are not cancelled automatically.")
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !deletingAccount,
+                    onClick = {
+                        deletingAccount = true
+                        scope.launch {
+                            app.session.deleteAccount()
+                                .onSuccess { showDeleteConfirmation = false }
+                                .onFailure {
+                                    showDeleteConfirmation = false
+                                    deletionError = it.message ?: "Please try again."
+                                }
+                            deletingAccount = false
+                        }
+                    },
+                ) { Text("Delete account and data", color = Color(0xFFFF6B6B)) }
+            },
+            dismissButton = {
+                TextButton(enabled = !deletingAccount, onClick = { showDeleteConfirmation = false }) {
+                    Text("Cancel", color = colors.textSecondary)
+                }
+            },
+            containerColor = colors.surface,
+        )
+    }
+    deletionError?.let { message ->
+        AlertDialog(
+            onDismissRequest = { deletionError = null },
+            title = { Text("Account deletion failed") },
+            text = { Text(message) },
+            confirmButton = { TextButton(onClick = { deletionError = null }) { Text("OK") } },
+            containerColor = colors.surface,
+        )
     }
 }
 

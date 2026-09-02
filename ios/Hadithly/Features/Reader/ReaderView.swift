@@ -17,6 +17,8 @@ struct ReaderView: View {
     @State private var model: ReaderModel?
     @State private var showIndex = false
     @State private var showSettings = false
+    @State private var showQuotaPaywall = false
+    @State private var hasAutoPresentedQuotaPaywall = false
     @State private var lastTurn: PageTurn = .none
     @AppStorage("reader.arabicFontSize") private var arabicFontSize: Double = 26
 
@@ -65,6 +67,20 @@ struct ReaderView: View {
                 ReaderSettingsSheet(model: model, arabicFontSize: $arabicFontSize)
                     .presentationDetents([.medium])
             }
+        }
+        .sheet(isPresented: $showQuotaPaywall) {
+            QuotaPaywallView {
+                Task {
+                    try? await Task.sleep(for: .seconds(1))
+                    model?.retryTranslationsAfterPurchase()
+                }
+            }
+            .presentationDetents([.large])
+        }
+        .onChange(of: model?.hasQuotaFailure ?? false, initial: true) { _, exceeded in
+            guard exceeded, !hasAutoPresentedQuotaPaywall else { return }
+            hasAutoPresentedQuotaPaywall = true
+            showQuotaPaywall = true
         }
     }
 
@@ -117,7 +133,8 @@ struct ReaderView: View {
             ReaderPageView(
                 model: model,
                 hadiths: model.currentPageHadiths,
-                arabicFontSize: arabicFontSize
+                arabicFontSize: arabicFontSize,
+                onShowPaywall: { showQuotaPaywall = true }
             )
             .id(model.pageIndex)
             .transition(pageTurnTransition)
@@ -288,6 +305,7 @@ struct ReaderPageView: View {
     let model: ReaderModel
     let hadiths: [ReaderHadith]
     let arabicFontSize: Double
+    let onShowPaywall: () -> Void
 
     var body: some View {
         ScrollView {
@@ -307,7 +325,8 @@ struct ReaderPageView: View {
                             translationState: model.translations[hadith.internalId],
                             language: model.language,
                             arabicFontSize: arabicFontSize,
-                            onRetry: { model.retryTranslation(for: hadith) }
+                            onRetry: { model.retryTranslation(for: hadith) },
+                            onShowPaywall: onShowPaywall
                         )
                     }
                 }
@@ -335,6 +354,7 @@ private struct HadithBlock: View {
     let language: String
     let arabicFontSize: Double
     let onRetry: () -> Void
+    let onShowPaywall: () -> Void
 
     @State private var citationsTranslation: ReaderTranslation?
     @State private var isEditingNote = false
@@ -465,7 +485,8 @@ private struct HadithBlock: View {
             quietNotice(
                 icon: "sparkles",
                 text: "You've used your free AI translations for this month. Reading continues as usual.",
-                actionTitle: nil
+                actionTitle: "See plans",
+                action: onShowPaywall
             )
 
         case .failed(.failed):
@@ -557,7 +578,12 @@ private struct HadithBlock: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private func quietNotice(icon: String, text: String, actionTitle: String?) -> some View {
+    private func quietNotice(
+        icon: String,
+        text: String,
+        actionTitle: String?,
+        action: (() -> Void)? = nil
+    ) -> some View {
         VStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.body)
@@ -566,7 +592,13 @@ private struct HadithBlock: View {
                 .font(.caption)
                 .foregroundStyle(Theme.textSecondary)
                 .multilineTextAlignment(.center)
-            if actionTitle != nil {
+            if let actionTitle, let action {
+                Button(actionTitle, action: action)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Theme.accent)
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("reader.quotaPaywall")
+            } else if actionTitle != nil {
                 Text("Sign-in lives on the Settings tab.")
                     .font(.caption2)
                     .foregroundStyle(Theme.textSecondary.opacity(0.7))

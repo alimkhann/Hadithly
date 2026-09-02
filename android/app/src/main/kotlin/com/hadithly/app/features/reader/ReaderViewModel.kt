@@ -271,6 +271,23 @@ class ReaderViewModel(
         }
     }
 
+    fun hasQuotaFailure(): Boolean = _state.value.translations.values.any { translationState ->
+        translationState is TranslationUiState.Failed && translationState.failure == TranslationFailure.QuotaExceeded
+    }
+
+    /** Retry only the quota-blocked rows after RevenueCat reports Pro active. */
+    fun retryTranslationsAfterPurchase() {
+        _state.update { current ->
+            current.copy(
+                translations = current.translations.filterValues { translationState ->
+                    translationState !is TranslationUiState.Failed ||
+                        translationState.failure != TranslationFailure.QuotaExceeded
+                },
+            )
+        }
+        scheduleTranslationsForCurrentPage()
+    }
+
     val canContribute: Boolean get() = app.isSignedIn()
 
     suspend fun submitTranslation(

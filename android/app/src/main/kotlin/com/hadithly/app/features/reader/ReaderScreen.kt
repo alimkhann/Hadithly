@@ -71,6 +71,7 @@ import com.hadithly.app.core.data.ReaderTranslation
 import com.hadithly.app.core.data.SupportedLanguages
 import com.hadithly.app.core.data.TranslationFailure
 import com.hadithly.app.core.theme.LocalHadithlyColors
+import com.hadithly.app.features.purchases.QuotaPaywallSheet
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
@@ -110,6 +111,18 @@ fun ReaderScreen(
 
     var showContents by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
+    var showQuotaPaywall by remember { mutableStateOf(false) }
+    var hasAutoPresentedQuotaPaywall by remember { mutableStateOf(false) }
+
+    val hasQuotaFailure = state.translations.values.any { translationState ->
+        translationState is TranslationUiState.Failed && translationState.failure == TranslationFailure.QuotaExceeded
+    }
+    LaunchedEffect(hasQuotaFailure) {
+        if (hasQuotaFailure && !hasAutoPresentedQuotaPaywall) {
+            hasAutoPresentedQuotaPaywall = true
+            showQuotaPaywall = true
+        }
+    }
 
     BackHandler(enabled = !showContents && !showSettings, onBack = onClose)
 
@@ -128,6 +141,7 @@ fun ReaderScreen(
                 arabicFontSize = app.settings.arabicFontSize.collectAsStateWithLifecycle().value,
                 onOpenContents = { showContents = true },
                 onOpenSettings = { showSettings = true },
+                onShowPaywall = { showQuotaPaywall = true },
                 onClose = onClose,
             )
         }
@@ -158,6 +172,19 @@ fun ReaderScreen(
                 onArabicFontSize = { app.settings.setArabicFontSize(it) },
             )
         }
+    }
+
+    if (showQuotaPaywall) {
+        QuotaPaywallSheet(
+            purchases = app.purchases,
+            onDismiss = { showQuotaPaywall = false },
+            onUnlocked = {
+                app.appScope.launch {
+                    kotlinx.coroutines.delay(1_000)
+                    viewModel.retryTranslationsAfterPurchase()
+                }
+            },
+        )
     }
 }
 
@@ -206,6 +233,7 @@ private fun ReadingView(
     arabicFontSize: Float,
     onOpenContents: () -> Unit,
     onOpenSettings: () -> Unit,
+    onShowPaywall: () -> Unit,
     onClose: () -> Unit,
 ) {
     val colors = LocalHadithlyColors.current
@@ -261,6 +289,7 @@ private fun ReadingView(
                 arabicFontSize = arabicFontSize,
                 isSentinel = pageIndex >= pages.size,
                 onTap = { viewModel.toggleChrome() },
+                onShowPaywall = onShowPaywall,
             )
         }
 
@@ -345,6 +374,7 @@ private fun ReaderPage(
     arabicFontSize: Float,
     isSentinel: Boolean,
     onTap: () -> Unit,
+    onShowPaywall: () -> Unit,
 ) {
     val colors = LocalHadithlyColors.current
     var citationsTranslation by remember { mutableStateOf<ReaderTranslation?>(null) }
@@ -381,6 +411,7 @@ private fun ReaderPage(
                         onEditNote = { noteTarget = hadith },
                         onSuggest = { translation -> submissionTarget = hadith to translation },
                         onReport = { translation -> reportTarget = hadith to translation },
+                        onShowPaywall = onShowPaywall,
                     )
                 }
             }
@@ -551,6 +582,7 @@ private fun HadithBlock(
     onEditNote: () -> Unit,
     onSuggest: (ReaderTranslation?) -> Unit,
     onReport: (ReaderTranslation) -> Unit,
+    onShowPaywall: () -> Unit,
 ) {
     val colors = LocalHadithlyColors.current
 
@@ -593,6 +625,7 @@ private fun HadithBlock(
             language = language,
             onRetry = onRetry,
             onShowCitations = onShowCitations,
+            onShowPaywall = onShowPaywall,
         )
 
         val activeTranslation = (translationState as? TranslationUiState.Loaded)?.translation
@@ -649,6 +682,7 @@ private fun TranslationSection(
     language: String,
     onRetry: () -> Unit,
     onShowCitations: (ReaderTranslation) -> Unit,
+    onShowPaywall: () -> Unit,
 ) {
     val colors = LocalHadithlyColors.current
 
@@ -686,6 +720,8 @@ private fun TranslationSection(
             )
             TranslationFailure.QuotaExceeded -> QuietNotice(
                 text = "You've used your free AI translations for this month. Reading continues as usual.",
+                actionTitle = "See plans",
+                onAction = onShowPaywall,
             )
             is TranslationFailure.Failed -> TextButton(onClick = onRetry) {
                 Text("AI translation unavailable · retry", fontSize = 12.sp, color = colors.textSecondary)
@@ -758,7 +794,11 @@ private fun GlossaryNotes(notes: List<String>) {
 }
 
 @Composable
-private fun QuietNotice(text: String) {
+private fun QuietNotice(
+    text: String,
+    actionTitle: String? = null,
+    onAction: (() -> Unit)? = null,
+) {
     val colors = LocalHadithlyColors.current
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -771,6 +811,11 @@ private fun QuietNotice(text: String) {
             color = colors.textSecondary,
             textAlign = TextAlign.Center,
         )
+        if (actionTitle != null && onAction != null) {
+            TextButton(onClick = onAction) {
+                Text(actionTitle, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.accent)
+            }
+        }
     }
 }
 

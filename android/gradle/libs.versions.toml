@@ -13,6 +13,7 @@ clerkConvex = "0.15.0"
 convexMobile = "0.8.0"
 firebaseBom = "34.18.0"
 googleServices = "4.5.0"
+purchases = "10.7.0"
 junit = "4.13.2"
 
 [libraries]
@@ -36,6 +37,7 @@ clerk-convex = { module = "com.clerk:clerk-convex-kotlin", version.ref = "clerkC
 convex-mobile = { module = "dev.convex:android-convexmobile", version.ref = "convexMobile" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
+revenuecat-purchases = { module = "com.revenuecat.purchases:purchases", version.ref = "purchases" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 
 [plugins]

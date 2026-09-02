@@ -16,6 +16,7 @@
 		33FC99DE32E942D10DA1A0E8 /* GuestDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60ADF5B4FE4B19D653444A35 /* GuestDataStore.swift */; };
 		387B3ED9A915C443A4D6BE7F /* SupportedLanguagesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E44FCAA45E0A462774A84DA1 /* SupportedLanguagesTests.swift */; };
 		3887A0EFC119EAACD310CF7E /* ClerkKit in Frameworks */ = {isa = PBXBuildFile; productRef = 829AFCDEFFE99A7B448DB279 /* ClerkKit */; };
+		40005CAC146B94EEE62A8E7A /* PurchaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08FCCB643524BAD19F468A58 /* PurchaseManager.swift */; };
 		4137E4BEC4D9AB99B0CBEB6D /* ReaderModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D35DB572137529526C5AA2 /* ReaderModels.swift */; };
 		5032362AD386E85B0C7A9003 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DFB6D276EC727353BA7A9C6 /* LibraryView.swift */; };
 		581C8B465D5BFD06642298E2 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = E152E3795F9B1126C9D136DC /* AppEnvironment.swift */; };
@@ -25,6 +26,8 @@
 		5CA00AD4D24970185202412F /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD148F26EBD08C42E9BC852 /* SettingsView.swift */; };
 		6CDB6D53D800C6E2C13C33C8 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4034D0B1DE93B6783753B19 /* Theme.swift */; };
 		849C4D4523198D349C07F38B /* ClerkKitUI in Frameworks */ = {isa = PBXBuildFile; productRef = C37EE4DED16249B3D49BDD3C /* ClerkKitUI */; };
+		87D06478A2F7B3DA0AEBFA09 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = F49C48470F44D3A57A6B3F89 /* RevenueCat */; };
+		89B1F07C2F0CD8BB75236E45 /* QuotaPaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4962698F596A699C8B5250D3 /* QuotaPaywallView.swift */; };
 		92772F9145AF4DE5EDCB8AB6 /* GuestDataModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEA2F742FC0F52912AA1DAFB /* GuestDataModels.swift */; };
 		97895D6035CF1D70762E9219 /* GuestMergePlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DB77C4DAC4E74EC0E77C50C /* GuestMergePlanner.swift */; };
 		9A4308D33FB86639EB1F1363 /* LanguagePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A83DB98EF37EA23342864B08 /* LanguagePickerView.swift */; };
@@ -59,6 +62,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		08FCCB643524BAD19F468A58 /* PurchaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurchaseManager.swift; sourceTree = "<group>"; };
 		10B42F7CC77C3DB5C4762941 /* ReaderSheets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderSheets.swift; sourceTree = "<group>"; };
 		1424D8A40132B5F39FA23E7D /* ReaderModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderModel.swift; sourceTree = "<group>"; };
 		14379C576B39E8C048BCE832 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
@@ -68,6 +72,7 @@
 		2A50BDEFB0F097AEA7D35CC9 /* MainTabsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabsView.swift; sourceTree = "<group>"; };
 		2DB77C4DAC4E74EC0E77C50C /* GuestMergePlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestMergePlanner.swift; sourceTree = "<group>"; };
 		30CC2E71A270EECA2E3A0904 /* ReaderModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderModelsTests.swift; sourceTree = "<group>"; };
+		4962698F596A699C8B5250D3 /* QuotaPaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaPaywallView.swift; sourceTree = "<group>"; };
 		498F77309F82C41BF08E487B /* HadithlyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HadithlyApp.swift; sourceTree = "<group>"; };
 		58D35DB572137529526C5AA2 /* ReaderModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderModels.swift; sourceTree = "<group>"; };
 		58DDF1A3D4E9ECCDEC8EC1A3 /* HadithlyUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = HadithlyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -92,7 +97,8 @@
 		EEA2F742FC0F52912AA1DAFB /* GuestDataModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestDataModels.swift; sourceTree = "<group>"; };
 		F16E29AA1FEEB93DF8895F92 /* UserLibraryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserLibraryModel.swift; sourceTree = "<group>"; };
 		FA7143E72E104DB258A51D0D /* PushNotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationManager.swift; sourceTree = "<group>"; };
-		"TEMP_7CDD05B3-62FA-4882-A7F1-A217B1509F97" /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		"TEMP_749F4653-7B9B-4167-A561-6DB5CAB9B33F" /* Production.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Production.xcconfig; sourceTree = "<group>"; };
+		"TEMP_90DFA54E-F1FE-4E5D-87C8-1751F42B6F33" /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -104,6 +110,7 @@
 				849C4D4523198D349C07F38B /* ClerkKitUI in Frameworks */,
 				20B74F1EE251CAEE00BD55FD /* ClerkConvex in Frameworks */,
 				C25A571E80045E330C2F7680 /* ConvexMobile in Frameworks */,
+				87D06478A2F7B3DA0AEBFA09 /* RevenueCat in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -118,6 +125,14 @@
 				2DB77C4DAC4E74EC0E77C50C /* GuestMergePlanner.swift */,
 			);
 			path = GuestData;
+			sourceTree = "<group>";
+		};
+		1377BFCAD50F44C33C7BBBA8 /* Purchases */ = {
+			isa = PBXGroup;
+			children = (
+				08FCCB643524BAD19F468A58 /* PurchaseManager.swift */,
+			);
+			path = Purchases;
 			sourceTree = "<group>";
 		};
 		193CD6E4F32EEB192E445210 /* Saved */ = {
@@ -142,6 +157,7 @@
 			isa = PBXGroup;
 			children = (
 				11E2FA0705DE153B5FFABB0E /* GuestData */,
+				1377BFCAD50F44C33C7BBBA8 /* Purchases */,
 				CC45A86D970FE955AE95BA23 /* Push */,
 				193CD6E4F32EEB192E445210 /* Saved */,
 				81393E168838929DF03723ED /* Theme */,
@@ -198,6 +214,7 @@
 				8B6DFC1F91CF0F3312CEEFBA /* Auth */,
 				7FE86592B770A14A3F58A7D0 /* Main */,
 				1C268289A0F59ACA49338D81 /* Onboarding */,
+				DD29C03BEDC4E1FDA9D13BEB /* Purchases */,
 				D6C543EBD272EEFC7EA24856 /* Reader */,
 				7991DF7548B9F15D2760C93C /* Saved */,
 				56DFC9726D4560AFB3FB81AC /* Settings */,
@@ -283,6 +300,14 @@
 			path = Today;
 			sourceTree = "<group>";
 		};
+		DD29C03BEDC4E1FDA9D13BEB /* Purchases */ = {
+			isa = PBXGroup;
+			children = (
+				4962698F596A699C8B5250D3 /* QuotaPaywallView.swift */,
+			);
+			path = Purchases;
+			sourceTree = "<group>";
+		};
 		E6B9C0A7F7EFDC045256DDCF = {
 			isa = PBXGroup;
 			children = (
@@ -293,10 +318,11 @@
 			);
 			sourceTree = "<group>";
 		};
-		"TEMP_851D6D24-F6C2-415A-A35A-FB9F782BD630" /* ios */ = {
+		"TEMP_066E0376-21AC-462B-8A2E-1D2061FEFF16" /* ios */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_7CDD05B3-62FA-4882-A7F1-A217B1509F97" /* Secrets.xcconfig */,
+				"TEMP_90DFA54E-F1FE-4E5D-87C8-1751F42B6F33" /* Secrets.xcconfig */,
+				"TEMP_749F4653-7B9B-4167-A561-6DB5CAB9B33F" /* Production.xcconfig */,
 			);
 			path = ios;
 			sourceTree = "<group>";
@@ -353,6 +379,7 @@
 				C37EE4DED16249B3D49BDD3C /* ClerkKitUI */,
 				29379B7F31920A83A0638E04 /* ClerkConvex */,
 				F836871A576A842027C728B2 /* ConvexMobile */,
+				F49C48470F44D3A57A6B3F89 /* RevenueCat */,
 			);
 			productName = Hadithly;
 			productReference = 21B165348425F36BB25A5B5A /* Hadithly.app */;
@@ -375,6 +402,7 @@
 						TestTargetID = FF6E57F5954A3B1E72AAD619;
 					};
 					FF6E57F5954A3B1E72AAD619 = {
+						DevelopmentTeam = 6378AFQPXV;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -392,6 +420,7 @@
 				76CD1A80C0F599E2400415F1 /* XCRemoteSwiftPackageReference "clerk-convex-swift" */,
 				CFDEEBFCAA5D3ADDDB3FAD42 /* XCRemoteSwiftPackageReference "clerk-ios" */,
 				24A824E18E2D7EC3F05C9EE2 /* XCRemoteSwiftPackageReference "convex-swift" */,
+				8101CB5A7DE328775922D0B3 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
 			);
 			projectDirPath = "";
 			projectRoot = "";
@@ -437,7 +466,9 @@
 				5032362AD386E85B0C7A9003 /* LibraryView.swift in Sources */,
 				0F9CA9207EAE3EA1A1AA76D0 /* MainTabsView.swift in Sources */,
 				CEA85FC2B3F11A3B8831DD69 /* OnboardingFlowView.swift in Sources */,
+				40005CAC146B94EEE62A8E7A /* PurchaseManager.swift in Sources */,
 				2E65001F6F40C6BE3B3FF181 /* PushNotificationManager.swift in Sources */,
+				89B1F07C2F0CD8BB75236E45 /* QuotaPaywallView.swift in Sources */,
 				1E12EC45E3933C4A5A8FA0FF /* ReaderModel.swift in Sources */,
 				4137E4BEC4D9AB99B0CBEB6D /* ReaderModels.swift in Sources */,
 				E5BAE9CF65FCBE853C210CF7 /* ReaderSheets.swift in Sources */,
@@ -471,11 +502,12 @@
 /* Begin XCBuildConfiguration section */
 		081EA1614EAE1CB1451F28EB /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_7CDD05B3-62FA-4882-A7F1-A217B1509F97" /* Secrets.xcconfig */;
+			baseConfigurationReference = "TEMP_749F4653-7B9B-4167-A561-6DB5CAB9B33F" /* Production.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Hadithly/Hadithly.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = 6378AFQPXV;
 				INFOPLIST_FILE = Hadithly/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -490,11 +522,12 @@
 		};
 		1DB6B6403B644CF2BD507A46 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_7CDD05B3-62FA-4882-A7F1-A217B1509F97" /* Secrets.xcconfig */;
+			baseConfigurationReference = "TEMP_90DFA54E-F1FE-4E5D-87C8-1751F42B6F33" /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Hadithly/Hadithly.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = 6378AFQPXV;
 				INFOPLIST_FILE = Hadithly/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -757,6 +790,14 @@
 				minimumVersion = 0.1.0;
 			};
 		};
+		8101CB5A7DE328775922D0B3 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.43.0;
+			};
+		};
 		CFDEEBFCAA5D3ADDDB3FAD42 /* XCRemoteSwiftPackageReference "clerk-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/clerk/clerk-ios.git";
@@ -782,6 +823,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = CFDEEBFCAA5D3ADDDB3FAD42 /* XCRemoteSwiftPackageReference "clerk-ios" */;
 			productName = ClerkKitUI;
+		};
+		F49C48470F44D3A57A6B3F89 /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8101CB5A7DE328775922D0B3 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCat;
 		};
 		F836871A576A842027C728B2 /* ConvexMobile */ = {
 			isa = XCSwiftPackageProductDependency;
