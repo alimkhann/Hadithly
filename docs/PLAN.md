@@ -1,526 +1,511 @@
 # Hadithly master plan
 
-This document is the single source of truth for the rebuild. Read it at the
-start of any session. It answers: what is this, what exists, what is next,
-and what already went wrong so you do not repeat it.
+This file is the source of truth for sequencing and product decisions. Read it
+before any Hadithly session. Then open the matching standalone prompt in
+`docs/SESSION_PROMPTS.md`.
 
-Last updated: Phase 5 Android feature parity implemented and emulator-verified;
-live FCM registration awaits Firebase project credentials.
+Last updated: 2026-09-03. Phases 0 through 5 are complete. Phase 6 code is
+implemented, but its production dashboard gate is open. Sessions D0, G0, M0,
+and D1 are complete; session D2 is next. The Android FCM device-push re-test
+deferred from D1 folds into D4's physical-device matrix.
 
-## What Hadithly is
+## Read the plan in layers
 
-A native mobile app for reading the seven major hadith collections in the
-reader's language. Arabic text plus a translation, nothing louder than that.
+- `docs/PLAN.md` holds product rules, current state, session order, contracts,
+  dependencies, and gates.
+- `docs/LAUNCH_DASHBOARD_CHECKLIST.md` holds external dashboard work and live
+  evidence.
+- `docs/REFERENCE_AUDIT.md` holds the Sajda screenshot inventory, current code
+  audit, and adopt, adapt, or reject decisions.
+- `docs/SESSION_PROMPTS.md` holds one standalone execution prompt per session.
+- `docs/REPOSITORY_AND_DISK_PLAYBOOK.md` holds the current branch, checkpoint,
+  toolchain, and low-space recovery procedure.
+- `docs/LAUNCH_STACK_RESEARCH.md` holds cost and launch-service evidence.
+- `docs/app-store/` holds store metadata and the privacy worksheet.
 
-Three product rules override every other consideration:
+## Product contract
 
-1. No competition. No leaderboards, public votes, ratings, reputation,
-   streaks, or badges. Translation quality comes from AI review plus admin
-   approval. Reading progress stays private.
-2. Reading works signed out. An account only adds sync. Onboarding must
-   never gate the reader behind signup.
-3. AI translations are labeled as AI, grounded in cited sources, and never
-   presented as authoritative. The paywall appears only when a user hits
-   the free AI quota, never as a nag.
+Hadithly is a quiet native reader for the seven major hadith collections. The
+reading experience comes first. AI, accounts, subscriptions, and contribution
+tools stay out of the way until the reader asks for them.
 
-## Repository map
+These rules are immutable unless the user changes them:
 
-```
-backend/          Convex-only backend. The one server.
-  convex/schema.ts          all tables (no vote/rating/leaderboard tables)
-  convex/actions/           "use node" files: sunnahData (Sunnah.now), ai (Gemini)
-  convex/http.ts            RevenueCat webhook (POST /webhooks/revenuecat)
-  convex/lib/sunnahNow.ts   provider adapter, ported from the legacy package
-  convex/lib/identity.ts    requireIdentity(): clerkId = identity.subject
-ios/              SwiftUI app (iOS 17+), generated with xcodegen
-  project.yml               edit this, never project.pbxproj; run xcodegen
-  Secrets.xcconfig          gitignored: CONVEX_URL, CLERK_PUBLISHABLE_KEY
-  Hadithly/App/             HadithlyApp, AppEnvironment, RootView
-  Hadithly/Core/Theme/      design tokens (Theme.swift)
-  Hadithly/Features/        one folder per feature
-android/          Compose app (minSdk 26), mirrors the iOS feature folders
-  gradle/libs.versions.toml version catalog
-  secrets.properties        gitignored: convex.url, clerk.publishableKey
-  app/src/main/kotlin/com/hadithly/app/
-    core/{data,push,session,theme,settings}  Convex repo, guest store, FCM, tokens
-    features/{onboarding,auth,today,library,saved,reader,settings}
-legacy/           the old Expo/Next.js monorepo. Reference only. Do not build on it.
-docs/PLAN.md      this file
-```
+1. Reading works signed out. Accounts add private sync.
+2. The product has no votes, leaderboards, public statistics, streaks, ratings,
+   reputation, badges, or public collections.
+3. AI text is labeled and sourced. Hadithly never presents AI text as
+   authoritative.
+4. The subscription paywall appears only when the user reaches an AI quota.
+5. Convex is the only mobile API and control plane. It calls providers and owns
+   secrets. The one allowed data-plane exception is an immutable, checksummed,
+   licensed offline artifact fetched from a CDN URL and manifest authorized by
+   Convex; clients never query a second application backend.
+6. User-scoped backend functions derive identity from the verified Clerk JWT.
+7. iOS and Android ship the same behavior through native platform conventions.
+8. Relay is not used for this repository.
 
-Dev deployment: festive-cobra-664 (eu-west-1). Production: giddy-ox-648,
-created during the legacy build, still empty of the new schema.
+## Product direction
 
-## Architecture
+Use the Sajda screenshots as behavioral references, not a template. Hadithly
+keeps the calm reader, hidden controls, strong Arabic typography, compact
+progress, and native sheets. It drops Quran-specific structures and anything
+that adds noise without helping a hadith reader.
 
-Clients (SwiftUI now, Compose in Phase 5) talk only to Convex through the
-official clients. Clerk issues the JWT; Convex validates it through
-`auth.config.ts`. Sunnah.now and Gemini are called only inside Convex
-actions, with keys in Convex env vars. Users never pass a userId; every
-user-scoped function resolves identity from the token.
+The design uses System, Light, Paper, and Dark themes. Emerald remains the
+single general accent. Bookmark and favorite colors appear only where their
+meaning is needed. Arabic uses a licensed naskh-compatible font. UI text uses
+the platform system font. Dynamic Type and Android font scaling must work.
 
-Why Convex stayed: free tier covers an MVP, realtime subscriptions replace
-client cache logic, scheduled functions replace cron endpoints, and the
-legacy build already had working data modeling we could keep.
+Remove or consolidate these current behaviors:
 
-Costs at MVP scale: Convex free, Clerk free to 10k MAU, Gemini flash-lite
-pennies, RevenueCat free under $2.5k MRR. Total: $0 until real traction.
+- Replace the permanent action row below every hadith with a native context
+  menu that appears on hold of the hadith and a quiet overflow action.
+  Thus it makes the reader feel less interrupted in between hadiths on the page.
+- Replace the Saved landing cards with one private list, filters, and optional
+  folders.
+- Remove the duplicate global Continue Reading card from Library. Show progress
+  on each collection row instead.
+- Move the admin queue out of consumer Settings into a secured exception tool.
+- Remove the weekly subscription product.
+- Do not add reciters, transcription, mushaf or juz modes, Siri actions, social
+  mechanics, a generic AI chat, or a rotating Saved widget.
+- Defer search until multilingual and offline indexing can return reliable
+  results.
 
-## Design language
+## Completed history and current launch state
 
-The reference is the Sajda Quran app (screenshots in
-`legacy/docs/design-prototype/uploads/`). The direction, stated once so
-every session builds the same app: a quiet book in a dark room.
-
-- Canvas: `#0D0D0D`. Surfaces: `#1A1A1A` and `#2A2A2C`. Defined in
-  `ios/Hadithly/Core/Theme/Theme.swift`; always use Theme tokens, never raw
-  colors in views.
-- One accent: emerald `#10B981`, used for selection, progress, and the
-  primary button. Bookmark amber and favorite pink exist only on their own
-  actions. Nothing else gets color.
-- The reader hides chrome. A tap toggles controls. Arabic sits centered
-  with a numbered medallion. Translation follows below in a plain readable
-  face. Floating pills show page and volume. Navigation lives in bottom
-  sheets: saved items, index, reader settings.
-- Motion is small and physical: sheets slide, toggles spring, pages settle.
-  No confetti, no bounce, no marketing animation.
-- Typography is the product. Arabic gets a proper naskh-compatible face at
-  generous size with real line height. UI text uses the system face and
-  stays out of the way. Dynamic Type must work everywhere.
-- Avoid the generic AI look: no purple gradients, no glassy card grids, no
-  rounded-everything sameness. If a screen would look at home in a template
-  app, redesign it.
-
-## Phases
-
-| Phase | Scope | Status |
+| Phase | Result | Verification state |
 | --- | --- | --- |
-| 0 | Archive legacy, Convex-only backend, SwiftUI scaffold, onboarding shell | done, verified |
-| 1 | Auth (Apple, Google, email) + guest mode + user sync | done, verified |
-| 2 | Reader core: pagination, chrome toggle, AI translation on demand | done, verified |
-| 3 | Tabs: Today, Library, Saved, Settings; push notification setup | done, verified |
-| 4 | Translation submissions with AI review and admin approval | done, verified |
-| 5 | Android (Compose) port | done, emulator-verified except live FCM provisioning |
-| 6 | RevenueCat paywall, App Store prep, CI | not started |
+| 0 | Archived the legacy app, chose Convex as the only backend, created the SwiftUI app, and built guest onboarding. | Complete |
+| 1 | Added Apple, Google, and email-code Clerk flows, guest storage, user sync, and idempotent guest merge. | Complete in development. Production Clerk remains in D2. |
+| 2 | Added collection loading, content-sized pages, hidden reader controls, cache-first provider reads, and labeled AI translation with citations. | Complete on iOS simulator with unit and live tests. |
+| 3 | Added Today, Library, Saved, Settings, private progress, bookmarks, favorites, notes, APNs registration, and the daily cron. | Complete in development. Production push remains in D1 and D4. |
+| 4 | Added translation proposals, AI review, reports, admin approval, audit rows, and a dedicated live UI test. | Complete. The evidence-based replacement is E1 through E4. |
+| 5 | Ported the product to Android Compose, including auth, reader, private data, contributions, FCM wiring, and RevenueCat client parity. | Emulator-verified. Production device delivery remains in D1 and D4. |
+| 6 | Added quota-only RevenueCat paywalls, hardened webhooks, release routing, CI, account deletion, push credentials, and App Store drafts. | Code complete. External dashboard gate remains open. |
 
-Each phase ends with a gate: the feature works on the simulator, tests pass
-where logic exists, and the work is committed. Do not start a phase before
-the previous gate passes.
+Development Convex is `festive-cobra-664` in `eu-west-1`. Production Convex is
+`giddy-ox-648` in `eu-west-1`.
 
-### Phase 1 detail (done, 2026-08-30)
+Known launch facts:
 
-Sign-in screen with three methods (Apple, Google, email code), all through
-ClerkKit custom flows so the UI stays ours. After sign-in the app calls
-`users:ensureCurrentUser` and then `guestMerge:mergeGuestData`, which merges
-the guest's SwiftData bookmarks and notes into Convex and clears the local
-store. The merge is idempotent: re-sent items are skipped, and note conflicts
-keep the newer `updatedAt`. Merge planning lives in
-`ios/Hadithly/Core/GuestData/GuestMergePlanner.swift` with unit tests in
-`GuestMergePlannerTests`.
+- The Firebase project is `hadithlyapp` (name `hadithly`), created on
+  2026-09-03 after the owner directed the product off the legacy `sunnad`
+  project naming. The Android app and local `google-services.json` use it.
+- The old `sunnad` Firebase Admin keys were revoked on 2026-09-03 after the
+  `hadithlyapp` replacement was installed and validated. The Android FCM
+  device gate must be re-run against `hadithlyapp` because FCM tokens are
+  project-scoped.
+- The production APNs key is `MU78HDD896` (Sandbox & Production, Team Scoped).
+  The older `48VC` key stays active under the owner's separate
+  `adat`/`sunnad` projects by owner decision.
+- Production Clerk is incomplete. Production Convex cannot pass its auth gate
+  until `CLERK_FRONTEND_API_URL` is correct.
+- Production Sunnah.now key rotation is waived by the owner. The Gemini
+  replacement is installed and validated in production.
+- RevenueCat Test Store packages work. Real App Store and Play products are not
+  connected.
+- Apple capabilities exist. App Store Connect, Play Console, public policy
+  pages, and store agreements are incomplete.
+- Screenshots stay deferred until the redesigned release candidate in L1.
 
-Clerk ↔ Convex auth: the **Convex integration must be activated in the Clerk
-dashboard** (dashboard.clerk.com/apps/setup/convex). It adds `aud: "convex"`
-to session tokens, which is what `applicationID: "convex"` in
-`auth.config.ts` validates. The Convex env var is `CLERK_FRONTEND_API_URL`
-(not CLERK_JWT_ISSUER_DOMAIN). The app points at the dev instance
-`warm-yeti-51.clerk.accounts.dev` and dev deployment festive-cobra-664.
+Do not call Phase 6 complete from code, configuration files, or simulator tests.
+D4 requires direct production and physical-device evidence.
 
-Verified end to end on the simulator with UI automation: onboarding as guest,
-guest data persisted across relaunches, email-code sign-in (dev test address
-`+clerk_test` with code 424242), `ensureCurrentUser` creating the user row,
-merge into Convex confirmed via `npx convex data`, idempotent re-merge, local
-clear, sign-out. Installed on the connected iPhone (team 6378AFQPXV,
-automatic signing) and launched.
+## Locked experience and data contracts
 
-Still pending for full parity of all three buttons:
+### Languages and reading direction
 
-- Clerk dashboard: enable the **Apple** provider (needs a Services ID + signing
-  key from the Apple Developer console) and the **Google** provider (Google
-  Cloud OAuth client, or Clerk's shared dev credentials for development).
-  Both buttons are wired and will work once the providers exist.
-- Clerk instance currently requires username + password at sign-up, which
-  email-code sign-up cannot satisfy from the UI; the app auto-fills generated
-  values (`fulfillMissingRequirements` in SignInView). Cleaner: in Clerk
-  dashboard set Username = off and password = optional, then that code path
-  never runs.
-- Sign in with Apple on device needs the Apple ID signed in on the device.
+Onboarding asks only `Choose your language`. The answer initializes both
+`uiLocale` and `translationLocale`. Settings later edits `App language` and
+`Hadith translation` separately.
 
-Physical device install: the project uses automatic signing with
-DEVELOPMENT_TEAM=6378AFQPXV (the free personal team had no Xcode account and
-cannot use the Sign in with Apple entitlement). CLI builds must run with the
-login keychain unlocked (`errSecInternalComponent` otherwise), or build from
-Xcode.
+Use BCP 47 identifiers. UI fallback is exact locale, base language, then
+English. A hadith translation never changes language silently. The UI labels a
+fallback source or a permitted AI translation.
 
-### Phase 2 detail (done, 2026-08-31)
+Wave 1 contains 15 fully localized interfaces and store listings:
 
-Reader built over live Sunnah.now data through the existing Convex actions.
-`LibraryView` (ios/Hadithly/Features/Reader/LibraryView.swift) lists the seven
-collections and opens the reader full screen; the reader's close chevron is
-the exit — there is no edge-swipe back. `ReaderModel` loads the volume
-outline through `getCollectionOutline`, then pages hadiths through
-`getReaderPage` and prefetches one page ahead. Chrome (top bar with close /
-contents / settings, bottom pills with volume + page) toggles on tap.
+`en`, `ar`, `ru`, `kk`, `ky`, `uz`, `tr`, `id`, `ur`, `fr`, `es-419`, `pt-BR`,
+`sw`, `hi`, and `bn`.
 
-Swipe paging does NOT use TabView or a SwiftUI DragGesture — a vertical
-ScrollView inside any pager swallows horizontal pans and the swipe dies. It
-is a window-level `UIPanGestureRecognizer` (WindowSwipeRecognizer in
-ReaderView.swift) that recognizes simultaneously, never cancels touches, and
-only acts on horizontal-dominant drags; vertical scrolling inside a page
-stays native.
+Wave 2 contains:
 
-Volume reads are now cache-first in `getReaderPage`: the first visit to a
-volume fetches it whole (new `fetchVolumeHadiths` in sunnahNow.ts), upserts
-every hadith into the `hadiths` table (new index
-`hadiths.by_collection_volume`), and all later page turns are served from
-the Convex cache via `hadiths:listByVolume`, chunked with the same
-`chunkReaderHadiths` so page boundaries match the provider path.
+`de`, `it`, `pl`, `uk`, `fa`, `ms`, `ha`, `so`, `zh-Hans`, `ja`, and `ko`.
 
-AI translation: for non-English languages the reader auto-translates the
-current page's hadiths sequentially through `actions/ai:translateHadith`,
-with per-hadith states (loading / loaded / quota / sign-in needed / failed
-+ retry). Every AI translation carries an "AI · sources" badge that opens a
-citations sheet (translation, source reference URL, grounding citations,
-model disclaimer). Guests see a quiet sign-in notice; the quota wall shows a
-quiet notice and stops further calls on the page. Reader settings (bottom
-sheet) switch translation language (resets and reloads translations) and
-Arabic type size (AppStorage `reader.arabicFontSize`). English reading uses
-the provider's englishText with no AI involvement.
+Use String Catalogs on iOS and locale resources with ICU plurals on Android.
+Arabic, Urdu, and Persian require full RTL layout and mixed-script QA.
+Directional icons mirror. Arabic text always lays out RTL.
 
-Verified on the simulator with UI automation: collection open, chrome
-toggle, swipe forward/back (pill page counts correct), volume switch from
-the contents sheet, Russian AI translation loading live from Gemini with
-label + glossary notes, citations sheet, close back to Library. 20 unit
-tests pass (including ReaderModelsTests for wire decoding and
-quota/sign-in error classification). `npm run typecheck` and `npx convex
-dev --once` clean.
+The reader direction setting has `auto`, `rtl`, and `ltr` values. `auto` uses
+RTL for Arabic-only reading, the translation script for translation-only
+reading, and the translation language for mixed pages. Arabic blocks remain RTL
+inside mixed pages. In an applicable RTL flow, a swipe left moves backward.
 
-### Phase 3 detail (done, 2026-08-31)
+### Visibility and position
 
-The four tabs are live. **Today** shows the daily hadith (deterministic
-per-UTC-date pick over the cached `hadiths` table via
-`actions/daily:getDailyHadith`; every reader sees the same hadith the same
-day) plus a private continue-reading card. **Library** lists the seven
-collections with cached volume/hadith counts from `collectionOutlines`
-(realtime subscriptions; collections never opened show no counts) and a
-continue-reading shortcut. **Saved** shows Bookmarks / Favorites / Notes
-cards that open bottom sheets in the Sajda style; rows show reference,
-Arabic snippet, and note text, tap reopens the reader at that exact hadith,
-and items can be removed. **Settings** holds account, Arabic type size
-(with live Arabic preview), translation language, and the daily hadith
-notification toggle + time.
+Arabic and translation have independent visibility controls. The clients reject
+any state that disables both.
 
-Personal data wiring: signed-in users get bookmarks, favorites, notes, and
-reading progress through realtime Convex subscriptions
-(`library:list*Detailed` queries join the hadith so lists render in one
-round trip); guests use SwiftData (`GuestFavorite` and
-`GuestReadingProgress` models added, plus display metadata captured on
-save). The reader has a quiet per-hadith action row (bookmark amber,
-favorite pink, note) with a note editor sheet, and saves private progress
-on every page turn and on close. Reader deep links accept
-volumeId + hadithNumber; `getReaderPage` resolves the containing page via
-`targetHadithNumber`, skipped pages load on demand when swiped back onto.
-`guestMerge:mergeGuestData` now also merges favorites and reading progress
-(latest-wins per collection), idempotently as before.
+`ReadingPosition` is versioned and contains:
 
-Push: the app registers APNs (`Core/Push/PushNotificationManager.swift`,
-aps-environment entitlement added) and upserts the token via
-`library:savePushToken` (deduped by token, prefs never clobbered). Settings
-toggle + time persist through `library:setDailyNotification`. The cron
-(`crons.ts`, every 15 min) calls `actions/daily:sendDueDailyPushes`, which
-sends within each token's local-time window (tz offset stored per token,
-`lastSentDate` guards double sends) via `lib/apns.ts` (ES256 JWT + HTTP/2).
-It is a no-op until the APNS_* env vars are set:
-`APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_PRIVATE_KEY` (p8 PEM),
-`APNS_ENVIRONMENT` (sandbox default), `APNS_TOPIC` (defaults to
-com.hadithly.app). The p8 key must be created in the Apple Developer
-portal; simulator push registration and delivery work with sandbox.
+- the collection slug and provider hadith ID;
+- the content version, volume ID, and optional chapter ID;
+- a stable page key and a display page index;
+- a semantic hadith anchor and normalized intra-anchor offset;
+- a layout signature derived from locale, visibility, font, size, width class,
+  and pagination version;
+- `updatedAt`.
 
-Verified on the simulator with UI automation as guest and signed in
-(email code 424242): daily hadith card opens the reader at the right
-volume/page, bookmark/favorite/note toggles round-trip through Convex and
-appear in Saved sheets, continue-reading card restores the exact position,
-guest data lives in SwiftData and merges on sign-in ("Merged 0 bookmarks,
-1 favorites, 0 notes. Restored 1 reading positions."), notification toggle
-registers a real APNs token into `pushTokens`, and the cron action runs
-clean (no-op until APNs keys). 23 unit tests pass, `npm run typecheck` and
-`npx convex dev --once` clean.
+The raw page and offset provide a fast first landing. The semantic anchor and
+content version recover after a font, locale, visibility, pagination, or dump
+change. Continue Reading and Saved restore the stored offset. Today,
+notifications, widgets, and canonical links start at the target hadith unless a
+versioned position is present.
 
-### Phase 4 detail (done, 2026-08-31)
+### Authenticity and daily selection
 
-Translation contributions now live inside each hadith block rather than in a
-social/community tab. **Suggest translation** opens a focused editor for the
-reader's current language and calls `actions/ai:submitTranslation`; Gemini
-checks meaning fidelity and terminology, then the sheet shows the contributor
-the private verdict and review notes. Recommendations are deliberately limited
-to `approve`, `admin_review`, and `reject` — there is no community-review,
-voting, ranking, reputation, or public-stat path.
+Store the source label, normalized grade, claim scope, source name, source URL,
+verification method, and license record separately. A manual collection mapping
+must never look like a source-provided hadith grade.
 
-Stored AI/community translations also expose a quiet **Report** action. It
-calls `actions/ai:reportTranslation` with the actual translation row id, trims
-and validates the private reason, and confirms delivery without turning the
-report into a vote or rating.
+Daily Hadith may select only:
 
-Admin approval is server-authorized. `users.isAdmin` can only be assigned with
-the internal `community:setAdmin` dashboard/CLI function; the app observes
-`community:canModerate` and reveals a minimal Settings review queue only to
-admins. The queue comes from `community:listPendingSubmissions`, and approval
-calls the authenticated `community:approveSubmission` mutation. Approval is
-idempotent, writes `adminAuditLog`, demotes the prior default without deleting
-it, and publishes the approved community text as the new default. The reader
-labels it **Community · admin approved**, never as AI.
+- a hadith with a source-verified `sahih` or `hasan` grade; or
+- a hadith inside a collection with documented collection-level `sahih` scope.
 
-Verified end to end on the Adat iPhone 17 Pro simulator with the dedicated
-`Phase4Live` XCUITest scheme: open Bukhari, select Russian, submit a proposal,
-receive and display Gemini's verdict, file a private report, approve from the
-admin queue, reopen the reader, and observe the approved community default.
-The test kept screenshots for the verdict, report confirmation, empty admin
-queue, and community badge; Convex rows were confirmed for the approved
-submission, open report, live default translation, and admin audit entry.
-24 unit tests pass, `npm run typecheck` and `npx convex dev --once` are clean.
-The live scheme intentionally calls Gemini and mutates the dev deployment, so
-it is separate from the normal `Hadithly` unit-test scheme.
+The UI names the scope. It never invents a grade. Persist the daily selection by
+the reader's local date and IANA timezone so cache order cannot change it.
 
-### Phase 5 detail (done, 2026-08-31; FCM provisioning pending)
+### Saved data
 
-The Android app lives in `android/` (applicationId `com.hadithly.app`,
-minSdk 26, target/compileSdk 36). Toolchain: AGP 9.3.1 (built-in Kotlin),
-Gradle wrapper 9.7.1, Kotlin 2.4.10, Compose BOM 2026.06.01. Secrets come
-from gitignored `android/secrets.properties` (`convex.url`,
-`clerk.publishableKey`), read into BuildConfig by `app/build.gradle.kts`.
+Saved is one private list with bookmark, favorite, and note filters. A saved item
+can belong to zero or one user-created folder in the first release. Existing
+bookmarks, favorites, and notes keep their meanings. Migration creates Saved
+records from current rows and keeps the old tables readable until both clients
+have shipped and the backfill has passed.
 
-Stack: Clerk Android SDK (`clerk-android-api` 1.1.4) + `clerk-convex-kotlin`
-0.15.0 (`createClerkConvexClient` → `ConvexClientWithAuth<String>`,
-authState as StateFlow) + `android-convexmobile` 0.8.0. Structure mirrors
-iOS: `core/data` (ConvexRepository, wire models, GuestDataStore + planner,
-UserLibraryModel), `core/session` (SessionManager = iOS AppEnvironment),
-`features/` (onboarding, auth, today, library, saved, reader, settings), tokens in
-`core/theme/Theme.kt` synced with iOS Theme.swift.
+### Canonical links
 
-The four Material destinations now match iOS behavior without cloning iOS
-navigation chrome. **Today** calls `actions/daily:getDailyHadith` and adds the
-private continue-reading card. **Saved** has Sajda-style Material bottom
-sheets for bookmarks, favorites, and notes; joined rows carry an Arabic
-snippet and exact reader target. Guest drafts retain the same display and
-target metadata and merge idempotently on sign-in. The reader now includes
-the contextual contribution/report row: `actions/ai:submitTranslation`
-returns a contributor-private Gemini verdict, and
-`actions/ai:reportTranslation` confirms a private, non-voting report.
-Settings observes `community:canModerate` and exposes the live approval queue
-only to authorized users.
+The canonical hadith URL is:
 
-Android push uses Firebase Messaging. The app conditionally enables the
-Google Services plugin when gitignored `android/app/google-services.json` is
-present, creates the `daily_hadith` notification channel, requests the Android
-13+ notification permission from the daily toggle, and upserts the current FCM
-Firebase Installation ID through `library:savePushToken` with
-`platform: "android"`. Toggle/time changes
-call `library:setDailyNotification`. The scheduled backend dispatch stays
-platform-neutral at the data boundary and routes each token to APNs or FCM;
-FCM HTTP v1 credentials are `FCM_PROJECT_ID`, `FCM_CLIENT_EMAIL`, and
-`FCM_PRIVATE_KEY`. APNs and FCM can be configured independently.
+`https://hadithly.app/hadith/{collectionSlug}/{providerHadithId}`
 
-Verified on an Android 16 emulator with UI automation: onboarding
-(welcome → language), Library with live cached counts from
-`collections:getOutline` subscriptions, reader over live Sunnah.now data
-(paging pill counts correct, swipe turns, chrome toggle, contents sheet
-with volume switch, settings sheet), guest translation wall ("Sign in to
-get AI translations"), guest bookmark + note, email-code sign-in (dev test
-`+clerk_test` / 424242) with automatic sign-up fallback (Clerk still
-requires username+password; generated values fill it like on iOS),
-`users:ensureCurrentUser`, `guestMerge:mergeGuestData` ("Merged 1
-bookmarks … 1 notes"), local store cleared, session restored across
-relaunch, and the reader serving the admin-approved Russian community
-default with the "Community · admin approved" badge.
+The canonical URL stays clean. Optional query parameters may carry a requested
+translation locale and a versioned position. The resolver validates them and
+falls back to the hadith start.
 
-The continued parity pass verified, as guest and signed in (email code
-424242), the live daily card, private Continue Reading, guest bookmark /
-favorite / note / progress persistence, sign-in merge and local-store clear,
-all three Saved sheets, and exact-hadith reader reopening. A signed-in Russian
-proposal received and displayed the live Gemini verdict, a private report was
-stored, and a temporarily authorized test moderator saw the pending queue,
-approved it, and watched the realtime queue become empty; the temporary admin
-flag was then revoked. Backend rows confirmed the approved submission and
-open report. 16 Android unit tests pass; `npm run typecheck`, `npx convex
-dev --once`, and `assembleDebug` are clean.
+The web fallback ships before Share UI. It shows only licensed Arabic and
+translation content, source identity, authenticity scope, and app-opening or
+store actions.
 
-Live FCM token registration, toggle delivery, and scheduled notification
-delivery could not be exercised in this checkout because
-`android/app/google-services.json` and the FCM service-account env vars have
-not been provisioned. The build deliberately reports this state in Settings
-and disables the toggle instead of shipping placeholder Firebase resources.
+### Offline collections
 
-Phase 5 mistakes already made, do not repeat:
+Convex owns versioned base dumps and separate translation packs. Each manifest
+contains the schema version, content version, byte size, SHA-256, minimum app
+version, generation time, license record, and compatible translation packs.
 
-- The Convex Android client's uniffi FFI calls (`action`, `mutation`,
-  `subscribe` registration) BLOCK the calling thread until the RPC
-  completes. Calling them on Main ANRs the app. Run every Convex call on
-  `Dispatchers.IO` — including subscription collection, not just actions.
-- Convex numbers arrive as floats (`7.0`) on the Android wire; `Int`
-  fields fail to decode. Wire-model numeric fields must be `Double`.
-- Kotlin→Convex encodes Int/Long as the `$integer` wrapper, which
-  `v.number()` validators reject (same trap as iOS) — pass numbers as
-  `Double`.
-- `mutation<T>`/`action<T>` are reified; the no-type overload decodes
-  `Unit?` and fails when the backend returns a value
-  (`users:ensureCurrentUser` returns the user id string → use
-  `mutation<String>`).
-- With edge-to-edge, the reader chrome must pad with `statusBarsPadding()`
-  or its buttons sit under the status bar, which swallows their taps.
-- Clerk sign-up fallback: the failure message is "Couldn't find your
-  account." — match that (plus "not found"/"doesn't exist") before
-  switching to the sign-up path.
-- The published `clerk-convex-kotlin` 0.15.0 POM pins clerk-android-api
-  1.0.36 but works with 1.1.4; `Clerk.userFlow` is typed non-nullable, so
-  sign-in state comes from `Clerk.sessionsFlow` instead.
-- Reader pages are content-sized, not `index / pageSize` chunks. Exact-hadith
-  target resolution on the backend must call the same `chunkReaderHadiths`
-  algorithm used to serve pages or Saved/Today links land on the wrong page.
-- Compose's pager emits a synthetic initial page 0. Drop that first settled
-  emission for deep links, scroll the visual pager when the resolved page
-  arrives, and give each reader open a fresh ViewModel key so an old reader
-  cannot overwrite a new target.
-- Save progress when the initial/deep-linked page resolves, not only after a
-  swipe; otherwise opening and closing a hadith never creates Continue
-  Reading.
-- Both clients send timezone offsets as `UTC - local` (JavaScript
-  `Date.getTimezoneOffset` convention). The cron must subtract that value to
-  derive local time. Keep `platform` only on push-token storage/dispatch;
-  shared daily-hadith and reader payloads remain platform-neutral.
+Clients download to temporary storage, validate the checksum and schema, and
+activate with an atomic swap. They keep the previous version until migration
+passes. Canonical provider identity preserves Saved records and positions.
+Deleting a download removes files only. Download choices stay on the device.
+Convex authorizes and versions the artifact; a low-egress object store/CDN may
+serve the immutable bytes so collection downloads do not make Convex egress the
+dominant bill.
 
-## Mistakes already made, do not repeat
+### Notifications and widgets
 
-- Convex action handlers that use `api` or `internal` need explicit return
-  type annotations, or TypeScript hits circular inference (TS7022).
-- `getUserIdentity()` is sync in queries and mutations, a Promise in
-  actions. `requireIdentity` awaits, which handles both.
-- `ConvexClientWithAuth` is generic. With Clerk it is
-  `ConvexClientWithAuth<String>` and the ClerkConvex convenience init is
-  MainActor-only.
-- `httpRouter` comes from `convex/server`, not `_generated/server`.
-- `.env` values copied from legacy files carry literal quotes and `\n`.
-  Strip them before `convex env set`.
-- `xcrun simctl spawn defaults` writes the device-level plist, not the app
-  sandbox. To reset app state, uninstall and reinstall, or delete the plist
-  inside `simctl get_app_container ... data`.
-- SPM dependency naming in xcodegen: one package key per repo, products
-  selected separately (clerk-ios provides both ClerkKit and ClerkKitUI).
-- `//` in an xcconfig value starts a comment. `CONVEX_URL = https://…`
-  silently became `https:`. Escape as `https:/$()/…`.
-- Clerk↔Convex: activate the **Convex integration** in the Clerk dashboard
-  (adds `aud: "convex"` to session tokens); Convex validates it via
-  `applicationID: "convex"`, and the env var is `CLERK_FRONTEND_API_URL`.
-  Without it, Convex websocket auth fails and mutations hang forever with no
-  server-side logs.
-- ClerkKit's independent auth events (`decodeIndependentEvent`) never emit
-  `signInCompleted`/`signUpCompleted` for custom service-level flows — handle
-  completion directly in the calling view (see SignInView.onAuthenticated).
-- A default Clerk instance requires username + password at sign-up; email-code
-  sign-up then ends in `missingRequirements` with no session. Either disable
-  them in the dashboard or fill generated values via `SignUp.update`.
-- Clerk restores its client asynchronously; reading `Clerk.shared.session`
-  at app start races the load. Wait for `Clerk.shared.isLoaded` first.
-- `ASWebAuthenticationSession` (Google OAuth) callbacks use the bundle id as
-  the scheme; it is registered in Info.plist via CFBundleURLTypes.
-- ConvexMobile (convex-swift 0.8.x) encodes Swift `Int` args with the
-  `$integer` wrapper, which Convex action validators reject with
-  ArgumentValidationError — strings decode fine. Pass numeric args as
-  `Double`.
-- A vertical SwiftUI ScrollView swallows horizontal pan gestures, killing
-  TabView page-style swipes AND simultaneous SwiftUI DragGestures. Reader
-  paging uses a window-level UIPanGestureRecognizer (simultaneous, non-
-  canceling, horizontal-dominant only) instead.
-- A page-turn selection can legitimately sit one past the last loaded page;
-  prefetch must key off `pages.last` / `pages.count`, not
-  `pages.indices.contains(pageIndex)`.
-- Convex subscriptions opened before the Convex session activates fail with
-  Unauthenticated and stay empty forever — no data, no crash. Library
-  subscriptions must re-open on every auth-state transition (AppEnvironment
-  observes `convex.authState`) plus bounded retries.
-- A Convex lib file that imports node builtins (`node:crypto`, `node:http2`)
-  needs its own `"use node"` directive, even if it only exports plain
-  functions for a "use node" action file — the bundler resolves modules
-  per-file.
-- ConvexMobile's `subscribe` argument label is `yielding:` (external label
-  of `yielding output:`); passing `yielding output:` fails to parse.
-- Reading a raw Convex row's `v.id()` field as `string` in a validator-adjacent
-  type needs `Doc<"table">["_id"]` (this repo's generated `Doc` is generic).
+A push token stores the platform, UI locale, translation locale, IANA timezone,
+delivery time, and last sent local date. A daily notification contains the
+selected translation and an exact target. It never silently falls back to
+Arabic-only text.
 
-## Secrets and rotation
+Resolution order is official or approved translation, reusable cached AI, then
+one policy-permitted service generation. A service generation is globally
+cached and does not consume a user's quota. The message labels AI text.
 
-`backend/.env.local` and `ios/Secrets.xcconfig` hold real values and are
-gitignored. The Sunnah.now key leaked historically and must be rotated
-before production. The Gemini key and RevenueCat webhook secret appeared in
-a terminal listing during Phase 0 setup, so rotate all three before launch.
-Set them with `npx convex env set KEY value`.
+The first widgets are Daily Hadith and Continue Reading. Both support exact
+targets, locked-device redaction, offline fallback, localization, and native
+accessibility. No other widget ships in this era.
 
-## Session prompts
+### Evidence contributions
 
-Paste the matching prompt at the start of a session. Each assumes the
-agent reads `AGENTS.md` and `docs/PLAN.md` first.
+A submission requires one to three evidence items. Accept an HTTPS URL, JPEG,
+PNG, WebP, or PDF. Limit each file to 10 MB and each PDF to 25 pages.
 
-**Phase 1 (auth and guest mode):**
+Upload processing validates magic bytes, dimensions, MIME type, redirects, DNS
+destinations, private-address resolution, response size, and timeouts. Convex
+quarantines uploads until a private commercial-safe malware scanner reports a
+clean result. OCR and extracted webpage text are untrusted data.
 
-> Read AGENTS.md and docs/PLAN.md fully before writing code. We are on
-> Phase 1: auth and guest mode. Build the sign-in screen with Apple,
-> Google, and email-code flows using ClerkKit custom flows, wire
-> users:ensureCurrentUser after first sign-in, and implement guest mode
-> with SwiftData for local bookmarks and notes plus a tested merge into
-> Convex on sign-in. I will do the Clerk dashboard steps you list for me.
-> When the flow works end to end on the simulator, also install and run
-> the app on my connected iPhone with free provisioning. Verify with
-> simulator UI automation before you claim anything works, commit at the
-> end, and update the phase table in docs/PLAN.md.
+The review system keeps these records:
 
-**Phase 2 (reader):**
+- evidence assets and extraction state;
+- provenance and citations;
+- license assessment and the permitted Hadithly uses;
+- independent review passes and confidence;
+- publication revisions;
+- appeals, abuse events, and deletion state.
 
-> Read AGENTS.md and docs/PLAN.md fully before writing code. We are on
-> Phase 2: reader core. Build the reader per the design language section:
-> dark quiet pages, content-size pagination through
-> actions/hadithData:getReaderPage, collection outline through
-> getCollectionOutline, chrome that hides on tap, swipe paging with no
-> edge-back, and AI translation through actions/ai:translateHadith with
-> quota handling and an AI label plus citations sheet. Follow the
-> mistakes-already-made section. Verify on the simulator with UI
-> automation, commit, and update the phase table in docs/PLAN.md.
+The AI has no tools, credentials, or network access during evidence judgment.
+Prompts place evidence in a delimited data field and tell the model to ignore
+instructions inside it. Deterministic code owns file safety, URL safety,
+provenance, licensing, and thresholds.
 
-**Phase 3 (tabs and data):**
+Auto-publication requires clean evidence, affirmative reuse rights, consistent
+citations, no contradiction or abuse flag, and two independent reviews at or
+above `0.95`. All other submissions are rejected or enter an exception queue.
+The admin tool handles exceptions, audits, appeals, and revocation.
 
-> Read AGENTS.md and docs/PLAN.md fully before writing code. We are on
-> Phase 3: fill in the four tabs. Today shows the daily hadith and
-> continue-reading card, Library lists the seven collections and their
-> volumes from the Convex cache, Saved shows bookmarks, favorites, and
-> notes with bottom-sheet behavior like the Sajda reference, Settings
-> holds reading preferences, language, and notification time. Wire
-> bookmarks, favorites, notes, and reading progress to Convex for signed-in
-> users and SwiftData for guests. Register APNs push for the daily hadith
-> and add the scheduled send on the backend. Verify on the simulator,
-> commit, and update the phase table in docs/PLAN.md.
+Reject private evidence after a 30-day appeal window. Keep published provenance
+while the translation is published. After a privacy, licensing, or takedown
+deletion, retain only non-sensitive audit facts that the policy permits.
 
-**Phase 4 (submissions):**
+### AI quota and subscription
 
-> Read AGENTS.md and docs/PLAN.md fully before writing code. We are on
-> Phase 4: translation submissions. Add a contextual submit flow in the
-> reader, run actions/ai:submitTranslation for the AI review, show the
-> verdict to the contributor, and add a minimal admin approval path using
-> community:approveSubmission. Reports flow through
-> actions/ai:reportTranslation. There is no voting, ranking, or public
-> stats anywhere, and there never will be. Verify on the simulator,
-> commit, and update the phase table in docs/PLAN.md.
+- Free users receive five new AI translations in a rolling seven-day window.
+- Pro users receive 100 new AI translations in a rolling seven-day window.
+- Approved and cached translations consume no quota.
+- Usage is an immutable event stream. Generation keys and a single-flight lock
+  prevent retries or concurrent requests from double charging.
+- App Attest and Play Integrity signals, authentication, rate limits, and
+  concurrency limits protect generation. The client never sends an arbitrary
+  system prompt.
+- Pro costs USD 2.99 monthly or USD 24.99 annually before regional storefront
+  pricing. There is no weekly product.
+- One RevenueCat `pro` entitlement follows one Hadithly account across that
+  person's iOS and Android devices. Apple Family Sharing is off.
+- Cancellation keeps access until paid expiry. Grace keeps access. Refund,
+  revocation, expiry, and account hold remove it. Restore uses the same signed-in
+  Hadithly account.
 
-**Phase 5 (Android):**
+AI generation is an explicit hadith action. Opening or paging the reader may
+load official, approved, or already cached translations, but it must not create
+paid AI translations for every visible hadith. The current clients do schedule
+generation for an entire non-English page; Q1 must remove that behavior before
+production quotas or paid acquisition. Grounding is reserved for evidence
+review and exceptional verification, not ordinary translation generation.
 
-> Read AGENTS.md and docs/PLAN.md fully before writing code. We are on
-> Phase 5: the Android app in Jetpack Compose, matching the iOS app
-> feature for feature using the same Convex backend with the Clerk Android
-> SDK and clerk-convex-kotlin. Start with auth, onboarding, and reader.
-> Keep payloads platform-neutral and follow the design language section
-> translated to Material conventions.
+Ordinary translation uses licensed source material and cache reuse. It does not
+run paid web grounding for every request. Current Gemini pricing and grounding
+costs must be rechecked before Q1. Current store fees and RevenueCat fees must be
+rechecked before Q2.
 
-**Phase 6 (launch):**
+### Cost and scale guardrails
 
-> Read AGENTS.md and docs/PLAN.md fully before writing code. We are on
-> Phase 6: launch prep. RevenueCat paywall that appears only at the AI
-> quota, rotate the Sunnah.now, Gemini, and RevenueCat secrets, point the
-> backend at the production deployment, add GitHub Actions for backend
-> typecheck and iOS build plus tests, and prepare App Store metadata and
-> screenshots.
+- Put a monthly hard budget and alert on every paid service. A provider outage
+  or exhausted free tier must degrade to cached/offline reading, never retry in
+  an unbounded loop.
+- Cache by canonical hadith identity, target language, source revision, model,
+  and prompt version. Use single-flight generation and idempotency keys.
+- The current 15-minute notification cron collects every enabled push token 96
+  times per day. N1 must replace the table scan with indexed delivery buckets,
+  bounded batches, retry state, stale-token removal, and provider backpressure.
+- The current mobile apps keep four personal Convex subscriptions open after
+  sign-in. H3 should measure bandwidth and consolidate them into one private
+  library snapshot or screen-scoped queries if that lowers cost without making
+  sync less reliable.
+- A first reader visit currently fetches and stores a full provider volume. O1
+  must compare that cache growth with versioned dumps, enforce content and
+  translation retention, and keep provider-fetch fan-out bounded.
+- Evidence uploads remain quarantined and expire automatically. OCR, malware
+  scanning, and AI review have per-submission and per-account spend ceilings.
+- Do not add a second database, a second auth system, newsletters, session
+  replay, full-text event payloads, or a full web app until measured demand
+  justifies its privacy, maintenance, and cost.
+
+## Session order
+
+Run one session per Codex or OpenCode task. Finish its gate before starting the
+next session. Dashboard sessions stay in a local Codex task because they depend
+on the signed-in browser and physical devices. GLM sessions are deliberately
+substantive: they own bounded implementation outcomes, not just inventories.
+
+| ID | Outcome | Gate | Primary model |
+| --- | --- | --- | --- |
+| D0 | Restore browser control and inventory every dashboard without changing state. | Chrome documentation and a read-only page inspection succeed. | GPT-5.6 Sol, high |
+| G0 | Turn the current branch and mixed worktree into a reviewable checkpoint plan without rewriting history. | Every change is attributed to a proposed commit and no user work is lost. | GLM-5.3-Flash; Luna high fallback |
+| M0 | Record the minimum native toolchain and reclaim only approved rebuildable disk space. | Exact deletion targets, restore commands, and before/after free space are recorded. | GLM-5.3-Flash; Luna medium fallback |
+| D1 | Rotate Firebase, Sunnah.now, and Gemini credentials; verify APNs and FCM. | Both physical-device pushes and provider smoke tests pass before old keys are revoked. | GPT-5.6 Sol, high |
+| D2 | Configure production Clerk and deploy Convex production. | Apple, Google, email code, restore, sign-out, sync, and deletion pass on production builds. | GPT-5.6 Sol, xhigh |
+| D3 | Finish App Store Connect, Play Console, RevenueCat, domain, and policy dashboards. | No non-screenshot dashboard blocker remains; real monthly and annual purchases reach `pro`. | GPT-5.6 Sol, high |
+| D4 | Run the production launch-system matrix on physical iPhone and Android devices. | The signed evidence matrix passes. Phase 6 becomes complete. | GPT-5.6 Sol, xhigh |
+| F1 | Add canonical content identity, authenticity scope, license records, and eligible daily selection. | Migration fixtures prove that no grade or scope is invented. | GPT-5.6 Sol, xhigh |
+| F2 | Add UI locale, translation locale, direction, theme, and visibility preference contracts. | Both clients decode, persist, sync, and reject an all-hidden state. | GLM-5.3-Flash; Terra high review |
+| F3 | Ship `hadithly.app` landing, fallback pages, and native link resolution. | Installed, uninstalled, malformed, stale, and signed-out links pass. | GLM-5.3-Flash; Terra high review |
+| R1 | Add semantic reading positions and a compatibility migration. | Old progress migrates and new positions survive a pagination-version change. | GPT-5.6 Sol, xhigh |
+| R2 | Restore exact position from Continue Reading, Saved, Today, links, notifications, and widgets. | Every entry point lands on the expected anchor and offset on both apps. | GPT-5.6 Terra, high |
+| R3 | Correct paging direction, long-content scrolling, and page boundaries. | LTR, RTL, mixed-script, short, and very long fixtures pass on both apps. | GPT-5.6 Sol, xhigh |
+| R4 | Add visibility, fonts, sizes, themes, hidden controls, and progress UI. | Screenshot and accessibility matrices pass on both apps. | GLM-5.3-Flash; Terra high review |
+| R5 | Add contents navigation and native context actions; enable sharing through F3. | Actions remain reachable with controls hidden and never obscure reading. | GLM-5.3-Flash; Terra high review |
+| H1 | Complete Today with eligible translated content, actions, and long-card behavior. | Empty, loading, long, offline, cached-AI, and exact-open cases pass. | GLM-5.3-Flash; Terra high review |
+| H2 | Add per-collection Library progress and remove duplicate Continue Reading. | Unopened, partial, complete, offline, and migrated collections render correctly. | GLM-5.3-Flash; Terra high review |
+| H3 | Replace Saved landing cards with the unified list, filters, folders, and migration. | No current bookmark, favorite, or note is lost or duplicated. | GPT-5.6 Terra, high |
+| S1 | Complete Settings and profile, including export, privacy, legal, storage, and deletion. | Every row performs a real action and passes accessibility and localization checks. | GLM-5.3-Flash; Terra high review |
+| O1 | Generate, license, publish, and validate offline dump manifests and translation packs. | Reproducible dump fixtures pass schema, checksum, and license checks. | GPT-5.6 Sol, xhigh |
+| O2 | Add client download, update, rollback, corruption, stale, storage, and deletion flows. | Interrupted and corrupt updates preserve usable data, Saved, and positions. | GPT-5.6 Terra, high |
+| N1 | Send the selected translation and route notifications to exact targets. | Locale, DST, denial, retry, stale target, and AI-label cases pass on devices. | GPT-5.6 Sol, xhigh |
+| W1 | Add the native Daily Hadith widgets. | Both platforms pass locked, offline, stale, localized, and exact-open cases. | GLM-5.3-Flash; Terra high review |
+| W2 | Add the native Continue Reading widgets. | Both platforms pass privacy, no-progress, stale-position, and exact-restore cases. | GLM-5.3-Flash; Terra high review |
+| E1 | Add evidence schema, limits, quarantine storage, and upload clients. | Invalid, oversized, duplicate, private, and interrupted uploads fail safely. | GPT-5.6 Terra, high |
+| E2 | Add malware scanning, safe URL fetching, OCR, and extraction. | Malware and SSRF suites pass; untrusted content cannot control tools or prompts. | GPT-5.6 Sol, xhigh |
+| E3 | Add provenance, licensing, comparison, independent review, and auto-publication. | Only licensed, consistent submissions over the threshold publish automatically. | GPT-5.6 Sol, xhigh |
+| E4 | Add the admin exception tool, appeals, audits, abuse controls, revocation, and deletion. | Exception and retention policies pass without a routine approval queue. | GPT-5.6 Terra, high |
+| Q1 | Replace monthly counters with rolling usage events, cache reuse, integrity signals, and abuse controls. | Window, race, retry, cache, and tamper tests pass. | GPT-5.6 Sol, xhigh |
+| Q2 | Ship monthly and annual entitlement semantics, regional pricing, restore, grace, and quota copy. | Store sandbox lifecycle and cross-platform account tests pass. | GPT-5.6 Sol, high |
+| LA1 | Add low-cost crash reporting, structured logs, uptime checks, and privacy-safe alerting. | Redacted test failures arrive from production-like builds and alerts have an owner. | GPT-5.6 Terra, medium |
+| LA2 | Add minimal privacy-preserving product analytics and a deletion/retention contract. | A tiny event taxonomy answers launch questions without capturing reading content. | GLM-5.3-Flash; Terra medium review |
+| LA3 | Add support email, transactional email, status/incident copy, backups, and cost budgets. | Every channel is tested, has retention and spend limits, and degrades safely. | GLM-5.3-Flash; Terra medium review |
+| LA4 | Decide whether to expand the fallback into a read-only web reader after native launch. | Licensing, demand, maintenance, privacy, and cost evidence support an explicit build-or-defer decision. | GLM-5.3-Flash; Terra medium review |
+| L1 | Finish Wave 1 localization, native-speaker QA, metadata, screenshots, and the release candidate. | No critical untranslated UI, broken RTL, policy gap, cost alarm, or dashboard blocker remains. | GLM-5.3-Flash; Terra high review; Sol high final gate |
+
+## Delegation policy
+
+Use GLM-5.3-Flash through OpenCode Go as the default author for bounded sessions
+whose contracts, files, and tests are explicit: F2, F3, R4, R5, H1, H2, S1,
+W1, W2, LA2, LA3, LA4, and the bulk of L1. These are meaningful product
+sessions. Give GLM one small vertical slice at a time, require it to run both
+platform tests, and end with a compact patch/evidence handoff. GPT-5.6 Luna at
+medium or high is the first substitute if GLM is unavailable.
+
+Use GPT-5.6 Terra for bounded work with migrations, lifecycle state, or several
+integrations, and as a short review gate for GLM-authored patches. Use GPT-5.6
+Sol for signed-in dashboards, production auth, credentials, store money,
+authenticity, security boundaries, hard data migrations, concurrency, and final
+release decisions. Use Sol xhigh only where the table names it. Reserve max for
+a failed xhigh recovery or final security audit.
+
+GLM may design and implement within an already approved contract, but it does
+not receive authority to create or revoke credentials, submit stores, rewrite
+Git history, approve religious grades or source licenses, change payment
+semantics, delete user data, or waive a security gate. Those remain user actions
+or Terra/Sol review gates. A review gate inspects the diff, reruns risk-focused
+tests, and either accepts it or returns a narrow fix list; it does not redo the
+whole session.
+
+Use one working tree at a time. Give each task the exact session prompt. Before
+switching between OpenCode and Codex, require a clean checkpoint commit or a
+named stash created by the user. Never let two agents edit the same worktree.
+
+Official OpenAI guidance names Sol as the flagship model, Terra as the balanced
+model, and Luna as the efficient high-volume model. It recommends medium as the
+starting effort and high or xhigh only when they improve measured quality.
+ChatGPT Plus limits vary with task size and model, so check the usage dashboard
+instead of budgeting by message count.
+
+OpenCode Go currently includes GLM-5.3-Flash and GPT-5.6 Luna. Its model list and
+allowances can change. As of 2026-09-02, its own estimate is about 1,580 typical
+GLM-5.3-Flash requests per five-hour allowance, 3,950 weekly, and 7,900 monthly;
+the service lists GLM prompts as not used for training with zero-day retention.
+That makes GLM a sensible first author for the bounded sessions above, not a
+second-class fallback. Run `/models` before assigning a task and never send
+secrets, production data, private notes, or unpublished evidence to any model.
+
+## Skills and tools by work type
+
+- D0 through D4 use `computer-use:computer-use` and
+  `chrome:control-chrome`. Use the signed-in browser, not a cloud task. Ask the
+  user to take over for passwords, one-time codes, CAPTCHAs, financial terms,
+  account creation, key creation, permission changes, publication, and
+  revocation confirmation.
+- F1, R1, O1, E1, E3, and Q1 use `architect`, `codebase-design`,
+  `principle-foundational-thinking`, `principle-type-system-discipline`, and
+  `typescript-best-practices`.
+- R2 through R5 and H1 through S1 use `frontend-design`,
+  `principle-experience-first`, and `principle-exhaust-the-design-space` when a
+  new interaction has no settled answer.
+- Patches that cross features use `blast-radius`. Hard failures use
+  `diagnosing-bugs` and `principle-fix-root-causes`.
+- Every implementation session ends with `principle-prove-it-works`. Web
+  fallback verification may use Playwright. Native verification uses Xcode,
+  `simctl`, Gradle, Android emulator tools, and physical devices where the gate
+  requires them.
+- Documentation uses `technical-writing`, `writing-for-agents`, and `unslop`.
+- Never use Relay.
+
+## Dependencies
+
+```text
+D0 -> G0 -> M0 -> D1 -> D2 -> D3 -> D4 -> F1
+F1 -> F2 -> F3
+F1 -> R1 -> R2 -> R3 -> R4 -> R5
+R2 -> H1 -> H2 -> H3 -> S1
+F1 -> O1 -> O2
+F2 + F3 + R2 -> N1
+N1 + R2 -> W1 -> W2
+F1 -> E1 -> E2 -> E3 -> E4
+F1 + D3 -> Q1 -> Q2
+R5 + H3 + S1 + O2 + W2 + E4 + Q2 -> LA1 -> LA2 -> LA3
+LA3 -> L1 -> native launch -> LA4
+```
+
+F2 and F3 may run in sequence while R1 remains unopened. After F3, follow the
+listed order. Do not parallelize sessions that modify the same schema, client
+navigation, or shared preference models.
+
+## Gate rules
+
+Every session records:
+
+- the intended outcome and the files it changed;
+- iOS behavior and Android behavior, including an explicit no-change parity
+  check where applicable;
+- backend, schema, API, and migration effects;
+- accessibility and localization evidence;
+- unit, integration, UI, visual, and runtime checks that apply;
+- security and prompt-injection checks;
+- dashboard changes and direct evidence;
+- blockers and the next allowed session.
+
+A build is evidence that code compiles. It is not evidence that a user journey
+works. Dashboard configuration is evidence only after a direct readback and an
+end-to-end request. A session cannot pass with skipped required tests, an
+unreviewed migration, placeholder content, or unverified external state.
+
+## User inputs that cannot be inferred
+
+Collect these only when the matching session reaches the final action:
+
+- D3 needs the legal seller name, support contact, tax and banking details,
+  final territories, and store agreement acceptance.
+- F3 needs proof that the user controls `hadithly.app` if D3 cannot establish
+  it.
+- E3 needs affirmative source licenses or permissions. Absence of a prohibition
+  is not permission.
+- Q2 needs approval of final regional price tiers after the plan shows store
+  fees, taxes, provider cost, and contribution margin.
+- L1 needs native-speaker approval for each Wave 1 locale and final store
+  screenshots.
+
+## Mistakes that still matter
+
+- Swift and Kotlin numeric Convex arguments must use `Double` for `v.number()`.
+- Android Convex calls, including subscription collection, run on
+  `Dispatchers.IO`.
+- Android wire numbers decode as `Double`. Reified calls name their return
+  type.
+- Reader targets use the same content-sized chunking algorithm as page serving.
+- A deep-linked reader ignores the Android pager's synthetic initial page.
+- SwiftUI's vertical `ScrollView` consumes ordinary paging gestures. The current
+  reader uses a simultaneous window pan recognizer. R3 may replace it only with
+  device evidence.
+- Convex subscriptions opened before authentication can remain empty. Reopen
+  them on every auth transition.
+- Each Node-dependent Convex file needs its own `\"use node\"` directive.
+- `CLERK_FRONTEND_API_URL` and Clerk's Convex integration must agree on
+  `aud: \"convex\"`.
+- Never expose a secret through a command argument, terminal output, screenshot,
+  document, or chat. Install a tested replacement before revocation.
+
+## Current external references
+
+- [OpenAI GPT-5.6 model guidance](https://developers.openai.com/api/docs/guides/latest-model)
+- [GPT-5.6 Sol model](https://developers.openai.com/api/docs/models/gpt-5.6-sol)
+- [Codex usage with ChatGPT plans](https://help.openai.com/en/articles/11369540-codex-and-chatgpt-plan-usage-limits)
+- [OpenCode Go models and limits](https://opencode.ai/docs/go/)
+- [Gemini API pricing](https://ai.google.dev/gemini-api/docs/pricing)
+- [Apple Small Business Program](https://developer.apple.com/app-store/small-business-program/)
+- [Google Play service fees](https://support.google.com/googleplay/android-developer/answer/112622)
+- [RevenueCat pricing](https://www.revenuecat.com/pricing/)
+- [Convex pricing](https://www.convex.dev/pricing)

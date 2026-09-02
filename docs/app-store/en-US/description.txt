@@ -1,0 +1,23 @@
+Hadithly is a quiet place to read the seven major hadith collections in Arabic and in your preferred translation language.
+
+READ WITHOUT AN ACCOUNT
+Open the library and begin reading as a guest. An account is optional and adds private sync across your devices.
+
+A READER THAT STAYS OUT OF THE WAY
+Move through content-sized pages, open a collection's volume list, adjust Arabic type size, and return to the hadith where you stopped.
+
+SAVE WHAT MATTERS
+Keep private bookmarks, favorites, notes, and reading progress. Signed-in readers can carry them across devices.
+
+DAILY HADITH
+Return to a daily selection or choose an optional notification time. Tapping the daily card opens its exact place in the reader.
+
+TRANSLATIONS WITH CONTEXT
+English source translations are shown when available. For supported languages, signed-in readers can request a limited number of AI translations. AI text is clearly labeled and includes available grounding sources; it is never presented as authoritative.
+
+COMMUNITY CORRECTIONS
+Suggest a translation from the hadith itself. Automated review checks the proposal before it enters the private review process. There are no votes, leaderboards, public scores, or streaks.
+
+Hadithly Pro adds more AI translation requests. The paywall appears only after the free AI allowance is used. Reading, saved items, and existing translations remain available without a subscription.
+
+Hadith translations and authenticity information can contain scholarly differences. Consult qualified scholars and primary sources for religious guidance.
