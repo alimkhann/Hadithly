@@ -13,6 +13,7 @@ backend/convex/_generated/
 ios/build/
 ios/DerivedData/
 ios/Secrets.xcconfig
+ios/ProductionSecrets.xcconfig
 ios/**/xcuserdata/
 ios/**/*.xcuserstate
 
@@ -22,6 +23,7 @@ android/build/
 android/app/build/
 android/local.properties
 android/secrets.properties
+android/production.secrets.properties
 android/app/google-services.json
 
 # legacy (archived monorepo artifacts)
