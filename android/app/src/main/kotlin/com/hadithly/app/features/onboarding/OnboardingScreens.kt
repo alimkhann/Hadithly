@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hadithly.app.core.data.SupportedLanguages
 import com.hadithly.app.core.theme.LocalHadithlyColors
+import com.hadithly.app.core.theme.Spacing
 
 /** Onboarding is intentionally short: value → language → straight in. Account creation is deferred (guest mode first). */
 @Composable
@@ -68,7 +69,7 @@ fun WelcomeScreen(onContinue: () -> Unit) {
         Column(
             modifier = Modifier.align(Alignment.Center),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(Spacing.lg),
         ) {
             Icon(
                 imageVector = Icons.Filled.MenuBook,
@@ -93,7 +94,7 @@ fun WelcomeScreen(onContinue: () -> Unit) {
 
         Column(
             modifier = Modifier.align(Alignment.BottomCenter),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(Spacing.md),
         ) {
             AccentButton(text = "Continue", onClick = onContinue)
             Text(
@@ -125,19 +126,19 @@ fun LanguagePickerScreen(
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
             color = colors.textPrimary,
-            modifier = Modifier.padding(top = 16.dp),
+            modifier = Modifier.padding(top = Spacing.lg),
         )
         Text(
             text = "You can change this any time in Settings.",
             fontSize = 15.sp,
             color = colors.textSecondary,
-            modifier = Modifier.padding(top = 4.dp),
+            modifier = Modifier.padding(top = Spacing.xs),
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(Spacing.lg))
 
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(Spacing.sm),
             modifier = Modifier.weight(1f),
         ) {
             items(SupportedLanguages.all, key = { it.first }) { (code, name) ->
@@ -149,7 +150,7 @@ fun LanguagePickerScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(Spacing.md))
         AccentButton(text = "Continue", onClick = onContinue)
     }
 }

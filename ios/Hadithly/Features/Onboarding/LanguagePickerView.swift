@@ -31,21 +31,21 @@ struct LanguagePickerView: View {
             Text("Choose your reading language")
                 .font(.title2.bold())
                 .foregroundStyle(Theme.textPrimary)
-                .padding(.top, 24)
+                .padding(.top, Theme.Spacing.xl)
 
             Text("You can change this any time in Settings.")
                 .font(.subheadline)
                 .foregroundStyle(Theme.textSecondary)
-                .padding(.top, 4)
+                .padding(.top, Theme.Spacing.xs)
 
             ScrollView {
-                VStack(spacing: 8) {
+                VStack(spacing: Theme.Spacing.sm) {
                     ForEach(SupportedLanguages.all) { language in
                         languageRow(language)
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, 24)
+                .padding(.top, Theme.Spacing.xl)
             }
 
             Button(action: onContinue) {
@@ -59,7 +59,7 @@ struct LanguagePickerView: View {
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 20)
-            .padding(.bottom, 32)
+            .padding(.bottom, Theme.Spacing.xxl)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Theme.background)

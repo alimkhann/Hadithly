@@ -60,6 +60,10 @@ android {
 
     buildTypes {
         release {
+            // Local release evidence runs on the emulator, which requires a
+            // signed APK; signing with the debug key matches the SHA-1
+            // registered with Google for local release testing.
+            signingConfig = signingConfigs.getByName("debug")
             buildConfigField("String", "CONVEX_URL", "\"https://giddy-ox-648.eu-west-1.convex.cloud\"")
             buildConfigField("String", "CLERK_PUBLISHABLE_KEY", "\"${productionSecret("clerk.publishableKey")}\"")
             buildConfigField("String", "REVENUECAT_API_KEY", "\"${productionSecret("revenuecat.apiKey")}\"")

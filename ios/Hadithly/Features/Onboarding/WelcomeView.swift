@@ -7,7 +7,7 @@ struct WelcomeView: View {
         VStack(spacing: 0) {
             Spacer()
 
-            VStack(spacing: 16) {
+            VStack(spacing: Theme.Spacing.lg) {
                 Image(systemName: "book.closed.fill")
                     .font(.system(size: 56))
                     .foregroundStyle(Theme.accent)
@@ -21,12 +21,12 @@ struct WelcomeView: View {
                     .font(.body)
                     .foregroundStyle(Theme.textSecondary)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
+                    .padding(.horizontal, Theme.Spacing.xxl)
             }
 
             Spacer()
 
-            VStack(spacing: 12) {
+            VStack(spacing: Theme.Spacing.md) {
                 Button(action: onComplete) {
                     Text("Continue")
                         .font(.headline)
@@ -44,7 +44,7 @@ struct WelcomeView: View {
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 24)
             }
-            .padding(.bottom, 32)
+            .padding(.bottom, Theme.Spacing.xxl)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Theme.background)

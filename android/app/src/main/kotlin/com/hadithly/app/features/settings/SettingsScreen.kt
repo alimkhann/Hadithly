@@ -56,10 +56,17 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.clerk.api.Clerk
+import com.clerk.api.network.serialization.ClerkResult
+import com.clerk.api.network.model.error.ClerkErrorResponse
+import com.clerk.api.network.serialization.errorMessage
+import com.clerk.api.user.User
+import com.clerk.api.user.update
 import com.hadithly.app.core.data.SupportedLanguages
 import com.hadithly.app.core.push.PushNotificationManager
 import com.hadithly.app.core.push.PushRegistrationState
@@ -120,6 +127,8 @@ private fun AccountCard(signedIn: Boolean, syncSummary: String?, onShowSignIn: (
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     var deletingAccount by remember { mutableStateOf(false) }
     var deletionError by remember { mutableStateOf<String?>(null) }
+    var showUsernameEditor by remember { mutableStateOf(false) }
+    var username by remember(signedIn) { mutableStateOf(Clerk.user?.username) }
     CardColumn {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Box(Modifier.size(38.dp).background(colors.surfaceElevated, CircleShape), contentAlignment = Alignment.Center) {
@@ -135,6 +144,24 @@ private fun AccountCard(signedIn: Boolean, syncSummary: String?, onShowSignIn: (
         }
         syncSummary?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
         if (signedIn) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showUsernameEditor = true }
+                    .padding(vertical = 4.dp),
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text("Username", fontSize = 14.sp, color = colors.textSecondary)
+                    Text(
+                        username ?: "Not set",
+                        fontSize = 15.sp,
+                        color = colors.textPrimary,
+                    )
+                }
+                Icon(Icons.Filled.Edit, contentDescription = "Edit username", tint = colors.textSecondary)
+            }
             TextButton(onClick = { scope.launch { Clerk.auth.signOut() } }, modifier = Modifier.testTag("settings.signout")) {
                 Text("Sign out", color = colors.textPrimary)
             }
@@ -158,6 +185,55 @@ private fun AccountCard(signedIn: Boolean, syncSummary: String?, onShowSignIn: (
         }
     }
 
+    if (showUsernameEditor) {
+        val field = remember { mutableStateOf(username.orEmpty()) }
+        var savingUsername by remember { mutableStateOf(false) }
+        AlertDialog(
+            onDismissRequest = { if (!savingUsername) showUsernameEditor = false },
+            title = { Text("Set your username") },
+            text = {
+                Column {
+                    Text(
+                        "Usernames start with a letter and use letters, numbers, and underscores.",
+                        fontSize = 13.sp,
+                        color = colors.textSecondary,
+                    )
+                    Spacer(Modifier.size(8.dp))
+                    OutlinedTextField(
+                        value = field.value,
+                        onValueChange = { field.value = it },
+                        singleLine = true,
+                        enabled = !savingUsername,
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !savingUsername && field.value.trim().length >= 3,
+                    onClick = {
+                        savingUsername = true
+                        scope.launch {
+                            val result = Clerk.user?.update(User.UpdateParams(username = field.value.trim()))
+                            savingUsername = false
+                            if (result is ClerkResult.Success<*>) {
+                                username = (result.value as? User)?.username
+                                showUsernameEditor = false
+                            } else if (result is ClerkResult.Failure<*>) {
+                                val clerkFailure = result as? ClerkResult.Failure<ClerkErrorResponse>
+                                deletionError = clerkFailure?.errorMessage ?: "Please try again."
+                            }
+                        }
+                    },
+                ) { Text("Save") }
+            },
+            dismissButton = {
+                TextButton(enabled = !savingUsername, onClick = { showUsernameEditor = false }) {
+                    Text("Cancel", color = colors.textSecondary)
+                }
+            },
+            containerColor = colors.surface,
+        )
+    }
     if (showDeleteConfirmation) {
         AlertDialog(
             onDismissRequest = { if (!deletingAccount) showDeleteConfirmation = false },

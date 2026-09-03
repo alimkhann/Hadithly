@@ -18,29 +18,29 @@ type IdentityCtx = {
   auth: { getUserIdentity: () => unknown };
 };
 
+function isIdentityRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 export async function requireIdentity(
   ctx: IdentityCtx,
 ): Promise<HadithlyIdentity> {
   const raw = await ctx.auth.getUserIdentity();
-  const identity = raw as {
-    subject?: string;
-    tokenIdentifier?: string;
-    name?: string;
-    email?: string;
-    pictureUrl?: string;
-  } | null;
-
-  if (!identity?.subject || !identity.tokenIdentifier) {
+  if (
+    !isIdentityRecord(raw) ||
+    typeof raw.subject !== "string" ||
+    typeof raw.tokenIdentifier !== "string"
+  ) {
     throw new Error(
       "Unauthenticated: this function requires a signed-in user",
     );
   }
   return {
-    clerkId: identity.subject,
-    tokenIdentifier: identity.tokenIdentifier,
-    name: identity.name,
-    email: identity.email,
-    pictureUrl: identity.pictureUrl,
+    clerkId: raw.subject,
+    tokenIdentifier: raw.tokenIdentifier,
+    name: typeof raw.name === "string" ? raw.name : undefined,
+    email: typeof raw.email === "string" ? raw.email : undefined,
+    pictureUrl: typeof raw.pictureUrl === "string" ? raw.pictureUrl : undefined,
   };
 }
 

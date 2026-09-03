@@ -1,9 +1,14 @@
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import type { Id } from "./_generated/dataModel";
 import { requireIdentity } from "./lib/identity";
 
 export const DEFAULT_AI_GENERATION_LIMIT = 20;
 export const PRO_AI_GENERATION_LIMIT = 500;
+
+type EntitlementSyncResult =
+  | { kind: "ignored_unknown_user" }
+  | { kind: "updated"; userId: Id<"users"> };
 
 /**
  * Upserts the signed-in user from their Clerk identity. Called by the app
@@ -156,7 +161,7 @@ export const syncRevenueCatEntitlement = internalMutation({
     entitlementProductId: v.optional(v.string()),
     entitlementExpiresAt: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<EntitlementSyncResult> => {
     const now = Date.now();
     const existing = await ctx.db
       .query("users")
@@ -164,22 +169,7 @@ export const syncRevenueCatEntitlement = internalMutation({
       .unique();
 
     if (!existing) {
-      return await ctx.db.insert("users", {
-        clerkId: args.clerkId,
-        preferredLanguage: "en",
-        subscriptionTier: args.subscriptionTier,
-        revenueCatAppUserId: args.revenueCatAppUserId,
-        entitlementProductId: args.entitlementProductId,
-        entitlementExpiresAt: args.entitlementExpiresAt,
-        entitlementUpdatedAt: now,
-        aiGenerationsThisMonth: 0,
-        aiGenerationLimit:
-          args.subscriptionTier === "free"
-            ? DEFAULT_AI_GENERATION_LIMIT
-            : PRO_AI_GENERATION_LIMIT,
-        createdAt: now,
-        updatedAt: now,
-      });
+      return { kind: "ignored_unknown_user" };
     }
 
     await ctx.db.patch(existing._id, {
@@ -194,6 +184,6 @@ export const syncRevenueCatEntitlement = internalMutation({
           : PRO_AI_GENERATION_LIMIT,
       updatedAt: now,
     });
-    return existing._id;
+    return { kind: "updated", userId: existing._id };
   },
 });

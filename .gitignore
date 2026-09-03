@@ -31,3 +31,7 @@ legacy/**/node_modules/
 legacy/**/.next/
 legacy/**/.expo/
 legacy/**/dist/
+
+# local session artifacts and tool state
+session-ses_*.md
+.xcodebuildmcp/

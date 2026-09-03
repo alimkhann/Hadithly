@@ -144,6 +144,10 @@ private struct AccountCard: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(Clerk.self) private var clerk
 
+    @State private var showUsernameEditor = false
+    @State private var usernameInput = ""
+    @State private var usernameError: String?
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Label("Account", systemImage: "person.crop.circle")
@@ -158,6 +162,32 @@ private struct AccountCard: View {
                     Text(email)
                         .font(.footnote)
                         .foregroundStyle(Theme.textSecondary)
+                }
+
+                Button {
+                    usernameInput = user.username ?? ""
+                    showUsernameEditor = true
+                } label: {
+                    HStack {
+                        Text("Username")
+                            .font(.footnote)
+                            .foregroundStyle(Theme.textSecondary)
+                        Spacer()
+                        Text(user.username ?? "Not set")
+                            .font(.footnote)
+                            .foregroundStyle(Theme.textPrimary)
+                        Image(systemName: "pencil")
+                            .font(.footnote)
+                            .foregroundStyle(Theme.textSecondary)
+                    }
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("settings.username")
+
+                if let usernameError {
+                    Text(usernameError)
+                        .font(.caption)
+                        .foregroundStyle(Theme.destructive)
                 }
             }
 
@@ -219,6 +249,33 @@ private struct AccountCard: View {
         .padding(16)
         .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16))
+        .alert("Set your username", isPresented: $showUsernameEditor) {
+            TextField("Username", text: $usernameInput)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+            Button("Save") {
+                Task { await saveUsername() }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Start with a letter; use letters, numbers, and underscores.")
+        }
+    }
+
+    private func saveUsername() async {
+        let cleaned = usernameInput
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        guard cleaned.count >= 3 else {
+            usernameError = "Usernames need at least 3 characters."
+            return
+        }
+        do {
+            _ = try await clerk.user?.update(.init(username: cleaned))
+            usernameError = nil
+        } catch {
+            usernameError = "That username is not available."
+        }
     }
 }
 

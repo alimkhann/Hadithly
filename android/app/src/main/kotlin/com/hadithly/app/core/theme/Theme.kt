@@ -6,6 +6,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 
 /**
  * Design tokens adapted from the Sajda-style reader reference:
@@ -42,6 +43,19 @@ data class HadithlyColors(
 )
 
 val LocalHadithlyColors = staticCompositionLocalOf { HadithlyColors() }
+
+/**
+ * The app's vertical rhythm. Auth screens and onboarding standardize on
+ * these steps so pages share one consistent spacing scale.
+ */
+object Spacing {
+    val xs = 4.dp
+    val sm = 8.dp
+    val md = 12.dp
+    val lg = 16.dp
+    val xl = 24.dp
+    val xxl = 32.dp
+}
 
 private val darkScheme = darkColorScheme(
     primary = ThemeColors.Accent,
