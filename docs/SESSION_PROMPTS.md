@@ -110,11 +110,15 @@ Model: GPT-5.6 Sol, xhigh. Use `architect`, `blast-radius`,
 > creation, permission changes, or sensitive-value transmission. The user owns
 > passwords, one-time codes, CAPTCHAs, and provider consent screens.
 >
-> Configure production Clerk for Apple, Google, and email code. Disable required
-> username and password, keep self-deletion, activate the Convex integration,
+> Configure production Clerk for email + password (username optional and
+> auto-generated from the email local part, editable in Settings), plus Apple,
+> Google, and email code for verification and social sign-in. Social sign-in
+> that needs the browser runs through Clerk hosted authentication. Keep
+> self-deletion, activate the Convex integration,
 > install public release keys, and deploy the current Convex schema and functions
 > only after production variables are valid. iOS and Android must each prove
-> signed-out reading, auth restore, sync, sign-out, and deletion. Backend tests
+> signed-out reading, password sign-up and sign-in, social sign-in, auth
+> restore, sync, sign-out, and deletion. Backend tests
 > cover unauthorized requests, provider access, the RevenueCat authorization
 > boundary, and deletion. No new product behavior or schema redesign belongs in
 > this session.

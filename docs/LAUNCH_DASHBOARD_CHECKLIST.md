@@ -300,21 +300,58 @@ active under the separate `adat`/`sunnad` projects. Sunnah.now remains waived.
 
 ### Clerk
 
-Known state: the development instance supports Apple, Google, and email code.
-It still requires generated username and password compatibility values. A usable
-production instance is not connected.
+Known state (verified 2026-09-03, production instance `ins_3InAKKOXDe4DBWNt0TgLN4Qagiz`,
+custom domain `clerk.hadithly.app`, Account Portal at `accounts.hadithly.app`):
+password is a required first factor with email identification; username exists
+but is optional (auto-generated from the email local part at password sign-up,
+settable later in Settings on either platform); email verification uses the
+code strategy; Apple and Google social sign-in use custom production
+credentials; self-deletion stays enabled; the Protect rules Lockout, Bot
+sign-up protection, and User enumeration protection remain enabled while the
+Device Trust rule was disabled because it forced a second-factor email code on
+every new device, which contradicted the owner's standard basic-auth contract.
 
-- [ ] Create or select the production Hadithly instance.
-- [ ] Enable Apple, Google, and email verification code.
-- [ ] Disable required username and password.
-- [ ] Keep self-deletion enabled.
-- [ ] Activate Clerk's Convex integration and confirm `aud: "convex"`.
-- [ ] Record the production frontend API URL as
+- [x] Create or select the production Hadithly instance.
+- [x] Enable password as a first factor with email address and username
+  identification.
+- [x] Require username at sign-up alongside email and password. Superseded
+  2026-09-03 by owner decision: username is optional, auto-generated from the
+  email local part (retry with numeric suffix when taken), and editable in
+  Settings, because Clerk cannot auto-create accounts through Apple/Google
+  when a username is mandatory (providers supply no username) — the OAuth
+  callback returned bare without the rotating token nonce.
+- [x] Keep email verification code for email verification.
+- [x] Enable Apple and Google social sign-in with custom production
+  credentials. Social sign-in runs through Clerk hosted authentication
+  (`startHostedAuth`, Account Portal at `accounts.hadithly.app`) because the
+  custom browser-OAuth handshake loses the rotating token nonce on the
+  callback (`oauth_callback.failed` in Clerk logs); the redirect URLs
+  `clerk://com.hadithly.app.callback` and `com.hadithly.app://callback` are
+  allowlisted for mobile SSO on the Native applications page.
+- [x] Keep self-deletion enabled.
+- [x] Activate Clerk's Convex integration and confirm `aud: "convex"`.
+- [x] Record the production frontend API URL as
   `CLERK_FRONTEND_API_URL` in production Convex.
-- [ ] Install the public `pk_live` values in the two gitignored production client
-  configuration files.
-- [ ] Verify sign-up, sign-in, restore, sign-out, and deletion for all three
-  methods where the provider supports the platform.
+- [x] Install the public `pk_live` values in the two gitignored production client
+  configuration files (`ios/ProductionSecrets.xcconfig`,
+  `android/production.secrets.properties`).
+- [x] Verify password sign-up (email + username + password), password sign-in
+  with email and with username, restore, sign-out, and deletion, plus Apple,
+  Google, and email-code sign-in where the provider supports the platform.
+  Evidence: Android release build on the emulator proved password sign-up with
+  email-code verification, sign-out, username sign-in, email sign-in, auth
+  restore after process death, signed-in sync (production Convex `users` row
+  `user_3IoWy0WyxbEQFa4s7o4XAxJQsMx` and the synced `bookmarks` row created by
+  the device tap), deletion (both test identities return
+  `form_identifier_not_found`; Convex `bookmarks` empty and `users` holds only
+  the synthetic RevenueCat smoke-test row), and Google hosted-auth sign-in
+  creating a new account with guest merge ("Merged 0 bookmarks … Restored 1.0
+  reading positions"). iOS release build on the simulator proved signed-out
+  production reading, password sign-up and sign-in (email and username),
+  restore, sign-out, deletion, and Google hosted-auth sign-in returning the
+  session with the cross-platform username; Apple sign-in reaches Apple's
+  hosted sign-in page and its final round-trip stays in D4's physical-device
+  matrix because it needs the owner's Apple ID credentials.
 
 ### Convex production
 
@@ -336,18 +373,47 @@ Required variable names:
 - `FCM_CLIENT_EMAIL`
 - `FCM_PRIVATE_KEY`
 
-- [ ] Confirm every required name exists without printing its value.
-- [ ] Deploy the current schema and functions after Clerk and provider values are
-  valid.
-- [ ] Confirm unauthenticated user-scoped requests fail.
-- [ ] Confirm signed-out public reading works.
-- [ ] Confirm authenticated sync and guest merge work.
-- [ ] Confirm one provider read and one AI translation work.
-- [ ] Confirm the RevenueCat webhook rejects bad authorization.
-- [ ] Confirm account deletion removes the promised Convex and Clerk data.
+- [x] Confirm every required name exists without printing its value.
+  (`npx convex env list --prod | cut -d= -f1`: all twelve required names plus
+  `CLERK_JWT_ISSUER_DOMAIN`.)
+- [x] Deploy the current schema and functions after Clerk and provider values are
+  valid. (`CONVEX_DEPLOYMENT=prod:giddy-ox-648 npx convex deploy`: schema
+  validation complete, no indexes deleted.)
+- [x] Confirm unauthenticated user-scoped requests fail.
+  (`npx convex run --prod users:getCurrentUser` →
+  "Unauthenticated: this function requires a signed-in user".)
+- [x] Confirm signed-out public reading works. (Fresh Android emulator and iOS
+  simulator release builds both render Today, Library, and reader content from
+  production while signed out.)
+- [x] Confirm authenticated sync and guest merge work. (Password and Google
+  sign-ins created the production `users` row from the device; the signed-in
+  bookmark tap produced the production `bookmarks` row via
+  `npx convex data bookmarks`; Google sign-in on Android reported
+  "Merged 0 bookmarks, 0 favorites, and 0 notes. Restored 1.0 reading
+  positions." Idempotent merge logic is covered by backend tests.)
+- [x] Confirm one provider read and one AI translation work. (Provider read:
+  opening Sahih al-Bukhari on the emulator fetched and cached the volume,
+  "97 volumes · 7277 hadiths cached". AI translation: the production
+  `translations` table holds a live Gemini-generated row
+  (`gemini-2.5-flash-lite`, source `gemini_ai`, sourceLabel "Gemini AI"),
+  proving the production Convex → Gemini path with the production key. A
+  device-side Kazakh regeneration attempt stayed in "AI translation…" without
+  invoking the action — re-exercise on-device generation in D4; the current
+  schedule-generation-for-a-whole-page behavior is already slated for removal
+  in Q1.)
+- [x] Confirm the RevenueCat webhook rejects bad authorization.
+  (`curl -X POST …/webhooks/revenuecat` without credentials → 401.)
+- [x] Confirm account deletion removes the promised Convex and Clerk data.
+  (After deletion on both platforms: Convex `bookmarks` table empty, `users`
+  holds only the synthetic `revenuecat_smoke_test_user` row, and Clerk FAPI
+  sign-in attempts for both test identities return
+  `form_identifier_not_found`.)
 
-D2 gate: production auth, public reading, private sync, provider calls, and
-deletion pass on release builds.
+D2 gate: production auth (password with email, email code, Apple, Google),
+public reading, private sync, provider calls, and
+deletion pass on release builds. Gate state 2026-09-03: passing on the
+Android emulator release build and the iOS simulator release build; the
+Apple full round-trip and physical-device passes remain for D4 as planned.
 
 ## D3 domain, stores, RevenueCat, and policies
 

@@ -5,9 +5,11 @@ before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
 Last updated: 2026-09-03. Phases 0 through 5 are complete. Phase 6 code is
-implemented, but its production dashboard gate is open. Sessions D0, G0, M0,
-and D1 are complete; session D2 is next. The Android FCM device-push re-test
-deferred from D1 folds into D4's physical-device matrix.
+implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
+and D2 are complete; D3 is next. D2's social sign-in runs through Clerk hosted
+auth, and the username contract is now: optional, auto-generated from the
+email local part at password sign-up, editable in Settings. The Android FCM
+device-push re-test deferred from D1 folds into D4's physical-device matrix.
 
 ## Read the plan in layers
 
@@ -78,7 +80,7 @@ Remove or consolidate these current behaviors:
 | Phase | Result | Verification state |
 | --- | --- | --- |
 | 0 | Archived the legacy app, chose Convex as the only backend, created the SwiftUI app, and built guest onboarding. | Complete |
-| 1 | Added Apple, Google, and email-code Clerk flows, guest storage, user sync, and idempotent guest merge. | Complete in development. Production Clerk remains in D2. |
+| 1 | Added Apple, Google, and email-code Clerk flows, guest storage, user sync, and idempotent guest merge. | Complete in development. D2 extended the contract: password sign-in with email or username, username optional (auto-generated from the email, editable in Settings), social sign-in via hosted auth; production auth verified in D2. |
 | 2 | Added collection loading, content-sized pages, hidden reader controls, cache-first provider reads, and labeled AI translation with citations. | Complete on iOS simulator with unit and live tests. |
 | 3 | Added Today, Library, Saved, Settings, private progress, bookmarks, favorites, notes, APNs registration, and the daily cron. | Complete in development. Production push remains in D1 and D4. |
 | 4 | Added translation proposals, AI review, reports, admin approval, audit rows, and a dedicated live UI test. | Complete. The evidence-based replacement is E1 through E4. |
@@ -328,7 +330,7 @@ substantive: they own bounded implementation outcomes, not just inventories.
 | G0 | Turn the current branch and mixed worktree into a reviewable checkpoint plan without rewriting history. | Every change is attributed to a proposed commit and no user work is lost. | GLM-5.3-Flash; Luna high fallback |
 | M0 | Record the minimum native toolchain and reclaim only approved rebuildable disk space. | Exact deletion targets, restore commands, and before/after free space are recorded. | GLM-5.3-Flash; Luna medium fallback |
 | D1 | Rotate Firebase, Sunnah.now, and Gemini credentials; verify APNs and FCM. | Both physical-device pushes and provider smoke tests pass before old keys are revoked. | GPT-5.6 Sol, high |
-| D2 | Configure production Clerk and deploy Convex production. | Apple, Google, email code, restore, sign-out, sync, and deletion pass on production builds. | GPT-5.6 Sol, xhigh |
+| D2 | Configure production Clerk (email + password, optional generated username, email code, Apple, Google via hosted auth) and deploy Convex production. | Password sign-up and sign-in, Apple, Google, email code, restore, sign-out, sync, and deletion pass on production builds. Verified 2026-09-03 on release builds (emulator + simulator); Apple full round-trip and physical devices remain for D4. | GPT-5.6 Sol, xhigh |
 | D3 | Finish App Store Connect, Play Console, RevenueCat, domain, and policy dashboards. | No non-screenshot dashboard blocker remains; real monthly and annual purchases reach `pro`. | GPT-5.6 Sol, high |
 | D4 | Run the production launch-system matrix on physical iPhone and Android devices. | The signed evidence matrix passes. Phase 6 becomes complete. | GPT-5.6 Sol, xhigh |
 | F1 | Add canonical content identity, authenticity scope, license records, and eligible daily selection. | Migration fixtures prove that no grade or scope is invented. | GPT-5.6 Sol, xhigh |
