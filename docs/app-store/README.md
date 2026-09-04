@@ -23,19 +23,17 @@ bytes. The files in `en-US/` are checked by `scripts/check-app-store-metadata.sh
 ## Required before submission
 
 1. Enter the published support and privacy-policy URLs in App Store Connect.
-2. Create the app record for `com.hadithly.app` if it is still only staged in
-   the creation dialog.
-3. Create `com.hadithly.app.pro.monthly` at USD 2.99 monthly and
-   `com.hadithly.app.pro.annual` at USD 24.99 annually,
-   finish agreements, tax, and banking, and connect them to RevenueCat's `pro`
-   entitlement and current offering. Do not add a weekly production product.
-4. Supply an App Review account that can reach the quota paywall, plus exact
+2. Finish agreements, tax, and banking, then connect the existing
+   `com.hadithly.app.pro.monthly` and `com.hadithly.app.pro.annual` products to
+   RevenueCat's `pro` entitlement and current offering. Do not add a weekly
+   production product.
+3. Supply an App Review account that can reach the quota paywall, plus exact
    product IDs and subscription durations in `en-US/review_notes.txt`.
-5. Complete the privacy questionnaire from `app-privacy.md`, checking the
+4. Complete the privacy questionnaire from `app-privacy.md`, checking the
    shipped Clerk and RevenueCat SDK privacy manifests before publishing.
-6. Complete age rating, content rights, encryption/export-compliance, pricing,
-   territories, and release mode. Use manual release for the first version.
-7. Add screenshots in the dedicated later design session. None are prepared or
+5. Complete age rating, content rights, and encryption/export-compliance. The
+   app is already free, available in all regions, and set to manual release.
+6. Add screenshots in the dedicated later design session. None are prepared or
    included here by request.
 
 Placeholders are written in square brackets and must never be submitted.

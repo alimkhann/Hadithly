@@ -438,18 +438,27 @@ Status on 2026-09-04:
   store-sandbox verification are explicitly deferred by the owner until a Play
   Console developer account can be purchased. This is a D3 gate blocker, not a
   pass or a skipped test.
-- App Store Connect subscription records and its RevenueCat In-App Purchase key
-  are authorized but require a fresh App Store Connect login. Agreements, tax,
-  banking, identity, passwords,
-  one-time codes, CAPTCHAs, store-artifact submission, and screenshots remain
-  user/L1 handoffs as specified.
+- App Store Connect now has the `Hadithly Pro` group and monthly and annual
+  products at USD 2.99 and USD 24.99. Both are available in all 175 current
+  countries or regions, use English (U.S.) display metadata, and remain in
+  Prepare for Submission. Family Sharing is off.
+- The App Store listing is aligned to version 0.1.0 with the repository copy,
+  Reference/Books categories, the public support and privacy URLs, a free base
+  price, all-region availability, and manual release. No build, screenshot, or
+  review submission was added.
+- A dedicated App Store Connect In-App Purchase key was created and downloaded
+  once with owner-only local file permissions. Its upload to RevenueCat remains
+  a separate sensitive-credential transmission boundary. Agreements, tax,
+  banking, identity, passwords, one-time codes, CAPTCHAs, review contact and
+  account values, legal declarations, and store-artifact submission remain
+  user handoffs as specified.
 
 ### Domain and public pages
 
 - [x] Prove control of `hadithly.app`.
 - [x] Configure DNS and HTTPS.
 - [x] Publish privacy, support, and canonical fallback pages.
-- [ ] Record the final public URLs in store metadata.
+- [x] Record the final public URLs in store metadata.
 - [x] Configure Apple Universal Links prerequisites for F3.
 - [ ] Configure Android App Links prerequisites for F3 after D3G supplies the
   Play App Signing fingerprint.
@@ -472,10 +481,11 @@ Status on 2026-09-04:
 
 - [ ] Finish the app record for `com.hadithly.app`.
 - [ ] Confirm the SKU, categories, version, copyright, and public URLs.
-- [ ] Create the subscription group and monthly and annual products.
+- [x] Create the subscription group and monthly and annual products.
 - [ ] Complete agreements, tax, and banking with user takeover.
-- [ ] Complete privacy, age rating, content rights, encryption, export,
-  availability, and release-mode answers.
+- [ ] Complete privacy, age rating, content rights, encryption, and export
+  answers.
+- [x] Set all-region availability and manual release.
 - [ ] Add an App Review account and exact quota-paywall instructions.
 - [ ] Keep screenshots open for L1.
 
