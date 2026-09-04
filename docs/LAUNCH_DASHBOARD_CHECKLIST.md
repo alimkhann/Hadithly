@@ -439,7 +439,8 @@ Status on 2026-09-04:
   Console developer account can be purchased. This is a D3 gate blocker, not a
   pass or a skipped test.
 - App Store Connect subscription records and its RevenueCat In-App Purchase key
-  are authorized but require a fresh App Store Connect login. Agreements, tax, banking, identity, passwords,
+  are authorized but require a fresh App Store Connect login. Agreements, tax,
+  banking, identity, passwords,
   one-time codes, CAPTCHAs, store-artifact submission, and screenshots remain
   user/L1 handoffs as specified.
 

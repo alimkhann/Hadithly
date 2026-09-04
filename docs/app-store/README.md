@@ -22,8 +22,7 @@ bytes. The files in `en-US/` are checked by `scripts/check-app-store-metadata.sh
 
 ## Required before submission
 
-1. Publish real support and privacy-policy pages. Enter their public HTTPS URLs
-   in App Store Connect and replace the placeholders below.
+1. Enter the published support and privacy-policy URLs in App Store Connect.
 2. Create the app record for `com.hadithly.app` if it is still only staged in
    the creation dialog.
 3. Create `com.hadithly.app.pro.monthly` at USD 2.99 monthly and
@@ -43,7 +42,7 @@ Placeholders are written in square brackets and must never be submitted.
 
 ## URLs
 
-- Privacy policy: `[PUBLIC PRIVACY URL REQUIRED]`
-- Support: `[PUBLIC SUPPORT URL REQUIRED]`
+- Privacy policy: `https://hadithly.app/privacy/`
+- Support: `https://hadithly.app/support/`
 - Marketing: `https://hadithly.app/`
 - Terms of Use: Apple's standard EULA unless a custom EULA is adopted
