@@ -127,7 +127,7 @@ Model: GPT-5.6 Sol, xhigh. Use `architect`, `blast-radius`,
 > Convex readback confirms the expected state. Update evidence and stop before
 > D3.
 
-## D3: finish domain, stores, RevenueCat, and policies
+## D3A and D3G: finish domain, stores, RevenueCat, and policies
 
 Model: GPT-5.6 Sol, high. Run locally with Chrome and Computer Use.
 
@@ -147,8 +147,15 @@ Model: GPT-5.6 Sol, high. Run locally with Chrome and Computer Use.
 > readback and entitlement semantics. Screenshots and final public submission
 > stay open for L1.
 >
-> Gate: no non-screenshot domain, store, policy, product, webhook, or entitlement
-> blocker remains. Update evidence and stop before D4.
+> Track this session as two subgates. D3A covers the domain, policies, App Store
+> Connect, iOS products, RevenueCat webhook, and iOS sandbox. D3G covers Play
+> Console, Android products, Android App Links, and the Android store sandbox.
+> If the owner has no Play Console developer account, record D3G as deferred and
+> finish every available D3A item. Do not call D3 complete or skip D3G.
+>
+> Gate: D3A passes when no non-Google, non-screenshot blocker remains. Full D3
+> passes only after D3G also passes. Update evidence and stop before D4. F1 is
+> still allowed because completed D2 independently unlocks it.
 
 ## D4: verify the production launch system
 
@@ -168,8 +175,9 @@ Model: GPT-5.6 Sol, xhigh. Use `blast-radius` and
 > test artifact or taking any store action with financial effect. Record build,
 > OS, expected result, actual result, evidence path, and cleanup.
 >
-> Gate: every required matrix row passes. Only then mark Phase 6 complete in
-> `docs/PLAN.md`. Stop before F1.
+> Confirm both D3A and D3G passed. Gate: every required matrix row passes. Only
+> then mark Phase 6 complete in `docs/PLAN.md`. Stop before L1; the independent
+> F1 branch may already be complete.
 
 ## F1: canonical content, authenticity, and daily eligibility
 
@@ -673,7 +681,7 @@ Model: GPT-5.6 Sol, high. Use `architect`, `blast-radius`,
 `principle-experience-first`, and `principle-prove-it-works`.
 
 > Read `AGENTS.md`, `docs/PLAN.md`, the dashboard checklist, and current official
-> store and RevenueCat fee documentation. Confirm D3 and Q1 passed. Execute only
+> store and RevenueCat fee documentation. Confirm D3A, D3G, and Q1 passed. Execute only
 > Q2. Preserve unrelated changes and do not use Relay. Finalize USD 2.99 monthly
 > and USD 24.99 annual products, store-managed regional tiers, one RevenueCat
 > `pro` entitlement, and own-account cross-platform access. Weekly and Apple

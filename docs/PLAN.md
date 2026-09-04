@@ -6,9 +6,10 @@ before any Hadithly session. Then open the matching standalone prompt in
 
 Last updated: 2026-09-04. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
-and D2 are complete; D3 is in progress. Its Google Play work is explicitly
-deferred by the owner until a Play Console developer account is available, so
-D3 cannot pass yet. D2's social sign-in runs through Clerk hosted
+and D2 are complete; D3A is in progress. D3G is explicitly deferred by the
+owner until a Play Console developer account is available. D3 cannot pass until
+both subgates pass, but D3G does not block F1 or its product-work branches.
+D2's social sign-in runs through Clerk hosted
 auth, and the username contract is now: optional, auto-generated from the
 email local part at password sign-up, editable in Settings. The Android FCM
 device-push re-test deferred from D1 folds into D4's physical-device matrix.
@@ -111,8 +112,9 @@ Known launch facts:
 - RevenueCat's current Test Store offering contains monthly and annual packages
   attached to `pro`; weekly was removed on 2026-09-04. Real App Store and Play
   products are not connected.
-- Apple capabilities exist. App Store Connect, Play Console, public policy
-  pages, and store agreements are incomplete.
+- `hadithly.app` and its public policy, support, deletion, terms, fallback, and
+  Apple association pages are live on Vercel. App Store Connect, Play Console,
+  and store agreements remain incomplete.
 - Screenshots stay deferred until the redesigned release candidate in L1.
 
 Do not call Phase 6 complete from code, configuration files, or simulator tests.
@@ -322,8 +324,9 @@ rechecked before Q2.
 
 ## Session order
 
-Run one session per Codex or OpenCode task. Finish its gate before starting the
-next session. Dashboard sessions stay in a local Codex task because they depend
+Run one session per Codex or OpenCode task. Finish its gate before starting a
+session that depends on it. A recorded external blocker does not block an
+independent branch. Dashboard sessions stay in a local Codex task because they depend
 on the signed-in browser and physical devices. GLM sessions are deliberately
 substantive: they own bounded implementation outcomes, not just inventories.
 
@@ -334,7 +337,8 @@ substantive: they own bounded implementation outcomes, not just inventories.
 | M0 | Record the minimum native toolchain and reclaim only approved rebuildable disk space. | Exact deletion targets, restore commands, and before/after free space are recorded. | GLM-5.3-Flash; Luna medium fallback |
 | D1 | Rotate Firebase, Sunnah.now, and Gemini credentials; verify APNs and FCM. | Both physical-device pushes and provider smoke tests pass before old keys are revoked. | GPT-5.6 Sol, high |
 | D2 | Configure production Clerk (email + password, optional generated username, email code, Apple, Google via hosted auth) and deploy Convex production. | Password sign-up and sign-in, Apple, Google, email code, restore, sign-out, sync, and deletion pass on production builds. Verified 2026-09-03 on release builds (emulator + simulator); Apple full round-trip and physical devices remain for D4. | GPT-5.6 Sol, xhigh |
-| D3 | Finish App Store Connect, Play Console, RevenueCat, domain, and policy dashboards. | No non-screenshot dashboard blocker remains; real monthly and annual purchases reach `pro`. | GPT-5.6 Sol, high |
+| D3A | Finish the domain, policies, App Store Connect, iOS products, RevenueCat webhook, and iOS sandbox work. | No non-Google, non-screenshot dashboard blocker remains; real iOS monthly and annual purchases reach `pro`. | GPT-5.6 Sol, high |
+| D3G | Finish Play Console, Android products, Android App Links, and Android store sandbox work. Deferred until the owner has a Play Console developer account. | No Google Play dashboard blocker remains; real Android monthly and annual purchases reach `pro`. | GPT-5.6 Sol, high |
 | D4 | Run the production launch-system matrix on physical iPhone and Android devices. | The signed evidence matrix passes. Phase 6 becomes complete. | GPT-5.6 Sol, xhigh |
 | F1 | Add canonical content identity, authenticity scope, license records, and eligible daily selection. | Migration fixtures prove that no grade or scope is invented. | GPT-5.6 Sol, xhigh |
 | F2 | Add UI locale, translation locale, direction, theme, and visibility preference contracts. | Both clients decode, persist, sync, and reject an all-hidden state. | GLM-5.3-Flash; Terra high review |
@@ -432,22 +436,30 @@ secrets, production data, private notes, or unpublished evidence to any model.
 ## Dependencies
 
 ```text
-D0 -> G0 -> M0 -> D1 -> D2 -> D3 -> D4 -> F1
-F1 -> F2 -> F3
+D0 -> G0 -> M0 -> D1 -> D2 -> D3A
+D2 -> D3G
+D2 -> F1
+D3A + D3G -> D4
+F1 -> F2
+F2 + D3A -> F3
 F1 -> R1 -> R2 -> R3 -> R4 -> R5
 R2 -> H1 -> H2 -> H3 -> S1
 F1 -> O1 -> O2
 F2 + F3 + R2 -> N1
 N1 + R2 -> W1 -> W2
 F1 -> E1 -> E2 -> E3 -> E4
-F1 + D3 -> Q1 -> Q2
+F1 + D3A -> Q1
+Q1 + D3G -> Q2
 R5 + H3 + S1 + O2 + W2 + E4 + Q2 -> LA1 -> LA2 -> LA3
-LA3 -> L1 -> native launch -> LA4
+D4 + LA3 -> L1 -> native launch -> LA4
 ```
 
-F2 and F3 may run in sequence while R1 remains unopened. After F3, follow the
-listed order. Do not parallelize sessions that modify the same schema, client
-navigation, or shared preference models.
+`D3A` and `D3G` are the available-platform and Google Play subgates of D3. D3
+passes only after both pass. While D3G is deferred, continue from F1 through
+any dependency path that does not reach D4 or Q2. F2 and F3 may run in sequence
+while R1 remains unopened. After F3, follow the listed order. Do not parallelize
+sessions that modify the same schema, client navigation, or shared preference
+models.
 
 ## Gate rules
 
@@ -472,9 +484,9 @@ unreviewed migration, placeholder content, or unverified external state.
 
 Collect these only when the matching session reaches the final action:
 
-- D3 needs the legal seller name, support contact, tax and banking details,
+- D3A needs the legal seller name, support contact, tax and banking details,
   final territories, and store agreement acceptance.
-- F3 needs proof that the user controls `hadithly.app` if D3 cannot establish
+- F3 needs proof that the user controls `hadithly.app` if D3A cannot establish
   it.
 - E3 needs affirmative source licenses or permissions. Absence of a prohibition
   is not permission.

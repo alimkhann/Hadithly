@@ -419,36 +419,39 @@ Apple full round-trip and physical-device passes remain for D4 as planned.
 
 Status on 2026-09-04:
 
-- Registrar control of `hadithly.app` is verified. The Vercel project, domain
-  additions, and replacement DNS records are prepared but not saved pending
-  the required action-time confirmation.
+- Registrar control of `hadithly.app` is verified. Vercel serves the apex and
+  `www` over HTTPS from the repository's `site/` directory. Privacy, support,
+  terms, deletion, canonical fallback, and Apple association requests returned
+  HTTP 200 on 2026-09-04. The Apple response is valid JSON with
+  `application/json` content type.
 - RevenueCat entitlement `pro` exists. Its current Test Store offering contains
   monthly and annual packages only; weekly was removed and the saved offering
   was visually re-read.
 - The production webhook endpoint passed signed direct-event readback for
   initial purchase, billing issue/grace semantics, cancellation before expiry,
-  expiry, renewal, and refund/revocation. Stale events are ignored. Replacing
-  the obsolete RevenueCat dashboard URL and sending its dashboard test remain
-  pending confirmation.
-- The policy and fallback site is ready locally. Its Apple association file is
-  complete. Android `assetlinks.json` remains intentionally absent because its
-  Play App Signing fingerprint does not exist yet.
+  expiry, renewal, and refund/revocation. Stale events are ignored. RevenueCat
+  now targets the Convex production endpoint with the matching Keychain-backed
+  Authorization value; its dashboard-generated test returned HTTP 200.
+- Android `assetlinks.json` remains intentionally absent because its Play App
+  Signing fingerprint does not exist yet.
 - Google Play Console, Android store products, license testers, and Android
   store-sandbox verification are explicitly deferred by the owner until a Play
   Console developer account can be purchased. This is a D3 gate blocker, not a
   pass or a skipped test.
 - App Store Connect subscription records and its RevenueCat In-App Purchase key
-  remain pending confirmation. Agreements, tax, banking, identity, passwords,
+  are authorized but require a fresh App Store Connect login. Agreements, tax, banking, identity, passwords,
   one-time codes, CAPTCHAs, store-artifact submission, and screenshots remain
   user/L1 handoffs as specified.
 
 ### Domain and public pages
 
-- [ ] Prove control of `hadithly.app`.
-- [ ] Configure DNS and HTTPS.
-- [ ] Publish privacy, support, and canonical fallback pages.
+- [x] Prove control of `hadithly.app`.
+- [x] Configure DNS and HTTPS.
+- [x] Publish privacy, support, and canonical fallback pages.
 - [ ] Record the final public URLs in store metadata.
-- [ ] Configure Apple Universal Links and Android App Links prerequisites for F3.
+- [x] Configure Apple Universal Links prerequisites for F3.
+- [ ] Configure Android App Links prerequisites for F3 after D3G supplies the
+  Play App Signing fingerprint.
 
 ### RevenueCat
 
@@ -456,9 +459,9 @@ Status on 2026-09-04:
 - [ ] Create or connect monthly and annual App Store products.
 - [ ] Create or connect monthly and annual Play products.
 - [ ] Attach all four platform products to `pro` and the current offering.
-- [ ] Configure
+- [x] Configure
   `https://giddy-ox-648.eu-west-1.convex.site/webhooks/revenuecat`.
-- [ ] Set its Authorization value from the existing Keychain item without
+- [x] Set its Authorization value from the existing Keychain item without
   revealing it.
 - [ ] Install production public SDK keys in the two gitignored release configs.
 - [ ] Verify purchase, restore, cancellation, grace, expiration, refund or
