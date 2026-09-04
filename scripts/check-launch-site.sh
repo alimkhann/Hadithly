@@ -15,7 +15,7 @@ jq -e '
   | length == 1
     and .[0].appIDs == ["6378AFQPXV.com.hadithly.app"]
     and .[0].components[0]["/"] == "/hadith/*"
-' "$site_root/.well-known/apple-app-site-association" >/dev/null
+' "$site_root/.well-known/apple-app-site-association.json" >/dev/null
 
 if [[ ! -s "$site_root/.well-known/assetlinks.json" ]]; then
   echo "Android asset links remain blocked until a Play App Signing certificate exists." >&2
