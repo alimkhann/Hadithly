@@ -44,6 +44,7 @@ const revenueCatWebhook = httpAction(async (ctx, request) => {
   await ctx.runMutation(internal.users.syncRevenueCatEntitlement, {
     clerkId: parsed.event.appUserId,
     revenueCatAppUserId: parsed.event.appUserId,
+    eventTimestampMs: parsed.event.eventTimestampMs,
     subscriptionTier: parsed.event.subscriptionTier,
     entitlementProductId: parsed.event.entitlementProductId,
     entitlementExpiresAt: parsed.event.entitlementExpiresAt,

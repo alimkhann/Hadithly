@@ -7,8 +7,8 @@ Verification method/code: [REQUIRED]
 
 To find the subscription paywall: sign in with the review account, open Library, choose a collection, select a non-English translation language in reader settings, and request translations after the free allowance is exhausted. The paywall is intentionally shown only at quota. Use Restore purchases on the same sheet to test restoration.
 
-Subscription group: [REQUIRED]
-Products and durations: [REQUIRED]
+Subscription group: Hadithly Pro
+Products and durations: com.hadithly.app.pro.monthly (1 month) and com.hadithly.app.pro.annual (1 year)
 RevenueCat entitlement: pro
 
 Account deletion: Settings > Account > Delete account. The confirmation explains that deletion is permanent and does not cancel a store subscription.

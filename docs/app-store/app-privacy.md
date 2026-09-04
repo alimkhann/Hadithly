@@ -14,7 +14,7 @@ or cross-company tracking.
 | Email Address | Yes | No | App Functionality | Account authentication and sync |
 | User ID | Yes | No | App Functionality | Clerk/Convex/RevenueCat account association |
 | Device ID | Yes | No | App Functionality | APNs/FCM delivery token and purchase-service installation identity |
-| Purchase History | Yes | No | App Functionality | Subscription entitlement and restore |
+| Purchase History | Yes | No | App Functionality, Analytics | Subscription entitlement, restore, and aggregate subscription analytics |
 | Other User Content | Yes | No | App Functionality | Private notes, translation proposals, and report reasons |
 | Product Interaction | Yes | No | App Functionality, Product Personalization | Bookmarks, favorites, reading position, language and notification preferences |
 
@@ -33,4 +33,3 @@ Items to verify in App Store Connect before clicking Publish:
 - that account deletion removes Clerk and Convex records and that the documented
   RevenueCat deletion/retention process is accurate;
 - that the public privacy policy matches these answers.
-

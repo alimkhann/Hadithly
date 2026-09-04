@@ -49,7 +49,7 @@ describe("RevenueCat boundary", () => {
     ).toEqual({ kind: "authorized" });
   });
 
-  test("retains access until cancellation or billing expiry", () => {
+  test("retains access until RevenueCat sends expiration", () => {
     const future = 2_000;
     expect(
       parseRevenueCatEvent({
@@ -79,7 +79,61 @@ describe("RevenueCat boundary", () => {
       }),
     ).toMatchObject({
       kind: "valid",
+      event: { subscriptionTier: "pro" },
+    });
+    expect(
+      parseRevenueCatEvent({
+        now: 1_000,
+        body: {
+          event: {
+            app_user_id: "user_1",
+            entitlement_ids: ["pro"],
+            type: "EXPIRATION",
+            expiration_at_ms: 2_000,
+          },
+        },
+      }),
+    ).toMatchObject({
+      kind: "valid",
       event: { subscriptionTier: "free" },
+    });
+  });
+
+  test("does not let delayed webhooks overwrite newer entitlement state", async () => {
+    const t = convexTest(schema, modules);
+    const clerkId = "user_subscriber";
+    const userId = await t.run(async (ctx) =>
+      await ctx.db.insert("users", {
+        clerkId,
+        preferredLanguage: "en",
+        subscriptionTier: "free",
+        aiGenerationsThisMonth: 0,
+        aiGenerationLimit: 20,
+        createdAt: 1_000,
+        updatedAt: 1_000,
+      }),
+    );
+
+    await expect(
+      t.mutation(internal.users.syncRevenueCatEntitlement, {
+        clerkId,
+        revenueCatAppUserId: clerkId,
+        subscriptionTier: "pro",
+        eventTimestampMs: 2_000,
+      }),
+    ).resolves.toEqual({ kind: "updated", userId });
+    await expect(
+      t.mutation(internal.users.syncRevenueCatEntitlement, {
+        clerkId,
+        revenueCatAppUserId: clerkId,
+        subscriptionTier: "free",
+        eventTimestampMs: 1_000,
+      }),
+    ).resolves.toEqual({ kind: "ignored_stale_event" });
+
+    await expect(t.run(async (ctx) => await ctx.db.get(userId))).resolves.toMatchObject({
+      subscriptionTier: "pro",
+      revenueCatEventTimestamp: 2_000,
     });
   });
 
@@ -91,6 +145,7 @@ describe("RevenueCat boundary", () => {
       {
         clerkId: "user_deleted",
         revenueCatAppUserId: "user_deleted",
+        eventTimestampMs: 1_000,
         subscriptionTier: "pro",
       },
     );

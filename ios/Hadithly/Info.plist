@@ -35,6 +35,8 @@
 	<string>$(CLERK_PUBLISHABLE_KEY)</string>
 	<key>ConvexURL</key>
 	<string>$(CONVEX_URL)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>PrivacyPolicyURL</key>
 	<string>$(PRIVACY_POLICY_URL)</string>
 	<key>RevenueCatAPIKey</key>

@@ -32,6 +32,7 @@ export default defineSchema({
     revenueCatAppUserId: v.optional(v.string()),
     entitlementProductId: v.optional(v.string()),
     entitlementExpiresAt: v.optional(v.number()),
+    revenueCatEventTimestamp: v.optional(v.number()),
     entitlementUpdatedAt: v.optional(v.number()),
     aiGenerationsThisMonth: v.number(),
     aiGenerationLimit: v.number(),

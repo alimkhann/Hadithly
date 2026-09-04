@@ -5,6 +5,7 @@ export type RevenueCatAuthorization =
 
 export type ParsedRevenueCatEvent = {
   appUserId: string;
+  eventTimestampMs: number;
   subscriptionTier: "free" | "trial" | "pro";
   entitlementProductId?: string;
   entitlementExpiresAt?: number;
@@ -61,9 +62,13 @@ export function parseRevenueCatEvent(args: {
     typeof event.expiration_at_ms === "number"
       ? event.expiration_at_ms
       : undefined;
+  const eventTimestampMs =
+    typeof event.event_timestamp_ms === "number"
+      ? event.event_timestamp_ms
+      : args.now;
   const isRevocation =
     eventType === "EXPIRATION" ||
-    ((eventType === "CANCELLATION" || eventType === "BILLING_ISSUE") &&
+    (eventType === "CANCELLATION" &&
       expirationAt !== undefined &&
       expirationAt <= args.now);
   const isTrial = event.period_type === "TRIAL";
@@ -72,6 +77,7 @@ export function parseRevenueCatEvent(args: {
     kind: "valid",
     event: {
       appUserId,
+      eventTimestampMs,
       subscriptionTier:
         hasProEntitlement && !isRevocation
           ? isTrial

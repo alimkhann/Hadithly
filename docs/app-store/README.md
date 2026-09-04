@@ -7,7 +7,7 @@ This directory contains the English (U.S.) launch metadata draft for iOS
 
 - Name: Hadithly
 - Bundle ID: `com.hadithly.app`
-- SKU: `hadithly-ios-001`
+- SKU: `hadithly-ios` (the immutable value in App Store Connect)
 - Primary language: English (U.S.)
 - Primary category: Reference
 - Secondary category: Books
@@ -26,7 +26,8 @@ bytes. The files in `en-US/` are checked by `scripts/check-app-store-metadata.sh
    in App Store Connect and replace the placeholders below.
 2. Create the app record for `com.hadithly.app` if it is still only staged in
    the creation dialog.
-3. Create the USD 2.99 monthly and USD 24.99 annual subscription products,
+3. Create `com.hadithly.app.pro.monthly` at USD 2.99 monthly and
+   `com.hadithly.app.pro.annual` at USD 24.99 annually,
    finish agreements, tax, and banking, and connect them to RevenueCat's `pro`
    entitlement and current offering. Do not add a weekly production product.
 4. Supply an App Review account that can reach the quota paywall, plus exact
@@ -44,5 +45,5 @@ Placeholders are written in square brackets and must never be submitted.
 
 - Privacy policy: `[PUBLIC PRIVACY URL REQUIRED]`
 - Support: `[PUBLIC SUPPORT URL REQUIRED]`
-- Marketing: optional; leave blank until a real page exists
+- Marketing: `https://hadithly.app/`
 - Terms of Use: Apple's standard EULA unless a custom EULA is adopted

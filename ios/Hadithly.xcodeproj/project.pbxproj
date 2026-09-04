@@ -97,8 +97,8 @@
 		EEA2F742FC0F52912AA1DAFB /* GuestDataModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestDataModels.swift; sourceTree = "<group>"; };
 		F16E29AA1FEEB93DF8895F92 /* UserLibraryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserLibraryModel.swift; sourceTree = "<group>"; };
 		FA7143E72E104DB258A51D0D /* PushNotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationManager.swift; sourceTree = "<group>"; };
-		"TEMP_0CC2F586-77C5-4F28-A36C-7B3295E5BD7C" /* Production.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Production.xcconfig; sourceTree = "<group>"; };
-		"TEMP_F8601BF2-4444-42B1-9873-D34EDB5F8C05" /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		"TEMP_5F5BEF5A-F147-4D84-AD65-E3758FF57B98" /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		"TEMP_87CDC5AC-D56B-426C-82A6-71446E369CF7" /* Production.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Production.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -318,11 +318,11 @@
 			);
 			sourceTree = "<group>";
 		};
-		"TEMP_1029555D-89E7-41EE-BBDB-A09F6E8495A7" /* ios */ = {
+		"TEMP_1DB45742-F257-446D-9439-E495F0F9F454" /* ios */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_F8601BF2-4444-42B1-9873-D34EDB5F8C05" /* Secrets.xcconfig */,
-				"TEMP_0CC2F586-77C5-4F28-A36C-7B3295E5BD7C" /* Production.xcconfig */,
+				"TEMP_5F5BEF5A-F147-4D84-AD65-E3758FF57B98" /* Secrets.xcconfig */,
+				"TEMP_87CDC5AC-D56B-426C-82A6-71446E369CF7" /* Production.xcconfig */,
 			);
 			path = ios;
 			sourceTree = "<group>";
@@ -502,7 +502,7 @@
 /* Begin XCBuildConfiguration section */
 		081EA1614EAE1CB1451F28EB /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_0CC2F586-77C5-4F28-A36C-7B3295E5BD7C" /* Production.xcconfig */;
+			baseConfigurationReference = "TEMP_87CDC5AC-D56B-426C-82A6-71446E369CF7" /* Production.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Hadithly/Hadithly.entitlements;
@@ -522,7 +522,7 @@
 		};
 		1DB6B6403B644CF2BD507A46 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_F8601BF2-4444-42B1-9873-D34EDB5F8C05" /* Secrets.xcconfig */;
+			baseConfigurationReference = "TEMP_5F5BEF5A-F147-4D84-AD65-E3758FF57B98" /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Hadithly/Hadithly.entitlements;

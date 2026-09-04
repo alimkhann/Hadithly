@@ -4,9 +4,11 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-09-03. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-09-04. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
-and D2 are complete; D3 is next. D2's social sign-in runs through Clerk hosted
+and D2 are complete; D3 is in progress. Its Google Play work is explicitly
+deferred by the owner until a Play Console developer account is available, so
+D3 cannot pass yet. D2's social sign-in runs through Clerk hosted
 auth, and the username contract is now: optional, auto-generated from the
 email local part at password sign-up, editable in Settings. The Android FCM
 device-push re-test deferred from D1 folds into D4's physical-device matrix.
@@ -106,8 +108,9 @@ Known launch facts:
   until `CLERK_FRONTEND_API_URL` is correct.
 - Production Sunnah.now key rotation is waived by the owner. The Gemini
   replacement is installed and validated in production.
-- RevenueCat Test Store packages work. Real App Store and Play products are not
-  connected.
+- RevenueCat's current Test Store offering contains monthly and annual packages
+  attached to `pro`; weekly was removed on 2026-09-04. Real App Store and Play
+  products are not connected.
 - Apple capabilities exist. App Store Connect, Play Console, public policy
   pages, and store agreements are incomplete.
 - Screenshots stay deferred until the redesigned release candidate in L1.

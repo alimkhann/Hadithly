@@ -8,6 +8,7 @@ export const PRO_AI_GENERATION_LIMIT = 500;
 
 type EntitlementSyncResult =
   | { kind: "ignored_unknown_user" }
+  | { kind: "ignored_stale_event" }
   | { kind: "updated"; userId: Id<"users"> };
 
 /**
@@ -153,6 +154,7 @@ export const syncRevenueCatEntitlement = internalMutation({
   args: {
     clerkId: v.string(),
     revenueCatAppUserId: v.string(),
+    eventTimestampMs: v.number(),
     subscriptionTier: v.union(
       v.literal("free"),
       v.literal("trial"),
@@ -171,12 +173,19 @@ export const syncRevenueCatEntitlement = internalMutation({
     if (!existing) {
       return { kind: "ignored_unknown_user" };
     }
+    if (
+      existing.revenueCatEventTimestamp !== undefined &&
+      args.eventTimestampMs < existing.revenueCatEventTimestamp
+    ) {
+      return { kind: "ignored_stale_event" };
+    }
 
     await ctx.db.patch(existing._id, {
       subscriptionTier: args.subscriptionTier,
       revenueCatAppUserId: args.revenueCatAppUserId,
       entitlementProductId: args.entitlementProductId,
       entitlementExpiresAt: args.entitlementExpiresAt,
+      revenueCatEventTimestamp: args.eventTimestampMs,
       entitlementUpdatedAt: now,
       aiGenerationLimit:
         args.subscriptionTier === "free"
