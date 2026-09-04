@@ -1,6 +1,4 @@
 {
-  "cleanUrls": true,
-  "trailingSlash": true,
   "rewrites": [
     {
       "source": "/.well-known/apple-app-site-association",
@@ -8,7 +6,7 @@
     },
     {
       "source": "/hadith/:path*",
-      "destination": "/hadith/"
+      "destination": "/hadith/index.html"
     }
   ],
   "headers": [
