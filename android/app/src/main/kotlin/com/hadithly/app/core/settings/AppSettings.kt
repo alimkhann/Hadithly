@@ -12,12 +12,6 @@ class AppSettings(context: Context) {
 
     private val prefs = context.getSharedPreferences("hadithly", Context.MODE_PRIVATE)
 
-    private val _preferredLanguage = MutableStateFlow(prefs.getString(KEY_LANGUAGE, "en") ?: "en")
-    val preferredLanguage: StateFlow<String> = _preferredLanguage
-
-    private val _arabicFontSize = MutableStateFlow(prefs.getFloat(KEY_ARABIC_SIZE, 26f))
-    val arabicFontSize: StateFlow<Float> = _arabicFontSize
-
     private val _onboardingCompleted = MutableStateFlow(prefs.getBoolean(KEY_ONBOARDED, false))
     val onboardingCompleted: StateFlow<Boolean> = _onboardingCompleted
 
@@ -26,16 +20,6 @@ class AppSettings(context: Context) {
 
     private val _dailyNotificationTime = MutableStateFlow(prefs.getString(KEY_DAILY_TIME, "08:00") ?: "08:00")
     val dailyNotificationTime: StateFlow<String> = _dailyNotificationTime
-
-    fun setPreferredLanguage(code: String) {
-        prefs.edit().putString(KEY_LANGUAGE, code).apply()
-        _preferredLanguage.value = code
-    }
-
-    fun setArabicFontSize(size: Float) {
-        prefs.edit().putFloat(KEY_ARABIC_SIZE, size).apply()
-        _arabicFontSize.value = size
-    }
 
     fun setOnboardingCompleted(completed: Boolean) {
         prefs.edit().putBoolean(KEY_ONBOARDED, completed).apply()
@@ -53,8 +37,6 @@ class AppSettings(context: Context) {
     }
 
     private companion object {
-        const val KEY_LANGUAGE = "user.preferredLanguage"
-        const val KEY_ARABIC_SIZE = "reader.arabicFontSize"
         const val KEY_ONBOARDED = "onboarding.completed"
         const val KEY_DAILY_ENABLED = "notifications.dailyEnabled"
         const val KEY_DAILY_TIME = "notifications.dailyTime"

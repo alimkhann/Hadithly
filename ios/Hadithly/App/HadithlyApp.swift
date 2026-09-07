@@ -7,6 +7,7 @@ struct HadithlyApp: App {
     @State private var environment = AppEnvironment()
 
     var body: some Scene {
+        let uiLocale = environment.preferences.preferences.uiLocale
         WindowGroup {
             RootView()
                 .environment(environment)
@@ -14,6 +15,11 @@ struct HadithlyApp: App {
                 .environment(environment.library)
                 .environment(environment.push)
                 .environment(Clerk.shared)
+                .environment(\.locale, Locale(identifier: uiLocale))
+                .environment(
+                    \.layoutDirection,
+                    LocaleFallback.isRTL(uiLocale) ? .rightToLeft : .leftToRight
+                )
                 .preferredColorScheme(.dark)
         }
     }

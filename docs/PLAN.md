@@ -426,6 +426,18 @@ substantive: they own bounded implementation outcomes, not just inventories.
   tests with JDK 21 (same new suites plus reader wiring). Live device checks
   ran on an Android 16 emulator and the iOS simulator — physical-device
   confirmation stays in D4.
+- Review repair (2026-09-08): a fresh client default can no longer overwrite
+  an existing server row's legacy language during the one-time migration;
+  explicit local choices still win. Android reader size now uses the synced
+  `PreferencesStore` rather than the retired `AppSettings` duplicate. Both
+  app roots apply `uiLocale` to localized resources and layout direction.
+  The new backend legacy-row fixture passes; backend typecheck and 48 tests,
+  iOS 51 tests, and Android debug tests pass. The corrected functions were
+  pushed to development Convex `festive-cobra-664`; production was untouched.
+  On the Android 16 emulator,
+  selecting Arabic and Urdu from the app's own temporary control immediately
+  localized F2 controls and mirrored the layout; switching back to English
+  restored LTR. Physical-device confirmation remains D4.
 - Security: no new untrusted-data surface; every preference mutation derives
   identity from the Clerk JWT. No dashboard, credential, or store state
   changed.

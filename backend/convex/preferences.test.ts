@@ -152,6 +152,50 @@ describe("reading direction metadata", () => {
 });
 
 describe("preferences sync and one-time migration", () => {
+  test("migrates an existing legacy row before accepting a fresh client default", async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async (ctx) => {
+      await ctx.db.insert("users", {
+        clerkId: "user_pref_legacy",
+        preferredLanguage: "ur",
+        subscriptionTier: "free",
+        aiGenerationsThisMonth: 0,
+        aiGenerationLimit: 20,
+        createdAt: 1,
+        updatedAt: 1,
+      });
+    });
+    const asUser = t.withIdentity(identity("user_pref_legacy"));
+
+    // A fresh install supplies its default object on first sign-in. It must
+    // not replace this account's legacy server-side translation setting.
+    await asUser.mutation(api.users.ensureCurrentUser, {
+      preferredLanguage: "en",
+      readerPreferences: {
+        schemaVersion: 1,
+        uiLocale: "en",
+        translationLocale: "en",
+        readingDirection: "auto",
+        theme: "system",
+        arabicFont: "system",
+        arabicFontSize: 26,
+        arabicVisible: true,
+        translationVisible: true,
+        updatedAt: 0,
+      },
+    });
+
+    const row = await t.run(async (ctx) =>
+      await ctx.db
+        .query("users")
+        .withIndex("by_clerk_id", (q) => q.eq("clerkId", "user_pref_legacy"))
+        .unique(),
+    );
+    expect(row?.readerPreferences?.uiLocale).toBe("ur");
+    expect(row?.readerPreferences?.translationLocale).toBe("ur");
+    expect(row?.preferredLanguage).toBe("ur");
+  });
+
   test("seeds both locales from the legacy language exactly once", async () => {
     const t = convexTest(schema, modules);
     const asUser = t.withIdentity(identity("user_pref_1"));

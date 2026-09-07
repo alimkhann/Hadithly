@@ -108,6 +108,7 @@ fun ReaderScreen(
     val bookmarks by viewModel.library.bookmarks.collectAsStateWithLifecycle()
     val favorites by viewModel.library.favorites.collectAsStateWithLifecycle()
     val notes by viewModel.library.notes.collectAsStateWithLifecycle()
+    val preferences by app.preferences.preferences.collectAsStateWithLifecycle()
     val colors = LocalHadithlyColors.current
 
     var showContents by remember { mutableStateOf(false) }
@@ -139,7 +140,7 @@ fun ReaderScreen(
                 viewModel = viewModel,
                 state = state,
                 collectionName = collectionName,
-                arabicFontSize = app.settings.arabicFontSize.collectAsStateWithLifecycle().value,
+                arabicFontSize = preferences.arabicFontSize,
                 onOpenContents = { showContents = true },
                 onOpenSettings = { showSettings = true },
                 onShowPaywall = { showQuotaPaywall = true },
@@ -168,9 +169,9 @@ fun ReaderScreen(
         ) {
             SettingsSheet(
                 language = state.language,
-                arabicFontSize = app.settings.arabicFontSize.collectAsStateWithLifecycle().value,
+                arabicFontSize = preferences.arabicFontSize,
                 onLanguage = { viewModel.setLanguage(it) },
-                onArabicFontSize = { app.settings.setArabicFontSize(it) },
+                onArabicFontSize = app.preferences::setArabicFontSize,
             )
         }
     }

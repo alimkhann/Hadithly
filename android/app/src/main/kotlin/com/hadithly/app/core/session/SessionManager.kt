@@ -111,7 +111,7 @@ class SessionManager(
 
             try {
                 repository.ensureCurrentUser(
-                    settings.preferredLanguage.value,
+                    preferences.preferences.value.translationLocale,
                     preferences.preferences.value.toWireMap(),
                 )
                 // Adopt the authoritative stored preferences when another

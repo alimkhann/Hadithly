@@ -53,26 +53,35 @@ export const ensureCurrentUser = mutation({
       let readerPreferences = existing.readerPreferences as
         | ReaderPreferences
         | undefined;
-      if (
+      if (shouldMigrateLocales) {
+        // A pre-F2 row's preferredLanguage is authoritative for its first
+        // migration. Every fresh client has a default en/en object, so letting
+        // that unmodified payload win here would erase the user's saved
+        // translation language on a reinstall or second device.
+        const seedLanguage =
+          existing.preferredLanguage ?? args.preferredLanguage ?? "en";
+        readerPreferences = defaultReaderPreferences(seedLanguage, now);
+        // A real pre-sign-in choice has a local write timestamp; preserve it
+        // without treating the initial default object as an explicit choice.
+        if (incomingPreferences && incomingPreferences.updatedAt > 0) {
+          readerPreferences = incomingPreferences;
+        }
+      } else if (
         incomingPreferences &&
         (readerPreferences === undefined ||
           readerPreferences.updatedAt <= incomingPreferences.updatedAt)
       ) {
         readerPreferences = incomingPreferences;
       }
-      if (shouldMigrateLocales && readerPreferences === undefined) {
-        const seedLanguage =
-          existing.preferredLanguage ?? args.preferredLanguage ?? "en";
-        readerPreferences = defaultReaderPreferences(seedLanguage, now);
-      }
 
       await ctx.db.patch(existing._id, {
         email: existing.email ?? identity.email,
         displayName: existing.displayName ?? identity.name,
         avatarUrl: existing.avatarUrl ?? identity.pictureUrl,
-        preferredLanguage: shouldMigrateLocales
-          ? (args.preferredLanguage ?? existing.preferredLanguage)
-          : existing.preferredLanguage,
+        // Keep the legacy field coherent for pre-F2 readers during the
+        // migration window; readerPreferences remains authoritative.
+        preferredLanguage:
+          readerPreferences?.translationLocale ?? existing.preferredLanguage,
         readerPreferences,
         localesMigrated: shouldMigrateLocales ? true : existing.localesMigrated,
         updatedAt: now,
