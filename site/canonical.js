@@ -25,10 +25,10 @@
   }
 
   function parsePath(path) {
-    var trimmed = path.replace(/\/+$/, "");
+    var trimmed = path.endsWith("/") ? path.slice(0, -1) : path;
     if (trimmed.indexOf(PREFIX) !== 0) return null;
     var rest = trimmed.slice(PREFIX.length);
-    var segments = rest.split("/").filter(function (s) { return s.length > 0; });
+    var segments = rest.split("/");
     if (segments.length !== 2) return null;
     if (!COLLECTION_SLUG_PATTERN.test(segments[0])) return null;
     if (!PROVIDER_HADITH_ID_PATTERN.test(segments[1])) return null;

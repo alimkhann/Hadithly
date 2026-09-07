@@ -45,7 +45,7 @@ class MainActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.dark(ThemeColors.Background.toArgb()),
         )
         val pendingLink = intent?.data
-            ?.let { CanonicalHadithLink.parse(it.scheme, it.host, it.path) }
+            ?.let { CanonicalHadithLink.parse(it.scheme, it.host, it.path, it.encodedPath) }
         setContent {
             HadithlyTheme {
                 LocalizedRootApp(pendingLink = pendingLink)

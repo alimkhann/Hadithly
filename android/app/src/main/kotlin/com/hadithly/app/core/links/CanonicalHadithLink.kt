@@ -31,14 +31,19 @@ data class CanonicalHadithLink(
          * resolved `Uri` so this stays framework-free and unit-testable.
          * Returns null for any foreign, truncated, or malformed link.
          */
-        fun parse(scheme: String?, host: String?, path: String?): CanonicalHadithLink? {
-            if (scheme != "https" || host != HOST) return null
+        fun parse(
+            scheme: String?,
+            host: String?,
+            path: String?,
+            encodedPath: String? = path,
+        ): CanonicalHadithLink? {
+            if (scheme != "https" || host != HOST || path != encodedPath) return null
             if (path == null || !path.startsWith(PATH_PREFIX)) return null
-            val segments = path
-                .removeSuffix("/")
+            val normalizedPath = path.removeSuffix("/")
+            if (normalizedPath.endsWith("/")) return null
+            val segments = normalizedPath
                 .removePrefix(PATH_PREFIX)
                 .split("/")
-                .filter { it.isNotEmpty() }
             if (segments.size != 2) return null
             val (slug, id) = segments
             if (!COLLECTION_SLUG.matches(slug)) return null

@@ -56,6 +56,8 @@ class CanonicalLinkTest {
             "/hadith/bukhari",
             "/hadith/bukhari/57/extra",
             "/hadith//57",
+            "/hadith//bukhari/57",
+            "/hadith/bukhari/57//",
             "/hadith/bukhari/",
             "/hadith/Bukhari/57",
             "/hadith/bukhari/57abc",
@@ -74,6 +76,26 @@ class CanonicalLinkTest {
             )
         }
         assertNull(CanonicalHadithLink.parse("https", "hadithly.app", null))
+    }
+
+    @Test
+    fun rejectsPercentEncodedPathSegments() {
+        assertNull(
+            CanonicalHadithLink.parse(
+                "https",
+                "hadithly.app",
+                "/hadith/bukhari/57",
+                "/hadith/bukhari/%35%37",
+            ),
+        )
+        assertNull(
+            CanonicalHadithLink.parse(
+                "https",
+                "hadithly.app",
+                "/hadith/bukhari/57",
+                "/hadith/bukhari%2F57",
+            ),
+        )
     }
 
     @Test

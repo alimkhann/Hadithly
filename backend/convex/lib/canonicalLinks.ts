@@ -47,12 +47,11 @@ export type ParsedCanonicalHadithPath = {
 export function parseCanonicalHadithPath(
   path: string,
 ): ParsedCanonicalHadithPath {
-  const trimmed = path.replace(/\/+$/, "");
+  const trimmed = path.endsWith("/") ? path.slice(0, -1) : path;
   if (!trimmed.startsWith(CANONICAL_LINK_PATH_PREFIX)) return null;
   const segments = trimmed
     .slice(CANONICAL_LINK_PATH_PREFIX.length)
-    .split("/")
-    .filter((segment) => segment.length > 0);
+    .split("/");
   if (segments.length !== 2) return null;
   const [collectionSlug, providerHadithId] = segments;
   if (!COLLECTION_SLUG_PATTERN.test(collectionSlug)) return null;
@@ -75,6 +74,7 @@ export function parseCanonicalLink(
   }
   if (parsed.protocol !== "https:") return null;
   if (parsed.hostname !== CANONICAL_LINK_HOST) return null;
+  if (parsed.pathname.includes("%")) return null;
   return parseCanonicalHadithPath(parsed.pathname);
 }
 

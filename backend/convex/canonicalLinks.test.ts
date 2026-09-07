@@ -33,6 +33,8 @@ describe("canonical path parsing", () => {
     expect(parseCanonicalHadithPath("/hadith/bukhari")).toBeNull();
     expect(parseCanonicalHadithPath("/hadith/bukhari/57/extra")).toBeNull();
     expect(parseCanonicalHadithPath("/hadith//57")).toBeNull();
+    expect(parseCanonicalHadithPath("/hadith//bukhari/57")).toBeNull();
+    expect(parseCanonicalHadithPath("/hadith/bukhari/57//")).toBeNull();
     expect(parseCanonicalHadithPath("/hadith/bukhari/")).toBeNull();
     expect(parseCanonicalHadithPath("/hadith/Bukhari/57")).toBeNull();
     expect(parseCanonicalHadithPath("/hadith/bukhari/57abc")).toBeNull();
@@ -56,6 +58,8 @@ describe("canonical path parsing", () => {
     expect(parseCanonicalLink("https://evil.example/hadith/bukhari/57")).toBeNull();
     expect(parseCanonicalLink("https://hadithly.app.evil.example/hadith/bukhari/57")).toBeNull();
     expect(parseCanonicalLink("https://hadithly.app/privacy/")).toBeNull();
+    expect(parseCanonicalLink("https://hadithly.app/hadith/bukhari/%35%37")).toBeNull();
+    expect(parseCanonicalLink("https://hadithly.app/hadith/bukhari%2F57")).toBeNull();
     expect(parseCanonicalLink("not a url")).toBeNull();
   });
 

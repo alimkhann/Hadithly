@@ -263,6 +263,10 @@ Model: GPT-5.6 Sol, xhigh. Use `architect`, `domain-modeling`,
 
 > Read `AGENTS.md`, `docs/PLAN.md`, and `docs/REFERENCE_AUDIT.md` fully. Confirm
 > F1 passed. Execute only R1. Preserve unrelated changes and do not use Relay.
+> Before code, open every one of the 16 original-detail Sajda images named in
+> `REFERENCE_AUDIT.md`'s Reader-session image obligations. R1 changes no visual
+> behavior, but its position contract must support the reader designs assigned
+> to R2 through R5.
 > Add the versioned `ReadingPosition` contract from the plan, its Convex
 > validators, guest equivalents, dual-read migration, and deterministic anchor
 > resolution. Do not redesign reader visuals.
@@ -284,6 +288,9 @@ Model: GPT-5.6 Terra, high. Use `blast-radius`, `diagnosing-bugs` if needed, and
 
 > Read `AGENTS.md`, `docs/PLAN.md`, and `docs/REFERENCE_AUDIT.md` fully. Confirm
 > R1 passed. Execute only R2. Preserve unrelated changes and do not use Relay.
+> Before code, open every one of the 16 original-detail Sajda images named in
+> `REFERENCE_AUDIT.md`'s Reader-session image obligations; apply the R2 mapping
+> for revealed chrome and source-aware back behavior without taking on R4 UI.
 > Restore the semantic anchor and normalized offset from Continue Reading and
 > Saved. Open Today, canonical links, notification targets, and widget targets at
 > the exact hadith start unless a valid versioned position exists.
@@ -306,6 +313,9 @@ Model: GPT-5.6 Sol, xhigh. Use `diagnosing-bugs`,
 
 > Read `AGENTS.md`, `docs/PLAN.md`, and `docs/REFERENCE_AUDIT.md` fully. Confirm
 > R2 passed. Execute only R3. Preserve unrelated changes and do not use Relay.
+> Before code, open every one of the 16 original-detail Sajda images named in
+> `REFERENCE_AUDIT.md`'s Reader-session image obligations; apply only the R3
+> mapping for end navigation, Arabic-only, and mixed-script reading.
 > Implement `auto`, `rtl`, and `ltr` paging semantics from the plan. In
 > applicable RTL reading, swiping left moves backward. Keep vertical scrolling
 > native and keep exact restoration stable for long pages.
@@ -328,6 +338,9 @@ GPT-5.6 Terra high task reviews both native implementations and accessibility.
 
 > Read `AGENTS.md`, `docs/PLAN.md`, and `docs/REFERENCE_AUDIT.md` fully. Confirm
 > R3 passed. Execute only R4. Preserve unrelated changes and do not use Relay.
+> Before code, open every one of the 16 original-detail Sajda images named in
+> `REFERENCE_AUDIT.md`'s Reader-session image obligations, then use exactly the
+> R4 mapping there for the screenshot and accessibility matrix.
 > Implement the adopted Sajda behaviors without cloning Quran ornament: hidden
 > reader controls, compact and expanded progress, strong source-provided chapter
 > boundaries, minimal dividers, System, Light, Paper, and Dark themes, licensed
@@ -351,7 +364,10 @@ context actions, and share privacy.
 
 > Read `AGENTS.md`, `docs/PLAN.md`, and `docs/REFERENCE_AUDIT.md` fully. Confirm
 > F3 and R4 passed. Execute only R5. Preserve unrelated changes and do not use
-> Relay. Add source-provided collection, volume, chapter, and reference
+> Relay. Before code, open every one of the 16 original-detail Sajda images
+> named in `REFERENCE_AUDIT.md`'s Reader-session image obligations; apply only
+> the R5 contents, context-menu, and compact-menu mapping. Add source-provided
+> collection, volume, chapter, and reference
 > navigation. Add native context menus and quiet overflow actions for bookmark,
 > favorite, note, copy, share, report, and evidence contribution.
 >

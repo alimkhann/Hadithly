@@ -528,10 +528,19 @@ substantive: they own bounded implementation outcomes, not just inventories.
   positions, and never triggers generation. No dashboard, credential, or
   store state changed; the Android emulator and iOS simulator state
   changes were app-local.
-- Handoff: the worktree now holds F2 + Terra-review fixes + F3 changes
-  uncommitted. Still open: owner deploys the site files to Vercel, D3G
-  supplies the Play signing fingerprint (Android verification), and the
-  named Terra high review of F3's URL parsing and association files.
+- Follow-up review (2026-09-08): the named Terra high URL/association review
+  found and repaired one parser mismatch. Percent-encoded IDs and duplicate
+  separators are now rejected on iOS, Android, backend, and web rather than
+  opening the native reader while the fallback rejects the same link. New
+  parity fixtures cover encoded IDs and encoded slashes. The iOS AASA and
+  entitlement identifiers match; live AASA is valid. The F3 source was
+  committed in `4dfdaf3`; this review hardening follows as a separate commit.
+- External follow-up: the live canonical URL still serves the pre-F3 fallback.
+  The local Vercel CLI has no authenticated account, so deployment needs an
+  owner-authenticated Vercel session or a configured non-secret deployment
+  path. D3G still owns the Play signing fingerprint and live
+  `assetlinks.json`; do not create or substitute a fingerprint until the
+  Play Console track is available.
 - Next allowed session: R1. This task stopped before R1.
 
 ## Delegation policy

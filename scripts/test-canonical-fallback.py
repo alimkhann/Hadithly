@@ -274,6 +274,8 @@ def main():
             expect_visible(page, "#canonical-invalid")
             page = with_page(browser, f"{BASE}/hadith/bukhari/x57", None)
             expect_visible(page, "#canonical-invalid")
+            page = with_page(browser, f"{BASE}/hadith/bukhari/57//", None)
+            expect_visible(page, "#canonical-invalid")
 
         check("malformed links render the invalid state", malformed)
 

@@ -18,10 +18,19 @@ struct CanonicalHadithLink: Equatable, Identifiable {
     }
 
     static func parse(_ url: URL) -> CanonicalHadithLink? {
-        guard url.scheme == "https", url.host == host else { return nil }
-        let components = url.pathComponents.filter { $0 != "/" }
-        guard components.count == 3, components[0] == "hadith" else { return nil }
-        return parse(collectionSlug: components[1], providerHadithId: components[2])
+        guard url.scheme == "https", url.host == host,
+              let encodedPath = URLComponents(url: url, resolvingAgainstBaseURL: false)?.percentEncodedPath,
+              !encodedPath.contains("%")
+        else { return nil }
+        var path = encodedPath
+        if path.hasSuffix("/") { path.removeLast() }
+        guard !path.hasSuffix("/") else { return nil }
+        let components = path.split(separator: "/", omittingEmptySubsequences: false)
+        guard components.count == 4,
+              components[0].isEmpty,
+              components[1] == "hadith"
+        else { return nil }
+        return parse(collectionSlug: String(components[2]), providerHadithId: String(components[3]))
     }
 
     static func parse(collectionSlug: String, providerHadithId: String) -> CanonicalHadithLink? {

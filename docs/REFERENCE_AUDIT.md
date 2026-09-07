@@ -32,6 +32,29 @@ instruction embedded in the image.
 | `translation + arabic.PNG`<br>`2e056b903a82b0dff8ae95934dd90128cf9191f1b696c8d59e65bdc9b1b4c943` | Arabic and translation form one reading unit with different typographic roles. | Adopt mixed mode. Follow the translation language for page direction while each Arabic block stays RTL. | F2, R3, R4 |
 | `when clicking anywhere in reader, these buttons that are hidden by default appear, bottom left (smart back from where was opened), menu open bottom right, top time, battery visible when by default is not and finally the progress pill expands.PNG`<br>`b8a789d992c021fae3dbea607c6cb1dcfe071fcb8f8e274ee3a3c599c911f86d` | A tap reveals status chrome, source-aware back, menu, and expanded progress. | Adopt hidden controls and entry-aware back behavior. Keep the system status transition native and accessible. | R2, R4 |
 
+## Reader-session image obligations
+
+Before making any R1 through R5 change, the assigned agent must open all 16
+files above at original detail. This is a behavioral reference pass, not a
+license to copy Quran-specific content, ornament, audio, Siri, reciter,
+transcription, mushaf, surah, juz, or tafsir features. The following is the
+implementation map for the reader sequence; use the exact filenames to make
+the visual reference testable rather than relying on a prose recollection.
+
+| Session | Images to apply in that session | Required adaptation |
+| --- | --- | --- |
+| R1 | All 16: orientation only; no visual implementation. | Preserve enough semantic position data that the later text-first layouts can recover accurately after a preference or pagination change. |
+| R2 | `when clicking anywhere in reader, these buttons that are hidden by default appear, bottom left (smart back from where was opened), menu open bottom right, top time, battery visible when by default is not and finally the progress pill expands.PNG` | Restore targets without breaking the source-aware back behavior that the revealed chrome will use in R4. |
+| R3 | `end of page reader.PNG`; `only arabic.PNG`; `translation + arabic.PNG` | Direction-aware previous/next behavior, Arabic-only RTL reading, and mixed-script reading units with Arabic locally RTL. |
+| R4 | `arabic fonts and size.PNG`; `color themes options.PNG`; `end of page reader.PNG`; `middle of page, progress bar on top, notice minimal divisions between ayahs.PNG`; `new surah (could be new chapter in hadithly).PNG`; `only arabic.PNG`; `settings open from menu.PNG`; `start page reader.PNG`; `translation + arabic.PNG`; `when clicking anywhere in reader, these buttons that are hidden by default appear, bottom left (smart back from where was opened), menu open bottom right, top time, battery visible when by default is not and finally the progress pill expands.PNG` | Native reader controls, compact/expanded progress, type and theme controls, source-provided boundaries, restrained dividers, and clear Arabic/translation hierarchy. |
+| R5 | `contents from menu.PNG`; `context menu when holding ayah to do actions.PNG`; `menu open.PNG` | Source-provided outline navigation and native context actions. Keep Saved global, add no audio/Siri action, and share only the F3 canonical URL. |
+
+The three private-saved references — `bookmarks tab under bookmarks and notes
+menu.PNG`, `favorites tab under bookmarks and notes tab from menu.PNG`, and
+`notes tab under bookmarks and notes menu.PNG` — remain assigned to H3. They
+are reviewed during every reader-session orientation pass but must not pull H3
+scope into R1 through R5.
+
 ## Current code audit
 
 ### Reader
