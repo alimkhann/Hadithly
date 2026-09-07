@@ -417,7 +417,7 @@ Apple full round-trip and physical-device passes remain for D4 as planned.
 
 ## D3 domain, stores, RevenueCat, and policies
 
-Status on 2026-09-04:
+Status on 2026-09-07:
 
 - Registrar control of `hadithly.app` is verified. Vercel serves the apex and
   `www` over HTTPS from the repository's `site/` directory. Privacy, support,
