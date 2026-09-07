@@ -432,6 +432,12 @@ Status on 2026-09-04:
   expiry, renewal, and refund/revocation. Stale events are ignored. RevenueCat
   now targets the Convex production endpoint with the matching Keychain-backed
   Authorization value; its dashboard-generated test returned HTTP 200.
+- RevenueCat's real App Store configuration is connected with a valid IAP key.
+  `com.hadithly.app.pro.monthly` and `com.hadithly.app.pro.annual` are attached
+  to the `pro` entitlement and both are present in the default offering. The
+  iOS public SDK key is installed in the ignored production xcconfig. RevenueCat
+  cannot check live store status without an App Store Connect API key, so the
+  products were entered and verified by identifier rather than imported.
 - Android `assetlinks.json` remains intentionally absent because its Play App
   Signing fingerprint does not exist yet.
 - Google Play Console, Android store products, license testers, and Android
@@ -447,8 +453,8 @@ Status on 2026-09-04:
   price, all-region availability, and manual release. No build, screenshot, or
   review submission was added.
 - A dedicated App Store Connect In-App Purchase key was created and downloaded
-  once with owner-only local file permissions. Its upload to RevenueCat remains
-  a separate sensitive-credential transmission boundary. Agreements, tax,
+  once with owner-only local file permissions, then accepted by RevenueCat as
+  valid. Agreements, tax,
   banking, identity, passwords, one-time codes, CAPTCHAs, review contact and
   account values, legal declarations, and store-artifact submission remain
   user handoffs as specified.
@@ -466,14 +472,19 @@ Status on 2026-09-04:
 ### RevenueCat
 
 - [x] Remove the weekly package from the planned production offering.
-- [ ] Create or connect monthly and annual App Store products.
+- [x] Create or connect monthly and annual App Store products.
 - [ ] Create or connect monthly and annual Play products.
-- [ ] Attach all four platform products to `pro` and the current offering.
+- [x] Attach the monthly and annual App Store products to `pro` and the current
+  offering.
+- [ ] Attach the monthly and annual Play products to `pro` and the current
+  offering after D3G.
 - [x] Configure
   `https://giddy-ox-648.eu-west-1.convex.site/webhooks/revenuecat`.
 - [x] Set its Authorization value from the existing Keychain item without
   revealing it.
-- [ ] Install production public SDK keys in the two gitignored release configs.
+- [x] Install the production iOS public SDK key in its gitignored release
+  config.
+- [ ] Install the production Android public SDK key after D3G.
 - [ ] Verify purchase, restore, cancellation, grace, expiration, refund or
   revocation, and quota retry on both store sandboxes.
 
