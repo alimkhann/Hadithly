@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.toArgb
 import com.hadithly.app.core.theme.ThemeColors
 import com.hadithly.app.core.theme.HadithlyTheme
 import com.hadithly.app.core.preferences.LocaleFallback
+import com.hadithly.app.core.links.CanonicalHadithLink
 import com.hadithly.app.features.auth.SignInScreen
 import com.hadithly.app.features.main.MainTabs
 import com.hadithly.app.features.onboarding.OnboardingFlow
@@ -32,6 +33,8 @@ import java.util.Locale
  * main tabs. Guest mode is a first-class state — reading works without an
  * account. Sign-in lives in a full-screen dialog; post-sign-in sync happens
  * in SessionManager so every auth method converges on the same path.
+ * Canonical https links (F3) route into the reader; malformed or foreign
+ * links are ignored and the app opens wherever it normally would.
  */
 class MainActivity : ComponentActivity() {
 
@@ -41,9 +44,11 @@ class MainActivity : ComponentActivity() {
             statusBarStyle = SystemBarStyle.dark(ThemeColors.Background.toArgb()),
             navigationBarStyle = SystemBarStyle.dark(ThemeColors.Background.toArgb()),
         )
+        val pendingLink = intent?.data
+            ?.let { CanonicalHadithLink.parse(it.scheme, it.host, it.path) }
         setContent {
             HadithlyTheme {
-                LocalizedRootApp()
+                LocalizedRootApp(pendingLink = pendingLink)
             }
         }
     }
@@ -51,7 +56,7 @@ class MainActivity : ComponentActivity() {
 
 /** Applies the synced UI locale to resources and directional Compose layout. */
 @Composable
-private fun LocalizedRootApp() {
+private fun LocalizedRootApp(pendingLink: CanonicalHadithLink?) {
     val baseContext = LocalContext.current
     val app = baseContext.applicationContext as HadithlyApplication
     val preferences by app.preferences.preferences.collectAsState()
@@ -75,12 +80,12 @@ private fun LocalizedRootApp() {
         LocalResources provides localizedResources,
         androidx.compose.ui.platform.LocalLayoutDirection provides layoutDirection,
     ) {
-        RootApp()
+        RootApp(pendingLink = pendingLink)
     }
 }
 
 @Composable
-fun RootApp() {
+fun RootApp(pendingLink: CanonicalHadithLink? = null) {
     val app = LocalContext.current.applicationContext as HadithlyApplication
     val onboardingCompleted by app.settings.onboardingCompleted.collectAsState()
 
@@ -91,6 +96,7 @@ fun RootApp() {
             showSignIn = showSignIn,
             onShowSignIn = { showSignIn = true },
             onDismissSignIn = { showSignIn = false },
+            pendingLink = pendingLink,
         )
     } else {
         OnboardingFlow(

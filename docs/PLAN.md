@@ -4,9 +4,9 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-09-07. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-09-08. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
-D2, and F1 are complete. F2 is complete. D3A's operational Apple and RevenueCat work is complete,
+D2, F1, F2, and F3 are complete. D3A's operational Apple and RevenueCat work is complete,
 while its legal, compliance, and iOS sandbox handoffs remain open. D3G is
 explicitly deferred by the owner until a Play Console developer account is
 available. Full D3 cannot pass until both release subgates pass, but neither
@@ -16,7 +16,7 @@ auth, and the username contract is now: optional, auto-generated from the
 email local part at password sign-up, editable in Settings. The Android FCM
 device-push re-test deferred from D1 folds into D4's physical-device matrix.
 
-Current next session: F3. Do not start D4 until the D3A release handoffs and D3G
+Current next session: R1. Do not start D4 until the D3A release handoffs and D3G
 pass. Keep store, sandbox, and submission work on the release track while the
 feature track builds the product.
 
@@ -446,6 +446,93 @@ substantive: they own bounded implementation outcomes, not just inventories.
   Terra high review of this patch has not run yet; schedule it before or with
   F3.
 - Next allowed session: F3. This task stopped before F3.
+
+### F3 session record (2026-09-08)
+
+- Outcome: complete. `https://hadithly.app/hadith/{collectionSlug}/{providerHadithId}`
+  now resolves on the backend, renders through a licensed web fallback on
+  Vercel, and routes into both native apps via Universal Links / App Links.
+  Share UI remains R5; nothing here generates AI or exposes private positions.
+- Design: one public, identity-free Convex query
+  (`hadiths:resolveCanonicalLink`) owns resolution and trust decisions;
+  each surface parses at its own boundary against a pure shared contract in
+  `backend/convex/lib/canonicalLinks.ts` (slug `^[a-z][a-z0-9-]{1,31}$`,
+  hadith id `^[1-9][0-9]{0,11}(\.[0-9]{1,12})*$`, `locale` via the shared F2
+  tag canonicalizer, `pos` version tag `^v[0-9]{1,12}$`). Malformed, foreign,
+  stale, and unsupported-locale links degrade to safe fallbacks — the reader
+  start, the labeled provider English, or a quiet web message — never errors.
+- License gate (compliance-first): the backend returns text only when the
+  hadith's license record is `verified` with `permitsDisplay`. Every current
+  cached row records Sunnah.now as `unverified`, so today the web fallback
+  shows reference, source, authenticity scope, and app actions only; text
+  appears the moment a license record verifies. No AI generation exists on
+  the page-load path; only already-live cached translations are read, with
+  the exact → base language → provider English chain labeled by
+  `translationFallback`.
+- Backend: `lib/canonicalLinks.ts`, public `hadiths:resolveCanonicalLink`
+  plus `canonicalLinkResultValidator` in `hadiths.ts`. No schema change. The
+  `contentVersion` marker is `sourceUpdatedAt` until O1 defines versioned
+  dumps. Functions pushed to development Convex `festive-cobra-664` and
+  proven live via `POST /api/query` (the region-qualified deployment host
+  serves the HTTP API; the bare apex 404s, so `site/convex-config.js` uses
+  `https://festive-cobra-664.eu-west-1.convex.cloud`). Production untouched.
+- Web: `site/hadith/index.html` rewritten with loading / resolved /
+  invalid / not-available states and app actions; `site/canonical.js` parses
+  the path at the page boundary (page origin is its own trust boundary) and
+  fills the page from the one public query; `site/styles.css` gained the
+  RTL Arabic block, translation, scope pill, and fallback-note styles.
+  Vercel rewrites already mapped `/hadith/*`; the AASA was already live from
+  D3A-domain. Deploying the new files to Vercel is an owner action.
+- iOS: entitlements add `applinks:hadithly.app`; `App/LinkRouter.swift`
+  mirrors the parse contract and queues at most one link, silently ignoring
+  foreign/malformed URLs; `RootView` registers `.onOpenURL`; MainTabs
+  presents the reader over the tabs in a full-screen cover, signed-out
+  access unchanged. A real routing bug was found and fixed during simulator
+  verification: consuming the pending link cleared the queue and re-fired
+  `.onChange`, instantly closing the cover; the nil transition no longer
+  triggers a consume. Because canonical routes carry no volume, the reader
+  now locates the volume holding the target hadith from the
+  source-provided outline counts (`ReaderModel.volumeId(forHadithNumber:)`
+  over cumulative counts; sub-references use the integer part; unknown or
+  stale numbers keep the first volume at page 1).
+- Android: manifest gains the `autoVerify` VIEW intent-filter for
+  `https://hadithly.app/hadith/`; `core/links/CanonicalHadithLink.kt` is a
+  framework-free parser (`parse(scheme, host, path)`); MainActivity threads
+  the link through `LocalizedRootApp` → `RootApp` → MainTabs, which opens
+  the reader exactly once after onboarding completes;
+  `ReaderViewModel` carries the mirrored volume locator as a companion
+  function. Domain verification stays unverified (state 1024) until D3G
+  supplies the Play signing fingerprint for `assetlinks.json`; the
+  emulator matrix used the real user-selection path
+  (`pm set-app-links-user-selection`) for the installed cases.
+- Evidence: backend typecheck clean, 62/62 tests (14 new); Playwright
+  8/8 scenarios (licensed text + RTL translation, labeled provider English,
+  unsupported-locale degradation, unverified-license text suppression, AI
+  label, malformed, stale, resolver outage) via
+  `scripts/test-canonical-fallback.py`; iOS 63/63 unit tests on the
+  Hadithly D2 simulator (12 new: parser matrix, router queue-once,
+  volume locator) plus simulator proof — valid link opened the reader at
+  Volume 2, the page containing Bukhari 57; malformed landed on Today with
+  no reader; stale 9999 landed at Volume 1 start; Android 49/49 unit tests
+  with JDK 21 (10 new) plus the same matrix on the hadithly emulator:
+  installed + signed-out + `?locale=zz&pos=v99` routed into the reader,
+  malformed opened Today without a reader, stale fell back to Volume 1,
+  uninstalling sent the link to the browser fallback, and the debug
+  fingerprint is recorded unverified pending D3G. Live dev proof:
+  `POST /api/query` returned `sunnah_now:bukhari:57` with
+  `license: unverified` → `text.visible: false`, and `9999` → `not_found`
+  with the route echoed.
+- Security: no new identity surface (the resolver is public and reads no
+  user rows); inbound links are validated by pure functions before any
+  backend touch; the web page renders escaped text only, reads no private
+  positions, and never triggers generation. No dashboard, credential, or
+  store state changed; the Android emulator and iOS simulator state
+  changes were app-local.
+- Handoff: the worktree now holds F2 + Terra-review fixes + F3 changes
+  uncommitted. Still open: owner deploys the site files to Vercel, D3G
+  supplies the Play signing fingerprint (Android verification), and the
+  named Terra high review of F3's URL parsing and association files.
+- Next allowed session: R1. This task stopped before R1.
 
 ## Delegation policy
 

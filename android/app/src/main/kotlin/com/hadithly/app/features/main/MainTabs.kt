@@ -15,6 +15,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -26,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.hadithly.app.HadithlyApplication
 import com.hadithly.app.core.data.HadithRef
+import com.hadithly.app.core.links.CanonicalHadithLink
 import com.hadithly.app.core.theme.LocalHadithlyColors
 import com.hadithly.app.features.library.LibraryScreen
 import com.hadithly.app.features.reader.ReaderScreen
@@ -52,17 +54,32 @@ data class ReaderOpenTarget(
  * Four quiet destinations matching iOS: Today, Library, Saved, Settings.
  * Reader opens full screen over
  * the tab bar; its close control — or system back — returns here.
+ * A pending canonical link (F3 App Link) opens the reader exactly once;
+ * while onboarding is unfinished it waits here and lands after completion.
  */
 @Composable
 fun MainTabs(
     showSignIn: Boolean,
     onShowSignIn: () -> Unit,
     onDismissSignIn: () -> Unit,
+    pendingLink: CanonicalHadithLink? = null,
 ) {
     val app = rememberApp()
     val colors = LocalHadithlyColors.current
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var readerTarget by remember { mutableStateOf<ReaderOpenTarget?>(null) }
+    var consumedLink by remember { mutableStateOf<CanonicalHadithLink?>(null) }
+
+    LaunchedEffect(pendingLink) {
+        if (pendingLink != null && pendingLink != consumedLink) {
+            consumedLink = pendingLink
+            readerTarget = ReaderOpenTarget(
+                slug = pendingLink.collectionSlug,
+                name = pendingLink.collectionName,
+                hadithNumber = pendingLink.providerHadithId,
+            )
+        }
+    }
 
     Scaffold(
         containerColor = colors.background,

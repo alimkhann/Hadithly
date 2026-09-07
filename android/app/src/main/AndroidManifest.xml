@@ -23,6 +23,18 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- F3 canonical App Link. Verification (assetlinks.json with the
+                 Play signing fingerprint) is provisioned by D3G; routing works
+                 regardless via deep links until then. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="hadithly.app"
+                    android:pathPrefix="/hadith/" />
+            </intent-filter>
         </activity>
         <service
             android:name=".core.push.HadithlyFirebaseMessagingService"

@@ -60,6 +60,7 @@ final class AppEnvironment {
     let push: PushNotificationManager
     let purchases: PurchaseManager
     let preferences: PreferencesStore
+    let links = LinkRouter()
 
     /// Summary of the last completed sign-in sync, surfaced in Settings.
     private(set) var lastSyncSummary: String?

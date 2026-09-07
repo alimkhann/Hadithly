@@ -9,6 +9,7 @@
 	<key>com.apple.developer.associated-domains</key>
 	<array>
 		<string>webcredentials:clerk.hadithly.app</string>
+		<string>applinks:hadithly.app</string>
 	</array>
 	<key>aps-environment</key>
 	<string>development</string>

@@ -100,8 +100,15 @@ class ReaderViewModel(
         viewModelScope.launch {
             try {
                 val result = app.repository.getCollectionOutline(collectionSlug)
+                // Explicit deep links (Today/Saved) name a volume; a canonical
+                // link carries only the hadith number, so the volume holding
+                // it comes from the outline's source-provided counts. Unknown
+                // or stale numbers degrade to the first volume.
+                val targetVolume = openHadithNumber?.let {
+                    volumeIdForHadithNumber(it, result.volumes)
+                }
                 val requested = result.volumes.firstOrNull { it.volumeId == openVolumeId }?.volumeId
-                val firstVolume = requested ?: result.volumes.firstOrNull()?.volumeId
+                val firstVolume = requested ?: targetVolume ?: result.volumes.firstOrNull()?.volumeId
                 _state.update { it.copy(phase = Phase.Reading, volumes = result.volumes) }
                 if (firstVolume != null) {
                     _state.update { it.copy(selectedVolumeId = firstVolume) }
@@ -112,6 +119,34 @@ class ReaderViewModel(
             } catch (error: Exception) {
                 _state.update { it.copy(phase = Phase.Failed(errorMessage(error))) }
             }
+        }
+    }
+
+    fun volumeIdForHadithNumber(
+        hadithNumber: String,
+        volumes: List<OutlineVolume>,
+    ): String? = Companion.volumeIdForHadithNumber(hadithNumber, volumes)
+
+    companion object {
+        /**
+         * Locates the source-provided volume that holds a hadith number by
+         * walking the outline's counts in order. Sub-references ("4.5") use
+         * the integer part. Returns null when the number exceeds the
+         * collection.
+         */
+        fun volumeIdForHadithNumber(
+            hadithNumber: String,
+            volumes: List<OutlineVolume>,
+        ): String? {
+            val integerPart = hadithNumber.split(".").firstOrNull() ?: return null
+            val target = integerPart.toDoubleOrNull() ?: return null
+            var lower = 0.0
+            for (volume in volumes) {
+                val upper = lower + volume.hadithCount
+                if (target > lower && target <= upper) return volume.volumeId
+                lower = upper
+            }
+            return null
         }
     }
 

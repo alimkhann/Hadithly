@@ -36,6 +36,9 @@ struct RootView: View {
         .task {
             await observeAuthEvents()
         }
+        .onOpenURL { url in
+            environment.links.handle(url)
+        }
     }
 
     private func observeAuthEvents() async {

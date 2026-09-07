@@ -134,8 +134,15 @@ final class ReaderModel {
                 with: ["collectionSlug": collectionSlug as ConvexEncodable?]
             )
             volumes = result.volumes
+            // Explicit deep links (Today/Saved) name a volume; a canonical
+            // link carries only the hadith number, so the volume holding it
+            // comes from the outline's source-provided counts. Unknown or
+            // stale numbers degrade to the first volume.
+            let targetVolume = openHadithNumber.flatMap {
+                Self.volumeId(forHadithNumber: $0, in: volumes)
+            }
             let requested = result.volumes.first { $0.volumeId == openVolumeId }?.volumeId
-            let firstVolume = requested ?? result.volumes.first?.volumeId
+            let firstVolume = requested ?? targetVolume ?? result.volumes.first?.volumeId
             selectedVolumeId = firstVolume
             if let firstVolume {
                 await loadPage(
@@ -150,6 +157,26 @@ final class ReaderModel {
             phase = .failed(ReaderModels.errorMessage(of: error))
         }
         outlineTask = nil
+    }
+
+    /// Locates the source-provided volume that holds a hadith number by
+    /// walking the outline's counts in order. Sub-references ("4.5") use
+    /// the integer part. Returns nil when the number exceeds the collection.
+    nonisolated static func volumeId(
+        forHadithNumber hadithNumber: String,
+        in volumes: [OutlineVolume]
+    ) -> String? {
+        guard
+            let integerPart = hadithNumber.split(separator: ".").first,
+            let target = Int(integerPart)
+        else { return nil }
+        var lower = 0
+        for volume in volumes {
+            let upper = lower + volume.hadithCount
+            if target > lower && target <= upper { return volume.volumeId }
+            lower = upper
+        }
+        return nil
     }
 
     func selectVolume(_ volumeId: String) {

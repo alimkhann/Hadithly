@@ -152,6 +152,38 @@ li {
   font-size: 0.88rem;
 }
 
+.scope-line {
+  margin-top: 0.5rem;
+  padding: 0.45rem 0.9rem;
+  display: inline-block;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.arabic {
+  margin: 2.25rem 0 0;
+  font-family: "Geeza Pro", "Damascus", "Amiri", serif;
+  font-size: clamp(1.5rem, 4.5vw, 2.1rem);
+  line-height: 2.05;
+}
+
+.translation {
+  margin: 1.5rem 0 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+  font-size: 1.1rem;
+}
+
+.fallback-note {
+  margin: 0.9rem 0 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
 footer {
   display: flex;
   flex-wrap: wrap;

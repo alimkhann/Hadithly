@@ -5,10 +5,17 @@ import {
   authenticityClaimValidator,
   canonicalHadithIdentity,
   licenseRecordDescriptorValidator,
+  licenseTermsValidator,
   migrateLegacyAuthenticity,
   providerValidator,
 } from "./lib/contentPolicy";
 import type { AuthenticityClaim } from "./lib/contentPolicy";
+import {
+  canonicalLocaleParam,
+  canonicalPositionParam,
+  parseCanonicalHadithPath,
+} from "./lib/canonicalLinks";
+import { isRTLLocale } from "./lib/preferences";
 
 export const hadithInput = v.object({
   provider: providerValidator,
@@ -221,8 +228,7 @@ function currentHadith(hadith: Doc<"hadiths">): HadithDocument {
   };
 }
 
-/** Public: full-text search over cached English text + live translations. */
-export const search = query({
+/** Public: full-text search over cached English text + live translations. */export const search = query({
   args: {
     query: v.string(),
     collectionSlug: v.optional(v.string()),
@@ -271,3 +277,298 @@ export const search = query({
       .map(currentHadith);
   },
 });
+
+/**
+ * Public: resolve a canonical hadith link
+ * (`/hadith/{collectionSlug}/{providerHadithId}`) to the current cached
+ * content revision for the web fallback and native link routing.
+ *
+ * No user identity is involved and no private reading position is exposed:
+ * this mirrors the F1 public daily-selection precedent. Text is returned
+ * only when the source's license record is verified for display; otherwise
+ * the page shows identity, source, authenticity scope, and app actions only.
+ * AI is never generated here — only already-cached live translations are
+ * read. A malformed, stale, or unsupported-locale link degrades to a safe
+ * fallback; it never errors the page.
+ */
+export const canonicalLinkTranslationValidator = v.object({
+  language: v.string(),
+  content: v.string(),
+  sourceKind: v.union(
+    v.literal("official"),
+    v.literal("community"),
+    v.literal("gemini_ai"),
+  ),
+  sourceLabel: v.string(),
+  isRTL: v.boolean(),
+});
+
+export type CanonicalLinkTranslation = {
+  language: string;
+  content: string;
+  sourceKind: "official" | "community" | "gemini_ai";
+  sourceLabel: string;
+  isRTL: boolean;
+};
+
+export const canonicalLinkResultValidator = v.union(
+  v.object({
+    status: v.literal("not_found"),
+    route: v.union(
+      v.object({
+        collectionSlug: v.string(),
+        providerHadithId: v.string(),
+      }),
+      v.null(),
+    ),
+  }),
+  v.object({
+    status: v.literal("resolved"),
+    canonicalId: v.string(),
+    collectionSlug: v.string(),
+    collectionName: v.string(),
+    providerHadithId: v.string(),
+    referenceDisplay: v.string(),
+    narrator: v.optional(v.string()),
+    sourceName: v.string(),
+    sourceUrl: v.string(),
+    authenticity: authenticityClaimValidator,
+    license: licenseTermsValidator,
+    contentVersion: v.number(),
+    // The requested position parameter validated at the boundary. F3 always
+    // lands at the hadith start; R2 consumes this for exact restoration.
+    positionVersion: v.optional(v.number()),
+    text: v.union(
+      v.object({
+        visible: v.literal(false),
+        translationRequested: v.boolean(),
+      }),
+      v.object({
+        visible: v.literal(true),
+        arabicText: v.string(),
+        providerEnglish: v.optional(v.string()),
+        translation: v.optional(canonicalLinkTranslationValidator),
+        // True when the requested locale had no exact match and a base
+        // language or provider English text is shown instead. The page
+        // labels this fallback explicitly; it is never silent.
+        translationFallback: v.boolean(),
+        translationRequested: v.boolean(),
+      }),
+    ),
+  }),
+);
+
+export type CanonicalLinkResult = {
+  status: "resolved";
+  canonicalId: string;
+  collectionSlug: string;
+  collectionName: string;
+  providerHadithId: string;
+  referenceDisplay: string;
+  narrator?: string;
+  sourceName: string;
+  sourceUrl: string;
+  authenticity: AuthenticityClaim;
+  license: {
+    kind: "unverified";
+  } | {
+    kind: "verified";
+    licenseName: string;
+    licenseUrl: string;
+    permitsDisplay: boolean;
+    permitsRedistribution: boolean;
+    permitsOfflineDistribution: boolean;
+    verifiedAt: number;
+  };
+  contentVersion: number;
+  positionVersion?: number;
+  text:
+    | { visible: false; translationRequested: boolean }
+    | {
+        visible: true;
+        arabicText: string;
+        providerEnglish?: string;
+        translation?: CanonicalLinkTranslation;
+        translationFallback: boolean;
+        translationRequested: boolean;
+      };
+} | {
+  status: "not_found";
+  route: { collectionSlug: string; providerHadithId: string } | null;
+};
+
+const PROVIDER_FALLBACK_ORDER: Array<
+  "sunnah_now" | "sunnah_com" | "local_dump"
+> = ["sunnah_now", "sunnah_com", "local_dump"];
+
+export const resolveCanonicalLink = query({
+  args: {
+    collectionSlug: v.string(),
+    providerHadithId: v.string(),
+    locale: v.optional(v.string()),
+    pos: v.optional(v.string()),
+  },
+  handler: async (ctx, args): Promise<CanonicalLinkResult> => {
+    const route = parseCanonicalHadithPath(
+      `/hadith/${args.collectionSlug}/${args.providerHadithId}`,
+    );
+    if (!route) {
+      return { status: "not_found", route: null };
+    }
+
+    const locale = canonicalLocaleParam(args.locale);
+    const positionVersion = canonicalPositionParam(args.pos) ?? undefined;
+
+    let hadith: Doc<"hadiths"> | null = null;
+    for (const provider of PROVIDER_FALLBACK_ORDER) {
+      const candidate = await ctx.db
+        .query("hadiths")
+        .withIndex("by_provider_ref", (q) =>
+          q
+            .eq("provider", provider)
+            .eq("collectionSlug", route.collectionSlug)
+            .eq("providerHadithId", route.providerHadithId),
+        )
+        .unique();
+      if (candidate) {
+        hadith = candidate;
+        break;
+      }
+    }
+    if (!hadith) {
+      return { status: "not_found", route };
+    }
+
+    const license = hadith.licenseRecordId
+      ? await ctx.db.get(hadith.licenseRecordId)
+      : undefined;
+    const terms = license?.terms ?? { kind: "unverified" as const };
+    const displayPermitted =
+      terms.kind === "verified" && terms.permitsDisplay === true;
+
+    const identity = canonicalHadithIdentity({
+      provider: hadith.provider,
+      collectionSlug: hadith.collectionSlug,
+      providerHadithId: hadith.providerHadithId,
+    });
+
+    if (!displayPermitted) {
+      return {
+        status: "resolved",
+        canonicalId: identity.canonicalId,
+        collectionSlug: hadith.collectionSlug,
+        collectionName: hadith.collectionName,
+        providerHadithId: hadith.providerHadithId,
+        referenceDisplay: hadith.referenceDisplay,
+        narrator: hadith.narrator,
+        sourceName: license?.sourceName ?? hadith.authenticity?.sourceName ?? "",
+        sourceUrl: license?.sourceUrl ?? hadith.authenticity?.sourceUrl ?? "",
+        authenticity: hadith.authenticity ??
+          migrateLegacyAuthenticity({
+            collectionSlug: hadith.collectionSlug,
+            authenticityGrade: hadith.authenticityGrade,
+            authenticityAppliesTo: hadith.authenticityAppliesTo ?? "none",
+            authenticitySource: hadith.authenticitySource,
+            authenticityConfidence:
+              hadith.authenticityConfidence ?? "unavailable",
+          }),
+        license: terms,
+        contentVersion: hadith.sourceUpdatedAt ?? hadith.createdAt,
+        positionVersion,
+        text: {
+          visible: false,
+          translationRequested: locale.requested && locale.locale !== null,
+        },
+      };
+    }
+
+    const translation = locale.requested && locale.locale !== null
+      ? await resolveLiveTranslation(ctx, hadith._id, locale.locale)
+      : null;
+
+    return {
+      status: "resolved",
+      canonicalId: identity.canonicalId,
+      collectionSlug: hadith.collectionSlug,
+      collectionName: hadith.collectionName,
+      providerHadithId: hadith.providerHadithId,
+      referenceDisplay: hadith.referenceDisplay,
+      narrator: hadith.narrator,
+      sourceName: license?.sourceName ?? hadith.authenticity?.sourceName ?? "",
+      sourceUrl: license?.sourceUrl ?? hadith.authenticity?.sourceUrl ?? "",
+      authenticity: hadith.authenticity ??
+        migrateLegacyAuthenticity({
+          collectionSlug: hadith.collectionSlug,
+          authenticityGrade: hadith.authenticityGrade,
+          authenticityAppliesTo: hadith.authenticityAppliesTo ?? "none",
+          authenticitySource: hadith.authenticitySource,
+          authenticityConfidence:
+            hadith.authenticityConfidence ?? "unavailable",
+        }),
+      license: terms,
+      contentVersion: hadith.sourceUpdatedAt ?? hadith.createdAt,
+      positionVersion,
+      text: {
+        visible: true,
+        arabicText: hadith.arabicText,
+        providerEnglish: hadith.englishText,
+        translation: translation?.translation,
+        translationFallback: translation?.fallback ?? false,
+        translationRequested: locale.requested && locale.locale !== null,
+      },
+    };
+  },
+});
+
+/**
+ * Reads only already-live cached translations for the requested language,
+ * falling back to the base language first, then provider English. Never
+ * generates anything: a web page load must not spend a user's quota or
+ * provider spend. The `fallback` flag labels a non-exact language match.
+ */
+async function resolveLiveTranslation(
+  ctx: QueryCtx,
+  hadithId: Id<"hadiths">,
+  requestedLocale: string,
+): Promise<{
+  translation?: CanonicalLinkTranslation;
+  fallback: boolean;
+}> {
+  for (const language of translationFallbackChain(requestedLocale)) {
+    const row = await ctx.db
+      .query("translations")
+      .withIndex("by_hadith_language_default", (q) =>
+        q
+          .eq("hadithId", hadithId)
+          .eq("language", language)
+          .eq("isDefault", true),
+      )
+      .first();
+    if (row && row.status === "live") {
+      return {
+        translation: {
+          language: row.language,
+          content: row.content,
+          sourceKind: row.source,
+          sourceLabel: row.sourceLabel,
+          isRTL: isRTLLocale(row.language),
+        },
+        fallback: row.language !== requestedLocale,
+      };
+    }
+  }
+  return { fallback: true };
+}
+
+/**
+ * Exact locale, base language, then nothing — provider English is the
+ * renderer's own labeled fallback, not a translation row.
+ */
+function translationFallbackChain(requestedLocale: string): string[] {
+  const chain = [requestedLocale];
+  const base = requestedLocale.split("-")[0];
+  if (base !== requestedLocale) chain.push(base);
+  return chain;
+}
+
+type QueryCtx = import("./_generated/server").QueryCtx;
