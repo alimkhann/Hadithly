@@ -33,6 +33,8 @@ class WireModelsTest {
             {
               "items": [{
                 "_id": "jd7c0xxxxxxxxxxxxxxxxxxxxxxx0",
+                "provider": "sunnah_now",
+                "canonicalId": "sunnah_now:bukhari:1",
                 "providerHadithId": "1",
                 "collectionSlug": "bukhari",
                 "volumeId": "volume-1",
@@ -42,7 +44,16 @@ class WireModelsTest {
                 "referenceDisplay": "Sahih al-Bukhari 1",
                 "collectionName": "Sahih al-Bukhari",
                 "chapterName": "Revelation",
-                "sortOrder": 5
+                "sortOrder": 5,
+                "authenticity": {
+                  "kind": "collection_scope",
+                  "normalizedGrade": "sahih",
+                  "claimScope": "collection",
+                  "sourceLabel": "Documented Sahih collection",
+                  "sourceName": "Sunnah.com",
+                  "sourceUrl": "https://sunnah.com/bukhari/about",
+                  "verificationMethod": "manual_collection_mapping"
+                }
               }],
               "page": 1, "pageSize": 10, "totalPages": 42, "hasMore": true,
               "someFutureField": true
@@ -51,6 +62,7 @@ class WireModelsTest {
         val result = json.decodeFromString<ReaderPageResult>(payload)
         assertEquals(1, result.items.size)
         assertEquals("sunnah_now:bukhari:1", result.items.first().internalId)
+        assertEquals("Sahih collection scope · Sunnah.com", result.items.first().authenticity.displayLabel)
         assertTrue(result.hasMore)
         assertFalse(result.isPlaceholder)
     }
@@ -90,11 +102,12 @@ class WireModelsTest {
     @Test
     fun `daily hadith decodes with an optional volume`() {
         val daily = json.decodeFromString<DailyHadith>(
-            """{"_id":"h1","providerHadithId":"25","collectionSlug":"tirmidhi","collectionName":"Jami` at-Tirmidhi","volumeId":"1","arabicText":"نص","englishText":"Text","referenceDisplay":"Jami` at-Tirmidhi · Hadith 25"}""",
+            """{"_id":"h1","provider":"sunnah_now","canonicalId":"sunnah_now:bukhari:25","providerHadithId":"25","collectionSlug":"bukhari","collectionName":"Sahih al-Bukhari","volumeId":"1","arabicText":"نص","englishText":"Text","referenceDisplay":"Sahih al-Bukhari · Hadith 25","authenticity":{"kind":"collection_scope","normalizedGrade":"sahih","claimScope":"collection","sourceLabel":"Documented Sahih collection","sourceName":"Sunnah.com","sourceUrl":"https://sunnah.com/bukhari/about","verificationMethod":"manual_collection_mapping"}}""",
         )
-        assertEquals("tirmidhi", daily.collectionSlug)
+        assertEquals("bukhari", daily.collectionSlug)
         assertEquals("1", daily.volumeId)
         assertEquals("25", daily.providerHadithId)
+        assertEquals("Sahih collection scope · Sunnah.com", daily.authenticity.displayLabel)
     }
 
     @Test

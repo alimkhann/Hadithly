@@ -1,14 +1,8 @@
 "use node";
 
 /**
- * Daily hadith: deterministic per-UTC-date pick over the cached `hadiths`
- * table, plus scheduled APNs/FCM delivery driven by convex/crons.ts.
- *
- * The pick walks DEFAULT_COLLECTION_ORDER starting at a date-derived offset,
- * so every reader sees the same hadith on the same day without any shared
- * mutable state. Collections with nothing cached yet are skipped; when the
- * whole cache is empty (fresh deployment) the first volume of Bukhari is
- * fetched from the provider once to seed it.
+ * Daily hadith: one persisted eligible pick per local date and IANA timezone,
+ * plus scheduled APNs/FCM delivery driven by convex/crons.ts.
  */
 
 import { v } from "convex/values";
@@ -20,11 +14,21 @@ import {
   DEFAULT_COLLECTION_ORDER,
   fetchVolumeHadiths,
 } from "../lib/sunnahNow";
+import type { HadithProviderName } from "../lib/sunnahNow";
+import type { AuthenticityClaim } from "../lib/contentPolicy";
+import {
+  chooseDailyCandidate,
+  dailyCollectionOrder,
+  isDailyEligible,
+  localDateInTimezone,
+} from "../lib/dailyEligibility";
 import { apnsConfigured, sendApnsPush } from "../lib/apns";
 import { fcmConfigured, sendFcmPush } from "../lib/fcm";
 
 type DailyHadith = {
   _id: string;
+  provider: HadithProviderName;
+  canonicalId: string;
   providerHadithId: string;
   collectionSlug: string;
   collectionName: string;
@@ -32,10 +36,13 @@ type DailyHadith = {
   arabicText: string;
   englishText: string | null;
   referenceDisplay: string;
+  authenticity: AuthenticityClaim;
 };
 
 type CachedHadith = {
-  _id: string;
+  _id: Id<"hadiths">;
+  provider: HadithProviderName;
+  canonicalId: string;
   providerHadithId: string;
   collectionSlug: string;
   collectionName: string;
@@ -43,41 +50,48 @@ type CachedHadith = {
   arabicText: string;
   englishText?: string;
   referenceDisplay: string;
+  authenticity: AuthenticityClaim;
 };
 
 type DailyIo = Pick<ActionCtx, "runQuery" | "runMutation">;
-
-function dateHash(date: string): number {
-  let hash = 0;
-  for (let index = 0; index < date.length; index += 1) {
-    hash = (hash * 31 + date.charCodeAt(index)) >>> 0;
-  }
-  return hash;
-}
 
 /**
  * Resolves today's hadith from the cache, seeding the cache from the
  * provider when nothing is stored yet.
  */
-async function pickDailyHadith(io: DailyIo): Promise<CachedHadith | null> {
-  const dayUtc = new Date().toISOString().slice(0, 10);
-  const seed = dateHash(dayUtc);
+async function pickDailyHadith(
+  io: DailyIo,
+  timezone: string,
+  nowMs: number,
+): Promise<CachedHadith | null> {
+  const localDate = localDateInTimezone(nowMs, timezone);
+  const persistedId = await io.runQuery(
+    internal.dailySelections.getHadithId,
+    { localDate, timezone },
+  );
+  if (persistedId) {
+    const persisted = await io.runQuery(internal.hadiths.getById, {
+      hadithId: persistedId,
+    });
+    if (persisted && isDailyEligible(persisted.authenticity)) return persisted;
+  }
 
-  for (let offset = 0; offset < DEFAULT_COLLECTION_ORDER.length; offset += 1) {
-    const slug =
-      DEFAULT_COLLECTION_ORDER[
-        (seed + offset) % DEFAULT_COLLECTION_ORDER.length
-      ];
+  for (const slug of dailyCollectionOrder(DEFAULT_COLLECTION_ORDER, localDate)) {
     const items = await io.runQuery(internal.hadiths.listByCollection, {
       provider: "sunnah_now",
       collectionSlug: slug,
     });
-    if (items.length > 0) {
-      return items[seed % items.length];
+    const candidate = chooseDailyCandidate(items, localDate);
+    if (candidate) {
+      return await persistDailyCandidate(io, {
+        localDate,
+        timezone,
+        candidate,
+      });
     }
   }
 
-  // Fresh cache: pull one volume once so the daily pick always has material.
+  // No eligible cached material: fetch a documented Sahih collection once.
   try {
     const volumeItems = await fetchVolumeHadiths({
       collectionSlug: "bukhari",
@@ -87,16 +101,40 @@ async function pickDailyHadith(io: DailyIo): Promise<CachedHadith | null> {
     const upsertIds = await io.runMutation(internal.hadiths.upsertPage, {
       items: volumeItems,
     });
-    const index = seed % volumeItems.length;
-    return { _id: upsertIds[index], ...volumeItems[index] };
+    const candidates = volumeItems.map((item, index) => ({
+      _id: upsertIds[index],
+      ...item,
+    }));
+    const candidate = chooseDailyCandidate(candidates, localDate);
+    return candidate
+      ? await persistDailyCandidate(io, { localDate, timezone, candidate })
+      : null;
   } catch {
     return null;
   }
 }
 
+async function persistDailyCandidate(
+  io: DailyIo,
+  input: {
+    localDate: string;
+    timezone: string;
+    candidate: CachedHadith;
+  },
+): Promise<CachedHadith | null> {
+  const hadithId = await io.runMutation(internal.dailySelections.persist, {
+    localDate: input.localDate,
+    timezone: input.timezone,
+    hadithId: input.candidate._id,
+  });
+  return await io.runQuery(internal.hadiths.getById, { hadithId });
+}
+
 function toDailyHadith(hadith: CachedHadith): DailyHadith {
   return {
     _id: hadith._id,
+    provider: hadith.provider,
+    canonicalId: hadith.canonicalId,
     providerHadithId: hadith.providerHadithId,
     collectionSlug: hadith.collectionSlug,
     collectionName: hadith.collectionName,
@@ -104,17 +142,18 @@ function toDailyHadith(hadith: CachedHadith): DailyHadith {
     arabicText: hadith.arabicText,
     englishText: hadith.englishText ?? null,
     referenceDisplay: hadith.referenceDisplay,
+    authenticity: hadith.authenticity,
   };
 }
 
 /** Public: today's hadith for the Today tab. */
 export const getDailyHadith = action({
-  args: {},
-  handler: async (ctx): Promise<DailyHadith | null> => {
+  args: { timezone: v.string() },
+  handler: async (ctx, args): Promise<DailyHadith | null> => {
     const picked = await pickDailyHadith({
       runQuery: ctx.runQuery,
       runMutation: ctx.runMutation,
-    });
+    }, args.timezone, Date.now());
     return picked ? toDailyHadith(picked) : null;
   },
 });
@@ -154,9 +193,12 @@ export const sendDueDailyPushes = internalAction({
     }
 
     const now = Date.now();
-    const tokens = await ctx.runQuery(internal.library.listEnabledPushTokens, {});
+    const tokens: PushTokenDoc[] = await ctx.runQuery(
+      internal.library.listEnabledPushTokens,
+      {},
+    );
     const due: PushTokenDoc[] = [];
-    for (const token of tokens as PushTokenDoc[]) {
+    for (const token of tokens) {
       if (!token.enabled || !token.dailyTime) continue;
       const local = localClock(now, token.tzOffsetMinutes ?? 0);
       const [hour, minute] = token.dailyTime.split(":").map(Number);
@@ -183,7 +225,7 @@ export const sendDueDailyPushes = internalAction({
     const picked = await pickDailyHadith({
       runQuery: ctx.runQuery,
       runMutation: ctx.runMutation,
-    });
+    }, "Etc/UTC", now);
     if (!picked) {
       return {
         sent: 0,

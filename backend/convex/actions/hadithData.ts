@@ -40,10 +40,10 @@ type OutlineDoc = {
   indexedAt: number;
 } | null;
 
+type ReaderHadithRecord = Omit<HadithRecord, "licenseRecord">;
+
 type ReaderPageResult = {
-  items: Array<
-    import("../lib/sunnahNow").HadithRecord & { _id: string }
-  >;
+  items: Array<ReaderHadithRecord & { _id: string }>;
   page: number;
   pageSize: number;
   totalPages: number;
@@ -152,8 +152,8 @@ export const getReaderPage = action({
         items: volumeItems,
       });
       const withIds = volumeItems.map((item, index) => ({
-        _id: upsertIds[index] as string,
-        ...item,
+        _id: upsertIds[index],
+        ...readerHadith(item),
       }));
       return serveVolumeChunk(
         withIds,
@@ -174,8 +174,8 @@ export const getReaderPage = action({
     });
 
     const items = providerPage.items.map((item, index) => ({
-      _id: upsertIds[index] as string,
-      ...item,
+      _id: upsertIds[index],
+      ...readerHadith(item),
     }));
 
     return {
@@ -193,7 +193,7 @@ export const getReaderPage = action({
  * falls back to the requested page.
  */
 function resolvePageNumber(
-  volumeHadiths: HadithRecord[],
+  volumeHadiths: ReaderHadithRecord[],
   args: { targetHadithNumber?: string },
   fallbackPage: number,
   pageSize: number,
@@ -215,11 +215,7 @@ function resolvePageNumber(
  * page comes from the cache or the provider.
  */
 function serveVolumeChunk(
-  cached: Array<
-    import("../lib/sunnahNow").HadithRecord & {
-      _id: string;
-    }
-  >,
+  cached: Array<ReaderHadithRecord & { _id: string }>,
   page: number,
   pageSize: number,
 ): ReaderPageResult {
@@ -235,5 +231,24 @@ function serveVolumeChunk(
     pageSize,
     totalPages: pages.length,
     hasMore: pageIndex < pages.length - 1,
+  };
+}
+
+function readerHadith(hadith: HadithRecord): ReaderHadithRecord {
+  return {
+    provider: hadith.provider,
+    canonicalId: hadith.canonicalId,
+    providerHadithId: hadith.providerHadithId,
+    collectionSlug: hadith.collectionSlug,
+    volumeId: hadith.volumeId,
+    chapterId: hadith.chapterId,
+    arabicText: hadith.arabicText,
+    englishText: hadith.englishText,
+    narrator: hadith.narrator,
+    referenceDisplay: hadith.referenceDisplay,
+    collectionName: hadith.collectionName,
+    bookName: hadith.bookName,
+    chapterName: hadith.chapterName,
+    authenticity: hadith.authenticity,
   };
 }

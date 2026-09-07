@@ -2,6 +2,27 @@ package com.hadithly.app.core.data
 
 import kotlinx.serialization.Serializable
 
+@Serializable
+data class AuthenticityClaim(
+    val kind: String,
+    val normalizedGrade: String? = null,
+    val claimScope: String,
+    val sourceLabel: String,
+    val sourceName: String,
+    val sourceUrl: String,
+    val verificationMethod: String,
+) {
+    val displayLabel: String
+        get() {
+            val grade = normalizedGrade?.replaceFirstChar { it.uppercase() }
+            return when {
+                claimScope == "hadith" && grade != null -> "$grade hadith · $sourceName"
+                claimScope == "collection" && grade != null -> "$grade collection scope · $sourceName"
+                else -> "Authenticity not verified · $sourceName"
+            }
+        }
+}
+
 /**
  * Wire types for the reader, decoded straight from Convex action results.
  * Mirrors ios/Hadithly/Features/Reader/ReaderModels.swift.
@@ -9,6 +30,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ReaderHadith(
     val _id: String,
+    val provider: String,
+    val canonicalId: String,
     val providerHadithId: String,
     val collectionSlug: String,
     val volumeId: String? = null,
@@ -18,10 +41,11 @@ data class ReaderHadith(
     val referenceDisplay: String,
     val collectionName: String,
     val chapterName: String? = null,
+    val authenticity: AuthenticityClaim,
 ) {
     /** Internal id used by actions/ai:translateHadith. */
     val internalId: String
-        get() = "sunnah_now:$collectionSlug:$providerHadithId"
+        get() = canonicalId
 }
 
 @Serializable
@@ -79,6 +103,8 @@ data class ReaderTranslation(
 @Serializable
 data class DailyHadith(
     val _id: String,
+    val provider: String,
+    val canonicalId: String,
     val providerHadithId: String,
     val collectionSlug: String,
     val collectionName: String,
@@ -86,6 +112,7 @@ data class DailyHadith(
     val arabicText: String,
     val englishText: String? = null,
     val referenceDisplay: String,
+    val authenticity: AuthenticityClaim,
 )
 
 @Serializable

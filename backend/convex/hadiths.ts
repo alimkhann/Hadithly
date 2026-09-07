@@ -1,22 +1,18 @@
 import { internalMutation, internalQuery, query } from "./_generated/server";
 import { v } from "convex/values";
-
-const provider = v.union(
-  v.literal("sunnah_now"),
-  v.literal("sunnah_com"),
-  v.literal("local_dump"),
-);
-const authenticityGrade = v.union(
-  v.literal("sahih"),
-  v.literal("hasan"),
-  v.literal("daif"),
-  v.literal("mawdu"),
-  v.literal("mixed"),
-  v.literal("unknown"),
-);
+import type { Doc, Id } from "./_generated/dataModel";
+import {
+  authenticityClaimValidator,
+  canonicalHadithIdentity,
+  licenseRecordDescriptorValidator,
+  migrateLegacyAuthenticity,
+  providerValidator,
+} from "./lib/contentPolicy";
+import type { AuthenticityClaim } from "./lib/contentPolicy";
 
 export const hadithInput = v.object({
-  provider,
+  provider: providerValidator,
+  canonicalId: v.string(),
   providerHadithId: v.string(),
   collectionSlug: v.string(),
   bookId: v.optional(v.string()),
@@ -29,24 +25,15 @@ export const hadithInput = v.object({
   collectionName: v.string(),
   bookName: v.optional(v.string()),
   chapterName: v.optional(v.string()),
-  authenticityGrade: v.optional(authenticityGrade),
-  authenticityAppliesTo: v.union(
-    v.literal("hadith"),
-    v.literal("collection"),
-    v.literal("none"),
-  ),
-  authenticitySource: v.optional(v.string()),
-  authenticityConfidence: v.union(
-    v.literal("source_provided"),
-    v.literal("manual_mapping"),
-    v.literal("unavailable"),
-  ),
+  authenticity: authenticityClaimValidator,
+  licenseRecord: licenseRecordDescriptorValidator,
   sourceUpdatedAt: v.optional(v.number()),
 });
 
 export type HadithDocument = {
-  _id: string;
-  provider: string;
+  _id: Id<"hadiths">;
+  provider: Doc<"hadiths">["provider"];
+  canonicalId: string;
   providerHadithId: string;
   collectionSlug: string;
   volumeId?: string;
@@ -58,6 +45,7 @@ export type HadithDocument = {
   collectionName: string;
   bookName?: string;
   chapterName?: string;
+  authenticity: AuthenticityClaim;
 };
 
 /**
@@ -69,29 +57,53 @@ export const upsertPage = internalMutation({
   handler: async (ctx, args) => {
     const now = Date.now();
     const ids = [];
+    const licenseIds = new Map<string, Id<"licenseRecords">>();
     for (const item of args.items) {
+      const { licenseRecord, ...currentItem } = item;
+      let licenseRecordId = licenseIds.get(licenseRecord.sourceKey);
+      if (!licenseRecordId) {
+        const existingLicense = await ctx.db
+          .query("licenseRecords")
+          .withIndex("by_source_key", (q) =>
+            q.eq("sourceKey", licenseRecord.sourceKey),
+          )
+          .unique();
+        licenseRecordId = existingLicense?._id ??
+          await ctx.db.insert("licenseRecords", {
+            ...licenseRecord,
+            createdAt: now,
+            updatedAt: now,
+          });
+        licenseIds.set(licenseRecord.sourceKey, licenseRecordId);
+      }
       const existing = await ctx.db
         .query("hadiths")
         .withIndex("by_provider_ref", (q) =>
           q
-            .eq("provider", item.provider)
-            .eq("collectionSlug", item.collectionSlug)
-            .eq("providerHadithId", item.providerHadithId),
+            .eq("provider", currentItem.provider)
+            .eq("collectionSlug", currentItem.collectionSlug)
+            .eq("providerHadithId", currentItem.providerHadithId),
         )
         .unique();
 
       if (existing) {
         await ctx.db.patch(existing._id, {
-          ...item,
-          sourceUpdatedAt: item.sourceUpdatedAt ?? now,
+          ...currentItem,
+          licenseRecordId,
+          authenticityGrade: undefined,
+          authenticityAppliesTo: undefined,
+          authenticitySource: undefined,
+          authenticityConfidence: undefined,
+          sourceUpdatedAt: currentItem.sourceUpdatedAt ?? now,
         });
         ids.push(existing._id);
       } else {
         ids.push(
           await ctx.db.insert("hadiths", {
-            ...item,
+            ...currentItem,
+            licenseRecordId,
             createdAt: now,
-            sourceUpdatedAt: item.sourceUpdatedAt ?? now,
+            sourceUpdatedAt: currentItem.sourceUpdatedAt ?? now,
           }),
         );
       }
@@ -104,12 +116,12 @@ export const upsertPage = internalMutation({
  * (`provider:collectionSlug:providerHadithId`). */
 export const getByProviderRef = internalQuery({
   args: {
-    provider,
+    provider: providerValidator,
     collectionSlug: v.string(),
     providerHadithId: v.string(),
   },
-  handler: async (ctx, args) =>
-    await ctx.db
+  handler: async (ctx, args) => {
+    const hadith = await ctx.db
       .query("hadiths")
       .withIndex("by_provider_ref", (q) =>
         q
@@ -117,7 +129,17 @@ export const getByProviderRef = internalQuery({
           .eq("collectionSlug", args.collectionSlug)
           .eq("providerHadithId", args.providerHadithId),
       )
-      .unique(),
+      .unique();
+    return hadith ? currentHadith(hadith) : null;
+  },
+});
+
+export const getById = internalQuery({
+  args: { hadithId: v.id("hadiths") },
+  handler: async (ctx, args) => {
+    const hadith = await ctx.db.get(args.hadithId);
+    return hadith ? currentHadith(hadith) : null;
+  },
 });
 
 /**
@@ -127,7 +149,7 @@ export const getByProviderRef = internalQuery({
  */
 export const listByVolume = internalQuery({
   args: {
-    provider,
+    provider: providerValidator,
     collectionSlug: v.string(),
     volumeId: v.string(),
   },
@@ -141,7 +163,7 @@ export const listByVolume = internalQuery({
           .eq("volumeId", args.volumeId),
       )
       .collect();
-    return items.sort(
+    return items.map(currentHadith).sort(
       (left, right) =>
         Number(left.providerHadithId) - Number(right.providerHadithId),
     );
@@ -153,7 +175,7 @@ export const listByVolume = internalQuery({
  * Powers the deterministic daily hadith pick.
  */
 export const listByCollection = internalQuery({
-  args: { provider, collectionSlug: v.string() },
+  args: { provider: providerValidator, collectionSlug: v.string() },
   handler: async (ctx, args) => {
     const items = await ctx.db
       .query("hadiths")
@@ -163,12 +185,41 @@ export const listByCollection = internalQuery({
           .eq("collectionSlug", args.collectionSlug),
       )
       .collect();
-    return items.sort(
+    return items.map(currentHadith).sort(
       (left, right) =>
         Number(left.providerHadithId) - Number(right.providerHadithId),
     );
   },
 });
+
+function currentHadith(hadith: Doc<"hadiths">): HadithDocument {
+  const identity = canonicalHadithIdentity({
+    provider: hadith.provider,
+    collectionSlug: hadith.collectionSlug,
+    providerHadithId: hadith.providerHadithId,
+  });
+  const authenticity = hadith.authenticity ?? migrateLegacyAuthenticity({
+    collectionSlug: hadith.collectionSlug,
+    authenticityGrade: hadith.authenticityGrade,
+    authenticityAppliesTo: hadith.authenticityAppliesTo ?? "none",
+    authenticitySource: hadith.authenticitySource,
+    authenticityConfidence: hadith.authenticityConfidence ?? "unavailable",
+  });
+  return {
+    _id: hadith._id,
+    ...identity,
+    volumeId: hadith.volumeId,
+    chapterId: hadith.chapterId,
+    arabicText: hadith.arabicText,
+    englishText: hadith.englishText,
+    narrator: hadith.narrator,
+    referenceDisplay: hadith.referenceDisplay,
+    collectionName: hadith.collectionName,
+    bookName: hadith.bookName,
+    chapterName: hadith.chapterName,
+    authenticity,
+  };
+}
 
 /** Public: full-text search over cached English text + live translations. */
 export const search = query({
@@ -190,7 +241,9 @@ export const search = query({
       })
       .take(limit);
 
-    if (sourceResults.length >= limit || !args.language) return sourceResults;
+    if (sourceResults.length >= limit || !args.language) {
+      return sourceResults.map(currentHadith);
+    }
     const language = args.language;
 
     const translationResults = await ctx.db
@@ -203,7 +256,7 @@ export const search = query({
       )
       .take(limit - sourceResults.length);
 
-    const translatedHadiths = [];
+    const translatedHadiths: Array<Doc<"hadiths">> = [];
     for (const translation of translationResults) {
       const hadith = await ctx.db.get(translation.hadithId);
       if (
@@ -213,6 +266,8 @@ export const search = query({
         translatedHadiths.push(hadith);
       }
     }
-    return [...sourceResults, ...translatedHadiths].slice(0, limit);
+    return [...sourceResults, ...translatedHadiths]
+      .slice(0, limit)
+      .map(currentHadith);
   },
 });

@@ -143,6 +143,12 @@ private fun DailyCard(hadith: DailyHadith, onClick: () -> Unit) {
                 Text(it, fontSize = 15.sp, lineHeight = 21.sp, color = colors.textPrimary.copy(alpha = 0.92f))
             }
             Text(hadith.referenceDisplay, fontSize = 11.sp, color = colors.textSecondary)
+            Text(
+                hadith.authenticity.displayLabel,
+                fontSize = 11.sp,
+                color = colors.textSecondary,
+                modifier = Modifier.testTag("today.authenticity"),
+            )
         }
     }
 }

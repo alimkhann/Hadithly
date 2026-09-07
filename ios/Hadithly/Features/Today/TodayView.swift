@@ -5,6 +5,8 @@ import SwiftUI
 /// Wire shape of actions/daily:getDailyHadith.
 struct DailyHadith: Decodable, Identifiable, Equatable {
     let _id: String
+    let provider: String
+    let canonicalId: String
     let providerHadithId: String
     let collectionSlug: String
     let collectionName: String
@@ -12,6 +14,7 @@ struct DailyHadith: Decodable, Identifiable, Equatable {
     let arabicText: String
     let englishText: String?
     let referenceDisplay: String
+    let authenticity: ReaderAuthenticity
 
     var id: String { _id }
 }
@@ -218,7 +221,7 @@ struct TodayView: View {
         do {
             let result: DailyHadith? = try await environment.convex.action(
                 "actions/daily:getDailyHadith",
-                with: [:]
+                with: ["timezone": TimeZone.current.identifier]
             )
             withAnimation(.easeOut(duration: 0.2)) {
                 dailyHadith = result
@@ -258,6 +261,11 @@ private struct DailyHadithCard: View {
             Text(hadith.referenceDisplay)
                 .font(.caption2)
                 .foregroundStyle(Theme.textSecondary)
+
+            Text(hadith.authenticity.displayLabel)
+                .font(.caption2)
+                .foregroundStyle(Theme.textSecondary)
+                .accessibilityIdentifier("today.authenticity")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

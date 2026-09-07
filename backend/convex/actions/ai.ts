@@ -20,7 +20,9 @@ import {
   deriveSourceReferenceUrl,
   extractCitations,
   parseTranslationPayload,
+  untrustedProviderDataBlock,
 } from "../lib/grounding";
+import { parseInternalHadithId } from "../lib/sunnahNow";
 
 const GEMINI_TRANSLATION_MODEL = "gemini-2.5-flash-lite";
 const GEMINI_REVIEW_MODEL = "gemini-2.5-flash-lite";
@@ -67,10 +69,7 @@ function translationPrompt(hadith: HadithDoc, targetLanguage: string) {
     "Use Google Search to verify narrator names, proper nouns, and the established rendering of key Islamic terms.",
     'Respond with ONLY a single JSON object, no prose and no code fences, in exactly this shape: {"translation": string, "confidence": number between 0 and 1, "riskFlags": string[], "glossaryNotes": string[]}.',
     "",
-    `Reference: ${hadith.referenceDisplay}`,
-    `Narrator: ${hadith.narrator ?? "Unknown"}`,
-    `Arabic: ${hadith.arabicText}`,
-    `English source: ${hadith.englishText ?? ""}`,
+    untrustedProviderDataBlock(hadith),
   ].join("\n");
 }
 
@@ -106,13 +105,12 @@ async function loadHadith(
   ctx: ActionCtx,
   internalId: string,
 ): Promise<HadithDoc | null> {
-  const parts = internalId.split(":");
-  if (parts.length !== 3) return null;
-  const [provider, collectionSlug, providerHadithId] = parts;
+  const identity = parseInternalHadithId(internalId);
+  if (!identity) return null;
   return await ctx.runQuery(internal.hadiths.getByProviderRef, {
-    provider: provider as "sunnah_now" | "sunnah_com" | "local_dump",
-    collectionSlug,
-    providerHadithId,
+    provider: identity.provider,
+    collectionSlug: identity.collectionSlug,
+    providerHadithId: identity.providerHadithId,
   });
 }
 

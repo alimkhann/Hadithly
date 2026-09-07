@@ -388,6 +388,11 @@ private struct HadithBlock: View {
                 .font(.caption2)
                 .foregroundStyle(Theme.textSecondary)
 
+            Text(hadith.authenticity.displayLabel)
+                .font(.caption2)
+                .foregroundStyle(Theme.textSecondary)
+                .accessibilityIdentifier("reader.authenticity")
+
             HadithActionRow(
                 isBookmarked: model.isBookmarked(hadith),
                 isFavorite: model.isFavorite(hadith),

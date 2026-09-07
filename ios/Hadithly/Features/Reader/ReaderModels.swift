@@ -3,8 +3,31 @@ import Foundation
 
 /// Wire types for the reader, decoded straight from Convex action results.
 
+struct ReaderAuthenticity: Decodable, Equatable {
+    let kind: String
+    let normalizedGrade: String?
+    let claimScope: String
+    let sourceLabel: String
+    let sourceName: String
+    let sourceUrl: String
+    let verificationMethod: String
+
+    var displayLabel: String {
+        switch (claimScope, normalizedGrade) {
+        case ("hadith", let grade?):
+            return "\(grade.capitalized) hadith · \(sourceName)"
+        case ("collection", let grade?):
+            return "\(grade.capitalized) collection scope · \(sourceName)"
+        default:
+            return "Authenticity not verified · \(sourceName)"
+        }
+    }
+}
+
 struct ReaderHadith: Decodable, Identifiable, Equatable {
     let _id: String
+    let provider: String
+    let canonicalId: String
     let providerHadithId: String
     let collectionSlug: String
     let volumeId: String?
@@ -14,12 +37,13 @@ struct ReaderHadith: Decodable, Identifiable, Equatable {
     let referenceDisplay: String
     let collectionName: String
     let chapterName: String?
+    let authenticity: ReaderAuthenticity
 
     var id: String { _id }
 
     /// Internal id used by actions/ai:translateHadith.
     var internalId: String {
-        "sunnah_now:\(collectionSlug):\(providerHadithId)"
+        canonicalId
     }
 }
 

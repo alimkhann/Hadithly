@@ -7,10 +7,22 @@
  * reaches a client.
  */
 
-export type HadithProviderName = "sunnah_now" | "sunnah_com" | "local_dump";
+import {
+  SUNNAH_NOW_LICENSE_RECORD,
+  authenticityForProviderHadith,
+  canonicalHadithIdentity,
+} from "./contentPolicy";
+import type {
+  AuthenticityClaim,
+  HadithProviderName,
+  LicenseRecordDescriptor,
+} from "./contentPolicy";
+
+export type { HadithProviderName } from "./contentPolicy";
 
 export type HadithRecord = {
   provider: HadithProviderName;
+  canonicalId: string;
   providerHadithId: string;
   collectionSlug: string;
   volumeId?: string;
@@ -22,10 +34,8 @@ export type HadithRecord = {
   collectionName: string;
   bookName?: string;
   chapterName?: string;
-  authenticityGrade?: "sahih" | "hasan" | "daif" | "mawdu" | "mixed" | "unknown";
-  authenticityAppliesTo: "hadith" | "collection" | "none";
-  authenticitySource?: string;
-  authenticityConfidence: "source_provided" | "manual_mapping" | "unavailable";
+  authenticity: AuthenticityClaim;
+  licenseRecord: LicenseRecordDescriptor;
 };
 
 export type SunnahNowBook = {
@@ -38,7 +48,7 @@ type SunnahNowLanguageText = {
   narrator?: string;
 };
 
-type SunnahNowHadith = {
+export type SunnahNowHadith = {
   id: number | string;
   metadata?: {
     volume?: { id?: number | string };
@@ -60,30 +70,6 @@ const COLLECTION_NAMES: Record<string, string> = {
   tirmidhi: "Jami` at-Tirmidhi",
 };
 
-const COLLECTION_AUTHENTICITY: Record<
-  string,
-  Pick<
-    HadithRecord,
-    | "authenticityGrade"
-    | "authenticityAppliesTo"
-    | "authenticitySource"
-    | "authenticityConfidence"
-  >
-> = {
-  bukhari: {
-    authenticityGrade: "sahih",
-    authenticityAppliesTo: "collection",
-    authenticitySource: "Collection-level mapping",
-    authenticityConfidence: "manual_mapping",
-  },
-  muslim: {
-    authenticityGrade: "sahih",
-    authenticityAppliesTo: "collection",
-    authenticitySource: "Collection-level mapping",
-    authenticityConfidence: "manual_mapping",
-  },
-};
-
 export const DEFAULT_COLLECTION_ORDER = [
   "bukhari",
   "muslim",
@@ -99,7 +85,11 @@ export function createInternalHadithId(
   collectionSlug: string,
   providerHadithId: string,
 ) {
-  return `${provider}:${collectionSlug}:${providerHadithId}`;
+  return canonicalHadithIdentity({
+    provider,
+    collectionSlug,
+    providerHadithId,
+  }).canonicalId;
 }
 
 export function parseInternalHadithId(internalId: string): {
@@ -124,7 +114,7 @@ export function collectionName(slug: string) {
   return COLLECTION_NAMES[slug] ?? slug;
 }
 
-async function request<T>(path: string): Promise<T> {
+async function request(path: string): Promise<unknown> {
   const apiKey = process.env.SUNNAH_NOW_API_KEY;
   if (!apiKey) {
     throw new Error("SUNNAH_NOW_API_KEY is not configured");
@@ -141,15 +131,12 @@ async function request<T>(path: string): Promise<T> {
     throw new Error(`Sunnah.now request failed with HTTP ${response.status}`);
   }
 
-  return (await response.json()) as T;
+  const body: unknown = await response.json();
+  return body;
 }
 
 export async function fetchBooks(): Promise<SunnahNowBook[]> {
-  const response = await request<SunnahNowBook[]>("/api/early-access/books");
-  return response.map((book) => ({
-    collection: book.collection,
-    slug: book.slug,
-  }));
+  return parseBooks(await request("/api/early-access/books"));
 }
 
 export function normalizeHadith(
@@ -157,6 +144,11 @@ export function normalizeHadith(
   hadith: SunnahNowHadith,
 ): HadithRecord {
   const providerHadithId = String(hadith.id);
+  const identity = canonicalHadithIdentity({
+    provider: "sunnah_now",
+    collectionSlug,
+    providerHadithId,
+  });
   const language = hadith.language ?? {};
   const chapterLanguage = hadith.metadata?.chapter?.language ?? {};
   const arabicText = language.ar?.text ?? "";
@@ -165,15 +157,9 @@ export function normalizeHadith(
   const chapterName = chapterLanguage.en?.text || chapterLanguage.ar?.text;
   const chapterArabicName = chapterLanguage.ar?.text;
   const collection = collectionName(collectionSlug);
-  const authenticity = COLLECTION_AUTHENTICITY[collectionSlug] ?? {
-    authenticityAppliesTo: "none" as const,
-    authenticityConfidence: "unavailable" as const,
-  };
 
   return {
-    provider: "sunnah_now",
-    providerHadithId,
-    collectionSlug,
+    ...identity,
     volumeId: optionalString(hadith.metadata?.volume?.id),
     chapterId: optionalString(hadith.metadata?.chapter?.id),
     arabicText,
@@ -183,7 +169,8 @@ export function normalizeHadith(
     collectionName: collection,
     bookName: chapterArabicName,
     chapterName,
-    ...authenticity,
+    authenticity: authenticityForProviderHadith(collectionSlug),
+    licenseRecord: SUNNAH_NOW_LICENSE_RECORD,
   };
 }
 
@@ -207,11 +194,17 @@ export type ReaderPage = {
   hasMore: boolean;
 };
 
+type ChunkableHadith = {
+  arabicText: string;
+  englishText?: string;
+  narrator?: string;
+};
+
 /**
  * Reader pages are chunked by content size (not a fixed count) so long
  * Arabic + translation pairs never produce an overwhelming screen.
  */
-export function chunkReaderHadiths<T extends HadithRecord>(
+export function chunkReaderHadiths<T extends ChunkableHadith>(
   items: T[],
   requestedPageSize: number,
 ): T[][] {
@@ -254,7 +247,7 @@ export async function fetchReaderPage(params: {
 
   if (params.volumeId) {
     // Volume reads return the whole volume; chunk into reader pages locally.
-    const response = await request<SunnahNowHadith[]>(path);
+    const response = parseSunnahNowHadiths(await request(path));
     const normalized = response.map((hadith) =>
       normalizeHadith(params.collectionSlug, hadith),
     );
@@ -273,8 +266,8 @@ export async function fetchReaderPage(params: {
     page: String(page),
     pageSize: String(pageSize),
   });
-  const response = await request<SunnahNowHadith[]>(
-    `${path}?${search.toString()}`,
+  const response = parseSunnahNowHadiths(
+    await request(`${path}?${search.toString()}`),
   );
 
   return {
@@ -298,8 +291,85 @@ export async function fetchVolumeHadiths(params: {
   volumeId: string;
 }): Promise<HadithRecord[]> {
   const path = listPath(params);
-  const response = await request<SunnahNowHadith[]>(path);
+  const response = parseSunnahNowHadiths(await request(path));
   return response.map((hadith) => normalizeHadith(params.collectionSlug, hadith));
+}
+
+function parseBooks(value: unknown): SunnahNowBook[] {
+  if (!Array.isArray(value)) throw new Error("Sunnah.now returned invalid books");
+  return value.map((entry) => {
+    if (!isRecord(entry) || typeof entry.slug !== "string") {
+      throw new Error("Sunnah.now returned an invalid book");
+    }
+    const slug = entry.slug.trim();
+    if (!DEFAULT_COLLECTION_ORDER.some((candidate) => candidate === slug)) {
+      throw new Error(`Sunnah.now returned an unsupported collection: ${slug}`);
+    }
+    return { collection: collectionName(slug), slug };
+  });
+}
+
+export function parseSunnahNowHadiths(value: unknown): SunnahNowHadith[] {
+  if (!Array.isArray(value)) {
+    throw new Error("Sunnah.now returned invalid hadith data");
+  }
+  return value.map(parseHadith);
+}
+
+function parseHadith(value: unknown): SunnahNowHadith {
+  if (!isRecord(value)) throw new Error("Sunnah.now returned an invalid hadith");
+  const id = parseProviderId(value.id);
+  const language = parseLanguageMap(value.language);
+  const metadata = isRecord(value.metadata) ? value.metadata : undefined;
+  const volume = metadata && isRecord(metadata.volume)
+    ? { id: parseOptionalProviderId(metadata.volume.id) }
+    : undefined;
+  const chapterRecord = metadata && isRecord(metadata.chapter)
+    ? metadata.chapter
+    : undefined;
+  const chapter = chapterRecord
+    ? {
+        id: parseOptionalProviderId(chapterRecord.id),
+        language: parseLanguageMap(chapterRecord.language),
+      }
+    : undefined;
+
+  return {
+    id,
+    ...(language ? { language } : {}),
+    ...(volume || chapter ? { metadata: { volume, chapter } } : {}),
+  };
+}
+
+function parseLanguageMap(
+  value: unknown,
+): Record<string, SunnahNowLanguageText> | undefined {
+  if (!isRecord(value)) return undefined;
+  const languages: Record<string, SunnahNowLanguageText> = {};
+  for (const [language, rawText] of Object.entries(value)) {
+    if (!isRecord(rawText)) continue;
+    const text = typeof rawText.text === "string" ? rawText.text : undefined;
+    const narrator =
+      typeof rawText.narrator === "string" ? rawText.narrator : undefined;
+    if (text !== undefined || narrator !== undefined) {
+      languages[language] = { text, narrator };
+    }
+  }
+  return languages;
+}
+
+function parseProviderId(value: unknown): string | number {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim().length > 0) return value.trim();
+  throw new Error("Sunnah.now returned an invalid hadith id");
+}
+
+function parseOptionalProviderId(value: unknown): string | number | undefined {
+  return value === undefined || value === null ? undefined : parseProviderId(value);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 export type VolumeOutlineEntry = {

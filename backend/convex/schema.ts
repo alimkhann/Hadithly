@@ -1,11 +1,10 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
-
-const provider = v.union(
-  v.literal("sunnah_now"),
-  v.literal("sunnah_com"),
-  v.literal("local_dump"),
-);
+import {
+  authenticityClaimValidator,
+  licenseTermsValidator,
+  providerValidator,
+} from "./lib/contentPolicy";
 
 const authenticityGrade = v.union(
   v.literal("sahih"),
@@ -67,8 +66,20 @@ export default defineSchema({
     indexedAt: v.number(),
   }).index("by_collection_slug", ["collectionSlug"]),
 
+  licenseRecords: defineTable({
+    sourceKey: v.string(),
+    sourceName: v.string(),
+    sourceUrl: v.string(),
+    terms: licenseTermsValidator,
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_source_key", ["sourceKey"]),
+
   hadiths: defineTable({
-    provider,
+    provider: providerValidator,
+    // Optional only while the F1 backfill crosses existing deployments.
+    // Every new provider write includes both fields.
+    canonicalId: v.optional(v.string()),
     providerHadithId: v.string(),
     collectionSlug: v.string(),
     bookId: v.optional(v.string()),
@@ -81,21 +92,29 @@ export default defineSchema({
     collectionName: v.string(),
     bookName: v.optional(v.string()),
     chapterName: v.optional(v.string()),
+    authenticity: v.optional(authenticityClaimValidator),
+    licenseRecordId: v.optional(v.id("licenseRecords")),
+    // Legacy F1 migration inputs. New writes remove these fields.
     authenticityGrade: v.optional(authenticityGrade),
-    authenticityAppliesTo: v.union(
-      v.literal("hadith"),
-      v.literal("collection"),
-      v.literal("none"),
+    authenticityAppliesTo: v.optional(
+      v.union(
+        v.literal("hadith"),
+        v.literal("collection"),
+        v.literal("none"),
+      ),
     ),
     authenticitySource: v.optional(v.string()),
-    authenticityConfidence: v.union(
-      v.literal("source_provided"),
-      v.literal("manual_mapping"),
-      v.literal("unavailable"),
+    authenticityConfidence: v.optional(
+      v.union(
+        v.literal("source_provided"),
+        v.literal("manual_mapping"),
+        v.literal("unavailable"),
+      ),
     ),
     createdAt: v.number(),
     sourceUpdatedAt: v.optional(v.number()),
   })
+    .index("by_canonical_id", ["canonicalId"])
     .index("by_provider_ref", ["provider", "collectionSlug", "providerHadithId"])
     .index("by_collection", ["provider", "collectionSlug"])
     .index("by_collection_volume", ["provider", "collectionSlug", "volumeId"])
@@ -103,6 +122,13 @@ export default defineSchema({
       searchField: "englishText",
       filterFields: ["collectionSlug"],
     }),
+
+  dailySelections: defineTable({
+    localDate: v.string(),
+    timezone: v.string(),
+    hadithId: v.id("hadiths"),
+    createdAt: v.number(),
+  }).index("by_local_date_timezone", ["localDate", "timezone"]),
 
   translations: defineTable({
     hadithId: v.id("hadiths"),

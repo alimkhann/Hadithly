@@ -61,6 +61,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -644,6 +645,15 @@ private fun HadithBlock(
             fontSize = 11.sp,
             color = colors.textSecondary,
             modifier = Modifier.align(Alignment.CenterHorizontally),
+        )
+
+        Text(
+            text = hadith.authenticity.displayLabel,
+            fontSize = 11.sp,
+            color = colors.textSecondary,
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .testTag("reader.authenticity"),
         )
 
         HadithActionRow(

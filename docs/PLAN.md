@@ -6,7 +6,7 @@ before any Hadithly session. Then open the matching standalone prompt in
 
 Last updated: 2026-09-07. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
-and D2 are complete. D3A's operational Apple and RevenueCat work is complete,
+D2, and F1 are complete. D3A's operational Apple and RevenueCat work is complete,
 while its legal, compliance, and iOS sandbox handoffs remain open. D3G is
 explicitly deferred by the owner until a Play Console developer account is
 available. Full D3 cannot pass until both release subgates pass, but neither
@@ -16,7 +16,7 @@ auth, and the username contract is now: optional, auto-generated from the
 email local part at password sign-up, editable in Settings. The Android FCM
 device-push re-test deferred from D1 folds into D4's physical-device matrix.
 
-Current next session: F1. Do not start D4 until the D3A release handoffs and D3G
+Current next session: F2. Do not start D4 until the D3A release handoffs and D3G
 pass. Keep store, sandbox, and submission work on the release track while the
 feature track builds the product.
 
@@ -374,6 +374,18 @@ substantive: they own bounded implementation outcomes, not just inventories.
 | LA3 | Add support email, transactional email, status/incident copy, backups, and cost budgets. | Every channel is tested, has retention and spend limits, and degrades safely. | GLM-5.3-Flash; Terra medium review |
 | LA4 | Decide whether to expand the fallback into a read-only web reader after native launch. | Licensing, demand, maintenance, privacy, and cost evidence support an explicit build-or-defer decision. | GLM-5.3-Flash; Terra medium review |
 | L1 | Finish Wave 1 localization, native-speaker QA, metadata, screenshots, and the release candidate. | No critical untranslated UI, broken RTL, policy gap, cost alarm, or dashboard blocker remains. | GLM-5.3-Flash; Terra high review; Sol high final gate |
+
+### F1 session record (2026-09-07)
+
+- Outcome: complete. Hadiths now expose a canonical provider identity and a discriminated authenticity claim. License terms live in separate records. Daily Hadith persists one eligible choice for each local date and IANA timezone.
+- Design: an embedded authenticity claim won over a separate claims table because reader and daily lookups need one self-contained record. The license remains separate because content identity, authenticity, and reuse permission change independently.
+- Backend and migration: `contentPolicy.ts` owns canonical IDs, the two cited manual collection mappings, and the legacy conversion. `migrations:migrateF1Hadiths` backfills bounded pages, removes legacy claim fields, records Sunnah.now licensing as unverified, and preserves any later verified license. New schema fields remain optional until deployed rows complete the backfill.
+- Daily policy: only source-provided `sahih` or `hasan` hadith grades and documented collection-level `sahih` claims qualify. Selection sorts by canonical ID before choosing and persists the result. The public action requires no user identity.
+- iOS and Android: both clients send the current IANA timezone, decode `provider`, `canonicalId`, and the authenticity claim, and show a quiet source-and-scope line in Today and Reader. The new text has accessibility identifiers. Broader authenticity presentation remains in R4.
+- Security: the Sunnah.now adapter parses unknown JSON before normalization, ignores grade-like provider prose, and serializes provider fields into a marked untrusted-data block before AI translation.
+- Evidence: backend typecheck passed; all 32 backend tests passed; all 25 iOS unit tests passed on the Hadithly D2 iPhone 17 Pro simulator; all 16 Android debug unit tests passed with JDK 21. Migration, idempotency, local-date, IANA-timezone, collection rotation, cache-order, eligibility, public-read, license-preservation, and prompt-boundary fixtures passed. A live public development request returned canonical `sunnah_now:bukhari:57` with collection scope and `manual_collection_mapping`. The iOS Today screen then rendered Hadith 57 with `Sahih collection scope · Sunnah.com`.
+- External state: F1 functions and schema were pushed to development Convex `festive-cobra-664`; the live request persisted its Asia/Almaty daily selection. No production, credential, dashboard, or store state changed, and the production data backfill did not run.
+- Next allowed session: F2. This task stopped before F2.
 
 ## Delegation policy
 

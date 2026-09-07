@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import java.time.ZoneId
 
 /**
  * Single gateway to Convex. The app talks only to Convex; Sunnah.now and
@@ -79,7 +80,10 @@ class ConvexRepository(context: Context) {
 
     suspend fun getDailyHadith(): DailyHadith? =
         withContext(Dispatchers.IO) {
-            convex.action<DailyHadith?>("actions/daily:getDailyHadith", emptyMap())
+            convex.action<DailyHadith?>(
+                "actions/daily:getDailyHadith",
+                mapOf("timezone" to ZoneId.systemDefault().id),
+            )
         }
 
     suspend fun submitTranslation(

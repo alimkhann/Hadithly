@@ -7,6 +7,8 @@ final class ReaderModelsTests: XCTestCase {
         let json = """
         {
           "_id": "abc123",
+          "provider": "sunnah_now",
+          "canonicalId": "sunnah_now:bukhari:7",
           "providerHadithId": "7",
           "collectionSlug": "bukhari",
           "volumeId": "1",
@@ -15,12 +17,22 @@ final class ReaderModelsTests: XCTestCase {
           "narrator": "Umar ibn al-Khattab",
           "referenceDisplay": "Sahih al-Bukhari · Hadith 7",
           "collectionName": "Sahih al-Bukhari",
-          "chapterName": "Revelation"
+          "chapterName": "Revelation",
+          "authenticity": {
+            "kind": "collection_scope",
+            "normalizedGrade": "sahih",
+            "claimScope": "collection",
+            "sourceLabel": "Documented Sahih collection",
+            "sourceName": "Sunnah.com",
+            "sourceUrl": "https://sunnah.com/bukhari/about",
+            "verificationMethod": "manual_collection_mapping"
+          }
         }
         """
         let hadith = try JSONDecoder().decode(ReaderHadith.self, from: Data(json.utf8))
         XCTAssertEqual(hadith.internalId, "sunnah_now:bukhari:7")
         XCTAssertEqual(hadith.volumeId, "1")
+        XCTAssertEqual(hadith.authenticity.displayLabel, "Sahih collection scope · Sunnah.com")
     }
 
     func testReaderPageDecodes() throws {
@@ -28,11 +40,22 @@ final class ReaderModelsTests: XCTestCase {
         {
           "items": [{
             "_id": "abc123",
+            "provider": "sunnah_now",
+            "canonicalId": "sunnah_now:bukhari:7",
             "providerHadithId": "7",
             "collectionSlug": "bukhari",
             "arabicText": "نَمَّ",
             "referenceDisplay": "Sahih al-Bukhari · Hadith 7",
-            "collectionName": "Sahih al-Bukhari"
+            "collectionName": "Sahih al-Bukhari",
+            "authenticity": {
+              "kind": "collection_scope",
+              "normalizedGrade": "sahih",
+              "claimScope": "collection",
+              "sourceLabel": "Documented Sahih collection",
+              "sourceName": "Sunnah.com",
+              "sourceUrl": "https://sunnah.com/bukhari/about",
+              "verificationMethod": "manual_collection_mapping"
+            }
           }],
           "page": 2,
           "pageSize": 8,
@@ -58,6 +81,37 @@ final class ReaderModelsTests: XCTestCase {
         let outline = try JSONDecoder().decode(CollectionOutlineResult.self, from: Data(json.utf8))
         XCTAssertEqual(outline.volumes.count, 1)
         XCTAssertEqual(outline.volumes[0].volumeId, "1")
+    }
+
+    func testDailyHadithDecodesCanonicalIdentityAndCollectionScope() throws {
+        let json = """
+        {
+          "_id": "daily1",
+          "provider": "sunnah_now",
+          "canonicalId": "sunnah_now:bukhari:25",
+          "providerHadithId": "25",
+          "collectionSlug": "bukhari",
+          "collectionName": "Sahih al-Bukhari",
+          "volumeId": "1",
+          "arabicText": "نص",
+          "englishText": "Text",
+          "referenceDisplay": "Sahih al-Bukhari · Hadith 25",
+          "authenticity": {
+            "kind": "collection_scope",
+            "normalizedGrade": "sahih",
+            "claimScope": "collection",
+            "sourceLabel": "Documented Sahih collection",
+            "sourceName": "Sunnah.com",
+            "sourceUrl": "https://sunnah.com/bukhari/about",
+            "verificationMethod": "manual_collection_mapping"
+          }
+        }
+        """
+
+        let daily = try JSONDecoder().decode(DailyHadith.self, from: Data(json.utf8))
+        XCTAssertEqual(daily.canonicalId, "sunnah_now:bukhari:25")
+        XCTAssertEqual(daily.authenticity.claimScope, "collection")
+        XCTAssertEqual(daily.authenticity.displayLabel, "Sahih collection scope · Sunnah.com")
     }
 
     func testTranslationDecodes() throws {
