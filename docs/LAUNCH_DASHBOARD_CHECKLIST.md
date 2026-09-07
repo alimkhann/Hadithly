@@ -512,9 +512,11 @@ Status on 2026-09-07:
 - [ ] Add test accounts and purchase-license testers.
 - [ ] Keep final screenshots and localized listings open for L1.
 
-D3 gate: the domain, policies, store records, product IDs, RevenueCat offering,
-and webhook work. Only design-sensitive screenshots and final release submission
-remain.
+D3 operational work now covers the live domain, policies, store records, product
+IDs, RevenueCat offering, and webhook. The release track still has Apple legal,
+compliance, and sandbox handoffs, plus the deferred Google Play account and
+store work. Feature sessions may proceed; D4 and Q2 remain gated on the release
+track.
 
 ## D4 production matrix
 

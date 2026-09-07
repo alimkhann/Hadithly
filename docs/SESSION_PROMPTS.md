@@ -147,15 +147,19 @@ Model: GPT-5.6 Sol, high. Run locally with Chrome and Computer Use.
 > readback and entitlement semantics. Screenshots and final public submission
 > stay open for L1.
 >
-> Track this session as two subgates. D3A covers the domain, policies, App Store
-> Connect, iOS products, RevenueCat webhook, and iOS sandbox. D3G covers Play
-> Console, Android products, Android App Links, and the Android store sandbox.
-> If the owner has no Play Console developer account, record D3G as deferred and
-> finish every available D3A item. Do not call D3 complete or skip D3G.
+> Track this session as an operations and release track with two subgates. D3A
+> covers the available domain, policies, App Store Connect, iOS products,
+> RevenueCat webhook, and iOS sandbox. D3G covers Play Console, Android
+> products, Android App Links, and the Android store sandbox. If the owner has
+> no Play Console developer account, record D3G as deferred. Do not create
+> placeholder dashboard records or treat store setup as a prerequisite for F1,
+> F2, R1, or the other product branches that do not depend on D4 or Q2.
+> Do not call full D3 complete or skip D3G.
 >
-> Gate: D3A passes when no non-Google, non-screenshot blocker remains. Full D3
-> passes only after D3G also passes. Update evidence and stop before D4. F1 is
-> still allowed because completed D2 independently unlocks it.
+> Gate: record the operational D3A work separately from its legal, compliance,
+> and sandbox handoffs. Full D3 passes only after D3A's release handoffs and
+> D3G pass. Update evidence and stop before D4. Completed D2 independently
+> unlocks F1.
 
 ## D4: verify the production launch system
 
@@ -187,7 +191,8 @@ Model: GPT-5.6 Sol, xhigh. Use `architect`, `domain-modeling`,
 `principle-prove-it-works`.
 
 > Read `AGENTS.md`, `docs/PLAN.md`, and `docs/REFERENCE_AUDIT.md` fully. Confirm
-> D4 passed. Execute only F1. Preserve unrelated changes and do not use Relay.
+> D2 passed. Do not wait for D3, D4, or a Play Console account. Execute only F1.
+> Preserve unrelated changes and do not use Relay.
 > First write failing contract and migration tests, then add canonical provider
 > identity, authenticity source and scope, license records, and persisted daily
 > eligibility. Keep mobile payloads platform-neutral and keep reading public.
