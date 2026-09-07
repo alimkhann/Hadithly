@@ -55,7 +55,7 @@ class ReaderViewModel(
         val translations: Map<String, TranslationUiState> = emptyMap(),
     )
 
-    private val _state = MutableStateFlow(ReaderState(language = app.settings.preferredLanguage.value))
+    private val _state = MutableStateFlow(ReaderState(language = app.preferences.preferences.value.translationLocale))
     val state: StateFlow<ReaderState> = _state
 
     private var pageJob: Job? = null
@@ -131,7 +131,7 @@ class ReaderViewModel(
 
     fun setLanguage(code: String) {
         if (code == _state.value.language) return
-        app.settings.setPreferredLanguage(code)
+        app.preferences.setTranslationLocale(code)
         cancelTranslationRun()
         _state.update { it.copy(language = code, translations = emptyMap()) }
         scheduleTranslationsForCurrentPage()

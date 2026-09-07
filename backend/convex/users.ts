@@ -2,6 +2,12 @@ import { internalMutation, internalQuery, mutation, query } from "./_generated/s
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { requireIdentity } from "./lib/identity";
+import {
+  defaultReaderPreferences,
+  parseReaderPreferences,
+  readerPreferencesValidator,
+  type ReaderPreferences,
+} from "./lib/preferences";
 
 export const DEFAULT_AI_GENERATION_LIMIT = 20;
 export const PRO_AI_GENERATION_LIMIT = 500;
@@ -13,11 +19,23 @@ type EntitlementSyncResult =
 
 /**
  * Upserts the signed-in user from their Clerk identity. Called by the app
- * right after sign-in. preferredLanguage is only applied on first creation
- * unless explicitly provided.
+ * right after sign-in.
+ *
+ * F2 migration: the first call after this deploy seeds `readerPreferences`
+ * with both locales from the legacy `preferredLanguage` value and marks the
+ * row with `localesMigrated`. Once marked, the locales are never re-seeded,
+ * so a later explicit choice (updateReaderPreferences) is never reset. After
+ * the migration, incoming `preferredLanguage` from clients is ignored —
+ * `readerPreferences` is the authoritative contract.
+ *
+ * `readerPreferences` follows last-write-wins by `updatedAt`, so a device
+ * holding a newer explicit choice wins over a stale sync payload.
  */
 export const ensureCurrentUser = mutation({
-  args: { preferredLanguage: v.optional(v.string()) },
+  args: {
+    preferredLanguage: v.optional(v.string()),
+    readerPreferences: v.optional(readerPreferencesValidator),
+  },
   handler: async (ctx, args) => {
     const identity = await requireIdentity(ctx);
     const now = Date.now();
@@ -27,29 +45,111 @@ export const ensureCurrentUser = mutation({
       .unique();
 
     if (existing) {
+      const shouldMigrateLocales = existing.localesMigrated !== true;
+      const incomingPreferences = args.readerPreferences
+        ? parseReaderPreferences(args.readerPreferences)
+        : undefined;
+
+      let readerPreferences = existing.readerPreferences as
+        | ReaderPreferences
+        | undefined;
+      if (
+        incomingPreferences &&
+        (readerPreferences === undefined ||
+          readerPreferences.updatedAt <= incomingPreferences.updatedAt)
+      ) {
+        readerPreferences = incomingPreferences;
+      }
+      if (shouldMigrateLocales && readerPreferences === undefined) {
+        const seedLanguage =
+          existing.preferredLanguage ?? args.preferredLanguage ?? "en";
+        readerPreferences = defaultReaderPreferences(seedLanguage, now);
+      }
+
       await ctx.db.patch(existing._id, {
         email: existing.email ?? identity.email,
         displayName: existing.displayName ?? identity.name,
         avatarUrl: existing.avatarUrl ?? identity.pictureUrl,
-        preferredLanguage:
-          args.preferredLanguage ?? existing.preferredLanguage,
+        preferredLanguage: shouldMigrateLocales
+          ? (args.preferredLanguage ?? existing.preferredLanguage)
+          : existing.preferredLanguage,
+        readerPreferences,
+        localesMigrated: shouldMigrateLocales ? true : existing.localesMigrated,
         updatedAt: now,
       });
       return existing._id;
     }
 
+    const readerPreferences = args.readerPreferences
+      ? parseReaderPreferences(args.readerPreferences)
+      : defaultReaderPreferences(args.preferredLanguage ?? "en", now);
     return await ctx.db.insert("users", {
       clerkId: identity.clerkId,
       email: identity.email,
       displayName: identity.name,
       avatarUrl: identity.pictureUrl,
       preferredLanguage: args.preferredLanguage ?? "en",
+      readerPreferences,
+      localesMigrated: true,
       subscriptionTier: "free",
       aiGenerationsThisMonth: 0,
       aiGenerationLimit: DEFAULT_AI_GENERATION_LIMIT,
       createdAt: now,
       updatedAt: now,
     });
+  },
+});
+
+/**
+ * Persists an explicit reader preference change (Settings, reader sheet).
+ * Last-write-wins by `updatedAt` against the stored row. Rejects the
+ * all-hidden visibility state in shared domain logic.
+ */
+export const updateReaderPreferences = mutation({
+  args: { readerPreferences: readerPreferencesValidator },
+  handler: async (ctx, args) => {
+    const identity = await requireIdentity(ctx);
+    const now = Date.now();
+    const existing = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.clerkId))
+      .unique();
+    if (!existing) {
+      throw new Error(
+        "NotFound: no Hadithly user exists for the signed-in identity",
+      );
+    }
+
+    const incoming = parseReaderPreferences(args.readerPreferences);
+    const stored = existing.readerPreferences as ReaderPreferences | undefined;
+    if (stored !== undefined && stored.updatedAt > incoming.updatedAt) {
+      return { applied: false as const };
+    }
+
+    await ctx.db.patch(existing._id, {
+      preferredLanguage: incoming.translationLocale,
+      readerPreferences: incoming,
+      localesMigrated: true,
+      updatedAt: now,
+    });
+    return { applied: true as const };
+  },
+});
+
+/** One-shot read so clients can adopt the authoritative stored preferences. */
+export const getCurrentUserPreferences = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await requireIdentity(ctx);
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.clerkId))
+      .unique();
+    if (!user) return { readerPreferences: null };
+    return {
+      readerPreferences:
+        (user.readerPreferences as ReaderPreferences | undefined) ?? null,
+    };
   },
 });
 

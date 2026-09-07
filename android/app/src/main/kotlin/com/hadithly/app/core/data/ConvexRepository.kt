@@ -8,6 +8,7 @@ import dev.convex.android.ConvexClientWithAuth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.time.ZoneId
@@ -113,14 +114,22 @@ class ConvexRepository(context: Context) {
 
     // Account + guest merge
 
-    suspend fun ensureCurrentUser(preferredLanguage: String) {
+    suspend fun ensureCurrentUser(preferredLanguage: String, readerPreferences: Map<String, Any?>? = null) {
+        val args = mutableMapOf<String, Any?>("preferredLanguage" to preferredLanguage)
+        if (readerPreferences != null) args["readerPreferences"] = readerPreferences
         withContext(Dispatchers.IO) {
-            convex.mutation<String>(
-                "users:ensureCurrentUser",
-                mapOf("preferredLanguage" to preferredLanguage),
-            )
+            convex.mutation<String>("users:ensureCurrentUser", args)
         }
     }
+
+    suspend fun updateReaderPreferences(prefs: Map<String, Any?>) =
+        mutation("users:updateReaderPreferences", mapOf("readerPreferences" to prefs))
+
+    /** One-shot read so the device can adopt the authoritative stored state. */
+    suspend fun getCurrentUserPreferences(): UserPreferencesResult? =
+        withContext(Dispatchers.IO) {
+            subscribe<UserPreferencesResult>("users:getCurrentUserPreferences").firstOrNull()
+        }
 
     suspend fun deleteCurrentUser() {
         withContext(Dispatchers.IO) {

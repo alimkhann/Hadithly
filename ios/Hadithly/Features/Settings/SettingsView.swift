@@ -16,8 +16,6 @@ struct SettingsView: View {
     @State private var showDeleteConfirmation = false
     @State private var deletionError: String?
     @State private var showAdminReview = false
-    @AppStorage("reader.arabicFontSize") private var arabicFontSize: Double = 26
-    @AppStorage("user.preferredLanguage") private var preferredLanguage = "en"
 
     var body: some View {
         ScrollView {
@@ -34,7 +32,7 @@ struct SettingsView: View {
                     GuestCard(showSignIn: $showSignIn)
                 }
 
-                ReadingCard(arabicFontSize: $arabicFontSize, preferredLanguage: $preferredLanguage)
+                ReadingCard()
 
                 NotificationCard()
 
@@ -324,26 +322,33 @@ private struct GuestCard: View {
 
 // MARK: - Reading preferences
 
+/// Temporary minimal control surface for the F2 preference contracts. S1 owns
+/// the final Settings screen; R4 owns the full reader typography UI.
 private struct ReadingCard: View {
-    @Binding var arabicFontSize: Double
-    @Binding var preferredLanguage: String
+    @Environment(AppEnvironment.self) private var environment
+
+    private var store: PreferencesStore { environment.preferences }
 
     var body: some View {
+        let preferences = store.preferences
         VStack(alignment: .leading, spacing: 12) {
-            Label("Reading", systemImage: "textformat")
+            Label(String(localized: "Reading"), systemImage: "textformat")
                 .font(.headline)
                 .foregroundStyle(Theme.textPrimary)
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("Arabic type size")
+                Text(String(localized: "Arabic type size"))
                     .font(.subheadline)
                     .foregroundStyle(Theme.textPrimary)
                 Slider(
-                    value: $arabicFontSize,
+                    value: Binding(
+                        get: { store.preferences.arabicFontSize },
+                        set: { store.setArabicFontSize($0) }
+                    ),
                     in: 18...40,
                     step: 1
                 ) {
-                    Text("Arabic type size")
+                    Text(String(localized: "Arabic type size"))
                 } minimumValueLabel: {
                     Text("A")
                         .font(.caption)
@@ -354,50 +359,129 @@ private struct ReadingCard: View {
                         .foregroundStyle(Theme.textSecondary)
                 }
                 .tint(Theme.accent)
-                Text("\(Int(arabicFontSize)) pt")
+                Text("\(Int(preferences.arabicFontSize)) pt")
                     .font(.caption2.monospacedDigit())
                     .foregroundStyle(Theme.textSecondary)
                 Text("نَعْبُدُكَ وَإِيَّاكَ نَسْتَعِينُ")
-                    .font(Theme.arabic(arabicFontSize))
+                    .font(Theme.arabic(preferences.arabicFontSize))
                     .foregroundStyle(Theme.textPrimary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 6)
             }
             .accessibilityIdentifier("settings.arabicSize")
 
+            languageSection(
+                title: String(localized: "Hadith translation"),
+                selection: preferences.translationLocale,
+                accessibilityPrefix: "settings.language"
+            ) { store.setTranslationLocale($0) }
+
+            languageSection(
+                title: String(localized: "App language"),
+                selection: preferences.uiLocale,
+                accessibilityPrefix: "settings.uiLanguage"
+            ) { store.setUILocale($0) }
+
             VStack(alignment: .leading, spacing: 8) {
-                Text("Translation language")
+                Text(String(localized: "Reading direction"))
                     .font(.subheadline)
                     .foregroundStyle(Theme.textPrimary)
-                ForEach(SupportedLanguages.all) { language in
-                    Button {
-                        preferredLanguage = language.code
-                    } label: {
-                        HStack {
-                            Text(language.name)
-                                .font(.subheadline)
-                                .foregroundStyle(Theme.textPrimary)
-                            Spacer()
-                            if preferredLanguage == language.code {
-                                Image(systemName: "checkmark")
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundStyle(Theme.accent)
-                            }
-                        }
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 11)
-                        .background(preferredLanguage == language.code ? Theme.accentSoft : Theme.surfaceElevated)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                ForEach(ReadingDirection.allCases, id: \.self) { direction in
+                    optionRow(
+                        label: Self.directionLabel(direction),
+                        selected: preferences.readingDirection == direction
+                    ) {
+                        store.setReadingDirection(direction)
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("settings.language.\(language.code)")
+                    .accessibilityIdentifier("settings.readingDirection.\(direction.rawValue)")
                 }
             }
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text(String(localized: "Arabic text"))
+                    .font(.subheadline)
+                    .foregroundStyle(Theme.textPrimary)
+                Toggle(String(localized: "Arabic text"), isOn: Binding(
+                    get: { store.preferences.arabicVisible },
+                    set: { store.setVisibility(arabic: $0) }
+                ))
+                .tint(Theme.accent)
+                .accessibilityIdentifier("settings.visibility.arabic")
+
+                Text(String(localized: "Translation"))
+                    .font(.subheadline)
+                    .foregroundStyle(Theme.textPrimary)
+                Toggle(String(localized: "Translation"), isOn: Binding(
+                    get: { store.preferences.translationVisible },
+                    set: { store.setVisibility(translation: $0) }
+                ))
+                .tint(Theme.accent)
+                .accessibilityIdentifier("settings.visibility.translation")
+            }
+
+            Text("\(SupportedLanguages.all.count) languages available")
+                .font(.caption)
+                .foregroundStyle(Theme.textSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
         .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    private func languageSection(
+        title: String,
+        selection: String,
+        accessibilityPrefix: String,
+        onSelect: @escaping (String) -> Void
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.subheadline)
+                .foregroundStyle(Theme.textPrimary)
+            ForEach(SupportedLanguages.all) { language in
+                optionRow(
+                    label: language.name,
+                    selected: selection == language.code
+                ) {
+                    onSelect(language.code)
+                }
+                .accessibilityIdentifier("\(accessibilityPrefix).\(language.code)")
+            }
+        }
+    }
+
+    private func optionRow(
+        label: String,
+        selected: Bool,
+        onSelect: @escaping () -> Void
+    ) -> some View {
+        Button(action: onSelect) {
+            HStack {
+                Text(label)
+                    .font(.subheadline)
+                    .foregroundStyle(Theme.textPrimary)
+                Spacer()
+                if selected {
+                    Image(systemName: "checkmark")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Theme.accent)
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 11)
+            .background(selected ? Theme.accentSoft : Theme.surfaceElevated)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private static func directionLabel(_ direction: ReadingDirection) -> String {
+        switch direction {
+        case .auto: return String(localized: "Automatic")
+        case .rtl: return String(localized: "Right to left")
+        case .ltr: return String(localized: "Left to right")
+        }
     }
 }
 

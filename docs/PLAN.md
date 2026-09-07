@@ -6,7 +6,7 @@ before any Hadithly session. Then open the matching standalone prompt in
 
 Last updated: 2026-09-07. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
-D2, and F1 are complete. D3A's operational Apple and RevenueCat work is complete,
+D2, and F1 are complete. F2 is complete. D3A's operational Apple and RevenueCat work is complete,
 while its legal, compliance, and iOS sandbox handoffs remain open. D3G is
 explicitly deferred by the owner until a Play Console developer account is
 available. Full D3 cannot pass until both release subgates pass, but neither
@@ -16,7 +16,7 @@ auth, and the username contract is now: optional, auto-generated from the
 email local part at password sign-up, editable in Settings. The Android FCM
 device-push re-test deferred from D1 folds into D4's physical-device matrix.
 
-Current next session: F2. Do not start D4 until the D3A release handoffs and D3G
+Current next session: F3. Do not start D4 until the D3A release handoffs and D3G
 pass. Keep store, sandbox, and submission work on the release track while the
 feature track builds the product.
 
@@ -347,7 +347,7 @@ substantive: they own bounded implementation outcomes, not just inventories.
 | D3G | Finish Play Console, Android products, Android App Links, and Android store sandbox work. Deferred until the owner has a Play Console developer account. | The Google Play release gate remains open until the account, products, signing fingerprint, and sandbox evidence exist. | GPT-5.6 Sol, high |
 | D4 | Run the production launch-system matrix on physical iPhone and Android devices. | The signed evidence matrix passes. Phase 6 becomes complete. | GPT-5.6 Sol, xhigh |
 | F1 | Add canonical content identity, authenticity scope, license records, and eligible daily selection. | Migration fixtures prove that no grade or scope is invented. | GPT-5.6 Sol, xhigh |
-| F2 | Add UI locale, translation locale, direction, theme, and visibility preference contracts. | Both clients decode, persist, sync, and reject an all-hidden state. | GLM-5.3-Flash; Terra high review |
+| F2 | Add UI locale, translation locale, direction, theme, and visibility preference contracts. | Both clients decode, persist, sync, and reject an all-hidden state. Complete 2026-09-07 (emulator + simulator); physical-device confirmation stays in D4. | GLM-5.3-Flash; Terra high review |
 | F3 | Ship `hadithly.app` landing, fallback pages, and native link resolution. | Installed, uninstalled, malformed, stale, and signed-out links pass. | GLM-5.3-Flash; Terra high review |
 | R1 | Add semantic reading positions and a compatibility migration. | Old progress migrates and new positions survive a pagination-version change. | GPT-5.6 Sol, xhigh |
 | R2 | Restore exact position from Continue Reading, Saved, Today, links, notifications, and widgets. | Every entry point lands on the expected anchor and offset on both apps. | GPT-5.6 Terra, high |
@@ -386,6 +386,54 @@ substantive: they own bounded implementation outcomes, not just inventories.
 - Evidence: backend typecheck passed; all 32 backend tests passed; all 25 iOS unit tests passed on the Hadithly D2 iPhone 17 Pro simulator; all 16 Android debug unit tests passed with JDK 21. Migration, idempotency, local-date, IANA-timezone, collection rotation, cache-order, eligibility, public-read, license-preservation, and prompt-boundary fixtures passed. A live public development request returned canonical `sunnah_now:bukhari:57` with collection scope and `manual_collection_mapping`. The iOS Today screen then rendered Hadith 57 with `Sahih collection scope · Sunnah.com`.
 - External state: F1 functions and schema were pushed to development Convex `festive-cobra-664`; the live request persisted its Asia/Almaty daily selection. No production, credential, dashboard, or store state changed, and the production data backfill did not run.
 - Next allowed session: F2. This task stopped before F2.
+
+### F2 session record (2026-09-07)
+
+- Outcome: complete. Both clients decode, persist, sync, and reject the
+  all-hidden visibility state; the preference contract lives in one versioned
+  object on the `users` row shared by iOS and Android.
+- Design: a flat, versioned `readerPreferences` object (schemaVersion 1)
+  embedded on the user row won over a separate table because preferences are
+  always read and written as one unit. Validation is shared domain logic in
+  `convex/lib/preferences.ts` (BCP 47 tag pattern, direction and theme
+  literals, Arabic font size 18–40, font-id shape, `VISIBILITY_ALL_HIDDEN`
+  rejection). Writes are last-write-wins by `updatedAt`; the first signed-in
+  call migrates legacy `preferredLanguage` into full preferences behind a
+  `localesMigrated` flag. Unknown server-side font ids degrade to the client
+  default, so newer clients can add licensed fonts without breaking older ones.
+- Backend: `users.readerPreferences` optional field in `schema.ts`;
+  `updateReaderPreferences` and `getCurrentUserPreferences` in `users.ts`
+  (both `requireIdentity`); `ensureCurrentUser` seeds/migrates preferences.
+  Pushed to development Convex `festive-cobra-664` (verified in function-spec).
+  Production was not touched.
+- iOS and Android: onboarding writes `uiLocale` and `translationLocale`
+  together from one choice; Settings shows the Reading card (app language,
+  hadith translation, reading direction, Arabic/translation visibility,
+  Arabic type size) and the reader sheet reuses the same store. Both clients
+  reject hiding the last visible text layer locally and the server rejects it
+  again. Accessibility identifiers (`settings.visibility.arabic`,
+  `settings.readingDirection.auto`, …) exist on both platforms.
+- Localization evidence: F2-scoped strings only (onboarding, Reading card,
+  direction labels, plural footer) in `Localizable.xcstrings` and Android
+  `values-ar`/`values-ur`; whole-app localization stays in L1. Live checks:
+  Arabic and Urdu render RTL with mirrored bars and pickers on both platforms;
+  the Arabic plural footer resolves the `few` category ("8 لغات متاحة") and
+  Urdu the `other` category ("8 زبانیں دستیاب ہیں"). Android used per-app
+  locales (`cmd locale set-app-locales`), the real user-facing mechanism.
+- Tests: backend typecheck clean and 47/47 tests passed; iOS 51/51 unit tests
+  on the Hadithly D2 simulator (new LocaleFallback, LocalizationCatalog,
+  PreferencesMigration, ReaderPreferences suites); Android 39/39 debug unit
+  tests with JDK 21 (same new suites plus reader wiring). Live device checks
+  ran on an Android 16 emulator and the iOS simulator — physical-device
+  confirmation stays in D4.
+- Security: no new untrusted-data surface; every preference mutation derives
+  identity from the Clerk JWT. No dashboard, credential, or store state
+  changed.
+- Handoff: the worktree holds the F2 changes uncommitted (backend, both
+  clients, docs/FONT_LICENSES.md, four new suites per client). The named
+  Terra high review of this patch has not run yet; schedule it before or with
+  F3.
+- Next allowed session: F3. This task stopped before F3.
 
 ## Delegation policy
 

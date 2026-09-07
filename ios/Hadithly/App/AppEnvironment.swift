@@ -44,6 +44,10 @@ struct GuestMergeResult: Decodable {
     let progressSkipped: Int
 }
 
+struct CurrentPreferencesRow: Decodable {
+    let readerPreferences: ReaderPreferences?
+}
+
 /// Process-wide dependency container.
 /// Owns the Clerk-configured Convex client; views observe auth through `Clerk.shared`.
 @MainActor
@@ -55,6 +59,7 @@ final class AppEnvironment {
     let library: UserLibraryModel
     let push: PushNotificationManager
     let purchases: PurchaseManager
+    let preferences: PreferencesStore
 
     /// Summary of the last completed sign-in sync, surfaced in Settings.
     private(set) var lastSyncSummary: String?
@@ -70,6 +75,8 @@ final class AppEnvironment {
         self.guestData = guestData ?? GuestDataStore()
         Clerk.configure(publishableKey: config.clerkPublishableKey)
         self.purchases = PurchaseManager(apiKey: config.revenueCatAPIKey)
+        let store = PreferencesStore()
+        self.preferences = store
         let provider = ClerkConvexAuthProvider()
         self.authProvider = provider
         self.convex = ConvexClientWithAuth(
@@ -96,6 +103,12 @@ final class AppEnvironment {
             )
         }
 
+        // Explicit preference changes sync to Convex while signed in; while
+        // signed out they stay device-local and merge on the next sign-in.
+        store.onPreferencesChanged = { [weak self] updated in
+            self?.syncPreferences(updated)
+        }
+
         // Personal-data subscriptions must follow the Convex session: a
         // subscription opened before authentication errors and stays empty.
         authStateCancellable = convex.authState
@@ -116,12 +129,14 @@ final class AppEnvironment {
         }
 
         do {
-            let preferredLanguage =
-                UserDefaults.standard.string(forKey: "user.preferredLanguage") ?? "en"
             let _: String? = try await convex.mutation(
                 "users:ensureCurrentUser",
-                with: ["preferredLanguage": preferredLanguage]
+                with: [
+                    "preferredLanguage": preferences.preferences.translationLocale as ConvexEncodable?,
+                    "readerPreferences": Self.wireDict(for: preferences.preferences) as ConvexEncodable?,
+                ]
             )
+            await adoptServerPreferences()
             if let clerkUserID = Clerk.shared.user?.id {
                 await purchases.logIn(appUserID: clerkUserID)
             }
@@ -208,8 +223,49 @@ final class AppEnvironment {
         handleSignOut()
     }
 
-    private func refreshModerationAccess(for state: AuthState<String>) {
-        moderationAccessCancellable?.cancel()
+    private func syncPreferences(_ updated: ReaderPreferences) {
+        guard Clerk.shared.session != nil else { return }
+        Task { [weak self] in
+            guard let self else { return }
+            try? await self.convex.mutation(
+                "users:updateReaderPreferences",
+                with: ["readerPreferences": Self.wireDict(for: updated) as ConvexEncodable?]
+            )
+        }
+    }
+
+    /// Adopts the authoritative stored preferences when the server row is
+    /// newer than the device (another device made the latest explicit change).
+    private func adoptServerPreferences() async {
+        guard
+            let row = try? await convex
+                .subscribe(to: "users:getCurrentUserPreferences", yielding: CurrentPreferencesRow.self)
+                .values
+                .first(where: { _ in true }),
+            let server = row.readerPreferences,
+            server.updatedAt > preferences.preferences.updatedAt
+        else { return }
+        preferences.adoptServer(server)
+    }
+
+    /// Wire encoding for the platform-neutral preference payload. All numbers
+    /// travel as Double because Convex `v.number()` rejects integer wrappers.
+    private static func wireDict(for prefs: ReaderPreferences) -> [String: ConvexEncodable?] {
+        [
+            "schemaVersion": Double(prefs.schemaVersion) as ConvexEncodable?,
+            "uiLocale": prefs.uiLocale as ConvexEncodable?,
+            "translationLocale": prefs.translationLocale as ConvexEncodable?,
+            "readingDirection": prefs.readingDirection.rawValue as ConvexEncodable?,
+            "theme": prefs.theme.rawValue as ConvexEncodable?,
+            "arabicFont": prefs.arabicFont.rawValue as ConvexEncodable?,
+            "arabicFontSize": prefs.arabicFontSize as ConvexEncodable?,
+            "arabicVisible": prefs.arabicVisible as ConvexEncodable?,
+            "translationVisible": prefs.translationVisible as ConvexEncodable?,
+            "updatedAt": prefs.updatedAt as ConvexEncodable?,
+        ]
+    }
+
+    private func refreshModerationAccess(for state: AuthState<String>) {        moderationAccessCancellable?.cancel()
         moderationAccessCancellable = nil
         guard case .authenticated = state else {
             canModerate = false

@@ -1,0 +1,19 @@
+<resources>
+    <string name="onboarding_choose_language_title">اپنی زبان منتخب کریں</string>
+    <string name="onboarding_choose_language_subtitle">آپ اسے ترتیبات میں کسی بھی وقت تبدیل کر سکتے ہیں۔</string>
+    <string name="action_continue">جاری رکھیں</string>
+    <string name="settings_reading">پڑھنا</string>
+    <string name="settings_arabic_type_size">عربی فونٹ کا سائز</string>
+    <string name="settings_app_language">ایپ کی زبان</string>
+    <string name="settings_hadith_translation">حدیث کا ترجمہ</string>
+    <string name="settings_reading_direction">پڑھنے کی سمت</string>
+    <string name="settings_visibility_arabic">عربی متن</string>
+    <string name="settings_visibility_translation">ترجمہ</string>
+    <string name="direction_automatic">خودکار</string>
+    <string name="direction_right_to_left">دائیں سے بائیں</string>
+    <string name="direction_left_to_right">بائیں سے دائیں</string>
+    <plurals name="settings_languages_available">
+        <item quantity="one">%d زبان دستیاب ہے</item>
+        <item quantity="other">%d زبانیں دستیاب ہیں</item>
+    </plurals>
+</resources>

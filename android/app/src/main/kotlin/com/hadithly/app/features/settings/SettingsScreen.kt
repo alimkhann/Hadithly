@@ -54,6 +54,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.filled.Edit
@@ -67,9 +69,14 @@ import com.clerk.api.network.model.error.ClerkErrorResponse
 import com.clerk.api.network.serialization.errorMessage
 import com.clerk.api.user.User
 import com.clerk.api.user.update
+import com.hadithly.app.R
 import com.hadithly.app.core.data.SupportedLanguages
+import com.hadithly.app.core.preferences.PreferencesStore
+import com.hadithly.app.core.preferences.ReaderPreferences
+import com.hadithly.app.core.preferences.ReadingDirection
 import com.hadithly.app.core.push.PushNotificationManager
 import com.hadithly.app.core.push.PushRegistrationState
+import com.hadithly.app.core.theme.HadithlyColors
 import com.hadithly.app.core.theme.LocalHadithlyColors
 import com.hadithly.app.features.main.rememberApp
 import kotlinx.coroutines.launch
@@ -78,8 +85,7 @@ import kotlinx.coroutines.launch
 fun SettingsScreen(onShowSignIn: () -> Unit) {
     val app = rememberApp()
     val colors = LocalHadithlyColors.current
-    val language by app.settings.preferredLanguage.collectAsStateWithLifecycle()
-    val arabicFontSize by app.settings.arabicFontSize.collectAsStateWithLifecycle()
+    val preferences by app.preferences.preferences.collectAsStateWithLifecycle()
     val syncSummary by app.session.syncSummary.collectAsStateWithLifecycle()
     val canModerate by app.session.canModerate.collectAsStateWithLifecycle()
     val sessions by Clerk.sessionsFlow.collectAsStateWithLifecycle()
@@ -92,7 +98,7 @@ fun SettingsScreen(onShowSignIn: () -> Unit) {
     ) {
         Text("Settings", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
         AccountCard(signedIn, syncSummary, onShowSignIn)
-        ReadingCard(language, arabicFontSize, app.settings::setPreferredLanguage, app.settings::setArabicFontSize)
+        ReadingCard(preferences, app.preferences)
         NotificationCard(signedIn)
         if (canModerate) {
             Row(
@@ -277,42 +283,130 @@ private fun AccountCard(signedIn: Boolean, syncSummary: String?, onShowSignIn: (
     }
 }
 
+/**
+ * Temporary minimal control surface for the F2 preference contracts. S1 owns
+ * the final Settings screen; R4 owns the full reader typography UI.
+ */
 @Composable
-private fun ReadingCard(language: String, arabicFontSize: Float, onLanguage: (String) -> Unit, onArabicSize: (Float) -> Unit) {
+private fun ReadingCard(preferences: ReaderPreferences, store: PreferencesStore) {
     val colors = LocalHadithlyColors.current
     CardColumn {
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Filled.TextFields, null, tint = colors.textSecondary)
-            Text("Reading", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+            Text(stringResource(R.string.settings_reading), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
         }
-        Text("Arabic type size", fontSize = 14.sp, color = colors.textPrimary)
+        Text(stringResource(R.string.settings_arabic_type_size), fontSize = 14.sp, color = colors.textPrimary)
         Slider(
-            value = arabicFontSize,
-            onValueChange = onArabicSize,
+            value = preferences.arabicFontSize,
+            onValueChange = store::setArabicFontSize,
             valueRange = 18f..40f,
             steps = 21,
             colors = SliderDefaults.colors(thumbColor = colors.accent, activeTrackColor = colors.accent, inactiveTrackColor = colors.surfaceElevated),
             modifier = Modifier.testTag("settings.arabicSize"),
         )
-        Text("${arabicFontSize.toInt()} pt", fontSize = 11.sp, color = colors.textSecondary)
-        Text("نَعْبُدُكَ وَإِيَّاكَ نَسْتَعِينُ", fontSize = arabicFontSize.sp, color = colors.textPrimary, modifier = Modifier.fillMaxWidth())
-        Text("Translation language", fontSize = 14.sp, color = colors.textPrimary)
-        SupportedLanguages.all.forEach { (code, name) ->
-            val selected = code == language
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(if (selected) colors.accentSoft else colors.surfaceElevated, RoundedCornerShape(10.dp))
-                    .clickable { onLanguage(code) }
-                    .testTag("settings.language.$code")
-                    .padding(horizontal = 14.dp, vertical = 11.dp),
-            ) {
-                Text(name, fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
-                if (selected) Icon(Icons.Filled.Check, null, tint = colors.accent, modifier = Modifier.size(16.dp))
+        Text("${preferences.arabicFontSize.toInt()} pt", fontSize = 11.sp, color = colors.textSecondary)
+        Text("نَعْبُدُكَ وَإِيَّاكَ نَسْتَعِينُ", fontSize = preferences.arabicFontSize.sp, color = colors.textPrimary, modifier = Modifier.fillMaxWidth())
+        optionSection(stringResource(R.string.settings_hadith_translation)) {
+            SupportedLanguages.all.forEach { (code, name) ->
+                optionRow(
+                    label = name,
+                    selected = code == preferences.translationLocale,
+                    colors = colors,
+                    onClick = { store.setTranslationLocale(code) },
+                    modifier = Modifier.testTag("settings.language.$code"),
+                )
             }
         }
+        optionSection(stringResource(R.string.settings_app_language)) {
+            SupportedLanguages.all.forEach { (code, name) ->
+                optionRow(
+                    label = name,
+                    selected = code == preferences.uiLocale,
+                    colors = colors,
+                    onClick = { store.setUILocale(code) },
+                    modifier = Modifier.testTag("settings.uiLanguage.$code"),
+                )
+            }
+        }
+        optionSection(stringResource(R.string.settings_reading_direction)) {
+            ReadingDirection.entries.forEach { direction ->
+                optionRow(
+                    label = directionLabel(direction),
+                    selected = direction == preferences.readingDirection,
+                    colors = colors,
+                    onClick = { store.setReadingDirection(direction) },
+                    modifier = Modifier.testTag("settings.readingDirection.${direction.wire}"),
+                )
+            }
+        }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.settings_visibility_arabic), fontSize = 14.sp, color = colors.textPrimary)
+            }
+            Switch(
+                checked = preferences.arabicVisible,
+                onCheckedChange = { store.setVisibility(arabic = it) },
+                colors = SwitchDefaults.colors(checkedTrackColor = colors.accent),
+                modifier = Modifier.testTag("settings.visibility.arabic"),
+            )
+        }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.settings_visibility_translation), fontSize = 14.sp, color = colors.textPrimary)
+            }
+            Switch(
+                checked = preferences.translationVisible,
+                onCheckedChange = { store.setVisibility(translation = it) },
+                colors = SwitchDefaults.colors(checkedTrackColor = colors.accent),
+                modifier = Modifier.testTag("settings.visibility.translation"),
+            )
+        }
+        Text(
+            pluralStringResource(R.plurals.settings_languages_available, SupportedLanguages.all.size, SupportedLanguages.all.size),
+            fontSize = 12.sp,
+            color = colors.textSecondary,
+        )
     }
+}
+
+@Composable
+private fun optionSection(title: String, content: @Composable () -> Unit) {
+    Text(title, fontSize = 14.sp, color = LocalHadithlyColors.current.textPrimary)
+    content()
+}
+
+@Composable
+private fun optionRow(
+    label: String,
+    selected: Boolean,
+    colors: HadithlyColors,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .fillMaxWidth()
+            .background(if (selected) colors.accentSoft else colors.surfaceElevated, RoundedCornerShape(10.dp))
+            .clickable { onClick() }
+            .padding(horizontal = 14.dp, vertical = 11.dp),
+    ) {
+        Text(label, fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
+        if (selected) Icon(Icons.Filled.Check, null, tint = colors.accent, modifier = Modifier.size(16.dp))
+    }
+}
+
+@Composable
+private fun directionLabel(direction: ReadingDirection): String = when (direction) {
+    ReadingDirection.AUTO -> stringResource(R.string.direction_automatic)
+    ReadingDirection.RTL -> stringResource(R.string.direction_right_to_left)
+    ReadingDirection.LTR -> stringResource(R.string.direction_left_to_right)
 }
 
 @Composable

@@ -57,8 +57,8 @@ fun RootApp() {
         )
     } else {
         OnboardingFlow(
-            selectedLanguage = app.settings.preferredLanguage.value,
-            onSelectLanguage = { app.settings.setPreferredLanguage(it) },
+            selectedLanguage = app.preferences.preferences.value.uiLocale,
+            onSelectLanguage = { app.preferences.applyOnboardingLanguage(it) },
             onComplete = { app.settings.setOnboardingCompleted(true) },
         )
     }

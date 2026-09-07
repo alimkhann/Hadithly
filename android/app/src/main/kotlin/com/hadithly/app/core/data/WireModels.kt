@@ -1,5 +1,6 @@
 package com.hadithly.app.core.data
 
+import com.hadithly.app.core.preferences.ReaderPreferences
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -220,3 +221,9 @@ object SupportedLanguages {
         "ar" to "العربية",
     )
 }
+
+/** One-shot reader preference adoption payload (F2). */
+@Serializable
+data class UserPreferencesResult(
+    val readerPreferences: ReaderPreferences? = null,
+)

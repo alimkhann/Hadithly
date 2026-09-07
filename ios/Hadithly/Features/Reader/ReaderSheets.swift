@@ -85,6 +85,7 @@ struct ReaderSettingsSheet: View {
     let model: ReaderModel
     @Binding var arabicFontSize: Double
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppEnvironment.self) private var environment
 
     var body: some View {
         NavigationStack {
@@ -119,6 +120,7 @@ struct ReaderSettingsSheet: View {
 
             ForEach(SupportedLanguages.all) { language in
                 Button {
+                    environment.preferences.setTranslationLocale(language.code)
                     model.setLanguage(language.code)
                 } label: {
                     HStack {

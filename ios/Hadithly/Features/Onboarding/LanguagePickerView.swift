@@ -28,7 +28,7 @@ struct LanguagePickerView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Text("Choose your reading language")
+            Text("Choose your language")
                 .font(.title2.bold())
                 .foregroundStyle(Theme.textPrimary)
                 .padding(.top, Theme.Spacing.xl)

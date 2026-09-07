@@ -20,12 +20,18 @@ struct ReaderView: View {
     @State private var showQuotaPaywall = false
     @State private var hasAutoPresentedQuotaPaywall = false
     @State private var lastTurn: PageTurn = .none
-    @AppStorage("reader.arabicFontSize") private var arabicFontSize: Double = 26
 
     private enum PageTurn {
         case none
         case forward
         case back
+    }
+
+    private var arabicFontSizeBinding: Binding<Double> {
+        Binding(
+            get: { environment.preferences.preferences.arabicFontSize },
+            set: { environment.preferences.setArabicFontSize($0) }
+        )
     }
 
     var body: some View {
@@ -43,7 +49,7 @@ struct ReaderView: View {
                     convex: environment.convex,
                     collectionSlug: collectionSlug,
                     collectionName: collectionName,
-                    language: UserDefaults.standard.string(forKey: "user.preferredLanguage") ?? "en",
+                    language: environment.preferences.preferences.translationLocale,
                     isSignedIn: { clerk.session != nil },
                     library: environment.library,
                     openVolumeId: openVolumeId,
@@ -64,7 +70,7 @@ struct ReaderView: View {
         }
         .sheet(isPresented: $showSettings) {
             if let model {
-                ReaderSettingsSheet(model: model, arabicFontSize: $arabicFontSize)
+                ReaderSettingsSheet(model: model, arabicFontSize: arabicFontSizeBinding)
                     .presentationDetents([.medium])
             }
         }
@@ -133,7 +139,7 @@ struct ReaderView: View {
             ReaderPageView(
                 model: model,
                 hadiths: model.currentPageHadiths,
-                arabicFontSize: arabicFontSize,
+                arabicFontSize: arabicFontSizeBinding.wrappedValue,
                 onShowPaywall: { showQuotaPaywall = true }
             )
             .id(model.pageIndex)

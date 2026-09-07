@@ -9,6 +9,8 @@ import com.hadithly.app.core.data.GuestDataStore
 import com.hadithly.app.core.data.GuestMergePlanner
 import com.hadithly.app.core.data.UserLibraryModel
 import com.hadithly.app.core.settings.AppSettings
+import com.hadithly.app.core.preferences.PreferencesStore
+import com.hadithly.app.core.preferences.toWireMap
 import com.hadithly.app.core.push.PushNotificationManager
 import com.hadithly.app.core.purchases.PurchaseManager
 import kotlinx.coroutines.Dispatchers
@@ -31,6 +33,7 @@ import kotlinx.coroutines.launch
 class SessionManager(
     private val scope: CoroutineScope,
     private val settings: AppSettings,
+    private val preferences: PreferencesStore,
     private val repository: ConvexRepository,
     private val guestData: GuestDataStore,
     private val library: UserLibraryModel,
@@ -107,7 +110,15 @@ class SessionManager(
             }
 
             try {
-                repository.ensureCurrentUser(settings.preferredLanguage.value)
+                repository.ensureCurrentUser(
+                    settings.preferredLanguage.value,
+                    preferences.preferences.value.toWireMap(),
+                )
+                // Adopt the authoritative stored preferences when another
+                // device made the latest explicit change.
+                runCatching { repository.getCurrentUserPreferences() }.getOrNull()
+                    ?.readerPreferences
+                    ?.let { preferences.adoptServer(it) }
             } catch (error: Exception) {
                 _syncSummary.value = "Account sync failed: ${error.message}"
                 library.refresh()

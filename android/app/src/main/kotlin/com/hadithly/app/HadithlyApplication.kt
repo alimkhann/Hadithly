@@ -6,6 +6,7 @@ import com.hadithly.app.core.data.ConvexRepository
 import com.hadithly.app.core.data.GuestDataStore
 import com.hadithly.app.core.data.UserLibraryModel
 import com.hadithly.app.core.session.SessionManager
+import com.hadithly.app.core.preferences.PreferencesStore
 import com.hadithly.app.core.settings.AppSettings
 import com.hadithly.app.core.push.PushNotificationManager
 import com.hadithly.app.core.purchases.PurchaseManager
@@ -13,6 +14,8 @@ import com.google.firebase.FirebaseApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import com.hadithly.app.core.preferences.toWireMap
 
 /**
  * Process-wide dependency graph. Views observe auth through Clerk flows;
@@ -23,6 +26,8 @@ class HadithlyApplication : Application() {
     val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     lateinit var settings: AppSettings
+        private set
+    lateinit var preferences: PreferencesStore
         private set
     lateinit var repository: ConvexRepository
         private set
@@ -49,6 +54,7 @@ class HadithlyApplication : Application() {
         purchases = PurchaseManager(this, BuildConfig.REVENUECAT_API_KEY)
 
         settings = AppSettings(this)
+        preferences = PreferencesStore(getSharedPreferences("hadithly", MODE_PRIVATE))
         repository = ConvexRepository(this)
         guestData = GuestDataStore(this)
         library = UserLibraryModel(
@@ -66,6 +72,7 @@ class HadithlyApplication : Application() {
         session = SessionManager(
             scope = appScope,
             settings = settings,
+            preferences = preferences,
             repository = repository,
             guestData = guestData,
             library = library,
@@ -74,6 +81,16 @@ class HadithlyApplication : Application() {
         )
         session.start()
         push.start()
+
+        // Explicit preference changes sync to Convex while signed in; while
+        // signed out they stay device-local and merge on the next sign-in.
+        preferences.onPreferencesChanged = { updated ->
+            if (isSignedIn()) {
+                appScope.launch {
+                    runCatching { repository.updateReaderPreferences(updated.toWireMap()) }
+                }
+            }
+        }
     }
 
     fun isSignedIn(): Boolean = Clerk.sessionsFlow.value.isNotEmpty()

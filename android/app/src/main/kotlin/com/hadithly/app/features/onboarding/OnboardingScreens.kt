@@ -30,10 +30,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.hadithly.app.R
 import com.hadithly.app.core.data.SupportedLanguages
 import com.hadithly.app.core.theme.LocalHadithlyColors
 import com.hadithly.app.core.theme.Spacing
@@ -121,19 +123,19 @@ fun LanguagePickerScreen(
             .background(colors.background)
             .padding(24.dp),
     ) {
-        Text(
-            text = "Choose your reading language",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            color = colors.textPrimary,
-            modifier = Modifier.padding(top = Spacing.lg),
-        )
-        Text(
-            text = "You can change this any time in Settings.",
-            fontSize = 15.sp,
-            color = colors.textSecondary,
-            modifier = Modifier.padding(top = Spacing.xs),
-        )
+    Text(
+        text = stringResource(R.string.onboarding_choose_language_title),
+        fontSize = 22.sp,
+        fontWeight = FontWeight.Bold,
+        color = colors.textPrimary,
+        modifier = Modifier.padding(top = Spacing.lg),
+    )
+    Text(
+        text = stringResource(R.string.onboarding_choose_language_subtitle),
+        fontSize = 15.sp,
+        color = colors.textSecondary,
+        modifier = Modifier.padding(top = Spacing.xs),
+    )
 
         Spacer(modifier = Modifier.height(Spacing.lg))
 
@@ -151,7 +153,7 @@ fun LanguagePickerScreen(
         }
 
         Spacer(modifier = Modifier.height(Spacing.md))
-        AccentButton(text = "Continue", onClick = onContinue)
+        AccentButton(text = stringResource(R.string.action_continue), onClick = onContinue)
     }
 }
 

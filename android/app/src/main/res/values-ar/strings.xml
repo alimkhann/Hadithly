@@ -1,0 +1,23 @@
+<resources>
+    <string name="onboarding_choose_language_title">اختر لغتك</string>
+    <string name="onboarding_choose_language_subtitle">يمكنك تغيير هذا في أي وقت من الإعدادات.</string>
+    <string name="action_continue">متابعة</string>
+    <string name="settings_reading">القراءة</string>
+    <string name="settings_arabic_type_size">حجم الخط العربي</string>
+    <string name="settings_app_language">لغة التطبيق</string>
+    <string name="settings_hadith_translation">ترجمة الحديث</string>
+    <string name="settings_reading_direction">اتجاه القراءة</string>
+    <string name="settings_visibility_arabic">النص العربي</string>
+    <string name="settings_visibility_translation">الترجمة</string>
+    <string name="direction_automatic">تلقائي</string>
+    <string name="direction_right_to_left">من اليمين إلى اليسار</string>
+    <string name="direction_left_to_right">من اليسار إلى اليمين</string>
+    <plurals name="settings_languages_available">
+        <item quantity="zero">لا توجد لغات متاحة</item>
+        <item quantity="one">لغة واحدة متاحة</item>
+        <item quantity="two">لغتان متاحتان</item>
+        <item quantity="few">%d لغات متاحة</item>
+        <item quantity="many">%d لغة متاحة</item>
+        <item quantity="other">%d لغة متاحة</item>
+    </plurals>
+</resources>
