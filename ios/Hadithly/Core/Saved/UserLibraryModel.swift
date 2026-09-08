@@ -37,6 +37,7 @@ struct SavedEntry: Identifiable, Equatable, Sendable {
 struct ProgressEntry: Identifiable, Equatable, Sendable {
     let collectionSlug: String
     var hadith: HadithRef?
+    var position: ReadingPosition? = nil
     let updatedAt: Date
 
     var id: String { collectionSlug }
@@ -73,6 +74,7 @@ private struct ProgressRow: Decodable, Sendable {
     let collectionSlug: String
     let hadithId: String
     let updatedAt: Double
+    let position: ReadingPosition?
     let hadith: HadithSummary?
 }
 
@@ -236,15 +238,13 @@ final class UserLibraryModel {
 
     /// Saves the reader position. Called on page turns and on leaving the
     /// reader; the per-collection upsert on the backend makes repeats cheap.
-    func saveProgress(_ ref: HadithRef) {
-        let now = Date.now.timeIntervalSince1970 * 1000
+    func saveProgress(_ position: ReadingPosition, ref: HadithRef) {
         if isSignedIn() {
             Task {
                 try? await convex.mutation(
                     "library:saveReadingProgress",
                     with: [
-                        "collectionSlug": ref.collectionSlug as ConvexEncodable?,
-                        "hadithId": ref.hadithId as ConvexEncodable?,
+                        "position": position.convexWireValue as ConvexEncodable?,
                     ]
                 )
             }
@@ -257,7 +257,8 @@ final class UserLibraryModel {
                     volumeId: ref.volumeId,
                     hadithNumber: ref.hadithNumber,
                     referenceDisplay: ref.referenceDisplay,
-                    updatedAt: .init(timeIntervalSince1970: now / 1000)
+                    updatedAt: .init(timeIntervalSince1970: position.updatedAt / 1000),
+                    position: position
                 )
             )
         }
@@ -301,6 +302,7 @@ final class UserLibraryModel {
                 ProgressEntry(
                     collectionSlug: $0.collectionSlug,
                     hadith: $0.hadith.map(Self.ref(from:)),
+                    position: $0.position,
                     updatedAt: Date(timeIntervalSince1970: $0.updatedAt / 1000)
                 )
             }
@@ -376,6 +378,7 @@ final class UserLibraryModel {
             ProgressEntry(
                 collectionSlug: draft.collectionSlug,
                 hadith: Self.progressRef(from: draft),
+                position: draft.readingPosition,
                 updatedAt: draft.updatedAt
             )
         }
@@ -447,4 +450,5 @@ final class UserLibraryModel {
             referenceDisplay: draft.referenceDisplay ?? ""
         )
     }
+
 }

@@ -154,11 +154,16 @@ class ConvexRepository(context: Context) {
                 mapOf<String, Any?>("hadithId" to it.hadithId, "createdAt" to it.createdAt)
             },
             "readingProgress" to payload.readingProgress.map {
-                mapOf<String, Any?>(
-                    "collectionSlug" to it.collectionSlug,
-                    "hadithId" to it.hadithId,
-                    "updatedAt" to it.updatedAt,
-                )
+                val position = it.readingPosition
+                if (position != null) {
+                    mapOf<String, Any?>("position" to position.toWireMap())
+                } else {
+                    mapOf<String, Any?>(
+                        "collectionSlug" to it.collectionSlug,
+                        "hadithId" to it.hadithId,
+                        "updatedAt" to it.updatedAt,
+                    )
+                }
             },
         )
         return withContext(Dispatchers.IO) {
@@ -180,10 +185,10 @@ class ConvexRepository(context: Context) {
     suspend fun deleteNote(hadithId: String) =
         mutation("library:deleteNote", mapOf("hadithId" to hadithId))
 
-    suspend fun saveReadingProgress(collectionSlug: String, hadithId: String) =
+    suspend fun saveReadingProgress(position: ReadingPosition) =
         mutation(
             "library:saveReadingProgress",
-            mapOf("collectionSlug" to collectionSlug, "hadithId" to hadithId),
+            mapOf("position" to position.toWireMap()),
         )
 
     // Notifications + moderation

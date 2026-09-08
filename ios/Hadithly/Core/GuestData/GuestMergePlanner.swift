@@ -20,10 +20,33 @@ struct GuestMergePayload: Equatable, Sendable {
         let createdAt: Double
     }
 
-    struct Progress: Equatable, Sendable {
-        let collectionSlug: String
-        let hadithId: String
-        let updatedAt: Double
+    enum Progress: Equatable, Sendable {
+        case current(ReadingPosition)
+        case legacy(collectionSlug: String, hadithId: String, updatedAt: Double)
+
+        var collectionSlug: String {
+            switch self {
+            case .current(let position): position.anchor.collectionSlug
+            case .legacy(let collectionSlug, _, _): collectionSlug
+            }
+        }
+
+        var hadithId: String? {
+            if case .legacy(_, let hadithId, _) = self { return hadithId }
+            return nil
+        }
+
+        var position: ReadingPosition? {
+            if case .current(let position) = self { return position }
+            return nil
+        }
+
+        var updatedAt: Double {
+            switch self {
+            case .current(let position): position.updatedAt
+            case .legacy(_, _, let updatedAt): updatedAt
+            }
+        }
     }
 
     let bookmarks: [Bookmark]
@@ -70,7 +93,9 @@ enum GuestMergePlanner {
         let validBookmarks = dedupeBookmarks(bookmarks.filter { isValidHadithId($0.hadithId) })
         let validNotes = dedupeNotes(notes.filter { isValidHadithId($0.hadithId) })
         let validFavorites = dedupeFavorites(favorites.filter { isValidHadithId($0.hadithId) })
-        let validProgress = dedupeProgress(progress.filter { isValidHadithId($0.hadithId) })
+        let validProgress = dedupeProgress(progress.filter {
+            $0.readingPosition != nil || isValidHadithId($0.hadithId)
+        })
 
         return GuestMergePayload(
             bookmarks: validBookmarks
@@ -90,12 +115,15 @@ enum GuestMergePlanner {
                 .sorted { $0.createdAt < $1.createdAt }
                 .map { .init(hadithId: $0.hadithId, createdAt: $0.createdAt.millisecondsSinceEpoch) },
             readingProgress: validProgress
-                .sorted { $0.updatedAt < $1.updatedAt }
-                .map {
-                    .init(
-                        collectionSlug: $0.collectionSlug,
-                        hadithId: $0.hadithId,
-                        updatedAt: $0.updatedAt.millisecondsSinceEpoch
+                .sorted { $0.effectiveUpdatedAt < $1.effectiveUpdatedAt }
+                .map { draft in
+                    if let position = draft.readingPosition {
+                        return .current(position)
+                    }
+                    return .legacy(
+                        collectionSlug: draft.collectionSlug,
+                        hadithId: draft.hadithId,
+                        updatedAt: draft.updatedAt.millisecondsSinceEpoch
                     )
                 }
         )
@@ -144,7 +172,7 @@ enum GuestMergePlanner {
         var latestByCollection: [String: GuestReadingProgressDraft] = [:]
         for entry in progress {
             let existing = latestByCollection[entry.collectionSlug]
-            if existing == nil || entry.updatedAt > existing!.updatedAt {
+            if existing == nil || entry.effectiveUpdatedAt > existing!.effectiveUpdatedAt {
                 latestByCollection[entry.collectionSlug] = entry
             }
         }

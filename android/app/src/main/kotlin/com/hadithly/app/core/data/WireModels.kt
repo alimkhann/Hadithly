@@ -36,6 +36,7 @@ data class ReaderHadith(
     val providerHadithId: String,
     val collectionSlug: String,
     val volumeId: String? = null,
+    val chapterId: String? = null,
     val arabicText: String,
     val englishText: String? = null,
     val narrator: String? = null,
@@ -58,6 +59,9 @@ data class ReaderPageResult(
     val pageSize: Double = 0.0,
     val totalPages: Double = 0.0,
     val hasMore: Boolean = false,
+    val contentVersion: String = "legacy",
+    val paginationVersion: Double = 1.0,
+    val pageKey: String = "legacy",
 ) {
     /** Skipped-by-jump pages start as page == 0 sentinels and load on demand. */
     val isPlaceholder: Boolean get() = page == 0.0

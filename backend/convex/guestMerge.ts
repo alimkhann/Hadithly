@@ -1,6 +1,14 @@
 import { mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { requireIdentity } from "./lib/identity";
+import type { Doc } from "./_generated/dataModel";
+import type { ReadingPosition } from "./lib/readingPositions";
+import {
+  legacyReadingPosition,
+  parseReadingPosition,
+  readingPositionValidator,
+} from "./lib/readingPositions";
+import { applyReadingPosition, resolveReadingPositionWrite } from "./library";
 
 /**
  * Merges guest-mode items collected on-device (SwiftData) into the signed-in
@@ -38,11 +46,14 @@ export const mergeGuestData = mutation({
     ),
     readingProgress: v.optional(
       v.array(
-        v.object({
-          collectionSlug: v.string(),
-          hadithId: v.id("hadiths"),
-          updatedAt: v.number(),
-        }),
+        v.union(
+          v.object({ position: readingPositionValidator }),
+          v.object({
+            collectionSlug: v.string(),
+            hadithId: v.id("hadiths"),
+            updatedAt: v.number(),
+          }),
+        ),
       ),
     ),
   },
@@ -147,36 +158,35 @@ export const mergeGuestData = mutation({
     let progressMerged = 0;
     let progressSkipped = 0;
     for (const item of args.readingProgress ?? []) {
-      const hadith = await ctx.db.get(item.hadithId);
+      let current: ReadingPosition;
+      let hadith: Doc<"hadiths"> | null;
+      if ("position" in item) {
+        current = parseReadingPosition(item.position);
+        const resolved = await resolveReadingPositionWrite(ctx, current);
+        hadith = resolved?.hadith ?? null;
+        if (resolved) current = resolved.position;
+      } else {
+        hadith = await ctx.db.get(item.hadithId);
+        if (!hadith) {
+          progressSkipped += 1;
+          continue;
+        }
+        current = legacyReadingPosition({
+          provider: hadith.provider,
+          collectionSlug: hadith.collectionSlug,
+          providerHadithId: hadith.providerHadithId,
+          volumeId: hadith.volumeId ?? hadith.bookId ?? "unknown",
+          ...(hadith.chapterId === undefined ? {} : { chapterId: hadith.chapterId }),
+          updatedAt: item.updatedAt,
+        });
+      }
       if (!hadith) {
         progressSkipped += 1;
         continue;
       }
-      const existing = await ctx.db
-        .query("readingProgress")
-        .withIndex("by_user_collection", (q) =>
-          q.eq("userId", user._id).eq("collectionSlug", item.collectionSlug),
-        )
-        .unique();
-      if (existing) {
-        if (existing.updatedAt >= item.updatedAt) {
-          progressSkipped += 1;
-          continue;
-        }
-        await ctx.db.patch(existing._id, {
-          hadithId: item.hadithId,
-          updatedAt: item.updatedAt,
-        });
-        progressMerged += 1;
-        continue;
-      }
-      await ctx.db.insert("readingProgress", {
-        userId: user._id,
-        collectionSlug: item.collectionSlug,
-        hadithId: item.hadithId,
-        updatedAt: item.updatedAt,
-      });
-      progressMerged += 1;
+      const result = await applyReadingPosition(ctx, user._id, current, hadith._id);
+      if (result.status === "applied") progressMerged += 1;
+      else progressSkipped += 1;
     }
 
     return {

@@ -8,6 +8,7 @@ struct ReaderView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AppEnvironment.self) private var environment
     @Environment(Clerk.self) private var clerk
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     let collectionSlug: String
     let collectionName: String
@@ -53,7 +54,9 @@ struct ReaderView: View {
                     isSignedIn: { clerk.session != nil },
                     library: environment.library,
                     openVolumeId: openVolumeId,
-                    openHadithNumber: openHadithNumber
+                    openHadithNumber: openHadithNumber,
+                    currentPreferences: { environment.preferences.preferences },
+                    widthClass: horizontalSizeClass == .regular ? .regular : .compact
                 )
                 model?.start()
             }

@@ -5,6 +5,7 @@ import {
   canonicalHadithIdentity,
   migrateLegacyAuthenticity,
 } from "./lib/contentPolicy";
+import { legacyReadingPosition } from "./lib/readingPositions";
 
 /**
  * Backfills the F1 content contract in bounded, repeatable pages. Re-running
@@ -53,6 +54,58 @@ export const migrateF1Hadiths = internalMutation({
 
     return {
       migrated: result.page.length,
+      continueCursor: result.continueCursor,
+      isDone: result.isDone,
+    };
+  },
+});
+
+/**
+ * Materializes R1 positions on legacy progress rows in bounded, repeatable
+ * pages. Compatibility fields remain for deployed clients.
+ */
+export const migrateR1ReadingProgress = internalMutation({
+  args: { paginationOpts: paginationOptsValidator },
+  handler: async (ctx, args) => {
+    const result = await ctx.db
+      .query("readingProgress")
+      .paginate(args.paginationOpts);
+    let migrated = 0;
+    let unchanged = 0;
+    let deferred = 0;
+
+    for (const row of result.page) {
+      if (row.position !== undefined) {
+        unchanged += 1;
+        continue;
+      }
+      const hadith = await ctx.db.get(row.hadithId);
+      if (!hadith) {
+        deferred += 1;
+        continue;
+      }
+      const position = legacyReadingPosition({
+        provider: hadith.provider,
+        collectionSlug: hadith.collectionSlug,
+        providerHadithId: hadith.providerHadithId,
+        volumeId: hadith.volumeId ?? hadith.bookId ?? "unknown",
+        ...(hadith.chapterId === undefined ? {} : { chapterId: hadith.chapterId }),
+        updatedAt: row.updatedAt,
+      });
+      await ctx.db.patch(row._id, {
+        collectionSlug: position.anchor.collectionSlug,
+        position,
+        bookId: position.volumeId,
+        scrollOffset: position.rawPageOffset,
+      });
+      migrated += 1;
+    }
+
+    return {
+      scanned: result.page.length,
+      migrated,
+      unchanged,
+      deferred,
       continueCursor: result.continueCursor,
       isDone: result.isDone,
     };

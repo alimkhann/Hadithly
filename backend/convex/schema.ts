@@ -6,6 +6,7 @@ import {
   providerValidator,
 } from "./lib/contentPolicy";
 import { readerPreferencesValidator } from "./lib/preferences";
+import { readingPositionValidator } from "./lib/readingPositions";
 
 const authenticityGrade = v.union(
   v.literal("sahih"),
@@ -244,6 +245,9 @@ export default defineSchema({
   readingProgress: defineTable({
     userId: v.id("users"),
     collectionSlug: v.string(),
+    // R1 semantic position. Legacy fields remain as a derived projection
+    // until deployed clients and the production backfill have crossed R1.
+    position: v.optional(readingPositionValidator),
     bookId: v.optional(v.string()),
     hadithId: v.id("hadiths"),
     scrollOffset: v.optional(v.number()),

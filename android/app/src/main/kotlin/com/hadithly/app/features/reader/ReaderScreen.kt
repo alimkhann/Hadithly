@@ -61,6 +61,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -69,6 +70,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hadithly.app.core.data.ReaderHadith
 import com.hadithly.app.core.data.ReaderTranslation
+import com.hadithly.app.core.data.ReadingWidthClass
 import com.hadithly.app.core.data.SupportedLanguages
 import com.hadithly.app.core.data.TranslationFailure
 import com.hadithly.app.core.theme.LocalHadithlyColors
@@ -103,6 +105,12 @@ fun ReaderScreen(
         )
     }
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val readingWidthClass = ReadingWidthClass.fromWidthDp(
+        LocalConfiguration.current.screenWidthDp.toDouble()
+    )
+    LaunchedEffect(viewModel, readingWidthClass) {
+        viewModel.setReadingWidthClass(readingWidthClass)
+    }
     // Personal-data writes update a separate shared model. Observe its
     // lists here so bookmark/favorite/note affordances repaint immediately.
     val bookmarks by viewModel.library.bookmarks.collectAsStateWithLifecycle()

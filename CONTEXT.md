@@ -27,3 +27,15 @@ _Avoid_: Assumed permission
 **Daily selection**:
 The eligible hadith persisted for one local date and one IANA timezone.
 _Avoid_: Daily hash, UTC pick
+
+**Reading position**:
+A private, versioned location in one collection. It combines a disposable page hint with a semantic hadith anchor so the reader can recover after content or layout changes.
+_Avoid_: Reading progress, page number
+
+**Semantic hadith anchor**:
+A provider, collection slug, and provider hadith ID plus an offset normalized within that hadith. It remains meaningful when page boundaries change.
+_Avoid_: Database row ID, scroll position
+
+**Raw page hint**:
+A stable page key, one-based display page index, and logical scroll offset that may be reused only when the content and layout signatures still match.
+_Avoid_: Authoritative position

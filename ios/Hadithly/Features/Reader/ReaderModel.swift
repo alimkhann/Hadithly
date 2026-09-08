@@ -34,6 +34,8 @@ final class ReaderModel {
     private let openVolumeId: String?
     /// Hadith number to land on within that volume.
     private let openHadithNumber: String?
+    private let currentPreferences: () -> ReaderPreferences
+    private let widthClass: ReadingWidthClass
 
     // Reading state
     private(set) var phase: Phase = .loadingOutline
@@ -62,6 +64,7 @@ final class ReaderModel {
     private var pageTask: Task<Void, Never>?
     private var translationTask: Task<Void, Never>?
     private var translationGeneration = 0
+    private var lastPositionUpdatedAt = 0.0
 
     init(
         convex: ConvexClientWithAuth<String>,
@@ -71,7 +74,9 @@ final class ReaderModel {
         isSignedIn: @escaping () -> Bool,
         library: UserLibraryModel? = nil,
         openVolumeId: String? = nil,
-        openHadithNumber: String? = nil
+        openHadithNumber: String? = nil,
+        currentPreferences: @escaping () -> ReaderPreferences = { ReaderPreferences() },
+        widthClass: ReadingWidthClass = .compact
     ) {
         self.convex = convex
         self.collectionSlug = collectionSlug
@@ -81,6 +86,8 @@ final class ReaderModel {
         self.library = library
         self.openVolumeId = openVolumeId
         self.openHadithNumber = openHadithNumber
+        self.currentPreferences = currentPreferences
+        self.widthClass = widthClass
     }
 
     var currentPages: [ReaderPageResult] { pages }
@@ -254,6 +261,7 @@ final class ReaderModel {
                 phase = .reading
                 if pageIndex == index {
                     scheduleTranslationsForCurrentPage()
+                    saveCurrentProgress()
                 }
             }
         } catch {
@@ -264,7 +272,10 @@ final class ReaderModel {
     }
 
     private func emptyPage() -> ReaderPageResult {
-        ReaderPageResult(items: [], page: 0, pageSize: 0, totalPages: 0, hasMore: false)
+        ReaderPageResult(
+            items: [], page: 0, pageSize: 0, totalPages: 0, hasMore: false,
+            contentVersion: nil, paginationVersion: nil, pageKey: nil
+        )
     }
 
     /// Swiping back onto a page that was skipped by a deep-link jump loads
@@ -438,7 +449,41 @@ final class ReaderModel {
     /// per collection so repeats stay cheap.
     func saveCurrentProgress() {
         guard phase == .reading, pages.indices.contains(pageIndex) else { return }
-        guard let first = pages[pageIndex].items.first else { return }
-        library?.saveProgress(ref(for: first))
+        let page = pages[pageIndex]
+        guard let first = page.items.first else { return }
+        let preferences = currentPreferences()
+        let paginationVersion = page.paginationVersion ?? 1
+        let layout = ReadingLayout(
+            locale: preferences.translationLocale,
+            arabicVisible: preferences.arabicVisible,
+            translationVisible: preferences.translationVisible,
+            arabicFontId: preferences.arabicFont.rawValue,
+            arabicFontSize: preferences.arabicFontSize,
+            widthClass: widthClass,
+            paginationVersion: paginationVersion
+        )
+        let storedUpdatedAt = library?.progress(for: collectionSlug)?.position?.updatedAt ?? 0
+        let updatedAt = max(
+            Date.now.millisecondsSinceEpoch,
+            max(storedUpdatedAt + 1, lastPositionUpdatedAt + 1)
+        )
+        lastPositionUpdatedAt = updatedAt
+        let position = ReadingPosition(
+            anchor: .init(
+                provider: first.provider,
+                collectionSlug: first.collectionSlug,
+                providerHadithId: first.providerHadithId
+            ),
+            contentVersion: page.contentVersion ?? "legacy",
+            volumeId: first.volumeId ?? selectedVolumeId ?? "unknown",
+            chapterId: first.chapterId,
+            pageKey: page.pageKey ?? "legacy",
+            displayPageIndex: Double(max(1, page.page)),
+            rawPageOffset: 0,
+            normalizedOffset: 0,
+            layoutSignature: layout.signature,
+            updatedAt: updatedAt
+        )
+        library?.saveProgress(position, ref: ref(for: first))
     }
 }

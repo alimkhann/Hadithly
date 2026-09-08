@@ -186,11 +186,18 @@ final class AppEnvironment {
                         ] as [String: ConvexEncodable?]
                     },
                     "readingProgress": payload.readingProgress.map { item in
-                        [
-                            "collectionSlug": item.collectionSlug,
-                            "hadithId": item.hadithId,
-                            "updatedAt": item.updatedAt,
-                        ] as [String: ConvexEncodable?]
+                        switch item {
+                        case .current(let position):
+                            return [
+                                "position": position.convexWireValue,
+                            ] as [String: ConvexEncodable?]
+                        case .legacy(let collectionSlug, let hadithId, let updatedAt):
+                            return [
+                                "collectionSlug": collectionSlug,
+                                "hadithId": hadithId,
+                                "updatedAt": updatedAt,
+                            ] as [String: ConvexEncodable?]
+                        }
                     },
                 ]
             )

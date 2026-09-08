@@ -190,12 +190,19 @@ final class GuestDataStore {
     func saveProgress(draft: GuestReadingProgressDraft) {
         let existing = fetchProgress().first { $0.collectionSlug == draft.collectionSlug }
         if let existing {
-            guard draft.updatedAt > existing.updatedAt else { return }
+            let storedPosition = existing.positionData.flatMap {
+                try? JSONDecoder().decode(ReadingPosition.self, from: $0)
+            }
+            let existingUpdatedAt = storedPosition.map {
+                Date(timeIntervalSince1970: $0.updatedAt / 1_000)
+            } ?? existing.updatedAt
+            guard draft.effectiveUpdatedAt > existingUpdatedAt else { return }
             existing.hadithId = draft.hadithId
             existing.volumeId = draft.volumeId
             existing.hadithNumber = draft.hadithNumber
             existing.referenceDisplay = draft.referenceDisplay
-            existing.updatedAt = draft.updatedAt
+            existing.positionData = draft.position.flatMap { try? JSONEncoder().encode($0) }
+            existing.updatedAt = draft.effectiveUpdatedAt
         } else {
             context.insert(
                 GuestReadingProgress(
@@ -205,7 +212,8 @@ final class GuestDataStore {
                     volumeId: draft.volumeId,
                     hadithNumber: draft.hadithNumber,
                     referenceDisplay: draft.referenceDisplay,
-                    updatedAt: draft.updatedAt
+                    positionData: draft.position.flatMap { try? JSONEncoder().encode($0) },
+                    updatedAt: draft.effectiveUpdatedAt
                 )
             )
         }
@@ -221,7 +229,8 @@ final class GuestDataStore {
                 volumeId: $0.volumeId,
                 hadithNumber: $0.hadithNumber,
                 referenceDisplay: $0.referenceDisplay,
-                updatedAt: $0.updatedAt
+                updatedAt: $0.updatedAt,
+                position: $0.positionData.flatMap { try? JSONDecoder().decode(ReadingPosition.self, from: $0) }
             )
         }
     }

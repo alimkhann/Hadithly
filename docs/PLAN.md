@@ -6,7 +6,7 @@ before any Hadithly session. Then open the matching standalone prompt in
 
 Last updated: 2026-09-08. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
-D2, F1, F2, and F3 are complete. D3A's operational Apple and RevenueCat work is complete,
+D2, F1, F2, F3, and R1 are complete. D3A's operational Apple and RevenueCat work is complete,
 while its legal, compliance, and iOS sandbox handoffs remain open. D3G is
 explicitly deferred by the owner until a Play Console developer account is
 available. Full D3 cannot pass until both release subgates pass, but neither
@@ -16,7 +16,7 @@ auth, and the username contract is now: optional, auto-generated from the
 email local part at password sign-up, editable in Settings. The Android FCM
 device-push re-test deferred from D1 folds into D4's physical-device matrix.
 
-Current next session: R1. Do not start D4 until the D3A release handoffs and D3G
+Current next session: R2. Do not start D4 until the D3A release handoffs and D3G
 pass. Keep store, sandbox, and submission work on the release track while the
 feature track builds the product.
 
@@ -542,6 +542,53 @@ substantive: they own bounded implementation outcomes, not just inventories.
   `assetlinks.json`; do not create or substitute a fingerprint until the
   Play Console track is available.
 - Next allowed session: R1. This task stopped before R1.
+
+### R1 session record (2026-09-08)
+
+- Outcome: complete. `ReadingPosition` V1 now has the same Convex, Swift, and
+  Kotlin wire shape. It stores the F1 provider anchor, content and layout
+  versions, volume and chapter context, a stable page key, a one-based display
+  page, a raw logical offset, a normalized intra-hadith offset, and `updatedAt`.
+- Design: the existing per-user, per-collection `readingProgress` row owns an
+  optional V1 position. Legacy fields remain as a derived projection for old
+  clients. This avoids a second authoritative table. The pure resolver trusts
+  the raw hint only when the content version, layout signature, page key,
+  display page, and anchor match. Otherwise it resolves the exact semantic
+  anchor. A missing anchor selects the nearest dotted-decimal provider ID,
+  preferring the stored volume and chapter, and resets both offsets to zero.
+- Backend: `lib/readingPositions.ts` owns validation, legacy conversion, and
+  deterministic resolution. `saveReadingProgress` accepts both generations,
+  resolves cache-row replacement through provider identity, and applies only a
+  newer `updatedAt`. Guest merge uses the same write path. The bounded
+  `migrateR1ReadingProgress` backfill keeps all legacy fields.
+  `getReaderPage` now returns a SHA-256 content version, pagination version,
+  and content-addressed page key. No provider or AI call moved outside Convex.
+- Clients: iOS stores the V1 payload as optional SwiftData JSON beside its
+  legacy guest fields. Android adds the optional payload to the existing guest
+  JSON file. Both clients decode old rows, produce V1 merge payloads, use
+  `Double` for every Convex number, and compute the same SHA-256 layout
+  signature from locale, visibility, font, size, width class, and pagination
+  version. Android guest writes now reject older timestamps instead of
+  replacing newer local progress.
+- Reader behavior: both clients save a V1 position for the first hadith on the
+  current page with zero offsets. R2 owns visible-anchor capture, offset
+  restoration, and entry-point routing. R1 changed no visual, localization, or
+  accessibility behavior.
+- Evidence: backend typecheck and all 70 backend tests passed. All 70 iOS unit
+  tests passed on simulator `0B7AA212-A540-4621-8C0A-155C4B063A76`. All 57
+  Android debug unit tests passed with JDK 21. The suites cover old-row and
+  guest migration, wire round trips, latest-wins replay, cache-row replacement,
+  content and layout changes, pagination-signature changes, and missing
+  anchors. Development Convex `festive-cobra-664` accepted the new schema and
+  validators. A live Bukhari page returned `cv1` and `pg1` digests plus
+  pagination version 1. The development backfill migrated five existing rows;
+  its second run reported five unchanged and no deferred rows.
+- Security and external state: all signed-in functions still derive identity
+  from Clerk. Position validators reject malformed versions, identities, and
+  numeric ranges. Development data changed only through the R1 backfill.
+  Production, dashboards, credentials, stores, and release state were not
+  touched.
+- Next allowed session: R2. This task stopped before R2.
 
 ## Delegation policy
 

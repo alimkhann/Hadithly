@@ -8,6 +8,10 @@ import com.hadithly.app.core.data.OutlineVolume
 import com.hadithly.app.core.data.ReaderHadith
 import com.hadithly.app.core.data.ReaderPageResult
 import com.hadithly.app.core.data.ReaderTranslation
+import com.hadithly.app.core.data.ReadingLayout
+import com.hadithly.app.core.data.ReadingPosition
+import com.hadithly.app.core.data.ReadingPositionAnchor
+import com.hadithly.app.core.data.ReadingWidthClass
 import com.hadithly.app.core.data.TranslationFailure
 import com.hadithly.app.core.data.TranslationSubmissionResult
 import kotlinx.coroutines.Job
@@ -61,6 +65,8 @@ class ReaderViewModel(
     private var pageJob: Job? = null
     private var translationJob: Job? = null
     private var translationGeneration = 0
+    private var readingWidthClass = ReadingWidthClass.COMPACT
+    private var lastPositionUpdatedAt = 0.0
 
     val library = app.library
 
@@ -93,6 +99,10 @@ class ReaderViewModel(
     }
 
     fun toggleChrome() = _state.update { it.copy(chromeVisible = !it.chromeVisible) }
+
+    fun setReadingWidthClass(widthClass: ReadingWidthClass) {
+        readingWidthClass = widthClass
+    }
 
     // Lifecycle
 
@@ -370,7 +380,42 @@ class ReaderViewModel(
         val s = _state.value
         if (s.phase != Phase.Reading) return
         if (s.pageIndex !in s.pages.indices) return
-        s.pages[s.pageIndex].items.firstOrNull()?.let { library.saveProgress(refFor(it)) }
+        val page = s.pages[s.pageIndex]
+        val first = page.items.firstOrNull() ?: return
+        val preferences = app.preferences.preferences.value
+        val layout = ReadingLayout(
+            locale = preferences.translationLocale,
+            arabicVisible = preferences.arabicVisible,
+            translationVisible = preferences.translationVisible,
+            arabicFontId = preferences.arabicFont.wire,
+            arabicFontSize = preferences.arabicFontSize.toDouble(),
+            widthClass = readingWidthClass,
+            paginationVersion = page.paginationVersion,
+        )
+        val storedUpdatedAt = library.progressFor(collectionSlug)?.position?.updatedAt ?: 0.0
+        val updatedAt = maxOf(
+            System.currentTimeMillis().toDouble(),
+            storedUpdatedAt + 1.0,
+            lastPositionUpdatedAt + 1.0,
+        )
+        lastPositionUpdatedAt = updatedAt
+        val position = ReadingPosition(
+            anchor = ReadingPositionAnchor(
+                provider = first.provider,
+                collectionSlug = first.collectionSlug,
+                providerHadithId = first.providerHadithId,
+            ),
+            contentVersion = page.contentVersion,
+            volumeId = first.volumeId ?: s.selectedVolumeId ?: "unknown",
+            chapterId = first.chapterId,
+            pageKey = page.pageKey,
+            displayPageIndex = page.page.coerceAtLeast(1.0),
+            rawPageOffset = 0.0,
+            normalizedOffset = 0.0,
+            layoutSignature = layout.signature,
+            updatedAt = updatedAt,
+        )
+        library.saveProgress(position, refFor(first))
     }
 
     private fun errorMessage(error: Exception): String = error.message ?: error.toString()

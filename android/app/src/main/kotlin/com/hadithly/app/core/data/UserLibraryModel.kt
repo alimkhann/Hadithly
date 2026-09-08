@@ -41,6 +41,7 @@ data class SavedEntry(
 data class ProgressEntry(
     val collectionSlug: String,
     val hadith: HadithRef?,
+    val position: ReadingPosition? = null,
     val updatedAt: Double,
 )
 
@@ -77,6 +78,7 @@ private data class ProgressRow(
     val collectionSlug: String,
     val hadithId: String,
     val updatedAt: Double,
+    val position: ReadingPosition? = null,
     val hadith: HadithSummary? = null,
 )
 
@@ -229,10 +231,10 @@ class UserLibraryModel(
         notes.value.firstOrNull { it.hadith?.hadithId == hadithId }?.noteContent
 
     /** Saves the reader position; per-collection upsert keeps repeats cheap. */
-    fun saveProgress(ref: HadithRef) {
+    fun saveProgress(position: ReadingPosition, ref: HadithRef) {
         if (isSignedIn()) {
             scope.launch {
-                runCatching { repository.saveReadingProgress(ref.collectionSlug, ref.hadithId) }
+                runCatching { repository.saveReadingProgress(position) }
             }
         } else {
             scope.launch {
@@ -247,6 +249,7 @@ class UserLibraryModel(
                         updatedAt = nowMillis(),
                         arabicText = ref.arabicText,
                         englishText = ref.englishText,
+                        position = position,
                     )
                 )
                 loadGuestData()
@@ -294,6 +297,7 @@ class UserLibraryModel(
                             ProgressEntry(
                                 collectionSlug = it.collectionSlug,
                                 hadith = it.hadith?.let { h -> h.toRef() },
+                                position = it.position,
                                 updatedAt = it.updatedAt,
                             )
                         }
@@ -370,6 +374,7 @@ class UserLibraryModel(
             ProgressEntry(
                 collectionSlug = it.collectionSlug,
                 hadith = it.toRef(),
+                position = it.readingPosition,
                 updatedAt = it.updatedAt,
             )
         }

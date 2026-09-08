@@ -67,7 +67,23 @@ data class GuestReadingProgressDraft(
     val updatedAt: Double,
     val arabicText: String = "",
     val englishText: String? = null,
-)
+    val position: ReadingPosition? = null,
+) {
+    val readingPosition: ReadingPosition?
+        get() = position ?: run {
+            val currentVolumeId = volumeId ?: return@run null
+            val currentHadithNumber = hadithNumber ?: return@run null
+            ReadingPosition.legacy(
+                collectionSlug = collectionSlug,
+                providerHadithId = currentHadithNumber,
+                volumeId = currentVolumeId,
+                updatedAt = updatedAt,
+            )
+        }
+
+    val effectiveUpdatedAt: Double
+        get() = readingPosition?.updatedAt ?: updatedAt
+}
 
 @Serializable
 data class GuestStoreFile(
@@ -102,7 +118,11 @@ data class GuestMergeResult(
 
 class GuestDataStore(context: Context) {
 
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json = Json {
+        ignoreUnknownKeys = true
+        encodeDefaults = true
+        explicitNulls = false
+    }
     private val file: File = File(context.filesDir, "guest_store.json")
     private val mutex = Mutex()
 
@@ -182,11 +202,16 @@ class GuestDataStore(context: Context) {
         writeLocked { it.copy(notes = it.notes.filterNot { n -> n.hadithId == hadithId }) }
 
     suspend fun saveProgress(draft: GuestReadingProgressDraft) =
-        writeLocked {
-            it.copy(
-                progress = it.progress
-                    .filterNot { p -> p.collectionSlug == draft.collectionSlug } + draft
-            )
+        writeLocked { store ->
+            val existing = store.progress.firstOrNull { it.collectionSlug == draft.collectionSlug }
+            if (existing != null && existing.effectiveUpdatedAt >= draft.effectiveUpdatedAt) {
+                store
+            } else {
+                store.copy(
+                    progress = store.progress
+                        .filterNot { p -> p.collectionSlug == draft.collectionSlug } + draft
+                )
+            }
         }
 
     suspend fun clearAll() = writeLocked { GuestStoreFile() }
@@ -217,8 +242,10 @@ object GuestMergePlanner {
             .sortedBy { it.updatedAt },
         favorites = dedupeEarliest(favorites.filter { isValidHadithId(it.hadithId) }) { it.hadithId to it.createdAt }
             .sortedBy { it.createdAt },
-        readingProgress = dedupeLatest(progress.filter { isValidHadithId(it.hadithId) }) { it.collectionSlug to it.updatedAt }
-            .sortedBy { it.updatedAt },
+        readingProgress = dedupeLatest(
+            progress.filter { it.readingPosition != null || isValidHadithId(it.hadithId) }
+        ) { it.collectionSlug to it.effectiveUpdatedAt }
+            .sortedBy { it.effectiveUpdatedAt },
     )
 
     /** The same hadith bookmarked/favorited twice keeps its earliest record. */

@@ -31,6 +31,7 @@ struct ReaderHadith: Decodable, Identifiable, Equatable {
     let providerHadithId: String
     let collectionSlug: String
     let volumeId: String?
+    let chapterId: String?
     let arabicText: String
     let englishText: String?
     let narrator: String?
@@ -53,6 +54,9 @@ struct ReaderPageResult: Decodable {
     let pageSize: Int
     let totalPages: Int
     let hasMore: Bool
+    let contentVersion: String?
+    let paginationVersion: Double?
+    let pageKey: String?
 
     /// Skipped-by-jump pages start as page == 0 sentinels and load on demand.
     var isPlaceholder: Bool { page == 0 }

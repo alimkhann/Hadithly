@@ -103,6 +103,8 @@ final class GuestReadingProgress {
     var volumeId: String?
     var hadithNumber: String?
     var referenceDisplay: String?
+    /// JSON-encoded ReadingPosition V1. Optional for pre-R1 SwiftData rows.
+    var positionData: Data?
     var updatedAt: Date
 
     init(
@@ -112,6 +114,7 @@ final class GuestReadingProgress {
         volumeId: String? = nil,
         hadithNumber: String? = nil,
         referenceDisplay: String? = nil,
+        positionData: Data? = nil,
         updatedAt: Date = .now
     ) {
         self.collectionSlug = collectionSlug
@@ -120,6 +123,7 @@ final class GuestReadingProgress {
         self.volumeId = volumeId
         self.hadithNumber = hadithNumber
         self.referenceDisplay = referenceDisplay
+        self.positionData = positionData
         self.updatedAt = updatedAt
     }
 }
@@ -216,4 +220,40 @@ struct GuestReadingProgressDraft: Equatable, Sendable {
     var hadithNumber: String?
     var referenceDisplay: String?
     let updatedAt: Date
+    var position: ReadingPosition?
+
+    init(
+        collectionSlug: String,
+        collectionName: String,
+        hadithId: String,
+        volumeId: String? = nil,
+        hadithNumber: String? = nil,
+        referenceDisplay: String? = nil,
+        updatedAt: Date,
+        position: ReadingPosition? = nil
+    ) {
+        self.collectionSlug = collectionSlug
+        self.collectionName = collectionName
+        self.hadithId = hadithId
+        self.volumeId = volumeId
+        self.hadithNumber = hadithNumber
+        self.referenceDisplay = referenceDisplay
+        self.updatedAt = updatedAt
+        self.position = position
+    }
+
+    var readingPosition: ReadingPosition? {
+        if let position { return position }
+        guard let volumeId, let hadithNumber else { return nil }
+        return ReadingPosition.legacy(
+            collectionSlug: collectionSlug,
+            providerHadithId: hadithNumber,
+            volumeId: volumeId,
+            updatedAt: updatedAt.millisecondsSinceEpoch
+        )
+    }
+
+    var effectiveUpdatedAt: Date {
+        position.map { Date(timeIntervalSince1970: $0.updatedAt / 1_000) } ?? updatedAt
+    }
 }

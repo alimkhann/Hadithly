@@ -6,8 +6,17 @@ import {
 } from "./_generated/server";
 import type { QueryCtx } from "./_generated/server";
 import type { Doc } from "./_generated/dataModel";
+import type { Id } from "./_generated/dataModel";
+import type { MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { requireIdentity } from "./lib/identity";
+import {
+  legacyReadingPosition,
+  parseReadingPosition,
+  readingPositionValidator,
+  resolveReadingPosition,
+  type ReadingPosition,
+} from "./lib/readingPositions";
 
 // ── Bookmarks ────────────────────────────────────────────────────────────
 
@@ -228,8 +237,11 @@ export const getNote = query({
 
 export const saveReadingProgress = mutation({
   args: {
-    collectionSlug: v.string(),
-    hadithId: v.id("hadiths"),
+    // Current clients send position. Optional legacy fields keep deployed
+    // clients valid during the R1 compatibility window.
+    position: v.optional(readingPositionValidator),
+    collectionSlug: v.optional(v.string()),
+    hadithId: v.optional(v.id("hadiths")),
     scrollOffset: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
@@ -237,28 +249,41 @@ export const saveReadingProgress = mutation({
     const user = await userByClerkId(ctx, identity.clerkId);
     if (!user) return;
 
-    const existing = await ctx.db
-      .query("readingProgress")
-      .withIndex("by_user_collection", (q) =>
-        q.eq("userId", user._id).eq("collectionSlug", args.collectionSlug),
-      )
-      .unique();
-
-    if (existing) {
-      await ctx.db.patch(existing._id, {
-        hadithId: args.hadithId,
-        scrollOffset: args.scrollOffset,
-        updatedAt: Date.now(),
-      });
-      return existing._id;
+    if (args.position !== undefined) {
+      const position = parseReadingPosition(args.position);
+      const resolved = await resolveReadingPositionWrite(ctx, position);
+      if (!resolved) throw new Error("POSITION_ANCHOR_NOT_FOUND");
+      return await applyReadingPosition(
+        ctx,
+        user._id,
+        resolved.position,
+        resolved.hadith._id,
+      );
     }
-    return await ctx.db.insert("readingProgress", {
-      userId: user._id,
-      collectionSlug: args.collectionSlug,
-      hadithId: args.hadithId,
-      scrollOffset: args.scrollOffset,
+
+    if (args.collectionSlug === undefined || args.hadithId === undefined) {
+      throw new Error("INVALID_READING_POSITION: expected position or legacy fields");
+    }
+    const hadith = await ctx.db.get(args.hadithId);
+    if (!hadith || hadith.collectionSlug !== args.collectionSlug) {
+      throw new Error("POSITION_ANCHOR_NOT_FOUND");
+    }
+    const existing = await progressByCollection(ctx, user._id, args.collectionSlug);
+    if (
+      existing?.hadithId === args.hadithId &&
+      (existing.scrollOffset ?? 0) === (args.scrollOffset ?? 0)
+    ) {
+      return { status: "unchanged", rowId: existing._id };
+    }
+    const position = legacyReadingPosition({
+      provider: hadith.provider,
+      collectionSlug: hadith.collectionSlug,
+      providerHadithId: hadith.providerHadithId,
+      volumeId: hadith.volumeId ?? hadith.bookId ?? "unknown",
+      ...(hadith.chapterId === undefined ? {} : { chapterId: hadith.chapterId }),
       updatedAt: Date.now(),
     });
+    return await applyReadingPosition(ctx, user._id, position, hadith._id);
   },
 });
 
@@ -398,12 +423,39 @@ export const listReadingProgressDetailed = query({
       .withIndex("by_user_collection", (q) => q.eq("userId", user._id))
       .collect();
     const detailed = await Promise.all(
-      rows.map(async (row) => ({
-        collectionSlug: row.collectionSlug,
-        hadithId: row.hadithId,
-        updatedAt: row.updatedAt,
-        hadith: await hadithSummary(ctx, row.hadithId),
-      })),
+      rows.map(async (row) => {
+        let hadith = await ctx.db.get(row.hadithId);
+        const storedPosition = row.position;
+        if (!hadith && storedPosition) {
+          hadith = await ctx.db
+            .query("hadiths")
+            .withIndex("by_provider_ref", (q) =>
+              q
+                .eq("provider", storedPosition.anchor.provider)
+                .eq("collectionSlug", storedPosition.anchor.collectionSlug)
+                .eq("providerHadithId", storedPosition.anchor.providerHadithId),
+            )
+            .unique();
+        }
+        const position = row.position ?? (hadith
+          ? legacyReadingPosition({
+              provider: hadith.provider,
+              collectionSlug: hadith.collectionSlug,
+              providerHadithId: hadith.providerHadithId,
+              volumeId: hadith.volumeId ?? hadith.bookId ?? "unknown",
+              ...(hadith.chapterId === undefined ? {} : { chapterId: hadith.chapterId }),
+              updatedAt: row.updatedAt,
+            })
+          : undefined);
+        return {
+          collectionSlug: row.collectionSlug,
+          hadithId: hadith?._id ?? row.hadithId,
+          scrollOffset: row.scrollOffset,
+          updatedAt: row.updatedAt,
+          position,
+          hadith: hadith ? hadithSummaryFromDocument(hadith) : null,
+        };
+      }),
     );
     return detailed.filter((row) => row.hadith !== null);
   },
@@ -423,14 +475,127 @@ async function userByClerkId(ctx: QueryCtx, clerkId: string) {
 async function hadithSummary(ctx: QueryCtx, hadithId: Doc<"hadiths">["_id"]) {
   const hadith = await ctx.db.get(hadithId);
   if (!hadith) return null;
+  return hadithSummaryFromDocument(hadith);
+}
+
+function hadithSummaryFromDocument(hadith: Doc<"hadiths">) {
   return {
     _id: hadith._id,
+    provider: hadith.provider,
+    canonicalId: hadith.canonicalId,
     providerHadithId: hadith.providerHadithId,
     collectionSlug: hadith.collectionSlug,
     collectionName: hadith.collectionName,
     volumeId: hadith.volumeId ?? null,
+    chapterId: hadith.chapterId ?? null,
     arabicText: hadith.arabicText,
     englishText: hadith.englishText ?? null,
     referenceDisplay: hadith.referenceDisplay,
   };
+}
+
+async function progressByCollection(
+  ctx: MutationCtx,
+  userId: Id<"users">,
+  collectionSlug: string,
+) {
+  return await ctx.db
+    .query("readingProgress")
+    .withIndex("by_user_collection", (q) =>
+      q.eq("userId", userId).eq("collectionSlug", collectionSlug),
+    )
+    .unique();
+}
+
+export async function resolveReadingPositionWrite(
+  ctx: QueryCtx,
+  position: ReadingPosition,
+): Promise<{ position: ReadingPosition; hadith: Doc<"hadiths"> } | null> {
+  const exact = await ctx.db
+    .query("hadiths")
+    .withIndex("by_provider_ref", (q) =>
+      q
+        .eq("provider", position.anchor.provider)
+        .eq("collectionSlug", position.anchor.collectionSlug)
+        .eq("providerHadithId", position.anchor.providerHadithId),
+    )
+    .unique();
+  if (exact) return { position, hadith: exact };
+
+  const candidates = await ctx.db
+    .query("hadiths")
+    .withIndex("by_collection", (q) =>
+      q
+        .eq("provider", position.anchor.provider)
+        .eq("collectionSlug", position.anchor.collectionSlug),
+    )
+    .collect();
+  if (candidates.length === 0) return null;
+  const resolution = resolveReadingPosition(position, {
+    contentVersion: "legacy",
+    layoutSignature: "legacy",
+    pages: [{
+      pageKey: "legacy",
+      displayPageIndex: 1,
+      anchors: candidates.map((hadith) => ({
+        provider: hadith.provider,
+        collectionSlug: hadith.collectionSlug,
+        providerHadithId: hadith.providerHadithId,
+        volumeId: hadith.volumeId ?? hadith.bookId ?? "unknown",
+        ...(hadith.chapterId === undefined ? {} : { chapterId: hadith.chapterId }),
+      })),
+    }],
+  });
+  const resolvedAnchor = resolution.anchor;
+  if (!resolvedAnchor) return null;
+  const hadith = candidates.find((candidate) =>
+    candidate.provider === resolvedAnchor.provider &&
+    candidate.collectionSlug === resolvedAnchor.collectionSlug &&
+    candidate.providerHadithId === resolvedAnchor.providerHadithId
+  );
+  if (!hadith) return null;
+  return {
+    position: legacyReadingPosition({
+      provider: hadith.provider,
+      collectionSlug: hadith.collectionSlug,
+      providerHadithId: hadith.providerHadithId,
+      volumeId: hadith.volumeId ?? hadith.bookId ?? "unknown",
+      ...(hadith.chapterId === undefined ? {} : { chapterId: hadith.chapterId }),
+      updatedAt: position.updatedAt,
+    }),
+    hadith,
+  };
+}
+
+export async function applyReadingPosition(
+  ctx: MutationCtx,
+  userId: Id<"users">,
+  position: ReadingPosition,
+  hadithId: Id<"hadiths">,
+): Promise<{ status: "applied" | "unchanged"; rowId: Id<"readingProgress"> }> {
+  const existing = await progressByCollection(
+    ctx,
+    userId,
+    position.anchor.collectionSlug,
+  );
+  if (existing && existing.updatedAt >= position.updatedAt) {
+    return { status: "unchanged", rowId: existing._id };
+  }
+  const projection = {
+    collectionSlug: position.anchor.collectionSlug,
+    position,
+    hadithId,
+    bookId: position.volumeId,
+    scrollOffset: position.rawPageOffset,
+    updatedAt: position.updatedAt,
+  };
+  if (existing) {
+    await ctx.db.patch(existing._id, projection);
+    return { status: "applied", rowId: existing._id };
+  }
+  const rowId = await ctx.db.insert("readingProgress", {
+    userId,
+    ...projection,
+  });
+  return { status: "applied", rowId };
 }

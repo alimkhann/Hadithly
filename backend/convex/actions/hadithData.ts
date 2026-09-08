@@ -6,6 +6,7 @@
  */
 
 import { v } from "convex/values";
+import { createHash } from "node:crypto";
 import { action } from "../_generated/server";
 import { api, internal } from "../_generated/api";
 import {
@@ -16,6 +17,7 @@ import {
   fetchVolumeHadiths,
 } from "../lib/sunnahNow";
 import type { HadithRecord } from "../lib/sunnahNow";
+import { READER_PAGINATION_VERSION } from "../lib/readingPositions";
 
 const OUTLINE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -48,6 +50,9 @@ type ReaderPageResult = {
   pageSize: number;
   totalPages: number;
   hasMore: boolean;
+  contentVersion: string;
+  paginationVersion: number;
+  pageKey: string;
 };
 
 /** Public: list the collections (cached from the provider). */
@@ -138,6 +143,7 @@ export const getReaderPage = action({
             cached,
             resolvePageNumber(cached, args, page, pageSize),
             pageSize,
+            args.volumeId,
           );
         }
       }
@@ -159,6 +165,7 @@ export const getReaderPage = action({
         withIds,
         resolvePageNumber(withIds, args, page, pageSize),
         pageSize,
+        args.volumeId,
       );
     }
 
@@ -184,6 +191,7 @@ export const getReaderPage = action({
       pageSize: providerPage.pageSize,
       totalPages: providerPage.totalPages,
       hasMore: providerPage.hasMore,
+      ...pageIdentity(items, items, args.volumeId ?? "collection"),
     };
   },
 });
@@ -218,6 +226,7 @@ function serveVolumeChunk(
   cached: Array<ReaderHadithRecord & { _id: string }>,
   page: number,
   pageSize: number,
+  volumeId: string,
 ): ReaderPageResult {
   const pages = chunkReaderHadiths(cached, pageSize);
   const pageIndex = Math.max(0, page - 1);
@@ -231,6 +240,44 @@ function serveVolumeChunk(
     pageSize,
     totalPages: pages.length,
     hasMore: pageIndex < pages.length - 1,
+    ...pageIdentity(cached, items, volumeId),
+  };
+}
+
+function pageIdentity(
+  contentItems: ReaderHadithRecord[],
+  pageItems: ReaderHadithRecord[],
+  volumeId: string,
+): { contentVersion: string; paginationVersion: number; pageKey: string } {
+  const contentHash = createHash("sha256");
+  for (const item of contentItems) {
+    contentHash.update(JSON.stringify([
+      item.canonicalId,
+      item.volumeId ?? null,
+      item.chapterId ?? null,
+      item.arabicText,
+      item.englishText ?? null,
+      item.narrator ?? null,
+      item.referenceDisplay,
+      item.collectionName,
+      item.bookName ?? null,
+      item.chapterName ?? null,
+      item.authenticity,
+    ]));
+    contentHash.update("\n");
+  }
+  const contentVersion = `cv1:${contentHash.digest("hex")}`;
+  const pageHash = createHash("sha256");
+  pageHash.update(JSON.stringify([
+    contentVersion,
+    READER_PAGINATION_VERSION,
+    volumeId,
+    pageItems.map((item) => item.canonicalId),
+  ]));
+  return {
+    contentVersion,
+    paginationVersion: READER_PAGINATION_VERSION,
+    pageKey: `pg1:${pageHash.digest("hex")}`,
   };
 }
 
