@@ -1,20 +1,47 @@
 # Hadithly
 
-Read the hadith collections in your language — clean, calm, and true to
-the sources.
+Read hadith collections in your language. Clean, calm, and true to the sources.
 
-- **iOS** — SwiftUI (this repo, `ios/`)
-- **Android** — Jetpack Compose (Phase 5)
+- **iOS** — SwiftUI (`ios/`), iOS 17+
+- **Android** — Jetpack Compose (`android/`), minSdk 26
 - **Backend** — Convex (`backend/`): hadith data, AI translations, reading data
+
+## Why I built this
+
+Most hadith apps are cluttered or mix weak sources with strong ones. I wanted one reading app that stays close to the source texts and tells you plainly when a translation came from AI.
+
+## How it works
+
+Input: you pick a collection, volume, and language. The backend pulls the Arabic source text plus existing translations from Sunnah.now, then asks Gemini for a grounded draft translation only when no approved human translation exists.
+
+Human control: AI drafts never publish on their own. They sit in a review queue until an admin approves them. The app labels every AI translation as AI.
+
+Risk I designed around: an AI translation presented as authoritative. The guardrails are grounding in the source text, citation parsing, no public voting or ranking, and private reading progress. Paywalls only gate AI quota (20 free per month, 500 pro), never the source texts.
+
+## Quickstart
+
+```sh
+# backend
+cd backend && npm install
+npx convex dev
+npm run typecheck
+
+# iOS (regenerate after changing project.yml)
+cd ios && xcodegen generate
+xcodebuild -project Hadithly.xcodeproj -scheme Hadithly \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
+
+# Android (JDK 21)
+cd android && ./gradlew assembleDebug
+```
+
+Copy `.env.local.example` to `.env.local` and fill in your own keys. Secrets live in Convex env vars and local config files only. They never go into git.
 
 ## Product principles
 
-1. A reading app, not a social network. No leaderboards, votes, ratings,
-   or streaks. Translation quality comes from AI review + admin approval.
-2. Reading works signed out. Accounts are optional and only add sync.
-3. AI translations are always labeled, grounded in real sources, and never
-   presented as authoritative.
-4. Paywalls only appear when you hit the free AI-translation quota.
+1. A reading app, not a social network. No leaderboards, votes, ratings, or streaks.
+2. Reading works signed out. Accounts only add sync.
+3. AI translations are always labeled and grounded in real sources.
+4. Paywalls only appear when you hit the free AI quota.
 
-See `AGENTS.md` for the development guide and `backend/README.md` for
-backend setup.
+See `AGENTS.md` for the dev guide and `backend/README.md` for backend setup.
