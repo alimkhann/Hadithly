@@ -2,6 +2,8 @@
 
 Read hadith collections in your language. Clean, calm, and true to the sources.
 
+[hadithly.app](https://hadithly.app) is live. The apps themselves are still in development.
+
 - **iOS** — SwiftUI (`ios/`), iOS 17+
 - **Android** — Jetpack Compose (`android/`), minSdk 26
 - **Backend** — Convex (`backend/`): hadith data, AI translations, reading data
@@ -43,5 +45,24 @@ Copy `.env.local.example` to `.env.local` and fill in your own keys. Secrets liv
 2. Reading works signed out. Accounts only add sync.
 3. AI translations are always labeled and grounded in real sources.
 4. Paywalls only appear when you hit the free AI quota.
+
+## Built with
+
+- SwiftUI and xcodegen on iOS
+- Jetpack Compose (Material 3) on Android
+- Convex for the backend, Clerk for auth, Gemini for grounded translation drafts
+- Sunnah.now as the source-text provider
+
+## Roadmap
+
+- Finish the reader experience on iOS, then bring Android to parity
+- Daily push and quota reset crons
+- Subscriptions through RevenueCat once the reading flow feels right
+
+## Contact
+
+Alimkhan Yergebayev — alimkhan.yergebayev@gmail.com
+
+Project link: [https://github.com/alimkhann/Hadithly](https://github.com/alimkhann/Hadithly). The archived Expo monorepo lives on the `archive/legacy` branch.
 
 See `AGENTS.md` for the dev guide and `backend/README.md` for backend setup.
