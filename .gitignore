@@ -35,3 +35,6 @@ legacy/**/dist/
 # local session artifacts and tool state
 session-ses_*.md
 .xcodebuildmcp/
+
+# archived Expo monorepo, kept on archive/legacy branch
+legacy/
