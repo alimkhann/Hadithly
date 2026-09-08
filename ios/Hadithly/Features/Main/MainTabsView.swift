@@ -38,7 +38,8 @@ struct MainTabsView: View {
             ReaderView(
                 collectionSlug: target.collectionSlug,
                 collectionName: target.collectionName,
-                openHadithNumber: target.providerHadithId
+                openHadithNumber: target.providerHadithId,
+                targetSource: .canonicalLink
             )
         }
         .task {

@@ -27,6 +27,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.hadithly.app.HadithlyApplication
 import com.hadithly.app.core.data.HadithRef
+import com.hadithly.app.core.data.ReadingPosition
+import com.hadithly.app.core.data.ReaderTargetSource
 import com.hadithly.app.core.links.CanonicalHadithLink
 import com.hadithly.app.core.theme.LocalHadithlyColors
 import com.hadithly.app.features.library.LibraryScreen
@@ -46,6 +48,8 @@ data class ReaderOpenTarget(
     val name: String,
     val volumeId: String? = null,
     val hadithNumber: String? = null,
+    val source: ReaderTargetSource = ReaderTargetSource.COLLECTION,
+    val position: ReadingPosition? = null,
     /** A fresh reader session even when the same saved row is reopened. */
     val instanceKey: Long = System.nanoTime(),
 )
@@ -63,6 +67,7 @@ fun MainTabs(
     onShowSignIn: () -> Unit,
     onDismissSignIn: () -> Unit,
     pendingLink: CanonicalHadithLink? = null,
+    notificationTarget: ReaderOpenTarget? = null,
 ) {
     val app = rememberApp()
     val colors = LocalHadithlyColors.current
@@ -77,8 +82,13 @@ fun MainTabs(
                 slug = pendingLink.collectionSlug,
                 name = pendingLink.collectionName,
                 hadithNumber = pendingLink.providerHadithId,
+                source = ReaderTargetSource.CANONICAL_LINK,
             )
         }
+    }
+
+    LaunchedEffect(notificationTarget?.instanceKey) {
+        if (notificationTarget != null) readerTarget = notificationTarget
     }
 
     Scaffold(
@@ -144,6 +154,8 @@ fun MainTabs(
                 collectionName = target.name,
                 openVolumeId = target.volumeId,
                 openHadithNumber = target.hadithNumber,
+                openPosition = target.position,
+                targetSource = target.source,
                 instanceKey = target.instanceKey,
                 onClose = { readerTarget = null },
             )

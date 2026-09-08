@@ -72,7 +72,9 @@ struct SavedView: View {
                 collectionSlug: target.slug,
                 collectionName: target.name,
                 openVolumeId: target.volumeId,
-                openHadithNumber: target.hadithNumber
+                openHadithNumber: target.hadithNumber,
+                openPosition: target.position,
+                targetSource: target.source
             )
         }
     }
@@ -125,7 +127,8 @@ struct SavedView: View {
             slug: ref.collectionSlug,
             name: ref.collectionName,
             volumeId: ref.volumeId,
-            hadithNumber: ref.hadithNumber
+            hadithNumber: ref.hadithNumber,
+            source: .saved
         )
     }
 }

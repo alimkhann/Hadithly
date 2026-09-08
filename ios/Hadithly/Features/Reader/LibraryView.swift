@@ -44,7 +44,9 @@ struct LibraryView: View {
                 collectionSlug: target.slug,
                 collectionName: target.name,
                 openVolumeId: target.volumeId,
-                openHadithNumber: target.hadithNumber
+                openHadithNumber: target.hadithNumber,
+                openPosition: target.position,
+                targetSource: target.source
             )
         }
     }
@@ -55,7 +57,9 @@ struct LibraryView: View {
                 slug: entry.collectionSlug,
                 name: hadith.collectionName,
                 volumeId: hadith.volumeId,
-                hadithNumber: hadith.hadithNumber
+                hadithNumber: hadith.hadithNumber,
+                source: .continueReading,
+                position: entry.position
             )
         } label: {
             HStack(spacing: 14) {

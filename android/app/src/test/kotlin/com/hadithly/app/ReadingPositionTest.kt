@@ -10,6 +10,9 @@ import com.hadithly.app.core.data.ReadingPositionPage
 import com.hadithly.app.core.data.ReadingPositionResolver
 import com.hadithly.app.core.data.ReadingPositionTopology
 import com.hadithly.app.core.data.ReadingWidthClass
+import com.hadithly.app.core.data.ReaderTarget
+import com.hadithly.app.core.data.ReaderTargetResolver
+import com.hadithly.app.core.data.ReaderTargetSource
 import com.hadithly.app.core.data.toWireMap
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
@@ -156,5 +159,20 @@ class ReadingPositionTest {
             ),
         )
         assertEquals(listOf(newer), payload.readingProgress.mapNotNull { it.readingPosition })
+    }
+
+    @Test
+    fun `target resolver restores only a matching private position`() {
+        val restored = ReaderTargetResolver.resolve(
+            ReaderTarget(ReaderTargetSource.CONTINUE_READING, "bukhari", "1", position()),
+        )
+        assertEquals("50", restored.hadithNumber)
+        assertEquals(0.375, restored.position?.normalizedOffset ?: -1.0, 0.0)
+
+        val publicTarget = ReaderTargetResolver.resolve(
+            ReaderTarget(ReaderTargetSource.TODAY, "muslim", "7", position()),
+        )
+        assertEquals("7", publicTarget.hadithNumber)
+        assertEquals(null, publicTarget.position)
     }
 }

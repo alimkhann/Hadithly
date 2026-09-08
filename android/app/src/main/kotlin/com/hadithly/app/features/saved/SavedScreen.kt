@@ -48,6 +48,7 @@ import com.hadithly.app.core.data.HadithRef
 import com.hadithly.app.core.data.SavedEntry
 import com.hadithly.app.core.theme.LocalHadithlyColors
 import com.hadithly.app.features.main.ReaderOpenTarget
+import com.hadithly.app.core.data.ReaderTargetSource
 import com.hadithly.app.features.main.rememberApp
 
 private enum class SavedSection(val title: String, val tag: String) {
@@ -108,7 +109,13 @@ fun SavedScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
                 onDone = { active = null },
                 onOpen = { ref ->
                     active = null
-                    onOpenTarget(ReaderOpenTarget(ref.collectionSlug, ref.collectionName, ref.volumeId, ref.hadithNumber))
+                    onOpenTarget(ReaderOpenTarget(
+                        ref.collectionSlug,
+                        ref.collectionName,
+                        ref.volumeId,
+                        ref.hadithNumber,
+                        ReaderTargetSource.SAVED,
+                    ))
                 },
                 onRemove = { ref ->
                     when (section) {

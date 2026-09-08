@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -58,6 +59,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -70,14 +72,19 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hadithly.app.core.data.ReaderHadith
 import com.hadithly.app.core.data.ReaderTranslation
+import com.hadithly.app.core.data.ReadingPosition
+import com.hadithly.app.core.data.ReaderTargetSource
 import com.hadithly.app.core.data.ReadingWidthClass
 import com.hadithly.app.core.data.SupportedLanguages
 import com.hadithly.app.core.data.TranslationFailure
 import com.hadithly.app.core.theme.LocalHadithlyColors
 import com.hadithly.app.features.purchases.QuotaPaywallSheet
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 /**
  * The reader: a quiet dark page. Chrome (top bar, floating pills) hides on
@@ -90,6 +97,8 @@ fun ReaderScreen(
     collectionName: String,
     openVolumeId: String?,
     openHadithNumber: String?,
+    openPosition: ReadingPosition?,
+    targetSource: ReaderTargetSource,
     instanceKey: Long,
     onClose: () -> Unit,
 ) {
@@ -102,6 +111,8 @@ fun ReaderScreen(
             collectionSlug = collectionSlug,
             openVolumeId = openVolumeId,
             openHadithNumber = openHadithNumber,
+            openPosition = openPosition,
+            targetSource = targetSource,
         )
     }
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -297,6 +308,8 @@ private fun ReadingView(
                 state = state,
                 hadiths = hadiths,
                 arabicFontSize = arabicFontSize,
+                restoration = viewModel.restoredPosition,
+                landingHadithNumber = viewModel.landingHadithNumber,
                 isSentinel = pageIndex >= pages.size,
                 onTap = { viewModel.toggleChrome() },
                 onShowPaywall = onShowPaywall,
@@ -377,11 +390,14 @@ private fun ReadingView(
 }
 
 @Composable
+@OptIn(kotlinx.coroutines.FlowPreview::class)
 private fun ReaderPage(
     viewModel: ReaderViewModel,
     state: ReaderViewModel.ReaderState,
     hadiths: List<ReaderHadith>,
     arabicFontSize: Float,
+    restoration: ReadingPosition?,
+    landingHadithNumber: String?,
     isSentinel: Boolean,
     onTap: () -> Unit,
     onShowPaywall: () -> Unit,
@@ -391,6 +407,37 @@ private fun ReaderPage(
     var noteTarget by remember { mutableStateOf<ReaderHadith?>(null) }
     var submissionTarget by remember { mutableStateOf<Pair<ReaderHadith, ReaderTranslation?>?>(null) }
     var reportTarget by remember { mutableStateOf<Pair<ReaderHadith, ReaderTranslation>?>(null) }
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(restoration?.anchor?.providerHadithId ?: landingHadithNumber, hadiths.firstOrNull()?._id) {
+        val targetId = restoration?.anchor?.providerHadithId ?: landingHadithNumber
+            ?: return@LaunchedEffect
+        val index = hadiths.indexOfFirst { it.providerHadithId == targetId }
+        if (index < 0) return@LaunchedEffect
+        listState.scrollToItem(index)
+        withFrameNanos { }
+        val size = listState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }?.size ?: 0
+        listState.scrollToItem(index, (size * (restoration?.normalizedOffset ?: 0.0)).roundToInt())
+    }
+
+    LaunchedEffect(listState, hadiths) {
+        snapshotFlow {
+            listState.layoutInfo.visibleItemsInfo.firstOrNull()?.let {
+                Triple(it.index, it.offset, it.size)
+            }
+        }
+            .filterNotNull()
+            .distinctUntilChanged()
+            .debounce(500)
+            .collect { (index, offset, size) ->
+                viewModel.captureStableScroll(
+                    hadiths = hadiths,
+                    leadingIndex = index,
+                    rawPageOffset = (-offset).coerceAtLeast(0).toDouble(),
+                    normalizedOffset = (-offset).coerceAtLeast(0).toDouble() / size.coerceAtLeast(1),
+                )
+            }
+    }
 
     Box(
         modifier = Modifier
@@ -403,6 +450,7 @@ private fun ReaderPage(
             }
         } else {
             LazyColumn(
+                state = listState,
                 verticalArrangement = Arrangement.spacedBy(40.dp),
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(

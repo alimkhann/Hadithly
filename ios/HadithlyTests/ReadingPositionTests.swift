@@ -143,4 +143,24 @@ final class ReadingPositionTests: XCTestCase {
         )
         XCTAssertEqual(payload.readingProgress, [.current(newer)])
     }
+
+    func testTargetResolverRestoresOnlyTheMatchingPrivatePosition() {
+        let restored = ReaderTargetResolver.resolve(.init(
+            source: .continueReading,
+            collectionSlug: "bukhari",
+            hadithNumber: "1",
+            position: position()
+        ))
+        XCTAssertEqual(restored.hadithNumber, "50")
+        XCTAssertEqual(restored.position?.normalizedOffset, 0.375)
+
+        let publicTarget = ReaderTargetResolver.resolve(.init(
+            source: .today,
+            collectionSlug: "muslim",
+            hadithNumber: "7",
+            position: position()
+        ))
+        XCTAssertEqual(publicTarget.hadithNumber, "7")
+        XCTAssertNil(publicTarget.position)
+    }
 }

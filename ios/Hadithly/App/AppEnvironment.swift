@@ -103,6 +103,9 @@ final class AppEnvironment {
                 ]
             )
         }
+        self.push.openHandler = { [weak self] payload in
+            self?.links.handleNotification(payload)
+        }
 
         // Explicit preference changes sync to Convex while signed in; while
         // signed out they stay device-local and merge on the next sign-in.

@@ -25,6 +25,8 @@ final class PushNotificationManager: NSObject {
     /// Set by AppEnvironment: uploads the token once a Convex session exists.
     /// Injected as a closure to keep this type free of app wiring.
     var uploadHandler: ((String) async -> Void)?
+    /// Installed by AppEnvironment so the UIKit delegate does not own SwiftUI navigation.
+    var openHandler: (([AnyHashable: Any]) -> Void)?
 
     private static let tokenKey = "push.deviceToken"
 
@@ -113,5 +115,15 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         willPresent notification: UNNotification
     ) async -> UNNotificationPresentationOptions {
         [.banner, .sound, .badge]
+    }
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse
+    ) async {
+        let payload = response.notification.request.content.userInfo
+        await MainActor.run {
+            PushNotificationManager.shared.openHandler?(payload)
+        }
     }
 }

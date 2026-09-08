@@ -34,6 +34,7 @@ import com.hadithly.app.core.data.Collections
 import com.hadithly.app.core.data.HadithRef
 import com.hadithly.app.core.theme.LocalHadithlyColors
 import com.hadithly.app.features.main.ReaderOpenTarget
+import com.hadithly.app.core.data.ReaderTargetSource
 
 /**
  * The seven collections. Tapping one opens the reader full screen over the
@@ -81,6 +82,8 @@ fun LibraryScreen(
                                     name = entry.hadith.collectionName,
                                     volumeId = entry.hadith.volumeId,
                                     hadithNumber = entry.hadith.hadithNumber,
+                                    source = ReaderTargetSource.CONTINUE_READING,
+                                    position = entry.position,
                                 )
                             )
                         },

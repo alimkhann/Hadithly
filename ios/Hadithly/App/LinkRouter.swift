@@ -72,4 +72,22 @@ final class LinkRouter {
         pendingLink = nil
         return link
     }
+
+    /// Daily pushes carry the same canonical identity fields as Android. They
+    /// are parsed through the canonical boundary before changing navigation.
+    @discardableResult
+    func handleNotification(_ userInfo: [AnyHashable: Any]) -> Bool {
+        guard let slug = userInfo["collectionSlug"] as? String,
+              let hadithId = userInfo["providerHadithId"] as? String,
+              let link = Self.notificationLink(slug: slug, hadithId: hadithId)
+        else { return false }
+        pendingLink = link
+        return true
+    }
+
+    private static func notificationLink(slug: String, hadithId: String) -> CanonicalHadithLink? {
+        CanonicalHadithLink.parse(
+            URL(string: "https://\(CanonicalHadithLink.host)/hadith/\(slug)/\(hadithId)")!
+        )
+    }
 }

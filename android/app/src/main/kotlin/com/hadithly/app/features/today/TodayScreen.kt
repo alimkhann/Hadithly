@@ -39,6 +39,7 @@ import com.hadithly.app.core.data.DailyHadith
 import com.hadithly.app.core.data.HadithRef
 import com.hadithly.app.core.theme.LocalHadithlyColors
 import com.hadithly.app.features.main.ReaderOpenTarget
+import com.hadithly.app.core.data.ReaderTargetSource
 import com.hadithly.app.features.main.rememberApp
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -89,6 +90,7 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
                         name = daily!!.collectionName,
                         volumeId = daily!!.volumeId,
                         hadithNumber = daily!!.providerHadithId,
+                        source = ReaderTargetSource.TODAY,
                     ),
                 )
             }
@@ -120,6 +122,8 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
                         name = ref.collectionName,
                         volumeId = ref.volumeId,
                         hadithNumber = ref.hadithNumber,
+                        source = ReaderTargetSource.CONTINUE_READING,
+                        position = continueReading.position,
                     ),
                 )
             }

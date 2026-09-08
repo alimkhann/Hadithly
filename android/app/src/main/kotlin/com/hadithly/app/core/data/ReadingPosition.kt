@@ -239,6 +239,49 @@ object ReadingPositionResolver {
     }
 }
 
+/**
+ * Entry-aware reader routing, mirrored with iOS. Chrome decides how to show
+ * this source in R4; R2 only guarantees that an untrusted/public entry point
+ * cannot borrow unrelated private progress.
+ */
+enum class ReaderTargetSource {
+    COLLECTION,
+    TODAY,
+    CONTINUE_READING,
+    SAVED,
+    CANONICAL_LINK,
+    NOTIFICATION,
+    WIDGET,
+}
+
+data class ReaderTarget(
+    val source: ReaderTargetSource,
+    val collectionSlug: String,
+    val hadithNumber: String? = null,
+    val position: ReadingPosition? = null,
+)
+
+data class ResolvedReaderTarget(
+    val source: ReaderTargetSource,
+    val volumeId: String?,
+    val hadithNumber: String?,
+    val position: ReadingPosition?,
+)
+
+object ReaderTargetResolver {
+    fun resolve(target: ReaderTarget): ResolvedReaderTarget {
+        val position = target.position?.takeIf {
+            it.anchor.collectionSlug == target.collectionSlug
+        }
+        return ResolvedReaderTarget(
+            source = target.source,
+            volumeId = position?.volumeId,
+            hadithNumber = position?.anchor?.providerHadithId ?: target.hadithNumber,
+            position = position,
+        )
+    }
+}
+
 fun ReadingPosition.toWireMap(): Map<String, Any?> = buildMap {
     put("schemaVersion", schemaVersion)
     put("anchor", mapOf(

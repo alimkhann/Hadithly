@@ -26,6 +26,8 @@ struct ReaderOpenTarget: Identifiable, Equatable {
     let name: String
     var volumeId: String?
     var hadithNumber: String?
+    var source: ReaderTargetSource = .collection
+    var position: ReadingPosition?
 
     var id: String { "\(slug)-\(volumeId ?? "-")-\(hadithNumber ?? "-")" }
 }
@@ -70,7 +72,9 @@ struct TodayView: View {
                 collectionSlug: target.slug,
                 collectionName: target.name,
                 openVolumeId: target.volumeId,
-                openHadithNumber: target.hadithNumber
+                openHadithNumber: target.hadithNumber,
+                openPosition: target.position,
+                targetSource: target.source
             )
         }
     }
@@ -103,7 +107,8 @@ struct TodayView: View {
                     slug: hadith.collectionSlug,
                     name: hadith.collectionName,
                     volumeId: hadith.volumeId,
-                    hadithNumber: hadith.providerHadithId
+                    hadithNumber: hadith.providerHadithId,
+                    source: .today
                 )
             } label: {
                 DailyHadithCard(hadith: hadith)
@@ -160,11 +165,13 @@ struct TodayView: View {
         Group {
             if let entry = library.continueReading, let hadith = entry.hadith {
                 Button {
-                    openTarget = ReaderOpenTarget(
-                        slug: entry.collectionSlug,
-                        name: hadith.collectionName,
-                        volumeId: hadith.volumeId,
-                        hadithNumber: hadith.hadithNumber
+                openTarget = ReaderOpenTarget(
+                    slug: entry.collectionSlug,
+                    name: hadith.collectionName,
+                    volumeId: hadith.volumeId,
+                    hadithNumber: hadith.hadithNumber,
+                    source: .continueReading,
+                    position: entry.position
                     )
                 } label: {
                     cardShell {

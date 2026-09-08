@@ -24,6 +24,8 @@ import com.hadithly.app.core.preferences.LocaleFallback
 import com.hadithly.app.core.links.CanonicalHadithLink
 import com.hadithly.app.features.auth.SignInScreen
 import com.hadithly.app.features.main.MainTabs
+import com.hadithly.app.features.main.ReaderOpenTarget
+import com.hadithly.app.core.data.ReaderTargetSource
 import com.hadithly.app.features.onboarding.OnboardingFlow
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -37,6 +39,7 @@ import java.util.Locale
  * links are ignored and the app opens wherever it normally would.
  */
 class MainActivity : ComponentActivity() {
+    private var notificationTarget by mutableStateOf<ReaderOpenTarget?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,17 +49,42 @@ class MainActivity : ComponentActivity() {
         )
         val pendingLink = intent?.data
             ?.let { CanonicalHadithLink.parse(it.scheme, it.host, it.path, it.encodedPath) }
+        notificationTarget = notificationTarget(intent)
         setContent {
             HadithlyTheme {
-                LocalizedRootApp(pendingLink = pendingLink)
+                LocalizedRootApp(pendingLink = pendingLink, notificationTarget = notificationTarget)
             }
         }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        notificationTarget = notificationTarget(intent)
+    }
+
+    private fun notificationTarget(intent: android.content.Intent?): ReaderOpenTarget? {
+        val slug = intent?.getStringExtra("collectionSlug") ?: return null
+        val hadithNumber = intent.getStringExtra("providerHadithId") ?: return null
+        val link = CanonicalHadithLink.parse(
+            "https", CanonicalHadithLink.HOST, "/hadith/$slug/$hadithNumber",
+        ) ?: return null
+        return ReaderOpenTarget(
+            slug = link.collectionSlug,
+            name = link.collectionName,
+            volumeId = intent.getStringExtra("volumeId"),
+            hadithNumber = link.providerHadithId,
+            source = ReaderTargetSource.NOTIFICATION,
+        )
     }
 }
 
 /** Applies the synced UI locale to resources and directional Compose layout. */
 @Composable
-private fun LocalizedRootApp(pendingLink: CanonicalHadithLink?) {
+private fun LocalizedRootApp(
+    pendingLink: CanonicalHadithLink?,
+    notificationTarget: ReaderOpenTarget?,
+) {
     val baseContext = LocalContext.current
     val app = baseContext.applicationContext as HadithlyApplication
     val preferences by app.preferences.preferences.collectAsState()
@@ -80,12 +108,15 @@ private fun LocalizedRootApp(pendingLink: CanonicalHadithLink?) {
         LocalResources provides localizedResources,
         androidx.compose.ui.platform.LocalLayoutDirection provides layoutDirection,
     ) {
-        RootApp(pendingLink = pendingLink)
+        RootApp(pendingLink = pendingLink, notificationTarget = notificationTarget)
     }
 }
 
 @Composable
-fun RootApp(pendingLink: CanonicalHadithLink? = null) {
+fun RootApp(
+    pendingLink: CanonicalHadithLink? = null,
+    notificationTarget: ReaderOpenTarget? = null,
+) {
     val app = LocalContext.current.applicationContext as HadithlyApplication
     val onboardingCompleted by app.settings.onboardingCompleted.collectAsState()
 
@@ -97,6 +128,7 @@ fun RootApp(pendingLink: CanonicalHadithLink? = null) {
             onShowSignIn = { showSignIn = true },
             onDismissSignIn = { showSignIn = false },
             pendingLink = pendingLink,
+            notificationTarget = notificationTarget,
         )
     } else {
         OnboardingFlow(

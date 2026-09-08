@@ -12,6 +12,9 @@ import com.hadithly.app.core.data.ReadingLayout
 import com.hadithly.app.core.data.ReadingPosition
 import com.hadithly.app.core.data.ReadingPositionAnchor
 import com.hadithly.app.core.data.ReadingWidthClass
+import com.hadithly.app.core.data.ReaderTarget
+import com.hadithly.app.core.data.ReaderTargetResolver
+import com.hadithly.app.core.data.ReaderTargetSource
 import com.hadithly.app.core.data.TranslationFailure
 import com.hadithly.app.core.data.TranslationSubmissionResult
 import kotlinx.coroutines.Job
@@ -39,6 +42,8 @@ class ReaderViewModel(
     private val collectionSlug: String,
     private val openVolumeId: String?,
     private val openHadithNumber: String?,
+    private val openPosition: ReadingPosition?,
+    private val targetSource: ReaderTargetSource,
 ) : ViewModel() {
 
     sealed interface Phase {
@@ -67,6 +72,12 @@ class ReaderViewModel(
     private var translationGeneration = 0
     private var readingWidthClass = ReadingWidthClass.COMPACT
     private var lastPositionUpdatedAt = 0.0
+    private var lastCapturedAnchor: String? = null
+    private var lastCapturedNormalizedOffset: Double? = null
+    var restoredPosition: ReadingPosition? = null
+        private set
+    var landingHadithNumber: String? = null
+        private set
 
     val library = app.library
 
@@ -114,15 +125,21 @@ class ReaderViewModel(
                 // link carries only the hadith number, so the volume holding
                 // it comes from the outline's source-provided counts. Unknown
                 // or stale numbers degrade to the first volume.
-                val targetVolume = openHadithNumber?.let {
+                val target = ReaderTargetResolver.resolve(
+                    ReaderTarget(targetSource, collectionSlug, openHadithNumber, openPosition),
+                )
+                restoredPosition = target.position
+                landingHadithNumber = target.hadithNumber
+                val targetVolume = target.hadithNumber?.let {
                     volumeIdForHadithNumber(it, result.volumes)
                 }
                 val requested = result.volumes.firstOrNull { it.volumeId == openVolumeId }?.volumeId
-                val firstVolume = requested ?: targetVolume ?: result.volumes.firstOrNull()?.volumeId
+                val restoredVolume = result.volumes.firstOrNull { it.volumeId == target.volumeId }?.volumeId
+                val firstVolume = restoredVolume ?: requested ?: targetVolume ?: result.volumes.firstOrNull()?.volumeId
                 _state.update { it.copy(phase = Phase.Reading, volumes = result.volumes) }
                 if (firstVolume != null) {
                     _state.update { it.copy(selectedVolumeId = firstVolume) }
-                    loadPage(0, firstVolume, openHadithNumber)
+                    loadPage(0, firstVolume, target.hadithNumber)
                 } else {
                     _state.update { it.copy(phase = Phase.Failed("No volumes found for this collection.")) }
                 }
@@ -382,6 +399,49 @@ class ReaderViewModel(
         if (s.pageIndex !in s.pages.indices) return
         val page = s.pages[s.pageIndex]
         val first = page.items.firstOrNull() ?: return
+        val restoredHadith = restoredPosition?.let { position ->
+            page.items.firstOrNull {
+                it.provider == position.anchor.provider &&
+                    it.collectionSlug == position.anchor.collectionSlug &&
+                    it.providerHadithId == position.anchor.providerHadithId
+            }
+        }
+        val landingHadith = landingHadithNumber?.let { number ->
+            page.items.firstOrNull { it.providerHadithId == number }
+        }
+        saveProgress(
+            anchor = restoredHadith ?: landingHadith ?: first,
+            page = page,
+            rawPageOffset = if (restoredHadith == null) 0.0 else restoredPosition?.rawPageOffset ?: 0.0,
+            normalizedOffset = if (restoredHadith == null) 0.0 else restoredPosition?.normalizedOffset ?: 0.0,
+        )
+    }
+
+    /** Records a settled visible hadith and ignores imperceptible scroll changes. */
+    fun captureStableScroll(
+        hadiths: List<ReaderHadith>,
+        leadingIndex: Int,
+        rawPageOffset: Double,
+        normalizedOffset: Double,
+    ) {
+        val page = _state.value.pages.getOrNull(_state.value.pageIndex) ?: return
+        val anchor = hadiths.getOrNull(leadingIndex) ?: return
+        val clamped = normalizedOffset.coerceIn(0.0, 1.0)
+        if (lastCapturedAnchor == anchor.internalId &&
+            lastCapturedNormalizedOffset?.let { kotlin.math.abs(it - clamped) < 0.02 } == true
+        ) return
+        lastCapturedAnchor = anchor.internalId
+        lastCapturedNormalizedOffset = clamped
+        saveProgress(anchor, page, rawPageOffset.coerceAtLeast(0.0), clamped)
+    }
+
+    private fun saveProgress(
+        anchor: ReaderHadith,
+        page: ReaderPageResult,
+        rawPageOffset: Double,
+        normalizedOffset: Double,
+    ) {
+        val s = _state.value
         val preferences = app.preferences.preferences.value
         val layout = ReadingLayout(
             locale = preferences.translationLocale,
@@ -401,21 +461,21 @@ class ReaderViewModel(
         lastPositionUpdatedAt = updatedAt
         val position = ReadingPosition(
             anchor = ReadingPositionAnchor(
-                provider = first.provider,
-                collectionSlug = first.collectionSlug,
-                providerHadithId = first.providerHadithId,
+                provider = anchor.provider,
+                collectionSlug = anchor.collectionSlug,
+                providerHadithId = anchor.providerHadithId,
             ),
             contentVersion = page.contentVersion,
-            volumeId = first.volumeId ?: s.selectedVolumeId ?: "unknown",
-            chapterId = first.chapterId,
+            volumeId = anchor.volumeId ?: s.selectedVolumeId ?: "unknown",
+            chapterId = anchor.chapterId,
             pageKey = page.pageKey,
             displayPageIndex = page.page.coerceAtLeast(1.0),
-            rawPageOffset = 0.0,
-            normalizedOffset = 0.0,
+            rawPageOffset = rawPageOffset,
+            normalizedOffset = normalizedOffset,
             layoutSignature = layout.signature,
             updatedAt = updatedAt,
         )
-        library.saveProgress(position, refFor(first))
+        library.saveProgress(position, refFor(anchor))
     }
 
     private fun errorMessage(error: Exception): String = error.message ?: error.toString()

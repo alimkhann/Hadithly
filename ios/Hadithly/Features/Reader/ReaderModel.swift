@@ -34,6 +34,8 @@ final class ReaderModel {
     private let openVolumeId: String?
     /// Hadith number to land on within that volume.
     private let openHadithNumber: String?
+    private let openPosition: ReadingPosition?
+    private let targetSource: ReaderTargetSource
     private let currentPreferences: () -> ReaderPreferences
     private let widthClass: ReadingWidthClass
 
@@ -65,6 +67,10 @@ final class ReaderModel {
     private var translationTask: Task<Void, Never>?
     private var translationGeneration = 0
     private var lastPositionUpdatedAt = 0.0
+    private var lastCapturedAnchor: String?
+    private var lastCapturedNormalizedOffset: Double?
+    private(set) var restoredPosition: ReadingPosition?
+    private(set) var landingHadithNumber: String?
 
     init(
         convex: ConvexClientWithAuth<String>,
@@ -75,6 +81,8 @@ final class ReaderModel {
         library: UserLibraryModel? = nil,
         openVolumeId: String? = nil,
         openHadithNumber: String? = nil,
+        openPosition: ReadingPosition? = nil,
+        targetSource: ReaderTargetSource = .collection,
         currentPreferences: @escaping () -> ReaderPreferences = { ReaderPreferences() },
         widthClass: ReadingWidthClass = .compact
     ) {
@@ -86,6 +94,8 @@ final class ReaderModel {
         self.library = library
         self.openVolumeId = openVolumeId
         self.openHadithNumber = openHadithNumber
+        self.openPosition = openPosition
+        self.targetSource = targetSource
         self.currentPreferences = currentPreferences
         self.widthClass = widthClass
     }
@@ -145,17 +155,26 @@ final class ReaderModel {
             // link carries only the hadith number, so the volume holding it
             // comes from the outline's source-provided counts. Unknown or
             // stale numbers degrade to the first volume.
-            let targetVolume = openHadithNumber.flatMap {
+            let target = ReaderTargetResolver.resolve(.init(
+                source: targetSource,
+                collectionSlug: collectionSlug,
+                hadithNumber: openHadithNumber,
+                position: openPosition
+            ))
+            restoredPosition = target.position
+            landingHadithNumber = target.hadithNumber
+            let targetVolume = target.hadithNumber.flatMap {
                 Self.volumeId(forHadithNumber: $0, in: volumes)
             }
             let requested = result.volumes.first { $0.volumeId == openVolumeId }?.volumeId
-            let firstVolume = requested ?? targetVolume ?? result.volumes.first?.volumeId
+            let restoredVolume = result.volumes.first { $0.volumeId == target.volumeId }?.volumeId
+            let firstVolume = restoredVolume ?? requested ?? targetVolume ?? result.volumes.first?.volumeId
             selectedVolumeId = firstVolume
             if let firstVolume {
                 await loadPage(
                     0,
                     volumeId: firstVolume,
-                    jumpToHadithNumber: openHadithNumber
+                    jumpToHadithNumber: target.hadithNumber
                 )
             } else {
                 phase = .failed("No volumes found for this collection.")
@@ -451,6 +470,57 @@ final class ReaderModel {
         guard phase == .reading, pages.indices.contains(pageIndex) else { return }
         let page = pages[pageIndex]
         guard let first = page.items.first else { return }
+        let restoredHadith = restoredPosition.flatMap { position in
+            page.items.first(where: {
+                $0.provider == position.anchor.provider
+                    && $0.collectionSlug == position.anchor.collectionSlug
+                    && $0.providerHadithId == position.anchor.providerHadithId
+            })
+        }
+        let landingHadith = landingHadithNumber.flatMap { number in
+            page.items.first { $0.providerHadithId == number }
+        }
+        let usesRestoredOffset = restoredHadith != nil
+        saveProgress(
+            anchor: restoredHadith ?? landingHadith ?? first,
+            page: page,
+            rawPageOffset: usesRestoredOffset ? restoredPosition?.rawPageOffset ?? 0 : 0,
+            normalizedOffset: usesRestoredOffset ? restoredPosition?.normalizedOffset ?? 0 : 0
+        )
+    }
+
+    /// The scroll view reports its leading visible hadith after it has settled.
+    /// Tiny layout updates are ignored so reading does not create a write storm.
+    func captureStableScroll(
+        hadiths: [ReaderHadith],
+        leadingIndex: Int,
+        rawPageOffset: Double,
+        normalizedOffset: Double
+    ) {
+        guard hadiths.indices.contains(leadingIndex), pages.indices.contains(pageIndex) else { return }
+        let anchor = hadiths[leadingIndex]
+        let clamped = min(1, max(0, normalizedOffset))
+        if lastCapturedAnchor == anchor.internalId,
+           let lastCapturedNormalizedOffset,
+           abs(lastCapturedNormalizedOffset - clamped) < 0.02 {
+            return
+        }
+        lastCapturedAnchor = anchor.internalId
+        lastCapturedNormalizedOffset = clamped
+        saveProgress(
+            anchor: anchor,
+            page: pages[pageIndex],
+            rawPageOffset: max(0, rawPageOffset),
+            normalizedOffset: clamped
+        )
+    }
+
+    private func saveProgress(
+        anchor: ReaderHadith,
+        page: ReaderPageResult,
+        rawPageOffset: Double,
+        normalizedOffset: Double
+    ) {
         let preferences = currentPreferences()
         let paginationVersion = page.paginationVersion ?? 1
         let layout = ReadingLayout(
@@ -470,20 +540,20 @@ final class ReaderModel {
         lastPositionUpdatedAt = updatedAt
         let position = ReadingPosition(
             anchor: .init(
-                provider: first.provider,
-                collectionSlug: first.collectionSlug,
-                providerHadithId: first.providerHadithId
+                provider: anchor.provider,
+                collectionSlug: anchor.collectionSlug,
+                providerHadithId: anchor.providerHadithId
             ),
             contentVersion: page.contentVersion ?? "legacy",
-            volumeId: first.volumeId ?? selectedVolumeId ?? "unknown",
-            chapterId: first.chapterId,
+            volumeId: anchor.volumeId ?? selectedVolumeId ?? "unknown",
+            chapterId: anchor.chapterId,
             pageKey: page.pageKey ?? "legacy",
             displayPageIndex: Double(max(1, page.page)),
-            rawPageOffset: 0,
-            normalizedOffset: 0,
+            rawPageOffset: rawPageOffset,
+            normalizedOffset: normalizedOffset,
             layoutSignature: layout.signature,
             updatedAt: updatedAt
         )
-        library?.saveProgress(position, ref: ref(for: first))
+        library?.saveProgress(position, ref: ref(for: anchor))
     }
 }

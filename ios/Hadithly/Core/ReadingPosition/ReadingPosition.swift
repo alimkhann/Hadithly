@@ -220,6 +220,51 @@ struct ResolvedReadingPosition: Equatable, Sendable {
     let normalizedOffset: Double
 }
 
+/// The entry point is part of a reader target. It is deliberately separate
+/// from the visual chrome R4 will add: the close action must return to the
+/// surface that opened the reader, while only private surfaces may restore a
+/// private reading position by default.
+enum ReaderTargetSource: String, Equatable, Sendable {
+    case collection
+    case today
+    case continueReading
+    case saved
+    case canonicalLink
+    case notification
+    case widget
+}
+
+struct ReaderTarget: Equatable, Sendable {
+    let source: ReaderTargetSource
+    let collectionSlug: String
+    let hadithNumber: String?
+    let position: ReadingPosition?
+}
+
+struct ResolvedReaderTarget: Equatable, Sendable {
+    let source: ReaderTargetSource
+    let volumeId: String?
+    let hadithNumber: String?
+    let position: ReadingPosition?
+}
+
+/// The iOS counterpart of Android's `ReaderTargetResolver`. A supplied V1
+/// position is usable only for its own collection. Otherwise every public
+/// target starts at its explicit hadith, never at unrelated private progress.
+enum ReaderTargetResolver {
+    static func resolve(_ target: ReaderTarget) -> ResolvedReaderTarget {
+        let position = target.position.flatMap { candidate in
+            candidate.anchor.collectionSlug == target.collectionSlug ? candidate : nil
+        }
+        return ResolvedReaderTarget(
+            source: target.source,
+            volumeId: position?.volumeId,
+            hadithNumber: position?.anchor.providerHadithId ?? target.hadithNumber,
+            position: position
+        )
+    }
+}
+
 enum ReadingPositionResolver {
     private struct LocatedAnchor {
         let location: ReadingPositionAnchorLocation

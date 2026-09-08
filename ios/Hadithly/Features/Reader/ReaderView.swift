@@ -14,6 +14,8 @@ struct ReaderView: View {
     let collectionName: String
     var openVolumeId: String?
     var openHadithNumber: String?
+    var openPosition: ReadingPosition?
+    var targetSource: ReaderTargetSource = .collection
 
     @State private var model: ReaderModel?
     @State private var showIndex = false
@@ -55,6 +57,8 @@ struct ReaderView: View {
                     library: environment.library,
                     openVolumeId: openVolumeId,
                     openHadithNumber: openHadithNumber,
+                    openPosition: openPosition,
+                    targetSource: targetSource,
                     currentPreferences: { environment.preferences.preferences },
                     widthClass: horizontalSizeClass == .regular ? .regular : .compact
                 )
@@ -143,6 +147,8 @@ struct ReaderView: View {
                 model: model,
                 hadiths: model.currentPageHadiths,
                 arabicFontSize: arabicFontSizeBinding.wrappedValue,
+                restoration: model.restoredPosition,
+                landingHadithNumber: model.landingHadithNumber,
                 onShowPaywall: { showQuotaPaywall = true }
             )
             .id(model.pageIndex)
@@ -310,38 +316,82 @@ private struct ReaderBottomPills: View {
 
 // MARK: - One reader page
 
+private struct ReaderAnchorFramesKey: PreferenceKey {
+    static var defaultValue: [String: CGFloat] = [:]
+
+    static func reduce(value: inout [String: CGFloat], nextValue: () -> [String: CGFloat]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, next in next })
+    }
+}
+
 struct ReaderPageView: View {
     let model: ReaderModel
     let hadiths: [ReaderHadith]
     let arabicFontSize: Double
+    let restoration: ReadingPosition?
+    let landingHadithNumber: String?
     let onShowPaywall: () -> Void
 
     var body: some View {
-        ScrollView {
-            if hadiths.isEmpty {
-                VStack {
-                    ProgressView()
-                        .tint(Theme.textSecondary)
-                        .padding(.top, 120)
-                }
-                .frame(maxWidth: .infinity)
-            } else {
-                VStack(spacing: 40) {
-                    ForEach(hadiths) { hadith in
-                        HadithBlock(
-                            model: model,
-                            hadith: hadith,
-                            translationState: model.translations[hadith.internalId],
-                            language: model.language,
-                            arabicFontSize: arabicFontSize,
-                            onRetry: { model.retryTranslation(for: hadith) },
-                            onShowPaywall: onShowPaywall
-                        )
+        ScrollViewReader { proxy in
+            ScrollView {
+                if hadiths.isEmpty {
+                    VStack {
+                        ProgressView()
+                            .tint(Theme.textSecondary)
+                            .padding(.top, 120)
                     }
+                    .frame(maxWidth: .infinity)
+                } else {
+                    VStack(spacing: 40) {
+                        ForEach(hadiths) { hadith in
+                            HadithBlock(
+                                model: model,
+                                hadith: hadith,
+                                translationState: model.translations[hadith.internalId],
+                                language: model.language,
+                                arabicFontSize: arabicFontSize,
+                                onRetry: { model.retryTranslation(for: hadith) },
+                                onShowPaywall: onShowPaywall
+                            )
+                            .id(hadith.internalId)
+                            .background(GeometryReader { geometry in
+                                Color.clear.preference(
+                                    key: ReaderAnchorFramesKey.self,
+                                    value: [hadith.internalId: geometry.frame(in: .named("reader.page")).minY]
+                                )
+                            })
+                        }
+                    }
+                    .padding(.horizontal, 22)
+                    .padding(.top, 20)
+                    .padding(.bottom, 80)
                 }
-                .padding(.horizontal, 22)
-                .padding(.top, 20)
-                .padding(.bottom, 80)
+            }
+            .coordinateSpace(name: "reader.page")
+            .onPreferenceChange(ReaderAnchorFramesKey.self) { frames in
+                let indexed = hadiths.enumerated().compactMap { index, hadith in
+                    frames[hadith.internalId].map { (index, $0) }
+                }
+                guard let leading = indexed.last(where: { $0.1 <= 0 }) ?? indexed.first else { return }
+                let nextY = indexed.first(where: { $0.0 == leading.0 + 1 })?.1
+                let height = max(1, (nextY ?? 1) - leading.1 - 40)
+                model.captureStableScroll(
+                    hadiths: hadiths,
+                    leadingIndex: leading.0,
+                    rawPageOffset: max(0, -leading.1),
+                    normalizedOffset: max(0, -leading.1) / height
+                )
+            }
+            .task(id: restoration?.anchor.providerHadithId ?? landingHadithNumber) {
+                let targetId = restoration?.anchor.providerHadithId ?? landingHadithNumber
+                guard let targetId,
+                      let hadith = hadiths.first(where: { $0.providerHadithId == targetId })
+                else { return }
+                proxy.scrollTo(
+                    hadith.internalId,
+                    anchor: UnitPoint(x: 0, y: restoration?.normalizedOffset ?? 0)
+                )
             }
         }
         .contentShape(Rectangle())
