@@ -1,0 +1,4 @@
+
+> @hadithly/config@0.1.0 build /Users/alim/Documents/Hadithly/packages/config
+> tsc -p tsconfig.json --noEmit false
+

@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">Hadithly</string>
+    <string name="onboarding_choose_language_title">Choose your language</string>
+    <string name="onboarding_choose_language_subtitle">You can change this any time in Settings.</string>
+    <string name="action_continue">Continue</string>
+    <string name="settings_reading">Reading</string>
+    <string name="settings_arabic_type_size">Arabic type size</string>
+    <string name="settings_app_language">App language</string>
+    <string name="settings_hadith_translation">Hadith translation</string>
+    <string name="settings_reading_direction">Reading direction</string>
+    <string name="settings_visibility_arabic">Arabic text</string>
+    <string name="settings_visibility_translation">Translation</string>
+    <string name="direction_automatic">Automatic</string>
+    <string name="direction_right_to_left">Right to left</string>
+    <string name="direction_left_to_right">Left to right</string>
+    <plurals name="settings_languages_available">
+        <item quantity="one">%d language available</item>
+        <item quantity="other">%d languages available</item>
+    </plurals>
+</resources>

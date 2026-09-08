@@ -1,0 +1,15 @@
+
+> @hadithly/web@0.1.0 test /Users/alim/Developer/Projects/Apps/Hadithly/apps/web
+> vitest run
+
+
+ RUN  v3.2.4 /Users/alim/Developer/Projects/Apps/Hadithly/apps/web
+
+ ✓ test/translation-grounding.test.ts (11 tests) 4ms
+ ✓ test/route-helpers.test.ts (10 tests) 6ms
+
+ Test Files  2 passed (2)
+      Tests  21 passed (21)
+   Start at  03:40:08
+   Duration  634ms (transform 93ms, setup 0ms, collect 206ms, tests 9ms, environment 0ms, prepare 122ms)
+

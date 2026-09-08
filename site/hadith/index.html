@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>Open a hadith · Hadithly</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <div class="shell">
+      <header>
+        <a class="brand" href="/">Hadithly</a>
+        <nav aria-label="Legal and support">
+          <a href="/privacy/">Privacy</a>
+          <a href="/support/">Support</a>
+        </nav>
+      </header>
+      <main>
+        <p class="eyebrow">Hadith link</p>
+        <div id="canonical" aria-live="polite">
+          <p class="lede" id="canonical-status">Opening this hadith…</p>
+
+          <article id="canonical-resolved" hidden>
+            <h1 id="canonical-reference">Hadith</h1>
+            <p class="lede" id="canonical-meta"></p>
+            <p class="scope-line" id="canonical-scope"></p>
+
+            <section id="canonical-text" hidden aria-label="Hadith text">
+              <p class="arabic" id="canonical-arabic" dir="rtl" lang="ar"></p>
+              <section id="canonical-translation-block" hidden>
+                <p class="translation" id="canonical-translation"></p>
+                <p class="fallback-note" id="canonical-fallback-note" hidden>
+                  This link requested a translation we do not have yet, so the
+                  provider English text is shown instead.
+                </p>
+                <p class="fallback-note" id="canonical-english-note" hidden>
+                  No translation was requested, so the provider English text is
+                  shown. Open the app to read in your language.
+                </p>
+              </section>
+            </section>
+
+            <section id="canonical-unlicensed" hidden>
+              <p class="lede">
+                The full text is available in the Hadithly app. This page shows
+                the reference, source, and authenticity scope until the source
+                license permits public display.
+              </p>
+            </section>
+          </article>
+
+          <div id="canonical-invalid" hidden>
+            <h1>This link is not valid.</h1>
+            <p class="lede">
+              A Hadithly hadith link points to a collection and hadith number.
+              This one is incomplete or malformed, so there is nothing to open.
+            </p>
+            <div class="actions">
+              <a class="button primary" href="/">About Hadithly</a>
+              <a class="button" href="/support/">Get support</a>
+            </div>
+          </div>
+
+          <div id="canonical-notfound" hidden>
+            <h1>That hadith is not available.</h1>
+            <p class="lede">
+              The link points to a hadith that has moved or is no longer
+              published. In the app, the collection is still there — start at
+              the collection and continue from there.
+            </p>
+            <div class="actions">
+              <a class="button primary" href="/">About Hadithly</a>
+              <a class="button" href="/support/">Get support</a>
+            </div>
+          </div>
+
+          <div class="actions" id="canonical-app-actions" hidden>
+            <a class="button primary" id="canonical-open-app" href="#">Open in the app</a>
+            <a class="button" href="/support/">Get support</a>
+          </div>
+        </div>
+      </main>
+      <footer>
+        <span>© 2026 Hadithly</span>
+        <span><a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a></span>
+      </footer>
+    </div>
+    <script src="/convex-config.js"></script>
+    <script src="/canonical.js"></script>
+  </body>
+</html>

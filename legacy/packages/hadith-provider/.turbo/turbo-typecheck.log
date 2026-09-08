@@ -1,0 +1,4 @@
+
+> @hadithly/hadith-provider@0.1.0 typecheck /Users/alim/Developer/Projects/Apps/Hadithly/packages/hadith-provider
+> tsc -p tsconfig.json --noEmit
+

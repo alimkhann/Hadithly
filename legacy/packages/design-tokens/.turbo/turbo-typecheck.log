@@ -1,0 +1,4 @@
+
+> @hadithly/design-tokens@0.1.0 typecheck /Users/alim/Developer/Projects/Apps/Hadithly/packages/design-tokens
+> tsc -p tsconfig.json --noEmit
+

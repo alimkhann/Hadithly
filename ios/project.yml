@@ -1,0 +1,116 @@
+name: Hadithly
+options:
+  bundleIdPrefix: com.hadithly
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+packages:
+  clerk-ios:
+    url: https://github.com/clerk/clerk-ios.git
+    from: 1.0.0
+  clerk-convex:
+    url: https://github.com/clerk/clerk-convex-swift
+    from: 0.1.0
+  convex-swift:
+    url: https://github.com/get-convex/convex-swift
+    from: 0.8.0
+  revenuecat:
+    url: https://github.com/RevenueCat/purchases-ios-spm.git
+    from: 5.43.0
+settings:
+  base:
+    SWIFT_VERSION: "5.10"
+    CODE_SIGN_STYLE: Automatic
+    GENERATE_INFOPLIST_FILE: false
+targets:
+  Hadithly:
+    type: application
+    platform: iOS
+    sources:
+      - Hadithly
+    dependencies:
+      - package: clerk-ios
+        product: ClerkKit
+      - package: clerk-ios
+        product: ClerkKitUI
+      - package: clerk-convex
+        product: ClerkConvex
+      - package: convex-swift
+        product: ConvexMobile
+      - package: revenuecat
+        product: RevenueCat
+    info:
+      path: Hadithly/Info.plist
+      properties:
+        CFBundleDisplayName: Hadithly
+        CFBundleShortVersionString: "0.1.0"
+        CFBundleVersion: "1"
+        ITSAppUsesNonExemptEncryption: false
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        CFBundleURLTypes:
+          - CFBundleURLName: com.hadithly.app
+            CFBundleURLSchemes:
+              - com.hadithly.app
+        ConvexURL: $(CONVEX_URL)
+        ClerkPublishableKey: $(CLERK_PUBLISHABLE_KEY)
+        RevenueCatAPIKey: $(REVENUECAT_API_KEY)
+        PrivacyPolicyURL: $(PRIVACY_POLICY_URL)
+        TermsOfUseURL: $(TERMS_OF_USE_URL)
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.hadithly.app
+        TARGETED_DEVICE_FAMILY: "1"
+        SUPPORTS_MACCATALYST: false
+        CODE_SIGN_ENTITLEMENTS: Hadithly/Hadithly.entitlements
+        DEVELOPMENT_TEAM: 6378AFQPXV
+      configs:
+        Debug:
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
+    configFiles:
+      Debug: Secrets.xcconfig
+      Release: Production.xcconfig
+  HadithlyTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - HadithlyTests
+    dependencies:
+      - target: Hadithly
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.hadithly.app.tests
+        GENERATE_INFOPLIST_FILE: true
+  HadithlyUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - HadithlyUITests
+    dependencies:
+      - target: Hadithly
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.hadithly.app.uitests
+        GENERATE_INFOPLIST_FILE: true
+schemes:
+  Hadithly:
+    build:
+      targets:
+        Hadithly: all
+        HadithlyTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - HadithlyTests
+  Phase4Live:
+    build:
+      targets:
+        Hadithly: all
+        HadithlyUITests: [test]
+    test:
+      config: Debug
+      targets:
+        - HadithlyUITests

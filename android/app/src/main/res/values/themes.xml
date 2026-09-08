@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.Hadithly" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/hadithly_background</item>
+        <item name="android:statusBarColor">@color/hadithly_background</item>
+        <item name="android:navigationBarColor">@color/hadithly_background</item>
+    </style>
+</resources>

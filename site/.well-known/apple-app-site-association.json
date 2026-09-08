@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["6378AFQPXV.com.hadithly.app"],
+        "components": [
+          {
+            "/": "/hadith/*",
+            "comment": "Canonical Hadithly hadith links"
+          }
+        ]
+      }
+    ]
+  }
+}

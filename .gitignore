@@ -3,16 +3,35 @@
 .env.*
 !.env.example
 !.env.local.example
-.turbo
-coverage
-dist
-node_modules
-.next
-.expo
-android
-ios
-build
-web-build
-*.log
+node_modules/
 *.tsbuildinfo
-.vercel
+
+# backend
+backend/convex/_generated/
+
+# ios
+ios/build/
+ios/DerivedData/
+ios/Secrets.xcconfig
+ios/ProductionSecrets.xcconfig
+ios/**/xcuserdata/
+ios/**/*.xcuserstate
+
+# android
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/secrets.properties
+android/production.secrets.properties
+android/app/google-services.json
+
+# legacy (archived monorepo artifacts)
+legacy/**/node_modules/
+legacy/**/.next/
+legacy/**/.expo/
+legacy/**/dist/
+
+# local session artifacts and tool state
+session-ses_*.md
+.xcodebuildmcp/

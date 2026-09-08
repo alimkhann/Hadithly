@@ -1,0 +1,14 @@
+
+> @hadithly/hadith-provider@0.1.0 test /Users/alim/Developer/Projects/Apps/Hadithly/packages/hadith-provider
+> vitest run
+
+
+ RUN  v3.2.4 /Users/alim/Developer/Projects/Apps/Hadithly/packages/hadith-provider
+
+ ✓ test/sunnah-now-provider.test.ts (6 tests) 7ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  03:40:08
+   Duration  507ms (transform 116ms, setup 0ms, collect 97ms, tests 7ms, environment 0ms, prepare 81ms)
+

@@ -1,0 +1,32 @@
+{
+  "name": "@hadithly/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "next build",
+    "check": "next lint",
+    "dev": "next dev",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@clerk/backend": "^3.4.13",
+    "@google/genai": "^1.31.0",
+    "@hadithly/config": "workspace:*",
+    "@hadithly/design-tokens": "workspace:*",
+    "@hadithly/hadith-provider": "workspace:*",
+    "@hadithly/types": "workspace:*",
+    "@hadithly/validators": "workspace:*",
+    "convex": "^1.29.3",
+    "next": "^16.0.7",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "zod": "^3.25.56"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "vitest": "^3.2.2"
+  }
+}

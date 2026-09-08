@@ -1,0 +1,43 @@
+
+> @hadithly/web@0.1.0 build /Users/alim/Developer/Projects/Apps/Hadithly/apps/web
+> next build
+
+▲ Next.js 16.2.6 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 4.0s
+  Running TypeScript ...
+  Finished TypeScript in 1991ms ...
+  Collecting page data using 9 workers ...
+  Generating static pages using 9 workers (0/15) ...
+  Generating static pages using 9 workers (3/15) 
+  Generating static pages using 9 workers (7/15) 
+  Generating static pages using 9 workers (11/15) 
+✓ Generating static pages using 9 workers (15/15) in 133ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/cron/daily-hadith
+├ ƒ /api/cron/recompute-language-coverage
+├ ƒ /api/cron/recompute-leaderboards
+├ ƒ /api/cron/reset-ai-usage
+├ ƒ /api/hadith/book/[slug]
+├ ƒ /api/hadith/book/[slug]/hadith
+├ ƒ /api/hadith/book/[slug]/hadith/[id]
+├ ƒ /api/hadith/book/[slug]/index
+├ ƒ /api/hadith/books
+├ ƒ /api/hadith/search
+├ ƒ /api/notifications/push-token
+├ ƒ /api/payments/polar-webhook
+├ ƒ /api/payments/revenuecat-webhook
+├ ƒ /api/translate/generate
+├ ƒ /api/translate/report
+└ ƒ /api/translate/review
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

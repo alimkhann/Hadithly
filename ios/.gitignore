@@ -1,0 +1,7 @@
+node_modules
+Secrets.xcconfig
+DerivedData
+build
+*.xcuserstate
+xcuserdata
+.DS_Store

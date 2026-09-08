@@ -1,0 +1,4 @@
+
+> @hadithly/validators@0.1.0 build /Users/alim/Documents/Hadithly/packages/validators
+> tsc -p tsconfig.json --noEmit false
+
