@@ -4,6 +4,8 @@ Read hadith collections in your language. Clean, calm, and true to the sources.
 
 [hadithly.app](https://hadithly.app) is live. The apps themselves are still in development.
 
+[![hadithly.app](docs/screenshot-site.png)](https://hadithly.app)
+
 - **iOS** — SwiftUI (`ios/`), iOS 17+
 - **Android** — Jetpack Compose (`android/`), minSdk 26
 - **Backend** — Convex (`backend/`): hadith data, AI translations, reading data
