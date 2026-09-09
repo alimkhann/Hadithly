@@ -118,7 +118,7 @@ class ReaderR6AQuietTest {
         compose.setContent { block() }
 
         compose.onNodeWithTag("reader.hadithLabel").assertIsDisplayed()
-        compose.onNodeWithText("[Bukhari – 57]").assertIsDisplayed()
+        compose.onNodeWithText("Bukhari – 57").assertIsDisplayed()
     }
 
     @Test
@@ -131,7 +131,7 @@ class ReaderR6AQuietTest {
         compose.onNodeWithTag("reader.gradeDot", useUnmergedTree = true).assertDoesNotExist()
         compose.onNodeWithTag("reader.hadithMarker", useUnmergedTree = true).assertDoesNotExist()
         compose.onNodeWithTag("reader.hadithLabel").assertIsDisplayed()
-        compose.onNodeWithText("[Bukhari – 57]").assertIsDisplayed()
+        compose.onNodeWithText("Bukhari – 57").assertIsDisplayed()
         compose.onNodeWithTag("reader.hadithLabel").performClick()
         compose.runOnIdle { assertEquals(1, opened) }
     }

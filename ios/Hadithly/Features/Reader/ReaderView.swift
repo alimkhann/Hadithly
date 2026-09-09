@@ -85,7 +85,10 @@ struct ReaderView: View {
         }
         .sheet(isPresented: $showIndex) {
             if let model {
-                CollectionOutlineSheet(model: model)
+                CollectionOutlineSheet(
+                    model: model,
+                    arabicVisible: environment.preferences.preferences.arabicVisible
+                )
                     .presentationDetents([.medium, .large])
             }
         }
@@ -174,9 +177,7 @@ struct ReaderView: View {
             .id(model.pageIndex)
             .transition(pageTurnTransition)
             .onTapGesture {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    model.chromeVisible.toggle()
-                }
+                toggleChrome(model, withHaptic: true)
             }
 
             // Compact progress (R4): a thin bar at the top stays visible
@@ -214,15 +215,22 @@ struct ReaderView: View {
         .accessibilityAction(
             named: model.chromeVisible ? "Hide reader controls" : "Show reader controls"
         ) {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                model.chromeVisible.toggle()
-            }
+            toggleChrome(model, withHaptic: false)
         }
         // A layout-affecting preference change (font, size, visibility,
         // translation locale) invalidates the raw offset; the semantic
         // anchor restores the exact position against the new signature.
         .onChange(of: environment.preferences.preferences.layoutProjection) { _, _ in
             model.reanchorAfterLayoutChange()
+        }
+    }
+
+    private func toggleChrome(_ model: ReaderModel, withHaptic: Bool) {
+        if withHaptic {
+            UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+        }
+        withAnimation(.easeInOut(duration: 0.2)) {
+            model.chromeVisible.toggle()
         }
     }
 
@@ -304,7 +312,7 @@ private struct ReaderCompactProgressBar: View {
                 Capsule()
                     .fill(palette.divider.opacity(0.6))
                 Capsule()
-                    .fill(Theme.accent.opacity(0.8))
+                    .fill(palette.textSecondary.opacity(0.8))
                     .frame(width: max(8, proxy.size.width * fraction))
             }
             .frame(height: 3)
@@ -524,6 +532,7 @@ struct ReaderPageView: View {
                                                 in: model.volumes,
                                                 volumeId: model.selectedVolumeId
                                             ),
+                                            arabicVisible: preferences.arabicVisible,
                                             palette: palette
                                         )
                                         hadithRow(hadith)
@@ -547,6 +556,7 @@ struct ReaderPageView: View {
                         .padding(.bottom, 80)
                     }
                 }
+                .scrollIndicators(.hidden)
                 .coordinateSpace(name: "reader.page")
                 .onPreferenceChange(ReaderAnchorFramesKey.self) { frames in
                     let targetId = restoration?.anchor.providerHadithId ?? landingHadithNumber
@@ -580,11 +590,6 @@ struct ReaderPageView: View {
             }
         }
         .contentShape(Rectangle())
-        .onTapGesture {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                model.chromeVisible.toggle()
-            }
-        }
         .onAppear { chapterOpenings = ReaderChapterBoundaries.openingIndices(in: hadiths) }
         .onChange(of: hadiths) { _, updated in
             chapterOpenings = ReaderChapterBoundaries.openingIndices(in: updated)
@@ -643,6 +648,7 @@ private struct ReaderVolumeHeaderView: View {
 private struct ReaderChapterHeader: View {
     let title: String
     let arabicTitle: String?
+    let arabicVisible: Bool
     let palette: ReaderPalette
 
     var body: some View {
@@ -652,7 +658,11 @@ private struct ReaderChapterHeader: View {
                 .foregroundStyle(palette.textPrimary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
-            if let subtitle = ReaderChapterLine.arabicSubtitle(title: title, arabicTitle: arabicTitle) {
+            if let subtitle = ReaderChapterLine.arabicSubtitle(
+                title: title,
+                arabicTitle: arabicTitle,
+                arabicVisible: arabicVisible
+            ) {
                 Text(subtitle)
                     .font(.caption)
                     .foregroundStyle(palette.textSecondary.opacity(0.8))
@@ -667,7 +677,11 @@ private struct ReaderChapterHeader: View {
     }
 
     private var accessibilityText: String {
-        if let subtitle = ReaderChapterLine.arabicSubtitle(title: title, arabicTitle: arabicTitle) {
+        if let subtitle = ReaderChapterLine.arabicSubtitle(
+            title: title,
+            arabicTitle: arabicTitle,
+            arabicVisible: arabicVisible
+        ) {
             return "\(title), \(subtitle)"
         }
         return title
@@ -1472,7 +1486,7 @@ struct ReaderContentsTestFixtureView: View {
         .environment(\.readerPalette, ReaderPalette.dark)
         .environment(\.readerTheme, ReaderTheme.dark)
         .sheet(isPresented: $showSheet) {
-            CollectionOutlineSheet(model: model)
+            CollectionOutlineSheet(model: model, arabicVisible: true)
         }
     }
 }
@@ -1543,7 +1557,12 @@ struct ReaderPagingTestFixtureView: View {
                         .foregroundStyle(palette.textPrimary)
                         .accessibilityIdentifier("r3.page")
 
-                    ReaderChapterHeader(title: "Kitab al-Iman", arabicTitle: nil, palette: palette)
+                    ReaderChapterHeader(
+                        title: "Kitab al-Iman",
+                        arabicTitle: nil,
+                        arabicVisible: preferences.arabicVisible,
+                        palette: palette
+                    )
                         .accessibilityIdentifier("r4.chapterHeader")
 
                     if preferences.arabicVisible {
@@ -2011,6 +2030,7 @@ struct ReaderR6ATestFixtureView: View {
                                             in: volumes,
                                             volumeId: selectedVolumeId
                                         ),
+                                        arabicVisible: preferences.arabicVisible,
                                         palette: palette
                                     )
                                     block(hadith)
@@ -2084,23 +2104,36 @@ private struct WindowSwipeRecognizer: UIViewRepresentable {
         )
     }
 
-    func makeUIView(context: Context) -> UIView {
-        let view = UIView()
+    func makeUIView(context: Context) -> ReaderPagingHostView {
+        let view = ReaderPagingHostView()
         view.isUserInteractionEnabled = false
-        DispatchQueue.main.async {
-            if let window = view.window { context.coordinator.installIfNeeded(on: window) }
+        view.onWindowAvailable = { [weak handler = context.coordinator] window in
+            handler?.installIfNeeded(on: window)
         }
         return view
     }
 
-    func updateUIView(_ uiView: UIView, context: Context) {
+    func updateUIView(_ uiView: ReaderPagingHostView, context: Context) {
         context.coordinator.isEnabled = isEnabled
         context.coordinator.pageDirection = pageDirection
         context.coordinator.onTurn = onTurn
         if let window = uiView.window { context.coordinator.installIfNeeded(on: window) }
     }
 
-    static func dismantleUIView(_ uiView: UIView, coordinator: ReaderPagingPanHandler) {
+    static func dismantleUIView(_ uiView: ReaderPagingHostView, coordinator: ReaderPagingPanHandler) {
+        uiView.onWindowAvailable = nil
         coordinator.uninstall()
+    }
+}
+
+/// UIKit calls this after the representable actually joins a window. That is
+/// the first reliable point to install the reader-wide recognizer, rather
+/// than waiting for a later SwiftUI state change such as a pill tap.
+private final class ReaderPagingHostView: UIView {
+    var onWindowAvailable: ((UIWindow) -> Void)?
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        if let window { onWindowAvailable?(window) }
     }
 }

@@ -63,7 +63,7 @@ enum ReaderGradeDot {
     }
 }
 
-/// The compact tappable source label: `[short name – provider id]`.
+/// The compact tappable source label: `short name – provider id`.
 /// The full source line stays in copy/share payloads; the page shows only
 /// this quiet label with the grade dot before it.
 enum ReaderSourceLabel {
@@ -84,12 +84,11 @@ enum ReaderSourceLabel {
         "\(shortName(collectionSlug: hadith.collectionSlug, collectionName: hadith.collectionName)) – \(hadith.providerHadithId)"
     }
 
-    /// The per-hadith header label: the compact label in brackets
-    /// (`[Bukhari – 57]`). The header row pairs this with the grade dot
+    /// The per-hadith header label (`Bukhari – 57`). The header row pairs this with the grade dot
     /// before it and the saved-state mini markers after it; the whole
     /// header is the single tap target for the source sheet.
     static func headerText(for hadith: ReaderHadith) -> String {
-        "[\(text(for: hadith))]"
+        text(for: hadith)
     }
 }
 
@@ -170,7 +169,8 @@ enum ReaderHadithActions {
 /// source-provided chapters are consulted by chapter id. Nothing is
 /// synthesized: no match means no subtitle.
 enum ReaderChapterLine {
-    static func arabicSubtitle(title: String, arabicTitle: String?) -> String? {
+    static func arabicSubtitle(title: String, arabicTitle: String?, arabicVisible: Bool) -> String? {
+        guard arabicVisible else { return nil }
         guard let arabic = arabicTitle?.trimmingCharacters(in: .whitespacesAndNewlines),
               !arabic.isEmpty, arabic != title
         else { return nil }

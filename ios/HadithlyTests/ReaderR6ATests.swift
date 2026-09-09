@@ -141,11 +141,11 @@ final class ReaderR6ATests: XCTestCase {
         )
     }
 
-    func testHeaderTextIsBracketedCompactLabel() {
-        XCTAssertEqual(ReaderSourceLabel.headerText(for: hadith()), "[Bukhari – 57]")
+    func testHeaderTextIsCompactLabelWithoutBrackets() {
+        XCTAssertEqual(ReaderSourceLabel.headerText(for: hadith()), "Bukhari – 57")
         XCTAssertEqual(
             ReaderSourceLabel.headerText(for: hadith(providerHadithId: "4.5", collectionSlug: "muslim", collectionName: "Sahih Muslim")),
-            "[Muslim – 4.5]"
+            "Muslim – 4.5"
         )
         XCTAssertFalse(ReaderSourceLabel.headerText(for: hadith()).contains("Chapter"))
         XCTAssertFalse(ReaderSourceLabel.headerText(for: hadith()).contains("Hadith"))
@@ -242,15 +242,30 @@ final class ReaderR6ATests: XCTestCase {
 
     func testArabicSubtitleOnlyWhenDifferent() {
         XCTAssertEqual(
-            ReaderChapterLine.arabicSubtitle(title: "Belief", arabicTitle: "كتاب الإيمان"),
+            ReaderChapterLine.arabicSubtitle(
+                title: "Belief",
+                arabicTitle: "كتاب الإيمان",
+                arabicVisible: true
+            ),
             "كتاب الإيمان"
         )
         for arabic: String? in [nil, "", "  ", "Belief"] {
             XCTAssertNil(
-                ReaderChapterLine.arabicSubtitle(title: "Belief", arabicTitle: arabic),
+                ReaderChapterLine.arabicSubtitle(
+                    title: "Belief",
+                    arabicTitle: arabic,
+                    arabicVisible: true
+                ),
                 "arabic \(arabic ?? "nil") must not render a second line"
             )
         }
+        XCTAssertNil(
+            ReaderChapterLine.arabicSubtitle(
+                title: "Belief",
+                arabicTitle: "كتاب الإيمان",
+                arabicVisible: false
+            )
+        )
     }
 
     func testArabicTitleLookupNeverSynthesizes() {

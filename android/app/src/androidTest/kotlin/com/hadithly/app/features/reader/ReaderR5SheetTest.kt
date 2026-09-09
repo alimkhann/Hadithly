@@ -60,6 +60,7 @@ class ReaderR5SheetTest {
             ContentsSheet(
                 volumes = volumes,
                 selectedVolumeId = "1",
+                arabicVisible = true,
                 onSelect = {},
                 onSelectChapter = onSelectChapter,
                 onJumpToReference = onJumpToReference,

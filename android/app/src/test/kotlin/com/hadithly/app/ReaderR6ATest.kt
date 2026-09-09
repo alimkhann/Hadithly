@@ -16,6 +16,7 @@ import com.hadithly.app.features.reader.hadithHeaderText
 import com.hadithly.app.features.reader.hadithMenuActions
 import com.hadithly.app.features.reader.savedMiniMarkers
 import com.hadithly.app.features.reader.shouldShowNarrator
+import com.hadithly.app.features.reader.visibleArabicChapterTitle
 import com.hadithly.app.features.reader.volumeCornerText
 import com.hadithly.app.core.preferences.ReaderPageTurn
 import org.junit.Assert.assertEquals
@@ -444,10 +445,21 @@ class ReaderR6ATest {
     }
 
     @Test
-    fun `header label is bracketed short name and id`() {
-        assertEquals("[Bukhari – 57]", hadithHeaderText("bukhari", "Sahih al-Bukhari", "57"))
-        assertEquals("[Muslim – 4.5]", hadithHeaderText("muslim", "Sahih Muslim", "4.5"))
-        assertEquals("[Forty Nawawi – 1]", hadithHeaderText("forty-nawawi", "Forty Nawawi", "1"))
+    fun `header label is short name and id without brackets`() {
+        assertEquals("Bukhari – 57", hadithHeaderText("bukhari", "Sahih al-Bukhari", "57"))
+        assertEquals("Muslim – 4.5", hadithHeaderText("muslim", "Sahih Muslim", "4.5"))
+        assertEquals("Forty Nawawi – 1", hadithHeaderText("forty-nawawi", "Forty Nawawi", "1"))
+    }
+
+    @Test
+    fun `Arabic chapter name follows Arabic text visibility`() {
+        assertEquals(
+            "كتاب الإيمان",
+            visibleArabicChapterTitle(true, "Belief", "كتاب الإيمان"),
+        )
+        assertNull(visibleArabicChapterTitle(false, "Belief", "كتاب الإيمان"))
+        assertNull(visibleArabicChapterTitle(true, "Belief", "Belief"))
+        assertNull(visibleArabicChapterTitle(true, "Belief", null))
     }
 
     @Test

@@ -96,6 +96,30 @@ class DirectionAwareHorizontalPagerTest {
     }
 
     @Test
+    fun firstOutwardSwipeAtTheLastPageReachesVolumeTurn() {
+        var outwardTurn: ReaderPageTurn? = null
+        compose.setContent {
+            val pagerState = rememberPagerState(initialPage = 2, pageCount = { 3 })
+            DirectionAwareHorizontalPager(
+                state = pagerState,
+                policy = ReaderPagingPolicy(PageDirection.LTR),
+                onOutwardEdgeTurn = {
+                    outwardTurn = it
+                    true
+                },
+                modifier = Modifier
+                    .fillMaxSize()
+                    .testTag("pager"),
+            ) { page -> TestPage(page, longContent = false) }
+        }
+
+        compose.onNodeWithTag("pager").performTouchInput {
+            swipe(start = centerRight, end = centerLeft, durationMillis = 250)
+        }
+        compose.runOnIdle { assertEquals(ReaderPageTurn.NEXT, outwardTurn) }
+    }
+
+    @Test
     fun firstAndLastBoundariesExposeLogicalAccessibilityControls() {
         var turn: ReaderPageTurn? = null
         compose.setContent {

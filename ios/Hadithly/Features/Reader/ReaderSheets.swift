@@ -9,6 +9,7 @@ struct CollectionOutlineSheet: View {
     @Environment(\.readerPalette) private var palette
     @Environment(\.readerTheme) private var readerTheme
     let model: ReaderModel
+    let arabicVisible: Bool
     @Environment(\.dismiss) private var dismiss
     @State private var expandedVolumes: Set<String> = []
     @State private var jumpText = ""
@@ -172,7 +173,8 @@ struct CollectionOutlineSheet: View {
                         .font(.subheadline)
                         .foregroundStyle(palette.textPrimary)
                         .multilineTextAlignment(.leading)
-                    if let arabic = chapter.arabicTitle,
+                    if arabicVisible,
+                       let arabic = chapter.arabicTitle,
                        !arabic.isEmpty,
                        arabic != chapter.title {
                         Text(arabic)

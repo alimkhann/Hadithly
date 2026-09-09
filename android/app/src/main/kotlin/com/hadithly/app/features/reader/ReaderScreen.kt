@@ -82,6 +82,7 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -222,6 +223,7 @@ fun ReaderScreen(
             ContentsSheet(
                 volumes = state.volumes,
                 selectedVolumeId = state.selectedVolumeId,
+                arabicVisible = preferences.arabicVisible,
                 onSelect = { viewModel.selectVolume(it) },
                 onSelectChapter = { volumeId, chapter ->
                     viewModel.selectChapter(volumeId, chapter)
@@ -316,6 +318,7 @@ private fun ReadingView(
     onClose: () -> Unit,
 ) {
     val colors = LocalHadithlyColors.current
+    val androidView = LocalView.current
     val coroutine = rememberCoroutineScope()
     val pagingPolicy = remember(preferences) { ReaderPagingPolicy(preferences) }
 
@@ -442,7 +445,10 @@ private fun ReadingView(
                     landingHadithNumber = viewModel.landingHadithNumber,
                     isSentinel = pageIndex >= pages.size,
                     onFollowPill = viewModel::followPill,
-                    onTap = { viewModel.toggleChrome() },
+                    onTap = {
+                        androidView.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP)
+                        viewModel.toggleChrome()
+                    },
                     onShowPaywall = onShowPaywall,
                 )
         }
@@ -525,7 +531,10 @@ private fun Modifier.edgeVolumeSwipe(
         awaitPointerEventScope {
             var startX: Float? = null
             while (true) {
-                val change = awaitPointerEvent(PointerEventPass.Final).changes.firstOrNull() ?: continue
+                // Observe before HorizontalPager consumes the drag. At Final
+                // the pager may have already consumed an outward boundary
+                // swipe, which made the first cross-volume swipe disappear.
+                val change = awaitPointerEvent(PointerEventPass.Initial).changes.firstOrNull() ?: continue
                 if (startX == null && change.pressed) {
                     startX = change.position.x
                 }
@@ -588,14 +597,9 @@ private fun ReaderPage(
     // range is computable from the outline counts; title-only otherwise.
     // The pure rule lives in volumeCornerText (unit-pinned); the localized
     // title is resolved here at the composition boundary.
-    val cornerTitle: String? = selectedVolume?.let { volume ->
-        val number = ReaderViewModel.volumeTitleNumber(volume.title)
-        if (number != null) {
-            stringResource(R.string.reader_volume_title, number)
-        } else {
-            volume.title
-        }
-    }
+    // Volume names are source-provided. Do not translate `Volume 2` into a
+    // synthetic localized label when the provider supplied only that value.
+    val cornerTitle: String? = selectedVolume?.title
     val cornerRange = remember(state.volumes, state.selectedVolumeId, state.pages) {
         val volumeId = state.selectedVolumeId ?: return@remember null
         if (!ReaderViewModel.isVolumeFullyCached(state.pages)) return@remember null
@@ -685,9 +689,13 @@ private fun ReaderPage(
                             val chapterName = hadith.chapterName.orEmpty()
                             ReaderChapterHeader(
                                 title = chapterName,
-                                arabicTitle = ReaderChapterBoundaries.arabicTitleFor(
-                                    volumeChapters,
-                                    chapterName,
+                                arabicTitle = visibleArabicChapterTitle(
+                                    arabicVisible = preferences.arabicVisible,
+                                    title = chapterName,
+                                    arabicTitle = ReaderChapterBoundaries.arabicTitleFor(
+                                        volumeChapters,
+                                        chapterName,
+                                    ),
                                 ),
                             )
                         }
@@ -1165,7 +1173,7 @@ private fun CompactProgressBar(fraction: Double) {
             modifier = Modifier
                 .fillMaxWidth(fraction.toFloat().coerceIn(0.02f, 1f))
                 .height(3.dp)
-                .background(colors.accent.copy(alpha = 0.8f), RoundedCornerShape(50)),
+                .background(colors.textSecondary.copy(alpha = 0.8f), RoundedCornerShape(50)),
         )
     }
 }
@@ -1280,6 +1288,15 @@ internal fun ReaderChapterHeader(title: String, arabicTitle: String? = null) {
         }
     }
 }
+
+/** A source Arabic name is a secondary line only while Arabic text is on. */
+internal fun visibleArabicChapterTitle(
+    arabicVisible: Boolean,
+    title: String,
+    arabicTitle: String?,
+): String? = arabicTitle
+    ?.trim()
+    ?.takeIf { arabicVisible && it.isNotEmpty() && it != title }
 
 // One hadith
 
@@ -1568,7 +1585,7 @@ internal fun savedMiniMarkers(isBookmarked: Boolean, isFavorite: Boolean): List<
  * only this quiet label with the grade dot before it.
  */
 internal fun hadithHeaderText(collectionSlug: String, collectionName: String, providerHadithId: String): String =
-    "[${ReaderViewModel.shortCollectionName(collectionSlug, collectionName)} – $providerHadithId]"
+    "${ReaderViewModel.shortCollectionName(collectionSlug, collectionName)} – $providerHadithId"
 
 /**
  * R6A fix: one header per hadith at the TOP — grade dot plus the bracketed
@@ -1956,6 +1973,7 @@ private fun QuietNotice(
 internal fun ContentsSheet(
     volumes: List<com.hadithly.app.core.data.OutlineVolume>,
     selectedVolumeId: String?,
+    arabicVisible: Boolean,
     onSelect: (String) -> Unit,
     onSelectChapter: (String, com.hadithly.app.core.data.OutlineChapter) -> Unit,
     onJumpToReference: (String) -> Boolean,
@@ -2084,8 +2102,12 @@ internal fun ContentsSheet(
                                     fontSize = 14.sp,
                                     color = colors.textPrimary,
                                 )
-                                val arabic = chapter.arabicTitle
-                                if (!arabic.isNullOrBlank() && arabic != chapter.title) {
+                                val arabic = visibleArabicChapterTitle(
+                                    arabicVisible = arabicVisible,
+                                    title = chapter.title,
+                                    arabicTitle = chapter.arabicTitle,
+                                )
+                                if (arabic != null) {
                                     Text(
                                         text = arabic,
                                         fontSize = 12.sp,
