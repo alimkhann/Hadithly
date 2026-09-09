@@ -703,17 +703,18 @@ struct ReaderVolumePills: View {
     let onFollow: (ReaderPagePills.Pill) -> Void
 
     var body: some View {
-        HStack {
+        HStack(spacing: 12) {
             if let previous = state.previous {
                 pagePill(previous)
             } else {
                 // Keeps the next pill pinned to the trailing edge when the
                 // previous pill is absent at the absolute start.
-                Spacer(minLength: 0)
+                Color.clear.frame(maxWidth: .infinity)
             }
-            Spacer(minLength: 0)
             if let next = state.next {
                 pagePill(next)
+            } else {
+                Color.clear.frame(maxWidth: .infinity)
             }
         }
         .accessibilityElement(children: .contain)
@@ -741,6 +742,7 @@ struct ReaderVolumePills: View {
                     chevron(turn)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .center)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .background(palette.surface.opacity(0.96))
@@ -748,7 +750,7 @@ struct ReaderVolumePills: View {
             .overlay(Capsule().strokeBorder(palette.divider, lineWidth: 1))
         }
         .buttonStyle(.plain)
-        .frame(minWidth: 44, minHeight: 44)
+        .frame(maxWidth: .infinity, minHeight: 48)
         .accessibilityLabel(
             turn == .previous ? "Previous page, \(pill.label)" : "Next page, \(pill.label)"
         )

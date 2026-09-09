@@ -869,15 +869,15 @@ internal fun ReaderVolumePills(
 ) {
     val colors = LocalHadithlyColors.current
     Row(
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 12.dp)
             .testTag("reader.pagePills"),
     ) {
-        state.previous?.let { PagePill(it, policy, onFollow) } ?: Spacer(Modifier.width(1.dp))
-        state.next?.let { PagePill(it, policy, onFollow) } ?: Spacer(Modifier.width(1.dp))
+        state.previous?.let { PagePill(it, policy, onFollow, Modifier.weight(1f)) } ?: Spacer(Modifier.weight(1f))
+        state.next?.let { PagePill(it, policy, onFollow, Modifier.weight(1f)) } ?: Spacer(Modifier.weight(1f))
     }
 }
 
@@ -886,6 +886,7 @@ private fun PagePill(
     pill: ReaderPagePills.Pill,
     policy: ReaderPagingPolicy,
     onFollow: (ReaderPagePills.Pill) -> Unit,
+    modifier: Modifier,
 ) {
     val colors = LocalHadithlyColors.current
     val pointsLeft = when (policy.pageDirection) {
@@ -894,8 +895,8 @@ private fun PagePill(
     }
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
-        modifier = Modifier
+        horizontalArrangement = Arrangement.Center,
+        modifier = modifier
             .heightIn(min = 48.dp)
             .background(colors.surface.copy(alpha = 0.96f), RoundedCornerShape(50))
             .clickable { onFollow(pill) }
