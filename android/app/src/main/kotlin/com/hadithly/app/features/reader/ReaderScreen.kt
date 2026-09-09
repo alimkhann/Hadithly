@@ -48,10 +48,12 @@ import androidx.compose.material.icons.automirrored.filled.NavigateNext
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FormatSize
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.outlined.RadioButtonUnchecked
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -319,6 +321,7 @@ private fun ReadingView(
 ) {
     val colors = LocalHadithlyColors.current
     val androidView = LocalView.current
+    var readerMenuExpanded by remember { mutableStateOf(false) }
     val coroutine = rememberCoroutineScope()
     val pagingPolicy = remember(preferences) { ReaderPagingPolicy(preferences) }
 
@@ -470,30 +473,70 @@ private fun ReadingView(
             visible = state.chromeVisible,
             enter = fadeIn(),
             exit = fadeOut(),
-            modifier = Modifier.align(Alignment.TopCenter),
-        ) {
-            ReaderTopBar(
-                title = collectionName,
-                subtitle = viewModel.currentVolumeTitle(),
-                onClose = onClose,
-                onIndex = onOpenContents,
-                onSettings = onOpenSettings,
-            )
-        }
-
-        androidx.compose.animation.AnimatedVisibility(
-            visible = state.chromeVisible,
-            enter = fadeIn(),
-            exit = fadeOut(),
             modifier = Modifier.align(Alignment.BottomCenter),
         ) {
-            ReaderBottomPills(
-                volumeTitle = viewModel.currentVolumeTitle(),
-                currentPage = state.pageIndex + 1,
-                totalPages = viewModel.totalPages(),
-            )
+            Column(
+                horizontalAlignment = Alignment.End,
+                modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 24.dp, vertical = 16.dp),
+            ) {
+                if (readerMenuExpanded) {
+                    ReaderMenuStack(
+                        location = viewModel.currentVolumeTitle() ?: collectionName,
+                        onContents = {
+                            readerMenuExpanded = false
+                            onOpenContents()
+                        },
+                        onSettings = {
+                            readerMenuExpanded = false
+                            onOpenSettings()
+                        },
+                    )
+                    Spacer(Modifier.height(12.dp))
+                }
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    ReaderChromeCircle(Icons.Filled.ExpandLess, "Close reader", onClose)
+                    ReaderChromeCircle(
+                        if (readerMenuExpanded) Icons.Filled.Close else Icons.AutoMirrored.Filled.List,
+                        if (readerMenuExpanded) "Close reader menu" else "Open reader menu",
+                    ) { readerMenuExpanded = !readerMenuExpanded }
+                }
+            }
         }
 
+    }
+}
+
+@Composable
+private fun ReaderChromeCircle(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit) {
+    val colors = LocalHadithlyColors.current
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.size(52.dp).background(colors.surface.copy(alpha = 0.98f), CircleShape).clickable(onClick = onClick).semantics { contentDescription = label },
+    ) { Icon(icon, null, tint = colors.textPrimary, modifier = Modifier.size(24.dp)) }
+}
+
+@Composable
+private fun ReaderMenuStack(location: String, onContents: () -> Unit, onSettings: () -> Unit) {
+    val colors = LocalHadithlyColors.current
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth(0.72f)) {
+        ReaderMenuCard(location, "Current location", Icons.Filled.Place, {})
+        ReaderMenuCard("Contents", "Volumes and chapters", Icons.AutoMirrored.Filled.List, onContents)
+        ReaderMenuCard("Reader settings", "Type, appearance, and text", Icons.Filled.FormatSize, onSettings)
+    }
+}
+
+@Composable
+private fun ReaderMenuCard(title: String, subtitle: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
+    val colors = LocalHadithlyColors.current
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth().background(colors.surface.copy(alpha = 0.98f), RoundedCornerShape(22.dp)).clickable(onClick = onClick).padding(18.dp),
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+            Text(subtitle, fontSize = 12.sp, color = colors.textSecondary)
+        }
+        Icon(icon, null, tint = colors.textSecondary, modifier = Modifier.size(22.dp))
     }
 }
 

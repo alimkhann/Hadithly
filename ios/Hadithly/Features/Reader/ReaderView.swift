@@ -25,6 +25,7 @@ struct ReaderView: View {
     @State private var model: ReaderModel?
     @State private var showIndex = false
     @State private var showSettings = false
+    @State private var showReaderMenu = false
     @State private var showQuotaPaywall = false
     @State private var hasAutoPresentedQuotaPaywall = false
     @State private var lastTurn: ReaderPageTurn?
@@ -280,20 +281,99 @@ struct ReaderView: View {
 
     private func chromeOverlay(_ model: ReaderModel) -> some View {
         VStack {
-            ReaderTopBar(
-                title: collectionName,
-                subtitle: model.currentVolumeTitle,
-                palette: palette,
-                onClose: { dismiss() },
-                onIndex: { showIndex = true },
-                onSettings: { showSettings = true }
-            )
-
             Spacer()
-
-            ReaderBottomPills(model: model, palette: palette)
+            if showReaderMenu {
+                ReaderMenuStack(
+                    location: model.currentVolumeTitle ?? collectionName,
+                    palette: palette,
+                    onContents: {
+                        showReaderMenu = false
+                        showIndex = true
+                    },
+                    onSettings: {
+                        showReaderMenu = false
+                        showSettings = true
+                    }
+                )
+                .padding(.horizontal, 20)
+                .padding(.bottom, 12)
+            }
+            HStack {
+                ReaderChromeCircle("chevron.down", label: "Close reader", palette: palette) { dismiss() }
+                    .accessibilityIdentifier("reader.close")
+                Spacer()
+                ReaderChromeCircle(
+                    showReaderMenu ? "xmark" : "line.3.horizontal",
+                    label: showReaderMenu ? "Close reader menu" : "Open reader menu",
+                    palette: palette
+                ) {
+                    withAnimation(.easeInOut(duration: 0.2)) { showReaderMenu.toggle() }
+                }
+                .accessibilityIdentifier("reader.menu")
+            }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 16)
         }
         .transition(.opacity)
+    }
+}
+
+private struct ReaderChromeCircle: View {
+    let image: String
+    let label: String
+    let palette: ReaderPalette
+    let action: () -> Void
+
+    init(_ image: String, label: String, palette: ReaderPalette, action: @escaping () -> Void) {
+        self.image = image
+        self.label = label
+        self.palette = palette
+        self.action = action
+    }
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: image)
+                .font(.title3.weight(.medium))
+                .foregroundStyle(palette.textPrimary)
+                .frame(width: 52, height: 52)
+                .background(palette.surface.opacity(0.98))
+                .clipShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
+    }
+}
+
+private struct ReaderMenuStack: View {
+    let location: String
+    let palette: ReaderPalette
+    let onContents: () -> Void
+    let onSettings: () -> Void
+
+    var body: some View {
+        VStack(spacing: 8) {
+            menuCard(title: location, subtitle: "Current location", image: "mappin.and.ellipse", action: {})
+            menuCard(title: "Contents", subtitle: "Volumes and chapters", image: "list.bullet", action: onContents)
+            menuCard(title: "Reader settings", subtitle: "Type, appearance, and text", image: "textformat.size", action: onSettings)
+        }
+    }
+
+    private func menuCard(title: String, subtitle: String, image: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 14) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title).font(.headline).foregroundStyle(palette.textPrimary)
+                    Text(subtitle).font(.caption).foregroundStyle(palette.textSecondary)
+                }
+                Spacer()
+                Image(systemName: image).font(.title3).foregroundStyle(palette.textSecondary)
+            }
+            .padding(18)
+            .background(palette.surface.opacity(0.98))
+            .clipShape(RoundedRectangle(cornerRadius: 22))
+        }
+        .buttonStyle(.plain)
     }
 }
 
