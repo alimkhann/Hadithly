@@ -27,6 +27,15 @@ data class CanonicalHadithLink(
         private val PROVIDER_HADITH_ID = Regex("[1-9][0-9]{0,11}(\\.[0-9]{1,12})*")
 
         /**
+         * Validates a jump-to-reference / share input against the canonical
+         * hadith-id contract. Accepts "57" and dotted sub-references ("4.5");
+         * rejects "0", ".5", and anything non-numeric.
+         */
+        fun isValidProviderHadithId(id: String): Boolean = PROVIDER_HADITH_ID.matches(id)
+
+        fun isValidCollectionSlug(slug: String): Boolean = COLLECTION_SLUG.matches(slug)
+
+        /**
          * Parses an inbound https App Link. Callers pass the pieces of the
          * resolved `Uri` so this stays framework-free and unit-testable.
          * Returns null for any foreign, truncated, or malformed link.

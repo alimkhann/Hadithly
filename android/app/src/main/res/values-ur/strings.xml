@@ -16,4 +16,9 @@
         <item quantity="one">%d زبان دستیاب ہے</item>
         <item quantity="other">%d زبانیں دستیاب ہیں</item>
     </plurals>
+    <string name="reader_volume_title">جلد %1$d</string>
+    <plurals name="reader_hadith_count">
+        <item quantity="one">%d حدیث</item>
+        <item quantity="other">%d احادیث</item>
+    </plurals>
 </resources>

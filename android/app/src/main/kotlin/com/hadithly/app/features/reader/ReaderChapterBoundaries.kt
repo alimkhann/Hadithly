@@ -1,11 +1,16 @@
 package com.hadithly.app.features.reader
 
+import com.hadithly.app.core.data.OutlineChapter
 import com.hadithly.app.core.data.ReaderHadith
 
 /**
  * Source-provided chapter boundaries (R4). A strong typographic header is
  * rendered only when the provider data carries a chapter name; Hadithly
  * never invents one. Mirrors the iOS ReaderChapterBoundaries helper.
+ *
+ * R6A renders the opening as a single quiet name-only line (never the word
+ * "Chapter"), with the source Arabic title as a second line only when it
+ * differs.
  */
 object ReaderChapterBoundaries {
 
@@ -26,5 +31,17 @@ object ReaderChapterBoundaries {
             if (name.isNotEmpty()) previousName = name
         }
         return openings
+    }
+
+    /**
+     * R6A: the source-provided Arabic title for [chapterName], looked up in
+     * the volume's outline chapters. Returned only when present and different
+     * from the displayed title; otherwise the header stays a single line.
+     * Null when the chapter is unknown — nothing is synthesized.
+     */
+    fun arabicTitleFor(chapters: List<OutlineChapter>, chapterName: String): String? {
+        val match = chapters.firstOrNull { it.title == chapterName } ?: return null
+        val arabic = match.arabicTitle?.trim().orEmpty()
+        return arabic.takeIf { it.isNotEmpty() && it != chapterName }
     }
 }

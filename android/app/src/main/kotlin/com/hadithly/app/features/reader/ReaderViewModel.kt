@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hadithly.app.HadithlyApplication
 import com.hadithly.app.core.data.CollectionOutlineResult
+import com.hadithly.app.core.data.OutlineChapter
 import com.hadithly.app.core.data.OutlineVolume
 import com.hadithly.app.core.data.ReaderHadith
 import com.hadithly.app.core.data.ReaderPageResult
@@ -17,6 +18,7 @@ import com.hadithly.app.core.data.ReaderTargetResolver
 import com.hadithly.app.core.data.ReaderTargetSource
 import com.hadithly.app.core.data.TranslationFailure
 import com.hadithly.app.core.data.TranslationSubmissionResult
+import com.hadithly.app.core.links.CanonicalHadithLink
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -186,6 +188,62 @@ class ReaderViewModel(
             }
             return null
         }
+
+        /**
+         * R6A: short collection name for the compact source label
+         * (`Bukhari – 57`). Falls back to the full collection name for
+         * unknown slugs; never synthesized from anything else.
+         */
+        fun shortCollectionName(collectionSlug: String, fallbackName: String): String =
+            when (collectionSlug) {
+                "bukhari" -> "Bukhari"
+                "muslim" -> "Muslim"
+                "sunan-nasai" -> "Nasa'i"
+                "abu-dawood" -> "Abu Dawood"
+                "tirmidhi" -> "Tirmidhi"
+                "ibn-majah" -> "Ibn Majah"
+                "mishkat-al-masabih" -> "Mishkat"
+                else -> fallbackName
+            }
+
+        /**
+         * R6A: trailing number in a `Volume N` outline title, for localized
+         * formatting (`reader_volume_title`). Null for any other title shape;
+         * callers then render the raw title unchanged.
+         */
+        fun volumeTitleNumber(title: String): Int? =
+            Regex("^Volume\\s+(\\d+)$").find(title.trim())?.groupValues?.get(1)?.toIntOrNull()
+
+        /**
+         * R6A: global hadith range (first to last, 1-based) for [volumeId]
+         * from the outline's cumulative source-provided counts. Null when the
+         * outline is missing, any count is non-positive, or the volume is
+         * absent — the corner label then shows the title only.
+         */
+        fun volumeHadithRange(
+            volumes: List<OutlineVolume>,
+            volumeId: String,
+        ): Pair<Int, Int>? {
+            if (volumes.isEmpty()) return null
+            var lower = 0
+            for (volume in volumes) {
+                val count = volume.hadithCount.toInt()
+                if (count <= 0) return null
+                val first = lower + 1
+                val last = lower + count
+                if (volume.volumeId == volumeId) return first to last
+                lower = last
+            }
+            return null
+        }
+
+        /**
+         * R6A: true when every page of the selected volume is in the local
+         * cache — non-empty, no page still fetching forward, no
+         * skipped-by-jump placeholder. The corner range appends only then.
+         */
+        fun isVolumeFullyCached(pages: List<ReaderPageResult>): Boolean =
+            pages.isNotEmpty() && pages.none { it.hasMore || it.isPlaceholder }
     }
 
     fun selectVolume(volumeId: String) {
@@ -200,6 +258,70 @@ class ReaderViewModel(
         }
         cancelTranslationRun()
         loadPage(0, volumeId)
+    }
+
+    /**
+     * R5: selects the volume holding [chapter] and targets the chapter's
+     * first hadith through the same R2 target path as canonical links
+     * (backend resolves the containing page; stale numbers keep volume
+     * start via the resolver fallback).
+     */
+    fun selectChapter(volumeId: String, chapter: OutlineChapter) {
+        jumpToHadith(volumeId, chapter.firstProviderHadithId)
+    }
+
+    /**
+     * R5: jump-to-reference from the contents sheet. Well-formed input
+     * navigates via the same path as canonical links: the volume holding
+     * the number, or the first volume's start when the number is stale.
+     * Returns false for malformed input (the sheet stays open with an
+     * inline error); true dismisses the sheet.
+     */
+    fun jumpToReference(number: String): Boolean {
+        val trimmed = number.trim()
+        if (!CanonicalHadithLink.isValidProviderHadithId(trimmed)) return false
+        val volumes = _state.value.volumes
+        if (volumes.isEmpty()) return false
+        val volumeId = volumeIdForHadithNumber(trimmed, volumes)
+        // A stale number carries no page target: land at the first volume's
+        // start, exactly like a stale canonical link.
+        if (volumeId == null) {
+            selectVolumeFallback(volumes.first().volumeId)
+        } else {
+            jumpToHadith(volumeId, trimmed)
+        }
+        return true
+    }
+
+    private fun selectVolumeFallback(volumeId: String) {
+        landingHadithNumber = null
+        restoredPosition = null
+        _state.update {
+            it.copy(
+                selectedVolumeId = volumeId,
+                pages = emptyList(),
+                pageIndex = 0,
+                translations = emptyMap(),
+            )
+        }
+        cancelTranslationRun()
+        loadPage(0, volumeId)
+    }
+
+    /** Resets onto [volumeId] and lands the pager on the page holding [hadithNumber]. */
+    private fun jumpToHadith(volumeId: String, hadithNumber: String) {
+        landingHadithNumber = hadithNumber
+        restoredPosition = null
+        cancelTranslationRun()
+        _state.update {
+            it.copy(
+                selectedVolumeId = volumeId,
+                pages = emptyList(),
+                pageIndex = 0,
+                translations = emptyMap(),
+            )
+        }
+        loadPage(0, volumeId, hadithNumber)
     }
 
     fun setLanguage(code: String) {

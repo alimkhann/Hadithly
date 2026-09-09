@@ -20,4 +20,13 @@
         <item quantity="many">%d لغة متاحة</item>
         <item quantity="other">%d لغة متاحة</item>
     </plurals>
+    <string name="reader_volume_title">المجلد %1$d</string>
+    <plurals name="reader_hadith_count">
+        <item quantity="zero">لا أحاديث</item>
+        <item quantity="one">حديث واحد</item>
+        <item quantity="two">حديثان</item>
+        <item quantity="few">%d أحاديث</item>
+        <item quantity="many">%d حديثًا</item>
+        <item quantity="other">%d حديث</item>
+    </plurals>
 </resources>

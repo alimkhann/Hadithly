@@ -70,11 +70,23 @@ data class ReaderPageResult(
 }
 
 @Serializable
+data class OutlineChapter(
+    val chapterId: String? = null,
+    val title: String,
+    val arabicTitle: String? = null,
+    val hadithCount: Double = 0.0,
+    val firstProviderHadithId: String,
+)
+
+@Serializable
 data class OutlineVolume(
     val volumeId: String,
     val title: String,
     val firstChapterTitle: String? = null,
     val hadithCount: Double = 0.0,
+    // R5: source-provided chapters. Optional so outlines cached before R5
+    // still decode; fresh outlines always include it. Never synthesized.
+    val chapters: List<OutlineChapter> = emptyList(),
 )
 
 @Serializable

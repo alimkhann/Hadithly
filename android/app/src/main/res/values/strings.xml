@@ -17,4 +17,9 @@
         <item quantity="one">%d language available</item>
         <item quantity="other">%d languages available</item>
     </plurals>
+    <string name="reader_volume_title">Volume %1$d</string>
+    <plurals name="reader_hadith_count">
+        <item quantity="one">%d hadith</item>
+        <item quantity="other">%d hadiths</item>
+    </plurals>
 </resources>

@@ -8,7 +8,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,25 +38,26 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.NavigateBefore
 import androidx.compose.material.icons.automirrored.filled.NavigateNext
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.FormatSize
-import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.Textsms
 import androidx.compose.material.icons.outlined.RadioButtonUnchecked
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -70,20 +73,29 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import android.content.ClipData
+import android.content.Intent
+import com.hadithly.app.R
 import com.hadithly.app.core.data.ReaderHadith
 import com.hadithly.app.core.data.ReaderTranslation
 import com.hadithly.app.core.data.ReadingPosition
@@ -204,6 +216,12 @@ fun ReaderScreen(
                 volumes = state.volumes,
                 selectedVolumeId = state.selectedVolumeId,
                 onSelect = { viewModel.selectVolume(it) },
+                onSelectChapter = { volumeId, chapter ->
+                    viewModel.selectChapter(volumeId, chapter)
+                    showContents = false
+                },
+                onJumpToReference = { viewModel.jumpToReference(it) },
+                onDismiss = { showContents = false },
             )
         }
     }
@@ -493,11 +511,27 @@ private fun ReaderPage(
 ) {
     val colors = LocalHadithlyColors.current
     var citationsTranslation by remember { mutableStateOf<ReaderTranslation?>(null) }
+    var sourceHadith by remember { mutableStateOf<ReaderHadith?>(null) }
     var noteTarget by remember { mutableStateOf<ReaderHadith?>(null) }
     var submissionTarget by remember { mutableStateOf<Pair<ReaderHadith, ReaderTranslation?>?>(null) }
     var reportTarget by remember { mutableStateOf<Pair<ReaderHadith, ReaderTranslation>?>(null) }
     val listState = rememberLazyListState()
     val chapterOpenings = remember(hadiths) { ReaderChapterBoundaries.openingIndices(hadiths) }
+    // R6A: the selected volume's outline chapters feed the quiet chapter
+    // header's optional Arabic second line; the cumulative counts feed the
+    // corner range. Both stay source-provided — nothing is synthesized.
+    val selectedVolume = remember(state.volumes, state.selectedVolumeId) {
+        state.volumes.firstOrNull { it.volumeId == state.selectedVolumeId }
+    }
+    val volumeChapters = remember(selectedVolume) { selectedVolume?.chapters.orEmpty() }
+    val volumeRange = remember(state.volumes, state.selectedVolumeId, state.pages) {
+        val volumeId = state.selectedVolumeId ?: return@remember null
+        if (!ReaderViewModel.isVolumeFullyCached(state.pages)) return@remember null
+        ReaderViewModel.volumeHadithRange(state.volumes, volumeId)
+    }
+    // Volume start: the pages list resets on every volume select/jump, so
+    // index 0 with content is the volume's first page.
+    val isVolumeStart = pageIndex == 0 && hadiths.isNotEmpty() && selectedVolume != null
 
     LaunchedEffect(restorationGeneration, restoration?.anchor?.providerHadithId ?: landingHadithNumber, hadiths.firstOrNull()?._id) {
         val targetId = restoration?.anchor?.providerHadithId ?: landingHadithNumber
@@ -547,28 +581,75 @@ private fun ReaderPage(
                     start = 22.dp, end = 22.dp, top = 20.dp, bottom = 80.dp,
                 ),
             ) {
+                // R6A page-top corner label: the localized volume title at the
+                // leading edge (mirrored in RTL by start alignment), with the
+                // `: first–last` range only when fully cached and computable.
+                item(key = "reader-volume-corner") {
+                    val volume = selectedVolume
+                    if (volume != null) {
+                        val number = ReaderViewModel.volumeTitleNumber(volume.title)
+                        val title = if (number != null) {
+                            stringResource(R.string.reader_volume_title, number)
+                        } else {
+                            volume.title
+                        }
+                        VolumeCornerLabel(title = title, range = volumeRange)
+                    }
+                }
+                // R6A volume start: title header with a localized ICU-plural
+                // count line beneath, on the volume's first page only.
+                if (isVolumeStart) {
+                    item(key = "reader-volume-start") {
+                        val volume = selectedVolume
+                        if (volume != null) {
+                            VolumeStartHeader(
+                                title = volume.title,
+                                hadithCount = volume.hadithCount.toInt(),
+                            )
+                        }
+                    }
+                }
                 itemsIndexed(hadiths, key = { _, hadith -> hadith._id }) { index, hadith ->
                     Column {
-                        if (index > 0) {
-                            ReaderHadithDivider()
-                        }
                         if (chapterOpenings.contains(index)) {
-                            ReaderChapterHeader(title = hadith.chapterName.orEmpty())
+                            val chapterName = hadith.chapterName.orEmpty()
+                            ReaderChapterHeader(
+                                title = chapterName,
+                                arabicTitle = ReaderChapterBoundaries.arabicTitleFor(
+                                    volumeChapters,
+                                    chapterName,
+                                ),
+                            )
                         }
                         HadithBlock(
-                            viewModel = viewModel,
                             hadith = hadith,
                             translationState = state.translations[hadith.internalId],
                             language = state.language,
                             arabicFontSize = arabicFontSize,
                             preferences = preferences,
+                            deps = remember(viewModel, hadith) {
+                                object : HadithBlockDeps {
+                                    override val isBookmarked: Boolean
+                                        get() = viewModel.isBookmarked(hadith)
+                                    override val isFavorite: Boolean
+                                        get() = viewModel.isFavorite(hadith)
+                                    override val hasNote: Boolean
+                                        get() = viewModel.noteContent(hadith) != null
+                                    override fun onToggleBookmark() = viewModel.toggleBookmark(hadith)
+                                    override fun onToggleFavorite() = viewModel.toggleFavorite(hadith)
+                                }
+                            },
+                            onTap = onTap,
                             onRetry = { viewModel.retryTranslation(hadith) },
                             onShowCitations = { citationsTranslation = it },
+                            onShowSource = { sourceHadith = hadith },
                             onEditNote = { noteTarget = hadith },
                             onSuggest = { translation -> submissionTarget = hadith to translation },
                             onReport = { translation -> reportTarget = hadith to translation },
                             onShowPaywall = onShowPaywall,
-                            modifier = Modifier.padding(vertical = 20.dp),
+                            // R6A: whitespace separates hadiths — no dividers.
+                            // Generous vertical rhythm replaces the hairlines.
+                            modifier = Modifier.padding(vertical = 28.dp),
                         )
                     }
                 }
@@ -589,6 +670,17 @@ private fun ReaderPage(
                 containerColor = colors.surface,
             ) {
                 CitationsSheet(translation = translation)
+            }
+        }
+
+        // R6A: one tap on the grade-dot label opens the small source sheet.
+        // Copy/share payloads keep the full source line (ReaderShare).
+        sourceHadith?.let { hadith ->
+            ModalBottomSheet(
+                onDismissRequest = { sourceHadith = null },
+                containerColor = colors.surface,
+            ) {
+                HadithSourceSheet(hadith = hadith)
             }
         }
 
@@ -639,6 +731,13 @@ private fun ReaderPage(
     }
 }
 
+/**
+ * R6A end-of-page navigation: one centered cluster with the chevrons
+ * immediately adjacent to the page pill (`‹ Page X of Y ›`). Direction-aware:
+ * the chevron glyphs mirror with the layout direction (AutoMirrored) and the
+ * logical previous/next order follows the paging policy. A missing
+ * destination hides its chevron; the separated corner buttons are gone.
+ */
 @Composable
 internal fun ReaderEndNavigation(
     policy: ReaderPagingPolicy,
@@ -648,69 +747,99 @@ internal fun ReaderEndNavigation(
 ) {
     val colors = LocalHadithlyColors.current
     Row(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp)
+            .testTag("reader.pageCluster")
+            .semantics(mergeDescendants = true) {},
     ) {
-        policy.endControlOrder.forEach { turn ->
-            val destination = policy.destination(currentPageIndex, pageCount, turn)
-                ?: return@forEach
-            val pointsLeft = when (policy.pageDirection) {
-                com.hadithly.app.core.preferences.PageDirection.LTR -> turn == ReaderPageTurn.PREVIOUS
-                com.hadithly.app.core.preferences.PageDirection.RTL -> turn == ReaderPageTurn.NEXT
-            }
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .weight(1f)
-                    .height(48.dp)
-                    .background(colors.surface, RoundedCornerShape(50))
-                    .clickable { onTurn(turn) }
-                    .testTag(
-                        if (turn == ReaderPageTurn.PREVIOUS) {
-                            "reader.previousPage"
-                        } else {
-                            "reader.nextPage"
-                        },
-                    )
-                    .semantics {
-                        contentDescription = if (turn == ReaderPageTurn.PREVIOUS) {
-                            "Previous page, Page ${destination + 1}"
-                        } else {
-                            "Next page, Page ${destination + 1}"
-                        }
-                        customActions = listOf(
-                            CustomAccessibilityAction(
-                                if (turn == ReaderPageTurn.PREVIOUS) "Previous page" else "Next page",
-                            ) {
-                                onTurn(turn)
-                                true
-                            },
-                        )
-                    },
-            ) {
-                if (pointsLeft) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.NavigateBefore,
-                        contentDescription = null,
-                        tint = colors.textSecondary,
-                    )
-                }
-                Text(
-                    text = "Page ${destination + 1}",
-                    color = colors.textSecondary,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                )
-                if (!pointsLeft) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.NavigateNext,
-                        contentDescription = null,
-                        tint = colors.textSecondary,
-                    )
-                }
-            }
+        val previous = policy.destination(currentPageIndex, pageCount, ReaderPageTurn.PREVIOUS)
+        val next = policy.destination(currentPageIndex, pageCount, ReaderPageTurn.NEXT)
+        if (previous != null) {
+            PageChevron(
+                turn = ReaderPageTurn.PREVIOUS,
+                destination = previous,
+                pointsLeft = when (policy.pageDirection) {
+                    com.hadithly.app.core.preferences.PageDirection.LTR -> true
+                    com.hadithly.app.core.preferences.PageDirection.RTL -> false
+                },
+                onTurn = onTurn,
+            )
         }
+        Text(
+            text = if (pageCount > 0) {
+                "Page ${currentPageIndex + 1} of $pageCount"
+            } else {
+                "Page ${currentPageIndex + 1}"
+            },
+            color = colors.textSecondary,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier
+                .background(colors.surface, RoundedCornerShape(50))
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+        )
+        if (next != null) {
+            PageChevron(
+                turn = ReaderPageTurn.NEXT,
+                destination = next,
+                pointsLeft = when (policy.pageDirection) {
+                    com.hadithly.app.core.preferences.PageDirection.LTR -> false
+                    com.hadithly.app.core.preferences.PageDirection.RTL -> true
+                },
+                onTurn = onTurn,
+            )
+        }
+    }
+}
+
+@Composable
+private fun PageChevron(
+    turn: ReaderPageTurn,
+    destination: Int,
+    pointsLeft: Boolean,
+    onTurn: (ReaderPageTurn) -> Unit,
+) {
+    val colors = LocalHadithlyColors.current
+    IconButton(
+        onClick = { onTurn(turn) },
+        modifier = Modifier
+            .size(48.dp)
+            .testTag(
+                if (turn == ReaderPageTurn.PREVIOUS) {
+                    "reader.previousPage"
+                } else {
+                    "reader.nextPage"
+                },
+            )
+            .semantics {
+                contentDescription = if (turn == ReaderPageTurn.PREVIOUS) {
+                    "Previous page, Page ${destination + 1}"
+                } else {
+                    "Next page, Page ${destination + 1}"
+                }
+                customActions = listOf(
+                    CustomAccessibilityAction(
+                        if (turn == ReaderPageTurn.PREVIOUS) "Previous page" else "Next page",
+                    ) {
+                        onTurn(turn)
+                        true
+                    },
+                )
+            },
+    ) {
+        Icon(
+            if (pointsLeft) {
+                Icons.AutoMirrored.Filled.NavigateBefore
+            } else {
+                Icons.AutoMirrored.Filled.NavigateNext
+            },
+            contentDescription = null,
+            tint = colors.textSecondary,
+            modifier = Modifier.size(22.dp),
+        )
     }
 }
 
@@ -832,67 +961,163 @@ private fun CompactProgressBar(fraction: Double) {
     }
 }
 
-/** A restrained hairline between hadiths (R4): no cards, no ornament. */
+/**
+ * R6A page-top corner label: the localized volume title at the leading top
+ * corner (start alignment mirrors in RTL), quiet secondary style. The
+ * `: first–last` range appends only when the volume is fully cached and
+ * computable; otherwise the title stands alone.
+ */
 @Composable
-internal fun ReaderHadithDivider() {
+internal fun VolumeCornerLabel(title: String, range: Pair<Int, Int>?) {
     val colors = LocalHadithlyColors.current
-    Box(
+    Text(
+        text = if (range != null) "$title: ${range.first}–${range.second}" else title,
+        fontSize = 12.sp,
+        color = colors.textSecondary,
+        textAlign = TextAlign.Start,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 20.dp)
-            .height(0.5.dp)
-            .background(colors.divider),
+            .testTag("reader.volumeCorner"),
     )
 }
 
-/** The strong, source-provided chapter opening (R4). Never invented: rendered
- * only when the provider data carries a chapter name. */
+/**
+ * R6A volume start: the volume title header with a localized ICU-plural
+ * count line beneath (e.g. "10 hadiths"). Rendered on the volume's first
+ * page only.
+ */
 @Composable
-internal fun ReaderChapterHeader(title: String) {
+internal fun VolumeStartHeader(title: String, hadithCount: Int) {
     val colors = LocalHadithlyColors.current
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxWidth()
-            .semantics(mergeDescendants = true) {}
-            .testTag("reader.chapterHeader"),
+            .padding(top = 12.dp, bottom = 24.dp),
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(0.5.dp)
-                .background(colors.divider),
-        )
-        Text(
-            text = "Chapter",
-            fontSize = 11.sp,
-            color = colors.textSecondary,
-            modifier = Modifier.padding(top = 12.dp),
-        )
         Text(
             text = title,
             fontSize = 20.sp,
             fontWeight = FontWeight.SemiBold,
             color = colors.textPrimary,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 2.dp, bottom = 6.dp),
         )
+        if (hadithCount > 0) {
+            Text(
+                text = pluralStringResource(R.plurals.reader_hadith_count, hadithCount, hadithCount),
+                fontSize = 13.sp,
+                color = colors.textSecondary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        }
+    }
+}
+
+/**
+ * The quiet, source-provided chapter opening (R6A). A single name-only line —
+ * never the word "Chapter" — with generous space above, in a secondary style
+ * smaller than the body. The source Arabic title renders as a second line
+ * only when present and different. Never synthesized: rendered only when the
+ * provider data carries a chapter name.
+ */
+@Composable
+internal fun ReaderChapterHeader(title: String, arabicTitle: String? = null) {
+    val colors = LocalHadithlyColors.current
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 28.dp, bottom = 12.dp)
+            .semantics(mergeDescendants = true) {}
+            .testTag("reader.chapterHeader"),
+    ) {
+        Text(
+            text = title,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            color = colors.textSecondary,
+            textAlign = TextAlign.Start,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        if (!arabicTitle.isNullOrEmpty()) {
+            Text(
+                text = arabicTitle,
+                fontSize = 13.sp,
+                color = colors.textSecondary,
+                textAlign = TextAlign.Start,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 2.dp),
+            )
+        }
     }
 }
 
 // One hadith
 
+/**
+ * The normalized authenticity grade behind the R6A grade dot. Anything
+ * outside sahih/hasan/daif (including absent grades) renders gray.
+ */
+internal enum class ReaderGrade {
+    SAHIH,
+    HASAN,
+    DAIF,
+    OTHER;
+
+    companion object {
+        fun from(normalizedGrade: String?): ReaderGrade =
+            when (normalizedGrade?.trim()?.lowercase()) {
+                "sahih" -> SAHIH
+                "hasan" -> HASAN
+                "daif", "dhaif", "da'if", "daeef" -> DAIF
+                else -> OTHER
+            }
+    }
+}
+
+/**
+ * R6A grade-dot color, resolved from the reader palette so it stays
+ * theme-aware across System, Light, Paper, and Dark: sahih green (accent),
+ * hasan amber (bookmark), daif red (destructive), anything else gray
+ * (secondary text).
+ */
+internal fun gradeDotColor(
+    grade: ReaderGrade,
+    colors: com.hadithly.app.core.theme.HadithlyColors,
+): androidx.compose.ui.graphics.Color = when (grade) {
+    ReaderGrade.SAHIH -> colors.accent
+    ReaderGrade.HASAN -> colors.bookmark
+    ReaderGrade.DAIF -> colors.destructive
+    ReaderGrade.OTHER -> colors.textSecondary
+}
+
+/**
+ * The saved-state reads and toggles a hadith block needs. ReaderPage
+ * supplies the ViewModel-backed implementation; tests supply a fake so the
+ * real block (long-press menu, TalkBack actions) stays covered.
+ */
+internal interface HadithBlockDeps {
+    val isBookmarked: Boolean
+    val isFavorite: Boolean
+    val hasNote: Boolean
+    fun onToggleBookmark()
+    fun onToggleFavorite()
+}
+
 @Composable
-private fun HadithBlock(
-    viewModel: ReaderViewModel,
+internal fun HadithBlock(
     hadith: ReaderHadith,
     translationState: TranslationUiState?,
     language: String,
     arabicFontSize: Float,
     preferences: ReaderPreferences,
+    deps: HadithBlockDeps,
     modifier: Modifier = Modifier,
+    onTap: () -> Unit,
     onRetry: () -> Unit,
     onShowCitations: (ReaderTranslation) -> Unit,
+    onShowSource: () -> Unit,
     onEditNote: () -> Unit,
     onSuggest: (ReaderTranslation?) -> Unit,
     onReport: (ReaderTranslation) -> Unit,
@@ -900,20 +1125,101 @@ private fun HadithBlock(
 ) {
     val colors = LocalHadithlyColors.current
     val arabicFamily = com.hadithly.app.core.theme.ArabicTypefaces.forFont(preferences.arabicFont)
+    val clipboard = LocalClipboard.current
+    val clipboardScope = rememberCoroutineScope()
+    val context = LocalContext.current
+    var menuExpanded by remember { mutableStateOf(false) }
+
+    val loadedTranslation = (translationState as? TranslationUiState.Loaded)?.translation
+    // Report gating matches the old inline row: a Loaded state only exists
+    // for non-English translations, so its presence implies reportability.
+    val visibleArabic = hadith.arabicText.takeIf { preferences.arabicVisible }
+    val visibleTranslation: String?
+    val visibleTranslationIsAi: Boolean
+    if (language == "en") {
+        visibleTranslation = hadith.englishText.takeIf { preferences.translationVisible }
+        visibleTranslationIsAi = false
+    } else {
+        visibleTranslation = loadedTranslation?.translation.takeIf { preferences.translationVisible }
+        visibleTranslationIsAi = loadedTranslation?.source == "gemini_ai"
+    }
+
+    fun doCopy() {
+        val text = ReaderShare.formatCopyText(
+            arabicText = visibleArabic,
+            translationText = visibleTranslation,
+            translationIsAi = visibleTranslationIsAi,
+            collectionName = hadith.collectionName,
+            providerHadithId = hadith.providerHadithId,
+            sourceName = hadith.authenticity.sourceName,
+        )
+        clipboardScope.launch {
+            clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(hadith.referenceDisplay, text)))
+        }
+    }
+
+    fun doShare() {
+        val url = com.hadithly.app.core.links.CanonicalHadithUrl.build(
+            hadith.collectionSlug,
+            hadith.providerHadithId,
+        )
+        val send = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, url)
+        }
+        context.startActivity(Intent.createChooser(send, null))
+    }
+
+    // One code path: the long-press menu opens the shared DropdownMenu
+    // content. The R5 overflow button is deleted with no visual replacement;
+    // TalkBack custom actions below are the screen-reader equivalent.
+    val menuActions = hadithMenuActions(
+        isBookmarked = deps.isBookmarked,
+        isFavorite = deps.isFavorite,
+        hasNote = deps.hasNote,
+        loadedTranslation = loadedTranslation,
+        onToggleBookmark = deps::onToggleBookmark,
+        onToggleFavorite = deps::onToggleFavorite,
+        onEditNote = onEditNote,
+        onCopy = { doCopy() },
+        onShare = { doShare() },
+        onReport = onReport,
+        onSuggest = onSuggest,
+    )
 
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = modifier,
+        modifier = modifier
+            .combinedClickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                // Tap still toggles the chrome; the block consumes the press
+                // so the page-level tap detector must be invoked explicitly.
+                onClick = onTap,
+                onLongClick = { menuExpanded = true },
+            )
+            .semantics {
+                customActions = customActionsFor(menuActions)
+            }
+            .testTag("reader.hadithBlock"),
     ) {
-        // The quiet reference label (R4) replaces the numbered medallion,
-        // matching the minimal reference treatment in the Sajda reference.
+        // R6A quiet marker: the provider number only (dim `57`), no "Hadith"
+        // word. The sighted path to actions is long-press only.
         Text(
-            text = hadith.referenceDisplay,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Medium,
+            text = hadith.providerHadithId,
+            fontSize = 12.sp,
             color = colors.textSecondary,
+            textAlign = TextAlign.Start,
             modifier = Modifier
-                .testTag("reader.reference"),
+                .fillMaxWidth()
+                .testTag("reader.hadithMarker"),
+        )
+
+        HadithContextMenu(
+            referenceDisplay = hadith.referenceDisplay,
+            actions = menuActions,
+            expanded = menuExpanded,
+            onDismiss = { menuExpanded = false },
         )
 
         if (preferences.arabicVisible) {
@@ -925,7 +1231,9 @@ private fun HadithBlock(
                     fontWeight = FontWeight.Medium,
                     color = colors.textPrimary,
                     lineHeight = (arabicFontSize * 1.75).sp,
-                    textAlign = TextAlign.Center,
+                    // R6A: start-aligned with RTL shaping kept (never LTR
+                    // glyphs); only the alignment changes.
+                    textAlign = TextAlign.Start,
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("reader.arabic"),
@@ -938,7 +1246,9 @@ private fun HadithBlock(
                 text = hadith.narrator,
                 fontSize = 12.sp,
                 color = colors.textSecondary,
-                textAlign = TextAlign.Center,
+                // R6A: the narrator line moves to the trailing edge, quiet
+                // secondary style.
+                textAlign = TextAlign.End,
                 modifier = Modifier.fillMaxWidth(),
             )
         }
@@ -962,52 +1272,211 @@ private fun HadithBlock(
             }
         }
 
-        val activeTranslation = (translationState as? TranslationUiState.Loaded)?.translation
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(18.dp),
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-        ) {
-            ContributionAction(Icons.Filled.Textsms, "Suggest translation") { onSuggest(activeTranslation) }
-            activeTranslation?.let { translation ->
-                ContributionAction(Icons.Filled.Flag, "Report") { onReport(translation) }
-            }
-        }
+        // R6A: one compact clickable label (grade dot + short name) replaces
+        // the authenticity label + source text line. The tap opens the small
+        // source sheet; copy/share payloads keep the full source line.
+        HadithSourceLabel(hadith = hadith, onShowSource = onShowSource)
+    }
+}
 
-        Text(
-            text = hadith.authenticity.displayLabel,
-            fontSize = 11.sp,
-            color = colors.textSecondary,
+/**
+ * R6A compact source label: a grade dot before `[short name – id]`
+ * (e.g. `Bukhari – 57`). Tapping opens the source bottom sheet.
+ */
+@Composable
+internal fun HadithSourceLabel(hadith: ReaderHadith, onShowSource: () -> Unit) {
+    val colors = LocalHadithlyColors.current
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onShowSource)
+            .testTag("reader.hadithLabel")
+            .semantics {
+                contentDescription =
+                    "Source: ${hadith.authenticity.sourceName}. Show source details."
+            },
+    ) {
+        Box(
             modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .testTag("reader.authenticity"),
+                .size(8.dp)
+                .background(
+                    gradeDotColor(ReaderGrade.from(hadith.authenticity.normalizedGrade), colors),
+                    CircleShape,
+                )
+                .testTag("reader.gradeDot"),
         )
-
-        HadithActionRow(
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            isBookmarked = viewModel.isBookmarked(hadith),
-            isFavorite = viewModel.isFavorite(hadith),
-            hasNote = viewModel.noteContent(hadith) != null,
-            onBookmark = { viewModel.toggleBookmark(hadith) },
-            onFavorite = { viewModel.toggleFavorite(hadith) },
-            onNote = onEditNote,
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = "${ReaderViewModel.shortCollectionName(hadith.collectionSlug, hadith.collectionName)} – ${hadith.providerHadithId}",
+            fontSize = 12.sp,
+            color = colors.textSecondary,
         )
     }
 }
 
+/**
+ * R6A small source bottom sheet: source name, scope/grade text, and the
+ * source URL when present.
+ */
 @Composable
-private fun ContributionAction(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    onClick: () -> Unit,
+internal fun HadithSourceSheet(hadith: ReaderHadith) {
+    val colors = LocalHadithlyColors.current
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp)
+            .testTag("reader.sourceSheet"),
+    ) {
+        Text(
+            text = hadith.authenticity.sourceName,
+            fontSize = 17.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = colors.textPrimary,
+        )
+        Text(
+            text = hadith.authenticity.displayLabel,
+            fontSize = 13.sp,
+            color = colors.textSecondary,
+        )
+        if (hadith.authenticity.sourceUrl.isNotBlank()) {
+            Text(
+                text = hadith.authenticity.sourceUrl,
+                fontSize = 12.sp,
+                color = colors.accent,
+            )
+        }
+    }
+}
+
+/** One hadith context action, shared by the DropdownMenu and TalkBack custom actions. */
+internal data class HadithMenuAction(
+    val testTag: String,
+    val label: String,
+    val secondary: Boolean = false,
+    val onInvoke: () -> Unit,
+)
+
+/**
+ * Builds the seven per-hadith actions (R5 set, kept in R6A) from saved state
+ * and callbacks. One code path feeds both the long-press DropdownMenu and
+ * the TalkBack custom actions. Report appears only when a loaded
+ * non-English translation exists.
+ */
+internal fun hadithMenuActions(
+    isBookmarked: Boolean,
+    isFavorite: Boolean,
+    hasNote: Boolean,
+    loadedTranslation: ReaderTranslation?,
+    onToggleBookmark: () -> Unit,
+    onToggleFavorite: () -> Unit,
+    onEditNote: () -> Unit,
+    onCopy: () -> Unit,
+    onShare: () -> Unit,
+    onReport: (ReaderTranslation) -> Unit,
+    onSuggest: (ReaderTranslation?) -> Unit,
+): List<HadithMenuAction> = buildList {
+    add(
+        HadithMenuAction(
+            testTag = "reader.bookmark",
+            label = if (isBookmarked) "Remove bookmark" else "Bookmark",
+        ) { onToggleBookmark() },
+    )
+    add(
+        HadithMenuAction(
+            testTag = "reader.favorite",
+            label = if (isFavorite) "Remove from favorites" else "Add to favorites",
+        ) { onToggleFavorite() },
+    )
+    add(
+        HadithMenuAction(
+            testTag = "reader.note",
+            label = if (hasNote) "Edit note" else "Add note",
+        ) { onEditNote() },
+    )
+    add(HadithMenuAction(testTag = "reader.copy", label = "Copy") { onCopy() })
+    add(HadithMenuAction(testTag = "reader.share", label = "Share") { onShare() })
+    loadedTranslation?.let { translation ->
+        add(
+            HadithMenuAction(
+                testTag = "reader.reportTranslation",
+                label = "Report translation",
+                secondary = true,
+            ) { onReport(translation) },
+        )
+    }
+    add(
+        HadithMenuAction(
+            testTag = "reader.suggestTranslation",
+            label = "Suggest translation",
+            secondary = true,
+        ) { onSuggest(loadedTranslation) },
+    )
+}
+
+/**
+ * The TalkBack custom actions for one hadith block: the same seven actions
+ * as the long-press menu, label for label, as the screen-reader equivalent
+ * of the deleted overflow button.
+ */
+internal fun customActionsFor(actions: List<HadithMenuAction>): List<CustomAccessibilityAction> =
+    actions.map { action ->
+        CustomAccessibilityAction(action.label) {
+            action.onInvoke()
+            true
+        }
+    }
+
+/**
+ * The native per-hadith context menu (R5, kept in R6A). Opened by long-press
+ * only since R6A deleted the overflow button; no playback, Siri,
+ * transcription, search, or reciter items.
+ */
+@Composable
+internal fun HadithContextMenu(
+    referenceDisplay: String,
+    actions: List<HadithMenuAction>,
+    expanded: Boolean,
+    onDismiss: () -> Unit,
 ) {
     val colors = LocalHadithlyColors.current
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(5.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.clickable(onClick = onClick).padding(vertical = 6.dp),
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = onDismiss,
+        containerColor = colors.surface,
     ) {
-        Icon(icon, contentDescription = null, tint = colors.textSecondary.copy(alpha = 0.8f), modifier = Modifier.size(14.dp))
-        Text(label, fontSize = 12.sp, color = colors.textSecondary.copy(alpha = 0.8f))
+        Text(
+            text = referenceDisplay,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = colors.textSecondary,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        )
+        val (primary, secondary) = actions.partition { !it.secondary }
+        for (action in primary) {
+            DropdownMenuItem(
+                text = { Text(action.label, fontSize = 15.sp, color = colors.textPrimary) },
+                onClick = {
+                    onDismiss()
+                    action.onInvoke()
+                },
+                modifier = Modifier.testTag(action.testTag),
+            )
+        }
+        if (secondary.isNotEmpty()) {
+            HorizontalDivider(color = colors.divider)
+            for (action in secondary) {
+                DropdownMenuItem(
+                    text = { Text(action.label, fontSize = 15.sp, color = colors.textPrimary) },
+                    onClick = {
+                        onDismiss()
+                        action.onInvoke()
+                    },
+                    modifier = Modifier.testTag(action.testTag),
+                )
+            }
+        }
     }
 }
 
@@ -1155,68 +1624,30 @@ private fun QuietNotice(
     }
 }
 
-@Composable
-private fun HadithActionRow(
-    modifier: Modifier = Modifier,
-    isBookmarked: Boolean,
-    isFavorite: Boolean,
-    hasNote: Boolean,
-    onBookmark: () -> Unit,
-    onFavorite: () -> Unit,
-    onNote: () -> Unit,
-) {
-    val colors = LocalHadithlyColors.current
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(26.dp),
-        modifier = modifier,
-    ) {
-        ActionIcon(
-            icon = if (isBookmarked) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder,
-            tint = if (isBookmarked) colors.bookmark else colors.textSecondary.copy(alpha = 0.75f),
-            label = if (isBookmarked) "Remove bookmark" else "Bookmark",
-            onClick = onBookmark,
-        )
-        ActionIcon(
-            icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-            tint = if (isFavorite) colors.favorite else colors.textSecondary.copy(alpha = 0.75f),
-            label = if (isFavorite) "Remove favorite" else "Favorite",
-            onClick = onFavorite,
-        )
-        ActionIcon(
-            icon = Icons.Filled.Edit,
-            tint = colors.textSecondary.copy(alpha = 0.75f),
-            label = if (hasNote) "Edit note" else "Add note",
-            onClick = onNote,
-        )
-    }
-}
-
-@Composable
-private fun ActionIcon(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    tint: androidx.compose.ui.graphics.Color,
-    label: String,
-    onClick: () -> Unit,
-) {
-    Icon(
-        imageVector = icon,
-        contentDescription = label,
-        tint = tint,
-        modifier = Modifier
-            .size(22.dp)
-            .clickable(onClick = onClick),
-    )
-}
-
 // Contents sheet
 
 @Composable
-private fun ContentsSheet(
+internal fun ContentsSheet(
     volumes: List<com.hadithly.app.core.data.OutlineVolume>,
     selectedVolumeId: String?,
     onSelect: (String) -> Unit,
+    onSelectChapter: (String, com.hadithly.app.core.data.OutlineChapter) -> Unit,
+    onJumpToReference: (String) -> Boolean,
+    onDismiss: () -> Unit,
 ) {
     val colors = LocalHadithlyColors.current
+    var expandedVolumeId by remember(selectedVolumeId) { mutableStateOf(selectedVolumeId) }
+    var jumpInput by remember { mutableStateOf("") }
+    var jumpError by remember { mutableStateOf<String?>(null) }
+
+    fun submitJump() {
+        if (onJumpToReference(jumpInput.trim())) {
+            onDismiss()
+        } else {
+            jumpError = "Enter a hadith number like 57 or 4.5."
+        }
+    }
+
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
@@ -1225,26 +1656,126 @@ private fun ContentsSheet(
             Text("Contents", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
             Spacer(modifier = Modifier.height(8.dp))
         }
+        item(key = "contents-jump") {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                OutlinedTextField(
+                    value = jumpInput,
+                    onValueChange = {
+                        jumpInput = it
+                        jumpError = null
+                    },
+                    label = { Text("Go to hadith number", color = colors.textSecondary) },
+                    placeholder = { Text("57", color = colors.textSecondary) },
+                    singleLine = true,
+                    isError = jumpError != null,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { submitJump() }),
+                    colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = colors.accent,
+                        unfocusedBorderColor = colors.divider,
+                        focusedTextColor = colors.textPrimary,
+                        unfocusedTextColor = colors.textPrimary,
+                        cursorColor = colors.accent,
+                        focusedContainerColor = colors.surfaceElevated,
+                        unfocusedContainerColor = colors.surfaceElevated,
+                        errorBorderColor = colors.favorite,
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("reader.contents.jump"),
+                )
+                if (jumpError != null) {
+                    Text(jumpError.orEmpty(), fontSize = 12.sp, color = colors.textSecondary)
+                }
+            }
+        }
         items(volumes, key = { it.volumeId }) { volume ->
             val selected = volume.volumeId == selectedVolumeId
+            val expanded = expandedVolumeId == volume.volumeId
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(if (selected) colors.accentSoft else colors.surfaceElevated, RoundedCornerShape(12.dp))
-                    .clickable { onSelect(volume.volumeId) }
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                    .padding(horizontal = 16.dp, vertical = 6.dp),
             ) {
-                Text(
-                    text = volume.title,
-                    fontSize = 15.sp,
-                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                    color = colors.textPrimary,
-                )
-                Text(
-                    text = "${volume.hadithCount.toInt()} hadiths",
-                    fontSize = 11.sp,
-                    color = colors.textSecondary,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { onSelect(volume.volumeId) }
+                            .padding(vertical = 8.dp),
+                    ) {
+                        Text(
+                            text = volume.title,
+                            fontSize = 15.sp,
+                            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                            color = colors.textPrimary,
+                        )
+                        Text(
+                            text = "${volume.hadithCount.toInt()} hadiths",
+                            fontSize = 11.sp,
+                            color = colors.textSecondary,
+                        )
+                    }
+                    // Chapters render only when the source provides them;
+                    // pre-R5 cached outlines show volumes exactly as before.
+                    if (volume.chapters.isNotEmpty()) {
+                        IconButton(
+                            onClick = {
+                                expandedVolumeId = if (expanded) null else volume.volumeId
+                            },
+                            modifier = Modifier.size(48.dp),
+                        ) {
+                            Icon(
+                                imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                                contentDescription = if (expanded) {
+                                    "Collapse chapters in ${volume.title}"
+                                } else {
+                                    "Expand chapters in ${volume.title}"
+                                },
+                                tint = colors.textSecondary,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                    }
+                }
+                if (expanded) {
+                    for (chapter in volume.chapters) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onSelectChapter(volume.volumeId, chapter) }
+                                .padding(start = 12.dp, top = 8.dp, bottom = 8.dp, end = 4.dp)
+                                .testTag("reader.contents.chapter.${volume.volumeId}.${chapter.firstProviderHadithId}"),
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = chapter.title,
+                                    fontSize = 14.sp,
+                                    color = colors.textPrimary,
+                                )
+                                val arabic = chapter.arabicTitle
+                                if (!arabic.isNullOrBlank() && arabic != chapter.title) {
+                                    Text(
+                                        text = arabic,
+                                        fontSize = 12.sp,
+                                        color = colors.textSecondary,
+                                    )
+                                }
+                                Text(
+                                    text = "${chapter.hadithCount.toInt()} hadiths",
+                                    fontSize = 11.sp,
+                                    color = colors.textSecondary,
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
             }
         }
     }
