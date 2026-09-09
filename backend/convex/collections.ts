@@ -50,6 +50,17 @@ export const upsertOutline = internalMutation({
         firstChapterTitle: v.optional(v.string()),
         firstChapterArabicTitle: v.optional(v.string()),
         hadithCount: v.number(),
+        chapters: v.optional(
+          v.array(
+            v.object({
+              chapterId: v.optional(v.string()),
+              title: v.string(),
+              arabicTitle: v.optional(v.string()),
+              hadithCount: v.number(),
+              firstProviderHadithId: v.string(),
+            }),
+          ),
+        ),
       }),
     ),
   },

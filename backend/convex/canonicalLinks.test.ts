@@ -7,6 +7,7 @@ import schema from "./schema";
 import {
   canonicalLocaleParam,
   canonicalPositionParam,
+  formatCanonicalHadithUrl,
   parseCanonicalHadithPath,
   parseCanonicalLink,
 } from "./lib/canonicalLinks";
@@ -317,6 +318,34 @@ describe("resolveCanonicalLink query", () => {
     }
   });
 
+  test("resolved links carry volume and chapter canonical targets", async () => {
+    const t = setup();
+    await t.run(async (ctx) =>
+      ctx.db.insert("hadiths", {
+        provider: "sunnah_now" as const,
+        canonicalId: "sunnah_now:muslim:100",
+        providerHadithId: "100",
+        collectionSlug: "muslim",
+        volumeId: "3",
+        chapterId: "12",
+        chapterName: "The Book of Faith",
+        arabicText: "نص",
+        referenceDisplay: "Muslim · Hadith 100",
+        collectionName: "Sahih Muslim",
+        createdAt: 2,
+      }),
+    );
+    const result = await t.query(api.hadiths.resolveCanonicalLink, {
+      collectionSlug: "muslim",
+      providerHadithId: "100",
+    });
+    expect(result.status).toBe("resolved");
+    if (result.status !== "resolved") return;
+    expect(result.volumeId).toBe("3");
+    expect(result.chapterId).toBe("12");
+    expect(result.chapterName).toBe("The Book of Faith");
+  });
+
   test("pending translations are not shown", async () => {
     const t = setup();
     const { hadithId } = await seedLicensedHadith(t);
@@ -342,5 +371,46 @@ describe("resolveCanonicalLink query", () => {
     if (result.status !== "resolved" || !result.text.visible) return;
     expect(result.text.translation).toBeUndefined();
     expect(result.text.translationFallback).toBe(true);
+  });
+});
+
+describe("formatCanonicalHadithUrl", () => {
+  test("builds the clean canonical URL used by share sheets", () => {
+    expect(formatCanonicalHadithUrl("bukhari", "57")).toBe(
+      "https://hadithly.app/hadith/bukhari/57",
+    );
+    expect(formatCanonicalHadithUrl("muslim", "4.5")).toBe(
+      "https://hadithly.app/hadith/muslim/4.5",
+    );
+  });
+
+  test("attaches validated locale and position parameters", () => {
+    expect(
+      formatCanonicalHadithUrl("bukhari", "57", {
+        locale: "ur",
+        positionVersion: 3,
+      }),
+    ).toBe("https://hadithly.app/hadith/bukhari/57?locale=ur&pos=v3");
+    expect(formatCanonicalHadithUrl("bukhari", "57", { locale: "pt_BR" })).toBe(
+      "https://hadithly.app/hadith/bukhari/57?locale=pt-BR",
+    );
+    // An unsupported locale is dropped, never shared silently.
+    expect(
+      formatCanonicalHadithUrl("bukhari", "57", { locale: "not a locale" }),
+    ).toBe("https://hadithly.app/hadith/bukhari/57");
+  });
+
+  test("rejects malformed slugs and ids instead of sharing them", () => {
+    expect(() => formatCanonicalHadithUrl("Bukhari", "57")).toThrow();
+    expect(() => formatCanonicalHadithUrl("bukhari", "0")).toThrow();
+    expect(() => formatCanonicalHadithUrl("bukhari", "57/extra")).toThrow();
+  });
+
+  test("built URLs pass the F3 inbound routing contract", () => {
+    const url = formatCanonicalHadithUrl("bukhari", "57");
+    expect(parseCanonicalLink(url)).toEqual({
+      collectionSlug: "bukhari",
+      providerHadithId: "57",
+    });
   });
 });

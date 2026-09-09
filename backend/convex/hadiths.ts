@@ -330,6 +330,11 @@ export const canonicalLinkResultValidator = v.union(
     providerHadithId: v.string(),
     referenceDisplay: v.string(),
     narrator: v.optional(v.string()),
+    // R5 canonical targets: lets contents navigation land in the right
+    // volume and chapter without re-resolving the hadith.
+    volumeId: v.optional(v.string()),
+    chapterId: v.optional(v.string()),
+    chapterName: v.optional(v.string()),
     sourceName: v.string(),
     sourceUrl: v.string(),
     authenticity: authenticityClaimValidator,
@@ -366,6 +371,9 @@ export type CanonicalLinkResult = {
   providerHadithId: string;
   referenceDisplay: string;
   narrator?: string;
+  volumeId?: string;
+  chapterId?: string;
+  chapterName?: string;
   sourceName: string;
   sourceUrl: string;
   authenticity: AuthenticityClaim;
@@ -461,6 +469,9 @@ export const resolveCanonicalLink = query({
         providerHadithId: hadith.providerHadithId,
         referenceDisplay: hadith.referenceDisplay,
         narrator: hadith.narrator,
+        volumeId: hadith.volumeId,
+        chapterId: hadith.chapterId,
+        chapterName: hadith.chapterName,
         sourceName: license?.sourceName ?? hadith.authenticity?.sourceName ?? "",
         sourceUrl: license?.sourceUrl ?? hadith.authenticity?.sourceUrl ?? "",
         authenticity: hadith.authenticity ??
@@ -494,6 +505,9 @@ export const resolveCanonicalLink = query({
       providerHadithId: hadith.providerHadithId,
       referenceDisplay: hadith.referenceDisplay,
       narrator: hadith.narrator,
+      volumeId: hadith.volumeId,
+      chapterId: hadith.chapterId,
+      chapterName: hadith.chapterName,
       sourceName: license?.sourceName ?? hadith.authenticity?.sourceName ?? "",
       sourceUrl: license?.sourceUrl ?? hadith.authenticity?.sourceUrl ?? "",
       authenticity: hadith.authenticity ??

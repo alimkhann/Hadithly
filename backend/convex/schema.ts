@@ -71,6 +71,19 @@ export default defineSchema({
         firstChapterTitle: v.optional(v.string()),
         firstChapterArabicTitle: v.optional(v.string()),
         hadithCount: v.number(),
+        // R5: source-provided chapters per volume. Optional so outlines
+        // cached before R5 still validate; fresh outlines always include it.
+        chapters: v.optional(
+          v.array(
+            v.object({
+              chapterId: v.optional(v.string()),
+              title: v.string(),
+              arabicTitle: v.optional(v.string()),
+              hadithCount: v.number(),
+              firstProviderHadithId: v.string(),
+            }),
+          ),
+        ),
       }),
     ),
     indexedAt: v.number(),

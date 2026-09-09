@@ -79,6 +79,44 @@ export function parseCanonicalLink(
 }
 
 /**
+ * Builds the shareable canonical URL for one hadith:
+ * `https://hadithly.app/hadith/{collectionSlug}/{providerHadithId}`.
+ * R5 share sheets and copy text use only this URL — never a deep link with
+ * private position data. Optional locale/position parameters follow the F3
+ * contract and are validated before they are attached. Throws on a malformed
+ * slug or hadith id so construction bugs fail fast in tests, not in shares.
+ */
+export function formatCanonicalHadithUrl(
+  collectionSlug: string,
+  providerHadithId: string,
+  params?: { locale?: string; positionVersion?: number },
+): string {
+  if (!COLLECTION_SLUG_PATTERN.test(collectionSlug)) {
+    throw new Error(`Invalid collection slug for canonical URL: ${collectionSlug}`);
+  }
+  if (!PROVIDER_HADITH_ID_PATTERN.test(providerHadithId)) {
+    throw new Error(`Invalid provider hadith id for canonical URL: ${providerHadithId}`);
+  }
+  const base =
+    `https://${CANONICAL_LINK_HOST}${CANONICAL_LINK_PATH_PREFIX}` +
+    `${collectionSlug}/${providerHadithId}`;
+  const search = new URLSearchParams();
+  if (params?.locale !== undefined) {
+    const locale = canonicalLocaleParam(params.locale);
+    if (locale.locale !== null) search.set("locale", locale.locale);
+  }
+  if (
+    params?.positionVersion !== undefined &&
+    Number.isSafeInteger(params.positionVersion) &&
+    params.positionVersion >= 0
+  ) {
+    search.set("pos", `v${params.positionVersion}`);
+  }
+  const query = search.toString();
+  return query.length > 0 ? `${base}?${query}` : base;
+}
+
+/**
  * Normalizes the optional translation-locale parameter. Returns the
  * canonical BCP 47 tag, or null when absent/malformed — a hadith
  * translation never changes language silently, so an unsupported locale

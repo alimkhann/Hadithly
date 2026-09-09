@@ -372,13 +372,89 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+/**
+ * One source-provided chapter inside a volume. Chapters come only from
+ * provider metadata (`metadata.chapter`); Hadithly never invents one.
+ * `firstProviderHadithId` is the jump target for contents navigation.
+ */
+export type ChapterOutlineEntry = {
+  chapterId?: string;
+  title: string;
+  arabicTitle?: string;
+  hadithCount: number;
+  firstProviderHadithId: string;
+};
+
 export type VolumeOutlineEntry = {
   volumeId: string;
   title: string;
   firstChapterTitle?: string;
   firstChapterArabicTitle?: string;
   hadithCount: number;
+  chapters: ChapterOutlineEntry[];
 };
+
+/**
+ * Aggregates normalized provider hadiths into a volume outline in source
+ * order. Pure (no provider calls) so contents navigation can be tested
+ * without network access. Hadiths without a volume are skipped; hadiths
+ * without chapter identity still count toward the volume total.
+ */
+export function aggregateVolumeOutline(
+  items: HadithRecord[],
+): VolumeOutlineEntry[] {
+  const volumes = new Map<string, VolumeOutlineEntry>();
+  const chapters = new Map<string, ChapterOutlineEntry>();
+
+  for (const hadith of items) {
+    if (!hadith.volumeId) continue;
+    let volume = volumes.get(hadith.volumeId);
+    if (!volume) {
+      volume = {
+        volumeId: hadith.volumeId,
+        title: `Volume ${hadith.volumeId}`,
+        hadithCount: 0,
+        chapters: [],
+      };
+      volumes.set(hadith.volumeId, volume);
+    }
+    if (volume.firstChapterTitle === undefined && hadith.chapterName) {
+      volume.firstChapterTitle = hadith.chapterName;
+    }
+    if (
+      volume.firstChapterArabicTitle === undefined &&
+      hadith.bookName &&
+      hadith.bookName !== hadith.chapterName
+    ) {
+      volume.firstChapterArabicTitle = hadith.bookName;
+    }
+    volume.hadithCount += 1;
+
+    const chapterKey = hadith.chapterId ??
+      (hadith.chapterName ? `name:${hadith.chapterName}` : undefined);
+    if (chapterKey === undefined) continue;
+    const scopedKey = `${hadith.volumeId}|${chapterKey}`;
+    let chapter = chapters.get(scopedKey);
+    if (!chapter) {
+      chapter = {
+        ...(hadith.chapterId ? { chapterId: hadith.chapterId } : {}),
+        title: hadith.chapterName ?? `Chapter ${hadith.chapterId ?? ""}`.trim(),
+        ...(hadith.bookName && hadith.bookName !== hadith.chapterName
+          ? { arabicTitle: hadith.bookName }
+          : {}),
+        hadithCount: 0,
+        firstProviderHadithId: hadith.providerHadithId,
+      };
+      chapters.set(scopedKey, chapter);
+      volume.chapters.push(chapter);
+    }
+    chapter.hadithCount += 1;
+  }
+
+  return Array.from(volumes.values()).sort(
+    (left, right) => Number(left.volumeId) - Number(right.volumeId),
+  );
+}
 
 /**
  * Builds a volume outline for a collection by paginating the provider.
@@ -387,7 +463,7 @@ export type VolumeOutlineEntry = {
 export async function buildCollectionOutline(
   collectionSlug: string,
 ): Promise<VolumeOutlineEntry[]> {
-  const volumes = new Map<string, VolumeOutlineEntry>();
+  const items: HadithRecord[] = [];
   let page = 1;
   let hasMore = true;
 
@@ -398,24 +474,11 @@ export async function buildCollectionOutline(
       pageSize: 50,
     });
 
-    for (const hadith of nextPage.items) {
-      if (!hadith.volumeId) continue;
-      const existing = volumes.get(hadith.volumeId);
-      volumes.set(hadith.volumeId, {
-        volumeId: hadith.volumeId,
-        title: `Volume ${hadith.volumeId}`,
-        firstChapterTitle: existing?.firstChapterTitle ?? hadith.chapterName,
-        firstChapterArabicTitle:
-          existing?.firstChapterArabicTitle ?? hadith.bookName,
-        hadithCount: (existing?.hadithCount ?? 0) + 1,
-      });
-    }
+    items.push(...nextPage.items);
 
     hasMore = nextPage.hasMore && nextPage.items.length > 0;
     page += 1;
   }
 
-  return Array.from(volumes.values()).sort(
-    (left, right) => Number(left.volumeId) - Number(right.volumeId),
-  );
+  return aggregateVolumeOutline(items);
 }

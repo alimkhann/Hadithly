@@ -29,6 +29,14 @@ type CollectionDoc = {
   sortOrder?: number;
 };
 
+type OutlineChapter = {
+  chapterId?: string;
+  title: string;
+  arabicTitle?: string;
+  hadithCount: number;
+  firstProviderHadithId: string;
+};
+
 type OutlineDoc = {
   _id: string;
   collectionSlug: string;
@@ -38,6 +46,7 @@ type OutlineDoc = {
     firstChapterTitle?: string;
     firstChapterArabicTitle?: string;
     hadithCount: number;
+    chapters?: OutlineChapter[];
   }>;
   indexedAt: number;
 } | null;
@@ -82,9 +91,16 @@ export const getCollectionOutline = action({
     const cached = await ctx.runQuery(api.collections.getOutline, {
       collectionSlug: args.collectionSlug,
     });
+    // Outlines cached before R5 carry no chapter entries. Rebuild once so
+    // contents navigation has source-provided chapters; fresh writes always
+    // include the (possibly empty) chapters array.
+    const chaptersMissing =
+      cached?.volumes.some((volume) => volume.chapters === undefined) ??
+      false;
     if (
       cached &&
       !args.refresh &&
+      !chaptersMissing &&
       Date.now() - cached.indexedAt < OUTLINE_TTL_MS &&
       cached.volumes.length > 0
     ) {
