@@ -219,6 +219,55 @@ final class ReaderModel {
         Task { await loadPage(0, volumeId: volumeId) }
     }
 
+#if DEBUG
+    /// Seeds outline state for the R5 contents fixture without network.
+    func seedForUITest(volumes: [OutlineVolume], selectedVolumeId: String) {
+        self.volumes = volumes
+        self.selectedVolumeId = selectedVolumeId
+        self.phase = .reading
+    }
+#endif
+
+    /// R5 contents navigation: selects the volume holding a source-provided
+    /// chapter and lands on the chapter's first hadith through the same
+    /// R2 target path as canonical links (`loadPage` with
+    /// `jumpToHadithNumber`). Unlike `selectVolume`, this always navigates —
+    /// even inside the current volume — because the target hadith differs.
+    func selectChapter(volumeId: String, chapter: OutlineChapter) {
+        selectedVolumeId = volumeId
+        resetReading()
+        landingHadithNumber = chapter.firstProviderHadithId
+        restoredPosition = nil
+        Task { await loadPage(0, volumeId: volumeId, jumpToHadithNumber: chapter.firstProviderHadithId) }
+    }
+
+    /// R5 jump-to-reference: validates the number against the canonical
+    /// hadith-id pattern and navigates through the same volume-locator path
+    /// as canonical links. Well-formed but stale numbers fall back to the
+    /// first volume's start, exactly like a stale canonical link. Returns
+    /// false for malformed input so the sheet can keep itself open with an
+    /// inline error.
+    @discardableResult
+    func jumpToReference(_ number: String) -> Bool {
+        let trimmed = number.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard ReaderShare.isValidReferenceNumber(trimmed) else { return false }
+        if let volume = Self.volumeId(forHadithNumber: trimmed, in: volumes) {
+            selectedVolumeId = volume
+            resetReading()
+            landingHadithNumber = trimmed
+            restoredPosition = nil
+            Task { await loadPage(0, volumeId: volume, jumpToHadithNumber: trimmed) }
+        } else {
+            landingHadithNumber = nil
+            restoredPosition = nil
+            guard let first = volumes.first?.volumeId else { return true }
+            selectedVolumeId = first
+            resetReading()
+            Task { await loadPage(0, volumeId: first) }
+        }
+        return true
+    }
+
     private func resetReading() {
         pageTask?.cancel()
         translationTask?.cancel()

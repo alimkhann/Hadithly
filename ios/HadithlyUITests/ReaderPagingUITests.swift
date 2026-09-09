@@ -88,15 +88,16 @@ final class ReaderPagingUITests: XCTestCase {
                     FixtureCase("matrix \(locale)-\(theme)", locale: locale, arabic: true, translation: true, direction: "auto", leftPage: 2),
                     theme: theme
                 )
-                // Revealed chrome: expanded progress pill and combined
-                // chapter header participate in the accessibility tree.
+                // Revealed chrome: expanded progress pill and the quiet
+                // name-only chapter line participate in the accessibility
+                // tree.
                 let pill = app.staticTexts["r4.progressPill"]
                 XCTAssertTrue(pill.waitForExistence(timeout: timeout), "pill \(locale)-\(theme)")
                 XCTAssertEqual(pill.label, "Page 2 of 3", "pill label \(locale)-\(theme)")
                 let chapter = app.otherElements["r4.chapterHeader"]
                     .firstMatch.exists ? app.otherElements["r4.chapterHeader"] : app.staticTexts["r4.chapterHeader"]
                 XCTAssertTrue(chapter.waitForExistence(timeout: timeout), "chapter \(locale)-\(theme)")
-                XCTAssertEqual(chapter.label, "Chapter Kitab al-Iman", "chapter label \(locale)-\(theme)")
+                XCTAssertEqual(chapter.label, "Kitab al-Iman", "chapter label \(locale)-\(theme)")
                 XCTAssertTrue(app.staticTexts["r3.arabic"].isHittable, "arabic \(locale)-\(theme)")
 
                 if locale == "ar" || locale == "ur" {

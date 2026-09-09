@@ -1,11 +1,18 @@
 import SwiftUI
 
 /// Volume index for the current collection, served from the cached outline.
+/// Volumes expand to their source-provided chapters (R5, Sajda contents
+/// sheet); outlines cached before R5 carry no chapters and keep rendering
+/// exactly as before. Opening or dismissing this sheet never touches the
+/// reader's pages, so the exact scroll position is preserved.
 struct CollectionOutlineSheet: View {
     @Environment(\.readerPalette) private var palette
     @Environment(\.readerTheme) private var readerTheme
     let model: ReaderModel
     @Environment(\.dismiss) private var dismiss
+    @State private var expandedVolumes: Set<String> = []
+    @State private var jumpText = ""
+    @State private var jumpError: String?
 
     var body: some View {
         NavigationStack {
@@ -22,8 +29,13 @@ struct CollectionOutlineSheet: View {
                 } else {
                     ScrollView {
                         VStack(spacing: 8) {
+                            jumpField
                             ForEach(model.volumes) { volume in
-                                volumeRow(volume)
+                                if let chapters = volume.chapters, !chapters.isEmpty {
+                                    volumeDisclosure(volume, chapters: chapters)
+                                } else {
+                                    volumeRow(volume)
+                                }
                             }
                         }
                         .padding(.horizontal, 16)
@@ -42,6 +54,146 @@ struct CollectionOutlineSheet: View {
             }
         }
         .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
+        .onAppear {
+            if let selected = model.selectedVolumeId {
+                expandedVolumes.insert(selected)
+            }
+        }
+    }
+
+    /// Jump-to-reference: a well-formed hadith number dismisses and
+    /// navigates through the same path as canonical links (stale numbers
+    /// land on the first volume's start); malformed input shows a quiet
+    /// inline error and keeps the sheet open.
+    private var jumpField: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 8) {
+                TextField("Hadith number", text: $jumpText)
+                    .keyboardType(.numbersAndPunctuation)
+                    .textFieldStyle(.roundedBorder)
+                    .accessibilityIdentifier("reader.contents.jump")
+                    .accessibilityLabel("Jump to hadith number")
+                    .onSubmit { submitJump() }
+                    .onChange(of: jumpText) { _, _ in jumpError = nil }
+                Button("Go") { submitJump() }
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Theme.accent)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .accessibilityIdentifier("reader.contents.jumpGo")
+            }
+            if let jumpError {
+                Text(jumpError)
+                    .font(.caption)
+                    .foregroundStyle(palette.textSecondary)
+                    .accessibilityIdentifier("reader.contents.jumpError")
+            } else {
+                Text("Jump to a hadith number, e.g. 57.")
+                    .font(.caption2)
+                    .foregroundStyle(palette.textSecondary.opacity(0.7))
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(palette.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func submitJump() {
+        let input = jumpText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard ReaderShare.isValidReferenceNumber(input) else {
+            jumpError = "Enter a hadith number like 57 or 4.5."
+            return
+        }
+        jumpError = nil
+        dismiss()
+        model.jumpToReference(input)
+    }
+
+    private func expansionBinding(for volumeId: String) -> Binding<Bool> {
+        Binding(
+            get: { expandedVolumes.contains(volumeId) },
+            set: {
+                if $0 { expandedVolumes.insert(volumeId) }
+                else { expandedVolumes.remove(volumeId) }
+            }
+        )
+    }
+
+    /// A volume with source-provided chapters: the header carries the same
+    /// volume info as before, and each chapter row jumps straight to its
+    /// first hadith. Chapters render only when the source provided them —
+    /// Hadithly never synthesizes one.
+    private func volumeDisclosure(_ volume: OutlineVolume, chapters: [OutlineChapter]) -> some View {
+        let isSelected = volume.volumeId == model.selectedVolumeId
+        return DisclosureGroup(isExpanded: expansionBinding(for: volume.volumeId)) {
+            VStack(spacing: 4) {
+                Button {
+                    model.selectVolume(volume.volumeId)
+                    dismiss()
+                } label: {
+                    HStack {
+                        Text("Open \(volume.title) from the start")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(palette.textSecondary)
+                        Spacer()
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("reader.volume.\(volume.volumeId)")
+                ForEach(chapters) { chapter in
+                    chapterRow(volume: volume, chapter: chapter)
+                }
+            }
+            .padding(.top, 4)
+        } label: {
+            // The identifier sits on the label subtree only: an identifier
+            // on the DisclosureGroup itself propagates into the expanded
+            // content and stomps the chapter rows' own identifiers.
+            volumeLabel(volume, isSelected: isSelected)
+                .accessibilityIdentifier("reader.contents.volume.\(volume.volumeId)")
+        }
+        .tint(palette.textSecondary)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(isSelected ? Theme.accentSoft : palette.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func chapterRow(volume: OutlineVolume, chapter: OutlineChapter) -> some View {
+        Button {
+            model.selectChapter(volumeId: volume.volumeId, chapter: chapter)
+            dismiss()
+        } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(chapter.title)
+                        .font(.subheadline)
+                        .foregroundStyle(palette.textPrimary)
+                        .multilineTextAlignment(.leading)
+                    if let arabic = chapter.arabicTitle,
+                       !arabic.isEmpty,
+                       arabic != chapter.title {
+                        Text(arabic)
+                            .font(.caption)
+                            .foregroundStyle(palette.textSecondary)
+                            .lineLimit(1)
+                    }
+                }
+                Spacer()
+                Text("\(chapter.hadithCount)")
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(palette.textSecondary)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(palette.surfaceElevated)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(chapter.title), \(chapter.hadithCount) hadiths")
+        .accessibilityIdentifier("reader.contents.chapter.\(volume.volumeId).\(chapter.firstProviderHadithId)")
     }
 
     private func volumeRow(_ volume: OutlineVolume) -> some View {
@@ -50,35 +202,39 @@ struct CollectionOutlineSheet: View {
             model.selectVolume(volume.volumeId)
             dismiss()
         } label: {
-            HStack {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(volume.title)
-                        .font(.subheadline.weight(isSelected ? .semibold : .regular))
-                        .foregroundStyle(palette.textPrimary)
-                    if let chapter = volume.firstChapterTitle, !chapter.isEmpty {
-                        Text(chapter)
-                            .font(.caption)
-                            .foregroundStyle(palette.textSecondary)
-                            .lineLimit(1)
-                    }
-                }
-                Spacer()
-                Text("\(volume.hadithCount)")
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(palette.textSecondary)
-                if isSelected {
-                    Image(systemName: "checkmark")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(Theme.accent)
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(isSelected ? Theme.accentSoft : palette.surface)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            volumeLabel(volume, isSelected: isSelected)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(isSelected ? Theme.accentSoft : palette.surface)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("reader.volume.\(volume.volumeId)")
+    }
+
+    private func volumeLabel(_ volume: OutlineVolume, isSelected: Bool) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(volume.title)
+                    .font(.subheadline.weight(isSelected ? .semibold : .regular))
+                    .foregroundStyle(palette.textPrimary)
+                if let chapter = volume.firstChapterTitle, !chapter.isEmpty {
+                    Text(chapter)
+                        .font(.caption)
+                        .foregroundStyle(palette.textSecondary)
+                        .lineLimit(1)
+                }
+            }
+            Spacer()
+            Text("\(volume.hadithCount)")
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(palette.textSecondary)
+            if isSelected {
+                Image(systemName: "checkmark")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Theme.accent)
+            }
+        }
     }
 }
 

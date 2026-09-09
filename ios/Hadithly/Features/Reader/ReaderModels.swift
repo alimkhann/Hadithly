@@ -62,13 +62,94 @@ struct ReaderPageResult: Decodable {
     var isPlaceholder: Bool { page == 0 }
 }
 
+struct OutlineChapter: Decodable, Identifiable, Equatable {
+    let chapterId: String?
+    let title: String
+    let arabicTitle: String?
+    let hadithCount: Int
+    let firstProviderHadithId: String
+
+    var id: String { chapterId ?? "\(title)|\(firstProviderHadithId)" }
+
+    init(
+        chapterId: String? = nil,
+        title: String,
+        arabicTitle: String? = nil,
+        hadithCount: Int,
+        firstProviderHadithId: String
+    ) {
+        self.chapterId = chapterId
+        self.title = title
+        self.arabicTitle = arabicTitle
+        self.hadithCount = hadithCount
+        self.firstProviderHadithId = firstProviderHadithId
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case chapterId, title, arabicTitle, hadithCount, firstProviderHadithId
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        chapterId = try container.decodeIfPresent(String.self, forKey: .chapterId)
+        title = try container.decode(String.self, forKey: .title)
+        arabicTitle = try container.decodeIfPresent(String.self, forKey: .arabicTitle)
+        hadithCount = try Self.decodeCount(container, key: .hadithCount)
+        firstProviderHadithId = try container.decode(String.self, forKey: .firstProviderHadithId)
+    }
+
+    /// Convex numbers arrive as Double; pre-R5 fixtures may carry Int.
+    private static func decodeCount(
+        _ container: KeyedDecodingContainer<CodingKeys>,
+        key: CodingKeys
+    ) throws -> Int {
+        if let int = try? container.decode(Int.self, forKey: key) { return int }
+        let double = try container.decode(Double.self, forKey: key)
+        return Int(double)
+    }
+}
+
 struct OutlineVolume: Decodable, Identifiable, Equatable {
     let volumeId: String
     let title: String
     let firstChapterTitle: String?
     let hadithCount: Int
+    /// Source-provided chapters (R5). Nil for outlines cached before R5;
+    /// those volumes keep rendering exactly as before.
+    let chapters: [OutlineChapter]?
 
     var id: String { volumeId }
+
+    init(
+        volumeId: String,
+        title: String,
+        firstChapterTitle: String? = nil,
+        hadithCount: Int,
+        chapters: [OutlineChapter]? = nil
+    ) {
+        self.volumeId = volumeId
+        self.title = title
+        self.firstChapterTitle = firstChapterTitle
+        self.hadithCount = hadithCount
+        self.chapters = chapters
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case volumeId, title, firstChapterTitle, hadithCount, chapters
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        volumeId = try container.decode(String.self, forKey: .volumeId)
+        title = try container.decode(String.self, forKey: .title)
+        firstChapterTitle = try container.decodeIfPresent(String.self, forKey: .firstChapterTitle)
+        if let int = try? container.decode(Int.self, forKey: .hadithCount) {
+            hadithCount = int
+        } else {
+            hadithCount = Int(try container.decode(Double.self, forKey: .hadithCount))
+        }
+        chapters = try container.decodeIfPresent([OutlineChapter].self, forKey: .chapters)
+    }
 }
 
 struct CollectionOutlineResult: Decodable {
@@ -144,6 +225,66 @@ enum TranslationFailure: Equatable {
         } else {
             self = .failed(message)
         }
+    }
+}
+
+/// R5 share/copy helpers. The canonical URL contract is
+/// `https://hadithly.app/hadith/{collectionSlug}/{providerHadithId}` (F3);
+/// validation reuses `CanonicalHadithLink.parse` so the builder and the
+/// inbound parser can never disagree.
+enum ReaderShare {
+    /// Builds the shareable canonical URL, or nil when the slug or hadith
+    /// id is malformed. Share sheets use only this URL — never a deep link
+    /// with private position data.
+    static func canonicalURL(collectionSlug: String, providerHadithId: String) -> URL? {
+        guard CanonicalHadithLink.parse(
+            collectionSlug: collectionSlug,
+            providerHadithId: providerHadithId
+        ) != nil else { return nil }
+        return URL(string: "https://hadithly.app/hadith/\(collectionSlug)/\(providerHadithId)")
+    }
+
+    static func canonicalURL(for hadith: ReaderHadith) -> URL? {
+        canonicalURL(
+            collectionSlug: hadith.collectionSlug,
+            providerHadithId: hadith.providerHadithId
+        )
+    }
+
+    /// Validates a jump-to-reference / hadith-number field against the same
+    /// provider-hadith-id pattern the canonical links enforce.
+    static func isValidReferenceNumber(_ number: String) -> Bool {
+        CanonicalHadithLink.parse(collectionSlug: "bukhari", providerHadithId: number) != nil
+    }
+
+    /// Formats copied text: the visible Arabic when shown, the visible
+    /// translation when shown, then a source line. The URL is never part of
+    /// copied text; the AI suffix appears only when the copied translation
+    /// itself is AI-generated.
+    static func copyText(
+        for hadith: ReaderHadith,
+        arabicVisible: Bool,
+        translationVisible: Bool,
+        translationText: String?,
+        translationIsAI: Bool
+    ) -> String {
+        var parts: [String] = []
+        if arabicVisible {
+            parts.append(hadith.arabicText)
+        }
+        if translationVisible,
+           let translation = translationText?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !translation.isEmpty {
+            parts.append(translation)
+        }
+        var sourceLine = "— \(hadith.collectionName) · Hadith \(hadith.providerHadithId) · \(hadith.authenticity.sourceName)"
+        let translationIncluded = translationVisible
+            && !(translationText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+        if translationIncluded && translationIsAI {
+            sourceLine += " · AI translation"
+        }
+        if parts.isEmpty { return sourceLine }
+        return parts.joined(separator: "\n\n") + "\n\n" + sourceLine
     }
 }
 

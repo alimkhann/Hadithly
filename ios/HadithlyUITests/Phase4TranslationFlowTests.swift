@@ -13,10 +13,11 @@ final class Phase4TranslationFlowTests: XCTestCase {
 
         openBukhariReader(app)
         chooseRussian(app)
-        scrollToContributionActions(app)
 
-        let report = app.buttons["reader.reportTranslation"].firstMatch
-        XCTAssertTrue(report.waitForExistence(timeout: timeout), "Stored translation never loaded")
+        // Slice A: Suggest/Report live only in the per-hadith long-press
+        // menu (the R5 ellipsis is deleted). Report appears only once the
+        // stored translation has loaded, so poll the menu until it does.
+        openMoreActionsWaitingForReport(app)
 
         app.buttons["reader.suggestTranslation"].firstMatch.tap()
         XCTAssertTrue(app.textViews["submission.editor"].waitForExistence(timeout: timeout))
@@ -27,7 +28,15 @@ final class Phase4TranslationFlowTests: XCTestCase {
         )
         takeScreenshot(named: "01-submission-verdict")
         app.buttons["Done"].tap()
+        // The verdict sheet must be gone before touching the reader:
+        // otherwise its editor still exists behind the reader page.
+        XCTAssertFalse(
+            app.textViews["submission.editor"].waitForExistence(timeout: 3),
+            "Submission sheet did not dismiss"
+        )
 
+        openMoreActions(app)
+        let report = app.buttons["reader.reportTranslation"].firstMatch
         XCTAssertTrue(report.waitForExistence(timeout: timeout))
         report.tap()
         let reportEditor = app.textViews["report.editor"]
@@ -92,14 +101,87 @@ final class Phase4TranslationFlowTests: XCTestCase {
         app.buttons["Done"].tap()
     }
 
-    private func scrollToContributionActions(_ app: XCUIApplication) {
-        scrollUntilHittable(app.buttons["reader.suggestTranslation"].firstMatch, in: app)
-        XCTAssertTrue(app.buttons["reader.suggestTranslation"].firstMatch.isHittable)
+    /// The reader restores the last saved position, so the first block in
+    /// the hierarchy may be far off-screen. This flow is hadith-agnostic:
+    /// any on-screen hadith works, so settle on whichever block is
+    /// reachable instead of assuming Hadith 1. Slice A deleted the R5
+    /// ellipsis, so reachability means hittable Arabic text to long-press.
+    private func hittableHadithText(_ app: XCUIApplication) -> XCUIElement? {
+        let query = app.staticTexts.matching(identifier: "reader.arabic")
+        for index in 0..<query.count {
+            let text = query.element(boundBy: index)
+            if text.isHittable {
+                return text
+            }
+        }
+        return nil
+    }
+
+    /// Brings some hadith block on screen without opening any menu, so the
+    /// polling loop below never scrolls while a menu is involved.
+    private func settleReaderOnAnyHadith(_ app: XCUIApplication) {
+        if hittableHadithText(app) != nil {
+            return
+        }
+        for _ in 0..<15 {
+            app.swipeDown()
+            if hittableHadithText(app) != nil {
+                return
+            }
+        }
+        for _ in 0..<15 {
+            app.swipeUp()
+            if hittableHadithText(app) != nil {
+                return
+            }
+        }
+        XCTFail("No hadith text reachable")
+    }
+
+    private func openMoreActions(_ app: XCUIApplication) {
+        guard let text = hittableHadithText(app) else {
+            takeScreenshot(named: "99-hadith-text-unhittable")
+            XCTFail("Hadith text never became hittable")
+            return
+        }
+        text.press(forDuration: 1.0)
+    }
+
+    /// Toggles an open context menu closed with a tap outside it.
+    private func dismissMoreActions(_ app: XCUIApplication) {
+        app.tap()
+    }
+
+    /// Opens the long-press menu and waits for the stored translation to
+    /// load, signaled by the Report item. Retries because an open menu
+    /// does not reliably gain items that arrive later: a menu opened
+    /// before the translation arrives may have no Report row. Never
+    /// scrolls while polling, so every attempt targets the same settled
+    /// block.
+    private func openMoreActionsWaitingForReport(_ app: XCUIApplication) {
+        settleReaderOnAnyHadith(app)
+        let deadline = Date().addingTimeInterval(timeout)
+        while true {
+            openMoreActions(app)
+            if app.buttons["reader.reportTranslation"].firstMatch.waitForExistence(timeout: 3) {
+                return
+            }
+            // The menu is still open but lacks Report: tap outside to
+            // dismiss it, then poll again once the translation may have
+            // arrived.
+            dismissMoreActions(app)
+            XCTAssertLessThan(Date(), deadline, "Stored translation never loaded")
+            Thread.sleep(forTimeInterval: 2)
+        }
     }
 
     private func scrollUntilHittable(_ element: XCUIElement, in app: XCUIApplication) {
         for _ in 0..<12 where !element.isHittable {
             app.swipeUp()
+        }
+        // The target may sit above the settled position; come back down.
+        for _ in 0..<24 where !element.isHittable {
+            app.swipeDown()
         }
     }
 

@@ -21,11 +21,35 @@ struct RootView: View {
 #endif
     }
 
+    private var isR5ContentsFixture: Bool {
+#if DEBUG
+        ProcessInfo.processInfo.arguments.contains("-R5ContentsFixture")
+#else
+        false
+#endif
+    }
+
+    private var isR6AReaderFixture: Bool {
+#if DEBUG
+        ProcessInfo.processInfo.arguments.contains("-R6AReaderFixture")
+#else
+        false
+#endif
+    }
+
     @ViewBuilder
     var body: some View {
         if isR3PagingFixture {
 #if DEBUG
             ReaderPagingTestFixtureView()
+#endif
+        } else if isR6AReaderFixture {
+#if DEBUG
+            ReaderR6ATestFixtureView()
+#endif
+        } else if isR5ContentsFixture {
+#if DEBUG
+            ReaderContentsTestFixtureView()
 #endif
         } else {
             productionRoot
