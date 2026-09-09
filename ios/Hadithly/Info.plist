@@ -43,6 +43,12 @@
 	<string>$(REVENUECAT_API_KEY)</string>
 	<key>TermsOfUseURL</key>
 	<string>$(TERMS_OF_USE_URL)</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Amiri-Regular.ttf</string>
+		<string>ScheherazadeNew-Regular.ttf</string>
+		<string>NotoNaskhArabic.ttf</string>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>

@@ -74,7 +74,18 @@ class ReaderViewModel(
     private var lastPositionUpdatedAt = 0.0
     private var lastCapturedAnchor: String? = null
     private var lastCapturedNormalizedOffset: Double? = null
+    private var lastStableAnchor: ReaderHadith? = null
+    private var lastStableRawPageOffset = 0.0
+    private var lastStableNormalizedOffset = 0.0
     var restoredPosition: ReadingPosition? = null
+        private set
+
+    /**
+     * Bumped every time the model re-issues restoration (layout-preference
+     * changes re-anchor the semantic position). The page keys its applied
+     * restoration on this so a preference change re-scrolls exactly once.
+     */
+    var restorationGeneration: Int = 0
         private set
     var landingHadithNumber: String? = null
         private set
@@ -427,12 +438,66 @@ class ReaderViewModel(
         val page = _state.value.pages.getOrNull(_state.value.pageIndex) ?: return
         val anchor = hadiths.getOrNull(leadingIndex) ?: return
         val clamped = normalizedOffset.coerceIn(0.0, 1.0)
+        lastStableAnchor = anchor
+        lastStableRawPageOffset = rawPageOffset.coerceAtLeast(0.0)
+        lastStableNormalizedOffset = clamped
         if (lastCapturedAnchor == anchor.internalId &&
             lastCapturedNormalizedOffset?.let { kotlin.math.abs(it - clamped) < 0.02 } == true
         ) return
         lastCapturedAnchor = anchor.internalId
         lastCapturedNormalizedOffset = clamped
         saveProgress(anchor, page, rawPageOffset.coerceAtLeast(0.0), clamped)
+    }
+
+    /** Compact top progress fraction (R4); null until the backend reports a total. */
+    fun compactProgressFraction(): Double? {
+        val total = totalPages() ?: return null
+        if (total <= 0) return null
+        return (_state.value.pageIndex + 1).toDouble() / total
+    }
+
+    /**
+     * Re-issues restoration against the current layout signature (R4). After
+     * a font, size, visibility, or locale change the raw offset is stale; the
+     * last stable semantic anchor recovers the exact position.
+     */
+    fun reanchorAfterLayoutChange() {
+        val s = _state.value
+        if (s.phase != Phase.Reading) return
+        val page = s.pages.getOrNull(s.pageIndex) ?: return
+        val anchor = lastStableAnchor ?: return
+        if (page.items.none { it._id == anchor._id }) return
+        val layout = readingLayout(page)
+        restoredPosition = ReadingPosition(
+            anchor = ReadingPositionAnchor(
+                provider = anchor.provider,
+                collectionSlug = anchor.collectionSlug,
+                providerHadithId = anchor.providerHadithId,
+            ),
+            contentVersion = page.contentVersion,
+            volumeId = anchor.volumeId ?: s.selectedVolumeId ?: "unknown",
+            chapterId = anchor.chapterId,
+            pageKey = page.pageKey,
+            displayPageIndex = page.page.coerceAtLeast(1.0),
+            rawPageOffset = lastStableRawPageOffset,
+            normalizedOffset = lastStableNormalizedOffset,
+            layoutSignature = layout.signature,
+            updatedAt = System.currentTimeMillis().toDouble(),
+        )
+        restorationGeneration += 1
+    }
+
+    private fun readingLayout(page: ReaderPageResult): ReadingLayout {
+        val preferences = app.preferences.preferences.value
+        return ReadingLayout(
+            locale = preferences.translationLocale,
+            arabicVisible = preferences.arabicVisible,
+            translationVisible = preferences.translationVisible,
+            arabicFontId = preferences.arabicFont.wire,
+            arabicFontSize = preferences.arabicFontSize.toDouble(),
+            widthClass = readingWidthClass,
+            paginationVersion = page.paginationVersion,
+        )
     }
 
     private fun saveProgress(
@@ -442,16 +507,7 @@ class ReaderViewModel(
         normalizedOffset: Double,
     ) {
         val s = _state.value
-        val preferences = app.preferences.preferences.value
-        val layout = ReadingLayout(
-            locale = preferences.translationLocale,
-            arabicVisible = preferences.arabicVisible,
-            translationVisible = preferences.translationVisible,
-            arabicFontId = preferences.arabicFont.wire,
-            arabicFontSize = preferences.arabicFontSize.toDouble(),
-            widthClass = readingWidthClass,
-            paginationVersion = page.paginationVersion,
-        )
+        val layout = readingLayout(page)
         val storedUpdatedAt = library.progressFor(collectionSlug)?.position?.updatedAt ?: 0.0
         val updatedAt = maxOf(
             System.currentTimeMillis().toDouble(),

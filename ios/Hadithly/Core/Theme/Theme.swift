@@ -33,8 +33,19 @@ enum Theme {
     static let destructive = Color(hex: "EF4444")
 
     // Typography
-    static func arabic(_ size: CGFloat) -> Font {
-        .system(size: size, weight: .medium)
+    /// Arabic reading face. `font` is a licensed id (docs/FONT_LICENSES.md);
+    /// unregistered faces degrade to the system fallback automatically.
+    static func arabic(_ size: CGFloat, _ font: ArabicFont = .system) -> Font {
+        switch font {
+        case .system:
+            .system(size: size, weight: .medium)
+        case .amiri:
+            .custom("Amiri-Regular", size: size)
+        case .scheherazadeNew:
+            .custom("ScheherazadeNew-Regular", size: size)
+        case .notoNaskhArabic:
+            .custom("NotoNaskhArabic-Regular", size: size)
+        }
     }
 }
 

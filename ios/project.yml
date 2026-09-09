@@ -49,6 +49,10 @@ targets:
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
+        UIAppFonts:
+          - Amiri-Regular.ttf
+          - ScheherazadeNew-Regular.ttf
+          - NotoNaskhArabic.ttf
         CFBundleURLTypes:
           - CFBundleURLName: com.hadithly.app
             CFBundleURLSchemes:

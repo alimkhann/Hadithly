@@ -93,6 +93,15 @@ enum ArabicFont: String, Codable, CaseIterable {
             self = .system
         }
     }
+
+    var displayName: String {
+        switch self {
+        case .system: "System"
+        case .amiri: "Amiri"
+        case .scheherazadeNew: "Scheherazade New"
+        case .notoNaskhArabic: "Noto Naskh Arabic"
+        }
+    }
 }
 
 enum HorizontalDirection {

@@ -40,9 +40,46 @@ data class HadithlyColors(
     val bookmark: Color = ThemeColors.Bookmark,
     val favorite: Color = ThemeColors.Favorite,
     val destructive: Color = ThemeColors.Destructive,
+    val divider: Color = ThemeColors.SurfaceElevated,
 )
 
 val LocalHadithlyColors = staticCompositionLocalOf { HadithlyColors() }
+
+/**
+ * Reader-scoped palettes (R4). The reader honors the F2 `ReaderTheme`
+ * preference: System follows the OS appearance; Light, Paper, and Dark are
+ * explicit. Mirrors ios/Hadithly/Core/Theme/ReaderPalette.swift.
+ */
+object ReaderPalettes {
+    val light = HadithlyColors(
+        background = Color(0xFFFFFFFF),
+        surface = Color(0xFFF4F4F2),
+        surfaceElevated = Color(0xFFE9E9E6),
+        textPrimary = Color(0xFF1C1C1E),
+        textSecondary = Color(0xFF6B6B70),
+        divider = Color(0xFFD9D9D6),
+    )
+
+    val paper = HadithlyColors(
+        background = Color(0xFFF6EFDF),
+        surface = Color(0xFFEFE6D0),
+        surfaceElevated = Color(0xFFE5DABE),
+        textPrimary = Color(0xFF33301F),
+        textSecondary = Color(0xFF7A7357),
+        divider = Color(0xFFD6C9A4),
+    )
+
+    val dark = HadithlyColors()
+
+    /** Resolves the stored preference against the current OS appearance. */
+    fun resolved(theme: com.hadithly.app.core.preferences.ReaderTheme, systemDark: Boolean): HadithlyColors =
+        when (theme) {
+            com.hadithly.app.core.preferences.ReaderTheme.SYSTEM -> if (systemDark) dark else light
+            com.hadithly.app.core.preferences.ReaderTheme.LIGHT -> light
+            com.hadithly.app.core.preferences.ReaderTheme.PAPER -> paper
+            com.hadithly.app.core.preferences.ReaderTheme.DARK -> dark
+        }
+}
 
 /**
  * The app's vertical rhythm. Auth screens and onboarding standardize on

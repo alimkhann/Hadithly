@@ -67,6 +67,39 @@ object ArabicFontSerializer : KSerializer<ArabicFont> {
 
 enum class PageDirection { RTL, LTR }
 
+enum class ReaderPageTurn { PREVIOUS, NEXT }
+
+enum class SwipeDirection { LEFT, RIGHT }
+
+data class ReaderPagingPolicy(val pageDirection: PageDirection) {
+    constructor(preferences: ReaderPreferences) : this(
+        ReaderPreferencesValidator.directionMetadata(preferences).pageDirection,
+    )
+
+    val reverseLayout: Boolean get() = pageDirection == PageDirection.RTL
+
+    fun turn(swipe: SwipeDirection): ReaderPageTurn = when (pageDirection to swipe) {
+        PageDirection.LTR to SwipeDirection.LEFT,
+        PageDirection.RTL to SwipeDirection.RIGHT -> ReaderPageTurn.NEXT
+        PageDirection.LTR to SwipeDirection.RIGHT,
+        PageDirection.RTL to SwipeDirection.LEFT -> ReaderPageTurn.PREVIOUS
+        else -> error("Unhandled page direction and swipe pair")
+    }
+
+    fun destination(index: Int, pageCount: Int, turn: ReaderPageTurn): Int? {
+        if (pageCount <= 0 || index !in 0 until pageCount) return null
+        val candidate = if (turn == ReaderPageTurn.NEXT) index + 1 else index - 1
+        return candidate.takeIf { it in 0 until pageCount }
+    }
+
+    val endControlOrder: List<ReaderPageTurn>
+        get() = if (pageDirection == PageDirection.LTR) {
+            listOf(ReaderPageTurn.PREVIOUS, ReaderPageTurn.NEXT)
+        } else {
+            listOf(ReaderPageTurn.NEXT, ReaderPageTurn.PREVIOUS)
+        }
+}
+
 /** Direction metadata consumed by R3 paging and R4 layout. */
 data class DirectionMetadata(
     val pageDirection: PageDirection,
@@ -101,7 +134,24 @@ data class ReaderPreferences(
         const val SCHEMA_VERSION = 1
         const val MIN_ARABIC_FONT_SIZE = 18f
         const val MAX_ARABIC_FONT_SIZE = 40f
+        const val DEFAULT_ARABIC_FONT_SIZE = 26f
+
+        /** The accessible Arabic type ladder behind the A−/A+ stepper. */
+        val ARABIC_FONT_SIZE_STEPS = listOf(18f, 22f, 26f, 30f, 34f, 40f)
     }
+
+    /**
+     * The layout-affecting projection used to recompute the layout signature
+     * and re-anchor the semantic position when reading preferences change.
+     */
+    val layoutProjection: String
+        get() = listOf(
+            translationLocale,
+            if (arabicVisible) "1" else "0",
+            if (translationVisible) "1" else "0",
+            arabicFont.wire,
+            (arabicFontSize * 1000).toInt().toString(),
+        ).joinToString("|")
 }
 
 object ReaderPreferencesValidator {
@@ -149,9 +199,23 @@ object ReaderPreferencesValidator {
     }
 }
 
+/** Step helpers over the accessible Arabic type ladder. */
+object ArabicTypeSize {
+    fun nearest(size: Float): Float =
+        ReaderPreferences.ARABIC_FONT_SIZE_STEPS.minByOrNull { kotlin.math.abs(it - size) }
+            ?: ReaderPreferences.DEFAULT_ARABIC_FONT_SIZE
+
+    fun stepUp(size: Float): Float =
+        ReaderPreferences.ARABIC_FONT_SIZE_STEPS.firstOrNull { it > size + 0.5f }
+            ?: ReaderPreferences.MAX_ARABIC_FONT_SIZE
+
+    fun stepDown(size: Float): Float =
+        ReaderPreferences.ARABIC_FONT_SIZE_STEPS.lastOrNull { it < size - 0.5f }
+            ?: ReaderPreferences.MIN_ARABIC_FONT_SIZE
+}
+
 /** Convex wire encoding. All numbers travel as Double. */
-fun ReaderPreferences.toWireMap(): Map<String, Any?> = mapOf(
-    "schemaVersion" to schemaVersion.toDouble(),
+fun ReaderPreferences.toWireMap(): Map<String, Any?> = mapOf(    "schemaVersion" to schemaVersion.toDouble(),
     "uiLocale" to uiLocale,
     "translationLocale" to translationLocale,
     "readingDirection" to readingDirection.wire,

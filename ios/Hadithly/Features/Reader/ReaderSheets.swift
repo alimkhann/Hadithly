@@ -2,6 +2,8 @@ import SwiftUI
 
 /// Volume index for the current collection, served from the cached outline.
 struct CollectionOutlineSheet: View {
+    @Environment(\.readerPalette) private var palette
+    @Environment(\.readerTheme) private var readerTheme
     let model: ReaderModel
     @Environment(\.dismiss) private var dismiss
 
@@ -11,10 +13,10 @@ struct CollectionOutlineSheet: View {
                 if model.volumes.isEmpty {
                     VStack(spacing: 10) {
                         ProgressView()
-                            .tint(Theme.textSecondary)
+                            .tint(palette.textSecondary)
                         Text("Building the index…")
                             .font(.caption)
-                            .foregroundStyle(Theme.textSecondary)
+                            .foregroundStyle(palette.textSecondary)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
@@ -29,7 +31,7 @@ struct CollectionOutlineSheet: View {
                     }
                 }
             }
-            .background(Theme.background)
+            .background(palette.background)
             .navigationTitle(model.collectionName)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -39,7 +41,7 @@ struct CollectionOutlineSheet: View {
                 }
             }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
     }
 
     private func volumeRow(_ volume: OutlineVolume) -> some View {
@@ -52,18 +54,18 @@ struct CollectionOutlineSheet: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(volume.title)
                         .font(.subheadline.weight(isSelected ? .semibold : .regular))
-                        .foregroundStyle(Theme.textPrimary)
+                        .foregroundStyle(palette.textPrimary)
                     if let chapter = volume.firstChapterTitle, !chapter.isEmpty {
                         Text(chapter)
                             .font(.caption)
-                            .foregroundStyle(Theme.textSecondary)
+                            .foregroundStyle(palette.textSecondary)
                             .lineLimit(1)
                     }
                 }
                 Spacer()
                 Text("\(volume.hadithCount)")
                     .font(.caption.monospacedDigit())
-                    .foregroundStyle(Theme.textSecondary)
+                    .foregroundStyle(palette.textSecondary)
                 if isSelected {
                     Image(systemName: "checkmark")
                         .font(.caption.weight(.semibold))
@@ -72,7 +74,7 @@ struct CollectionOutlineSheet: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(isSelected ? Theme.accentSoft : Theme.surface)
+            .background(isSelected ? Theme.accentSoft : palette.surface)
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
@@ -80,23 +82,30 @@ struct CollectionOutlineSheet: View {
     }
 }
 
-/// Reader settings: translation language and Arabic type size.
+/// Reader settings (R4): visibility, theme, Arabic face and size with a live
+/// preview, and the translation language. Direct controls, close to the text;
+/// account and global settings stay in the Settings tab.
 struct ReaderSettingsSheet: View {
     let model: ReaderModel
-    @Binding var arabicFontSize: Double
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.readerPalette) private var palette
+    @Environment(\.readerTheme) private var readerTheme
     @Environment(AppEnvironment.self) private var environment
+
+    private var preferences: ReaderPreferences { environment.preferences.preferences }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 12) {
+                    visibilityCard
+                    themeCard
+                    typeCard
                     languageCard
-                    typeSizeCard
                 }
                 .padding(16)
             }
-            .background(Theme.background)
+            .background(palette.background)
             .navigationTitle("Reader settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -106,17 +115,243 @@ struct ReaderSettingsSheet: View {
                 }
             }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
     }
+
+    // MARK: Visibility
+
+    private var visibilityCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label("Show on page", systemImage: "eye")
+                .font(.headline)
+                .foregroundStyle(palette.textPrimary)
+
+            HStack(spacing: 10) {
+                visibilityPill(
+                    title: "Arabic",
+                    isOn: preferences.arabicVisible,
+                    identifier: "reader.visibility.arabic"
+                ) {
+                    _ = environment.preferences.setVisibility(
+                        arabic: !preferences.arabicVisible,
+                        translation: nil
+                    )
+                }
+                visibilityPill(
+                    title: "Translation",
+                    isOn: preferences.translationVisible,
+                    identifier: "reader.visibility.translation"
+                ) {
+                    _ = environment.preferences.setVisibility(
+                        arabic: nil,
+                        translation: !preferences.translationVisible
+                    )
+                }
+            }
+
+            Text("At least one text layer stays visible.")
+                .font(.caption)
+                .foregroundStyle(palette.textSecondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .background(palette.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    private func visibilityPill(
+        title: String,
+        isOn: Bool,
+        identifier: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button {
+            action()
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: isOn ? "checkmark.circle.fill" : "circle")
+                Text(title)
+            }
+            .font(.subheadline.weight(.medium))
+            .foregroundStyle(isOn ? Theme.accent : palette.textSecondary)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity)
+            .background(isOn ? Theme.accentSoft : palette.surfaceElevated)
+            .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(title) visibility, \(isOn ? "on" : "off")")
+        .accessibilityHint(isOn ? "Turns off unless it is the last visible layer" : "Shows this layer")
+        .accessibilityIdentifier(identifier)
+    }
+
+    // MARK: Theme
+
+    private var themeCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label("Color theme", systemImage: "circle.lefthalf.filled")
+                .font(.headline)
+                .foregroundStyle(palette.textPrimary)
+
+            HStack(spacing: 8) {
+                ForEach(ReaderTheme.allCases, id: \.self) { theme in
+                    themeButton(theme)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .background(palette.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    private func themeButton(_ theme: ReaderTheme) -> some View {
+        let isSelected = preferences.theme == theme
+        let swatch = ReaderPalette.resolved(theme, systemDark: true)
+        return Button {
+            environment.preferences.setTheme(theme)
+        } label: {
+            VStack(spacing: 6) {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(swatch.background)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .strokeBorder(
+                                isSelected ? Theme.accent : palette.divider,
+                                lineWidth: isSelected ? 2 : 1
+                            )
+                    )
+                    .frame(height: 34)
+                Text(theme == .system ? "System" : theme == .light ? "Light" : theme == .paper ? "Paper" : "Dark")
+                    .font(.caption2.weight(.medium))
+                    .foregroundStyle(isSelected ? Theme.accent : palette.textSecondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(6)
+            .background(isSelected ? Theme.accentSoft : Color.clear)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Color theme \(theme == .system ? "System" : theme == .light ? "Light" : theme == .paper ? "Paper" : "Dark")")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .accessibilityIdentifier("reader.theme.\(theme.rawValue)")
+    }
+
+    // MARK: Arabic type
+
+    private var typeCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("Arabic type", systemImage: "textformat.size")
+                .font(.headline)
+                .foregroundStyle(palette.textPrimary)
+
+            Text("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ")
+                .font(Theme.arabic(preferences.arabicFontSize, preferences.arabicFont))
+                .lineSpacing(preferences.arabicFontSize * 0.75)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(palette.textPrimary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(palette.surfaceElevated)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .accessibilityLabel("Arabic type preview")
+                .accessibilityIdentifier("reader.typePreview")
+
+            sizeStepper
+
+            ForEach(ArabicFont.allCases, id: \.rawValue) { font in
+                fontRow(font)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .background(palette.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    private var sizeStepper: some View {
+        HStack(spacing: 12) {
+            Button {
+                environment.preferences.setArabicFontSize(
+                    ArabicTypeSize.stepDown(from: preferences.arabicFontSize)
+                )
+            } label: {
+                Text("A")
+                    .font(.subheadline.weight(.semibold))
+                    .frame(maxWidth: .infinity, minHeight: 44)
+                    .background(palette.surfaceElevated)
+                    .clipShape(Capsule())
+            }
+            .buttonStyle(.plain)
+            .disabled(preferences.arabicFontSize <= ReaderPreferences.minArabicFontSize)
+            .accessibilityLabel("Smaller Arabic type")
+            .accessibilityIdentifier("reader.sizeSmaller")
+
+            Text("\(Int(preferences.arabicFontSize)) pt")
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(palette.textSecondary)
+
+            Button {
+                environment.preferences.setArabicFontSize(
+                    ArabicTypeSize.stepUp(from: preferences.arabicFontSize)
+                )
+            } label: {
+                Text("A")
+                    .font(.title3.weight(.semibold))
+                    .frame(maxWidth: .infinity, minHeight: 44)
+                    .background(palette.surfaceElevated)
+                    .clipShape(Capsule())
+            }
+            .buttonStyle(.plain)
+            .disabled(preferences.arabicFontSize >= ReaderPreferences.maxArabicFontSize)
+            .accessibilityLabel("Larger Arabic type")
+            .accessibilityIdentifier("reader.sizeLarger")
+        }
+    }
+
+    private func fontRow(_ font: ArabicFont) -> some View {
+        let isSelected = preferences.arabicFont == font
+        return Button {
+            environment.preferences.setArabicFont(font)
+        } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("بِسْمِ اللَّهِ")
+                        .font(Theme.arabic(20, font))
+                        .foregroundStyle(palette.textPrimary)
+                    Text(font.displayName)
+                        .font(.caption2)
+                        .foregroundStyle(palette.textSecondary)
+                }
+                Spacer()
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Theme.accent)
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(isSelected ? Theme.accentSoft : palette.surfaceElevated)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Arabic font \(font.displayName)")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .accessibilityIdentifier("reader.font.\(font.rawValue)")
+    }
+
+    // MARK: Language
 
     private var languageCard: some View {
         VStack(alignment: .leading, spacing: 10) {
             Label("Translation language", systemImage: "globe")
                 .font(.headline)
-                .foregroundStyle(Theme.textPrimary)
+                .foregroundStyle(palette.textPrimary)
             Text("AI translations are labeled and grounded in cited sources.")
                 .font(.caption)
-                .foregroundStyle(Theme.textSecondary)
+                .foregroundStyle(palette.textSecondary)
 
             ForEach(SupportedLanguages.all) { language in
                 Button {
@@ -126,7 +361,7 @@ struct ReaderSettingsSheet: View {
                     HStack {
                         Text(language.name)
                             .font(.subheadline)
-                            .foregroundStyle(Theme.textPrimary)
+                            .foregroundStyle(palette.textPrimary)
                         Spacer()
                         if model.language == language.code {
                             Image(systemName: "checkmark")
@@ -136,7 +371,7 @@ struct ReaderSettingsSheet: View {
                     }
                     .padding(.horizontal, 14)
                     .padding(.vertical, 11)
-                    .background(model.language == language.code ? Theme.accentSoft : Theme.surface)
+                    .background(model.language == language.code ? Theme.accentSoft : palette.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
                 .buttonStyle(.plain)
@@ -145,38 +380,7 @@ struct ReaderSettingsSheet: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
-        .background(Theme.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-    }
-
-    private var typeSizeCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label("Arabic type size", systemImage: "textformat.size")
-                .font(.headline)
-                .foregroundStyle(Theme.textPrimary)
-
-            HStack(spacing: 12) {
-                Text("أ")
-                    .font(Theme.arabic(15))
-                    .foregroundStyle(Theme.textSecondary)
-                Slider(
-                    value: $arabicFontSize,
-                    in: 18...40,
-                    step: 1
-                ) { }
-                    .tint(Theme.accent)
-                Text("أ")
-                    .font(Theme.arabic(28))
-                    .foregroundStyle(Theme.textSecondary)
-            }
-
-            Text("\(Int(arabicFontSize)) pt")
-                .font(.caption.monospacedDigit())
-                .foregroundStyle(Theme.textSecondary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .background(Theme.surface)
+        .background(palette.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 }
@@ -184,6 +388,8 @@ struct ReaderSettingsSheet: View {
 /// Citations behind an AI translation. Every AI translation is labeled and
 /// grounded; this sheet shows where its claims come from.
 struct TranslationCitationsSheet: View {
+    @Environment(\.readerPalette) private var palette
+    @Environment(\.readerTheme) private var readerTheme
     let translation: ReaderTranslation
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
@@ -194,7 +400,7 @@ struct TranslationCitationsSheet: View {
                 VStack(alignment: .leading, spacing: 16) {
                     Text(translation.translation)
                         .font(.subheadline)
-                        .foregroundStyle(Theme.textPrimary)
+                        .foregroundStyle(palette.textPrimary)
                         .lineSpacing(5)
 
                     if let reference = translation.sourceReferenceUrl, let url = URL(string: reference) {
@@ -213,12 +419,12 @@ struct TranslationCitationsSheet: View {
                         .buttonStyle(.plain)
                     }
 
-                    Divider().overlay(Theme.surfaceElevated)
+                    Divider().overlay(palette.divider)
 
                     if translation.citations.isEmpty {
                         Text("No external sources were cited for this translation.")
                             .font(.caption)
-                            .foregroundStyle(Theme.textSecondary)
+                            .foregroundStyle(palette.textSecondary)
                     } else {
                         ForEach(Array(translation.citations.enumerated()), id: \.offset) { index, citation in
                             citationRow(index: index + 1, citation: citation)
@@ -227,12 +433,12 @@ struct TranslationCitationsSheet: View {
 
                     Text("This translation was generated by AI (\(translation.aiModel ?? "model unavailable")). It is not an authoritative rendering; verify important meanings against a qualified source.")
                         .font(.caption2)
-                        .foregroundStyle(Theme.textSecondary)
+                        .foregroundStyle(palette.textSecondary)
                         .padding(.top, 4)
                 }
                 .padding(20)
             }
-            .background(Theme.background)
+            .background(palette.background)
             .navigationTitle("AI sources")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -242,7 +448,7 @@ struct TranslationCitationsSheet: View {
                 }
             }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
     }
 
     private func citationRow(index: Int, citation: ReaderCitation) -> some View {
@@ -254,12 +460,12 @@ struct TranslationCitationsSheet: View {
             HStack(alignment: .top, spacing: 12) {
                 Text("\(index)")
                     .font(.caption.monospacedDigit())
-                    .foregroundStyle(Theme.textSecondary)
+                    .foregroundStyle(palette.textSecondary)
                     .frame(width: 20)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(citation.title ?? citation.url)
                         .font(.footnote)
-                        .foregroundStyle(Theme.textPrimary)
+                        .foregroundStyle(palette.textPrimary)
                         .multilineTextAlignment(.leading)
                     if let domain = citation.domain {
                         Text(domain)
@@ -270,7 +476,7 @@ struct TranslationCitationsSheet: View {
                 Spacer()
                 Image(systemName: "arrow.up.right")
                     .font(.caption2)
-                    .foregroundStyle(Theme.textSecondary)
+                    .foregroundStyle(palette.textSecondary)
             }
             .padding(.vertical, 4)
         }
@@ -281,6 +487,8 @@ struct TranslationCitationsSheet: View {
 /// Contextual contribution flow for the hadith currently on screen. The
 /// proposal is reviewed by AI first and is never published without an admin.
 struct TranslationSubmissionSheet: View {
+    @Environment(\.readerPalette) private var palette
+    @Environment(\.readerTheme) private var readerTheme
     let model: ReaderModel
     let hadith: ReaderHadith
     let existingTranslation: ReaderTranslation?
@@ -316,17 +524,17 @@ struct TranslationSubmissionSheet: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Theme.background)
+            .background(palette.background)
             .navigationTitle(result == nil ? "Suggest a translation" : "AI review")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button(result == nil ? "Cancel" : "Done") { dismiss() }
-                        .foregroundStyle(Theme.textSecondary)
+                        .foregroundStyle(palette.textSecondary)
                 }
             }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
     }
 
     private var submissionForm: some View {
@@ -335,31 +543,31 @@ struct TranslationSubmissionSheet: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(hadith.referenceDisplay)
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Theme.textPrimary)
+                        .foregroundStyle(palette.textPrimary)
                     Text(languageName)
                         .font(.caption)
-                        .foregroundStyle(Theme.textSecondary)
+                        .foregroundStyle(palette.textSecondary)
                 }
 
                 Text("Write the clearest faithful rendering you can. AI checks meaning and terminology; an admin decides whether it is published.")
                     .font(.caption)
-                    .foregroundStyle(Theme.textSecondary)
+                    .foregroundStyle(palette.textSecondary)
 
                 TextEditor(text: $content)
                     .focused($isFocused)
                     .font(.body)
-                    .foregroundStyle(Theme.textPrimary)
+                    .foregroundStyle(palette.textPrimary)
                     .scrollContentBackground(.hidden)
                     .padding(10)
                     .frame(minHeight: 230)
-                    .background(Theme.surface)
+                    .background(palette.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .accessibilityIdentifier("submission.editor")
 
                 if let errorMessage {
                     Text(errorMessage)
                         .font(.caption)
-                        .foregroundStyle(Theme.textSecondary)
+                        .foregroundStyle(palette.textSecondary)
                         .accessibilityIdentifier("submission.error")
                 }
 
@@ -373,8 +581,8 @@ struct TranslationSubmissionSheet: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(canSubmit ? Theme.accent : Theme.surfaceElevated)
-                    .foregroundStyle(canSubmit ? .black : Theme.textSecondary)
+                    .background(canSubmit ? Theme.accent : palette.surfaceElevated)
+                    .foregroundStyle(canSubmit ? .black : palette.textSecondary)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 .buttonStyle(.plain)
@@ -391,13 +599,13 @@ struct TranslationSubmissionSheet: View {
         VStack(spacing: 12) {
             Image(systemName: "person.crop.circle.badge.questionmark")
                 .font(.title2)
-                .foregroundStyle(Theme.textSecondary)
+                .foregroundStyle(palette.textSecondary)
             Text("Sign in to contribute a translation.")
                 .font(.headline)
-                .foregroundStyle(Theme.textPrimary)
+                .foregroundStyle(palette.textPrimary)
             Text("You can sign in from Settings, then return to this hadith.")
                 .font(.caption)
-                .foregroundStyle(Theme.textSecondary)
+                .foregroundStyle(palette.textSecondary)
                 .multilineTextAlignment(.center)
         }
         .padding(32)
@@ -414,33 +622,33 @@ struct TranslationSubmissionSheet: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(verdictTitle(for: submission))
                             .font(.headline)
-                            .foregroundStyle(Theme.textPrimary)
+                            .foregroundStyle(palette.textPrimary)
                         Text(verdictMessage(for: submission))
                             .font(.subheadline)
-                            .foregroundStyle(Theme.textSecondary)
+                            .foregroundStyle(palette.textSecondary)
                     }
                 }
 
                 if submission.aiReview.reviewNotes.isEmpty {
                     Text("The review found no specific meaning or terminology issues.")
                         .font(.caption)
-                        .foregroundStyle(Theme.textSecondary)
+                        .foregroundStyle(palette.textSecondary)
                 } else {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Review notes")
                             .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(Theme.textPrimary)
+                            .foregroundStyle(palette.textPrimary)
                         ForEach(Array(submission.aiReview.reviewNotes.enumerated()), id: \.offset) { _, note in
                             Text("• \(note)")
                                 .font(.caption)
-                                .foregroundStyle(Theme.textSecondary)
+                                .foregroundStyle(palette.textSecondary)
                         }
                     }
                 }
 
                 Text("Reviewed by \(submission.aiReview.model). AI review is advisory; only an admin can publish a contribution.")
                     .font(.caption2)
-                    .foregroundStyle(Theme.textSecondary.opacity(0.8))
+                    .foregroundStyle(palette.textSecondary.opacity(0.8))
 
                 if submission.status == "rejected" {
                     Button("Revise proposal") {
@@ -513,6 +721,8 @@ struct TranslationSubmissionSheet: View {
 
 /// Private report path for the currently displayed stored translation.
 struct TranslationReportSheet: View {
+    @Environment(\.readerPalette) private var palette
+    @Environment(\.readerTheme) private var readerTheme
     let model: ReaderModel
     let translation: ReaderTranslation
     let referenceDisplay: String
@@ -534,10 +744,10 @@ struct TranslationReportSheet: View {
                             .foregroundStyle(Theme.accent)
                         Text("Report sent privately")
                             .font(.headline)
-                            .foregroundStyle(Theme.textPrimary)
+                            .foregroundStyle(palette.textPrimary)
                         Text("An admin can review the translation and your note.")
                             .font(.caption)
-                            .foregroundStyle(Theme.textSecondary)
+                            .foregroundStyle(palette.textSecondary)
                     }
                     .padding(32)
                     .accessibilityIdentifier("report.confirmation")
@@ -545,24 +755,24 @@ struct TranslationReportSheet: View {
                     VStack(alignment: .leading, spacing: 14) {
                         Text(referenceDisplay)
                             .font(.caption)
-                            .foregroundStyle(Theme.textSecondary)
+                            .foregroundStyle(palette.textSecondary)
                         Text("Describe a meaning, wording, or attribution concern. Reports are private and are not votes or ratings.")
                             .font(.caption)
-                            .foregroundStyle(Theme.textSecondary)
+                            .foregroundStyle(palette.textSecondary)
                         TextEditor(text: $reason)
                             .focused($isFocused)
                             .font(.body)
-                            .foregroundStyle(Theme.textPrimary)
+                            .foregroundStyle(palette.textPrimary)
                             .scrollContentBackground(.hidden)
                             .padding(10)
                             .frame(minHeight: 130)
-                            .background(Theme.surface)
+                            .background(palette.surface)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                             .accessibilityIdentifier("report.editor")
                         if let errorMessage {
                             Text(errorMessage)
                                 .font(.caption)
-                                .foregroundStyle(Theme.textSecondary)
+                                .foregroundStyle(palette.textSecondary)
                         }
                         Button {
                             Task { await submit() }
@@ -571,8 +781,8 @@ struct TranslationReportSheet: View {
                                 .font(.subheadline.weight(.semibold))
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 13)
-                                .background(canSubmit ? Theme.accent : Theme.surfaceElevated)
-                                .foregroundStyle(canSubmit ? .black : Theme.textSecondary)
+                                .background(canSubmit ? Theme.accent : palette.surfaceElevated)
+                                .foregroundStyle(canSubmit ? .black : palette.textSecondary)
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
                         }
                         .buttonStyle(.plain)
@@ -583,7 +793,7 @@ struct TranslationReportSheet: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Theme.background)
+            .background(palette.background)
             .navigationTitle("Report translation")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -593,7 +803,7 @@ struct TranslationReportSheet: View {
                 }
             }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
         .onAppear { isFocused = true }
     }
 

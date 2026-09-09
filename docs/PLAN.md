@@ -4,10 +4,13 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-09-08. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-09-09. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
-D2, F1, F2, F3, and R1 are complete. D3A's operational Apple and RevenueCat work is complete,
-while its legal, compliance, and iOS sandbox handoffs remain open. D3G is
+D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its
+simulator/emulator and unit gates; its physical-device gate is open. R4's
+named Terra high review passed. D3A's operational Apple and
+RevenueCat work is complete, while its legal, compliance, and iOS sandbox
+handoffs remain open. D3G is
 explicitly deferred by the owner until a Play Console developer account is
 available. Full D3 cannot pass until both release subgates pass, but neither
 D3 subgate blocks F1 or most product-work branches.
@@ -16,9 +19,11 @@ auth, and the username contract is now: optional, auto-generated from the
 email local part at password sign-up, editable in Settings. The Android FCM
 device-push re-test deferred from D1 folds into D4's physical-device matrix.
 
-Current next session: R2. Do not start D4 until the D3A release handoffs and D3G
-pass. Keep store, sandbox, and submission work on the release track while the
-feature track builds the product.
+Current next session: the still-open R3 physical-device matrix. R5 waits for
+that gate. Do not
+start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
+submission work on the release track while the feature track builds the
+product.
 
 ## Read the plan in layers
 
@@ -589,6 +594,151 @@ substantive: they own bounded implementation outcomes, not just inventories.
   Production, dashboards, credentials, stores, and release state were not
   touched.
 - Next allowed session: R2. This task stopped before R2.
+
+### R2 session record (2026-09-09)
+
+- Outcome: complete in `7ff3a39`. Continue Reading and Saved restore a stored
+  semantic anchor and normalized offset. Today, links, and notification targets
+  open at the requested hadith start unless they carry a valid private
+  position.
+- Clients: both readers save after the initial target resolves, after stable
+  scroll changes, after page changes, and on close. Android ignores the pager's
+  synthetic first emission during a deep-link landing. Both clients preserve
+  signed-out reading and the source-aware close path.
+- Evidence refreshed before R3: all pre-R3 iOS and Android unit tests passed.
+  Canonical links opened Bukhari 57 on Volume 2, page 12 in both installed
+  clients. R3 extends the same position path for very long hadiths.
+- Backend and external state: R2 added no schema change. Production,
+  dashboards, credentials, and stores did not change.
+- Next allowed session: R3.
+
+### R3 session record (2026-09-09)
+
+- Outcome: implementation complete. The physical-device gate remains open.
+  Do not start R4 until both physical clients pass the R3 matrix.
+- Root cause: iOS treated every left swipe as forward, while Android used the
+  pager's default physical order. Neither client connected F2 direction
+  metadata to paging. The iOS offset capture also inferred the final hadith's
+  height from a missing next anchor.
+- Direction contract: one logical policy per client resolves `auto`, `rtl`, and
+  `ltr`. A left swipe moves to the previous page in RTL and to the next page in
+  LTR. Previous and next stay logical accessibility actions. End controls swap
+  physical order and arrow direction in RTL.
+- Reading behavior: Arabic-only pages resolve to RTL in `auto` mode.
+  Translation-only and mixed pages follow the translation locale. Each Arabic
+  block keeps local RTL layout. Both clients now honor the existing Arabic and
+  translation visibility preferences in the reader.
+- iOS: `ReaderPagingPanHandler` observes the window without cancelling the
+  vertical `ScrollView`. It accepts either a settled horizontal distance or a
+  short high-velocity flick, ignores vertical and cancelled gestures, and
+  removes itself on teardown. Position capture uses each hadith's measured
+  height. Restoration converts the normalized intra-hadith offset with the
+  measured item and viewport heights.
+- Android: `DirectionAwareHorizontalPager` fixes its local layout direction and
+  uses `reverseLayout` only for RTL page flow. The nested `LazyColumn` remains
+  the native vertical scroller. The end controls and pager expose logical
+  accessibility actions.
+- Backend: `chunkReaderHadiths` did not change. New fixtures prove deterministic
+  source order, the 5,200-character boundary, the ten-item cap, and one intact
+  page for a single hadith longer than the target size.
+- Automated evidence: backend typecheck and 73 tests passed. All 76 iOS unit
+  tests passed. Five focused iOS gesture tests and four simulator UI tests
+  covered the full direction and visibility matrix, velocity, cancellation,
+  one-line pages, long pages, boundaries, end controls, and vertical scrolling.
+  All 60 Android unit tests passed. Six Android 16 emulator tests drove the
+  production pager for LTR, RTL, velocity, cancellation, a nested long-page
+  scroll, boundaries, and accessibility controls.
+- Runtime evidence: both installed clients opened Bukhari 57 on Volume 2,
+  page 12. The Android reader moved backward to page 11 on a right swipe in LTR
+  and remained on page 11 after a vertical swipe.
+- Open gate: Xcode lists the paired iPhone, but the physical UI run timed out
+  because the device was unavailable for preparation. Unlock and attach the
+  iPhone by cable, or enable its local-network Developer Mode connection.
+  `adb devices -l` reports only the Android emulator. Run the same fixture and
+  installed-reader matrix on both physical devices, then record the result
+  here. No R4 code has started.
+
+### R4 session record (2026-09-09)
+
+- Outcome: implementation and named Terra high review complete on both
+  clients. The owner directed this session to proceed despite R3's
+  physical-device gate still being open, so that gate remains recorded above
+  and still requires its physical-device matrix.
+- All 16 Sajda reference images were opened at original detail before code;
+  the ten R4-mapped images drove the implemented behaviors: revealed chrome
+  with expanded progress, compact thin progress while reading, source-provided
+  chapter openings, minimal hadith dividers, System/Light/Paper/Dark themes,
+  a focused type sheet with live preview and A−/A+ size steps, visibility
+  pills, and direction-aware end controls.
+- Themes: reader-scoped `ReaderPalette` (iOS environment values, Android
+  CompositionLocal) resolves the F2 `ReaderTheme` preference against the OS
+  appearance. Every reader surface — page, chrome, sheets, note editor —
+  follows the palette; the rest of the app keeps its dark canvas. System
+  follows light/dark; Light, Paper, and Dark are fixed palettes.
+- Typography: Amiri, Scheherazade New, and Noto Naskh Arabic (all SIL OFL 1.1)
+  are bundled on both platforms with the license text attached beside the
+  binaries; records re-verified 2026-09-09 in `docs/FONT_LICENSES.md`. The
+  reader settings sheet offers the four faces with a live preview and an
+  A−/A+ ladder (18/22/26/30/34/40 pt). Dynamic Type and Android font scaling
+  continue to govern UI text; the Arabic face uses the preference size.
+- Chrome and progress: with chrome hidden, a thin top progress bar shows the
+  page fraction (a11y-hidden; the expanded pill carries the description);
+  revealing the chrome shows the top bar and expanded page/volume pills. Page
+  turns snap under Reduce Motion (iOS `accessibilityReduceMotion`, Android
+  animator-duration-scale 0).
+- Boundaries and dividers: `ReaderChapterBoundaries` renders a strong chapter
+  header only for source-provided `chapterName` transitions — Hadithly never
+  invents a chapter. The numbered medallion became a quiet reference label,
+  and hadiths separate with restrained hairlines instead of cards.
+- Visibility: reader settings offers Arabic and Translation pills on both
+  platforms; the store rejects hiding the last visible layer (F2 contract),
+  and the UI surfaces that rule.
+- Position recovery: `reanchorAfterLayoutChange` (both platforms) rebuilds
+  restoration from the last stable semantic anchor against the recomputed
+  layout signature after any font, size, visibility, or translation-locale
+  change; the page keys its applied restoration on a generation counter so
+  the re-scroll happens exactly once. Theme and direction do not touch the
+  layout signature.
+- Files: iOS — `ReaderPalette.swift`, `ReaderChapterBoundaries.swift`,
+  `ReaderView.swift`, `ReaderSheets.swift`, `ReaderModel.swift`,
+  `Theme.swift`, `ReaderPreferences.swift`, `Info.plist`, fonts under
+  `Resources/Fonts/`, fixture extended with R4 variables; Android —
+  `Theme.kt`, `ArabicTypefaces.kt`, `ReaderChapterBoundaries.kt`,
+  `ReaderScreen.kt`, `ReaderViewModel.kt`, `ReaderPreferences.kt`,
+  `ReaderTypographicFixture.kt`, `MainActivity.kt`, fonts under `res/font`
+  plus `assets/font-licenses/`.
+- Tests: backend untouched (no schema, API, or migration change). iOS 86/86
+  unit tests (10 new in `ReaderR4Tests`) and 5/5 UI tests including the new
+  `testR4LanguageThemeAndAccessibilityMatrix` (en/ar/ur × four themes with
+  revealed chrome, compact chrome, and large-content cases) on the Adat
+  iPhone 17 Pro simulator. Android unit tests pass with JDK 21 (8 new in
+  `ReaderR4Test`) and the R3 instrumentation suite passes on the hadithly
+  emulator. A screenshot matrix (fixture-driven, 3 languages × 4 themes per
+  platform) was captured locally; it exposed and fixed one real defect — the
+  fixture translation text relied on the default label color and was
+  invisible on light backgrounds.
+- Security and external state: no new identity, network, or AI surface; all
+  preference mutations still flow through the F2 stores and derive identity
+  from Clerk on the backend. No production, dashboard, credential, or store
+  state changed; development Convex was untouched.
+- Terra review repair (2026-09-09): Android reader settings now scroll at
+  large font scales; visibility, theme, font, and language choices expose
+  toggle/radio semantics to TalkBack; both clients provide an explicit
+  screen-reader action to reveal hidden chrome; the duplicate Android
+  reference line was removed; and `UIAppFonts` now registers all three iOS
+  Arabic faces rather than silently falling back to the system face. Touch
+  targets for iOS chrome and type steps meet 44 points and Android type steps
+  meet 48 dp.
+- Review evidence: iOS 86/86 unit tests and its 12-case R4 language/theme
+  fixture matrix passed; Android debug unit tests and 6/6 emulator
+  instrumentation tests passed. The iOS app bundle was inspected to confirm
+  the three `UIAppFonts` entries. A direct Android Urdu/Paper fixture launch
+  exposed the expanded progress, source-provided chapter title, Arabic, Urdu
+  translation, and logical page controls in the accessibility hierarchy. The
+  unrelated live Phase 4 translation UI test still cannot load a stored
+  translation; its five reader fixture tests passed.
+- Blockers and next: R3's physical-device matrix remains open as recorded.
+  Next allowed session: R5 only after the owner confirms the R3 gate.
 
 ## Delegation policy
 

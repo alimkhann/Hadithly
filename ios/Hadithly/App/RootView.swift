@@ -13,7 +13,26 @@ struct RootView: View {
     @State private var showSignIn = false
     @State private var hasSyncedLaunchSession = false
 
+    private var isR3PagingFixture: Bool {
+#if DEBUG
+        ProcessInfo.processInfo.arguments.contains("-R3PagingFixture")
+#else
+        false
+#endif
+    }
+
+    @ViewBuilder
     var body: some View {
+        if isR3PagingFixture {
+#if DEBUG
+            ReaderPagingTestFixtureView()
+#endif
+        } else {
+            productionRoot
+        }
+    }
+
+    private var productionRoot: some View {
         Group {
             if onboardingCompleted {
                 MainTabsView(showSignIn: $showSignIn)

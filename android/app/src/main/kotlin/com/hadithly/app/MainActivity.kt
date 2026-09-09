@@ -50,9 +50,14 @@ class MainActivity : ComponentActivity() {
         val pendingLink = intent?.data
             ?.let { CanonicalHadithLink.parse(it.scheme, it.host, it.path, it.encodedPath) }
         notificationTarget = notificationTarget(intent)
+        val fixtureExtras = if (BuildConfig.DEBUG && intent?.getStringExtra("fixture") == "r4") intent.extras else null
         setContent {
             HadithlyTheme {
-                LocalizedRootApp(pendingLink = pendingLink, notificationTarget = notificationTarget)
+                if (fixtureExtras != null) {
+                    com.hadithly.app.features.reader.ReaderTypographicFixture(extras = fixtureExtras)
+                } else {
+                    LocalizedRootApp(pendingLink = pendingLink, notificationTarget = notificationTarget)
+                }
             }
         }
     }

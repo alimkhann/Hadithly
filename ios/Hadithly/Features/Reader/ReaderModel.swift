@@ -69,7 +69,14 @@ final class ReaderModel {
     private var lastPositionUpdatedAt = 0.0
     private var lastCapturedAnchor: String?
     private var lastCapturedNormalizedOffset: Double?
+    private var lastStableAnchor: ReaderHadith?
+    private var lastStableRawPageOffset: Double = 0
+    private var lastStableNormalizedOffset: Double = 0
     private(set) var restoredPosition: ReadingPosition?
+    /// Bumped every time the model re-issues restoration (layout-preference
+    /// changes re-anchor the semantic position). Views key their applied
+    /// restoration on this so a preference change re-scrolls exactly once.
+    private(set) var restorationGeneration = 0
     private(set) var landingHadithNumber: String?
 
     init(
@@ -500,6 +507,9 @@ final class ReaderModel {
         guard hadiths.indices.contains(leadingIndex), pages.indices.contains(pageIndex) else { return }
         let anchor = hadiths[leadingIndex]
         let clamped = min(1, max(0, normalizedOffset))
+        lastStableAnchor = anchor
+        lastStableRawPageOffset = max(0, rawPageOffset)
+        lastStableNormalizedOffset = clamped
         if lastCapturedAnchor == anchor.internalId,
            let lastCapturedNormalizedOffset,
            abs(lastCapturedNormalizedOffset - clamped) < 0.02 {
@@ -515,15 +525,65 @@ final class ReaderModel {
         )
     }
 
-    private func saveProgress(
+    /// Compact top progress fraction (R4): the visible page over the known
+    /// total. Nil when the backend has not reported a total yet.
+    var compactProgressFraction: Double? {
+        guard let total = totalPages, total > 0 else { return nil }
+        return Double(pageIndex + 1) / Double(total)
+    }
+
+    /// Re-issues restoration against the current layout signature (R4). After
+    /// a font, size, visibility, or locale change the raw offset is stale; the
+    /// last stable semantic anchor recovers the exact position.
+    func reanchorAfterLayoutChange() {
+        guard phase == .reading,
+              pages.indices.contains(pageIndex),
+              let anchor = lastStableAnchor,
+              pages[pageIndex].items.contains(where: { $0.internalId == anchor.internalId })
+        else { return }
+        let page = pages[pageIndex]
+        restoredPosition = Self.reanchoredPosition(
+            anchor: anchor,
+            page: page,
+            volumeId: anchor.volumeId ?? selectedVolumeId ?? "unknown",
+            rawPageOffset: lastStableRawPageOffset,
+            normalizedOffset: lastStableNormalizedOffset,
+            layout: readingLayout(page.paginationVersion ?? 1)
+        )
+        restorationGeneration += 1
+    }
+
+    /// The pure projection behind `reanchorAfterLayoutChange`: rebuilds a V1
+    /// position for the stable anchor against the new layout signature.
+    nonisolated static func reanchoredPosition(
         anchor: ReaderHadith,
         page: ReaderPageResult,
+        volumeId: String?,
         rawPageOffset: Double,
-        normalizedOffset: Double
-    ) {
+        normalizedOffset: Double,
+        layout: ReadingLayout
+    ) -> ReadingPosition {
+        ReadingPosition(
+            anchor: .init(
+                provider: anchor.provider,
+                collectionSlug: anchor.collectionSlug,
+                providerHadithId: anchor.providerHadithId
+            ),
+            contentVersion: page.contentVersion ?? "legacy",
+            volumeId: volumeId ?? "unknown",
+            chapterId: anchor.chapterId,
+            pageKey: page.pageKey ?? "legacy",
+            displayPageIndex: Double(max(1, page.page)),
+            rawPageOffset: rawPageOffset,
+            normalizedOffset: normalizedOffset,
+            layoutSignature: layout.signature,
+            updatedAt: 0
+        )
+    }
+
+    private func readingLayout(_ paginationVersion: Double) -> ReadingLayout {
         let preferences = currentPreferences()
-        let paginationVersion = page.paginationVersion ?? 1
-        let layout = ReadingLayout(
+        return ReadingLayout(
             locale: preferences.translationLocale,
             arabicVisible: preferences.arabicVisible,
             translationVisible: preferences.translationVisible,
@@ -532,6 +592,15 @@ final class ReaderModel {
             widthClass: widthClass,
             paginationVersion: paginationVersion
         )
+    }
+
+    private func saveProgress(
+        anchor: ReaderHadith,
+        page: ReaderPageResult,
+        rawPageOffset: Double,
+        normalizedOffset: Double
+    ) {
+        let layout = readingLayout(page.paginationVersion ?? 1)
         let storedUpdatedAt = library?.progress(for: collectionSlug)?.position?.updatedAt ?? 0
         let updatedAt = max(
             Date.now.millisecondsSinceEpoch,

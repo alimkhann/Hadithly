@@ -25,7 +25,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerScope
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,14 +51,14 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.FormatSize
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Textsms
+import androidx.compose.material.icons.outlined.RadioButtonUnchecked
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -64,9 +71,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -77,6 +91,11 @@ import com.hadithly.app.core.data.ReaderTargetSource
 import com.hadithly.app.core.data.ReadingWidthClass
 import com.hadithly.app.core.data.SupportedLanguages
 import com.hadithly.app.core.data.TranslationFailure
+import com.hadithly.app.core.preferences.ArabicTypeSize
+import com.hadithly.app.core.preferences.LocaleFallback
+import com.hadithly.app.core.preferences.ReaderPageTurn
+import com.hadithly.app.core.preferences.ReaderPagingPolicy
+import com.hadithly.app.core.preferences.ReaderPreferences
 import com.hadithly.app.core.theme.LocalHadithlyColors
 import com.hadithly.app.features.purchases.QuotaPaywallSheet
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -128,7 +147,10 @@ fun ReaderScreen(
     val favorites by viewModel.library.favorites.collectAsStateWithLifecycle()
     val notes by viewModel.library.notes.collectAsStateWithLifecycle()
     val preferences by app.preferences.preferences.collectAsStateWithLifecycle()
-    val colors = LocalHadithlyColors.current
+    val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
+    // R4: the reader honors the ReaderTheme preference; everything outside
+    // keeps the app-wide dark canvas.
+    val colors = com.hadithly.app.core.theme.ReaderPalettes.resolved(preferences.theme, systemDark)
 
     var showContents by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
@@ -147,24 +169,29 @@ fun ReaderScreen(
 
     BackHandler(enabled = !showContents && !showSettings, onBack = onClose)
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colors.background),
-    ) {
-        when (val phase = state.phase) {
-            is ReaderViewModel.Phase.LoadingOutline -> LoadingView(collectionName)
-            is ReaderViewModel.Phase.Failed -> FailureView(phase.message)
-            is ReaderViewModel.Phase.Reading -> ReadingView(
-                viewModel = viewModel,
-                state = state,
-                collectionName = collectionName,
-                arabicFontSize = preferences.arabicFontSize,
-                onOpenContents = { showContents = true },
-                onOpenSettings = { showSettings = true },
-                onShowPaywall = { showQuotaPaywall = true },
-                onClose = onClose,
-            )
+    // R4: the themed reader palette drives every reader surface, including
+    // the sheets presented from the reader.
+    CompositionLocalProvider(LocalHadithlyColors provides colors) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(colors.background),
+        ) {
+            when (val phase = state.phase) {
+                is ReaderViewModel.Phase.LoadingOutline -> LoadingView(collectionName)
+                is ReaderViewModel.Phase.Failed -> FailureView(phase.message)
+                is ReaderViewModel.Phase.Reading -> ReadingView(
+                    viewModel = viewModel,
+                    state = state,
+                    collectionName = collectionName,
+                    arabicFontSize = preferences.arabicFontSize,
+                    preferences = preferences,
+                    onOpenContents = { showContents = true },
+                    onOpenSettings = { showSettings = true },
+                    onShowPaywall = { showQuotaPaywall = true },
+                    onClose = onClose,
+                )
+            }
         }
     }
 
@@ -187,10 +214,15 @@ fun ReaderScreen(
             containerColor = colors.surface,
         ) {
             SettingsSheet(
+                preferences = preferences,
                 language = state.language,
-                arabicFontSize = preferences.arabicFontSize,
                 onLanguage = { viewModel.setLanguage(it) },
                 onArabicFontSize = app.preferences::setArabicFontSize,
+                onTheme = app.preferences::setTheme,
+                onArabicFont = app.preferences::setArabicFont,
+                onVisibility = { arabic: Boolean?, translation: Boolean? ->
+                    app.preferences.setVisibility(arabic = arabic, translation = translation)
+                },
             )
         }
     }
@@ -252,6 +284,7 @@ private fun ReadingView(
     state: ReaderViewModel.ReaderState,
     collectionName: String,
     arabicFontSize: Float,
+    preferences: ReaderPreferences,
     onOpenContents: () -> Unit,
     onOpenSettings: () -> Unit,
     onShowPaywall: () -> Unit,
@@ -259,6 +292,7 @@ private fun ReadingView(
 ) {
     val colors = LocalHadithlyColors.current
     val coroutine = rememberCoroutineScope()
+    val pagingPolicy = remember(preferences) { ReaderPagingPolicy(preferences) }
 
     // One extra sentinel page while more content exists; landing on it
     // triggers the load of the next page.
@@ -296,24 +330,98 @@ private fun ReadingView(
             .collect { index -> viewModel.onPageSettled(index) }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        HorizontalPager(
+    // A layout-affecting preference change (font, size, visibility, transla-
+    // tion locale) invalidates the raw offset; the semantic anchor restores
+    // the exact position against the new layout signature.
+    LaunchedEffect(preferences.layoutProjection) {
+        viewModel.reanchorAfterLayoutChange()
+    }
+
+    // Reduce Motion: follow the system animator scale; snap instead of
+    // animating page turns when animation is disabled.
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val reduceMotion = remember(context) {
+        android.provider.Settings.Global.getFloat(
+            context.contentResolver,
+            android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+            1f,
+        ) == 0f
+    }
+
+    fun turnPage(turn: ReaderPageTurn): Boolean {
+        val destination = pagingPolicy.destination(
+            pagerState.currentPage,
+            pagerState.pageCount,
+            turn,
+        ) ?: return false
+        if (reduceMotion) {
+            coroutine.launch { pagerState.scrollToPage(destination) }
+        } else {
+            coroutine.launch { pagerState.animateScrollToPage(destination) }
+        }
+        return true
+    }
+
+    val accessibilityActions = buildList {
+        add(
+            CustomAccessibilityAction(
+                if (state.chromeVisible) "Hide reader controls" else "Show reader controls",
+                action = {
+                    viewModel.toggleChrome()
+                    true
+                },
+            ),
+        )
+        if (pagingPolicy.destination(pagerState.currentPage, pagerState.pageCount, ReaderPageTurn.PREVIOUS) != null) {
+            add(CustomAccessibilityAction("Previous page") { turnPage(ReaderPageTurn.PREVIOUS) })
+        }
+        if (pagingPolicy.destination(pagerState.currentPage, pagerState.pageCount, ReaderPageTurn.NEXT) != null) {
+            add(CustomAccessibilityAction("Next page") { turnPage(ReaderPageTurn.NEXT) })
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .semantics { customActions = accessibilityActions },
+    ) {
+        DirectionAwareHorizontalPager(
             state = pagerState,
+            policy = pagingPolicy,
             modifier = Modifier.fillMaxSize(),
         ) { pageIndex ->
-            val pages = state.pages
-            val hadiths = if (pageIndex in pages.indices) pages[pageIndex].items else emptyList()
-            ReaderPage(
-                viewModel = viewModel,
-                state = state,
-                hadiths = hadiths,
-                arabicFontSize = arabicFontSize,
-                restoration = viewModel.restoredPosition,
-                landingHadithNumber = viewModel.landingHadithNumber,
-                isSentinel = pageIndex >= pages.size,
-                onTap = { viewModel.toggleChrome() },
-                onShowPaywall = onShowPaywall,
-            )
+                val pages = state.pages
+                val hadiths = if (pageIndex in pages.indices) pages[pageIndex].items else emptyList()
+                ReaderPage(
+                    viewModel = viewModel,
+                    state = state,
+                    hadiths = hadiths,
+                    arabicFontSize = arabicFontSize,
+                    preferences = preferences,
+                    pagingPolicy = pagingPolicy,
+                    pageIndex = pageIndex,
+                    pageCount = pageCount,
+                    restoration = viewModel.restoredPosition,
+                    restorationGeneration = viewModel.restorationGeneration,
+                    landingHadithNumber = viewModel.landingHadithNumber,
+                    isSentinel = pageIndex >= pages.size,
+                    onTurn = { turnPage(it) },
+                    onTap = { viewModel.toggleChrome() },
+                    onShowPaywall = onShowPaywall,
+                )
+        }
+
+        // Compact progress (R4): a thin bar at the top stays visible while
+        // the chrome is hidden, matching the quiet reading state.
+        androidx.compose.animation.AnimatedVisibility(
+            visible = !state.chromeVisible,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier.align(Alignment.TopCenter),
+        ) {
+            viewModel.compactProgressFraction()?.let { fraction ->
+                CompactProgressBar(fraction = fraction)
+            }
         }
 
         androidx.compose.animation.AnimatedVisibility(
@@ -344,48 +452,23 @@ private fun ReadingView(
             )
         }
 
-        // Quiet page-turn arrows, always visible in chrome.
-        if (state.chromeVisible && viewModel.hasPreviousPage()) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .padding(8.dp)
-                    .background(colors.surface.copy(alpha = 0.96f), CircleShape)
-                    .clickable {
-                        coroutine.launch {
-                            if (pagerState.currentPage > 0) pagerState.animateScrollToPage(pagerState.currentPage - 1)
-                        }
-                    }
-                    .padding(10.dp),
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Filled.NavigateBefore,
-                    contentDescription = "Previous page",
-                    tint = colors.textSecondary,
-                )
-            }
-        }
-        if (state.chromeVisible && viewModel.hasNextPage()) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .padding(8.dp)
-                    .background(colors.surface.copy(alpha = 0.96f), CircleShape)
-                    .clickable {
-                        coroutine.launch {
-                            val next = pagerState.currentPage + 1
-                            if (next < pagerState.pageCount) pagerState.animateScrollToPage(next)
-                        }
-                    }
-                    .padding(10.dp),
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Filled.NavigateNext,
-                    contentDescription = "Next page",
-                    tint = colors.textSecondary,
-                )
-            }
-        }
+    }
+}
+
+@Composable
+internal fun DirectionAwareHorizontalPager(
+    state: PagerState,
+    policy: ReaderPagingPolicy,
+    modifier: Modifier = Modifier,
+    content: @Composable PagerScope.(page: Int) -> Unit,
+) {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        HorizontalPager(
+            state = state,
+            reverseLayout = policy.reverseLayout,
+            modifier = modifier,
+            pageContent = content,
+        )
     }
 }
 
@@ -396,9 +479,15 @@ private fun ReaderPage(
     state: ReaderViewModel.ReaderState,
     hadiths: List<ReaderHadith>,
     arabicFontSize: Float,
+    preferences: ReaderPreferences,
+    pagingPolicy: ReaderPagingPolicy,
+    pageIndex: Int,
+    pageCount: Int,
     restoration: ReadingPosition?,
+    restorationGeneration: Int,
     landingHadithNumber: String?,
     isSentinel: Boolean,
+    onTurn: (ReaderPageTurn) -> Unit,
     onTap: () -> Unit,
     onShowPaywall: () -> Unit,
 ) {
@@ -408,8 +497,9 @@ private fun ReaderPage(
     var submissionTarget by remember { mutableStateOf<Pair<ReaderHadith, ReaderTranslation?>?>(null) }
     var reportTarget by remember { mutableStateOf<Pair<ReaderHadith, ReaderTranslation>?>(null) }
     val listState = rememberLazyListState()
+    val chapterOpenings = remember(hadiths) { ReaderChapterBoundaries.openingIndices(hadiths) }
 
-    LaunchedEffect(restoration?.anchor?.providerHadithId ?: landingHadithNumber, hadiths.firstOrNull()?._id) {
+    LaunchedEffect(restorationGeneration, restoration?.anchor?.providerHadithId ?: landingHadithNumber, hadiths.firstOrNull()?._id) {
         val targetId = restoration?.anchor?.providerHadithId ?: landingHadithNumber
             ?: return@LaunchedEffect
         val index = hadiths.indexOfFirst { it.providerHadithId == targetId }
@@ -451,25 +541,43 @@ private fun ReaderPage(
         } else {
             LazyColumn(
                 state = listState,
-                verticalArrangement = Arrangement.spacedBy(40.dp),
+                verticalArrangement = Arrangement.spacedBy(0.dp),
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(
                     start = 22.dp, end = 22.dp, top = 20.dp, bottom = 80.dp,
                 ),
             ) {
-                items(hadiths, key = { it._id }) { hadith ->
-                    HadithBlock(
-                        viewModel = viewModel,
-                        hadith = hadith,
-                        translationState = state.translations[hadith.internalId],
-                        language = state.language,
-                        arabicFontSize = arabicFontSize,
-                        onRetry = { viewModel.retryTranslation(hadith) },
-                        onShowCitations = { citationsTranslation = it },
-                        onEditNote = { noteTarget = hadith },
-                        onSuggest = { translation -> submissionTarget = hadith to translation },
-                        onReport = { translation -> reportTarget = hadith to translation },
-                        onShowPaywall = onShowPaywall,
+                itemsIndexed(hadiths, key = { _, hadith -> hadith._id }) { index, hadith ->
+                    Column {
+                        if (index > 0) {
+                            ReaderHadithDivider()
+                        }
+                        if (chapterOpenings.contains(index)) {
+                            ReaderChapterHeader(title = hadith.chapterName.orEmpty())
+                        }
+                        HadithBlock(
+                            viewModel = viewModel,
+                            hadith = hadith,
+                            translationState = state.translations[hadith.internalId],
+                            language = state.language,
+                            arabicFontSize = arabicFontSize,
+                            preferences = preferences,
+                            onRetry = { viewModel.retryTranslation(hadith) },
+                            onShowCitations = { citationsTranslation = it },
+                            onEditNote = { noteTarget = hadith },
+                            onSuggest = { translation -> submissionTarget = hadith to translation },
+                            onReport = { translation -> reportTarget = hadith to translation },
+                            onShowPaywall = onShowPaywall,
+                            modifier = Modifier.padding(vertical = 20.dp),
+                        )
+                    }
+                }
+                item(key = "reader-end-navigation") {
+                    ReaderEndNavigation(
+                        policy = pagingPolicy,
+                        currentPageIndex = pageIndex,
+                        pageCount = pageCount,
+                        onTurn = onTurn,
                     )
                 }
             }
@@ -526,6 +634,81 @@ private fun ReaderPage(
                     referenceDisplay = hadith.referenceDisplay,
                     onDone = { reportTarget = null },
                 )
+            }
+        }
+    }
+}
+
+@Composable
+internal fun ReaderEndNavigation(
+    policy: ReaderPagingPolicy,
+    currentPageIndex: Int,
+    pageCount: Int,
+    onTurn: (ReaderPageTurn) -> Unit,
+) {
+    val colors = LocalHadithlyColors.current
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        policy.endControlOrder.forEach { turn ->
+            val destination = policy.destination(currentPageIndex, pageCount, turn)
+                ?: return@forEach
+            val pointsLeft = when (policy.pageDirection) {
+                com.hadithly.app.core.preferences.PageDirection.LTR -> turn == ReaderPageTurn.PREVIOUS
+                com.hadithly.app.core.preferences.PageDirection.RTL -> turn == ReaderPageTurn.NEXT
+            }
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp)
+                    .background(colors.surface, RoundedCornerShape(50))
+                    .clickable { onTurn(turn) }
+                    .testTag(
+                        if (turn == ReaderPageTurn.PREVIOUS) {
+                            "reader.previousPage"
+                        } else {
+                            "reader.nextPage"
+                        },
+                    )
+                    .semantics {
+                        contentDescription = if (turn == ReaderPageTurn.PREVIOUS) {
+                            "Previous page, Page ${destination + 1}"
+                        } else {
+                            "Next page, Page ${destination + 1}"
+                        }
+                        customActions = listOf(
+                            CustomAccessibilityAction(
+                                if (turn == ReaderPageTurn.PREVIOUS) "Previous page" else "Next page",
+                            ) {
+                                onTurn(turn)
+                                true
+                            },
+                        )
+                    },
+            ) {
+                if (pointsLeft) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.NavigateBefore,
+                        contentDescription = null,
+                        tint = colors.textSecondary,
+                    )
+                }
+                Text(
+                    text = "Page ${destination + 1}",
+                    color = colors.textSecondary,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                )
+                if (!pointsLeft) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.NavigateNext,
+                        contentDescription = null,
+                        tint = colors.textSecondary,
+                    )
+                }
             }
         }
     }
@@ -626,6 +809,77 @@ private fun Pill(text: String) {
     )
 }
 
+/** The thin top progress indicator shown while the reader chrome is hidden.
+ * Non-interactive and hidden from traversal; the expanded pill carries the
+ * accessible reading-position description. */
+@Composable
+private fun CompactProgressBar(fraction: Double) {
+    val colors = LocalHadithlyColors.current
+    Box(
+        modifier = Modifier
+            .statusBarsPadding()
+            .padding(top = 6.dp, start = 24.dp, end = 24.dp)
+            .fillMaxWidth()
+            .height(3.dp)
+            .background(colors.divider.copy(alpha = 0.6f), RoundedCornerShape(50)),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(fraction.toFloat().coerceIn(0.02f, 1f))
+                .height(3.dp)
+                .background(colors.accent.copy(alpha = 0.8f), RoundedCornerShape(50)),
+        )
+    }
+}
+
+/** A restrained hairline between hadiths (R4): no cards, no ornament. */
+@Composable
+internal fun ReaderHadithDivider() {
+    val colors = LocalHadithlyColors.current
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 20.dp)
+            .height(0.5.dp)
+            .background(colors.divider),
+    )
+}
+
+/** The strong, source-provided chapter opening (R4). Never invented: rendered
+ * only when the provider data carries a chapter name. */
+@Composable
+internal fun ReaderChapterHeader(title: String) {
+    val colors = LocalHadithlyColors.current
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {}
+            .testTag("reader.chapterHeader"),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(0.5.dp)
+                .background(colors.divider),
+        )
+        Text(
+            text = "Chapter",
+            fontSize = 11.sp,
+            color = colors.textSecondary,
+            modifier = Modifier.padding(top = 12.dp),
+        )
+        Text(
+            text = title,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = colors.textPrimary,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 2.dp, bottom = 6.dp),
+        )
+    }
+}
+
 // One hadith
 
 @Composable
@@ -635,6 +889,8 @@ private fun HadithBlock(
     translationState: TranslationUiState?,
     language: String,
     arabicFontSize: Float,
+    preferences: ReaderPreferences,
+    modifier: Modifier = Modifier,
     onRetry: () -> Unit,
     onShowCitations: (ReaderTranslation) -> Unit,
     onEditNote: () -> Unit,
@@ -643,29 +899,39 @@ private fun HadithBlock(
     onShowPaywall: () -> Unit,
 ) {
     val colors = LocalHadithlyColors.current
+    val arabicFamily = com.hadithly.app.core.theme.ArabicTypefaces.forFont(preferences.arabicFont)
 
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        // Numbered medallion
+    Column(
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = modifier,
+    ) {
+        // The quiet reference label (R4) replaces the numbered medallion,
+        // matching the minimal reference treatment in the Sajda reference.
         Text(
-            text = hadith.providerHadithId,
+            text = hadith.referenceDisplay,
             fontSize = 11.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = colors.accent,
+            fontWeight = FontWeight.Medium,
+            color = colors.textSecondary,
             modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .background(colors.accentSoft, CircleShape)
-                .padding(10.dp),
+                .testTag("reader.reference"),
         )
 
-        Text(
-            text = hadith.arabicText,
-            fontSize = arabicFontSize.sp,
-            fontWeight = FontWeight.Medium,
-            color = colors.textPrimary,
-            lineHeight = (arabicFontSize * 1.75).sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth(),
-        )
+        if (preferences.arabicVisible) {
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+                Text(
+                    text = hadith.arabicText,
+                    fontSize = arabicFontSize.sp,
+                    fontFamily = arabicFamily,
+                    fontWeight = FontWeight.Medium,
+                    color = colors.textPrimary,
+                    lineHeight = (arabicFontSize * 1.75).sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("reader.arabic"),
+                )
+            }
+        }
 
         if (!hadith.narrator.isNullOrEmpty()) {
             Text(
@@ -677,14 +943,24 @@ private fun HadithBlock(
             )
         }
 
-        TranslationSection(
-            hadith = hadith,
-            translationState = translationState,
-            language = language,
-            onRetry = onRetry,
-            onShowCitations = onShowCitations,
-            onShowPaywall = onShowPaywall,
-        )
+        if (preferences.translationVisible) {
+            CompositionLocalProvider(
+                LocalLayoutDirection provides if (LocaleFallback.isRTL(preferences.translationLocale)) {
+                    LayoutDirection.Rtl
+                } else {
+                    LayoutDirection.Ltr
+                },
+            ) {
+                TranslationSection(
+                    hadith = hadith,
+                    translationState = translationState,
+                    language = language,
+                    onRetry = onRetry,
+                    onShowCitations = onShowCitations,
+                    onShowPaywall = onShowPaywall,
+                )
+            }
+        }
 
         val activeTranslation = (translationState as? TranslationUiState.Loaded)?.translation
         Row(
@@ -696,13 +972,6 @@ private fun HadithBlock(
                 ContributionAction(Icons.Filled.Flag, "Report") { onReport(translation) }
             }
         }
-
-        Text(
-            text = hadith.referenceDisplay,
-            fontSize = 11.sp,
-            color = colors.textSecondary,
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-        )
 
         Text(
             text = hadith.authenticity.displayLabel,
@@ -983,33 +1252,191 @@ private fun ContentsSheet(
 
 // Reader settings sheet
 
+/**
+ * Reader settings (R4): visibility, theme, Arabic face and size with a live
+ * preview, and the translation language. Direct controls, close to the text;
+ * account and global settings stay in the Settings tab.
+ */
 @Composable
 private fun SettingsSheet(
+    preferences: ReaderPreferences,
     language: String,
-    arabicFontSize: Float,
     onLanguage: (String) -> Unit,
     onArabicFontSize: (Float) -> Unit,
+    onTheme: (com.hadithly.app.core.preferences.ReaderTheme) -> Unit,
+    onArabicFont: (com.hadithly.app.core.preferences.ArabicFont) -> Unit,
+    onVisibility: (arabic: Boolean?, translation: Boolean?) -> Unit,
 ) {
     val colors = LocalHadithlyColors.current
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(20.dp),
+            .verticalScroll(rememberScrollState())
+            .padding(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 32.dp),
     ) {
         Text("Reader settings", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
 
+        Text("Show on page", fontSize = 13.sp, color = colors.textSecondary)
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            VisibilityPill(
+                title = "Arabic",
+                isOn = preferences.arabicVisible,
+                testTag = "reader.visibility.arabic",
+            ) { onVisibility(!preferences.arabicVisible, null) }
+            VisibilityPill(
+                title = "Translation",
+                isOn = preferences.translationVisible,
+                testTag = "reader.visibility.translation",
+            ) { onVisibility(null, !preferences.translationVisible) }
+        }
+        Text(
+            "At least one text layer stays visible.",
+            fontSize = 12.sp,
+            color = colors.textSecondary,
+        )
+
+        Text("Color theme", fontSize = 13.sp, color = colors.textSecondary)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            for (theme in com.hadithly.app.core.preferences.ReaderTheme.entries) {
+                val selected = preferences.theme == theme
+                val swatch = com.hadithly.app.core.theme.ReaderPalettes.resolved(theme, systemDark = true)
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .background(
+                            if (selected) colors.accentSoft else androidx.compose.ui.graphics.Color.Transparent,
+                            RoundedCornerShape(10.dp),
+                        )
+                        .selectable(
+                            selected = selected,
+                            role = Role.RadioButton,
+                            onClick = { onTheme(theme) },
+                        )
+                        .padding(6.dp)
+                        .testTag("reader.theme.${theme.wire}"),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(34.dp)
+                            .background(swatch.background, RoundedCornerShape(8.dp)),
+                    )
+                    Text(
+                        text = theme.wire.replaceFirstChar { it.uppercase() },
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = if (selected) colors.accent else colors.textSecondary,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
+            }
+        }
+
+        Text("Arabic type", fontSize = 13.sp, color = colors.textSecondary)
+        Text(
+            text = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+            fontSize = preferences.arabicFontSize.sp,
+            fontFamily = com.hadithly.app.core.theme.ArabicTypefaces.forFont(preferences.arabicFont),
+            lineHeight = (preferences.arabicFontSize * 1.75).sp,
+            color = colors.textPrimary,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(colors.surfaceElevated, RoundedCornerShape(12.dp))
+                .padding(vertical = 10.dp)
+                .testTag("reader.typePreview"),
+        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp)
+                    .background(colors.surfaceElevated, RoundedCornerShape(50))
+                    .clickable(
+                        enabled = preferences.arabicFontSize > ReaderPreferences.MIN_ARABIC_FONT_SIZE,
+                    ) { onArabicFontSize(ArabicTypeSize.stepDown(preferences.arabicFontSize)) }
+                    .semantics { contentDescription = "Smaller Arabic type" }
+                    .testTag("reader.sizeSmaller"),
+                contentAlignment = Alignment.Center,
+            ) { Text("A", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary) }
+            Text(
+                text = "${preferences.arabicFontSize.roundToInt()} pt",
+                fontSize = 12.sp,
+                color = colors.textSecondary,
+            )
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp)
+                    .background(colors.surfaceElevated, RoundedCornerShape(50))
+                    .clickable(
+                        enabled = preferences.arabicFontSize < ReaderPreferences.MAX_ARABIC_FONT_SIZE,
+                    ) { onArabicFontSize(ArabicTypeSize.stepUp(preferences.arabicFontSize)) }
+                    .semantics { contentDescription = "Larger Arabic type" }
+                    .testTag("reader.sizeLarger"),
+                contentAlignment = Alignment.Center,
+            ) { Text("A", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary) }
+        }
+
+        for (font in com.hadithly.app.core.preferences.ArabicFont.entries) {
+            val selected = preferences.arabicFont == font
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(if (selected) colors.accentSoft else colors.surfaceElevated, RoundedCornerShape(10.dp))
+                    .selectable(
+                        selected = selected,
+                        role = Role.RadioButton,
+                        onClick = { onArabicFont(font) },
+                    )
+                    .padding(horizontal = 14.dp, vertical = 10.dp)
+                    .testTag("reader.font.${font.wire}"),
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "بِسْمِ اللَّهِ",
+                        fontSize = 18.sp,
+                        fontFamily = com.hadithly.app.core.theme.ArabicTypefaces.forFont(font),
+                        color = colors.textPrimary,
+                    )
+                    Text(
+                        text = font.wire,
+                        fontSize = 11.sp,
+                        color = colors.textSecondary,
+                    )
+                }
+                if (selected) {
+                    Icon(
+                        Icons.Filled.CheckCircle,
+                        contentDescription = null,
+                        tint = colors.accent,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+            }
+        }
+
         Text("Translation language", fontSize = 13.sp, color = colors.textSecondary)
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(SupportedLanguages.all, key = { it.first }) { (code, name) ->
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            for ((code, name) in SupportedLanguages.all) {
                 val selected = code == language
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(if (selected) colors.accentSoft else colors.surfaceElevated, RoundedCornerShape(12.dp))
-                        .clickable { onLanguage(code) }
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                        .selectable(
+                            selected = selected,
+                            role = Role.RadioButton,
+                            onClick = { onLanguage(code) },
+                        )
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                        .testTag("reader.language.$code"),
                 ) {
                     Text(name, fontSize = 15.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
                     if (selected) {
@@ -1018,18 +1445,41 @@ private fun SettingsSheet(
                 }
             }
         }
+    }
+}
 
-        Text("Arabic type size", fontSize = 13.sp, color = colors.textSecondary)
-        Text("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ", fontSize = arabicFontSize.sp, color = colors.textPrimary)
-        Slider(
-            value = arabicFontSize,
-            onValueChange = onArabicFontSize,
-            valueRange = 18f..40f,
-            colors = SliderDefaults.colors(
-                thumbColor = colors.accent,
-                activeTrackColor = colors.accent,
-                inactiveTrackColor = colors.surfaceElevated,
-            ),
+@Composable
+private fun VisibilityPill(
+    title: String,
+    isOn: Boolean,
+    testTag: String,
+    onToggle: () -> Unit,
+) {
+    val colors = LocalHadithlyColors.current
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .background(if (isOn) colors.accentSoft else colors.surfaceElevated, RoundedCornerShape(50))
+            .toggleable(
+                value = isOn,
+                role = Role.Switch,
+                onValueChange = { onToggle() },
+            )
+            .padding(horizontal = 14.dp, vertical = 10.dp)
+            .testTag(testTag),
+    ) {
+        Icon(
+            imageVector = if (isOn) Icons.Filled.CheckCircle else Icons.Outlined.RadioButtonUnchecked,
+            contentDescription = null,
+            tint = if (isOn) colors.accent else colors.textSecondary,
+            modifier = Modifier.size(18.dp),
+        )
+        Text(
+            title,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            color = if (isOn) colors.accent else colors.textSecondary,
         )
     }
 }
