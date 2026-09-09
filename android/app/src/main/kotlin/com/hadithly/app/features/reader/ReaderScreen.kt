@@ -322,6 +322,7 @@ private fun ReadingView(
     val colors = LocalHadithlyColors.current
     val androidView = LocalView.current
     var readerMenuExpanded by remember { mutableStateOf(false) }
+    var menuNoteTarget by remember { mutableStateOf<ReaderHadith?>(null) }
     val coroutine = rememberCoroutineScope()
     val pagingPolicy = remember(preferences) { ReaderPagingPolicy(preferences) }
 
@@ -490,6 +491,8 @@ private fun ReadingView(
                             readerMenuExpanded = false
                             onOpenSettings()
                         },
+                        onBookmark = { viewModel.positionedHadith()?.let(viewModel::toggleBookmark) },
+                        onNote = { menuNoteTarget = viewModel.positionedHadith() },
                     )
                     Spacer(Modifier.height(12.dp))
                 }
@@ -500,6 +503,19 @@ private fun ReadingView(
                         if (readerMenuExpanded) "Close reader menu" else "Open reader menu",
                     ) { readerMenuExpanded = !readerMenuExpanded }
                 }
+            }
+        }
+
+        menuNoteTarget?.let { hadith ->
+            ModalBottomSheet(onDismissRequest = { menuNoteTarget = null }, containerColor = colors.surface) {
+                NoteEditorSheet(
+                    initialContent = viewModel.noteContent(hadith),
+                    onSave = { content ->
+                        viewModel.saveNote(hadith, content)
+                        menuNoteTarget = null
+                    },
+                    onCancel = { menuNoteTarget = null },
+                )
             }
         }
 
@@ -516,21 +532,26 @@ private fun ReaderChromeCircle(icon: androidx.compose.ui.graphics.vector.ImageVe
 }
 
 @Composable
-private fun ReaderMenuStack(location: String, onContents: () -> Unit, onSettings: () -> Unit) {
+private fun ReaderMenuStack(location: String, onContents: () -> Unit, onSettings: () -> Unit, onBookmark: () -> Unit, onNote: () -> Unit) {
     val colors = LocalHadithlyColors.current
     Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth(0.72f)) {
         ReaderMenuCard(location, "Current location", Icons.Filled.Place, {})
+        ReaderMenuCard("Bookmarks & Notes", "Your private saved reading", Icons.Filled.Bookmark, onContents)
         ReaderMenuCard("Contents", "Volumes and chapters", Icons.AutoMirrored.Filled.List, onContents)
         ReaderMenuCard("Reader settings", "Type, appearance, and text", Icons.Filled.FormatSize, onSettings)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            ReaderMenuCard("Bookmark", "Current hadith", Icons.Filled.Bookmark, onBookmark, Modifier.weight(1f))
+            ReaderMenuCard("Note", "Current hadith", Icons.Filled.FormatSize, onNote, Modifier.weight(1f))
+        }
     }
 }
 
 @Composable
-private fun ReaderMenuCard(title: String, subtitle: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
+private fun ReaderMenuCard(title: String, subtitle: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = LocalHadithlyColors.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth().background(colors.surface.copy(alpha = 0.98f), RoundedCornerShape(22.dp)).clickable(onClick = onClick).padding(18.dp),
+        modifier = modifier.fillMaxWidth().background(colors.surface.copy(alpha = 0.98f), RoundedCornerShape(22.dp)).clickable(onClick = onClick).padding(18.dp),
     ) {
         Column(Modifier.weight(1f)) {
             Text(title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
@@ -1208,8 +1229,8 @@ private fun CompactProgressBar(fraction: Double) {
     Box(
         modifier = Modifier
             .statusBarsPadding()
-            .padding(top = 6.dp, start = 24.dp, end = 24.dp)
-            .fillMaxWidth()
+            .padding(top = 6.dp)
+            .width(216.dp)
             .height(3.dp)
             .background(colors.divider.copy(alpha = 0.6f), RoundedCornerShape(50)),
     ) {

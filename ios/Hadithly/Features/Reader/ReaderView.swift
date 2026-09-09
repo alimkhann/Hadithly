@@ -26,9 +26,11 @@ struct ReaderView: View {
     @State private var showIndex = false
     @State private var showSettings = false
     @State private var showReaderMenu = false
+    @State private var showMenuNote = false
     @State private var showQuotaPaywall = false
     @State private var hasAutoPresentedQuotaPaywall = false
     @State private var lastTurn: ReaderPageTurn?
+    @State private var pageDragOffset: CGFloat = 0
 
     private var pagingPolicy: ReaderPagingPolicy {
         ReaderPagingPolicy(preferences: environment.preferences.preferences)
@@ -97,6 +99,17 @@ struct ReaderView: View {
             if let model {
                 ReaderSettingsSheet(model: model)
                     .presentationDetents([.medium, .large])
+            }
+        }
+        .sheet(isPresented: $showMenuNote) {
+            if let model, let hadith = positionedHadith(model) {
+                NoteEditorSheet(
+                    initialContent: model.noteContent(for: hadith),
+                    onSave: { content in
+                        model.saveNote(hadith, content: content)
+                        showMenuNote = false
+                    }
+                )
             }
         }
         .sheet(isPresented: $showQuotaPaywall) {
@@ -176,6 +189,7 @@ struct ReaderView: View {
                 onShowPaywall: { showQuotaPaywall = true }
             )
             .id(model.pageIndex)
+            .offset(x: pageDragOffset)
             .transition(pageTurnTransition)
             .onTapGesture {
                 toggleChrome(model, withHaptic: true)
@@ -200,7 +214,12 @@ struct ReaderView: View {
             WindowSwipeRecognizer(
                 pageDirection: pagingPolicy.pageDirection,
                 isEnabled: { !showIndex && !showSettings },
-                onTurn: { turnPage(model, turn: $0) }
+                onTurn: { turnPage(model, turn: $0) },
+                onProgress: { progress in
+                    withAnimation(.interactiveSpring(response: 0.2, dampingFraction: 0.9)) {
+                        pageDragOffset = progress
+                    }
+                }
             )
             .frame(width: 0, height: 0)
             .accessibilityHidden(true)
@@ -293,7 +312,11 @@ struct ReaderView: View {
                     onSettings: {
                         showReaderMenu = false
                         showSettings = true
-                    }
+                    },
+                    onBookmark: {
+                        if let hadith = positionedHadith(model) { model.toggleBookmark(hadith) }
+                    },
+                    onNote: { showMenuNote = true }
                 )
                 .padding(.horizontal, 20)
                 .padding(.bottom, 12)
@@ -315,6 +338,11 @@ struct ReaderView: View {
             .padding(.bottom, 16)
         }
         .transition(.opacity)
+    }
+
+    private func positionedHadith(_ model: ReaderModel) -> ReaderHadith? {
+        let target = model.restoredPosition?.anchor.providerHadithId ?? model.landingHadithNumber
+        return model.currentPageHadiths.first { $0.providerHadithId == target } ?? model.currentPageHadiths.first
     }
 }
 
@@ -350,12 +378,19 @@ private struct ReaderMenuStack: View {
     let palette: ReaderPalette
     let onContents: () -> Void
     let onSettings: () -> Void
+    let onBookmark: () -> Void
+    let onNote: () -> Void
 
     var body: some View {
         VStack(spacing: 8) {
             menuCard(title: location, subtitle: "Current location", image: "mappin.and.ellipse", action: {})
+            menuCard(title: "Bookmarks & Notes", subtitle: "Your private saved reading", image: "bookmark", action: onContents)
             menuCard(title: "Contents", subtitle: "Volumes and chapters", image: "list.bullet", action: onContents)
             menuCard(title: "Reader settings", subtitle: "Type, appearance, and text", image: "textformat.size", action: onSettings)
+            HStack(spacing: 10) {
+                menuCard(title: "Bookmark", subtitle: "Current hadith", image: "bookmark", action: onBookmark)
+                menuCard(title: "Note", subtitle: "Current hadith", image: "note.text", action: onNote)
+            }
         }
     }
 
@@ -397,8 +432,7 @@ private struct ReaderCompactProgressBar: View {
             }
             .frame(height: 3)
         }
-        .frame(height: 3)
-        .padding(.horizontal, 24)
+        .frame(width: 216, height: 3)
         .padding(.top, 6)
         .accessibilityHidden(true)
     }
@@ -2177,12 +2211,14 @@ private struct WindowSwipeRecognizer: UIViewRepresentable {
     var pageDirection: HorizontalDirection
     var isEnabled: () -> Bool
     var onTurn: (ReaderPageTurn) -> Void
+    var onProgress: (CGFloat) -> Void = { _ in }
 
     func makeCoordinator() -> ReaderPagingPanHandler {
         ReaderPagingPanHandler(
             pageDirection: pageDirection,
             isEnabled: isEnabled,
-            onTurn: onTurn
+            onTurn: onTurn,
+            onProgress: onProgress
         )
     }
 
@@ -2199,6 +2235,7 @@ private struct WindowSwipeRecognizer: UIViewRepresentable {
         context.coordinator.isEnabled = isEnabled
         context.coordinator.pageDirection = pageDirection
         context.coordinator.onTurn = onTurn
+        context.coordinator.onProgress = onProgress
         if let window = uiView.window { context.coordinator.installIfNeeded(on: window) }
     }
 

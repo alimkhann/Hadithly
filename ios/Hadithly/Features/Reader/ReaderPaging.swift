@@ -61,16 +61,19 @@ final class ReaderPagingPanHandler: NSObject, UIGestureRecognizerDelegate {
     var pageDirection: HorizontalDirection
     var isEnabled: () -> Bool
     var onTurn: (ReaderPageTurn) -> Void
+    var onProgress: (CGFloat) -> Void
     private(set) weak var recognizer: UIPanGestureRecognizer?
 
     init(
         pageDirection: HorizontalDirection,
         isEnabled: @escaping () -> Bool,
-        onTurn: @escaping (ReaderPageTurn) -> Void
+        onTurn: @escaping (ReaderPageTurn) -> Void,
+        onProgress: @escaping (CGFloat) -> Void = { _ in }
     ) {
         self.pageDirection = pageDirection
         self.isEnabled = isEnabled
         self.onTurn = onTurn
+        self.onProgress = onProgress
     }
 
     func installIfNeeded(on window: UIView) {
@@ -102,7 +105,17 @@ final class ReaderPagingPanHandler: NSObject, UIGestureRecognizerDelegate {
         translation: CGPoint,
         velocity: CGPoint
     ) {
-        guard state == .ended, isEnabled() else { return }
+        guard isEnabled() else { return }
+        if state == .began || state == .changed {
+            guard abs(translation.x) > abs(translation.y) * 1.15 else { return }
+            onProgress(translation.x)
+            return
+        }
+        guard state == .ended else {
+            onProgress(0)
+            return
+        }
+        onProgress(0)
 
         let distanceIsHorizontal = abs(translation.x) > abs(translation.y) * 1.4
         let velocityIsHorizontal = abs(velocity.x) > abs(velocity.y) * 1.4

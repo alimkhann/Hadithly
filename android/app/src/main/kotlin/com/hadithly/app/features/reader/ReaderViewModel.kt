@@ -114,6 +114,12 @@ class ReaderViewModel(
         return if (index in pages.indices) pages[index].items else emptyList()
     }
 
+    fun positionedHadith(): ReaderHadith? {
+        val target = restoredPosition?.anchor?.providerHadithId ?: landingHadithNumber
+        return currentPageHadiths().firstOrNull { it.providerHadithId == target }
+            ?: currentPageHadiths().firstOrNull()
+    }
+
     fun hasPreviousPage(): Boolean = _state.value.pageIndex > 0
 
     fun hasNextPage(): Boolean {
