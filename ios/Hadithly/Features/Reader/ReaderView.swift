@@ -445,6 +445,35 @@ struct ReaderPageView: View {
         return ReaderVolumeRange.cornerText(volumeTitle: title, pages: model.pages)
     }
 
+    /// One hadith row with its scroll-anchor tracking. Factored out so the
+    /// chapter group (header + first hadith) and plain hadiths share it.
+    private func hadithRow(_ hadith: ReaderHadith) -> some View {
+        HadithBlock(
+            model: model,
+            hadith: hadith,
+            translationState: model.translations[hadith.internalId],
+            language: model.language,
+            arabicFontSize: arabicFontSize,
+            preferences: preferences,
+            palette: palette,
+            onRetry: { model.retryTranslation(for: hadith) },
+            onShowPaywall: onShowPaywall
+        )
+        .id(hadith.internalId)
+        .background(GeometryReader { geometry in
+            let frame = geometry.frame(in: .named("reader.page"))
+            Color.clear.preference(
+                key: ReaderAnchorFramesKey.self,
+                value: [
+                    hadith.internalId: ReaderAnchorFrame(
+                        minY: frame.minY,
+                        height: frame.height
+                    ),
+                ]
+            )
+        })
+    }
+
     var body: some View {
         GeometryReader { viewport in
             ScrollViewReader { proxy in
@@ -459,8 +488,11 @@ struct ReaderPageView: View {
                     } else {
                         // Slice A (R6): whitespace separates hadiths — no divider
                         // hairlines. The corner label yields to the volume
-                        // header on the volume's first page.
-                        VStack(spacing: 40) {
+                        // header on the volume's first page. Rhythm: 28pt
+                        // between hadiths, generous space above chapter
+                        // lines (28 + 12 top padding), tight 12pt from a
+                        // chapter line to its first hadith.
+                        VStack(spacing: 28) {
                             if ReaderVolumeHeader.showsCornerLabel(pageIndex: currentPageIndex),
                                let corner = volumeCornerText {
                                 ReaderVolumeCornerLabel(text: corner, palette: palette)
@@ -471,40 +503,22 @@ struct ReaderPageView: View {
                             }
                             ForEach(Array(hadiths.enumerated()), id: \.element.internalId) { index, hadith in
                                 if chapterOpenings.contains(index) {
-                                    ReaderChapterHeader(
-                                        title: hadith.chapterName ?? "",
-                                        arabicTitle: ReaderChapterLine.arabicTitle(
-                                            forChapterId: hadith.chapterId,
-                                            in: model.volumes,
-                                            volumeId: model.selectedVolumeId
-                                        ),
-                                        palette: palette
-                                    )
-                                }
-                                HadithBlock(
-                                    model: model,
-                                    hadith: hadith,
-                                    translationState: model.translations[hadith.internalId],
-                                    language: model.language,
-                                    arabicFontSize: arabicFontSize,
-                                    preferences: preferences,
-                                    palette: palette,
-                                    onRetry: { model.retryTranslation(for: hadith) },
-                                    onShowPaywall: onShowPaywall
-                                )
-                                .id(hadith.internalId)
-                                .background(GeometryReader { geometry in
-                                    let frame = geometry.frame(in: .named("reader.page"))
-                                    Color.clear.preference(
-                                        key: ReaderAnchorFramesKey.self,
-                                        value: [
-                                            hadith.internalId: ReaderAnchorFrame(
-                                                minY: frame.minY,
-                                                height: frame.height
+                                    VStack(spacing: 12) {
+                                        ReaderChapterHeader(
+                                            title: hadith.chapterName ?? "",
+                                            arabicTitle: ReaderChapterLine.arabicTitle(
+                                                forChapterId: hadith.chapterId,
+                                                in: model.volumes,
+                                                volumeId: model.selectedVolumeId
                                             ),
-                                        ]
-                                    )
-                                })
+                                            palette: palette
+                                        )
+                                        hadithRow(hadith)
+                                    }
+                                    .padding(.top, 12)
+                                } else {
+                                    hadithRow(hadith)
+                                }
                             }
 
                             ReaderEndNavigation(
@@ -611,9 +625,10 @@ private struct ReaderVolumeHeaderView: View {
 
 /// The quiet, name-only chapter line (R6 slice A). Never the word
 /// "Chapter", never invented: rendered only for source-provided chapter
-/// transitions. Secondary style smaller than body, generous space above
-/// (from the inter-hadith spacing), and the Arabic title as a second line
-/// only when it differs.
+/// transitions. Near-body size in the primary text color; the Arabic
+/// title stays a smaller secondary second line only when it differs.
+/// Generous space above (from the page spacing plus its own top padding),
+/// tight gap to the first hadith below (from the chapter group's spacing).
 private struct ReaderChapterHeader: View {
     let title: String
     let arabicTitle: String?
@@ -622,8 +637,8 @@ private struct ReaderChapterHeader: View {
     var body: some View {
         VStack(spacing: 4) {
             Text(title)
-                .font(.footnote.weight(.medium))
-                .foregroundStyle(palette.textSecondary)
+                .font(.callout.weight(.semibold))
+                .foregroundStyle(palette.textPrimary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
             if let subtitle = ReaderChapterLine.arabicSubtitle(title: title, arabicTitle: arabicTitle) {
@@ -648,10 +663,12 @@ private struct ReaderChapterHeader: View {
     }
 }
 
-/// End-of-page navigation (R6 slice A): one centered cluster with the
-/// chevrons immediately adjacent to the page pill. The stack keeps the
-/// ambient layout direction, so RTL mirrors the order; each chevron also
-/// points the logical way (previous points back in the reading direction).
+/// End-of-page navigation (R6 slice A): ONE tight pill — `‹ Page X of Y ›`
+/// with the chevrons snug against the label (a few points of padding, not
+/// outer corners). Each chevron keeps a 44pt target and points the logical
+/// way (previous points back in the reading direction); the stack keeps
+/// the ambient layout direction, so RTL mirrors the order. The volume pill
+/// (revealed chrome) stays text-only — no volume chevrons.
 private struct ReaderEndNavigation: View {
     let policy: ReaderPagingPolicy
     let currentPageIndex: Int
@@ -661,25 +678,28 @@ private struct ReaderEndNavigation: View {
     let onTurn: (ReaderPageTurn) -> Void
 
     var body: some View {
-        HStack(spacing: 2) {
-            if policy.destination(from: currentPageIndex, pageCount: pageCount, turn: .previous) != nil {
-                chevronButton(.previous)
+        HStack {
+            Spacer(minLength: 0)
+            HStack(spacing: 4) {
+                if policy.destination(from: currentPageIndex, pageCount: pageCount, turn: .previous) != nil {
+                    chevronButton(.previous)
+                }
+                Text(pillText)
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(palette.textSecondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 7)
+                    .accessibilityIdentifier("reader.pagePill")
+                    .accessibilityLabel(pillText)
+                if policy.destination(from: currentPageIndex, pageCount: pageCount, turn: .next) != nil {
+                    chevronButton(.next)
+                }
             }
-            Text(pillText)
-                .font(.caption.weight(.medium))
-                .foregroundStyle(palette.textSecondary)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 7)
-                .background(palette.surface.opacity(0.96))
-                .clipShape(Capsule())
-                .overlay(Capsule().strokeBorder(palette.divider, lineWidth: 1))
-                .accessibilityIdentifier("reader.pagePill")
-                .accessibilityLabel(pillText)
-            if policy.destination(from: currentPageIndex, pageCount: pageCount, turn: .next) != nil {
-                chevronButton(.next)
-            }
+            .background(palette.surface.opacity(0.96))
+            .clipShape(Capsule())
+            .overlay(Capsule().strokeBorder(palette.divider, lineWidth: 1))
+            Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("reader.pageCluster")
     }
@@ -733,12 +753,15 @@ private struct HadithBlock: View {
     @State private var showingSource = false
 
     var body: some View {
-        // Slice A (R6): a quiet block. The marker prefixes the block, body
+        // Slice A (R6): a quiet block. One header per hadith at the top —
+        // the grade dot, the bracketed `[Collection – n]` label, and the
+        // saved-state mini markers — tappable for the source sheet. Body
         // text starts at the leading edge, the narrator sits at the
-        // trailing edge, and the grade dot plus compact source label
-        // replaces the authenticity line. No overflow button, no dividers.
+        // leading edge with the translation (hidden in Arabic-only mode),
+        // and there is no bottom label, no bare-number marker, no overflow
+        // button, and no dividers.
         VStack(alignment: .leading, spacing: 14) {
-            markerRow
+            headerRow
 
             if preferences.arabicVisible {
                 Text(hadith.arabicText)
@@ -752,12 +775,20 @@ private struct HadithBlock: View {
                     .accessibilityIdentifier("reader.arabic")
             }
 
-            if let narrator = hadith.narrator, !narrator.isEmpty {
-                Text(narrator)
+            if ReaderNarratorLine.shouldShow(
+                narrator: hadith.narrator,
+                translationVisible: preferences.translationVisible
+            ) {
+                Text(hadith.narrator ?? "")
                     .font(.caption)
                     .foregroundStyle(palette.textSecondary)
-                    .multilineTextAlignment(.trailing)
-                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .environment(
+                        \.layoutDirection,
+                        LocaleFallback.isRTL(preferences.translationLocale) ? .rightToLeft : .leftToRight
+                    )
+                    .accessibilityIdentifier("reader.narrator")
             }
 
             if preferences.translationVisible {
@@ -767,12 +798,10 @@ private struct HadithBlock: View {
                         LocaleFallback.isRTL(preferences.translationLocale) ? .rightToLeft : .leftToRight
                     )
             }
-
-            sourceRow
         }
         // R5 context menu unchanged: the only sighted path to actions is
-        // long-press. VoiceOver custom actions on the source label are the
-        // screen-reader equivalent (see sourceRow).
+        // long-press. VoiceOver custom actions on the header are the
+        // screen-reader equivalent (see headerRow).
         .contextMenu {
             Text(hadith.referenceDisplay)
             hadithMenuContents
@@ -814,49 +843,44 @@ private struct HadithBlock: View {
         }
     }
 
-    /// The minimal quiet provider-number marker (e.g. dim `57`, never the
-    /// word "Hadith"), mirroring the reference `10:2`-style markers.
-    private var markerRow: some View {
-        Text(ReaderHadithMarker.text(for: hadith))
-            .font(.caption2.weight(.medium).monospacedDigit())
-            .foregroundStyle(palette.textSecondary.opacity(0.75))
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .accessibilityIdentifier("reader.hadithMarker")
-            .accessibilityLabel("Hadith \(hadith.providerHadithId)")
-    }
-
-    /// One compact tappable label — `[short name – provider id]` with a
-    /// grade dot before it — replacing the authenticity + source text line.
-    /// Tapping opens the small source sheet; copy/share payloads keep the
-    /// full source line unchanged (`ReaderShare`).
+    /// One header per hadith at the top: the grade dot, the bracketed
+    /// `[Collection – n]` label, and the saved-state mini markers (amber
+    /// bookmark when bookmarked, pink heart when favorited). Tapping opens
+    /// the source sheet; copy/share payloads keep the full source line
+    /// unchanged (`ReaderShare`). The markers are non-interactive
+    /// indicators — actions remain the long-press context menu, the
+    /// VoiceOver custom actions below, and the bottom menu (later).
     ///
     /// The seven R5 actions live here as VoiceOver custom actions: the
     /// screen-reader equivalent of the long-press menu. Share presents the
     /// system share sheet programmatically with the same canonical URL the
     /// menu's ShareLink carries.
-    private var sourceRow: some View {
+    private var headerRow: some View {
         let kind = ReaderGradeKind(normalizedGrade: hadith.authenticity.normalizedGrade)
+        let bookmarked = model.isBookmarked(hadith)
+        let favorited = model.isFavorite(hadith)
         return HStack(spacing: 7) {
-            Circle()
-                .fill(ReaderGradeDot.color(for: kind, palette: palette))
-                .frame(width: 8, height: 8)
-                .accessibilityLabel(kind.accessibilityName)
-                .accessibilityIdentifier("reader.gradeDot")
             Button {
                 showingSource = true
             } label: {
-                Text(ReaderSourceLabel.text(for: hadith))
-                    .font(.caption2.weight(.medium))
-                    .foregroundStyle(palette.textSecondary)
-                    .multilineTextAlignment(.leading)
+                HStack(spacing: 7) {
+                    Circle()
+                        .fill(ReaderGradeDot.color(for: kind, palette: palette))
+                        .frame(width: 8, height: 8)
+                    Text(ReaderSourceLabel.headerText(for: hadith))
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(palette.textPrimary)
+                        .multilineTextAlignment(.leading)
+                }
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier("reader.hadithLabel")
+            .accessibilityLabel("\(ReaderSourceLabel.text(for: hadith)), \(kind.accessibilityName)")
             .accessibilityHint("Shows source details")
-            .accessibilityAction(named: model.isBookmarked(hadith) ? "Remove Bookmark" : "Bookmark") {
+            .accessibilityAction(named: bookmarked ? "Remove Bookmark" : "Bookmark") {
                 model.toggleBookmark(hadith)
             }
-            .accessibilityAction(named: model.isFavorite(hadith) ? "Remove Favorite" : "Favorite") {
+            .accessibilityAction(named: favorited ? "Remove Favorite" : "Favorite") {
                 model.toggleFavorite(hadith)
             }
             .accessibilityAction(named: model.noteContent(for: hadith) != nil ? "Edit Note" : "Add Note") {
@@ -871,13 +895,29 @@ private struct HadithBlock: View {
             .accessibilityAction(named: "Suggest Translation") {
                 isSubmittingTranslation = true
             }
+            .modifier(HadithReportAction(
+                translation: activeTranslation,
+                reportedTranslation: $reportedTranslation
+            ))
+            ForEach(ReaderSavedMarkers.visible(bookmarked: bookmarked, favorited: favorited), id: \.self) { marker in
+                switch marker {
+                case .bookmark:
+                    Image(systemName: "bookmark.fill")
+                        .font(.caption2)
+                        .foregroundStyle(Color(red: 0.96, green: 0.62, blue: 0.04))
+                        .accessibilityIdentifier("reader.savedBookmark")
+                        .accessibilityLabel("Bookmarked")
+                case .favorite:
+                    Image(systemName: "heart.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.pink)
+                        .accessibilityIdentifier("reader.savedFavorite")
+                        .accessibilityLabel("Favorited")
+                }
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .contain)
-        .modifier(HadithReportAction(
-            translation: activeTranslation,
-            reportedTranslation: $reportedTranslation
-        ))
     }
 
     private func shareHadith() {
@@ -1550,13 +1590,22 @@ struct ReaderPagingTestFixtureView: View {
 /// with its fully-cached range and a hasan block. The page cluster turns
 /// between the two pages. All blocks, headers, and the cluster are the
 /// real production views.
+///
+/// Environment overrides (all default to the fully-loaded mixed page):
+/// - `R6A_ARABIC_VISIBLE=false` hides the Arabic layer.
+/// - `R6A_TRANSLATION_VISIBLE=false` hides the translation layer (the
+///   narrator, as translation metadata, hides with it).
+/// - `R6A_FULL_CACHE=false` leaves the volume partially cached, so the
+///   corner label stays title-only.
+/// - `R6A_INITIAL_PAGE=1` starts on the second page (corner label).
 struct ReaderR6ATestFixtureView: View {
     @State private var model: ReaderModel
-    @State private var pageIndex = 0
+    @State private var pageIndex: Int
 
-    private let preferences = ReaderPreferences()
+    private let preferences: ReaderPreferences
     private let palette = ReaderPalette.dark
     private let policy = ReaderPagingPolicy(pageDirection: .ltr)
+    private let fullyCached: Bool
 
     private let volume = OutlineVolume(
         volumeId: "2",
@@ -1574,6 +1623,13 @@ struct ReaderR6ATestFixtureView: View {
     )
 
     init() {
+        let environment = ProcessInfo.processInfo.environment
+        var preferences = ReaderPreferences()
+        preferences.arabicVisible = environment["R6A_ARABIC_VISIBLE"] != "false"
+        preferences.translationVisible = environment["R6A_TRANSLATION_VISIBLE"] != "false"
+        self.preferences = preferences
+        fullyCached = environment["R6A_FULL_CACHE"] != "false"
+        _pageIndex = State(initialValue: min(1, max(0, Int(environment["R6A_INITIAL_PAGE"] ?? "0") ?? 0)))
         let provider = ClerkConvexAuthProvider()
         let convex = ConvexClientWithAuth(
             deploymentUrl: "https://example.invalid",
@@ -1585,6 +1641,10 @@ struct ReaderR6ATestFixtureView: View {
             collectionName: "Sahih al-Bukhari",
             language: "en",
             isSignedIn: { false }
+        )
+        seeded.seedSavedStateForUITest(
+            bookmarkedIds: ["fixture-57"],
+            favoritedIds: ["fixture-59"]
         )
         seeded.seedForUITest(
             volumes: [
@@ -1689,8 +1749,10 @@ struct ReaderR6ATestFixtureView: View {
         )
     }
 
-    /// Fully-cached volume pages, so the corner label carries the real
-    /// `: first–last` range through the production rule.
+    /// Volume pages for the corner label, through the production rule.
+    /// Fully cached by default (the real `: first–last` range renders);
+    /// `R6A_FULL_CACHE=false` leaves the last page open so the corner
+    /// stays title-only.
     private var cachedPages: [ReaderPageResult] {
         [
             ReaderPageResult(
@@ -1700,7 +1762,7 @@ struct ReaderR6ATestFixtureView: View {
             ),
             ReaderPageResult(
                 items: [hadith59], page: 2, pageSize: 10,
-                totalPages: 2, hasMore: false,
+                totalPages: 2, hasMore: !fullyCached,
                 contentVersion: nil, paginationVersion: nil, pageKey: nil
             ),
         ]
@@ -1710,20 +1772,23 @@ struct ReaderR6ATestFixtureView: View {
         ZStack {
             palette.background.ignoresSafeArea()
             ScrollView {
-                VStack(spacing: 40) {
+                VStack(spacing: 28) {
                     if pageIndex == 0 {
                         ReaderVolumeHeaderView(volume: volume, palette: palette)
                         block(hadith57)
-                        ReaderChapterHeader(
-                            title: "Belief",
-                            arabicTitle: ReaderChapterLine.arabicTitle(
-                                forChapterId: hadith58.chapterId,
-                                in: [volume],
-                                volumeId: "2"
-                            ),
-                            palette: palette
-                        )
-                        block(hadith58)
+                        VStack(spacing: 12) {
+                            ReaderChapterHeader(
+                                title: "Belief",
+                                arabicTitle: ReaderChapterLine.arabicTitle(
+                                    forChapterId: hadith58.chapterId,
+                                    in: [volume],
+                                    volumeId: "2"
+                                ),
+                                palette: palette
+                            )
+                            block(hadith58)
+                        }
+                        .padding(.top, 12)
                     } else {
                         ReaderVolumeCornerLabel(
                             text: ReaderVolumeRange.cornerText(

@@ -226,6 +226,19 @@ final class ReaderModel {
         self.selectedVolumeId = selectedVolumeId
         self.phase = .reading
     }
+
+    /// Seeds saved state for the R6A reader fixture without network. When
+    /// seeded, `isBookmarked`/`isFavorite` answer from these sets so the
+    /// mini markers render deterministically.
+    private var uitestSavedStateSeeded = false
+    private var uitestBookmarkedIds: Set<String> = []
+    private var uitestFavoritedIds: Set<String> = []
+
+    func seedSavedStateForUITest(bookmarkedIds: Set<String>, favoritedIds: Set<String>) {
+        uitestSavedStateSeeded = true
+        uitestBookmarkedIds = bookmarkedIds
+        uitestFavoritedIds = favoritedIds
+    }
 #endif
 
     /// R5 contents navigation: selects the volume holding a source-provided
@@ -496,11 +509,17 @@ final class ReaderModel {
     }
 
     func isBookmarked(_ hadith: ReaderHadith) -> Bool {
-        library?.isBookmarked(hadithId: hadith._id) ?? false
+        #if DEBUG
+        if uitestSavedStateSeeded { return uitestBookmarkedIds.contains(hadith._id) }
+        #endif
+        return library?.isBookmarked(hadithId: hadith._id) ?? false
     }
 
     func isFavorite(_ hadith: ReaderHadith) -> Bool {
-        library?.isFavorite(hadithId: hadith._id) ?? false
+        #if DEBUG
+        if uitestSavedStateSeeded { return uitestFavoritedIds.contains(hadith._id) }
+        #endif
+        return library?.isFavorite(hadithId: hadith._id) ?? false
     }
 
     func toggleBookmark(_ hadith: ReaderHadith) {

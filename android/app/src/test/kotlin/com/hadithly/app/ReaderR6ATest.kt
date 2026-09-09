@@ -8,9 +8,14 @@ import com.hadithly.app.core.theme.ReaderPalettes
 import com.hadithly.app.features.reader.ReaderChapterBoundaries
 import com.hadithly.app.features.reader.ReaderGrade
 import com.hadithly.app.features.reader.ReaderViewModel
+import com.hadithly.app.features.reader.SavedMiniMarker
 import com.hadithly.app.features.reader.customActionsFor
 import com.hadithly.app.features.reader.gradeDotColor
+import com.hadithly.app.features.reader.hadithHeaderText
 import com.hadithly.app.features.reader.hadithMenuActions
+import com.hadithly.app.features.reader.savedMiniMarkers
+import com.hadithly.app.features.reader.shouldShowNarrator
+import com.hadithly.app.features.reader.volumeCornerText
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -101,7 +106,6 @@ class ReaderR6ATest {
             ),
         )
     }
-
     @Test
     fun `fully cached gate needs every page loaded`() {
         assertFalse(ReaderViewModel.isVolumeFullyCached(emptyList()))
@@ -341,5 +345,92 @@ class ReaderR6ATest {
             assertTrue(action.action())
         }
         assertEquals(listOf("bookmark", "favorite", "note", "copy", "share", "suggest"), calls)
+    }
+
+    // R6A owner fixes: corner text, narrator gating, saved mini markers
+
+    private fun cachedPages(): List<ReaderPageResult> = listOf(
+        ReaderPageResult(items = emptyList(), page = 1.0),
+        ReaderPageResult(items = emptyList(), page = 2.0),
+    )
+
+    @Test
+    fun `corner text shows the whole volume range only when fully cached`() {
+        // Volume 2 of the fixture outline spans 59–102.
+        assertEquals(
+            "Volume 2: 59–102",
+            volumeCornerText("Volume 2", outline(), "2", cachedPages()),
+        )
+        assertEquals(
+            "Volume 1: 1–58",
+            volumeCornerText("Volume 1", outline(), "1", cachedPages()),
+        )
+    }
+
+    @Test
+    fun `corner text is title-only until computable`() {
+        // Still loading: hasMore outstanding.
+        assertEquals(
+            "Volume 2",
+            volumeCornerText(
+                "Volume 2",
+                outline(),
+                "2",
+                listOf(ReaderPageResult(items = emptyList(), page = 1.0, hasMore = true)),
+            ),
+        )
+        // No pages yet.
+        assertEquals("Volume 2", volumeCornerText("Volume 2", outline(), "2", emptyList()))
+        // Unknown volume.
+        assertEquals("Volume 9", volumeCornerText("Volume 9", outline(), "9", cachedPages()))
+        // No volume selected.
+        assertEquals("Volume 2", volumeCornerText("Volume 2", outline(), null, cachedPages()))
+        // Uncomputable counts.
+        assertEquals(
+            "Volume 1",
+            volumeCornerText(
+                "Volume 1",
+                listOf(OutlineVolume(volumeId = "1", title = "Volume 1", hadithCount = 0.0)),
+                "1",
+                cachedPages(),
+            ),
+        )
+    }
+
+    @Test
+    fun `narrator hides when the translation layer is hidden`() {
+        assertTrue(shouldShowNarrator("Narrated Abu Huraira:", translationVisible = true))
+        // Arabic-only mode: no narrator line.
+        assertFalse(shouldShowNarrator("Narrated Abu Huraira:", translationVisible = false))
+        assertFalse(shouldShowNarrator(null, translationVisible = true))
+        assertFalse(shouldShowNarrator("", translationVisible = true))
+        assertFalse(shouldShowNarrator("  ", translationVisible = true))
+    }
+
+    @Test
+    fun `header label is bracketed short name and id`() {
+        assertEquals("[Bukhari – 57]", hadithHeaderText("bukhari", "Sahih al-Bukhari", "57"))
+        assertEquals("[Muslim – 4.5]", hadithHeaderText("muslim", "Sahih Muslim", "4.5"))
+        assertEquals("[Forty Nawawi – 1]", hadithHeaderText("forty-nawawi", "Forty Nawawi", "1"))
+    }
+
+    @Test
+    fun `grade display names mirror the source label`() {
+        assertEquals("Sahih", ReaderGrade.SAHIH.displayName)
+        assertEquals("Hasan", ReaderGrade.HASAN.displayName)
+        assertEquals("Daif", ReaderGrade.DAIF.displayName)
+        assertEquals("Unverified", ReaderGrade.OTHER.displayName)
+    }
+
+    @Test
+    fun `saved mini markers follow bookmark and favorite only`() {
+        assertEquals(listOf(SavedMiniMarker.BOOKMARK), savedMiniMarkers(true, false))
+        assertEquals(listOf(SavedMiniMarker.FAVORITE), savedMiniMarkers(false, true))
+        assertEquals(
+            listOf(SavedMiniMarker.BOOKMARK, SavedMiniMarker.FAVORITE),
+            savedMiniMarkers(true, true),
+        )
+        assertTrue(savedMiniMarkers(false, false).isEmpty())
+        // Notes never produce a marker: no note icon exists.
     }
 }

@@ -5,9 +5,10 @@ import SwiftUI
 ///
 /// Every type here is pure and UI-framework-free except for the grade-dot
 /// color resolver, so the full slice-A contract is provable in unit tests:
-/// grade mapping, compact source labels, quiet markers, chapter subtitles,
-/// volume corner/range rules, and the per-block action set. Copy/share
-/// payloads are untouched (`ReaderShare` keeps the full source line).
+/// grade mapping, compact source labels, bracketed header text, narrator
+/// visibility, saved-state markers, chapter subtitles, volume corner/range
+/// rules, and the per-block action set. Copy/share payloads are untouched
+/// (`ReaderShare` keeps the full source line).
 enum ReaderGradeKind: String, Equatable {
     case sahih
     case hasan
@@ -82,14 +83,43 @@ enum ReaderSourceLabel {
     static func text(for hadith: ReaderHadith) -> String {
         "\(shortName(collectionSlug: hadith.collectionSlug, collectionName: hadith.collectionName)) – \(hadith.providerHadithId)"
     }
+
+    /// The per-hadith header label: the compact label in brackets
+    /// (`[Bukhari – 57]`). The header row pairs this with the grade dot
+    /// before it and the saved-state mini markers after it; the whole
+    /// header is the single tap target for the source sheet.
+    static func headerText(for hadith: ReaderHadith) -> String {
+        "[\(text(for: hadith))]"
+    }
 }
 
-/// The minimal quiet provider-number marker prefixing each block
-/// (e.g. dim `57`). Never the word "Hadith" — that stays in copy text
-/// and accessibility labels only.
-enum ReaderHadithMarker {
-    static func text(for hadith: ReaderHadith) -> String {
-        hadith.providerHadithId
+/// The narrator line is translation metadata: it renders at the leading
+/// edge (the same alignment as the translation) and is hidden entirely
+/// when the translation layer is hidden (Arabic-only mode).
+enum ReaderNarratorLine {
+    static func shouldShow(narrator: String?, translationVisible: Bool) -> Bool {
+        guard translationVisible else { return false }
+        guard let narrator = narrator?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !narrator.isEmpty
+        else { return false }
+        return true
+    }
+}
+
+/// Saved-state mini markers: small non-interactive indicators inline after
+/// the header label. Bookmark first, then favorite. No note icon — notes
+/// stay reachable through the long-press menu and VoiceOver actions only.
+enum ReaderSavedMarker: Hashable {
+    case bookmark
+    case favorite
+}
+
+enum ReaderSavedMarkers {
+    static func visible(bookmarked: Bool, favorited: Bool) -> [ReaderSavedMarker] {
+        var markers: [ReaderSavedMarker] = []
+        if bookmarked { markers.append(.bookmark) }
+        if favorited { markers.append(.favorite) }
+        return markers
     }
 }
 

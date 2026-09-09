@@ -2,9 +2,10 @@ import XCTest
 @testable import Hadithly
 
 /// Slice A (R6): the quiet-page view-model contract — grade-dot mapping,
-/// compact source labels, markers, chapter subtitles, volume corner/range
-/// rules, the per-block action set, and position-reanchor survival across
-/// the density restyle. All pure logic; no network, no layout.
+/// compact source labels, bracketed header text, narrator visibility,
+/// saved-state markers, chapter subtitles, volume corner/range rules, the
+/// per-block action set, and position-reanchor survival across the density
+/// restyle. All pure logic; no network, no layout.
 final class ReaderR6ATests: XCTestCase {
     // MARK: - Fixtures
 
@@ -16,7 +17,8 @@ final class ReaderR6ATests: XCTestCase {
         normalizedGrade: String? = "sahih",
         claimScope: String = "collection",
         sourceName: String = "Sunnah.com",
-        sourceUrl: String = "https://sunnah.com/bukhari/about"
+        sourceUrl: String = "https://sunnah.com/bukhari/about",
+        narrator: String? = nil
     ) -> ReaderHadith {
         ReaderHadith(
             _id: "fixture-\(providerHadithId)",
@@ -28,7 +30,7 @@ final class ReaderR6ATests: XCTestCase {
             chapterId: chapterId,
             arabicText: "نَصّ",
             englishText: "Text.",
-            narrator: nil,
+            narrator: narrator,
             referenceDisplay: "\(collectionName) · Hadith \(providerHadithId)",
             collectionName: collectionName,
             chapterName: nil,
@@ -139,10 +141,53 @@ final class ReaderR6ATests: XCTestCase {
         )
     }
 
-    func testMarkerIsProviderNumberOnly() {
-        XCTAssertEqual(ReaderHadithMarker.text(for: hadith()), "57")
-        XCTAssertEqual(ReaderHadithMarker.text(for: hadith(providerHadithId: "4.5")), "4.5")
-        XCTAssertFalse(ReaderHadithMarker.text(for: hadith()).contains("Hadith"))
+    func testHeaderTextIsBracketedCompactLabel() {
+        XCTAssertEqual(ReaderSourceLabel.headerText(for: hadith()), "[Bukhari – 57]")
+        XCTAssertEqual(
+            ReaderSourceLabel.headerText(for: hadith(providerHadithId: "4.5", collectionSlug: "muslim", collectionName: "Sahih Muslim")),
+            "[Muslim – 4.5]"
+        )
+        XCTAssertFalse(ReaderSourceLabel.headerText(for: hadith()).contains("Chapter"))
+        XCTAssertFalse(ReaderSourceLabel.headerText(for: hadith()).contains("Hadith"))
+    }
+
+    // MARK: - Narrator visibility (translation metadata)
+
+    func testNarratorShowsWithTranslationLayer() {
+        XCTAssertTrue(ReaderNarratorLine.shouldShow(
+            narrator: "Narrated by Umar", translationVisible: true
+        ))
+    }
+
+    func testNarratorHiddenInArabicOnlyMode() {
+        // The narrator is translation metadata: hiding the translation
+        // layer hides the narrator even when one exists.
+        XCTAssertFalse(ReaderNarratorLine.shouldShow(
+            narrator: "Narrated by Umar", translationVisible: false
+        ))
+        XCTAssertFalse(ReaderNarratorLine.shouldShow(narrator: nil, translationVisible: true))
+        XCTAssertFalse(ReaderNarratorLine.shouldShow(narrator: "  ", translationVisible: true))
+    }
+
+    // MARK: - Saved-state mini markers
+
+    func testSavedMarkersBookmarkThenFavorite() {
+        XCTAssertEqual(
+            ReaderSavedMarkers.visible(bookmarked: true, favorited: true),
+            [.bookmark, .favorite]
+        )
+        XCTAssertEqual(
+            ReaderSavedMarkers.visible(bookmarked: true, favorited: false),
+            [.bookmark]
+        )
+        XCTAssertEqual(
+            ReaderSavedMarkers.visible(bookmarked: false, favorited: true),
+            [.favorite]
+        )
+        XCTAssertEqual(
+            ReaderSavedMarkers.visible(bookmarked: false, favorited: false),
+            []
+        )
     }
 
     // MARK: - Action set

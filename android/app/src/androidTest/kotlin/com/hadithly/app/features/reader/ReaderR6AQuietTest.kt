@@ -3,7 +3,6 @@ package com.hadithly.app.features.reader
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
@@ -58,11 +57,12 @@ class ReaderR6AQuietTest {
         authenticity = authenticity,
     )
 
-    private class FakeDeps : HadithBlockDeps {
+    private class FakeDeps(
+        override val isBookmarked: Boolean = false,
+        override val isFavorite: Boolean = false,
+    ) : HadithBlockDeps {
         var bookmarks = 0
         var favorites = 0
-        override val isBookmarked = false
-        override val isFavorite = false
         override val hasNote = false
         override fun onToggleBookmark() {
             bookmarks += 1
@@ -77,6 +77,7 @@ class ReaderR6AQuietTest {
         hadith: ReaderHadith = hadith(),
         deps: HadithBlockDeps = FakeDeps(),
         translationState: TranslationUiState? = null,
+        preferences: ReaderPreferences = ReaderPreferences(),
         onShowSource: () -> Unit = {},
     ) {
         HadithlyTheme {
@@ -85,7 +86,7 @@ class ReaderR6AQuietTest {
                 translationState = translationState,
                 language = "en",
                 arabicFontSize = 26f,
-                preferences = ReaderPreferences(),
+                preferences = preferences,
                 deps = deps,
                 onTap = {},
                 onRetry = {},
@@ -107,29 +108,79 @@ class ReaderR6AQuietTest {
         compose.onNodeWithTag("reader.reference").assertDoesNotExist()
         compose.onNodeWithTag("reader.authenticity").assertDoesNotExist()
         compose.onNodeWithText("Hadith 57", substring = true).assertDoesNotExist()
+        // The dim bare-number marker and the bottom compact label are gone:
+        // one top header per hadith, no duplication.
+        compose.onNodeWithTag("reader.hadithMarker").assertDoesNotExist()
     }
 
     @Test
-    fun markerShowsProviderNumberOnly() {
+    fun headerShowsBracketedLabelAtTop() {
         compose.setContent { block() }
 
-        compose.onNodeWithTag("reader.hadithMarker", useUnmergedTree = true)
-            .assertIsDisplayed()
-            .assertTextEquals("57")
+        compose.onNodeWithTag("reader.hadithLabel").assertIsDisplayed()
+        compose.onNodeWithText("[Bukhari – 57]").assertIsDisplayed()
     }
 
     @Test
-    fun dotAndLabelTapOpensSource() {
+    fun headerTapOpensSource() {
         var opened = 0
         compose.setContent { block(onShowSource = { opened += 1 }) }
 
-        // The dot lives inside the label's clickable, so it merged into the
-        // label node: assert it in the unmerged tree.
-        compose.onNodeWithTag("reader.gradeDot", useUnmergedTree = true).assertIsDisplayed()
+        // One header per hadith: no bare-number marker, no grade-dot marker
+        // tag — the dot is an untagged part of the header tap target.
+        compose.onNodeWithTag("reader.gradeDot", useUnmergedTree = true).assertDoesNotExist()
+        compose.onNodeWithTag("reader.hadithMarker", useUnmergedTree = true).assertDoesNotExist()
         compose.onNodeWithTag("reader.hadithLabel").assertIsDisplayed()
-        compose.onNodeWithText("Bukhari – 57").assertIsDisplayed()
+        compose.onNodeWithText("[Bukhari – 57]").assertIsDisplayed()
         compose.onNodeWithTag("reader.hadithLabel").performClick()
         compose.runOnIdle { assertEquals(1, opened) }
+    }
+
+    @Test
+    fun narratorShowsAtLeadingEdgeWhenTranslationVisible() {
+        compose.setContent { block() }
+
+        // Plain-text children merge into the block's clickable node, so
+        // assert them in the unmerged tree.
+        compose.onNodeWithTag("reader.narrator", useUnmergedTree = true).assertIsDisplayed()
+        compose.onNodeWithText("Narrated Abu Huraira:").assertIsDisplayed()
+    }
+
+    @Test
+    fun narratorHidesWhenTranslationLayerHidden() {
+        // Arabic-only mode: the narrator line (translation metadata) hides
+        // entirely; Arabic alone remains.
+        compose.setContent {
+            block(preferences = ReaderPreferences(translationVisible = false))
+        }
+
+        compose.onNodeWithTag("reader.narrator", useUnmergedTree = true).assertDoesNotExist()
+        compose.onNodeWithText("Narrated Abu Huraira:").assertDoesNotExist()
+        compose.onNodeWithTag("reader.arabic", useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun savedBookmarkMiniMarkAppearsWhenBookmarked() {
+        compose.setContent { block(deps = FakeDeps(isBookmarked = true)) }
+
+        compose.onNodeWithTag("reader.savedBookmark", useUnmergedTree = true).assertIsDisplayed()
+        compose.onNodeWithTag("reader.savedFavorite", useUnmergedTree = true).assertDoesNotExist()
+    }
+
+    @Test
+    fun savedFavoriteMiniMarkAppearsWhenFavorited() {
+        compose.setContent { block(deps = FakeDeps(isFavorite = true)) }
+
+        compose.onNodeWithTag("reader.savedFavorite", useUnmergedTree = true).assertIsDisplayed()
+        compose.onNodeWithTag("reader.savedBookmark", useUnmergedTree = true).assertDoesNotExist()
+    }
+
+    @Test
+    fun noMiniMarksOrNoteIconWhenUnsaved() {
+        compose.setContent { block() }
+
+        compose.onNodeWithTag("reader.savedBookmark", useUnmergedTree = true).assertDoesNotExist()
+        compose.onNodeWithTag("reader.savedFavorite", useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -250,7 +301,11 @@ class ReaderR6AQuietTest {
             }
         }
 
+        // One tight pill: the label sits between the chevrons inside a
+        // single capsule, snug against them. The label merges into the
+        // cluster node, so assert it in the unmerged tree.
         compose.onNodeWithTag("reader.pageCluster").assertIsDisplayed()
+        compose.onNodeWithTag("reader.pagePill", useUnmergedTree = true).assertIsDisplayed()
         compose.onNodeWithText("Page 2 of 5").assertIsDisplayed()
         compose.onNodeWithTag("reader.previousPage").assertIsDisplayed()
         compose.onNodeWithTag("reader.nextPage").assertIsDisplayed()

@@ -85,22 +85,23 @@ final class ReaderR5UITests: XCTestCase {
         element("reader.contents.jumpGo", in: app).tap()
 
         // The jump lands through the same path as canonical links: the
-        // target hadith's quiet marker is on screen (VoiceOver label
-        // "Hadith 57"; the visible marker itself is the bare number).
-        let markers = app.descendants(matching: .any).matching(identifier: "reader.hadithMarker")
-        let target = markers.matching(NSPredicate(format: "label CONTAINS '57'")).firstMatch
+        // target hadith's top header (`[Bukhari – 57]`, VoiceOver label
+        // "Bukhari – 57, Sahih") is on screen.
+        let headers = app.buttons.matching(identifier: "reader.hadithLabel")
+        let target = headers.matching(NSPredicate(format: "label CONTAINS '57'")).firstMatch
         XCTAssertTrue(target.waitForExistence(timeout: 30), "Jump to Hadith 57 never landed")
 
         // Slice A: the ellipsis is gone with no visual replacement. Every
-        // block carries its quiet marker, grade dot, and source label.
+        // block carries one top header with its grade dot and label; the
+        // bottom compact label and the dim bare-number marker are gone.
         XCTAssertFalse(app.buttons["reader.moreActions"].exists, "ellipsis must be deleted")
-        XCTAssertTrue(
-            app.buttons["reader.hadithLabel"].firstMatch.waitForExistence(timeout: timeout),
-            "compact source label never rendered"
+        XCTAssertFalse(
+            app.descendants(matching: .any).matching(identifier: "reader.hadithMarker").firstMatch.exists,
+            "bare-number marker must be deleted"
         )
         XCTAssertTrue(
-            app.descendants(matching: .any).matching(identifier: "reader.gradeDot").firstMatch.exists,
-            "grade dot never rendered"
+            app.buttons["reader.hadithLabel"].firstMatch.waitForExistence(timeout: timeout),
+            "top hadith header never rendered"
         )
 
         // Long-press is the only sighted path to actions: the full menu

@@ -45,9 +45,11 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.NavigateBefore
 import androidx.compose.material.icons.automirrored.filled.NavigateNext
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FormatSize
 import androidx.compose.material.icons.outlined.RadioButtonUnchecked
 import androidx.compose.material3.CircularProgressIndicator
@@ -96,7 +98,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import android.content.ClipData
 import android.content.Intent
 import com.hadithly.app.R
+import com.hadithly.app.core.data.OutlineVolume
 import com.hadithly.app.core.data.ReaderHadith
+import com.hadithly.app.core.data.ReaderPageResult
 import com.hadithly.app.core.data.ReaderTranslation
 import com.hadithly.app.core.data.ReadingPosition
 import com.hadithly.app.core.data.ReaderTargetSource
@@ -524,7 +528,20 @@ private fun ReaderPage(
         state.volumes.firstOrNull { it.volumeId == state.selectedVolumeId }
     }
     val volumeChapters = remember(selectedVolume) { selectedVolume?.chapters.orEmpty() }
-    val volumeRange = remember(state.volumes, state.selectedVolumeId, state.pages) {
+    // R6A fix: the corner text is the localized title plus the WHOLE volume
+    // range (`Volume 2: 8–58`) only when the volume is fully cached and the
+    // range is computable from the outline counts; title-only otherwise.
+    // The pure rule lives in volumeCornerText (unit-pinned); the localized
+    // title is resolved here at the composition boundary.
+    val cornerTitle: String? = selectedVolume?.let { volume ->
+        val number = ReaderViewModel.volumeTitleNumber(volume.title)
+        if (number != null) {
+            stringResource(R.string.reader_volume_title, number)
+        } else {
+            volume.title
+        }
+    }
+    val cornerRange = remember(state.volumes, state.selectedVolumeId, state.pages) {
         val volumeId = state.selectedVolumeId ?: return@remember null
         if (!ReaderViewModel.isVolumeFullyCached(state.pages)) return@remember null
         ReaderViewModel.volumeHadithRange(state.volumes, volumeId)
@@ -583,17 +600,12 @@ private fun ReaderPage(
             ) {
                 // R6A page-top corner label: the localized volume title at the
                 // leading edge (mirrored in RTL by start alignment), with the
-                // `: first–last` range only when fully cached and computable.
+                // whole-volume `: first–last` range only when fully cached
+                // and computable.
                 item(key = "reader-volume-corner") {
-                    val volume = selectedVolume
-                    if (volume != null) {
-                        val number = ReaderViewModel.volumeTitleNumber(volume.title)
-                        val title = if (number != null) {
-                            stringResource(R.string.reader_volume_title, number)
-                        } else {
-                            volume.title
-                        }
-                        VolumeCornerLabel(title = title, range = volumeRange)
+                    val title = cornerTitle
+                    if (title != null) {
+                        VolumeCornerLabel(title = title, range = cornerRange)
                     }
                 }
                 // R6A volume start: title header with a localized ICU-plural
@@ -647,9 +659,10 @@ private fun ReaderPage(
                             onSuggest = { translation -> submissionTarget = hadith to translation },
                             onReport = { translation -> reportTarget = hadith to translation },
                             onShowPaywall = onShowPaywall,
-                            // R6A: whitespace separates hadiths — no dividers.
-                            // Generous vertical rhythm replaces the hairlines.
-                            modifier = Modifier.padding(vertical = 28.dp),
+                            // R6A fix: whitespace separates hadiths — no dividers.
+                            // Calm rhythm: modest inter-hadith padding with
+                            // generous space kept above chapter lines.
+                            modifier = Modifier.padding(vertical = 24.dp),
                         )
                     }
                 }
@@ -757,40 +770,49 @@ internal fun ReaderEndNavigation(
     ) {
         val previous = policy.destination(currentPageIndex, pageCount, ReaderPageTurn.PREVIOUS)
         val next = policy.destination(currentPageIndex, pageCount, ReaderPageTurn.NEXT)
-        if (previous != null) {
-            PageChevron(
-                turn = ReaderPageTurn.PREVIOUS,
-                destination = previous,
-                pointsLeft = when (policy.pageDirection) {
-                    com.hadithly.app.core.preferences.PageDirection.LTR -> true
-                    com.hadithly.app.core.preferences.PageDirection.RTL -> false
+        // R6A fix: ONE tight pill — the chevrons sit snug against the label
+        // (a few dp inside one capsule), never at the outer corners. The
+        // volume pill stays text-only; no volume chevrons yet.
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.background(colors.surface, RoundedCornerShape(50)),
+        ) {
+            if (previous != null) {
+                PageChevron(
+                    turn = ReaderPageTurn.PREVIOUS,
+                    destination = previous,
+                    pointsLeft = when (policy.pageDirection) {
+                        com.hadithly.app.core.preferences.PageDirection.LTR -> true
+                        com.hadithly.app.core.preferences.PageDirection.RTL -> false
+                    },
+                    onTurn = onTurn,
+                )
+            }
+            Text(
+                text = if (pageCount > 0) {
+                    "Page ${currentPageIndex + 1} of $pageCount"
+                } else {
+                    "Page ${currentPageIndex + 1}"
                 },
-                onTurn = onTurn,
+                color = colors.textSecondary,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier
+                    .padding(horizontal = 8.dp, vertical = 10.dp)
+                    .testTag("reader.pagePill"),
             )
-        }
-        Text(
-            text = if (pageCount > 0) {
-                "Page ${currentPageIndex + 1} of $pageCount"
-            } else {
-                "Page ${currentPageIndex + 1}"
-            },
-            color = colors.textSecondary,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier
-                .background(colors.surface, RoundedCornerShape(50))
-                .padding(horizontal = 16.dp, vertical = 10.dp),
-        )
-        if (next != null) {
-            PageChevron(
-                turn = ReaderPageTurn.NEXT,
-                destination = next,
-                pointsLeft = when (policy.pageDirection) {
-                    com.hadithly.app.core.preferences.PageDirection.LTR -> false
-                    com.hadithly.app.core.preferences.PageDirection.RTL -> true
-                },
-                onTurn = onTurn,
-            )
+            if (next != null) {
+                PageChevron(
+                    turn = ReaderPageTurn.NEXT,
+                    destination = next,
+                    pointsLeft = when (policy.pageDirection) {
+                        com.hadithly.app.core.preferences.PageDirection.LTR -> false
+                        com.hadithly.app.core.preferences.PageDirection.RTL -> true
+                    },
+                    onTurn = onTurn,
+                )
+            }
         }
     }
 }
@@ -962,6 +984,25 @@ private fun CompactProgressBar(fraction: Double) {
 }
 
 /**
+ * R6A fix: the page-top corner text rule. The WHOLE volume range
+ * (`Volume 2: 8–58`) appends only when the volume is fully cached
+ * ([ReaderViewModel.isVolumeFullyCached]) and the range is computable from
+ * the outline's cumulative counts ([ReaderViewModel.volumeHadithRange]);
+ * otherwise the title stands alone. Single-digit volumes render `Title: n`.
+ */
+internal fun volumeCornerText(
+    title: String,
+    volumes: List<OutlineVolume>,
+    volumeId: String?,
+    pages: List<ReaderPageResult>,
+): String {
+    val range = volumeId
+        ?.takeIf { ReaderViewModel.isVolumeFullyCached(pages) }
+        ?.let { ReaderViewModel.volumeHadithRange(volumes, it) }
+    return if (range != null) "$title: ${range.first}–${range.second}" else title
+}
+
+/**
  * R6A page-top corner label: the localized volume title at the leading top
  * corner (start alignment mirrors in RTL), quiet secondary style. The
  * `: first–last` range appends only when the volume is fully cached and
@@ -1015,10 +1056,10 @@ internal fun VolumeStartHeader(title: String, hadithCount: Int) {
 }
 
 /**
- * The quiet, source-provided chapter opening (R6A). A single name-only line —
- * never the word "Chapter" — with generous space above, in a secondary style
- * smaller than the body. The source Arabic title renders as a second line
- * only when present and different. Never synthesized: rendered only when the
+ * The quiet, source-provided chapter opening (R6A fix). A single name-only
+ * line — never the word "Chapter" — at near-body size in the primary text
+ * color, with generous space above. The source Arabic subtitle stays a
+ * smaller secondary second line. Never synthesized: rendered only when the
  * provider data carries a chapter name.
  */
 @Composable
@@ -1027,15 +1068,15 @@ internal fun ReaderChapterHeader(title: String, arabicTitle: String? = null) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 28.dp, bottom = 12.dp)
+            .padding(top = 28.dp, bottom = 8.dp)
             .semantics(mergeDescendants = true) {}
             .testTag("reader.chapterHeader"),
     ) {
         Text(
             text = title,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium,
-            color = colors.textSecondary,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = colors.textPrimary,
             textAlign = TextAlign.Start,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -1074,6 +1115,15 @@ internal enum class ReaderGrade {
                 else -> OTHER
             }
     }
+
+    /** Screen-reader grade name, mirroring the iOS header label. */
+    val displayName: String
+        get() = when (this) {
+            SAHIH -> "Sahih"
+            HASAN -> "Hasan"
+            DAIF -> "Daif"
+            OTHER -> "Unverified"
+        }
 }
 
 /**
@@ -1203,16 +1253,14 @@ internal fun HadithBlock(
             }
             .testTag("reader.hadithBlock"),
     ) {
-        // R6A quiet marker: the provider number only (dim `57`), no "Hadith"
-        // word. The sighted path to actions is long-press only.
-        Text(
-            text = hadith.providerHadithId,
-            fontSize = 12.sp,
-            color = colors.textSecondary,
-            textAlign = TextAlign.Start,
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag("reader.hadithMarker"),
+        // R6A fix: one header per hadith at the TOP (`● [Collection – n]`,
+        // tappable for the source sheet). The bottom compact label and the
+        // dim bare-number marker are gone — no duplication.
+        HadithHeader(
+            hadith = hadith,
+            isBookmarked = deps.isBookmarked,
+            isFavorite = deps.isFavorite,
+            onShowSource = onShowSource,
         )
 
         HadithContextMenu(
@@ -1241,16 +1289,29 @@ internal fun HadithBlock(
             }
         }
 
-        if (!hadith.narrator.isNullOrEmpty()) {
-            Text(
-                text = hadith.narrator,
-                fontSize = 12.sp,
-                color = colors.textSecondary,
-                // R6A: the narrator line moves to the trailing edge, quiet
-                // secondary style.
-                textAlign = TextAlign.End,
-                modifier = Modifier.fillMaxWidth(),
-            )
+        // R6A fix: the narrator sits at the leading edge (same alignment as
+        // the translation — left in LTR, mirrored in RTL via start
+        // alignment under the translation's direction), and hides entirely
+        // when the translation layer is hidden (Arabic-only mode shows
+        // Arabic alone).
+        if (shouldShowNarrator(hadith.narrator, preferences.translationVisible)) {
+            CompositionLocalProvider(
+                LocalLayoutDirection provides if (LocaleFallback.isRTL(preferences.translationLocale)) {
+                    LayoutDirection.Rtl
+                } else {
+                    LayoutDirection.Ltr
+                },
+            ) {
+                Text(
+                    text = hadith.narrator.orEmpty(),
+                    fontSize = 12.sp,
+                    color = colors.textSecondary,
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("reader.narrator"),
+                )
+            }
         }
 
         if (preferences.translationVisible) {
@@ -1272,46 +1333,111 @@ internal fun HadithBlock(
             }
         }
 
-        // R6A: one compact clickable label (grade dot + short name) replaces
-        // the authenticity label + source text line. The tap opens the small
-        // source sheet; copy/share payloads keep the full source line.
-        HadithSourceLabel(hadith = hadith, onShowSource = onShowSource)
+        // R6A fix: no bottom label — the top header is the single per-hadith
+        // header (source sheet tap lives there; copy/share payloads keep
+        // the full source line via ReaderShare).
     }
 }
 
 /**
- * R6A compact source label: a grade dot before `[short name – id]`
- * (e.g. `Bukhari – 57`). Tapping opens the source bottom sheet.
+ * R6A fix: the narrator line renders only when the translation layer is
+ * visible. Arabic-only mode shows Arabic alone — no narrator line.
+ */
+internal fun shouldShowNarrator(narrator: String?, translationVisible: Boolean): Boolean =
+    !narrator.isNullOrBlank() && translationVisible
+
+/**
+ * R6A fix: non-interactive saved-state indicators trailing the header
+ * label. Bookmark and favorite only — there is no note icon (notes stay in
+ * the long-press menu, TalkBack actions, and the bottom menu later).
+ */
+internal enum class SavedMiniMarker {
+    BOOKMARK,
+    FAVORITE;
+}
+
+internal fun savedMiniMarkers(isBookmarked: Boolean, isFavorite: Boolean): List<SavedMiniMarker> =
+    buildList {
+        if (isBookmarked) add(SavedMiniMarker.BOOKMARK)
+        if (isFavorite) add(SavedMiniMarker.FAVORITE)
+    }
+
+/**
+ * R6A fix: the bracketed per-hadith header label (`[Bukhari – 57]`).
+ * The full source line stays in copy/share payloads; the header shows
+ * only this quiet label with the grade dot before it.
+ */
+internal fun hadithHeaderText(collectionSlug: String, collectionName: String, providerHadithId: String): String =
+    "[${ReaderViewModel.shortCollectionName(collectionSlug, collectionName)} – $providerHadithId]"
+
+/**
+ * R6A fix: one header per hadith at the TOP — grade dot plus the bracketed
+ * `[short name – id]` (e.g. `● [Bukhari – 57]`). Tapping opens the source
+ * bottom sheet. Saved-state mini markers (amber bookmark, pink heart)
+ * trail the label as non-interactive indicators only (outside the tap
+ * target, like iOS).
  */
 @Composable
-internal fun HadithSourceLabel(hadith: ReaderHadith, onShowSource: () -> Unit) {
+internal fun HadithHeader(
+    hadith: ReaderHadith,
+    isBookmarked: Boolean,
+    isFavorite: Boolean,
+    onShowSource: () -> Unit,
+) {
     val colors = LocalHadithlyColors.current
+    val grade = ReaderGrade.from(hadith.authenticity.normalizedGrade)
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onShowSource)
-            .testTag("reader.hadithLabel")
-            .semantics {
-                contentDescription =
-                    "Source: ${hadith.authenticity.sourceName}. Show source details."
-            },
+        modifier = Modifier.fillMaxWidth(),
     ) {
-        Box(
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .size(8.dp)
-                .background(
-                    gradeDotColor(ReaderGrade.from(hadith.authenticity.normalizedGrade), colors),
-                    CircleShape,
-                )
-                .testTag("reader.gradeDot"),
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = "${ReaderViewModel.shortCollectionName(hadith.collectionSlug, hadith.collectionName)} – ${hadith.providerHadithId}",
-            fontSize = 12.sp,
-            color = colors.textSecondary,
-        )
+                .clickable(onClick = onShowSource)
+                .testTag("reader.hadithLabel")
+                .semantics {
+                    contentDescription =
+                        "${ReaderViewModel.shortCollectionName(hadith.collectionSlug, hadith.collectionName)} – ${hadith.providerHadithId}, ${grade.displayName}"
+                },
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .background(gradeDotColor(grade, colors), CircleShape),
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = hadithHeaderText(hadith.collectionSlug, hadith.collectionName, hadith.providerHadithId),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = colors.textPrimary,
+            )
+        }
+        for (marker in savedMiniMarkers(isBookmarked, isFavorite)) {
+            Spacer(modifier = Modifier.width(7.dp))
+            Icon(
+                imageVector = when (marker) {
+                    SavedMiniMarker.BOOKMARK -> Icons.Filled.Bookmark
+                    SavedMiniMarker.FAVORITE -> Icons.Filled.Favorite
+                },
+                contentDescription = when (marker) {
+                    SavedMiniMarker.BOOKMARK -> "Bookmarked"
+                    SavedMiniMarker.FAVORITE -> "Favorited"
+                },
+                tint = when (marker) {
+                    SavedMiniMarker.BOOKMARK -> colors.bookmark
+                    SavedMiniMarker.FAVORITE -> colors.favorite
+                },
+                modifier = Modifier
+                    .size(12.dp)
+                    .testTag(
+                        when (marker) {
+                            SavedMiniMarker.BOOKMARK -> "reader.savedBookmark"
+                            SavedMiniMarker.FAVORITE -> "reader.savedFavorite"
+                        },
+                    ),
+            )
+        }
     }
 }
 
