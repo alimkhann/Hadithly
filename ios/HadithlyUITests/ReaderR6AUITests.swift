@@ -1,11 +1,15 @@
 import XCTest
 
-/// Slice A (R6) gate, offline: the Sajda-quiet page renders from the
-/// deterministic `-R6AReaderFixture` with no network. Proves the quiet
-/// page (no dividers, no ellipsis), the top header (dot + bracketed label
-/// + saved-state markers), the source sheet contents, chapter/volume
-/// headers, the snug chevron cluster, the volume-range rule, the
-/// Arabic-only narrator rule, and the intact long-press menu.
+/// Slice A (R6) gate plus round-2 corrections, offline: the Sajda-quiet
+/// page renders from the deterministic `-R6AReaderFixture` with no
+/// network across three volumes (Volume 1: one page; Volume 2: two pages;
+/// Volume 3: one page). Proves the quiet page (no dividers, no ellipsis),
+/// the top header (dot + bracketed label + saved-state markers), the
+/// source sheet contents, chapter/volume headers, the TWO bottom pills
+/// (neighbor pages mid-volume, full neighbor-volume titles at the edges,
+/// nothing at the absolute ends), tap and swipe across volume boundaries
+/// both ways, the cross-volume loading state, and the narrator in all
+/// three visibility modes.
 final class ReaderR6AUITests: XCTestCase {
     private let timeout: TimeInterval = 10
 
@@ -18,7 +22,7 @@ final class ReaderR6AUITests: XCTestCase {
     func testQuietPageHasHeadersMarkersAndNoEllipsis() {
         let app = launchFixture()
         XCTAssertTrue(element("reader.volumeHeader", in: app).waitForExistence(timeout: timeout))
-        // Two hadith blocks on page 1, each with one tappable top header.
+        // Two hadith blocks on Volume 2 page 1, each with one tappable top header.
         XCTAssertGreaterThanOrEqual(app.buttons.matching(identifier: "reader.hadithLabel").count, 2)
         // The bottom compact label and the dim bare-number marker are gone:
         // both were replaced by the header.
@@ -30,9 +34,10 @@ final class ReaderR6AUITests: XCTestCase {
         app.buttons.matching(identifier: "reader.hadithLabel").firstMatch.tap()
         XCTAssertTrue(element("reader.sourceSheet", in: app).waitForExistence(timeout: timeout))
         app.buttons["Done"].tap()
-        // No inter-hadith dividers: the page holds the new cluster instead
-        // of corners, and the corner yields to the volume header on page 1.
-        XCTAssertTrue(element("reader.pageCluster", in: app).exists)
+        // Two bottom pills replace the old centered cluster, and the corner
+        // yields to the volume header on page 1.
+        XCTAssertTrue(element("reader.pagePills", in: app).exists)
+        XCTAssertFalse(element("reader.pageCluster", in: app).exists, "the single centered cluster is gone")
         XCTAssertFalse(element("reader.volumeCorner", in: app).exists, "corner yields to the volume header on page 1")
     }
 
@@ -58,21 +63,40 @@ final class ReaderR6AUITests: XCTestCase {
         XCTAssertFalse(chapter.label.contains("Chapter"))
     }
 
-    // MARK: - Narrator (translation metadata)
+    // MARK: - Narrator in all three modes
 
     func testNarratorShowsWithTranslationLayer() {
         let app = launchFixture()
         let narrator = element("reader.narrator", in: app)
         XCTAssertTrue(narrator.waitForExistence(timeout: timeout))
         XCTAssertTrue(narrator.label.contains("Umar"))
+        // Hadith 58 has no narrator: exactly one narrator line on the page.
+        XCTAssertEqual(app.descendants(matching: .any).matching(identifier: "reader.narrator").count, 1)
+        // Mixed mode keeps the leading-edge line below the Arabic block.
+        let arabic = app.descendants(matching: .any).matching(identifier: "reader.arabic").firstMatch
+        XCTAssertTrue(arabic.waitForExistence(timeout: timeout))
+        XCTAssertGreaterThanOrEqual(narrator.frame.minY, arabic.frame.maxY - 2)
     }
 
-    func testNarratorHiddenInArabicOnlyMode() {
+    func testNarratorShowsAboveArabicInArabicOnlyMode() {
         let app = launchFixture(environment: ["R6A_TRANSLATION_VISIBLE": "false"])
         XCTAssertTrue(element("r6a.page", in: app).waitForExistence(timeout: timeout))
-        XCTAssertTrue(element("reader.arabic", in: app).waitForExistence(timeout: timeout))
-        XCTAssertFalse(element("reader.narrator", in: app).exists, "narrator hides with the translation layer")
+        let narrator = element("reader.narrator", in: app)
+        XCTAssertTrue(narrator.waitForExistence(timeout: timeout), "narrator shows in Arabic-only mode")
+        XCTAssertTrue(narrator.label.contains("Umar"))
+        let arabic = app.descendants(matching: .any).matching(identifier: "reader.arabic").firstMatch
+        XCTAssertTrue(arabic.waitForExistence(timeout: timeout))
+        XCTAssertLessThanOrEqual(narrator.frame.maxY, arabic.frame.minY + 2)
         XCTAssertFalse(element("reader.translation", in: app).exists)
+    }
+
+    func testNarratorShowsInTranslationOnlyMode() {
+        let app = launchFixture(environment: ["R6A_ARABIC_VISIBLE": "false"])
+        XCTAssertTrue(element("r6a.page", in: app).waitForExistence(timeout: timeout))
+        let narrator = element("reader.narrator", in: app)
+        XCTAssertTrue(narrator.waitForExistence(timeout: timeout), "narrator shows in translation-only mode")
+        XCTAssertTrue(narrator.label.contains("Umar"))
+        XCTAssertFalse(element("reader.arabic", in: app).exists)
     }
 
     // MARK: - Source sheet
@@ -100,42 +124,131 @@ final class ReaderR6AUITests: XCTestCase {
         app.buttons["Done"].tap()
     }
 
-    // MARK: - Page cluster
+    // MARK: - Two bottom pills
 
-    func testChevronClusterTurnsPagesAndRevealsCornerRange() {
+    func testTwoPillsAtVolumeEdgeNameNeighborVolume() {
+        // Volume 2 page 1: LEFT is the previous volume in full, RIGHT is
+        // the neighbor page number.
         let app = launchFixture()
-        XCTAssertTrue(element("reader.pageCluster", in: app).waitForExistence(timeout: timeout))
-        XCTAssertEqual(element("reader.pagePill", in: app).label, "Page 1 of 2")
-        XCTAssertFalse(app.buttons["reader.previousPage"].exists)
+        XCTAssertTrue(element("reader.pagePills", in: app).waitForExistence(timeout: timeout))
+        let previous = app.buttons["reader.previousPage"].firstMatch
+        let next = app.buttons["reader.nextPage"].firstMatch
+        XCTAssertEqual(previous.label, "Previous page, Volume 1")
+        XCTAssertEqual(next.label, "Next page, Page 2")
+        // LTR order: previous on the left, next on the right.
+        XCTAssertLessThan(previous.frame.minX, next.frame.minX)
+        // 44pt targets on both pills.
+        XCTAssertGreaterThanOrEqual(previous.frame.height, 44)
+        XCTAssertGreaterThanOrEqual(next.frame.height, 44)
 
-        // Snug: the next chevron sits a few points from the label, not at
-        // an outer corner.
-        XCTAssertLessThan(
-            gapBetweenLabelAndChevron(in: app, chevron: "reader.nextPage"),
-            16,
-            "chevron must sit snug against the page label"
-        )
-
-        app.buttons["reader.nextPage"].tap()
-        XCTAssertEqual(element("reader.pagePill", in: app).label, "Page 2 of 2")
+        // Volume 2 page 2: LEFT is the neighbor page, RIGHT names Volume 3.
+        next.tap()
+        XCTAssertEqual(app.buttons["reader.previousPage"].firstMatch.label, "Previous page, Page 1")
+        XCTAssertEqual(app.buttons["reader.nextPage"].firstMatch.label, "Next page, Volume 3")
         let corner = element("reader.volumeCorner", in: app)
         XCTAssertTrue(corner.waitForExistence(timeout: timeout))
         XCTAssertEqual(corner.label, "Volume 2: 57–59")
-        XCTAssertFalse(element("reader.volumeHeader", in: app).exists)
-        XCTAssertFalse(app.buttons["reader.nextPage"].exists)
+    }
 
-        app.buttons["reader.previousPage"].tap()
-        XCTAssertEqual(element("reader.pagePill", in: app).label, "Page 1 of 2")
+    func testAbsoluteEndsHaveNoOutwardPill() {
+        // First page of the first volume: no previous pill.
+        let app = launchFixture(environment: ["R6A_START_VOLUME": "1"])
         XCTAssertTrue(element("reader.volumeHeader", in: app).waitForExistence(timeout: timeout))
+        XCTAssertEqual(element("reader.volumeHeader", in: app).label, "Volume 1, 1 hadiths")
+        XCTAssertFalse(app.buttons["reader.previousPage"].exists)
+        XCTAssertEqual(app.buttons["reader.nextPage"].firstMatch.label, "Next page, Volume 2")
+
+        // Last page of the last volume: no next pill.
+        app.terminate()
+        let last = launchFixture(environment: ["R6A_START_VOLUME": "3"])
+        XCTAssertTrue(element("reader.volumeHeader", in: last).waitForExistence(timeout: timeout))
+        XCTAssertEqual(element("reader.volumeHeader", in: last).label, "Volume 3, 1 hadiths")
+        XCTAssertFalse(last.buttons["reader.nextPage"].exists)
+        XCTAssertEqual(last.buttons["reader.previousPage"].firstMatch.label, "Previous page, Volume 2")
+    }
+
+    func testRTLPillsMirrorWithLogicalLabels() {
+        let app = launchFixture(environment: ["R6A_PAGE_DIRECTION": "rtl"])
+        XCTAssertTrue(element("reader.pagePills", in: app).waitForExistence(timeout: timeout))
+        let previous = app.buttons["reader.previousPage"].firstMatch
+        let next = app.buttons["reader.nextPage"].firstMatch
+        // Labels stay logical; the previous pill sits on the right.
+        XCTAssertEqual(previous.label, "Previous page, Volume 1")
+        XCTAssertEqual(next.label, "Next page, Page 2")
+        XCTAssertGreaterThan(previous.frame.minX, next.frame.minX)
     }
 
     func testCornerLabelStaysTitleOnlyUntilFullyCached() {
         let app = launchFixture(environment: ["R6A_FULL_CACHE": "false"])
-        XCTAssertTrue(element("reader.pageCluster", in: app).waitForExistence(timeout: timeout))
+        XCTAssertTrue(element("reader.pagePills", in: app).waitForExistence(timeout: timeout))
         app.buttons["reader.nextPage"].tap()
         let corner = element("reader.volumeCorner", in: app)
         XCTAssertTrue(corner.waitForExistence(timeout: timeout))
         XCTAssertEqual(corner.label, "Volume 2")
+    }
+
+    // MARK: - Crossing volume boundaries
+
+    func testTapAcrossBoundaryForwardLandsOnNextVolumeFirstPage() {
+        let app = launchFixture(environment: ["R6A_INITIAL_PAGE": "1"])
+        XCTAssertTrue(element("reader.pagePills", in: app).waitForExistence(timeout: timeout))
+        XCTAssertEqual(app.buttons["reader.nextPage"].firstMatch.label, "Next page, Volume 3")
+        app.buttons["reader.nextPage"].tap()
+        let header = element("reader.volumeHeader", in: app)
+        XCTAssertTrue(header.waitForExistence(timeout: timeout))
+        XCTAssertEqual(header.label, "Volume 3, 1 hadiths")
+        // Absolute end: no next pill; back names Volume 2 in full.
+        XCTAssertFalse(app.buttons["reader.nextPage"].exists)
+        XCTAssertEqual(app.buttons["reader.previousPage"].firstMatch.label, "Previous page, Volume 2")
+    }
+
+    func testTapAcrossBoundaryBackwardLandsOnPreviousVolumeLastPage() {
+        let app = launchFixture()
+        XCTAssertTrue(element("reader.pagePills", in: app).waitForExistence(timeout: timeout))
+        app.buttons["reader.previousPage"].tap()
+        let header = element("reader.volumeHeader", in: app)
+        XCTAssertTrue(header.waitForExistence(timeout: timeout))
+        XCTAssertEqual(header.label, "Volume 1, 1 hadiths")
+        XCTAssertFalse(app.buttons["reader.previousPage"].exists)
+        // The visited volume opens instantly on the way back: no loading.
+        app.buttons["reader.nextPage"].tap()
+        let back = element("reader.volumeHeader", in: app)
+        XCTAssertTrue(back.waitForExistence(timeout: timeout))
+        XCTAssertEqual(back.label, "Volume 2, 3 hadiths")
+        XCTAssertEqual(app.buttons["reader.previousPage"].firstMatch.label, "Previous page, Volume 1")
+    }
+
+    func testSwipeAcrossVolumesBothWays() {
+        let app = launchFixture(environment: ["R6A_INITIAL_PAGE": "1"])
+        XCTAssertTrue(element("reader.pagePills", in: app).waitForExistence(timeout: timeout))
+        // Outward swipe past the last page advances to Volume 3's first page.
+        app.swipeLeft()
+        let volume3 = element("reader.volumeHeader", in: app)
+        XCTAssertTrue(volume3.waitForExistence(timeout: timeout))
+        XCTAssertEqual(volume3.label, "Volume 3, 1 hadiths")
+        // Back across the boundary lands on Volume 2's last page.
+        app.swipeRight()
+        let corner = element("reader.volumeCorner", in: app)
+        XCTAssertTrue(corner.waitForExistence(timeout: timeout))
+        XCTAssertEqual(corner.label, "Volume 2: 57–59")
+        // In-volume swipe still turns the page.
+        app.swipeRight()
+        let volume2 = element("reader.volumeHeader", in: app)
+        XCTAssertTrue(volume2.waitForExistence(timeout: timeout))
+        XCTAssertEqual(volume2.label, "Volume 2, 3 hadiths")
+        // And back across to the previous volume's last (= only) page.
+        app.swipeRight()
+        let volume1 = element("reader.volumeHeader", in: app)
+        XCTAssertTrue(volume1.waitForExistence(timeout: timeout))
+        XCTAssertEqual(volume1.label, "Volume 1, 1 hadiths")
+    }
+
+    func testLoadingStateOnFirstVolumeVisit() {
+        let app = launchFixture(environment: ["R6A_LOADING_FIXTURE": "true"])
+        XCTAssertTrue(
+            app.activityIndicators.firstMatch.waitForExistence(timeout: timeout),
+            "a loading reader renders a native progress indicator"
+        )
     }
 
     // MARK: - Long-press menu intact
@@ -168,21 +281,6 @@ final class ReaderR6AUITests: XCTestCase {
         app.launch()
         XCTAssertTrue(element("r6a.page", in: app).waitForExistence(timeout: timeout))
         return app
-    }
-
-    /// Horizontal gap between the page-pill label and a chevron button.
-    /// Returns a large value when either element is missing so the
-    /// caller's assertion fails loudly instead of passing vacuously.
-    private func gapBetweenLabelAndChevron(in app: XCUIApplication, chevron: String) -> CGFloat {
-        let label = element("reader.pagePill", in: app)
-        let button = app.buttons[chevron].firstMatch
-        guard label.exists, button.exists else { return 10_000 }
-        let labelFrame = label.frame
-        let buttonFrame = button.frame
-        if buttonFrame.minX >= labelFrame.maxX {
-            return buttonFrame.minX - labelFrame.maxX
-        }
-        return labelFrame.minX - buttonFrame.maxX
     }
 
     private func element(_ identifier: String, in app: XCUIApplication) -> XCUIElement {

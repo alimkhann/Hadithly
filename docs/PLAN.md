@@ -846,6 +846,16 @@ substantive: they own bounded implementation outcomes, not just inventories.
     (iOS moves to a native paging container; Android pager tuned).
   - G: note 6 — cross-volume swipe and end-of-volume next/previous volume
     actions.
+- Owner corrections round 2 (2026-09-09, resolved): page navigation is TWO
+  bottom pills — previous and next neighbor page numbers in the Sajda `209
+  Page` style — not one centered cluster. At volume edges the pills show the
+  neighboring volume's full localized name (`‹ Volume 1`, `Volume 3 ›`) and
+  both pills and swipe cross volumes (first page of next / last page of
+  previous, with loading state on first fetch). The narrator shows in every
+  mode: with the translation in mixed mode, above the Arabic and RTL-aligned
+  in Arabic-only mode. Volume references always use full names, never bare
+  numbers. Slice B keeps haptic plus hidden scroll indicators; pills-to-top
+  is dropped in favor of the bottom pills.
 - Owner confirmations (2026-09-09, resolved): Arabic keeps RTL shaping with
   start alignment (never LTR glyphs); the source name leaves the page but
   stays one tap away on the grade label (copy/share keep full source lines);

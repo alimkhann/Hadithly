@@ -151,22 +151,53 @@ final class ReaderR6ATests: XCTestCase {
         XCTAssertFalse(ReaderSourceLabel.headerText(for: hadith()).contains("Hadith"))
     }
 
-    // MARK: - Narrator visibility (translation metadata)
+    // MARK: - Narrator visibility (round 2: every mode)
 
-    func testNarratorShowsWithTranslationLayer() {
+    func testNarratorShowsInAllThreeVisibilityModes() {
+        // Mixed mode: both layers visible.
         XCTAssertTrue(ReaderNarratorLine.shouldShow(
-            narrator: "Narrated by Umar", translationVisible: true
+            narrator: "Narrated by Umar", arabicVisible: true, translationVisible: true
+        ))
+        // Arabic-only mode: the narrator stays, above the Arabic block.
+        XCTAssertTrue(ReaderNarratorLine.shouldShow(
+            narrator: "Narrated by Umar", arabicVisible: true, translationVisible: false
+        ))
+        // Translation-only mode: the narrator keeps its leading-edge line.
+        XCTAssertTrue(ReaderNarratorLine.shouldShow(
+            narrator: "Narrated by Umar", arabicVisible: false, translationVisible: true
         ))
     }
 
-    func testNarratorHiddenInArabicOnlyMode() {
-        // The narrator is translation metadata: hiding the translation
-        // layer hides the narrator even when one exists.
+    func testNarratorHiddenWithoutTextOrWithoutLayers() {
         XCTAssertFalse(ReaderNarratorLine.shouldShow(
-            narrator: "Narrated by Umar", translationVisible: false
+            narrator: nil, arabicVisible: true, translationVisible: true
         ))
-        XCTAssertFalse(ReaderNarratorLine.shouldShow(narrator: nil, translationVisible: true))
-        XCTAssertFalse(ReaderNarratorLine.shouldShow(narrator: "  ", translationVisible: true))
+        XCTAssertFalse(ReaderNarratorLine.shouldShow(
+            narrator: "  ", arabicVisible: true, translationVisible: true
+        ))
+        // Both layers hidden is rejected by the F2 contract before render;
+        // the rule still hides the narrator there.
+        XCTAssertFalse(ReaderNarratorLine.shouldShow(
+            narrator: "Narrated by Umar", arabicVisible: false, translationVisible: false
+        ))
+    }
+
+    // MARK: - Narrator placement
+
+    func testNarratorPlacementAboveArabicOnlyInArabicOnlyMode() {
+        XCTAssertEqual(
+            ReaderNarratorPlacement.placement(arabicVisible: true, translationVisible: false),
+            .aboveArabic
+        )
+        XCTAssertEqual(
+            ReaderNarratorPlacement.placement(arabicVisible: true, translationVisible: true),
+            .belowArabic,
+            "mixed mode keeps the leading-edge line"
+        )
+        XCTAssertEqual(
+            ReaderNarratorPlacement.placement(arabicVisible: false, translationVisible: true),
+            .belowArabic
+        )
     }
 
     // MARK: - Saved-state mini markers
@@ -296,6 +327,135 @@ final class ReaderR6ATests: XCTestCase {
         XCTAssertFalse(ReaderVolumeHeader.showsHeader(pageIndex: 1))
         XCTAssertTrue(ReaderVolumeHeader.showsCornerLabel(pageIndex: 1))
         XCTAssertFalse(ReaderVolumeHeader.showsCornerLabel(pageIndex: 0))
+    }
+
+    // MARK: - Bottom pills (round 2)
+
+    private var pillVolumes: [OutlineVolume] {
+        [
+            OutlineVolume(volumeId: "1", title: "Volume 1", hadithCount: 1),
+            OutlineVolume(volumeId: "2", title: "Volume 2", hadithCount: 3),
+            OutlineVolume(volumeId: "3", title: "Volume 3", hadithCount: 1),
+        ]
+    }
+
+    func testPillsMidVolumeShowNeighborPageNumbers() {
+        let state = ReaderPagePills.state(
+            pageIndex: 4,
+            hasPreviousPage: true,
+            hasNextPage: true,
+            atLoadedPage: true,
+            volumes: pillVolumes,
+            selectedVolumeId: "2"
+        )
+        XCTAssertEqual(state.previous?.label, "Page 4")
+        XCTAssertEqual(state.previous?.target, .page(3))
+        XCTAssertEqual(state.previous?.turn, .previous)
+        XCTAssertFalse(state.previous?.crossesVolume == true)
+        XCTAssertEqual(state.next?.label, "Page 6")
+        XCTAssertEqual(state.next?.target, .page(5))
+        XCTAssertEqual(state.next?.turn, .next)
+        XCTAssertFalse(state.next?.crossesVolume == true)
+    }
+
+    func testPillsAtVolumeEdgesNameTheNeighborVolume() {
+        // First page of Volume 2: the previous pill names Volume 1 in
+        // full and targets its last page; the next pill stays a neighbor.
+        let first = ReaderPagePills.state(
+            pageIndex: 0,
+            hasPreviousPage: false,
+            hasNextPage: true,
+            atLoadedPage: true,
+            volumes: pillVolumes,
+            selectedVolumeId: "2"
+        )
+        XCTAssertEqual(first.previous?.label, "Volume 1")
+        XCTAssertEqual(first.previous?.target, .volumeLast(volumeId: "1"))
+        XCTAssertEqual(first.previous?.turn, .previous)
+        XCTAssertTrue(first.previous?.crossesVolume == true)
+        XCTAssertEqual(first.next?.label, "Page 2")
+
+        // Last page of Volume 2: the next pill names Volume 3 in full and
+        // targets its first page; the previous pill stays a neighbor.
+        let last = ReaderPagePills.state(
+            pageIndex: 1,
+            hasPreviousPage: true,
+            hasNextPage: false,
+            atLoadedPage: true,
+            volumes: pillVolumes,
+            selectedVolumeId: "2"
+        )
+        XCTAssertEqual(last.previous?.label, "Page 1")
+        XCTAssertEqual(last.next?.label, "Volume 3")
+        XCTAssertEqual(last.next?.target, .volumeFirst(volumeId: "3"))
+        XCTAssertEqual(last.next?.turn, .next)
+        XCTAssertTrue(last.next?.crossesVolume == true)
+    }
+
+    func testPillsMissingAtAbsoluteEnds() {
+        let start = ReaderPagePills.state(
+            pageIndex: 0,
+            hasPreviousPage: false,
+            hasNextPage: false,
+            atLoadedPage: true,
+            volumes: pillVolumes,
+            selectedVolumeId: "1"
+        )
+        XCTAssertNil(start.previous, "first page of the first volume has no previous pill")
+        XCTAssertEqual(start.next?.label, "Volume 2")
+
+        let end = ReaderPagePills.state(
+            pageIndex: 0,
+            hasPreviousPage: false,
+            hasNextPage: false,
+            atLoadedPage: true,
+            volumes: pillVolumes,
+            selectedVolumeId: "3"
+        )
+        XCTAssertEqual(end.previous?.label, "Volume 2")
+        XCTAssertNil(end.next, "last page of the last volume has no next pill")
+    }
+
+    func testPillsFollowOutlineOrderWithFullTitles() {
+        // Volume order is the outline order, and titles are never reduced
+        // to bare numbers.
+        let reordered = [pillVolumes[2], pillVolumes[0], pillVolumes[1]]
+        let state = ReaderPagePills.state(
+            pageIndex: 0,
+            hasPreviousPage: false,
+            hasNextPage: false,
+            atLoadedPage: true,
+            volumes: reordered,
+            selectedVolumeId: "1"
+        )
+        XCTAssertEqual(state.previous?.label, "Volume 3")
+        XCTAssertEqual(state.previous?.target, .volumeLast(volumeId: "3"))
+        XCTAssertEqual(state.next?.label, "Volume 2")
+        XCTAssertEqual(state.next?.target, .volumeFirst(volumeId: "2"))
+        for label in [state.previous?.label, state.next?.label].compactMap({ $0 }) {
+            XCTAssertFalse(label.allSatisfy { $0.isNumber }, "never a bare number: \(label)")
+        }
+    }
+
+    func testPillsHideCrossVolumeTargetsUntilLoaded() {
+        // A placeholder page still fetching must not offer a volume jump.
+        let state = ReaderPagePills.state(
+            pageIndex: 0,
+            hasPreviousPage: false,
+            hasNextPage: false,
+            atLoadedPage: false,
+            volumes: pillVolumes,
+            selectedVolumeId: "2"
+        )
+        XCTAssertNil(state.previous)
+        XCTAssertNil(state.next)
+    }
+
+    func testPillChevronsMirrorInRTL() {
+        XCTAssertEqual(ReaderPagePills.chevronImage(for: .previous, pageDirection: .ltr), "chevron.left")
+        XCTAssertEqual(ReaderPagePills.chevronImage(for: .next, pageDirection: .ltr), "chevron.right")
+        XCTAssertEqual(ReaderPagePills.chevronImage(for: .previous, pageDirection: .rtl), "chevron.right")
+        XCTAssertEqual(ReaderPagePills.chevronImage(for: .next, pageDirection: .rtl), "chevron.left")
     }
 
     // MARK: - String Catalog plurals

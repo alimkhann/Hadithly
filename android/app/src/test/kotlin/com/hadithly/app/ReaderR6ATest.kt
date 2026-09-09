@@ -7,6 +7,7 @@ import com.hadithly.app.core.data.ReaderTranslation
 import com.hadithly.app.core.theme.ReaderPalettes
 import com.hadithly.app.features.reader.ReaderChapterBoundaries
 import com.hadithly.app.features.reader.ReaderGrade
+import com.hadithly.app.features.reader.ReaderPagePills
 import com.hadithly.app.features.reader.ReaderViewModel
 import com.hadithly.app.features.reader.SavedMiniMarker
 import com.hadithly.app.features.reader.customActionsFor
@@ -16,6 +17,7 @@ import com.hadithly.app.features.reader.hadithMenuActions
 import com.hadithly.app.features.reader.savedMiniMarkers
 import com.hadithly.app.features.reader.shouldShowNarrator
 import com.hadithly.app.features.reader.volumeCornerText
+import com.hadithly.app.core.preferences.ReaderPageTurn
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -398,13 +400,47 @@ class ReaderR6ATest {
     }
 
     @Test
-    fun `narrator hides when the translation layer is hidden`() {
-        assertTrue(shouldShowNarrator("Narrated Abu Huraira:", translationVisible = true))
-        // Arabic-only mode: no narrator line.
-        assertFalse(shouldShowNarrator("Narrated Abu Huraira:", translationVisible = false))
-        assertFalse(shouldShowNarrator(null, translationVisible = true))
-        assertFalse(shouldShowNarrator("", translationVisible = true))
-        assertFalse(shouldShowNarrator("  ", translationVisible = true))
+    fun `narrator shows in every valid visibility mode`() {
+        assertTrue(shouldShowNarrator("Narrated Abu Huraira:", arabicVisible = true, translationVisible = true))
+        assertTrue(shouldShowNarrator("Narrated Abu Huraira:", arabicVisible = true, translationVisible = false))
+        assertTrue(shouldShowNarrator("Narrated Abu Huraira:", arabicVisible = false, translationVisible = true))
+        assertFalse(shouldShowNarrator("Narrated Abu Huraira:", arabicVisible = false, translationVisible = false))
+        assertFalse(shouldShowNarrator(null, arabicVisible = true, translationVisible = true))
+        assertFalse(shouldShowNarrator("", arabicVisible = true, translationVisible = true))
+        assertFalse(shouldShowNarrator("  ", arabicVisible = true, translationVisible = true))
+    }
+
+    @Test
+    fun `two page pills use neighbor pages volume titles and absolute ends`() {
+        val volumes = listOf(
+            OutlineVolume(volumeId = "1", title = "Sahih al-Bukhari: Revelation", hadithCount = 1.0),
+            OutlineVolume(volumeId = "2", title = "Sahih al-Bukhari: Belief", hadithCount = 3.0),
+            OutlineVolume(volumeId = "3", title = "Sahih al-Bukhari: Knowledge", hadithCount = 1.0),
+        )
+        val first = ReaderPagePills.state(
+            pageIndex = 0, hasPreviousPage = false, hasNextPage = true,
+            atLoadedPage = true, volumes = volumes, selectedVolumeId = "2",
+        )
+        assertEquals("Sahih al-Bukhari: Revelation", first.previous?.label)
+        assertEquals(ReaderPagePills.Target.VolumeLast("1"), first.previous?.target)
+        assertEquals(ReaderPageTurn.PREVIOUS, first.previous?.turn)
+        assertEquals("Page 2", first.next?.label)
+        assertEquals(ReaderPagePills.Target.Page(1), first.next?.target)
+
+        val last = ReaderPagePills.state(
+            pageIndex = 1, hasPreviousPage = true, hasNextPage = false,
+            atLoadedPage = true, volumes = volumes, selectedVolumeId = "2",
+        )
+        assertEquals("Page 1", last.previous?.label)
+        assertEquals("Sahih al-Bukhari: Knowledge", last.next?.label)
+        assertEquals(ReaderPagePills.Target.VolumeFirst("3"), last.next?.target)
+
+        val absoluteStart = ReaderPagePills.state(
+            pageIndex = 0, hasPreviousPage = false, hasNextPage = false,
+            atLoadedPage = true, volumes = volumes, selectedVolumeId = "1",
+        )
+        assertNull(absoluteStart.previous)
+        assertEquals("Sahih al-Bukhari: Belief", absoluteStart.next?.label)
     }
 
     @Test

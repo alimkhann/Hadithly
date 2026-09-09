@@ -214,9 +214,150 @@ final class ReaderModel {
 
     func selectVolume(_ volumeId: String) {
         guard volumeId != selectedVolumeId else { return }
+        // The R1 position of the page being left is saved before the
+        // switch, exactly like the pill/swipe cross-volume path below.
+        saveCurrentProgress()
         selectedVolumeId = volumeId
         resetReading()
         Task { await loadPage(0, volumeId: volumeId) }
+    }
+
+    /// Volumes in outline order around the selection, for the bottom pills
+    /// and the cross-volume swipe path. Nil at the absolute ends.
+    var previousVolume: OutlineVolume? {
+        guard let id = selectedVolumeId,
+              let index = volumes.firstIndex(where: { $0.volumeId == id }),
+              index > 0
+        else { return nil }
+        return volumes[index - 1]
+    }
+
+    var nextVolume: OutlineVolume? {
+        guard let id = selectedVolumeId,
+              let index = volumes.firstIndex(where: { $0.volumeId == id }),
+              index < volumes.count - 1
+        else { return nil }
+        return volumes[index + 1]
+    }
+
+    /// Where a cross-volume jump lands: the neighbor's first page, or its
+    /// last page when coming from the other side.
+    enum VolumeEdge {
+        case first
+        case last
+    }
+
+    /// The pure pill state behind the bottom pills and the boundary
+    /// decision in the swipe path: neighbor page numbers mid-volume, the
+    /// neighboring volume's full title at a volume edge, nothing at the
+    /// absolute ends.
+    var pillState: ReaderPagePills.State {
+        // A cross-volume pill is offered only from a fully loaded page:
+        // never from a deep-link placeholder or a next-page phantom that
+        // is still fetching.
+        let atLoadedPage = pages.indices.contains(pageIndex) && !pages[pageIndex].isPlaceholder
+        return ReaderPagePills.state(
+            pageIndex: pageIndex,
+            hasPreviousPage: hasPreviousPage,
+            hasNextPage: hasNextPage,
+            atLoadedPage: atLoadedPage,
+            volumes: volumes,
+            selectedVolumeId: selectedVolumeId
+        )
+    }
+
+    /// Follows one bottom pill to its target: an in-volume page turn, or a
+    /// cross-volume jump. The swipe path calls the same method, so pills
+    /// and swipes can never disagree.
+    func followPill(_ pill: ReaderPagePills.Pill) {
+        switch pill.target {
+        case .page(let index):
+            // Same step semantics as the swipe path: forward onto (or
+            // toward) the next page, back onto the previous page.
+            if index == pageIndex + 1, hasNextPage {
+                pageIndex += 1
+            } else if index == pageIndex - 1, hasPreviousPage {
+                pageIndex -= 1
+            }
+        case .volumeFirst(let volumeId):
+            switchToVolume(volumeId, edge: .first)
+        case .volumeLast(let volumeId):
+            switchToVolume(volumeId, edge: .last)
+        }
+    }
+
+    /// Jumps to the first (or last) page of another volume. Saves the R1
+    /// position of the page being left first; after the new volume's pages
+    /// arrive, the exact R2 target (page 1, or the last page) is restored
+    /// and saved, so the reader never strands on a stale page. While a
+    /// first-visit volume fetches, the page is empty and the reader shows
+    /// its loading state.
+    func switchToVolume(_ volumeId: String, edge: VolumeEdge) {
+        guard volumeId != selectedVolumeId else { return }
+        guard volumes.contains(where: { $0.volumeId == volumeId }) else { return }
+        saveCurrentProgress()
+        selectedVolumeId = volumeId
+        resetReading()
+        landingHadithNumber = nil
+        restoredPosition = nil
+        pageTask = Task { [weak self] in
+            await self?.loadVolumeEdge(volumeId, edge: edge)
+        }
+    }
+
+    /// Loads a volume edge: page 1 for `.first`; for `.last` the first page
+    /// is read only to learn the total, then the last page is fetched and
+    /// published together so no intermediate page flashes.
+    private func loadVolumeEdge(_ volumeId: String, edge: VolumeEdge) async {
+        if isLoadingPage { return }
+        isLoadingPage = true
+        defer { isLoadingPage = false }
+        do {
+            let first = try await fetchReaderPage(0, volumeId: volumeId)
+            guard !Task.isCancelled else { return }
+            let total = max(1, first.totalPages)
+            switch edge {
+            case .first:
+                pages = [first]
+                phase = .reading
+                pageIndex = 0
+            case .last:
+                let landingIndex = total - 1
+                if landingIndex == 0 {
+                    pages = [first]
+                } else {
+                    let last = try await fetchReaderPage(landingIndex, volumeId: volumeId)
+                    guard !Task.isCancelled else { return }
+                    var filled = (0..<landingIndex).map { _ in emptyPage() }
+                    filled.append(last)
+                    _ = first
+                    pages = filled
+                }
+                phase = .reading
+                pageIndex = landingIndex
+            }
+            scheduleTranslationsForCurrentPage()
+            saveCurrentProgress()
+        } catch is CancellationError {
+            // A newer page or volume target replaces this fetch.
+        } catch {
+            if !Task.isCancelled, pages.isEmpty {
+                phase = .failed(ReaderModels.errorMessage(of: error))
+            }
+        }
+    }
+
+    /// One Convex reader-page fetch without publishing, shared by the
+    /// edge loader. `loadPage` keeps its own publish path unchanged.
+    private func fetchReaderPage(_ index: Int, volumeId: String) async throws -> ReaderPageResult {
+        try await convex.action(
+            "actions/hadithData:getReaderPage",
+            with: [
+                "collectionSlug": collectionSlug as ConvexEncodable?,
+                "volumeId": volumeId as ConvexEncodable?,
+                "page": Double(index + 1) as ConvexEncodable?,
+            ]
+        )
     }
 
 #if DEBUG

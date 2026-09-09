@@ -147,15 +147,13 @@ class ReaderR6AQuietTest {
     }
 
     @Test
-    fun narratorHidesWhenTranslationLayerHidden() {
-        // Arabic-only mode: the narrator line (translation metadata) hides
-        // entirely; Arabic alone remains.
+    fun narratorShowsAboveArabicWhenTranslationLayerHidden() {
         compose.setContent {
             block(preferences = ReaderPreferences(translationVisible = false))
         }
 
-        compose.onNodeWithTag("reader.narrator", useUnmergedTree = true).assertDoesNotExist()
-        compose.onNodeWithText("Narrated Abu Huraira:").assertDoesNotExist()
+        compose.onNodeWithTag("reader.narrator", useUnmergedTree = true).assertIsDisplayed()
+        compose.onNodeWithText("Narrated Abu Huraira:").assertIsDisplayed()
         compose.onNodeWithTag("reader.arabic", useUnmergedTree = true).assertIsDisplayed()
     }
 
@@ -288,46 +286,62 @@ class ReaderR6AQuietTest {
     }
 
     @Test
-    fun pageClusterKeepsChevronsAdjacent() {
-        var turn: ReaderPageTurn? = null
+    fun pagePillsKeepChevronsAdjacentAndNameVolumeAtEdge() {
+        var followed: ReaderPagePills.Pill? = null
         compose.setContent {
             HadithlyTheme {
-                ReaderEndNavigation(
+                ReaderVolumePills(
                     policy = ReaderPagingPolicy(PageDirection.LTR),
-                    currentPageIndex = 1,
-                    pageCount = 5,
-                    onTurn = { turn = it },
+                    state = ReaderPagePills.State(
+                        previous = ReaderPagePills.Pill(
+                            label = "Volume 1: Revelation",
+                            target = ReaderPagePills.Target.VolumeLast("1"),
+                            turn = ReaderPageTurn.PREVIOUS,
+                            crossesVolume = true,
+                        ),
+                        next = ReaderPagePills.Pill(
+                            label = "Page 2",
+                            target = ReaderPagePills.Target.Page(1),
+                            turn = ReaderPageTurn.NEXT,
+                            crossesVolume = false,
+                        ),
+                    ),
+                    onFollow = { followed = it },
                 )
             }
         }
 
-        // One tight pill: the label sits between the chevrons inside a
-        // single capsule, snug against them. The label merges into the
-        // cluster node, so assert it in the unmerged tree.
-        compose.onNodeWithTag("reader.pageCluster").assertIsDisplayed()
-        compose.onNodeWithTag("reader.pagePill", useUnmergedTree = true).assertIsDisplayed()
-        compose.onNodeWithText("Page 2 of 5").assertIsDisplayed()
+        compose.onNodeWithTag("reader.pagePills").assertIsDisplayed()
+        compose.onNodeWithText("Volume 1: Revelation").assertIsDisplayed()
+        compose.onNodeWithText("Page 2").assertIsDisplayed()
         compose.onNodeWithTag("reader.previousPage").assertIsDisplayed()
         compose.onNodeWithTag("reader.nextPage").assertIsDisplayed()
         compose.onNodeWithTag("reader.previousPage").performClick()
-        compose.runOnIdle { assertEquals(ReaderPageTurn.PREVIOUS, turn) }
+        compose.runOnIdle { assertEquals(ReaderPagePills.Target.VolumeLast("1"), followed?.target) }
     }
 
     @Test
-    fun pageClusterHidesMissingChevronAtBoundaries() {
+    fun pagePillsHideAbsoluteOutwardEdge() {
         compose.setContent {
             HadithlyTheme {
-                ReaderEndNavigation(
+                ReaderVolumePills(
                     policy = ReaderPagingPolicy(PageDirection.LTR),
-                    currentPageIndex = 0,
-                    pageCount = 5,
-                    onTurn = {},
+                    state = ReaderPagePills.State(
+                        previous = null,
+                        next = ReaderPagePills.Pill(
+                            label = "Volume 2: Belief",
+                            target = ReaderPagePills.Target.VolumeFirst("2"),
+                            turn = ReaderPageTurn.NEXT,
+                            crossesVolume = true,
+                        ),
+                    ),
+                    onFollow = {},
                 )
             }
         }
 
-        compose.onNodeWithTag("reader.pageCluster").assertIsDisplayed()
-        compose.onNodeWithText("Page 1 of 5").assertIsDisplayed()
+        compose.onNodeWithTag("reader.pagePills").assertIsDisplayed()
+        compose.onNodeWithText("Volume 2: Belief").assertIsDisplayed()
         compose.onNodeWithTag("reader.previousPage").assertDoesNotExist()
         compose.onNodeWithTag("reader.nextPage").assertIsDisplayed()
     }

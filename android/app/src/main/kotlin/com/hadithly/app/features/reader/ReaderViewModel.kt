@@ -20,6 +20,7 @@ import com.hadithly.app.core.data.TranslationFailure
 import com.hadithly.app.core.data.TranslationSubmissionResult
 import com.hadithly.app.core.links.CanonicalHadithLink
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -120,6 +121,32 @@ class ReaderViewModel(
         if (s.pageIndex !in s.pages.indices) return false
         if (s.pageIndex < s.pages.size - 1) return true
         return s.pages[s.pageIndex].hasMore
+    }
+
+    /** Adjacent source-provided volumes in outline order. */
+    fun previousVolume(): OutlineVolume? {
+        val state = _state.value
+        val index = state.volumes.indexOfFirst { it.volumeId == state.selectedVolumeId }
+        return state.volumes.getOrNull(index - 1)
+    }
+
+    fun nextVolume(): OutlineVolume? {
+        val state = _state.value
+        val index = state.volumes.indexOfFirst { it.volumeId == state.selectedVolumeId }
+        return state.volumes.getOrNull(index + 1)
+    }
+
+    internal fun pagePills(): ReaderPagePills.State {
+        val state = _state.value
+        val loaded = state.pages.getOrNull(state.pageIndex)?.isPlaceholder == false
+        return ReaderPagePills.state(
+            pageIndex = state.pageIndex,
+            hasPreviousPage = hasPreviousPage(),
+            hasNextPage = hasNextPage(),
+            atLoadedPage = loaded,
+            volumes = state.volumes,
+            selectedVolumeId = state.selectedVolumeId,
+        )
     }
 
     fun toggleChrome() = _state.update { it.copy(chromeVisible = !it.chromeVisible) }
@@ -248,6 +275,7 @@ class ReaderViewModel(
 
     fun selectVolume(volumeId: String) {
         if (volumeId == _state.value.selectedVolumeId) return
+        saveCurrentProgress()
         _state.update {
             it.copy(
                 selectedVolumeId = volumeId,
@@ -258,6 +286,66 @@ class ReaderViewModel(
         }
         cancelTranslationRun()
         loadPage(0, volumeId)
+    }
+
+    /** One page-pill target for both buttons and the outward-edge swipe. */
+    internal fun followPill(pill: ReaderPagePills.Pill) {
+        when (val target = pill.target) {
+            is ReaderPagePills.Target.Page -> onPageSettled(target.index)
+            is ReaderPagePills.Target.VolumeFirst -> switchToVolume(target.volumeId, VolumeEdge.FIRST)
+            is ReaderPagePills.Target.VolumeLast -> switchToVolume(target.volumeId, VolumeEdge.LAST)
+        }
+    }
+
+    enum class VolumeEdge { FIRST, LAST }
+
+    /**
+     * Saves the current R1 anchor, then fetches the requested edge of an
+     * adjacent source-provided volume. The new edge becomes the R2 target;
+     * a first visit remains visibly loading until that exact page is ready.
+     */
+    fun switchToVolume(volumeId: String, edge: VolumeEdge) {
+        if (volumeId == _state.value.selectedVolumeId) return
+        if (_state.value.volumes.none { it.volumeId == volumeId }) return
+        saveCurrentProgress()
+        pageJob?.cancel()
+        cancelTranslationRun()
+        landingHadithNumber = null
+        restoredPosition = null
+        _state.update {
+            it.copy(
+                selectedVolumeId = volumeId,
+                pages = emptyList(),
+                pageIndex = 0,
+                isLoadingPage = true,
+                translations = emptyMap(),
+            )
+        }
+        pageJob = viewModelScope.launch {
+            try {
+                val first = app.repository.getReaderPage(collectionSlug, volumeId, 0)
+                val landing = if (edge == VolumeEdge.FIRST) 0 else maxOf(0, first.totalPagesInt - 1)
+                val last = if (landing == 0) first else {
+                    app.repository.getReaderPage(collectionSlug, volumeId, landing)
+                }
+                val pages = if (landing == 0) listOf(first) else {
+                    List(landing) { emptyPage() } + last
+                }
+                _state.update {
+                    it.copy(pages = pages, pageIndex = landing, phase = Phase.Reading)
+                }
+                scheduleTranslationsForCurrentPage()
+                saveCurrentProgress()
+            } catch (_: CancellationException) {
+                // A newer page or volume target replaced this fetch.
+            } catch (error: Exception) {
+                if (_state.value.pages.isEmpty()) {
+                    _state.update { it.copy(phase = Phase.Failed(errorMessage(error))) }
+                }
+            } finally {
+                _state.update { it.copy(isLoadingPage = false) }
+            }
+        }
     }
 
     /**

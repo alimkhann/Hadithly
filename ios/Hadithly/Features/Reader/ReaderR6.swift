@@ -93,16 +93,36 @@ enum ReaderSourceLabel {
     }
 }
 
-/// The narrator line is translation metadata: it renders at the leading
-/// edge (the same alignment as the translation) and is hidden entirely
-/// when the translation layer is hidden (Arabic-only mode).
+/// The narrator line shows in every visibility mode (round-2 correction):
+/// it is hidden only when there is no narrator text or when both text
+/// layers are hidden (a state the F2 contract rejects before it renders).
 enum ReaderNarratorLine {
-    static func shouldShow(narrator: String?, translationVisible: Bool) -> Bool {
-        guard translationVisible else { return false }
+    static func shouldShow(
+        narrator: String?,
+        arabicVisible: Bool,
+        translationVisible: Bool
+    ) -> Bool {
+        guard arabicVisible || translationVisible else { return false }
         guard let narrator = narrator?.trimmingCharacters(in: .whitespacesAndNewlines),
               !narrator.isEmpty
         else { return false }
         return true
+    }
+}
+
+/// Where the narrator sits. Mixed and translation-only modes keep the
+/// leading-edge line below the Arabic block (beside the translation).
+/// Arabic-only mode puts the narrator between the hadith header label and
+/// the Arabic block, aligned to the Arabic direction.
+enum ReaderNarratorPlacement: Equatable {
+    case aboveArabic
+    case belowArabic
+
+    static func placement(arabicVisible: Bool, translationVisible: Bool) -> ReaderNarratorPlacement {
+        if arabicVisible, !translationVisible {
+            return .aboveArabic
+        }
+        return .belowArabic
     }
 }
 
@@ -205,5 +225,101 @@ enum ReaderVolumeHeader {
 
     static func showsCornerLabel(pageIndex: Int) -> Bool {
         !showsHeader(pageIndex: pageIndex)
+    }
+}
+
+/// The two bottom page pills (R6 round 2, Sajda `209 Page` style): LEFT is
+/// the previous page, RIGHT is the next page. Every pill carries one snug
+/// internal chevron pointing the logical way; the stack keeps the ambient
+/// layout direction, so in RTL the previous pill sits on the right with
+/// mirrored chevrons while the labels stay logical.
+///
+/// At a volume edge the outward pill names the neighboring volume (its full
+/// localized title, never a bare number) and jumps across: the first page
+/// of a volume (unless it is the first volume) offers the previous
+/// volume's LAST page; the last page (unless last volume) offers the next
+/// volume's FIRST page. The absolute ends have no outward pill. Volume
+/// order is the outline order.
+enum ReaderPagePills {
+    enum Target: Equatable {
+        case page(Int)
+        case volumeFirst(volumeId: String)
+        case volumeLast(volumeId: String)
+    }
+
+    struct Pill: Equatable {
+        /// The pill text without the chevron (`Page 4`, or the neighbor
+        /// volume's full title at a volume edge).
+        let label: String
+        let target: Target
+        /// The logical turn this pill performs.
+        let turn: ReaderPageTurn
+        /// True when the pill crosses into another volume.
+        let crossesVolume: Bool
+    }
+
+    struct State: Equatable {
+        let previous: Pill?
+        let next: Pill?
+    }
+
+    static func state(
+        pageIndex: Int,
+        hasPreviousPage: Bool,
+        hasNextPage: Bool,
+        atLoadedPage: Bool,
+        volumes: [OutlineVolume],
+        selectedVolumeId: String?
+    ) -> State {
+        let selectedIndex = volumes.firstIndex { $0.volumeId == selectedVolumeId }
+        let previous: Pill?
+        if hasPreviousPage {
+            previous = Pill(
+                label: "Page \(pageIndex)",
+                target: .page(pageIndex - 1),
+                turn: .previous,
+                crossesVolume: false
+            )
+        } else if atLoadedPage, let index = selectedIndex, index > 0 {
+            let neighbor = volumes[index - 1]
+            previous = Pill(
+                label: neighbor.title,
+                target: .volumeLast(volumeId: neighbor.volumeId),
+                turn: .previous,
+                crossesVolume: true
+            )
+        } else {
+            previous = nil
+        }
+        let next: Pill?
+        if hasNextPage {
+            next = Pill(
+                label: "Page \(pageIndex + 2)",
+                target: .page(pageIndex + 1),
+                turn: .next,
+                crossesVolume: false
+            )
+        } else if atLoadedPage, let index = selectedIndex, index < volumes.count - 1 {
+            let neighbor = volumes[index + 1]
+            next = Pill(
+                label: neighbor.title,
+                target: .volumeFirst(volumeId: neighbor.volumeId),
+                turn: .next,
+                crossesVolume: true
+            )
+        } else {
+            next = nil
+        }
+        return State(previous: previous, next: next)
+    }
+
+    /// The chevron image inside a pill: it points back (previous) or
+    /// forward (next) in the reading direction, so RTL mirrors both pills.
+    static func chevronImage(for turn: ReaderPageTurn, pageDirection: HorizontalDirection) -> String {
+        let pointsLeft = switch pageDirection {
+        case .ltr: turn == .previous
+        case .rtl: turn == .next
+        }
+        return pointsLeft ? "chevron.left" : "chevron.right"
     }
 }

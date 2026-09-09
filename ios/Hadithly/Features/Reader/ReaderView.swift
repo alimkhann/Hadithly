@@ -248,13 +248,25 @@ struct ReaderView: View {
 
     private func turnPage(_ model: ReaderModel, turn: ReaderPageTurn) {
         if turn == .next {
-            guard model.hasNextPage else { return }
-            lastTurn = .next
-            model.pageIndex += 1
+            if model.hasNextPage {
+                lastTurn = .next
+                model.pageIndex += 1
+            } else if let next = model.nextVolume {
+                // An outward swipe past the last page advances to the next
+                // volume's first page — the same jump path as the pills.
+                lastTurn = .next
+                model.switchToVolume(next.volumeId, edge: .first)
+            }
         } else {
-            guard model.hasPreviousPage else { return }
-            lastTurn = .previous
-            model.pageIndex -= 1
+            if model.hasPreviousPage {
+                lastTurn = .previous
+                model.pageIndex -= 1
+            } else if let previous = model.previousVolume {
+                // Before the first page goes to the previous volume's last
+                // page — the same jump path as the pills.
+                lastTurn = .previous
+                model.switchToVolume(previous.volumeId, edge: .last)
+            }
         }
     }
 
@@ -480,9 +492,10 @@ struct ReaderPageView: View {
                 ScrollView {
                     if hadiths.isEmpty {
                         VStack {
-                            ProgressView()
+                            ProgressView("Loading page")
                                 .tint(palette.textSecondary)
                                 .padding(.top, 120)
+                                .accessibilityIdentifier("reader.pageLoading")
                         }
                         .frame(maxWidth: .infinity)
                     } else {
@@ -521,13 +534,11 @@ struct ReaderPageView: View {
                                 }
                             }
 
-                            ReaderEndNavigation(
+                            ReaderVolumePills(
                                 policy: ReaderPagingPolicy(preferences: preferences),
-                                currentPageIndex: currentPageIndex,
-                                pageCount: pageCount,
-                                totalPages: model.totalPages,
+                                state: model.pillState,
                                 palette: palette,
-                                onTurn: onTurn
+                                onFollow: { model.followPill($0) }
                             )
                             .padding(.top, 8)
                         }
@@ -663,73 +674,80 @@ private struct ReaderChapterHeader: View {
     }
 }
 
-/// End-of-page navigation (R6 slice A): ONE tight pill — `‹ Page X of Y ›`
-/// with the chevrons snug against the label (a few points of padding, not
-/// outer corners). Each chevron keeps a 44pt target and points the logical
-/// way (previous points back in the reading direction); the stack keeps
-/// the ambient layout direction, so RTL mirrors the order. The volume pill
-/// (revealed chrome) stays text-only — no volume chevrons.
-private struct ReaderEndNavigation: View {
+/// End-of-page navigation (R6 round 2): TWO bottom pills in the Sajda
+/// `209 Page` style — LEFT is the previous page (`‹ Page 4`), RIGHT is the
+/// next page (`Page 6 ›`). Each pill carries one snug internal chevron
+/// pointing the logical way with a 44pt target. The stack keeps the
+/// ambient layout direction, so in RTL the previous pill sits on the
+/// right with mirrored chevrons while the labels stay logical. At a
+/// volume edge the outward pill names the neighboring volume's full
+/// title and jumps across; the absolute ends show no outward pill.
+struct ReaderVolumePills: View {
     let policy: ReaderPagingPolicy
-    let currentPageIndex: Int
-    let pageCount: Int
-    let totalPages: Int?
+    let state: ReaderPagePills.State
     let palette: ReaderPalette
-    let onTurn: (ReaderPageTurn) -> Void
+    let onFollow: (ReaderPagePills.Pill) -> Void
 
     var body: some View {
         HStack {
+            if let previous = state.previous {
+                pagePill(previous)
+            } else {
+                // Keeps the next pill pinned to the trailing edge when the
+                // previous pill is absent at the absolute start.
+                Spacer(minLength: 0)
+            }
             Spacer(minLength: 0)
-            HStack(spacing: 4) {
-                if policy.destination(from: currentPageIndex, pageCount: pageCount, turn: .previous) != nil {
-                    chevronButton(.previous)
+            if let next = state.next {
+                pagePill(next)
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("reader.pagePills")
+        .environment(
+            \.layoutDirection,
+            policy.pageDirection == .rtl ? .rightToLeft : .leftToRight
+        )
+    }
+
+    private func pagePill(_ pill: ReaderPagePills.Pill) -> some View {
+        let turn = pill.turn
+        return Button {
+            onFollow(pill)
+        } label: {
+            HStack(spacing: 2) {
+                if turn == .previous {
+                    chevron(turn)
                 }
-                Text(pillText)
+                Text(pill.label)
                     .font(.caption.weight(.medium))
                     .foregroundStyle(palette.textSecondary)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 7)
-                    .accessibilityIdentifier("reader.pagePill")
-                    .accessibilityLabel(pillText)
-                if policy.destination(from: currentPageIndex, pageCount: pageCount, turn: .next) != nil {
-                    chevronButton(.next)
+                    .lineLimit(1)
+                if turn == .next {
+                    chevron(turn)
                 }
             }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
             .background(palette.surface.opacity(0.96))
             .clipShape(Capsule())
             .overlay(Capsule().strokeBorder(palette.divider, lineWidth: 1))
-            Spacer(minLength: 0)
-        }
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("reader.pageCluster")
-    }
-
-    private var pillText: String {
-        if let totalPages {
-            return "Page \(currentPageIndex + 1) of \(totalPages)"
-        }
-        return "Page \(currentPageIndex + 1)"
-    }
-
-    private func chevronButton(_ turn: ReaderPageTurn) -> some View {
-        let pointsLeft = switch policy.pageDirection {
-        case .ltr: turn == .previous
-        case .rtl: turn == .next
-        }
-        return Button {
-            onTurn(turn)
-        } label: {
-            Image(systemName: pointsLeft ? "chevron.left" : "chevron.right")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(palette.textSecondary)
-                .frame(width: 44, height: 44)
-                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(turn == .previous ? "Previous page" : "Next page")
+        .frame(minWidth: 44, minHeight: 44)
+        .accessibilityLabel(
+            turn == .previous ? "Previous page, \(pill.label)" : "Next page, \(pill.label)"
+        )
         .accessibilityIdentifier(
             turn == .previous ? "reader.previousPage" : "reader.nextPage"
         )
+    }
+
+    private func chevron(_ turn: ReaderPageTurn) -> some View {
+        Image(systemName: ReaderPagePills.chevronImage(for: turn, pageDirection: policy.pageDirection))
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(palette.textSecondary)
+            .frame(width: 24, height: 44)
     }
 }
 
@@ -752,16 +770,58 @@ private struct HadithBlock: View {
     @State private var reportedTranslation: ReaderTranslation?
     @State private var showingSource = false
 
+    /// Round-2 narrator placement for these preferences: above the Arabic
+    /// block in Arabic-only mode, beside the translation otherwise.
+    private var narratorPlacement: ReaderNarratorPlacement {
+        ReaderNarratorPlacement.placement(
+            arabicVisible: preferences.arabicVisible,
+            translationVisible: preferences.translationVisible
+        )
+    }
+
+    /// The narrator line in every visibility mode. Arabic-aligned (RTL)
+    /// between the header and the Arabic block in Arabic-only mode;
+    /// leading-edge beside the translation otherwise.
+    @ViewBuilder
+    private func narratorView(arabicAligned: Bool) -> some View {
+        if ReaderNarratorLine.shouldShow(
+            narrator: hadith.narrator,
+            arabicVisible: preferences.arabicVisible,
+            translationVisible: preferences.translationVisible
+        ) {
+            Text(hadith.narrator ?? "")
+                .font(.caption)
+                .foregroundStyle(palette.textSecondary)
+                .multilineTextAlignment(arabicAligned ? .trailing : .leading)
+                .frame(
+                    maxWidth: .infinity,
+                    alignment: arabicAligned ? .trailing : .leading
+                )
+                .environment(
+                    \.layoutDirection,
+                    arabicAligned || LocaleFallback.isRTL(preferences.translationLocale)
+                        ? .rightToLeft : .leftToRight
+                )
+                .accessibilityIdentifier("reader.narrator")
+        }
+    }
+
     var body: some View {
-        // Slice A (R6): a quiet block. One header per hadith at the top —
-        // the grade dot, the bracketed `[Collection – n]` label, and the
-        // saved-state mini markers — tappable for the source sheet. Body
-        // text starts at the leading edge, the narrator sits at the
-        // leading edge with the translation (hidden in Arabic-only mode),
-        // and there is no bottom label, no bare-number marker, no overflow
-        // button, and no dividers.
+        // Slice A (R6) with the round-2 narrator correction: a quiet block.
+        // One header per hadith at the top — the grade dot, the bracketed
+        // `[Collection – n]` label, and the saved-state mini markers —
+        // tappable for the source sheet. The narrator shows in every mode:
+        // in Arabic-only mode it sits between the header and the Arabic
+        // block, aligned to the Arabic direction; otherwise it keeps its
+        // leading-edge line beside the translation. There is no bottom
+        // label, no bare-number marker, no overflow button, and no
+        // dividers.
         VStack(alignment: .leading, spacing: 14) {
             headerRow
+
+            if narratorPlacement == .aboveArabic {
+                narratorView(arabicAligned: true)
+            }
 
             if preferences.arabicVisible {
                 Text(hadith.arabicText)
@@ -775,20 +835,8 @@ private struct HadithBlock: View {
                     .accessibilityIdentifier("reader.arabic")
             }
 
-            if ReaderNarratorLine.shouldShow(
-                narrator: hadith.narrator,
-                translationVisible: preferences.translationVisible
-            ) {
-                Text(hadith.narrator ?? "")
-                    .font(.caption)
-                    .foregroundStyle(palette.textSecondary)
-                    .multilineTextAlignment(.leading)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .environment(
-                        \.layoutDirection,
-                        LocaleFallback.isRTL(preferences.translationLocale) ? .rightToLeft : .leftToRight
-                    )
-                    .accessibilityIdentifier("reader.narrator")
+            if narratorPlacement == .belowArabic {
+                narratorView(arabicAligned: false)
             }
 
             if preferences.translationVisible {
@@ -1537,13 +1585,18 @@ struct ReaderPagingTestFixtureView: View {
                         .foregroundStyle(palette.textSecondary)
                         .accessibilityIdentifier("r3.end")
 
-                    ReaderEndNavigation(
+                    ReaderVolumePills(
                         policy: policy,
-                        currentPageIndex: pageIndex,
-                        pageCount: pageCount,
-                        totalPages: pageCount,
+                        state: ReaderPagePills.state(
+                            pageIndex: pageIndex,
+                            hasPreviousPage: pageIndex > 0,
+                            hasNextPage: pageIndex < pageCount - 1,
+                            atLoadedPage: true,
+                            volumes: [],
+                            selectedVolumeId: nil
+                        ),
                         palette: palette,
-                        onTurn: turnPage
+                        onFollow: { turnPage($0.turn) }
                     )
                 }
                 .padding(22)
@@ -1584,43 +1637,95 @@ struct ReaderPagingTestFixtureView: View {
 
 #if DEBUG
 /// Deterministic slice-A fixture: the quiet page with no network. Launch
-/// with `-R6AReaderFixture`. Page 1 carries the volume header, a sahih
-/// block, a quiet name-only chapter line with its Arabic subtitle, and a
-/// daif block with no source URL; page 2 carries the volume corner label
-/// with its fully-cached range and a hasan block. The page cluster turns
-/// between the two pages. All blocks, headers, and the cluster are the
-/// real production views.
+/// with `-R6AReaderFixture`. Three volumes in outline order: Volume 1
+/// (one page, hadith 55), Volume 2 (two pages — 57/58 then 59 — with the
+/// volume header, a sahih block, a quiet name-only chapter line with its
+/// Arabic subtitle, a daif block with no source URL, the corner label
+/// with its fully-cached range, and a hasan block), and Volume 3 (one
+/// page, hadith 61). The two bottom pills and the window swipe turn pages
+/// and cross volumes through the production pill state. The first visit
+/// to another volume shows the reader loading state for
+/// `R6A_VOLUME_DELAY` seconds (default 0.6). All blocks, headers, and
+/// pills are the real production views.
 ///
 /// Environment overrides (all default to the fully-loaded mixed page):
 /// - `R6A_ARABIC_VISIBLE=false` hides the Arabic layer.
 /// - `R6A_TRANSLATION_VISIBLE=false` hides the translation layer (the
-///   narrator, as translation metadata, hides with it).
+///   narrator stays: it shows in every mode).
 /// - `R6A_FULL_CACHE=false` leaves the volume partially cached, so the
 ///   corner label stays title-only.
+/// - `R6A_START_VOLUME=1` starts on Volume 1 (default 2).
 /// - `R6A_INITIAL_PAGE=1` starts on the second page (corner label).
+/// - `R6A_PAGE_DIRECTION=rtl` mirrors the pills and swipe (default ltr).
+/// - `R6A_VOLUME_DELAY=1.5` stretches the cross-volume loading state.
 struct ReaderR6ATestFixtureView: View {
     @State private var model: ReaderModel
+    @State private var selectedVolumeId: String
     @State private var pageIndex: Int
+    @State private var loadingVolumeId: String?
+    @State private var visitedVolumes: Set<String>
 
     private let preferences: ReaderPreferences
     private let palette = ReaderPalette.dark
-    private let policy = ReaderPagingPolicy(pageDirection: .ltr)
+    private let policy: ReaderPagingPolicy
     private let fullyCached: Bool
+    private let volumeDelay: Double
 
-    private let volume = OutlineVolume(
-        volumeId: "2",
-        title: "Volume 2",
-        hadithCount: 3,
-        chapters: [
-            OutlineChapter(
-                chapterId: "42",
-                title: "Belief",
-                arabicTitle: "كتاب الإيمان",
-                hadithCount: 2,
-                firstProviderHadithId: "58"
+    private var volumes: [OutlineVolume] {
+        [
+            OutlineVolume(volumeId: "1", title: "Volume 1", hadithCount: 1),
+            OutlineVolume(
+                volumeId: "2",
+                title: "Volume 2",
+                hadithCount: 3,
+                chapters: [
+                    OutlineChapter(
+                        chapterId: "42",
+                        title: "Belief",
+                        arabicTitle: "كتاب الإيمان",
+                        hadithCount: 2,
+                        firstProviderHadithId: "58"
+                    ),
+                ]
             ),
+            OutlineVolume(volumeId: "3", title: "Volume 3", hadithCount: 1),
         ]
-    )
+    }
+
+    private var selectedVolume: OutlineVolume {
+        volumes.first { $0.volumeId == selectedVolumeId } ?? volumes[1]
+    }
+
+    /// Pages per volume, in outline order.
+    private var volumeHadiths: [String: [[ReaderHadith]]] {
+        [
+            "1": [[hadith55]],
+            "2": [[hadith57, hadith58], [hadith59]],
+            "3": [[hadith61]],
+        ]
+    }
+
+    private var pageCount: Int {
+        volumeHadiths[selectedVolumeId]?.count ?? 1
+    }
+
+    private var currentHadiths: [ReaderHadith] {
+        guard let pages = volumeHadiths[selectedVolumeId],
+              pages.indices.contains(pageIndex)
+        else { return [] }
+        return pages[pageIndex]
+    }
+
+    private var pillState: ReaderPagePills.State {
+        ReaderPagePills.state(
+            pageIndex: pageIndex,
+            hasPreviousPage: pageIndex > 0,
+            hasNextPage: pageIndex < pageCount - 1,
+            atLoadedPage: loadingVolumeId == nil,
+            volumes: volumes,
+            selectedVolumeId: selectedVolumeId
+        )
+    }
 
     init() {
         let environment = ProcessInfo.processInfo.environment
@@ -1629,7 +1734,17 @@ struct ReaderR6ATestFixtureView: View {
         preferences.translationVisible = environment["R6A_TRANSLATION_VISIBLE"] != "false"
         self.preferences = preferences
         fullyCached = environment["R6A_FULL_CACHE"] != "false"
-        _pageIndex = State(initialValue: min(1, max(0, Int(environment["R6A_INITIAL_PAGE"] ?? "0") ?? 0)))
+        volumeDelay = Double(environment["R6A_VOLUME_DELAY"] ?? "") ?? 0.6
+        policy = ReaderPagingPolicy(
+            pageDirection: environment["R6A_PAGE_DIRECTION"] == "rtl" ? .rtl : .ltr
+        )
+        let startVolume = environment["R6A_START_VOLUME"] ?? "2"
+        _selectedVolumeId = State(initialValue: ["1", "2", "3"].contains(startVolume) ? startVolume : "2")
+        _pageIndex = State(initialValue: max(0, Int(environment["R6A_INITIAL_PAGE"] ?? "0") ?? 0))
+        _loadingVolumeId = State(
+            initialValue: environment["R6A_LOADING_FIXTURE"] == "true" ? startVolume : nil
+        )
+        _visitedVolumes = State(initialValue: [startVolume])
         let provider = ClerkConvexAuthProvider()
         let convex = ConvexClientWithAuth(
             deploymentUrl: "https://example.invalid",
@@ -1749,76 +1864,190 @@ struct ReaderR6ATestFixtureView: View {
         )
     }
 
+    private var hadith55: ReaderHadith {
+        ReaderHadith(
+            _id: "fixture-55",
+            provider: "sunnah_now",
+            canonicalId: "sunnah_now:bukhari:55",
+            providerHadithId: "55",
+            collectionSlug: "bukhari",
+            volumeId: "1",
+            chapterId: nil,
+            arabicText: "نَصّ الحديث في المجلد الأول",
+            englishText: "The reward of deeds depends upon the intentions.",
+            narrator: "Narrated by Aisha",
+            referenceDisplay: "Sahih al-Bukhari · Hadith 55",
+            collectionName: "Sahih al-Bukhari",
+            chapterName: nil,
+            authenticity: ReaderAuthenticity(
+                kind: "collection_scope",
+                normalizedGrade: "sahih",
+                claimScope: "collection",
+                sourceLabel: "Documented Sahih collection",
+                sourceName: "Sunnah.com",
+                sourceUrl: "https://sunnah.com/bukhari/about",
+                verificationMethod: "manual_collection_mapping"
+            )
+        )
+    }
+
+    private var hadith61: ReaderHadith {
+        ReaderHadith(
+            _id: "fixture-61",
+            provider: "sunnah_now",
+            canonicalId: "sunnah_now:bukhari:61",
+            providerHadithId: "61",
+            collectionSlug: "bukhari",
+            volumeId: "3",
+            chapterId: nil,
+            arabicText: "نَصّ الحديث في المجلد الثالث",
+            englishText: "Make things easy and do not make them difficult.",
+            narrator: "Narrated by Anas bin Malik",
+            referenceDisplay: "Sahih al-Bukhari · Hadith 61",
+            collectionName: "Sahih al-Bukhari",
+            chapterName: nil,
+            authenticity: ReaderAuthenticity(
+                kind: "collection_scope",
+                normalizedGrade: "hasan",
+                claimScope: "collection",
+                sourceLabel: "Documented Sahih collection",
+                sourceName: "Sunnah.com",
+                sourceUrl: "https://sunnah.com/bukhari/about",
+                verificationMethod: "manual_collection_mapping"
+            )
+        )
+    }
+
     /// Volume pages for the corner label, through the production rule.
     /// Fully cached by default (the real `: first–last` range renders);
     /// `R6A_FULL_CACHE=false` leaves the last page open so the corner
     /// stays title-only.
-    private var cachedPages: [ReaderPageResult] {
-        [
-            ReaderPageResult(
-                items: [hadith57, hadith58], page: 1, pageSize: 10,
-                totalPages: 2, hasMore: true,
+    private func cachedPages(for volumeId: String) -> [ReaderPageResult] {
+        let groups = volumeHadiths[volumeId] ?? []
+        return groups.enumerated().map { index, hadiths in
+            let isLast = index == groups.count - 1
+            return ReaderPageResult(
+                items: hadiths, page: index + 1, pageSize: 10,
+                totalPages: groups.count, hasMore: isLast ? !fullyCached : true,
                 contentVersion: nil, paginationVersion: nil, pageKey: nil
-            ),
-            ReaderPageResult(
-                items: [hadith59], page: 2, pageSize: 10,
-                totalPages: 2, hasMore: !fullyCached,
-                contentVersion: nil, paginationVersion: nil, pageKey: nil
-            ),
-        ]
+            )
+        }
+    }
+
+    /// Follows one bottom pill: an in-volume page turn, or a cross-volume
+    /// jump to the neighbor's first/last page. A first-visit volume shows
+    /// the reader loading state for `volumeDelay` seconds, like the
+    /// production fetch.
+    private func follow(_ pill: ReaderPagePills.Pill) {
+        switch pill.target {
+        case .page(let index):
+            guard volumeHadiths[selectedVolumeId]?.indices.contains(index) == true else { return }
+            pageIndex = index
+        case .volumeFirst(let volumeId):
+            goToVolume(volumeId, edge: .first)
+        case .volumeLast(let volumeId):
+            goToVolume(volumeId, edge: .last)
+        }
+    }
+
+    private func goToVolume(_ volumeId: String, edge: ReaderModel.VolumeEdge) {
+        guard volumeId != selectedVolumeId else { return }
+        guard visitedVolumes.contains(volumeId) else {
+            loadingVolumeId = volumeId
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(volumeDelay))
+                visitedVolumes.insert(volumeId)
+                loadingVolumeId = nil
+                selectedVolumeId = volumeId
+                let count = volumeHadiths[volumeId]?.count ?? 1
+                pageIndex = edge == .first ? 0 : max(0, count - 1)
+            }
+            return
+        }
+        selectedVolumeId = volumeId
+        let count = volumeHadiths[volumeId]?.count ?? 1
+        pageIndex = edge == .first ? 0 : max(0, count - 1)
+    }
+
+    private func turnPage(_ turn: ReaderPageTurn) {
+        guard loadingVolumeId == nil else { return }
+        let pill = turn == .previous ? pillState.previous : pillState.next
+        guard let pill else { return }
+        follow(pill)
     }
 
     var body: some View {
         ZStack {
             palette.background.ignoresSafeArea()
-            ScrollView {
-                VStack(spacing: 28) {
-                    if pageIndex == 0 {
-                        ReaderVolumeHeaderView(volume: volume, palette: palette)
-                        block(hadith57)
-                        VStack(spacing: 12) {
-                            ReaderChapterHeader(
-                                title: "Belief",
-                                arabicTitle: ReaderChapterLine.arabicTitle(
-                                    forChapterId: hadith58.chapterId,
-                                    in: [volume],
-                                    volumeId: "2"
+            if loadingVolumeId != nil {
+                VStack {
+                    ProgressView("Loading page")
+                        .tint(palette.textSecondary)
+                        .padding(.top, 120)
+                        .accessibilityIdentifier("reader.pageLoading")
+                }
+                .frame(maxWidth: .infinity)
+            } else {
+                ScrollView {
+                    VStack(spacing: 28) {
+                        if pageIndex == 0 {
+                            ReaderVolumeHeaderView(volume: selectedVolume, palette: palette)
+                        } else {
+                            ReaderVolumeCornerLabel(
+                                text: ReaderVolumeRange.cornerText(
+                                    volumeTitle: selectedVolume.title,
+                                    pages: cachedPages(for: selectedVolumeId)
                                 ),
                                 palette: palette
                             )
-                            block(hadith58)
                         }
-                        .padding(.top, 12)
-                    } else {
-                        ReaderVolumeCornerLabel(
-                            text: ReaderVolumeRange.cornerText(
-                                volumeTitle: volume.title,
-                                pages: cachedPages
-                            ),
-                            palette: palette
+                        ForEach(currentHadiths, id: \.internalId) { hadith in
+                            if let chapterName = hadith.chapterName, !chapterName.isEmpty {
+                                VStack(spacing: 12) {
+                                    ReaderChapterHeader(
+                                        title: chapterName,
+                                        arabicTitle: ReaderChapterLine.arabicTitle(
+                                            forChapterId: hadith.chapterId,
+                                            in: volumes,
+                                            volumeId: selectedVolumeId
+                                        ),
+                                        palette: palette
+                                    )
+                                    block(hadith)
+                                }
+                                .padding(.top, 12)
+                            } else {
+                                block(hadith)
+                            }
+                        }
+                        ReaderVolumePills(
+                            policy: policy,
+                            state: pillState,
+                            palette: palette,
+                            onFollow: follow
                         )
-                        block(hadith59)
                     }
-                    ReaderEndNavigation(
-                        policy: policy,
-                        currentPageIndex: pageIndex,
-                        pageCount: 2,
-                        totalPages: 2,
-                        palette: palette,
-                        onTurn: { turn in
-                            if turn == .next { pageIndex = 1 } else { pageIndex = 0 }
-                        }
-                    )
+                    .padding(.horizontal, 22)
+                    .padding(.top, 20)
+                    .padding(.bottom, 80)
                 }
-                .padding(.horizontal, 22)
-                .padding(.top, 20)
-                .padding(.bottom, 80)
             }
-            .accessibilityIdentifier("r6a.page")
         }
+        .accessibilityIdentifier("r6a.page")
         .environment(\.readerPalette, palette)
         .environment(\.readerTheme, ReaderTheme.dark)
         .preferredColorScheme(.dark)
+        .overlay {
+            WindowSwipeRecognizer(
+                pageDirection: policy.pageDirection,
+                isEnabled: { loadingVolumeId == nil },
+                onTurn: turnPage
+            )
+            .frame(width: 0, height: 0)
+            .accessibilityHidden(true)
+        }
+        .accessibilityAction(named: "Previous page") { turnPage(.previous) }
+        .accessibilityAction(named: "Next page") { turnPage(.next) }
     }
 
     private func block(_ hadith: ReaderHadith) -> some View {

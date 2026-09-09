@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -75,6 +76,7 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalConfiguration
@@ -112,6 +114,7 @@ import com.hadithly.app.core.preferences.LocaleFallback
 import com.hadithly.app.core.preferences.ReaderPageTurn
 import com.hadithly.app.core.preferences.ReaderPagingPolicy
 import com.hadithly.app.core.preferences.ReaderPreferences
+import com.hadithly.app.core.preferences.SwipeDirection
 import com.hadithly.app.core.theme.LocalHadithlyColors
 import com.hadithly.app.features.purchases.QuotaPaywallSheet
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -375,12 +378,22 @@ private fun ReadingView(
             pagerState.currentPage,
             pagerState.pageCount,
             turn,
-        ) ?: return false
-        if (reduceMotion) {
-            coroutine.launch { pagerState.scrollToPage(destination) }
-        } else {
-            coroutine.launch { pagerState.animateScrollToPage(destination) }
+        )
+        if (destination != null) {
+            if (reduceMotion) {
+                coroutine.launch { pagerState.scrollToPage(destination) }
+            } else {
+                coroutine.launch { pagerState.animateScrollToPage(destination) }
+            }
+            return true
         }
+        val pill = if (turn == ReaderPageTurn.PREVIOUS) {
+            viewModel.pagePills().previous
+        } else {
+            viewModel.pagePills().next
+        }
+        if (pill?.crossesVolume != true) return false
+        viewModel.followPill(pill)
         return true
     }
 
@@ -394,10 +407,10 @@ private fun ReadingView(
                 },
             ),
         )
-        if (pagingPolicy.destination(pagerState.currentPage, pagerState.pageCount, ReaderPageTurn.PREVIOUS) != null) {
+        if (viewModel.pagePills().previous != null) {
             add(CustomAccessibilityAction("Previous page") { turnPage(ReaderPageTurn.PREVIOUS) })
         }
-        if (pagingPolicy.destination(pagerState.currentPage, pagerState.pageCount, ReaderPageTurn.NEXT) != null) {
+        if (viewModel.pagePills().next != null) {
             add(CustomAccessibilityAction("Next page") { turnPage(ReaderPageTurn.NEXT) })
         }
     }
@@ -410,6 +423,7 @@ private fun ReadingView(
         DirectionAwareHorizontalPager(
             state = pagerState,
             policy = pagingPolicy,
+            onOutwardEdgeTurn = ::turnPage,
             modifier = Modifier.fillMaxSize(),
         ) { pageIndex ->
                 val pages = state.pages
@@ -422,12 +436,12 @@ private fun ReadingView(
                     preferences = preferences,
                     pagingPolicy = pagingPolicy,
                     pageIndex = pageIndex,
-                    pageCount = pageCount,
+                    pillState = viewModel.pagePills(),
                     restoration = viewModel.restoredPosition,
                     restorationGeneration = viewModel.restorationGeneration,
                     landingHadithNumber = viewModel.landingHadithNumber,
                     isSentinel = pageIndex >= pages.size,
-                    onTurn = { turnPage(it) },
+                    onFollowPill = viewModel::followPill,
                     onTap = { viewModel.toggleChrome() },
                     onShowPaywall = onShowPaywall,
                 )
@@ -481,6 +495,7 @@ private fun ReadingView(
 internal fun DirectionAwareHorizontalPager(
     state: PagerState,
     policy: ReaderPagingPolicy,
+    onOutwardEdgeTurn: ((ReaderPageTurn) -> Boolean)? = null,
     modifier: Modifier = Modifier,
     content: @Composable PagerScope.(page: Int) -> Unit,
 ) {
@@ -488,9 +503,49 @@ internal fun DirectionAwareHorizontalPager(
         HorizontalPager(
             state = state,
             reverseLayout = policy.reverseLayout,
-            modifier = modifier,
+            modifier = modifier.edgeVolumeSwipe(state, policy, onOutwardEdgeTurn),
             pageContent = content,
         )
+    }
+}
+
+/**
+ * Observes, without consuming, an outward swipe at a pager boundary. Normal
+ * in-volume paging and vertical reader scrolling remain owned by
+ * HorizontalPager and LazyColumn. Only the otherwise-dead overscroll at an
+ * edge reaches [onOutwardEdgeTurn].
+ */
+private fun Modifier.edgeVolumeSwipe(
+    state: PagerState,
+    policy: ReaderPagingPolicy,
+    onOutwardEdgeTurn: ((ReaderPageTurn) -> Boolean)?,
+): Modifier {
+    if (onOutwardEdgeTurn == null) return this
+    return pointerInput(state.currentPage, state.pageCount, policy) {
+        awaitPointerEventScope {
+            var startX: Float? = null
+            while (true) {
+                val change = awaitPointerEvent(PointerEventPass.Final).changes.firstOrNull() ?: continue
+                if (startX == null && change.pressed) {
+                    startX = change.position.x
+                }
+                if (startX != null && !change.pressed) {
+                    val delta = change.position.x - startX
+                    startX = null
+                    val swipe = when {
+                        delta <= -96f -> SwipeDirection.LEFT
+                        delta >= 96f -> SwipeDirection.RIGHT
+                        else -> null
+                    } ?: continue
+                    val turn = policy.turn(swipe)
+                    val outward = when (turn) {
+                        ReaderPageTurn.PREVIOUS -> state.currentPage == 0
+                        ReaderPageTurn.NEXT -> state.currentPage == state.pageCount - 1
+                    }
+                    if (outward) onOutwardEdgeTurn(turn)
+                }
+            }
+        }
     }
 }
 
@@ -504,12 +559,12 @@ private fun ReaderPage(
     preferences: ReaderPreferences,
     pagingPolicy: ReaderPagingPolicy,
     pageIndex: Int,
-    pageCount: Int,
+    pillState: ReaderPagePills.State,
     restoration: ReadingPosition?,
     restorationGeneration: Int,
     landingHadithNumber: String?,
     isSentinel: Boolean,
-    onTurn: (ReaderPageTurn) -> Unit,
+    onFollowPill: (ReaderPagePills.Pill) -> Unit,
     onTap: () -> Unit,
     onShowPaywall: () -> Unit,
 ) {
@@ -586,7 +641,10 @@ private fun ReaderPage(
             .pointerInput(Unit) { detectTapGestures(onTap = { onTap() }) },
     ) {
         if (isSentinel || hadiths.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+            Box(
+                modifier = Modifier.fillMaxSize().testTag("reader.pageLoading"),
+                contentAlignment = Alignment.TopCenter,
+            ) {
                 CircularProgressIndicator(color = colors.textSecondary, modifier = Modifier.padding(top = 120.dp))
             }
         } else {
@@ -667,11 +725,10 @@ private fun ReaderPage(
                     }
                 }
                 item(key = "reader-end-navigation") {
-                    ReaderEndNavigation(
+                    ReaderVolumePills(
                         policy = pagingPolicy,
-                        currentPageIndex = pageIndex,
-                        pageCount = pageCount,
-                        onTurn = onTurn,
+                        state = pillState,
+                        onFollow = onFollowPill,
                     )
                 }
             }
@@ -744,7 +801,137 @@ private fun ReaderPage(
     }
 }
 
+/** Pure counterpart to iOS `ReaderPagePills`: labels never derive a volume
+ * number, and an edge target always lands on the neighbor's correct edge. */
+internal object ReaderPagePills {
+    sealed interface Target {
+        data class Page(val index: Int) : Target
+        data class VolumeFirst(val volumeId: String) : Target
+        data class VolumeLast(val volumeId: String) : Target
+    }
+
+    data class Pill(
+        val label: String,
+        val target: Target,
+        val turn: ReaderPageTurn,
+        val crossesVolume: Boolean,
+    )
+
+    data class State(val previous: Pill?, val next: Pill?)
+
+    fun state(
+        pageIndex: Int,
+        hasPreviousPage: Boolean,
+        hasNextPage: Boolean,
+        atLoadedPage: Boolean,
+        volumes: List<OutlineVolume>,
+        selectedVolumeId: String?,
+    ): State {
+        val volumeIndex = volumes.indexOfFirst { it.volumeId == selectedVolumeId }
+        val previous = when {
+            hasPreviousPage -> Pill("Page $pageIndex", Target.Page(pageIndex - 1), ReaderPageTurn.PREVIOUS, false)
+            atLoadedPage && volumeIndex > 0 -> {
+                val volume = volumes[volumeIndex - 1]
+                Pill(volume.title, Target.VolumeLast(volume.volumeId), ReaderPageTurn.PREVIOUS, true)
+            }
+            else -> null
+        }
+        val next = when {
+            hasNextPage -> Pill("Page ${pageIndex + 2}", Target.Page(pageIndex + 1), ReaderPageTurn.NEXT, false)
+            atLoadedPage && volumeIndex >= 0 && volumeIndex < volumes.lastIndex -> {
+                val volume = volumes[volumeIndex + 1]
+                Pill(volume.title, Target.VolumeFirst(volume.volumeId), ReaderPageTurn.NEXT, true)
+            }
+            else -> null
+        }
+        return State(previous, next)
+    }
+}
+
 /**
+ * R6 round two end-of-page navigation: two calm, independently tappable
+ * pills. At a volume edge the outward pill names the adjacent volume and
+ * takes the same path as the matching accessibility action or edge swipe.
+ */
+@Composable
+internal fun ReaderVolumePills(
+    policy: ReaderPagingPolicy,
+    state: ReaderPagePills.State,
+    onFollow: (ReaderPagePills.Pill) -> Unit,
+) {
+    val colors = LocalHadithlyColors.current
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp)
+            .testTag("reader.pagePills"),
+    ) {
+        state.previous?.let { PagePill(it, policy, onFollow) } ?: Spacer(Modifier.width(1.dp))
+        state.next?.let { PagePill(it, policy, onFollow) } ?: Spacer(Modifier.width(1.dp))
+    }
+}
+
+@Composable
+private fun PagePill(
+    pill: ReaderPagePills.Pill,
+    policy: ReaderPagingPolicy,
+    onFollow: (ReaderPagePills.Pill) -> Unit,
+) {
+    val colors = LocalHadithlyColors.current
+    val pointsLeft = when (policy.pageDirection) {
+        com.hadithly.app.core.preferences.PageDirection.LTR -> pill.turn == ReaderPageTurn.PREVIOUS
+        com.hadithly.app.core.preferences.PageDirection.RTL -> pill.turn == ReaderPageTurn.NEXT
+    }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        modifier = Modifier
+            .heightIn(min = 48.dp)
+            .background(colors.surface.copy(alpha = 0.96f), RoundedCornerShape(50))
+            .clickable { onFollow(pill) }
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .testTag(if (pill.turn == ReaderPageTurn.PREVIOUS) "reader.previousPage" else "reader.nextPage")
+            .semantics {
+                contentDescription = if (pill.turn == ReaderPageTurn.PREVIOUS) {
+                    "Previous page, ${pill.label}"
+                } else {
+                    "Next page, ${pill.label}"
+                }
+            },
+    ) {
+        if (pill.turn == ReaderPageTurn.PREVIOUS) {
+            PagePillChevron(pointsLeft)
+        }
+        Text(
+            text = pill.label,
+            color = colors.textSecondary,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+        )
+        if (pill.turn == ReaderPageTurn.NEXT) {
+            PagePillChevron(pointsLeft)
+        }
+    }
+}
+
+@Composable
+private fun PagePillChevron(pointsLeft: Boolean) {
+    val colors = LocalHadithlyColors.current
+    Icon(
+        imageVector = if (pointsLeft) Icons.AutoMirrored.Filled.NavigateBefore else Icons.AutoMirrored.Filled.NavigateNext,
+        contentDescription = null,
+        tint = colors.textSecondary,
+        modifier = Modifier.size(22.dp),
+    )
+}
+
+/**
+ * Historical R6A component retained for the typographic fixture and pager
+ * regression tests. The production reader uses [ReaderVolumePills].
+ *
  * R6A end-of-page navigation: one centered cluster with the chevrons
  * immediately adjacent to the page pill (`‹ Page X of Y ›`). Direction-aware:
  * the chevron glyphs mirror with the layout direction (AutoMirrored) and the
@@ -1270,6 +1457,11 @@ internal fun HadithBlock(
             onDismiss = { menuExpanded = false },
         )
 
+        val arabicOnly = preferences.arabicVisible && !preferences.translationVisible
+        if (arabicOnly) {
+            NarratorLine(hadith.narrator, preferences, arabicAligned = true)
+        }
+
         if (preferences.arabicVisible) {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
                 Text(
@@ -1289,29 +1481,11 @@ internal fun HadithBlock(
             }
         }
 
-        // R6A fix: the narrator sits at the leading edge (same alignment as
-        // the translation — left in LTR, mirrored in RTL via start
-        // alignment under the translation's direction), and hides entirely
-        // when the translation layer is hidden (Arabic-only mode shows
-        // Arabic alone).
-        if (shouldShowNarrator(hadith.narrator, preferences.translationVisible)) {
-            CompositionLocalProvider(
-                LocalLayoutDirection provides if (LocaleFallback.isRTL(preferences.translationLocale)) {
-                    LayoutDirection.Rtl
-                } else {
-                    LayoutDirection.Ltr
-                },
-            ) {
-                Text(
-                    text = hadith.narrator.orEmpty(),
-                    fontSize = 12.sp,
-                    color = colors.textSecondary,
-                    textAlign = TextAlign.Start,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("reader.narrator"),
-                )
-            }
+        // Translation-only and mixed modes retain the narrator at the
+        // translation's leading edge. Arabic-only mode placed it above the
+        // Arabic block, under the source header, in the Arabic direction.
+        if (!arabicOnly) {
+            NarratorLine(hadith.narrator, preferences, arabicAligned = false)
         }
 
         if (preferences.translationVisible) {
@@ -1340,11 +1514,37 @@ internal fun HadithBlock(
 }
 
 /**
- * R6A fix: the narrator line renders only when the translation layer is
- * visible. Arabic-only mode shows Arabic alone — no narrator line.
+ * The narrator is present whenever either visible text layer has content.
+ * Arabic-only reading puts it in the Arabic flow; mixed and translation-only
+ * reading uses the translation's leading edge.
  */
-internal fun shouldShowNarrator(narrator: String?, translationVisible: Boolean): Boolean =
-    !narrator.isNullOrBlank() && translationVisible
+internal fun shouldShowNarrator(
+    narrator: String?,
+    arabicVisible: Boolean,
+    translationVisible: Boolean,
+): Boolean = !narrator.isNullOrBlank() && (arabicVisible || translationVisible)
+
+@Composable
+private fun NarratorLine(narrator: String?, preferences: ReaderPreferences, arabicAligned: Boolean) {
+    if (!shouldShowNarrator(narrator, preferences.arabicVisible, preferences.translationVisible)) return
+    val colors = LocalHadithlyColors.current
+    val direction = if (arabicAligned || LocaleFallback.isRTL(preferences.translationLocale)) {
+        LayoutDirection.Rtl
+    } else {
+        LayoutDirection.Ltr
+    }
+    CompositionLocalProvider(LocalLayoutDirection provides direction) {
+        Text(
+            text = narrator.orEmpty(),
+            fontSize = 12.sp,
+            color = colors.textSecondary,
+            textAlign = if (arabicAligned) TextAlign.End else TextAlign.Start,
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("reader.narrator"),
+        )
+    }
+}
 
 /**
  * R6A fix: non-interactive saved-state indicators trailing the header
