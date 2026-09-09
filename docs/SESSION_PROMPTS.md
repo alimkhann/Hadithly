@@ -382,6 +382,29 @@ context actions, and share privacy.
 > do not conflict with paging or text selection, and shared links pass F3 routing.
 > Stop before H1.
 
+## R6: reader chrome, density, and paging polish
+
+Model: Muse Spark. Use `frontend-design`, `principle-experience-first`,
+`blast-radius`, and `principle-prove-it-works`. A separate GPT-5.6 Terra high
+task reviews chrome behavior, accessibility, and position safety.
+
+> Read `AGENTS.md`, `docs/PLAN.md` (including the R6 record), and
+> `docs/REFERENCE_AUDIT.md` fully. Confirm R5 passed. Execute only the active
+> R6 slice from the record (A, then B, then C through G in order). Preserve
+> unrelated changes and do not use Relay. Before code, re-open the R6-mapped
+> images named in the record at original detail.
+>
+> Implement the active slice on iOS and Android through native patterns with
+> identical behavior. Keep the R5 action set, R1/R2 positions, F2 direction
+> and visibility, and F1 source truth (source stays one tap away; chapters
+> stay source-provided; Arabic stays RTL-shaped). Confirm the owner's four
+> confirmations in the R6 record before changing alignment, source labeling,
+> the menu button, or slice order.
+>
+> Gate per slice: the owner tests the slice on device before the next slice
+> starts; unit plus device/UI evidence passes; shared links still pass F3
+> routing. Stop before H1.
+
 ## H1: complete Today
 
 Model: GLM-5.3-Flash through OpenCode Go. GPT-5.6 Luna high is the fallback.

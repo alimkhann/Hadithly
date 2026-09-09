@@ -19,8 +19,10 @@ auth, and the username contract is now: optional, auto-generated from the
 email local part at password sign-up, editable in Settings. The Android FCM
 device-push re-test deferred from D1 folds into D4's physical-device matrix.
 
-Current next session: the still-open R3 physical-device matrix. R5 waits for
-that gate. Do not
+Current next session: the still-open R3 physical-device matrix. R5 is complete;
+R6 (reader chrome, density, and paging polish, owner-directed) is proposed and
+waits for the owner's answers on Arabic alignment, source labeling, the menu
+button, and slice order. Do not
 start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
@@ -359,6 +361,7 @@ substantive: they own bounded implementation outcomes, not just inventories.
 | R3 | Correct paging direction, long-content scrolling, and page boundaries. | LTR, RTL, mixed-script, short, and very long fixtures pass on both apps. | GPT-5.6 Sol, xhigh |
 | R4 | Add visibility, fonts, sizes, themes, hidden controls, and progress UI. | Screenshot and accessibility matrices pass on both apps. | GLM-5.3-Flash; Terra high review |
 | R5 | Add contents navigation and native context actions; enable sharing through F3. | Actions remain reachable with controls hidden and never obscure reading. | GLM-5.3-Flash; Terra high review |
+| R6 | Restyle reader chrome, density, and paging from the Sajda references (slices A through G, owner tests each slice). | Focused reading shows only a thin page bar; every control stays reachable; no invented chapters; source stays one tap away. | Muse Spark; Terra high review |
 | H1 | Complete Today with eligible translated content, actions, and long-card behavior. | Empty, loading, long, offline, cached-AI, and exact-open cases pass. | GLM-5.3-Flash; Terra high review |
 | H2 | Add per-collection Library progress and remove duplicate Continue Reading. | Unopened, partial, complete, offline, and migrated collections render correctly. | GLM-5.3-Flash; Terra high review |
 | H3 | Replace Saved landing cards with the unified list, filters, folders, and migration. | No current bookmark, favorite, or note is lost or duplicated. | GPT-5.6 Terra, high |
@@ -740,10 +743,126 @@ substantive: they own bounded implementation outcomes, not just inventories.
 - Blockers and next: R3's physical-device matrix remains open as recorded.
   Next allowed session: R5 only after the owner confirms the R3 gate.
 
+### R5 session record (2026-09-09)
+
+- Outcome: implementation complete on backend and both clients. The owner
+  directed this session to proceed while R3's physical-device gate is still
+  open, so that gate remains recorded above and still requires its
+  physical-device matrix.
+- All 16 Sajda reference images were opened at original detail before code;
+  only the R5 mapping was applied: `contents from menu.PNG` (navigable
+  contents sheet with progress context, minus Quran-only Surah/Juz grouping),
+  `context menu when holding ayah to do actions.PNG` (long-press actions
+  without a permanent toolbar, minus Play Ayah and Ask Siri), and `menu
+  open.PNG` (quiet compact menu, minus audio/search rows). The three H3
+  private-saved references were reviewed in orientation only.
+- Backend (pushed to development Convex `festive-cobra-664`; production
+  untouched): `lib/sunnahNow.ts` gains source-provided `ChapterOutlineEntry`
+  values and a pure `aggregateVolumeOutline` (volume order, counts, and
+  first-seen titles preserved; hadiths without chapter identity still count
+  toward the volume; nothing is synthesized). `collectionOutlines` schema and
+  `upsertOutline` accept the optional per-volume `chapters` array; old cached
+  outlines still validate and `getCollectionOutline` rebuilds once when the
+  chapters key is missing. `resolveCanonicalLink` returns optional `volumeId`,
+  `chapterId`, and `chapterName` canonical targets. New pure
+  `formatCanonicalHadithUrl` builder (throws on malformed input; drops
+  unsupported locale params instead of sharing them silently).
+- Live backend proof: Bukhari outline rebuilt on dev — 97 volumes, 3,512
+  source-provided chapters (English titles with Arabic titles where the
+  provider supplies them). `resolveCanonicalLink` for Bukhari 57 returns
+  `volumeId 2`, `chapterId 42` with its source chapter name.
+- iOS: the permanent per-hadith action row and inline Suggest/Report text row
+  are gone. Each hadith block has a native `.contextMenu` titled with its
+  reference and a quiet trailing ellipsis (`reader.moreActions`, 44pt,
+  secondary tint) opening a native `Menu` with the identical actions:
+  Bookmark, Favorite, Note, Copy, Share (ShareLink with only the canonical
+  URL), plus secondary Report (only when a loaded non-English translation
+  exists) and Suggest Translation (existing sheets/flows reused; guests keep
+  the sign-in notice). VoiceOver custom actions expose all seven on every
+  block. Contents sheet lists volumes that expand to source-provided chapters
+  (title, count, Arabic subtitle) plus a jump-to-reference field: well-formed
+  numbers navigate the R2 target path (same stale fallback as canonical
+  links); malformed input shows an inline error and keeps the sheet open.
+  `ReaderShare` owns the URL builder (round-trips through
+  `CanonicalHadithLink.parse`) and the copy formatter (visible Arabic and/or
+  translation, `— collection · Hadith id · source` line, `· AI translation`
+  suffix only for AI text, never the URL). Pre-R5 outlines without chapters
+  render volumes exactly as before.
+- Android: same behavior through native Compose patterns — `combinedClickable`
+  long-press and a 48dp quiet overflow open one shared `DropdownMenu`;
+  TalkBack custom actions mirror the menu; copy via ClipboardManager and
+  share via `ACTION_SEND` chooser carry the specified payloads; contents
+  bottom sheet, chapter jump, and back-compat match iOS.
+- Tests: backend typecheck clean, 81/81 tests (8 new: chapter aggregation,
+  URL builder, resolver targets). iOS 99/99 unit tests (13 new in
+  `ReaderR5Tests`) plus `ReaderR5UITests` 5/5 and `ReaderPagingUITests` 5/5 on
+  the Adat iPhone 17 Pro simulator. Android 80/80 debug unit tests (12 new in
+  `ReaderR5Test`) plus `ReaderR5SheetTest` 7/7 fresh on the hadithly emulator
+  (contents chapters, chapter tap, jump valid/invalid, long-press and overflow
+  menus, report gating) and the pager suite unchanged. The simulator screen
+  recording shows the native R5 menu (Bookmark, Favorite, Add Note, Copy,
+  Share, Suggest Translation) rendering over the reader.
+- The unrelated live Phase 4 translation UI test fails exactly as recorded in
+  R4: no stored Russian translation loads on dev, so its Report poll exhausts
+  ("Stored translation never loaded"). Its R5 menu adaptation was repaired in
+  passing (menu toggle-dismiss, hadith-agnostic settling, bidirectional
+  search, verdict-dismissal guard); the remaining blocker is the dev content
+  gap, not R5 code.
+- Security and external state: no new identity, network, or AI surface; share
+  carries only the F3 canonical URL; copy carries no URL and labels AI text.
+  Sheets preserve exact scroll position on both clients. No dashboard,
+  credential, or store state changed.
+- Next allowed session: H1. This task stopped before H1.
+
+### R6 session record (proposed 2026-09-09, owner-directed reader polish)
+
+- Goal: make the reader feel like the Sajda references — calm page, hidden
+  chrome, bottom-circle controls — without breaking R1/R2 positions, F2
+  direction/visibility contracts, F1 source labeling, or the R5 action set.
+- Image mapping: revealed chrome plus bottom circles from `when clicking
+  anywhere … expands.PNG`; the expanding card stack from `menu open.PNG`;
+  thin centered progress and divider-free text from `middle of page, progress
+  bar on top, notice minimal divisions between ayahs.PNG`; adjacent page
+  buttons from `end of page reader.PNG`; quiet `10:2`-style markers and
+  chapter openings from `start page reader.PNG`, `translation + arabic.PNG`,
+  and `new surah (could be new chapter in hadithly).PNG`; sheets and
+  submenus from `settings open from menu.PNG`, `arabic fonts and size.PNG`,
+  `color themes options.PNG`, and `contents from menu.PNG`.
+- Slices (owner tests each slice before the next starts):
+  - A (first): page density — volume corner label with hadith range,
+    start-aligned text, trailing/leading narrator line, minimal `n`-style
+    hadith markers, grade dot plus compact label with a tap-for-source sheet,
+    chevrons beside the page number, quiet name-only chapter lines, `N
+    hadiths` under volume titles. Covers owner notes 3, 7, 8, 9.
+  - B (quick wins): haptic on tap-toggle only, hidden native scroll
+    indicators, pills moved to the top (static content).
+  - C: note 1 — thin dynamic neutral page bar when focused; two filling pills
+    at the top when unfocused; no green, no full-width, no mid-screen bar.
+  - D: note 2 — no top header; bottom-left back circle, bottom-right menu
+    circle expanding upward; scroll or menu-open collapses to focused.
+  - E: note 4 — card-stack menu aesthetic plus settings, contents, theme,
+    and font subviews in the Sajda pattern (Quran-only modes rejected).
+  - F: note 5 — interactive track-the-finger paging with mid-gesture cancel
+    (iOS moves to a native paging container; Android pager tuned).
+  - G: note 6 — cross-volume swipe and end-of-volume next/previous volume
+    actions.
+- Owner confirmations (2026-09-09, resolved): Arabic keeps RTL shaping with
+  start alignment (never LTR glyphs); the source name leaves the page but
+  stays one tap away on the grade label (copy/share keep full source lines);
+  the R5 ellipsis is deleted with no visual replacement — the sighted path
+  is long-press only, and VoiceOver/TalkBack custom actions are the
+  screen-reader equivalent. `menu open.PNG`'s bottom-right stack is the only
+  menu: location card, Bookmarks and Notes, Settings, a bottom action row
+  (bookmark/note for the positioned hadith; no playback, search stays
+  deferred), and X dismiss. Its bookmark acts on the positioned (R2 anchor)
+  hadith. Slice A builds on both apps together.
+- Gate: R5's action set unchanged and reachable, positions survive every
+  restyle, shared links still pass F3 routing. Stop before H1.
+
 ## Delegation policy
 
 Use GLM-5.3-Flash through OpenCode Go as the default author for bounded sessions
-whose contracts, files, and tests are explicit: F2, F3, R4, R5, H1, H2, S1,
+whose contracts, files, and tests are explicit: F2, F3, R4, R5, R6, H1, H2, S1,
 W1, W2, LA2, LA3, LA4, and the bulk of L1. These are meaningful product
 sessions. Give GLM one small vertical slice at a time, require it to run both
 platform tests, and end with a compact patch/evidence handoff. GPT-5.6 Luna at
@@ -814,7 +933,7 @@ D3A-domain + F2 -> F3
 F1 + D3A-entitlements -> Q1
 D3A-release + D3G -> D4
 F1 -> F2
-F1 -> R1 -> R2 -> R3 -> R4 -> R5
+F1 -> R1 -> R2 -> R3 -> R4 -> R5 -> R6
 R2 -> H1 -> H2 -> H3 -> S1
 F1 -> O1 -> O2
 F2 + F3 + R2 -> N1
