@@ -28,6 +28,7 @@ export const hadithInput = v.object({
   arabicText: v.string(),
   englishText: v.optional(v.string()),
   narrator: v.optional(v.string()),
+  narratorAr: v.optional(v.string()),
   referenceDisplay: v.string(),
   collectionName: v.string(),
   bookName: v.optional(v.string()),
@@ -48,6 +49,7 @@ export type HadithDocument = {
   arabicText: string;
   englishText?: string;
   narrator?: string;
+  narratorAr?: string;
   referenceDisplay: string;
   collectionName: string;
   bookName?: string;
@@ -220,6 +222,7 @@ function currentHadith(hadith: Doc<"hadiths">): HadithDocument {
     arabicText: hadith.arabicText,
     englishText: hadith.englishText,
     narrator: hadith.narrator,
+    narratorAr: hadith.narratorAr,
     referenceDisplay: hadith.referenceDisplay,
     collectionName: hadith.collectionName,
     bookName: hadith.bookName,
@@ -275,6 +278,91 @@ function currentHadith(hadith: Doc<"hadiths">): HadithDocument {
     return [...sourceResults, ...translatedHadiths]
       .slice(0, limit)
       .map(currentHadith);
+  },
+});
+
+/** One English-text search hit for the R6 reader menu search sheet. */
+export type EnglishSearchResult = {
+  hadithId: Id<"hadiths">;
+  canonicalId: string;
+  collectionSlug: string;
+  providerHadithId: string;
+  referenceDisplay: string;
+  snippet: string;
+};
+
+const ENGLISH_SNIPPET_LENGTH = 160;
+
+/**
+ * Returns ~160 characters of English text centered on the first
+ * case-insensitive match, with "..." marking either trimmed end. Falls back
+ * to the leading text when the match is not a literal substring (e.g. the
+ * search index matched a stemmed form).
+ */
+export function buildEnglishSnippet(
+  englishText: string,
+  queryText: string,
+): string {
+  if (englishText.length <= ENGLISH_SNIPPET_LENGTH) return englishText;
+  const needle = queryText.trim().toLowerCase();
+  const matchIndex = needle.length > 0
+    ? englishText.toLowerCase().indexOf(needle)
+    : -1;
+  const anchor = matchIndex >= 0
+    ? matchIndex + Math.floor(needle.length / 2)
+    : 0;
+  let start = Math.max(0, anchor - Math.floor(ENGLISH_SNIPPET_LENGTH / 2));
+  let end = Math.min(englishText.length, start + ENGLISH_SNIPPET_LENGTH);
+  start = Math.max(0, end - ENGLISH_SNIPPET_LENGTH);
+  let snippet = englishText.slice(start, end);
+  if (start > 0) snippet = `...${snippet}`;
+  if (end < englishText.length) snippet = `${snippet}...`;
+  return snippet;
+}
+
+/**
+ * Public: search cached provider English text only (no AI, no generation).
+ * Read-only and rate-safe: the limit is bounded 1..25 and blank text
+ * returns no rows without touching the index. No authentication: reading
+ * cached public content works signed out, matching the reader contract.
+ */
+export const searchEnglish = query({
+  args: {
+    text: v.string(),
+    collectionSlug: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args): Promise<EnglishSearchResult[]> => {
+    const queryText = args.text.trim();
+    if (queryText.length === 0) return [];
+    const requested = args.limit ?? 10;
+    const limit = Number.isFinite(requested)
+      ? Math.max(1, Math.min(25, Math.floor(requested)))
+      : 10;
+    const rows = await ctx.db
+      .query("hadiths")
+      .withSearchIndex("search_english", (q) => {
+        const search = q.search("englishText", queryText);
+        return args.collectionSlug
+          ? search.eq("collectionSlug", args.collectionSlug)
+          : search;
+      })
+      .take(limit);
+    return rows.map((row) => ({
+      hadithId: row._id,
+      // canonicalId is optional only while the F1 backfill crosses existing
+      // deployments; derive it so pre-backfill rows stay searchable.
+      canonicalId: row.canonicalId ??
+        canonicalHadithIdentity({
+          provider: row.provider,
+          collectionSlug: row.collectionSlug,
+          providerHadithId: row.providerHadithId,
+        }).canonicalId,
+      collectionSlug: row.collectionSlug,
+      providerHadithId: row.providerHadithId,
+      referenceDisplay: row.referenceDisplay,
+      snippet: buildEnglishSnippet(row.englishText ?? "", queryText),
+    }));
   },
 });
 

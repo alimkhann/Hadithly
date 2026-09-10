@@ -30,6 +30,7 @@ export type HadithRecord = {
   arabicText: string;
   englishText?: string;
   narrator?: string;
+  narratorAr?: string;
   referenceDisplay: string;
   collectionName: string;
   bookName?: string;
@@ -154,6 +155,7 @@ export function normalizeHadith(
   const arabicText = language.ar?.text ?? "";
   const englishText = language.en?.text;
   const narrator = language.en?.narrator;
+  const narratorAr = language.ar?.narrator;
   const chapterName = chapterLanguage.en?.text || chapterLanguage.ar?.text;
   const chapterArabicName = chapterLanguage.ar?.text;
   const collection = collectionName(collectionSlug);
@@ -165,6 +167,7 @@ export function normalizeHadith(
     arabicText,
     englishText,
     narrator,
+    narratorAr,
     referenceDisplay: `${collection} · Hadith ${providerHadithId}`,
     collectionName: collection,
     bookName: chapterArabicName,
@@ -198,6 +201,7 @@ type ChunkableHadith = {
   arabicText: string;
   englishText?: string;
   narrator?: string;
+  narratorAr?: string;
 };
 
 /**
@@ -218,7 +222,8 @@ export function chunkReaderHadiths<T extends ChunkableHadith>(
     const itemChars =
       item.arabicText.length +
       (item.englishText?.length ?? 0) +
-      (item.narrator?.length ?? 0);
+      (item.narrator?.length ?? 0) +
+      (item.narratorAr?.length ?? 0);
     const shouldStartNext =
       current.length > 0 &&
       (current.length >= maxItems || currentChars + itemChars > maxChars);

@@ -2,6 +2,7 @@ import { paginationOptsValidator } from "convex/server";
 import { internalMutation } from "./_generated/server";
 import {
   SUNNAH_NOW_LICENSE_RECORD,
+  authenticityForProviderHadith,
   canonicalHadithIdentity,
   migrateLegacyAuthenticity,
 } from "./lib/contentPolicy";
@@ -54,6 +55,45 @@ export const migrateF1Hadiths = internalMutation({
 
     return {
       migrated: result.page.length,
+      continueCursor: result.continueCursor,
+      isDone: result.isDone,
+    };
+  },
+});
+
+/**
+ * Repairs the R6 source-truth label on rows cached before the fix: stored
+ * `collection_scope` claims that still credit Sunnah.com are recomputed from
+ * the current policy (Sunnah.now, still visibly manual). Bounded, repeatable
+ * pages; re-running leaves corrected rows unchanged. Rows without a stored
+ * claim are left for the F1 backfill, which owns them.
+ */
+export const migrateR6SourceLabels = internalMutation({
+  args: { paginationOpts: paginationOptsValidator },
+  handler: async (ctx, args) => {
+    const result = await ctx.db.query("hadiths").paginate(args.paginationOpts);
+    let repaired = 0;
+    let unchanged = 0;
+    for (const hadith of result.page) {
+      const claim = hadith.authenticity;
+      if (
+        claim?.kind === "collection_scope" &&
+        claim.verificationMethod === "manual_collection_mapping" &&
+        claim.sourceName === "Sunnah.com"
+      ) {
+        await ctx.db.patch(hadith._id, {
+          authenticity: authenticityForProviderHadith(hadith.collectionSlug),
+        });
+        repaired += 1;
+      } else {
+        unchanged += 1;
+      }
+    }
+
+    return {
+      scanned: result.page.length,
+      repaired,
+      unchanged,
       continueCursor: result.continueCursor,
       isDone: result.isDone,
     };

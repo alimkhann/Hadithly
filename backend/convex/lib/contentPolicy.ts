@@ -118,6 +118,13 @@ export function canonicalHadithIdentity(input: {
  * Sunnah.now does not currently provide a structured per-hadith grade.
  * These two explicit mappings are editorial collection claims with a cited
  * source. Provider prose never enters this decision.
+ *
+ * Source truth (R6): the Arabic and English text served with these claims
+ * comes from the Sunnah.now API, so the user-visible source name must be
+ * Sunnah.now — never Sunnah.com. The mapping stays visibly manual through
+ * `kind: collection_scope`, `claimScope: collection`, and
+ * `verificationMethod: manual_collection_mapping`; it is never a
+ * source-provided hadith grade.
  */
 export function authenticityForProviderHadith(
   collectionSlug: string,
@@ -128,8 +135,8 @@ export function authenticityForProviderHadith(
       normalizedGrade: "sahih",
       claimScope: "collection",
       sourceLabel: "Documented Sahih collection",
-      sourceName: "Sunnah.com",
-      sourceUrl: "https://sunnah.com/bukhari/about",
+      sourceName: "Sunnah.now",
+      sourceUrl: "https://sunnah.now",
       verificationMethod: "manual_collection_mapping",
     };
   }
@@ -139,8 +146,8 @@ export function authenticityForProviderHadith(
       normalizedGrade: "sahih",
       claimScope: "collection",
       sourceLabel: "Documented Sahih collection",
-      sourceName: "Sunnah.com",
-      sourceUrl: "https://sunnah.com/muslim/about",
+      sourceName: "Sunnah.now",
+      sourceUrl: "https://sunnah.now",
       verificationMethod: "manual_collection_mapping",
     };
   }

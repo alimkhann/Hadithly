@@ -111,6 +111,9 @@ export default defineSchema({
     arabicText: v.string(),
     englishText: v.optional(v.string()),
     narrator: v.optional(v.string()),
+    // R6 round 3: Arabic narrator line from the provider's Arabic language
+    // map. Optional so rows cached before this field existed keep working.
+    narratorAr: v.optional(v.string()),
     referenceDisplay: v.string(),
     collectionName: v.string(),
     bookName: v.optional(v.string()),

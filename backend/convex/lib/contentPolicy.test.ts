@@ -39,7 +39,8 @@ describe("canonical content contract", () => {
         normalizedGrade: "sahih",
         claimScope: "collection",
         verificationMethod: "manual_collection_mapping",
-        sourceName: "Sunnah.com",
+        sourceName: "Sunnah.now",
+        sourceUrl: "https://sunnah.now",
       });
     },
   );
