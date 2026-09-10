@@ -56,7 +56,13 @@ struct SavedView: View {
         .background(Theme.background)
         .navigationTitle("Saved")
         .navigationBarTitleDisplayMode(.large)
-        .task { library.refresh() }
+        .task {
+            library.refresh()
+            ReaderPrefetch.warmEntry(
+                convex: environment.convex,
+                target: ReaderPrefetchTargets.entryTarget(progress: library.continueReading)
+            )
+        }
         .sheet(item: $activeSection) { section in
             SavedListSheet(
                 section: section,

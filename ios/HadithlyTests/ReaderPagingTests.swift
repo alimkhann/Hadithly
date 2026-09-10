@@ -39,36 +39,73 @@ final class ReaderPagingTests: XCTestCase {
         XCTAssertEqual(rtl.endControlOrder, [.next, .previous])
     }
 
-    func testPanHandlerUsesDistanceVelocityAndCancellationWithoutTakingVerticalScroll() {
+    func testPanHandlerLocksAxisTracksFingerAndCancelsBack() {
         var turns: [ReaderPageTurn] = []
+        var releases: [ReaderPageTurn?] = []
+        var progresses: [CGFloat] = []
         let handler = ReaderPagingPanHandler(
             pageDirection: .rtl,
             isEnabled: { true },
-            onTurn: { turns.append($0) }
+            onTurn: { turns.append($0) },
+            onProgress: { progresses.append($0) },
+            onRelease: { releases.append($0) }
         )
 
+        // Horizontal gesture: began arbitrates, changed locks and tracks
+        // the finger, ended past the distance threshold turns.
+        handler.handle(state: .began, translation: .zero, velocity: .zero)
+        XCTAssertEqual(handler.axisLock, .undecided)
+        handler.handle(state: .changed, translation: CGPoint(x: -40, y: 5), velocity: .zero)
+        XCTAssertEqual(handler.axisLock, .horizontal)
         handler.handle(
             state: .ended,
             translation: CGPoint(x: -70, y: 8),
             velocity: .zero
         )
+        // Short high-velocity horizontal flick turns without distance.
+        handler.handle(state: .began, translation: .zero, velocity: .zero)
+        handler.handle(state: .changed, translation: CGPoint(x: -18, y: 2), velocity: .zero)
         handler.handle(
             state: .ended,
             translation: CGPoint(x: -18, y: 2),
             velocity: CGPoint(x: -900, y: 30)
         )
+        // Mostly-vertical gesture: the lock pins progress at rest and the
+        // release cancels back — vertical scrolling never turns the page.
+        handler.handle(state: .began, translation: .zero, velocity: .zero)
+        handler.handle(state: .changed, translation: CGPoint(x: 8, y: -60), velocity: .zero)
+        XCTAssertEqual(handler.axisLock, .vertical)
         handler.handle(
             state: .ended,
             translation: CGPoint(x: 8, y: -300),
             velocity: CGPoint(x: 20, y: -1_000)
         )
+        // Cancelled horizontal gesture: no turn, cancel-back.
+        handler.handle(state: .began, translation: .zero, velocity: .zero)
+        handler.handle(state: .changed, translation: CGPoint(x: 200, y: 0), velocity: .zero)
         handler.handle(
             state: .cancelled,
             translation: CGPoint(x: 200, y: 0),
             velocity: CGPoint(x: 1_000, y: 0)
         )
+        // A lone settled .ended still arbitrates its own axis (the old
+        // discrete-swipe edge): strong horizontal travel turns.
+        handler.handle(
+            state: .ended,
+            translation: CGPoint(x: -200, y: 0),
+            velocity: .zero
+        )
 
-        XCTAssertEqual(turns, [.previous, .previous])
+        XCTAssertEqual(turns, [.previous, .previous, .previous])
+        XCTAssertEqual(releases.count, 5)
+        XCTAssertEqual(releases[0], .previous)
+        XCTAssertEqual(releases[1], .previous)
+        XCTAssertNil(releases[2])
+        XCTAssertNil(releases[3])
+        XCTAssertEqual(releases[4], .previous)
+        XCTAssertTrue(progresses.contains(-40), "horizontal drags track the finger")
+        XCTAssertTrue(progresses.contains(200), "horizontal drags track the finger")
+        XCTAssertFalse(progresses.contains(8), "vertical drags never move the page")
     }
 
     func testPanRecognizerObservesScrollViewsSimultaneouslyAndNeverCancelsTouches() throws {

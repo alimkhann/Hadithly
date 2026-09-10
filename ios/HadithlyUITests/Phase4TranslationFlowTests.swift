@@ -101,7 +101,8 @@ final class Phase4TranslationFlowTests: XCTestCase {
         let russian = app.buttons["reader.language.ru"]
         XCTAssertTrue(russian.waitForExistence(timeout: timeout))
         russian.tap()
-        app.buttons["Done"].tap()
+        // The Sajda-styled settings sheet closes with its X circle.
+        app.buttons["reader.settings.close"].tap()
     }
 
     /// The reader restores the last saved position, so the first block in

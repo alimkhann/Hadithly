@@ -62,6 +62,10 @@ struct TodayView: View {
         .navigationBarTitleDisplayMode(.large)
         .task {
             library.refresh()
+            ReaderPrefetch.warmEntry(
+                convex: environment.convex,
+                target: ReaderPrefetchTargets.entryTarget(progress: library.continueReading)
+            )
             await loadDailyHadith()
         }
         .refreshable {

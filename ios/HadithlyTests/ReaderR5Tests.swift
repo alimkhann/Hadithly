@@ -55,8 +55,8 @@ final class ReaderR5Tests: XCTestCase {
                 normalizedGrade: "sahih",
                 claimScope: "collection",
                 sourceLabel: "Documented Sahih collection",
-                sourceName: "Sunnah.com",
-                sourceUrl: "https://sunnah.com/bukhari/about",
+                sourceName: "Sunnah.now",
+                sourceUrl: "https://sunnah.now/bukhari/about",
                 verificationMethod: "manual_collection_mapping"
             )
         )
@@ -70,7 +70,7 @@ final class ReaderR5Tests: XCTestCase {
             translationText: nil,
             translationIsAI: false
         )
-        XCTAssertEqual(text, "نَصّ الحديث\n\n— Sahih al-Bukhari · Hadith 57 · Sunnah.com")
+        XCTAssertEqual(text, "نَصّ الحديث\n\n— Sahih al-Bukhari · Hadith 57 · Sunnah.now")
     }
 
     func testCopyMixedArabicAndProviderEnglish() {
@@ -83,7 +83,7 @@ final class ReaderR5Tests: XCTestCase {
         )
         XCTAssertEqual(
             text,
-            "نَصّ الحديث\n\nDeeds are by intentions.\n\n— Sahih al-Bukhari · Hadith 57 · Sunnah.com"
+            "نَصّ الحديث\n\nDeeds are by intentions.\n\n— Sahih al-Bukhari · Hadith 57 · Sunnah.now"
         )
     }
 
@@ -127,7 +127,7 @@ final class ReaderR5Tests: XCTestCase {
             translationText: "Deeds are by intentions.",
             translationIsAI: false
         )
-        XCTAssertEqual(text, "Deeds are by intentions.\n\n— Sahih al-Bukhari · Hadith 57 · Sunnah.com")
+        XCTAssertEqual(text, "Deeds are by intentions.\n\n— Sahih al-Bukhari · Hadith 57 · Sunnah.now")
     }
 
     // MARK: - Chapter decoding

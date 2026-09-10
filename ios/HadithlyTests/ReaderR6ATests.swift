@@ -16,8 +16,8 @@ final class ReaderR6ATests: XCTestCase {
         chapterId: String? = nil,
         normalizedGrade: String? = "sahih",
         claimScope: String = "collection",
-        sourceName: String = "Sunnah.com",
-        sourceUrl: String = "https://sunnah.com/bukhari/about",
+        sourceName: String = "Sunnah.now",
+        sourceUrl: String = "https://sunnah.now/bukhari/about",
         narrator: String? = nil
     ) -> ReaderHadith {
         ReaderHadith(

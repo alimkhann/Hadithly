@@ -35,6 +35,9 @@ struct ReaderHadith: Decodable, Identifiable, Equatable {
     let arabicText: String
     let englishText: String?
     let narrator: String?
+    /// Provider Arabic narrator line (R6 round 3). Optional so rows cached
+    /// before this field existed keep decoding; missing stays hidden.
+    let narratorAr: String?
     let referenceDisplay: String
     let collectionName: String
     let chapterName: String?
@@ -45,6 +48,43 @@ struct ReaderHadith: Decodable, Identifiable, Equatable {
     /// Internal id used by actions/ai:translateHadith.
     var internalId: String {
         canonicalId
+    }
+
+    /// Memberwise init with a defaulted `narratorAr` (a defaulted `let`
+    /// would otherwise drop out of the synthesized memberwise init).
+    /// Synthesized `Decodable` conformance is unaffected.
+    init(
+        _id: String,
+        provider: String,
+        canonicalId: String,
+        providerHadithId: String,
+        collectionSlug: String,
+        volumeId: String?,
+        chapterId: String?,
+        arabicText: String,
+        englishText: String?,
+        narrator: String?,
+        narratorAr: String? = nil,
+        referenceDisplay: String,
+        collectionName: String,
+        chapterName: String?,
+        authenticity: ReaderAuthenticity
+    ) {
+        self._id = _id
+        self.provider = provider
+        self.canonicalId = canonicalId
+        self.providerHadithId = providerHadithId
+        self.collectionSlug = collectionSlug
+        self.volumeId = volumeId
+        self.chapterId = chapterId
+        self.arabicText = arabicText
+        self.englishText = englishText
+        self.narrator = narrator
+        self.narratorAr = narratorAr
+        self.referenceDisplay = referenceDisplay
+        self.collectionName = collectionName
+        self.chapterName = chapterName
+        self.authenticity = authenticity
     }
 }
 

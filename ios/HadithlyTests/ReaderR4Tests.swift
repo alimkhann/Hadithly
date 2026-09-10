@@ -114,8 +114,8 @@ final class ReaderR4Tests: XCTestCase {
             "normalizedGrade": "sahih",
             "claimScope": "collection",
             "sourceLabel": "Documented Sahih collection",
-            "sourceName": "Sunnah.com",
-            "sourceUrl": "https://sunnah.com/bukhari/about",
+            "sourceName": "Sunnah.now",
+            "sourceUrl": "https://sunnah.now/bukhari/about",
             "verificationMethod": "manual_collection_mapping"
           }
         }

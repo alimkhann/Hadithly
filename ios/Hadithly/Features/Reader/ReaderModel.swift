@@ -48,6 +48,9 @@ final class ReaderModel {
     var pageIndex = 0 {
         didSet {
             guard oldValue != pageIndex else { return }
+            collapseToFocused()
+            lastCapturedAnchor = nil
+            lastCapturedNormalizedOffset = nil
             prefetchForwardIfNeeded()
             loadCurrentPageIfNeeded()
             scheduleTranslationsForCurrentPage()
@@ -57,6 +60,15 @@ final class ReaderModel {
 
     // Chrome & sheets
     var chromeVisible = true
+
+    /// Any horizontal or vertical scroll collapses to the focused view with
+    /// no haptic (haptic lives only on the tap toggle in the view) and the
+    /// view closes an open reader menu on the focus change.
+    func collapseToFocused() {
+        if chromeVisible {
+            chromeVisible = false
+        }
+    }
 
     // Translation state, keyed by hadith internal id.
     private(set) var translations: [String: TranslationState] = [:]
@@ -70,6 +82,9 @@ final class ReaderModel {
     private var lastCapturedAnchor: String?
     private var lastCapturedNormalizedOffset: Double?
     private var lastStableAnchor: ReaderHadith?
+    /// Volumes whose first page was already background-cached since the
+    /// outline loaded (R6 round 3 adjacent prefetch).
+    private var warmedVolumeIds: Set<String> = []
     private var lastStableRawPageOffset: Double = 0
     private var lastStableNormalizedOffset: Double = 0
     private(set) var restoredPosition: ReadingPosition?
@@ -158,6 +173,7 @@ final class ReaderModel {
                 with: ["collectionSlug": collectionSlug as ConvexEncodable?]
             )
             volumes = result.volumes
+            warmedVolumeIds = []
             // Explicit deep links (Today/Saved) name a volume; a canonical
             // link carries only the hadith number, so the volume holding it
             // comes from the outline's source-provided counts. Unknown or
@@ -217,6 +233,7 @@ final class ReaderModel {
         // The R1 position of the page being left is saved before the
         // switch, exactly like the pill/swipe cross-volume path below.
         saveCurrentProgress()
+        collapseToFocused()
         selectedVolumeId = volumeId
         resetReading()
         Task { await loadPage(0, volumeId: volumeId) }
@@ -284,9 +301,7 @@ final class ReaderModel {
         case .volumeLast(let volumeId):
             switchToVolume(volumeId, edge: .last)
         }
-    }
-
-    /// Jumps to the first (or last) page of another volume. Saves the R1
+    }    /// Jumps to the first (or last) page of another volume. Saves the R1
     /// position of the page being left first; after the new volume's pages
     /// arrive, the exact R2 target (page 1, or the last page) is restored
     /// and saved, so the reader never strands on a stale page. While a
@@ -296,6 +311,7 @@ final class ReaderModel {
         guard volumeId != selectedVolumeId else { return }
         guard volumes.contains(where: { $0.volumeId == volumeId }) else { return }
         saveCurrentProgress()
+        collapseToFocused()
         selectedVolumeId = volumeId
         resetReading()
         landingHadithNumber = nil
@@ -338,6 +354,7 @@ final class ReaderModel {
             }
             scheduleTranslationsForCurrentPage()
             saveCurrentProgress()
+            warmAdjacentVolumes()
         } catch is CancellationError {
             // A newer page or volume target replaces this fetch.
         } catch {
@@ -374,11 +391,20 @@ final class ReaderModel {
     private var uitestSavedStateSeeded = false
     private var uitestBookmarkedIds: Set<String> = []
     private var uitestFavoritedIds: Set<String> = []
+    private var uitestNotedIds: Set<String> = []
 
     func seedSavedStateForUITest(bookmarkedIds: Set<String>, favoritedIds: Set<String>) {
         uitestSavedStateSeeded = true
         uitestBookmarkedIds = bookmarkedIds
         uitestFavoritedIds = favoritedIds
+    }
+
+    /// Seeds note presence for the R6 round-3 reader fixture without
+    /// network. Seeded hadiths report a stub note so the green inline
+    /// marker renders deterministically.
+    func seedNotesForUITest(notedIds: Set<String>) {
+        uitestSavedStateSeeded = true
+        uitestNotedIds = notedIds
     }
 #endif
 
@@ -390,6 +416,7 @@ final class ReaderModel {
     func selectChapter(volumeId: String, chapter: OutlineChapter) {
         selectedVolumeId = volumeId
         resetReading()
+        collapseToFocused()
         landingHadithNumber = chapter.firstProviderHadithId
         restoredPosition = nil
         Task { await loadPage(0, volumeId: volumeId, jumpToHadithNumber: chapter.firstProviderHadithId) }
@@ -405,6 +432,7 @@ final class ReaderModel {
     func jumpToReference(_ number: String) -> Bool {
         let trimmed = number.trimmingCharacters(in: .whitespacesAndNewlines)
         guard ReaderShare.isValidReferenceNumber(trimmed) else { return false }
+        collapseToFocused()
         if let volume = Self.volumeId(forHadithNumber: trimmed, in: volumes) {
             selectedVolumeId = volume
             resetReading()
@@ -422,6 +450,57 @@ final class ReaderModel {
         return true
     }
 
+    /// Exact navigation for saved entries and search results that already
+    /// name their volume: the R2 jump path pinned to that volume instead of
+    /// the outline-count locator. Falls back to `jumpToReference` when the
+    /// volume is unknown or not in the outline.
+    func jumpToHadith(volumeId: String?, hadithNumber: String) {
+        let trimmed = hadithNumber.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard ReaderShare.isValidReferenceNumber(trimmed) else { return }
+        collapseToFocused()
+        if let volumeId,
+           volumes.contains(where: { $0.volumeId == volumeId }) {
+            selectedVolumeId = volumeId
+            resetReading()
+            landingHadithNumber = trimmed
+            restoredPosition = nil
+            Task { [weak self] in await self?.loadPage(0, volumeId: volumeId, jumpToHadithNumber: trimmed) }
+        } else {
+            jumpToReference(trimmed)
+        }
+    }
+
+    // MARK: - English-text search (R6 round 3)
+
+    /// One-shot read of the public `hadiths:searchEnglish` query over
+    /// cached provider English text. Blank text returns [] without touching
+    /// the backend; failures degrade to [] so the sheet stays quiet
+    /// (the query deploys after this client task). The SDK has no one-shot
+    /// query call, so this takes the first subscription emission.
+    func searchEnglish(text: String, limit: Int = ReaderPrefetchTargets.defaultSearchLimit) async -> [EnglishSearchResult] {
+        let queryText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !queryText.isEmpty else { return [] }
+        let clamped = max(1, min(25, limit))
+        do {
+            for try await rows in convex.subscribe(
+                to: "hadiths:searchEnglish",
+                with: [
+                    "text": queryText as ConvexEncodable?,
+                    "collectionSlug": collectionSlug as ConvexEncodable?,
+                    "limit": Double(clamped) as ConvexEncodable?,
+                ],
+                yielding: [EnglishSearchResult].self
+            ).values {
+                return EnglishSearchMapping.navigable(rows)
+            }
+        } catch {
+            return []
+        }
+        return []
+    }
+
+    // MARK: - Adjacent-volume prefetch (R6 round 3)
+
     private func resetReading() {
         pageTask?.cancel()
         translationTask?.cancel()
@@ -431,6 +510,8 @@ final class ReaderModel {
         pages = []
         pageIndex = 0
         translations = [:]
+        lastCapturedAnchor = nil
+        lastCapturedNormalizedOffset = nil
     }
 
     func setLanguage(_ code: String) {
@@ -480,6 +561,7 @@ final class ReaderModel {
                 }
                 phase = .reading
                 pageIndex = landingIndex
+                warmAdjacentVolumes()
             } else {
                 while pages.count < index { pages.append(emptyPage()) }
                 if pages.indices.contains(index) {
@@ -491,6 +573,7 @@ final class ReaderModel {
                 if pageIndex == index {
                     scheduleTranslationsForCurrentPage()
                     saveCurrentProgress()
+                    warmAdjacentVolumes()
                 }
             }
         } catch {
@@ -525,6 +608,26 @@ final class ReaderModel {
         guard pageIndex >= pages.count - 1 else { return }
         pageTask?.cancel()
         pageTask = Task { await loadPage(pages.count, volumeId: volumeId) }
+    }
+
+    /// Background-caches the first page of the adjacent volumes so
+    /// page/volume switches never wait. Bounded to the nearest neighbors,
+    /// silent (no loading state, results discarded — the server action is
+    /// cache-first), offline-tolerant (errors swallowed), and skipped for
+    /// volumes already warmed since the outline loaded.
+    func warmAdjacentVolumes() {
+        let targets = ReaderPrefetchTargets.adjacentVolumeIds(
+            volumes: volumes,
+            selectedVolumeId: selectedVolumeId
+        ).filter { !warmedVolumeIds.contains($0) }
+        guard !targets.isEmpty else { return }
+        for volumeId in targets { warmedVolumeIds.insert(volumeId) }
+        Task { [weak self] in
+            guard let self else { return }
+            for volumeId in targets {
+                _ = try? await self.fetchReaderPage(0, volumeId: volumeId) as ReaderPageResult
+            }
+        }
     }
 
     // MARK: - Translations
@@ -676,7 +779,10 @@ final class ReaderModel {
     }
 
     func noteContent(for hadith: ReaderHadith) -> String? {
-        library?.notes.first { $0.hadith?.hadithId == hadith._id }?.noteContent
+        #if DEBUG
+        if uitestSavedStateSeeded, uitestNotedIds.contains(hadith._id) { return "Fixture note" }
+        #endif
+        return library?.notes.first { $0.hadith?.hadithId == hadith._id }?.noteContent
     }
 
     /// Persists the position of the first hadith on the current page. Runs
@@ -723,6 +829,12 @@ final class ReaderModel {
            let lastCapturedNormalizedOffset,
            abs(lastCapturedNormalizedOffset - clamped) < 0.02 {
             return
+        }
+        // Any real vertical scroll collapses to the focused view with no
+        // haptic. The very first capture after a page loads is the initial
+        // settle, not a scroll, so it never collapses.
+        if lastCapturedAnchor != nil {
+            collapseToFocused()
         }
         lastCapturedAnchor = anchor.internalId
         lastCapturedNormalizedOffset = clamped

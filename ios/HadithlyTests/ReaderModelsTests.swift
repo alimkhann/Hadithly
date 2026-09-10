@@ -23,8 +23,8 @@ final class ReaderModelsTests: XCTestCase {
             "normalizedGrade": "sahih",
             "claimScope": "collection",
             "sourceLabel": "Documented Sahih collection",
-            "sourceName": "Sunnah.com",
-            "sourceUrl": "https://sunnah.com/bukhari/about",
+            "sourceName": "Sunnah.now",
+            "sourceUrl": "https://sunnah.now/bukhari/about",
             "verificationMethod": "manual_collection_mapping"
           }
         }
@@ -32,7 +32,7 @@ final class ReaderModelsTests: XCTestCase {
         let hadith = try JSONDecoder().decode(ReaderHadith.self, from: Data(json.utf8))
         XCTAssertEqual(hadith.internalId, "sunnah_now:bukhari:7")
         XCTAssertEqual(hadith.volumeId, "1")
-        XCTAssertEqual(hadith.authenticity.displayLabel, "Sahih collection scope · Sunnah.com")
+        XCTAssertEqual(hadith.authenticity.displayLabel, "Sahih collection scope · Sunnah.now")
     }
 
     func testReaderPageDecodes() throws {
@@ -52,8 +52,8 @@ final class ReaderModelsTests: XCTestCase {
               "normalizedGrade": "sahih",
               "claimScope": "collection",
               "sourceLabel": "Documented Sahih collection",
-              "sourceName": "Sunnah.com",
-              "sourceUrl": "https://sunnah.com/bukhari/about",
+              "sourceName": "Sunnah.now",
+              "sourceUrl": "https://sunnah.now/bukhari/about",
               "verificationMethod": "manual_collection_mapping"
             }
           }],
@@ -101,8 +101,8 @@ final class ReaderModelsTests: XCTestCase {
             "normalizedGrade": "sahih",
             "claimScope": "collection",
             "sourceLabel": "Documented Sahih collection",
-            "sourceName": "Sunnah.com",
-            "sourceUrl": "https://sunnah.com/bukhari/about",
+            "sourceName": "Sunnah.now",
+            "sourceUrl": "https://sunnah.now/bukhari/about",
             "verificationMethod": "manual_collection_mapping"
           }
         }
@@ -111,7 +111,7 @@ final class ReaderModelsTests: XCTestCase {
         let daily = try JSONDecoder().decode(DailyHadith.self, from: Data(json.utf8))
         XCTAssertEqual(daily.canonicalId, "sunnah_now:bukhari:25")
         XCTAssertEqual(daily.authenticity.claimScope, "collection")
-        XCTAssertEqual(daily.authenticity.displayLabel, "Sahih collection scope · Sunnah.com")
+        XCTAssertEqual(daily.authenticity.displayLabel, "Sahih collection scope · Sunnah.now")
     }
 
     func testTranslationDecodes() throws {
@@ -126,15 +126,15 @@ final class ReaderModelsTests: XCTestCase {
           "sourceLabel": "AI",
           "aiModel": "gemini-2.5-flash-lite",
           "groundingUsed": true,
-          "citations": [{ "url": "https://sunnah.com/bukhari:1", "title": "Sunnah.com", "domain": "sunnah.com" }],
-          "sourceReferenceUrl": "https://sunnah.com/bukhari:1",
+          "citations": [{ "url": "https://sunnah.now/bukhari:1", "title": "Sunnah.now", "domain": "sunnah.now" }],
+          "sourceReferenceUrl": "https://sunnah.now/bukhari:1",
           "cached": false
         }
         """
         let translation = try JSONDecoder().decode(ReaderTranslation.self, from: Data(json.utf8))
         XCTAssertEqual(translation.translationId, "tx1")
         XCTAssertEqual(translation.citations.count, 1)
-        XCTAssertEqual(translation.citations[0].domain, "sunnah.com")
+        XCTAssertEqual(translation.citations[0].domain, "sunnah.now")
         XCTAssertEqual(translation.sourceLabel, "AI")
     }
 

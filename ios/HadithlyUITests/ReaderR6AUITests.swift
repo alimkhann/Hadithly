@@ -81,9 +81,12 @@ final class ReaderR6AUITests: XCTestCase {
     func testNarratorShowsAboveArabicInArabicOnlyMode() {
         let app = launchFixture(environment: ["R6A_TRANSLATION_VISIBLE": "false"])
         XCTAssertTrue(element("r6a.page", in: app).waitForExistence(timeout: timeout))
+        // Arabic-only mode shows the provider Arabic narrator line, never
+        // the English narrator: it hides when narratorAr is absent.
         let narrator = element("reader.narrator", in: app)
         XCTAssertTrue(narrator.waitForExistence(timeout: timeout), "narrator shows in Arabic-only mode")
-        XCTAssertTrue(narrator.label.contains("Umar"))
+        XCTAssertTrue(narrator.label.contains("عمر"))
+        XCTAssertFalse(narrator.label.contains("Umar"))
         let arabic = app.descendants(matching: .any).matching(identifier: "reader.arabic").firstMatch
         XCTAssertTrue(arabic.waitForExistence(timeout: timeout))
         XCTAssertLessThanOrEqual(narrator.frame.maxY, arabic.frame.minY + 2)
@@ -105,7 +108,7 @@ final class ReaderR6AUITests: XCTestCase {
         let app = launchFixture()
         app.buttons.matching(identifier: "reader.hadithLabel").firstMatch.tap()
         XCTAssertTrue(element("reader.sourceSheet", in: app).waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.staticTexts["Sunnah.com"].exists)
+        XCTAssertTrue(app.staticTexts["Sunnah.now"].exists)
         XCTAssertTrue(
             app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'Sahih collection scope'")).firstMatch.exists
         )
@@ -119,7 +122,7 @@ final class ReaderR6AUITests: XCTestCase {
         // Second block (Hadith 58) carries an empty source URL.
         app.buttons.matching(identifier: "reader.hadithLabel").element(boundBy: 1).tap()
         XCTAssertTrue(element("reader.sourceSheet", in: app).waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.staticTexts["Sunnah.com"].exists)
+        XCTAssertTrue(app.staticTexts["Sunnah.now"].exists)
         XCTAssertFalse(element("reader.sourceSheet.url", in: app).exists)
         app.buttons["Done"].tap()
     }
@@ -268,6 +271,49 @@ final class ReaderR6AUITests: XCTestCase {
             )
         }
         app.tap()
+    }
+
+    // MARK: - Round 3: drag lock and note marker
+
+    func testHorizontalDragTurnsPage() {
+        let app = launchFixture()
+        XCTAssertTrue(element("reader.volumeHeader", in: app).waitForExistence(timeout: timeout))
+        app.swipeLeft()
+        let corner = element("reader.volumeCorner", in: app)
+        XCTAssertTrue(corner.waitForExistence(timeout: timeout))
+        XCTAssertEqual(corner.label, "Volume 2: 57–59")
+    }
+
+    func testVerticalDragNeverTurnsPage() {
+        let app = launchFixture()
+        XCTAssertTrue(element("reader.volumeHeader", in: app).waitForExistence(timeout: timeout))
+        app.swipeUp()
+        app.swipeUp()
+        // Still on Volume 2 page 1: the header persists, no corner label.
+        XCTAssertTrue(element("reader.volumeHeader", in: app).exists)
+        XCTAssertFalse(element("reader.volumeCorner", in: app).exists)
+    }
+
+    func testShortHorizontalDragCancelsBack() {
+        let app = launchFixture()
+        XCTAssertTrue(element("reader.volumeHeader", in: app).waitForExistence(timeout: timeout))
+        // A short slow drag stays under the turn threshold: the page
+        // springs back instead of turning.
+        let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.7, dy: 0.5))
+        let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.62, dy: 0.5))
+        start.press(forDuration: 0.2, thenDragTo: end)
+        XCTAssertTrue(element("reader.volumeHeader", in: app).exists)
+        XCTAssertFalse(element("reader.volumeCorner", in: app).exists)
+    }
+
+    func testGreenNoteMarkerOnNotedHadith() {
+        let app = launchFixture()
+        XCTAssertTrue(element("reader.volumeHeader", in: app).waitForExistence(timeout: timeout))
+        // Page 1 (hadiths 57/58): no note marker.
+        XCTAssertFalse(element("reader.savedNote", in: app).exists)
+        // Page 2 (hadith 59, seeded note): the green inline marker renders.
+        app.buttons["reader.nextPage"].tap()
+        XCTAssertTrue(element("reader.savedNote", in: app).waitForExistence(timeout: timeout))
     }
 
     // MARK: - Helpers

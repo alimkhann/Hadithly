@@ -26,11 +26,15 @@ struct ReaderView: View {
     @State private var showIndex = false
     @State private var showSettings = false
     @State private var showReaderMenu = false
-    @State private var showMenuNote = false
+    @State private var showSearch = false
+    @State private var showSavedShortcut = false
+    @State private var showBookmarkPlacement = false
     @State private var showQuotaPaywall = false
     @State private var hasAutoPresentedQuotaPaywall = false
     @State private var lastTurn: ReaderPageTurn?
     @State private var pageDragOffset: CGFloat = 0
+    @State private var horizontalDragging = false
+    @State private var pageScrollFraction: Double = 1
 
     private var pagingPolicy: ReaderPagingPolicy {
         ReaderPagingPolicy(preferences: environment.preferences.preferences)
@@ -90,26 +94,65 @@ struct ReaderView: View {
             if let model {
                 CollectionOutlineSheet(
                     model: model,
-                    arabicVisible: environment.preferences.preferences.arabicVisible
+                    arabicVisible: environment.preferences.preferences.arabicVisible,
+                    translationVisible: environment.preferences.preferences.translationVisible
                 )
                     .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.hidden)
             }
         }
         .sheet(isPresented: $showSettings) {
             if let model {
                 ReaderSettingsSheet(model: model)
                     .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.hidden)
             }
         }
-        .sheet(isPresented: $showMenuNote) {
-            if let model, let hadith = positionedHadith(model) {
-                NoteEditorSheet(
-                    initialContent: model.noteContent(for: hadith),
-                    onSave: { content in
-                        model.saveNote(hadith, content: content)
-                        showMenuNote = false
+        .sheet(isPresented: $showSearch) {
+            if let model {
+                ReaderSearchSheet(
+                    collectionSlug: model.collectionSlug,
+                    collectionName: model.collectionName,
+                    search: { text in await model.searchEnglish(text: text) },
+                    onOpen: { result in
+                        showSearch = false
+                        model.jumpToReference(result.providerHadithId)
                     }
                 )
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.hidden)
+            }
+        }
+        .sheet(isPresented: $showSavedShortcut) {
+            ReaderSavedShortcutSheet(
+                onOpen: { ref in
+                    showSavedShortcut = false
+                    if let number = ref.hadithNumber, !number.isEmpty {
+                        model?.jumpToHadith(volumeId: ref.volumeId, hadithNumber: number)
+                    }
+                },
+                onEdit: {
+                    showSavedShortcut = false
+                    dismiss()
+                    NotificationCenter.default.post(name: .hadithlyOpenSavedTab, object: nil)
+                }
+            )
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.hidden)
+        }
+        .sheet(isPresented: $showBookmarkPlacement) {
+            if let model, let hadith = positionedHadith(model) {
+                ReaderBookmarkPlacementSheet(
+                    pageFirst: model.currentPageHadiths.first,
+                    positioned: hadith,
+                    onChoose: { target in
+                        model.toggleBookmark(target)
+                        showBookmarkPlacement = false
+                    },
+                    onCancel: { showBookmarkPlacement = false }
+                )
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.hidden)
             }
         }
         .sheet(isPresented: $showQuotaPaywall) {
@@ -171,40 +214,25 @@ struct ReaderView: View {
     }
 
     private func readingView(_ model: ReaderModel) -> some View {
-        ZStack {
-            palette.background.ignoresSafeArea()
+        GeometryReader { viewport in
+            ZStack {
+                palette.background.ignoresSafeArea()
 
-            ReaderPageView(
-                model: model,
-                hadiths: model.currentPageHadiths,
-                arabicFontSize: arabicFontSizeBinding.wrappedValue,
-                preferences: environment.preferences.preferences,
-                restoration: model.restoredPosition,
-                restorationGeneration: model.restorationGeneration,
-                landingHadithNumber: model.landingHadithNumber,
-                currentPageIndex: model.pageIndex,
-                pageCount: model.pages.count + (model.hasNextPage && model.pageIndex == model.pages.count - 1 ? 1 : 0),
-                palette: palette,
-                onTurn: { turnPage(model, turn: $0) },
-                onShowPaywall: { showQuotaPaywall = true }
-            )
-            .id(model.pageIndex)
-            .offset(x: pageDragOffset)
-            .transition(pageTurnTransition)
-            .onTapGesture {
-                toggleChrome(model, withHaptic: true)
-            }
+                pageStrip(model, viewportWidth: viewport.size.width)
+                    .transition(pageTurnTransition)
 
-            // Compact progress (R4): a thin bar at the top stays visible
-            // while the chrome is hidden, matching the quiet reading state.
-            if !model.chromeVisible, let fraction = model.compactProgressFraction {
-                ReaderCompactProgressBar(fraction: fraction, palette: palette)
-                    .transition(.opacity)
-            }
+                // Focused (R6 round 3, note 6): ONE thin narrow dynamic
+                // page bar just below the notch — shorter than the Dynamic
+                // Island, neutral, fills and defills with the page scroll.
+                if !model.chromeVisible {
+                    ReaderFocusedProgressBar(fraction: pageScrollFraction, palette: palette)
+                        .transition(.opacity)
+                }
 
-            if model.chromeVisible {
-                chromeOverlay(model)
-                    .transition(.opacity)
+                if model.chromeVisible {
+                    chromeOverlay(model)
+                        .transition(.opacity)
+                }
             }
         }
         .animation(reduceMotion ? nil : .spring(response: 0.38, dampingFraction: 0.92), value: model.pageIndex)
@@ -213,13 +241,10 @@ struct ReaderView: View {
         .overlay {
             WindowSwipeRecognizer(
                 pageDirection: pagingPolicy.pageDirection,
-                isEnabled: { !showIndex && !showSettings },
-                onTurn: { turnPage(model, turn: $0) },
-                onProgress: { progress in
-                    withAnimation(.interactiveSpring(response: 0.2, dampingFraction: 0.9)) {
-                        pageDragOffset = progress
-                    }
-                }
+                isEnabled: { !showIndex && !showSettings && !showSearch && !showSavedShortcut },
+                onTurn: { _ in },
+                onProgress: { dragProgress(model, offset: $0) },
+                onRelease: { dragReleased(model, turn: $0) }
             )
             .frame(width: 0, height: 0)
             .accessibilityHidden(true)
@@ -237,11 +262,143 @@ struct ReaderView: View {
         ) {
             toggleChrome(model, withHaptic: false)
         }
+        // A menu never survives a focus change: any scroll or page turn
+        // collapses the chrome in the model, and the menu closes here.
+        .onChange(of: model.chromeVisible) { _, visible in
+            if !visible, showReaderMenu {
+                showReaderMenu = false
+            }
+        }
         // A layout-affecting preference change (font, size, visibility,
         // translation locale) invalidates the raw offset; the semantic
         // anchor restores the exact position against the new signature.
         .onChange(of: environment.preferences.preferences.layoutProjection) { _, _ in
             model.reanchorAfterLayoutChange()
+        }
+    }
+
+    // MARK: - Axis-locked drag paging (R6 round 3, note 1)
+
+    /// Whether a logical turn has a drag target: a loaded neighbor page or
+    /// a cross-volume jump. Directions without a target clamp at rest.
+    private func stripTargets(_ model: ReaderModel) -> (previous: Bool, next: Bool) {
+        let atLoadedPage = model.pages.indices.contains(model.pageIndex)
+            && !model.pages[model.pageIndex].isPlaceholder
+        let previous = model.hasPreviousPage || (atLoadedPage && model.previousVolume != nil)
+        let next = model.hasNextPage || (atLoadedPage && model.nextVolume != nil)
+        return (previous, next)
+    }
+
+    /// The three-page strip: the loaded previous/current/next pages
+    /// rendered together so the neighbor is visible mid-gesture, with
+    /// cancel-back when the finger releases short. Cross-volume targets
+    /// show a quiet loading slot until their first page arrives.
+    private func pageStrip(_ model: ReaderModel, viewportWidth: CGFloat) -> some View {
+        let targets = stripTargets(model)
+        let slots = ReaderDragStrip.slots(
+            hasPrevious: targets.previous,
+            hasNext: targets.next,
+            pageDirection: pagingPolicy.pageDirection
+        )
+        let baseOffset = slots.left == nil ? 0 : -viewportWidth
+        return HStack(spacing: 0) {
+            if let left = slots.left {
+                stripSlot(model, turn: left, viewportWidth: viewportWidth)
+            }
+            ReaderPageView(
+                model: model,
+                hadiths: model.currentPageHadiths,
+                arabicFontSize: arabicFontSizeBinding.wrappedValue,
+                preferences: environment.preferences.preferences,
+                restoration: model.restoredPosition,
+                restorationGeneration: model.restorationGeneration,
+                landingHadithNumber: model.landingHadithNumber,
+                currentPageIndex: model.pageIndex,
+                pageCount: model.pages.count + (model.hasNextPage && model.pageIndex == model.pages.count - 1 ? 1 : 0),
+                palette: palette,
+                onTurn: { turnPage(model, turn: $0) },
+                onShowPaywall: { showQuotaPaywall = true },
+                onScrollFraction: { pageScrollFraction = $0 }
+            )
+            .frame(width: viewportWidth)
+            .scrollDisabled(horizontalDragging)
+            if let right = slots.right {
+                stripSlot(model, turn: right, viewportWidth: viewportWidth)
+            }
+        }
+        .offset(x: baseOffset + pageDragOffset)
+        // The strip is wider than the screen while a neighbor slot is
+        // attached: pin the layout width to the viewport (leading edge,
+        // so the drag offset math holds) and clip the overflow. Without
+        // this the ZStack grows to the strip width and pushes the chrome
+        // circles and progress bars off-screen.
+        .frame(width: viewportWidth, alignment: .leading)
+        .clipped()
+        .id(model.pageIndex)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            toggleChrome(model, withHaptic: true)
+        }
+    }
+
+    private func stripSlot(_ model: ReaderModel, turn: ReaderPageTurn, viewportWidth: CGFloat) -> some View {
+        let index = turn == .previous ? model.pageIndex - 1 : model.pageIndex + 1
+        return Group {
+            if model.pages.indices.contains(index),
+               !model.pages[index].isPlaceholder,
+               !model.pages[index].items.isEmpty {
+                ReaderNeighborContent(
+                    model: model,
+                    hadiths: model.pages[index].items,
+                    arabicFontSize: arabicFontSizeBinding.wrappedValue,
+                    preferences: environment.preferences.preferences,
+                    palette: palette,
+                    onShowPaywall: { showQuotaPaywall = true }
+                )
+            } else {
+                VStack {
+                    ProgressView()
+                        .tint(palette.textSecondary)
+                        .padding(.top, 120)
+                        .accessibilityIdentifier("reader.neighborLoading")
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .frame(width: viewportWidth)
+    }
+
+    /// Gesture-driven progress: clamped to the available drag targets so a
+    /// swipe with no neighbor goes nowhere. Any horizontal movement locks
+    /// the vertical scroll out until release (axis lock, vice versa).
+    private func dragProgress(_ model: ReaderModel, offset: CGFloat) {
+        _ = model
+        let clamped: CGFloat
+        if offset > 0, !stripTargets(model).previous {
+            clamped = 0
+        } else if offset < 0, !stripTargets(model).next {
+            clamped = 0
+        } else {
+            clamped = offset
+        }
+        pageDragOffset = clamped
+        let dragging = abs(clamped) > 8
+        if dragging != horizontalDragging {
+            horizontalDragging = dragging
+        }
+    }
+
+    /// Release: a committed turn pages (collapsing to focused with no
+    /// haptic through the model); anything short springs back in place.
+    private func dragReleased(_ model: ReaderModel, turn: ReaderPageTurn?) {
+        horizontalDragging = false
+        if let turn {
+            pageDragOffset = 0
+            turnPage(model, turn: turn)
+        } else if pageDragOffset != 0 {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.9)) {
+                pageDragOffset = 0
+            }
         }
     }
 
@@ -299,45 +456,80 @@ struct ReaderView: View {
     }
 
     private func chromeOverlay(_ model: ReaderModel) -> some View {
-        VStack {
+        VStack(spacing: 0) {
+            // Unfocused (R6 round 3, note 6): a static volume bar plus a
+            // thicker page bar (page fraction within the volume). Narrow,
+            // neutral, never green, never full-width, never mid-screen.
+            ReaderUnfocusedProgressBars(
+                volumeFraction: ReaderProgressBars.volumeFraction(
+                    selectedVolumeId: model.selectedVolumeId,
+                    volumes: model.volumes
+                ),
+                pageFraction: ReaderProgressBars.pageFraction(
+                    pageIndex: model.pageIndex,
+                    totalPages: model.totalPages
+                ),
+                pageIndex: model.pageIndex,
+                totalPages: model.totalPages,
+                selectedVolumeId: model.selectedVolumeId,
+                volumeCount: model.volumes.count,
+                palette: palette
+            )
+            .padding(.top, 8)
             Spacer()
             if showReaderMenu {
                 ReaderMenuStack(
-                    location: model.currentVolumeTitle ?? collectionName,
+                    bookmarked: positionedHadith(model).map { model.isBookmarked($0) } ?? false,
+                    positionedReference: positionedHadith(model)?.referenceDisplay ?? "",
                     palette: palette,
                     onContents: {
                         showReaderMenu = false
                         showIndex = true
                     },
+                    onSaved: {
+                        showReaderMenu = false
+                        showSavedShortcut = true
+                    },
                     onSettings: {
                         showReaderMenu = false
                         showSettings = true
                     },
-                    onBookmark: {
-                        if let hadith = positionedHadith(model) { model.toggleBookmark(hadith) }
-                    },
-                    onNote: { showMenuNote = true }
+                    onBookmark: { menuBookmark(model) },
+                    onSearch: {
+                        showReaderMenu = false
+                        showSearch = true
+                    }
                 )
                 .padding(.horizontal, 20)
                 .padding(.bottom, 12)
             }
             HStack {
-                ReaderChromeCircle("chevron.down", label: "Close reader", palette: palette) { dismiss() }
-                    .accessibilityIdentifier("reader.close")
-                Spacer()
-                ReaderChromeCircle(
-                    showReaderMenu ? "xmark" : "line.3.horizontal",
-                    label: showReaderMenu ? "Close reader menu" : "Open reader menu",
-                    palette: palette
-                ) {
-                    withAnimation(.easeInOut(duration: 0.2)) { showReaderMenu.toggle() }
-                }
-                .accessibilityIdentifier("reader.menu")
+                ReaderBottomCircles(
+                    menuOpen: showReaderMenu,
+                    palette: palette,
+                    onClose: { dismiss() },
+                    onMenu: {
+                        withAnimation(.easeInOut(duration: 0.2)) { showReaderMenu.toggle() }
+                    }
+                )
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 16)
         }
         .transition(.opacity)
+    }
+
+    /// The menu bookmark acts on the positioned (R2 anchor) hadith: when it
+    /// is already bookmarked the filled card removes it; otherwise the
+    /// placement sheet chooses start-of-page vs current hadith.
+    private func menuBookmark(_ model: ReaderModel) {
+        guard positionedHadith(model) != nil else { return }
+        if positionedHadith(model).map({ model.isBookmarked($0) }) == true,
+           let hadith = positionedHadith(model) {
+            model.toggleBookmark(hadith)
+        } else {
+            showBookmarkPlacement = true
+        }
     }
 
     private func positionedHadith(_ model: ReaderModel) -> ReaderHadith? {
@@ -373,27 +565,93 @@ private struct ReaderChromeCircle: View {
     }
 }
 
+/// The two bottom circles (R6 round 3): back is a chevron-left circle, the
+/// menu circle toggles the stack. Factored out so the UI fixture renders
+/// the production row.
+struct ReaderBottomCircles: View {
+    let menuOpen: Bool
+    let palette: ReaderPalette
+    let onClose: () -> Void
+    let onMenu: () -> Void
+
+    var body: some View {
+        HStack {
+            ReaderChromeCircle("chevron.left", label: "Close reader", palette: palette, action: onClose)
+                .accessibilityIdentifier("reader.close")
+            Spacer()
+            ReaderChromeCircle(
+                menuOpen ? "xmark" : "line.3.horizontal",
+                label: menuOpen ? "Close reader menu" : "Open reader menu",
+                palette: palette,
+                action: onMenu
+            )
+            .accessibilityIdentifier("reader.menu")
+        }
+    }
+}
+
+/// The bottom menu stack (R6 round 3, Sajda order, no excess): Contents,
+/// Bookmarks & Notes, Settings, then a bottom row of Bookmark plus
+/// functional Search. No location card, no playback, no note card. The
+/// bookmark card acts on the positioned hadith and renders filled
+/// amber/orange while it is bookmarked.
 private struct ReaderMenuStack: View {
-    let location: String
+    let bookmarked: Bool
+    let positionedReference: String
     let palette: ReaderPalette
     let onContents: () -> Void
+    let onSaved: () -> Void
     let onSettings: () -> Void
     let onBookmark: () -> Void
-    let onNote: () -> Void
+    let onSearch: () -> Void
 
     var body: some View {
         VStack(spacing: 8) {
-            menuCard(title: location, subtitle: "Current location", image: "mappin.and.ellipse", action: onContents)
-            menuCard(title: "Bookmarks & Notes", subtitle: "Your private saved reading", image: "bookmark", action: onContents)
             menuCard(title: "Contents", subtitle: "Volumes and chapters", image: "list.bullet", action: onContents)
                 .accessibilityIdentifier("reader.menu.contents")
-            menuCard(title: "Reader settings", subtitle: "Type, appearance, and text", image: "textformat.size", action: onSettings)
+            menuCard(
+                title: "Bookmarks & Notes",
+                subtitle: "Your private saved reading",
+                image: "bookmark",
+                action: onSaved
+            )
+            .accessibilityIdentifier("reader.menu.saved")
+            menuCard(title: "Settings", subtitle: "Type, appearance, and text", image: "textformat.size", action: onSettings)
                 .accessibilityIdentifier("reader.menu.settings")
             HStack(spacing: 10) {
-                menuCard(title: "Bookmark", subtitle: "Current hadith", image: "bookmark", action: onBookmark)
-                menuCard(title: "Note", subtitle: "Current hadith", image: "note.text", action: onNote)
+                bookmarkCard
+                menuCard(title: "Search", subtitle: "Sunnah.now English", image: "magnifyingglass", action: onSearch)
+                    .accessibilityIdentifier("reader.menu.search")
             }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("reader.menuStack")
+    }
+
+    private var bookmarkCard: some View {
+        Button(action: onBookmark) {
+            HStack(spacing: 14) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Bookmark")
+                        .font(.headline)
+                        .foregroundStyle(bookmarked ? Theme.bookmark : palette.textPrimary)
+                    Text(positionedReference.isEmpty ? "Current hadith" : positionedReference)
+                        .font(.caption)
+                        .foregroundStyle(palette.textSecondary)
+                        .lineLimit(1)
+                }
+                Spacer()
+                Image(systemName: bookmarked ? "bookmark.fill" : "bookmark")
+                    .font(.title3)
+                    .foregroundStyle(bookmarked ? Theme.bookmark : palette.textSecondary)
+            }
+            .padding(18)
+            .background((bookmarked ? Theme.bookmark.opacity(0.16) : palette.surface).opacity(0.98))
+            .clipShape(RoundedRectangle(cornerRadius: 22))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(bookmarked ? "Remove bookmark for positioned hadith" : "Bookmark positioned hadith")
+        .accessibilityIdentifier("reader.menu.bookmark")
     }
 
     private func menuCard(title: String, subtitle: String, image: String, action: @escaping () -> Void) -> some View {
@@ -414,29 +672,94 @@ private struct ReaderMenuStack: View {
     }
 }
 
-// MARK: - Compact progress
+// MARK: - Progress (R6 round 3, note 6)
 
-/// The thin top progress indicator shown while the reader chrome is hidden.
-/// Non-interactive and skipped by assistive tech; the expanded pill carries
-/// the accessible reading-position description.
-private struct ReaderCompactProgressBar: View {
+/// Focused: ONE thin narrow dynamic page bar just below the notch —
+/// shorter than the Dynamic Island, neutral, fills/defills with the page
+/// scroll. Non-interactive and skipped by assistive tech.
+private struct ReaderFocusedProgressBar: View {
     let fraction: Double
     let palette: ReaderPalette
 
     var body: some View {
-        GeometryReader { proxy in
-            ZStack(alignment: .leading) {
-                Capsule()
-                    .fill(palette.divider.opacity(0.6))
-                Capsule()
-                    .fill(palette.textSecondary.opacity(0.8))
-                    .frame(width: max(8, proxy.size.width * fraction))
+        VStack {
+            GeometryReader { proxy in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(palette.divider.opacity(0.6))
+                    Capsule()
+                        .fill(palette.textSecondary.opacity(0.8))
+                        .frame(width: max(8, proxy.size.width * fraction))
+                }
+                .frame(height: 3)
             }
-            .frame(height: 3)
+            .frame(width: 96, height: 3)
+            Spacer()
         }
-        .frame(width: 216, height: 3)
         .padding(.top, 6)
         .accessibilityHidden(true)
+        .accessibilityIdentifier("reader.focusedProgress")
+    }
+}
+
+/// Unfocused: a static volume bar plus a thicker page bar (page fraction
+/// within the volume). Narrow, neutral — no green, no full-width, never
+/// mid-screen. The container carries the accessible position; the bars
+/// themselves stay silent.
+private struct ReaderUnfocusedProgressBars: View {
+    let volumeFraction: Double?
+    let pageFraction: Double?
+    let pageIndex: Int
+    let totalPages: Int?
+    let selectedVolumeId: String?
+    let volumeCount: Int
+    let palette: ReaderPalette
+
+    var body: some View {
+        VStack(spacing: 5) {
+            if let volumeFraction {
+                GeometryReader { proxy in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(palette.divider.opacity(0.6))
+                        Capsule()
+                            .fill(palette.textSecondary.opacity(0.6))
+                            .frame(width: max(6, proxy.size.width * volumeFraction))
+                    }
+                    .frame(height: 3)
+                }
+                .frame(width: 120, height: 3)
+            }
+            if let pageFraction {
+                GeometryReader { proxy in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(palette.divider.opacity(0.6))
+                        Capsule()
+                            .fill(palette.textSecondary.opacity(0.85))
+                            .frame(width: max(8, proxy.size.width * pageFraction))
+                    }
+                    .frame(height: 5)
+                }
+                .frame(width: 120, height: 5)
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityText)
+        .accessibilityIdentifier("reader.unfocusedProgress")
+    }
+
+    private var accessibilityText: String {
+        var parts: [String] = []
+        if let totalPages {
+            parts.append("Page \(pageIndex + 1) of \(totalPages)")
+        }
+        if volumeCount > 0 {
+            parts.append("Volume \(volumePosition) of \(volumeCount)")
+        }
+        return parts.joined(separator: ", ")
+    }
+
+    private var volumePosition: Int {
+        max(1, Int((volumeFraction ?? 0) * Double(max(1, volumeCount))))
     }
 }
 
@@ -455,6 +778,21 @@ private struct ReaderAnchorFramesKey: PreferenceKey {
     }
 }
 
+/// Scroll offset snapshot for the focused progress bar: the content height
+/// and the content-top offset in the page coordinate space.
+private struct ReaderScrollState: Equatable {
+    let contentHeight: CGFloat
+    let minY: CGFloat
+}
+
+private struct ReaderScrollStateKey: PreferenceKey {
+    static var defaultValue: ReaderScrollState? = nil
+
+    static func reduce(value: inout ReaderScrollState?, nextValue: () -> ReaderScrollState?) {
+        value = nextValue() ?? value
+    }
+}
+
 struct ReaderPageView: View {
     let model: ReaderModel
     let hadiths: [ReaderHadith]
@@ -468,6 +806,10 @@ struct ReaderPageView: View {
     let palette: ReaderPalette
     let onTurn: (ReaderPageTurn) -> Void
     let onShowPaywall: () -> Void
+    /// When set, the page reports its vertical scroll fraction (0 top, 1
+    /// bottom) for the focused progress bar. Only the centered strip page
+    /// passes this; neighbor slots stay silent.
+    var onScrollFraction: ((Double) -> Void)? = nil
 
     @State private var appliedRestorationKey: String?
     @State private var chapterOpenings: Set<Int> = []
@@ -483,7 +825,10 @@ struct ReaderPageView: View {
     /// range is computable. Nil when no volume is selected.
     private var volumeCornerText: String? {
         guard let title = model.currentVolumeTitle else { return nil }
-        return ReaderVolumeRange.cornerText(volumeTitle: title, pages: model.pages)
+        return ReaderVolumeRange.cornerText(
+            volumeTitle: localizedVolumeTitle(title, preferences: preferences),
+            pages: model.pages
+        )
     }
 
     /// One hadith row with its scroll-anchor tracking. Factored out so the
@@ -541,13 +886,29 @@ struct ReaderPageView: View {
                             }
                             if ReaderVolumeHeader.showsHeader(pageIndex: currentPageIndex),
                                let volume = selectedVolume {
-                                ReaderVolumeHeaderView(volume: volume, palette: palette)
+                                ReaderVolumeHeaderView(
+                                    volume: volume,
+                                    palette: palette,
+                                    displayTitle: localizedVolumeTitle(
+                                        volume.title,
+                                        preferences: preferences
+                                    )
+                                )
                             }
                             ForEach(Array(hadiths.enumerated()), id: \.element.internalId) { index, hadith in
                                 if chapterOpenings.contains(index) {
                                     VStack(spacing: 12) {
                                         ReaderChapterHeader(
-                                            title: hadith.chapterName ?? "",
+                                            title: ReaderChapterLine.displayTitle(
+                                                title: hadith.chapterName ?? "",
+                                                arabicTitle: ReaderChapterLine.arabicTitle(
+                                                    forChapterId: hadith.chapterId,
+                                                    in: model.volumes,
+                                                    volumeId: model.selectedVolumeId
+                                                ),
+                                                arabicVisible: preferences.arabicVisible,
+                                                translationVisible: preferences.translationVisible
+                                            ),
                                             arabicTitle: ReaderChapterLine.arabicTitle(
                                                 forChapterId: hadith.chapterId,
                                                 in: model.volumes,
@@ -568,17 +929,40 @@ struct ReaderPageView: View {
                                 policy: ReaderPagingPolicy(preferences: preferences),
                                 state: model.pillState,
                                 palette: palette,
-                                onFollow: { model.followPill($0) }
+                                onFollow: { model.followPill($0) },
+                                arabicVisible: preferences.arabicVisible,
+                                translationVisible: preferences.translationVisible
                             )
                             .padding(.top, 8)
                         }
                         .padding(.horizontal, 22)
                         .padding(.top, 20)
                         .padding(.bottom, 80)
+                        .background(
+                            GeometryReader { content in
+                                Color.clear.preference(
+                                    key: ReaderScrollStateKey.self,
+                                    value: ReaderScrollState(
+                                        contentHeight: content.size.height,
+                                        minY: content.frame(in: .named("reader.page")).minY
+                                    )
+                                )
+                            }
+                        )
                     }
                 }
                 .scrollIndicators(.hidden)
                 .coordinateSpace(name: "reader.page")
+                .onPreferenceChange(ReaderScrollStateKey.self) { state in
+                    guard let onScrollFraction, let state else { return }
+                    let scrolled = max(0, -state.minY)
+                    let raw = ReaderProgressBars.scrollFraction(
+                        contentHeight: state.contentHeight,
+                        viewportHeight: viewport.size.height,
+                        scrolled: scrolled
+                    )
+                    onScrollFraction((raw * 200).rounded() / 200)
+                }
                 .onPreferenceChange(ReaderAnchorFramesKey.self) { frames in
                     let targetId = restoration?.anchor.providerHadithId ?? landingHadithNumber
                     if let targetId,
@@ -619,6 +1003,84 @@ struct ReaderPageView: View {
     }
 }
 
+/// A pre-rendered neighbor page for the drag strip (R6 round 3): the same
+/// hadith blocks and chapter lines as the current page, but passive — no
+/// restoration, no scroll capture, no pills, no scrolling of its own. The
+/// blocks stay actionable (context menu, source sheet) on real data.
+private struct ReaderNeighborContent: View {
+    let model: ReaderModel
+    let hadiths: [ReaderHadith]
+    let arabicFontSize: Double
+    let preferences: ReaderPreferences
+    let palette: ReaderPalette
+    let onShowPaywall: () -> Void
+
+    @State private var chapterOpenings: Set<Int> = []
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 28) {
+                ForEach(Array(hadiths.enumerated()), id: \.element.internalId) { index, hadith in
+                    if chapterOpenings.contains(index) {
+                        VStack(spacing: 12) {
+                            ReaderChapterHeader(
+                                title: ReaderChapterLine.displayTitle(
+                                    title: hadith.chapterName ?? "",
+                                    arabicTitle: ReaderChapterLine.arabicTitle(
+                                        forChapterId: hadith.chapterId,
+                                        in: model.volumes,
+                                        volumeId: model.selectedVolumeId
+                                    ),
+                                    arabicVisible: preferences.arabicVisible,
+                                    translationVisible: preferences.translationVisible
+                                ),
+                                arabicTitle: ReaderChapterLine.arabicTitle(
+                                    forChapterId: hadith.chapterId,
+                                    in: model.volumes,
+                                    volumeId: model.selectedVolumeId
+                                ),
+                                arabicVisible: preferences.arabicVisible,
+                                palette: palette
+                            )
+                            HadithBlock(
+                                model: model,
+                                hadith: hadith,
+                                translationState: model.translations[hadith.internalId],
+                                language: model.language,
+                                arabicFontSize: arabicFontSize,
+                                preferences: preferences,
+                                palette: palette,
+                                onRetry: { model.retryTranslation(for: hadith) },
+                                onShowPaywall: onShowPaywall
+                            )
+                        }
+                        .padding(.top, 12)
+                    } else {
+                        HadithBlock(
+                            model: model,
+                            hadith: hadith,
+                            translationState: model.translations[hadith.internalId],
+                            language: model.language,
+                            arabicFontSize: arabicFontSize,
+                            preferences: preferences,
+                            palette: palette,
+                            onRetry: { model.retryTranslation(for: hadith) },
+                            onShowPaywall: onShowPaywall
+                        )
+                    }
+                }
+            }
+            .padding(.horizontal, 22)
+            .padding(.top, 20)
+            .padding(.bottom, 80)
+        }
+        .scrollDisabled(true)
+        .scrollIndicators(.hidden)
+        .onAppear { chapterOpenings = ReaderChapterBoundaries.openingIndices(in: hadiths) }
+        .accessibilityIdentifier("reader.neighborPage")
+    }
+}
+
 /// Page-top corner label (R6 slice A): the localized volume title at the
 /// leading top corner, quiet secondary style, with the `: first–last`
 /// hadith-number range appended only when the volume is fully cached and
@@ -641,10 +1103,15 @@ private struct ReaderVolumeCornerLabel: View {
 private struct ReaderVolumeHeaderView: View {
     let volume: OutlineVolume
     let palette: ReaderPalette
+    /// The rendered title: the outline title, or the localized volume name
+    /// in Arabic-only mode. Defaults to the outline title.
+    var displayTitle: String? = nil
+
+    private var title: String { displayTitle ?? volume.title }
 
     var body: some View {
         VStack(spacing: 6) {
-            Text(volume.title)
+            Text(title)
                 .font(.title2.weight(.semibold))
                 .foregroundStyle(palette.textPrimary)
                 .multilineTextAlignment(.center)
@@ -655,8 +1122,21 @@ private struct ReaderVolumeHeaderView: View {
         .frame(maxWidth: .infinity)
         .padding(.top, 8)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(volume.title), \(volume.hadithCount) hadiths")
+        .accessibilityLabel("\(title), \(volume.hadithCount) hadiths")
         .accessibilityIdentifier("reader.volumeHeader")
+    }
+}
+
+/// Volume titles follow the visible layers (R6 round 3): Arabic-only mode
+/// renders the localized volume name (`Volume %lld`) instead of the
+/// backend English title; every other mode keeps the outline title.
+func localizedVolumeTitle(_ title: String, preferences: ReaderPreferences) -> String {
+    ReaderVolumeTitle.displayTitle(
+        title: title,
+        arabicVisible: preferences.arabicVisible,
+        translationVisible: preferences.translationVisible
+    ) { number in
+        String(localized: "Volume \(number)")
     }
 }
 
@@ -722,6 +1202,10 @@ struct ReaderVolumePills: View {
     let state: ReaderPagePills.State
     let palette: ReaderPalette
     let onFollow: (ReaderPagePills.Pill) -> Void
+    /// Visible layers for the neighbor-volume titles: Arabic-only mode
+    /// renders the localized volume name. Defaults keep the outline title.
+    var arabicVisible: Bool = true
+    var translationVisible: Bool = true
 
     var body: some View {
         HStack(spacing: 12) {
@@ -748,6 +1232,9 @@ struct ReaderVolumePills: View {
 
     private func pagePill(_ pill: ReaderPagePills.Pill) -> some View {
         let turn = pill.turn
+        let label = pill.crossesVolume
+            ? localizedVolumeTitle(pill.label, preferences: pillPreferences)
+            : pill.label
         return Button {
             onFollow(pill)
         } label: {
@@ -755,7 +1242,7 @@ struct ReaderVolumePills: View {
                 if turn == .previous {
                     chevron(turn)
                 }
-                Text(pill.label)
+                Text(label)
                     .font(.caption.weight(.medium))
                     .foregroundStyle(palette.textSecondary)
                     .lineLimit(1)
@@ -773,11 +1260,18 @@ struct ReaderVolumePills: View {
         .buttonStyle(.plain)
         .frame(maxWidth: .infinity, minHeight: 48)
         .accessibilityLabel(
-            turn == .previous ? "Previous page, \(pill.label)" : "Next page, \(pill.label)"
+            turn == .previous ? "Previous page, \(label)" : "Next page, \(label)"
         )
         .accessibilityIdentifier(
             turn == .previous ? "reader.previousPage" : "reader.nextPage"
         )
+    }
+
+    private var pillPreferences: ReaderPreferences {
+        var preferences = ReaderPreferences()
+        preferences.arabicVisible = arabicVisible
+        preferences.translationVisible = translationVisible
+        return preferences
     }
 
     private func chevron(_ turn: ReaderPageTurn) -> some View {
@@ -816,17 +1310,20 @@ private struct HadithBlock: View {
         )
     }
 
-    /// The narrator line in every visibility mode. Arabic-aligned (RTL)
-    /// between the header and the Arabic block in Arabic-only mode;
-    /// leading-edge beside the translation otherwise.
+    /// The narrator line in every visibility mode. Arabic-only mode shows
+    /// the provider Arabic narrator (`narratorAr`), RTL-aligned between the
+    /// header and the Arabic block, and hides when it is absent. Mixed and
+    /// translation-only modes keep the English narrator line beside the
+    /// translation.
     @ViewBuilder
     private func narratorView(arabicAligned: Bool) -> some View {
-        if ReaderNarratorLine.shouldShow(
+        if let line = ReaderNarratorLine.text(
             narrator: hadith.narrator,
+            narratorAr: hadith.narratorAr,
             arabicVisible: preferences.arabicVisible,
             translationVisible: preferences.translationVisible
         ) {
-            Text(hadith.narrator ?? "")
+            Text(line)
                 .font(.caption)
                 .foregroundStyle(palette.textSecondary)
                 .multilineTextAlignment(arabicAligned ? .trailing : .leading)
@@ -930,11 +1427,11 @@ private struct HadithBlock: View {
 
     /// One header per hadith at the top: the grade dot, the bracketed
     /// `[Collection – n]` label, and the saved-state mini markers (amber
-    /// bookmark when bookmarked, pink heart when favorited). Tapping opens
-    /// the source sheet; copy/share payloads keep the full source line
-    /// unchanged (`ReaderShare`). The markers are non-interactive
-    /// indicators — actions remain the long-press context menu, the
-    /// VoiceOver custom actions below, and the bottom menu (later).
+    /// bookmark when bookmarked, pink heart when favorited, green note when
+    /// a note exists). Tapping opens the source sheet; copy/share payloads
+    /// keep the full source line unchanged (`ReaderShare`). The markers are
+    /// non-interactive indicators — actions remain the long-press context
+    /// menu, the VoiceOver custom actions below, and the bottom menu.
     ///
     /// The seven R5 actions live here as VoiceOver custom actions: the
     /// screen-reader equivalent of the long-press menu. Share presents the
@@ -944,6 +1441,7 @@ private struct HadithBlock: View {
         let kind = ReaderGradeKind(normalizedGrade: hadith.authenticity.normalizedGrade)
         let bookmarked = model.isBookmarked(hadith)
         let favorited = model.isFavorite(hadith)
+        let hasNote = model.noteContent(for: hadith) != nil
         return HStack(spacing: 7) {
             Button {
                 showingSource = true
@@ -984,7 +1482,7 @@ private struct HadithBlock: View {
                 translation: activeTranslation,
                 reportedTranslation: $reportedTranslation
             ))
-            ForEach(ReaderSavedMarkers.visible(bookmarked: bookmarked, favorited: favorited), id: \.self) { marker in
+            ForEach(ReaderSavedMarkers.visible(bookmarked: bookmarked, favorited: favorited, hasNote: hasNote), id: \.self) { marker in
                 switch marker {
                 case .bookmark:
                     Image(systemName: "bookmark.fill")
@@ -998,6 +1496,12 @@ private struct HadithBlock: View {
                         .foregroundStyle(.pink)
                         .accessibilityIdentifier("reader.savedFavorite")
                         .accessibilityLabel("Favorited")
+                case .note:
+                    Image(systemName: "square.and.pencil")
+                        .font(.caption2)
+                        .foregroundStyle(.green)
+                        .accessibilityIdentifier("reader.savedNote")
+                        .accessibilityLabel("Has note")
                 }
             }
         }
@@ -1571,7 +2075,7 @@ struct ReaderPagingTestFixtureView: View {
                             .overlay(Capsule().strokeBorder(palette.divider, lineWidth: 1))
                             .accessibilityIdentifier("r4.progressPill")
                     } else if let fraction = compactProgress {
-                        ReaderCompactProgressBar(fraction: fraction, palette: palette)
+                        ReaderFocusedProgressBar(fraction: fraction, palette: palette)
                             .accessibilityIdentifier("r4.compactProgress")
                     }
 
@@ -1673,6 +2177,182 @@ struct ReaderPagingTestFixtureView: View {
             turn: turn
         ) else { return }
         pageIndex = destination
+    }
+}
+#endif
+
+#if DEBUG
+/// Deterministic round-3 fixture: the menu stack, search sheet, saved
+/// shortcut, and bookmark placement with no network. Launch with
+/// `-R6Round3Fixture` and `R6_SCREEN=menu|search|saved|placement`.
+/// - search: `R6_SEARCH_STUB=results` returns two canned Sunnah.now rows
+///   after typing; anything else renders the quiet empty state.
+/// - menu: `R6_MENU_BOOKMARKED=true` renders the filled amber bookmark.
+/// - saved: an in-memory guest library seeds one bookmark (two months
+///   ago) and one note (just now) for the shortcut rows.
+/// Tapping a search result or shortcut row records the navigation target
+/// in `r6.opened` instead of opening a network reader.
+struct ReaderR6Round3FixtureView: View {
+    @State private var openedReference: String?
+    private let screen: String
+    private let searchStub: String
+    private let menuBookmarked: Bool
+    private let library: UserLibraryModel
+
+    init() {
+        let environment = ProcessInfo.processInfo.environment
+        screen = environment["R6_SCREEN"] ?? "menu"
+        searchStub = environment["R6_SEARCH_STUB"] ?? "empty"
+        menuBookmarked = environment["R6_MENU_BOOKMARKED"] == "true"
+        let provider = ClerkConvexAuthProvider()
+        let convex = ConvexClientWithAuth(
+            deploymentUrl: "https://example.invalid",
+            authProvider: provider
+        )
+        let store = GuestDataStore(inMemory: true)
+        let twoMonthsAgo = Calendar.current.date(byAdding: .month, value: -2, to: .now) ?? .now
+        store.addBookmark(draft: GuestBookmarkDraft(
+            hadithId: "saved-57",
+            createdAt: twoMonthsAgo,
+            collectionName: "Sahih al-Bukhari",
+            referenceDisplay: "Sahih al-Bukhari · Hadith 57",
+            volumeId: "2",
+            hadithNumber: "57"
+        ))
+        store.saveNote(
+            hadithId: "saved-59",
+            content: "Fixture note",
+            collectionName: "Sahih al-Bukhari",
+            referenceDisplay: "Sahih al-Bukhari · Hadith 59",
+            volumeId: "2",
+            hadithNumber: "59"
+        )
+        let library = UserLibraryModel(convex: convex, guestData: store, isSignedIn: { false })
+        library.refresh()
+        self.library = library
+    }
+
+    var body: some View {
+        ZStack {
+            ReaderPalette.dark.background.ignoresSafeArea()
+            VStack {
+                switch screen {
+                case "search":
+                    ReaderSearchSheet(
+                        collectionSlug: "bukhari",
+                        collectionName: "Sahih al-Bukhari",
+                        search: searchStubResults,
+                        onOpen: { openedReference = $0.referenceDisplay }
+                    )
+                case "saved":
+                    ReaderSavedShortcutSheet(
+                        onOpen: { openedReference = $0.referenceDisplay },
+                        onEdit: { openedReference = "EDIT_SAVED" }
+                    )
+                case "placement":
+                    placementScreen
+                default:
+                    menuScreen
+                }
+                if let openedReference {
+                    Text(openedReference)
+                        .foregroundStyle(ReaderPalette.dark.textSecondary)
+                        .accessibilityIdentifier("r6.opened")
+                }
+            }
+        }
+        .environment(\.readerPalette, ReaderPalette.dark)
+        .environment(\.readerTheme, ReaderTheme.dark)
+        .environment(library)
+        .preferredColorScheme(.dark)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("r6.screen")
+    }
+
+    private var menuScreen: some View {
+        VStack(spacing: 8) {
+            ReaderMenuStack(
+                bookmarked: menuBookmarked,
+                positionedReference: "Sahih al-Bukhari · Hadith 57",
+                palette: ReaderPalette.dark,
+                onContents: { openedReference = "CONTENTS" },
+                onSaved: { openedReference = "SAVED" },
+                onSettings: { openedReference = "SETTINGS" },
+                onBookmark: { openedReference = "BOOKMARK" },
+                onSearch: { openedReference = "SEARCH" }
+            )
+            .padding(.horizontal, 20)
+            ReaderBottomCircles(
+                menuOpen: true,
+                palette: ReaderPalette.dark,
+                onClose: { openedReference = "CLOSE" },
+                onMenu: { openedReference = "MENU" }
+            )
+            .padding(.horizontal, 24)
+        }
+    }
+
+    private var placementScreen: some View {
+        ReaderBookmarkPlacementSheet(
+            pageFirst: nil,
+            positioned: ReaderR6Round3FixtureHadith.hadith57,
+            onChoose: { openedReference = $0.referenceDisplay },
+            onCancel: { openedReference = "CANCEL" }
+        )
+    }
+
+    private func searchStubResults(_ text: String) async -> [EnglishSearchResult] {
+        guard searchStub == "results" else { return [] }
+        return [
+            EnglishSearchResult(
+                hadithId: "row-57",
+                canonicalId: "sunnah_now:bukhari:57",
+                collectionSlug: "bukhari",
+                providerHadithId: "57",
+                referenceDisplay: "Sahih al-Bukhari · Hadith 57",
+                snippet: "Deeds are judged by \(text)."
+            ),
+            EnglishSearchResult(
+                hadithId: "row-58",
+                canonicalId: "sunnah_now:bukhari:58",
+                collectionSlug: "bukhari",
+                providerHadithId: "58",
+                referenceDisplay: "Sahih al-Bukhari · Hadith 58",
+                snippet: "None of you believes until he loves for his brother what \(text)."
+            ),
+        ]
+    }
+}
+
+/// One fixture hadith for the placement screen (same shape as the R6A
+/// page fixture, backend-owned Sunnah.now source truth).
+enum ReaderR6Round3FixtureHadith {
+    static var hadith57: ReaderHadith {
+        ReaderHadith(
+            _id: "fixture-57",
+            provider: "sunnah_now",
+            canonicalId: "sunnah_now:bukhari:57",
+            providerHadithId: "57",
+            collectionSlug: "bukhari",
+            volumeId: "2",
+            chapterId: nil,
+            arabicText: "نَصّ الحديث الأول",
+            englishText: "Deeds are judged by intentions.",
+            narrator: "Narrated by Umar ibn al-Khattab",
+            narratorAr: "عن عمر بن الخطاب رضي الله عنه",
+            referenceDisplay: "Sahih al-Bukhari · Hadith 57",
+            collectionName: "Sahih al-Bukhari",
+            chapterName: nil,
+            authenticity: ReaderAuthenticity(
+                kind: "collection_scope",
+                normalizedGrade: "sahih",
+                claimScope: "collection",
+                sourceLabel: "Documented Sahih collection",
+                sourceName: "Sunnah.now",
+                sourceUrl: "https://sunnah.now",
+                verificationMethod: "manual_collection_mapping"
+            )
+        )
     }
 }
 #endif
@@ -1803,6 +2483,7 @@ struct ReaderR6ATestFixtureView: View {
             bookmarkedIds: ["fixture-57"],
             favoritedIds: ["fixture-59"]
         )
+        seeded.seedNotesForUITest(notedIds: ["fixture-59"])
         seeded.seedForUITest(
             volumes: [
                 OutlineVolume(
@@ -1837,6 +2518,7 @@ struct ReaderR6ATestFixtureView: View {
             arabicText: "نَصّ الحديث الأول",
             englishText: "Deeds are judged by intentions.",
             narrator: "Narrated by Umar ibn al-Khattab",
+            narratorAr: "عن عمر بن الخطاب رضي الله عنه",
             referenceDisplay: "Sahih al-Bukhari · Hadith 57",
             collectionName: "Sahih al-Bukhari",
             chapterName: nil,
@@ -1845,8 +2527,8 @@ struct ReaderR6ATestFixtureView: View {
                 normalizedGrade: "sahih",
                 claimScope: "collection",
                 sourceLabel: "Documented Sahih collection",
-                sourceName: "Sunnah.com",
-                sourceUrl: "https://sunnah.com/bukhari/about",
+                sourceName: "Sunnah.now",
+                sourceUrl: "https://sunnah.now/bukhari/about",
                 verificationMethod: "manual_collection_mapping"
             )
         )
@@ -1872,7 +2554,7 @@ struct ReaderR6ATestFixtureView: View {
                 normalizedGrade: "daif",
                 claimScope: "hadith",
                 sourceLabel: "Source-provided grade",
-                sourceName: "Sunnah.com",
+                sourceName: "Sunnah.now",
                 sourceUrl: "",
                 verificationMethod: "source_provided"
             )
@@ -1899,8 +2581,8 @@ struct ReaderR6ATestFixtureView: View {
                 normalizedGrade: "hasan",
                 claimScope: "hadith",
                 sourceLabel: "Source-provided grade",
-                sourceName: "Sunnah.com",
-                sourceUrl: "https://sunnah.com/bukhari/59",
+                sourceName: "Sunnah.now",
+                sourceUrl: "https://sunnah.now/bukhari/59",
                 verificationMethod: "source_provided"
             )
         )
@@ -1926,8 +2608,8 @@ struct ReaderR6ATestFixtureView: View {
                 normalizedGrade: "sahih",
                 claimScope: "collection",
                 sourceLabel: "Documented Sahih collection",
-                sourceName: "Sunnah.com",
-                sourceUrl: "https://sunnah.com/bukhari/about",
+                sourceName: "Sunnah.now",
+                sourceUrl: "https://sunnah.now/bukhari/about",
                 verificationMethod: "manual_collection_mapping"
             )
         )
@@ -1953,8 +2635,8 @@ struct ReaderR6ATestFixtureView: View {
                 normalizedGrade: "hasan",
                 claimScope: "collection",
                 sourceLabel: "Documented Sahih collection",
-                sourceName: "Sunnah.com",
-                sourceUrl: "https://sunnah.com/bukhari/about",
+                sourceName: "Sunnah.now",
+                sourceUrl: "https://sunnah.now/bukhari/about",
                 verificationMethod: "manual_collection_mapping"
             )
         )
@@ -2119,13 +2801,15 @@ private struct WindowSwipeRecognizer: UIViewRepresentable {
     var isEnabled: () -> Bool
     var onTurn: (ReaderPageTurn) -> Void
     var onProgress: (CGFloat) -> Void = { _ in }
+    var onRelease: ((ReaderPageTurn?) -> Void)? = nil
 
     func makeCoordinator() -> ReaderPagingPanHandler {
         ReaderPagingPanHandler(
             pageDirection: pageDirection,
             isEnabled: isEnabled,
             onTurn: onTurn,
-            onProgress: onProgress
+            onProgress: onProgress,
+            onRelease: onRelease
         )
     }
 
@@ -2143,6 +2827,7 @@ private struct WindowSwipeRecognizer: UIViewRepresentable {
         context.coordinator.pageDirection = pageDirection
         context.coordinator.onTurn = onTurn
         context.coordinator.onProgress = onProgress
+        context.coordinator.onRelease = onRelease
         if let window = uiView.window { context.coordinator.installIfNeeded(on: window) }
     }
 

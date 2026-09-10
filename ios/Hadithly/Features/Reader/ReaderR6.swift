@@ -126,18 +126,21 @@ enum ReaderNarratorPlacement: Equatable {
 }
 
 /// Saved-state mini markers: small non-interactive indicators inline after
-/// the header label. Bookmark first, then favorite. No note icon — notes
-/// stay reachable through the long-press menu and VoiceOver actions only.
+/// the header label. Bookmark first, then favorite, then the green note
+/// marker. Notes stay actionable through the long-press menu, VoiceOver
+/// actions, and the bottom menu — the marker only signals presence.
 enum ReaderSavedMarker: Hashable {
     case bookmark
     case favorite
+    case note
 }
 
 enum ReaderSavedMarkers {
-    static func visible(bookmarked: Bool, favorited: Bool) -> [ReaderSavedMarker] {
+    static func visible(bookmarked: Bool, favorited: Bool, hasNote: Bool = false) -> [ReaderSavedMarker] {
         var markers: [ReaderSavedMarker] = []
         if bookmarked { markers.append(.bookmark) }
         if favorited { markers.append(.favorite) }
+        if hasNote { markers.append(.note) }
         return markers
     }
 }

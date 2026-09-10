@@ -37,11 +37,23 @@ struct RootView: View {
 #endif
     }
 
+    private var isR6Round3Fixture: Bool {
+#if DEBUG
+        ProcessInfo.processInfo.arguments.contains("-R6Round3Fixture")
+#else
+        false
+#endif
+    }
+
     @ViewBuilder
     var body: some View {
         if isR3PagingFixture {
 #if DEBUG
             ReaderPagingTestFixtureView()
+#endif
+        } else if isR6Round3Fixture {
+#if DEBUG
+            ReaderR6Round3FixtureView()
 #endif
         } else if isR6AReaderFixture {
 #if DEBUG

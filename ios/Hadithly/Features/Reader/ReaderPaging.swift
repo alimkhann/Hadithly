@@ -62,18 +62,25 @@ final class ReaderPagingPanHandler: NSObject, UIGestureRecognizerDelegate {
     var isEnabled: () -> Bool
     var onTurn: (ReaderPageTurn) -> Void
     var onProgress: (CGFloat) -> Void
+    /// Release resolution for track-the-finger paging: the committed turn,
+    /// or nil to cancel back to the current page. Defaults to driving
+    /// `onTurn`, so discrete-swipe callers keep working unchanged.
+    var onRelease: ((ReaderPageTurn?) -> Void)?
+    private(set) var axisLock: ReaderAxisLock = .undecided
     private(set) weak var recognizer: UIPanGestureRecognizer?
 
     init(
         pageDirection: HorizontalDirection,
         isEnabled: @escaping () -> Bool,
         onTurn: @escaping (ReaderPageTurn) -> Void,
-        onProgress: @escaping (CGFloat) -> Void = { _ in }
+        onProgress: @escaping (CGFloat) -> Void = { _ in },
+        onRelease: ((ReaderPageTurn?) -> Void)? = nil
     ) {
         self.pageDirection = pageDirection
         self.isEnabled = isEnabled
         self.onTurn = onTurn
         self.onProgress = onProgress
+        self.onRelease = onRelease
     }
 
     func installIfNeeded(on window: UIView) {
@@ -106,26 +113,40 @@ final class ReaderPagingPanHandler: NSObject, UIGestureRecognizerDelegate {
         velocity: CGPoint
     ) {
         guard isEnabled() else { return }
-        if state == .began || state == .changed {
-            guard abs(translation.x) > abs(translation.y) * 1.15 else { return }
-            onProgress(translation.x)
+        switch state {
+        case .began:
+            // A new gesture always re-arbitrates its axis from scratch.
+            axisLock = .undecided
+            onProgress(0)
             return
-        }
-        guard state == .ended else {
+        case .changed:
+            axisLock = ReaderAxisLockPolicy.update(current: axisLock, translation: translation)
+            // Locked to the dominant axis: a mostly-vertical drag never
+            // moves the page horizontally (progress stays pinned at rest).
+            onProgress(axisLock == .horizontal ? translation.x : 0)
+            return
+        case .ended:
+            axisLock = ReaderAxisLockPolicy.update(current: axisLock, translation: translation)
+            let turn = ReaderDragRelease.turn(
+                translation: translation,
+                velocity: velocity,
+                lock: axisLock,
+                pageDirection: pageDirection
+            )
+            axisLock = .undecided
+            if let turn {
+                onTurn(turn)
+            }
+            onRelease?(turn)
+            onProgress(0)
+            return
+        default:
+            // Cancelled, failed, or possible: no turn, drag back to rest.
+            axisLock = .undecided
+            onRelease?(nil)
             onProgress(0)
             return
         }
-        onProgress(0)
-
-        let distanceIsHorizontal = abs(translation.x) > abs(translation.y) * 1.4
-        let velocityIsHorizontal = abs(velocity.x) > abs(velocity.y) * 1.4
-        let qualifiesByDistance = distanceIsHorizontal && abs(translation.x) >= 55
-        let qualifiesByVelocity = velocityIsHorizontal && abs(velocity.x) >= 700
-        guard qualifiesByDistance || qualifiesByVelocity else { return }
-
-        let horizontalMotion = qualifiesByDistance ? translation.x : velocity.x
-        let swipe: ReaderSwipeDirection = horizontalMotion < 0 ? .left : .right
-        onTurn(ReaderPagingPolicy(pageDirection: pageDirection).turn(for: swipe))
     }
 
     func gestureRecognizer(

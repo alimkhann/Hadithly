@@ -35,6 +35,13 @@ struct LibraryView: View {
         .task {
             library.refresh()
             model.start(convex: environment.convex)
+            // Quiet entry prefetch (R6 round 3): outline plus the
+            // continue-reading target volume's first page, cache-first, no
+            // UI. Bounded, silent, offline-tolerant.
+            ReaderPrefetch.warmEntry(
+                convex: environment.convex,
+                target: ReaderPrefetchTargets.entryTarget(progress: library.continueReading)
+            )
         }
         .fullScreenCover(item: $openCollection) { collection in
             ReaderView(collectionSlug: collection.slug, collectionName: collection.name)
