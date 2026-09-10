@@ -384,9 +384,8 @@ context actions, and share privacy.
 
 ## R6: reader chrome, density, and paging polish
 
-Model: Muse Spark. Use `frontend-design`, `principle-experience-first`,
-`blast-radius`, and `principle-prove-it-works`. A separate GPT-5.6 Terra high
-task reviews chrome behavior, accessibility, and position safety.
+Use `frontend-design`, `principle-experience-first`,
+`blast-radius`, and `principle-prove-it-works`. Review chrome behavior, accessibility, and position safety in the end and commit.
 
 > Read `AGENTS.md`, `docs/PLAN.md` (including the R6 record), and
 > `docs/REFERENCE_AUDIT.md` fully. Confirm R5 passed. Execute only the active

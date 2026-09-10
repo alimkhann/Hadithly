@@ -90,11 +90,14 @@ final class Phase4TranslationFlowTests: XCTestCase {
     }
 
     private func chooseRussian(_ app: XCUIApplication) {
-        if !app.buttons["reader.settings"].isHittable {
+        if !app.buttons["reader.menu"].isHittable {
             element("reader.page", in: app).tap()
         }
-        XCTAssertTrue(app.buttons["reader.settings"].waitForExistence(timeout: timeout))
-        app.buttons["reader.settings"].tap()
+        XCTAssertTrue(app.buttons["reader.menu"].waitForExistence(timeout: timeout))
+        app.buttons["reader.menu"].tap()
+        let settingsCard = app.buttons["reader.menu.settings"]
+        XCTAssertTrue(settingsCard.waitForExistence(timeout: timeout), "reader menu never opened")
+        settingsCard.tap()
         let russian = app.buttons["reader.language.ru"]
         XCTAssertTrue(russian.waitForExistence(timeout: timeout))
         russian.tap()

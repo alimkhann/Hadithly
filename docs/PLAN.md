@@ -868,6 +868,19 @@ substantive: they own bounded implementation outcomes, not just inventories.
   hadith. Slice A builds on both apps together.
 - Gate: R5's action set unchanged and reachable, positions survive every
   restyle, shared links still pass F3 routing. Stop before H1.
+- Progress 2026-09-10: Codex implemented the round-2 corrections plus slices
+  C, D, F, G on both apps (`80d21d2` two-pill volume paging, `eacd5ad`
+  boundary swipe, `c707dee` wider end controls, `61f775b` bottom chrome,
+  `a6d8c72` positioned menu actions and drag paging). Repair pass: two stale
+  UI expectations updated to the new chrome (pill labels, menu-path
+  contents), dead top-bar and bottom-pill chrome deleted on both apps,
+  location card wired to contents, Phase4 language path moved to the menu.
+  Evidence: backend 81/81, Android 105/105 unit plus 19+7+7/33
+  instrumentation on the hadithly emulator, iOS 127/127 unit plus R6A 17/17,
+  paging 5/5, and R5 live 5/5 on simulator. The Phase4 live test still stops
+  at the recorded dev-content gate (no stored Russian translation), with the
+  menu-path language switch verified working. `docs/R6_READER_VIDEO.md`
+  holds the frame-by-frame Sajda recording notes for context-less models.
 
 ## Delegation policy
 

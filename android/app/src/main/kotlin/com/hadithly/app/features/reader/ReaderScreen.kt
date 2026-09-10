@@ -535,7 +535,7 @@ private fun ReaderChromeCircle(icon: androidx.compose.ui.graphics.vector.ImageVe
 private fun ReaderMenuStack(location: String, onContents: () -> Unit, onSettings: () -> Unit, onBookmark: () -> Unit, onNote: () -> Unit) {
     val colors = LocalHadithlyColors.current
     Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth(0.72f)) {
-        ReaderMenuCard(location, "Current location", Icons.Filled.Place, {})
+        ReaderMenuCard(location, "Current location", Icons.Filled.Place, onContents)
         ReaderMenuCard("Bookmarks & Notes", "Your private saved reading", Icons.Filled.Bookmark, onContents)
         ReaderMenuCard("Contents", "Volumes and chapters", Icons.AutoMirrored.Filled.List, onContents)
         ReaderMenuCard("Reader settings", "Type, appearance, and text", Icons.Filled.FormatSize, onSettings)
@@ -1123,101 +1123,6 @@ private fun PageChevron(
             modifier = Modifier.size(22.dp),
         )
     }
-}
-
-// Top bar
-
-@Composable
-private fun ReaderTopBar(
-    title: String,
-    subtitle: String?,
-    onClose: () -> Unit,
-    onIndex: () -> Unit,
-    onSettings: () -> Unit,
-) {
-    val colors = LocalHadithlyColors.current
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(colors.background.copy(alpha = 0.96f))
-            // Draw below the status bar; edge-to-edge puts the window under it.
-            .statusBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-    ) {
-        ChromeButton(Icons.Filled.ExpandLess, "Close reader", onClose)
-        Spacer(modifier = Modifier.width(12.dp))
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.weight(1f),
-        ) {
-            Text(
-                text = title,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = colors.textPrimary,
-                maxLines = 1,
-            )
-            if (subtitle != null) {
-                Text(text = subtitle, fontSize = 11.sp, color = colors.textSecondary, maxLines = 1)
-            }
-        }
-        Spacer(modifier = Modifier.width(12.dp))
-        ChromeButton(Icons.AutoMirrored.Filled.List, "Contents", onIndex)
-        Spacer(modifier = Modifier.width(12.dp))
-        ChromeButton(Icons.Filled.FormatSize, "Reader settings", onSettings)
-    }
-}
-
-@Composable
-private fun ChromeButton(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit) {
-    val colors = LocalHadithlyColors.current
-    Box(
-        modifier = Modifier
-            .size(38.dp)
-            .background(colors.surface, CircleShape)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = label,
-            tint = colors.textSecondary,
-            modifier = Modifier.size(20.dp),
-        )
-    }
-}
-
-// Bottom pills
-
-@Composable
-private fun ReaderBottomPills(volumeTitle: String?, currentPage: Int, totalPages: Int?) {
-    val colors = LocalHadithlyColors.current
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(bottom = 12.dp),
-    ) {
-        Pill(text = volumeTitle ?: return)
-        Pill(text = if (totalPages != null) "Page $currentPage of $totalPages" else "Page $currentPage")
-    }
-}
-
-@Composable
-private fun Pill(text: String) {
-    val colors = LocalHadithlyColors.current
-    Text(
-        text = text,
-        fontSize = 12.sp,
-        fontWeight = FontWeight.Medium,
-        color = colors.textSecondary,
-        modifier = Modifier
-            .background(colors.surface.copy(alpha = 0.96f), RoundedCornerShape(50))
-            .padding(horizontal = 12.dp, vertical = 7.dp),
-    )
 }
 
 /** The thin top progress indicator shown while the reader chrome is hidden.

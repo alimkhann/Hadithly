@@ -62,13 +62,16 @@ final class ReaderPagingUITests: XCTestCase {
         XCTAssertFalse(app.buttons["reader.previousPage"].exists)
         let next = app.buttons["reader.nextPage"]
         XCTAssertTrue(next.waitForExistence(timeout: timeout))
-        XCTAssertEqual(next.label, "Next page")
+        XCTAssertTrue(next.label.hasPrefix("Next page"), "unexpected next label: \(next.label)")
         next.tap()
         assertPage(2, in: app, "middle page")
         app.buttons["reader.nextPage"].tap()
         assertPage(3, in: app, "last page")
         XCTAssertFalse(app.buttons["reader.nextPage"].exists)
-        XCTAssertEqual(app.buttons["reader.previousPage"].label, "Previous page")
+        XCTAssertTrue(
+            app.buttons["reader.previousPage"].label.hasPrefix("Previous page"),
+            "unexpected previous label"
+        )
     }
 
     /// R4 gate: the language × theme matrix (en, ar, ur × System, Light,

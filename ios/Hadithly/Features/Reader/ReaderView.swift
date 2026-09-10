@@ -383,10 +383,12 @@ private struct ReaderMenuStack: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            menuCard(title: location, subtitle: "Current location", image: "mappin.and.ellipse", action: {})
+            menuCard(title: location, subtitle: "Current location", image: "mappin.and.ellipse", action: onContents)
             menuCard(title: "Bookmarks & Notes", subtitle: "Your private saved reading", image: "bookmark", action: onContents)
             menuCard(title: "Contents", subtitle: "Volumes and chapters", image: "list.bullet", action: onContents)
+                .accessibilityIdentifier("reader.menu.contents")
             menuCard(title: "Reader settings", subtitle: "Type, appearance, and text", image: "textformat.size", action: onSettings)
+                .accessibilityIdentifier("reader.menu.settings")
             HStack(spacing: 10) {
                 menuCard(title: "Bookmark", subtitle: "Current hadith", image: "bookmark", action: onBookmark)
                 menuCard(title: "Note", subtitle: "Current hadith", image: "note.text", action: onNote)
@@ -435,101 +437,6 @@ private struct ReaderCompactProgressBar: View {
         .frame(width: 216, height: 3)
         .padding(.top, 6)
         .accessibilityHidden(true)
-    }
-}
-
-// MARK: - Top bar
-
-private struct ReaderTopBar: View {
-    let title: String
-    let subtitle: String?
-    let palette: ReaderPalette
-    let onClose: () -> Void
-    let onIndex: () -> Void
-    let onSettings: () -> Void
-
-    var body: some View {
-        HStack(spacing: 12) {
-            chromeButton("chevron.down", label: "Close reader", action: onClose)
-                .accessibilityIdentifier("reader.close")
-
-            VStack(spacing: 1) {
-                Text(title)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(palette.textPrimary)
-                    .lineLimit(1)
-                if let subtitle {
-                    Text(subtitle)
-                        .font(.caption2)
-                        .foregroundStyle(palette.textSecondary)
-                        .lineLimit(1)
-                }
-            }
-            .frame(maxWidth: .infinity)
-
-            chromeButton("list.bullet", label: "Contents", action: onIndex)
-                .accessibilityIdentifier("reader.index")
-            chromeButton("textformat.size", label: "Reader settings", action: onSettings)
-                .accessibilityIdentifier("reader.settings")
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, 8)
-        .padding(.bottom, 14)
-        .background(
-            palette.background
-                .opacity(0.96)
-                .ignoresSafeArea(edges: .top)
-        )
-    }
-
-    private func chromeButton(_ systemImage: String, label: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: systemImage)
-                .font(.body)
-                .foregroundStyle(palette.textSecondary)
-                .frame(width: 44, height: 44)
-                .background(palette.surface)
-                .clipShape(Circle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(label)
-    }
-}
-
-// MARK: - Bottom pills
-
-/// Expanded progress (R4): shown with the revealed chrome; the compact thin
-/// bar replaces it while reading quietly.
-private struct ReaderBottomPills: View {
-    let model: ReaderModel
-    let palette: ReaderPalette
-
-    var body: some View {
-        HStack(spacing: 8) {
-            if let volumeTitle = model.currentVolumeTitle {
-                pill(volumeTitle)
-                    .accessibilityIdentifier("reader.volumePill")
-            }
-            if let total = model.totalPages {
-                pill("Page \(model.currentPageNumber) of \(total)")
-                    .accessibilityIdentifier("reader.pagePill")
-                    .accessibilityLabel("Page \(model.currentPageNumber) of \(total)")
-            } else {
-                pill("Page \(model.currentPageNumber)")
-            }
-        }
-        .padding(.bottom, 12)
-    }
-
-    private func pill(_ text: String) -> some View {
-        Text(text)
-            .font(.caption.weight(.medium))
-            .foregroundStyle(palette.textSecondary)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 7)
-            .background(palette.surface.opacity(0.96))
-            .clipShape(Capsule())
-            .overlay(Capsule().strokeBorder(palette.divider, lineWidth: 1))
     }
 }
 

@@ -75,7 +75,10 @@ final class ReaderR5UITests: XCTestCase {
         XCTAssertTrue(element("reader.page", in: app).waitForExistence(timeout: 30))
 
         revealChrome(app)
-        app.buttons["reader.index"].tap()
+        app.buttons["reader.menu"].tap()
+        let contentsCard = app.buttons["reader.menu.contents"]
+        XCTAssertTrue(contentsCard.waitForExistence(timeout: timeout), "reader menu never opened")
+        contentsCard.tap()
         let jump = field("reader.contents.jump", in: app)
         XCTAssertTrue(jump.waitForExistence(timeout: timeout), "Contents sheet never opened")
         // Pre-R5 cached outline: volumes render exactly as before.
