@@ -158,6 +158,12 @@ fun MainTabs(
                 targetSource = target.source,
                 instanceKey = target.instanceKey,
                 onClose = { readerTarget = null },
+                // The reader Saved sheet's EDIT affordance opens the full
+                // Saved destination (folders and filters stay H3 scope).
+                onOpenSaved = {
+                    readerTarget = null
+                    tab = 2
+                },
             )
         }
     }

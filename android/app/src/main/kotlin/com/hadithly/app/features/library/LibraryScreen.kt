@@ -22,6 +22,7 @@ import androidx.compose.material.icons.automirrored.filled.NavigateNext
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,8 +33,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hadithly.app.core.data.Collections
 import com.hadithly.app.core.data.HadithRef
+import com.hadithly.app.core.data.ReaderPrefetch
 import com.hadithly.app.core.theme.LocalHadithlyColors
 import com.hadithly.app.features.main.ReaderOpenTarget
+import com.hadithly.app.features.main.rememberApp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.hadithly.app.core.data.ReaderTargetSource
 
 /**
@@ -46,8 +51,21 @@ fun LibraryScreen(
     onOpenTarget: (ReaderOpenTarget) -> Unit,
 ) {
     val viewModel: LibraryViewModel = viewModel()
+    val app = rememberApp()
     val counts by viewModel.counts.collectAsStateWithLifecycle()
     val progressList by viewModel.progress.collectAsStateWithLifecycle()
+    // R6 round 3: quietly ensure the outline plus the continue-reading
+    // target volume's first page are cached (existing cache-first actions,
+    // Dispatchers.IO, no UI). Bounded, silent, offline-tolerant.
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            ReaderPrefetch.warmEntryCache(
+                repository = app.repository,
+                slugs = Collections.all.map { it.first },
+                progress = app.library.progress.value,
+            )
+        }
+    }
     val continueReading = progressList
         .filter { it.hadith != null }
         .maxByOrNull { it.updatedAt }

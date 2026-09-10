@@ -40,6 +40,10 @@ data class ReaderHadith(
     val arabicText: String,
     val englishText: String? = null,
     val narrator: String? = null,
+    // R6 round 3: Arabic narrator line from the provider's Arabic language
+    // map. Optional so rows cached before this field existed keep decoding;
+    // a missing value stays hidden in Arabic-only mode.
+    val narratorAr: String? = null,
     val referenceDisplay: String,
     val collectionName: String,
     val chapterName: String? = null,
@@ -242,4 +246,19 @@ object SupportedLanguages {
 @Serializable
 data class UserPreferencesResult(
     val readerPreferences: ReaderPreferences? = null,
+)
+
+/**
+ * One R6 reader-menu English search hit (`hadiths:searchEnglish`, cached
+ * provider English only). Defaults keep decoding tolerant; blank queries
+ * never reach the backend (the repository returns [] first).
+ */
+@Serializable
+data class EnglishSearchResult(
+    val hadithId: String = "",
+    val canonicalId: String = "",
+    val collectionSlug: String = "",
+    val providerHadithId: String = "",
+    val referenceDisplay: String = "",
+    val snippet: String = "",
 )

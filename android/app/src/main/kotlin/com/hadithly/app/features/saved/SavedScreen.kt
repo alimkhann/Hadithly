@@ -30,6 +30,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,11 +46,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hadithly.app.core.data.HadithRef
+import com.hadithly.app.core.data.Collections
+import com.hadithly.app.core.data.ReaderPrefetch
 import com.hadithly.app.core.data.SavedEntry
 import com.hadithly.app.core.theme.LocalHadithlyColors
 import com.hadithly.app.features.main.ReaderOpenTarget
 import com.hadithly.app.core.data.ReaderTargetSource
 import com.hadithly.app.features.main.rememberApp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 private enum class SavedSection(val title: String, val tag: String) {
     Bookmarks("Bookmarks", "bookmarks"),
@@ -65,6 +70,18 @@ fun SavedScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
     val favorites by app.library.favorites.collectAsStateWithLifecycle()
     val notes by app.library.notes.collectAsStateWithLifecycle()
     var active by remember { mutableStateOf<SavedSection?>(null) }
+
+    // R6 round 3: quiet entry prefetch (outline plus the continue-reading
+    // target volume's first page). Bounded, silent, offline-tolerant.
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            ReaderPrefetch.warmEntryCache(
+                repository = app.repository,
+                slugs = Collections.all.map { it.first },
+                progress = app.library.progress.value,
+            )
+        }
+    }
 
     fun entries(section: SavedSection) = when (section) {
         SavedSection.Bookmarks -> bookmarks

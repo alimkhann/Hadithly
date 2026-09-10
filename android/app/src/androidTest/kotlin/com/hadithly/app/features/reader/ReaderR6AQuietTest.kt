@@ -37,9 +37,9 @@ class ReaderR6AQuietTest {
             kind = "source",
             normalizedGrade = "sahih",
             claimScope = "hadith",
-            sourceLabel = "Sunnah.com",
-            sourceName = "Sunnah.com",
-            sourceUrl = "https://sunnah.com/bukhari:57",
+            sourceLabel = "Sunnah.now",
+            sourceName = "Sunnah.now",
+            sourceUrl = "https://sunnah.now/bukhari:57",
             verificationMethod = "provider",
         ),
     ) = ReaderHadith(
@@ -51,6 +51,7 @@ class ReaderR6AQuietTest {
         arabicText = "حَدَّثَنَا",
         englishText = "He said:",
         narrator = "Narrated Abu Huraira:",
+        narratorAr = "رواه أبو هريرة:",
         referenceDisplay = "Sahih al-Bukhari · Hadith $providerHadithId",
         collectionName = "Sahih al-Bukhari",
         chapterName = "Belief",
@@ -152,8 +153,24 @@ class ReaderR6AQuietTest {
             block(preferences = ReaderPreferences(translationVisible = false))
         }
 
+        // Arabic-only mode shows the provider's Arabic narrator line.
         compose.onNodeWithTag("reader.narrator", useUnmergedTree = true).assertIsDisplayed()
-        compose.onNodeWithText("Narrated Abu Huraira:").assertIsDisplayed()
+        compose.onNodeWithText("رواه أبو هريرة:").assertIsDisplayed()
+        compose.onNodeWithText("Narrated Abu Huraira:").assertDoesNotExist()
+        compose.onNodeWithTag("reader.arabic", useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun arabicOnlyNarratorHidesWhenAbsent() {
+        compose.setContent {
+            block(
+                hadith = hadith().copy(narratorAr = null),
+                preferences = ReaderPreferences(translationVisible = false),
+            )
+        }
+
+        // Missing narratorAr stays hidden in Arabic-only mode.
+        compose.onNodeWithTag("reader.narrator", useUnmergedTree = true).assertDoesNotExist()
         compose.onNodeWithTag("reader.arabic", useUnmergedTree = true).assertIsDisplayed()
     }
 
@@ -188,9 +205,9 @@ class ReaderR6AQuietTest {
         }
 
         compose.onNodeWithTag("reader.sourceSheet").assertIsDisplayed()
-        compose.onNodeWithText("Sunnah.com").assertIsDisplayed()
-        compose.onNodeWithText("Sahih hadith · Sunnah.com").assertIsDisplayed()
-        compose.onNodeWithText("https://sunnah.com/bukhari:57").assertIsDisplayed()
+        compose.onNodeWithText("Sunnah.now").assertIsDisplayed()
+        compose.onNodeWithText("Sahih hadith · Sunnah.now").assertIsDisplayed()
+        compose.onNodeWithText("https://sunnah.now/bukhari:57").assertIsDisplayed()
     }
 
     @Test

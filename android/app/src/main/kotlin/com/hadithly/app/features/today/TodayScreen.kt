@@ -36,7 +36,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hadithly.app.core.data.DailyHadith
+import com.hadithly.app.core.data.Collections
 import com.hadithly.app.core.data.HadithRef
+import com.hadithly.app.core.data.ReaderPrefetch
 import com.hadithly.app.core.theme.LocalHadithlyColors
 import com.hadithly.app.features.main.ReaderOpenTarget
 import com.hadithly.app.core.data.ReaderTargetSource
@@ -44,6 +46,8 @@ import com.hadithly.app.features.main.rememberApp
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
@@ -62,6 +66,18 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
             .onSuccess { daily = it; failed = false }
             .onFailure { failed = true }
         loading = false
+    }
+
+    // R6 round 3: quiet entry prefetch (outline plus the continue-reading
+    // target volume's first page). Bounded, silent, offline-tolerant.
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            ReaderPrefetch.warmEntryCache(
+                repository = app.repository,
+                slugs = Collections.all.map { it.first },
+                progress = app.library.progress.value,
+            )
+        }
     }
 
     Column(

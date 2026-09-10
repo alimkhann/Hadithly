@@ -4,10 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hadithly.app.HadithlyApplication
 import com.hadithly.app.core.data.CollectionOutlineResult
+import com.hadithly.app.core.data.EnglishSearchResult
+import com.hadithly.app.core.data.HadithRef
 import com.hadithly.app.core.data.OutlineChapter
 import com.hadithly.app.core.data.OutlineVolume
 import com.hadithly.app.core.data.ReaderHadith
 import com.hadithly.app.core.data.ReaderPageResult
+import com.hadithly.app.core.data.ReaderPrefetch
 import com.hadithly.app.core.data.ReaderTranslation
 import com.hadithly.app.core.data.ReadingLayout
 import com.hadithly.app.core.data.ReadingPosition
@@ -156,6 +159,16 @@ class ReaderViewModel(
     }
 
     fun toggleChrome() = _state.update { it.copy(chromeVisible = !it.chromeVisible) }
+
+    /**
+     * R6 round 3: any horizontal or vertical scroll collapses to the focused
+     * view. Deliberately haptic-free (only the tap toggle plays the haptic)
+     * and idempotent; the caller also closes the reader menu, which never
+     * survives a focus change.
+     */
+    fun collapseToFocused() {
+        _state.update { if (it.chromeVisible) it.copy(chromeVisible = false) else it }
+    }
 
     fun setReadingWidthClass(widthClass: ReadingWidthClass) {
         readingWidthClass = widthClass
@@ -341,6 +354,7 @@ class ReaderViewModel(
                     it.copy(pages = pages, pageIndex = landing, phase = Phase.Reading)
                 }
                 scheduleTranslationsForCurrentPage()
+                cacheAdjacentVolumes()
                 saveCurrentProgress()
             } catch (_: CancellationException) {
                 // A newer page or volume target replaced this fetch.
@@ -457,6 +471,7 @@ class ReaderViewModel(
                 } else if (_state.value.pageIndex == index) {
                     scheduleTranslationsForCurrentPage()
                 }
+                cacheAdjacentVolumes()
             } catch (error: Exception) {
                 if (_state.value.pages.isEmpty()) {
                     _state.update { it.copy(phase = Phase.Failed(errorMessage(error))) }
@@ -474,6 +489,10 @@ class ReaderViewModel(
         val s = _state.value
         if (index == s.pageIndex) return
         _state.update { it.copy(pageIndex = index) }
+        // A settled scroll (user swipe or pill/edge turn) lands focused:
+        // the menu is closed by the screen observing the page index, and
+        // the chrome collapses here with no haptic.
+        collapseToFocused()
         val pages = s.pages
         if (index in pages.indices && pages[index].isPlaceholder) {
             s.selectedVolumeId?.let { loadPage(index, it) }
@@ -495,6 +514,73 @@ class ReaderViewModel(
         if (!lastPage.hasMore) return
         if (s.pageIndex < s.pages.size - 1) return
         s.selectedVolumeId?.let { loadPage(s.pages.size, it) }
+    }
+
+    /**
+     * R6 round 3: background-caches the adjacent volumes' first pages so
+     * volume switches never wait. Bounded (at most two), silent (no state
+     * change), offline-tolerant (guarded); runs on Dispatchers.IO inside
+     * the prefetch helper.
+     */
+    private fun cacheAdjacentVolumes() {
+        val s = _state.value
+        if (s.phase != Phase.Reading) return
+        viewModelScope.launch {
+            ReaderPrefetch.warmAdjacentVolumes(
+                repository = app.repository,
+                collectionSlug = collectionSlug,
+                volumes = s.volumes,
+                selectedId = s.selectedVolumeId,
+            )
+        }
+    }
+
+    /**
+     * R6 round 3 menu search over cached provider English text. Explicit
+     * return type; Dispatchers.IO and the blank short-circuit live in the
+     * repository.
+     */
+    suspend fun searchEnglish(text: String): List<EnglishSearchResult> =
+        app.repository.searchEnglish(text, collectionSlug)
+
+    /**
+     * R6 round 3: a search hit navigates exact through the R2 target path
+     * (volume locator plus landing hadith, same stale fallback as canonical
+     * links). Returns false when the hit names another collection, which
+     * this reader cannot resolve.
+     */
+    fun navigateToSearchResult(result: EnglishSearchResult): Boolean {
+        if (result.collectionSlug != collectionSlug) return false
+        val volumes = _state.value.volumes
+        if (volumes.isEmpty()) return false
+        val volumeId = volumeIdForHadithNumber(result.providerHadithId, volumes)
+            ?: volumes.first().volumeId
+        jumpToHadith(volumeId, result.providerHadithId)
+        return true
+    }
+
+    /**
+     * R6 round 3: a reader Saved-sheet row navigates exact. A stored
+     * volume id wins; otherwise the volume locator resolves the number;
+     * a stale number degrades to the first volume's start.
+     */
+    fun navigateToSaved(ref: HadithRef): Boolean {
+        val volumes = _state.value.volumes
+        if (volumes.isEmpty()) return false
+        val number = ref.hadithNumber
+        val storedVolume = volumes.firstOrNull { it.volumeId == ref.volumeId }?.volumeId
+        if (number.isNullOrBlank()) {
+            if (storedVolume != null) {
+                selectVolume(storedVolume)
+                return true
+            }
+            return false
+        }
+        val volumeId = storedVolume
+            ?: volumeIdForHadithNumber(number, volumes)
+            ?: volumes.first().volumeId
+        jumpToHadith(volumeId, number)
+        return true
     }
 
     // Translations
@@ -663,13 +749,6 @@ class ReaderViewModel(
         lastCapturedAnchor = anchor.internalId
         lastCapturedNormalizedOffset = clamped
         saveProgress(anchor, page, rawPageOffset.coerceAtLeast(0.0), clamped)
-    }
-
-    /** Compact top progress fraction (R4); null until the backend reports a total. */
-    fun compactProgressFraction(): Double? {
-        val total = totalPages() ?: return null
-        if (total <= 0) return null
-        return (_state.value.pageIndex + 1).toDouble() / total
     }
 
     /**

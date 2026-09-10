@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,18 +43,21 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.NavigateBefore
 import androidx.compose.material.icons.automirrored.filled.NavigateNext
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FormatSize
-import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Note
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.RadioButtonUnchecked
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -103,8 +107,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import android.content.ClipData
 import android.content.Intent
 import com.hadithly.app.R
+import com.hadithly.app.core.data.EnglishSearchResult
+import com.hadithly.app.core.data.HadithRef
 import com.hadithly.app.core.data.OutlineVolume
 import com.hadithly.app.core.data.ReaderHadith
+import com.hadithly.app.core.data.SavedEntry
 import com.hadithly.app.core.data.ReaderPageResult
 import com.hadithly.app.core.data.ReaderTranslation
 import com.hadithly.app.core.data.ReadingPosition
@@ -124,7 +131,9 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
@@ -142,6 +151,7 @@ fun ReaderScreen(
     targetSource: ReaderTargetSource,
     instanceKey: Long,
     onClose: () -> Unit,
+    onOpenSaved: () -> Unit = {},
 ) {
     val app = com.hadithly.app.features.main.rememberApp()
     val viewModel: ReaderViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
@@ -205,13 +215,13 @@ fun ReaderScreen(
                 is ReaderViewModel.Phase.Reading -> ReadingView(
                     viewModel = viewModel,
                     state = state,
-                    collectionName = collectionName,
                     arabicFontSize = preferences.arabicFontSize,
                     preferences = preferences,
                     onOpenContents = { showContents = true },
                     onOpenSettings = { showSettings = true },
                     onShowPaywall = { showQuotaPaywall = true },
                     onClose = onClose,
+                    onOpenSaved = onOpenSaved,
                 )
             }
         }
@@ -311,20 +321,41 @@ private fun FailureView(message: String) {
 private fun ReadingView(
     viewModel: ReaderViewModel,
     state: ReaderViewModel.ReaderState,
-    collectionName: String,
     arabicFontSize: Float,
     preferences: ReaderPreferences,
     onOpenContents: () -> Unit,
     onOpenSettings: () -> Unit,
     onShowPaywall: () -> Unit,
     onClose: () -> Unit,
+    onOpenSaved: () -> Unit,
 ) {
     val colors = LocalHadithlyColors.current
     val androidView = LocalView.current
     var readerMenuExpanded by remember { mutableStateOf(false) }
-    var menuNoteTarget by remember { mutableStateOf<ReaderHadith?>(null) }
+    var showSearch by remember { mutableStateOf(false) }
+    var showReaderSaved by remember { mutableStateOf(false) }
+    var showBookmarkPlacement by remember { mutableStateOf(false) }
+    val bookmarks by viewModel.library.bookmarks.collectAsStateWithLifecycle()
+    val favorites by viewModel.library.favorites.collectAsStateWithLifecycle()
+    val notes by viewModel.library.notes.collectAsStateWithLifecycle()
     val coroutine = rememberCoroutineScope()
     val pagingPolicy = remember(preferences) { ReaderPagingPolicy(preferences) }
+
+    /**
+     * R6 round 3: any scroll lands focused with no haptic and closes the
+     * reader menu — the menu never survives a focus change. Only the
+     * tap-once toggle below plays the haptic.
+     */
+    fun collapseToFocusedAndCloseMenu() {
+        readerMenuExpanded = false
+        viewModel.collapseToFocused()
+    }
+
+    // Volume selects, chapter jumps, reference jumps, search and Saved
+    // navigation all reset the page index: the menu never survives them.
+    LaunchedEffect(state.pageIndex, state.selectedVolumeId) {
+        readerMenuExpanded = false
+    }
 
     // One extra sentinel page while more content exists; landing on it
     // triggers the load of the next page.
@@ -422,6 +453,25 @@ private fun ReadingView(
         }
     }
 
+    // Intra-page scroll fraction drives the dynamic page bars (item 6).
+    // Reset on every page turn; ReaderPage reports (page, fraction) pairs
+    // so a stale late emission cannot move another page's bar.
+    var pageScroll by remember { mutableStateOf(0 to 0f) }
+    LaunchedEffect(pagerState.currentPage) {
+        pageScroll = pagerState.currentPage to 0f
+    }
+
+    val totalPages = viewModel.totalPages()
+    val dynamicPageFraction = focusedProgressFraction(
+        pageIndex = state.pageIndex,
+        totalPages = totalPages,
+        intraPageFraction = if (pageScroll.first == state.pageIndex) pageScroll.second else 0f,
+    )
+    val volumeFraction = volumeProgressFraction(
+        volumeCount = state.volumes.size,
+        selectedIndex = state.volumes.indexOfFirst { it.volumeId == state.selectedVolumeId },
+    )
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -431,6 +481,10 @@ private fun ReadingView(
             state = pagerState,
             policy = pagingPolicy,
             onOutwardEdgeTurn = ::turnPage,
+            // A user horizontal drag collapses to focused immediately (no
+            // haptic) and closes the menu; programmatic turns settle
+            // through onPageSettled, which collapses there.
+            onUserDragStart = ::collapseToFocusedAndCloseMenu,
             modifier = Modifier.fillMaxSize(),
         ) { pageIndex ->
                 val pages = state.pages
@@ -453,20 +507,59 @@ private fun ReadingView(
                         androidView.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP)
                         viewModel.toggleChrome()
                     },
+                    onUserScroll = ::collapseToFocusedAndCloseMenu,
+                    onPageScrollFraction = { page, fraction ->
+                        pageScroll = page to fraction
+                    },
                     onShowPaywall = onShowPaywall,
                 )
         }
 
-        // Compact progress (R4): a thin bar at the top stays visible while
-        // the chrome is hidden, matching the quiet reading state.
+        // Item 6, focused: ONE thin narrow dynamic PAGE bar just below the
+        // notch area. Short, neutral, fills/defills with page scroll.
         androidx.compose.animation.AnimatedVisibility(
             visible = !state.chromeVisible,
             enter = fadeIn(),
             exit = fadeOut(),
             modifier = Modifier.align(Alignment.TopCenter),
         ) {
-            viewModel.compactProgressFraction()?.let { fraction ->
-                CompactProgressBar(fraction = fraction)
+            if (dynamicPageFraction != null) {
+                ReaderProgressCapsule(
+                    fraction = dynamicPageFraction,
+                    thickness = 3.dp,
+                    testTag = "reader.focusedPageBar",
+                    modifier = Modifier.statusBarsPadding().padding(top = 6.dp),
+                )
+            }
+        }
+
+        // Item 6, unfocused: a static volume bar plus a thicker page bar.
+        // Narrow, neutral — no green, no full-width, no mid-screen bar.
+        androidx.compose.animation.AnimatedVisibility(
+            visible = state.chromeVisible,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier.align(Alignment.TopCenter),
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.statusBarsPadding().padding(top = 6.dp),
+            ) {
+                if (volumeFraction != null) {
+                    ReaderProgressCapsule(
+                        fraction = volumeFraction,
+                        thickness = 3.dp,
+                        testTag = "reader.unfocusedVolumeBar",
+                    )
+                }
+                if (dynamicPageFraction != null) {
+                    Spacer(Modifier.height(5.dp))
+                    ReaderProgressCapsule(
+                        fraction = dynamicPageFraction,
+                        thickness = 5.dp,
+                        testTag = "reader.unfocusedPageBar",
+                    )
+                }
             }
         }
 
@@ -481,23 +574,32 @@ private fun ReadingView(
                 modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 24.dp, vertical = 16.dp),
             ) {
                 if (readerMenuExpanded) {
+                    val positioned = viewModel.positionedHadith()
                     ReaderMenuStack(
-                        location = viewModel.currentVolumeTitle() ?: collectionName,
+                        positionedReference = positioned?.referenceDisplay,
+                        isPositionedBookmarked = positioned?.let(viewModel::isBookmarked) == true,
                         onContents = {
                             readerMenuExpanded = false
                             onOpenContents()
+                        },
+                        onSaved = {
+                            readerMenuExpanded = false
+                            showReaderSaved = true
                         },
                         onSettings = {
                             readerMenuExpanded = false
                             onOpenSettings()
                         },
-                        onBookmark = { viewModel.positionedHadith()?.let(viewModel::toggleBookmark) },
-                        onNote = { menuNoteTarget = viewModel.positionedHadith() },
+                        onBookmark = { showBookmarkPlacement = true },
+                        onSearch = {
+                            readerMenuExpanded = false
+                            showSearch = true
+                        },
                     )
                     Spacer(Modifier.height(12.dp))
                 }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    ReaderChromeCircle(Icons.Filled.ExpandLess, "Close reader", onClose)
+                    ReaderChromeCircle(Icons.AutoMirrored.Filled.ArrowBack, "Back", onClose)
                     ReaderChromeCircle(
                         if (readerMenuExpanded) Icons.Filled.Close else Icons.AutoMirrored.Filled.List,
                         if (readerMenuExpanded) "Close reader menu" else "Open reader menu",
@@ -506,15 +608,59 @@ private fun ReadingView(
             }
         }
 
-        menuNoteTarget?.let { hadith ->
-            ModalBottomSheet(onDismissRequest = { menuNoteTarget = null }, containerColor = colors.surface) {
-                NoteEditorSheet(
-                    initialContent = viewModel.noteContent(hadith),
-                    onSave = { content ->
-                        viewModel.saveNote(hadith, content)
-                        menuNoteTarget = null
+        if (showBookmarkPlacement) {
+            ModalBottomSheet(
+                onDismissRequest = { showBookmarkPlacement = false },
+                containerColor = colors.surface,
+            ) {
+                BookmarkPlacementSheet(
+                    targets = bookmarkPlacementTargets(
+                        pageHadiths = viewModel.currentPageHadiths(),
+                        positioned = viewModel.positionedHadith(),
+                    ),
+                    isBookmarked = viewModel::isBookmarked,
+                    onChoose = { hadith ->
+                        viewModel.toggleBookmark(hadith)
+                        showBookmarkPlacement = false
+                        readerMenuExpanded = false
                     },
-                    onCancel = { menuNoteTarget = null },
+                    onDismiss = { showBookmarkPlacement = false },
+                )
+            }
+        }
+
+        if (showSearch) {
+            ModalBottomSheet(
+                onDismissRequest = { showSearch = false },
+                containerColor = colors.surface,
+            ) {
+                ReaderSearchSheet(
+                    search = { query -> viewModel.searchEnglish(query) },
+                    onNavigate = { result ->
+                        if (viewModel.navigateToSearchResult(result)) showSearch = false
+                    },
+                )
+            }
+        }
+
+        if (showReaderSaved) {
+            ModalBottomSheet(
+                onDismissRequest = { showReaderSaved = false },
+                containerColor = colors.surface,
+            ) {
+                ReaderSavedSheet(
+                    bookmarks = bookmarks,
+                    favorites = favorites,
+                    notes = notes,
+                    nowMillis = System.currentTimeMillis(),
+                    onOpen = { ref ->
+                        showReaderSaved = false
+                        viewModel.navigateToSaved(ref)
+                    },
+                    onEdit = {
+                        showReaderSaved = false
+                        onOpenSaved()
+                    },
                 )
             }
         }
@@ -532,32 +678,87 @@ private fun ReaderChromeCircle(icon: androidx.compose.ui.graphics.vector.ImageVe
 }
 
 @Composable
-private fun ReaderMenuStack(location: String, onContents: () -> Unit, onSettings: () -> Unit, onBookmark: () -> Unit, onNote: () -> Unit) {
-    val colors = LocalHadithlyColors.current
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth(0.72f)) {
-        ReaderMenuCard(location, "Current location", Icons.Filled.Place, onContents)
-        ReaderMenuCard("Bookmarks & Notes", "Your private saved reading", Icons.Filled.Bookmark, onContents)
-        ReaderMenuCard("Contents", "Volumes and chapters", Icons.AutoMirrored.Filled.List, onContents)
-        ReaderMenuCard("Reader settings", "Type, appearance, and text", Icons.Filled.FormatSize, onSettings)
+internal fun ReaderMenuStack(
+    positionedReference: String?,
+    isPositionedBookmarked: Boolean,
+    onContents: () -> Unit,
+    onSaved: () -> Unit,
+    onSettings: () -> Unit,
+    onBookmark: () -> Unit,
+    onSearch: () -> Unit,
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.fillMaxWidth(0.72f).testTag("reader.menu"),
+    ) {
+        ReaderMenuCard(
+            title = "Contents",
+            subtitle = "Volumes and chapters",
+            icon = Icons.AutoMirrored.Filled.List,
+            onClick = onContents,
+            testTag = "reader.menu.contents",
+        )
+        ReaderMenuCard(
+            title = "Bookmarks & Notes",
+            subtitle = "Your private saved reading",
+            icon = Icons.Filled.Bookmark,
+            onClick = onSaved,
+            testTag = "reader.menu.saved",
+        )
+        ReaderMenuCard(
+            title = "Settings",
+            subtitle = "Type, appearance, and text",
+            icon = Icons.Filled.FormatSize,
+            onClick = onSettings,
+            testTag = "reader.menu.settings",
+        )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ReaderMenuCard("Bookmark", "Current hadith", Icons.Filled.Bookmark, onBookmark, Modifier.weight(1f))
-            ReaderMenuCard("Note", "Current hadith", Icons.Filled.FormatSize, onNote, Modifier.weight(1f))
+            ReaderMenuCard(
+                title = "Bookmark",
+                subtitle = positionedReference ?: "Current hadith",
+                icon = if (isPositionedBookmarked) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder,
+                iconTint = if (isPositionedBookmarked) LocalHadithlyColors.current.bookmark else null,
+                onClick = onBookmark,
+                modifier = Modifier.weight(1f),
+                testTag = "reader.menu.bookmark",
+            )
+            ReaderMenuCard(
+                title = "Search",
+                subtitle = "Sunnah.now English text",
+                icon = Icons.Filled.Search,
+                onClick = onSearch,
+                modifier = Modifier.weight(1f),
+                testTag = "reader.menu.search",
+            )
         }
     }
 }
 
 @Composable
-private fun ReaderMenuCard(title: String, subtitle: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun ReaderMenuCard(
+    title: String,
+    subtitle: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    iconTint: androidx.compose.ui.graphics.Color? = null,
+    testTag: String? = null,
+) {
     val colors = LocalHadithlyColors.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.fillMaxWidth().background(colors.surface.copy(alpha = 0.98f), RoundedCornerShape(22.dp)).clickable(onClick = onClick).padding(18.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .background(colors.surface.copy(alpha = 0.98f), RoundedCornerShape(22.dp))
+            .clickable(onClick = onClick)
+            .padding(18.dp)
+            .then(if (testTag != null) Modifier.testTag(testTag) else Modifier),
     ) {
         Column(Modifier.weight(1f)) {
             Text(title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
             Text(subtitle, fontSize = 12.sp, color = colors.textSecondary)
         }
-        Icon(icon, null, tint = colors.textSecondary, modifier = Modifier.size(22.dp))
+        Icon(icon, null, tint = iconTint ?: colors.textSecondary, modifier = Modifier.size(22.dp))
     }
 }
 
@@ -566,13 +767,25 @@ internal fun DirectionAwareHorizontalPager(
     state: PagerState,
     policy: ReaderPagingPolicy,
     onOutwardEdgeTurn: ((ReaderPageTurn) -> Boolean)? = null,
+    onUserDragStart: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     content: @Composable PagerScope.(page: Int) -> Unit,
 ) {
+    // A user drag collapses the reader to focused (no haptic) and closes
+    // the menu. DragInteraction.Start fires only for real drags —
+    // programmatic turns and cancel-backs never emit it.
+    LaunchedEffect(state, onUserDragStart) {
+        state.interactionSource.interactions.collect { interaction ->
+            if (interaction is DragInteraction.Start) onUserDragStart?.invoke()
+        }
+    }
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         HorizontalPager(
             state = state,
             reverseLayout = policy.reverseLayout,
+            // Neighbors stay rendered during drags so a mid-gesture
+            // cancel-back never flashes an empty page.
+            beyondViewportPageCount = 1,
             modifier = modifier.edgeVolumeSwipe(state, policy, onOutwardEdgeTurn),
             pageContent = content,
         )
@@ -639,9 +852,12 @@ private fun ReaderPage(
     isSentinel: Boolean,
     onFollowPill: (ReaderPagePills.Pill) -> Unit,
     onTap: () -> Unit,
+    onUserScroll: () -> Unit,
+    onPageScrollFraction: (Int, Float) -> Unit,
     onShowPaywall: () -> Unit,
 ) {
     val colors = LocalHadithlyColors.current
+    val resContext = LocalContext.current
     var citationsTranslation by remember { mutableStateOf<ReaderTranslation?>(null) }
     var sourceHadith by remember { mutableStateOf<ReaderHadith?>(null) }
     var noteTarget by remember { mutableStateOf<ReaderHadith?>(null) }
@@ -663,7 +879,13 @@ private fun ReaderPage(
     // title is resolved here at the composition boundary.
     // Volume names are source-provided. Do not translate `Volume 2` into a
     // synthetic localized label when the provider supplied only that value.
-    val cornerTitle: String? = selectedVolume?.title
+    val arabicOnly = preferences.arabicVisible && !preferences.translationVisible
+    val localizedVolumeName: (Int) -> String = { number ->
+        resContext.getString(R.string.reader_volume_title, number)
+    }
+    val cornerTitle: String? = selectedVolume?.title?.let { title ->
+        volumeTitleForDisplay(title, arabicOnly, localizedVolumeName)
+    }
     val cornerRange = remember(state.volumes, state.selectedVolumeId, state.pages) {
         val volumeId = state.selectedVolumeId ?: return@remember null
         if (!ReaderViewModel.isVolumeFullyCached(state.pages)) return@remember null
@@ -672,6 +894,42 @@ private fun ReaderPage(
     // Volume start: the pages list resets on every volume select/jump, so
     // index 0 with content is the volume's first page.
     val isVolumeStart = pageIndex == 0 && hadiths.isNotEmpty() && selectedVolume != null
+    val volumeStartTitle = selectedVolume?.title?.let { title ->
+        volumeTitleForDisplay(title, arabicOnly, localizedVolumeName)
+    }
+
+    // R6 round 3: a user vertical drag collapses to focused (no haptic)
+    // and closes the menu. The DragInteraction gate keeps programmatic
+    // restoration scrolls from collapsing; tap-chrome is untouched.
+    LaunchedEffect(listState) {
+        var userDragging = false
+        launch {
+            listState.interactionSource.interactions.collect { interaction ->
+                userDragging = interaction is DragInteraction.Start
+            }
+        }
+        snapshotFlow { listState.isScrollInProgress }.collect { scrolling ->
+            if (scrolling && userDragging) onUserScroll()
+        }
+    }
+
+    // Intra-page scroll fraction for the dynamic page bars: leading item
+    // plus its consumed offset over the page's item count.
+    LaunchedEffect(listState, hadiths) {
+        snapshotFlow {
+            val info = listState.layoutInfo
+            val total = info.totalItemsCount.coerceAtLeast(1)
+            val first = info.visibleItemsInfo.firstOrNull()
+            if (first == null) {
+                0f
+            } else {
+                val consumed = (-first.offset).coerceAtLeast(0).toFloat() /
+                    first.size.coerceAtLeast(1)
+                ((first.index + consumed) / total).coerceIn(0f, 1f)
+            }
+        }.distinctUntilChanged { a, b -> abs(a - b) < 0.005f }
+            .collect { onPageScrollFraction(pageIndex, it) }
+    }
 
     LaunchedEffect(restorationGeneration, restoration?.anchor?.providerHadithId ?: landingHadithNumber, hadiths.firstOrNull()?._id) {
         val targetId = restoration?.anchor?.providerHadithId ?: landingHadithNumber
@@ -738,10 +996,11 @@ private fun ReaderPage(
                 // count line beneath, on the volume's first page only.
                 if (isVolumeStart) {
                     item(key = "reader-volume-start") {
+                        val volumeTitle = volumeStartTitle
                         val volume = selectedVolume
-                        if (volume != null) {
+                        if (volume != null && volumeTitle != null) {
                             VolumeStartHeader(
-                                title = volume.title,
+                                title = volumeTitle,
                                 hadithCount = volume.hadithCount.toInt(),
                             )
                         }
@@ -751,16 +1010,24 @@ private fun ReaderPage(
                     Column {
                         if (chapterOpenings.contains(index)) {
                             val chapterName = hadith.chapterName.orEmpty()
+                            // Item 2: Arabic-only reading uses the provider's
+                            // arabicTitle as the chapter line when present;
+                            // mixed/translation-only behavior is unchanged.
+                            val arabicTitleFor = ReaderChapterBoundaries.arabicTitleFor(
+                                volumeChapters,
+                                chapterName,
+                            )
                             ReaderChapterHeader(
-                                title = chapterName,
-                                arabicTitle = visibleArabicChapterTitle(
-                                    arabicVisible = preferences.arabicVisible,
-                                    title = chapterName,
-                                    arabicTitle = ReaderChapterBoundaries.arabicTitleFor(
-                                        volumeChapters,
-                                        chapterName,
-                                    ),
-                                ),
+                                title = chapterTitleForDisplay(chapterName, arabicTitleFor, arabicOnly),
+                                arabicTitle = if (arabicOnly) {
+                                    null
+                                } else {
+                                    visibleArabicChapterTitle(
+                                        arabicVisible = preferences.arabicVisible,
+                                        title = chapterName,
+                                        arabicTitle = arabicTitleFor,
+                                    )
+                                },
                             )
                         }
                         HadithBlock(
@@ -1125,24 +1392,31 @@ private fun PageChevron(
     }
 }
 
-/** The thin top progress indicator shown while the reader chrome is hidden.
- * Non-interactive and hidden from traversal; the expanded pill carries the
- * accessible reading-position description. */
+/**
+ * The short neutral progress capsule (item 6): a narrow track with a
+ * neutral fill, never green, never full-width. The one mid-screen bar is
+ * gone; focused shows one thin capsule, unfocused a static volume capsule
+ * plus a thicker page capsule. Non-interactive and hidden from traversal.
+ */
 @Composable
-private fun CompactProgressBar(fraction: Double) {
+private fun ReaderProgressCapsule(
+    fraction: Double,
+    thickness: androidx.compose.ui.unit.Dp,
+    testTag: String,
+    modifier: Modifier = Modifier,
+) {
     val colors = LocalHadithlyColors.current
     Box(
-        modifier = Modifier
-            .statusBarsPadding()
-            .padding(top = 6.dp)
-            .width(216.dp)
-            .height(3.dp)
-            .background(colors.divider.copy(alpha = 0.6f), RoundedCornerShape(50)),
+        modifier = modifier
+            .width(128.dp)
+            .height(thickness)
+            .background(colors.divider.copy(alpha = 0.6f), RoundedCornerShape(50))
+            .testTag(testTag),
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth(fraction.toFloat().coerceIn(0.02f, 1f))
-                .height(3.dp)
+                .height(thickness)
                 .background(colors.textSecondary.copy(alpha = 0.8f), RoundedCornerShape(50)),
         )
     }
@@ -1434,6 +1708,7 @@ internal fun HadithBlock(
             hadith = hadith,
             isBookmarked = deps.isBookmarked,
             isFavorite = deps.isFavorite,
+            hasNote = deps.hasNote,
             onShowSource = onShowSource,
         )
 
@@ -1444,9 +1719,14 @@ internal fun HadithBlock(
             onDismiss = { menuExpanded = false },
         )
 
+        // Item 2: Arabic-only reading shows the provider's Arabic narrator
+        // line (narratorAr, RTL) between the header and the Arabic; a
+        // missing line stays hidden. Mixed/translation-only keep the
+        // English narrator at the translation's leading edge.
         val arabicOnly = preferences.arabicVisible && !preferences.translationVisible
+        val narratorText = narratorForMode(hadith, arabicOnly)
         if (arabicOnly) {
-            NarratorLine(hadith.narrator, preferences, arabicAligned = true)
+            NarratorLine(narratorText, preferences, arabicAligned = true)
         }
 
         if (preferences.arabicVisible) {
@@ -1472,7 +1752,7 @@ internal fun HadithBlock(
         // translation's leading edge. Arabic-only mode placed it above the
         // Arabic block, under the source header, in the Arabic direction.
         if (!arabicOnly) {
-            NarratorLine(hadith.narrator, preferences, arabicAligned = false)
+            NarratorLine(narratorText, preferences, arabicAligned = false)
         }
 
         if (preferences.translationVisible) {
@@ -1535,19 +1815,24 @@ private fun NarratorLine(narrator: String?, preferences: ReaderPreferences, arab
 
 /**
  * R6A fix: non-interactive saved-state indicators trailing the header
- * label. Bookmark and favorite only — there is no note icon (notes stay in
- * the long-press menu, TalkBack actions, and the bottom menu later).
+ * label. Bookmark and favorite plus the R6 round 3 green note dot — like
+ * the Sajda verse markers, indicators only, never buttons.
  */
 internal enum class SavedMiniMarker {
     BOOKMARK,
-    FAVORITE;
+    FAVORITE,
+    NOTE;
 }
 
-internal fun savedMiniMarkers(isBookmarked: Boolean, isFavorite: Boolean): List<SavedMiniMarker> =
-    buildList {
-        if (isBookmarked) add(SavedMiniMarker.BOOKMARK)
-        if (isFavorite) add(SavedMiniMarker.FAVORITE)
-    }
+internal fun savedMiniMarkers(
+    isBookmarked: Boolean,
+    isFavorite: Boolean,
+    hasNote: Boolean = false,
+): List<SavedMiniMarker> = buildList {
+    if (isBookmarked) add(SavedMiniMarker.BOOKMARK)
+    if (isFavorite) add(SavedMiniMarker.FAVORITE)
+    if (hasNote) add(SavedMiniMarker.NOTE)
+}
 
 /**
  * R6A fix: the bracketed per-hadith header label (`[Bukhari – 57]`).
@@ -1570,6 +1855,7 @@ internal fun HadithHeader(
     isBookmarked: Boolean,
     isFavorite: Boolean,
     onShowSource: () -> Unit,
+    hasNote: Boolean = false,
 ) {
     val colors = LocalHadithlyColors.current
     val grade = ReaderGrade.from(hadith.authenticity.normalizedGrade)
@@ -1600,20 +1886,23 @@ internal fun HadithHeader(
                 color = colors.textPrimary,
             )
         }
-        for (marker in savedMiniMarkers(isBookmarked, isFavorite)) {
+        for (marker in savedMiniMarkers(isBookmarked, isFavorite, hasNote)) {
             Spacer(modifier = Modifier.width(7.dp))
             Icon(
                 imageVector = when (marker) {
                     SavedMiniMarker.BOOKMARK -> Icons.Filled.Bookmark
                     SavedMiniMarker.FAVORITE -> Icons.Filled.Favorite
+                    SavedMiniMarker.NOTE -> Icons.Filled.Note
                 },
                 contentDescription = when (marker) {
                     SavedMiniMarker.BOOKMARK -> "Bookmarked"
                     SavedMiniMarker.FAVORITE -> "Favorited"
+                    SavedMiniMarker.NOTE -> "Has note"
                 },
                 tint = when (marker) {
                     SavedMiniMarker.BOOKMARK -> colors.bookmark
                     SavedMiniMarker.FAVORITE -> colors.favorite
+                    SavedMiniMarker.NOTE -> colors.accent
                 },
                 modifier = Modifier
                     .size(12.dp)
@@ -1621,6 +1910,7 @@ internal fun HadithHeader(
                         when (marker) {
                             SavedMiniMarker.BOOKMARK -> "reader.savedBookmark"
                             SavedMiniMarker.FAVORITE -> "reader.savedFavorite"
+                            SavedMiniMarker.NOTE -> "reader.savedNote"
                         },
                     ),
             )
@@ -1939,6 +2229,71 @@ private fun QuietNotice(
 
 // Contents sheet
 
+/**
+ * Dark Sajda card aesthetic shared by the reader sheets (contents,
+ * settings, search results, bookmarks and notes): near-black canvas cards
+ * with a quiet title, a secondary subtitle, and a trailing count or
+ * chevron. No Quran-only modes or tabs.
+ */
+@Composable
+internal fun SajdaCardRow(
+    title: String,
+    subtitle: String?,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    trailingCount: String? = null,
+    showChevron: Boolean = true,
+    selected: Boolean = false,
+    testTag: String? = null,
+) {
+    val colors = LocalHadithlyColors.current
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .fillMaxWidth()
+            .background(
+                if (selected) colors.accentSoft else colors.surface,
+                RoundedCornerShape(16.dp),
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 18.dp, vertical = 14.dp)
+            .then(if (testTag != null) Modifier.testTag(testTag) else Modifier),
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color = colors.textPrimary,
+            )
+            if (!subtitle.isNullOrEmpty()) {
+                Text(
+                    text = subtitle,
+                    fontSize = 12.sp,
+                    color = colors.textSecondary,
+                    modifier = Modifier.padding(top = 2.dp),
+                )
+            }
+        }
+        if (trailingCount != null) {
+            Text(
+                text = trailingCount,
+                fontSize = 14.sp,
+                color = colors.textSecondary,
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+        }
+        if (showChevron) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.NavigateNext,
+                contentDescription = null,
+                tint = colors.textSecondary,
+                modifier = Modifier.size(18.dp),
+            )
+        }
+    }
+}
+
 @Composable
 internal fun ContentsSheet(
     volumes: List<com.hadithly.app.core.data.OutlineVolume>,
@@ -1965,9 +2320,32 @@ internal fun ContentsSheet(
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
+        modifier = Modifier.testTag("reader.contents.sheet"),
     ) {
         item {
-            Text("Contents", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    "Contents",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colors.textPrimary,
+                    modifier = Modifier.weight(1f),
+                )
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.size(48.dp).testTag("reader.contents.close"),
+                ) {
+                    Icon(
+                        Icons.Filled.Close,
+                        contentDescription = "Close contents",
+                        tint = colors.textSecondary,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+            }
             Spacer(modifier = Modifier.height(8.dp))
         }
         item(key = "contents-jump") {
@@ -2009,8 +2387,11 @@ internal fun ContentsSheet(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(if (selected) colors.accentSoft else colors.surfaceElevated, RoundedCornerShape(12.dp))
-                    .padding(horizontal = 16.dp, vertical = 6.dp),
+                    .background(
+                        if (selected) colors.accentSoft else colors.surface,
+                        RoundedCornerShape(16.dp),
+                    )
+                    .padding(horizontal = 18.dp, vertical = 6.dp),
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -2024,16 +2405,22 @@ internal fun ContentsSheet(
                     ) {
                         Text(
                             text = volume.title,
-                            fontSize = 15.sp,
-                            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                            fontSize = 16.sp,
+                            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
                             color = colors.textPrimary,
                         )
                         Text(
                             text = "${volume.hadithCount.toInt()} hadiths",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             color = colors.textSecondary,
+                            modifier = Modifier.padding(top = 2.dp),
                         )
                     }
+                    Text(
+                        text = volume.hadithCount.toInt().toString(),
+                        fontSize = 14.sp,
+                        color = colors.textSecondary,
+                    )
                     // Chapters render only when the source provides them;
                     // pre-R5 cached outlines show volumes exactly as before.
                     if (volume.chapters.isNotEmpty()) {
@@ -2069,7 +2456,7 @@ internal fun ContentsSheet(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = chapter.title,
-                                    fontSize = 14.sp,
+                                    fontSize = 15.sp,
                                     color = colors.textPrimary,
                                 )
                                 val arabic = visibleArabicChapterTitle(
@@ -2090,6 +2477,12 @@ internal fun ContentsSheet(
                                     color = colors.textSecondary,
                                 )
                             }
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.NavigateNext,
+                                contentDescription = null,
+                                tint = colors.textSecondary,
+                                modifier = Modifier.size(18.dp),
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.height(4.dp))
@@ -2102,12 +2495,13 @@ internal fun ContentsSheet(
 // Reader settings sheet
 
 /**
- * Reader settings (R4): visibility, theme, Arabic face and size with a live
- * preview, and the translation language. Direct controls, close to the text;
- * account and global settings stay in the Settings tab.
+ * Reader settings (R4, Sajda card restyle in R6 round 3): visibility,
+ * theme, Arabic face and size with a live preview, and the translation
+ * language. Direct controls, close to the text; account and global
+ * settings stay in the Settings tab. No Quran-only modes or tabs.
  */
 @Composable
-private fun SettingsSheet(
+internal fun SettingsSheet(
     preferences: ReaderPreferences,
     language: String,
     onLanguage: (String) -> Unit,
@@ -2122,9 +2516,10 @@ private fun SettingsSheet(
         modifier = Modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
-            .padding(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 32.dp),
+            .padding(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 32.dp)
+            .testTag("reader.settings.sheet"),
     ) {
-        Text("Reader settings", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
+        Text("Settings", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
 
         Text("Show on page", fontSize = 13.sp, color = colors.textSecondary)
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -2237,7 +2632,7 @@ private fun SettingsSheet(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(if (selected) colors.accentSoft else colors.surfaceElevated, RoundedCornerShape(10.dp))
+                    .background(if (selected) colors.accentSoft else colors.surface, RoundedCornerShape(16.dp))
                     .selectable(
                         selected = selected,
                         role = Role.RadioButton,
@@ -2278,7 +2673,7 @@ private fun SettingsSheet(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(if (selected) colors.accentSoft else colors.surfaceElevated, RoundedCornerShape(12.dp))
+                        .background(if (selected) colors.accentSoft else colors.surface, RoundedCornerShape(16.dp))
                         .selectable(
                             selected = selected,
                             role = Role.RadioButton,
@@ -2413,6 +2808,368 @@ private fun NoteEditorSheet(
                     if (trimmed.isNotEmpty()) onSave(trimmed)
                 },
             ) { Text("Save", color = colors.accent, fontWeight = FontWeight.Bold) }
+        }
+    }
+}
+
+// Bookmark placement sheet (item 8)
+
+@Composable
+internal fun BookmarkPlacementSheet(
+    targets: BookmarkPlacementTargets,
+    isBookmarked: (ReaderHadith) -> Boolean,
+    onChoose: (ReaderHadith) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val colors = LocalHadithlyColors.current
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp)
+            .testTag("reader.bookmarkSheet"),
+    ) {
+        Text("Bookmark", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
+        PlacementRow(
+            title = "Start of page",
+            subtitle = targets.pageStart?.referenceDisplay ?: "This page",
+            enabled = targets.pageStart != null,
+            bookmarked = targets.pageStart?.let(isBookmarked) == true,
+            testTag = "reader.bookmarkSheet.pageStart",
+            onClick = { targets.pageStart?.let(onChoose) },
+        )
+        PlacementRow(
+            title = "Current hadith",
+            subtitle = targets.positioned?.referenceDisplay ?: "Positioned hadith",
+            enabled = targets.positioned != null,
+            bookmarked = targets.positioned?.let(isBookmarked) == true,
+            testTag = "reader.bookmarkSheet.positioned",
+            onClick = { targets.positioned?.let(onChoose) },
+        )
+        TextButton(
+            onClick = onDismiss,
+            modifier = Modifier.align(Alignment.End).testTag("reader.bookmarkSheet.cancel"),
+        ) { Text("Cancel", color = colors.textSecondary) }
+    }
+}
+
+@Composable
+private fun PlacementRow(
+    title: String,
+    subtitle: String,
+    enabled: Boolean,
+    bookmarked: Boolean,
+    testTag: String,
+    onClick: () -> Unit,
+) {
+    val colors = LocalHadithlyColors.current
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(colors.surface, RoundedCornerShape(16.dp))
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(horizontal = 18.dp, vertical = 14.dp)
+            .testTag(testTag),
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color = if (enabled) colors.textPrimary else colors.textSecondary,
+            )
+            Text(
+                text = subtitle,
+                fontSize = 12.sp,
+                color = colors.textSecondary,
+                modifier = Modifier.padding(top = 2.dp),
+            )
+        }
+        Icon(
+            imageVector = if (bookmarked) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder,
+            contentDescription = if (bookmarked) "Bookmarked" else "Not bookmarked",
+            tint = if (bookmarked) colors.bookmark else colors.textSecondary,
+            modifier = Modifier.size(22.dp),
+        )
+    }
+}
+
+// Search sheet (item 8)
+
+@Composable
+internal fun ReaderSearchSheet(
+    search: suspend (String) -> List<EnglishSearchResult>,
+    onNavigate: (EnglishSearchResult) -> Unit,
+) {
+    val colors = LocalHadithlyColors.current
+    var query by remember { mutableStateOf("") }
+    var results by remember { mutableStateOf<List<EnglishSearchResult>>(emptyList()) }
+    var searching by remember { mutableStateOf(false) }
+    var unavailable by remember { mutableStateOf(false) }
+    var generation by remember { mutableStateOf(0) }
+    val scope = rememberCoroutineScope()
+
+    fun runSearch(text: String) {
+        generation += 1
+        val current = generation
+        if (text.isBlank()) {
+            results = emptyList()
+            searching = false
+            unavailable = false
+            return
+        }
+        searching = true
+        unavailable = false
+        scope.launch {
+            delay(350)
+            if (current != generation) return@launch
+            runCatching { search(text) }
+                .onSuccess { hits ->
+                    if (current != generation) return@launch
+                    results = hits
+                    searching = false
+                }
+                .onFailure {
+                    if (current != generation) return@launch
+                    results = emptyList()
+                    searching = false
+                    unavailable = true
+                }
+        }
+    }
+
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp)
+            .testTag("reader.search.sheet"),
+    ) {
+        Text("Search", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
+        OutlinedTextField(
+            value = query,
+            onValueChange = {
+                query = it
+                runSearch(it)
+            },
+            label = { Text("Search English text", color = colors.textSecondary) },
+            leadingIcon = {
+                Icon(Icons.Filled.Search, contentDescription = null, tint = colors.textSecondary)
+            },
+            singleLine = true,
+            colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = colors.accent,
+                unfocusedBorderColor = colors.divider,
+                focusedTextColor = colors.textPrimary,
+                unfocusedTextColor = colors.textPrimary,
+                cursorColor = colors.accent,
+                focusedContainerColor = colors.surfaceElevated,
+                unfocusedContainerColor = colors.surfaceElevated,
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("reader.search.field"),
+        )
+        when {
+            searching -> Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(vertical = 12.dp),
+            ) {
+                CircularProgressIndicator(
+                    color = colors.textSecondary,
+                    modifier = Modifier.size(14.dp),
+                    strokeWidth = 2.dp,
+                )
+                Text("Searching…", fontSize = 12.sp, color = colors.textSecondary)
+            }
+
+            unavailable -> Text(
+                "Search is unavailable offline.",
+                fontSize = 13.sp,
+                color = colors.textSecondary,
+                modifier = Modifier.padding(vertical = 12.dp),
+            )
+
+            query.isNotBlank() && results.isEmpty() -> Text(
+                "No matches in Sunnah.now English text.",
+                fontSize = 13.sp,
+                color = colors.textSecondary,
+                modifier = Modifier.padding(vertical = 12.dp).testTag("reader.search.empty"),
+            )
+
+            results.isNotEmpty() -> Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.testTag("reader.search.results"),
+            ) {
+                for (result in results) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(colors.surface, RoundedCornerShape(16.dp))
+                            .clickable { onNavigate(result) }
+                            .padding(horizontal = 18.dp, vertical = 14.dp)
+                            .testTag("reader.search.result.${result.canonicalId}"),
+                    ) {
+                        Text(
+                            text = result.referenceDisplay.ifEmpty { result.providerHadithId },
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = colors.textPrimary,
+                        )
+                        if (result.snippet.isNotEmpty()) {
+                            Text(
+                                text = result.snippet,
+                                fontSize = 13.sp,
+                                color = colors.textSecondary,
+                                maxLines = 4,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                modifier = Modifier.padding(top = 4.dp),
+                            )
+                        }
+                        Text(
+                            text = "Sunnah.now English text",
+                            fontSize = 11.sp,
+                            color = colors.textSecondary,
+                            modifier = Modifier
+                                .padding(top = 4.dp)
+                                .testTag("reader.search.sourceLabel"),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Reader Bookmarks and Notes sheet (item 10)
+
+internal enum class ReaderSavedTab(val title: String, val tag: String) {
+    BOOKMARKS("Bookmarks", "bookmarks"),
+    FAVORITES("Favorites", "favorites"),
+    NOTES("Notes", "notes"),
+}
+
+@Composable
+internal fun ReaderSavedSheet(
+    bookmarks: List<SavedEntry>,
+    favorites: List<SavedEntry>,
+    notes: List<SavedEntry>,
+    nowMillis: Long,
+    onOpen: (HadithRef) -> Unit,
+    onEdit: () -> Unit,
+) {
+    val colors = LocalHadithlyColors.current
+    var tab by remember { mutableStateOf(ReaderSavedTab.BOOKMARKS) }
+    val entries = when (tab) {
+        ReaderSavedTab.BOOKMARKS -> bookmarks
+        ReaderSavedTab.FAVORITES -> favorites
+        ReaderSavedTab.NOTES -> notes
+    }
+    Column(
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp)
+            .testTag("reader.saved.sheet"),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            Text(
+                "Bookmarks & Notes",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = colors.textPrimary,
+                modifier = Modifier.weight(1f),
+            )
+            TextButton(
+                onClick = onEdit,
+                modifier = Modifier.testTag("reader.saved.edit"),
+            ) { Text("EDIT", color = colors.accent, fontWeight = FontWeight.Bold) }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            for (entry in ReaderSavedTab.entries) {
+                val selected = tab == entry
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(
+                            if (selected) colors.accentSoft else colors.surface,
+                            RoundedCornerShape(50),
+                        )
+                        .clickable { tab = entry }
+                        .padding(vertical = 10.dp)
+                        .testTag("reader.saved.tab.${entry.tag}"),
+                ) {
+                    Text(
+                        entry.title,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = if (selected) colors.accent else colors.textSecondary,
+                    )
+                }
+            }
+        }
+        if (entries.isEmpty()) {
+            Text(
+                "Nothing saved here yet.",
+                fontSize = 13.sp,
+                color = colors.textSecondary,
+                modifier = Modifier.padding(vertical = 12.dp),
+            )
+        } else {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.testTag("reader.saved.rows"),
+            ) {
+                for (entry in entries) {
+                    val ref = entry.hadith
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(colors.surface, RoundedCornerShape(16.dp))
+                            .clickable(enabled = ref != null) { ref?.let(onOpen) }
+                            .padding(horizontal = 18.dp, vertical = 14.dp)
+                            .testTag("reader.saved.row.${entry.rowId}"),
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = ref?.referenceDisplay?.takeIf { it.isNotEmpty() }
+                                    ?: "Saved hadith",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = colors.textPrimary,
+                            )
+                            if (tab == ReaderSavedTab.NOTES && !entry.noteContent.isNullOrBlank()) {
+                                Text(
+                                    text = entry.noteContent,
+                                    fontSize = 13.sp,
+                                    color = colors.textSecondary,
+                                    maxLines = 2,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                    modifier = Modifier.padding(top = 2.dp),
+                                )
+                            }
+                            Text(
+                                text = relativeTimeLabel(nowMillis, entry.sortDate),
+                                fontSize = 11.sp,
+                                color = colors.textSecondary,
+                                modifier = Modifier.padding(top = 2.dp),
+                            )
+                        }
+                        if (ref != null) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.NavigateNext,
+                                contentDescription = null,
+                                tint = colors.textSecondary,
+                                modifier = Modifier.size(18.dp),
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

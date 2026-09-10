@@ -73,10 +73,10 @@ class ReaderR5Test {
             translationIsAi = false,
             collectionName = "Sahih al-Bukhari",
             providerHadithId = "57",
-            sourceName = "Sunnah.com",
+            sourceName = "Sunnah.now",
         )
         assertEquals(
-            "حَدَّثَنَا\n\nHe said:\n\n— Sahih al-Bukhari · Hadith 57 · Sunnah.com",
+            "حَدَّثَنَا\n\nHe said:\n\n— Sahih al-Bukhari · Hadith 57 · Sunnah.now",
             text,
         )
     }
@@ -89,9 +89,9 @@ class ReaderR5Test {
             translationIsAi = false,
             collectionName = "Sahih al-Bukhari",
             providerHadithId = "57",
-            sourceName = "Sunnah.com",
+            sourceName = "Sunnah.now",
         )
-        assertEquals("حَدَّثَنَا\n\n— Sahih al-Bukhari · Hadith 57 · Sunnah.com", text)
+        assertEquals("حَدَّثَنَا\n\n— Sahih al-Bukhari · Hadith 57 · Sunnah.now", text)
     }
 
     @Test
@@ -102,7 +102,7 @@ class ReaderR5Test {
             translationIsAi = true,
             collectionName = "Sahih al-Bukhari",
             providerHadithId = "57",
-            sourceName = "Sunnah.com",
+            sourceName = "Sunnah.now",
         )
         assertTrue(ai.endsWith("· AI translation"))
         val providerEnglish = ReaderShare.formatCopyText(
@@ -111,7 +111,7 @@ class ReaderR5Test {
             translationIsAi = false,
             collectionName = "Sahih al-Bukhari",
             providerHadithId = "57",
-            sourceName = "Sunnah.com",
+            sourceName = "Sunnah.now",
         )
         assertFalse(providerEnglish.contains("AI translation"))
     }
@@ -124,7 +124,7 @@ class ReaderR5Test {
             translationIsAi = true,
             collectionName = "Sahih al-Bukhari",
             providerHadithId = "57",
-            sourceName = "Sunnah.com",
+            sourceName = "Sunnah.now",
         )
         assertFalse(text.contains("https://"))
         assertFalse(text.contains("hadithly.app"))

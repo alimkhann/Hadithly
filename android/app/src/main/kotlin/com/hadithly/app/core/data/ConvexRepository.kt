@@ -87,6 +87,30 @@ class ConvexRepository(context: Context) {
             )
         }
 
+    /**
+     * R6 reader-menu search over cached provider English text only (no AI,
+     * no generation). The backend owns the 1..25 clamp and returns [] for
+     * blank text; this wrapper short-circuits blank input too so no
+     * subscription opens, runs on Dispatchers.IO, and names its return
+     * type explicitly (reified-call rule).
+     */
+    suspend fun searchEnglish(
+        text: String,
+        collectionSlug: String? = null,
+        limit: Int = 10,
+    ): List<EnglishSearchResult> {
+        if (text.isBlank()) return emptyList()
+        val args = mutableMapOf<String, Any?>(
+            "text" to text,
+            "limit" to limit.toDouble(),
+        )
+        if (!collectionSlug.isNullOrBlank()) args["collectionSlug"] = collectionSlug
+        return withContext(Dispatchers.IO) {
+            subscribe<List<EnglishSearchResult>>("hadiths:searchEnglish", args).firstOrNull()
+                ?: emptyList()
+        }
+    }
+
     suspend fun submitTranslation(
         hadithInternalId: String,
         language: String,

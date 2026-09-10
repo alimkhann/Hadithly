@@ -471,14 +471,19 @@ class ReaderR6ATest {
     }
 
     @Test
-    fun `saved mini markers follow bookmark and favorite only`() {
-        assertEquals(listOf(SavedMiniMarker.BOOKMARK), savedMiniMarkers(true, false))
-        assertEquals(listOf(SavedMiniMarker.FAVORITE), savedMiniMarkers(false, true))
+    fun `saved mini markers follow bookmark favorite and note`() {
+        assertEquals(listOf(SavedMiniMarker.BOOKMARK), savedMiniMarkers(true, false, false))
+        assertEquals(listOf(SavedMiniMarker.FAVORITE), savedMiniMarkers(false, true, false))
+        assertEquals(listOf(SavedMiniMarker.NOTE), savedMiniMarkers(false, false, true))
         assertEquals(
             listOf(SavedMiniMarker.BOOKMARK, SavedMiniMarker.FAVORITE),
-            savedMiniMarkers(true, true),
+            savedMiniMarkers(true, true, false),
         )
-        assertTrue(savedMiniMarkers(false, false).isEmpty())
-        // Notes never produce a marker: no note icon exists.
+        assertEquals(
+            listOf(SavedMiniMarker.BOOKMARK, SavedMiniMarker.FAVORITE, SavedMiniMarker.NOTE),
+            savedMiniMarkers(true, true, true),
+        )
+        assertTrue(savedMiniMarkers(false, false, false).isEmpty())
+        // Bookmark and favorite keep their order; the green note dot trails.
     }
 }
