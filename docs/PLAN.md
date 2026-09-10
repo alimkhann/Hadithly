@@ -881,6 +881,25 @@ substantive: they own bounded implementation outcomes, not just inventories.
   at the recorded dev-content gate (no stored Russian translation), with the
   menu-path language switch verified working. `docs/R6_READER_VIDEO.md`
   holds the frame-by-frame Sajda recording notes for context-less models.
+- Fixes round 3 (2026-09-11, owner video `ScreenRecording_09-11-2026
+  01-56-24_1.MP4`, 197 s: Sajda reference plus Hadithly defects): (1)
+  axis-locked drag paging with pre-rendered neighbor pages; (2) Arabic
+  narrator line (`narratorAr`, RTL) in Arabic-only mode, volume/chapter names
+  follow the visible layers; (3) source truth: provider English is
+  Sunnah.now, never Sunnah.com; (4) any scroll collapses to focused (no
+  haptic) and closes the menu; (5) tap-toggle focus plays haptic, scroll
+  never does; (6) focused thin narrow dynamic page bar below the notch,
+  unfocused static volume bar plus thicker page bar, no mid-screen bar;
+  (7) prefetch outline plus first page on Library/Home/Saved entry and
+  adjacent volumes in the reader; (8) menu restyle to the Sajda order
+  (Contents, Bookmarks and Notes, Settings, Bookmark plus functional
+  English-text Search), bookmark placement choice, filled state, chevron-left
+  back; (9) green note indicator by the hadith label; (10) Sajda-styled
+  contents, settings, search-results, and reader Bookmarks and Notes sheets.
+  Search contract (new public query): `hadiths:searchEnglish { text,
+  collectionSlug?, limit? }` returns `[{ hadithId, canonicalId,
+  collectionSlug, providerHadithId, referenceDisplay, snippet }]` over
+  cached English text only.
 
 ## Delegation policy
 
