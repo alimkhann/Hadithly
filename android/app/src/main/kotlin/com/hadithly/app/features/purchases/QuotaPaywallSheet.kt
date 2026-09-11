@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -137,10 +138,18 @@ fun QuotaPaywallSheet(
 
 @Composable
 private fun PackageButton(packageToShow: Package, purchasing: Boolean, onPurchase: () -> Unit) {
+    // Round 8: reader-palette button colors in all four palettes — never
+    // the global MaterialTheme defaults when shown from the reader.
     val colors = LocalHadithlyColors.current
     Button(
         enabled = !purchasing,
         onClick = onPurchase,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = colors.accent,
+            contentColor = androidx.compose.ui.graphics.Color.Black,
+            disabledContainerColor = colors.surfaceElevated,
+            disabledContentColor = colors.textSecondary,
+        ),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
@@ -163,7 +172,13 @@ private fun ActiveAccess(onUnlocked: () -> Unit) {
             .padding(18.dp),
     ) {
         Text("Hadithly Pro is active", fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
-        Button(onClick = onUnlocked) { Text("Continue reading") }
+        Button(
+            onClick = onUnlocked,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = colors.accent,
+                contentColor = androidx.compose.ui.graphics.Color.Black,
+            ),
+        ) { Text("Continue reading") }
     }
 }
 

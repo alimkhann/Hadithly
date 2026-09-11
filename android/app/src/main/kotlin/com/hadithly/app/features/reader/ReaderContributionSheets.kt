@@ -229,7 +229,15 @@ fun TranslationReportSheet(
                         submitting = false
                     }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = colors.accent, contentColor = Color.Black),
+                // Round 8: reader-palette button colors (matches the
+                // submission sheet) in all four palettes — never the global
+                // MaterialTheme defaults.
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colors.accent,
+                    contentColor = Color.Black,
+                    disabledContainerColor = colors.surfaceElevated,
+                    disabledContentColor = colors.textSecondary,
+                ),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth().testTag("report.submit"),
             ) { Text(if (submitting) "Sending…" else "Send private report", fontWeight = FontWeight.SemiBold) }

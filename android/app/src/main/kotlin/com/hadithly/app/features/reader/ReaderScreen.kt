@@ -108,6 +108,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
@@ -584,8 +585,14 @@ private fun ReadingView(
             modifier = Modifier.fillMaxSize(),
         ) { pageIndex ->
                 val pages = state.pages
-                // Stable per-page identity: the backend pageKey when loaded,
-                // the index otherwise. The pager's neighbor compositions
+                // Stable per-page identity: volume plus the backend pageKey
+                // when loaded, the index otherwise. The key never involves
+                // the settled pageIndex, so a settle never re-creates the
+                // current page composition — scroll position is driven
+                // explicitly instead (top for first visits via the cache
+                // miss default, the cached offset for revisits, the
+                // preview tick for neighbors, R1/R2 restoration for
+                // landings). The pager's neighbor compositions
                 // (beyondViewportPageCount) then survive list appends and the
                 // outgoing page never drops mid-gesture (no flicker); a
                 // settle-or-cancel just reuses the kept composition.
@@ -596,8 +603,16 @@ private fun ReadingView(
                 // (placeholder load, volume switch) changes identity and
                 // re-resolves exactly once.
                 val page = pages.getOrNull(pageIndex)
-                key(page?.pageKey ?: "page-$pageIndex") {
+                key("${state.selectedVolumeId}:${page?.pageKey ?: "page-$pageIndex"}") {
                     val stableHadiths = remember(page) { page?.items ?: emptyList() }
+                    // Round 8: end-of-page pills resolve per pager slot from
+                    // already-cached synchronous sources (this slot's index,
+                    // the loaded pages list, the outline). Keyed on those —
+                    // never on the settled pageIndex — so settling a swipe
+                    // recomposes no pill and nothing arrives a frame late.
+                    val pagePillState = remember(pageIndex, pages, state.volumes, state.selectedVolumeId) {
+                        pagePillsForPage(pageIndex, pages, state.volumes, state.selectedVolumeId)
+                    }
                     ReaderPage(
                         viewModel = viewModel,
                         state = state,
@@ -606,7 +621,7 @@ private fun ReadingView(
                         preferences = preferences,
                         pagingPolicy = pagingPolicy,
                         pageIndex = pageIndex,
-                        pillState = viewModel.pagePills(),
+                        pillState = pagePillState,
                         restoration = viewModel.restoredPosition,
                         restorationGeneration = viewModel.restorationGeneration,
                         landingHadithNumber = viewModel.landingHadithNumber,
@@ -723,7 +738,14 @@ private fun ReadingView(
                             readerMenuExpanded = false
                             onOpenSettings()
                         },
-                        onBookmark = { showBookmarkPlacement = true },
+                        onBookmark = {
+                            // Round 8: the menu closes before the centered
+                            // placement dialog presents — a single dialog over
+                            // a single scrim, never menu cards ghosting
+                            // behind the card.
+                            readerMenuExpanded = false
+                            showBookmarkPlacement = true
+                        },
                         onSearch = {
                             readerMenuExpanded = false
                             showSearch = true
@@ -1130,11 +1152,21 @@ private fun ReaderPage(
     val cornerTitle: String? = selectedVolume?.title?.let { title ->
         volumeTitleForDisplay(title, arabicOnly, localizedVolumeName)
     }
-    val cornerRange = remember(state.volumes, state.selectedVolumeId, state.pages) {
+    // Round 8: the range resolves from already-cached synchronous sources
+    // (the outline counts plus the loaded pages list) and latches per
+    // volume the first time it computes — a later prefetch append can never
+    // flip `Title: a–b` back to `Title` for a frame. Single-line slot, so
+    // even the first arrival never changes height.
+    val latchedRanges = remember { mutableMapOf<String, Pair<Int, Int>>() }
+    val freshRange = remember(state.volumes, state.selectedVolumeId, state.pages) {
         val volumeId = state.selectedVolumeId ?: return@remember null
         if (!ReaderViewModel.isVolumeFullyCached(state.pages)) return@remember null
         ReaderViewModel.volumeHadithRange(state.volumes, volumeId)
     }
+    if (freshRange != null && state.selectedVolumeId != null) {
+        latchedRanges[state.selectedVolumeId] = freshRange
+    }
+    val cornerRange = latchedRanges[state.selectedVolumeId] ?: freshRange
     // Volume start: the pages list resets on every volume select/jump, so
     // page index 0 with content is the volume's first page. The header slot
     // itself is emitted synchronously (see below); only the header CONTENT
@@ -1276,28 +1308,15 @@ private fun ReaderPage(
                     start = 22.dp, end = 22.dp, top = 20.dp, bottom = 80.dp,
                 ),
             ) {
-                // Round 7, no top jerk: the corner slot is ALWAYS composed
-                // (every page) at a fixed single-line height — blank until
-                // the volume title resolves — so the label can never pop in
-                // late and shift content down after the page appears. The
-                // range text may resolve later, but it never changes height.
-                item(key = "reader-volume-corner") {
-                    VolumeCornerLabel(
-                        title = cornerTitle ?: "",
-                        range = cornerRange,
-                        placeholder = cornerTitle == null,
-                        modifier = Modifier.graphicsLayer {
-                            alpha = chromeAlpha
-                            scaleX = chromeScale
-                            scaleY = chromeScale
-                        },
-                    )
-                }
-                // Round 7, no top jerk: the volume-start slot is composed
-                // synchronously with page 0 (not gated on the volume
-                // resolving). Until the header data lands, a fixed-height
-                // placeholder holds the space — no layout shift on arrival.
-                if (pageIndex == 0 && hadiths.isNotEmpty()) {
+                // Round 8, no top jerk (mirrors iOS headerSlot): the first
+                // page of a volume shows ONLY the volume-start header slot;
+                // every other page shows ONLY the corner slot. Each slot is
+                // composed synchronously at its FINAL height from the first
+                // frame — real content when the volume has resolved, an
+                // invisible same-layout placeholder until then — so nothing
+                // pops in late and content never shifts down. Placeholders
+                // carry no test tags, so queries only match real content.
+                if (pageIndex == 0) {
                     item(key = "reader-volume-start") {
                         val volumeTitle = volumeStartTitle
                         val volume = selectedVolume
@@ -1308,12 +1327,21 @@ private fun ReaderPage(
                                 hadithCount = volume.hadithCount.toInt(),
                             )
                         } else {
-                            Spacer(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(VolumeStartPlaceholderHeight),
-                            )
+                            VolumeStartHeaderPlaceholder()
                         }
+                    }
+                } else {
+                    item(key = "reader-volume-corner") {
+                        VolumeCornerLabel(
+                            title = cornerTitle ?: " ",
+                            range = cornerRange,
+                            placeholder = cornerTitle == null,
+                            modifier = Modifier.graphicsLayer {
+                                alpha = chromeAlpha
+                                scaleX = chromeScale
+                                scaleY = chromeScale
+                            },
+                        )
                     }
                 }
                 itemsIndexed(hadiths, key = { _, hadith -> hadith._id }) { index, hadith ->
@@ -1732,13 +1760,15 @@ private fun ReaderProgressPill(
             .background(colors.surface.copy(alpha = 0.92f))
             .testTag(testTag),
     ) {
-        // Round 5: the fill is inset with the same rounded shape, so low
-        // fills stay a rounded nub and never show square corners.
+        // Round 8: the fill occupies the FULL pill height — no top/bottom
+        // inset, only a small horizontal inset — clipped to the pill
+        // capsule, so low fills stay a rounded nub and never show square
+        // corners. The fill fraction still animates (see above).
         Box(
             modifier = Modifier
                 .align(Alignment.CenterStart)
-                .padding(3.dp)
                 .fillMaxHeight()
+                .padding(horizontal = 3.dp)
                 .fillMaxWidth(animatedFraction)
                 .clip(RoundedCornerShape(50))
                 .background(colors.textSecondary.copy(alpha = 0.22f)),
@@ -1839,10 +1869,26 @@ internal fun VolumeCornerLabel(
     placeholder: Boolean = false,
 ) {
     val colors = LocalHadithlyColors.current
+    // Round 8: the placeholder is an invisible same-font single space —
+    // same line height as real text — and carries no test tag, so element
+    // queries only ever match real content (mirrors iOS headerSlot).
+    if (placeholder) {
+        Text(
+            text = " ",
+            fontSize = 12.sp,
+            color = colors.textSecondary.copy(alpha = 0f),
+            textAlign = TextAlign.Start,
+            minLines = 1,
+            maxLines = 1,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            modifier = modifier.fillMaxWidth(),
+        )
+        return
+    }
     Text(
-        text = if (range != null && title.isNotEmpty()) "$title: ${range.first}–${range.second}" else title,
+        text = if (range != null && title.isNotBlank()) "$title: ${range.first}–${range.second}" else title,
         fontSize = 12.sp,
-        color = if (placeholder) colors.textSecondary.copy(alpha = 0f) else colors.textSecondary,
+        color = colors.textSecondary,
         textAlign = TextAlign.Start,
         minLines = 1,
         maxLines = 1,
@@ -1854,37 +1900,36 @@ internal fun VolumeCornerLabel(
 }
 
 /**
- * Round 7: the fixed space held for the volume-start header while its data
- * resolves — sized to a one-line header (eyebrow + title + count +
- * vertical padding), so arrival never shifts content.
- */
-private val VolumeStartPlaceholderHeight = 100.dp
-
-/**
  * R6A volume start: the ACTUAL volume name as the big centered title with
  * a small quiet localized `Volume N` eyebrow above it and a localized
  * ICU-plural count line beneath (e.g. "10 hadiths"). Rendered on the
  * volume's first page only.
+ *
+ * Round 8: every line slot is always composed — a missing eyebrow or count
+ * renders as invisible same-font text — so the header height is identical
+ * before and after each piece of data lands. Real lines keep their test
+ * tags; invisible slots carry none.
  */
 @Composable
 internal fun VolumeStartHeader(title: String, eyebrow: String? = null, hadithCount: Int) {
     val colors = LocalHadithlyColors.current
+    val invisible = colors.textSecondary.copy(alpha = 0f)
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 12.dp, bottom = 24.dp),
     ) {
-        if (eyebrow != null) {
-            Text(
-                text = eyebrow,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium,
-                color = colors.textSecondary,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.testTag("reader.volumeEyebrow"),
-            )
-        }
+        Text(
+            text = eyebrow ?: " ",
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            color = if (eyebrow != null) colors.textSecondary else invisible,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            modifier = if (eyebrow != null) Modifier.testTag("reader.volumeEyebrow") else Modifier,
+        )
         Text(
             text = title,
             fontSize = 20.sp,
@@ -1892,15 +1937,64 @@ internal fun VolumeStartHeader(title: String, eyebrow: String? = null, hadithCou
             color = colors.textPrimary,
             textAlign = TextAlign.Center,
         )
-        if (hadithCount > 0) {
-            Text(
-                text = pluralStringResource(R.plurals.reader_hadith_count, hadithCount, hadithCount),
-                fontSize = 13.sp,
-                color = colors.textSecondary,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 4.dp),
-            )
-        }
+        Text(
+            text = if (hadithCount > 0) {
+                pluralStringResource(R.plurals.reader_hadith_count, hadithCount, hadithCount)
+            } else {
+                " "
+            },
+            fontSize = 13.sp,
+            color = if (hadithCount > 0) colors.textSecondary else invisible,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+    }
+}
+
+/**
+ * Round 8: identifier-free stand-in with the exact font stack, weights,
+ * and padding of [VolumeStartHeader], so the first-page slot keeps its
+ * height before the volume arrives. Hidden from assistive tech and element
+ * queries (mirrors iOS ReaderVolumeHeaderPlaceholder).
+ */
+@Composable
+internal fun VolumeStartHeaderPlaceholder() {
+    val colors = LocalHadithlyColors.current
+    val invisible = colors.textSecondary.copy(alpha = 0f)
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp, bottom = 24.dp)
+            .clearAndSetSemantics {},
+    ) {
+        Text(
+            text = " ",
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            color = invisible,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+        )
+        Text(
+            text = " ",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = invisible,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            text = " ",
+            fontSize = 13.sp,
+            color = invisible,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            modifier = Modifier.padding(top = 4.dp),
+        )
     }
 }
 
@@ -3377,6 +3471,19 @@ internal fun BookmarkPlacementSheet(
     val colors = LocalHadithlyColors.current
     // Round 7: centered dialog card content (the caller presents it in a
     // Dialog with a dimmed scrim) — wraps its content, never full-height.
+    // Round 8: the rows come from bookmarkDialogRows, which always returns
+    // exactly [pageStart, positioned, cancel] — every row renders with its
+    // test tag, so a Cancel-only card plus ghosted layers cannot happen.
+    // Single presentation: the caller closes the reader menu before showing
+    // this one Dialog (single scrim, tap-outside cancels).
+    val pageStartRow: BookmarkDialogRow
+    val positionedRow: BookmarkDialogRow
+    val cancelRow: BookmarkDialogRow
+    bookmarkDialogRows(targets, isBookmarked).also {
+        pageStartRow = it[0]
+        positionedRow = it[1]
+        cancelRow = it[2]
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -3386,27 +3493,27 @@ internal fun BookmarkPlacementSheet(
     ) {
         Text("Bookmark", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
         PlacementRow(
-            title = "Start of page",
-            subtitle = targets.pageStart?.referenceDisplay ?: "This page",
-            enabled = targets.pageStart != null,
-            bookmarked = targets.pageStart?.let(isBookmarked) == true,
-            testTag = "reader.bookmarkSheet.pageStart",
-            onClick = { targets.pageStart?.let(onChoose) },
+            title = pageStartRow.title,
+            subtitle = pageStartRow.subtitle,
+            enabled = pageStartRow.enabled,
+            bookmarked = pageStartRow.bookmarked,
+            testTag = pageStartRow.testTag,
+            onClick = { pageStartRow.target?.let(onChoose) },
         )
         HorizontalDivider(color = colors.divider.copy(alpha = 0.5f))
         PlacementRow(
-            title = "Current hadith",
-            subtitle = targets.positioned?.referenceDisplay ?: "Positioned hadith",
-            enabled = targets.positioned != null,
-            bookmarked = targets.positioned?.let(isBookmarked) == true,
-            testTag = "reader.bookmarkSheet.positioned",
-            onClick = { targets.positioned?.let(onChoose) },
+            title = positionedRow.title,
+            subtitle = positionedRow.subtitle,
+            enabled = positionedRow.enabled,
+            bookmarked = positionedRow.bookmarked,
+            testTag = positionedRow.testTag,
+            onClick = { positionedRow.target?.let(onChoose) },
         )
         HorizontalDivider(color = colors.divider.copy(alpha = 0.5f))
         TextButton(
             onClick = onDismiss,
-            modifier = Modifier.align(Alignment.End).testTag("reader.bookmarkSheet.cancel"),
-        ) { Text("Cancel", color = colors.textSecondary) }
+            modifier = Modifier.align(Alignment.End).testTag(cancelRow.testTag),
+        ) { Text(cancelRow.title, color = colors.textSecondary) }
     }
 }
 

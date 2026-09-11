@@ -3,6 +3,7 @@ package com.hadithly.app.features.reader
 import com.hadithly.app.core.data.OutlineChapter
 import com.hadithly.app.core.data.OutlineVolume
 import com.hadithly.app.core.data.ReaderHadith
+import com.hadithly.app.core.data.ReaderPageResult
 
 /**
  * R6 round 3 pure display rules. Every function is unit-pinned; the
@@ -128,6 +129,76 @@ fun volumeHeaderTitle(volume: OutlineVolume): String {
 fun volumeHeaderNumber(volume: OutlineVolume): Int? =
     ReaderViewModel.volumeTitleNumber(volume.title) ?: volume.volumeId.toIntOrNull()
 
+/**
+ * Round 8: end-of-page pills for ONE pager slot, resolved from
+ * already-cached synchronous sources (the slot's own index, the loaded
+ * pages list, the outline). Unlike the settled-index pill state, this never
+ * depends on which page the pager settled on — so a settle recomposes no
+ * pill and neighbor slots always show their own correct labels from the
+ * first frame. For the settled slot the result matches
+ * `ReaderViewModel.pagePills()`.
+ */
+internal fun pagePillsForPage(
+    pagerPageIndex: Int,
+    pages: List<ReaderPageResult>,
+    volumes: List<OutlineVolume>,
+    selectedVolumeId: String?,
+): ReaderPagePills.State = ReaderPagePills.state(
+    pageIndex = pagerPageIndex,
+    hasPreviousPage = pagerPageIndex > 0,
+    hasNextPage = pagerPageIndex < pages.size - 1 ||
+        pages.getOrNull(pagerPageIndex)?.hasMore == true,
+    atLoadedPage = pages.getOrNull(pagerPageIndex)?.isPlaceholder == false,
+    volumes = volumes,
+    selectedVolumeId = selectedVolumeId,
+)
+
+/** One row of the centered bookmark-placement dialog. */
+data class BookmarkDialogRow(
+    val testTag: String,
+    val title: String,
+    val subtitle: String,
+    val enabled: Boolean,
+    val bookmarked: Boolean,
+    /** The hadith choosing this row bookmarks; null for Cancel. */
+    val target: ReaderHadith?,
+)
+
+/**
+ * Round 8: the bookmark dialog always renders exactly three rows — title
+ * plus Start-of-page, Current-hadith, and Cancel. Unavailable slots stay
+ * visible but disabled (with a fallback subtitle), so the white card with
+ * only a Cancel row the owner screenshotted cannot happen. Unit-pinned.
+ */
+fun bookmarkDialogRows(
+    targets: BookmarkPlacementTargets,
+    isBookmarked: (ReaderHadith) -> Boolean,
+): List<BookmarkDialogRow> = listOf(
+    BookmarkDialogRow(
+        testTag = "reader.bookmarkSheet.pageStart",
+        title = "Start of page",
+        subtitle = targets.pageStart?.referenceDisplay ?: "This page",
+        enabled = targets.pageStart != null,
+        bookmarked = targets.pageStart?.let(isBookmarked) == true,
+        target = targets.pageStart,
+    ),
+    BookmarkDialogRow(
+        testTag = "reader.bookmarkSheet.positioned",
+        title = "Current hadith",
+        subtitle = targets.positioned?.referenceDisplay ?: "Positioned hadith",
+        enabled = targets.positioned != null,
+        bookmarked = targets.positioned?.let(isBookmarked) == true,
+        target = targets.positioned,
+    ),
+    BookmarkDialogRow(
+        testTag = "reader.bookmarkSheet.cancel",
+        title = "Cancel",
+        subtitle = "",
+        enabled = true,
+        bookmarked = false,
+        target = null,
+    ),
+)
 /**
  * R6 reader fix round: the unfocused Page pill (`Page N`) fills with the
  * intra-page scroll fraction only — position within the current page.

@@ -1490,6 +1490,10 @@ struct ReaderBookmarkPlacementOptions: View {
     let onCancel: () -> Void
 
     var body: some View {
+        // NOTE: the rows must live in an explicit VStack. Without one the
+        // TupleView overlays title + rows and only the last row (Cancel)
+        // is visible — the round-7 dialog shipped exactly that bug.
+        VStack(alignment: .leading, spacing: 0) {
         Text("Add bookmark")
             .font(.headline)
             .foregroundStyle(palette.textPrimary)
@@ -1522,6 +1526,7 @@ struct ReaderBookmarkPlacementOptions: View {
             }
         }
         placementOption(title: "Cancel", identifier: "reader.bookmarkPlacement.cancel", onCancel)
+        }
     }
 
     private func placementOption(

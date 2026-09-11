@@ -298,6 +298,10 @@ struct ReaderView: View {
         .onChange(of: environment.preferences.preferences.layoutProjection) { _, _ in
             model.reanchorAfterLayoutChange()
         }
+        // Pre-6409bbd behavior: the status bar hides with the chrome so the
+        // focused page runs full-bleed into the top safe area; unfocused
+        // shows it with content below. No other safe-area overrides exist.
+        .statusBarHidden(!model.chromeVisible)
     }
 
     // MARK: - Axis-locked drag paging (R6 round 3, note 1)
@@ -315,11 +319,12 @@ struct ReaderView: View {
     /// The three-page strip: the loaded previous/current/next pages
     /// rendered together so the neighbor is visible mid-gesture, with
     /// cancel-back when the finger releases short. Cross-volume targets
-    /// show a quiet loading slot until their first page arrives. Both pages
-    /// stay in the hierarchy for the whole gesture: the strip itself never
-    /// changes identity on a page turn (no `.id`, no removal transition),
-    /// so the outgoing page cannot disappear mid-swipe. Only the center
-    /// page is re-keyed per index so each page starts at its own top.
+    /// show a quiet loading slot until their first page arrives. Every slot
+    /// keeps a stable identity across page turns (no `.id`, no removal
+    /// transition): the center page never rebuilds on a turn, so the
+    /// header/corner slot cannot pop in late and shift content. Scroll
+    /// position is driven explicitly instead — cached offset for revisits,
+    /// top for first visits (see ReaderPageView).
     private func pageStrip(_ model: ReaderModel, viewportWidth: CGFloat) -> some View {
         let targets = stripTargets(model)
         let slots = ReaderDragStrip.slots(
@@ -350,7 +355,6 @@ struct ReaderView: View {
                 onScrollFraction: { pageScrollFraction = $0 }
             )
             .frame(width: viewportWidth)
-            .id("current-\(model.pageIndex)")
             .scrollDisabled(horizontalDragging)
             if let right = slots.right {
                 stripSlot(model, turn: right, viewportWidth: viewportWidth)
@@ -594,6 +598,9 @@ struct ReaderView: View {
             model.toggleBookmark(hadith)
         } else {
             ReaderHapticDispatcher.trigger(.menuItemTap)
+            // The menu closes first so its cards never ghost behind the
+            // modal's dimmed backdrop.
+            showReaderMenu = false
             showBookmarkPlacement = true
         }
     }
@@ -817,9 +824,6 @@ private struct ReaderUnfocusedProgressPills: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    /// Inset of the fill capsule inside the pill track.
-    static let fillInset: CGFloat = 2.5
-
     var body: some View {
         HStack(spacing: 8) {
             progressPill(number: "\(pageNumber)", suffix: "page", fill: pageFill)
@@ -834,11 +838,11 @@ private struct ReaderUnfocusedProgressPills: View {
     }
 
     private func progressPill(number: String, suffix: String, fill: Double) -> some View {
-        // The inner fill is an inset capsule clipped to the same capsule
-        // shape, so low fills render as a rounded nub — never square
-        // corners poking out. The fill glides to the new fraction on a
-        // page switch (~250ms ease-out, snap under Reduce Motion) instead
-        // of jumping instantly.
+        // The fill occupies the FULL pill height (no vertical margins) and
+        // glides horizontally to the fraction; the outer capsule clip keeps
+        // the ends round at every value. The fill glides to the new
+        // fraction on a page switch (~250ms ease-out, snap under Reduce
+        // Motion) instead of jumping instantly.
         let clamped = min(1, max(0, fill))
         return ZStack {
             Capsule()
@@ -846,10 +850,7 @@ private struct ReaderUnfocusedProgressPills: View {
             GeometryReader { proxy in
                 Capsule()
                     .fill(palette.textSecondary.opacity(0.35))
-                    .frame(
-                        width: max(0, proxy.size.width * clamped - Self.fillInset * 2),
-                        height: max(0, proxy.size.height - Self.fillInset * 2)
-                    )
+                    .frame(width: proxy.size.width * clamped, height: proxy.size.height)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                     .animation(reduceMotion ? nil : .easeOut(duration: 0.25), value: clamped)
             }
@@ -934,6 +935,11 @@ struct ReaderPageView: View {
 
     @State private var appliedRestorationKey: String?
     @State private var chapterOpenings: Set<Int> = []
+    /// Round 8: the page index the view last scrolled to top for. The
+    /// center page keeps a stable identity across turns (no re-key), so a
+    /// first visit must scroll to top explicitly; revisits and R2 targets
+    /// are claimed by the restoration block before this is consulted.
+    @State private var topResetPage: Int?
 
     /// The selected volume backing this page, for the volume-start header.
     private var selectedVolume: OutlineVolume? {
@@ -975,7 +981,7 @@ struct ReaderPageView: View {
         } else if let corner = volumeCornerText {
             ReaderVolumeCornerLabel(text: corner, palette: palette)
         } else {
-            Text(" ")
+            Text(verbatim: " ")
                 .font(.caption2.weight(.medium))
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityHidden(true)
@@ -1125,6 +1131,15 @@ struct ReaderPageView: View {
                         frames[hadith.internalId].map { (index, $0) }
                     }
                     guard let leading = indexed.last(where: { $0.1.minY <= 0 }) ?? indexed.first else { return }
+                    // First visit to a page (no restore/landing target claimed
+                    // it above): scroll to the very top exactly once. The
+                    // stable view identity keeps the old offset otherwise,
+                    // which would show mid-content of the new page.
+                    if topResetPage != currentPageIndex, let first = hadiths.first {
+                        topResetPage = currentPageIndex
+                        proxy.scrollTo(first.internalId, anchor: .top)
+                        return
+                    }
                     model.captureStableScroll(
                         hadiths: hadiths,
                         leadingIndex: leading.0,
@@ -1139,6 +1154,10 @@ struct ReaderPageView: View {
         .onChange(of: hadiths) { _, updated in
             chapterOpenings = ReaderChapterBoundaries.openingIndices(in: updated)
         }
+        // A volume switch can keep the page index: force the top-reset path
+        // to re-arm so a stale offset from the previous volume never sticks.
+        // (Restoration/revisit targets still claim first in the handler.)
+        .onChange(of: model.selectedVolumeId) { _, _ in topResetPage = nil }
         .accessibilityIdentifier("reader.page")
     }
 }
@@ -1351,11 +1370,11 @@ private struct ReaderVolumeHeaderPlaceholder: View {
 
     var body: some View {
         VStack(spacing: 6) {
-            Text(" ")
+            Text(verbatim: " ")
                 .font(.caption2.weight(.semibold))
-            Text(" ")
+            Text(verbatim: " ")
                 .font(.title2.weight(.semibold))
-            Text(" ")
+            Text(verbatim: " ")
                 .font(.footnote)
         }
         .frame(maxWidth: .infinity)

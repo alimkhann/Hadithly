@@ -6,6 +6,8 @@ import SwiftUI
 struct QuotaPaywallView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AppEnvironment.self) private var environment
+    @Environment(\.readerPalette) private var palette
+    @Environment(\.readerTheme) private var readerTheme
 
     let onUnlocked: () -> Void
 
@@ -21,10 +23,10 @@ struct QuotaPaywallView: View {
                     VStack(spacing: 8) {
                         Text("More AI translations")
                             .font(.title2.weight(.semibold))
-                            .foregroundStyle(Theme.textPrimary)
+                            .foregroundStyle(palette.textPrimary)
                         Text("You reached this month’s free AI limit. Reading, saved items, and existing translations stay free.")
                             .font(.subheadline)
-                            .foregroundStyle(Theme.textSecondary)
+                            .foregroundStyle(palette.textSecondary)
                             .multilineTextAlignment(.center)
                     }
 
@@ -32,7 +34,7 @@ struct QuotaPaywallView: View {
                         activeAccess
                     } else if environment.purchases.isLoading {
                         ProgressView()
-                            .tint(Theme.textSecondary)
+                            .tint(palette.textSecondary)
                     } else {
                         packageButtons
                     }
@@ -40,7 +42,7 @@ struct QuotaPaywallView: View {
                     if let message = environment.purchases.errorMessage {
                         Text(message)
                             .font(.caption)
-                            .foregroundStyle(Theme.textSecondary)
+                            .foregroundStyle(palette.textSecondary)
                             .multilineTextAlignment(.center)
                     }
 
@@ -52,7 +54,7 @@ struct QuotaPaywallView: View {
                         }
                     }
                     .font(.footnote.weight(.medium))
-                    .foregroundStyle(Theme.textSecondary)
+                    .foregroundStyle(palette.textSecondary)
                     .disabled(environment.purchases.isPurchasing)
 
                     HStack(spacing: 18) {
@@ -64,25 +66,26 @@ struct QuotaPaywallView: View {
                         }
                     }
                     .font(.caption)
-                    .foregroundStyle(Theme.textSecondary)
+                    .foregroundStyle(palette.textSecondary)
 
                     Text("Subscriptions renew automatically unless cancelled at least 24 hours before the end of the current period. Manage or cancel in your store account.")
                         .font(.caption2)
-                        .foregroundStyle(Theme.textSecondary.opacity(0.75))
+                        .foregroundStyle(palette.textSecondary.opacity(0.75))
                         .multilineTextAlignment(.center)
                 }
                 .padding(.horizontal, 24)
                 .padding(.vertical, 28)
             }
-            .background(Theme.background.ignoresSafeArea())
+            .background(palette.background.ignoresSafeArea())
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Close") { dismiss() }
-                        .foregroundStyle(Theme.textSecondary)
+                        .foregroundStyle(palette.textSecondary)
                 }
             }
         }
         .task { await environment.purchases.loadOffering() }
+        .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
         .interactiveDismissDisabled(environment.purchases.isPurchasing)
         .accessibilityIdentifier("paywall.quota")
     }
@@ -104,22 +107,22 @@ struct QuotaPaywallView: View {
                                 .font(.headline)
                             Text(package.storeProduct.localizedPriceString)
                                 .font(.subheadline)
-                                .foregroundStyle(Theme.textSecondary)
+                                .foregroundStyle(palette.textSecondary)
                         }
                         Spacer()
                         if environment.purchases.isPurchasing {
-                            ProgressView().tint(Theme.textPrimary)
+                            ProgressView().tint(palette.textPrimary)
                         } else {
                             Image(systemName: "arrow.right")
                         }
                     }
-                    .foregroundStyle(Theme.textPrimary)
+                    .foregroundStyle(palette.textPrimary)
                     .padding(16)
-                    .background(Theme.surface)
+                    .background(palette.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                     .overlay(
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .strokeBorder(Theme.surfaceElevated, lineWidth: 1)
+                            .strokeBorder(palette.surfaceElevated, lineWidth: 1)
                     )
                 }
                 .buttonStyle(.plain)
@@ -135,14 +138,14 @@ struct QuotaPaywallView: View {
                 .foregroundStyle(Theme.accent)
             Text("Hadithly Pro is active")
                 .font(.headline)
-                .foregroundStyle(Theme.textPrimary)
+                .foregroundStyle(palette.textPrimary)
             Button("Continue reading") { unlockAndDismiss() }
                 .buttonStyle(.borderedProminent)
                 .tint(Theme.accent)
         }
         .padding(18)
         .frame(maxWidth: .infinity)
-        .background(Theme.surface)
+        .background(palette.surface)
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 

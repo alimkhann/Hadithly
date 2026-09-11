@@ -15,7 +15,9 @@ import com.hadithly.app.features.reader.ReaderHapticKind
 import com.hadithly.app.features.reader.ReaderHaptics
 import com.hadithly.app.features.reader.ReaderScrollOffsetCache
 import com.hadithly.app.features.reader.ReaderShare
+import com.hadithly.app.features.reader.bookmarkDialogRows
 import com.hadithly.app.features.reader.bookmarkPlacementTargets
+import com.hadithly.app.features.reader.pagePillsForPage
 import com.hadithly.app.features.reader.chapterTitleForDisplay
 import com.hadithly.app.features.reader.focusedProgressFraction
 import com.hadithly.app.features.reader.isConfirmedTap
@@ -239,6 +241,56 @@ class ReaderR6Round3Test {
     @Test
     fun `placement enum covers both choices`() {
         assertEquals(2, BookmarkPlacement.entries.size)
+    }
+
+    @Test
+    fun `dialog rows always render start positioned and cancel`() {
+        val first = hadith("57")
+        val second = hadith("58")
+        val rows = bookmarkDialogRows(bookmarkPlacementTargets(listOf(first, second), second)) { false }
+        assertEquals(3, rows.size)
+        assertEquals("reader.bookmarkSheet.pageStart", rows[0].testTag)
+        assertEquals(first, rows[0].target)
+        assertTrue(rows[0].enabled)
+        assertEquals("reader.bookmarkSheet.positioned", rows[1].testTag)
+        assertEquals(second, rows[1].target)
+        assertTrue(rows[1].enabled)
+        assertEquals("reader.bookmarkSheet.cancel", rows[2].testTag)
+        assertTrue(rows[2].enabled)
+        assertNull(rows[2].target)
+
+        // Empty page: both options stay visible but disabled — the card can
+        // never collapse to a Cancel-only row.
+        val empty = bookmarkDialogRows(bookmarkPlacementTargets(emptyList(), null)) { false }
+        assertEquals(3, empty.size)
+        assertEquals("reader.bookmarkSheet.pageStart", empty[0].testTag)
+        assertEquals("reader.bookmarkSheet.positioned", empty[1].testTag)
+        assertEquals("reader.bookmarkSheet.cancel", empty[2].testTag)
+        assertTrue(!empty[0].enabled && !empty[1].enabled && empty[2].enabled)
+    }
+
+    @Test
+    fun `per-page pills match settled pills and never depend on settle`() {
+        val volumes = listOf(
+            OutlineVolume(volumeId = "1", title = "Volume 1", hadithCount = 2.0),
+            OutlineVolume(volumeId = "2", title = "Volume 2", hadithCount = 2.0),
+        )
+        val pages = listOf(
+            com.hadithly.app.core.data.ReaderPageResult(items = emptyList(), page = 1.0, hasMore = true),
+            com.hadithly.app.core.data.ReaderPageResult(items = emptyList(), page = 2.0),
+        )
+        // Each slot resolves its own labels from cached sources.
+        val first = pagePillsForPage(0, pages, volumes, "1")
+        assertEquals("Page 2", first.next?.label)
+        val second = pagePillsForPage(1, pages, volumes, "1")
+        assertEquals("Page 1", second.previous?.label)
+        assertEquals("Volume 2", second.next?.label)
+        // The settled slot matches the settled-index pill state exactly.
+        val settled = com.hadithly.app.features.reader.ReaderPagePills.state(
+            pageIndex = 1, hasPreviousPage = true, hasNextPage = false,
+            atLoadedPage = true, volumes = volumes, selectedVolumeId = "1",
+        )
+        assertEquals(settled, second)
     }
 
     // Search mapping
