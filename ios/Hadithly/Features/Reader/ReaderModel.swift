@@ -48,6 +48,8 @@ final class ReaderModel {
     var pageIndex = 0 {
         didSet {
             guard oldValue != pageIndex else { return }
+            snapshotScrollOffset(for: oldValue)
+            restoreScrollOffset(for: pageIndex)
             collapseToFocused()
             lastCapturedAnchor = nil
             lastCapturedNormalizedOffset = nil
@@ -93,6 +95,17 @@ final class ReaderModel {
     /// restoration on this so a preference change re-scrolls exactly once.
     private(set) var restorationGeneration = 0
     private(set) var landingHadithNumber: String?
+    /// Round 5: vertical scroll offsets of the last two visited pages,
+    /// keyed by page index. Leaving a page stores its offset; navigating
+    /// back restores the exact offset instead of jumping to the top. The
+    /// R1/R2 semantic save/restore still runs on settle underneath.
+    private(set) var pageScrollCache: [Int: PageScrollSnapshot] = [:]
+    private var pageScrollCacheOrder: [Int] = []
+    /// Transient restore target for the current page: set when the reader
+    /// lands on a cached page, nil otherwise. Consumed once by the page
+    /// view's restoration path (keyed by `scrollRestoreGeneration`).
+    private(set) var scrollRestoreSnapshot: PageScrollSnapshot?
+    private(set) var scrollRestoreGeneration = 0
 
     init(
         convex: ConvexClientWithAuth<String>,
@@ -512,6 +525,14 @@ final class ReaderModel {
         translations = [:]
         lastCapturedAnchor = nil
         lastCapturedNormalizedOffset = nil
+        // A volume/jump change invalidates every cached offset: anchors
+        // belong to the previous volume's pages.
+        lastStableAnchor = nil
+        lastStableRawPageOffset = 0
+        lastStableNormalizedOffset = 0
+        pageScrollCache = [:]
+        pageScrollCacheOrder = []
+        scrollRestoreSnapshot = nil
     }
 
     func setLanguage(_ code: String) {
@@ -850,6 +871,39 @@ final class ReaderModel {
         )
     }
 
+    /// Round 5: stores the page being left in the 2-entry scroll cache.
+    /// Only the last stable anchor of that same page qualifies, so a stale
+    /// anchor from another volume can never poison the cache.
+    private func snapshotScrollOffset(for page: Int) {
+        guard pages.indices.contains(page),
+              let anchor = lastStableAnchor,
+              pages[page].items.contains(where: { $0.internalId == anchor.internalId })
+        else { return }
+        let stored = ReaderPageScrollCache.storing(
+            cache: pageScrollCache,
+            order: pageScrollCacheOrder,
+            page: page,
+            snapshot: PageScrollSnapshot(
+                providerHadithId: anchor.providerHadithId,
+                rawPageOffset: lastStableRawPageOffset,
+                normalizedOffset: lastStableNormalizedOffset
+            )
+        )
+        pageScrollCache = stored.cache
+        pageScrollCacheOrder = stored.order
+    }
+
+    /// Round 5: arms the transient restore when landing on one of the last
+    /// two pages; a first visit keeps nil so the page starts at the top
+    /// (or at the R2 jump target when one is armed).
+    private func restoreScrollOffset(for page: Int) {
+        if let snapshot = pageScrollCache[page] {
+            scrollRestoreSnapshot = snapshot
+            scrollRestoreGeneration += 1
+        } else {
+            scrollRestoreSnapshot = nil
+        }
+    }
     /// Compact top progress fraction (R4): the visible page over the known
     /// total. Nil when the backend has not reported a total yet.
     var compactProgressFraction: Double? {
@@ -876,6 +930,9 @@ final class ReaderModel {
             layout: readingLayout(page.paginationVersion ?? 1)
         )
         restorationGeneration += 1
+        // The fresh semantic anchor wins over any cached scroll offset for
+        // this page: the cached points belong to the previous layout.
+        scrollRestoreSnapshot = nil
     }
 
     /// The pure projection behind `reanchorAfterLayoutChange`: rebuilds a V1

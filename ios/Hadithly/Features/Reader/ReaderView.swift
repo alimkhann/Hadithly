@@ -46,6 +46,19 @@ struct ReaderView: View {
         environment.preferences.preferences.theme
     }
 
+    /// Focused↔unfocused chrome animation (round 5, fix 8): fade + slight
+    /// slide, ~250ms ease-out. Nil under Reduce Motion so the chrome snaps.
+    private var chromeAnimation: Animation? {
+        reduceMotion ? nil : .easeOut(duration: 0.25)
+    }
+
+    /// Progress-fill animation (round 5, fix 8): the fill fraction animates
+    /// to its new value on a page swipe instead of jumping. Nil under
+    /// Reduce Motion.
+    private var fillAnimation: Animation? {
+        reduceMotion ? nil : .easeOut(duration: 0.25)
+    }
+
     private var palette: ReaderPalette {
         ReaderPalette.resolved(readerTheme, systemDark: systemColorScheme == .dark)
     }
@@ -121,7 +134,8 @@ struct ReaderView: View {
                         model.jumpToReference(result.providerHadithId)
                     }
                 )
-                .presentationDetents([.medium, .large])
+                // Round 5, fix 7: search opens full-height immediately.
+                .presentationDetents([.large])
                 .presentationDragIndicator(.hidden)
             }
         }
@@ -139,7 +153,8 @@ struct ReaderView: View {
                     NotificationCenter.default.post(name: .hadithlyOpenSavedTab, object: nil)
                 }
             )
-            .presentationDetents([.medium, .large])
+            // Round 5, fix 7: Bookmarks & Notes opens full-height immediately.
+            .presentationDetents([.large])
             .presentationDragIndicator(.hidden)
         }
         .sheet(isPresented: $showBookmarkPlacement) {
@@ -153,7 +168,8 @@ struct ReaderView: View {
                     },
                     onCancel: { showBookmarkPlacement = false }
                 )
-                .presentationDetents([.medium])
+                // Round 5, fix 7: bookmark placement opens full-height.
+                .presentationDetents([.large])
                 .presentationDragIndicator(.hidden)
             }
         }
@@ -226,23 +242,29 @@ struct ReaderView: View {
                 // page bar just below the notch — shorter than the Dynamic
                 // Island, neutral, fills and defills with the page scroll.
                 if !model.chromeVisible {
-                    ReaderFocusedProgressBar(fraction: pageScrollFraction, palette: palette)
-                        .transition(.opacity)
+                    ReaderFocusedProgressBar(
+                        fraction: pageScrollFraction,
+                        palette: palette,
+                        fillAnimation: fillAnimation
+                    )
+                    .transition(.opacity.combined(with: .offset(y: -8)))
                 }
 
                 if model.chromeVisible {
                     chromeOverlay(model)
-                        .transition(.opacity)
+                        .transition(.opacity.combined(with: .offset(y: 12)))
                 }
             }
-            // Page text never renders under the notch/status area and the
-            // pills and circles sit above the home indicator: the safe-area
-            // padding insets the whole stack (backgrounds still bleed to
-            // the edges behind it).
-            .safeAreaPadding(.top, 8)
+            // Round 5, fix 1: in FOCUSED mode the status bar hides and the
+            // page content flows edge-to-edge into the top safe area with
+            // only ~8pt padding (no dead gap); in UNFOCUSED mode the status
+            // bar shows and content lays out below it. Backgrounds bleed to
+            // the edges in both modes. Chrome controls stay above the home
+            // indicator via the bottom inset.
+            .modifier(ReaderTopSafeArea(focused: !model.chromeVisible))
             .safeAreaPadding(.bottom, 8)
         }
-        .animation(.easeInOut(duration: 0.2), value: model.chromeVisible)
+        .animation(chromeAnimation, value: model.chromeVisible)
         .statusBarHidden(!model.chromeVisible)
         .overlay {
             WindowSwipeRecognizer(
@@ -266,7 +288,7 @@ struct ReaderView: View {
         .accessibilityAction(
             named: model.chromeVisible ? "Hide reader controls" : "Show reader controls"
         ) {
-            toggleChrome(model, withHaptic: false)
+            toggleChrome(model)
         }
         // A menu never survives a focus change: any scroll or page turn
         // collapses the chrome in the model, and the menu closes here.
@@ -323,6 +345,8 @@ struct ReaderView: View {
                 restoration: model.restoredPosition,
                 restorationGeneration: model.restorationGeneration,
                 landingHadithNumber: model.landingHadithNumber,
+                scrollRestore: model.scrollRestoreSnapshot,
+                scrollRestoreGeneration: model.scrollRestoreGeneration,
                 currentPageIndex: model.pageIndex,
                 pageCount: model.pages.count + (model.hasNextPage && model.pageIndex == model.pages.count - 1 ? 1 : 0),
                 palette: palette,
@@ -350,7 +374,7 @@ struct ReaderView: View {
             dragViewportWidth = width
         }
         .onTapGesture {
-            toggleChrome(model, withHaptic: true)
+            toggleChrome(model)
         }
     }
 
@@ -405,7 +429,7 @@ struct ReaderView: View {
     /// revealed neighbor, then swaps the page index with the offset reset —
     /// the incoming page is pixel-identical to the neighbor just shown, so
     /// the swap is invisible and nothing ever flickers. Anything short
-    /// springs back in place. Settle plays the page-turn tick.
+    /// springs back in place. No haptic: page settle is silent (round 5).
     private func dragReleased(_ model: ReaderModel, turn: ReaderPageTurn?) {
         horizontalDragging = false
         guard let turn else {
@@ -429,20 +453,18 @@ struct ReaderView: View {
             } completion: {
                 turnPage(model, turn: turn)
                 pageDragOffset = 0
-                ReaderHapticDispatcher.trigger(.pageSettle)
             }
         } else {
             pageDragOffset = 0
             turnPage(model, turn: turn)
-            ReaderHapticDispatcher.trigger(.pageSettle)
         }
     }
 
-    private func toggleChrome(_ model: ReaderModel, withHaptic: Bool) {
-        if withHaptic {
-            UIImpactFeedbackGenerator(style: .soft).impactOccurred()
-        }
-        withAnimation(.easeInOut(duration: 0.2)) {
+    /// Tapping the page toggles the chrome with the shared chrome animation
+    /// (which also drives the status bar). No haptic: touch haptics in the
+    /// reader are reserved for the menu, bookmarks, and errors (round 5).
+    private func toggleChrome(_ model: ReaderModel) {
+        withAnimation(chromeAnimation) {
             model.chromeVisible.toggle()
         }
     }
@@ -486,7 +508,8 @@ struct ReaderView: View {
                     totalPages: model.totalPages,
                     intraPageFraction: pageScrollFraction
                 ),
-                palette: palette
+                palette: palette,
+                fillAnimation: fillAnimation
             )
             .padding(.top, 8)
             Spacer()
@@ -534,7 +557,6 @@ struct ReaderView: View {
             .padding(.horizontal, 24)
             .padding(.bottom, 16)
         }
-        .transition(.opacity)
     }
 
     /// The menu bookmark acts on the positioned (R2 anchor) hadith: when it
@@ -555,6 +577,25 @@ struct ReaderView: View {
     private func positionedHadith(_ model: ReaderModel) -> ReaderHadith? {
         let target = model.restoredPosition?.anchor.providerHadithId ?? model.landingHadithNumber
         return model.currentPageHadiths.first { $0.providerHadithId == target } ?? model.currentPageHadiths.first
+    }
+}
+
+/// Round 5, fix 1: the top edge follows the chrome mode without swapping
+/// view identity (so the page ScrollView survives focus toggles).
+/// Focused ignores the top safe area with ~8pt padding so content runs
+/// edge-to-edge; unfocused re-adds the safe-area inset below the status bar.
+private struct ReaderTopSafeArea: ViewModifier {
+    let focused: Bool
+
+    func body(content: Content) -> some View {
+        if focused {
+            content
+                .padding(.top, 8)
+                .ignoresSafeArea(edges: .top)
+        } else {
+            content
+                .safeAreaPadding(.top, 8)
+        }
     }
 }
 
@@ -641,11 +682,23 @@ private struct ReaderMenuStack: View {
                 .accessibilityIdentifier("reader.menu.saved")
                 menuCard(title: "Settings", subtitle: "Type, appearance, and text", image: "textformat.size", action: onSettings)
                     .accessibilityIdentifier("reader.menu.settings")
+                // Round 5, fix 6: the bottom row is icon-only (no text
+                // labels), equal size — Bookmark plus functional Search.
                 HStack(spacing: 8) {
-                    bookmarkCard
-                    menuCard(title: "Search", subtitle: "Sunnah.now English", image: "magnifyingglass", action: onSearch)
-                        .frame(maxWidth: .infinity)
-                        .accessibilityIdentifier("reader.menu.search")
+                    menuIconButton(
+                        image: bookmarked ? "bookmark.fill" : "bookmark",
+                        tint: bookmarked ? Theme.bookmark : palette.textSecondary,
+                        label: bookmarked ? "Remove bookmark for positioned hadith" : "Bookmark positioned hadith",
+                        identifier: "reader.menu.bookmark",
+                        action: onBookmark
+                    )
+                    menuIconButton(
+                        image: "magnifyingglass",
+                        tint: palette.textSecondary,
+                        label: "Search",
+                        identifier: "reader.menu.search",
+                        action: onSearch
+                    )
                 }
             }
             .frame(maxWidth: 280)
@@ -654,33 +707,26 @@ private struct ReaderMenuStack: View {
         .accessibilityIdentifier("reader.menuStack")
     }
 
-    private var bookmarkCard: some View {
-        Button(action: onBookmark) {
-            HStack(spacing: 10) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Bookmark")
-                        .font(.headline)
-                        .foregroundStyle(palette.textPrimary)
-                    Text(positionedReference.isEmpty ? "Current hadith" : positionedReference)
-                        .font(.caption)
-                        .foregroundStyle(palette.textSecondary)
-                        .lineLimit(1)
-                }
-                Spacer()
-                Image(systemName: bookmarked ? "bookmark.fill" : "bookmark")
-                    .font(.title3)
-                    .foregroundStyle(bookmarked ? Theme.bookmark : palette.textSecondary)
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .frame(maxWidth: .infinity, minHeight: 52)
-            .background(palette.surface.opacity(0.98))
-            .clipShape(RoundedRectangle(cornerRadius: 18))
+    /// One equal-size icon-only menu button for the bottom row.
+    private func menuIconButton(
+        image: String,
+        tint: Color,
+        label: String,
+        identifier: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: image)
+                .font(.title3)
+                .foregroundStyle(tint)
+                .frame(maxWidth: .infinity, minHeight: 56)
+                .background(palette.surface.opacity(0.98))
+                .clipShape(RoundedRectangle(cornerRadius: 18))
         }
         .buttonStyle(.plain)
         .frame(maxWidth: .infinity)
-        .accessibilityLabel(bookmarked ? "Remove bookmark for positioned hadith" : "Bookmark positioned hadith")
-        .accessibilityIdentifier("reader.menu.bookmark")
+        .accessibilityLabel(label)
+        .accessibilityIdentifier(identifier)
     }
 
     private func menuCard(title: String, subtitle: String, image: String, action: @escaping () -> Void) -> some View {
@@ -706,25 +752,29 @@ private struct ReaderMenuStack: View {
 // MARK: - Progress (R6 round 3, note 6)
 
 /// Focused: ONE thin narrow dynamic page bar just below the notch —
-/// shorter than the Dynamic Island, neutral, fills/defills with the page
-/// scroll. Non-interactive and skipped by assistive tech.
+/// about a quarter of the width, centered, neutral, fills/defills with the
+/// page scroll. Non-interactive and skipped by assistive tech.
 private struct ReaderFocusedProgressBar: View {
     let fraction: Double
     let palette: ReaderPalette
+    /// Fill animation for page swipes (round 5, fix 8); nil snaps.
+    var fillAnimation: Animation? = .easeOut(duration: 0.25)
+
+    /// Fixed bar size: ~1/4 of a phone width, 4pt thick.
+    static let barWidth: CGFloat = 88
+    static let barHeight: CGFloat = 4
 
     var body: some View {
         VStack {
-            GeometryReader { proxy in
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(palette.divider.opacity(0.6))
-                    Capsule()
-                        .fill(palette.textSecondary.opacity(0.8))
-                        .frame(width: max(8, proxy.size.width * fraction))
-                }
-                .frame(height: 3)
+            ZStack(alignment: .leading) {
+                Capsule()
+                    .fill(palette.divider.opacity(0.6))
+                Capsule()
+                    .fill(palette.textSecondary.opacity(0.8))
+                    .frame(width: max(0, Self.barWidth * min(1, max(0, fraction))))
+                    .animation(fillAnimation, value: fraction)
             }
-            .frame(width: 96, height: 3)
+            .frame(width: Self.barWidth, height: Self.barHeight)
             Spacer()
         }
         .padding(.top, 6)
@@ -748,6 +798,11 @@ private struct ReaderUnfocusedProgressPills: View {
     /// Page fraction within the volume behind the Volume pill.
     let volumeFill: Double?
     let palette: ReaderPalette
+    /// Fill animation for page swipes (round 5, fix 8); nil snaps.
+    var fillAnimation: Animation? = .easeOut(duration: 0.25)
+
+    /// Inset of the fill capsule inside the pill track.
+    static let fillInset: CGFloat = 2.5
 
     var body: some View {
         HStack(spacing: 8) {
@@ -763,26 +818,37 @@ private struct ReaderUnfocusedProgressPills: View {
     }
 
     private func progressPill(number: String, suffix: String, fill: Double) -> some View {
-        GeometryReader { proxy in
-            ZStack {
-                Capsule()
-                    .fill(palette.surface.opacity(0.96))
+        // Round 5, fix 3: the inner fill is an inset capsule clipped to the
+        // same capsule shape, so low fills render as a rounded nub — never
+        // square corners poking out. The fill animates on page swipes
+        // (fix 8) and snaps under Reduce Motion.
+        let clamped = min(1, max(0, fill))
+        return ZStack {
+            Capsule()
+                .fill(palette.surface.opacity(0.96))
+            GeometryReader { proxy in
                 Capsule()
                     .fill(palette.textSecondary.opacity(0.35))
-                    .frame(width: max(12, proxy.size.width * min(1, max(0, fill))), alignment: .leading)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                HStack(spacing: 4) {
-                    Text(number)
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(palette.textPrimary)
-                    Text(suffix)
-                        .font(.caption)
-                        .foregroundStyle(palette.textSecondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .center)
+                    .frame(
+                        width: max(0, proxy.size.width * clamped - Self.fillInset * 2),
+                        height: max(0, proxy.size.height - Self.fillInset * 2)
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .animation(fillAnimation, value: clamped)
             }
+            .clipShape(Capsule())
+            HStack(spacing: 4) {
+                Text(number)
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(palette.textPrimary)
+                Text(suffix)
+                    .font(.caption)
+                    .foregroundStyle(palette.textSecondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .center)
         }
         .frame(width: 104, height: 30)
+        .clipShape(Capsule())
         .overlay(Capsule().strokeBorder(palette.divider, lineWidth: 1))
         .accessibilityHidden(true)
     }
@@ -834,6 +900,11 @@ struct ReaderPageView: View {
     let restoration: ReadingPosition?
     let restorationGeneration: Int
     let landingHadithNumber: String?
+    /// Round 5, fix 4b: transient per-page offset restore when navigating
+    /// back to one of the last two pages. Takes precedence over the
+    /// semantic restoration/landing target; nil starts at the top.
+    let scrollRestore: PageScrollSnapshot?
+    let scrollRestoreGeneration: Int
     let currentPageIndex: Int
     let pageCount: Int
     let palette: ReaderPalette
@@ -996,15 +1067,18 @@ struct ReaderPageView: View {
                     onScrollFraction((raw * 200).rounded() / 200)
                 }
                 .onPreferenceChange(ReaderAnchorFramesKey.self) { frames in
-                    let targetId = restoration?.anchor.providerHadithId ?? landingHadithNumber
+                    let targetId = scrollRestore?.providerHadithId
+                        ?? restoration?.anchor.providerHadithId ?? landingHadithNumber
+                    let targetOffset = scrollRestore?.normalizedOffset
+                        ?? restoration?.normalizedOffset ?? 0
                     if let targetId,
                        let target = hadiths.first(where: { $0.providerHadithId == targetId }),
                        let frame = frames[target.internalId] {
-                        let key = "\(restorationGeneration):\(target.internalId):\(restoration?.normalizedOffset ?? 0):\(viewport.size.height)"
+                        let key = "\(scrollRestoreGeneration):\(restorationGeneration):\(target.internalId):\(targetOffset):\(viewport.size.height)"
                         if appliedRestorationKey != key {
                             appliedRestorationKey = key
                             let anchorY = ReaderScrollRestoration.anchorY(
-                                normalizedOffset: restoration?.normalizedOffset ?? 0,
+                                normalizedOffset: targetOffset,
                                 itemHeight: frame.height,
                                 viewportHeight: viewport.size.height
                             )

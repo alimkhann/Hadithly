@@ -56,12 +56,13 @@ enum ReaderScrollRestoration {
     }
 }
 
-// MARK: - Restrained reader haptics (R6 fix round)
+// MARK: - Restrained reader haptics (R6 fix round 5)
 
 /// Every haptic trigger point in the reader. Restrained and native: light
 /// impacts for chrome/menu gestures, medium only when something is added,
-/// a soft tick when a page settles, and an error when the user tries to
-/// hide both text layers.
+/// and an error when the user tries to hide both text layers. There is
+/// deliberately no page-settle tick and no touch/drag/scroll haptic in the
+/// focused view or during swipes.
 enum ReaderHapticEvent: String, Equatable, CaseIterable {
     case menuToggle
     case menuItemTap
@@ -70,14 +71,12 @@ enum ReaderHapticEvent: String, Equatable, CaseIterable {
     case bookmarkRemove
     case favoriteAdd
     case favoriteRemove
-    case pageSettle
     case layersRejected
 }
 
 enum ReaderHapticStyle: Equatable {
     case light
     case medium
-    case soft
     case error
 }
 
@@ -89,8 +88,6 @@ enum ReaderHaptics {
             .light
         case .bookmarkAdd, .favoriteAdd:
             .medium
-        case .pageSettle:
-            .soft
         case .layersRejected:
             .error
         }
@@ -110,8 +107,6 @@ struct SystemReaderHapticPlayer: ReaderHapticPlayer {
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
         case .medium:
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-        case .soft:
-            UIImpactFeedbackGenerator(style: .soft).impactOccurred()
         case .error:
             UINotificationFeedbackGenerator().notificationOccurred(.error)
         }
@@ -207,14 +202,26 @@ final class ReaderPagingPanHandler: NSObject, UIGestureRecognizerDelegate {
             if let turn {
                 onTurn(turn)
             }
-            onRelease?(turn)
-            onProgress(0)
+            if onRelease != nil {
+                // Track-the-finger paging owns the drag offset from here:
+                // it animates onto the revealed neighbor (commit) or springs
+                // back (cancel). Resetting progress here would snap the
+                // strip to rest first — the incoming page would flash back
+                // to the swiping-from page and swap again after settle.
+                onRelease?(turn)
+            } else {
+                onProgress(0)
+            }
             return
         default:
             // Cancelled, failed, or possible: no turn, drag back to rest.
+            // Same ownership as .ended: the release handler animates back.
             axisLock = .undecided
-            onRelease?(nil)
-            onProgress(0)
+            if onRelease != nil {
+                onRelease?(nil)
+            } else {
+                onProgress(0)
+            }
             return
         }
     }

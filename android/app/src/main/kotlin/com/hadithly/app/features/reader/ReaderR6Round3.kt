@@ -136,6 +136,32 @@ fun pagePillFillFraction(intraPageFraction: Float): Float =
     intraPageFraction.coerceIn(0f, 1f)
 
 /**
+ * R6 reader fix round 5: per-page vertical scroll offsets. Leaving a page
+ * stores its LazyColumn position; navigating back to one of the last
+ * [maxEntries] pages restores the exact offset instead of the top. Backed
+ * by an access-ordered map so the least-recently-visited page evicts first.
+ * One instance per volume (page indices reset on volume switches and jumps).
+ */
+class ReaderScrollOffsetCache(maxEntries: Int = 2) {
+    private val limit = maxEntries.coerceAtLeast(1)
+    private val map = object : LinkedHashMap<Int, Pair<Int, Int>>(limit + 1, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Int, Pair<Int, Int>>): Boolean =
+            size > limit
+    }
+
+    /** Stores the LazyColumn position for [pageIndex]. */
+    fun save(pageIndex: Int, firstVisibleItem: Int, firstVisibleItemOffset: Int) {
+        map[pageIndex] = firstVisibleItem to firstVisibleItemOffset
+    }
+
+    /** The stored position for [pageIndex], or null when evicted/never saved. */
+    fun restore(pageIndex: Int): Pair<Int, Int>? = map[pageIndex]
+
+    /** How many pages are currently cached (never more than the limit). */
+    fun size(): Int = map.size
+}
+
+/**
  * R6 reader fix round: the unfocused Volume pill (`Volume N`) fills with
  * the current page fraction within the volume (page index plus intra-page
  * scroll over the backend-reported total). Null until the total is known.

@@ -6,6 +6,13 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.core.FiniteAnimationSpec
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -17,6 +24,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,6 +34,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -71,6 +82,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -82,6 +94,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.platform.ClipEntry
@@ -101,9 +114,13 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import android.app.Activity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import android.content.ClipData
 import android.content.Intent
@@ -424,6 +441,40 @@ private fun ReadingView(
         ) == 0f
     }
 
+    // Round 5: focused runs page content INTO the status-bar area (the bar
+    // is hidden); unfocused shows the bar with content below it while the
+    // background stays edge-to-edge. The top inset animates so the shift
+    // matches the chrome fade+slide; Reduce Motion snaps it.
+    val focused = !state.chromeVisible
+    LaunchedEffect(focused) {
+        val window = (context as? Activity)?.window ?: return@LaunchedEffect
+        val controller = WindowInsetsControllerCompat(window, window.decorView)
+        controller.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        if (focused) {
+            controller.hide(WindowInsetsCompat.Type.statusBars())
+        } else {
+            controller.show(WindowInsetsCompat.Type.statusBars())
+        }
+    }
+    val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val animatedTopInset by animateDpAsState(
+        targetValue = if (focused) 0.dp else statusTop,
+        animationSpec = if (reduceMotion) snap() else tween(250),
+        label = "readerTopInset",
+    )
+    // Round 5: chrome fades with a slight slide over ~250ms; snapped when
+    // the animator-duration-scale is 0.
+    val chromeFade: FiniteAnimationSpec<Float> = if (reduceMotion) snap() else tween(250)
+    val chromeSlide: FiniteAnimationSpec<IntOffset> = if (reduceMotion) snap() else tween(250)
+
+    // Round 5: vertical scroll offsets, 2 entries per volume. Page indices
+    // reset on volume switches and jumps, so each volume gets its own cache.
+    val volumeScrollCaches = remember { mutableMapOf<String, ReaderScrollOffsetCache>() }
+    val scrollCache = volumeScrollCaches.getOrPut(state.selectedVolumeId ?: "") {
+        ReaderScrollOffsetCache()
+    }
+
     fun turnPage(turn: ReaderPageTurn): Boolean {
         val destination = pagingPolicy.destination(
             pagerState.currentPage,
@@ -523,12 +574,19 @@ private fun ReadingView(
                 // (beyondViewportPageCount) then survive list appends and the
                 // outgoing page never drops mid-gesture (no flicker); a
                 // settle-or-cancel just reuses the kept composition.
-                key(pages.getOrNull(pageIndex)?.pageKey ?: "page-$pageIndex") {
-                    val hadiths = if (pageIndex in pages.indices) pages[pageIndex].items else emptyList()
+                // Round 5: the items snapshot is remembered against the page
+                // identity, so an unrelated state change mid-gesture (pills,
+                // translations, progress) can never rebind neighbor content
+                // while the swipe is in flight. A real page replacement
+                // (placeholder load, volume switch) changes identity and
+                // re-resolves exactly once.
+                val page = pages.getOrNull(pageIndex)
+                key(page?.pageKey ?: "page-$pageIndex") {
+                    val stableHadiths = remember(page) { page?.items ?: emptyList() }
                     ReaderPage(
                         viewModel = viewModel,
                         state = state,
-                        hadiths = hadiths,
+                        hadiths = stableHadiths,
                         arabicFontSize = arabicFontSize,
                         preferences = preferences,
                         pagingPolicy = pagingPolicy,
@@ -538,11 +596,10 @@ private fun ReadingView(
                         restorationGeneration = viewModel.restorationGeneration,
                         landingHadithNumber = viewModel.landingHadithNumber,
                         isSentinel = pageIndex >= pages.size,
+                        topInset = animatedTopInset,
+                        scrollCache = scrollCache,
                         onFollowPill = viewModel::followPill,
-                        onTap = {
-                            ReaderHaptics.perform(androidView, ReaderHapticKind.TAP_TOGGLE)
-                            viewModel.toggleChrome()
-                        },
+                        onTap = { viewModel.toggleChrome() },
                         onUserScroll = ::collapseToFocusedAndCloseMenu,
                         onPageScrollFraction = { page, fraction ->
                             pageScroll = page to fraction
@@ -552,31 +609,40 @@ private fun ReadingView(
                 }
         }
 
-        // Item 6, focused: ONE thin narrow dynamic PAGE bar just below the
-        // notch area. Short, neutral, fills/defills with page scroll.
+        // Round 5, focused: ONE thicker narrow dynamic PAGE bar near the
+        // top edge. The status bar is hidden here, so the capsule sits on a
+        // small fixed padding with content flowing into the safe areas.
+        // ~1/4 width, centered, fills/defills with page scroll.
         androidx.compose.animation.AnimatedVisibility(
-            visible = !state.chromeVisible,
-            enter = fadeIn(),
-            exit = fadeOut(),
+            visible = focused,
+            enter = fadeIn(chromeFade) + slideInVertically(chromeSlide) { -it / 4 },
+            exit = fadeOut(chromeFade) + slideOutVertically(chromeSlide) { -it / 4 },
             modifier = Modifier.align(Alignment.TopCenter),
         ) {
             if (dynamicPageFraction != null) {
-                ReaderProgressCapsule(
-                    fraction = dynamicPageFraction,
-                    thickness = 3.dp,
-                    testTag = "reader.focusedPageBar",
-                    modifier = Modifier.statusBarsPadding().padding(top = 6.dp),
-                )
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    ReaderProgressCapsule(
+                        fraction = dynamicPageFraction,
+                        thickness = 4.dp,
+                        reduceMotion = reduceMotion,
+                        testTag = "reader.focusedPageBar",
+                        modifier = Modifier.fillMaxWidth(0.25f).padding(top = 8.dp),
+                    )
+                }
             }
         }
 
         // Item 6, unfocused: TWO pills side by side (Sajda style: bold
         // number + lighter suffix) — Page pill filled by intra-page scroll,
-        // Volume pill filled by the page fraction within the volume.
+        // Volume pill filled by the page fraction within the volume. The
+        // status bar is visible here, so the row sits below it.
         androidx.compose.animation.AnimatedVisibility(
             visible = state.chromeVisible,
-            enter = fadeIn(),
-            exit = fadeOut(),
+            enter = fadeIn(chromeFade) + slideInVertically(chromeSlide) { -it / 4 },
+            exit = fadeOut(chromeFade) + slideOutVertically(chromeSlide) { -it / 4 },
             modifier = Modifier.align(Alignment.TopCenter),
         ) {
             Row(
@@ -588,6 +654,7 @@ private fun ReadingView(
                     number = "${state.pageIndex + 1}",
                     suffix = "page",
                     fraction = unfocusedPageFill.toDouble(),
+                    reduceMotion = reduceMotion,
                     testTag = "reader.unfocusedPageBar",
                 )
                 if (unfocusedVolumeNumber != null) {
@@ -595,6 +662,7 @@ private fun ReadingView(
                         number = "$unfocusedVolumeNumber",
                         suffix = stringResource(R.string.reader_volume_pill_suffix),
                         fraction = unfocusedVolumeFill,
+                        reduceMotion = reduceMotion,
                         testTag = "reader.unfocusedVolumeBar",
                     )
                 }
@@ -603,8 +671,8 @@ private fun ReadingView(
 
         androidx.compose.animation.AnimatedVisibility(
             visible = state.chromeVisible,
-            enter = fadeIn(),
-            exit = fadeOut(),
+            enter = fadeIn(chromeFade) + slideInVertically(chromeSlide) { it / 4 },
+            exit = fadeOut(chromeFade) + slideOutVertically(chromeSlide) { it / 4 },
             modifier = Modifier.align(Alignment.BottomCenter),
         ) {
             Column(
@@ -776,29 +844,52 @@ internal fun ReaderMenuStack(
             onClick = { tapped(onSettings) },
             testTag = "reader.menu.settings",
         )
-        // Bottom row: identical heights — the same min height and padding
-        // on both cards so Search never renders shorter than Bookmark.
+        // Bottom row: icon-only, equal size — no text. Active bookmark:
+        // ONLY the icon turns amber; the background keeps default contrast
+        // (never full-yellow).
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            ReaderMenuCard(
-                title = "Bookmark",
-                subtitle = positionedReference ?: "Current hadith",
-                // Active bookmark: ONLY the icon turns amber; background and
-                // text keep default contrast (never full-yellow).
+            ReaderMenuIconButton(
                 icon = if (isPositionedBookmarked) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder,
+                contentDescription = if (positionedReference != null) {
+                    "Bookmark $positionedReference"
+                } else {
+                    "Bookmark current hadith"
+                },
                 iconTint = if (isPositionedBookmarked) LocalHadithlyColors.current.bookmark else null,
                 onClick = { tapped(onBookmark) },
-                modifier = Modifier.weight(1f).heightIn(min = 72.dp),
+                modifier = Modifier.weight(1f).height(56.dp),
                 testTag = "reader.menu.bookmark",
             )
-            ReaderMenuCard(
-                title = "Search",
-                subtitle = "Sunnah.now English text",
+            ReaderMenuIconButton(
                 icon = Icons.Filled.Search,
+                contentDescription = "Search",
                 onClick = { tapped(onSearch) },
-                modifier = Modifier.weight(1f).heightIn(min = 72.dp),
+                modifier = Modifier.weight(1f).height(56.dp),
                 testTag = "reader.menu.search",
             )
         }
+    }
+}
+
+@Composable
+private fun ReaderMenuIconButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    iconTint: androidx.compose.ui.graphics.Color? = null,
+    testTag: String? = null,
+) {
+    val colors = LocalHadithlyColors.current
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .background(colors.surface.copy(alpha = 0.98f), RoundedCornerShape(18.dp))
+            .clickable(onClick = onClick)
+            .semantics { this.contentDescription = contentDescription }
+            .then(if (testTag != null) Modifier.testTag(testTag) else Modifier),
+    ) {
+        Icon(icon, null, tint = iconTint ?: colors.textSecondary, modifier = Modifier.size(22.dp))
     }
 }
 
@@ -931,6 +1022,8 @@ private fun ReaderPage(
     restorationGeneration: Int,
     landingHadithNumber: String?,
     isSentinel: Boolean,
+    topInset: androidx.compose.ui.unit.Dp = 0.dp,
+    scrollCache: ReaderScrollOffsetCache? = null,
     onFollowPill: (ReaderPagePills.Pill) -> Unit,
     onTap: () -> Unit,
     onUserScroll: () -> Unit,
@@ -944,7 +1037,14 @@ private fun ReaderPage(
     var noteTarget by remember { mutableStateOf<ReaderHadith?>(null) }
     var submissionTarget by remember { mutableStateOf<Pair<ReaderHadith, ReaderTranslation?>?>(null) }
     var reportTarget by remember { mutableStateOf<Pair<ReaderHadith, ReaderTranslation>?>(null) }
-    val listState = rememberLazyListState()
+    val listState = rememberLazyListState(
+        // Round 5: navigating back to one of the last 2 cached pages
+        // restores its exact vertical offset instead of the top. Pages the
+        // pager keeps composed (neighbors) already hold live state; this
+        // covers pages whose composition was disposed.
+        initialFirstVisibleItemIndex = scrollCache?.restore(pageIndex)?.first ?: 0,
+        initialFirstVisibleItemScrollOffset = scrollCache?.restore(pageIndex)?.second ?: 0,
+    )
     val chapterOpenings = remember(hadiths) { ReaderChapterBoundaries.openingIndices(hadiths) }
     // R6A: the selected volume's outline chapters feed the quiet chapter
     // header's optional Arabic second line; the cumulative counts feed the
@@ -1006,6 +1106,27 @@ private fun ReaderPage(
         }
     }
 
+    // Round 5: leaving a page stores its LazyColumn offset in the
+    // 2-entry per-volume cache (continuous save plus a dispose save so an
+    // eviction mid-transition never loses the position). R1/R2
+    // save/restore still runs on settle.
+    LaunchedEffect(listState, pageIndex, scrollCache) {
+        snapshotFlow {
+            listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset
+        }
+            .distinctUntilChanged()
+            .collect { (index, offset) -> scrollCache?.save(pageIndex, index, offset) }
+    }
+    DisposableEffect(listState, pageIndex, scrollCache) {
+        onDispose {
+            scrollCache?.save(
+                pageIndex,
+                listState.firstVisibleItemIndex,
+                listState.firstVisibleItemScrollOffset,
+            )
+        }
+    }
+
     // Intra-page scroll fraction for the dynamic page bars: leading item
     // plus its consumed offset over the page's item count.
     LaunchedEffect(listState, hadiths) {
@@ -1061,7 +1182,7 @@ private fun ReaderPage(
     ) {
         if (isSentinel || hadiths.isEmpty()) {
             Box(
-                modifier = Modifier.fillMaxSize().statusBarsPadding().testTag("reader.pageLoading"),
+                modifier = Modifier.fillMaxSize().padding(top = topInset).testTag("reader.pageLoading"),
                 contentAlignment = Alignment.TopCenter,
             ) {
                 CircularProgressIndicator(color = colors.textSecondary, modifier = Modifier.padding(top = 120.dp))
@@ -1071,13 +1192,14 @@ private fun ReaderPage(
                 state = listState,
                 verticalArrangement = Arrangement.spacedBy(0.dp),
                 // Edge-to-edge is on (MainActivity.enableEdgeToEdge): the
-                // page insets itself below the status bar and above the
-                // navigation bar so text and end-of-page pills never render
-                // under system bars. Chrome overlays carry their own
-                // statusBars/navigationBars padding.
-                modifier = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding(),
+                // page draws under the system bars and insets only the top
+                // viewport padding (animated: 0 in focused with the status
+                // bar hidden, status-bar height in unfocused). Text scrolls
+                // full-height behind the navigation bar; chrome overlays
+                // carry their own statusBars/navigationBars padding.
+                modifier = Modifier.fillMaxSize(),
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                    start = 22.dp, end = 22.dp, top = 20.dp, bottom = 80.dp,
+                    start = 22.dp, end = 22.dp, top = 20.dp + topInset, bottom = 80.dp,
                 ),
             ) {
                 // R6A page-top corner label: the localized volume title at the
@@ -1503,21 +1625,33 @@ private fun ReaderProgressPill(
     fraction: Double,
     testTag: String,
     modifier: Modifier = Modifier,
+    reduceMotion: Boolean = false,
 ) {
     val colors = LocalHadithlyColors.current
+    // Round 5: the fill animates to its new fraction instead of jumping.
+    val animatedFraction by animateFloatAsState(
+        targetValue = fraction.toFloat().coerceIn(0.02f, 1f),
+        animationSpec = if (reduceMotion) snap() else tween(250),
+        label = "readerPillFill",
+    )
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .height(32.dp)
-            .background(colors.surface.copy(alpha = 0.92f), RoundedCornerShape(50))
+            .clip(RoundedCornerShape(50))
+            .background(colors.surface.copy(alpha = 0.92f))
             .testTag(testTag),
     ) {
+        // Round 5: the fill is inset with the same rounded shape, so low
+        // fills stay a rounded nub and never show square corners.
         Box(
             modifier = Modifier
                 .align(Alignment.CenterStart)
-                .fillMaxWidth(fraction.toFloat().coerceIn(0.02f, 1f))
-                .height(32.dp)
-                .background(colors.textSecondary.copy(alpha = 0.22f), RoundedCornerShape(50)),
+                .padding(3.dp)
+                .fillMaxHeight()
+                .fillMaxWidth(animatedFraction)
+                .clip(RoundedCornerShape(50))
+                .background(colors.textSecondary.copy(alpha = 0.22f)),
         )
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -1551,18 +1685,25 @@ private fun ReaderProgressCapsule(
     thickness: androidx.compose.ui.unit.Dp,
     testTag: String,
     modifier: Modifier = Modifier,
+    reduceMotion: Boolean = false,
 ) {
     val colors = LocalHadithlyColors.current
+    // Round 5: the fill animates to its new fraction instead of jumping.
+    val animatedFraction by animateFloatAsState(
+        targetValue = fraction.toFloat().coerceIn(0.02f, 1f),
+        animationSpec = if (reduceMotion) snap() else tween(250),
+        label = "readerCapsuleFill",
+    )
     Box(
         modifier = modifier
-            .width(128.dp)
             .height(thickness)
-            .background(colors.divider.copy(alpha = 0.6f), RoundedCornerShape(50))
+            .clip(RoundedCornerShape(50))
+            .background(colors.divider.copy(alpha = 0.6f))
             .testTag(testTag),
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth(fraction.toFloat().coerceIn(0.02f, 1f))
+                .fillMaxWidth(animatedFraction)
                 .height(thickness)
                 .background(colors.textSecondary.copy(alpha = 0.8f), RoundedCornerShape(50)),
         )
@@ -3126,6 +3267,9 @@ internal fun BookmarkPlacementSheet(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            // Round 5: opens fully expanded immediately (with
+            // skipPartiallyExpanded) — no half-then-expand.
+            .fillMaxHeight()
             .padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 16.dp)
             .testTag("reader.bookmarkSheet"),
     ) {
@@ -3244,6 +3388,9 @@ internal fun ReaderSearchSheet(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier
             .fillMaxWidth()
+            // Round 5: opens fully expanded immediately (with
+            // skipPartiallyExpanded) — no half-then-expand.
+            .fillMaxHeight()
             .padding(20.dp)
             .testTag("reader.search.sheet"),
     ) {
@@ -3384,6 +3531,9 @@ internal fun ReaderSavedSheet(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            // Round 5: opens fully expanded immediately (with
+            // skipPartiallyExpanded) — no half-then-expand.
+            .fillMaxHeight()
             .padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 16.dp)
             .testTag("reader.saved.sheet"),
     ) {

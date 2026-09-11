@@ -441,6 +441,44 @@ enum ReaderProgressBars {
     }
 }
 
+// MARK: - Round 5: per-page vertical scroll offsets
+
+/// A page's vertical scroll position, captured when the reader leaves the
+/// page so navigating back restores the exact offset instead of jumping to
+/// the top. Mirrors the R1/R2 anchor + normalized-offset shape, keyed by
+/// the page index the snapshot was taken on.
+struct PageScrollSnapshot: Equatable {
+    /// Provider hadith id of the leading visible hadith.
+    let providerHadithId: String
+    let rawPageOffset: Double
+    let normalizedOffset: Double
+}
+
+/// A bounded (2-entry, insertion-ordered) cache of per-page scroll offsets.
+/// Pure so the eviction order is unit-pinned; the model owns the storage.
+enum ReaderPageScrollCache {
+    /// How many recent pages keep their scroll offset.
+    static let maxEntries = 2
+
+    /// Stores `snapshot` for `page`, refreshing its recency and evicting
+    /// the oldest entries beyond `maxEntries`.
+    static func storing(
+        cache: [Int: PageScrollSnapshot],
+        order: [Int],
+        page: Int,
+        snapshot: PageScrollSnapshot
+    ) -> (cache: [Int: PageScrollSnapshot], order: [Int]) {
+        var cache = cache
+        var order = order.filter { $0 != page }
+        order.append(page)
+        cache[page] = snapshot
+        while order.count > maxEntries {
+            cache.removeValue(forKey: order.removeFirst())
+        }
+        return (cache, order)
+    }
+}
+
 // MARK: - 10. Relative-time rows
 
 enum SavedRelativeTime {

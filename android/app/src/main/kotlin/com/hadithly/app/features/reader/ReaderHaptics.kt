@@ -13,8 +13,6 @@ enum class ReaderHapticKind {
     MENU_OPEN_CLOSE,
     /** A reader menu card tapped. */
     MENU_ITEM,
-    /** The tap that toggles focused/unfocused chrome. */
-    TAP_TOGGLE,
     /** Long-press opened the per-hadith context menu. */
     LONG_PRESS_MENU,
     /** A bookmark or favorite was added (never on remove). */
@@ -28,7 +26,6 @@ object ReaderHaptics {
     fun constantFor(kind: ReaderHapticKind): Int = when (kind) {
         ReaderHapticKind.MENU_OPEN_CLOSE -> HapticFeedbackConstants.CLOCK_TICK
         ReaderHapticKind.MENU_ITEM -> HapticFeedbackConstants.CONTEXT_CLICK
-        ReaderHapticKind.TAP_TOGGLE -> HapticFeedbackConstants.KEYBOARD_TAP
         ReaderHapticKind.LONG_PRESS_MENU -> HapticFeedbackConstants.CONTEXT_CLICK
         ReaderHapticKind.BOOKMARK_FAVORITE_ADD -> HapticFeedbackConstants.CONFIRM
         ReaderHapticKind.REJECT_BOTH_HIDDEN -> HapticFeedbackConstants.REJECT

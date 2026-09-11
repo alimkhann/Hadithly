@@ -10,6 +10,10 @@ import com.hadithly.app.core.data.ReaderHadith
 import com.hadithly.app.core.data.ReaderPrefetch
 import com.hadithly.app.core.data.ReaderPrefetch.EntryFetch
 import com.hadithly.app.features.reader.BookmarkPlacement
+import com.hadithly.app.features.reader.ReaderHapticKind
+import com.hadithly.app.features.reader.ReaderHaptics
+import com.hadithly.app.features.reader.ReaderScrollOffsetCache
+import com.hadithly.app.features.reader.ReaderShare
 import com.hadithly.app.features.reader.bookmarkPlacementTargets
 import com.hadithly.app.features.reader.chapterTitleForDisplay
 import com.hadithly.app.features.reader.focusedProgressFraction
@@ -21,9 +25,6 @@ import com.hadithly.app.features.reader.volumeHeaderTitle
 import com.hadithly.app.features.reader.volumePillFillFraction
 import com.hadithly.app.features.reader.volumeProgressFraction
 import com.hadithly.app.features.reader.volumeTitleForDisplay
-import com.hadithly.app.features.reader.ReaderHapticKind
-import com.hadithly.app.features.reader.ReaderHaptics
-import com.hadithly.app.features.reader.ReaderShare
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
@@ -376,10 +377,6 @@ class ReaderR6Round3Test {
             ReaderHaptics.constantFor(ReaderHapticKind.MENU_ITEM),
         )
         assertEquals(
-            android.view.HapticFeedbackConstants.KEYBOARD_TAP,
-            ReaderHaptics.constantFor(ReaderHapticKind.TAP_TOGGLE),
-        )
-        assertEquals(
             android.view.HapticFeedbackConstants.CONTEXT_CLICK,
             ReaderHaptics.constantFor(ReaderHapticKind.LONG_PRESS_MENU),
         )
@@ -391,5 +388,40 @@ class ReaderR6Round3Test {
             android.view.HapticFeedbackConstants.REJECT,
             ReaderHaptics.constantFor(ReaderHapticKind.REJECT_BOTH_HIDDEN),
         )
+    }
+
+    // Round 5: 2-entry per-page scroll offset cache
+
+    @Test
+    fun `scroll cache restores the exact stored offset`() {
+        val cache = ReaderScrollOffsetCache()
+        assertNull(cache.restore(0))
+        cache.save(0, 5, 120)
+        assertEquals(5 to 120, cache.restore(0))
+        assertEquals(1, cache.size())
+    }
+
+    @Test
+    fun `scroll cache keeps only the last two pages`() {
+        val cache = ReaderScrollOffsetCache()
+        cache.save(0, 5, 120)
+        cache.save(1, 0, 0)
+        cache.save(2, 3, 40)
+        assertEquals(2, cache.size())
+        assertNull(cache.restore(0))
+        assertEquals(0 to 0, cache.restore(1))
+        assertEquals(3 to 40, cache.restore(2))
+    }
+
+    @Test
+    fun `scroll cache re-save refreshes eviction order`() {
+        val cache = ReaderScrollOffsetCache()
+        cache.save(0, 1, 10)
+        cache.save(1, 2, 20)
+        cache.save(0, 1, 10)
+        cache.save(2, 3, 30)
+        assertNull(cache.restore(1))
+        assertEquals(1 to 10, cache.restore(0))
+        assertEquals(3 to 30, cache.restore(2))
     }
 }

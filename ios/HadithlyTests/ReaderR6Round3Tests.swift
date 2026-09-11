@@ -652,9 +652,9 @@ final class ReaderR6Round3Tests: XCTestCase {
         // Medium only when something is added.
         XCTAssertEqual(ReaderHaptics.style(for: .bookmarkAdd), .medium)
         XCTAssertEqual(ReaderHaptics.style(for: .favoriteAdd), .medium)
-        // The page-turn tick is the softest impact; hiding both text
+        // Round 5: the page-settle tick is gone — no touch/drag/scroll
+        // haptic in the focused view or during swipes. Hiding both text
         // layers is the only notification haptic.
-        XCTAssertEqual(ReaderHaptics.style(for: .pageSettle), .soft)
         XCTAssertEqual(ReaderHaptics.style(for: .layersRejected), .error)
     }
 
@@ -671,5 +671,46 @@ final class ReaderR6Round3Tests: XCTestCase {
         ReaderHapticDispatcher.trigger(.bookmarkAdd)
         ReaderHapticDispatcher.trigger(.layersRejected)
         XCTAssertEqual(recorder.events, [.menuToggle, .bookmarkAdd, .layersRejected])
+    }
+
+    // MARK: - Round 5: per-page scroll offset cache
+
+    private func snapshot(id: String = "57") -> PageScrollSnapshot {
+        PageScrollSnapshot(providerHadithId: id, rawPageOffset: 120, normalizedOffset: 0.25)
+    }
+
+    func testScrollCacheKeepsTwoMostRecentPages() {
+        var cache: [Int: PageScrollSnapshot] = [:]
+        var order: [Int] = []
+        for page in [3, 4, 5] {
+            let stored = ReaderPageScrollCache.storing(
+                cache: cache, order: order, page: page, snapshot: snapshot(id: "\(page)")
+            )
+            cache = stored.cache
+            order = stored.order
+        }
+        XCTAssertEqual(order, [4, 5])
+        XCTAssertNil(cache[3])
+        XCTAssertEqual(cache[4]?.providerHadithId, "4")
+        XCTAssertEqual(cache[5]?.providerHadithId, "5")
+    }
+
+    func testScrollCacheRestoringRefreshesRecency() {
+        let first = ReaderPageScrollCache.storing(
+            cache: [:], order: [], page: 3, snapshot: snapshot(id: "3")
+        )
+        let second = ReaderPageScrollCache.storing(
+            cache: first.cache, order: first.order, page: 4, snapshot: snapshot(id: "4")
+        )
+        // Re-storing page 3 moves it to the back; page 5 then evicts 4.
+        let third = ReaderPageScrollCache.storing(
+            cache: second.cache, order: second.order, page: 3, snapshot: snapshot(id: "3b")
+        )
+        let fourth = ReaderPageScrollCache.storing(
+            cache: third.cache, order: third.order, page: 5, snapshot: snapshot(id: "5")
+        )
+        XCTAssertEqual(fourth.order, [3, 5])
+        XCTAssertEqual(fourth.cache[3]?.providerHadithId, "3b")
+        XCTAssertNil(fourth.cache[4])
     }
 }

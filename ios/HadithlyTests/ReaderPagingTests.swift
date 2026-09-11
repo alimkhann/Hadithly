@@ -108,6 +108,42 @@ final class ReaderPagingTests: XCTestCase {
         XCTAssertFalse(progresses.contains(8), "vertical drags never move the page")
     }
 
+    func testReleaseOwnsOffsetAfterEndedSoCommitAnimationSurvives() {
+        // Round 5 swipe-jerk fix: once onRelease is set, the handler must
+        // not reset progress after delegating — the release owner animates
+        // onto the revealed neighbor (commit) or springs back (cancel).
+        // A trailing reset would snap the strip to rest first, flashing the
+        // swiping-from page before the settle swap.
+        var releases: [ReaderPageTurn?] = []
+        var progresses: [CGFloat] = []
+        let handler = ReaderPagingPanHandler(
+            pageDirection: .ltr,
+            isEnabled: { true },
+            onTurn: { _ in },
+            onProgress: { progresses.append($0) },
+            onRelease: { releases.append($0) }
+        )
+        handler.handle(state: .began, translation: .zero, velocity: .zero)
+        handler.handle(state: .changed, translation: CGPoint(x: -70, y: 5), velocity: .zero)
+        handler.handle(state: .ended, translation: CGPoint(x: -70, y: 5), velocity: .zero)
+        XCTAssertEqual(releases, [.next])
+        XCTAssertEqual(progresses, [0, -70])
+
+        // Cancelled gestures behave the same: release owns the way back.
+        var cancelledProgresses: [CGFloat] = []
+        let cancelling = ReaderPagingPanHandler(
+            pageDirection: .ltr,
+            isEnabled: { true },
+            onTurn: { _ in },
+            onProgress: { cancelledProgresses.append($0) },
+            onRelease: { _ in }
+        )
+        cancelling.handle(state: .began, translation: .zero, velocity: .zero)
+        cancelling.handle(state: .changed, translation: CGPoint(x: 200, y: 0), velocity: .zero)
+        cancelling.handle(state: .cancelled, translation: CGPoint(x: 200, y: 0), velocity: .zero)
+        XCTAssertEqual(cancelledProgresses, [0, 200])
+    }
+
     func testPanRecognizerObservesScrollViewsSimultaneouslyAndNeverCancelsTouches() throws {
         let handler = ReaderPagingPanHandler(
             pageDirection: .ltr,
