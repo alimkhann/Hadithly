@@ -57,7 +57,9 @@ struct ReaderSheetChrome<Content: View>: View {
             .padding(.bottom, 12)
             content()
         }
-        .background(palette.background)
+        // Reader palette to the sheet edges, so Light/Paper readers never
+        // get system-background margins around the sheet content.
+        .background(palette.background.ignoresSafeArea())
     }
 }
 
@@ -1477,66 +1479,49 @@ struct ReaderSavedShortcutSheet: View {
 
 // MARK: - Bookmark placement (R6 round 3)
 
-/// Sajda `Add bookmark` style: stacked pill options for where the menu
-/// bookmark lands — the start of the page or the current (positioned)
-/// hadith — plus Cancel.
-struct ReaderBookmarkPlacementSheet: View {
+/// Shared bookmark-placement rows (round 7): the legacy bottom sheet
+/// (fixture) and the centered modal dialog (production) render the same
+/// title, options, identifiers, and actions.
+struct ReaderBookmarkPlacementOptions: View {
     let pageFirst: ReaderHadith?
     let positioned: ReaderHadith
+    let palette: ReaderPalette
     let onChoose: (ReaderHadith) -> Void
     let onCancel: () -> Void
 
-    @Environment(\.readerPalette) private var palette
-    @Environment(\.readerTheme) private var readerTheme
-
     var body: some View {
-        VStack(spacing: 0) {
-            Capsule()
-                .fill(palette.textSecondary.opacity(0.45))
-                .frame(width: 40, height: 5)
-                .padding(.top, 10)
-                .accessibilityIdentifier("reader.bookmarkPlacement.grabber")
-            Text("Add bookmark")
-                .font(.headline)
-                .foregroundStyle(palette.textPrimary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.top, 12)
-                .padding(.bottom, 4)
-                .accessibilityIdentifier("reader.bookmarkPlacement.title")
-            placementOption(
-                title: "Start of page",
-                identifier: "reader.bookmarkPlacement.pageStart"
+        Text("Add bookmark")
+            .font(.headline)
+            .foregroundStyle(palette.textPrimary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, 12)
+            .padding(.bottom, 4)
+            .accessibilityIdentifier("reader.bookmarkPlacement.title")
+        placementOption(
+            title: "Start of page",
+            identifier: "reader.bookmarkPlacement.pageStart"
+        ) {
+            if let target = ReaderBookmarkTarget.resolve(
+                placement: .pageStart,
+                pageFirst: pageFirst,
+                positioned: positioned
             ) {
-                if let target = ReaderBookmarkTarget.resolve(
-                    placement: .pageStart,
-                    pageFirst: pageFirst,
-                    positioned: positioned
-                ) {
-                    onChoose(target)
-                }
+                onChoose(target)
             }
-            placementOption(
-                title: "Current hadith \(positioned.referenceDisplay)",
-                identifier: "reader.bookmarkPlacement.currentHadith"
-            ) {
-                if let target = ReaderBookmarkTarget.resolve(
-                    placement: .currentHadith,
-                    pageFirst: pageFirst,
-                    positioned: positioned
-                ) {
-                    onChoose(target)
-                }
-            }
-            placementOption(title: "Cancel", identifier: "reader.bookmarkPlacement.cancel", onCancel)
         }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 16)
-        .background(palette.background)
-        // The content fills all allocated vertical space so the short
-        // option list sits in the full detent height with no dead blank
-        // region below it.
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
+        placementOption(
+            title: "Current hadith \(positioned.referenceDisplay)",
+            identifier: "reader.bookmarkPlacement.currentHadith"
+        ) {
+            if let target = ReaderBookmarkTarget.resolve(
+                placement: .currentHadith,
+                pageFirst: pageFirst,
+                positioned: positioned
+            ) {
+                onChoose(target)
+            }
+        }
+        placementOption(title: "Cancel", identifier: "reader.bookmarkPlacement.cancel", onCancel)
     }
 
     private func placementOption(
@@ -1565,5 +1550,76 @@ struct ReaderBookmarkPlacementSheet: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(identifier)
+    }
+}
+
+/// Centered modal dialog for bookmark placement (round 7): the same
+/// options as the legacy sheet, rendered as a floating card over a dimmed
+/// backdrop instead of a bottom sheet. Reader palette throughout.
+struct ReaderBookmarkPlacementDialog: View {
+    let pageFirst: ReaderHadith?
+    let positioned: ReaderHadith
+    let onChoose: (ReaderHadith) -> Void
+    let onCancel: () -> Void
+
+    @Environment(\.readerPalette) private var palette
+    @Environment(\.readerTheme) private var readerTheme
+
+    var body: some View {
+        ReaderBookmarkPlacementOptions(
+            pageFirst: pageFirst,
+            positioned: positioned,
+            palette: palette,
+            onChoose: onChoose,
+            onCancel: onCancel
+        )
+        .padding(20)
+        .background(palette.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .shadow(color: .black.opacity(0.3), radius: 24, y: 8)
+        .frame(maxWidth: 340)
+        .padding(.horizontal, 32)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityIdentifier("reader.bookmarkPlacement.dialog")
+        .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
+    }
+}
+
+/// Sajda `Add bookmark` style: stacked pill options for where the menu
+/// bookmark lands — the start of the page or the current (positioned)
+/// hadith — plus Cancel. Kept for the round-3 fixture; production renders
+/// the centered ReaderBookmarkPlacementDialog instead.
+struct ReaderBookmarkPlacementSheet: View {
+    let pageFirst: ReaderHadith?
+    let positioned: ReaderHadith
+    let onChoose: (ReaderHadith) -> Void
+    let onCancel: () -> Void
+
+    @Environment(\.readerPalette) private var palette
+    @Environment(\.readerTheme) private var readerTheme
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Capsule()
+                .fill(palette.textSecondary.opacity(0.45))
+                .frame(width: 40, height: 5)
+                .padding(.top, 10)
+                .accessibilityIdentifier("reader.bookmarkPlacement.grabber")
+            ReaderBookmarkPlacementOptions(
+                pageFirst: pageFirst,
+                positioned: positioned,
+                palette: palette,
+                onChoose: onChoose,
+                onCancel: onCancel
+            )
+        }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 16)
+        .background(palette.background)
+        // The content fills all allocated vertical space so the short
+        // option list sits in the full detent height with no dead blank
+        // region below it.
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
     }
 }

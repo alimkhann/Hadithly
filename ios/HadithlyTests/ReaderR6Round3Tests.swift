@@ -713,4 +713,21 @@ final class ReaderR6Round3Tests: XCTestCase {
         XCTAssertEqual(fourth.cache[3]?.providerHadithId, "3b")
         XCTAssertNil(fourth.cache[4])
     }
+
+    // MARK: - Round 7: confirmed tap vs drag
+
+    func testConfirmedTapWithinMovementAndDuration() {
+        XCTAssertTrue(ReaderConfirmedTap.isConfirmedTap(movement: 0, duration: 0.1))
+        XCTAssertTrue(ReaderConfirmedTap.isConfirmedTap(movement: 9.9, duration: 0.39))
+    }
+
+    func testDragSwipeOrHoldNeverConfirms() {
+        // At or beyond 10pt of travel the touch is a drag, swipe, or scroll.
+        XCTAssertFalse(ReaderConfirmedTap.isConfirmedTap(movement: 10, duration: 0.1))
+        XCTAssertFalse(ReaderConfirmedTap.isConfirmedTap(movement: 60, duration: 0.1))
+        // At or beyond 0.4s the touch is a press-and-hold.
+        XCTAssertFalse(ReaderConfirmedTap.isConfirmedTap(movement: 0, duration: 0.4))
+        XCTAssertFalse(ReaderConfirmedTap.isConfirmedTap(movement: 0, duration: 0.8))
+        XCTAssertFalse(ReaderConfirmedTap.isConfirmedTap(movement: 4, duration: 0.6))
+    }
 }

@@ -34,6 +34,10 @@ struct ReaderView: View {
     @State private var pageDragOffset: CGFloat = 0
     @State private var horizontalDragging = false
     @State private var pageScrollFraction: Double = 1
+    /// Touch-down time behind the confirmed-tap tracker: a tap toggles the
+    /// chrome only when the touch lifts with <10pt of travel inside a short
+    /// press (ReaderConfirmedTap). Nil between touches.
+    @State private var confirmedTapBeganAt: Date?
     /// Latest viewport width, for the drag-settle target. Written from the
     /// GeometryReader; the gesture may outlive any single body evaluation.
     @State private var dragViewportWidth: CGFloat = 0
@@ -48,6 +52,13 @@ struct ReaderView: View {
 
     private var palette: ReaderPalette {
         ReaderPalette.resolved(readerTheme, systemDark: systemColorScheme == .dark)
+    }
+
+    /// Chrome fade+scale (round 7, ~200ms ease-out): applied ONLY to the
+    /// overlay chrome layers — the page underneath never animates. Nil
+    /// under Reduce Motion so the chrome snaps.
+    private var chromeAnimation: Animation? {
+        reduceMotion ? nil : .easeOut(duration: 0.2)
     }
 
     private var arabicFontSizeBinding: Binding<Double> {
@@ -144,22 +155,8 @@ struct ReaderView: View {
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.hidden)
         }
-        .sheet(isPresented: $showBookmarkPlacement) {
-            if let model, let hadith = positionedHadith(model) {
-                ReaderBookmarkPlacementSheet(
-                    pageFirst: model.currentPageHadiths.first,
-                    positioned: hadith,
-                    onChoose: { target in
-                        model.toggleBookmark(target)
-                        showBookmarkPlacement = false
-                    },
-                    onCancel: { showBookmarkPlacement = false }
-                )
-                // Bookmark placement opens at medium.
-                .presentationDetents([.medium])
-                .presentationDragIndicator(.hidden)
-            }
-        }
+        // Bookmark placement is a centered modal dialog (round 7), rendered
+        // as an overlay in readingView — not a bottom sheet.
         .sheet(isPresented: $showQuotaPaywall) {
             QuotaPaywallView {
                 Task {
@@ -225,29 +222,49 @@ struct ReaderView: View {
 
                 pageStrip(model, viewportWidth: viewport.size.width)
 
-                // Focused: ONE thin narrow progress capsule, always visible
-                // just below the notch — 88×4pt, centered, neutral. It
-                // fills and defills with the page scroll and never hides,
-                // even at zero scroll (a minimum nub stays visible).
-                if !model.chromeVisible {
-                    ReaderFocusedProgressBar(
-                        fraction: pageScrollFraction,
-                        palette: palette
-                    )
-                }
+                // Chrome fade+scale (round 7): both chrome layers stay in
+                // the hierarchy and crossfade in place — fade + slight
+                // scale, ~200ms ease-out, snap under Reduce Motion. The
+                // page underneath never moves, fades, or re-lays-out.
+                ReaderFocusedProgressBar(
+                    fraction: pageScrollFraction,
+                    palette: palette
+                )
+                .opacity(model.chromeVisible ? 0 : 1)
+                .scaleEffect(model.chromeVisible ? 0.92 : 1)
+                .animation(chromeAnimation, value: model.chromeVisible)
+                .allowsHitTesting(false)
 
-                // Unfocused chrome overlays appear/disappear in place with
-                // no animation: toggling never moves or re-lays-out the
-                // page underneath.
-                if model.chromeVisible {
-                    chromeOverlay(model)
+                chromeOverlay(model)
+                    .opacity(model.chromeVisible ? 1 : 0)
+                    .scaleEffect(model.chromeVisible ? 1 : 0.96)
+                    .animation(chromeAnimation, value: model.chromeVisible)
+                    .allowsHitTesting(model.chromeVisible)
+                    .accessibilityHidden(!model.chromeVisible)
+
+                // Bookmark placement (round 7): a centered modal dialog
+                // over a dimmed backdrop, not a bottom sheet. Same options
+                // and actions; backdrop tap cancels.
+                if showBookmarkPlacement, let hadith = positionedHadith(model) {
+                    Color.black.opacity(0.4).ignoresSafeArea()
+                        .onTapGesture { showBookmarkPlacement = false }
+                        .accessibilityIdentifier("reader.bookmarkPlacement.backdrop")
+                    ReaderBookmarkPlacementDialog(
+                        pageFirst: model.currentPageHadiths.first,
+                        positioned: hadith,
+                        onChoose: { target in
+                            model.toggleBookmark(target)
+                            showBookmarkPlacement = false
+                        },
+                        onCancel: { showBookmarkPlacement = false }
+                    )
                 }
             }
         }
         .overlay {
             WindowSwipeRecognizer(
                 pageDirection: pagingPolicy.pageDirection,
-                isEnabled: { !showIndex && !showSettings && !showSearch && !showSavedShortcut },
+                isEnabled: { !showIndex && !showSettings && !showSearch && !showSavedShortcut && !showBookmarkPlacement },
                 onTurn: { _ in },
                 onProgress: { dragProgress(model, offset: $0) },
                 onRelease: { dragReleased(model, turn: $0) }
@@ -351,13 +368,36 @@ struct ReaderView: View {
         .onChange(of: viewportWidth, initial: true) { _, width in
             dragViewportWidth = width
         }
-        .onTapGesture {
-            // The single reader chrome haptic: exactly one light tick on
-            // the tap that toggles focused↔unfocused. No haptic anywhere
-            // else on scroll, drag, swipe, or settle paths.
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-            toggleChrome(model)
-        }
+        // Confirmed-tap chrome toggle (round 7): a zero-distance drag
+        // observes the touch alongside the paging recognizer and the page
+        // ScrollView without claiming it, then toggles (with the single
+        // light tick) only on touch-up with <10pt of travel inside a short
+        // press. Drags, swipes, scrolls, and press-and-holds never toggle
+        // nor tick.
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0, coordinateSpace: .global)
+                .onChanged { _ in
+                    if confirmedTapBeganAt == nil
+                        || Date().timeIntervalSince(confirmedTapBeganAt!) > 5 {
+                        confirmedTapBeganAt = Date()
+                    }
+                }
+                .onEnded { value in
+                    defer { confirmedTapBeganAt = nil }
+                    let duration = Date().timeIntervalSince(confirmedTapBeganAt ?? Date())
+                    let movement = hypot(
+                        Double(value.translation.width),
+                        Double(value.translation.height)
+                    )
+                    guard ReaderConfirmedTap.isConfirmedTap(movement: movement, duration: duration) else { return }
+                    // The single reader chrome haptic: exactly one light
+                    // tick on the tap that toggles focused↔unfocused. No
+                    // haptic anywhere else on scroll, drag, swipe, or settle
+                    // paths.
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    toggleChrome(model)
+                }
+        )
     }
 
     private func stripSlot(_ model: ReaderModel, turn: ReaderPageTurn, viewportWidth: CGFloat) -> some View {
@@ -446,9 +486,10 @@ struct ReaderView: View {
         }
     }
 
-    /// Tapping the page toggles the chrome instantly: no animation, so the
-    /// page never moves, shifts, or re-lays-out. (VoiceOver uses the same
-    /// path through the accessibility action, without the tap haptic.)
+    /// Toggling the chrome flips the model; only the overlay chrome layers
+    /// animate (fade + slight scale via chromeAnimation), so the page never
+    /// moves, shifts, or re-lays-out. (VoiceOver uses the same path through
+    /// the accessibility action, without the tap haptic.)
     private func toggleChrome(_ model: ReaderModel) {
         model.chromeVisible.toggle()
     }
@@ -724,11 +765,15 @@ private struct ReaderFocusedProgressBar: View {
     let fraction: Double
     let palette: ReaderPalette
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     /// Fixed bar size: ~1/4 of a phone width, 4pt thick.
     static let barWidth: CGFloat = 88
     static let barHeight: CGFloat = 4
     /// Minimum fill width so the capsule reads at zero scroll.
     static let minFillWidth: CGFloat = 10
+
+    private var clampedFraction: Double { min(1, max(0, fraction)) }
 
     var body: some View {
         VStack {
@@ -737,13 +782,18 @@ private struct ReaderFocusedProgressBar: View {
                     .fill(palette.textSecondary.opacity(0.3))
                 Capsule()
                     .fill(palette.textPrimary.opacity(0.9))
-                    .frame(width: max(Self.minFillWidth, Self.barWidth * min(1, max(0, fraction))))
+                    .frame(width: max(Self.minFillWidth, Self.barWidth * clampedFraction))
+                    // The fill glides to the new fraction on a page switch
+                    // (~250ms ease-out, snap under Reduce Motion) instead
+                    // of jumping instantly.
+                    .animation(reduceMotion ? nil : .easeOut(duration: 0.25), value: clampedFraction)
             }
             .frame(width: Self.barWidth, height: Self.barHeight)
             Spacer()
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 6)
+        .allowsHitTesting(false)
         .accessibilityHidden(true)
         .accessibilityIdentifier("reader.focusedProgress")
     }
@@ -765,6 +815,8 @@ private struct ReaderUnfocusedProgressPills: View {
     let volumeFill: Double?
     let palette: ReaderPalette
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     /// Inset of the fill capsule inside the pill track.
     static let fillInset: CGFloat = 2.5
 
@@ -784,8 +836,9 @@ private struct ReaderUnfocusedProgressPills: View {
     private func progressPill(number: String, suffix: String, fill: Double) -> some View {
         // The inner fill is an inset capsule clipped to the same capsule
         // shape, so low fills render as a rounded nub — never square
-        // corners poking out. Fill snaps with the page (no animation) so
-        // toggling chrome never shifts layout.
+        // corners poking out. The fill glides to the new fraction on a
+        // page switch (~250ms ease-out, snap under Reduce Motion) instead
+        // of jumping instantly.
         let clamped = min(1, max(0, fill))
         return ZStack {
             Capsule()
@@ -798,6 +851,7 @@ private struct ReaderUnfocusedProgressPills: View {
                         height: max(0, proxy.size.height - Self.fillInset * 2)
                     )
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .animation(reduceMotion ? nil : .easeOut(duration: 0.25), value: clamped)
             }
             .clipShape(Capsule())
             HStack(spacing: 4) {
@@ -898,6 +952,36 @@ struct ReaderPageView: View {
         )
     }
 
+    /// Fixed header slot (round 7): the corner label (other pages) or the
+    /// volume-start header (first page) reserves its space synchronously,
+    /// so the page appears with its header already laid out — zero layout
+    /// shift when the text arrives. Placeholders use the same fonts but
+    /// carry no identifiers, so element queries only ever match real
+    /// content (the corner never exists on page 0 and vice versa).
+    @ViewBuilder
+    private var headerSlot: some View {
+        if ReaderVolumeHeader.showsHeader(pageIndex: currentPageIndex) {
+            if let volume = selectedVolume {
+                ReaderVolumeHeaderView(
+                    volume: volume,
+                    palette: palette,
+                    arabicVisible: preferences.arabicVisible,
+                    translationVisible: preferences.translationVisible,
+                    volumeNumber: model.volumes.firstIndex(where: { $0.volumeId == volume.volumeId }).map { $0 + 1 }
+                )
+            } else {
+                ReaderVolumeHeaderPlaceholder(palette: palette)
+            }
+        } else if let corner = volumeCornerText {
+            ReaderVolumeCornerLabel(text: corner, palette: palette)
+        } else {
+            Text(" ")
+                .font(.caption2.weight(.medium))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityHidden(true)
+        }
+    }
+
     /// One hadith row with its scroll-anchor tracking. Factored out so the
     /// chapter group (header + first hadith) and plain hadiths share it.
     private func hadithRow(_ hadith: ReaderHadith) -> some View {
@@ -947,20 +1031,7 @@ struct ReaderPageView: View {
                         // lines (28 + 12 top padding), tight 12pt from a
                         // chapter line to its first hadith.
                         VStack(spacing: 28) {
-                            if ReaderVolumeHeader.showsCornerLabel(pageIndex: currentPageIndex),
-                               let corner = volumeCornerText {
-                                ReaderVolumeCornerLabel(text: corner, palette: palette)
-                            }
-                            if ReaderVolumeHeader.showsHeader(pageIndex: currentPageIndex),
-                               let volume = selectedVolume {
-                                ReaderVolumeHeaderView(
-                                    volume: volume,
-                                    palette: palette,
-                                    arabicVisible: preferences.arabicVisible,
-                                    translationVisible: preferences.translationVisible,
-                                    volumeNumber: model.volumes.firstIndex(where: { $0.volumeId == volume.volumeId }).map { $0 + 1 }
-                                )
-                            }
+                            headerSlot
                             ForEach(Array(hadiths.enumerated()), id: \.element.internalId) { index, hadith in
                                 if chapterOpenings.contains(index) {
                                     VStack(spacing: 12) {
@@ -1206,6 +1277,9 @@ private struct ReaderVolumeCornerLabel: View {
     var body: some View {
         Text(text)
             .font(.caption2.weight(.medium))
+            // Single line always: appending the `: first–last` range once
+            // the volume is fully cached must not change the slot height.
+            .lineLimit(1)
             .foregroundStyle(palette.textSecondary)
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityIdentifier("reader.volumeCorner")
@@ -1266,6 +1340,27 @@ private struct ReaderVolumeHeaderView: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(title), \(volume.hadithCount) hadiths")
         .accessibilityIdentifier("reader.volumeHeader")
+    }
+}
+
+/// Identifier-free stand-in with the exact font stack of
+/// ReaderVolumeHeaderView, so the first-page slot keeps its height before
+/// the volume arrives. Hidden from assistive tech and element queries.
+private struct ReaderVolumeHeaderPlaceholder: View {
+    let palette: ReaderPalette
+
+    var body: some View {
+        VStack(spacing: 6) {
+            Text(" ")
+                .font(.caption2.weight(.semibold))
+            Text(" ")
+                .font(.title2.weight(.semibold))
+            Text(" ")
+                .font(.footnote)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 8)
+        .accessibilityHidden(true)
     }
 }
 
@@ -1530,14 +1625,12 @@ private struct HadithBlock: View {
             Text(hadith.referenceDisplay)
             hadithMenuContents
         }
-        // The menu itself offers no will-present callback: a parallel
-        // press detector at the system menu timing plays the open haptic
-        // without intercepting the menu presentation.
-        .onLongPressGesture(minimumDuration: 0.5, pressing: { pressing in
-            if pressing {
-                ReaderHapticDispatcher.trigger(.contextMenuOpen)
-            }
-        }, perform: {})
+        // The open tick fires only when the menu actually presents (after
+        // the 0.5s hold): a touch-down that becomes a swipe or scroll must
+        // never tick.
+        .onLongPressGesture(minimumDuration: 0.5) {
+            ReaderHapticDispatcher.trigger(.contextMenuOpen)
+        }
         .sheet(isPresented: $showingSource) {
             HadithSourceSheet(hadith: hadith)
                 .presentationDetents([.medium])
@@ -2049,15 +2142,15 @@ private struct NoteEditorSheet: View {
                     .font(.body)
                     .foregroundStyle(palette.textPrimary)
                     .scrollContentBackground(.hidden)
-                    .background(Theme.surface)
+                    .background(palette.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .frame(minHeight: 160)
                     .padding(1)
-                    .background(Theme.surface)
+                    .background(palette.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             }
             .padding(16)
-            .background(Theme.background)
+            .background(palette.background.ignoresSafeArea())
             .navigationTitle("Note")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

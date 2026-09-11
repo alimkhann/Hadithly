@@ -108,6 +108,24 @@ enum ReaderDragStrip {
     }
 }
 
+// MARK: - Confirmed tap vs drag (round 7)
+
+/// Tap-vs-drag disambiguation behind the chrome toggle. The chrome (and its
+/// single light tick) toggles only on a confirmed tap: touch-up with <10pt
+/// of finger travel inside a short press. Anything that becomes a drag,
+/// swipe, or scroll — or a press-and-hold — never toggles nor ticks.
+enum ReaderConfirmedTap {
+    /// Maximum finger travel that still counts as a tap.
+    static let maxMovement: Double = 10
+    /// Maximum press duration that still counts as a tap. Above this the
+    /// touch is a press-and-hold (the context menu owns it from 0.5s).
+    static let maxDuration: TimeInterval = 0.4
+
+    static func isConfirmedTap(movement: Double, duration: TimeInterval) -> Bool {
+        duration >= 0 && movement < maxMovement && duration < maxDuration
+    }
+}
+
 // MARK: - 2. Arabic-only narrator line + volume/chapter display titles
 
 extension ReaderNarratorLine {

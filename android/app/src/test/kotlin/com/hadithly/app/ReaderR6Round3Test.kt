@@ -10,6 +10,7 @@ import com.hadithly.app.core.data.ReaderHadith
 import com.hadithly.app.core.data.ReaderPrefetch
 import com.hadithly.app.core.data.ReaderPrefetch.EntryFetch
 import com.hadithly.app.features.reader.BookmarkPlacement
+import com.hadithly.app.features.reader.CONFIRMED_TAP_TIMEOUT_MILLIS
 import com.hadithly.app.features.reader.ReaderHapticKind
 import com.hadithly.app.features.reader.ReaderHaptics
 import com.hadithly.app.features.reader.ReaderScrollOffsetCache
@@ -17,6 +18,7 @@ import com.hadithly.app.features.reader.ReaderShare
 import com.hadithly.app.features.reader.bookmarkPlacementTargets
 import com.hadithly.app.features.reader.chapterTitleForDisplay
 import com.hadithly.app.features.reader.focusedProgressFraction
+import com.hadithly.app.features.reader.isConfirmedTap
 import com.hadithly.app.features.reader.narratorForMode
 import com.hadithly.app.features.reader.nextPreviewRestoreTicks
 import com.hadithly.app.features.reader.pagePillFillFraction
@@ -448,5 +450,35 @@ class ReaderR6Round3Test {
     fun `preview tick ignores negative pages`() {
         val ticks = mapOf(0 to 1)
         assertEquals(ticks, nextPreviewRestoreTicks(ticks, -1))
+    }
+
+    // Round 7: tap-vs-drag disambiguation for the chrome toggle
+
+    @Test
+    fun `confirmed tap needs minimal movement and short duration`() {
+        // A still, quick tap confirms.
+        assertTrue(isConfirmedTap(100f, 200f, 102f, 201f, 120L, slopPx = 24f))
+        // Exactly on the slop boundary still confirms.
+        assertTrue(isConfirmedTap(0f, 0f, 24f, 0f, 100L, slopPx = 24f))
+        // Exactly on the timeout still confirms.
+        assertTrue(
+            isConfirmedTap(0f, 0f, 0f, 0f, CONFIRMED_TAP_TIMEOUT_MILLIS, slopPx = 24f),
+        )
+    }
+
+    @Test
+    fun `swipe drag never confirms a tap`() {
+        // A swipe's release is far beyond slop.
+        assertEquals(false, isConfirmedTap(100f, 200f, 400f, 200f, 150L, slopPx = 24f))
+        // A vertical scroll's release is far beyond slop.
+        assertEquals(false, isConfirmedTap(100f, 200f, 100f, 600f, 300L, slopPx = 24f))
+        // Just past the slop boundary rejects.
+        assertEquals(false, isConfirmedTap(0f, 0f, 24.1f, 0f, 100L, slopPx = 24f))
+    }
+
+    @Test
+    fun `long hold release never confirms a tap`() {
+        assertEquals(false, isConfirmedTap(100f, 200f, 100f, 200f, CONFIRMED_TAP_TIMEOUT_MILLIS + 1, slopPx = 24f))
+        assertEquals(false, isConfirmedTap(100f, 200f, 100f, 200f, -1L, slopPx = 24f))
     }
 }

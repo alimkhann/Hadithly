@@ -179,3 +179,29 @@ fun nextPreviewRestoreTicks(ticks: Map<Int, Int>, pageIndex: Int): Map<Int, Int>
  */
 fun volumePillFillFraction(pageIndex: Int, totalPages: Int?, intraPageFraction: Float): Double? =
     focusedProgressFraction(pageIndex, totalPages, intraPageFraction)
+
+/** Press durations at or below this still count as a tap for chrome-toggle. */
+const val CONFIRMED_TAP_TIMEOUT_MILLIS = 500L
+
+/**
+ * Round 7 tap-vs-drag disambiguation for the chrome toggle. Only a confirmed
+ * tap — finger up with minimal movement (within the platform touch slop)
+ * and a short press duration — toggles chrome and fires its tick. A touch
+ * that becomes a drag/swipe/scroll (movement beyond slop, a consumed gesture
+ * that never reports an up, or a long hold) never toggles and never ticks.
+ * Pure so unit tests can pin the rule.
+ */
+fun isConfirmedTap(
+    downX: Float,
+    downY: Float,
+    upX: Float,
+    upY: Float,
+    durationMillis: Long,
+    slopPx: Float,
+    timeoutMillis: Long = CONFIRMED_TAP_TIMEOUT_MILLIS,
+): Boolean {
+    if (durationMillis < 0 || durationMillis > timeoutMillis) return false
+    val dx = upX - downX
+    val dy = upY - downY
+    return dx * dx + dy * dy <= slopPx * slopPx
+}

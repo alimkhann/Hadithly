@@ -3,10 +3,21 @@
 package com.hadithly.app.features.reader
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FiniteAnimationSpec
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -82,8 +93,10 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalConfiguration
@@ -202,8 +215,10 @@ fun ReaderScreen(
 
     BackHandler(enabled = !showContents && !showSettings, onBack = onClose)
 
-    // R4: the themed reader palette drives every reader surface, including
-    // the sheets presented from the reader.
+    // Round 7: the themed reader palette drives EVERY reader surface —
+    // the page, the reader menu, and all sheets/dialogs presented from the
+    // reader (contents, settings, bookmark, search, saved, paywall) — in
+    // all four palettes, never the global app theme.
     CompositionLocalProvider(LocalHadithlyColors provides colors) {
         Box(
             modifier = Modifier
@@ -226,7 +241,6 @@ fun ReaderScreen(
                 )
             }
         }
-    }
 
     if (showContents) {
         // Long list: settles expanded with the drag handle; sized to
@@ -290,6 +304,7 @@ fun ReaderScreen(
                 }
             },
         )
+    }
     }
 }
 
@@ -425,10 +440,28 @@ private fun ReadingView(
     }
 
     // Round 6: the status bar stays ALWAYS visible (no programmatic
-    // hiding). The page sits below it via normal statusBars padding and the
-    // bottom chrome above the navigation bar — no edge-to-edge content, no
-    // animated top inset, so toggling chrome never moves the page.
+    // hiding). The page is full-bleed edge-to-edge into the system-bar
+    // zones (pre-round-4 behavior); the bottom chrome sits above the
+    // navigation bar — toggling chrome never moves the page.
+    // Round 7: toggling focused↔unfocused animates ONLY the chrome
+    // elements (corner label, progress pills/bar, back/menu buttons) with
+    // a fade + scale (~200ms, snapped when animator-duration-scale is 0).
+    // Page content never moves or re-composes layout.
     val focused = !state.chromeVisible
+    val chromeAnim: FiniteAnimationSpec<Float> =
+        if (reduceMotion) snap() else tween(200)
+    // Unfocused chrome (pills row, bottom chrome, corner label): visible in
+    // unfocused mode — shrinks while fading out, grows while fading in.
+    val chromeAlpha by animateFloatAsState(
+        targetValue = if (state.chromeVisible) 1f else 0f,
+        animationSpec = chromeAnim,
+        label = "readerChromeAlpha",
+    )
+    val chromeScale by animateFloatAsState(
+        targetValue = if (state.chromeVisible) 1f else 0.96f,
+        animationSpec = chromeAnim,
+        label = "readerChromeScale",
+    )
 
     // Round 5: vertical scroll offsets, 2 entries per volume. Page indices
     // reset on volume switches and jumps, so each volume gets its own cache.
@@ -580,9 +613,16 @@ private fun ReadingView(
                         isSentinel = pageIndex >= pages.size,
                         scrollCache = scrollCache,
                         previewRestoreGeneration = previewRestoreTicks[pageIndex] ?: 0,
+                        // Round 7: the inline corner label rides the chrome
+                        // fade+scale through graphicsLayer — always composed,
+                        // so the page layout never moves.
+                        chromeAlpha = chromeAlpha,
+                        chromeScale = chromeScale,
                         onFollowPill = viewModel::followPill,
-                        // Round 6: the tap toggle is the ONLY chrome/scroll
-                        // path with a haptic — one light feedback.
+                        // Round 7: the tap toggle (and its single tick) fires
+                        // only on a confirmed tap — up with minimal movement
+                        // and a short duration. A touch that becomes a
+                        // drag/swipe/scroll never toggles and never ticks.
                         onTap = {
                             ReaderHaptics.perform(androidView, ReaderHapticKind.TAP_TOGGLE)
                             viewModel.toggleChrome()
@@ -596,20 +636,26 @@ private fun ReadingView(
                 }
         }
 
-        // Round 6, focused: ONE 4dp narrow dynamic PAGE bar, ~1/4 width,
+        // Round 7, focused: ONE 4dp narrow dynamic PAGE bar, ~1/4 width,
         // centered below the (always visible) status bar. ALWAYS rendered
         // in focused mode in every palette — the null-total fallback keeps
-        // the track visible instead of hiding the capsule. Chrome appears
-        // instantly with no fade/slide and never moves the page.
-        if (focused) {
+        // the track visible instead of hiding the capsule. Fades + grows in
+        // with the toggle; the page underneath never moves.
+        AnimatedVisibility(
+            visible = focused,
+            enter = fadeIn(chromeAnim) + scaleIn(chromeAnim, initialScale = 0.96f),
+            exit = fadeOut(chromeAnim) + scaleOut(chromeAnim, targetScale = 0.96f),
+            modifier = Modifier.align(Alignment.TopCenter),
+        ) {
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.fillMaxWidth().statusBarsPadding().align(Alignment.TopCenter),
+                modifier = Modifier.fillMaxWidth().statusBarsPadding(),
             ) {
                 ReaderProgressCapsule(
                     fraction = dynamicPageFraction ?: 0.0,
                     thickness = 4.dp,
                     testTag = "reader.focusedPageBar",
+                    reduceMotion = reduceMotion,
                     modifier = Modifier.fillMaxWidth(0.25f).padding(top = 8.dp),
                 )
             }
@@ -618,19 +664,25 @@ private fun ReadingView(
         // Item 6, unfocused: TWO pills side by side (Sajda style: bold
         // number + lighter suffix) — Page pill filled by intra-page scroll,
         // Volume pill filled by the page fraction within the volume. The
-        // status bar is visible here, so the row sits below it. Instant,
-        // no fade/slide.
-        if (state.chromeVisible) {
+        // status bar is visible here, so the row sits below it. Fades +
+        // scales with the toggle; the page underneath never moves.
+        AnimatedVisibility(
+            visible = state.chromeVisible,
+            enter = fadeIn(chromeAnim) + scaleIn(chromeAnim, initialScale = 0.96f),
+            exit = fadeOut(chromeAnim) + scaleOut(chromeAnim, targetScale = 0.96f),
+            modifier = Modifier.align(Alignment.TopCenter),
+        ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.statusBarsPadding().padding(top = 6.dp).align(Alignment.TopCenter),
+                modifier = Modifier.statusBarsPadding().padding(top = 6.dp),
             ) {
                 ReaderProgressPill(
                     number = "${state.pageIndex + 1}",
                     suffix = "page",
                     fraction = unfocusedPageFill.toDouble(),
                     testTag = "reader.unfocusedPageBar",
+                    reduceMotion = reduceMotion,
                 )
                 if (unfocusedVolumeNumber != null) {
                     ReaderProgressPill(
@@ -638,15 +690,21 @@ private fun ReadingView(
                         suffix = stringResource(R.string.reader_volume_pill_suffix),
                         fraction = unfocusedVolumeFill,
                         testTag = "reader.unfocusedVolumeBar",
+                        reduceMotion = reduceMotion,
                     )
                 }
             }
         }
 
-        if (state.chromeVisible) {
+        AnimatedVisibility(
+            visible = state.chromeVisible,
+            enter = fadeIn(chromeAnim) + scaleIn(chromeAnim, initialScale = 0.96f),
+            exit = fadeOut(chromeAnim) + scaleOut(chromeAnim, targetScale = 0.96f),
+            modifier = Modifier.align(Alignment.BottomCenter),
+        ) {
             Column(
                 horizontalAlignment = Alignment.End,
-                modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 24.dp, vertical = 16.dp).align(Alignment.BottomCenter),
+                modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 24.dp, vertical = 16.dp),
             ) {
                 if (readerMenuExpanded) {
                     val positioned = viewModel.positionedHadith()
@@ -687,25 +745,29 @@ private fun ReadingView(
         }
 
         if (showBookmarkPlacement) {
-            // Round 6: default half/full behavior (no forced expansion);
-            // the inner column fills the allotted height instead.
-            ModalBottomSheet(
+            // Round 7: bookmark placement is a centered dialog (dimmed
+            // scrim, centered card), not a bottom sheet. Content, actions,
+            // and test tags are unchanged.
+            val placementTargets = bookmarkPlacementTargets(
+                pageHadiths = viewModel.currentPageHadiths(),
+                positioned = viewModel.positionedHadith(),
+            )
+            fun choosePlacement(hadith: ReaderHadith?) {
+                if (hadith != null) {
+                    val adding = !viewModel.isBookmarked(hadith)
+                    viewModel.toggleBookmark(hadith)
+                    if (adding) ReaderHaptics.perform(androidView, ReaderHapticKind.BOOKMARK_FAVORITE_ADD)
+                }
+                showBookmarkPlacement = false
+                readerMenuExpanded = false
+            }
+            Dialog(
                 onDismissRequest = { showBookmarkPlacement = false },
-                containerColor = colors.surface,
             ) {
                 BookmarkPlacementSheet(
-                    targets = bookmarkPlacementTargets(
-                        pageHadiths = viewModel.currentPageHadiths(),
-                        positioned = viewModel.positionedHadith(),
-                    ),
+                    targets = placementTargets,
                     isBookmarked = viewModel::isBookmarked,
-                    onChoose = { hadith ->
-                        val adding = !viewModel.isBookmarked(hadith)
-                        viewModel.toggleBookmark(hadith)
-                        if (adding) ReaderHaptics.perform(androidView, ReaderHapticKind.BOOKMARK_FAVORITE_ADD)
-                        showBookmarkPlacement = false
-                        readerMenuExpanded = false
-                    },
+                    onChoose = { choosePlacement(it) },
                     onDismiss = { showBookmarkPlacement = false },
                 )
             }
@@ -970,6 +1032,39 @@ private fun Modifier.edgeVolumeSwipe(
     }
 }
 
+/**
+ * Round 7 tap-vs-drag disambiguation for the page-level chrome toggle.
+ * Fires [onConfirmedTap] only for a confirmed tap: every pointer up,
+ * within the platform touch slop of the down position, and within
+ * [CONFIRMED_TAP_TIMEOUT_MILLIS]. A touch that becomes a drag/swipe/scroll
+ * is consumed by the pager/list (no up is ever observed) or exceeds the
+ * slop, so it never toggles chrome and never fires haptics. The tick lives
+ * with the toggle at the call site — confirmed taps only.
+ */
+private fun Modifier.confirmedTapGesture(onConfirmedTap: () -> Unit): Modifier =
+    pointerInput(onConfirmedTap) {
+        awaitEachGesture {
+            val down = awaitFirstDown()
+            val downTime = android.os.SystemClock.uptimeMillis()
+            val up = waitForUpOrCancellation()
+            if (up != null) {
+                val duration = android.os.SystemClock.uptimeMillis() - downTime
+                if (
+                    isConfirmedTap(
+                        downX = down.position.x,
+                        downY = down.position.y,
+                        upX = up.position.x,
+                        upY = up.position.y,
+                        durationMillis = duration,
+                        slopPx = viewConfiguration.touchSlop,
+                    )
+                ) {
+                    onConfirmedTap()
+                }
+            }
+        }
+    }
+
 @Composable
 @OptIn(kotlinx.coroutines.FlowPreview::class)
 private fun ReaderPage(
@@ -987,6 +1082,11 @@ private fun ReaderPage(
     isSentinel: Boolean,
     scrollCache: ReaderScrollOffsetCache? = null,
     previewRestoreGeneration: Int = 0,
+    // Round 7: the animated chrome fade+scale driven in ReadingView. The
+    // inline corner label rides these through graphicsLayer — always
+    // composed, so page layout never moves.
+    chromeAlpha: Float = 1f,
+    chromeScale: Float = 1f,
     onFollowPill: (ReaderPagePills.Pill) -> Unit,
     onTap: () -> Unit,
     onUserScroll: () -> Unit,
@@ -1036,8 +1136,9 @@ private fun ReaderPage(
         ReaderViewModel.volumeHadithRange(state.volumes, volumeId)
     }
     // Volume start: the pages list resets on every volume select/jump, so
-    // index 0 with content is the volume's first page.
-    val isVolumeStart = pageIndex == 0 && hadiths.isNotEmpty() && selectedVolume != null
+    // page index 0 with content is the volume's first page. The header slot
+    // itself is emitted synchronously (see below); only the header CONTENT
+    // waits on the volume resolving.
     // R6 fix round: the big centered title is the ACTUAL volume name
     // (firstChapterTitle, else first chapter, else outline title). The
     // localized `Volume N` survives only as a small quiet eyebrow above it;
@@ -1151,11 +1252,11 @@ private fun ReaderPage(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .pointerInput(Unit) { detectTapGestures(onTap = { onTap() }) },
+            .confirmedTapGesture { onTap() },
     ) {
         if (isSentinel || hadiths.isEmpty()) {
             Box(
-                modifier = Modifier.fillMaxSize().statusBarsPadding().testTag("reader.pageLoading"),
+                modifier = Modifier.fillMaxSize().testTag("reader.pageLoading"),
                 contentAlignment = Alignment.TopCenter,
             ) {
                 CircularProgressIndicator(color = colors.textSecondary, modifier = Modifier.padding(top = 120.dp))
@@ -1164,29 +1265,39 @@ private fun ReaderPage(
             LazyColumn(
                 state = listState,
                 verticalArrangement = Arrangement.spacedBy(0.dp),
-                // Edge-to-edge is on (MainActivity.enableEdgeToEdge): the
-                // page insets itself below the status bar and above the
-                // navigation bar so text and end-of-page pills never render
-                // under system bars. Chrome overlays carry their own
-                // statusBars/navigationBars padding.
-                modifier = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding(),
+                // Round 7 full-bleed (pre-round-4 behavior): edge-to-edge
+                // is on and the page flows INTO the system-bar zones with
+                // no status/navigation inset on the list — exactly as
+                // before commit 6409bbd. The status bar stays visible; the
+                // chrome overlays carry their own statusBars/
+                // navigationBars padding.
+                modifier = Modifier.fillMaxSize(),
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(
                     start = 22.dp, end = 22.dp, top = 20.dp, bottom = 80.dp,
                 ),
             ) {
-                // R6A page-top corner label: the localized volume title at the
-                // leading edge (mirrored in RTL by start alignment), with the
-                // whole-volume `: first–last` range only when fully cached
-                // and computable.
+                // Round 7, no top jerk: the corner slot is ALWAYS composed
+                // (every page) at a fixed single-line height — blank until
+                // the volume title resolves — so the label can never pop in
+                // late and shift content down after the page appears. The
+                // range text may resolve later, but it never changes height.
                 item(key = "reader-volume-corner") {
-                    val title = cornerTitle
-                    if (title != null) {
-                        VolumeCornerLabel(title = title, range = cornerRange)
-                    }
+                    VolumeCornerLabel(
+                        title = cornerTitle ?: "",
+                        range = cornerRange,
+                        placeholder = cornerTitle == null,
+                        modifier = Modifier.graphicsLayer {
+                            alpha = chromeAlpha
+                            scaleX = chromeScale
+                            scaleY = chromeScale
+                        },
+                    )
                 }
-                // R6A volume start: title header with a localized ICU-plural
-                // count line beneath, on the volume's first page only.
-                if (isVolumeStart) {
+                // Round 7, no top jerk: the volume-start slot is composed
+                // synchronously with page 0 (not gated on the volume
+                // resolving). Until the header data lands, a fixed-height
+                // placeholder holds the space — no layout shift on arrival.
+                if (pageIndex == 0 && hadiths.isNotEmpty()) {
                     item(key = "reader-volume-start") {
                         val volumeTitle = volumeStartTitle
                         val volume = selectedVolume
@@ -1195,6 +1306,12 @@ private fun ReaderPage(
                                 title = volumeTitle,
                                 eyebrow = volumeStartEyebrow,
                                 hadithCount = volume.hadithCount.toInt(),
+                            )
+                        } else {
+                            Spacer(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(VolumeStartPlaceholderHeight),
                             )
                         }
                     }
@@ -1597,11 +1714,16 @@ private fun ReaderProgressPill(
     fraction: Double,
     testTag: String,
     modifier: Modifier = Modifier,
+    reduceMotion: Boolean = false,
 ) {
     val colors = LocalHadithlyColors.current
-    // Round 6: the fill snaps to its fraction — no animation on the chrome
-    // path, so toggling chrome is instant and layout-stable.
-    val snappedFraction = fraction.toFloat().coerceIn(0.02f, 1f)
+    // Round 7: the fill animates to its new fraction on page switch
+    // instead of jumping (~250ms; snapped on Reduce Motion).
+    val animatedFraction by animateFloatAsState(
+        targetValue = fraction.toFloat().coerceIn(0.02f, 1f),
+        animationSpec = if (reduceMotion) snap() else tween(250),
+        label = "readerPillFill",
+    )
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
@@ -1617,7 +1739,7 @@ private fun ReaderProgressPill(
                 .align(Alignment.CenterStart)
                 .padding(3.dp)
                 .fillMaxHeight()
-                .fillMaxWidth(snappedFraction)
+                .fillMaxWidth(animatedFraction)
                 .clip(RoundedCornerShape(50))
                 .background(colors.textSecondary.copy(alpha = 0.22f)),
         )
@@ -1653,11 +1775,16 @@ private fun ReaderProgressCapsule(
     thickness: androidx.compose.ui.unit.Dp,
     testTag: String,
     modifier: Modifier = Modifier,
+    reduceMotion: Boolean = false,
 ) {
     val colors = LocalHadithlyColors.current
-    // Round 6: the fill snaps to its fraction — no animation on the chrome
-    // path, so toggling chrome is instant and layout-stable.
-    val snappedFraction = fraction.toFloat().coerceIn(0.02f, 1f)
+    // Round 7: the fill animates to its new fraction on page switch
+    // instead of jumping (~250ms; snapped on Reduce Motion).
+    val animatedFraction by animateFloatAsState(
+        targetValue = fraction.toFloat().coerceIn(0.02f, 1f),
+        animationSpec = if (reduceMotion) snap() else tween(250),
+        label = "readerCapsuleFill",
+    )
     Box(
         modifier = modifier
             .height(thickness)
@@ -1667,7 +1794,7 @@ private fun ReaderProgressCapsule(
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth(snappedFraction)
+                .fillMaxWidth(animatedFraction)
                 .height(thickness)
                 .background(colors.textSecondary.copy(alpha = 0.8f), RoundedCornerShape(50)),
         )
@@ -1698,20 +1825,40 @@ internal fun volumeCornerText(
  * corner (start alignment mirrors in RTL), quiet secondary style. The
  * `: first–last` range appends only when the volume is fully cached and
  * computable; otherwise the title stands alone.
+ *
+ * Round 7: always exactly one line (minLines + maxLines with ellipsis), so
+ * the slot height is fixed from first paint — a late-resolving title or
+ * range can never shift content. [placeholder] renders the blank slot
+ * transparently until the title resolves.
  */
 @Composable
-internal fun VolumeCornerLabel(title: String, range: Pair<Int, Int>?) {
+internal fun VolumeCornerLabel(
+    title: String,
+    range: Pair<Int, Int>?,
+    modifier: Modifier = Modifier,
+    placeholder: Boolean = false,
+) {
     val colors = LocalHadithlyColors.current
     Text(
-        text = if (range != null) "$title: ${range.first}–${range.second}" else title,
+        text = if (range != null && title.isNotEmpty()) "$title: ${range.first}–${range.second}" else title,
         fontSize = 12.sp,
-        color = colors.textSecondary,
+        color = if (placeholder) colors.textSecondary.copy(alpha = 0f) else colors.textSecondary,
         textAlign = TextAlign.Start,
-        modifier = Modifier
+        minLines = 1,
+        maxLines = 1,
+        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+        modifier = modifier
             .fillMaxWidth()
             .testTag("reader.volumeCorner"),
     )
 }
+
+/**
+ * Round 7: the fixed space held for the volume-start header while its data
+ * resolves — sized to a one-line header (eyebrow + title + count +
+ * vertical padding), so arrival never shifts content.
+ */
+private val VolumeStartPlaceholderHeight = 100.dp
 
 /**
  * R6A volume start: the ACTUAL volume name as the big centered title with
@@ -3228,14 +3375,13 @@ internal fun BookmarkPlacementSheet(
     onDismiss: () -> Unit,
 ) {
     val colors = LocalHadithlyColors.current
+    // Round 7: centered dialog card content (the caller presents it in a
+    // Dialog with a dimmed scrim) — wraps its content, never full-height.
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            // Round 6: the sheet uses the default half/full behavior (no
-            // forced expansion); the column fills the allotted height with
-            // the cancel action docked at the bottom — no dead blank region.
-            .fillMaxHeight()
-            .padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 16.dp)
+            .background(colors.surface, RoundedCornerShape(24.dp))
+            .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 12.dp)
             .testTag("reader.bookmarkSheet"),
     ) {
         Text("Bookmark", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
@@ -3257,7 +3403,6 @@ internal fun BookmarkPlacementSheet(
             onClick = { targets.positioned?.let(onChoose) },
         )
         HorizontalDivider(color = colors.divider.copy(alpha = 0.5f))
-        Spacer(Modifier.weight(1f))
         TextButton(
             onClick = onDismiss,
             modifier = Modifier.align(Alignment.End).testTag("reader.bookmarkSheet.cancel"),
