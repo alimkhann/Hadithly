@@ -18,6 +18,7 @@ import com.hadithly.app.features.reader.bookmarkPlacementTargets
 import com.hadithly.app.features.reader.chapterTitleForDisplay
 import com.hadithly.app.features.reader.focusedProgressFraction
 import com.hadithly.app.features.reader.narratorForMode
+import com.hadithly.app.features.reader.nextPreviewRestoreTicks
 import com.hadithly.app.features.reader.pagePillFillFraction
 import com.hadithly.app.features.reader.relativeTimeLabel
 import com.hadithly.app.features.reader.volumeHeaderNumber
@@ -376,6 +377,12 @@ class ReaderR6Round3Test {
             android.view.HapticFeedbackConstants.CONTEXT_CLICK,
             ReaderHaptics.constantFor(ReaderHapticKind.MENU_ITEM),
         )
+        // Round 6: exactly one light feedback on the tap toggling
+        // focused/unfocused chrome; scroll/drag/swipe/settle stay silent.
+        assertEquals(
+            android.view.HapticFeedbackConstants.KEYBOARD_TAP,
+            ReaderHaptics.constantFor(ReaderHapticKind.TAP_TOGGLE),
+        )
         assertEquals(
             android.view.HapticFeedbackConstants.CONTEXT_CLICK,
             ReaderHaptics.constantFor(ReaderHapticKind.LONG_PRESS_MENU),
@@ -423,5 +430,23 @@ class ReaderR6Round3Test {
         assertNull(cache.restore(1))
         assertEquals(1 to 10, cache.restore(0))
         assertEquals(3 to 30, cache.restore(2))
+    }
+
+    // Round 6: preview-at-offset ticks
+
+    @Test
+    fun `preview tick bumps the targeted page only`() {
+        val ticks = nextPreviewRestoreTicks(emptyMap(), 3)
+        assertEquals(mapOf(3 to 1), ticks)
+        val again = nextPreviewRestoreTicks(ticks, 3)
+        assertEquals(mapOf(3 to 2), again)
+        val other = nextPreviewRestoreTicks(again, 4)
+        assertEquals(mapOf(3 to 2, 4 to 1), other)
+    }
+
+    @Test
+    fun `preview tick ignores negative pages`() {
+        val ticks = mapOf(0 to 1)
+        assertEquals(ticks, nextPreviewRestoreTicks(ticks, -1))
     }
 }

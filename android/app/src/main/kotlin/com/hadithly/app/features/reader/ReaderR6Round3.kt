@@ -162,6 +162,17 @@ class ReaderScrollOffsetCache(maxEntries: Int = 2) {
 }
 
 /**
+ * R6 reader fix round 6: preview-at-offset tick. The moment a swipe targets
+ * a neighbor page (gesture start primes both neighbors; the pager's target
+ * change primes the new target), its tick bumps and the page restores its
+ * remembered vertical offset from the [ReaderScrollOffsetCache] — the
+ * preview shows the same position as the landing page, never the top.
+ * Pure so unit tests can pin the rule; negative indices are ignored.
+ */
+fun nextPreviewRestoreTicks(ticks: Map<Int, Int>, pageIndex: Int): Map<Int, Int> =
+    if (pageIndex < 0) ticks else ticks + (pageIndex to ((ticks[pageIndex] ?: 0) + 1))
+
+/**
  * R6 reader fix round: the unfocused Volume pill (`Volume N`) fills with
  * the current page fraction within the volume (page index plus intra-page
  * scroll over the backend-reported total). Null until the total is known.

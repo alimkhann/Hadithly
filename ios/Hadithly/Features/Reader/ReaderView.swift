@@ -46,19 +46,6 @@ struct ReaderView: View {
         environment.preferences.preferences.theme
     }
 
-    /// Focused↔unfocused chrome animation (round 5, fix 8): fade + slight
-    /// slide, ~250ms ease-out. Nil under Reduce Motion so the chrome snaps.
-    private var chromeAnimation: Animation? {
-        reduceMotion ? nil : .easeOut(duration: 0.25)
-    }
-
-    /// Progress-fill animation (round 5, fix 8): the fill fraction animates
-    /// to its new value on a page swipe instead of jumping. Nil under
-    /// Reduce Motion.
-    private var fillAnimation: Animation? {
-        reduceMotion ? nil : .easeOut(duration: 0.25)
-    }
-
     private var palette: ReaderPalette {
         ReaderPalette.resolved(readerTheme, systemDark: systemColorScheme == .dark)
     }
@@ -134,8 +121,8 @@ struct ReaderView: View {
                         model.jumpToReference(result.providerHadithId)
                     }
                 )
-                // Round 5, fix 7: search opens full-height immediately.
-                .presentationDetents([.large])
+                // Search opens at medium with large available.
+                .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.hidden)
             }
         }
@@ -153,8 +140,8 @@ struct ReaderView: View {
                     NotificationCenter.default.post(name: .hadithlyOpenSavedTab, object: nil)
                 }
             )
-            // Round 5, fix 7: Bookmarks & Notes opens full-height immediately.
-            .presentationDetents([.large])
+            // Bookmarks & Notes opens at medium with large available.
+            .presentationDetents([.medium, .large])
             .presentationDragIndicator(.hidden)
         }
         .sheet(isPresented: $showBookmarkPlacement) {
@@ -168,8 +155,8 @@ struct ReaderView: View {
                     },
                     onCancel: { showBookmarkPlacement = false }
                 )
-                // Round 5, fix 7: bookmark placement opens full-height.
-                .presentationDetents([.large])
+                // Bookmark placement opens at medium.
+                .presentationDetents([.medium])
                 .presentationDragIndicator(.hidden)
             }
         }
@@ -238,34 +225,25 @@ struct ReaderView: View {
 
                 pageStrip(model, viewportWidth: viewport.size.width)
 
-                // Focused (R6 round 3, note 6): ONE thin narrow dynamic
-                // page bar just below the notch — shorter than the Dynamic
-                // Island, neutral, fills and defills with the page scroll.
+                // Focused: ONE thin narrow progress capsule, always visible
+                // just below the notch — 88×4pt, centered, neutral. It
+                // fills and defills with the page scroll and never hides,
+                // even at zero scroll (a minimum nub stays visible).
                 if !model.chromeVisible {
                     ReaderFocusedProgressBar(
                         fraction: pageScrollFraction,
-                        palette: palette,
-                        fillAnimation: fillAnimation
+                        palette: palette
                     )
-                    .transition(.opacity.combined(with: .offset(y: -8)))
                 }
 
+                // Unfocused chrome overlays appear/disappear in place with
+                // no animation: toggling never moves or re-lays-out the
+                // page underneath.
                 if model.chromeVisible {
                     chromeOverlay(model)
-                        .transition(.opacity.combined(with: .offset(y: 12)))
                 }
             }
-            // Round 5, fix 1: in FOCUSED mode the status bar hides and the
-            // page content flows edge-to-edge into the top safe area with
-            // only ~8pt padding (no dead gap); in UNFOCUSED mode the status
-            // bar shows and content lays out below it. Backgrounds bleed to
-            // the edges in both modes. Chrome controls stay above the home
-            // indicator via the bottom inset.
-            .modifier(ReaderTopSafeArea(focused: !model.chromeVisible))
-            .safeAreaPadding(.bottom, 8)
         }
-        .animation(chromeAnimation, value: model.chromeVisible)
-        .statusBarHidden(!model.chromeVisible)
         .overlay {
             WindowSwipeRecognizer(
                 pageDirection: pagingPolicy.pageDirection,
@@ -374,6 +352,10 @@ struct ReaderView: View {
             dragViewportWidth = width
         }
         .onTapGesture {
+            // The single reader chrome haptic: exactly one light tick on
+            // the tap that toggles focused↔unfocused. No haptic anywhere
+            // else on scroll, drag, swipe, or settle paths.
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
             toggleChrome(model)
         }
     }
@@ -390,6 +372,10 @@ struct ReaderView: View {
                     arabicFontSize: arabicFontSizeBinding.wrappedValue,
                     preferences: environment.preferences.preferences,
                     palette: palette,
+                    // The swipe preview starts at the remembered offset for
+                    // this page (when one is cached), so the preview and the
+                    // landing show the identical position with no top-flash.
+                    initialSnapshot: model.pageScrollCache[index],
                     onShowPaywall: { showQuotaPaywall = true }
                 )
             } else {
@@ -460,13 +446,11 @@ struct ReaderView: View {
         }
     }
 
-    /// Tapping the page toggles the chrome with the shared chrome animation
-    /// (which also drives the status bar). No haptic: touch haptics in the
-    /// reader are reserved for the menu, bookmarks, and errors (round 5).
+    /// Tapping the page toggles the chrome instantly: no animation, so the
+    /// page never moves, shifts, or re-lays-out. (VoiceOver uses the same
+    /// path through the accessibility action, without the tap haptic.)
     private func toggleChrome(_ model: ReaderModel) {
-        withAnimation(chromeAnimation) {
-            model.chromeVisible.toggle()
-        }
+        model.chromeVisible.toggle()
     }
 
     private func turnPage(_ model: ReaderModel, turn: ReaderPageTurn) {
@@ -508,8 +492,7 @@ struct ReaderView: View {
                     totalPages: model.totalPages,
                     intraPageFraction: pageScrollFraction
                 ),
-                palette: palette,
-                fillAnimation: fillAnimation
+                palette: palette
             )
             .padding(.top, 8)
             Spacer()
@@ -577,25 +560,6 @@ struct ReaderView: View {
     private func positionedHadith(_ model: ReaderModel) -> ReaderHadith? {
         let target = model.restoredPosition?.anchor.providerHadithId ?? model.landingHadithNumber
         return model.currentPageHadiths.first { $0.providerHadithId == target } ?? model.currentPageHadiths.first
-    }
-}
-
-/// Round 5, fix 1: the top edge follows the chrome mode without swapping
-/// view identity (so the page ScrollView survives focus toggles).
-/// Focused ignores the top safe area with ~8pt padding so content runs
-/// edge-to-edge; unfocused re-adds the safe-area inset below the status bar.
-private struct ReaderTopSafeArea: ViewModifier {
-    let focused: Bool
-
-    func body(content: Content) -> some View {
-        if focused {
-            content
-                .padding(.top, 8)
-                .ignoresSafeArea(edges: .top)
-        } else {
-            content
-                .safeAreaPadding(.top, 8)
-        }
     }
 }
 
@@ -751,32 +715,34 @@ private struct ReaderMenuStack: View {
 
 // MARK: - Progress (R6 round 3, note 6)
 
-/// Focused: ONE thin narrow dynamic page bar just below the notch —
-/// about a quarter of the width, centered, neutral, fills/defills with the
-/// page scroll. Non-interactive and skipped by assistive tech.
+/// Focused: ONE thin narrow progress capsule just below the notch —
+/// 88×4pt, centered, neutral. Always rendered in focused mode: the track
+/// uses the secondary text color (visible on all four reader themes) and
+/// the fill never collapses below a 10pt nub, so the capsule stays visible
+/// even at zero scroll. Non-interactive and skipped by assistive tech.
 private struct ReaderFocusedProgressBar: View {
     let fraction: Double
     let palette: ReaderPalette
-    /// Fill animation for page swipes (round 5, fix 8); nil snaps.
-    var fillAnimation: Animation? = .easeOut(duration: 0.25)
 
     /// Fixed bar size: ~1/4 of a phone width, 4pt thick.
     static let barWidth: CGFloat = 88
     static let barHeight: CGFloat = 4
+    /// Minimum fill width so the capsule reads at zero scroll.
+    static let minFillWidth: CGFloat = 10
 
     var body: some View {
         VStack {
             ZStack(alignment: .leading) {
                 Capsule()
-                    .fill(palette.divider.opacity(0.6))
+                    .fill(palette.textSecondary.opacity(0.3))
                 Capsule()
-                    .fill(palette.textSecondary.opacity(0.8))
-                    .frame(width: max(0, Self.barWidth * min(1, max(0, fraction))))
-                    .animation(fillAnimation, value: fraction)
+                    .fill(palette.textPrimary.opacity(0.9))
+                    .frame(width: max(Self.minFillWidth, Self.barWidth * min(1, max(0, fraction))))
             }
             .frame(width: Self.barWidth, height: Self.barHeight)
             Spacer()
         }
+        .frame(maxWidth: .infinity)
         .padding(.top, 6)
         .accessibilityHidden(true)
         .accessibilityIdentifier("reader.focusedProgress")
@@ -798,8 +764,6 @@ private struct ReaderUnfocusedProgressPills: View {
     /// Page fraction within the volume behind the Volume pill.
     let volumeFill: Double?
     let palette: ReaderPalette
-    /// Fill animation for page swipes (round 5, fix 8); nil snaps.
-    var fillAnimation: Animation? = .easeOut(duration: 0.25)
 
     /// Inset of the fill capsule inside the pill track.
     static let fillInset: CGFloat = 2.5
@@ -818,10 +782,10 @@ private struct ReaderUnfocusedProgressPills: View {
     }
 
     private func progressPill(number: String, suffix: String, fill: Double) -> some View {
-        // Round 5, fix 3: the inner fill is an inset capsule clipped to the
-        // same capsule shape, so low fills render as a rounded nub — never
-        // square corners poking out. The fill animates on page swipes
-        // (fix 8) and snaps under Reduce Motion.
+        // The inner fill is an inset capsule clipped to the same capsule
+        // shape, so low fills render as a rounded nub — never square
+        // corners poking out. Fill snaps with the page (no animation) so
+        // toggling chrome never shifts layout.
         let clamped = min(1, max(0, fill))
         return ZStack {
             Capsule()
@@ -834,7 +798,6 @@ private struct ReaderUnfocusedProgressPills: View {
                         height: max(0, proxy.size.height - Self.fillInset * 2)
                     )
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                    .animation(fillAnimation, value: clamped)
             }
             .clipShape(Capsule())
             HStack(spacing: 4) {
@@ -1112,77 +1075,122 @@ struct ReaderPageView: View {
 /// A pre-rendered neighbor page for the drag strip (R6 round 3): the same
 /// hadith blocks and chapter lines as the current page, but passive — no
 /// restoration, no scroll capture, no pills, no scrolling of its own. The
-/// blocks stay actionable (context menu, source sheet) on real data.
+/// blocks stay actionable (context menu, source sheet) on real data. When
+/// the reader visited this page recently, the preview starts at the
+/// remembered offset so it matches the landing exactly.
 private struct ReaderNeighborContent: View {
     let model: ReaderModel
     let hadiths: [ReaderHadith]
     let arabicFontSize: Double
     let preferences: ReaderPreferences
     let palette: ReaderPalette
+    /// Remembered offset for this page, when one is cached. Applied the
+    /// moment the preview lays out — before any gesture reveals it.
+    var initialSnapshot: PageScrollSnapshot? = nil
     let onShowPaywall: () -> Void
 
     @State private var chapterOpenings: Set<Int> = []
+    @State private var appliedPreviewKey: String?
+
+    /// One hadith row with scroll-anchor tracking, so the remembered
+    /// offset can target the same anchor the landing restores.
+    private func neighborRow(_ hadith: ReaderHadith) -> some View {
+        HadithBlock(
+            model: model,
+            hadith: hadith,
+            translationState: model.translations[hadith.internalId],
+            language: model.language,
+            arabicFontSize: arabicFontSize,
+            preferences: preferences,
+            palette: palette,
+            onRetry: { model.retryTranslation(for: hadith) },
+            onShowPaywall: onShowPaywall
+        )
+        .id(hadith.internalId)
+        .background(GeometryReader { geometry in
+            let frame = geometry.frame(in: .named("reader.neighbor"))
+            Color.clear.preference(
+                key: ReaderAnchorFramesKey.self,
+                value: [
+                    hadith.internalId: ReaderAnchorFrame(
+                        minY: frame.minY,
+                        height: frame.height
+                    ),
+                ]
+            )
+        })
+    }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 28) {
-                ForEach(Array(hadiths.enumerated()), id: \.element.internalId) { index, hadith in
-                    if chapterOpenings.contains(index) {
-                        VStack(spacing: 12) {
-                            ReaderChapterHeader(
-                                title: ReaderChapterLine.displayTitle(
-                                    title: hadith.chapterName ?? "",
-                                    arabicTitle: ReaderChapterLine.arabicTitle(
-                                        forChapterId: hadith.chapterId,
-                                        in: model.volumes,
-                                        volumeId: model.selectedVolumeId
-                                    ),
-                                    arabicVisible: preferences.arabicVisible,
-                                    translationVisible: preferences.translationVisible
-                                ),
-                                arabicTitle: ReaderChapterLine.arabicTitle(
-                                    forChapterId: hadith.chapterId,
-                                    in: model.volumes,
-                                    volumeId: model.selectedVolumeId
-                                ),
-                                arabicVisible: preferences.arabicVisible,
-                                palette: palette
-                            )
-                            HadithBlock(
-                                model: model,
-                                hadith: hadith,
-                                translationState: model.translations[hadith.internalId],
-                                language: model.language,
-                                arabicFontSize: arabicFontSize,
-                                preferences: preferences,
-                                palette: palette,
-                                onRetry: { model.retryTranslation(for: hadith) },
-                                onShowPaywall: onShowPaywall
-                            )
+        GeometryReader { viewport in
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 28) {
+                        ForEach(Array(hadiths.enumerated()), id: \.element.internalId) { index, hadith in
+                            if chapterOpenings.contains(index) {
+                                VStack(spacing: 12) {
+                                    ReaderChapterHeader(
+                                        title: ReaderChapterLine.displayTitle(
+                                            title: hadith.chapterName ?? "",
+                                            arabicTitle: ReaderChapterLine.arabicTitle(
+                                                forChapterId: hadith.chapterId,
+                                                in: model.volumes,
+                                                volumeId: model.selectedVolumeId
+                                            ),
+                                            arabicVisible: preferences.arabicVisible,
+                                            translationVisible: preferences.translationVisible
+                                        ),
+                                        arabicTitle: ReaderChapterLine.arabicTitle(
+                                            forChapterId: hadith.chapterId,
+                                            in: model.volumes,
+                                            volumeId: model.selectedVolumeId
+                                        ),
+                                        arabicVisible: preferences.arabicVisible,
+                                        palette: palette
+                                    )
+                                    neighborRow(hadith)
+                                }
+                                .padding(.top, 12)
+                            } else {
+                                neighborRow(hadith)
+                            }
                         }
-                        .padding(.top, 12)
-                    } else {
-                        HadithBlock(
-                            model: model,
-                            hadith: hadith,
-                            translationState: model.translations[hadith.internalId],
-                            language: model.language,
-                            arabicFontSize: arabicFontSize,
-                            preferences: preferences,
-                            palette: palette,
-                            onRetry: { model.retryTranslation(for: hadith) },
-                            onShowPaywall: onShowPaywall
-                        )
                     }
+                    .padding(.horizontal, 22)
+                    .padding(.top, 20)
+                    .padding(.bottom, 80)
+                }
+                .scrollDisabled(true)
+                .scrollIndicators(.hidden)
+                .coordinateSpace(name: "reader.neighbor")
+                .onPreferenceChange(ReaderAnchorFramesKey.self) { frames in
+                    guard let snapshot = initialSnapshot,
+                          let target = hadiths.first(where: { $0.providerHadithId == snapshot.providerHadithId }),
+                          let frame = frames[target.internalId]
+                    else { return }
+                    let key = "\(target.internalId):\(snapshot.normalizedOffset):\(viewport.size.height)"
+                    guard appliedPreviewKey != key else { return }
+                    appliedPreviewKey = key
+                    let anchorY = ReaderScrollRestoration.anchorY(
+                        normalizedOffset: snapshot.normalizedOffset,
+                        itemHeight: frame.height,
+                        viewportHeight: viewport.size.height
+                    )
+                    proxy.scrollTo(target.internalId, anchor: UnitPoint(x: 0.5, y: anchorY))
                 }
             }
-            .padding(.horizontal, 22)
-            .padding(.top, 20)
-            .padding(.bottom, 80)
         }
-        .scrollDisabled(true)
-        .scrollIndicators(.hidden)
-        .onAppear { chapterOpenings = ReaderChapterBoundaries.openingIndices(in: hadiths) }
+        .onAppear {
+            chapterOpenings = ReaderChapterBoundaries.openingIndices(in: hadiths)
+            appliedPreviewKey = nil
+        }
+        .onChange(of: hadiths) { _, updated in
+            chapterOpenings = ReaderChapterBoundaries.openingIndices(in: updated)
+            appliedPreviewKey = nil
+        }
+        .onChange(of: initialSnapshot) { _, _ in
+            appliedPreviewKey = nil
+        }
         .accessibilityIdentifier("reader.neighborPage")
     }
 }

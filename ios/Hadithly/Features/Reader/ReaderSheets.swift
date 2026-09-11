@@ -1125,6 +1125,10 @@ struct ReaderSearchSheet: View {
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 16)
+            // The content fills all allocated vertical space so the initial
+            // and empty states center within the full detent height — no
+            // dead blank region below short content.
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
         .onChange(of: query) { _, _ in scheduleSearch() }
@@ -1164,8 +1168,7 @@ struct ReaderSearchSheet: View {
 
     private var resultsList: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 8) {
-                ReaderSheetSectionLabel(
+            VStack(alignment: .leading, spacing: 8) {                ReaderSheetSectionLabel(
                     text: "SUNNAH.NOW ENGLISH (\(results.count))",
                     palette: palette
                 )
@@ -1205,6 +1208,7 @@ struct ReaderSearchSheet: View {
             }
             .padding(.vertical, 4)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
     private var loadingState: some View {
@@ -1215,7 +1219,7 @@ struct ReaderSearchSheet: View {
                 .font(.caption)
                 .foregroundStyle(palette.textSecondary)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.vertical, 12)
         .accessibilityIdentifier("reader.search.loading")
     }
@@ -1224,6 +1228,8 @@ struct ReaderSearchSheet: View {
         Text("Search the cached Sunnah.now English text of this collection.")
             .font(.caption)
             .foregroundStyle(palette.textSecondary)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding(.vertical, 8)
             .accessibilityIdentifier("reader.search.hint")
     }
@@ -1232,6 +1238,8 @@ struct ReaderSearchSheet: View {
         Text("No matches in the cached English text.")
             .font(.caption)
             .foregroundStyle(palette.textSecondary)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding(.vertical, 8)
             .accessibilityIdentifier("reader.search.empty")
     }
@@ -1240,6 +1248,8 @@ struct ReaderSearchSheet: View {
         Text("Search is unavailable right now. Reading continues as usual.")
             .font(.caption)
             .foregroundStyle(palette.textSecondary)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding(.vertical, 8)
             .accessibilityIdentifier("reader.search.error")
     }
@@ -1344,6 +1354,10 @@ struct ReaderSavedShortcutSheet: View {
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 16)
+            // The content fills all allocated vertical space so the empty
+            // state centers within the full detent height — no dead blank
+            // region below short content.
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
     }
@@ -1436,7 +1450,7 @@ struct ReaderSavedShortcutSheet: View {
             .font(.caption)
             .foregroundStyle(palette.textSecondary)
             .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding(.vertical, 16)
             .accessibilityIdentifier("reader.savedShortcut.empty")
     }
@@ -1518,6 +1532,10 @@ struct ReaderBookmarkPlacementSheet: View {
         .padding(.horizontal, 20)
         .padding(.bottom, 16)
         .background(palette.background)
+        // The content fills all allocated vertical space so the short
+        // option list sits in the full detent height with no dead blank
+        // region below it.
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
     }
 
