@@ -18,6 +18,7 @@
         <item quantity="other">%d languages available</item>
     </plurals>
     <string name="reader_volume_title">Volume %1$d</string>
+    <string name="reader_volume_pill_suffix">volume</string>
     <plurals name="reader_hadith_count">
         <item quantity="one">%d hadith</item>
         <item quantity="other">%d hadiths</item>

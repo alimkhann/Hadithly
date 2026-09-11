@@ -767,11 +767,15 @@ final class ReaderModel {
     }
 
     func toggleBookmark(_ hadith: ReaderHadith) {
+        let adding = !isBookmarked(hadith)
         library?.toggleBookmark(ref(for: hadith))
+        ReaderHapticDispatcher.trigger(adding ? .bookmarkAdd : .bookmarkRemove)
     }
 
     func toggleFavorite(_ hadith: ReaderHadith) {
+        let adding = !isFavorite(hadith)
         library?.toggleFavorite(ref(for: hadith))
+        ReaderHapticDispatcher.trigger(adding ? .favoriteAdd : .favoriteRemove)
     }
 
     func saveNote(_ hadith: ReaderHadith, content: String) {

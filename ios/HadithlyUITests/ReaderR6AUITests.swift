@@ -217,7 +217,7 @@ final class ReaderR6AUITests: XCTestCase {
         app.buttons["reader.nextPage"].tap()
         let back = element("reader.volumeHeader", in: app)
         XCTAssertTrue(back.waitForExistence(timeout: timeout))
-        XCTAssertEqual(back.label, "Volume 2, 3 hadiths")
+        XCTAssertEqual(back.label, "Belief, 3 hadiths")
         XCTAssertEqual(app.buttons["reader.previousPage"].firstMatch.label, "Previous page, Volume 1")
     }
 
@@ -238,7 +238,7 @@ final class ReaderR6AUITests: XCTestCase {
         app.swipeRight()
         let volume2 = element("reader.volumeHeader", in: app)
         XCTAssertTrue(volume2.waitForExistence(timeout: timeout))
-        XCTAssertEqual(volume2.label, "Volume 2, 3 hadiths")
+        XCTAssertEqual(volume2.label, "Belief, 3 hadiths")
         // And back across to the previous volume's last (= only) page.
         app.swipeRight()
         let volume1 = element("reader.volumeHeader", in: app)

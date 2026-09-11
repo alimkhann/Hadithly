@@ -14,9 +14,15 @@ import com.hadithly.app.features.reader.bookmarkPlacementTargets
 import com.hadithly.app.features.reader.chapterTitleForDisplay
 import com.hadithly.app.features.reader.focusedProgressFraction
 import com.hadithly.app.features.reader.narratorForMode
+import com.hadithly.app.features.reader.pagePillFillFraction
 import com.hadithly.app.features.reader.relativeTimeLabel
+import com.hadithly.app.features.reader.volumeHeaderNumber
+import com.hadithly.app.features.reader.volumeHeaderTitle
+import com.hadithly.app.features.reader.volumePillFillFraction
 import com.hadithly.app.features.reader.volumeProgressFraction
 import com.hadithly.app.features.reader.volumeTitleForDisplay
+import com.hadithly.app.features.reader.ReaderHapticKind
+import com.hadithly.app.features.reader.ReaderHaptics
 import com.hadithly.app.features.reader.ReaderShare
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
@@ -298,5 +304,92 @@ class ReaderR6Round3Test {
         assertNull(volumeProgressFraction(0, 0))
         assertNull(volumeProgressFraction(4, -1))
         assertNull(volumeProgressFraction(4, 4))
+    }
+
+    // R6 fix round: actual volume names, pill fills, haptic mapping
+
+    @Test
+    fun `volume header prefers the source first chapter title`() {
+        val volume = OutlineVolume(
+            volumeId = "1",
+            title = "Volume 1",
+            firstChapterTitle = "How the Divine Revelation started being revealed",
+            hadithCount = 7.0,
+            chapters = listOf(
+                OutlineChapter(title = "Revelation", hadithCount = 7.0, firstProviderHadithId = "1"),
+            ),
+        )
+        assertEquals(
+            "How the Divine Revelation started being revealed",
+            volumeHeaderTitle(volume),
+        )
+        assertEquals(1, volumeHeaderNumber(volume))
+    }
+
+    @Test
+    fun `volume header falls back through first chapter to outline title`() {
+        val byChapter = OutlineVolume(
+            volumeId = "2",
+            title = "Volume 2",
+            hadithCount = 51.0,
+            chapters = listOf(
+                OutlineChapter(title = "Belief", hadithCount = 51.0, firstProviderHadithId = "8"),
+            ),
+        )
+        assertEquals("Belief", volumeHeaderTitle(byChapter))
+        assertEquals(2, volumeHeaderNumber(byChapter))
+
+        val byTitle = OutlineVolume(volumeId = "3", title = "Kitab al-Iman", hadithCount = 4.0)
+        assertEquals("Kitab al-Iman", volumeHeaderTitle(byTitle))
+        assertEquals(3, volumeHeaderNumber(byTitle))
+
+        val unnumbered = OutlineVolume(volumeId = "intro", title = "Introduction", hadithCount = 1.0)
+        assertEquals("Introduction", volumeHeaderTitle(unnumbered))
+        assertNull(volumeHeaderNumber(unnumbered))
+    }
+
+    @Test
+    fun `page pill fills with intra-page scroll only`() {
+        assertEquals(0f, pagePillFillFraction(0f))
+        assertEquals(0.5f, pagePillFillFraction(0.5f))
+        assertEquals(1f, pagePillFillFraction(1f))
+        assertEquals(0f, pagePillFillFraction(-0.5f))
+        assertEquals(1f, pagePillFillFraction(2f))
+    }
+
+    @Test
+    fun `volume pill fills with the page fraction within the volume`() {
+        assertEquals(0.05, volumePillFillFraction(0, 10, 0.5f)!!, 1e-9)
+        assertEquals(0.5, volumePillFillFraction(4, 10, 1f)!!, 1e-9)
+        assertNull(volumePillFillFraction(0, null, 0f))
+        assertNull(volumePillFillFraction(0, 0, 0f))
+    }
+
+    @Test
+    fun `haptic triggers map to native constants`() {
+        assertEquals(
+            android.view.HapticFeedbackConstants.CLOCK_TICK,
+            ReaderHaptics.constantFor(ReaderHapticKind.MENU_OPEN_CLOSE),
+        )
+        assertEquals(
+            android.view.HapticFeedbackConstants.CONTEXT_CLICK,
+            ReaderHaptics.constantFor(ReaderHapticKind.MENU_ITEM),
+        )
+        assertEquals(
+            android.view.HapticFeedbackConstants.KEYBOARD_TAP,
+            ReaderHaptics.constantFor(ReaderHapticKind.TAP_TOGGLE),
+        )
+        assertEquals(
+            android.view.HapticFeedbackConstants.CONTEXT_CLICK,
+            ReaderHaptics.constantFor(ReaderHapticKind.LONG_PRESS_MENU),
+        )
+        assertEquals(
+            android.view.HapticFeedbackConstants.CONFIRM,
+            ReaderHaptics.constantFor(ReaderHapticKind.BOOKMARK_FAVORITE_ADD),
+        )
+        assertEquals(
+            android.view.HapticFeedbackConstants.REJECT,
+            ReaderHaptics.constantFor(ReaderHapticKind.REJECT_BOTH_HIDDEN),
+        )
     }
 }

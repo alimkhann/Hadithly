@@ -1,6 +1,7 @@
 package com.hadithly.app.features.reader
 
 import com.hadithly.app.core.data.OutlineChapter
+import com.hadithly.app.core.data.OutlineVolume
 import com.hadithly.app.core.data.ReaderHadith
 
 /**
@@ -104,3 +105,40 @@ fun bookmarkPlacementTargets(
     pageStart = pageHadiths.firstOrNull(),
     positioned = positioned,
 )
+
+/**
+ * R6 reader fix round: the big centered volume header shows the ACTUAL
+ * volume name — the outline's `firstChapterTitle`, falling back to the
+ * first chapter title, then the outline title. Never synthesized beyond
+ * those source-provided values.
+ */
+fun volumeHeaderTitle(volume: OutlineVolume): String {
+    volume.firstChapterTitle?.trim()?.takeIf { it.isNotEmpty() }?.let { return it }
+    volume.chapters.firstOrNull()?.title?.trim()?.takeIf { it.isNotEmpty() }?.let { return it }
+    return volume.title
+}
+
+/**
+ * R6 reader fix round: the volume number behind the quiet "Volume N"
+ * eyebrow (localized via `reader_volume_title` at the call site), the
+ * corner label, and the volume-edge pills. Parsed from a `Volume N`
+ * outline title first, then the volume id; null when neither carries a
+ * number — the eyebrow then hides instead of guessing.
+ */
+fun volumeHeaderNumber(volume: OutlineVolume): Int? =
+    ReaderViewModel.volumeTitleNumber(volume.title) ?: volume.volumeId.toIntOrNull()
+
+/**
+ * R6 reader fix round: the unfocused Page pill (`Page N`) fills with the
+ * intra-page scroll fraction only — position within the current page.
+ */
+fun pagePillFillFraction(intraPageFraction: Float): Float =
+    intraPageFraction.coerceIn(0f, 1f)
+
+/**
+ * R6 reader fix round: the unfocused Volume pill (`Volume N`) fills with
+ * the current page fraction within the volume (page index plus intra-page
+ * scroll over the backend-reported total). Null until the total is known.
+ */
+fun volumePillFillFraction(pageIndex: Int, totalPages: Int?, intraPageFraction: Float): Double? =
+    focusedProgressFraction(pageIndex, totalPages, intraPageFraction)

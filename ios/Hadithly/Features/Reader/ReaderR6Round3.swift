@@ -91,6 +91,21 @@ enum ReaderDragStrip {
             return (left: hasNext ? .next : nil, right: hasPrevious ? .previous : nil)
         }
     }
+
+    /// The drag offset that fully reveals the neighbor for `turn`: the
+    /// settle target the strip animates to before committing the pageIndex
+    /// swap, so both pages stay in the hierarchy for the whole gesture.
+    /// Nil when `turn` has no slot (a clamped edge drag that must cancel).
+    /// Direction-agnostic: `slots` already encodes the LTR/RTL mirroring.
+    static func commitDragOffset(
+        viewportWidth: CGFloat,
+        turn: ReaderPageTurn,
+        slots: (left: ReaderPageTurn?, right: ReaderPageTurn?)
+    ) -> CGFloat? {
+        if turn == slots.left { return viewportWidth }
+        if turn == slots.right { return -viewportWidth }
+        return nil
+    }
 }
 
 // MARK: - 2. Arabic-only narrator line + volume/chapter display titles
@@ -169,6 +184,32 @@ extension ReaderChapterLine {
               !arabic.isEmpty
         else { return title }
         return arabic
+    }
+}
+
+/// Volume-start header title (R6 fix round): the big centered title is the
+/// ACTUAL volume name — the outline's `firstChapterTitle` — falling back to
+/// the first source-provided chapter title, then the outline title.
+/// Hadithly never synthesizes a name: every fallback is source-provided.
+enum ReaderVolumeHeaderTitle {
+    static func actualTitle(
+        volume: OutlineVolume,
+        arabicVisible: Bool = true,
+        translationVisible: Bool = true
+    ) -> String {
+        if let first = volume.firstChapterTitle?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !first.isEmpty {
+            return first
+        }
+        if let firstChapter = volume.chapters?.first {
+            return ReaderChapterLine.displayTitle(
+                title: firstChapter.title,
+                arabicTitle: firstChapter.arabicTitle,
+                arabicVisible: arabicVisible,
+                translationVisible: translationVisible
+            )
+        }
+        return volume.title
     }
 }
 
@@ -366,6 +407,37 @@ enum ReaderProgressBars {
     static func scrollFraction(contentHeight: CGFloat, viewportHeight: CGFloat, scrolled: CGFloat) -> Double {
         guard contentHeight > viewportHeight, viewportHeight > 0 else { return 1 }
         return min(1, max(0, scrolled / (contentHeight - viewportHeight)))
+    }
+
+    /// 1-based position of the selected volume in outline order, for the
+    /// unfocused Volume pill and the volume header eyebrow. Nil with no
+    /// outline or no selection.
+    static func volumePosition(selectedVolumeId: String?, volumes: [OutlineVolume]) -> Int? {
+        guard let selected = selectedVolumeId,
+              let index = volumes.firstIndex(where: { $0.volumeId == selected })
+        else { return nil }
+        return index + 1
+    }
+
+    /// Unfocused Page pill (`Page N`) fill: the intra-page scroll fraction
+    /// only — position within the current page. Clamped, never nil.
+    /// Mirrors Android `pagePillFillFraction`.
+    static func pagePillFillFraction(_ intraPageFraction: Double) -> Double {
+        min(1, max(0, intraPageFraction))
+    }
+
+    /// Unfocused Volume pill (`Volume N`) fill: the current page fraction
+    /// within the volume — page index plus intra-page scroll over the
+    /// backend-reported total. Nil until the total is known.
+    /// Mirrors Android `volumePillFillFraction`.
+    static func volumePillFillFraction(
+        pageIndex: Int,
+        totalPages: Int?,
+        intraPageFraction: Double
+    ) -> Double? {
+        guard let total = totalPages, total > 0 else { return nil }
+        let intra = min(1, max(0, intraPageFraction))
+        return min(1, max(0, (Double(max(0, pageIndex)) + intra) / Double(total)))
     }
 }
 

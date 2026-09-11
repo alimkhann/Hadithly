@@ -553,4 +553,123 @@ final class ReaderR6Round3Tests: XCTestCase {
             SavedRelativeTime.string(since: now.addingTimeInterval(-400 * 86_400), now: now), "1 year ago"
         )
     }
+
+    // MARK: - R6 fix round: settle offsets, header titles, haptics
+
+    func testCommitDragOffsetRevealsNeighborAndRejectsEdges() {
+        let ltr = ReaderDragStrip.slots(hasPrevious: true, hasNext: true, pageDirection: .ltr)
+        XCTAssertEqual(
+            ReaderDragStrip.commitDragOffset(viewportWidth: 393, turn: .next, slots: ltr), -393
+        )
+        XCTAssertEqual(
+            ReaderDragStrip.commitDragOffset(viewportWidth: 393, turn: .previous, slots: ltr), 393
+        )
+        // RTL mirrors sides but the settle target follows the slot, not the direction.
+        let rtl = ReaderDragStrip.slots(hasPrevious: true, hasNext: true, pageDirection: .rtl)
+        XCTAssertEqual(
+            ReaderDragStrip.commitDragOffset(viewportWidth: 393, turn: .next, slots: rtl), 393
+        )
+        XCTAssertEqual(
+            ReaderDragStrip.commitDragOffset(viewportWidth: 393, turn: .previous, slots: rtl), -393
+        )
+        // A turn with no slot (clamped edge) must cancel, never commit.
+        let start = ReaderDragStrip.slots(hasPrevious: false, hasNext: true, pageDirection: .ltr)
+        XCTAssertNil(ReaderDragStrip.commitDragOffset(viewportWidth: 393, turn: .previous, slots: start))
+        XCTAssertEqual(
+            ReaderDragStrip.commitDragOffset(viewportWidth: 393, turn: .next, slots: start), -393
+        )
+    }
+
+    func testVolumeHeaderTitlePrefersActualName() {
+        let named = OutlineVolume(
+            volumeId: "1", title: "Volume 1",
+            firstChapterTitle: "How the Divine Revelation started",
+            hadithCount: 7
+        )
+        XCTAssertEqual(ReaderVolumeHeaderTitle.actualTitle(volume: named), "How the Divine Revelation started")
+        // No first-chapter title: the first source-provided chapter title.
+        let chaptered = OutlineVolume(
+            volumeId: "2", title: "Volume 2", hadithCount: 3,
+            chapters: [OutlineChapter(
+                chapterId: "42", title: "Belief", arabicTitle: "كتاب الإيمان",
+                hadithCount: 2, firstProviderHadithId: "58"
+            )]
+        )
+        XCTAssertEqual(ReaderVolumeHeaderTitle.actualTitle(volume: chaptered), "Belief")
+        // Arabic-only mode prefers the chapter's Arabic title.
+        XCTAssertEqual(
+            ReaderVolumeHeaderTitle.actualTitle(volume: chaptered, arabicVisible: true, translationVisible: false),
+            "كتاب الإيمان"
+        )
+        // Nothing source-provided: the outline title survives untouched.
+        let bare = OutlineVolume(volumeId: "3", title: "Volume 3", hadithCount: 1)
+        XCTAssertEqual(ReaderVolumeHeaderTitle.actualTitle(volume: bare), "Volume 3")
+    }
+
+    func testVolumePositionFollowsOutlineOrder() {
+        let volumes = (1...4).map {
+            OutlineVolume(volumeId: "\($0)", title: "Volume \($0)", hadithCount: 1)
+        }
+        XCTAssertEqual(ReaderProgressBars.volumePosition(selectedVolumeId: "1", volumes: volumes), 1)
+        XCTAssertEqual(ReaderProgressBars.volumePosition(selectedVolumeId: "4", volumes: volumes), 4)
+        XCTAssertNil(ReaderProgressBars.volumePosition(selectedVolumeId: "9", volumes: volumes))
+        XCTAssertNil(ReaderProgressBars.volumePosition(selectedVolumeId: nil, volumes: volumes))
+        XCTAssertNil(ReaderProgressBars.volumePosition(selectedVolumeId: "1", volumes: []))
+    }
+
+    func testPillFillsMirrorAndroid() {
+        // Page pill: intra-page scroll only, clamped.
+        XCTAssertEqual(ReaderProgressBars.pagePillFillFraction(0), 0, accuracy: 1e-9)
+        XCTAssertEqual(ReaderProgressBars.pagePillFillFraction(0.5), 0.5, accuracy: 1e-9)
+        XCTAssertEqual(ReaderProgressBars.pagePillFillFraction(1), 1, accuracy: 1e-9)
+        XCTAssertEqual(ReaderProgressBars.pagePillFillFraction(-0.5), 0, accuracy: 1e-9)
+        XCTAssertEqual(ReaderProgressBars.pagePillFillFraction(2), 1, accuracy: 1e-9)
+        // Volume pill: page index plus intra-page scroll over the total.
+        XCTAssertEqual(
+            try XCTUnwrap(ReaderProgressBars.volumePillFillFraction(
+                pageIndex: 0, totalPages: 10, intraPageFraction: 0.5
+            )), 0.05, accuracy: 1e-9
+        )
+        XCTAssertEqual(
+            try XCTUnwrap(ReaderProgressBars.volumePillFillFraction(
+                pageIndex: 4, totalPages: 10, intraPageFraction: 1
+            )), 0.5, accuracy: 1e-9
+        )
+        XCTAssertNil(ReaderProgressBars.volumePillFillFraction(
+            pageIndex: 0, totalPages: nil, intraPageFraction: 0
+        ))
+        XCTAssertNil(ReaderProgressBars.volumePillFillFraction(
+            pageIndex: 0, totalPages: 0, intraPageFraction: 0
+        ))
+    }
+
+    func testHapticStylesAreRestrained() {
+        XCTAssertEqual(ReaderHaptics.style(for: .menuToggle), .light)
+        XCTAssertEqual(ReaderHaptics.style(for: .menuItemTap), .light)
+        XCTAssertEqual(ReaderHaptics.style(for: .contextMenuOpen), .light)
+        XCTAssertEqual(ReaderHaptics.style(for: .bookmarkRemove), .light)
+        XCTAssertEqual(ReaderHaptics.style(for: .favoriteRemove), .light)
+        // Medium only when something is added.
+        XCTAssertEqual(ReaderHaptics.style(for: .bookmarkAdd), .medium)
+        XCTAssertEqual(ReaderHaptics.style(for: .favoriteAdd), .medium)
+        // The page-turn tick is the softest impact; hiding both text
+        // layers is the only notification haptic.
+        XCTAssertEqual(ReaderHaptics.style(for: .pageSettle), .soft)
+        XCTAssertEqual(ReaderHaptics.style(for: .layersRejected), .error)
+    }
+
+    func testHapticDispatcherReachesInjectedPlayer() {
+        final class Recorder: ReaderHapticPlayer {
+            var events: [ReaderHapticEvent] = []
+            func play(_ event: ReaderHapticEvent) { events.append(event) }
+        }
+        let recorder = Recorder()
+        let previous = ReaderHapticDispatcher.shared
+        ReaderHapticDispatcher.shared = recorder
+        defer { ReaderHapticDispatcher.shared = previous }
+        ReaderHapticDispatcher.trigger(.menuToggle)
+        ReaderHapticDispatcher.trigger(.bookmarkAdd)
+        ReaderHapticDispatcher.trigger(.layersRejected)
+        XCTAssertEqual(recorder.events, [.menuToggle, .bookmarkAdd, .layersRejected])
+    }
 }

@@ -21,6 +21,7 @@
         <item quantity="other">%d لغة متاحة</item>
     </plurals>
     <string name="reader_volume_title">المجلد %1$d</string>
+    <string name="reader_volume_pill_suffix">مجلد</string>
     <plurals name="reader_hadith_count">
         <item quantity="zero">لا أحاديث</item>
         <item quantity="one">حديث واحد</item>

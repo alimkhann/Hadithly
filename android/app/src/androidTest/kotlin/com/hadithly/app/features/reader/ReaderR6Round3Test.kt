@@ -200,6 +200,44 @@ class ReaderR6Round3Test {
         compose.onNodeWithTag("page-2").assertIsNotDisplayed()
     }
 
+    @Test
+    fun canceledSwipeSettlesBackWithContentIntact() {
+        compose.setContent { pager() }
+
+        compose.onNodeWithTag("page-1").assertIsDisplayed()
+        // A short drag below the paging threshold: settle-or-cancel must
+        // snap back with the outgoing page's content intact (no flicker to
+        // an empty page) and neighbors still composed.
+        compose.onNodeWithTag("pager").performTouchInput {
+            swipe(start = center, end = center.copy(x = center.x - 60), durationMillis = 200)
+        }
+        compose.waitForIdle()
+        compose.onNodeWithTag("page-1").assertIsDisplayed()
+        compose.onNodeWithTag("page-0").assertExists()
+        compose.onNodeWithTag("page-2").assertExists()
+    }
+
+    @Test
+    fun menuBottomRowHasEqualHeights() {
+        compose.setContent {
+            HadithlyTheme {
+                ReaderMenuStack(
+                    positionedReference = "Hadith 57",
+                    isPositionedBookmarked = false,
+                    onContents = {},
+                    onSaved = {},
+                    onSettings = {},
+                    onBookmark = {},
+                    onSearch = {},
+                )
+            }
+        }
+
+        val bookmarkHeight = compose.onNodeWithTag("reader.menu.bookmark").fetchSemanticsNode().size.height
+        val searchHeight = compose.onNodeWithTag("reader.menu.search").fetchSemanticsNode().size.height
+        assertEquals(bookmarkHeight, searchHeight)
+    }
+
     // Menu order and cards
 
     @Test
@@ -428,7 +466,7 @@ class ReaderR6Round3Test {
                     onArabicFontSize = {},
                     onTheme = {},
                     onArabicFont = {},
-                    onVisibility = { _, _ -> },
+                    onVisibility = { _, _ -> true },
                 )
             }
         }

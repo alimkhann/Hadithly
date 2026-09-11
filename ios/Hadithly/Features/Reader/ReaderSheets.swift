@@ -120,9 +120,10 @@ struct CollectionOutlineSheet: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     ScrollView {
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: 4) {
                             jumpField
                             ReaderSheetSectionLabel(text: "VOLUMES", palette: palette)
+                                .padding(.top, 8)
                             ForEach(model.volumes) { volume in
                                 if let chapters = volume.chapters, !chapters.isEmpty {
                                     volumeDisclosure(volume, chapters: chapters)
@@ -131,7 +132,7 @@ struct CollectionOutlineSheet: View {
                                 }
                             }
                         }
-                        .padding(.horizontal, 16)
+                        .padding(.horizontal, 20)
                         .padding(.vertical, 4)
                         .padding(.bottom, 16)
                     }
@@ -149,7 +150,7 @@ struct CollectionOutlineSheet: View {
     /// Jump-to-reference: a well-formed hadith number dismisses and
     /// navigates through the same path as canonical links (stale numbers
     /// land on the first volume's start); malformed input shows a quiet
-    /// inline error and keeps the sheet open.
+    /// inline error and keeps the sheet open. Plain row, no card.
     private var jumpField: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
@@ -176,11 +177,9 @@ struct CollectionOutlineSheet: View {
                     .font(.caption2)
                     .foregroundStyle(palette.textSecondary.opacity(0.7))
             }
+            Divider().overlay(palette.divider.opacity(0.6))
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(palette.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .padding(.vertical, 4)
     }
 
     private func submitJump() {
@@ -204,14 +203,15 @@ struct CollectionOutlineSheet: View {
         )
     }
 
-    /// A volume with source-provided chapters: the header carries the same
-    /// volume info as before, and each chapter row jumps straight to its
-    /// first hadith. Chapters render only when the source provided them —
-    /// Hadithly never synthesizes one.
+    /// A volume with source-provided chapters: plain rows (Sajda contents
+    /// density) — the volume row carries title, first-chapter subtitle,
+    /// count, and a rotating chevron; the expanded chapters are plain rows
+    /// with hadith counts and minimal dividers. Chapters render only when
+    /// the source provided them — Hadithly never synthesizes one.
     private func volumeDisclosure(_ volume: OutlineVolume, chapters: [OutlineChapter]) -> some View {
         let isSelected = volume.volumeId == model.selectedVolumeId
         return DisclosureGroup(isExpanded: expansionBinding(for: volume.volumeId)) {
-            VStack(spacing: 4) {
+            VStack(spacing: 0) {
                 Button {
                     model.selectVolume(volume.volumeId)
                     dismiss()
@@ -222,8 +222,8 @@ struct CollectionOutlineSheet: View {
                             .foregroundStyle(palette.textSecondary)
                         Spacer()
                     }
-                    .padding(.horizontal, 12)
                     .padding(.vertical, 10)
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("reader.volume.\(volume.volumeId)")
@@ -231,19 +231,19 @@ struct CollectionOutlineSheet: View {
                     chapterRow(volume: volume, chapter: chapter)
                 }
             }
-            .padding(.top, 4)
+            .padding(.top, 2)
         } label: {
             // The identifier sits on the label subtree only: an identifier
             // on the DisclosureGroup itself propagates into the expanded
-            // content and stomps the chapter rows' own identifiers.
+            // content and stomps the chapter rows' own identifiers. The
+            // DisclosureGroup renders its own rotating chevron; the plain
+            // row below adds one explicitly.
             volumeLabel(volume, isSelected: isSelected)
+                .contentShape(Rectangle())
                 .accessibilityIdentifier("reader.contents.volume.\(volume.volumeId)")
         }
         .tint(palette.textSecondary)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(isSelected ? Theme.accentSoft : palette.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .padding(.vertical, 10)
     }
 
     private func chapterRow(volume: OutlineVolume, chapter: OutlineChapter) -> some View {
@@ -257,32 +257,35 @@ struct CollectionOutlineSheet: View {
             model.selectChapter(volumeId: volume.volumeId, chapter: chapter)
             dismiss()
         } label: {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(display)
-                        .font(.subheadline)
-                        .foregroundStyle(palette.textPrimary)
-                        .multilineTextAlignment(.leading)
-                    if let subtitle = ReaderChapterLine.arabicSubtitle(
-                        title: display,
-                        arabicTitle: chapter.arabicTitle,
-                        arabicVisible: arabicVisible
-                    ) {
-                        Text(subtitle)
-                            .font(.caption)
-                            .foregroundStyle(palette.textSecondary)
-                            .lineLimit(1)
+            VStack(spacing: 0) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(display)
+                            .font(.subheadline)
+                            .foregroundStyle(palette.textPrimary)
+                            .multilineTextAlignment(.leading)
+                        if let subtitle = ReaderChapterLine.arabicSubtitle(
+                            title: display,
+                            arabicTitle: chapter.arabicTitle,
+                            arabicVisible: arabicVisible
+                        ) {
+                            Text(subtitle)
+                                .font(.caption)
+                                .foregroundStyle(palette.textSecondary)
+                                .lineLimit(1)
+                        }
                     }
+                    Spacer()
+                    Text("\(chapter.hadithCount)")
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(palette.textSecondary)
                 }
-                Spacer()
-                Text("\(chapter.hadithCount)")
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(palette.textSecondary)
+                .padding(.vertical, 10)
+                Divider().overlay(palette.divider.opacity(0.6))
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(palette.surfaceElevated)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+            // Plain rows have no background fill: the explicit content
+            // shape keeps the whole row (including spacer gaps) tappable.
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(display), \(chapter.hadithCount) hadiths")
@@ -295,17 +298,15 @@ struct CollectionOutlineSheet: View {
             model.selectVolume(volume.volumeId)
             dismiss()
         } label: {
-            volumeLabel(volume, isSelected: isSelected)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .background(isSelected ? Theme.accentSoft : palette.surface)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+            volumeLabel(volume, isSelected: isSelected, showsChevron: true)
+                .padding(.vertical, 10)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("reader.volume.\(volume.volumeId)")
     }
 
-    private func volumeLabel(_ volume: OutlineVolume, isSelected: Bool) -> some View {
+    private func volumeLabel(_ volume: OutlineVolume, isSelected: Bool, showsChevron: Bool = false) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 3) {
                 Text(localizedVolumeTitle(volume.title, preferences: prefs))
@@ -326,6 +327,10 @@ struct CollectionOutlineSheet: View {
                 Image(systemName: "checkmark")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(Theme.accent)
+            } else if showsChevron {
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(palette.textSecondary.opacity(0.6))
             }
         }
     }
@@ -354,17 +359,17 @@ struct ReaderSettingsSheet: View {
             onClose: { dismiss() }
         ) {
             ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 16) {
                     ReaderSheetSectionLabel(text: "SHOW ON PAGE", palette: palette)
-                    visibilityCard
+                    visibilitySection
                     ReaderSheetSectionLabel(text: "COLOR THEME", palette: palette)
-                    themeCard
+                    themeSection
                     ReaderSheetSectionLabel(text: "ARABIC TYPE", palette: palette)
-                    typeCard
+                    typeSection
                     ReaderSheetSectionLabel(text: "TRANSLATION LANGUAGE", palette: palette)
-                    languageCard
+                    languageSection
                 }
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 20)
                 .padding(.bottom, 16)
             }
         }
@@ -373,28 +378,37 @@ struct ReaderSettingsSheet: View {
 
     // MARK: Visibility
 
-    private var visibilityCard: some View {
+    /// DISPLAY-style toggle chips (Sajda settings density): a selected chip
+    /// is a light pill, never full-green. Rejecting the all-hidden state
+    /// plays the error haptic instead of updating.
+    private var visibilitySection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 10) {
-                visibilityPill(
+            HStack(spacing: 8) {
+                displayChip(
                     title: "Arabic",
                     isOn: preferences.arabicVisible,
                     identifier: "reader.visibility.arabic"
                 ) {
-                    _ = environment.preferences.setVisibility(
+                    guard environment.preferences.setVisibility(
                         arabic: !preferences.arabicVisible,
                         translation: nil
-                    )
+                    ) else {
+                        ReaderHapticDispatcher.trigger(.layersRejected)
+                        return
+                    }
                 }
-                visibilityPill(
+                displayChip(
                     title: "Translation",
                     isOn: preferences.translationVisible,
                     identifier: "reader.visibility.translation"
                 ) {
-                    _ = environment.preferences.setVisibility(
+                    guard environment.preferences.setVisibility(
                         arabic: nil,
                         translation: !preferences.translationVisible
-                    )
+                    ) else {
+                        ReaderHapticDispatcher.trigger(.layersRejected)
+                        return
+                    }
                 }
             }
 
@@ -403,12 +417,9 @@ struct ReaderSettingsSheet: View {
                 .foregroundStyle(palette.textSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .background(palette.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
-    private func visibilityPill(
+    private func displayChip(
         title: String,
         isOn: Bool,
         identifier: String,
@@ -422,12 +433,18 @@ struct ReaderSettingsSheet: View {
                 Text(title)
             }
             .font(.subheadline.weight(.medium))
-            .foregroundStyle(isOn ? Theme.accent : palette.textSecondary)
+            .foregroundStyle(isOn ? palette.textPrimary : palette.textSecondary)
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity)
-            .background(isOn ? Theme.accentSoft : palette.surfaceElevated)
+            .background(isOn ? palette.surfaceElevated : Color.clear)
             .clipShape(Capsule())
+            .overlay(
+                Capsule().strokeBorder(
+                    isOn ? Color.clear : palette.divider.opacity(0.7),
+                    lineWidth: 1
+                )
+            )
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(title) visibility, \(isOn ? "on" : "off")")
@@ -437,18 +454,13 @@ struct ReaderSettingsSheet: View {
 
     // MARK: Theme
 
-    private var themeCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
-                ForEach(ReaderTheme.allCases, id: \.self) { theme in
-                    themeButton(theme)
-                }
+    private var themeSection: some View {
+        HStack(spacing: 8) {
+            ForEach(ReaderTheme.allCases, id: \.self) { theme in
+                themeButton(theme)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .background(palette.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
     private func themeButton(_ theme: ReaderTheme) -> some View {
@@ -474,7 +486,7 @@ struct ReaderSettingsSheet: View {
             }
             .frame(maxWidth: .infinity)
             .padding(6)
-            .background(isSelected ? Theme.accentSoft : Color.clear)
+            .background(Color.clear)
             .clipShape(RoundedRectangle(cornerRadius: 10))
         }
         .buttonStyle(.plain)
@@ -485,7 +497,7 @@ struct ReaderSettingsSheet: View {
 
     // MARK: Arabic type
 
-    private var typeCard: some View {
+    private var typeSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ")
                 .font(Theme.arabic(preferences.arabicFontSize, preferences.arabicFont))
@@ -494,8 +506,6 @@ struct ReaderSettingsSheet: View {
                 .foregroundStyle(palette.textPrimary)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 10)
-                .background(palette.surfaceElevated)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
                 .accessibilityLabel("Arabic type preview")
                 .accessibilityIdentifier("reader.typePreview")
 
@@ -506,9 +516,6 @@ struct ReaderSettingsSheet: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .background(palette.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
     private var sizeStepper: some View {
@@ -556,26 +563,27 @@ struct ReaderSettingsSheet: View {
         return Button {
             environment.preferences.setArabicFont(font)
         } label: {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("بِسْمِ اللَّهِ")
-                        .font(Theme.arabic(20, font))
-                        .foregroundStyle(palette.textPrimary)
-                    Text(font.displayName)
-                        .font(.caption2)
-                        .foregroundStyle(palette.textSecondary)
+            VStack(spacing: 0) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("بِسْمِ اللَّهِ")
+                            .font(Theme.arabic(20, font))
+                            .foregroundStyle(palette.textPrimary)
+                        Text(font.displayName)
+                            .font(.caption2)
+                            .foregroundStyle(palette.textSecondary)
+                    }
+                    Spacer()
+                    if isSelected {
+                        Image(systemName: "checkmark")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(Theme.accent)
+                    }
                 }
-                Spacer()
-                if isSelected {
-                    Image(systemName: "checkmark")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(Theme.accent)
-                }
+                .padding(.vertical, 10)
+                Divider().overlay(palette.divider.opacity(0.6))
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
-            .background(isSelected ? Theme.accentSoft : palette.surfaceElevated)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Arabic font \(font.displayName)")
@@ -585,7 +593,7 @@ struct ReaderSettingsSheet: View {
 
     // MARK: Language
 
-    private var languageCard: some View {
+    private var languageSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("AI translations are labeled and grounded in cited sources.")
                 .font(.caption)
@@ -596,30 +604,32 @@ struct ReaderSettingsSheet: View {
                     environment.preferences.setTranslationLocale(language.code)
                     model.setLanguage(language.code)
                 } label: {
-                    HStack {
-                        Text(language.name)
-                            .font(.subheadline)
-                            .foregroundStyle(palette.textPrimary)
-                        Spacer()
-                        if model.language == language.code {
-                            Image(systemName: "checkmark")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(Theme.accent)
+                    VStack(spacing: 0) {
+                        HStack {
+                            Text(language.name)
+                                .font(.subheadline)
+                                .foregroundStyle(palette.textPrimary)
+                            Spacer()
+                            if model.language == language.code {
+                                Image(systemName: "checkmark")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(Theme.accent)
+                            } else {
+                                Image(systemName: "chevron.right")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(palette.textSecondary.opacity(0.6))
+                            }
                         }
+                        .padding(.vertical, 11)
+                        Divider().overlay(palette.divider.opacity(0.6))
                     }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 11)
-                    .background(model.language == language.code ? Theme.accentSoft : palette.surface)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("reader.language.\(language.code)")
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .background(palette.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 }
 
@@ -1113,7 +1123,7 @@ struct ReaderSearchSheet: View {
                     resultsList
                 }
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 20)
             .padding(.bottom, 16)
         }
         .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
@@ -1164,28 +1174,29 @@ struct ReaderSearchSheet: View {
                     Button {
                         onOpen(result)
                     } label: {
-                        HStack(alignment: .top, spacing: 12) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(result.snippet.isEmpty ? result.referenceDisplay : result.snippet)
-                                    .font(.subheadline)
-                                    .foregroundStyle(palette.textPrimary)
-                                    .multilineTextAlignment(.leading)
-                                    .lineLimit(4)
-                                Text("\(result.referenceDisplay) · Sunnah.now English")
+                        VStack(spacing: 0) {
+                            HStack(alignment: .top, spacing: 12) {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(result.snippet.isEmpty ? result.referenceDisplay : result.snippet)
+                                        .font(.subheadline)
+                                        .foregroundStyle(palette.textPrimary)
+                                        .multilineTextAlignment(.leading)
+                                        .lineLimit(4)
+                                    Text("\(result.referenceDisplay) · Sunnah.now English")
+                                        .font(.caption)
+                                        .foregroundStyle(palette.textSecondary)
+                                        .lineLimit(1)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
                                     .font(.caption)
                                     .foregroundStyle(palette.textSecondary)
-                                    .lineLimit(1)
+                                    .padding(.top, 4)
                             }
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundStyle(palette.textSecondary)
-                                .padding(.top, 4)
+                            .padding(.vertical, 12)
+                            Divider().overlay(palette.divider.opacity(0.6))
                         }
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 12)
-                        .background(palette.surface)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("\(result.referenceDisplay), Sunnah.now English text")
@@ -1321,7 +1332,7 @@ struct ReaderSavedShortcutSheet: View {
                     emptyState
                 } else {
                     ScrollView {
-                        VStack(spacing: 8) {
+                        VStack(spacing: 0) {
                             ForEach(entries) { entry in
                                 shortcutRow(entry)
                             }
@@ -1331,7 +1342,7 @@ struct ReaderSavedShortcutSheet: View {
                 }
                 editButton
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 20)
             .padding(.bottom, 16)
         }
         .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
@@ -1366,46 +1377,54 @@ struct ReaderSavedShortcutSheet: View {
         .clipShape(Capsule())
     }
 
+    /// Sajda bookmarks-tab rows: a tinted icon, the reference title with
+    /// its relative stamp, a chevron, and minimal dividers. Notes keep one
+    /// content line so they stay distinguishable.
     private func shortcutRow(_ entry: SavedEntry) -> some View {
-        Button {
+        let icon: (name: String, color: Color) = switch tab {
+        case .bookmarks: ("bookmark.fill", Color(red: 0.96, green: 0.62, blue: 0.04))
+        case .favorites: ("heart.fill", .pink)
+        case .notes: ("square.and.pencil", .green)
+        }
+        return Button {
             if let ref = entry.hadith {
                 onOpen(ref)
             }
         } label: {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 8) {
-                    Text(entry.hadith?.referenceDisplay.isEmpty == false
-                        ? entry.hadith!.referenceDisplay
-                        : (entry.hadith?.collectionName ?? "Saved hadith"))
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(palette.textSecondary)
-                        .lineLimit(1)
+            VStack(spacing: 0) {
+                HStack(spacing: 12) {
+                    Image(systemName: icon.name)
+                        .font(.callout)
+                        .foregroundStyle(icon.color)
+                        .frame(width: 34, height: 34)
+                        .background(icon.color.opacity(0.14))
+                        .clipShape(RoundedRectangle(cornerRadius: 9))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(entry.hadith?.referenceDisplay.isEmpty == false
+                            ? entry.hadith!.referenceDisplay
+                            : (entry.hadith?.collectionName ?? "Saved hadith"))
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(palette.textPrimary)
+                            .lineLimit(1)
+                        Text(SavedRelativeTime.string(since: entry.sortDate))
+                            .font(.caption)
+                            .foregroundStyle(palette.textSecondary)
+                        if tab == .notes, let note = entry.noteContent, !note.isEmpty {
+                            Text(note)
+                                .font(.caption)
+                                .foregroundStyle(palette.textSecondary)
+                                .lineLimit(2)
+                        }
+                    }
                     Spacer()
-                    Text(SavedRelativeTime.string(since: entry.sortDate))
-                        .font(.caption2)
-                        .foregroundStyle(palette.textSecondary.opacity(0.8))
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(palette.textSecondary.opacity(0.6))
                 }
-                if let arabic = entry.hadith?.arabicText, !arabic.isEmpty {
-                    Text(arabic)
-                        .font(Theme.arabic(17))
-                        .foregroundStyle(palette.textPrimary)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.leading)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .environment(\.layoutDirection, .rightToLeft)
-                }
-                if tab == .notes, let note = entry.noteContent, !note.isEmpty {
-                    Text(note)
-                        .font(.subheadline)
-                        .foregroundStyle(palette.textPrimary.opacity(0.9))
-                        .lineLimit(3)
-                }
+                .padding(.vertical, 10)
+                Divider().overlay(palette.divider.opacity(0.6))
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .background(palette.surface)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .disabled(entry.hadith == nil)
@@ -1423,22 +1442,22 @@ struct ReaderSavedShortcutSheet: View {
     }
 
     private var editButton: some View {
-        Button(action: onEdit) {
-            HStack(spacing: 6) {
-                Image(systemName: "square.and.pencil")
-                    .font(.caption)
-                Text("Edit in Saved")
-                    .font(.subheadline.weight(.medium))
+        HStack {
+            Spacer()
+            Button(action: onEdit) {
+                Text("EDIT")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(palette.textSecondary)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(palette.surfaceElevated)
+                    .clipShape(Capsule())
             }
-            .foregroundStyle(Theme.accent)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .background(Theme.accentSoft)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .buttonStyle(.plain)
+            .accessibilityLabel("Edit saved items in the Saved tab")
+            .accessibilityIdentifier("reader.savedShortcut.edit")
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Edit saved items in the Saved tab")
-        .accessibilityIdentifier("reader.savedShortcut.edit")
+        .padding(.top, 4)
     }
 }
 
@@ -1457,7 +1476,7 @@ struct ReaderBookmarkPlacementSheet: View {
     @Environment(\.readerTheme) private var readerTheme
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 0) {
             Capsule()
                 .fill(palette.textSecondary.opacity(0.45))
                 .frame(width: 40, height: 5)
@@ -1467,8 +1486,8 @@ struct ReaderBookmarkPlacementSheet: View {
                 .font(.headline)
                 .foregroundStyle(palette.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 20)
-                .padding(.top, 6)
+                .padding(.top, 12)
+                .padding(.bottom, 4)
                 .accessibilityIdentifier("reader.bookmarkPlacement.title")
             placementOption(
                 title: "Start of page",
@@ -1496,21 +1515,35 @@ struct ReaderBookmarkPlacementSheet: View {
             }
             placementOption(title: "Cancel", identifier: "reader.bookmarkPlacement.cancel", onCancel)
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 20)
         .padding(.bottom, 16)
         .background(palette.background)
         .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
     }
 
-    private func placementOption(title: String, identifier: String, _ action: @escaping () -> Void) -> some View {
+    private func placementOption(
+        title: String,
+        identifier: String,
+        _ action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
-            Text(title)
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(palette.textPrimary)
-                .frame(maxWidth: .infinity)
+            VStack(spacing: 0) {
+                HStack {
+                    Text(title)
+                        .font(.subheadline)
+                        .foregroundStyle(palette.textPrimary)
+                        .multilineTextAlignment(.leading)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(palette.textSecondary.opacity(0.6))
+                }
                 .padding(.vertical, 13)
-                .background(palette.surface)
-                .clipShape(Capsule())
+                Divider().overlay(palette.divider.opacity(0.6))
+            }
+            // No background fill on the plain row: the explicit content
+            // shape keeps spacer gaps tappable (XCUITest taps row centers).
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(identifier)

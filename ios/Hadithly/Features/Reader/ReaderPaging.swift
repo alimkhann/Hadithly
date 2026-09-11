@@ -56,6 +56,76 @@ enum ReaderScrollRestoration {
     }
 }
 
+// MARK: - Restrained reader haptics (R6 fix round)
+
+/// Every haptic trigger point in the reader. Restrained and native: light
+/// impacts for chrome/menu gestures, medium only when something is added,
+/// a soft tick when a page settles, and an error when the user tries to
+/// hide both text layers.
+enum ReaderHapticEvent: String, Equatable, CaseIterable {
+    case menuToggle
+    case menuItemTap
+    case contextMenuOpen
+    case bookmarkAdd
+    case bookmarkRemove
+    case favoriteAdd
+    case favoriteRemove
+    case pageSettle
+    case layersRejected
+}
+
+enum ReaderHapticStyle: Equatable {
+    case light
+    case medium
+    case soft
+    case error
+}
+
+enum ReaderHaptics {
+    /// The pure event-to-style mapping, pinned in unit tests.
+    static func style(for event: ReaderHapticEvent) -> ReaderHapticStyle {
+        switch event {
+        case .menuToggle, .menuItemTap, .contextMenuOpen, .bookmarkRemove, .favoriteRemove:
+            .light
+        case .bookmarkAdd, .favoriteAdd:
+            .medium
+        case .pageSettle:
+            .soft
+        case .layersRejected:
+            .error
+        }
+    }
+}
+
+/// Injectable seam behind every reader haptic: production plays the system
+/// generators, tests swap in a recorder and assert trigger points.
+protocol ReaderHapticPlayer {
+    func play(_ event: ReaderHapticEvent)
+}
+
+struct SystemReaderHapticPlayer: ReaderHapticPlayer {
+    func play(_ event: ReaderHapticEvent) {
+        switch ReaderHaptics.style(for: event) {
+        case .light:
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        case .medium:
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        case .soft:
+            UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+        case .error:
+            UINotificationFeedbackGenerator().notificationOccurred(.error)
+        }
+    }
+}
+
+enum ReaderHapticDispatcher {
+    static var shared: any ReaderHapticPlayer = SystemReaderHapticPlayer()
+
+    static func trigger(_ event: ReaderHapticEvent) {
+        shared.play(event)
+    }
+}
+
 @MainActor
 final class ReaderPagingPanHandler: NSObject, UIGestureRecognizerDelegate {
     var pageDirection: HorizontalDirection
