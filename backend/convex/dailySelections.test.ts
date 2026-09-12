@@ -131,6 +131,7 @@ describe("persisted daily selection", () => {
     await expect(
       t.action(api.actions.daily.getDailyHadith, {
         timezone: "Asia/Almaty",
+        translationLocale: "en",
       }),
     ).resolves.toMatchObject({
       canonicalId: "sunnah_now:bukhari:3",
@@ -139,5 +140,58 @@ describe("persisted daily selection", () => {
         claimScope: "collection",
       },
     });
+  });
+
+  test("uses only an exact cached selected-language translation", async () => {
+    const t = convexTest(schema, modules);
+    const hadithId = await t.run(async (ctx) => await ctx.db.insert("hadiths", {
+      provider: "sunnah_now",
+      canonicalId: "sunnah_now:bukhari:57",
+      providerHadithId: "57",
+      collectionSlug: "bukhari",
+      collectionName: "Sahih al-Bukhari",
+      arabicText: "نص",
+      englishText: "Provider English",
+      referenceDisplay: "Sahih al-Bukhari · Hadith 57",
+      authenticity: {
+        kind: "collection_scope",
+        normalizedGrade: "sahih",
+        claimScope: "collection",
+        sourceLabel: "Documented Sahih collection",
+        sourceName: "Sunnah.com",
+        sourceUrl: "https://sunnah.com/bukhari/about",
+        verificationMethod: "manual_collection_mapping",
+      },
+      createdAt: 1_000,
+    }));
+    await t.run(async (ctx) => await ctx.db.insert("translations", {
+      hadithId,
+      language: "ur",
+      content: "اردو ترجمہ",
+      source: "gemini_ai",
+      sourceLabel: "AI",
+      aiModel: "fixture",
+      status: "live",
+      isDefault: true,
+      groundingUsed: false,
+      createdAt: 1_000,
+      updatedAt: 1_000,
+    }));
+
+    await expect(t.action(api.actions.daily.getDailyHadith, {
+      timezone: "Asia/Almaty",
+      translationLocale: "ur",
+    })).resolves.toMatchObject({
+      translation: {
+        text: "اردو ترجمہ",
+        language: "ur",
+        sourceLabel: "AI translation",
+        isAI: true,
+      },
+    });
+    await expect(t.action(api.actions.daily.getDailyHadith, {
+      timezone: "Asia/Almaty",
+      translationLocale: "ur-PK",
+    })).resolves.toMatchObject({ translation: null });
   });
 });

@@ -122,6 +122,15 @@ data class ReaderTranslation(
 )
 
 @Serializable
+data class DailyTranslation(
+    val text: String,
+    val language: String,
+    val source: String,
+    val sourceLabel: String,
+    val isAI: Boolean,
+)
+
+@Serializable
 data class DailyHadith(
     val _id: String,
     val provider: String,
@@ -132,6 +141,7 @@ data class DailyHadith(
     val volumeId: String? = null,
     val arabicText: String,
     val englishText: String? = null,
+    val translation: DailyTranslation? = null,
     val referenceDisplay: String,
     val authenticity: AuthenticityClaim,
 )

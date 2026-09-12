@@ -79,11 +79,14 @@ class ConvexRepository(context: Context) {
             )
         }
 
-    suspend fun getDailyHadith(): DailyHadith? =
+    suspend fun getDailyHadith(translationLocale: String): DailyHadith? =
         withContext(Dispatchers.IO) {
             convex.action<DailyHadith?>(
                 "actions/daily:getDailyHadith",
-                mapOf("timezone" to ZoneId.systemDefault().id),
+                mapOf(
+                    "timezone" to ZoneId.systemDefault().id,
+                    "translationLocale" to translationLocale,
+                ),
             )
         }
 

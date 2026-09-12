@@ -300,6 +300,32 @@ export async function fetchVolumeHadiths(params: {
   return response.map((hadith) => normalizeHadith(params.collectionSlug, hadith));
 }
 
+/**
+ * Some provider volume endpoints return only an introductory record even
+ * though the collection outline assigns hundreds of hadiths to that volume.
+ * The reader must prefer complete, targetable content over that partial
+ * response. This bounded collection scan is the correctness fallback.
+ */
+export async function fetchCollectionVolumeHadiths(params: {
+  collectionSlug: string;
+  volumeId: string;
+}): Promise<HadithRecord[]> {
+  const items: HadithRecord[] = [];
+  let page = 1;
+  let hasMore = true;
+  while (hasMore && page <= 500) {
+    const response = await fetchReaderPage({
+      collectionSlug: params.collectionSlug,
+      page,
+      pageSize: 50,
+    });
+    items.push(...response.items);
+    hasMore = response.hasMore && response.items.length > 0;
+    page += 1;
+  }
+  return items.filter((item) => item.volumeId === params.volumeId);
+}
+
 function parseBooks(value: unknown): SunnahNowBook[] {
   if (!Array.isArray(value)) throw new Error("Sunnah.now returned invalid books");
   return value.map((entry) => {

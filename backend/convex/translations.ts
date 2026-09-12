@@ -53,6 +53,28 @@ export const getById = internalQuery({
 });
 
 /**
+ * The cache lookup used by Today.  It intentionally returns only a live,
+ * default translation for one exact locale: Today must never silently change
+ * the reader's selected language, and merely opening home must never trigger
+ * a new AI generation.
+ */
+export const getDefaultForHadithLanguage = internalQuery({
+  args: { hadithId: v.id("hadiths"), language: v.string() },
+  handler: async (ctx, args) => {
+    const translation = await ctx.db
+      .query("translations")
+      .withIndex("by_hadith_language_default", (q) =>
+        q
+          .eq("hadithId", args.hadithId)
+          .eq("language", args.language)
+          .eq("isDefault", true),
+      )
+      .first();
+    return translation?.status === "live" ? translation : null;
+  },
+});
+
+/**
  * Internal: cache a generated AI translation. There is intentionally no
  * vote/rating tracking — translation quality is a curation concern, not a
  * popularity contest.

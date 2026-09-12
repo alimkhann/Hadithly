@@ -13,6 +13,7 @@ import {
   buildCollectionOutline,
   chunkReaderHadiths,
   fetchBooks,
+  fetchCollectionVolumeHadiths,
   fetchReaderPage,
   fetchVolumeHadiths,
 } from "../lib/sunnahNow";
@@ -166,10 +167,16 @@ export const getReaderPage = action({
 
       // First visit to the volume: pull it once, cache it in full, then
       // serve every later page turn from the `hadiths` table.
-      const volumeItems = await fetchVolumeHadiths({
+      let volumeItems = await fetchVolumeHadiths({
         collectionSlug: args.collectionSlug,
         volumeId: args.volumeId,
       });
+      if (volume && volumeItems.length < volume.hadithCount) {
+        volumeItems = await fetchCollectionVolumeHadiths({
+          collectionSlug: args.collectionSlug,
+          volumeId: args.volumeId,
+        });
+      }
       const upsertIds = await ctx.runMutation(internal.hadiths.upsertPage, {
         items: volumeItems,
       });

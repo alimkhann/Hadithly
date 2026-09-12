@@ -1264,7 +1264,10 @@ private fun ReaderPage(
 
     LaunchedEffect(listState, hadiths) {
         snapshotFlow {
-            listState.layoutInfo.visibleItemsInfo.firstOrNull()?.let {
+            val info = listState.layoutInfo
+            info.visibleItemsInfo.minByOrNull { item ->
+                kotlin.math.abs((item.offset + item.size / 2) - (info.viewportStartOffset + info.viewportEndOffset) / 2)
+            }?.let {
                 Triple(it.index, it.offset, it.size)
             }
         }
@@ -1305,7 +1308,12 @@ private fun ReaderPage(
                 // navigationBars padding.
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                    start = 22.dp, end = 22.dp, top = 20.dp, bottom = 80.dp,
+                    start = 22.dp, end = 22.dp,
+                    // Reader pages never sit below an iPhone/Android cutout.
+                    // Keep this stable across chrome states so page turns do
+                    // not shift the reading position.
+                    top = 56.dp,
+                    bottom = 80.dp,
                 ),
             ) {
                 // Round 8, no top jerk (mirrors iOS headerSlot): the first

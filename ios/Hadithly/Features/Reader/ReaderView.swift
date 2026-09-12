@@ -390,6 +390,7 @@ struct ReaderView: View {
                 scrollRestoreGeneration: model.scrollRestoreGeneration,
                 currentPageIndex: model.pageIndex,
                 pageCount: model.pages.count + (model.hasNextPage && model.pageIndex == model.pages.count - 1 ? 1 : 0),
+                topContentInset: windowSafeAreaInsets.top + 12,
                 palette: palette,
                 onTurn: { turnPage(model, turn: $0) },
                 onTap: {
@@ -629,8 +630,7 @@ struct ReaderView: View {
     }
 
     private func positionedHadith(_ model: ReaderModel) -> ReaderHadith? {
-        let target = model.restoredPosition?.anchor.providerHadithId ?? model.landingHadithNumber
-        return model.currentPageHadiths.first { $0.providerHadithId == target } ?? model.currentPageHadiths.first
+        model.positionedHadith()
     }
 }
 
@@ -953,6 +953,7 @@ struct ReaderPageView: View {
     let scrollRestoreGeneration: Int
     let currentPageIndex: Int
     let pageCount: Int
+    let topContentInset: CGFloat
     let palette: ReaderPalette
     let onTurn: (ReaderPageTurn) -> Void
     /// Direct page tap only. Buttons and long-press context actions keep
@@ -1069,7 +1070,7 @@ struct ReaderPageView: View {
                         // lines (28 + 12 top padding), tight 12pt from a
                         // chapter line to its first hadith.
                         VStack(spacing: 28) {
-                            headerSlot
+                            headerSlot.id("reader.page.top.\(currentPageIndex)")
                             ForEach(Array(hadiths.enumerated()), id: \.element.internalId) { index, hadith in
                                 if chapterOpenings.contains(index) {
                                     VStack(spacing: 12) {
@@ -1111,7 +1112,7 @@ struct ReaderPageView: View {
                             .padding(.top, 8)
                         }
                         .padding(.horizontal, 22)
-                        .padding(.top, 20)
+                        .padding(.top, topContentInset + 20)
                         .padding(.bottom, 80)
                         .background(
                             GeometryReader { content in
@@ -1162,7 +1163,10 @@ struct ReaderPageView: View {
                     let indexed = hadiths.enumerated().compactMap { index, hadith in
                         frames[hadith.internalId].map { (index, $0) }
                     }
-                    guard let leading = indexed.last(where: { $0.1.minY <= 0 }) ?? indexed.first else { return }
+                    guard let leading = indexed.min(by: {
+                        abs(($0.1.minY + $0.1.height / 2) - viewport.size.height / 2)
+                        < abs(($1.1.minY + $1.1.height / 2) - viewport.size.height / 2)
+                    }) ?? indexed.first else { return }
                     // First visit to a page: scroll to the very top exactly
                     // once — but ONLY when no restore/landing target exists
                     // for this page at all (checked against the hadiths, not
@@ -1176,9 +1180,9 @@ struct ReaderPageView: View {
                     let hasRestoreTarget = restoreTargetId.flatMap { id in
                         hadiths.first(where: { $0.providerHadithId == id })
                     } != nil
-                    if !hasRestoreTarget, topResetPage != currentPageIndex, let first = hadiths.first {
+                    if !hasRestoreTarget, topResetPage != currentPageIndex {
                         topResetPage = currentPageIndex
-                        proxy.scrollTo(first.internalId, anchor: .top)
+                        proxy.scrollTo("reader.page.top.\(currentPageIndex)", anchor: .top)
                         return
                     }
                     model.captureStableScroll(

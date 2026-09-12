@@ -3,7 +3,7 @@ import Foundation
 
 /// Wire types for the reader, decoded straight from Convex action results.
 
-struct ReaderAuthenticity: Decodable, Equatable {
+struct ReaderAuthenticity: Codable, Equatable {
     let kind: String
     let normalizedGrade: String?
     let claimScope: String

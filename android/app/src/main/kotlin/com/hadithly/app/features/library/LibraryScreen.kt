@@ -234,5 +234,5 @@ private fun CollectionRow(
 private fun volumeSummary(counts: LibraryViewModel.VolumeCounts): String {
     val volumes = if (counts.volumes == 1) "volume" else "volumes"
     val hadiths = if (counts.hadiths == 1) "hadith" else "hadiths"
-    return "${counts.volumes} $volumes · ${counts.hadiths} $hadiths cached"
+        return "${counts.volumes} $volumes · ${counts.hadiths} $hadiths"
 }

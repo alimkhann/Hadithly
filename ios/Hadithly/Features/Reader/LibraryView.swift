@@ -145,6 +145,6 @@ struct LibraryView: View {
     private func volumeSummary(_ counts: LibraryModel.VolumeCounts) -> String {
         let volumes = counts.volumes == 1 ? "volume" : "volumes"
         let hadiths = counts.hadiths == 1 ? "hadith" : "hadiths"
-        return "\(counts.volumes) \(volumes) · \(counts.hadiths) \(hadiths) cached"
+        return "\(counts.volumes) \(volumes) · \(counts.hadiths) \(hadiths)"
     }
 }

@@ -118,6 +118,9 @@ class ReaderViewModel(
     }
 
     fun positionedHadith(): ReaderHadith? {
+        lastStableAnchor?.let { stable ->
+            if (currentPageHadiths().any { it.internalId == stable.internalId }) return stable
+        }
         val target = restoredPosition?.anchor?.providerHadithId ?: landingHadithNumber
         return currentPageHadiths().firstOrNull { it.providerHadithId == target }
             ?: currentPageHadiths().firstOrNull()

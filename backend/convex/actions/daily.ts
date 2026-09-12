@@ -35,8 +35,17 @@ type DailyHadith = {
   volumeId: string | null;
   arabicText: string;
   englishText: string | null;
+  translation: DailyTranslation | null;
   referenceDisplay: string;
   authenticity: AuthenticityClaim;
+};
+
+type DailyTranslation = {
+  text: string;
+  language: string;
+  source: string;
+  sourceLabel: string;
+  isAI: boolean;
 };
 
 type CachedHadith = {
@@ -130,7 +139,47 @@ async function persistDailyCandidate(
   return await io.runQuery(internal.hadiths.getById, { hadithId });
 }
 
-function toDailyHadith(hadith: CachedHadith): DailyHadith {
+function providerEnglishTranslation(hadith: CachedHadith): DailyTranslation | null {
+  if (!hadith.englishText?.trim()) return null;
+  return {
+    text: hadith.englishText,
+    language: "en",
+    source: hadith.provider,
+    sourceLabel: "Sunnah.now",
+    isAI: false,
+  };
+}
+
+/**
+ * Daily content may reuse a globally cached translation but may not generate
+ * one.  The explicit reader action is the only policy-gated generation path;
+ * this keeps a home refresh cheap, signed-out safe, and impossible to use as
+ * a quota bypass.
+ */
+async function resolveDailyTranslation(
+  io: DailyIo,
+  hadith: CachedHadith,
+  language: string,
+): Promise<DailyTranslation | null> {
+  if (language === "en") return providerEnglishTranslation(hadith);
+  const cached = await io.runQuery(
+    internal.translations.getDefaultForHadithLanguage,
+    { hadithId: hadith._id, language },
+  );
+  if (!cached) return null;
+  return {
+    text: cached.content,
+    language,
+    source: cached.source,
+    sourceLabel: cached.source === "gemini_ai" ? "AI translation" : cached.sourceLabel,
+    isAI: cached.source === "gemini_ai",
+  };
+}
+
+function toDailyHadith(
+  hadith: CachedHadith,
+  translation: DailyTranslation | null,
+): DailyHadith {
   return {
     _id: hadith._id,
     provider: hadith.provider,
@@ -141,6 +190,7 @@ function toDailyHadith(hadith: CachedHadith): DailyHadith {
     volumeId: hadith.volumeId ?? null,
     arabicText: hadith.arabicText,
     englishText: hadith.englishText ?? null,
+    translation,
     referenceDisplay: hadith.referenceDisplay,
     authenticity: hadith.authenticity,
   };
@@ -148,13 +198,18 @@ function toDailyHadith(hadith: CachedHadith): DailyHadith {
 
 /** Public: today's hadith for the Today tab. */
 export const getDailyHadith = action({
-  args: { timezone: v.string() },
+  args: { timezone: v.string(), translationLocale: v.string() },
   handler: async (ctx, args): Promise<DailyHadith | null> => {
-    const picked = await pickDailyHadith({
+    const io = {
       runQuery: ctx.runQuery,
       runMutation: ctx.runMutation,
-    }, args.timezone, Date.now());
-    return picked ? toDailyHadith(picked) : null;
+    };
+    const picked = await pickDailyHadith(io, args.timezone, Date.now());
+    if (!picked) return null;
+    return toDailyHadith(
+      picked,
+      await resolveDailyTranslation(io, picked, args.translationLocale),
+    );
   },
 });
 
@@ -235,7 +290,7 @@ export const sendDueDailyPushes = internalAction({
         fcmConfigured: hasFcm,
       };
     }
-    const hadith = toDailyHadith(picked);
+    const hadith = toDailyHadith(picked, providerEnglishTranslation(picked));
 
     let sent = 0;
     let failed = 0;

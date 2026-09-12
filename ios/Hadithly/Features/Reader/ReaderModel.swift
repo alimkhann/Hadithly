@@ -94,6 +94,19 @@ final class ReaderModel {
     /// changes re-anchor the semantic position). Views key their applied
     /// restoration on this so a preference change re-scrolls exactly once.
     private(set) var restorationGeneration = 0
+
+    /// The reading location is the settled leading hadith, not the first
+    /// row on a page. Reader-menu actions must use the same anchor that R1
+    /// persists for Continue Reading.
+    func positionedHadith() -> ReaderHadith? {
+        let page = currentPageHadiths
+        if let stable = lastStableAnchor,
+           page.contains(where: { $0.internalId == stable.internalId }) {
+            return stable
+        }
+        let target = restoredPosition?.anchor.providerHadithId ?? landingHadithNumber
+        return page.first(where: { $0.providerHadithId == target }) ?? page.first
+    }
     private(set) var landingHadithNumber: String?
     /// Round 5: vertical scroll offsets of the last two visited pages,
     /// keyed by page index. Leaving a page stores its offset; navigating
