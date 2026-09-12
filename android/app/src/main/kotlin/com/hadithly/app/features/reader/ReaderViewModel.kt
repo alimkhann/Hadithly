@@ -452,6 +452,7 @@ class ReaderViewModel(
         if (_state.value.isLoadingPage) return
         _state.update { it.copy(isLoadingPage = true) }
         pageJob = viewModelScope.launch {
+            var shouldPrefetchNeighbor = false
             try {
                 val result = app.repository.getReaderPage(
                     collectionSlug = collectionSlug,
@@ -468,8 +469,10 @@ class ReaderViewModel(
                 }
                 if (jumpToHadithNumber != null) {
                     _state.update { it.copy(pageIndex = maxOf(0, result.pageNumber - 1)) }
+                    shouldPrefetchNeighbor = true
                 } else if (_state.value.pageIndex == index) {
                     scheduleTranslationsForCurrentPage()
+                    shouldPrefetchNeighbor = true
                 }
                 cacheAdjacentVolumes()
             } catch (error: Exception) {
@@ -478,6 +481,11 @@ class ReaderViewModel(
                 }
             } finally {
                 _state.update { it.copy(isLoadingPage = false) }
+                // Publish the current page first, then release the
+                // single-flight gate before asking for its next neighbor.
+                // Otherwise every fresh reader starts with a loading page
+                // beside it instead of a real drag preview.
+                if (shouldPrefetchNeighbor) prefetchForwardIfNeeded()
             }
         }
     }

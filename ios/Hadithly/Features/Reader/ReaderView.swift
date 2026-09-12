@@ -34,10 +34,6 @@ struct ReaderView: View {
     @State private var pageDragOffset: CGFloat = 0
     @State private var horizontalDragging = false
     @State private var pageScrollFraction: Double = 1
-    /// Touch-down time behind the confirmed-tap tracker: a tap toggles the
-    /// chrome only when the touch lifts with <10pt of travel inside a short
-    /// press (ReaderConfirmedTap). Nil between touches.
-    @State private var confirmedTapBeganAt: Date?
     /// Latest viewport width, for the drag-settle target. Written from the
     /// GeometryReader; the gesture may outlive any single body evaluation.
     @State private var dragViewportWidth: CGFloat = 0
@@ -52,6 +48,19 @@ struct ReaderView: View {
 
     private var palette: ReaderPalette {
         ReaderPalette.resolved(readerTheme, systemDark: systemColorScheme == .dark)
+    }
+
+    /// Once the reader root ignores safe areas, an inner GeometryReader sees
+    /// zero insets. Reader chrome still needs the window's real inset so it
+    /// clears the Dynamic Island and home indicator while page content stays
+    /// genuinely edge-to-edge.
+    private var windowSafeAreaInsets: UIEdgeInsets {
+        let activeScene = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first { $0.activationState == .foregroundActive }
+        let window = activeScene?.windows.first(where: \.isKeyWindow)
+            ?? activeScene?.windows.first
+        return window?.safeAreaInsets ?? .zero
     }
 
     /// Chrome fade+scale (round 7, ~200ms ease-out): applied ONLY to the
@@ -104,67 +113,77 @@ struct ReaderView: View {
             model?.stop()
         }
         .sheet(isPresented: $showIndex) {
-            if let model {
-                CollectionOutlineSheet(
-                    model: model,
-                    arabicVisible: environment.preferences.preferences.arabicVisible,
-                    translationVisible: environment.preferences.preferences.translationVisible
-                )
+            readerSheet {
+                if let model {
+                    CollectionOutlineSheet(
+                        model: model,
+                        arabicVisible: environment.preferences.preferences.arabicVisible,
+                        translationVisible: environment.preferences.preferences.translationVisible
+                    )
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.hidden)
+                }
             }
         }
         .sheet(isPresented: $showSettings) {
-            if let model {
-                ReaderSettingsSheet(model: model)
-                    .presentationDetents([.medium, .large])
-                    .presentationDragIndicator(.hidden)
+            readerSheet {
+                if let model {
+                    ReaderSettingsSheet(model: model)
+                        .presentationDetents([.medium, .large])
+                        .presentationDragIndicator(.hidden)
+                }
             }
         }
         .sheet(isPresented: $showSearch) {
-            if let model {
-                ReaderSearchSheet(
-                    collectionSlug: model.collectionSlug,
-                    collectionName: model.collectionName,
-                    search: { text in await model.searchEnglish(text: text) },
-                    onOpen: { result in
-                        showSearch = false
-                        model.jumpToReference(result.providerHadithId)
+            readerSheet {
+                if let model {
+                    ReaderSearchSheet(
+                        collectionSlug: model.collectionSlug,
+                        collectionName: model.collectionName,
+                        search: { text in await model.searchEnglish(text: text) },
+                        onOpen: { result in
+                            showSearch = false
+                            model.jumpToReference(result.providerHadithId)
+                        }
+                    )
+                    // Search opens at medium with large available.
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.hidden)
+                }
+            }
+        }
+        .sheet(isPresented: $showSavedShortcut) {
+            readerSheet {
+                ReaderSavedShortcutSheet(
+                    onOpen: { ref in
+                        showSavedShortcut = false
+                        if let number = ref.hadithNumber, !number.isEmpty {
+                            model?.jumpToHadith(volumeId: ref.volumeId, hadithNumber: number)
+                        }
+                    },
+                    onEdit: {
+                        showSavedShortcut = false
+                        dismiss()
+                        NotificationCenter.default.post(name: .hadithlyOpenSavedTab, object: nil)
                     }
                 )
-                // Search opens at medium with large available.
+                // Bookmarks & Notes opens at medium with large available.
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.hidden)
             }
         }
-        .sheet(isPresented: $showSavedShortcut) {
-            ReaderSavedShortcutSheet(
-                onOpen: { ref in
-                    showSavedShortcut = false
-                    if let number = ref.hadithNumber, !number.isEmpty {
-                        model?.jumpToHadith(volumeId: ref.volumeId, hadithNumber: number)
-                    }
-                },
-                onEdit: {
-                    showSavedShortcut = false
-                    dismiss()
-                    NotificationCenter.default.post(name: .hadithlyOpenSavedTab, object: nil)
-                }
-            )
-            // Bookmarks & Notes opens at medium with large available.
-            .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.hidden)
-        }
         // Bookmark placement is a centered modal dialog (round 7), rendered
         // as an overlay in readingView — not a bottom sheet.
         .sheet(isPresented: $showQuotaPaywall) {
-            QuotaPaywallView {
-                Task {
-                    try? await Task.sleep(for: .seconds(1))
-                    model?.retryTranslationsAfterPurchase()
+            readerSheet {
+                QuotaPaywallView {
+                    Task {
+                        try? await Task.sleep(for: .seconds(1))
+                        model?.retryTranslationsAfterPurchase()
+                    }
                 }
+                .presentationDetents([.large])
             }
-            .presentationDetents([.large])
         }
         .onChange(of: model?.hasQuotaFailure ?? false, initial: true) { _, exceeded in
             guard exceeded, !hasAutoPresentedQuotaPaywall else { return }
@@ -228,14 +247,19 @@ struct ReaderView: View {
                 // page underneath never moves, fades, or re-lays-out.
                 ReaderFocusedProgressBar(
                     fraction: pageScrollFraction,
-                    palette: palette
+                    palette: palette,
+                    topInset: windowSafeAreaInsets.top
                 )
                 .opacity(model.chromeVisible ? 0 : 1)
                 .scaleEffect(model.chromeVisible ? 0.92 : 1)
                 .animation(chromeAnimation, value: model.chromeVisible)
                 .allowsHitTesting(false)
 
-                chromeOverlay(model)
+                chromeOverlay(
+                    model,
+                    topInset: windowSafeAreaInsets.top,
+                    bottomInset: windowSafeAreaInsets.bottom
+                )
                     .opacity(model.chromeVisible ? 1 : 0)
                     .scaleEffect(model.chromeVisible ? 1 : 0.96)
                     .animation(chromeAnimation, value: model.chromeVisible)
@@ -298,10 +322,27 @@ struct ReaderView: View {
         .onChange(of: environment.preferences.preferences.layoutProjection) { _, _ in
             model.reanchorAfterLayoutChange()
         }
-        // Pre-6409bbd behavior: the status bar hides with the chrome so the
-        // focused page runs full-bleed into the top safe area; unfocused
-        // shows it with content below. No other safe-area overrides exist.
+        // The reader deliberately owns the whole display in both modes.
+        // Safe-area insets must never reserve an empty band above or below
+        // the page; status and reader chrome are overlays on that content.
+        .ignoresSafeArea()
+        // The status bar hides with focused chrome. The page itself remains
+        // full-bleed in both states, so this system-chrome change never
+        // resizes or repositions reading content.
         .statusBarHidden(!model.chromeVisible)
+    }
+
+    /// A sheet is presented in a new hosting hierarchy, so it must receive
+    /// the reader palette explicitly. Without this bridge every reader sheet
+    /// falls back to the environment's dark default even when the page is
+    /// Light or Paper.
+    @ViewBuilder
+    private func readerSheet<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        content()
+            .environment(\.readerTheme, readerTheme)
+            .environment(\.readerPalette, palette)
+            .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
+            .presentationBackground(palette.background)
     }
 
     // MARK: - Axis-locked drag paging (R6 round 3, note 1)
@@ -351,6 +392,10 @@ struct ReaderView: View {
                 pageCount: model.pages.count + (model.hasNextPage && model.pageIndex == model.pages.count - 1 ? 1 : 0),
                 palette: palette,
                 onTurn: { turnPage(model, turn: $0) },
+                onTap: {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    toggleChrome(model)
+                },
                 onShowPaywall: { showQuotaPaywall = true },
                 onScrollFraction: { pageScrollFraction = $0 }
             )
@@ -361,6 +406,10 @@ struct ReaderView: View {
             }
         }
         .offset(x: baseOffset + pageDragOffset)
+        // The reading page, unlike its controls, intentionally owns the
+        // entire display. This is constant across focused/unfocused chrome;
+        // toggling never changes the scroll view's geometry or shifts text.
+        .ignoresSafeArea(edges: [.top, .bottom])
         // The strip is wider than the screen while a neighbor slot is
         // attached: pin the layout width to the viewport (leading edge,
         // so the drag offset math holds) and clip the overflow. Without
@@ -372,36 +421,6 @@ struct ReaderView: View {
         .onChange(of: viewportWidth, initial: true) { _, width in
             dragViewportWidth = width
         }
-        // Confirmed-tap chrome toggle (round 7): a zero-distance drag
-        // observes the touch alongside the paging recognizer and the page
-        // ScrollView without claiming it, then toggles (with the single
-        // light tick) only on touch-up with <10pt of travel inside a short
-        // press. Drags, swipes, scrolls, and press-and-holds never toggle
-        // nor tick.
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 0, coordinateSpace: .global)
-                .onChanged { _ in
-                    if confirmedTapBeganAt == nil
-                        || Date().timeIntervalSince(confirmedTapBeganAt!) > 5 {
-                        confirmedTapBeganAt = Date()
-                    }
-                }
-                .onEnded { value in
-                    defer { confirmedTapBeganAt = nil }
-                    let duration = Date().timeIntervalSince(confirmedTapBeganAt ?? Date())
-                    let movement = hypot(
-                        Double(value.translation.width),
-                        Double(value.translation.height)
-                    )
-                    guard ReaderConfirmedTap.isConfirmedTap(movement: movement, duration: duration) else { return }
-                    // The single reader chrome haptic: exactly one light
-                    // tick on the tap that toggles focused↔unfocused. No
-                    // haptic anywhere else on scroll, drag, swipe, or settle
-                    // paths.
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    toggleChrome(model)
-                }
-        )
     }
 
     private func stripSlot(_ model: ReaderModel, turn: ReaderPageTurn, viewportWidth: CGFloat) -> some View {
@@ -518,7 +537,11 @@ struct ReaderView: View {
         }
     }
 
-    private func chromeOverlay(_ model: ReaderModel) -> some View {
+    private func chromeOverlay(
+        _ model: ReaderModel,
+        topInset: CGFloat,
+        bottomInset: CGFloat
+    ) -> some View {
         VStack(spacing: 0) {
             // Unfocused (Sajda `208 page` + `11 juz` style): TWO pills side
             // by side, bold number + lighter suffix. The Page pill fills by
@@ -539,7 +562,7 @@ struct ReaderView: View {
                 ),
                 palette: palette
             )
-            .padding(.top, 8)
+            .padding(.top, topInset + 8)
             Spacer()
             if showReaderMenu {
                 ReaderMenuStack(
@@ -583,7 +606,7 @@ struct ReaderView: View {
                 )
             }
             .padding(.horizontal, 24)
-            .padding(.bottom, 16)
+            .padding(.bottom, bottomInset + 16)
         }
     }
 
@@ -771,6 +794,9 @@ private struct ReaderMenuStack: View {
 private struct ReaderFocusedProgressBar: View {
     let fraction: Double
     let palette: ReaderPalette
+    /// The full-bleed reader passes its system inset so this chrome sits
+    /// below the Dynamic Island while text remains underneath it.
+    var topInset: CGFloat = 0
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -786,9 +812,9 @@ private struct ReaderFocusedProgressBar: View {
         VStack {
             ZStack(alignment: .leading) {
                 Capsule()
-                    .fill(palette.textSecondary.opacity(0.3))
+                    .fill(palette.textSecondary.opacity(0.55))
                 Capsule()
-                    .fill(palette.textPrimary.opacity(0.9))
+                    .fill(palette.textPrimary.opacity(0.95))
                     .frame(width: max(Self.minFillWidth, Self.barWidth * clampedFraction))
                     // The fill glides to the new fraction on a page switch
                     // (~250ms ease-out, snap under Reduce Motion) instead
@@ -799,7 +825,7 @@ private struct ReaderFocusedProgressBar: View {
             Spacer()
         }
         .frame(maxWidth: .infinity)
-        .padding(.top, 6)
+        .padding(.top, topInset + 6)
         .allowsHitTesting(false)
         .accessibilityHidden(true)
         .accessibilityIdentifier("reader.focusedProgress")
@@ -845,8 +871,10 @@ private struct ReaderUnfocusedProgressPills: View {
         // Motion) instead of jumping instantly.
         let clamped = min(1, max(0, fill))
         return ZStack {
+            // Opaque track: the pills float over full-bleed page content,
+            // so the track must fully occlude text scrolling beneath.
             Capsule()
-                .fill(palette.surface.opacity(0.96))
+                .fill(palette.surface)
             GeometryReader { proxy in
                 Capsule()
                     .fill(palette.textSecondary.opacity(0.35))
@@ -927,6 +955,10 @@ struct ReaderPageView: View {
     let pageCount: Int
     let palette: ReaderPalette
     let onTurn: (ReaderPageTurn) -> Void
+    /// Direct page tap only. Buttons and long-press context actions keep
+    /// their own gestures; vertical scrolls and horizontal paging do not
+    /// invoke this closure.
+    let onTap: () -> Void
     let onShowPaywall: () -> Void
     /// When set, the page reports its vertical scroll fraction (0 top, 1
     /// bottom) for the focused progress bar. Only the centered strip page
@@ -1131,11 +1163,20 @@ struct ReaderPageView: View {
                         frames[hadith.internalId].map { (index, $0) }
                     }
                     guard let leading = indexed.last(where: { $0.1.minY <= 0 }) ?? indexed.first else { return }
-                    // First visit to a page (no restore/landing target claimed
-                    // it above): scroll to the very top exactly once. The
-                    // stable view identity keeps the old offset otherwise,
-                    // which would show mid-content of the new page.
-                    if topResetPage != currentPageIndex, let first = hadiths.first {
+                    // First visit to a page: scroll to the very top exactly
+                    // once — but ONLY when no restore/landing target exists
+                    // for this page at all (checked against the hadiths, not
+                    // the frames, so a revisit whose frames haven't landed
+                    // yet can never be yanked to top before its restore
+                    // claims it below). The stable view identity keeps the
+                    // old offset otherwise, which would show mid-content of
+                    // the new page.
+                    let restoreTargetId = scrollRestore?.providerHadithId
+                        ?? restoration?.anchor.providerHadithId ?? landingHadithNumber
+                    let hasRestoreTarget = restoreTargetId.flatMap { id in
+                        hadiths.first(where: { $0.providerHadithId == id })
+                    } != nil
+                    if !hasRestoreTarget, topResetPage != currentPageIndex, let first = hadiths.first {
                         topResetPage = currentPageIndex
                         proxy.scrollTo(first.internalId, anchor: .top)
                         return
@@ -1150,6 +1191,7 @@ struct ReaderPageView: View {
             }
         }
         .contentShape(Rectangle())
+        .onTapGesture(perform: onTap)
         .onAppear { chapterOpenings = ReaderChapterBoundaries.openingIndices(in: hadiths) }
         .onChange(of: hadiths) { _, updated in
             chapterOpenings = ReaderChapterBoundaries.openingIndices(in: updated)

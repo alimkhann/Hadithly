@@ -340,7 +340,16 @@ final class ReaderModel {
     private func loadVolumeEdge(_ volumeId: String, edge: VolumeEdge) async {
         if isLoadingPage { return }
         isLoadingPage = true
-        defer { isLoadingPage = false }
+        var shouldPrefetchNeighbor = false
+        defer {
+            isLoadingPage = false
+            // The next page must be fetched only after the edge request
+            // releases its single-flight lock. That gives the first page a
+            // real in-volume swipe preview instead of a loading slot.
+            if shouldPrefetchNeighbor {
+                prefetchForwardIfNeeded()
+            }
+        }
         do {
             let first = try await fetchReaderPage(0, volumeId: volumeId)
             guard !Task.isCancelled else { return }
@@ -350,6 +359,7 @@ final class ReaderModel {
                 pages = [first]
                 phase = .reading
                 pageIndex = 0
+                shouldPrefetchNeighbor = true
             case .last:
                 let landingIndex = total - 1
                 if landingIndex == 0 {
@@ -554,7 +564,16 @@ final class ReaderModel {
     private func loadPage(_ index: Int, volumeId: String, jumpToHadithNumber: String? = nil) async {
         if isLoadingPage { return }
         isLoadingPage = true
-        defer { isLoadingPage = false }
+        var shouldPrefetchNeighbor = false
+        defer {
+            isLoadingPage = false
+            // `prefetchForwardIfNeeded` used to run while this request still
+            // held `isLoadingPage`, so the reader always exposed a loading
+            // neighbor. Run it after publication and lock release instead.
+            if shouldPrefetchNeighbor {
+                prefetchForwardIfNeeded()
+            }
+        }
         do {
             var args: [String: ConvexEncodable?] = [
                 "collectionSlug": collectionSlug as ConvexEncodable?,
@@ -583,6 +602,7 @@ final class ReaderModel {
                 phase = .reading
                 pageIndex = landingIndex
                 warmAdjacentVolumes()
+                shouldPrefetchNeighbor = true
             } else {
                 while pages.count < index { pages.append(emptyPage()) }
                 if pages.indices.contains(index) {
@@ -595,6 +615,7 @@ final class ReaderModel {
                     scheduleTranslationsForCurrentPage()
                     saveCurrentProgress()
                     warmAdjacentVolumes()
+                    shouldPrefetchNeighbor = true
                 }
             }
         } catch {
