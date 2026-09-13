@@ -82,6 +82,19 @@ fun LibraryScreen(onOpenCollection: (String, String) -> Unit, onOpenTarget: (com
                 Icon(if (grid) Icons.Filled.ViewList else Icons.Filled.GridView, null, tint = colors.textPrimary)
             }
         }
+        progress.filter { it.hadith != null }.maxByOrNull { it.updatedAt }?.let { entry ->
+            val hadith = entry.hadith ?: return@let
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp).background(colors.surface, androidx.compose.foundation.shape.RoundedCornerShape(14.dp)).clickable {
+                    onOpenTarget(com.hadithly.app.features.main.ReaderOpenTarget(entry.collectionSlug, hadith.collectionName, hadith.volumeId, hadith.hadithNumber, com.hadithly.app.core.data.ReaderTargetSource.CONTINUE_READING, entry.position))
+                }.padding(10.dp),
+            ) {
+                CollectionCover(Collections.all.indexOfFirst { it.first == entry.collectionSlug } + 1, Modifier.width(42.dp).height(62.dp))
+                Spacer(Modifier.size(10.dp))
+                Column { Text("Continue reading", fontSize = 11.sp, color = colors.textSecondary); Text(hadith.referenceDisplay, fontSize = 15.sp, color = colors.textPrimary) }
+            }
+        }
         if (grid) {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
@@ -91,7 +104,7 @@ fun LibraryScreen(onOpenCollection: (String, String) -> Unit, onOpenTarget: (com
                 modifier = Modifier.fillMaxSize(),
             ) {
                 gridItemsIndexed(Collections.all, key = { _, collection -> collection.first }) { index, (slug, name) ->
-                    GridCollection(position = index + 1, name = name, summary = summaries[slug], onClick = { onOpenCollection(slug, name) }, modifier = Modifier.testTag("library.collection.$slug"))
+                    GridCollection(position = index + 1, name = name, summary = summaryFor(slug, summaries[slug], progress), onClick = { onOpenCollection(slug, name) }, modifier = Modifier.testTag("library.collection.$slug"))
                 }
             }
         } else {
@@ -101,11 +114,17 @@ fun LibraryScreen(onOpenCollection: (String, String) -> Unit, onOpenTarget: (com
                 modifier = Modifier.fillMaxSize(),
             ) {
                 listItemsIndexed(Collections.all, key = { _, collection -> collection.first }) { index, (slug, name) ->
-                    ListCollection(position = index + 1, name = name, summary = summaries[slug], onClick = { onOpenCollection(slug, name) }, modifier = Modifier.testTag("library.collection.$slug"))
+                    ListCollection(position = index + 1, name = name, summary = summaryFor(slug, summaries[slug], progress), onClick = { onOpenCollection(slug, name) }, modifier = Modifier.testTag("library.collection.$slug"))
                 }
             }
         }
     }
+}
+
+private fun summaryFor(slug: String, summary: CollectionProgressSummary?, progress: List<com.hadithly.app.core.data.ProgressEntry>): CollectionProgressSummary? {
+    val local = progress.firstOrNull { it.collectionSlug == slug } ?: return summary
+    if (summary?.state != "unopened") return summary
+    return summary.copy(state = "in_progress", readOrdinal = local.hadith?.hadithNumber?.toDoubleOrNull())
 }
 
 @Composable

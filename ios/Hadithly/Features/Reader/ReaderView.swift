@@ -14,6 +14,7 @@ struct ReaderView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.colorScheme) private var systemColorScheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.scenePhase) private var scenePhase
 
     let collectionSlug: String
     let collectionName: String
@@ -111,6 +112,9 @@ struct ReaderView: View {
         .onDisappear {
             model?.saveCurrentProgress()
             model?.stop()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { model?.saveCurrentProgress() }
         }
         .sheet(isPresented: $showIndex) {
             readerSheet {

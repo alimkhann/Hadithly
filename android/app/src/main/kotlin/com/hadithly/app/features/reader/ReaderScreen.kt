@@ -182,6 +182,9 @@ fun ReaderScreen(
         )
     }
     val state by viewModel.state.collectAsStateWithLifecycle()
+    DisposableEffect(viewModel) {
+        onDispose { viewModel.saveCurrentProgress() }
+    }
     val readingWidthClass = ReadingWidthClass.fromWidthDp(
         LocalConfiguration.current.screenWidthDp.toDouble()
     )
@@ -214,7 +217,11 @@ fun ReaderScreen(
         }
     }
 
-    BackHandler(enabled = !showContents && !showSettings, onBack = onClose)
+    fun closeReader() {
+        viewModel.saveCurrentProgress()
+        onClose()
+    }
+    BackHandler(enabled = !showContents && !showSettings, onBack = ::closeReader)
 
     // Round 7: the themed reader palette drives EVERY reader surface —
     // the page, the reader menu, and all sheets/dialogs presented from the
@@ -237,7 +244,7 @@ fun ReaderScreen(
                     onOpenContents = { showContents = true },
                     onOpenSettings = { showSettings = true },
                     onShowPaywall = { showQuotaPaywall = true },
-                    onClose = onClose,
+                    onClose = ::closeReader,
                     onOpenSaved = onOpenSaved,
                 )
             }

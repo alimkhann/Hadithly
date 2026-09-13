@@ -8,6 +8,7 @@ struct LibraryView: View {
     @Environment(UserLibraryModel.self) private var library
 
     @State private var openCollection: OpenCollection?
+    @State private var openTarget: ReaderOpenTarget?
     @State private var presentation: Presentation = .grid
     @State private var model = LibraryModel()
 
@@ -24,6 +25,11 @@ struct LibraryView: View {
     var body: some View {
         ScrollView {
             Group {
+                if let entry = library.continueReading, let hadith = entry.hadith {
+                    Button { openTarget = ReaderOpenTarget(slug: entry.collectionSlug, name: hadith.collectionName, volumeId: hadith.volumeId, hadithNumber: hadith.hadithNumber, source: .continueReading, position: entry.position) } label: {
+                        HStack { CollectionCover(position: (ReaderModels.collections.firstIndex { $0.slug == entry.collectionSlug } ?? 0) + 1).frame(width: 42, height: 62); VStack(alignment: .leading) { Text("Continue reading").font(.caption).foregroundStyle(Theme.textSecondary); Text(hadith.referenceDisplay).foregroundStyle(Theme.textPrimary) }; Spacer() }.padding(10).background(Theme.surface).clipShape(RoundedRectangle(cornerRadius: 14))
+                    }.buttonStyle(.plain)
+                }
                 switch presentation {
                 case .grid:
                     LazyVGrid(columns: columns, spacing: 24) {
@@ -66,6 +72,9 @@ struct LibraryView: View {
         .fullScreenCover(item: $openCollection) { collection in
             ReaderView(collectionSlug: collection.slug, collectionName: collection.name)
         }
+        .fullScreenCover(item: $openTarget) { target in
+            ReaderView(collectionSlug: target.slug, collectionName: target.name, openVolumeId: target.volumeId, openHadithNumber: target.hadithNumber, openPosition: target.position, targetSource: target.source)
+        }
     }
 
     private func collectionGridItem(slug: String, name: String, position: Int) -> some View {
@@ -82,7 +91,7 @@ struct LibraryView: View {
                     .multilineTextAlignment(.leading)
                     .lineLimit(2)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                progressSlot(model.progressSummaries[slug])
+                progressSlot(summary(for: slug))
             }
         }
         .buttonStyle(.plain)
@@ -103,7 +112,7 @@ struct LibraryView: View {
                         .font(.body.weight(.semibold))
                         .foregroundStyle(Theme.textPrimary)
                         .multilineTextAlignment(.leading)
-                    progressSlot(model.progressSummaries[slug])
+                    progressSlot(summary(for: slug))
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -128,5 +137,12 @@ struct LibraryView: View {
             Capsule().fill(Theme.surfaceElevated).frame(height: 3)
             Text(label).font(.caption2).foregroundStyle(Theme.textSecondary)
         }
+    }
+
+    private func summary(for slug: String) -> LibraryModel.ProgressSummary? {
+        if let progress = library.progress(for: slug), model.progressSummaries[slug]?.state == "unopened" {
+            return .init(collectionSlug: slug, state: "in_progress", totalHadiths: model.progressSummaries[slug]?.totalHadiths, readOrdinal: Double(progress.hadith?.hadithNumber ?? "") )
+        }
+        return model.progressSummaries[slug]
     }
 }
