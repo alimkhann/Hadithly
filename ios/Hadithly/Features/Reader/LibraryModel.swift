@@ -9,12 +9,19 @@ import Observation
 @MainActor
 @Observable
 final class LibraryModel {
+    struct ProgressSummary: Decodable, Equatable {
+        let collectionSlug: String
+        let state: String
+        let totalHadiths: Double?
+        let readOrdinal: Double?
+    }
     struct VolumeCounts: Equatable {
         let volumes: Int
         let hadiths: Int
     }
 
     private(set) var counts: [String: VolumeCounts] = [:]
+    private(set) var progressSummaries: [String: ProgressSummary] = [:]
 
     private var cancellables: Set<AnyCancellable> = []
 
@@ -40,5 +47,15 @@ final class LibraryModel {
             )
             .store(in: &cancellables)
         }
+        convex.subscribe(
+            to: "library:listCollectionProgressSummaries",
+            with: [:],
+            yielding: [ProgressSummary].self
+        )
+        .receive(on: DispatchQueue.main)
+        .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] summaries in
+            self?.progressSummaries = Dictionary(uniqueKeysWithValues: summaries.map { ($0.collectionSlug, $0) })
+        })
+        .store(in: &cancellables)
     }
 }

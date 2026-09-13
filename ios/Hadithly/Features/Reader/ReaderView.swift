@@ -974,6 +974,15 @@ struct ReaderPageView: View {
     /// are claimed by the restoration block before this is consulted.
     @State private var topResetPage: Int?
 
+    /// A cached snapshot at zero contains no vertical position. Treating it
+    /// as a hadith restoration skips the actual page header on a first visit.
+    private var meaningfulScrollRestore: PageScrollSnapshot? {
+        guard let scrollRestore,
+              scrollRestore.rawPageOffset > 0 || scrollRestore.normalizedOffset > 0
+        else { return nil }
+        return scrollRestore
+    }
+
     /// The selected volume backing this page, for the volume-start header.
     private var selectedVolume: OutlineVolume? {
         guard let id = model.selectedVolumeId else { return nil }
@@ -1140,9 +1149,9 @@ struct ReaderPageView: View {
                     onScrollFraction((raw * 200).rounded() / 200)
                 }
                 .onPreferenceChange(ReaderAnchorFramesKey.self) { frames in
-                    let targetId = scrollRestore?.providerHadithId
+                    let targetId = meaningfulScrollRestore?.providerHadithId
                         ?? restoration?.anchor.providerHadithId ?? landingHadithNumber
-                    let targetOffset = scrollRestore?.normalizedOffset
+                    let targetOffset = meaningfulScrollRestore?.normalizedOffset
                         ?? restoration?.normalizedOffset ?? 0
                     if let targetId,
                        let target = hadiths.first(where: { $0.providerHadithId == targetId }),
@@ -1175,7 +1184,7 @@ struct ReaderPageView: View {
                     // claims it below). The stable view identity keeps the
                     // old offset otherwise, which would show mid-content of
                     // the new page.
-                    let restoreTargetId = scrollRestore?.providerHadithId
+                    let restoreTargetId = meaningfulScrollRestore?.providerHadithId
                         ?? restoration?.anchor.providerHadithId ?? landingHadithNumber
                     let hasRestoreTarget = restoreTargetId.flatMap { id in
                         hadiths.first(where: { $0.providerHadithId == id })
@@ -1193,14 +1202,14 @@ struct ReaderPageView: View {
                     )
                 }
                 .onChange(of: currentPageIndex) { _, _ in
-                    let targetId = scrollRestore?.providerHadithId
+                    let targetId = meaningfulScrollRestore?.providerHadithId
                         ?? restoration?.anchor.providerHadithId ?? landingHadithNumber
                     let hasTargetOnPage = targetId.flatMap { id in
                         hadiths.first(where: { $0.providerHadithId == id })
                     } != nil
                     guard ReaderPageLanding.shouldResetToHeader(
                         hasTargetOnPage: hasTargetOnPage,
-                        hasCachedOffset: scrollRestore != nil
+                        hasCachedOffset: meaningfulScrollRestore != nil
                     ) else { return }
                     topResetPage = currentPageIndex
                     DispatchQueue.main.async {

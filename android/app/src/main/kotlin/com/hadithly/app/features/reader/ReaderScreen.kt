@@ -1257,7 +1257,9 @@ private fun ReaderPage(
             ?.let { id -> hadiths.indexOfFirst { it.providerHadithId == id }.takeIf { it >= 0 } }
         val itemIndex = readerPageLandingItemIndex(
             targetHadithIndex = hadithIndex,
-            hasCachedOffset = scrollCache?.restore(pageIndex) != null,
+            hasCachedOffset = scrollCache?.restore(pageIndex)?.let { (index, offset) ->
+                index > 0 || offset > 0
+            } == true,
         ) ?: return@LaunchedEffect
         // Fresh pages explicitly reset to item 0, the volume/corner header.
         // Targeted R1/R2 landings offset by that header item before placing the

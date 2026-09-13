@@ -292,13 +292,16 @@ private struct DailyHadithCard: View {
     }
     private var readingUnit: some View {
         VStack(alignment: .leading, spacing: 13) {
-            HStack { Text(hadith.referenceDisplay).font(.caption.weight(.semibold)).foregroundStyle(palette.textPrimary); Spacer(); if offline { Text("Offline").font(.caption2.weight(.medium)).foregroundStyle(palette.textSecondary) } }
             Button(action: onSource) {
                 HStack(spacing: 7) {
                     Circle().fill(ReaderGradeDot.color(for: ReaderGradeKind(normalizedGrade: hadith.authenticity.normalizedGrade), palette: palette)).frame(width: 8, height: 8)
-                    Text(hadith.authenticity.displayLabel).font(.caption.weight(.semibold)).foregroundStyle(palette.textPrimary)
+                    Text(hadith.referenceDisplay).font(.caption.weight(.semibold)).foregroundStyle(palette.textPrimary)
+                    Spacer()
+                    if offline { Text("Offline").font(.caption2.weight(.medium)).foregroundStyle(palette.textSecondary) }
                 }
-            }.buttonStyle(.plain).accessibilityIdentifier("today.authenticity")
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("today.authenticity")
             if preferences.arabicVisible { Text(hadith.arabicText).font(Theme.arabic(preferences.arabicFontSize, preferences.arabicFont)).lineSpacing(preferences.arabicFontSize * 0.75).foregroundStyle(palette.textPrimary).frame(maxWidth: .infinity, alignment: .leading).environment(\.layoutDirection, .rightToLeft).lineLimit(expanded || !shouldCollapse ? nil : 7) }
             if preferences.translationVisible {
                 if let translation = hadith.translation {

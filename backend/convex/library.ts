@@ -10,6 +10,7 @@ import type { Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { requireIdentity } from "./lib/identity";
+import { DEFAULT_COLLECTION_ORDER } from "./lib/sunnahNow";
 import {
   legacyReadingPosition,
   parseReadingPosition,
@@ -461,6 +462,53 @@ export const listReadingProgressDetailed = query({
   },
 });
 
+/**
+ * Private per-collection progress for Library. The outline is the authority
+ * for total counts; a semantic position supplies the latest hadith anchor.
+ * Guests receive the public count state without any user data.
+ */
+export const listCollectionProgressSummaries = query({
+  args: {},
+  handler: async (ctx) => {
+    const outlines = await ctx.db.query("collectionOutlines").collect();
+    const outlineBySlug = new Map(outlines.map((outline) => [outline.collectionSlug, outline]));
+    const rawIdentity = await ctx.auth.getUserIdentity();
+    const clerkId = identitySubject(rawIdentity);
+    const user = clerkId ? await userByClerkId(ctx, clerkId) : null;
+    const progress = user
+      ? await ctx.db
+        .query("readingProgress")
+        .withIndex("by_user_collection", (q) => q.eq("userId", user._id))
+        .collect()
+      : [];
+    const progressBySlug = new Map(progress.map((row) => [row.collectionSlug, row]));
+
+    return Promise.all(DEFAULT_COLLECTION_ORDER.map(async (collectionSlug) => {
+      const outline = outlineBySlug.get(collectionSlug);
+      const totalHadiths = outline?.volumes.reduce((total, volume) => total + volume.hadithCount, 0);
+      const row = progressBySlug.get(collectionSlug);
+      if (!outline || !totalHadiths) {
+        return { collectionSlug, state: "unavailable" as const, totalHadiths: null, readOrdinal: null };
+      }
+      if (!row) {
+        return { collectionSlug, state: "unopened" as const, totalHadiths, readOrdinal: null };
+      }
+      const hadith = await ctx.db.get(row.hadithId);
+      const anchorId = row.position?.anchor.providerHadithId ?? hadith?.providerHadithId;
+      const readOrdinal = anchorId ? parseOrdinal(anchorId) : null;
+      if (!hadith || hadith.collectionSlug !== collectionSlug || readOrdinal === null) {
+        return { collectionSlug, state: "stale" as const, totalHadiths, readOrdinal: null };
+      }
+      return {
+        collectionSlug,
+        state: readOrdinal >= totalHadiths ? "completed" as const : "in_progress" as const,
+        totalHadiths,
+        readOrdinal,
+      };
+    }));
+  },
+});
+
 /** Internal helpers ─────────────────────────────────────────────────────── */
 
 async function userByClerkId(ctx: QueryCtx, clerkId: string) {
@@ -468,6 +516,18 @@ async function userByClerkId(ctx: QueryCtx, clerkId: string) {
     .query("users")
     .withIndex("by_clerk_id", (q) => q.eq("clerkId", clerkId))
     .unique();
+}
+
+function identitySubject(value: unknown): string | null {
+  if (typeof value !== "object" || value === null) return null;
+  const subject = Reflect.get(value, "subject");
+  return typeof subject === "string" && subject.length > 0 ? subject : null;
+}
+
+function parseOrdinal(providerHadithId: string): number | null {
+  if (!/^\d+$/.test(providerHadithId)) return null;
+  const ordinal = Number(providerHadithId);
+  return Number.isSafeInteger(ordinal) && ordinal > 0 ? ordinal : null;
 }
 
 /** The hadith fields the Saved tab and Today tab render. Null when the

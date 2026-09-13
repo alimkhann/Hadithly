@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.hadithly.app.HadithlyApplication
 import com.hadithly.app.core.data.Collections
 import com.hadithly.app.core.data.CollectionOutlineResult
+import com.hadithly.app.core.data.CollectionProgressSummary
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,6 +23,8 @@ class LibraryViewModel : ViewModel() {
 
     private val _counts = MutableStateFlow<Map<String, VolumeCounts>>(emptyMap())
     val counts: StateFlow<Map<String, VolumeCounts>> = _counts
+    private val _summaries = MutableStateFlow<Map<String, CollectionProgressSummary>>(emptyMap())
+    val summaries: StateFlow<Map<String, CollectionProgressSummary>> = _summaries
 
     private val app: HadithlyApplication by lazy {
         // ViewModel created from a composable inside the app process.
@@ -29,6 +32,10 @@ class LibraryViewModel : ViewModel() {
     }
 
     init {
+        viewModelScope.launch(Dispatchers.IO) {
+            app.repository.subscribe<List<CollectionProgressSummary>>("library:listCollectionProgressSummaries")
+                .collect { summaries -> _summaries.value = summaries.associateBy { it.collectionSlug } }
+        }
         for ((slug, _) in Collections.all) {
             viewModelScope.launch(Dispatchers.IO) {
                 app.repository.subscribe<CollectionOutlineResult?>(

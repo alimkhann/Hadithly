@@ -929,6 +929,23 @@ substantive: they own bounded implementation outcomes, not just inventories.
 - External state: no backend file changed, so no Convex deployment ran. No
   dashboard, credential, store, or progress semantic changed.
 
+### H2 Library progress and cover completion (2026-09-13)
+
+- Library now reads a private, platform-neutral progress summary from Convex.
+  The summary combines a source-outline count with the reader's latest
+  semantic anchor. It returns unopened, in-progress, completed, stale, and
+  unavailable states. Guests receive only public count state.
+- The generated collection covers are bundled on iOS and Android. Each cover
+  carries its collection name and distinct restrained Islamic geometry.
+- Reader repair: zero-offset scroll snapshots no longer act as hadith-anchor
+  restores. A new page therefore lands at its actual header. Nonzero cached
+  offsets and explicit R1/R2 targets still win.
+- Evidence: development Convex deployed successfully. A live guest query
+  returned all seven source-outline totals. Backend typecheck and 96 tests,
+  Android JDK 21 unit tests and debug build, and focused iOS reader and Today
+  tests passed. The Android emulator showed the updated Daily label, generated
+  covers, unopened progress state, and the next reader page at its true top.
+
 ## Delegation policy
 
 Use GLM-5.3-Flash through OpenCode Go as the default author for bounded sessions

@@ -9,6 +9,7 @@ struct LibraryView: View {
 
     @State private var openCollection: OpenCollection?
     @State private var presentation: Presentation = .grid
+    @State private var model = LibraryModel()
 
     private enum Presentation { case grid, list }
 
@@ -56,6 +57,7 @@ struct LibraryView: View {
         }
         .task {
             library.refresh()
+            model.start(convex: environment.convex)
             ReaderPrefetch.warmEntry(
                 convex: environment.convex,
                 target: ReaderPrefetchTargets.entryTarget(progress: library.continueReading)
@@ -80,7 +82,7 @@ struct LibraryView: View {
                     .multilineTextAlignment(.leading)
                     .lineLimit(2)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                progressSlot
+                progressSlot(model.progressSummaries[slug])
             }
         }
         .buttonStyle(.plain)
@@ -101,7 +103,7 @@ struct LibraryView: View {
                         .font(.body.weight(.semibold))
                         .foregroundStyle(Theme.textPrimary)
                         .multilineTextAlignment(.leading)
-                    progressSlot
+                    progressSlot(model.progressSummaries[slug])
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -114,10 +116,17 @@ struct LibraryView: View {
         .accessibilityIdentifier("library.collection.\(slug)")
     }
 
-    private var progressSlot: some View {
-        Capsule()
-            .fill(Theme.surfaceElevated)
-            .frame(height: 3)
-            .accessibilityHidden(true)
+    private func progressSlot(_ summary: LibraryModel.ProgressSummary?) -> some View {
+        let label: String = switch summary?.state {
+        case "unopened": "Not started"
+        case "in_progress": "Hadith \(Int(summary?.readOrdinal ?? 0)) of \(Int(summary?.totalHadiths ?? 0))"
+        case "completed": "Complete"
+        case "stale": "Position unavailable"
+        default: "Progress unavailable"
+        }
+        return VStack(alignment: .leading, spacing: 4) {
+            Capsule().fill(Theme.surfaceElevated).frame(height: 3)
+            Text(label).font(.caption2).foregroundStyle(Theme.textSecondary)
+        }
     }
 }

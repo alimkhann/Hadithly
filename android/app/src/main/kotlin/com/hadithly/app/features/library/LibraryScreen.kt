@@ -42,8 +42,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hadithly.app.core.data.Collections
 import com.hadithly.app.core.data.ReaderPrefetch
+import com.hadithly.app.core.data.CollectionProgressSummary
 import com.hadithly.app.core.theme.LocalHadithlyColors
 import com.hadithly.app.features.main.rememberApp
 import kotlinx.coroutines.Dispatchers
@@ -53,8 +55,10 @@ import kotlinx.coroutines.withContext
 @Composable
 fun LibraryScreen(onOpenCollection: (String, String) -> Unit, onOpenTarget: (com.hadithly.app.features.main.ReaderOpenTarget) -> Unit) {
     val app = rememberApp()
+    val viewModel: LibraryViewModel = viewModel()
     val colors = LocalHadithlyColors.current
     val progress by app.library.progress.collectAsStateWithLifecycle()
+    val summaries by viewModel.summaries.collectAsStateWithLifecycle()
     var grid by rememberSaveable { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
@@ -87,7 +91,7 @@ fun LibraryScreen(onOpenCollection: (String, String) -> Unit, onOpenTarget: (com
                 modifier = Modifier.fillMaxSize(),
             ) {
                 gridItemsIndexed(Collections.all, key = { _, collection -> collection.first }) { index, (slug, name) ->
-                    GridCollection(position = index + 1, name = name, onClick = { onOpenCollection(slug, name) }, modifier = Modifier.testTag("library.collection.$slug"))
+                    GridCollection(position = index + 1, name = name, summary = summaries[slug], onClick = { onOpenCollection(slug, name) }, modifier = Modifier.testTag("library.collection.$slug"))
                 }
             }
         } else {
@@ -97,7 +101,7 @@ fun LibraryScreen(onOpenCollection: (String, String) -> Unit, onOpenTarget: (com
                 modifier = Modifier.fillMaxSize(),
             ) {
                 listItemsIndexed(Collections.all, key = { _, collection -> collection.first }) { index, (slug, name) ->
-                    ListCollection(position = index + 1, name = name, onClick = { onOpenCollection(slug, name) }, modifier = Modifier.testTag("library.collection.$slug"))
+                    ListCollection(position = index + 1, name = name, summary = summaries[slug], onClick = { onOpenCollection(slug, name) }, modifier = Modifier.testTag("library.collection.$slug"))
                 }
             }
         }
@@ -105,7 +109,7 @@ fun LibraryScreen(onOpenCollection: (String, String) -> Unit, onOpenTarget: (com
 }
 
 @Composable
-private fun GridCollection(position: Int, name: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun GridCollection(position: Int, name: String, summary: CollectionProgressSummary?, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = LocalHadithlyColors.current
     Column(
         verticalArrangement = Arrangement.spacedBy(9.dp),
@@ -114,12 +118,12 @@ private fun GridCollection(position: Int, name: String, onClick: () -> Unit, mod
         CollectionCover(position, Modifier.fillMaxWidth().aspectRatio(0.66f))
         Text(position.toString(), fontSize = 12.sp, color = colors.textSecondary)
         Text(name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
-        ProgressSlot()
+        ProgressSlot(summary)
     }
 }
 
 @Composable
-private fun ListCollection(position: Int, name: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun ListCollection(position: Int, name: String, summary: CollectionProgressSummary?, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = LocalHadithlyColors.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -130,13 +134,23 @@ private fun ListCollection(position: Int, name: String, onClick: () -> Unit, mod
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(7.dp)) {
             Text(position.toString(), fontSize = 12.sp, color = colors.textSecondary)
             Text(name, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
-            ProgressSlot()
+            ProgressSlot(summary)
         }
     }
 }
 
 @Composable
-private fun ProgressSlot() {
+private fun ProgressSlot(summary: CollectionProgressSummary?) {
     val colors = LocalHadithlyColors.current
-    Box(Modifier.fillMaxWidth().height(3.dp).background(colors.surfaceElevated, androidx.compose.foundation.shape.RoundedCornerShape(99.dp)))
+    val label = when (summary?.state) {
+        "unopened" -> "Not started"
+        "in_progress" -> "Hadith ${summary.readOrdinal?.toInt()} of ${summary.totalHadiths?.toInt()}"
+        "completed" -> "Complete"
+        "stale" -> "Position unavailable"
+        else -> "Progress unavailable"
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Box(Modifier.fillMaxWidth().height(3.dp).background(colors.surfaceElevated, androidx.compose.foundation.shape.RoundedCornerShape(99.dp)))
+        Text(label, fontSize = 11.sp, color = colors.textSecondary)
+    }
 }

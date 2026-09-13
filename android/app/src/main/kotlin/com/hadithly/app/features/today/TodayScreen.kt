@@ -212,10 +212,11 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
     Box {
         val inner: @Composable () -> Unit = {
             Column(verticalArrangement = Arrangement.spacedBy(13.dp), modifier = Modifier.fillMaxWidth().padding(18.dp)) {
-                Row { Text(hadith.referenceDisplay, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary); Spacer(Modifier.weight(1f)); if (offline) Text("Offline", fontSize = 11.sp, color = colors.textSecondary) }
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp), modifier = Modifier.combinedClickable(onClick = { sourceSheet = true }).testTag("today.authenticity")) {
                     Box(Modifier.size(8.dp).background(gradeDotColor(ReaderGrade.from(hadith.authenticity.normalizedGrade), colors), CircleShape))
-                    Text(hadith.authenticity.displayLabel, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+                    Text(hadith.referenceDisplay, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+                    Spacer(Modifier.weight(1f))
+                    if (offline) Text("Offline", fontSize = 11.sp, color = colors.textSecondary)
                 }
                 if (preferences.arabicVisible) Text(hadith.arabicText, fontSize = preferences.arabicFontSize.sp, lineHeight = (preferences.arabicFontSize * 1.75f).sp, color = colors.textPrimary, maxLines = if (expanded || !collapse) Int.MAX_VALUE else 7)
                 if (preferences.translationVisible) {

@@ -99,6 +99,14 @@ data class CollectionOutlineResult(
 )
 
 @Serializable
+data class CollectionProgressSummary(
+    val collectionSlug: String,
+    val state: String,
+    val totalHadiths: Double? = null,
+    val readOrdinal: Double? = null,
+)
+
+@Serializable
 data class ReaderCitation(
     val url: String,
     val title: String? = null,
