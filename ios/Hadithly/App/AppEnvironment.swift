@@ -154,7 +154,9 @@ final class AppEnvironment {
             bookmarks: guestData.bookmarkDrafts(),
             notes: guestData.noteDrafts(),
             favorites: guestData.favoriteDrafts(),
-            progress: guestData.progressDrafts()
+            progress: guestData.progressDrafts(),
+            folders: guestData.folderDrafts(),
+            memberships: guestData.savedMembershipDrafts()
         )
 
         if payload.isEmpty {
@@ -201,6 +203,26 @@ final class AppEnvironment {
                                 "updatedAt": updatedAt,
                             ] as [String: ConvexEncodable?]
                         }
+                    },
+                    "savedFolders": payload.savedFolders.map { item in
+                        [
+                            "localId": item.localId,
+                            "name": item.name,
+                            "createdAt": item.createdAt,
+                        ] as [String: ConvexEncodable?]
+                    },
+                    "savedItems": payload.savedItems.map { item in
+                        [
+                            "hadithId": item.hadithId,
+                            "bookmarkCreatedAt": item.bookmarkCreatedAt,
+                            "favoriteCreatedAt": item.favoriteCreatedAt,
+                            "noteContent": item.noteContent,
+                            "noteCreatedAt": item.noteCreatedAt,
+                            "noteUpdatedAt": item.noteUpdatedAt,
+                            "folderLocalId": item.folderLocalId,
+                            "createdAt": item.createdAt,
+                            "updatedAt": item.updatedAt,
+                        ] as [String: ConvexEncodable?]
                     },
                 ]
             )

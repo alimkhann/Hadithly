@@ -133,6 +133,8 @@ class SessionManager(
                 notes = snapshot.notes,
                 favorites = snapshot.favorites,
                 progress = snapshot.progress,
+                folders = snapshot.savedFolders,
+                memberships = snapshot.savedMemberships,
             )
 
             if (payload.isEmpty) {

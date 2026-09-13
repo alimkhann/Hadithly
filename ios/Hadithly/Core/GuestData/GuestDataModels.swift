@@ -93,6 +93,32 @@ final class GuestFavorite {
     }
 }
 
+/// A private, device-local Saved folder. `localId` exists only until merge.
+@Model
+final class GuestSavedFolder {
+    @Attribute(.unique) var localId: String
+    var name: String
+    var createdAt: Date
+
+    init(localId: String = UUID().uuidString, name: String, createdAt: Date = .now) {
+        self.localId = localId
+        self.name = name
+        self.createdAt = createdAt
+    }
+}
+
+/// Membership is separate from facets so one guest target has zero or one folder.
+@Model
+final class GuestSavedMembership {
+    @Attribute(.unique) var hadithId: String
+    var folderLocalId: String
+
+    init(hadithId: String, folderLocalId: String) {
+        self.hadithId = hadithId
+        self.folderLocalId = folderLocalId
+    }
+}
+
 /// Private per-collection reading position. Progress is never shared or
 /// ranked; it exists only so the reader can offer "continue reading".
 @Model
@@ -210,6 +236,22 @@ struct GuestFavoriteDraft: Equatable, Sendable {
         self.volumeId = volumeId
         self.hadithNumber = hadithNumber
     }
+}
+
+struct GuestSavedFolderDraft: Equatable, Sendable {
+    let localId: String
+    let name: String
+    let createdAt: Date
+}
+
+struct GuestSavedMembershipDraft: Equatable, Sendable {
+    let hadithId: String
+    let folderLocalId: String
+}
+
+struct GuestFolderDeletion: Equatable, Sendable {
+    let folder: GuestSavedFolderDraft
+    let hadithIds: [String]
 }
 
 struct GuestReadingProgressDraft: Equatable, Sendable {

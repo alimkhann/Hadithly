@@ -39,3 +39,11 @@ _Avoid_: Database row ID, scroll position
 **Raw page hint**:
 A stable page key, one-based display page index, and logical scroll offset that may be reused only when the content and layout signatures still match.
 _Avoid_: Authoritative position
+
+**Saved item**:
+A private record for one canonical hadith that independently records bookmark, favorite, and note facets. A Saved item appears once even when it has more than one facet.
+_Avoid_: Bookmark row, favorite row, note row
+
+**Saved folder**:
+A private user-named grouping that an existing Saved item may join at most once. Deleting a folder removes membership, never the Saved item.
+_Avoid_: Collection, shared folder

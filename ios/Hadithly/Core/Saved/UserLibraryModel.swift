@@ -33,6 +33,39 @@ struct SavedEntry: Identifiable, Equatable, Sendable {
     var sortDate: Date { updatedAt ?? createdAt }
 }
 
+/// A unique private Saved target. Its facets stay independent: a note never
+/// implies a bookmark or favorite, even though the list renders one row.
+struct SavedItemEntry: Identifiable, Equatable, Sendable {
+    let hadithId: String
+    let createdAt: Date
+    let updatedAt: Date
+    var bookmarkCreatedAt: Date?
+    var favoriteCreatedAt: Date?
+    var noteContent: String?
+    var folderId: String?
+    var hadith: HadithRef?
+
+    var id: String { hadithId }
+    var sortDate: Date { updatedAt }
+}
+
+struct SavedFolder: Identifiable, Equatable, Sendable {
+    let id: String
+    let name: String
+    let createdAt: Date
+}
+
+struct SavedFolderDeletion: Decodable, Equatable, Sendable {
+    let name: String
+    let hadithIds: [String]
+    let deletedAt: Double
+}
+
+private struct SavedFolderRestore: Decodable, Sendable {
+    let folderId: String
+    let restoredHadithIds: [String]
+}
+
 /// Private per-collection reading position (never shared, never ranked).
 struct ProgressEntry: Identifiable, Equatable, Sendable {
     let collectionSlug: String
@@ -78,6 +111,28 @@ private struct ProgressRow: Decodable, Sendable {
     let hadith: HadithSummary?
 }
 
+private struct SavedFolderRow: Decodable, Sendable {
+    let _id: String
+    let name: String
+    let createdAt: Double
+}
+
+private struct SavedItemRow: Decodable, Sendable {
+    let hadithId: String
+    let createdAt: Double
+    let updatedAt: Double
+    let bookmarkCreatedAt: Double?
+    let favoriteCreatedAt: Double?
+    let noteContent: String?
+    let folderId: String?
+    let hadith: HadithSummary?
+}
+
+private struct SavedSnapshotRow: Decodable, Sendable {
+    let folders: [SavedFolderRow]
+    let items: [SavedItemRow]
+}
+
 /// Single facade over the user's personal data — bookmarks, favorites, notes,
 /// reading progress — for both auth states. Signed in, everything is realtime
 /// through Convex subscriptions; guests read and write the SwiftData store,
@@ -85,6 +140,10 @@ private struct ProgressRow: Decodable, Sendable {
 @MainActor
 @Observable
 final class UserLibraryModel {
+    private(set) var savedItems: [SavedItemEntry] = []
+    private(set) var folders: [SavedFolder] = []
+    private(set) var lastFolderDeletion: SavedFolderDeletion?
+    private var guestFolderDeletion: GuestFolderDeletion?
     private(set) var bookmarks: [SavedEntry] = []
     private(set) var favorites: [SavedEntry] = []
     private(set) var notes: [SavedEntry] = []
@@ -110,7 +169,7 @@ final class UserLibraryModel {
 
     // MARK: - Lifecycle
 
-    /// Idempotent. Signed in → (re)subscribe to the four Convex queries.
+    /// Idempotent. Signed in → a Saved snapshot plus independent progress.
     /// Guest → pull local drafts. Call on auth changes — including every
     /// Convex auth-state transition, since a subscription opened before the
     /// session activated fails with Unauthenticated and must be re-opened.
@@ -152,7 +211,7 @@ final class UserLibraryModel {
         if isSignedIn() {
             Task {
                 try? await convex.mutation(
-                    "library:toggleBookmark",
+                    "library:toggleSavedBookmark",
                     with: ["hadithId": ref.hadithId as ConvexEncodable?]
                 )
             }
@@ -177,7 +236,7 @@ final class UserLibraryModel {
         if isSignedIn() {
             Task {
                 try? await convex.mutation(
-                    "library:toggleFavorite",
+                    "library:toggleSavedFavorite",
                     with: ["hadithId": ref.hadithId as ConvexEncodable?]
                 )
             }
@@ -202,7 +261,7 @@ final class UserLibraryModel {
         if isSignedIn() {
             Task {
                 try? await convex.mutation(
-                    "library:upsertNote",
+                    "library:upsertSavedNote",
                     with: [
                         "hadithId": ref.hadithId as ConvexEncodable?,
                         "content": content as ConvexEncodable?,
@@ -226,7 +285,7 @@ final class UserLibraryModel {
         if isSignedIn() {
             Task {
                 try? await convex.mutation(
-                    "library:deleteNote",
+                    "library:deleteSavedNote",
                     with: ["hadithId": ref.hadithId as ConvexEncodable?]
                 )
             }
@@ -234,6 +293,62 @@ final class UserLibraryModel {
             guestData.deleteNote(hadithId: ref.hadithId)
         }
         loadGuestData()
+    }
+
+    func createFolder(name: String) {
+        if isSignedIn() {
+            Task { try? await convex.mutation("library:createSavedFolder", with: ["name": name as ConvexEncodable?]) }
+        } else {
+            _ = guestData.createSavedFolder(name: name)
+            loadGuestData()
+        }
+    }
+
+    func assignFolder(hadithId: String, folderId: String?) {
+        if isSignedIn() {
+            Task {
+                try? await convex.mutation(
+                    "library:assignSavedFolder",
+                    with: ["hadithId": hadithId as ConvexEncodable?, "folderId": folderId as ConvexEncodable?]
+                )
+            }
+        } else {
+            guestData.assignSavedFolder(hadithId: hadithId, folderLocalId: folderId)
+            loadGuestData()
+        }
+    }
+
+    func deleteFolder(_ folder: SavedFolder) {
+        if isSignedIn() {
+            Task {
+                guard let deletion: SavedFolderDeletion = try? await convex.mutation("library:deleteSavedFolder", with: ["folderId": folder.id as ConvexEncodable?]) else { return }
+                lastFolderDeletion = deletion
+            }
+        } else {
+            guard let deletion = guestData.deleteSavedFolder(localId: folder.id) else { return }
+            guestFolderDeletion = deletion
+            lastFolderDeletion = SavedFolderDeletion(name: deletion.folder.name, hadithIds: deletion.hadithIds, deletedAt: deletion.folder.createdAt.timeIntervalSince1970 * 1_000)
+            loadGuestData()
+        }
+    }
+
+    func undoDeleteFolder() {
+        guard let deletion = lastFolderDeletion else { return }
+        if isSignedIn() {
+            Task {
+                let _: SavedFolderRestore? = try? await convex.mutation("library:restoreSavedFolder", with: [
+                    "name": deletion.name as ConvexEncodable?,
+                    "hadithIds": deletion.hadithIds.map { $0 as ConvexEncodable? } as ConvexEncodable?,
+                    "deletedAt": deletion.deletedAt as ConvexEncodable?,
+                ])
+                lastFolderDeletion = nil
+            }
+        } else if let guestFolderDeletion {
+            guestData.restoreSavedFolder(guestFolderDeletion)
+            self.guestFolderDeletion = nil
+            lastFolderDeletion = nil
+            loadGuestData()
+        }
     }
 
     /// Saves the reader position. Called on page turns and on leaving the
@@ -268,34 +383,8 @@ final class UserLibraryModel {
     // MARK: - Convex subscriptions (signed in)
 
     private func subscribeAll() {
-        subscribe("library:listBookmarksDetailed") { [weak self] (rows: [DetailedRow]) in
-            self?.bookmarks = rows.map {
-                SavedEntry(
-                    rowId: $0._id,
-                    createdAt: Date(timeIntervalSince1970: $0.createdAt / 1000),
-                    hadith: $0.hadith.map(Self.ref(from:))
-                )
-            }
-        }
-        subscribe("library:listFavoritesDetailed") { [weak self] (rows: [DetailedRow]) in
-            self?.favorites = rows.map {
-                SavedEntry(
-                    rowId: $0._id,
-                    createdAt: Date(timeIntervalSince1970: $0.createdAt / 1000),
-                    hadith: $0.hadith.map(Self.ref(from:))
-                )
-            }
-        }
-        subscribe("library:listNotesDetailed") { [weak self] (rows: [DetailedNoteRow]) in
-            self?.notes = rows.map {
-                SavedEntry(
-                    rowId: $0._id,
-                    createdAt: Date(timeIntervalSince1970: $0.createdAt / 1000),
-                    updatedAt: Date(timeIntervalSince1970: $0.updatedAt / 1000),
-                    noteContent: $0.content,
-                    hadith: $0.hadith.map(Self.ref(from:))
-                )
-            }
+        subscribe("library:listSavedSnapshot") { [weak self] (snapshot: SavedSnapshotRow) in
+            self?.apply(snapshot: snapshot)
         }
         subscribe("library:listReadingProgressDetailed") { [weak self] (rows: [ProgressRow]) in
             self?.progress = rows.map {
@@ -311,9 +400,9 @@ final class UserLibraryModel {
 
     private func subscribe<T: Decodable & Sendable>(
         _ name: String,
-        onUpdate: @escaping ([T]) -> Void
+        onUpdate: @escaping (T) -> Void
     ) {
-        convex.subscribe(to: name, yielding: [T].self)
+        convex.subscribe(to: name, yielding: T.self)
             .receive(on: DispatchQueue.main)
             .sink(
                 receiveCompletion: { [weak self] completion in
@@ -341,6 +430,8 @@ final class UserLibraryModel {
     private func unsubscribe() {
         cancellables.removeAll()
         subscriptionsActive = false
+        savedItems = []
+        folders = []
         bookmarks = []
         favorites = []
         notes = []
@@ -382,6 +473,58 @@ final class UserLibraryModel {
                 updatedAt: draft.updatedAt
             )
         }
+        folders = guestData.folderDrafts().map { SavedFolder(id: $0.localId, name: $0.name, createdAt: $0.createdAt) }
+        rebuildGuestSavedItems(memberships: guestData.savedMembershipDrafts())
+    }
+
+    private func apply(snapshot: SavedSnapshotRow) {
+        folders = snapshot.folders.map {
+            SavedFolder(id: $0._id, name: $0.name, createdAt: Date(timeIntervalSince1970: $0.createdAt / 1_000))
+        }
+        savedItems = snapshot.items.map {
+            SavedItemEntry(
+                hadithId: $0.hadithId,
+                createdAt: Date(timeIntervalSince1970: $0.createdAt / 1_000),
+                updatedAt: Date(timeIntervalSince1970: $0.updatedAt / 1_000),
+                bookmarkCreatedAt: $0.bookmarkCreatedAt.map { Date(timeIntervalSince1970: $0 / 1_000) },
+                favoriteCreatedAt: $0.favoriteCreatedAt.map { Date(timeIntervalSince1970: $0 / 1_000) },
+                noteContent: $0.noteContent,
+                folderId: $0.folderId,
+                hadith: $0.hadith.map(Self.ref(from:))
+            )
+        }
+        bookmarks = savedItems.compactMap { item in
+            guard let createdAt = item.bookmarkCreatedAt else { return nil }
+            return SavedEntry(rowId: item.hadithId, createdAt: createdAt, hadith: item.hadith)
+        }
+        favorites = savedItems.compactMap { item in
+            guard let createdAt = item.favoriteCreatedAt else { return nil }
+            return SavedEntry(rowId: item.hadithId, createdAt: createdAt, hadith: item.hadith)
+        }
+        notes = savedItems.compactMap { item in
+            guard let content = item.noteContent else { return nil }
+            return SavedEntry(rowId: item.hadithId, createdAt: item.createdAt, updatedAt: item.updatedAt, noteContent: content, hadith: item.hadith)
+        }
+    }
+
+    private func rebuildGuestSavedItems(memberships: [GuestSavedMembershipDraft] = []) {
+        let folderByHadith = Dictionary(uniqueKeysWithValues: memberships.map { ($0.hadithId, $0.folderLocalId) })
+        var byHadith: [String: SavedItemEntry] = [:]
+        for entry in bookmarks where entry.hadith != nil {
+            let ref = entry.hadith!
+            byHadith[ref.hadithId] = SavedItemEntry(hadithId: ref.hadithId, createdAt: entry.createdAt, updatedAt: entry.sortDate, bookmarkCreatedAt: entry.createdAt, favoriteCreatedAt: nil, noteContent: nil, folderId: folderByHadith[ref.hadithId], hadith: ref)
+        }
+        for entry in favorites where entry.hadith != nil {
+            let ref = entry.hadith!
+            let prior = byHadith[ref.hadithId]
+            byHadith[ref.hadithId] = SavedItemEntry(hadithId: ref.hadithId, createdAt: min(prior?.createdAt ?? entry.createdAt, entry.createdAt), updatedAt: max(prior?.updatedAt ?? entry.sortDate, entry.sortDate), bookmarkCreatedAt: prior?.bookmarkCreatedAt, favoriteCreatedAt: entry.createdAt, noteContent: prior?.noteContent, folderId: folderByHadith[ref.hadithId], hadith: ref)
+        }
+        for entry in notes where entry.hadith != nil {
+            let ref = entry.hadith!
+            let prior = byHadith[ref.hadithId]
+            byHadith[ref.hadithId] = SavedItemEntry(hadithId: ref.hadithId, createdAt: min(prior?.createdAt ?? entry.createdAt, entry.createdAt), updatedAt: max(prior?.updatedAt ?? entry.sortDate, entry.sortDate), bookmarkCreatedAt: prior?.bookmarkCreatedAt, favoriteCreatedAt: prior?.favoriteCreatedAt, noteContent: entry.noteContent, folderId: folderByHadith[ref.hadithId], hadith: ref)
+        }
+        savedItems = byHadith.values.sorted { $0.sortDate > $1.sortDate }
     }
 
     // MARK: - Mappers

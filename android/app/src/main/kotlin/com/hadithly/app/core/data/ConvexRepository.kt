@@ -13,6 +13,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.time.ZoneId
 
+@kotlinx.serialization.Serializable
+data class FolderDeletionResult(val name: String, val hadithIds: List<String>, val deletedAt: Double)
+
 /**
  * Single gateway to Convex. The app talks only to Convex; Sunnah.now and
  * Gemini live behind Convex actions with server-side keys.
@@ -192,6 +195,22 @@ class ConvexRepository(context: Context) {
                     )
                 }
             },
+            "savedFolders" to payload.savedFolders.map {
+                mapOf<String, Any?>("localId" to it.localId, "name" to it.name, "createdAt" to it.createdAt)
+            },
+            "savedItems" to payload.savedItems.map {
+                mapOf<String, Any?>(
+                    "hadithId" to it.hadithId,
+                    "bookmarkCreatedAt" to it.bookmarkCreatedAt,
+                    "favoriteCreatedAt" to it.favoriteCreatedAt,
+                    "noteContent" to it.noteContent,
+                    "noteCreatedAt" to it.noteCreatedAt,
+                    "noteUpdatedAt" to it.noteUpdatedAt,
+                    "folderLocalId" to it.folderLocalId,
+                    "createdAt" to it.createdAt,
+                    "updatedAt" to it.updatedAt,
+                )
+            },
         )
         return withContext(Dispatchers.IO) {
             convex.mutation<GuestMergeResult>("guestMerge:mergeGuestData", args)
@@ -201,16 +220,28 @@ class ConvexRepository(context: Context) {
     // Personal data (signed in)
 
     suspend fun toggleBookmark(hadithId: String) =
-        mutation("library:toggleBookmark", mapOf("hadithId" to hadithId))
+        mutation("library:toggleSavedBookmark", mapOf("hadithId" to hadithId))
 
     suspend fun toggleFavorite(hadithId: String) =
-        mutation("library:toggleFavorite", mapOf("hadithId" to hadithId))
+        mutation("library:toggleSavedFavorite", mapOf("hadithId" to hadithId))
 
     suspend fun upsertNote(hadithId: String, content: String) =
-        mutation("library:upsertNote", mapOf("hadithId" to hadithId, "content" to content))
+        mutation("library:upsertSavedNote", mapOf("hadithId" to hadithId, "content" to content))
 
     suspend fun deleteNote(hadithId: String) =
-        mutation("library:deleteNote", mapOf("hadithId" to hadithId))
+        mutation("library:deleteSavedNote", mapOf("hadithId" to hadithId))
+
+    suspend fun createSavedFolder(name: String) =
+        mutation("library:createSavedFolder", mapOf("name" to name))
+
+    suspend fun assignSavedFolder(hadithId: String, folderId: String?) =
+        mutation("library:assignSavedFolder", mapOf("hadithId" to hadithId, "folderId" to folderId))
+
+    suspend fun deleteSavedFolder(folderId: String): FolderDeletionResult =
+        withContext(Dispatchers.IO) { convex.mutation<FolderDeletionResult>("library:deleteSavedFolder", mapOf("folderId" to folderId)) }
+
+    suspend fun restoreSavedFolder(name: String, hadithIds: List<String>, deletedAt: Double) =
+        mutation("library:restoreSavedFolder", mapOf("name" to name, "hadithIds" to hadithIds, "deletedAt" to deletedAt))
 
     suspend fun saveReadingProgress(position: ReadingPosition) =
         mutation(

@@ -946,6 +946,32 @@ substantive: they own bounded implementation outcomes, not just inventories.
   tests passed. The Android emulator showed the updated Daily label, generated
   covers, unopened progress state, and the next reader page at its true top.
 
+### H3 Saved migration, guest folders, and proof (2026-09-13)
+
+- Saved now has one canonical `(user, hadith)` record with independent
+  bookmark, favorite, and note facets. The rollout query folds those records
+  together with the three legacy tables, so shipped rollback clients can keep
+  reading their existing projections while current iOS and Android callers use
+  `listSavedSnapshot`. Reading progress remains the independent second
+  subscription.
+- Guest stores preserve their existing bookmark, favorite, note, and progress
+  data. iOS adds SwiftData folder and membership models; Android adds defaulted
+  JSON fields, so old local stores decode as an empty-folder state. A merge
+  includes folders and folded Saved items, unions facets, chooses the newest
+  note, preserves an existing server folder when the guest item is unfiled,
+  and clears local data only after the mutation succeeds.
+- Folder names are NFC-normalized, trimmed, limited to 64 Unicode scalar
+  values, and reject control characters. Ownership is checked on assignment,
+  deletion, and restore. Deletion unfiles material and returns an undo receipt;
+  undo restores only memberships that have not moved since deletion.
+- Evidence: `npx convex dev --once`, backend typecheck, and 98 backend tests
+  passed. The deterministic representative payload fixture measured 1,433
+  UTF-8 bytes for the three legacy Saved streams and 1,347 bytes for the
+  unified snapshot, a 6.0% reduction. It also proves that progress is not in
+  the Saved payload. iOS simulator build and `GuestMergePlannerTests`, plus
+  Android JDK 21 unit/debug build, passed. Android instrumentation compiled
+  but could not run because no Android device was connected.
+
 ## Delegation policy
 
 Use GLM-5.3-Flash through OpenCode Go as the default author for bounded sessions

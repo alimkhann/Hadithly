@@ -9,6 +9,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.util.UUID
 
 /**
  * Local guest data — what readers collect before signing in. Stored as JSON
@@ -85,12 +86,47 @@ data class GuestReadingProgressDraft(
         get() = readingPosition?.updatedAt ?: updatedAt
 }
 
+/** A device-local folder identity. It is mapped to a private server folder at merge time. */
+@Serializable
+data class GuestSavedFolderDraft(
+    val localId: String,
+    val name: String,
+    val createdAt: Double,
+)
+
+/** One zero-or-one folder placement for a canonical guest hadith target. */
+@Serializable
+data class GuestSavedMembership(
+    val hadithId: String,
+    val folderLocalId: String,
+)
+
+data class GuestFolderDeletion(
+    val folder: GuestSavedFolderDraft,
+    val hadithIds: List<String>,
+)
+
+data class GuestSavedItemPayload(
+    val hadithId: String,
+    val bookmarkCreatedAt: Double? = null,
+    val favoriteCreatedAt: Double? = null,
+    val noteContent: String? = null,
+    val noteCreatedAt: Double? = null,
+    val noteUpdatedAt: Double? = null,
+    val folderLocalId: String? = null,
+    val createdAt: Double,
+    val updatedAt: Double,
+)
+
 @Serializable
 data class GuestStoreFile(
     val bookmarks: List<GuestBookmarkDraft> = emptyList(),
     val favorites: List<GuestFavoriteDraft> = emptyList(),
     val notes: List<GuestNoteDraft> = emptyList(),
     val progress: List<GuestReadingProgressDraft> = emptyList(),
+    // Defaults make V1 JSON files decode as an empty-folder V2 store.
+    val savedFolders: List<GuestSavedFolderDraft> = emptyList(),
+    val savedMemberships: List<GuestSavedMembership> = emptyList(),
 )
 
 /** The merge request sent to `guestMerge:mergeGuestData`. Timestamps are milliseconds. */
@@ -99,9 +135,11 @@ data class GuestMergePayload(
     val notes: List<GuestNoteDraft> = emptyList(),
     val favorites: List<GuestFavoriteDraft> = emptyList(),
     val readingProgress: List<GuestReadingProgressDraft> = emptyList(),
+    val savedFolders: List<GuestSavedFolderDraft> = emptyList(),
+    val savedItems: List<GuestSavedItemPayload> = emptyList(),
 ) {
     val isEmpty: Boolean
-        get() = bookmarks.isEmpty() && notes.isEmpty() && favorites.isEmpty() && readingProgress.isEmpty()
+        get() = bookmarks.isEmpty() && notes.isEmpty() && favorites.isEmpty() && readingProgress.isEmpty() && savedFolders.isEmpty() && savedItems.isEmpty()
 }
 
 @Serializable
@@ -199,7 +237,46 @@ class GuestDataStore(context: Context) {
     }
 
     suspend fun deleteNote(hadithId: String) =
-        writeLocked { it.copy(notes = it.notes.filterNot { n -> n.hadithId == hadithId }) }
+        writeLocked { it.copy(notes = it.notes.filterNot { n -> n.hadithId == hadithId }, savedMemberships = it.savedMemberships.filterNot { membership -> membership.hadithId == hadithId }) }
+
+    suspend fun createSavedFolder(name: String): GuestSavedFolderDraft {
+        val folder = GuestSavedFolderDraft(UUID.randomUUID().toString(), name, nowMillis())
+        writeLocked { it.copy(savedFolders = it.savedFolders + folder) }
+        return folder
+    }
+
+    suspend fun assignSavedFolder(hadithId: String, folderLocalId: String?) = writeLocked { store ->
+        val hasSavedFacet = store.bookmarks.any { it.hadithId == hadithId }
+            || store.favorites.any { it.hadithId == hadithId }
+            || store.notes.any { it.hadithId == hadithId }
+        if (!hasSavedFacet) return@writeLocked store
+        val memberships = store.savedMemberships.filterNot { it.hadithId == hadithId }
+        val nextMemberships = if (folderLocalId != null && store.savedFolders.any { it.localId == folderLocalId }) {
+            memberships + GuestSavedMembership(hadithId, folderLocalId)
+        } else memberships
+        store.copy(savedMemberships = nextMemberships)
+    }
+
+    suspend fun deleteSavedFolder(localId: String): GuestFolderDeletion? {
+        var deletion: GuestFolderDeletion? = null
+        writeLocked { store ->
+            val folder = store.savedFolders.firstOrNull { it.localId == localId } ?: return@writeLocked store
+            deletion = GuestFolderDeletion(folder, store.savedMemberships.filter { it.folderLocalId == localId }.map { it.hadithId })
+            store.copy(savedFolders = store.savedFolders.filterNot { it.localId == localId }, savedMemberships = store.savedMemberships.filterNot { it.folderLocalId == localId })
+        }
+        return deletion
+    }
+
+    suspend fun restoreSavedFolder(deletion: GuestFolderDeletion) = writeLocked { store ->
+        if (store.savedFolders.any { it.localId == deletion.folder.localId }) return@writeLocked store
+        val savedHadithIds = (store.bookmarks.map { it.hadithId } + store.favorites.map { it.hadithId } + store.notes.map { it.hadithId }).toSet()
+        store.copy(
+            savedFolders = store.savedFolders + deletion.folder,
+            savedMemberships = store.savedMemberships + deletion.hadithIds
+                .filter { it in savedHadithIds && store.savedMemberships.none { membership -> membership.hadithId == it } }
+                .map { GuestSavedMembership(it, deletion.folder.localId) },
+        )
+    }
 
     suspend fun saveProgress(draft: GuestReadingProgressDraft) =
         writeLocked { store ->
@@ -235,18 +312,50 @@ object GuestMergePlanner {
         notes: List<GuestNoteDraft> = emptyList(),
         favorites: List<GuestFavoriteDraft> = emptyList(),
         progress: List<GuestReadingProgressDraft> = emptyList(),
-    ): GuestMergePayload = GuestMergePayload(
-        bookmarks = dedupeEarliest(bookmarks.filter { isValidHadithId(it.hadithId) }) { it.hadithId to it.createdAt }
+        folders: List<GuestSavedFolderDraft> = emptyList(),
+        memberships: List<GuestSavedMembership> = emptyList(),
+    ): GuestMergePayload {
+        val validBookmarks = dedupeEarliest(bookmarks.filter { isValidHadithId(it.hadithId) }) { it.hadithId to it.createdAt }
+        val validNotes = dedupeLatest(notes.filter { isValidHadithId(it.hadithId) }) { it.hadithId to it.updatedAt }
+        val validFavorites = dedupeEarliest(favorites.filter { isValidHadithId(it.hadithId) }) { it.hadithId to it.createdAt }
+        val validFolders = folders.filter { isValidFolderName(it.name) }.distinctBy { it.localId }
+        val validFolderIds = validFolders.mapTo(mutableSetOf()) { it.localId }
+        val membershipByHadith = memberships
+            .filter { isValidHadithId(it.hadithId) && it.folderLocalId in validFolderIds }
+            .associateBy { it.hadithId }
+        val byHadith = linkedMapOf<String, GuestSavedItemPayload>()
+        validBookmarks.forEach { bookmark ->
+            byHadith[bookmark.hadithId] = GuestSavedItemPayload(bookmark.hadithId, bookmarkCreatedAt = bookmark.createdAt, createdAt = bookmark.createdAt, updatedAt = bookmark.createdAt)
+        }
+        validFavorites.forEach { favorite ->
+            val previous = byHadith[favorite.hadithId]
+            byHadith[favorite.hadithId] = GuestSavedItemPayload(favorite.hadithId, previous?.bookmarkCreatedAt, favorite.createdAt, previous?.noteContent, previous?.noteCreatedAt, previous?.noteUpdatedAt, createdAt = minOf(previous?.createdAt ?: favorite.createdAt, favorite.createdAt), updatedAt = maxOf(previous?.updatedAt ?: favorite.createdAt, favorite.createdAt))
+        }
+        validNotes.forEach { note ->
+            val previous = byHadith[note.hadithId]
+            byHadith[note.hadithId] = GuestSavedItemPayload(note.hadithId, previous?.bookmarkCreatedAt, previous?.favoriteCreatedAt, note.content, note.createdAt, note.updatedAt, createdAt = minOf(previous?.createdAt ?: note.createdAt, note.createdAt), updatedAt = maxOf(previous?.updatedAt ?: note.updatedAt, note.updatedAt))
+        }
+        val savedItems = byHadith.values.map { item -> item.copy(folderLocalId = membershipByHadith[item.hadithId]?.folderLocalId) }.sortedBy { it.hadithId }
+        return GuestMergePayload(
+        bookmarks = validBookmarks
             .sortedBy { it.createdAt },
-        notes = dedupeLatest(notes.filter { isValidHadithId(it.hadithId) }) { it.hadithId to it.updatedAt }
+        notes = validNotes
             .sortedBy { it.updatedAt },
-        favorites = dedupeEarliest(favorites.filter { isValidHadithId(it.hadithId) }) { it.hadithId to it.createdAt }
+        favorites = validFavorites
             .sortedBy { it.createdAt },
         readingProgress = dedupeLatest(
             progress.filter { it.readingPosition != null || isValidHadithId(it.hadithId) }
         ) { it.collectionSlug to it.effectiveUpdatedAt }
             .sortedBy { it.effectiveUpdatedAt },
+        savedFolders = validFolders.sortedBy { it.localId },
+        savedItems = savedItems,
     )
+    }
+
+    fun isValidFolderName(input: String): Boolean {
+        val name = input.trim()
+        return name.isNotEmpty() && name.codePointCount(0, name.length) <= 64 && name.none { it.isISOControl() }
+    }
 
     /** The same hadith bookmarked/favorited twice keeps its earliest record. */
     private inline fun <T> dedupeEarliest(items: List<T>, key: (T) -> Pair<String, Double>): List<T> {

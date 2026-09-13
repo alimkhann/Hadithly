@@ -37,6 +37,21 @@ data class SavedEntry(
     val sortDate: Double get() = updatedAt ?: createdAt
 }
 
+data class SavedItemEntry(
+    val hadithId: String,
+    val createdAt: Double,
+    val updatedAt: Double,
+    val bookmarkCreatedAt: Double? = null,
+    val favoriteCreatedAt: Double? = null,
+    val noteContent: String? = null,
+    val folderId: String? = null,
+    val hadith: HadithRef?,
+) {
+    val sortDate: Double get() = updatedAt
+}
+
+data class SavedFolder(val id: String, val name: String, val createdAt: Double)
+
 /** Private per-collection reading position (never shared, never ranked). */
 data class ProgressEntry(
     val collectionSlug: String,
@@ -82,6 +97,24 @@ private data class ProgressRow(
     val hadith: HadithSummary? = null,
 )
 
+@Serializable
+private data class SavedFolderRow(val _id: String, val name: String, val createdAt: Double)
+
+@Serializable
+private data class SavedItemRow(
+    val hadithId: String,
+    val createdAt: Double,
+    val updatedAt: Double,
+    val bookmarkCreatedAt: Double? = null,
+    val favoriteCreatedAt: Double? = null,
+    val noteContent: String? = null,
+    val folderId: String? = null,
+    val hadith: HadithSummary? = null,
+)
+
+@Serializable
+private data class SavedSnapshotRow(val folders: List<SavedFolderRow>, val items: List<SavedItemRow>)
+
 /**
  * Single facade over the user's personal data — bookmarks, favorites, notes,
  * reading progress — for both auth states. Signed in, everything is realtime
@@ -94,6 +127,16 @@ class UserLibraryModel(
     private val scope: CoroutineScope,
     private val isSignedIn: () -> Boolean,
 ) {
+
+    private val _savedItems = MutableStateFlow<List<SavedItemEntry>>(emptyList())
+    val savedItems: StateFlow<List<SavedItemEntry>> = _savedItems
+
+    private val _folders = MutableStateFlow<List<SavedFolder>>(emptyList())
+    val folders: StateFlow<List<SavedFolder>> = _folders
+
+    private val _lastFolderDeletion = MutableStateFlow<FolderDeletionResult?>(null)
+    val lastFolderDeletion: StateFlow<FolderDeletionResult?> = _lastFolderDeletion
+    private var guestFolderDeletion: GuestFolderDeletion? = null
 
     private val _bookmarks = MutableStateFlow<List<SavedEntry>>(emptyList())
     val bookmarks: StateFlow<List<SavedEntry>> = _bookmarks
@@ -227,6 +270,55 @@ class UserLibraryModel(
         }
     }
 
+    fun createFolder(name: String) {
+        if (isSignedIn()) {
+            scope.launch { runCatching { repository.createSavedFolder(name) } }
+        } else {
+            scope.launch {
+                if (GuestMergePlanner.isValidFolderName(name)) guestData.createSavedFolder(name.trim())
+                loadGuestData()
+            }
+        }
+    }
+
+    fun assignFolder(hadithId: String, folderId: String?) {
+        if (isSignedIn()) {
+            scope.launch { runCatching { repository.assignSavedFolder(hadithId, folderId) } }
+        } else {
+            scope.launch { guestData.assignSavedFolder(hadithId, folderId); loadGuestData() }
+        }
+    }
+
+    fun deleteFolder(folder: SavedFolder) {
+        if (isSignedIn()) {
+            scope.launch { runCatching { repository.deleteSavedFolder(folder.id) }.onSuccess { _lastFolderDeletion.value = it } }
+        } else {
+            scope.launch {
+                guestFolderDeletion = guestData.deleteSavedFolder(folder.id)
+                guestFolderDeletion?.let { _lastFolderDeletion.value = FolderDeletionResult(it.folder.name, it.hadithIds, it.folder.createdAt) }
+                loadGuestData()
+            }
+        }
+    }
+
+    fun undoDeleteFolder() {
+        val deletion = _lastFolderDeletion.value ?: return
+        if (isSignedIn()) {
+            scope.launch {
+                runCatching { repository.restoreSavedFolder(deletion.name, deletion.hadithIds, deletion.deletedAt) }
+                    .onSuccess { _lastFolderDeletion.value = null }
+            }
+        } else {
+            scope.launch {
+                val guestDeletion = guestFolderDeletion
+                if (guestDeletion != null) guestData.restoreSavedFolder(guestDeletion)
+                guestFolderDeletion = null
+                _lastFolderDeletion.value = null
+                loadGuestData()
+            }
+        }
+    }
+
     fun noteContentFor(hadithId: String): String? =
         notes.value.firstOrNull { it.hadith?.hadithId == hadithId }?.noteContent
 
@@ -263,30 +355,8 @@ class UserLibraryModel(
         unsubscribeJobs()
         subscriptions.add(
             scope.launch(Dispatchers.IO) {
-                repository.subscribe<List<DetailedRow>>("library:listBookmarksDetailed")
-                    .collect { rows -> _bookmarks.value = rows.map { it.toEntry() } }
-            }.failed()
-        )
-        subscriptions.add(
-            scope.launch(Dispatchers.IO) {
-                repository.subscribe<List<DetailedRow>>("library:listFavoritesDetailed")
-                    .collect { rows -> _favorites.value = rows.map { it.toEntry() } }
-            }.failed()
-        )
-        subscriptions.add(
-            scope.launch(Dispatchers.IO) {
-                repository.subscribe<List<DetailedNoteRow>>("library:listNotesDetailed")
-                    .collect { rows ->
-                        _notes.value = rows.map {
-                            SavedEntry(
-                                rowId = it._id,
-                                createdAt = it.createdAt,
-                                updatedAt = it.updatedAt,
-                                noteContent = it.content,
-                                hadith = it.hadith?.let { h -> h.toRef() },
-                            )
-                        }
-                    }
+                repository.subscribe<SavedSnapshotRow>("library:listSavedSnapshot")
+                    .collect { snapshot -> apply(snapshot) }
             }.failed()
         )
         subscriptions.add(
@@ -336,6 +406,8 @@ class UserLibraryModel(
     private fun unsubscribe() {
         unsubscribeJobs()
         subscriptionsActive = false
+        _savedItems.value = emptyList()
+        _folders.value = emptyList()
         _bookmarks.value = emptyList()
         _favorites.value = emptyList()
         _notes.value = emptyList()
@@ -378,6 +450,33 @@ class UserLibraryModel(
                 updatedAt = it.updatedAt,
             )
         }
+        _folders.value = snapshot.savedFolders.map { SavedFolder(it.localId, it.name, it.createdAt) }
+        rebuildGuestSavedItems(snapshot.savedMemberships)
+    }
+
+    private fun apply(snapshot: SavedSnapshotRow) {
+        _folders.value = snapshot.folders.map { SavedFolder(it._id, it.name, it.createdAt) }
+        _savedItems.value = snapshot.items.map {
+            SavedItemEntry(it.hadithId, it.createdAt, it.updatedAt, it.bookmarkCreatedAt, it.favoriteCreatedAt, it.noteContent, it.folderId, it.hadith?.toRef())
+        }
+        _bookmarks.value = _savedItems.value.mapNotNull { item -> item.bookmarkCreatedAt?.let { SavedEntry(item.hadithId, it, hadith = item.hadith) } }
+        _favorites.value = _savedItems.value.mapNotNull { item -> item.favoriteCreatedAt?.let { SavedEntry(item.hadithId, it, hadith = item.hadith) } }
+        _notes.value = _savedItems.value.mapNotNull { item -> item.noteContent?.let { SavedEntry(item.hadithId, item.createdAt, item.updatedAt, it, item.hadith) } }
+    }
+
+    private fun rebuildGuestSavedItems(memberships: List<GuestSavedMembership> = emptyList()) {
+        val folderByHadith = memberships.associate { it.hadithId to it.folderLocalId }
+        val entries = linkedMapOf<String, SavedItemEntry>()
+        _bookmarks.value.forEach { entry -> entry.hadith?.let { ref -> entries[ref.hadithId] = SavedItemEntry(ref.hadithId, entry.createdAt, entry.sortDate, bookmarkCreatedAt = entry.createdAt, folderId = folderByHadith[ref.hadithId], hadith = ref) } }
+        _favorites.value.forEach { entry -> entry.hadith?.let { ref ->
+            val prior = entries[ref.hadithId]
+            entries[ref.hadithId] = SavedItemEntry(ref.hadithId, minOf(prior?.createdAt ?: entry.createdAt, entry.createdAt), maxOf(prior?.updatedAt ?: entry.sortDate, entry.sortDate), prior?.bookmarkCreatedAt, entry.createdAt, prior?.noteContent, folderByHadith[ref.hadithId], ref)
+        } }
+        _notes.value.forEach { entry -> entry.hadith?.let { ref ->
+            val prior = entries[ref.hadithId]
+            entries[ref.hadithId] = SavedItemEntry(ref.hadithId, minOf(prior?.createdAt ?: entry.createdAt, entry.createdAt), maxOf(prior?.updatedAt ?: entry.sortDate, entry.sortDate), prior?.bookmarkCreatedAt, prior?.favoriteCreatedAt, entry.noteContent, folderByHadith[ref.hadithId], ref)
+        } }
+        _savedItems.value = entries.values.sortedByDescending { it.sortDate }
     }
 
     private fun DetailedRow.toEntry() = SavedEntry(

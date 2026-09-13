@@ -258,6 +258,39 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("by_user_hadith", ["userId", "hadithId"]),
 
+  // H3's canonical private Saved representation. Legacy bookmark, favorite,
+  // and note tables remain during the dual-read rollout for already-shipped
+  // clients; this table is the single record new clients mutate and render.
+  savedFolders: defineTable({
+    userId: v.id("users"),
+    name: v.string(),
+    normalizedName: v.string(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_normalized_name", ["userId", "normalizedName"]),
+
+  savedItems: defineTable({
+    userId: v.id("users"),
+    hadithId: v.id("hadiths"),
+    bookmarkCreatedAt: v.optional(v.number()),
+    favoriteCreatedAt: v.optional(v.number()),
+    noteContent: v.optional(v.string()),
+    noteCreatedAt: v.optional(v.number()),
+    noteUpdatedAt: v.optional(v.number()),
+    folderId: v.optional(v.id("savedFolders")),
+    // Changes to a placement get their own clock. It lets folder undo restore
+    // only the memberships removed by that delete, without overwriting a
+    // later move from another device.
+    folderUpdatedAt: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_hadith", ["userId", "hadithId"])
+    .index("by_folder", ["folderId"]),
+
   readingProgress: defineTable({
     userId: v.id("users"),
     collectionSlug: v.string(),

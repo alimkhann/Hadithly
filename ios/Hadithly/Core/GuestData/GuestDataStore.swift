@@ -20,6 +20,8 @@ final class GuestDataStore {
             GuestBookmark.self,
             GuestNote.self,
             GuestFavorite.self,
+            GuestSavedFolder.self,
+            GuestSavedMembership.self,
             GuestReadingProgress.self,
         ])
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
@@ -169,6 +171,53 @@ final class GuestDataStore {
         refreshCount()
     }
 
+    // MARK: - Saved folders
+
+    func createSavedFolder(name: String) -> GuestSavedFolderDraft? {
+        guard Self.validFolderName(name) else { return nil }
+        let folder = GuestSavedFolder(name: name.trimmingCharacters(in: .whitespacesAndNewlines).precomposedStringWithCanonicalMapping)
+        context.insert(folder)
+        try? context.save()
+        return GuestSavedFolderDraft(localId: folder.localId, name: folder.name, createdAt: folder.createdAt)
+    }
+
+    func assignSavedFolder(hadithId: String, folderLocalId: String?) {
+        let hasFacet = isBookmarked(hadithId: hadithId) || isFavorite(hadithId: hadithId) || fetchNotes().contains { $0.hadithId == hadithId }
+        guard hasFacet else { return }
+        for membership in fetchMemberships().filter({ $0.hadithId == hadithId }) { context.delete(membership) }
+        if let folderLocalId, fetchFolders().contains(where: { $0.localId == folderLocalId }) {
+            context.insert(GuestSavedMembership(hadithId: hadithId, folderLocalId: folderLocalId))
+        }
+        try? context.save()
+    }
+
+    func deleteSavedFolder(localId: String) -> GuestFolderDeletion? {
+        guard let folder = fetchFolders().first(where: { $0.localId == localId }) else { return nil }
+        let hadithIds = fetchMemberships().filter({ $0.folderLocalId == localId }).map(\.hadithId)
+        for membership in fetchMemberships().filter({ $0.folderLocalId == localId }) { context.delete(membership) }
+        context.delete(folder)
+        try? context.save()
+        return GuestFolderDeletion(folder: .init(localId: folder.localId, name: folder.name, createdAt: folder.createdAt), hadithIds: hadithIds)
+    }
+
+    func restoreSavedFolder(_ deletion: GuestFolderDeletion) {
+        guard !fetchFolders().contains(where: { $0.localId == deletion.folder.localId }) else { return }
+        context.insert(GuestSavedFolder(localId: deletion.folder.localId, name: deletion.folder.name, createdAt: deletion.folder.createdAt))
+        let savedHadithIds = Set(bookmarkDrafts().map(\.hadithId) + favoriteDrafts().map(\.hadithId) + noteDrafts().map(\.hadithId))
+        for hadithId in deletion.hadithIds where savedHadithIds.contains(hadithId) && !fetchMemberships().contains(where: { $0.hadithId == hadithId }) {
+            context.insert(GuestSavedMembership(hadithId: hadithId, folderLocalId: deletion.folder.localId))
+        }
+        try? context.save()
+    }
+
+    func folderDrafts() -> [GuestSavedFolderDraft] {
+        fetchFolders().map { GuestSavedFolderDraft(localId: $0.localId, name: $0.name, createdAt: $0.createdAt) }
+    }
+
+    func savedMembershipDrafts() -> [GuestSavedMembershipDraft] {
+        fetchMemberships().map { GuestSavedMembershipDraft(hadithId: $0.hadithId, folderLocalId: $0.folderLocalId) }
+    }
+
     func noteDrafts() -> [GuestNoteDraft] {
         fetchNotes().map {
             GuestNoteDraft(
@@ -243,6 +292,8 @@ final class GuestDataStore {
         try? context.delete(model: GuestBookmark.self)
         try? context.delete(model: GuestNote.self)
         try? context.delete(model: GuestFavorite.self)
+        try? context.delete(model: GuestSavedFolder.self)
+        try? context.delete(model: GuestSavedMembership.self)
         try? context.delete(model: GuestReadingProgress.self)
         try? context.save()
         refreshCount()
@@ -273,5 +324,20 @@ final class GuestDataStore {
     private func fetchProgress() -> [GuestReadingProgress] {
         let descriptor = FetchDescriptor<GuestReadingProgress>(sortBy: [SortDescriptor(\.updatedAt)])
         return (try? context.fetch(descriptor)) ?? []
+    }
+
+    private func fetchFolders() -> [GuestSavedFolder] {
+        (try? context.fetch(FetchDescriptor<GuestSavedFolder>(sortBy: [SortDescriptor(\.createdAt)]))) ?? []
+    }
+
+    private func fetchMemberships() -> [GuestSavedMembership] {
+        (try? context.fetch(FetchDescriptor<GuestSavedMembership>())) ?? []
+    }
+
+    nonisolated static func validFolderName(_ input: String) -> Bool {
+        let name = input.trimmingCharacters(in: .whitespacesAndNewlines).precomposedStringWithCanonicalMapping
+        return !name.isEmpty && name.unicodeScalars.count <= 64 && !name.unicodeScalars.contains {
+            $0.value <= 0x1f || ($0.value >= 0x7f && $0.value <= 0x9f)
+        }
     }
 }
