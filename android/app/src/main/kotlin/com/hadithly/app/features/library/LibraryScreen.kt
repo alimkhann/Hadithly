@@ -5,234 +5,138 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed as gridItemsIndexed
+import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.automirrored.filled.NavigateNext
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hadithly.app.core.data.Collections
-import com.hadithly.app.core.data.HadithRef
 import com.hadithly.app.core.data.ReaderPrefetch
 import com.hadithly.app.core.theme.LocalHadithlyColors
-import com.hadithly.app.features.main.ReaderOpenTarget
 import com.hadithly.app.features.main.rememberApp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import com.hadithly.app.core.data.ReaderTargetSource
 
-/**
- * The seven collections. Tapping one opens the reader full screen over the
- * tab bar; the reader's close control is the way back to this tab.
- */
+/** Collection browsing only. H2 owns authoritative progress summaries. */
 @Composable
-fun LibraryScreen(
-    onOpenCollection: (String, String) -> Unit,
-    onOpenTarget: (ReaderOpenTarget) -> Unit,
-) {
-    val viewModel: LibraryViewModel = viewModel()
+fun LibraryScreen(onOpenCollection: (String, String) -> Unit, onOpenTarget: (com.hadithly.app.features.main.ReaderOpenTarget) -> Unit) {
     val app = rememberApp()
-    val counts by viewModel.counts.collectAsStateWithLifecycle()
-    val progressList by viewModel.progress.collectAsStateWithLifecycle()
-    // R6 round 3: quietly ensure the outline plus the continue-reading
-    // target volume's first page are cached (existing cache-first actions,
-    // Dispatchers.IO, no UI). Bounded, silent, offline-tolerant.
+    val colors = LocalHadithlyColors.current
+    val progress by app.library.progress.collectAsStateWithLifecycle()
+    var grid by rememberSaveable { mutableStateOf(true) }
+
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
-            ReaderPrefetch.warmEntryCache(
-                repository = app.repository,
-                slugs = Collections.all.map { it.first },
-                progress = app.library.progress.value,
-            )
+            ReaderPrefetch.warmEntryCache(app.repository, Collections.all.map { it.first }, progress)
         }
     }
-    val continueReading = progressList
-        .filter { it.hadith != null }
-        .maxByOrNull { it.updatedAt }
-    val colors = LocalHadithlyColors.current
 
-    LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colors.background)
-            .padding(horizontal = 16.dp),
-    ) {
-        item {
-            Text(
-                text = "Library",
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Bold,
-                color = colors.textPrimary,
-                modifier = Modifier.padding(top = 20.dp, bottom = 8.dp),
-            )
+    Column(Modifier.fillMaxSize().background(colors.background)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 20.dp, bottom = 8.dp),
+        ) {
+            Text("Library", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary, modifier = Modifier.weight(1f))
+            IconButton(
+                onClick = { grid = !grid },
+                modifier = Modifier.testTag("library.layoutToggle").semantics {
+                    contentDescription = if (grid) "Show Library list" else "Show Library grid"
+                },
+            ) {
+                Icon(if (grid) Icons.Filled.ViewList else Icons.Filled.GridView, null, tint = colors.textPrimary)
+            }
         }
-
-        continueReading?.let { entry ->
-            if (entry.hadith != null) {
-                item(key = "continue") {
-                    ContinueCard(
-                        ref = entry.hadith,
-                        onClick = {
-                            onOpenTarget(
-                                ReaderOpenTarget(
-                                    slug = entry.collectionSlug,
-                                    name = entry.hadith.collectionName,
-                                    volumeId = entry.hadith.volumeId,
-                                    hadithNumber = entry.hadith.hadithNumber,
-                                    source = ReaderTargetSource.CONTINUE_READING,
-                                    position = entry.position,
-                                )
-                            )
-                        },
-                    )
+        if (grid) {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp),
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                gridItemsIndexed(Collections.all, key = { _, collection -> collection.first }) { index, (slug, name) ->
+                    GridCollection(position = index + 1, name = name, onClick = { onOpenCollection(slug, name) }, modifier = Modifier.testTag("library.collection.$slug"))
+                }
+            }
+        } else {
+            LazyColumn(
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                listItemsIndexed(Collections.all, key = { _, collection -> collection.first }) { index, (slug, name) ->
+                    ListCollection(position = index + 1, name = name, onClick = { onOpenCollection(slug, name) }, modifier = Modifier.testTag("library.collection.$slug"))
                 }
             }
         }
-
-        itemsIndexed(Collections.all, key = { _, item -> item.first }) { index, (slug, name) ->
-            CollectionRow(
-                position = index + 1,
-                name = name,
-                counts = counts[slug],
-                onClick = { onOpenCollection(slug, name) },
-            )
-        }
-
-        item { Spacer(modifier = Modifier.height(16.dp)) }
     }
 }
 
 @Composable
-private fun ContinueCard(ref: HadithRef, onClick: () -> Unit) {
+private fun GridCollection(position: Int, name: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = LocalHadithlyColors.current
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(colors.surface, RoundedCornerShape(14.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+    Column(
+        verticalArrangement = Arrangement.spacedBy(9.dp),
+        modifier = modifier.fillMaxWidth().clickable(onClick = onClick).semantics { contentDescription = "$position. $name" },
     ) {
-        Box(
-            modifier = Modifier
-                .size(38.dp)
-                .background(colors.accentSoft, CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.MenuBook,
-                contentDescription = null,
-                tint = colors.accent,
-                modifier = Modifier.size(20.dp),
-            )
-        }
-        Spacer(modifier = Modifier.size(14.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = "CONTINUE READING",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = colors.accent,
-            )
-            Text(
-                text = ref.collectionName,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Medium,
-                color = colors.textPrimary,
-            )
-            if (ref.referenceDisplay.isNotEmpty()) {
-                Text(
-                    text = ref.referenceDisplay,
-                    fontSize = 11.sp,
-                    color = colors.textSecondary,
-                )
-            }
-        }
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.NavigateNext,
-            contentDescription = null,
-            tint = colors.textSecondary,
-            modifier = Modifier.size(16.dp),
-        )
+        CollectionCover(position, Modifier.fillMaxWidth().aspectRatio(0.66f))
+        Text(position.toString(), fontSize = 12.sp, color = colors.textSecondary)
+        Text(name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        ProgressSlot()
     }
 }
 
 @Composable
-private fun CollectionRow(
-    position: Int,
-    name: String,
-    counts: LibraryViewModel.VolumeCounts?,
-    onClick: () -> Unit,
-) {
+private fun ListCollection(position: Int, name: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = LocalHadithlyColors.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(colors.surface, RoundedCornerShape(14.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+        modifier = modifier.fillMaxWidth().background(colors.surface, androidx.compose.foundation.shape.RoundedCornerShape(14.dp)).clickable(onClick = onClick).padding(10.dp).semantics { contentDescription = "$position. $name" },
     ) {
-        Box(
-            modifier = Modifier
-                .size(34.dp)
-                .background(colors.surfaceElevated, CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = position.toString(),
-                fontSize = 15.sp,
-                color = colors.textSecondary,
-            )
+        CollectionCover(position, Modifier.width(56.dp).height(82.dp))
+        Spacer(Modifier.size(14.dp))
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+            Text(position.toString(), fontSize = 12.sp, color = colors.textSecondary)
+            Text(name, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+            ProgressSlot()
         }
-        Spacer(modifier = Modifier.size(14.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = name,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                color = colors.textPrimary,
-            )
-            counts?.let {
-                Text(
-                    text = volumeSummary(it),
-                    fontSize = 11.sp,
-                    color = colors.textSecondary,
-                )
-            }
-        }
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.NavigateNext,
-            contentDescription = null,
-            tint = colors.textSecondary,
-            modifier = Modifier.size(16.dp),
-        )
     }
 }
 
-private fun volumeSummary(counts: LibraryViewModel.VolumeCounts): String {
-    val volumes = if (counts.volumes == 1) "volume" else "volumes"
-    val hadiths = if (counts.hadiths == 1) "hadith" else "hadiths"
-        return "${counts.volumes} $volumes · ${counts.hadiths} $hadiths"
+@Composable
+private fun ProgressSlot() {
+    val colors = LocalHadithlyColors.current
+    Box(Modifier.fillMaxWidth().height(3.dp).background(colors.surfaceElevated, androidx.compose.foundation.shape.RoundedCornerShape(99.dp)))
 }

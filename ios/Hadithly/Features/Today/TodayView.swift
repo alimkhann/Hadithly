@@ -153,16 +153,25 @@ struct TodayView: View {
     private var continueReadingSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             sectionTitle("Continue reading")
-            ForEach(library.progress.filter { $0.hadith != nil }.sorted { $0.updatedAt > $1.updatedAt }.prefix(3)) { entry in
-                if let hadith = entry.hadith {
-                    Button {
-                        openTarget = ReaderOpenTarget(slug: entry.collectionSlug, name: hadith.collectionName,
-                                                       volumeId: hadith.volumeId, hadithNumber: hadith.hadithNumber,
-                                                       source: .continueReading, position: entry.position)
-                    } label: { ContinueReadingCard(hadith: hadith) }
-                        .buttonStyle(.plain).accessibilityIdentifier("today.continueCard")
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(library.progress.filter { $0.hadith != nil }.sorted { $0.updatedAt > $1.updatedAt }.prefix(3)) { entry in
+                        if let hadith = entry.hadith {
+                            Button {
+                                openTarget = ReaderOpenTarget(slug: entry.collectionSlug, name: hadith.collectionName,
+                                                               volumeId: hadith.volumeId, hadithNumber: hadith.hadithNumber,
+                                                               source: .continueReading, position: entry.position)
+                            } label: {
+                                ContinueReadingCard(hadith: hadith, position: collectionPosition(entry.collectionSlug))
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("today.continueCard.\(entry.collectionSlug)")
+                        }
+                    }
                 }
+                .padding(.horizontal, 16)
             }
+            .padding(.horizontal, -16)
         }
     }
 
@@ -190,23 +199,27 @@ struct TodayView: View {
         VStack(alignment: .leading, spacing: 10) {
             sectionTitle("Library")
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
+                HStack(spacing: 12) {
                     ForEach(Array(ReaderModels.collections.enumerated()), id: \.element.slug) { index, collection in
                         Button { openTarget = ReaderOpenTarget(slug: collection.slug, name: collection.name) } label: {
-                            VStack(alignment: .leading, spacing: 16) {
-                                Text(String(format: "%02d", index + 1)).font(.caption.monospacedDigit()).foregroundStyle(Theme.textSecondary)
-                                Text(collection.name).font(.subheadline.weight(.medium)).foregroundStyle(Theme.textPrimary).multilineTextAlignment(.leading).lineLimit(2)
-                                Spacer(minLength: 0)
-                                Text("Open").font(.caption.weight(.semibold)).foregroundStyle(Theme.accent)
+                            VStack(alignment: .leading, spacing: 8) {
+                                CollectionCover(position: index + 1).frame(width: 126, height: 164)
+                                Text("\(index + 1)").font(.caption.monospacedDigit()).foregroundStyle(Theme.textSecondary)
+                                Text(collection.name).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.textPrimary).multilineTextAlignment(.leading).lineLimit(2)
                             }
-                            .frame(width: 142, height: 148, alignment: .leading).padding(14)
-                            .background(Theme.surface).clipShape(RoundedRectangle(cornerRadius: 16))
+                            .frame(width: 142, alignment: .leading)
                         }
                         .buttonStyle(.plain).accessibilityIdentifier("today.library.\(collection.slug)")
                     }
                 }
+                .padding(.horizontal, 16)
             }
+            .padding(.horizontal, -16)
         }
+    }
+
+    private func collectionPosition(_ slug: String) -> Int {
+        (ReaderModels.collections.firstIndex(where: { $0.slug == slug }) ?? 0) + 1
     }
 
     private func sectionTitle(_ title: LocalizedStringKey) -> some View { Text(title).font(.headline.weight(.semibold)).foregroundStyle(Theme.textPrimary) }
@@ -245,12 +258,19 @@ struct TodayView: View {
 
 private struct ContinueReadingCard: View {
     let hadith: HadithRef
+    let position: Int
     var body: some View {
-        HStack(spacing: 14) {
-            Image(systemName: "book").foregroundStyle(Theme.accent).frame(width: 38, height: 38).background(Theme.accentSoft).clipShape(Circle())
-            VStack(alignment: .leading, spacing: 3) { Text(hadith.collectionName).font(.subheadline.weight(.medium)).foregroundStyle(Theme.textPrimary); Text(hadith.referenceDisplay).font(.caption2).foregroundStyle(Theme.textSecondary) }
-            Spacer(); Image(systemName: "chevron.right").font(.caption).foregroundStyle(Theme.textSecondary)
-        }.padding(16).background(Theme.surface).clipShape(RoundedRectangle(cornerRadius: 16))
+        HStack(spacing: 12) {
+            CollectionCover(position: position).frame(width: 52, height: 76)
+            VStack(alignment: .leading, spacing: 5) {
+                Text(hadith.collectionName).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.textPrimary).lineLimit(2)
+                Text(hadith.referenceDisplay).font(.caption2).foregroundStyle(Theme.textSecondary).lineLimit(1)
+            }
+        }
+        .frame(width: 218, alignment: .leading)
+        .padding(10)
+        .background(Theme.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 }
 
@@ -276,14 +296,13 @@ private struct DailyHadithCard: View {
             Button(action: onSource) {
                 HStack(spacing: 7) {
                     Circle().fill(ReaderGradeDot.color(for: ReaderGradeKind(normalizedGrade: hadith.authenticity.normalizedGrade), palette: palette)).frame(width: 8, height: 8)
-                    Text(ReaderSourceLabel.headerText(for: hadith.readerHadith)).font(.caption.weight(.semibold)).foregroundStyle(palette.textPrimary)
+                    Text(hadith.authenticity.displayLabel).font(.caption.weight(.semibold)).foregroundStyle(palette.textPrimary)
                 }
             }.buttonStyle(.plain).accessibilityIdentifier("today.authenticity")
             if preferences.arabicVisible { Text(hadith.arabicText).font(Theme.arabic(preferences.arabicFontSize, preferences.arabicFont)).lineSpacing(preferences.arabicFontSize * 0.75).foregroundStyle(palette.textPrimary).frame(maxWidth: .infinity, alignment: .leading).environment(\.layoutDirection, .rightToLeft).lineLimit(expanded || !shouldCollapse ? nil : 7) }
             if preferences.translationVisible {
                 if let translation = hadith.translation {
                     Text(translation.text).font(.body).lineSpacing(5).foregroundStyle(palette.textPrimary).environment(\.layoutDirection, LocaleFallback.isRTL(translation.language) ? .rightToLeft : .leftToRight).lineLimit(expanded || !shouldCollapse ? nil : 7)
-                    Text(translation.sourceLabel).font(.caption2).foregroundStyle(palette.textSecondary)
                 } else { Text("No \(preferences.translationLocale) translation is available yet.").font(.caption).foregroundStyle(palette.textSecondary) }
             }
             if shouldCollapse { Button(expanded ? "Show less" : "Read more") { expanded.toggle() }.font(.caption.weight(.semibold)).foregroundStyle(Theme.accent).accessibilityIdentifier("today.expand") }

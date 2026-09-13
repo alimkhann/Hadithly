@@ -31,6 +31,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -70,6 +72,9 @@ import com.hadithly.app.features.main.ReaderOpenTarget
 import com.hadithly.app.features.main.rememberApp
 import com.hadithly.app.core.links.CanonicalHadithUrl
 import com.hadithly.app.features.reader.ReaderShare
+import com.hadithly.app.features.library.CollectionCover
+import com.hadithly.app.features.reader.ReaderGrade
+import com.hadithly.app.features.reader.gradeDotColor
 import com.clerk.api.Clerk
 import java.time.ZoneId
 import java.time.LocalDate
@@ -93,7 +98,6 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
     val homeColors = LocalHadithlyColors.current
     val preferences by app.preferences.preferences.collectAsStateWithLifecycle()
     val progress by app.library.progress.collectAsStateWithLifecycle()
-    val continueReading = progress.filter { it.hadith != null }.maxByOrNull { it.updatedAt }
     val context = LocalContext.current
     val readerColors = ReaderPalettes.resolved(preferences.theme, androidx.compose.foundation.isSystemInDarkTheme())
     var daily by remember { mutableStateOf<DailyHadith?>(null) }
@@ -128,9 +132,9 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
 
     Column(
         verticalArrangement = Arrangement.spacedBy(28.dp),
-        modifier = Modifier.fillMaxSize().background(homeColors.background).verticalScroll(rememberScrollState()).padding(16.dp),
+        modifier = Modifier.fillMaxSize().background(homeColors.background).verticalScroll(rememberScrollState()),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp), modifier = Modifier.padding(horizontal = 16.dp)) {
             Text("Today", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = homeColors.textPrimary)
             Text(
                 Clerk.user?.username?.takeIf { it.isNotBlank() }?.let { "As-salamu alaykum, $it" }
@@ -139,52 +143,59 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
                 fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = homeColors.textPrimary,
             )
         }
-        progress.filter { it.hadith != null }.sortedByDescending { it.updatedAt }.take(3).forEach { entry ->
-            val ref = entry.hadith ?: return@forEach
-            SectionTitle("Continue reading", homeColors)
-            ContinueReadingCard(ref) { onOpenTarget(ReaderOpenTarget(entry.collectionSlug, ref.collectionName, ref.volumeId, ref.hadithNumber, ReaderTargetSource.CONTINUE_READING, entry.position)) }
-        }
-        SectionTitle("Daily hadith", homeColors)
-        when {
-            daily != null -> DailyCard(daily!!, preferences, readerColors, offline, app.library, onOpenTarget)
-            loading -> CardShell(homeColors) { Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) { CircularProgressIndicator(color = homeColors.textSecondary, modifier = Modifier.size(18.dp), strokeWidth = 2.dp); Text("Bringing today's hadith…", color = homeColors.textSecondary) } }
-            failed -> CardShell(homeColors) { Column { Text("Today's hadith could not load", fontWeight = FontWeight.Medium, color = homeColors.textPrimary); TextButton(onClick = { reloadKey++ }) { Text("Try again", color = homeColors.accent) } } }
-            else -> CardShell(homeColors) { Column { Text("No eligible hadith is cached yet", fontWeight = FontWeight.Medium, color = homeColors.textPrimary); Text("Open a collection in the Library and Today will prepare one from verified content.", fontSize = 12.sp, color = homeColors.textSecondary) } }
-        }
-        SectionTitle("Library", homeColors)
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            itemsIndexed(Collections.all, key = { _, collection -> collection.first }) { index, (slug, name) ->
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.width(142.dp).height(148.dp).clip(RoundedCornerShape(16.dp)).background(homeColors.surface)
-                        .combinedClickable(onClick = { onOpenTarget(ReaderOpenTarget(slug, name)) }).padding(14.dp).testTag("today.library.$slug"),
-                ) {
-                    Text("%02d".format(index + 1), fontSize = 12.sp, color = homeColors.textSecondary)
-                    Text(name, fontSize = 15.sp, fontWeight = FontWeight.Medium, color = homeColors.textPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    Spacer(Modifier.weight(1f)); Text("Open", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = homeColors.accent)
+        val entries = progress.filter { it.hadith != null }.sortedByDescending { it.updatedAt }.take(3)
+        if (entries.isNotEmpty()) {
+            SectionTitle("Continue reading", homeColors, Modifier.padding(horizontal = 16.dp))
+            LazyRow(contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                itemsIndexed(entries, key = { _, entry -> entry.collectionSlug }) { _, entry ->
+                    val ref = entry.hadith ?: return@itemsIndexed
+                    ContinueReadingCard(ref, Collections.all.indexOfFirst { it.first == entry.collectionSlug } + 1) {
+                        onOpenTarget(ReaderOpenTarget(entry.collectionSlug, ref.collectionName, ref.volumeId, ref.hadithNumber, ReaderTargetSource.CONTINUE_READING, entry.position))
+                    }
                 }
             }
         }
-        Spacer(Modifier.height(12.dp))
+        SectionTitle("Daily hadith", homeColors, Modifier.padding(horizontal = 16.dp))
+        Box(Modifier.padding(horizontal = 16.dp)) {
+            when {
+                daily != null -> DailyCard(daily!!, preferences, readerColors, offline, app.library, onOpenTarget)
+                loading -> CardShell(homeColors) { Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) { CircularProgressIndicator(color = homeColors.textSecondary, modifier = Modifier.size(18.dp), strokeWidth = 2.dp); Text("Bringing today's hadith…", color = homeColors.textSecondary) } }
+                failed -> CardShell(homeColors) { Column { Text("Today's hadith could not load", fontWeight = FontWeight.Medium, color = homeColors.textPrimary); TextButton(onClick = { reloadKey++ }) { Text("Try again", color = homeColors.accent) } } }
+                else -> CardShell(homeColors) { Column { Text("No eligible hadith is cached yet", fontWeight = FontWeight.Medium, color = homeColors.textPrimary); Text("Open a collection in the Library and Today will prepare one from verified content.", fontSize = 12.sp, color = homeColors.textSecondary) } }
+            }
+        }
+        SectionTitle("Library", homeColors, Modifier.padding(horizontal = 16.dp))
+        LazyRow(contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            itemsIndexed(Collections.all, key = { _, collection -> collection.first }) { index, (slug, name) ->
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.width(142.dp).combinedClickable(onClick = { onOpenTarget(ReaderOpenTarget(slug, name)) }).testTag("today.library.$slug"),
+                ) {
+                    CollectionCover(index + 1, Modifier.width(126.dp).height(164.dp))
+                    Text((index + 1).toString(), fontSize = 12.sp, color = homeColors.textSecondary)
+                    Text(name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = homeColors.textPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                }
+            }
+        }
+        Spacer(Modifier.height(24.dp))
     }
 }
 
-@Composable private fun SectionTitle(title: String, colors: HadithlyColors) = Text(title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+@Composable private fun SectionTitle(title: String, colors: HadithlyColors, modifier: Modifier = Modifier) = Text(title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary, modifier = modifier)
 
-@Composable private fun ContinueReadingCard(ref: HadithRef, onClick: () -> Unit) {
+@Composable private fun ContinueReadingCard(ref: HadithRef, position: Int, onClick: () -> Unit) {
     val colors = LocalHadithlyColors.current
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(colors.surface).combinedClickable(onClick = onClick).padding(16.dp).testTag("today.continueCard")) {
-        Box(Modifier.size(38.dp).background(colors.accentSoft, CircleShape), contentAlignment = Alignment.Center) { Icon(Icons.AutoMirrored.Filled.MenuBook, null, tint = colors.accent) }
-        Spacer(Modifier.size(14.dp)); Column(Modifier.weight(1f)) { Text(ref.collectionName, fontSize = 15.sp, fontWeight = FontWeight.Medium, color = colors.textPrimary); Text(ref.referenceDisplay, fontSize = 11.sp, color = colors.textSecondary) }
-        Icon(Icons.AutoMirrored.Filled.NavigateNext, null, tint = colors.textSecondary)
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.width(218.dp).clip(RoundedCornerShape(16.dp)).background(colors.surface).combinedClickable(onClick = onClick).padding(10.dp).testTag("today.continueCard")) {
+        CollectionCover(position, Modifier.width(52.dp).height(76.dp))
+        Spacer(Modifier.size(12.dp)); Column(Modifier.weight(1f)) { Text(ref.collectionName, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary, maxLines = 2); Text(ref.referenceDisplay, fontSize = 11.sp, color = colors.textSecondary, maxLines = 1) }
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable private fun DailyCard(hadith: DailyHadith, preferences: ReaderPreferences, colors: HadithlyColors, offline: Boolean, library: UserLibraryModel, onOpenTarget: (ReaderOpenTarget) -> Unit) {
     val context = LocalContext.current; val clipboard = LocalClipboard.current
     val clipboardScope = androidx.compose.runtime.rememberCoroutineScope()
-    var expanded by remember { mutableStateOf(false) }; var menu by remember { mutableStateOf(false) }; var note by remember { mutableStateOf(false) }; var noteText by remember { mutableStateOf(library.noteContentFor(hadith._id) ?: "") }
+    var expanded by remember { mutableStateOf(false) }; var menu by remember { mutableStateOf(false) }; var note by remember { mutableStateOf(false) }; var sourceSheet by remember { mutableStateOf(false) }; var noteText by remember { mutableStateOf(library.noteContentFor(hadith._id) ?: "") }
     val collapse = TodayContentPolicy.needsCollapsedPreview(hadith.arabicText, hadith.translation?.text)
     val reference = HadithRef(hadith._id, hadith.collectionSlug, hadith.collectionName, hadith.volumeId, hadith.providerHadithId, hadith.arabicText, hadith.translation?.text, hadith.referenceDisplay)
     fun open() = onOpenTarget(ReaderOpenTarget(hadith.collectionSlug, hadith.collectionName, hadith.volumeId, hadith.providerHadithId, ReaderTargetSource.TODAY))
@@ -202,10 +213,13 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
         val inner: @Composable () -> Unit = {
             Column(verticalArrangement = Arrangement.spacedBy(13.dp), modifier = Modifier.fillMaxWidth().padding(18.dp)) {
                 Row { Text(hadith.referenceDisplay, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary); Spacer(Modifier.weight(1f)); if (offline) Text("Offline", fontSize = 11.sp, color = colors.textSecondary) }
-                Text(hadith.authenticity.displayLabel, fontSize = 11.sp, color = colors.textSecondary, modifier = Modifier.testTag("today.authenticity"))
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp), modifier = Modifier.combinedClickable(onClick = { sourceSheet = true }).testTag("today.authenticity")) {
+                    Box(Modifier.size(8.dp).background(gradeDotColor(ReaderGrade.from(hadith.authenticity.normalizedGrade), colors), CircleShape))
+                    Text(hadith.authenticity.displayLabel, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+                }
                 if (preferences.arabicVisible) Text(hadith.arabicText, fontSize = preferences.arabicFontSize.sp, lineHeight = (preferences.arabicFontSize * 1.75f).sp, color = colors.textPrimary, maxLines = if (expanded || !collapse) Int.MAX_VALUE else 7)
                 if (preferences.translationVisible) {
-                    hadith.translation?.let { translation -> Text(translation.text, fontSize = 16.sp, lineHeight = 22.sp, color = colors.textPrimary, maxLines = if (expanded || !collapse) Int.MAX_VALUE else 7); Text(translation.sourceLabel, fontSize = 11.sp, color = colors.textSecondary) }
+                    hadith.translation?.let { translation -> Text(translation.text, fontSize = 16.sp, lineHeight = 22.sp, color = colors.textPrimary, maxLines = if (expanded || !collapse) Int.MAX_VALUE else 7) }
                         ?: Text("No ${preferences.translationLocale} translation is available yet.", fontSize = 12.sp, color = colors.textSecondary)
                 }
                 if (collapse) TextButton(onClick = { expanded = !expanded }) { Text(if (expanded) "Show less" else "Read more", color = colors.accent) }
@@ -219,6 +233,15 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
             DropdownMenuItem(text = { Text(if (library.noteContentFor(hadith._id) == null) "Add Note" else "Edit Note") }, onClick = { note = true; menu = false })
             DropdownMenuItem(text = { Text("Copy") }, onClick = { copy(); menu = false })
             DropdownMenuItem(text = { Text("Share") }, onClick = { share(); menu = false })
+        }
+    }
+    if (sourceSheet) {
+        ModalBottomSheet(onDismissRequest = { sourceSheet = false }, containerColor = colors.surface) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth().padding(20.dp).testTag("today.sourceSheet")) {
+                Text(hadith.authenticity.sourceName, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+                Text(hadith.authenticity.displayLabel, fontSize = 13.sp, color = colors.textSecondary)
+                if (hadith.authenticity.sourceUrl.isNotBlank()) Text(hadith.authenticity.sourceUrl, fontSize = 12.sp, color = colors.accent)
+            }
         }
     }
     if (note) AlertDialog(onDismissRequest = { note = false }, title = { Text("Note") }, text = { OutlinedTextField(noteText, { noteText = it }) }, confirmButton = { TextButton(onClick = { library.saveNote(reference, noteText); note = false }) { Text("Save") } }, dismissButton = { TextButton(onClick = { note = false }) { Text("Cancel") } })

@@ -14,6 +14,7 @@ import com.hadithly.app.features.reader.CONFIRMED_TAP_TIMEOUT_MILLIS
 import com.hadithly.app.features.reader.ReaderHapticKind
 import com.hadithly.app.features.reader.ReaderHaptics
 import com.hadithly.app.features.reader.ReaderScrollOffsetCache
+import com.hadithly.app.features.reader.readerPageLandingItemIndex
 import com.hadithly.app.features.reader.ReaderShare
 import com.hadithly.app.features.reader.bookmarkDialogRows
 import com.hadithly.app.features.reader.bookmarkPlacementTargets
@@ -460,6 +461,14 @@ class ReaderR6Round3Test {
         cache.save(0, 5, 120)
         assertEquals(5 to 120, cache.restore(0))
         assertEquals(1, cache.size())
+    }
+
+    @Test
+    fun `fresh page lands on the header while a target accounts for it`() {
+        assertEquals(0, readerPageLandingItemIndex(targetHadithIndex = null, hasCachedOffset = false))
+        assertEquals(1, readerPageLandingItemIndex(targetHadithIndex = 0, hasCachedOffset = false))
+        assertEquals(3, readerPageLandingItemIndex(targetHadithIndex = 2, hasCachedOffset = false))
+        assertNull(readerPageLandingItemIndex(targetHadithIndex = null, hasCachedOffset = true))
     }
 
     @Test

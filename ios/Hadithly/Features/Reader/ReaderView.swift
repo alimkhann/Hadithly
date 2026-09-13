@@ -1192,6 +1192,21 @@ struct ReaderPageView: View {
                         normalizedOffset: max(0, -leading.1.minY) / max(1, leading.1.height)
                     )
                 }
+                .onChange(of: currentPageIndex) { _, _ in
+                    let targetId = scrollRestore?.providerHadithId
+                        ?? restoration?.anchor.providerHadithId ?? landingHadithNumber
+                    let hasTargetOnPage = targetId.flatMap { id in
+                        hadiths.first(where: { $0.providerHadithId == id })
+                    } != nil
+                    guard ReaderPageLanding.shouldResetToHeader(
+                        hasTargetOnPage: hasTargetOnPage,
+                        hasCachedOffset: scrollRestore != nil
+                    ) else { return }
+                    topResetPage = currentPageIndex
+                    DispatchQueue.main.async {
+                        proxy.scrollTo("reader.page.top.\(currentPageIndex)", anchor: .top)
+                    }
+                }
             }
         }
         .contentShape(Rectangle())

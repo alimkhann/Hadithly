@@ -126,6 +126,14 @@ enum ReaderConfirmedTap {
     }
 }
 
+/// Decides whether a page may preserve an offset. A page with neither an R1/R2
+/// target nor a recently captured offset must begin at its actual header.
+enum ReaderPageLanding {
+    static func shouldResetToHeader(hasTargetOnPage: Bool, hasCachedOffset: Bool) -> Bool {
+        !hasTargetOnPage && !hasCachedOffset
+    }
+}
+
 // MARK: - 2. Arabic-only narrator line + volume/chapter display titles
 
 extension ReaderNarratorLine {

@@ -714,6 +714,12 @@ final class ReaderR6Round3Tests: XCTestCase {
         XCTAssertNil(fourth.cache[4])
     }
 
+    func testFreshPageAlwaysResetsToItsHeader() {
+        XCTAssertTrue(ReaderPageLanding.shouldResetToHeader(hasTargetOnPage: false, hasCachedOffset: false))
+        XCTAssertFalse(ReaderPageLanding.shouldResetToHeader(hasTargetOnPage: true, hasCachedOffset: false))
+        XCTAssertFalse(ReaderPageLanding.shouldResetToHeader(hasTargetOnPage: false, hasCachedOffset: true))
+    }
+
     // MARK: - Round 7: confirmed tap vs drag
 
     func testConfirmedTapWithinMovementAndDuration() {

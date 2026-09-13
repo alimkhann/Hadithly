@@ -1251,15 +1251,22 @@ private fun ReaderPage(
             .collect { onPageScrollFraction(pageIndex, it) }
     }
 
-    LaunchedEffect(restorationGeneration, restoration?.anchor?.providerHadithId ?: landingHadithNumber, hadiths.firstOrNull()?._id) {
+    LaunchedEffect(restorationGeneration, restoration?.anchor?.providerHadithId ?: landingHadithNumber, hadiths.firstOrNull()?._id, pageIndex) {
         val targetId = restoration?.anchor?.providerHadithId ?: landingHadithNumber
-            ?: return@LaunchedEffect
-        val index = hadiths.indexOfFirst { it.providerHadithId == targetId }
-        if (index < 0) return@LaunchedEffect
-        listState.scrollToItem(index)
+        val hadithIndex = targetId
+            ?.let { id -> hadiths.indexOfFirst { it.providerHadithId == id }.takeIf { it >= 0 } }
+        val itemIndex = readerPageLandingItemIndex(
+            targetHadithIndex = hadithIndex,
+            hasCachedOffset = scrollCache?.restore(pageIndex) != null,
+        ) ?: return@LaunchedEffect
+        // Fresh pages explicitly reset to item 0, the volume/corner header.
+        // Targeted R1/R2 landings offset by that header item before placing the
+        // requested hadith, so the LazyColumn index matches its real content.
+        listState.scrollToItem(itemIndex)
+        if (hadithIndex == null) return@LaunchedEffect
         withFrameNanos { }
-        val size = listState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }?.size ?: 0
-        listState.scrollToItem(index, (size * (restoration?.normalizedOffset ?: 0.0)).roundToInt())
+        val size = listState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == itemIndex }?.size ?: 0
+        listState.scrollToItem(itemIndex, (size * (restoration?.normalizedOffset ?: 0.0)).roundToInt())
     }
 
     LaunchedEffect(listState, hadiths) {

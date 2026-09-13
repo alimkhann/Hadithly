@@ -205,6 +205,14 @@ final class ReaderR6AUITests: XCTestCase {
         XCTAssertEqual(app.buttons["reader.previousPage"].firstMatch.label, "Previous page, Volume 2")
     }
 
+    func testFreshVolumePageShowsItsHeaderAboveTheFirstHadith() {
+        let app = launchFixture(environment: ["R6A_INITIAL_PAGE": "1"])
+        app.buttons["reader.nextPage"].tap()
+        let header = element("reader.volumeHeader", in: app)
+        XCTAssertTrue(header.waitForExistence(timeout: timeout))
+        XCTAssertTrue(header.isHittable)
+    }
+
     func testTapAcrossBoundaryBackwardLandsOnPreviousVolumeLastPage() {
         let app = launchFixture()
         XCTAssertTrue(element("reader.pagePills", in: app).waitForExistence(timeout: timeout))

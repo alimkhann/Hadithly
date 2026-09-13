@@ -233,6 +233,20 @@ class ReaderScrollOffsetCache(maxEntries: Int = 2) {
 }
 
 /**
+ * Every rendered reader page begins with one non-hadith header item. Keeping
+ * this mapping explicit prevents a target hadith from being mistaken for the
+ * top item, and lets a never-visited page land on its real header.
+ */
+internal fun readerPageLandingItemIndex(
+    targetHadithIndex: Int?,
+    hasCachedOffset: Boolean,
+): Int? = when {
+    targetHadithIndex != null -> targetHadithIndex + 1
+    !hasCachedOffset -> 0
+    else -> null
+}
+
+/**
  * R6 reader fix round 6: preview-at-offset tick. The moment a swipe targets
  * a neighbor page (gesture start primes both neighbors; the pager's target
  * change primes the new target), its tick bumps and the page restores its

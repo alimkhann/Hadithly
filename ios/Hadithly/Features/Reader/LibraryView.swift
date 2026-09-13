@@ -1,14 +1,16 @@
 import SwiftUI
 
-/// The seven collections. Tapping one opens the reader full screen over the
-/// tab bar; the reader's close control is the way back to this tab.
+/// The Library is collection browsing, not a second progress dashboard.
+/// Progress receives a deliberately empty visual slot until H2 supplies an
+/// authoritative collection summary.
 struct LibraryView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(UserLibraryModel.self) private var library
 
-    @State private var model = LibraryModel()
     @State private var openCollection: OpenCollection?
-    @State private var openTarget: ReaderOpenTarget?
+    @State private var presentation: Presentation = .grid
+
+    private enum Presentation { case grid, list }
 
     struct OpenCollection: Identifiable {
         let slug: String
@@ -16,15 +18,24 @@ struct LibraryView: View {
         var id: String { slug }
     }
 
+    private let columns = [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)]
+
     var body: some View {
         ScrollView {
-            VStack(spacing: 10) {
-                if let entry = library.continueReading, let hadith = entry.hadith {
-                    continueCard(entry, hadith: hadith)
-                }
-
-                ForEach(Array(ReaderModels.collections.enumerated()), id: \.element.slug) { index, collection in
-                    collectionRow(slug: collection.slug, name: collection.name, position: index + 1)
+            Group {
+                switch presentation {
+                case .grid:
+                    LazyVGrid(columns: columns, spacing: 24) {
+                        ForEach(Array(ReaderModels.collections.enumerated()), id: \.element.slug) { index, collection in
+                            collectionGridItem(slug: collection.slug, name: collection.name, position: index + 1)
+                        }
+                    }
+                case .list:
+                    LazyVStack(spacing: 12) {
+                        ForEach(Array(ReaderModels.collections.enumerated()), id: \.element.slug) { index, collection in
+                            collectionListItem(slug: collection.slug, name: collection.name, position: index + 1)
+                        }
+                    }
                 }
             }
             .padding(16)
@@ -32,12 +43,19 @@ struct LibraryView: View {
         .background(Theme.background)
         .navigationTitle("Library")
         .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    presentation = presentation == .grid ? .list : .grid
+                } label: {
+                    Image(systemName: presentation == .grid ? "list.bullet" : "square.grid.2x2")
+                }
+                .accessibilityLabel(presentation == .grid ? "Show Library list" : "Show Library grid")
+                .accessibilityIdentifier("library.layoutToggle")
+            }
+        }
         .task {
             library.refresh()
-            model.start(convex: environment.convex)
-            // Quiet entry prefetch (R6 round 3): outline plus the
-            // continue-reading target volume's first page, cache-first, no
-            // UI. Bounded, silent, offline-tolerant.
             ReaderPrefetch.warmEntry(
                 convex: environment.convex,
                 target: ReaderPrefetchTargets.entryTarget(progress: library.continueReading)
@@ -46,105 +64,60 @@ struct LibraryView: View {
         .fullScreenCover(item: $openCollection) { collection in
             ReaderView(collectionSlug: collection.slug, collectionName: collection.name)
         }
-        .fullScreenCover(item: $openTarget) { target in
-            ReaderView(
-                collectionSlug: target.slug,
-                collectionName: target.name,
-                openVolumeId: target.volumeId,
-                openHadithNumber: target.hadithNumber,
-                openPosition: target.position,
-                targetSource: target.source
-            )
-        }
     }
 
-    private func continueCard(_ entry: ProgressEntry, hadith: HadithRef) -> some View {
-        Button {
-            openTarget = ReaderOpenTarget(
-                slug: entry.collectionSlug,
-                name: hadith.collectionName,
-                volumeId: hadith.volumeId,
-                hadithNumber: hadith.hadithNumber,
-                source: .continueReading,
-                position: entry.position
-            )
-        } label: {
-            HStack(spacing: 14) {
-                Image(systemName: "book")
-                    .font(.body)
-                    .foregroundStyle(Theme.accent)
-                    .frame(width: 38, height: 38)
-                    .background(Theme.accentSoft)
-                    .clipShape(Circle())
-
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Continue reading")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(Theme.accent)
-                        .textCase(.uppercase)
-                    Text(hadith.collectionName)
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(Theme.textPrimary)
-                    if !hadith.referenceDisplay.isEmpty {
-                        Text(hadith.referenceDisplay)
-                            .font(.caption2)
-                            .foregroundStyle(Theme.textSecondary)
-                    }
-                }
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(Theme.textSecondary)
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
-            .background(Theme.surface)
-            .clipShape(RoundedRectangle(cornerRadius: 14))
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier("library.continueCard")
-    }
-
-    private func collectionRow(slug: String, name: String, position: Int) -> some View {
-        Button {
-            openCollection = OpenCollection(slug: slug, name: name)
-        } label: {
-            HStack(spacing: 14) {
+    private func collectionGridItem(slug: String, name: String, position: Int) -> some View {
+        Button { openCollection = OpenCollection(slug: slug, name: name) } label: {
+            VStack(alignment: .leading, spacing: 9) {
+                CollectionCover(position: position)
+                    .frame(maxWidth: .infinity)
                 Text("\(position)")
-                    .font(.callout.monospacedDigit())
+                    .font(.caption.monospacedDigit())
                     .foregroundStyle(Theme.textSecondary)
-                    .frame(width: 34, height: 34)
-                    .background(Theme.surfaceElevated)
-                    .clipShape(Circle())
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(name)
-                        .font(.body.weight(.medium))
-                        .foregroundStyle(Theme.textPrimary)
-                    if let counts = model.counts[slug] {
-                        Text(volumeSummary(counts))
-                            .font(.caption2)
-                            .foregroundStyle(Theme.textSecondary)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(Theme.textSecondary)
+                Text(name)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Theme.textPrimary)
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                progressSlot
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
-            .background(Theme.surface)
-            .clipShape(RoundedRectangle(cornerRadius: 14))
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("\(position). \(name)")
         .accessibilityIdentifier("library.collection.\(slug)")
     }
 
-    private func volumeSummary(_ counts: LibraryModel.VolumeCounts) -> String {
-        let volumes = counts.volumes == 1 ? "volume" : "volumes"
-        let hadiths = counts.hadiths == 1 ? "hadith" : "hadiths"
-        return "\(counts.volumes) \(volumes) · \(counts.hadiths) \(hadiths)"
+    private func collectionListItem(slug: String, name: String, position: Int) -> some View {
+        Button { openCollection = OpenCollection(slug: slug, name: name) } label: {
+            HStack(spacing: 14) {
+                CollectionCover(position: position)
+                    .frame(width: 56, height: 82)
+                VStack(alignment: .leading, spacing: 7) {
+                    Text("\(position)")
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(Theme.textSecondary)
+                    Text(name)
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(Theme.textPrimary)
+                        .multilineTextAlignment(.leading)
+                    progressSlot
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(10)
+            .background(Theme.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(position). \(name)")
+        .accessibilityIdentifier("library.collection.\(slug)")
+    }
+
+    private var progressSlot: some View {
+        Capsule()
+            .fill(Theme.surfaceElevated)
+            .frame(height: 3)
+            .accessibilityHidden(true)
     }
 }

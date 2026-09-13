@@ -22,6 +22,7 @@
 		37941CC45FDC5906FB92D965 /* ReaderPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1EE521FDA5DE9A2253AE14B /* ReaderPreferences.swift */; };
 		387B3ED9A915C443A4D6BE7F /* SupportedLanguagesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E44FCAA45E0A462774A84DA1 /* SupportedLanguagesTests.swift */; };
 		3887A0EFC119EAACD310CF7E /* ClerkKit in Frameworks */ = {isa = PBXBuildFile; productRef = 829AFCDEFFE99A7B448DB279 /* ClerkKit */; };
+		3B23E69EF62410EE33249CD0 /* CollectionCover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D02AD7C700EF70DF761938B /* CollectionCover.swift */; };
 		3B43939F50AACA3F476F230A /* ReadingPositionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06FBFAF1BA4DDD7157C0C1D0 /* ReadingPositionTests.swift */; };
 		3B936C8275936B0E17BB06DD /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = F2AA30B31E205C794286C8D4 /* Localizable.xcstrings */; };
 		3DECE59E3955995AE52F8117 /* ScheherazadeNew-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 88E1E99DA628230A244E7FA6 /* ScheherazadeNew-Regular.ttf */; };
@@ -110,6 +111,7 @@
 		21B165348425F36BB25A5B5A /* Hadithly.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Hadithly.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		23DC026E62A1CE99ADDC578E /* ReaderChapterBoundaries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderChapterBoundaries.swift; sourceTree = "<group>"; };
 		2A50BDEFB0F097AEA7D35CC9 /* MainTabsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabsView.swift; sourceTree = "<group>"; };
+		2D02AD7C700EF70DF761938B /* CollectionCover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionCover.swift; sourceTree = "<group>"; };
 		2DB77C4DAC4E74EC0E77C50C /* GuestMergePlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestMergePlanner.swift; sourceTree = "<group>"; };
 		2F800A0ED15F3D2A1BB74277 /* ReaderR5UITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderR5UITests.swift; sourceTree = "<group>"; };
 		30CC2E71A270EECA2E3A0904 /* ReaderModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderModelsTests.swift; sourceTree = "<group>"; };
@@ -398,6 +400,7 @@
 		D6C543EBD272EEFC7EA24856 /* Reader */ = {
 			isa = PBXGroup;
 			children = (
+				2D02AD7C700EF70DF761938B /* CollectionCover.swift */,
 				8915CABC1FAD246BEAAE5CAA /* LibraryModel.swift */,
 				5DFB6D276EC727353BA7A9C6 /* LibraryView.swift */,
 				23DC026E62A1CE99ADDC578E /* ReaderChapterBoundaries.swift */,
@@ -624,6 +627,7 @@
 			files = (
 				D92EF75595B7E15C69709BFA /* AdminReviewView.swift in Sources */,
 				581C8B465D5BFD06642298E2 /* AppEnvironment.swift in Sources */,
+				3B23E69EF62410EE33249CD0 /* CollectionCover.swift in Sources */,
 				92772F9145AF4DE5EDCB8AB6 /* GuestDataModels.swift in Sources */,
 				33FC99DE32E942D10DA1A0E8 /* GuestDataStore.swift in Sources */,
 				97895D6035CF1D70762E9219 /* GuestMergePlanner.swift in Sources */,

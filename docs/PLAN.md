@@ -901,6 +901,34 @@ substantive: they own bounded implementation outcomes, not just inventories.
   collectionSlug, providerHadithId, referenceDisplay, snippet }]` over
   cached English text only.
 
+### H1 Home and reader-polish completion (2026-09-13)
+
+- Outcome: Today keeps one tappable authenticity source-and-scope label with
+  its grade dot. The label opens the existing native source sheet. The daily
+  card no longer repeats a translation provider line. Home now presents up to
+  three private Continue Reading cards and the seven collections as full-bleed
+  horizontal rails. Both rails use the same wordless, code-native collection
+  covers as Library.
+- Library: both clients default to a two-column cover grid and provide one
+  direct grid-or-list toggle. List rows reuse the cover treatment and show a
+  collection number, full collection name, and an empty progress slot. This
+  changes no progress data, no progress calculation, and no backend contract.
+  H2 remains unopened.
+- Reader: a first visit now scrolls to the actual page-top header. Android
+  counts the header as a LazyColumn item before resolving an R1 or R2 hadith
+  target. iOS resets a page without a target or cached offset to its header.
+  Existing cached offsets and R1/R2 target restoration keep precedence.
+- Evidence: backend `npm test` passed 96 tests and `npm run typecheck` passed.
+  Android JDK 21 `testDebugUnitTest assembleDebug` passed. iOS `xcodegen
+  generate`, build, `TodayTests` 3/3, `ReaderR6Round3Tests` 34/34, and the focused
+  `ReaderR6AUITests/testFreshVolumePageShowsItsHeaderAboveTheFirstHadith`
+  passed on the current iPhone 17 Pro simulator. Android unit coverage adds a
+  fresh-page header index regression. Real iOS and Android screenshots showed
+  the Home rails, the source sheet, Library grid and list, Urdu translation,
+  Arabic-only reading, and a fresh reader page with its volume header visible.
+- External state: no backend file changed, so no Convex deployment ran. No
+  dashboard, credential, store, or progress semantic changed.
+
 ## Delegation policy
 
 Use GLM-5.3-Flash through OpenCode Go as the default author for bounded sessions
