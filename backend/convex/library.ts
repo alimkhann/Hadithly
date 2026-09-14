@@ -599,6 +599,39 @@ export const deleteSavedNote = mutation({
   },
 });
 
+/** Idempotent inverse used by the short-lived Saved undo banner. */
+export const restoreSavedFacet = mutation({
+  args: {
+    hadithId: v.id("hadiths"),
+    facet: v.union(v.literal("bookmark"), v.literal("favorite"), v.literal("note")),
+    createdAt: v.number(),
+    content: v.optional(v.string()),
+    updatedAt: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await requireIdentity(ctx);
+    const user = await userByClerkId(ctx, identity.clerkId);
+    if (!user) throw new Error("User not found. Call users:ensureCurrentUser first.");
+    const item = await materializeLegacySavedItem(ctx, user._id, args.hadithId);
+    if (args.facet === "bookmark") {
+      await ctx.db.patch(item._id, { bookmarkCreatedAt: item.bookmarkCreatedAt ?? args.createdAt, updatedAt: Date.now() });
+      const legacy = await legacyBookmarksByHadith(ctx, user._id, args.hadithId);
+      if (legacy.length === 0) await ctx.db.insert("bookmarks", { userId: user._id, hadithId: args.hadithId, createdAt: args.createdAt });
+    } else if (args.facet === "favorite") {
+      await ctx.db.patch(item._id, { favoriteCreatedAt: item.favoriteCreatedAt ?? args.createdAt, updatedAt: Date.now() });
+      const legacy = await legacyFavoritesByHadith(ctx, user._id, args.hadithId);
+      if (legacy.length === 0) await ctx.db.insert("favorites", { userId: user._id, hadithId: args.hadithId, createdAt: args.createdAt });
+    } else {
+      if (args.content === undefined || args.updatedAt === undefined) throw new Error("INVALID_NOTE_RESTORE");
+      const noteUpdatedAt = Math.max(item.noteUpdatedAt ?? -Infinity, args.updatedAt);
+      if (noteUpdatedAt === args.updatedAt) await ctx.db.patch(item._id, { noteContent: args.content, noteCreatedAt: args.createdAt, noteUpdatedAt: args.updatedAt, updatedAt: Date.now() });
+      const legacy = await ctx.db.query("notes").withIndex("by_user_hadith", (q) => q.eq("userId", user._id).eq("hadithId", args.hadithId)).unique();
+      if (!legacy) await ctx.db.insert("notes", { userId: user._id, hadithId: args.hadithId, content: args.content, createdAt: args.createdAt, updatedAt: args.updatedAt });
+    }
+    return true;
+  },
+});
+
 export const createSavedFolder = mutation({
   args: { name: v.string() },
   handler: async (ctx, args) => {

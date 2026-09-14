@@ -58,6 +58,7 @@ final class GuestDataStore {
             context.delete(model)
         }
         try? context.save()
+        removeMembershipIfUnsaved(hadithId: hadithId)
         refreshCount()
     }
 
@@ -100,6 +101,7 @@ final class GuestDataStore {
             context.delete(model)
         }
         try? context.save()
+        removeMembershipIfUnsaved(hadithId: hadithId)
         refreshCount()
     }
 
@@ -168,6 +170,7 @@ final class GuestDataStore {
             context.delete(model)
         }
         try? context.save()
+        removeMembershipIfUnsaved(hadithId: hadithId)
         refreshCount()
     }
 
@@ -332,6 +335,12 @@ final class GuestDataStore {
 
     private func fetchMemberships() -> [GuestSavedMembership] {
         (try? context.fetch(FetchDescriptor<GuestSavedMembership>())) ?? []
+    }
+
+    private func removeMembershipIfUnsaved(hadithId: String) {
+        guard !isBookmarked(hadithId: hadithId), !isFavorite(hadithId: hadithId), !fetchNotes().contains(where: { $0.hadithId == hadithId }) else { return }
+        for membership in fetchMemberships().filter({ $0.hadithId == hadithId }) { context.delete(membership) }
+        try? context.save()
     }
 
     nonisolated static func validFolderName(_ input: String) -> Bool {

@@ -1630,6 +1630,9 @@ private struct HadithBlock: View {
     @State private var isSubmittingTranslation = false
     @State private var reportedTranslation: ReaderTranslation?
     @State private var showingSource = false
+    @Environment(AppEnvironment.self) private var environment
+    @State private var pendingSavedRemoval: String?
+    @State private var undoNotice: SavedUndoNotice?
 
     /// Round-2 narrator placement for these preferences: above the Arabic
     /// block in Arabic-only mode, beside the translation otherwise.
@@ -1724,6 +1727,12 @@ private struct HadithBlock: View {
         .onLongPressGesture(minimumDuration: 0.5) {
             ReaderHapticDispatcher.trigger(.contextMenuOpen)
         }
+        .overlay(alignment: .top) { if let undoNotice { SavedUndoBanner(notice: undoNotice).offset(y: -8) } }
+        .confirmationDialog("Remove saved item?", isPresented: Binding(get: { pendingSavedRemoval != nil }, set: { if !$0 { pendingSavedRemoval = nil } })) {
+            Button("Remove", role: .destructive) { performPendingRemoval(disableFutureConfirmation: false) }
+            Button("Remove and don't ask again", role: .destructive) { performPendingRemoval(disableFutureConfirmation: true) }
+            Button("Cancel", role: .cancel) {}
+        }
         .sheet(isPresented: $showingSource) {
             HadithSourceSheet(hadith: hadith)
                 .presentationDetents([.medium])
@@ -1797,10 +1806,10 @@ private struct HadithBlock: View {
             .accessibilityLabel("\(ReaderSourceLabel.text(for: hadith)), \(kind.accessibilityName)")
             .accessibilityHint("Shows source details")
             .accessibilityAction(named: bookmarked ? "Remove Bookmark" : "Bookmark") {
-                model.toggleBookmark(hadith)
+                requestBookmarkToggle()
             }
             .accessibilityAction(named: favorited ? "Remove Favorite" : "Favorite") {
-                model.toggleFavorite(hadith)
+                requestFavoriteToggle()
             }
             .accessibilityAction(named: model.noteContent(for: hadith) != nil ? "Edit Note" : "Add Note") {
                 isEditingNote = true
@@ -1877,7 +1886,7 @@ private struct HadithBlock: View {
     @ViewBuilder
     private var hadithMenuContents: some View {
         Button {
-            model.toggleBookmark(hadith)
+            requestBookmarkToggle()
         } label: {
             Label(
                 model.isBookmarked(hadith) ? "Remove Bookmark" : "Bookmark",
@@ -1887,7 +1896,7 @@ private struct HadithBlock: View {
         .accessibilityIdentifier("reader.bookmark")
 
         Button {
-            model.toggleFavorite(hadith)
+            requestFavoriteToggle()
         } label: {
             Label(
                 model.isFavorite(hadith) ? "Remove Favorite" : "Favorite",
@@ -1947,6 +1956,37 @@ private struct HadithBlock: View {
             translationText: displayedTranslation,
             translationIsAI: activeTranslation?.source == "gemini_ai"
         )
+    }
+
+    private func requestBookmarkToggle() {
+        if model.isBookmarked(hadith), environment.savedSafety.confirmsRemoval { pendingSavedRemoval = "bookmark" }
+        else { removeOrAddBookmark() }
+    }
+
+    private func requestFavoriteToggle() {
+        if model.isFavorite(hadith), environment.savedSafety.confirmsRemoval { pendingSavedRemoval = "favorite" }
+        else { removeOrAddFavorite() }
+    }
+
+    private func performPendingRemoval(disableFutureConfirmation: Bool) {
+        if disableFutureConfirmation { environment.savedSafety.confirmsRemoval = false }
+        if pendingSavedRemoval == "bookmark" { removeOrAddBookmark() }
+        else if pendingSavedRemoval == "favorite" { removeOrAddFavorite() }
+        pendingSavedRemoval = nil
+    }
+
+    private func removeOrAddBookmark() {
+        let wasSaved = model.isBookmarked(hadith)
+        let createdAt = model.savedItem(for: hadith)?.bookmarkCreatedAt
+        model.toggleBookmark(hadith)
+        if wasSaved, let createdAt { undoNotice = SavedUndoNotice(message: "Bookmark removed") { model.restoreBookmark(hadith, createdAt: createdAt); undoNotice = nil } }
+    }
+
+    private func removeOrAddFavorite() {
+        let wasSaved = model.isFavorite(hadith)
+        let createdAt = model.savedItem(for: hadith)?.favoriteCreatedAt
+        model.toggleFavorite(hadith)
+        if wasSaved, let createdAt { undoNotice = SavedUndoNotice(message: "Favorite removed") { model.restoreFavorite(hadith, createdAt: createdAt); undoNotice = nil } }
     }
 
     @ViewBuilder

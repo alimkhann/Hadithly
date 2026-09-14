@@ -972,6 +972,28 @@ substantive: they own bounded implementation outcomes, not just inventories.
   Android JDK 21 unit/debug build, passed. Android instrumentation compiled
   but could not run because no Android device was connected.
 
+### H3 Saved interaction refinement (2026-09-14)
+
+- The global Saved destination and the reader's Bookmarks & Notes sheet now
+  use one native Saved row per platform. The row body opens the exact hadith,
+  facet icons remove only their facet, the folder button changes membership,
+  and the chevron expands an inline preview. Rows retain saved-time metadata
+  and show folder names only in the all-folders scope.
+- Folder names select on tap and expose deletion on hold. Folder and facet
+  removals use compact top undo notices. Bookmark, favorite, and note removal
+  asks first by default; readers may choose `Don't ask again` and can restore
+  the confirmation in Settings. Undo calls an idempotent facet-restore
+  mutation rather than toggling stale state.
+- Saved row context menus now include move, remove, copy, share, and suggest
+  translation actions in both Saved surfaces. Daily Hadith matches the reader
+  bookmark, favorite, note, copy, share, and suggestion action set; reporting
+  remains absent when Daily has no reportable translation identifier.
+- Evidence: development Convex deployed; backend typecheck and 98 tests passed.
+  The full iOS unit suite, focused Saved shortcut UI test, and simulator build
+  passed. Android JDK 21 unit tests, debug and instrumentation builds, and all
+  51 emulator instrumentation tests passed, including the shared-row hit-target
+  and preview fixture.
+
 ## Delegation policy
 
 Use GLM-5.3-Flash through OpenCode Go as the default author for bounded sessions

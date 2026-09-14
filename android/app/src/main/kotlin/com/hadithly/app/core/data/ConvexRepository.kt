@@ -231,6 +231,13 @@ class ConvexRepository(context: Context) {
     suspend fun deleteNote(hadithId: String) =
         mutation("library:deleteSavedNote", mapOf("hadithId" to hadithId))
 
+    suspend fun restoreSavedFacet(hadithId: String, facet: String, createdAt: Double, content: String? = null, updatedAt: Double? = null) {
+        val args = mutableMapOf<String, Any?>("hadithId" to hadithId, "facet" to facet, "createdAt" to createdAt)
+        if (content != null) args["content"] = content
+        if (updatedAt != null) args["updatedAt"] = updatedAt
+        mutation("library:restoreSavedFacet", args)
+    }
+
     suspend fun createSavedFolder(name: String) =
         mutation("library:createSavedFolder", mapOf("name" to name))
 

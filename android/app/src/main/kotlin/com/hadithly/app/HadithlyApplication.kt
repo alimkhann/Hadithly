@@ -5,6 +5,7 @@ import com.clerk.api.Clerk
 import com.hadithly.app.core.data.ConvexRepository
 import com.hadithly.app.core.data.GuestDataStore
 import com.hadithly.app.core.data.UserLibraryModel
+import com.hadithly.app.core.data.SavedSafetyPreferences
 import com.hadithly.app.core.session.SessionManager
 import com.hadithly.app.core.preferences.PreferencesStore
 import com.hadithly.app.core.settings.AppSettings
@@ -35,6 +36,8 @@ class HadithlyApplication : Application() {
         private set
     lateinit var library: UserLibraryModel
         private set
+    lateinit var savedSafety: SavedSafetyPreferences
+        private set
     lateinit var session: SessionManager
         private set
     lateinit var push: PushNotificationManager
@@ -54,7 +57,9 @@ class HadithlyApplication : Application() {
         purchases = PurchaseManager(this, BuildConfig.REVENUECAT_API_KEY)
 
         settings = AppSettings(this)
-        preferences = PreferencesStore(getSharedPreferences("hadithly", MODE_PRIVATE))
+        val sharedPreferences = getSharedPreferences("hadithly", MODE_PRIVATE)
+        preferences = PreferencesStore(sharedPreferences)
+        savedSafety = SavedSafetyPreferences(sharedPreferences)
         repository = ConvexRepository(this)
         guestData = GuestDataStore(this)
         library = UserLibraryModel(

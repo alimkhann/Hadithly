@@ -60,6 +60,7 @@ final class AppEnvironment {
     let push: PushNotificationManager
     let purchases: PurchaseManager
     let preferences: PreferencesStore
+    let savedSafety: SavedSafetyPreferences
     let links = LinkRouter()
 
     /// Summary of the last completed sign-in sync, surfaced in Settings.
@@ -78,6 +79,7 @@ final class AppEnvironment {
         self.purchases = PurchaseManager(apiKey: config.revenueCatAPIKey)
         let store = PreferencesStore()
         self.preferences = store
+        self.savedSafety = SavedSafetyPreferences()
         let provider = ClerkConvexAuthProvider()
         self.authProvider = provider
         self.convex = ConvexClientWithAuth(

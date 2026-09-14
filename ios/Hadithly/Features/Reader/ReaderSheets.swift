@@ -1294,12 +1294,14 @@ struct ReaderSearchSheet: View {
 /// sheet never duplicates them.
 struct ReaderSavedShortcutSheet: View {
     enum Tab: String, CaseIterable {
+        case all
         case bookmarks
         case favorites
         case notes
 
         var title: String {
             switch self {
+            case .all: "All"
             case .bookmarks: "Bookmarks"
             case .favorites: "Favorites"
             case .notes: "Notes"
@@ -1316,16 +1318,22 @@ struct ReaderSavedShortcutSheet: View {
     @Environment(\.readerPalette) private var palette
     @Environment(\.readerTheme) private var readerTheme
     @Environment(UserLibraryModel.self) private var library
+    @Environment(AppEnvironment.self) private var environment
     @State private var tab: Tab = .bookmarks
+    @State private var folderId: String?
+    @State private var pendingRemoval: SavedFacetRemoval?
+    @State private var undoNotice: SavedUndoNotice?
 
-    private var entries: [SavedEntry] {
-        let rows: [SavedEntry]
-        switch tab {
-        case .bookmarks: rows = library.bookmarks
-        case .favorites: rows = library.favorites
-        case .notes: rows = library.notes
-        }
-        return rows.sorted { $0.sortDate > $1.sortDate }
+    private var entries: [SavedItemEntry] {
+        library.savedItems.filter { item in
+            let matches = switch tab {
+            case .all: true
+            case .bookmarks: item.bookmarkCreatedAt != nil
+            case .favorites: item.favoriteCreatedAt != nil
+            case .notes: item.noteContent != nil
+            }
+            return matches && (folderId == nil || item.folderId == folderId)
+        }.sorted { $0.sortDate > $1.sortDate }
     }
 
     var body: some View {
@@ -1340,13 +1348,14 @@ struct ReaderSavedShortcutSheet: View {
         ) {
             VStack(alignment: .leading, spacing: 10) {
                 segmentedControl
+                folderControl
                 if entries.isEmpty {
                     emptyState
                 } else {
                     ScrollView {
                         VStack(spacing: 0) {
                             ForEach(entries) { entry in
-                                shortcutRow(entry)
+                                SharedSavedItemRow(item: entry, folders: library.folders, folderName: library.folders.first(where: { $0.id == entry.folderId })?.name, showsFolder: folderId == nil, onOpen: onOpen, onRemove: requestRemoval, onMove: { library.assignFolder(hadithId: entry.hadithId, folderId: $0) }, onSuggestTranslation: onOpen)
                             }
                         }
                         .padding(.vertical, 4)
@@ -1360,6 +1369,17 @@ struct ReaderSavedShortcutSheet: View {
             // state centers within the full detent height — no dead blank
             // region below short content.
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        }
+        .overlay(alignment: .top) {
+            if let notice = undoNotice { SavedUndoBanner(notice: notice).padding(.top, 8) }
+            else if let deletion = library.lastFolderDeletion { SavedUndoBanner(notice: SavedUndoNotice(message: "Folder \(deletion.name) deleted", undo: library.undoDeleteFolder)).padding(.top, 8) }
+        }
+        .confirmationDialog("Remove saved item?", isPresented: Binding(get: { pendingRemoval != nil }, set: { if !$0 { pendingRemoval = nil } })) {
+            if let removal = pendingRemoval {
+            Button("Remove", role: .destructive) { performRemoval(removal); pendingRemoval = nil }
+            Button("Remove and don't ask again", role: .destructive) { environment.savedSafety.confirmsRemoval = false; performRemoval(removal); pendingRemoval = nil }
+            }
+            Button("Cancel", role: .cancel) {}
         }
         .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
     }
@@ -1393,58 +1413,31 @@ struct ReaderSavedShortcutSheet: View {
         .clipShape(Capsule())
     }
 
+    private var folderControl: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+                Button("All folders") { folderId = nil }.buttonStyle(.bordered)
+                ForEach(library.folders) { folder in
+                    Button(folder.name) { folderId = folder.id }
+                        .buttonStyle(.bordered)
+                        .contextMenu { Button("Delete folder", role: .destructive) { if folderId == folder.id { folderId = nil }; library.deleteFolder(folder) } }
+                        .accessibilityAction(named: "Delete folder") { if folderId == folder.id { folderId = nil }; library.deleteFolder(folder) }
+                }
+            }
+        }
+    }
+
     /// Sajda bookmarks-tab rows: a tinted icon, the reference title with
     /// its relative stamp, a chevron, and minimal dividers. Notes keep one
     /// content line so they stay distinguishable.
-    private func shortcutRow(_ entry: SavedEntry) -> some View {
-        let icon: (name: String, color: Color) = switch tab {
-        case .bookmarks: ("bookmark.fill", Color(red: 0.96, green: 0.62, blue: 0.04))
-        case .favorites: ("heart.fill", .pink)
-        case .notes: ("square.and.pencil", .green)
+    private func requestRemoval(_ removal: SavedFacetRemoval) { if environment.savedSafety.confirmsRemoval { pendingRemoval = removal } else { performRemoval(removal) } }
+
+    private func performRemoval(_ removal: SavedFacetRemoval) {
+        switch removal {
+        case .bookmark(let item, let ref): if let date = item.bookmarkCreatedAt { library.toggleBookmark(ref); undoNotice = SavedUndoNotice(message: "Bookmark removed") { library.restoreBookmark(ref, createdAt: date); undoNotice = nil } }
+        case .favorite(let item, let ref): if let date = item.favoriteCreatedAt { library.toggleFavorite(ref); undoNotice = SavedUndoNotice(message: "Favorite removed") { library.restoreFavorite(ref, createdAt: date); undoNotice = nil } }
+        case .note(let item, let ref): if let content = item.noteContent { library.deleteNote(ref); undoNotice = SavedUndoNotice(message: "Note deleted") { library.restoreNote(ref, content: content, createdAt: item.createdAt, updatedAt: item.updatedAt); undoNotice = nil } }
         }
-        return Button {
-            if let ref = entry.hadith {
-                onOpen(ref)
-            }
-        } label: {
-            VStack(spacing: 0) {
-                HStack(spacing: 12) {
-                    Image(systemName: icon.name)
-                        .font(.callout)
-                        .foregroundStyle(icon.color)
-                        .frame(width: 34, height: 34)
-                        .background(icon.color.opacity(0.14))
-                        .clipShape(RoundedRectangle(cornerRadius: 9))
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(entry.hadith?.referenceDisplay.isEmpty == false
-                            ? entry.hadith!.referenceDisplay
-                            : (entry.hadith?.collectionName ?? "Saved hadith"))
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(palette.textPrimary)
-                            .lineLimit(1)
-                        Text(SavedRelativeTime.string(since: entry.sortDate))
-                            .font(.caption)
-                            .foregroundStyle(palette.textSecondary)
-                        if tab == .notes, let note = entry.noteContent, !note.isEmpty {
-                            Text(note)
-                                .font(.caption)
-                                .foregroundStyle(palette.textSecondary)
-                                .lineLimit(2)
-                        }
-                    }
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(palette.textSecondary.opacity(0.6))
-                }
-                .padding(.vertical, 10)
-                Divider().overlay(palette.divider.opacity(0.6))
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .disabled(entry.hadith == nil)
-        .accessibilityIdentifier("reader.savedShortcut.row.\(entry.rowId)")
     }
 
     private var emptyState: some View {

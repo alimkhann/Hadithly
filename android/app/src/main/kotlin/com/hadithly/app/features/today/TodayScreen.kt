@@ -48,6 +48,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.hadithly.app.R
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
@@ -196,6 +198,8 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
     val context = LocalContext.current; val clipboard = LocalClipboard.current
     val clipboardScope = androidx.compose.runtime.rememberCoroutineScope()
     var expanded by remember { mutableStateOf(false) }; var menu by remember { mutableStateOf(false) }; var note by remember { mutableStateOf(false) }; var sourceSheet by remember { mutableStateOf(false) }; var noteText by remember { mutableStateOf(library.noteContentFor(hadith._id) ?: "") }
+    val app = com.hadithly.app.HadithlyApplication.instance(); var pendingRemoval by remember { mutableStateOf<String?>(null) }; var undoMessage by remember { mutableStateOf<String?>(null) }; var undoAction by remember { mutableStateOf<(() -> Unit)?>(null) }
+    val bookmarkRemovedLabel = stringResource(R.string.saved_bookmark_removed); val favoriteRemovedLabel = stringResource(R.string.saved_favorite_removed)
     val collapse = TodayContentPolicy.needsCollapsedPreview(hadith.arabicText, hadith.translation?.text)
     val reference = HadithRef(hadith._id, hadith.collectionSlug, hadith.collectionName, hadith.volumeId, hadith.providerHadithId, hadith.arabicText, hadith.translation?.text, hadith.referenceDisplay)
     fun open() = onOpenTarget(ReaderOpenTarget(hadith.collectionSlug, hadith.collectionName, hadith.volumeId, hadith.providerHadithId, ReaderTargetSource.TODAY))
@@ -208,7 +212,11 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
         }
     }
     fun share() { runCatching { CanonicalHadithUrl.build(hadith.collectionSlug, hadith.providerHadithId) }.getOrNull()?.let { url -> context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, url), null)) } }
-    val actions = listOf(CustomAccessibilityAction("Open in reader") { open(); true }, CustomAccessibilityAction(if (library.isBookmarked(hadith._id)) "Remove Bookmark" else "Bookmark") { library.toggleBookmark(reference); true }, CustomAccessibilityAction(if (library.noteContentFor(hadith._id) == null) "Add Note" else "Edit Note") { note = true; true }, CustomAccessibilityAction("Copy") { copy(); true }, CustomAccessibilityAction("Share") { share(); true })
+    fun toggleBookmark() { val date = library.savedItems.value.firstOrNull { it.hadithId == hadith._id }?.bookmarkCreatedAt; val removing = library.isBookmarked(hadith._id); library.toggleBookmark(reference); if (removing && date != null) { undoMessage = bookmarkRemovedLabel; undoAction = { library.restoreBookmark(reference, date) } } }
+    fun toggleFavorite() { val date = library.savedItems.value.firstOrNull { it.hadithId == hadith._id }?.favoriteCreatedAt; val removing = library.isFavorite(hadith._id); library.toggleFavorite(reference); if (removing && date != null) { undoMessage = favoriteRemovedLabel; undoAction = { library.restoreFavorite(reference, date) } } }
+    fun requestBookmark() { if (library.isBookmarked(hadith._id) && app.savedSafety.confirmsRemoval) pendingRemoval = "bookmark" else toggleBookmark() }
+    fun requestFavorite() { if (library.isFavorite(hadith._id) && app.savedSafety.confirmsRemoval) pendingRemoval = "favorite" else toggleFavorite() }
+    val actions = listOf(CustomAccessibilityAction("Open in reader") { open(); true }, CustomAccessibilityAction(if (library.isBookmarked(hadith._id)) "Remove Bookmark" else "Bookmark") { requestBookmark(); true }, CustomAccessibilityAction(if (library.isFavorite(hadith._id)) "Remove Favorite" else "Favorite") { requestFavorite(); true }, CustomAccessibilityAction(if (library.noteContentFor(hadith._id) == null) "Add Note" else "Edit Note") { note = true; true }, CustomAccessibilityAction("Copy") { copy(); true }, CustomAccessibilityAction("Share") { share(); true }, CustomAccessibilityAction("Suggest translation") { open(); true })
     Box {
         val inner: @Composable () -> Unit = {
             Column(verticalArrangement = Arrangement.spacedBy(13.dp), modifier = Modifier.fillMaxWidth().padding(18.dp)) {
@@ -229,13 +237,17 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
         Box(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(colors.surface).combinedClickable(onClick = { open() }, onLongClick = { menu = true }).semantics { customActions = actions }.testTag("today.dailyCard")) {
             if (expanded && collapse) Box(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) { inner() } else inner()
         }
+        if (undoMessage != null) Row(Modifier.align(Alignment.TopCenter).fillMaxWidth().background(colors.surfaceElevated, RoundedCornerShape(14.dp)).padding(10.dp)) { Text(undoMessage!!, modifier = Modifier.weight(1f)); TextButton(onClick = { undoAction?.invoke(); undoMessage = null; undoAction = null }) { Text("Undo") } }
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-            DropdownMenuItem(text = { Text(if (library.isBookmarked(hadith._id)) "Remove Bookmark" else "Bookmark") }, onClick = { library.toggleBookmark(reference); menu = false })
+            DropdownMenuItem(text = { Text(if (library.isBookmarked(hadith._id)) "Remove Bookmark" else "Bookmark") }, onClick = { requestBookmark(); menu = false })
+            DropdownMenuItem(text = { Text(if (library.isFavorite(hadith._id)) "Remove Favorite" else "Favorite") }, onClick = { requestFavorite(); menu = false })
             DropdownMenuItem(text = { Text(if (library.noteContentFor(hadith._id) == null) "Add Note" else "Edit Note") }, onClick = { note = true; menu = false })
             DropdownMenuItem(text = { Text("Copy") }, onClick = { copy(); menu = false })
             DropdownMenuItem(text = { Text("Share") }, onClick = { share(); menu = false })
+            DropdownMenuItem(text = { Text("Suggest translation") }, onClick = { open(); menu = false })
         }
     }
+    if (pendingRemoval != null) AlertDialog(onDismissRequest = { pendingRemoval = null }, title = { Text("Remove saved item?") }, text = { Text("You can undo this action from the message at the top.") }, confirmButton = { TextButton(onClick = { if (pendingRemoval == "bookmark") toggleBookmark() else toggleFavorite(); pendingRemoval = null }) { Text("Remove") } }, dismissButton = { Column { TextButton(onClick = { app.savedSafety.confirmsRemoval = false; if (pendingRemoval == "bookmark") toggleBookmark() else toggleFavorite(); pendingRemoval = null }) { Text("Remove and don't ask again") }; TextButton(onClick = { pendingRemoval = null }) { Text("Cancel") } } })
     if (sourceSheet) {
         ModalBottomSheet(onDismissRequest = { sourceSheet = false }, containerColor = colors.surface) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth().padding(20.dp).testTag("today.sourceSheet")) {

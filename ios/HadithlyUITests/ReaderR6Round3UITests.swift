@@ -135,6 +135,13 @@ final class ReaderR6Round3UITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Sahih al-Bukhari · Hadith 57"].exists)
         XCTAssertTrue(app.staticTexts["2 months ago"].exists)
 
+        // The disclosure chevron previews in place and does not navigate.
+        let preview = element("saved.preview.saved-57", in: app)
+        XCTAssertTrue(preview.exists)
+        preview.tap()
+        XCTAssertEqual(preview.label, "Hide hadith preview")
+        XCTAssertFalse(element("r6.opened", in: app).exists)
+
         // Tapping a row navigates to the exact hadith.
         app.staticTexts["Sahih al-Bukhari · Hadith 57"].tap()
         XCTAssertEqual(element("r6.opened", in: app).label, "Sahih al-Bukhari · Hadith 57")

@@ -319,6 +319,21 @@ class UserLibraryModel(
         }
     }
 
+    fun restoreBookmark(ref: HadithRef, createdAt: Double) {
+        if (isSignedIn()) scope.launch { runCatching { repository.restoreSavedFacet(ref.hadithId, "bookmark", createdAt) } }
+        else scope.launch { guestData.addBookmark(GuestBookmarkDraft(ref.hadithId, createdAt, ref.collectionName, ref.referenceDisplay, ref.volumeId, ref.hadithNumber, ref.collectionSlug, ref.arabicText, ref.englishText)); loadGuestData() }
+    }
+
+    fun restoreFavorite(ref: HadithRef, createdAt: Double) {
+        if (isSignedIn()) scope.launch { runCatching { repository.restoreSavedFacet(ref.hadithId, "favorite", createdAt) } }
+        else scope.launch { guestData.addFavorite(GuestFavoriteDraft(ref.hadithId, createdAt, ref.collectionName, ref.referenceDisplay, ref.volumeId, ref.hadithNumber, ref.collectionSlug, ref.arabicText, ref.englishText)); loadGuestData() }
+    }
+
+    fun restoreNote(ref: HadithRef, content: String, createdAt: Double, updatedAt: Double) {
+        if (isSignedIn()) scope.launch { runCatching { repository.restoreSavedFacet(ref.hadithId, "note", createdAt, content, updatedAt) } }
+        else scope.launch { guestData.restoreNote(GuestNoteDraft(ref.hadithId, content, createdAt, updatedAt, ref.collectionName, ref.referenceDisplay, ref.volumeId, ref.hadithNumber, ref.collectionSlug, ref.arabicText, ref.englishText)); loadGuestData() }
+    }
+
     fun noteContentFor(hadithId: String): String? =
         notes.value.firstOrNull { it.hadith?.hadithId == hadithId }?.noteContent
 

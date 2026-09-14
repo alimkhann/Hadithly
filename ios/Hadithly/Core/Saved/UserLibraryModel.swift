@@ -351,6 +351,33 @@ final class UserLibraryModel {
         }
     }
 
+    func restoreBookmark(_ ref: HadithRef, createdAt: Date) {
+        if isSignedIn() {
+            Task { let _: Bool? = try? await convex.mutation("library:restoreSavedFacet", with: ["hadithId": ref.hadithId as ConvexEncodable?, "facet": "bookmark" as ConvexEncodable?, "createdAt": createdAt.millisecondsSinceEpoch as ConvexEncodable?]) }
+        } else {
+            guestData.addBookmark(draft: GuestBookmarkDraft(hadithId: ref.hadithId, createdAt: createdAt, collectionName: ref.collectionName, referenceDisplay: ref.referenceDisplay, volumeId: ref.volumeId, hadithNumber: ref.hadithNumber))
+            loadGuestData()
+        }
+    }
+
+    func restoreFavorite(_ ref: HadithRef, createdAt: Date) {
+        if isSignedIn() {
+            Task { let _: Bool? = try? await convex.mutation("library:restoreSavedFacet", with: ["hadithId": ref.hadithId as ConvexEncodable?, "facet": "favorite" as ConvexEncodable?, "createdAt": createdAt.millisecondsSinceEpoch as ConvexEncodable?]) }
+        } else {
+            guestData.addFavorite(draft: GuestFavoriteDraft(hadithId: ref.hadithId, createdAt: createdAt, collectionName: ref.collectionName, referenceDisplay: ref.referenceDisplay, volumeId: ref.volumeId, hadithNumber: ref.hadithNumber))
+            loadGuestData()
+        }
+    }
+
+    func restoreNote(_ ref: HadithRef, content: String, createdAt: Date, updatedAt: Date) {
+        if isSignedIn() {
+            Task { let _: Bool? = try? await convex.mutation("library:restoreSavedFacet", with: ["hadithId": ref.hadithId as ConvexEncodable?, "facet": "note" as ConvexEncodable?, "createdAt": createdAt.millisecondsSinceEpoch as ConvexEncodable?, "content": content as ConvexEncodable?, "updatedAt": updatedAt.millisecondsSinceEpoch as ConvexEncodable?]) }
+        } else {
+            guestData.addNote(hadithId: ref.hadithId, content: content, createdAt: createdAt, updatedAt: updatedAt)
+            loadGuestData()
+        }
+    }
+
     /// Saves the reader position. Called on page turns and on leaving the
     /// reader; the per-collection upsert on the backend makes repeats cheap.
     func saveProgress(_ position: ReadingPosition, ref: HadithRef) {

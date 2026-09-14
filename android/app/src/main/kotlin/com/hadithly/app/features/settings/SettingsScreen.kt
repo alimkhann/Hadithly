@@ -98,7 +98,7 @@ fun SettingsScreen(onShowSignIn: () -> Unit) {
     ) {
         Text("Settings", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
         AccountCard(signedIn, syncSummary, onShowSignIn)
-        ReadingCard(preferences, app.preferences)
+        ReadingCard(preferences, app.preferences, app.savedSafety)
         NotificationCard(signedIn)
         if (canModerate) {
             Row(
@@ -288,7 +288,7 @@ private fun AccountCard(signedIn: Boolean, syncSummary: String?, onShowSignIn: (
  * the final Settings screen; R4 owns the full reader typography UI.
  */
 @Composable
-private fun ReadingCard(preferences: ReaderPreferences, store: PreferencesStore) {
+private fun ReadingCard(preferences: ReaderPreferences, store: PreferencesStore, savedSafety: com.hadithly.app.core.data.SavedSafetyPreferences) {
     val colors = LocalHadithlyColors.current
     CardColumn {
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -351,6 +351,15 @@ private fun ReadingCard(preferences: ReaderPreferences, store: PreferencesStore)
                 onCheckedChange = { store.setVisibility(arabic = it) },
                 colors = SwitchDefaults.colors(checkedTrackColor = colors.accent),
                 modifier = Modifier.testTag("settings.visibility.arabic"),
+            )
+        }
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.saved_confirm_removal), fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
+            Switch(
+                checked = savedSafety.confirmsRemoval,
+                onCheckedChange = { savedSafety.confirmsRemoval = it },
+                colors = SwitchDefaults.colors(checkedTrackColor = colors.accent),
+                modifier = Modifier.testTag("settings.confirmSavedRemoval"),
             )
         }
         Row(

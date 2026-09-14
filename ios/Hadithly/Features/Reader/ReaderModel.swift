@@ -794,7 +794,7 @@ final class ReaderModel {
 
     // MARK: - Saved data (bookmarks / favorites / notes / progress)
 
-    private func ref(for hadith: ReaderHadith) -> HadithRef {
+    func ref(for hadith: ReaderHadith) -> HadithRef {
         HadithRef(
             hadithId: hadith._id,
             collectionSlug: hadith.collectionSlug,
@@ -820,6 +820,13 @@ final class ReaderModel {
         #endif
         return library?.isFavorite(hadithId: hadith._id) ?? false
     }
+
+    func savedItem(for hadith: ReaderHadith) -> SavedItemEntry? {
+        library?.savedItems.first { $0.hadithId == hadith._id }
+    }
+
+    func restoreBookmark(_ hadith: ReaderHadith, createdAt: Date) { library?.restoreBookmark(ref(for: hadith), createdAt: createdAt) }
+    func restoreFavorite(_ hadith: ReaderHadith, createdAt: Date) { library?.restoreFavorite(ref(for: hadith), createdAt: createdAt) }
 
     func toggleBookmark(_ hadith: ReaderHadith) {
         let adding = !isBookmarked(hadith)

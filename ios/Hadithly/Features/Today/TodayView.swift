@@ -181,9 +181,10 @@ struct TodayView: View {
             if let hadith = dailyHadith {
                 DailyHadithCard(hadith: hadith, preferences: preferences, palette: readerPalette,
                                 offline: isOffline, isBookmarked: library.isBookmarked(hadithId: hadith._id),
+                                isFavorited: library.isFavorite(hadithId: hadith._id),
                                 hasNote: library.notes.contains(where: { $0.hadith?.hadithId == hadith._id }),
                                 onOpen: { openDaily(hadith) }, onBookmark: { library.toggleBookmark(hadith.ref) },
-                                onNote: { noteTarget = hadith }, onCopy: { copy(hadith) }, onSource: { showingDailySource = true })
+                                onFavorite: { library.toggleFavorite(hadith.ref) }, onNote: { noteTarget = hadith }, onCopy: { copy(hadith) }, onSuggest: { openDaily(hadith) }, onSource: { showingDailySource = true })
                     .accessibilityIdentifier("today.dailyCard")
             } else if isLoadingDaily {
                 homeShell { HStack(spacing: 10) { ProgressView().tint(Theme.textSecondary); Text("Bringing today's hadith…").foregroundStyle(Theme.textSecondary) } }
@@ -276,17 +277,28 @@ private struct ContinueReadingCard: View {
 
 private struct DailyHadithCard: View {
     let hadith: DailyHadith; let preferences: ReaderPreferences; let palette: ReaderPalette
-    let offline: Bool; let isBookmarked: Bool; let hasNote: Bool
-    let onOpen: () -> Void; let onBookmark: () -> Void; let onNote: () -> Void; let onCopy: () -> Void; let onSource: () -> Void
+    let offline: Bool; let isBookmarked: Bool; let isFavorited: Bool; let hasNote: Bool
+    let onOpen: () -> Void; let onBookmark: () -> Void; let onFavorite: () -> Void; let onNote: () -> Void; let onCopy: () -> Void; let onSuggest: () -> Void; let onSource: () -> Void
     @State private var expanded = false
+    @Environment(AppEnvironment.self) private var environment
+    @Environment(UserLibraryModel.self) private var library
+    @State private var pendingRemoval: String?
+    @State private var undoNotice: SavedUndoNotice?
     private var shouldCollapse: Bool { TodayContentPolicy.needsCollapsedPreview(arabic: hadith.arabicText, translation: hadith.translation?.text) }
 
     var body: some View {
         Group { if expanded && shouldCollapse { ScrollView { readingUnit }.frame(maxHeight: TodayContentPolicy.expandedScrollHeight) } else { readingUnit } }
             .padding(18).background(palette.surface).clipShape(RoundedRectangle(cornerRadius: 18))
             .contentShape(RoundedRectangle(cornerRadius: 18)).onTapGesture { onOpen() }.contextMenu { menuContents }
+            .overlay(alignment: .top) { if let undoNotice { SavedUndoBanner(notice: undoNotice).padding(.top, 8) } }
+            .confirmationDialog("Remove saved item?", isPresented: Binding(get: { pendingRemoval != nil }, set: { if !$0 { pendingRemoval = nil } })) {
+                Button("Remove", role: .destructive) { performPendingRemoval(false) }
+                Button("Remove and don't ask again", role: .destructive) { performPendingRemoval(true) }
+                Button("Cancel", role: .cancel) {}
+            }
             .accessibilityElement(children: .contain).accessibilityAction(named: "Open in reader") { onOpen() }
-            .accessibilityAction(named: isBookmarked ? "Remove Bookmark" : "Bookmark") { onBookmark() }
+            .accessibilityAction(named: isBookmarked ? "Remove Bookmark" : "Bookmark") { requestBookmark() }
+            .accessibilityAction(named: isFavorited ? "Remove Favorite" : "Favorite") { requestFavorite() }
             .accessibilityAction(named: hasNote ? "Edit Note" : "Add Note") { onNote() }
             .accessibilityAction(named: "Copy") { onCopy() }
     }
@@ -312,11 +324,20 @@ private struct DailyHadithCard: View {
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
     @ViewBuilder private var menuContents: some View {
-        Button(action: onBookmark) { Label(isBookmarked ? "Remove Bookmark" : "Bookmark", systemImage: isBookmarked ? "bookmark.fill" : "bookmark") }
+        Button(action: requestBookmark) { Label(isBookmarked ? "Remove Bookmark" : "Bookmark", systemImage: isBookmarked ? "bookmark.fill" : "bookmark") }
+        Button(action: requestFavorite) { Label(isFavorited ? "Remove Favorite" : "Favorite", systemImage: isFavorited ? "heart.fill" : "heart") }
         Button(action: onNote) { Label(hasNote ? "Edit Note" : "Add Note", systemImage: "square.and.pencil") }
         Button(action: onCopy) { Label("Copy", systemImage: "doc.on.doc") }
         if let url = ReaderShare.canonicalURL(collectionSlug: hadith.collectionSlug, providerHadithId: hadith.providerHadithId) { ShareLink(item: url) { Label("Share", systemImage: "square.and.arrow.up") } }
+        Divider()
+        Button(action: onSuggest) { Label("Suggest Translation", systemImage: "text.bubble") }
     }
+
+    private func requestBookmark() { if isBookmarked && environment.savedSafety.confirmsRemoval { pendingRemoval = "bookmark" } else { toggleBookmark() } }
+    private func requestFavorite() { if isFavorited && environment.savedSafety.confirmsRemoval { pendingRemoval = "favorite" } else { toggleFavorite() } }
+    private func performPendingRemoval(_ disable: Bool) { if disable { environment.savedSafety.confirmsRemoval = false }; if pendingRemoval == "bookmark" { toggleBookmark() } else { toggleFavorite() }; pendingRemoval = nil }
+    private func toggleBookmark() { let date = library.savedItems.first(where: { $0.hadithId == hadith._id })?.bookmarkCreatedAt; onBookmark(); if isBookmarked, let date { undoNotice = SavedUndoNotice(message: "Bookmark removed") { library.restoreBookmark(hadith.ref, createdAt: date); undoNotice = nil } } }
+    private func toggleFavorite() { let date = library.savedItems.first(where: { $0.hadithId == hadith._id })?.favoriteCreatedAt; onFavorite(); if isFavorited, let date { undoNotice = SavedUndoNotice(message: "Favorite removed") { library.restoreFavorite(hadith.ref, createdAt: date); undoNotice = nil } } }
 }
 
 private struct TodayNoteEditor: View {

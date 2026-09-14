@@ -419,6 +419,13 @@ private struct ReadingCard: View {
                 .accessibilityIdentifier("settings.visibility.translation")
             }
 
+            Toggle("Confirm before removing saved items", isOn: Binding(
+                get: { environment.savedSafety.confirmsRemoval },
+                set: { environment.savedSafety.confirmsRemoval = $0 }
+            ))
+            .tint(Theme.accent)
+            .accessibilityIdentifier("settings.confirmSavedRemoval")
+
             Text("\(SupportedLanguages.all.count) languages available")
                 .font(.caption)
                 .foregroundStyle(Theme.textSecondary)

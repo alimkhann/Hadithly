@@ -39,3 +39,24 @@ initial Saved bytes where one hadith has multiple facets.
 - A Saved target is always the existing `HadithRef` target. Legacy bookmark
   offsets remain legacy metadata and never become a fabricated reading
   position.
+
+## Shared Saved interactions
+
+The global Saved tab and the reader's Bookmarks & Notes sheet render the same
+platform-native Saved row from `SavedItemEntry`. The row body opens the exact
+reader target. Facet icons remove only their facet, the folder icon changes
+membership, and the chevron expands an inline preview. Folder names appear in
+the all-folders scope and stay hidden inside the selected folder.
+
+Destructive facet actions use one device-local confirmation preference. A
+confirmed removal creates an explicit restore command and a top undo notice;
+undo never calls a toggle. Folder names select on tap and expose destructive
+folder actions on hold, with equivalent accessibility actions.
+
+The design comparison selected the shared row and callback contract because it
+keeps navigation, persistence, and presentation separate. It rejected copied
+reader/global rows, toggle-based undo, and a synced safety preference. The
+strongest alternative suggested a generic cross-surface action registry; the
+implementation instead reuses the existing reader action vocabulary through
+host callbacks because Saved-only rows do not have a loaded reportable
+translation.

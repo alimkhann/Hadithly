@@ -1,6 +1,120 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "All folders" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "كل المجلدات" } },
+        "ur" : { "stringUnit" : { "state" : "translated", "value" : "تمام فولڈرز" } }
+      }
+    },
+    "Bookmark removed" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "تمت إزالة الإشارة المرجعية" } },
+        "ur" : { "stringUnit" : { "state" : "translated", "value" : "بک مارک ہٹا دیا گیا" } }
+      }
+    },
+    "Confirm before removing saved items" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "التأكيد قبل إزالة العناصر المحفوظة" } },
+        "ur" : { "stringUnit" : { "state" : "translated", "value" : "محفوظہ آئٹمز ہٹانے سے پہلے تصدیق کریں" } }
+      }
+    },
+    "Copy" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "نسخ" } },
+        "ur" : { "stringUnit" : { "state" : "translated", "value" : "کاپی کریں" } }
+      }
+    },
+    "Delete folder" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "حذف المجلد" } },
+        "ur" : { "stringUnit" : { "state" : "translated", "value" : "فولڈر حذف کریں" } }
+      }
+    },
+    "Delete note" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "حذف الملاحظة" } },
+        "ur" : { "stringUnit" : { "state" : "translated", "value" : "نوٹ حذف کریں" } }
+      }
+    },
+    "Favorite removed" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "تمت الإزالة من المفضلة" } },
+        "ur" : { "stringUnit" : { "state" : "translated", "value" : "پسندیدہ ہٹا دیا گیا" } }
+      }
+    },
+    "Hide hadith preview" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "إخفاء معاينة الحديث" } },
+        "ur" : { "stringUnit" : { "state" : "translated", "value" : "حدیث کا پیش منظر چھپائیں" } }
+      }
+    },
+    "Move to folder" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "نقل إلى مجلد" } },
+        "ur" : { "stringUnit" : { "state" : "translated", "value" : "فولڈر میں منتقل کریں" } }
+      }
+    },
+    "No folder" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "بلا مجلد" } },
+        "ur" : { "stringUnit" : { "state" : "translated", "value" : "کوئی فولڈر نہیں" } }
+      }
+    },
+    "Note deleted" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "تم حذف الملاحظة" } },
+        "ur" : { "stringUnit" : { "state" : "translated", "value" : "نوٹ حذف ہو گیا" } }
+      }
+    },
+    "Remove" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "إزالة" } },
+        "ur" : { "stringUnit" : { "state" : "translated", "value" : "ہٹائیں" } }
+      }
+    },
+    "Remove and don't ask again" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "إزالة وعدم السؤال مرة أخرى" } },
+        "ur" : { "stringUnit" : { "state" : "translated", "value" : "ہٹائیں اور دوبارہ نہ پوچھیں" } }
+      }
+    },
+    "Remove saved item?" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "إزالة العنصر المحفوظ؟" } },
+        "ur" : { "stringUnit" : { "state" : "translated", "value" : "محفوظہ آئٹم ہٹائیں؟" } }
+      }
+    },
+    "Share" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "مشاركة" } },
+        "ur" : { "stringUnit" : { "state" : "translated", "value" : "شیئر کریں" } }
+      }
+    },
+    "Show hadith preview" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "عرض معاينة الحديث" } },
+        "ur" : { "stringUnit" : { "state" : "translated", "value" : "حدیث کا پیش منظر دکھائیں" } }
+      }
+    },
+    "Suggest Translation" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "اقتراح ترجمة" } },
+        "ur" : { "stringUnit" : { "state" : "translated", "value" : "ترجمہ تجویز کریں" } }
+      }
+    },
+    "Undo" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "تراجع" } },
+        "ur" : { "stringUnit" : { "state" : "translated", "value" : "واپس کریں" } }
+      }
+    },
+    "You can undo this action from the message at the top." : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "يمكنك التراجع عن هذا الإجراء من الرسالة في الأعلى." } },
+        "ur" : { "stringUnit" : { "state" : "translated", "value" : "آپ اوپر موجود پیغام سے یہ عمل واپس کر سکتے ہیں۔" } }
+      }
+    },
     "· %@" : {
       "comment" : "A footnote in the hadith view, displayed when there are additional notes. The text inside the footnote is a bullet point followed by the note text.",
       "isCommentAutoGenerated" : true

@@ -163,6 +163,10 @@ describe("H3 Saved dual-read migration fixtures", () => {
     if (!deletion) throw new Error("Expected folder deletion receipt");
     await asUser.mutation(api.library.restoreSavedFolder, deletion);
     expect((await asUser.query(api.library.listSavedSnapshot, {})).items.find((item) => item.hadithId === hadithIds[0])?.folderId).toBeDefined();
+    await asUser.mutation(api.library.toggleSavedBookmark, { hadithId: hadithIds[0] });
+    expect((await asUser.query(api.library.listSavedSnapshot, {})).items.find((item) => item.hadithId === hadithIds[0])?.bookmarkCreatedAt).toBeUndefined();
+    await asUser.mutation(api.library.restoreSavedFacet, { hadithId: hadithIds[0], facet: "bookmark", createdAt: 10 });
+    expect((await asUser.query(api.library.listSavedSnapshot, {})).items.find((item) => item.hadithId === hadithIds[0])?.bookmarkCreatedAt).toBe(10);
     await expect(asUser.mutation(api.library.createSavedFolder, { name: "\n" })).rejects.toThrow("FOLDER_NAME_EMPTY");
     await expect(asUser.mutation(api.library.createSavedFolder, { name: "a".repeat(65) })).rejects.toThrow("FOLDER_NAME_TOO_LONG");
 

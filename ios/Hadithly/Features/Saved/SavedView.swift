@@ -4,11 +4,14 @@ import SwiftUI
 struct SavedView: View {
     private enum Filter: String, CaseIterable, Identifiable { case all, bookmarks, favorites, notes; var id: Self { self }; var title: LocalizedStringKey { switch self { case .all: "All"; case .bookmarks: "Bookmarks"; case .favorites: "Favorites"; case .notes: "Notes" } } }
     @Environment(UserLibraryModel.self) private var library
+    @Environment(AppEnvironment.self) private var environment
     @State private var filter: Filter = .all
     @State private var folderId: String?
     @State private var openTarget: ReaderOpenTarget?
     @State private var newFolderName = ""
     @State private var showNewFolder = false
+    @State private var pendingRemoval: SavedFacetRemoval?
+    @State private var undoNotice: SavedUndoNotice?
 
     private var items: [SavedItemEntry] {
         library.savedItems.filter { item in
@@ -26,28 +29,36 @@ struct SavedView: View {
                 ContentUnavailableView("Nothing saved yet", systemImage: "bookmark", description: Text("Bookmark, favorite, or add a note while reading to keep a hadith here."))
             } else {
                 List(items) { item in
-                    if let hadith = item.hadith {
-                        Button { openTarget = ReaderOpenTarget(slug: hadith.collectionSlug, name: hadith.collectionName, volumeId: hadith.volumeId, hadithNumber: hadith.hadithNumber, source: .saved) } label: {
-                            SavedItemRow(item: item, folderName: library.folders.first(where: { $0.id == item.folderId })?.name)
-                        }.buttonStyle(.plain).accessibilityHint("Opens this hadith").contextMenu { itemMenu(item, hadith: hadith) }
+                    if item.hadith != nil {
+                        SharedSavedItemRow(
+                            item: item,
+                            folders: library.folders,
+                            folderName: library.folders.first(where: { $0.id == item.folderId })?.name,
+                            showsFolder: folderId == nil,
+                            onOpen: open,
+                            onRemove: requestRemoval,
+                            onMove: { library.assignFolder(hadithId: item.hadithId, folderId: $0) },
+                            onSuggestTranslation: open
+                        )
                     }
                 }.listStyle(.plain)
             }
         }
         .padding(.horizontal).navigationTitle("Saved")
         .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("New folder", systemImage: "folder.badge.plus") { showNewFolder = true }.accessibilityLabel("Create saved folder") } }
-        .safeAreaInset(edge: .bottom) {
-            if let deletion = library.lastFolderDeletion {
-                HStack {
-                    Text("Folder \(deletion.name) deleted")
-                    Spacer()
-                    Button("Undo") { library.undoDeleteFolder() }
-                        .accessibilityLabel("Undo deleting folder \(deletion.name)")
-                }
-                .padding(12)
-                .background(Theme.surface)
+        .overlay(alignment: .top) {
+            if let notice = undoNotice { SavedUndoBanner(notice: notice).padding(.top, 8) }
+            else if let deletion = library.lastFolderDeletion {
+                SavedUndoBanner(notice: SavedUndoNotice(message: "Folder \(deletion.name) deleted", undo: library.undoDeleteFolder)).padding(.top, 8)
             }
         }
+        .confirmationDialog("Remove saved item?", isPresented: Binding(get: { pendingRemoval != nil }, set: { if !$0 { pendingRemoval = nil } })) {
+            if let removal = pendingRemoval {
+            Button("Remove", role: .destructive) { performRemoval(removal); pendingRemoval = nil }
+            Button("Remove and don't ask again", role: .destructive) { environment.savedSafety.confirmsRemoval = false; performRemoval(removal); pendingRemoval = nil }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: { Text("You can undo this action from the message at the top.") }
         .alert("New folder", isPresented: $showNewFolder) {
             TextField("Folder name", text: $newFolderName)
             Button("Cancel", role: .cancel) { newFolderName = "" }
@@ -61,42 +72,49 @@ struct SavedView: View {
             HStack(spacing: 8) {
                 Button("All folders") { folderId = nil }.buttonStyle(.borderedProminent).tint(folderId == nil ? Theme.accent : Theme.surface)
                 ForEach(library.folders) { folder in
-                    Menu {
-                        Button("Show folder") { folderId = folder.id }
+                    Button { folderId = folder.id } label: {
+                        Label(folder.name, systemImage: "folder")
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(folderId == folder.id ? Theme.accent : Theme.textSecondary)
+                    .contextMenu {
                         Button("Delete folder", role: .destructive) {
                             if folderId == folder.id { folderId = nil }
                             library.deleteFolder(folder)
                         }
-                    } label: { Label(folder.name, systemImage: "folder") }
-                        .buttonStyle(.bordered).tint(folderId == folder.id ? Theme.accent : Theme.textSecondary)
+                    }
+                    .accessibilityAction(named: "Delete folder") {
+                        if folderId == folder.id { folderId = nil }
+                        library.deleteFolder(folder)
+                    }
+                    .accessibilityHint("Opens this folder. Long press for folder actions.")
                 }
             }
         }.accessibilityLabel("Saved folders")
     }
 
-    @ViewBuilder private func itemMenu(_ item: SavedItemEntry, hadith: HadithRef) -> some View {
-        Menu("Move to folder") { Button("No folder") { library.assignFolder(hadithId: item.hadithId, folderId: nil) }; ForEach(library.folders) { folder in Button(folder.name) { library.assignFolder(hadithId: item.hadithId, folderId: folder.id) } } }
-        if item.bookmarkCreatedAt != nil { Button("Remove bookmark", role: .destructive) { library.toggleBookmark(hadith) } }
-        if item.favoriteCreatedAt != nil { Button("Remove favorite", role: .destructive) { library.toggleFavorite(hadith) } }
-        if item.noteContent != nil { Button("Delete note", role: .destructive) { library.deleteNote(hadith) } }
+    private func open(_ ref: HadithRef) {
+        openTarget = ReaderOpenTarget(slug: ref.collectionSlug, name: ref.collectionName, volumeId: ref.volumeId, hadithNumber: ref.hadithNumber, source: .saved)
     }
-}
 
-private struct SavedItemRow: View {
-    let item: SavedItemEntry
-    let folderName: String?
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 8) {
-                Text(item.hadith?.referenceDisplay ?? "Saved hadith").font(.subheadline.weight(.medium)).foregroundStyle(Theme.textPrimary)
-                Spacer(minLength: 0)
-                if item.bookmarkCreatedAt != nil { Image(systemName: "bookmark.fill").foregroundStyle(Theme.bookmark).accessibilityLabel("Bookmarked") }
-                if item.favoriteCreatedAt != nil { Image(systemName: "heart.fill").foregroundStyle(Theme.favorite).accessibilityLabel("Favorite") }
-                if item.noteContent != nil { Image(systemName: "square.and.pencil").foregroundStyle(Theme.accent).accessibilityLabel("Has note") }
-            }
-            if let folderName { Label(folderName, systemImage: "folder").font(.caption).foregroundStyle(Theme.textSecondary) }
-            if let note = item.noteContent, !note.isEmpty { Text(note).font(.subheadline).foregroundStyle(Theme.textSecondary).lineLimit(2) }
-            if let arabic = item.hadith?.arabicText, !arabic.isEmpty { Text(arabic).font(.body).foregroundStyle(Theme.textPrimary).lineLimit(2) }
-        }.padding(.vertical, 6)
+    private func requestRemoval(_ removal: SavedFacetRemoval) {
+        if environment.savedSafety.confirmsRemoval { pendingRemoval = removal } else { performRemoval(removal) }
+    }
+
+    private func performRemoval(_ removal: SavedFacetRemoval) {
+        switch removal {
+        case .bookmark(let item, let ref):
+            guard let createdAt = item.bookmarkCreatedAt else { return }
+            library.toggleBookmark(ref)
+            undoNotice = SavedUndoNotice(message: "Bookmark removed") { library.restoreBookmark(ref, createdAt: createdAt); undoNotice = nil }
+        case .favorite(let item, let ref):
+            guard let createdAt = item.favoriteCreatedAt else { return }
+            library.toggleFavorite(ref)
+            undoNotice = SavedUndoNotice(message: "Favorite removed") { library.restoreFavorite(ref, createdAt: createdAt); undoNotice = nil }
+        case .note(let item, let ref):
+            guard let content = item.noteContent else { return }
+            library.deleteNote(ref)
+            undoNotice = SavedUndoNotice(message: "Note deleted") { library.restoreNote(ref, content: content, createdAt: item.createdAt, updatedAt: item.updatedAt); undoNotice = nil }
+        }
     }
 }

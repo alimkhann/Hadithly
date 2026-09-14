@@ -268,14 +268,17 @@ class ReaderR6Round3Test {
         compose.onNodeWithText("Reader settings").assertDoesNotExist()
         compose.onNodeWithText("Settings").assertIsDisplayed()
         compose.onNodeWithText("Bookmarks & Notes").assertIsDisplayed()
-        compose.onNodeWithText("Sunnah.now English text").assertIsDisplayed()
+        compose.onNodeWithText("Sunnah.now English text").assertDoesNotExist()
 
         // Video order: Contents, Bookmarks & Notes, Settings, then the
         // Bookmark + Search bottom row.
-        val titles = listOf("Contents", "Bookmarks & Notes", "Settings", "Bookmark", "Search")
+        val titles = listOf("Contents", "Bookmarks & Notes", "Settings")
         val tops = titles.map { title ->
             compose.onNodeWithText(title).fetchSemanticsNode().positionInRoot.y
-        }
+        } + listOf(
+            compose.onNodeWithTag("reader.menu.bookmark").fetchSemanticsNode().positionInRoot.y,
+            compose.onNodeWithTag("reader.menu.search").fetchSemanticsNode().positionInRoot.y,
+        )
         assertEquals(tops.sorted(), tops)
     }
 
@@ -298,7 +301,7 @@ class ReaderR6Round3Test {
         // The bottom-row bookmark names the positioned hadith; its filled
         // amber state is pinned structurally in the placement sheet test.
         compose.onNodeWithTag("reader.menu.bookmark").assertIsDisplayed()
-        compose.onNodeWithText("Sahih al-Bukhari · Hadith 57").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Bookmark Sahih al-Bukhari · Hadith 57").assertIsDisplayed()
     }
 
     // Bookmark placement

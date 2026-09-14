@@ -47,3 +47,7 @@ _Avoid_: Bookmark row, favorite row, note row
 **Saved folder**:
 A private user-named grouping that an existing Saved item may join at most once. Deleting a folder removes membership, never the Saved item.
 _Avoid_: Collection, shared folder
+
+**Saved-removal confirmation**:
+A device-local safety preference that asks before removing a bookmark, favorite, or note. It never changes another device's safety behavior.
+_Avoid_: Synced reader preference, undo

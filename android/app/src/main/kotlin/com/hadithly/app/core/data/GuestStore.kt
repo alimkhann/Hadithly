@@ -196,13 +196,13 @@ class GuestDataStore(context: Context) {
         writeLocked { it.copy(bookmarks = it.bookmarks.filterNot { b -> b.hadithId == draft.hadithId } + draft) }
 
     suspend fun removeBookmark(hadithId: String) =
-        writeLocked { it.copy(bookmarks = it.bookmarks.filterNot { b -> b.hadithId == hadithId }) }
+        writeLocked { store -> val bookmarks = store.bookmarks.filterNot { it.hadithId == hadithId }; store.copy(bookmarks = bookmarks, savedMemberships = if (bookmarks.none { it.hadithId == hadithId } && store.favorites.none { it.hadithId == hadithId } && store.notes.none { it.hadithId == hadithId }) store.savedMemberships.filterNot { it.hadithId == hadithId } else store.savedMemberships) }
 
     suspend fun addFavorite(draft: GuestFavoriteDraft) =
         writeLocked { it.copy(favorites = it.favorites.filterNot { f -> f.hadithId == draft.hadithId } + draft) }
 
     suspend fun removeFavorite(hadithId: String) =
-        writeLocked { it.copy(favorites = it.favorites.filterNot { f -> f.hadithId == hadithId }) }
+        writeLocked { store -> val favorites = store.favorites.filterNot { it.hadithId == hadithId }; store.copy(favorites = favorites, savedMemberships = if (favorites.none { it.hadithId == hadithId } && store.bookmarks.none { it.hadithId == hadithId } && store.notes.none { it.hadithId == hadithId }) store.savedMemberships.filterNot { it.hadithId == hadithId } else store.savedMemberships) }
 
     suspend fun saveNote(
         hadithId: String,
@@ -237,7 +237,12 @@ class GuestDataStore(context: Context) {
     }
 
     suspend fun deleteNote(hadithId: String) =
-        writeLocked { it.copy(notes = it.notes.filterNot { n -> n.hadithId == hadithId }, savedMemberships = it.savedMemberships.filterNot { membership -> membership.hadithId == hadithId }) }
+        writeLocked { store -> val notes = store.notes.filterNot { it.hadithId == hadithId }; store.copy(notes = notes, savedMemberships = if (notes.none { it.hadithId == hadithId } && store.bookmarks.none { it.hadithId == hadithId } && store.favorites.none { it.hadithId == hadithId }) store.savedMemberships.filterNot { it.hadithId == hadithId } else store.savedMemberships) }
+
+    suspend fun restoreNote(draft: GuestNoteDraft) = writeLocked { store ->
+        if (store.notes.any { it.hadithId == draft.hadithId }) store
+        else store.copy(notes = store.notes + draft)
+    }
 
     suspend fun createSavedFolder(name: String): GuestSavedFolderDraft {
         val folder = GuestSavedFolderDraft(UUID.randomUUID().toString(), name, nowMillis())
