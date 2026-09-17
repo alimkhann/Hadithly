@@ -472,6 +472,23 @@ class ReaderR6Round3Test {
     }
 
     @Test
+    fun `initial landing preserves top cached offsets and explicit targets`() {
+        assertEquals(0 to 0, com.hadithly.app.features.reader.readerInitialOffset(null, null))
+        assertEquals(0 to 0, com.hadithly.app.features.reader.readerInitialOffset(null, 0 to 0))
+        assertEquals(2 to 148, com.hadithly.app.features.reader.readerInitialOffset(null, 2 to 148))
+        assertEquals(1 to 0, com.hadithly.app.features.reader.readerInitialOffset(0, 2 to 148))
+        assertEquals(4 to 0, com.hadithly.app.features.reader.readerInitialOffset(3, null))
+    }
+
+    @Test
+    fun `captured header and footer are never hadith anchors`() {
+        assertNull(com.hadithly.app.features.reader.readerHadithIndex(0, 3))
+        assertEquals(0, com.hadithly.app.features.reader.readerHadithIndex(1, 3))
+        assertEquals(2, com.hadithly.app.features.reader.readerHadithIndex(3, 3))
+        assertNull(com.hadithly.app.features.reader.readerHadithIndex(4, 3))
+    }
+
+    @Test
     fun `scroll cache keeps only the last two pages`() {
         val cache = ReaderScrollOffsetCache()
         cache.save(0, 5, 120)

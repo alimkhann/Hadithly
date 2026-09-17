@@ -235,7 +235,11 @@ class ReaderScrollOffsetCache(maxEntries: Int = 2) {
 /**
  * Every rendered reader page begins with one non-hadith header item. Keeping
  * this mapping explicit prevents a target hadith from being mistaken for the
- * top item, and lets a never-visited page land on its real header.
+ * top item, and lets a never-visited page land on its real header. A cached
+ * (index, offset) pair counts as a real visited position only when it is not
+ * the top: a zero/zero snapshot is what a fresh page writes before any user
+ * scroll, so treating it as visited would keep a returning page from
+ * re-anchoring at its header.
  */
 internal fun readerPageLandingItemIndex(
     targetHadithIndex: Int?,
@@ -245,6 +249,16 @@ internal fun readerPageLandingItemIndex(
     !hasCachedOffset -> 0
     else -> null
 }
+
+/** A stored (index, offset) pair represents an actual visited scroll position. */
+internal fun isStoredScrollOffsetVisited(offset: Pair<Int, Int>): Boolean =
+    offset.first > 0 || offset.second > 0
+
+internal fun readerHadithIndex(itemIndex: Int, hadithCount: Int): Int? =
+    (itemIndex - 1).takeIf { it in 0 until hadithCount }
+
+internal fun readerInitialOffset(targetHadithIndex: Int?, cachedOffset: Pair<Int, Int>?): Pair<Int, Int> =
+    targetHadithIndex?.let { (it + 1) to 0 } ?: cachedOffset ?: (0 to 0)
 
 /**
  * R6 reader fix round 6: preview-at-offset tick. The moment a swipe targets

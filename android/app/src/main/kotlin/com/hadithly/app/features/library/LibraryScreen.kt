@@ -16,13 +16,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed as gridItemsIndexed
 import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -36,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -79,20 +81,15 @@ fun LibraryScreen(onOpenCollection: (String, String) -> Unit, onOpenTarget: (com
                     contentDescription = if (grid) "Show Library list" else "Show Library grid"
                 },
             ) {
-                Icon(if (grid) Icons.Filled.ViewList else Icons.Filled.GridView, null, tint = colors.textPrimary)
-            }
+                Icon(if (grid) Icons.AutoMirrored.Filled.ViewList else Icons.Filled.GridView, null, tint = colors.textPrimary)            }
         }
-        progress.filter { it.hadith != null }.maxByOrNull { it.updatedAt }?.let { entry ->
-            val hadith = entry.hadith ?: return@let
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp).background(colors.surface, androidx.compose.foundation.shape.RoundedCornerShape(14.dp)).clickable {
-                    onOpenTarget(com.hadithly.app.features.main.ReaderOpenTarget(entry.collectionSlug, hadith.collectionName, hadith.volumeId, hadith.hadithNumber, com.hadithly.app.core.data.ReaderTargetSource.CONTINUE_READING, entry.position))
-                }.padding(10.dp),
-            ) {
-                CollectionCover(Collections.all.indexOfFirst { it.first == entry.collectionSlug } + 1, Modifier.width(42.dp).height(62.dp))
-                Spacer(Modifier.size(10.dp))
-                Column { Text("Continue reading", fontSize = 11.sp, color = colors.textSecondary); Text(hadith.referenceDisplay, fontSize = 15.sp, color = colors.textPrimary) }
+        continueReadingEntries(progress).takeIf { it.isNotEmpty() }?.let { entries ->
+            SectionTitleRow("Continue reading", Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp))
+            ContinueReadingRail(
+                entries,
+                cardTagPrefix = "library.continueCard",
+            ) { entry ->
+                onOpenTarget(continueReadingTarget(entry))
             }
         }
         if (grid) {

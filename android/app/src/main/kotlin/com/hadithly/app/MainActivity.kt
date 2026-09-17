@@ -124,6 +124,7 @@ fun RootApp(
 ) {
     val app = LocalContext.current.applicationContext as HadithlyApplication
     val onboardingCompleted by app.settings.onboardingCompleted.collectAsState()
+    val preferences by app.preferences.preferences.collectAsState()
 
     var showSignIn by remember { mutableStateOf(false) }
 
@@ -137,7 +138,7 @@ fun RootApp(
         )
     } else {
         OnboardingFlow(
-            selectedLanguage = app.preferences.preferences.value.uiLocale,
+            selectedLanguage = preferences.uiLocale,
             onSelectLanguage = { app.preferences.applyOnboardingLanguage(it) },
             onComplete = { app.settings.setOnboardingCompleted(true) },
         )

@@ -71,6 +71,21 @@ class ConvexRepository(context: Context) {
         }
     }
 
+    suspend fun loadSavedPreview(ref: HadithRef): HadithRef {
+        if (ref.arabicText.isNotBlank() && !ref.englishText.isNullOrBlank()) return ref
+        val number = ref.hadithNumber ?: error("Saved reference is unavailable")
+        val volume = ref.volumeId ?: getCollectionOutline(ref.collectionSlug).volumes.let { volumes ->
+            var count = 0.0
+            volumes.firstOrNull { volume ->
+                count += volume.hadithCount
+                (number.substringBefore('.').toDoubleOrNull() ?: Double.MAX_VALUE) <= count
+            }?.volumeId
+        }
+        val hadith = getReaderPage(ref.collectionSlug, volume, 0, number).items
+            .firstOrNull { it.providerHadithId == number } ?: error("Saved hadith is unavailable")
+        return ref.copy(arabicText = hadith.arabicText, englishText = hadith.englishText)
+    }
+
     suspend fun translateHadith(hadithInternalId: String, targetLanguage: String): ReaderTranslation =
         withContext(Dispatchers.IO) {
             convex.action<ReaderTranslation>(
