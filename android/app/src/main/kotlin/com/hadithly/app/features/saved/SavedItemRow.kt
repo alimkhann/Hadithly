@@ -6,10 +6,19 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import kotlinx.coroutines.CancellationException
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -35,13 +44,33 @@ fun SharedSavedItemRow(
     onCopy: (HadithRef) -> Unit,
     onShare: (HadithRef) -> Unit,
     onSuggestTranslation: (HadithRef) -> Unit,
+    loadPreview: suspend (HadithRef) -> HadithRef = { it },
 ) {
     val ref = item.hadith ?: return
     val colors = LocalHadithlyColors.current
     var expanded by remember(item.hadithId) { mutableStateOf(false) }
-    var menuOpen by remember { mutableStateOf(false) }
-    var folderMenuOpen by remember { mutableStateOf(false) }
-    Column(Modifier.fillMaxWidth().padding(top = 8.dp).testTag("saved.row.${item.hadithId}")) {
+    var preview by remember(ref) { mutableStateOf(ref) }
+    var loading by remember(ref) { mutableStateOf(false) }
+    var failed by remember(ref) { mutableStateOf(false) }
+    var retry by remember(ref) { mutableStateOf(0) }
+    var menuOpen by remember(item.hadithId) { mutableStateOf(false) }
+    var folderMenuOpen by remember(item.hadithId) { mutableStateOf(false) }
+    LaunchedEffect(expanded, ref, retry) {
+        if (!expanded || (preview.arabicText.isNotBlank() && !preview.englishText.isNullOrBlank())) return@LaunchedEffect
+        loading = true
+        failed = false
+        try {
+            preview = loadPreview(ref)
+            failed = preview.arabicText.isBlank() && preview.englishText.isNullOrBlank()
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            failed = true
+        } finally {
+            loading = false
+        }
+    }
+    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(colors.surface).padding(12.dp).testTag("saved.row.${item.hadithId}")) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f).combinedClickable(onClick = { onOpen(ref) }, onLongClick = { menuOpen = true }).padding(vertical = 8.dp)) {
                 Text(ref.referenceDisplay.ifBlank { ref.collectionName }, fontWeight = FontWeight.SemiBold, color = colors.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -50,22 +79,24 @@ fun SharedSavedItemRow(
             if (item.bookmarkCreatedAt != null) IconButton(onClick = { onRemove(SavedFacet.BOOKMARK, item, ref) }) { Icon(Icons.Filled.Bookmark, stringResource(R.string.saved_remove_bookmark), tint = colors.bookmark) }
             if (item.favoriteCreatedAt != null) IconButton(onClick = { onRemove(SavedFacet.FAVORITE, item, ref) }) { Icon(Icons.Filled.Favorite, stringResource(R.string.saved_remove_favorite), tint = colors.favorite) }
             if (item.noteContent != null) IconButton(onClick = { onRemove(SavedFacet.NOTE, item, ref) }) { Icon(Icons.Filled.EditNote, stringResource(R.string.saved_delete_note), tint = colors.accent) }
-            IconButton(onClick = { folderMenuOpen = true }) { Icon(Icons.Filled.Folder, stringResource(R.string.saved_move_folder), tint = colors.textSecondary) }
-            DropdownMenu(expanded = folderMenuOpen, onDismissRequest = { folderMenuOpen = false }) {
-                DropdownMenuItem(text = { Text(stringResource(R.string.saved_no_folder)) }, onClick = { onMove(null); folderMenuOpen = false })
-                folders.forEach { folder -> DropdownMenuItem(text = { Text(folder.name) }, onClick = { onMove(folder.id); folderMenuOpen = false }) }
-            }
             IconButton(onClick = { expanded = !expanded }, modifier = Modifier.testTag("saved.preview.${item.hadithId}")) { Icon(if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown, stringResource(if (expanded) R.string.saved_hide_preview else R.string.saved_show_preview), tint = colors.textSecondary) }
         }
         if (showFolder) folders.firstOrNull { it.id == item.folderId }?.let { Text(it.name, fontSize = 12.sp, color = colors.textSecondary) }
         item.noteContent?.takeIf { it.isNotBlank() }?.let { Text(it, fontSize = 13.sp, color = colors.textSecondary, maxLines = if (expanded) Int.MAX_VALUE else 1) }
         if (expanded) {
-            if (ref.arabicText.isNotBlank()) Text(ref.arabicText, fontSize = 19.sp, lineHeight = 31.sp, color = colors.textPrimary, modifier = Modifier.fillMaxWidth())
-            ref.englishText?.takeIf { it.isNotBlank() }?.let { Text(it, fontSize = 14.sp, color = colors.textSecondary) }
+            preview.arabicText.takeIf { it.isNotBlank() }?.let { Text(it, fontSize = 19.sp, lineHeight = 31.sp, color = colors.textPrimary, modifier = Modifier.fillMaxWidth()) }
+            preview.englishText?.takeIf { it.isNotBlank() }?.let { Text(it, fontSize = 14.sp, color = colors.textSecondary) }
+            if (loading) CircularProgressIndicator(Modifier.size(20.dp).testTag("saved.preview.loading"), color = colors.textSecondary)
+            if (failed) TextButton(onClick = { retry++ }, modifier = Modifier.testTag("saved.preview.retry")) { Text(stringResource(R.string.saved_preview_retry), color = colors.textSecondary) }
         }
-        HorizontalDivider(color = colors.divider.copy(alpha = 0.55f))
+        DropdownMenu(expanded = folderMenuOpen, onDismissRequest = { folderMenuOpen = false }) {
+            DropdownMenuItem(text = { Text(stringResource(R.string.saved_no_folder), color = if (item.folderId == null) colors.accent else colors.textSecondary) }, onClick = { onMove(null); folderMenuOpen = false })
+            folders.forEach { folder ->
+                DropdownMenuItem(text = { Text(folder.name, color = if (item.folderId == folder.id) colors.accent else colors.textSecondary) }, onClick = { onMove(folder.id); folderMenuOpen = false })
+            }
+        }
         DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-            DropdownMenuItem(text = { Text(stringResource(R.string.saved_move_folder)) }, onClick = { folderMenuOpen = true; menuOpen = false })
+            DropdownMenuItem(text = { Text(stringResource(R.string.saved_move_folder)) }, onClick = { menuOpen = false; folderMenuOpen = true })
             if (item.bookmarkCreatedAt != null) DropdownMenuItem(text = { Text(stringResource(R.string.saved_remove_bookmark)) }, onClick = { onRemove(SavedFacet.BOOKMARK, item, ref); menuOpen = false })
             if (item.favoriteCreatedAt != null) DropdownMenuItem(text = { Text(stringResource(R.string.saved_remove_favorite)) }, onClick = { onRemove(SavedFacet.FAVORITE, item, ref); menuOpen = false })
             if (item.noteContent != null) DropdownMenuItem(text = { Text(stringResource(R.string.saved_delete_note)) }, onClick = { onRemove(SavedFacet.NOTE, item, ref); menuOpen = false })

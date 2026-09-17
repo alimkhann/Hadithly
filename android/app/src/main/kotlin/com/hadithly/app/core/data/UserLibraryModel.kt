@@ -134,9 +134,7 @@ class UserLibraryModel(
     private val _folders = MutableStateFlow<List<SavedFolder>>(emptyList())
     val folders: StateFlow<List<SavedFolder>> = _folders
 
-    private val _lastFolderDeletion = MutableStateFlow<FolderDeletionResult?>(null)
-    val lastFolderDeletion: StateFlow<FolderDeletionResult?> = _lastFolderDeletion
-    private var guestFolderDeletion: GuestFolderDeletion? = null
+    val undo = SavedUndoController(scope) { android.os.SystemClock.elapsedRealtime() }
 
     private val _bookmarks = MutableStateFlow<List<SavedEntry>>(emptyList())
     val bookmarks: StateFlow<List<SavedEntry>> = _bookmarks
@@ -289,32 +287,22 @@ class UserLibraryModel(
         }
     }
 
-    fun deleteFolder(folder: SavedFolder) {
-        if (isSignedIn()) {
-            scope.launch { runCatching { repository.deleteSavedFolder(folder.id) }.onSuccess { _lastFolderDeletion.value = it } }
-        } else {
-            scope.launch {
-                guestFolderDeletion = guestData.deleteSavedFolder(folder.id)
-                guestFolderDeletion?.let { _lastFolderDeletion.value = FolderDeletionResult(it.folder.name, it.hadithIds, it.folder.createdAt) }
-                loadGuestData()
-            }
-        }
-    }
-
-    fun undoDeleteFolder() {
-        val deletion = _lastFolderDeletion.value ?: return
+    fun deleteFolder(folder: SavedFolder, message: String) {
         if (isSignedIn()) {
             scope.launch {
-                runCatching { repository.restoreSavedFolder(deletion.name, deletion.hadithIds, deletion.deletedAt) }
-                    .onSuccess { _lastFolderDeletion.value = null }
+                runCatching { repository.deleteSavedFolder(folder.id) }.onSuccess { deletion ->
+                    undo.show(message) {
+                        scope.launch { runCatching { repository.restoreSavedFolder(deletion.name, deletion.hadithIds, deletion.deletedAt) } }
+                    }
+                }
             }
         } else {
             scope.launch {
-                val guestDeletion = guestFolderDeletion
-                if (guestDeletion != null) guestData.restoreSavedFolder(guestDeletion)
-                guestFolderDeletion = null
-                _lastFolderDeletion.value = null
+                val deletion = guestData.deleteSavedFolder(folder.id)
                 loadGuestData()
+                if (deletion != null) undo.show(message) {
+                    scope.launch { guestData.restoreSavedFolder(deletion); loadGuestData() }
+                }
             }
         }
     }

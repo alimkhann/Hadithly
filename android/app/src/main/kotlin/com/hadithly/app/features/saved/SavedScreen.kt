@@ -76,7 +76,6 @@ fun SavedScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
     val colors = LocalHadithlyColors.current
     val saved by app.library.savedItems.collectAsStateWithLifecycle()
     val folders by app.library.folders.collectAsStateWithLifecycle()
-    val lastFolderDeletion by app.library.lastFolderDeletion.collectAsStateWithLifecycle()
     val bookmarkRemoved = stringResource(R.string.saved_bookmark_removed)
     val favoriteRemoved = stringResource(R.string.saved_favorite_removed)
     val noteDeleted = stringResource(R.string.saved_note_deleted)
@@ -86,8 +85,7 @@ fun SavedScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
     var folderName by remember { mutableStateOf("") }
     var folderMenu by remember { mutableStateOf<com.hadithly.app.core.data.SavedFolder?>(null) }
     var removal by remember { mutableStateOf<RemovalRequest?>(null) }
-    var undoMessage by remember { mutableStateOf<String?>(null) }
-    var undoAction by remember { mutableStateOf<(() -> Unit)?>(null) }
+    val folderDeletedTemplate = stringResource(R.string.saved_folder_deleted, "%1\$s")
     val visible = saved.filter { item ->
         val matches = when (filter) { SavedFilter.All -> true; SavedFilter.Bookmarks -> item.bookmarkCreatedAt != null; SavedFilter.Favorites -> item.favoriteCreatedAt != null; SavedFilter.Notes -> item.noteContent != null }
         matches && (folderId == null || item.folderId == folderId)
@@ -96,11 +94,14 @@ fun SavedScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
 
     fun performRemoval(request: RemovalRequest) {
         when (request.facet) {
-            SavedFacet.BOOKMARK -> request.item.bookmarkCreatedAt?.let { at -> app.library.toggleBookmark(request.ref); undoMessage = bookmarkRemoved; undoAction = { app.library.restoreBookmark(request.ref, at) } }
-            SavedFacet.FAVORITE -> request.item.favoriteCreatedAt?.let { at -> app.library.toggleFavorite(request.ref); undoMessage = favoriteRemoved; undoAction = { app.library.restoreFavorite(request.ref, at) } }
-            SavedFacet.NOTE -> request.item.noteContent?.let { content -> app.library.deleteNote(request.ref); undoMessage = noteDeleted; undoAction = { app.library.restoreNote(request.ref, content, request.item.createdAt, request.item.updatedAt) } }
+            SavedFacet.BOOKMARK -> request.item.bookmarkCreatedAt?.let { at -> app.library.toggleBookmark(request.ref); app.library.undo.show(bookmarkRemoved) { app.library.restoreBookmark(request.ref, at) } }
+            SavedFacet.FAVORITE -> request.item.favoriteCreatedAt?.let { at -> app.library.toggleFavorite(request.ref); app.library.undo.show(favoriteRemoved) { app.library.restoreFavorite(request.ref, at) } }
+            SavedFacet.NOTE -> request.item.noteContent?.let { content -> app.library.deleteNote(request.ref); app.library.undo.show(noteDeleted) { app.library.restoreNote(request.ref, content, request.item.createdAt, request.item.updatedAt) } }
         }
     }
+    fun folderDeletedMessage(name: String): String =
+        folderDeletedTemplate.replace("%1\$s", name).ifBlank { "Folder $name deleted" }
+
     fun requestRemoval(facet: SavedFacet, item: SavedItemEntry, ref: HadithRef) {
         val request = RemovalRequest(facet, item, ref)
         if (app.savedSafety.confirmsRemoval) removal = request else performRemoval(request)
@@ -114,21 +115,16 @@ fun SavedScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
             Text(stringResource(R.string.saved_title), fontSize = 30.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary, modifier = Modifier.weight(1f))
             IconButton(onClick = { showCreateFolder = true }, modifier = Modifier.testTag("saved.createFolder")) { Icon(Icons.Filled.Folder, stringResource(R.string.saved_create_folder), tint = colors.accent) }
         }
-        val displayedUndo = undoMessage ?: lastFolderDeletion?.let { stringResource(R.string.saved_folder_deleted, it.name) }
-        if (displayedUndo != null) {
-            Row(Modifier.fillMaxWidth().background(colors.surfaceElevated, RoundedCornerShape(14.dp)).padding(horizontal = 14.dp, vertical = 10.dp).testTag("saved.undoBanner"), verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Filled.Undo, null, tint = colors.accent); Spacer(Modifier.width(10.dp)); Text(displayedUndo, color = colors.textPrimary, modifier = Modifier.weight(1f)); TextButton(onClick = { undoAction?.invoke() ?: app.library.undoDeleteFolder(); undoMessage = null; undoAction = null }) { Text(stringResource(R.string.saved_undo), color = colors.accent) }
-            }
-        }
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             SavedFilter.entries.forEach { option -> TextButton(onClick = { filter = option }, modifier = Modifier.testTag("saved.filter.${option.name.lowercase()}")) { Text(stringResource(filterTitle(option)), color = if (filter == option) colors.accent else colors.textSecondary) } }
         }
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            TextButton(onClick = { folderId = null }) { Icon(Icons.Filled.FolderOff, null, tint = if (folderId == null) colors.accent else colors.textSecondary); Spacer(Modifier.width(4.dp)); Text(stringResource(R.string.saved_all_folders)) }
+            TextButton(onClick = { folderId = null }) { Icon(Icons.Filled.FolderOff, null, tint = if (folderId == null) colors.accent else colors.textSecondary); Spacer(Modifier.width(4.dp)); Text(stringResource(R.string.saved_all_folders), color = if (folderId == null) colors.accent else colors.textSecondary) }
             folders.forEach { folder ->
-                Row(Modifier.combinedClickable(onClick = { folderId = folder.id }, onLongClick = { folderMenu = folder }).background(colors.surfaceElevated, RoundedCornerShape(50)).padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Filled.Folder, null, tint = if (folderId == folder.id) colors.accent else colors.textSecondary); Spacer(Modifier.width(4.dp)); Text(folder.name) }
+                val selected = folderId == folder.id
+                Row(Modifier.combinedClickable(onClick = { folderId = folder.id }, onLongClick = { folderMenu = folder }).background(if (selected) colors.accentSoft else colors.surfaceElevated, RoundedCornerShape(50)).padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Filled.Folder, null, tint = if (selected) colors.accent else colors.textSecondary); Spacer(Modifier.width(4.dp)); Text(folder.name, color = if (selected) colors.accent else colors.textSecondary) }
                 DropdownMenu(expanded = folderMenu?.id == folder.id, onDismissRequest = { folderMenu = null }) {
-                    DropdownMenuItem(text = { Text(stringResource(R.string.saved_delete_folder)) }, onClick = { if (folderId == folder.id) folderId = null; app.library.deleteFolder(folder); folderMenu = null })
+                    DropdownMenuItem(text = { Text(stringResource(R.string.saved_delete_folder)) }, onClick = { val message = folderDeletedMessage(folder.name); if (folderId == folder.id) folderId = null; app.library.deleteFolder(folder, message); folderMenu = null })
                 }
             }
         }
@@ -140,7 +136,7 @@ fun SavedScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
             }
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxSize().testTag("saved.list")) {
-                items(visible, key = { it.hadithId }) { item -> SharedSavedItemRow(item, folders, folderId == null, { ref -> onOpenTarget(ReaderOpenTarget(ref.collectionSlug, ref.collectionName, ref.volumeId, ref.hadithNumber, ReaderTargetSource.SAVED)) }, ::requestRemoval, { app.library.assignFolder(item.hadithId, it) }, { ref -> (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText(ref.referenceDisplay, listOfNotNull(ref.arabicText, ref.englishText, ref.referenceDisplay).joinToString("\n\n"))) }, { ref -> context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "https://hadithly.app/hadith/${ref.collectionSlug}/${ref.hadithNumber}"), null)) }, { ref -> onOpenTarget(ReaderOpenTarget(ref.collectionSlug, ref.collectionName, ref.volumeId, ref.hadithNumber, ReaderTargetSource.SAVED)) }) }
+                items(visible, key = { it.hadithId }) { item -> SharedSavedItemRow(item, folders, folderId == null, { ref -> onOpenTarget(ReaderOpenTarget(ref.collectionSlug, ref.collectionName, ref.volumeId, ref.hadithNumber, ReaderTargetSource.SAVED)) }, ::requestRemoval, { app.library.assignFolder(item.hadithId, it) }, { ref -> (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText(ref.referenceDisplay, listOfNotNull(ref.arabicText, ref.englishText, ref.referenceDisplay).joinToString("\n\n"))) }, { ref -> context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "https://hadithly.app/hadith/${ref.collectionSlug}/${ref.hadithNumber}"), null)) }, { ref -> onOpenTarget(ReaderOpenTarget(ref.collectionSlug, ref.collectionName, ref.volumeId, ref.hadithNumber, ReaderTargetSource.SAVED)) }, { ref -> withContext(Dispatchers.IO) { app.repository.loadSavedPreview(ref) } }) }
             }
         }
     }

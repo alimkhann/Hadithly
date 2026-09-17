@@ -145,16 +145,11 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
                 fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = homeColors.textPrimary,
             )
         }
-        val entries = progress.filter { it.hadith != null }.sortedByDescending { it.updatedAt }.take(3)
+        val entries = com.hadithly.app.features.library.continueReadingEntries(progress)
         if (entries.isNotEmpty()) {
-            SectionTitle("Continue reading", homeColors, Modifier.padding(horizontal = 16.dp))
-            LazyRow(contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                itemsIndexed(entries, key = { _, entry -> entry.collectionSlug }) { _, entry ->
-                    val ref = entry.hadith ?: return@itemsIndexed
-                    ContinueReadingCard(ref, Collections.all.indexOfFirst { it.first == entry.collectionSlug } + 1) {
-                        onOpenTarget(ReaderOpenTarget(entry.collectionSlug, ref.collectionName, ref.volumeId, ref.hadithNumber, ReaderTargetSource.CONTINUE_READING, entry.position))
-                    }
-                }
+            com.hadithly.app.features.library.SectionTitleRow("Continue reading", Modifier.padding(horizontal = 16.dp))
+            com.hadithly.app.features.library.ContinueReadingRail(entries) { entry ->
+                onOpenTarget(com.hadithly.app.features.library.continueReadingTarget(entry))
             }
         }
         SectionTitle("Daily hadith", homeColors, Modifier.padding(horizontal = 16.dp))
@@ -185,20 +180,12 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
 
 @Composable private fun SectionTitle(title: String, colors: HadithlyColors, modifier: Modifier = Modifier) = Text(title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary, modifier = modifier)
 
-@Composable private fun ContinueReadingCard(ref: HadithRef, position: Int, onClick: () -> Unit) {
-    val colors = LocalHadithlyColors.current
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.width(218.dp).clip(RoundedCornerShape(16.dp)).background(colors.surface).combinedClickable(onClick = onClick).padding(10.dp).testTag("today.continueCard")) {
-        CollectionCover(position, Modifier.width(52.dp).height(76.dp))
-        Spacer(Modifier.size(12.dp)); Column(Modifier.weight(1f)) { Text(ref.collectionName, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary, maxLines = 2); Text(ref.referenceDisplay, fontSize = 11.sp, color = colors.textSecondary, maxLines = 1) }
-    }
-}
-
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable private fun DailyCard(hadith: DailyHadith, preferences: ReaderPreferences, colors: HadithlyColors, offline: Boolean, library: UserLibraryModel, onOpenTarget: (ReaderOpenTarget) -> Unit) {
     val context = LocalContext.current; val clipboard = LocalClipboard.current
     val clipboardScope = androidx.compose.runtime.rememberCoroutineScope()
     var expanded by remember { mutableStateOf(false) }; var menu by remember { mutableStateOf(false) }; var note by remember { mutableStateOf(false) }; var sourceSheet by remember { mutableStateOf(false) }; var noteText by remember { mutableStateOf(library.noteContentFor(hadith._id) ?: "") }
-    val app = com.hadithly.app.HadithlyApplication.instance(); var pendingRemoval by remember { mutableStateOf<String?>(null) }; var undoMessage by remember { mutableStateOf<String?>(null) }; var undoAction by remember { mutableStateOf<(() -> Unit)?>(null) }
+    val app = com.hadithly.app.HadithlyApplication.instance(); var pendingRemoval by remember { mutableStateOf<String?>(null) }
     val bookmarkRemovedLabel = stringResource(R.string.saved_bookmark_removed); val favoriteRemovedLabel = stringResource(R.string.saved_favorite_removed)
     val collapse = TodayContentPolicy.needsCollapsedPreview(hadith.arabicText, hadith.translation?.text)
     val reference = HadithRef(hadith._id, hadith.collectionSlug, hadith.collectionName, hadith.volumeId, hadith.providerHadithId, hadith.arabicText, hadith.translation?.text, hadith.referenceDisplay)
@@ -212,8 +199,8 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
         }
     }
     fun share() { runCatching { CanonicalHadithUrl.build(hadith.collectionSlug, hadith.providerHadithId) }.getOrNull()?.let { url -> context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, url), null)) } }
-    fun toggleBookmark() { val date = library.savedItems.value.firstOrNull { it.hadithId == hadith._id }?.bookmarkCreatedAt; val removing = library.isBookmarked(hadith._id); library.toggleBookmark(reference); if (removing && date != null) { undoMessage = bookmarkRemovedLabel; undoAction = { library.restoreBookmark(reference, date) } } }
-    fun toggleFavorite() { val date = library.savedItems.value.firstOrNull { it.hadithId == hadith._id }?.favoriteCreatedAt; val removing = library.isFavorite(hadith._id); library.toggleFavorite(reference); if (removing && date != null) { undoMessage = favoriteRemovedLabel; undoAction = { library.restoreFavorite(reference, date) } } }
+    fun toggleBookmark() { val date = library.savedItems.value.firstOrNull { it.hadithId == hadith._id }?.bookmarkCreatedAt; val removing = library.isBookmarked(hadith._id); library.toggleBookmark(reference); if (removing && date != null) library.undo.show(bookmarkRemovedLabel) { library.restoreBookmark(reference, date) } }
+    fun toggleFavorite() { val date = library.savedItems.value.firstOrNull { it.hadithId == hadith._id }?.favoriteCreatedAt; val removing = library.isFavorite(hadith._id); library.toggleFavorite(reference); if (removing && date != null) library.undo.show(favoriteRemovedLabel) { library.restoreFavorite(reference, date) } }
     fun requestBookmark() { if (library.isBookmarked(hadith._id) && app.savedSafety.confirmsRemoval) pendingRemoval = "bookmark" else toggleBookmark() }
     fun requestFavorite() { if (library.isFavorite(hadith._id) && app.savedSafety.confirmsRemoval) pendingRemoval = "favorite" else toggleFavorite() }
     val actions = listOf(CustomAccessibilityAction("Open in reader") { open(); true }, CustomAccessibilityAction(if (library.isBookmarked(hadith._id)) "Remove Bookmark" else "Bookmark") { requestBookmark(); true }, CustomAccessibilityAction(if (library.isFavorite(hadith._id)) "Remove Favorite" else "Favorite") { requestFavorite(); true }, CustomAccessibilityAction(if (library.noteContentFor(hadith._id) == null) "Add Note" else "Edit Note") { note = true; true }, CustomAccessibilityAction("Copy") { copy(); true }, CustomAccessibilityAction("Share") { share(); true }, CustomAccessibilityAction("Suggest translation") { open(); true })
@@ -237,7 +224,6 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
         Box(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(colors.surface).combinedClickable(onClick = { open() }, onLongClick = { menu = true }).semantics { customActions = actions }.testTag("today.dailyCard")) {
             if (expanded && collapse) Box(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) { inner() } else inner()
         }
-        if (undoMessage != null) Row(Modifier.align(Alignment.TopCenter).fillMaxWidth().background(colors.surfaceElevated, RoundedCornerShape(14.dp)).padding(10.dp)) { Text(undoMessage!!, modifier = Modifier.weight(1f)); TextButton(onClick = { undoAction?.invoke(); undoMessage = null; undoAction = null }) { Text("Undo") } }
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
             DropdownMenuItem(text = { Text(if (library.isBookmarked(hadith._id)) "Remove Bookmark" else "Bookmark") }, onClick = { requestBookmark(); menu = false })
             DropdownMenuItem(text = { Text(if (library.isFavorite(hadith._id)) "Remove Favorite" else "Favorite") }, onClick = { requestFavorite(); menu = false })

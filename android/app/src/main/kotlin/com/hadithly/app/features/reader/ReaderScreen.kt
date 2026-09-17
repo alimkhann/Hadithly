@@ -144,12 +144,14 @@ import com.hadithly.app.core.preferences.ReaderPreferences
 import com.hadithly.app.core.preferences.SwipeDirection
 import com.hadithly.app.core.theme.LocalHadithlyColors
 import com.hadithly.app.features.purchases.QuotaPaywallSheet
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -664,6 +666,13 @@ private fun ReadingView(
                 }
         }
 
+        if (!showReaderSaved) {
+            com.hadithly.app.features.saved.SavedUndoBanner(
+                Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(horizontal = 20.dp, vertical = 80.dp),
+                testTag = "reader.undoBanner",
+            )
+        }
+
         // Round 7, focused: ONE 4dp narrow dynamic PAGE bar, ~1/4 width,
         // centered below the (always visible) status bar. ALWAYS rendered
         // in focused mode in every palette — the null-total fallback keeps
@@ -1128,19 +1137,20 @@ private fun ReaderPage(
     onShowPaywall: () -> Unit,
 ) {
     val colors = LocalHadithlyColors.current
-    val resContext = LocalContext.current
+    val resContext = androidx.compose.ui.platform.LocalResources.current
     var citationsTranslation by remember { mutableStateOf<ReaderTranslation?>(null) }
     var sourceHadith by remember { mutableStateOf<ReaderHadith?>(null) }
     var noteTarget by remember { mutableStateOf<ReaderHadith?>(null) }
     var submissionTarget by remember { mutableStateOf<Pair<ReaderHadith, ReaderTranslation?>?>(null) }
     var reportTarget by remember { mutableStateOf<Pair<ReaderHadith, ReaderTranslation>?>(null) }
+    val targetId = restoration?.anchor?.providerHadithId ?: landingHadithNumber
+    val targetHadithIndex = targetId?.let { id -> hadiths.indexOfFirst { it.providerHadithId == id }.takeIf { it >= 0 } }
+    val initialOffset = remember(pageIndex, scrollCache) {
+        readerInitialOffset(targetHadithIndex, scrollCache?.restore(pageIndex))
+    }
     val listState = rememberLazyListState(
-        // Round 5: navigating back to one of the last 2 cached pages
-        // restores its exact vertical offset instead of the top. Pages the
-        // pager keeps composed (neighbors) already hold live state; this
-        // covers pages whose composition was disposed.
-        initialFirstVisibleItemIndex = scrollCache?.restore(pageIndex)?.first ?: 0,
-        initialFirstVisibleItemScrollOffset = scrollCache?.restore(pageIndex)?.second ?: 0,
+        initialFirstVisibleItemIndex = initialOffset.first,
+        initialFirstVisibleItemScrollOffset = initialOffset.second,
     )
     val chapterOpenings = remember(hadiths) { ReaderChapterBoundaries.openingIndices(hadiths) }
     // R6A: the selected volume's outline chapters feed the quiet chapter
@@ -1263,31 +1273,24 @@ private fun ReaderPage(
             .collect { onPageScrollFraction(pageIndex, it) }
     }
 
-    LaunchedEffect(restorationGeneration, restoration?.anchor?.providerHadithId ?: landingHadithNumber, hadiths.firstOrNull()?._id, pageIndex) {
-        val targetId = restoration?.anchor?.providerHadithId ?: landingHadithNumber
-        val hadithIndex = targetId
-            ?.let { id -> hadiths.indexOfFirst { it.providerHadithId == id }.takeIf { it >= 0 } }
-        val itemIndex = readerPageLandingItemIndex(
-            targetHadithIndex = hadithIndex,
-            hasCachedOffset = scrollCache?.restore(pageIndex)?.let { (index, offset) ->
-                index > 0 || offset > 0
-            } == true,
-        ) ?: return@LaunchedEffect
-        // Fresh pages explicitly reset to item 0, the volume/corner header.
-        // Targeted R1/R2 landings offset by that header item before placing the
-        // requested hadith, so the LazyColumn index matches its real content.
-        listState.scrollToItem(itemIndex)
-        if (hadithIndex == null) return@LaunchedEffect
+    LaunchedEffect(restorationGeneration, targetId, hadiths.firstOrNull()?._id, pageIndex) {
+        val itemIndex = targetHadithIndex?.plus(1) ?: return@LaunchedEffect
+        val fraction = restoration?.normalizedOffset ?: 0.0
+        if (listState.firstVisibleItemIndex != itemIndex || restorationGeneration > 0) {
+            listState.scrollToItem(itemIndex)
+        }
+        if (fraction <= 0.0) return@LaunchedEffect
         withFrameNanos { }
-        val size = listState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == itemIndex }?.size ?: 0
-        listState.scrollToItem(itemIndex, (size * (restoration?.normalizedOffset ?: 0.0)).roundToInt())
+        val size = listState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == itemIndex }?.size ?: return@LaunchedEffect
+        listState.scrollToItem(itemIndex, (size * fraction).roundToInt())
     }
 
-    LaunchedEffect(listState, hadiths) {
+    LaunchedEffect(listState, hadiths, state.pageIndex == pageIndex) {
+        if (state.pageIndex != pageIndex || hadiths.isEmpty()) return@LaunchedEffect
         snapshotFlow {
             val info = listState.layoutInfo
-            info.visibleItemsInfo.minByOrNull { item ->
-                kotlin.math.abs((item.offset + item.size / 2) - (info.viewportStartOffset + info.viewportEndOffset) / 2)
+            info.visibleItemsInfo.firstOrNull { item ->
+                readerHadithIndex(item.index, hadiths.size) != null && item.offset + item.size > 0
             }?.let {
                 Triple(it.index, it.offset, it.size)
             }
@@ -1298,7 +1301,7 @@ private fun ReaderPage(
             .collect { (index, offset, size) ->
                 viewModel.captureStableScroll(
                     hadiths = hadiths,
-                    leadingIndex = index,
+                    leadingIndex = readerHadithIndex(index, hadiths.size) ?: return@collect,
                     rawPageOffset = (-offset).coerceAtLeast(0).toDouble(),
                     normalizedOffset = (-offset).coerceAtLeast(0).toDouble() / size.coerceAtLeast(1),
                 )
@@ -2163,8 +2166,6 @@ internal fun HadithBlock(
     var menuExpanded by remember { mutableStateOf(false) }
     val app = com.hadithly.app.HadithlyApplication.instance()
     var pendingRemoval by remember { mutableStateOf<String?>(null) }
-    var undoMessage by remember { mutableStateOf<String?>(null) }
-    var undoAction by remember { mutableStateOf<(() -> Unit)?>(null) }
     val bookmarkRemovedLabel = stringResource(R.string.saved_bookmark_removed)
     val favoriteRemovedLabel = stringResource(R.string.saved_favorite_removed)
     val savedRef = HadithRef(hadith._id, hadith.collectionSlug, hadith.collectionName, hadith.volumeId, hadith.providerHadithId, hadith.arabicText, hadith.englishText, hadith.referenceDisplay)
@@ -2173,14 +2174,14 @@ internal fun HadithBlock(
         if (deps.isBookmarked) {
             val createdAt = app.library.savedItems.value.firstOrNull { it.hadithId == hadith._id }?.bookmarkCreatedAt
             deps.onToggleBookmark()
-            if (createdAt != null) { undoMessage = bookmarkRemovedLabel; undoAction = { app.library.restoreBookmark(savedRef, createdAt) } }
+            if (createdAt != null) app.library.undo.show(bookmarkRemovedLabel) { app.library.restoreBookmark(savedRef, createdAt) }
         } else deps.onToggleBookmark()
     }
     fun toggleFavoriteSafely() {
         if (deps.isFavorite) {
             val createdAt = app.library.savedItems.value.firstOrNull { it.hadithId == hadith._id }?.favoriteCreatedAt
             deps.onToggleFavorite()
-            if (createdAt != null) { undoMessage = favoriteRemovedLabel; undoAction = { app.library.restoreFavorite(savedRef, createdAt) } }
+            if (createdAt != null) app.library.undo.show(favoriteRemovedLabel) { app.library.restoreFavorite(savedRef, createdAt) }
         } else deps.onToggleFavorite()
     }
 
@@ -2268,10 +2269,6 @@ internal fun HadithBlock(
             }
             .testTag("reader.hadithBlock"),
     ) {
-        if (undoMessage != null) Row(Modifier.fillMaxWidth().background(colors.surfaceElevated, RoundedCornerShape(14.dp)).padding(10.dp), verticalAlignment = Alignment.CenterVertically) { Text(undoMessage!!, color = colors.textPrimary, modifier = Modifier.weight(1f)); TextButton(onClick = { undoAction?.invoke(); undoMessage = null; undoAction = null }) { Text("Undo") } }
-        // R6A fix: one header per hadith at the TOP (`● [Collection – n]`,
-        // tappable for the source sheet). The bottom compact label and the
-        // dim bare-number marker are gone — no duplication.
         HadithHeader(
             hadith = hadith,
             isBookmarked = deps.isBookmarked,
@@ -2346,7 +2343,7 @@ internal fun HadithBlock(
         // header (source sheet tap lives there; copy/share payloads keep
         // the full source line via ReaderShare).
     }
-    if (pendingRemoval != null) AlertDialog(onDismissRequest = { pendingRemoval = null }, title = { Text("Remove saved item?") }, text = { Text("You can undo this action from the message at the top.") }, confirmButton = { TextButton(onClick = { if (pendingRemoval == "bookmark") toggleBookmarkSafely() else toggleFavoriteSafely(); pendingRemoval = null }) { Text("Remove") } }, dismissButton = { Column { TextButton(onClick = { app.savedSafety.confirmsRemoval = false; if (pendingRemoval == "bookmark") toggleBookmarkSafely() else toggleFavoriteSafely(); pendingRemoval = null }) { Text("Remove and don't ask again") }; TextButton(onClick = { pendingRemoval = null }) { Text("Cancel") } } })
+    if (pendingRemoval != null) AlertDialog(onDismissRequest = { pendingRemoval = null }, title = { Text("Remove saved item?") }, text = { Text(stringResource(R.string.saved_removal_undo_message)) }, confirmButton = { TextButton(onClick = { if (pendingRemoval == "bookmark") toggleBookmarkSafely() else toggleFavoriteSafely(); pendingRemoval = null }) { Text("Remove") } }, dismissButton = { Column { TextButton(onClick = { app.savedSafety.confirmsRemoval = false; if (pendingRemoval == "bookmark") toggleBookmarkSafely() else toggleFavoriteSafely(); pendingRemoval = null }) { Text("Remove and don't ask again") }; TextButton(onClick = { pendingRemoval = null }) { Text("Cancel") } } })
 }
 
 /**
@@ -3992,11 +3989,10 @@ private fun UnifiedReaderSavedSheet(
     var folderId by remember { mutableStateOf<String?>(null) }
     var folderMenu by remember { mutableStateOf<com.hadithly.app.core.data.SavedFolder?>(null) }
     var removal by remember { mutableStateOf<Triple<com.hadithly.app.features.saved.SavedFacet, com.hadithly.app.core.data.SavedItemEntry, HadithRef>?>(null) }
-    var undoMessage by remember { mutableStateOf<String?>(null) }
-    var undoAction by remember { mutableStateOf<(() -> Unit)?>(null) }
     val bookmarkRemovedLabel = stringResource(R.string.saved_bookmark_removed)
     val favoriteRemovedLabel = stringResource(R.string.saved_favorite_removed)
     val noteDeletedLabel = stringResource(R.string.saved_note_deleted)
+    val folderDeletedTemplate = stringResource(R.string.saved_folder_deleted, "%1\$s")
     val visible = items.filter { item ->
         val matches = when (tab) {
             ReaderSavedTab.BOOKMARKS -> item.bookmarkCreatedAt != null
@@ -4008,21 +4004,34 @@ private fun UnifiedReaderSavedSheet(
     fun remove(value: Triple<com.hadithly.app.features.saved.SavedFacet, com.hadithly.app.core.data.SavedItemEntry, HadithRef>) {
         val (facet, item, ref) = value
         when (facet) {
-            com.hadithly.app.features.saved.SavedFacet.BOOKMARK -> item.bookmarkCreatedAt?.let { at -> library.toggleBookmark(ref); undoMessage = bookmarkRemovedLabel; undoAction = { library.restoreBookmark(ref, at) } }
-            com.hadithly.app.features.saved.SavedFacet.FAVORITE -> item.favoriteCreatedAt?.let { at -> library.toggleFavorite(ref); undoMessage = favoriteRemovedLabel; undoAction = { library.restoreFavorite(ref, at) } }
-            com.hadithly.app.features.saved.SavedFacet.NOTE -> item.noteContent?.let { note -> library.deleteNote(ref); undoMessage = noteDeletedLabel; undoAction = { library.restoreNote(ref, note, item.createdAt, item.updatedAt) } }
+            com.hadithly.app.features.saved.SavedFacet.BOOKMARK -> item.bookmarkCreatedAt?.let { at -> library.toggleBookmark(ref); library.undo.show(bookmarkRemovedLabel) { library.restoreBookmark(ref, at) } }
+            com.hadithly.app.features.saved.SavedFacet.FAVORITE -> item.favoriteCreatedAt?.let { at -> library.toggleFavorite(ref); library.undo.show(favoriteRemovedLabel) { library.restoreFavorite(ref, at) } }
+            com.hadithly.app.features.saved.SavedFacet.NOTE -> item.noteContent?.let { note -> library.deleteNote(ref); library.undo.show(noteDeletedLabel) { library.restoreNote(ref, note, item.createdAt, item.updatedAt) } }
         }
     }
     Column(Modifier.fillMaxWidth().fillMaxHeight().padding(20.dp).testTag("reader.saved.sheet")) {
         Text("Bookmarks & Notes", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
-        val folderDeletion by library.lastFolderDeletion.collectAsStateWithLifecycle()
-        val shownUndo = undoMessage ?: folderDeletion?.let { "Folder ${it.name} deleted" }
-        if (shownUndo != null) Row(Modifier.fillMaxWidth().background(colors.surfaceElevated, RoundedCornerShape(14.dp)).padding(10.dp), verticalAlignment = Alignment.CenterVertically) { Text(shownUndo, modifier = Modifier.weight(1f), color = colors.textPrimary); TextButton(onClick = { undoAction?.invoke() ?: library.undoDeleteFolder(); undoMessage = null; undoAction = null }) { Text("Undo") } }
         Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) { ReaderSavedTab.entries.forEach { candidate -> TextButton(onClick = { tab = candidate }, modifier = Modifier.weight(1f).testTag("reader.saved.tab.${candidate.tag}")) { Text(candidate.title, color = if (tab == candidate) colors.accent else colors.textSecondary) } } }
-        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) { TextButton(onClick = { folderId = null }) { Text("All folders") }; folders.forEach { folder -> Row(Modifier.combinedClickable(onClick = { folderId = folder.id }, onLongClick = { folderMenu = folder }).background(colors.surfaceElevated, RoundedCornerShape(50)).padding(horizontal = 12.dp, vertical = 8.dp)) { Text(folder.name) }; DropdownMenu(expanded = folderMenu?.id == folder.id, onDismissRequest = { folderMenu = null }) { DropdownMenuItem(text = { Text("Delete folder") }, onClick = { if (folderId == folder.id) folderId = null; library.deleteFolder(folder); folderMenu = null }) } } }
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            TextButton(onClick = { folderId = null }) { Text(stringResource(R.string.saved_all_folders), color = if (folderId == null) colors.accent else colors.textSecondary) }
+            folders.forEach { folder ->
+                val selected = folderId == folder.id
+                Row(Modifier.combinedClickable(onClick = { folderId = folder.id }, onLongClick = { folderMenu = folder }).background(if (selected) colors.accentSoft else colors.surfaceElevated, RoundedCornerShape(50)).padding(horizontal = 12.dp, vertical = 8.dp)) {
+                    Text(folder.name, color = if (selected) colors.accent else colors.textSecondary)
+                }
+                DropdownMenu(expanded = folderMenu?.id == folder.id, onDismissRequest = { folderMenu = null }) {
+                    DropdownMenuItem(text = { Text(stringResource(R.string.saved_delete_folder)) }, onClick = {
+                        if (folderId == folder.id) folderId = null
+                        library.deleteFolder(folder, folderDeletedTemplate.format(folder.name))
+                        folderMenu = null
+                    })
+                }
+            }
+        }
         if (visible.isEmpty()) Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { Text("Nothing saved here yet.", color = colors.textSecondary) }
-        else Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) { visible.forEach { item -> com.hadithly.app.features.saved.SharedSavedItemRow(item, folders, folderId == null, onOpen, { facet, saved, ref -> val request = Triple(facet, saved, ref); if (app.savedSafety.confirmsRemoval) removal = request else remove(request) }, { library.assignFolder(item.hadithId, it) }, { ref -> scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(ref.referenceDisplay, listOfNotNull(ref.arabicText, ref.englishText, ref.referenceDisplay).joinToString("\n\n")))) } }, { ref -> context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "https://hadithly.app/hadith/${ref.collectionSlug}/${ref.hadithNumber}"), null)) }, onOpen) } }
+        else Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) { visible.forEach { item -> com.hadithly.app.features.saved.SharedSavedItemRow(item, folders, folderId == null, onOpen, { facet, saved, ref -> val request = Triple(facet, saved, ref); if (app.savedSafety.confirmsRemoval) removal = request else remove(request) }, { library.assignFolder(item.hadithId, it) }, { ref -> scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(ref.referenceDisplay, listOfNotNull(ref.arabicText, ref.englishText, ref.referenceDisplay).joinToString("\n\n")))) } }, { ref -> context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "https://hadithly.app/hadith/${ref.collectionSlug}/${ref.hadithNumber}"), null)) }, onOpen, { ref -> withContext(Dispatchers.IO) { app.repository.loadSavedPreview(ref) } }) } }
+        com.hadithly.app.features.saved.SavedUndoBanner(testTag = "reader.saved.undoBanner")
         TextButton(onClick = onEdit, modifier = Modifier.align(Alignment.End)) { Text("EDIT") }
     }
-    removal?.let { request -> AlertDialog(onDismissRequest = { removal = null }, title = { Text("Remove saved item?") }, text = { Text("You can undo this action from the message at the top.") }, confirmButton = { TextButton(onClick = { remove(request); removal = null }) { Text("Remove") } }, dismissButton = { Column { TextButton(onClick = { app.savedSafety.confirmsRemoval = false; remove(request); removal = null }) { Text("Remove and don't ask again") }; TextButton(onClick = { removal = null }) { Text("Cancel") } } }) }
+    removal?.let { request -> AlertDialog(onDismissRequest = { removal = null }, title = { Text("Remove saved item?") }, text = { Text(stringResource(R.string.saved_removal_undo_message)) }, confirmButton = { TextButton(onClick = { remove(request); removal = null }) { Text("Remove") } }, dismissButton = { Column { TextButton(onClick = { app.savedSafety.confirmsRemoval = false; remove(request); removal = null }) { Text("Remove and don't ask again") }; TextButton(onClick = { removal = null }) { Text("Cancel") } } }) }
 }

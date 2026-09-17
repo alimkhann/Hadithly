@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Hadithly</string>
+    <string name="app_name" translatable="false">Hadithly</string>
     <string name="onboarding_choose_language_title">Choose your language</string>
     <string name="onboarding_choose_language_subtitle">You can change this any time in Settings.</string>
     <string name="action_continue">Continue</string>
@@ -26,6 +26,7 @@
     <string name="saved_copy">Copy</string>
     <string name="saved_share">Share</string>
     <string name="saved_suggest_translation">Suggest translation</string>
+    <string name="saved_preview_retry">Preview unavailable. Tap to retry.</string>
     <string name="saved_show_preview">Show hadith preview</string>
     <string name="saved_hide_preview">Hide hadith preview</string>
     <string name="saved_confirm_removal">Confirm before removing saved items</string>
@@ -43,7 +44,7 @@
     <string name="saved_empty_message">Bookmark, favorite, or add a note while reading to keep a hadith here.</string>
     <string name="saved_delete_folder">Delete folder</string>
     <string name="saved_folder_deleted">Folder %1$s deleted</string>
-    <string name="saved_removal_undo_message">You can undo this action from the message at the top.</string>
+    <string name="saved_removal_undo_message">You can undo this action for five seconds from the message at the bottom.</string>
     <string name="saved_bookmark_removed">Bookmark removed</string>
     <string name="saved_favorite_removed">Favorite removed</string>
     <string name="saved_note_deleted">Note deleted</string>

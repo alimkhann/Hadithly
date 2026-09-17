@@ -29,7 +29,8 @@
     <string name="saved_empty_message">أضف إشارة مرجعية أو مفضلة أو ملاحظة أثناء القراءة للاحتفاظ بالحديث هنا.</string>
     <string name="saved_delete_folder">حذف المجلد</string>
     <string name="saved_folder_deleted">تم حذف المجلد %1$s</string>
-    <string name="saved_removal_undo_message">يمكنك التراجع عن هذا الإجراء من الرسالة في الأعلى.</string>
+    <string name="saved_preview_retry">المعاينة غير متاحة. اضغط لإعادة المحاولة.</string>
+    <string name="saved_removal_undo_message">يمكنك التراجع عن هذا الإجراء خلال خمس ثوانٍ من الرسالة في الأسفل.</string>
     <string name="saved_bookmark_removed">تمت إزالة الإشارة المرجعية</string>
     <string name="saved_favorite_removed">تمت الإزالة من المفضلة</string>
     <string name="saved_note_deleted">تم حذف الملاحظة</string>

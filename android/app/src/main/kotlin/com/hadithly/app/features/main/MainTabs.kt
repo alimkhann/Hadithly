@@ -1,5 +1,8 @@
 package com.hadithly.app.features.main
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.unit.dp
+import com.hadithly.app.features.saved.SavedUndoBanner
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -95,6 +98,8 @@ fun MainTabs(
         containerColor = colors.background,
         bottomBar = {
             if (readerTarget == null) {
+                Column {
+                    SavedUndoBanner(Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
                 NavigationBar(containerColor = colors.surface) {
                     NavigationBarItem(
                         selected = tab == 0,
@@ -124,6 +129,7 @@ fun MainTabs(
                         label = { Text("Settings") },
                         colors = navigationColors(colors),
                     )
+                }
                 }
             }
         },

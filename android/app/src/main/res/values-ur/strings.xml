@@ -29,7 +29,8 @@
     <string name="saved_empty_message">حدیث کو یہاں رکھنے کے لیے پڑھتے وقت بک مارک، پسندیدہ یا نوٹ شامل کریں۔</string>
     <string name="saved_delete_folder">فولڈر حذف کریں</string>
     <string name="saved_folder_deleted">فولڈر %1$s حذف ہو گیا</string>
-    <string name="saved_removal_undo_message">آپ اوپر موجود پیغام سے یہ عمل واپس کر سکتے ہیں۔</string>
+    <string name="saved_preview_retry">پیش منظر دستیاب نہیں۔ دوبارہ کوشش کے لیے دبائیں۔</string>
+    <string name="saved_removal_undo_message">آپ نیچے موجود پیغام سے پانچ سیکنڈ کے اندر یہ عمل واپس کر سکتے ہیں۔</string>
     <string name="saved_bookmark_removed">بک مارک ہٹا دیا گیا</string>
     <string name="saved_favorite_removed">پسندیدہ ہٹا دیا گیا</string>
     <string name="saved_note_deleted">نوٹ حذف ہو گیا</string>

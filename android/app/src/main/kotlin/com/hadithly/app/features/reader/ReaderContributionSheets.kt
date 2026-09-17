@@ -23,6 +23,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,6 +54,7 @@ fun TranslationSubmissionSheet(
 ) {
     val colors = LocalHadithlyColors.current
     val scope = rememberCoroutineScope()
+    val readerState by viewModel.state.collectAsState()
     var content by remember { mutableStateOf(initialContent) }
     var result by remember { mutableStateOf<TranslationSubmissionResult?>(null) }
     var submitting by remember { mutableStateOf(false) }
@@ -81,7 +83,7 @@ fun TranslationSubmissionSheet(
             else -> {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(hadith.referenceDisplay, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
-                    val languageName = SupportedLanguages.all.firstOrNull { it.first == viewModel.state.value.language }?.second ?: viewModel.state.value.language
+                    val languageName = SupportedLanguages.all.firstOrNull { it.first == readerState.language }?.second ?: readerState.language
                     Text(languageName, fontSize = 12.sp, color = colors.textSecondary)
                 }
                 Text(
