@@ -1,120 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "All folders" : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "كل المجلدات" } },
-        "ur" : { "stringUnit" : { "state" : "translated", "value" : "تمام فولڈرز" } }
-      }
-    },
-    "Bookmark removed" : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "تمت إزالة الإشارة المرجعية" } },
-        "ur" : { "stringUnit" : { "state" : "translated", "value" : "بک مارک ہٹا دیا گیا" } }
-      }
-    },
-    "Confirm before removing saved items" : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "التأكيد قبل إزالة العناصر المحفوظة" } },
-        "ur" : { "stringUnit" : { "state" : "translated", "value" : "محفوظہ آئٹمز ہٹانے سے پہلے تصدیق کریں" } }
-      }
-    },
-    "Copy" : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "نسخ" } },
-        "ur" : { "stringUnit" : { "state" : "translated", "value" : "کاپی کریں" } }
-      }
-    },
-    "Delete folder" : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "حذف المجلد" } },
-        "ur" : { "stringUnit" : { "state" : "translated", "value" : "فولڈر حذف کریں" } }
-      }
-    },
-    "Delete note" : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "حذف الملاحظة" } },
-        "ur" : { "stringUnit" : { "state" : "translated", "value" : "نوٹ حذف کریں" } }
-      }
-    },
-    "Favorite removed" : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "تمت الإزالة من المفضلة" } },
-        "ur" : { "stringUnit" : { "state" : "translated", "value" : "پسندیدہ ہٹا دیا گیا" } }
-      }
-    },
-    "Hide hadith preview" : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "إخفاء معاينة الحديث" } },
-        "ur" : { "stringUnit" : { "state" : "translated", "value" : "حدیث کا پیش منظر چھپائیں" } }
-      }
-    },
-    "Move to folder" : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "نقل إلى مجلد" } },
-        "ur" : { "stringUnit" : { "state" : "translated", "value" : "فولڈر میں منتقل کریں" } }
-      }
-    },
-    "No folder" : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "بلا مجلد" } },
-        "ur" : { "stringUnit" : { "state" : "translated", "value" : "کوئی فولڈر نہیں" } }
-      }
-    },
-    "Note deleted" : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "تم حذف الملاحظة" } },
-        "ur" : { "stringUnit" : { "state" : "translated", "value" : "نوٹ حذف ہو گیا" } }
-      }
-    },
-    "Remove" : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "إزالة" } },
-        "ur" : { "stringUnit" : { "state" : "translated", "value" : "ہٹائیں" } }
-      }
-    },
-    "Remove and don't ask again" : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "إزالة وعدم السؤال مرة أخرى" } },
-        "ur" : { "stringUnit" : { "state" : "translated", "value" : "ہٹائیں اور دوبارہ نہ پوچھیں" } }
-      }
-    },
-    "Remove saved item?" : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "إزالة العنصر المحفوظ؟" } },
-        "ur" : { "stringUnit" : { "state" : "translated", "value" : "محفوظہ آئٹم ہٹائیں؟" } }
-      }
-    },
-    "Share" : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "مشاركة" } },
-        "ur" : { "stringUnit" : { "state" : "translated", "value" : "شیئر کریں" } }
-      }
-    },
-    "Show hadith preview" : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "عرض معاينة الحديث" } },
-        "ur" : { "stringUnit" : { "state" : "translated", "value" : "حدیث کا پیش منظر دکھائیں" } }
-      }
-    },
-    "Suggest Translation" : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "اقتراح ترجمة" } },
-        "ur" : { "stringUnit" : { "state" : "translated", "value" : "ترجمہ تجویز کریں" } }
-      }
-    },
-    "Undo" : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "تراجع" } },
-        "ur" : { "stringUnit" : { "state" : "translated", "value" : "واپس کریں" } }
-      }
-    },
-    "You can undo this action from the message at the top." : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "يمكنك التراجع عن هذا الإجراء من الرسالة في الأعلى." } },
-        "ur" : { "stringUnit" : { "state" : "translated", "value" : "آپ اوپر موجود پیغام سے یہ عمل واپس کر سکتے ہیں۔" } }
-      }
-    },
     "· %@" : {
       "comment" : "A footnote in the hadith view, displayed when there are additional notes. The text inside the footnote is a bullet point followed by the note text.",
       "isCommentAutoGenerated" : true
@@ -281,6 +167,22 @@
     "AI translations are labeled and grounded in cited sources." : {
 
     },
+    "All folders" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "كل المجلدات"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تمام فولڈرز"
+          }
+        }
+      }
+    },
     "An admin can review the translation and your note." : {
       "comment" : "A description of what will happen after submitting a translation report.",
       "isCommentAutoGenerated" : true
@@ -364,6 +266,23 @@
         }
       }
     },
+    "Bookmark removed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تمت إزالة الإشارة المرجعية"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بک مارک ہٹا دیا گیا"
+          }
+        }
+      }
+    },
     "Bookmark, favorite, or add a note while reading to keep a hadith here." : {
       "comment" : "A description text displayed when there are no saved items.",
       "isCommentAutoGenerated" : true
@@ -405,6 +324,23 @@
       "comment" : "A label for a badge indicating that a hadith is approved by the community.",
       "isCommentAutoGenerated" : true
     },
+    "Confirm before removing saved items" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "التأكيد قبل إزالة العناصر المحفوظة"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "محفوظہ آئٹمز ہٹانے سے پہلے تصدیق کریں"
+          }
+        }
+      }
+    },
     "Continue" : {
       "localizations" : {
         "ar" : {
@@ -428,6 +364,23 @@
     "Continue with email" : {
 
     },
+    "Copy" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نسخ"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "کاپی کریں"
+          }
+        }
+      }
+    },
     "Could not open this collection" : {
 
     },
@@ -441,6 +394,40 @@
     "Delete account" : {
       "comment" : "A button label that allows a user to delete their account.",
       "isCommentAutoGenerated" : true
+    },
+    "Delete folder" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حذف المجلد"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فولڈر حذف کریں"
+          }
+        }
+      }
+    },
+    "Delete note" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حذف الملاحظة"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نوٹ حذف کریں"
+          }
+        }
+      }
     },
     "Describe a meaning, wording, or attribution concern. Reports are private and are not votes or ratings." : {
       "comment" : "A description of what the \"Report translation\" feature is for.",
@@ -466,9 +453,22 @@
       "comment" : "A description of the benefits of signing in as a guest.",
       "isCommentAutoGenerated" : true
     },
-    "Folder %@ deleted" : {
-      "comment" : "A message displayed when a saved folder is deleted, explaining that the folder was deleted and offering an option to undo the deletion",
-      "isCommentAutoGenerated" : true
+    "Favorite removed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تمت الإزالة من المفضلة"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "پسندیدہ ہٹا دیا گیا"
+          }
+        }
+      }
     },
     "Folders are private and can contain saved hadiths." : {
       "comment" : "A message displayed in the footer of the Saved view, explaining that folders are private and can contain saved hadiths.",
@@ -500,6 +500,23 @@
     },
     "Hadithly Pro is active" : {
 
+    },
+    "Hide hadith preview" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إخفاء معاينة الحديث"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حدیث کا پیش منظر چھپائیں"
+          }
+        }
+      }
     },
     "Jump to a hadith number, e.g. 57." : {
 
@@ -533,6 +550,23 @@
       "comment" : "A title for a view that offers more AI translations.",
       "isCommentAutoGenerated" : true
     },
+    "Move to folder" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نقل إلى مجلد"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فولڈر میں منتقل کریں"
+          }
+        }
+      }
+    },
     "No %@ translation is available yet." : {
       "comment" : "A note indicating that a translation is not yet available for a particular hadith. The argument is the translation language.",
       "isCommentAutoGenerated" : true
@@ -549,11 +583,45 @@
       "comment" : "A message displayed when a translation has no external",
       "isCommentAutoGenerated" : true
     },
+    "No folder" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بلا مجلد"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "کوئی فولڈر نہیں"
+          }
+        }
+      }
+    },
     "No matches in the cached English text." : {
 
     },
     "No translations are waiting" : {
 
+    },
+    "Note deleted" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم حذف الملاحظة"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نوٹ حذف ہو گیا"
+          }
+        }
+      }
     },
     "Nothing here yet. While reading, use the menu bookmark or a hadith note." : {
 
@@ -638,6 +706,57 @@
         }
       }
     },
+    "Remove" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إزالة"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ہٹائیں"
+          }
+        }
+      }
+    },
+    "Remove and don't ask again" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إزالة وعدم السؤال مرة أخرى"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ہٹائیں اور دوبارہ نہ پوچھیں"
+          }
+        }
+      }
+    },
+    "Remove saved item?" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إزالة العنصر المحفوظ؟"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "محفوظہ آئٹم ہٹائیں؟"
+          }
+        }
+      }
+    },
     "Report sent privately" : {
       "comment" : "A message displayed after successfully submitting a private translation report.",
       "isCommentAutoGenerated" : true
@@ -690,12 +809,45 @@
       "comment" : "A button label that says \"Set new password\".",
       "isCommentAutoGenerated" : true
     },
+    "Share" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مشاركة"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "شیئر کریں"
+          }
+        }
+      }
+    },
     "Sheet dismissed" : {
 
     },
     "Sheet open" : {
       "comment" : "A label displayed when the collection outline sheet is open.",
       "isCommentAutoGenerated" : true
+    },
+    "Show hadith preview" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "عرض معاينة الحديث"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حدیث کا پیش منظر دکھائیں"
+          }
+        }
+      }
     },
     "Sign in" : {
       "comment" : "A button label that says \"Sign in\".",
@@ -726,6 +878,23 @@
     "Subscriptions renew automatically unless cancelled at least 24 hours before the end of the current period. Manage or cancel in your store account." : {
       "comment" : "A footer message explaining subscription terms.",
       "isCommentAutoGenerated" : true
+    },
+    "Suggest Translation" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اقتراح ترجمة"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ترجمہ تجویز کریں"
+          }
+        }
+      }
     },
     "Sync your reading" : {
 
@@ -766,6 +935,22 @@
     "Translation review" : {
       "comment" : "A title for a button that allows users to review translation submissions.",
       "isCommentAutoGenerated" : true
+    },
+    "Undo" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تراجع"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "واپس کریں"
+          }
+        }
+      }
     },
     "Username" : {
       "comment" : "A label displayed next to the user's username",
@@ -831,6 +1016,22 @@
     },
     "You can sign in from Settings, then return to this hadith." : {
 
+    },
+    "You can undo this action from the message at the top." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يمكنك التراجع عن هذا الإجراء من الرسالة في الأعلى."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "آپ اوپر موجود پیغام سے یہ عمل واپس کر سکتے ہیں۔"
+          }
+        }
+      }
     },
     "You reached this month’s free AI limit. Reading, saved items, and existing translations stay free." : {
       "comment" : "A description under the title \"More AI translations\" that explains the free access to translations for the current month.",

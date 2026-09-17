@@ -1353,7 +1353,7 @@ struct ReaderSavedShortcutSheet: View {
                     emptyState
                 } else {
                     ScrollView {
-                        VStack(spacing: 0) {
+                        LazyVStack(spacing: 12) {
                             ForEach(entries) { entry in
                                 SharedSavedItemRow(item: entry, folders: library.folders, folderName: library.folders.first(where: { $0.id == entry.folderId })?.name, showsFolder: folderId == nil, onOpen: onOpen, onRemove: requestRemoval, onMove: { library.assignFolder(hadithId: entry.hadithId, folderId: $0) }, onSuggestTranslation: onOpen)
                             }
@@ -1370,9 +1370,12 @@ struct ReaderSavedShortcutSheet: View {
             // region below short content.
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
-        .overlay(alignment: .top) {
-            if let notice = undoNotice { SavedUndoBanner(notice: notice).padding(.top, 8) }
-            else if let deletion = library.lastFolderDeletion { SavedUndoBanner(notice: SavedUndoNotice(message: "Folder \(deletion.name) deleted", undo: library.undoDeleteFolder)).padding(.top, 8) }
+        .overlay(alignment: .bottom) {
+            if let notice = undoNotice {
+                SavedUndoBanner(notice: notice, onExpire: { undoNotice = nil })
+            } else if let deletion = library.lastFolderDeletion {
+                SavedUndoBanner(notice: SavedUndoNotice(message: "Folder \(deletion.name) deleted", undo: library.undoDeleteFolder), onExpire: { library.clearFolderDeletion() })
+            }
         }
         .confirmationDialog("Remove saved item?", isPresented: Binding(get: { pendingRemoval != nil }, set: { if !$0 { pendingRemoval = nil } })) {
             if let removal = pendingRemoval {
@@ -1416,10 +1419,17 @@ struct ReaderSavedShortcutSheet: View {
     private var folderControl: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 6) {
-                Button("All folders") { folderId = nil }.buttonStyle(.bordered)
+                Button { folderId = nil } label: {
+                    Text("All folders")
+                        .font(.subheadline.weight(folderId == nil ? .semibold : .regular))
+                        .foregroundStyle(folderId == nil ? Theme.accent : palette.textSecondary)
+                }
+                .buttonStyle(.bordered)
+                .tint(folderId == nil ? Theme.accent : palette.textSecondary)
                 ForEach(library.folders) { folder in
                     Button(folder.name) { folderId = folder.id }
                         .buttonStyle(.bordered)
+                        .tint(folderId == folder.id ? Theme.accent : palette.textSecondary)
                         .contextMenu { Button("Delete folder", role: .destructive) { if folderId == folder.id { folderId = nil }; library.deleteFolder(folder) } }
                         .accessibilityAction(named: "Delete folder") { if folderId == folder.id { folderId = nil }; library.deleteFolder(folder) }
                 }

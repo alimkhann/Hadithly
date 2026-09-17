@@ -143,6 +143,12 @@ final class UserLibraryModel {
     private(set) var savedItems: [SavedItemEntry] = []
     private(set) var folders: [SavedFolder] = []
     private(set) var lastFolderDeletion: SavedFolderDeletion?
+
+    /// Ends the folder-deletion undo window. Called when the undo banner's
+    /// five-second deadline lapses.
+    func clearFolderDeletion() {
+        lastFolderDeletion = nil
+    }
     private var guestFolderDeletion: GuestFolderDeletion?
     private(set) var bookmarks: [SavedEntry] = []
     private(set) var favorites: [SavedEntry] = []

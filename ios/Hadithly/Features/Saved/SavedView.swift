@@ -40,16 +40,22 @@ struct SavedView: View {
                             onMove: { library.assignFolder(hadithId: item.hadithId, folderId: $0) },
                             onSuggestTranslation: open
                         )
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
                     }
                 }.listStyle(.plain)
             }
         }
         .padding(.horizontal).navigationTitle("Saved")
         .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("New folder", systemImage: "folder.badge.plus") { showNewFolder = true }.accessibilityLabel("Create saved folder") } }
-        .overlay(alignment: .top) {
-            if let notice = undoNotice { SavedUndoBanner(notice: notice).padding(.top, 8) }
-            else if let deletion = library.lastFolderDeletion {
-                SavedUndoBanner(notice: SavedUndoNotice(message: "Folder \(deletion.name) deleted", undo: library.undoDeleteFolder)).padding(.top, 8)
+        .overlay(alignment: .bottom) {
+            if let notice = undoNotice {
+                SavedUndoBanner(notice: notice, onExpire: { undoNotice = nil })
+                    .padding(.bottom, 62)
+            } else if let deletion = library.lastFolderDeletion {
+                SavedUndoBanner(notice: SavedUndoNotice(message: "Folder \(deletion.name) deleted", undo: library.undoDeleteFolder), onExpire: { library.clearFolderDeletion() })
+                    .padding(.bottom, 62)
             }
         }
         .confirmationDialog("Remove saved item?", isPresented: Binding(get: { pendingRemoval != nil }, set: { if !$0 { pendingRemoval = nil } })) {
@@ -70,7 +76,9 @@ struct SavedView: View {
     private var folders: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                Button("All folders") { folderId = nil }.buttonStyle(.borderedProminent).tint(folderId == nil ? Theme.accent : Theme.surface)
+                Button("All folders") { folderId = nil }
+                    .buttonStyle(.bordered)
+                    .tint(folderId == nil ? Theme.accent : Theme.textSecondary)
                 ForEach(library.folders) { folder in
                     Button { folderId = folder.id } label: {
                         Label(folder.name, systemImage: "folder")

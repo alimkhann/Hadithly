@@ -1727,7 +1727,7 @@ private struct HadithBlock: View {
         .onLongPressGesture(minimumDuration: 0.5) {
             ReaderHapticDispatcher.trigger(.contextMenuOpen)
         }
-        .overlay(alignment: .top) { if let undoNotice { SavedUndoBanner(notice: undoNotice).offset(y: -8) } }
+        .overlay(alignment: .bottom) { if let undoNotice { SavedUndoBanner(notice: undoNotice, onExpire: { self.undoNotice = nil }) } }
         .confirmationDialog("Remove saved item?", isPresented: Binding(get: { pendingSavedRemoval != nil }, set: { if !$0 { pendingSavedRemoval = nil } })) {
             Button("Remove", role: .destructive) { performPendingRemoval(disableFutureConfirmation: false) }
             Button("Remove and don't ask again", role: .destructive) { performPendingRemoval(disableFutureConfirmation: true) }

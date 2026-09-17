@@ -19,24 +19,73 @@ struct SavedUndoNotice: Identifiable {
     let id = UUID()
     let message: String
     let undo: () -> Void
+    let deadline = Date.now.addingTimeInterval(5)
 }
 
+enum SavedUndoDeadline {
+    static let duration: TimeInterval = 5
+}
+
+/// Bottom-placed undo toast with a five-second countdown ring. The host
+/// view owns the notice lifetime, so the banner only reports expiry.
 struct SavedUndoBanner: View {
     let notice: SavedUndoNotice
+    var onExpire: (() -> Void)? = nil
+
+    @State private var startedAt = Date.now
 
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: "arrow.uturn.backward.circle.fill").foregroundStyle(Theme.accent)
             Text(notice.message).font(.subheadline.weight(.medium))
             Spacer()
-            Button("Undo", action: notice.undo).fontWeight(.semibold)
+            Button {
+                notice.undo()
+            } label: {
+                HStack(spacing: 6) {
+                    Text("Undo").fontWeight(.semibold)
+                    CountdownRing(deadline: startedAt.addingTimeInterval(SavedUndoDeadline.duration))
+                }
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("saved.undoButton")
         }
         .padding(.horizontal, 14).padding(.vertical, 12)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
         .shadow(color: .black.opacity(0.14), radius: 10, y: 4)
         .padding(.horizontal, 16)
+        .padding(.bottom, 12)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("saved.undoBanner")
+        .task(id: notice.id) {
+            startedAt = Date.now
+            try? await Task.sleep(for: .seconds(SavedUndoDeadline.duration))
+            onExpire?()
+        }
+    }
+}
+
+/// Small ring that empties over five seconds, matching the banner deadline.
+struct CountdownRing: View {
+    let deadline: Date
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 0.05)) { context in
+            let remaining = max(0, deadline.timeIntervalSince(context.date))
+            let progress = SavedUndoDeadline.duration <= 0 ? 0 : remaining / SavedUndoDeadline.duration
+            ZStack {
+                Circle().stroke(Theme.textSecondary.opacity(0.25), lineWidth: 2)
+                Circle()
+                    .trim(from: 0, to: progress)
+                    .stroke(
+                        progress > 0.2 ? Theme.textSecondary : Theme.accent,
+                        style: StrokeStyle(lineWidth: 2, lineCap: .round)
+                    )
+                    .rotationEffect(.degrees(-90))
+            }
+            .frame(width: 16, height: 16)
+            .accessibilityHidden(true)
+        }
     }
 }
 
@@ -73,14 +122,6 @@ struct SharedSavedItemRow: View {
                     if item.favoriteCreatedAt != nil { facetButton("heart.fill", color: Theme.favorite, label: "Remove favorite") { onRemove(.favorite(item, ref)) } }
                     if item.noteContent != nil { facetButton("square.and.pencil", color: Theme.accent, label: "Delete note") { onRemove(.note(item, ref)) } }
 
-                    Menu {
-                        Button("No folder") { onMove(nil) }
-                        ForEach(folders) { folder in Button(folder.name) { onMove(folder.id) } }
-                    } label: {
-                        Image(systemName: "folder").frame(width: 30, height: 30)
-                    }
-                    .accessibilityLabel("Move to folder")
-
                     Button { expanded.toggle() } label: {
                         Image(systemName: expanded ? "chevron.up" : "chevron.down").frame(width: 30, height: 30)
                     }
@@ -99,9 +140,9 @@ struct SharedSavedItemRow: View {
                     if !ref.arabicText.isEmpty { Text(ref.arabicText).font(Theme.arabic(19)).frame(maxWidth: .infinity, alignment: .trailing).environment(\.layoutDirection, .rightToLeft) }
                     if let english = ref.englishText, !english.isEmpty { Text(english).font(.subheadline).foregroundStyle(Theme.textSecondary) }
                 }
-                Divider()
             }
-            .padding(.top, 8)
+            .padding(14)
+            .background(Theme.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             .contextMenu {
                 Menu("Move to folder") { Button("No folder") { onMove(nil) }; ForEach(folders) { folder in Button(folder.name) { onMove(folder.id) } } }
                 if item.bookmarkCreatedAt != nil { Button("Remove bookmark", role: .destructive) { onRemove(.bookmark(item, ref)) } }
