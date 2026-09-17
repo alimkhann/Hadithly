@@ -151,27 +151,10 @@ struct TodayView: View {
     }
 
     private var continueReadingSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            sectionTitle("Continue reading")
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(library.progress.filter { $0.hadith != nil }.sorted { $0.updatedAt > $1.updatedAt }.prefix(3)) { entry in
-                        if let hadith = entry.hadith {
-                            Button {
-                                openTarget = ReaderOpenTarget(slug: entry.collectionSlug, name: hadith.collectionName,
-                                                               volumeId: hadith.volumeId, hadithNumber: hadith.hadithNumber,
-                                                               source: .continueReading, position: entry.position)
-                            } label: {
-                                ContinueReadingCard(hadith: hadith, position: collectionPosition(entry.collectionSlug))
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityIdentifier("today.continueCard.\(entry.collectionSlug)")
-                        }
-                    }
-                }
-                .padding(.horizontal, 16)
-            }
-            .padding(.horizontal, -16)
+        ContinueReadingRail(entries: Array(library.progress.prefix(3)), showsTitle: true) { entry, hadith in
+            openTarget = ReaderOpenTarget(slug: entry.collectionSlug, name: hadith.collectionName,
+                                           volumeId: hadith.volumeId, hadithNumber: hadith.hadithNumber,
+                                           source: .continueReading, position: entry.position)
         }
     }
 
@@ -257,24 +240,6 @@ struct TodayView: View {
     }
 }
 
-private struct ContinueReadingCard: View {
-    let hadith: HadithRef
-    let position: Int
-    var body: some View {
-        HStack(spacing: 12) {
-            CollectionCover(position: position).frame(width: 52, height: 76)
-            VStack(alignment: .leading, spacing: 5) {
-                Text(hadith.collectionName).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.textPrimary).lineLimit(2)
-                Text(hadith.referenceDisplay).font(.caption2).foregroundStyle(Theme.textSecondary).lineLimit(1)
-            }
-        }
-        .frame(width: 218, alignment: .leading)
-        .padding(10)
-        .background(Theme.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-    }
-}
-
 private struct DailyHadithCard: View {
     let hadith: DailyHadith; let preferences: ReaderPreferences; let palette: ReaderPalette
     let offline: Bool; let isBookmarked: Bool; let isFavorited: Bool; let hasNote: Bool
@@ -290,7 +255,7 @@ private struct DailyHadithCard: View {
         Group { if expanded && shouldCollapse { ScrollView { readingUnit }.frame(maxHeight: TodayContentPolicy.expandedScrollHeight) } else { readingUnit } }
             .padding(18).background(palette.surface).clipShape(RoundedRectangle(cornerRadius: 18))
             .contentShape(RoundedRectangle(cornerRadius: 18)).onTapGesture { onOpen() }.contextMenu { menuContents }
-            .overlay(alignment: .top) { if let undoNotice { SavedUndoBanner(notice: undoNotice).padding(.top, 8) } }
+            .overlay(alignment: .bottom) { if let undoNotice { SavedUndoBanner(notice: undoNotice, onExpire: { self.undoNotice = nil }) } }
             .confirmationDialog("Remove saved item?", isPresented: Binding(get: { pendingRemoval != nil }, set: { if !$0 { pendingRemoval = nil } })) {
                 Button("Remove", role: .destructive) { performPendingRemoval(false) }
                 Button("Remove and don't ask again", role: .destructive) { performPendingRemoval(true) }

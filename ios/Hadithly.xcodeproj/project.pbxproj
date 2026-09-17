@@ -63,6 +63,7 @@
 		97895D6035CF1D70762E9219 /* GuestMergePlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DB77C4DAC4E74EC0E77C50C /* GuestMergePlanner.swift */; };
 		9A4308D33FB86639EB1F1363 /* LanguagePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A83DB98EF37EA23342864B08 /* LanguagePickerView.swift */; };
 		9CD181086BFA639ED121ADB9 /* LibraryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8915CABC1FAD246BEAAE5CAA /* LibraryModel.swift */; };
+		9D557AD7F1F2D7E3D4B94EAA /* ContinueReadingRail.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA0418AE417B3C27F2AEC28D /* ContinueReadingRail.swift */; };
 		A468D0669C62C5B40BC96CC5 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14379C576B39E8C048BCE832 /* RootView.swift */; };
 		AEEEA7C0237734918CD6BBF0 /* cover_bukhari.png in Resources */ = {isa = PBXBuildFile; fileRef = 8F8E9194B862D190FF4DE06E /* cover_bukhari.png */; };
 		AF28D69D18C0CD5FB17810C3 /* ReaderR6AUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B4A338AE40995107DF7C317 /* ReaderR6AUITests.swift */; };
@@ -163,6 +164,7 @@
 		B52ABC702BC12301BA44C329 /* Hadithly.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Hadithly.entitlements; sourceTree = "<group>"; };
 		B5DFCE4318990CAD4E4544D2 /* Phase4TranslationFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase4TranslationFlowTests.swift; sourceTree = "<group>"; };
 		B6AEB8604C7683BCDD286699 /* cover_muslim.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = cover_muslim.png; sourceTree = "<group>"; };
+		BA0418AE417B3C27F2AEC28D /* ContinueReadingRail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinueReadingRail.swift; sourceTree = "<group>"; };
 		C1EE521FDA5DE9A2253AE14B /* ReaderPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderPreferences.swift; sourceTree = "<group>"; };
 		C997345CFBA166DB694220B0 /* ReaderPagingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderPagingTests.swift; sourceTree = "<group>"; };
 		CEA8A15927ABED222640071E /* OnboardingFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlowView.swift; sourceTree = "<group>"; };
@@ -185,8 +187,8 @@
 		F8CBAF558598DAAEC889C224 /* Amiri-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Amiri-Regular.ttf"; sourceTree = "<group>"; };
 		FA7143E72E104DB258A51D0D /* PushNotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationManager.swift; sourceTree = "<group>"; };
 		FBD00493F3B0CA46FF1DDAB8 /* Amiri-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Amiri-OFL.txt"; sourceTree = "<group>"; };
-		"TEMP_2F6DBB73-3ABB-4351-AABC-692BDF384F6C" /* Production.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Production.xcconfig; sourceTree = "<group>"; };
-		"TEMP_D1472CB7-4FF2-4217-812E-80BD7B0F7BDC" /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		"TEMP_A42E23E9-22E3-4926-80D0-BB7913F3DD8C" /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		"TEMP_B1691D93-91F6-45DF-ACB2-EB561B3E8B21" /* Production.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Production.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -323,6 +325,7 @@
 		7991DF7548B9F15D2760C93C /* Saved */ = {
 			isa = PBXGroup;
 			children = (
+				BA0418AE417B3C27F2AEC28D /* ContinueReadingRail.swift */,
 				1206BAE2B160FC2733042D53 /* SavedItemRow.swift */,
 				1D0D0E5563F36FB768BF5991 /* SavedView.swift */,
 			);
@@ -490,11 +493,11 @@
 			);
 			sourceTree = "<group>";
 		};
-		"TEMP_9A611179-60F9-46E9-91EB-3CE98A1577AB" /* ios */ = {
+		"TEMP_4125C9E6-6FCC-4B11-B131-7482041EA705" /* ios */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_D1472CB7-4FF2-4217-812E-80BD7B0F7BDC" /* Secrets.xcconfig */,
-				"TEMP_2F6DBB73-3ABB-4351-AABC-692BDF384F6C" /* Production.xcconfig */,
+				"TEMP_A42E23E9-22E3-4926-80D0-BB7913F3DD8C" /* Secrets.xcconfig */,
+				"TEMP_B1691D93-91F6-45DF-ACB2-EB561B3E8B21" /* Production.xcconfig */,
 			);
 			path = ios;
 			sourceTree = "<group>";
@@ -674,6 +677,7 @@
 				D92EF75595B7E15C69709BFA /* AdminReviewView.swift in Sources */,
 				581C8B465D5BFD06642298E2 /* AppEnvironment.swift in Sources */,
 				3B23E69EF62410EE33249CD0 /* CollectionCover.swift in Sources */,
+				9D557AD7F1F2D7E3D4B94EAA /* ContinueReadingRail.swift in Sources */,
 				92772F9145AF4DE5EDCB8AB6 /* GuestDataModels.swift in Sources */,
 				33FC99DE32E942D10DA1A0E8 /* GuestDataStore.swift in Sources */,
 				97895D6035CF1D70762E9219 /* GuestMergePlanner.swift in Sources */,
@@ -731,7 +735,7 @@
 /* Begin XCBuildConfiguration section */
 		081EA1614EAE1CB1451F28EB /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_2F6DBB73-3ABB-4351-AABC-692BDF384F6C" /* Production.xcconfig */;
+			baseConfigurationReference = "TEMP_B1691D93-91F6-45DF-ACB2-EB561B3E8B21" /* Production.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Hadithly/Hadithly.entitlements;
@@ -751,7 +755,7 @@
 		};
 		1DB6B6403B644CF2BD507A46 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_D1472CB7-4FF2-4217-812E-80BD7B0F7BDC" /* Secrets.xcconfig */;
+			baseConfigurationReference = "TEMP_A42E23E9-22E3-4926-80D0-BB7913F3DD8C" /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Hadithly/Hadithly.entitlements;

@@ -25,10 +25,13 @@ struct LibraryView: View {
     var body: some View {
         ScrollView {
             Group {
-                if let entry = library.continueReading, let hadith = entry.hadith {
-                    Button { openTarget = ReaderOpenTarget(slug: entry.collectionSlug, name: hadith.collectionName, volumeId: hadith.volumeId, hadithNumber: hadith.hadithNumber, source: .continueReading, position: entry.position) } label: {
-                        HStack { CollectionCover(position: (ReaderModels.collections.firstIndex { $0.slug == entry.collectionSlug } ?? 0) + 1).frame(width: 42, height: 62); VStack(alignment: .leading) { Text("Continue reading").font(.caption).foregroundStyle(Theme.textSecondary); Text(hadith.referenceDisplay).foregroundStyle(Theme.textPrimary) }; Spacer() }.padding(10).background(Theme.surface).clipShape(RoundedRectangle(cornerRadius: 14))
-                    }.buttonStyle(.plain)
+                if library.continueReading != nil {
+                    ContinueReadingRail(entries: Array(library.progress.prefix(1)), showsTitle: false) { entry, hadith in
+                        openTarget = ReaderOpenTarget(slug: entry.collectionSlug, name: hadith.collectionName,
+                                                      volumeId: hadith.volumeId, hadithNumber: hadith.hadithNumber,
+                                                      source: .continueReading, position: entry.position)
+                    }
+                    .padding(.bottom, 8)
                 }
                 switch presentation {
                 case .grid:
