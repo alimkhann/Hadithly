@@ -266,6 +266,82 @@ data class UserPreferencesResult(
     val readerPreferences: ReaderPreferences? = null,
 )
 
+/** Subscription + quota fields from the `users:getCurrentUser` row (S1). */
+@Serializable
+data class SubscriptionStatusResult(
+    val subscriptionTier: String? = null,
+    val entitlementExpiresAt: Double? = null,
+    val aiGenerationsThisMonth: Double? = null,
+    val aiGenerationLimit: Double? = null,
+)
+
+/**
+ * Portable export from `users:exportCurrentUserData` (S1). Only the caller's
+ * own data: account summary, preferences, Saved material joined to canonical
+ * hadith identity, reading progress, legacy rows, and own contributions.
+ * Tolerant defaults so future fields cannot break decoding.
+ */
+@Serializable
+data class ExportHadithRef(
+    val hadithId: String? = null,
+    val canonicalId: String? = null,
+    val collectionSlug: String? = null,
+    val providerHadithId: String? = null,
+    val referenceDisplay: String? = null,
+    val missing: Boolean? = null,
+)
+
+@Serializable
+data class ExportPayload(
+    val generatedAt: Double = 0.0,
+    val account: ExportAccount? = null,
+    val savedFolders: List<ExportFolder> = emptyList(),
+    val savedItems: List<ExportItem> = emptyList(),
+    val readingProgress: List<ExportProgress> = emptyList(),
+    val submissions: List<ExportSubmission> = emptyList(),
+)
+
+@Serializable
+data class ExportAccount(
+    val email: String? = null,
+    val displayName: String? = null,
+    val subscriptionTier: String? = null,
+    val createdAt: Double? = null,
+)
+
+@Serializable
+data class ExportFolder(
+    val name: String? = null,
+    val createdAt: Double? = null,
+    val updatedAt: Double? = null,
+)
+
+@Serializable
+data class ExportItem(
+    val hadith: ExportHadithRef? = null,
+    val bookmarkCreatedAt: Double? = null,
+    val favoriteCreatedAt: Double? = null,
+    val noteContent: String? = null,
+    val noteUpdatedAt: Double? = null,
+    val folderName: String? = null,
+    val updatedAt: Double? = null,
+)
+
+@Serializable
+data class ExportProgress(
+    val collectionSlug: String? = null,
+    val hadith: ExportHadithRef? = null,
+    val updatedAt: Double? = null,
+)
+
+@Serializable
+data class ExportSubmission(
+    val language: String? = null,
+    val proposedContent: String? = null,
+    val status: String? = null,
+    val createdAt: Double? = null,
+)
+
 /**
  * One R6 reader-menu English search hit (`hadiths:searchEnglish`, cached
  * provider English only). Defaults keep decoding tolerant; blank queries

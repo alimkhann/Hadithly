@@ -13,9 +13,6 @@ import com.hadithly.app.core.preferences.PreferencesStore
 import com.hadithly.app.core.preferences.toWireMap
 import com.hadithly.app.core.push.PushNotificationManager
 import com.hadithly.app.core.purchases.PurchaseManager
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import dev.convex.android.AuthState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import dev.convex.android.AuthState
 
 /**
  * Owns the sign-in lifecycle: after a Clerk session becomes active it makes
@@ -43,11 +41,6 @@ class SessionManager(
 
     private val _syncSummary = MutableStateFlow<String?>(null)
     val syncSummary: StateFlow<String?> = _syncSummary
-
-    private val _canModerate = MutableStateFlow(false)
-    val canModerate: StateFlow<Boolean> = _canModerate
-
-    private var moderationJob: Job? = null
 
     private var launchSessionSynced = false
     private var syncInFlight = false
@@ -74,11 +67,9 @@ class SessionManager(
                             completeSignIn()
                         }
                         library.refresh()
-                        observeModeration()
                     }
                     else -> if (!isSignedIn()) {
                         library.refresh()
-                        stopModeration()
                     }
                 }
             }
@@ -160,7 +151,6 @@ class SessionManager(
     /** Called when the Clerk session ends; the guest store was already cleared. */
     fun handleSignOut() {
         library.refresh()
-        stopModeration()
         _syncSummary.value = null
         purchases.logOut()
     }
@@ -173,22 +163,6 @@ class SessionManager(
             is ClerkResult.Success -> purchases.logOut()
             is ClerkResult.Failure -> error(result.errorMessage)
         }
-    }
-
-    private fun observeModeration() {
-        if (moderationJob?.isActive == true) return
-        moderationJob = scope.launch(Dispatchers.IO) {
-            runCatching {
-                repository.subscribe<Boolean>("community:canModerate")
-                    .collect { _canModerate.value = it }
-            }.onFailure { _canModerate.value = false }
-        }
-    }
-
-    private fun stopModeration() {
-        moderationJob?.cancel()
-        moderationJob = null
-        _canModerate.value = false
     }
 
     private fun syncSummaryFor(result: com.hadithly.app.core.data.GuestMergeResult): String {

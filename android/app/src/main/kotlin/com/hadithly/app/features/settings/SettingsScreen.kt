@@ -3,8 +3,11 @@
 package com.hadithly.app.features.settings
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.provider.Settings as SystemSettings
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -23,17 +26,28 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.NavigateNext
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.NotificationsNone
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Help
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
@@ -43,6 +57,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +66,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
@@ -58,184 +74,855 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.clerk.api.Clerk
-import com.clerk.api.network.serialization.ClerkResult
 import com.clerk.api.network.model.error.ClerkErrorResponse
+import com.clerk.api.network.serialization.ClerkResult
 import com.clerk.api.network.serialization.errorMessage
 import com.clerk.api.user.User
 import com.clerk.api.user.update
+import com.hadithly.app.BuildConfig
 import com.hadithly.app.R
+import com.hadithly.app.core.data.ExportPayload
+import com.hadithly.app.core.data.SubscriptionStatusResult
 import com.hadithly.app.core.data.SupportedLanguages
+import com.hadithly.app.core.preferences.ArabicFont
 import com.hadithly.app.core.preferences.PreferencesStore
 import com.hadithly.app.core.preferences.ReaderPreferences
+import com.hadithly.app.core.preferences.ReaderTheme
 import com.hadithly.app.core.preferences.ReadingDirection
 import com.hadithly.app.core.push.PushNotificationManager
 import com.hadithly.app.core.push.PushRegistrationState
 import com.hadithly.app.core.theme.HadithlyColors
 import com.hadithly.app.core.theme.LocalHadithlyColors
 import com.hadithly.app.features.main.rememberApp
+import com.hadithly.app.features.purchases.QuotaPaywallSheet
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
+/**
+ * S1 Settings root. Every row opens a finished destination or performs a
+ * real action — no dead placeholders. Reading controls reuse the F2
+ * preference contracts; the admin queue no longer ships in the consumer app
+ * (E4 owns the secured exception tool). Destinations are internal state
+ * (matching the manual tab navigation) with system-back support.
+ */
 @Composable
 fun SettingsScreen(onShowSignIn: () -> Unit) {
+    var route by remember { mutableStateOf<SettingsDestination?>(null) }
+    BackHandler(enabled = route != null) { route = null }
+    val destination = route
+    if (destination == null) {
+        SettingsRoot(onOpen = { route = it }, onShowSignIn = onShowSignIn)
+    } else {
+        SettingsDestinationScreen(destination = destination, onBack = { route = null }, onShowSignIn = onShowSignIn)
+    }
+}
+
+@Composable
+private fun SettingsDestinationScreen(
+    destination: SettingsDestination,
+    onBack: () -> Unit,
+    onShowSignIn: () -> Unit,
+) {
+    val colors = LocalHadithlyColors.current
+    Column(Modifier.fillMaxSize().background(colors.background)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp),
+        ) {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = colors.textPrimary)
+            }
+            Text(destination.title, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+        }
+        when (destination) {
+            SettingsDestination.PROFILE -> ProfileDestination()
+            SettingsDestination.APPEARANCE -> AppearanceDestination()
+            SettingsDestination.APP_LANGUAGE -> AppLanguageDestination()
+            SettingsDestination.HADITH_TRANSLATION -> TranslationLanguageDestination()
+            SettingsDestination.READING_AND_TYPE -> ReadingTypeDestination()
+            SettingsDestination.OFFLINE_STORAGE -> OfflineStorageDestination()
+            SettingsDestination.NOTIFICATIONS -> NotificationDestination()
+            SettingsDestination.SUBSCRIPTION -> SubscriptionDestination()
+            SettingsDestination.PRIVACY_AND_DATA -> PrivacyDataDestination(onShowSignIn)
+            SettingsDestination.HELP_AND_SUPPORT -> HelpSupportDestination()
+            SettingsDestination.ABOUT_AND_LEGAL -> AboutLegalDestination()
+        }
+    }
+}
+
+@Composable
+private fun SettingsRoot(onOpen: (SettingsDestination) -> Unit, onShowSignIn: () -> Unit) {
     val app = rememberApp()
     val colors = LocalHadithlyColors.current
     val preferences by app.preferences.preferences.collectAsStateWithLifecycle()
     val syncSummary by app.session.syncSummary.collectAsStateWithLifecycle()
-    val canModerate by app.session.canModerate.collectAsStateWithLifecycle()
     val sessions by Clerk.sessionsFlow.collectAsStateWithLifecycle()
     val signedIn = sessions.isNotEmpty()
-    var showAdminReview by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    var subscriptionTier by remember(signedIn) { mutableStateOf<String?>(null) }
+    val notificationsOn by app.settings.dailyNotificationEnabled.collectAsStateWithLifecycle()
+    val notificationTime by app.settings.dailyNotificationTime.collectAsStateWithLifecycle()
+    val notificationsStatus = if (!signedIn) null else if (notificationsOn) notificationTime else "Off"
+    LaunchedEffect(signedIn) {
+        subscriptionTier = if (signedIn) {
+            runCatching { app.repository.getSubscriptionStatus()?.subscriptionTier }.getOrNull()
+        } else {
+            null
+        }
+    }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier.fillMaxSize().background(colors.background).verticalScroll(rememberScrollState()).padding(16.dp),
     ) {
         Text("Settings", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
-        AccountCard(signedIn, syncSummary, onShowSignIn)
-        ReadingCard(preferences, app.preferences, app.savedSafety)
-        NotificationCard(signedIn)
-        if (canModerate) {
+        if (signedIn) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(colors.surface, RoundedCornerShape(16.dp))
-                    .clickable { showAdminReview = true }
-                    .testTag("settings.translationReview")
+                    .clickable { onOpen(SettingsDestination.PROFILE) }
+                    .testTag(SettingsDestination.PROFILE.testTag)
                     .padding(16.dp),
             ) {
-                Icon(Icons.Filled.Security, null, tint = colors.accent)
+                ProfileBadge(Modifier.size(44.dp))
                 Spacer(Modifier.size(12.dp))
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                    Text("Translation review", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
-                    Text("Approve AI-reviewed contributions", fontSize = 12.sp, color = colors.textSecondary)
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(accountName(), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+                    val email = Clerk.user?.emailAddresses?.firstOrNull { it.id == Clerk.user?.primaryEmailAddressId }?.emailAddress
+                    Text(email ?: "View profile, picture, and name", fontSize = 12.sp, color = colors.textSecondary)
                 }
                 Icon(Icons.AutoMirrored.Filled.NavigateNext, null, tint = colors.textSecondary)
             }
+            syncSummary?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
+        } else {
+            CardColumn {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Icon(Icons.Filled.Person, null, tint = colors.textSecondary)
+                    Text("Reading as a guest", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+                }
+                Text(
+                    "Everything you need to read works without an account. Sign in to carry your bookmarks, favorites, and notes across devices.",
+                    fontSize = 14.sp,
+                    color = colors.textSecondary,
+                )
+                Button(
+                    onClick = onShowSignIn,
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.accent, contentColor = Color.Black),
+                    modifier = Modifier.fillMaxWidth().testTag("settings.signin"),
+                ) { Text("Sign in", fontWeight = FontWeight.SemiBold) }
+            }
+        }
+
+        SettingsGroup(
+            header = "Reading",
+            rows = listOf(
+                SettingsDestination.APPEARANCE to null,
+                SettingsDestination.APP_LANGUAGE to languageName(preferences.uiLocale),
+                SettingsDestination.HADITH_TRANSLATION to languageName(preferences.translationLocale),
+                SettingsDestination.READING_AND_TYPE to null,
+            ),
+            onOpen,
+        )
+        SettingsGroup(
+            header = "Library",
+            rows = listOf(
+                SettingsDestination.OFFLINE_STORAGE to null,
+                SettingsDestination.NOTIFICATIONS to notificationsStatus,
+                SettingsDestination.SUBSCRIPTION to SettingsSubscription.displayName(subscriptionTier),
+            ),
+            onOpen,
+        )
+        SettingsGroup(
+            header = "Support",
+            rows = listOf(
+                SettingsDestination.PRIVACY_AND_DATA to null,
+                SettingsDestination.HELP_AND_SUPPORT to null,
+                SettingsDestination.ABOUT_AND_LEGAL to null,
+            ),
+            onOpen,
+        )
+
+        if (signedIn) {
+            TextButton(
+                onClick = { scope.launch { Clerk.auth.signOut() } },
+                modifier = Modifier.testTag("settings.signout"),
+            ) { Text("Sign out", color = colors.textPrimary) }
         }
         Spacer(Modifier.size(16.dp))
     }
-    if (showAdminReview) AdminReviewSheet { showAdminReview = false }
+}
+
+private fun accountName(): String {
+    val user = Clerk.user
+    val full = listOfNotNull(user?.firstName?.trim(), user?.lastName?.trim())
+        .filter { it.isNotEmpty() }.joinToString(" ")
+    return full.ifEmpty { user?.username ?: "Account" }
+}
+
+private fun languageName(code: String): String? =
+    SupportedLanguages.all.firstOrNull { it.first == code }?.second
+
+@Composable
+private fun SettingsGroup(header: String, rows: List<Pair<SettingsDestination, String?>>, onOpen: (SettingsDestination) -> Unit) {
+    val colors = LocalHadithlyColors.current
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            header,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+            color = colors.textSecondary,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+        )
+        Column(modifier = Modifier.fillMaxWidth().background(colors.surface, RoundedCornerShape(16.dp))) {
+            rows.forEachIndexed { index, (destination, detail) ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onOpen(destination) }
+                        .testTag(destination.testTag)
+                        .padding(horizontal = 16.dp, vertical = 13.dp),
+                ) {
+                    SettingsIcon(destination)
+                    Spacer(Modifier.size(14.dp))
+                    Text(destination.title, fontSize = 16.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
+                    detail?.let { Text(it, fontSize = 14.sp, color = colors.textSecondary) }
+                    Icon(Icons.AutoMirrored.Filled.NavigateNext, null, tint = colors.textSecondary, modifier = Modifier.size(18.dp))
+                }
+                if (index < rows.lastIndex) {
+                    HorizontalDivider(color = colors.surfaceElevated, thickness = 0.75.dp, modifier = Modifier.padding(start = 52.dp))
+                }
+            }
+        }
+    }
 }
 
 @Composable
-private fun AccountCard(signedIn: Boolean, syncSummary: String?, onShowSignIn: () -> Unit) {
-    val app = rememberApp()
+private fun SettingsIcon(destination: SettingsDestination) {
+    val colors = LocalHadithlyColors.current
+    val icon: ImageVector = when (destination) {
+        SettingsDestination.PROFILE -> Icons.Filled.Person
+        SettingsDestination.APPEARANCE -> Icons.Filled.Palette
+        SettingsDestination.APP_LANGUAGE -> Icons.Filled.Language
+        SettingsDestination.HADITH_TRANSLATION -> Icons.Filled.MenuBook
+        SettingsDestination.READING_AND_TYPE -> Icons.Filled.TextFields
+        SettingsDestination.OFFLINE_STORAGE -> Icons.Filled.Download
+        SettingsDestination.NOTIFICATIONS -> Icons.Filled.Notifications
+        SettingsDestination.SUBSCRIPTION -> Icons.Filled.Star
+        SettingsDestination.PRIVACY_AND_DATA -> Icons.Filled.Lock
+        SettingsDestination.HELP_AND_SUPPORT -> Icons.Filled.Help
+        SettingsDestination.ABOUT_AND_LEGAL -> Icons.Filled.Info
+    }
+    Icon(icon, null, tint = colors.textPrimary, modifier = Modifier.size(22.dp))
+}
+
+@Composable
+private fun ProfileBadge(modifier: Modifier = Modifier) {
+    val colors = LocalHadithlyColors.current
+    Box(modifier.background(colors.surfaceElevated, CircleShape), contentAlignment = Alignment.Center) {
+        val initial = accountName().trim().firstOrNull()?.uppercase() ?: "H"
+        Text(initial.toString(), fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = colors.textSecondary)
+    }
+}
+
+// ── Profile ────────────────────────────────────────────────────────────────
+
+@Composable
+private fun ProfileDestination() {
     val colors = LocalHadithlyColors.current
     val scope = rememberCoroutineScope()
-    val uriHandler = LocalUriHandler.current
-    var showDeleteConfirmation by remember { mutableStateOf(false) }
-    var deletingAccount by remember { mutableStateOf(false) }
-    var deletionError by remember { mutableStateOf<String?>(null) }
-    var showUsernameEditor by remember { mutableStateOf(false) }
-    var username by remember(signedIn) { mutableStateOf(Clerk.user?.username) }
-    CardColumn {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Box(Modifier.size(38.dp).background(colors.surfaceElevated, CircleShape), contentAlignment = Alignment.Center) {
-                Icon(Icons.Filled.Person, null, tint = colors.textSecondary, modifier = Modifier.size(20.dp))
-            }
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(if (signedIn) (Clerk.user?.firstName ?: "Account") else "Reading as a guest", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
-                Text(if (signedIn) "Your reading syncs across devices." else "Reading works without an account.", fontSize = 12.sp, color = colors.textSecondary)
-            }
-        }
-        if (!signedIn) {
-            Text("Sign in to carry your bookmarks, favorites, and notes across devices.", fontSize = 14.sp, color = colors.textSecondary)
-        }
-        syncSummary?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
-        if (signedIn) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showUsernameEditor = true }
-                    .padding(vertical = 4.dp),
-            ) {
-                Column(Modifier.weight(1f)) {
-                    Text("Username", fontSize = 14.sp, color = colors.textSecondary)
-                    Text(
-                        username ?: "Not set",
-                        fontSize = 15.sp,
-                        color = colors.textPrimary,
-                    )
+    var firstName by remember { mutableStateOf(Clerk.user?.firstName.orEmpty()) }
+    var lastName by remember { mutableStateOf(Clerk.user?.lastName.orEmpty()) }
+    var username by remember { mutableStateOf(Clerk.user?.username.orEmpty()) }
+    var notice by remember { mutableStateOf<String?>(null) }
+    var saving by remember { mutableStateOf(false) }
+
+    ScrollColumn {
+        CardColumn {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                ProfileBadge(Modifier.size(56.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(accountName(), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+                    val email = Clerk.user?.emailAddresses?.firstOrNull { it.id == Clerk.user?.primaryEmailAddressId }?.emailAddress
+                    email?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
+                    if (Clerk.user?.hasImage != true) {
+                        Text("Avatar is set by your sign-in method.", fontSize = 11.sp, color = colors.textSecondary)
+                    }
                 }
-                Icon(Icons.Filled.Edit, contentDescription = "Edit username", tint = colors.textSecondary)
             }
-            TextButton(onClick = { scope.launch { Clerk.auth.signOut() } }, modifier = Modifier.testTag("settings.signout")) {
-                Text("Sign out", color = colors.textPrimary)
+        }
+        CardColumn {
+            Text("Name", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+            OutlinedTextField(value = firstName, onValueChange = { firstName = it }, label = { Text("First name") }, singleLine = true, enabled = !saving)
+            OutlinedTextField(value = lastName, onValueChange = { lastName = it }, label = { Text("Last name") }, singleLine = true, enabled = !saving)
+            Button(
+                enabled = !saving,
+                onClick = {
+                    saving = true
+                    scope.launch {
+                        val result = Clerk.user?.update(User.UpdateParams(firstName = firstName.trim(), lastName = lastName.trim()))
+                        saving = false
+                        notice = if (result is ClerkResult.Success<*>) "Name saved." else (result as? ClerkResult.Failure<ClerkErrorResponse>)?.errorMessage ?: "Could not save your name."
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().testTag("settings.profile.saveName"),
+            ) { Text("Save name") }
+        }
+        CardColumn {
+            Text("Username", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+            Text("Usernames start with a letter and use letters, numbers, and underscores.", fontSize = 13.sp, color = colors.textSecondary)
+            OutlinedTextField(value = username, onValueChange = { username = it }, label = { Text("Username") }, singleLine = true, enabled = !saving)
+            Button(
+                enabled = !saving && username.trim().length >= 3,
+                onClick = {
+                    saving = true
+                    scope.launch {
+                        val result = Clerk.user?.update(User.UpdateParams(username = username.trim()))
+                        saving = false
+                        notice = if (result is ClerkResult.Success<*>) "Username saved." else "That username is not available."
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().testTag("settings.profile.saveUsername"),
+            ) { Text("Save username") }
+        }
+        notice?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
+    }
+}
+
+// ── Appearance / languages / reading ───────────────────────────────────────
+
+@Composable
+private fun AppearanceDestination() {
+    val app = rememberApp()
+    val colors = LocalHadithlyColors.current
+    val preferences by app.preferences.preferences.collectAsStateWithLifecycle()
+    ScrollColumn {
+        CardColumn {
+            Text("Appearance", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+            Text("Applies across the app. The reader previews each theme live.", fontSize = 12.sp, color = colors.textSecondary)
+            ReaderTheme.entries.forEach { theme ->
+                optionRow(
+                    label = themeLabel(theme),
+                    selected = theme == preferences.theme,
+                    colors = colors,
+                    onClick = { app.preferences.setTheme(theme) },
+                    modifier = Modifier.testTag("settings.appearance.${theme.wire}"),
+                )
             }
-            TextButton(onClick = { uriHandler.openUri("https://play.google.com/store/account/subscriptions") }) {
-                Text("Manage subscription", color = colors.textSecondary)
+        }
+    }
+}
+
+private fun themeLabel(theme: ReaderTheme): String = when (theme) {
+    ReaderTheme.SYSTEM -> "System"
+    ReaderTheme.LIGHT -> "Light"
+    ReaderTheme.PAPER -> "Paper"
+    ReaderTheme.DARK -> "Dark"
+}
+
+@Composable
+private fun AppLanguageDestination() {
+    val app = rememberApp()
+    val preferences by app.preferences.preferences.collectAsStateWithLifecycle()
+    LanguageList(title = "App language", selection = preferences.uiLocale, prefix = "settings.uiLanguage", onSelect = app.preferences::setUILocale)
+}
+
+@Composable
+private fun TranslationLanguageDestination() {
+    val app = rememberApp()
+    val preferences by app.preferences.preferences.collectAsStateWithLifecycle()
+    LanguageList(title = "Hadith translation", selection = preferences.translationLocale, prefix = "settings.language", onSelect = app.preferences::setTranslationLocale)
+}
+
+@Composable
+private fun LanguageList(title: String, selection: String, prefix: String, onSelect: (String) -> Unit) {
+    val colors = LocalHadithlyColors.current
+    ScrollColumn {
+        CardColumn {
+            Text(title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+            SupportedLanguages.all.forEach { (code, name) ->
+                optionRow(
+                    label = name,
+                    selected = code == selection,
+                    colors = colors,
+                    onClick = { onSelect(code) },
+                    modifier = Modifier.testTag("$prefix.$code"),
+                )
+            }
+            Text(
+                pluralStringResource(R.plurals.settings_languages_available, SupportedLanguages.all.size, SupportedLanguages.all.size),
+                fontSize = 12.sp,
+                color = colors.textSecondary,
+            )
+        }
+    }
+}
+
+private fun fontLabel(font: ArabicFont): String = when (font) {
+    ArabicFont.SYSTEM -> "System"
+    ArabicFont.AMIRI -> "Amiri"
+    ArabicFont.SCHEHERAZADE_NEW -> "Scheherazade New"
+    ArabicFont.NOTO_NASKH_ARABIC -> "Noto Naskh Arabic"
+}
+
+@Composable
+private fun ReadingTypeDestination() {
+    val app = rememberApp()
+    val colors = LocalHadithlyColors.current
+    val preferences by app.preferences.preferences.collectAsStateWithLifecycle()
+    val store: PreferencesStore = app.preferences
+    ScrollColumn {
+        CardColumn {
+            Text("Arabic type", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+            ArabicFont.entries.forEach { font ->
+                optionRow(
+                    label = fontLabel(font),
+                    selected = font == preferences.arabicFont,
+                    colors = colors,
+                    onClick = { store.setArabicFont(font) },
+                    modifier = Modifier.testTag("settings.arabicFont.${font.wire}"),
+                )
+            }
+            Text(stringResource(R.string.settings_arabic_type_size), fontSize = 14.sp, color = colors.textPrimary)
+            Slider(
+                value = preferences.arabicFontSize,
+                onValueChange = store::setArabicFontSize,
+                valueRange = 18f..40f,
+                steps = 21,
+                colors = SliderDefaults.colors(thumbColor = colors.accent, activeTrackColor = colors.accent, inactiveTrackColor = colors.surfaceElevated),
+                modifier = Modifier.testTag("settings.arabicSize"),
+            )
+            Text("${preferences.arabicFontSize.toInt()} pt", fontSize = 11.sp, color = colors.textSecondary)
+            Text("نَعْبُدُكَ وَإِيَّاكَ نَسْتَعِينُ", fontSize = preferences.arabicFontSize.sp, color = colors.textPrimary, modifier = Modifier.fillMaxWidth())
+        }
+        CardColumn {
+            Text(stringResource(R.string.settings_reading_direction), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+            ReadingDirection.entries.forEach { direction ->
+                optionRow(
+                    label = directionLabel(direction),
+                    selected = direction == preferences.readingDirection,
+                    colors = colors,
+                    onClick = { store.setReadingDirection(direction) },
+                    modifier = Modifier.testTag("settings.readingDirection.${direction.wire}"),
+                )
+            }
+        }
+        CardColumn {
+            Text("Text layers", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+            LayerSwitch(
+                label = stringResource(R.string.settings_visibility_arabic),
+                checked = preferences.arabicVisible,
+                onCheckedChange = { store.setVisibility(arabic = it) },
+                modifier = Modifier.testTag("settings.visibility.arabic"),
+            )
+            LayerSwitch(
+                label = stringResource(R.string.settings_visibility_translation),
+                checked = preferences.translationVisible,
+                onCheckedChange = { store.setVisibility(translation = it) },
+                modifier = Modifier.testTag("settings.visibility.translation"),
+            )
+            Text("At least one layer stays visible.", fontSize = 12.sp, color = colors.textSecondary)
+        }
+        CardColumn {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.saved_confirm_removal), fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
+                Switch(
+                    checked = app.savedSafety.confirmsRemoval,
+                    onCheckedChange = { app.savedSafety.confirmsRemoval = it },
+                    colors = SwitchDefaults.colors(checkedTrackColor = colors.accent),
+                    modifier = Modifier.testTag("settings.confirmSavedRemoval"),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun LayerSwitch(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit, modifier: Modifier = Modifier) {
+    val colors = LocalHadithlyColors.current
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+        Text(label, fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(checkedTrackColor = colors.accent),
+            modifier = modifier,
+        )
+    }
+}
+
+@Composable
+private fun directionLabel(direction: ReadingDirection): String = when (direction) {
+    ReadingDirection.AUTO -> stringResource(R.string.direction_automatic)
+    ReadingDirection.RTL -> stringResource(R.string.direction_right_to_left)
+    ReadingDirection.LTR -> stringResource(R.string.direction_left_to_right)
+}
+
+// ── Offline storage (locked until O2, no dead rows) ────────────────────────
+
+@Composable
+private fun OfflineStorageDestination() {
+    val colors = LocalHadithlyColors.current
+    val context = LocalContext.current
+    var cacheSize by remember { mutableStateOf("…") }
+    var notice by remember { mutableStateOf<String?>(null) }
+    var showLearnMore by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+    fun refreshSize() {
+        scope.launch {
+            val bytes = runCatching {
+                context.cacheDir.walkTopDown().filter { it.isFile }.sumOf { it.length() }
+            }.getOrDefault(0L)
+            cacheSize = when {
+                bytes < 1024 -> "$bytes B"
+                bytes < 1024 * 1024 -> "${bytes / 1024} KB"
+                else -> "%.1f MB".format(bytes / 1024.0 / 1024.0)
+            }
+        }
+    }
+    LaunchedEffect(Unit) { refreshSize() }
+
+    ScrollColumn {
+        CardColumn {
+            Text("Offline collections", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+            Text(
+                "Full offline downloads arrive in the next update (O2). Reading, Saved items, and positions already work offline from your recent pages.",
+                fontSize = 14.sp,
+                color = colors.textSecondary,
+            )
+            TextButton(
+                onClick = { showLearnMore = true },
+                modifier = Modifier.testTag("settings.offline.learnMore"),
+            ) { Text("How offline will work", color = colors.accent) }
+        }
+        CardColumn {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Temporary cache", fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
+                Text(cacheSize, fontSize = 14.sp, color = colors.textSecondary)
             }
             TextButton(
-                enabled = !deletingAccount,
-                onClick = { showDeleteConfirmation = true },
-                modifier = Modifier.testTag("settings.deleteAccount"),
-            ) {
-                Text(if (deletingAccount) "Deleting…" else "Delete account", color = Color(0xFFFF6B6B))
-            }
-        } else {
-            Button(
-                onClick = onShowSignIn,
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = colors.accent, contentColor = Color.Black),
-                modifier = Modifier.fillMaxWidth().testTag("settings.signin"),
-            ) { Text("Sign in", fontWeight = FontWeight.SemiBold) }
+                onClick = {
+                    runCatching {
+                        context.cacheDir.listFiles()?.forEach { if (it.name != "clerk") it.deleteRecursively() }
+                    }
+                    notice = "Temporary cache cleared."
+                    refreshSize()
+                },
+                modifier = Modifier.testTag("settings.offline.clearCache"),
+            ) { Text("Clear temporary cache", color = colors.accent) }
+            notice?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
+            Text("Clearing never deletes bookmarks, favorites, notes, or reading progress.", fontSize = 12.sp, color = colors.textSecondary)
+        }
+        CardColumn {
+            TextButton(
+                onClick = {
+                    runCatching {
+                        val intent = Intent(SystemSettings.ACTION_INTERNAL_STORAGE_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        context.startActivity(intent)
+                    }.onFailure {
+                        runCatching {
+                            context.startActivity(Intent(SystemSettings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                        }
+                    }
+                },
+                modifier = Modifier.testTag("settings.offline.systemSettings"),
+            ) { Text("Open device storage", color = colors.textPrimary) }
+            Text("See Hadithly's total device storage from the system settings page.", fontSize = 12.sp, color = colors.textSecondary)
         }
     }
 
-    if (showUsernameEditor) {
-        val field = remember { mutableStateOf(username.orEmpty()) }
-        var savingUsername by remember { mutableStateOf(false) }
+    if (showLearnMore) {
         AlertDialog(
-            onDismissRequest = { if (!savingUsername) showUsernameEditor = false },
-            title = { Text("Set your username") },
+            onDismissRequest = { showLearnMore = false },
+            title = { Text("How offline will work") },
             text = {
-                Column {
-                    Text(
-                        "Usernames start with a letter and use letters, numbers, and underscores.",
-                        fontSize = 13.sp,
-                        color = colors.textSecondary,
-                    )
-                    Spacer(Modifier.size(8.dp))
-                    OutlinedTextField(
-                        value = field.value,
-                        onValueChange = { field.value = it },
-                        singleLine = true,
-                        enabled = !savingUsername,
+                Text("Hadithly will ship versioned offline collections: a base Arabic dump plus translation packs, each checksummed and licensed. Downloads validate before activating and keep your Saved items and reading positions intact. Until then, your recent pages stay readable offline automatically.")
+            },
+            confirmButton = { TextButton(onClick = { showLearnMore = false }) { Text("Done") } },
+            containerColor = colors.surface,
+        )
+    }
+}
+
+// ── Notifications (ported from the pre-S1 card) ────────────────────────────
+
+@Composable
+private fun NotificationDestination() {
+    val app = rememberApp()
+    val colors = LocalHadithlyColors.current
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val signedIn = Clerk.sessionsFlow.collectAsStateWithLifecycle().value.isNotEmpty()
+    val enabled by app.settings.dailyNotificationEnabled.collectAsStateWithLifecycle()
+    val time by app.settings.dailyNotificationTime.collectAsStateWithLifecycle()
+    val pushState by app.push.state.collectAsStateWithLifecycle()
+    var showTimePicker by remember { mutableStateOf(false) }
+    var status by remember { mutableStateOf<String?>(null) }
+
+    fun persist(nextEnabled: Boolean, nextTime: String = time) {
+        app.settings.setDailyNotificationEnabled(nextEnabled)
+        scope.launch {
+            runCatching {
+                app.repository.setDailyNotification(nextEnabled, nextTime, PushNotificationManager.timezoneOffsetMinutes())
+            }.onFailure { status = it.message ?: "Could not save notification settings." }
+        }
+    }
+
+    fun enableNotifications() {
+        app.push.requestAndSaveToken()
+        persist(true)
+        status = "Registering this device…"
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) enableNotifications() else {
+            app.settings.setDailyNotificationEnabled(false)
+            status = "Notifications are not allowed in system settings."
+        }
+    }
+
+    ScrollColumn {
+        CardColumn {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Filled.Notifications, null, tint = colors.textSecondary)
+                Text("Daily hadith", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+            }
+            if (!signedIn) {
+                Text("Sign in to receive the daily hadith on this device.", fontSize = 14.sp, color = colors.textSecondary)
+            } else {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text("Send me a hadith every day", fontSize = 14.sp, color = colors.textPrimary)
+                        val stateLine = status ?: when (val currentPushState = pushState) {
+                            PushRegistrationState.NotConfigured -> "Add Firebase configuration to enable FCM in this build."
+                            PushRegistrationState.Registered -> "This device is registered."
+                            is PushRegistrationState.Failed -> currentPushState.message
+                            else -> null
+                        }
+                        stateLine?.let { Text(it, fontSize = 11.sp, color = colors.textSecondary) }
+                    }
+                    Switch(
+                        checked = enabled,
+                        enabled = app.push.isConfigured,
+                        onCheckedChange = { checked ->
+                            if (!checked) {
+                                status = null
+                                persist(false)
+                            } else if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            } else {
+                                enableNotifications()
+                            }
+                        },
+                        colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = colors.accent),
+                        modifier = Modifier.testTag("settings.notificationsToggle"),
                     )
                 }
+                if (enabled) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().background(colors.surfaceElevated, RoundedCornerShape(10.dp)).clickable { showTimePicker = true }.testTag("settings.notificationsTime").padding(14.dp),
+                    ) {
+                        Text("Time", fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
+                        Text(time, fontSize = 14.sp, color = colors.accent)
+                    }
+                }
+            }
+        }
+    }
+
+    if (showTimePicker) {
+        val parts = time.split(":").mapNotNull(String::toIntOrNull)
+        val picker = rememberTimePickerState(initialHour = parts.getOrElse(0) { 8 }, initialMinute = parts.getOrElse(1) { 0 }, is24Hour = true)
+        AlertDialog(
+            onDismissRequest = { showTimePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    val next = "%02d:%02d".format(picker.hour, picker.minute)
+                    app.settings.setDailyNotificationTime(next)
+                    persist(enabled, next)
+                    showTimePicker = false
+                }) { Text("Done", color = colors.accent) }
             },
+            dismissButton = { TextButton(onClick = { showTimePicker = false }) { Text("Cancel", color = colors.textSecondary) } },
+            text = { TimePicker(state = picker) },
+            containerColor = colors.surface,
+        )
+    }
+}
+
+// ── Subscription ───────────────────────────────────────────────────────────
+
+@Composable
+private fun SubscriptionDestination() {
+    val app = rememberApp()
+    val colors = LocalHadithlyColors.current
+    val uriHandler = LocalUriHandler.current
+    val scope = rememberCoroutineScope()
+    val signedIn = Clerk.sessionsFlow.collectAsStateWithLifecycle().value.isNotEmpty()
+    val purchaseState by app.purchases.state.collectAsStateWithLifecycle()
+    var status by remember(signedIn) { mutableStateOf<SubscriptionStatusResult?>(null) }
+    var restoring by remember { mutableStateOf(false) }
+    var showPaywall by remember { mutableStateOf(false) }
+    LaunchedEffect(signedIn) {
+        status = if (signedIn) runCatching { app.repository.getSubscriptionStatus() }.getOrNull() else null
+    }
+
+    ScrollColumn {
+        CardColumn {
+            if (!signedIn) {
+                Text("Sign in to see your subscription. Purchases stay attached to your Hadithly account across devices.", fontSize = 14.sp, color = colors.textSecondary)
+            } else {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(SettingsSubscription.displayName(status?.subscriptionTier), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary, modifier = Modifier.weight(1f))
+                    if (purchaseState.hasProEntitlement) {
+                        Text("Active", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.accent)
+                    }
+                }
+                SettingsSubscription.quotaLine(status?.aiGenerationsThisMonth, status?.aiGenerationLimit)?.let {
+                    Text(it, fontSize = 14.sp, color = colors.textSecondary)
+                }
+                Text("Pro unlocks 100 AI translations per rolling week. Reading, saved items, and existing translations stay free.", fontSize = 12.sp, color = colors.textSecondary)
+                Button(
+                    onClick = { showPaywall = true },
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.accent, contentColor = Color.Black),
+                    modifier = Modifier.fillMaxWidth().testTag("settings.subscription.plans"),
+                ) { Text("View plans", fontWeight = FontWeight.SemiBold) }
+                TextButton(
+                    enabled = !restoring,
+                    onClick = {
+                        restoring = true
+                        app.purchases.restore {
+                            restoring = false
+                            scope.launch { status = runCatching { app.repository.getSubscriptionStatus() }.getOrNull() }
+                        }
+                        // restore() early-returns when unconfigured; never strand the spinner.
+                        if (!purchaseState.configured) restoring = false
+                    },
+                    modifier = Modifier.testTag("settings.subscription.restore"),
+                ) { Text(if (restoring) "Restoring…" else "Restore purchases", color = colors.textPrimary) }
+                TextButton(onClick = { uriHandler.openUri(SettingsLinks.PLAY_SUBSCRIPTIONS) }) {
+                    Text("Manage subscription", color = colors.textSecondary)
+                }
+            }
+        }
+    }
+    if (showPaywall) QuotaPaywallSheet(purchases = app.purchases, onDismiss = { showPaywall = false }, onUnlocked = { showPaywall = false })
+}
+
+// ── Privacy & data (export + deletion) ─────────────────────────────────────
+
+@Composable
+private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
+    val app = rememberApp()
+    val colors = LocalHadithlyColors.current
+    val uriHandler = LocalUriHandler.current
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val signedIn = Clerk.sessionsFlow.collectAsStateWithLifecycle().value.isNotEmpty()
+    var showExportConfirm by remember { mutableStateOf(false) }
+    var exporting by remember { mutableStateOf(false) }
+    var exportNotice by remember { mutableStateOf<String?>(null) }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var deletingAccount by remember { mutableStateOf(false) }
+    var deletionError by remember { mutableStateOf<String?>(null) }
+
+    val saveDocument = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        if (uri == null) {
+            exporting = false
+            return@rememberLauncherForActivityResult
+        }
+        scope.launch {
+            try {
+                val payload = app.repository.exportUserData()
+                if (payload == null) {
+                    exportNotice = "Export is unavailable right now."
+                    return@launch
+                }
+                val json = Json { prettyPrint = true }.encodeToString<ExportPayload>(payload)
+                for (fragment in SettingsExport.forbiddenFragments) {
+                    check(!json.contains(fragment)) { "Export leaked $fragment" }
+                }
+                context.contentResolver.openOutputStream(uri)?.use { it.write(json.toByteArray()) }
+                exportNotice = "Export saved: ${payload.savedItems.size} saved items, ${payload.readingProgress.size} reading positions."
+            } catch (error: Exception) {
+                exportNotice = error.message ?: "Export failed. Please try again."
+            } finally {
+                exporting = false
+            }
+        }
+    }
+
+    ScrollColumn {
+        CardColumn {
+            Text("Your data", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+            if (signedIn) {
+                Text("Export your profile, preferences, Saved items, folders, reading progress, and your own contributions as JSON.", fontSize = 14.sp, color = colors.textSecondary)
+                Button(
+                    enabled = !exporting,
+                    onClick = { showExportConfirm = true },
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.surfaceElevated, contentColor = colors.textPrimary),
+                    modifier = Modifier.fillMaxWidth().testTag("settings.export"),
+                ) { Text(if (exporting) "Preparing…" else "Export my data", fontWeight = FontWeight.SemiBold) }
+                exportNotice?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
+            } else {
+                Text("Sign in to export your synced data. Guest data never leaves this device.", fontSize = 14.sp, color = colors.textSecondary)
+                Button(
+                    onClick = onShowSignIn,
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.accent, contentColor = Color.Black),
+                    modifier = Modifier.fillMaxWidth().testTag("settings.signin"),
+                ) { Text("Sign in", fontWeight = FontWeight.SemiBold) }
+            }
+        }
+        CardColumn {
+            PolicyRow(title = "Privacy Policy", onClick = { uriHandler.openUri(SettingsLinks.PRIVACY) })
+            PolicyRow(title = "Terms of Use", onClick = { uriHandler.openUri(SettingsLinks.TERMS) })
+            PolicyRow(
+                title = "How deletion works",
+                onClick = { uriHandler.openUri(SettingsLinks.DELETE_ACCOUNT_INFO) },
+                modifier = Modifier.testTag("settings.deletionInfo"),
+            )
+        }
+        if (signedIn) {
+            CardColumn {
+                Text(SettingsDeletionCopy.SUBSCRIPTION_WARNING, fontSize = 12.sp, color = colors.textSecondary)
+                TextButton(
+                    enabled = !deletingAccount,
+                    onClick = { showDeleteConfirmation = true },
+                    modifier = Modifier.testTag("settings.deleteAccount"),
+                ) { Text(if (deletingAccount) "Deleting…" else "Delete account", color = Color(0xFFFF6B6B)) }
+            }
+        }
+    }
+
+    if (showExportConfirm) {
+        AlertDialog(
+            onDismissRequest = { if (!exporting) showExportConfirm = false },
+            title = { Text("Export your data?") },
+            text = { Text("The file contains only your portable data. You must be signed in; an expired session signs you in again first.") },
             confirmButton = {
                 TextButton(
-                    enabled = !savingUsername && field.value.trim().length >= 3,
                     onClick = {
-                        savingUsername = true
-                        scope.launch {
-                            val result = Clerk.user?.update(User.UpdateParams(username = field.value.trim()))
-                            savingUsername = false
-                            if (result is ClerkResult.Success<*>) {
-                                username = (result.value as? User)?.username
-                                showUsernameEditor = false
-                            } else if (result is ClerkResult.Failure<*>) {
-                                val clerkFailure = result as? ClerkResult.Failure<ClerkErrorResponse>
-                                deletionError = clerkFailure?.errorMessage ?: "Please try again."
-                            }
-                        }
+                        showExportConfirm = false
+                        exporting = true
+                        saveDocument.launch(SettingsExport.fileName())
                     },
-                ) { Text("Save") }
+                ) { Text("Choose location") }
             },
             dismissButton = {
-                TextButton(enabled = !savingUsername, onClick = { showUsernameEditor = false }) {
-                    Text("Cancel", color = colors.textSecondary)
-                }
+                TextButton(onClick = { showExportConfirm = false }) { Text("Cancel", color = colors.textSecondary) }
             },
             containerColor = colors.surface,
         )
@@ -243,10 +930,8 @@ private fun AccountCard(signedIn: Boolean, syncSummary: String?, onShowSignIn: (
     if (showDeleteConfirmation) {
         AlertDialog(
             onDismissRequest = { if (!deletingAccount) showDeleteConfirmation = false },
-            title = { Text("Delete account permanently?") },
-            text = {
-                Text("This removes your synced bookmarks, favorites, notes, reading progress, submissions, and sign-in. It cannot be undone. Store subscriptions are not cancelled automatically.")
-            },
+            title = { Text(SettingsDeletionCopy.TITLE) },
+            text = { Text("${SettingsDeletionCopy.MESSAGE} ${SettingsDeletionCopy.SUBSCRIPTION_WARNING}") },
             confirmButton = {
                 TextButton(
                     enabled = !deletingAccount,
@@ -283,111 +968,126 @@ private fun AccountCard(signedIn: Boolean, syncSummary: String?, onShowSignIn: (
     }
 }
 
-/**
- * Temporary minimal control surface for the F2 preference contracts. S1 owns
- * the final Settings screen; R4 owns the full reader typography UI.
- */
 @Composable
-private fun ReadingCard(preferences: ReaderPreferences, store: PreferencesStore, savedSafety: com.hadithly.app.core.data.SavedSafetyPreferences) {
+private fun PolicyRow(title: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = LocalHadithlyColors.current
-    CardColumn {
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Filled.TextFields, null, tint = colors.textSecondary)
-            Text(stringResource(R.string.settings_reading), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
-        }
-        Text(stringResource(R.string.settings_arabic_type_size), fontSize = 14.sp, color = colors.textPrimary)
-        Slider(
-            value = preferences.arabicFontSize,
-            onValueChange = store::setArabicFontSize,
-            valueRange = 18f..40f,
-            steps = 21,
-            colors = SliderDefaults.colors(thumbColor = colors.accent, activeTrackColor = colors.accent, inactiveTrackColor = colors.surfaceElevated),
-            modifier = Modifier.testTag("settings.arabicSize"),
-        )
-        Text("${preferences.arabicFontSize.toInt()} pt", fontSize = 11.sp, color = colors.textSecondary)
-        Text("نَعْبُدُكَ وَإِيَّاكَ نَسْتَعِينُ", fontSize = preferences.arabicFontSize.sp, color = colors.textPrimary, modifier = Modifier.fillMaxWidth())
-        optionSection(stringResource(R.string.settings_hadith_translation)) {
-            SupportedLanguages.all.forEach { (code, name) ->
-                optionRow(
-                    label = name,
-                    selected = code == preferences.translationLocale,
-                    colors = colors,
-                    onClick = { store.setTranslationLocale(code) },
-                    modifier = Modifier.testTag("settings.language.$code"),
-                )
-            }
-        }
-        optionSection(stringResource(R.string.settings_app_language)) {
-            SupportedLanguages.all.forEach { (code, name) ->
-                optionRow(
-                    label = name,
-                    selected = code == preferences.uiLocale,
-                    colors = colors,
-                    onClick = { store.setUILocale(code) },
-                    modifier = Modifier.testTag("settings.uiLanguage.$code"),
-                )
-            }
-        }
-        optionSection(stringResource(R.string.settings_reading_direction)) {
-            ReadingDirection.entries.forEach { direction ->
-                optionRow(
-                    label = directionLabel(direction),
-                    selected = direction == preferences.readingDirection,
-                    colors = colors,
-                    onClick = { store.setReadingDirection(direction) },
-                    modifier = Modifier.testTag("settings.readingDirection.${direction.wire}"),
-                )
-            }
-        }
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Column(Modifier.weight(1f)) {
-                Text(stringResource(R.string.settings_visibility_arabic), fontSize = 14.sp, color = colors.textPrimary)
-            }
-            Switch(
-                checked = preferences.arabicVisible,
-                onCheckedChange = { store.setVisibility(arabic = it) },
-                colors = SwitchDefaults.colors(checkedTrackColor = colors.accent),
-                modifier = Modifier.testTag("settings.visibility.arabic"),
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 8.dp),
+    ) {
+        Text(title, fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
+        Icon(Icons.AutoMirrored.Filled.OpenInNew, null, tint = colors.textSecondary, modifier = Modifier.size(16.dp))
+    }
+}
+
+// ── Help & support / About ─────────────────────────────────────────────────
+
+@Composable
+private fun HelpSupportDestination() {
+    val colors = LocalHadithlyColors.current
+    val uriHandler = LocalUriHandler.current
+    val context = LocalContext.current
+    ScrollColumn {
+        CardColumn {
+            PolicyRow(title = "FAQ & guides", onClick = { uriHandler.openUri(SettingsLinks.SUPPORT) })
+            PolicyRow(
+                title = "Contact support",
+                onClick = {
+                    runCatching {
+                        context.startActivity(
+                            Intent(Intent.ACTION_SENDTO, android.net.Uri.parse("mailto:${SettingsLinks.SUPPORT_EMAIL}?subject=Hadithly%20support"))
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                        )
+                    }
+                },
+                modifier = Modifier.testTag("settings.help.contact"),
+            )
+            Text(SettingsLinks.SUPPORT_EMAIL, fontSize = 12.sp, color = colors.textSecondary)
+            PolicyRow(
+                title = "Report a translation issue",
+                onClick = {
+                    runCatching {
+                        context.startActivity(
+                            Intent(Intent.ACTION_SENDTO, android.net.Uri.parse("mailto:${SettingsLinks.SUPPORT_EMAIL}?subject=Translation%20issue"))
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                        )
+                    }
+                },
+            )
+            Text("Include the collection and hadith number.", fontSize = 12.sp, color = colors.textSecondary)
+            PolicyRow(
+                title = "Share Hadithly",
+                onClick = {
+                    val send = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, SettingsLinks.SHARE_URL)
+                    }
+                    runCatching {
+                        context.startActivity(Intent.createChooser(send, "Share Hadithly").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                    }
+                },
+                modifier = Modifier.testTag("settings.help.share"),
             )
         }
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.saved_confirm_removal), fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
-            Switch(
-                checked = savedSafety.confirmsRemoval,
-                onCheckedChange = { savedSafety.confirmsRemoval = it },
-                colors = SwitchDefaults.colors(checkedTrackColor = colors.accent),
-                modifier = Modifier.testTag("settings.confirmSavedRemoval"),
-            )
-        }
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Column(Modifier.weight(1f)) {
-                Text(stringResource(R.string.settings_visibility_translation), fontSize = 14.sp, color = colors.textPrimary)
-            }
-            Switch(
-                checked = preferences.translationVisible,
-                onCheckedChange = { store.setVisibility(translation = it) },
-                colors = SwitchDefaults.colors(checkedTrackColor = colors.accent),
-                modifier = Modifier.testTag("settings.visibility.translation"),
-            )
-        }
-        Text(
-            pluralStringResource(R.plurals.settings_languages_available, SupportedLanguages.all.size, SupportedLanguages.all.size),
-            fontSize = 12.sp,
-            color = colors.textSecondary,
-        )
     }
 }
 
 @Composable
-private fun optionSection(title: String, content: @Composable () -> Unit) {
-    Text(title, fontSize = 14.sp, color = LocalHadithlyColors.current.textPrimary)
-    content()
+private fun AboutLegalDestination() {
+    val colors = LocalHadithlyColors.current
+    val uriHandler = LocalUriHandler.current
+    var showLicenses by remember { mutableStateOf(false) }
+    ScrollColumn {
+        CardColumn {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Hadithly", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary, modifier = Modifier.weight(1f))
+                Text("${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})", fontSize = 12.sp, color = colors.textSecondary)
+            }
+            Text(
+                "A quiet reader for the seven major hadith collections. Arabic text is licensed from its sources; AI translations are always labeled.",
+                fontSize = 14.sp,
+                color = colors.textSecondary,
+            )
+        }
+        CardColumn {
+            PolicyRow(title = "Font licenses", onClick = { showLicenses = true }, modifier = Modifier.testTag("settings.about.licenses"))
+            PolicyRow(title = "Privacy Policy", onClick = { uriHandler.openUri(SettingsLinks.PRIVACY) })
+            PolicyRow(title = "Terms of Use", onClick = { uriHandler.openUri(SettingsLinks.TERMS) })
+        }
+    }
+    if (showLicenses) {
+        AlertDialog(
+            onDismissRequest = { showLicenses = false },
+            title = { Text("Licenses") },
+            text = {
+                Text("Arabic reading faces — Amiri, Scheherazade New, and Noto Naskh Arabic — are licensed under the SIL Open Font License 1.1 (https://openfontlicense.org). Full license records live in docs/FONT_LICENSES.md. Hadith source identity, authenticity scope, and license records travel with every text.")
+            },
+            confirmButton = { TextButton(onClick = { showLicenses = false }) { Text("Done") } },
+            containerColor = colors.surface,
+        )
+    }
+}
+
+// ── Shared layout ──────────────────────────────────────────────────────────
+
+@Composable
+private fun ScrollColumn(content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) {
+    val colors = LocalHadithlyColors.current
+    Column(
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.fillMaxSize().background(colors.background).verticalScroll(rememberScrollState()).padding(16.dp),
+        content = content,
+    )
+}
+
+@Composable
+private fun CardColumn(content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) {
+    val colors = LocalHadithlyColors.current
+    Column(
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.fillMaxWidth().background(colors.surface, RoundedCornerShape(16.dp)).padding(16.dp),
+        content = content,
+    )
 }
 
 @Composable
@@ -409,123 +1109,4 @@ private fun optionRow(
         Text(label, fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
         if (selected) Icon(Icons.Filled.Check, null, tint = colors.accent, modifier = Modifier.size(16.dp))
     }
-}
-
-@Composable
-private fun directionLabel(direction: ReadingDirection): String = when (direction) {
-    ReadingDirection.AUTO -> stringResource(R.string.direction_automatic)
-    ReadingDirection.RTL -> stringResource(R.string.direction_right_to_left)
-    ReadingDirection.LTR -> stringResource(R.string.direction_left_to_right)
-}
-
-@Composable
-private fun NotificationCard(signedIn: Boolean) {
-    val app = rememberApp()
-    val colors = LocalHadithlyColors.current
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val enabled by app.settings.dailyNotificationEnabled.collectAsStateWithLifecycle()
-    val time by app.settings.dailyNotificationTime.collectAsStateWithLifecycle()
-    val pushState by app.push.state.collectAsStateWithLifecycle()
-    var showTimePicker by remember { mutableStateOf(false) }
-    var status by remember { mutableStateOf<String?>(null) }
-
-    fun persist(nextEnabled: Boolean, nextTime: String = time) {
-        app.settings.setDailyNotificationEnabled(nextEnabled)
-        scope.launch {
-            runCatching {
-                app.repository.setDailyNotification(nextEnabled, nextTime, PushNotificationManager.timezoneOffsetMinutes())
-            }.onFailure { status = it.message ?: "Could not save notification settings." }
-        }
-    }
-
-    fun enableNotifications() {
-        app.push.requestAndSaveToken()
-        persist(true)
-        status = "Registering this device…"
-    }
-
-    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) enableNotifications() else {
-            app.settings.setDailyNotificationEnabled(false)
-            status = "Notifications are not allowed in system settings."
-        }
-    }
-
-    CardColumn {
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Filled.NotificationsNone, null, tint = colors.textSecondary)
-            Text("Daily hadith", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
-        }
-        if (!signedIn) {
-            Text("Sign in to receive the daily hadith on this device.", fontSize = 14.sp, color = colors.textSecondary)
-        } else {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("Send me a hadith every day", fontSize = 14.sp, color = colors.textPrimary)
-                    val stateLine = status ?: when (val currentPushState = pushState) {
-                        PushRegistrationState.NotConfigured -> "Add Firebase configuration to enable FCM in this build."
-                        PushRegistrationState.Registered -> "This device is registered."
-                        is PushRegistrationState.Failed -> currentPushState.message
-                        else -> null
-                    }
-                    stateLine?.let { Text(it, fontSize = 11.sp, color = colors.textSecondary) }
-                }
-                Switch(
-                    checked = enabled,
-                    enabled = app.push.isConfigured,
-                    onCheckedChange = { checked ->
-                        if (!checked) {
-                            status = null
-                            persist(false)
-                        } else if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                        } else {
-                            enableNotifications()
-                        }
-                    },
-                    colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = colors.accent),
-                    modifier = Modifier.testTag("settings.notificationsToggle"),
-                )
-            }
-            if (enabled) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().background(colors.surfaceElevated, RoundedCornerShape(10.dp)).clickable { showTimePicker = true }.testTag("settings.notificationsTime").padding(14.dp),
-                ) {
-                    Text("Time", fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
-                    Text(time, fontSize = 14.sp, color = colors.accent)
-                }
-            }
-        }
-    }
-
-    if (showTimePicker) {
-        val parts = time.split(":").mapNotNull(String::toIntOrNull)
-        val picker = rememberTimePickerState(initialHour = parts.getOrElse(0) { 8 }, initialMinute = parts.getOrElse(1) { 0 }, is24Hour = true)
-        AlertDialog(
-            onDismissRequest = { showTimePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    val next = "%02d:%02d".format(picker.hour, picker.minute)
-                    app.settings.setDailyNotificationTime(next)
-                    persist(enabled, next)
-                    showTimePicker = false
-                }) { Text("Done", color = colors.accent) }
-            },
-            dismissButton = { TextButton(onClick = { showTimePicker = false }) { Text("Cancel", color = colors.textSecondary) } },
-            text = { TimePicker(state = picker) },
-            containerColor = colors.surface,
-        )
-    }
-}
-
-@Composable
-private fun CardColumn(content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) {
-    val colors = LocalHadithlyColors.current
-    Column(
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier.fillMaxWidth().background(colors.surface, RoundedCornerShape(16.dp)).padding(16.dp),
-        content = content,
-    )
 }

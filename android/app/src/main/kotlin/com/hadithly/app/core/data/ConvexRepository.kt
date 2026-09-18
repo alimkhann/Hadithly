@@ -182,6 +182,22 @@ class ConvexRepository(context: Context) {
         }
     }
 
+    /** S1 subscription + quota status from the caller's own user row. */
+    suspend fun getSubscriptionStatus(): SubscriptionStatusResult? =
+        withContext(Dispatchers.IO) {
+            subscribe<SubscriptionStatusResult>("users:getCurrentUser").firstOrNull()
+        }
+
+    /**
+     * S1 portable export. Identity-scoped server side: contains only the
+     * caller's own data. Callers show an explicit confirm dialog first; a
+     * signed-out or expired session must sign in again (reauthentication).
+     */
+    suspend fun exportUserData(): ExportPayload? =
+        withContext(Dispatchers.IO) {
+            subscribe<ExportPayload>("users:exportCurrentUserData").firstOrNull()
+        }
+
     suspend fun mergeGuestData(payload: GuestMergePayload): GuestMergeResult {
         val args = mapOf<String, Any?>(
             "bookmarks" to payload.bookmarks.map {
@@ -271,7 +287,7 @@ class ConvexRepository(context: Context) {
             mapOf("position" to position.toWireMap()),
         )
 
-    // Notifications + moderation
+    // Notifications
 
     suspend fun savePushToken(token: String, tzOffsetMinutes: Double) =
         mutation(
@@ -294,7 +310,4 @@ class ConvexRepository(context: Context) {
                 ),
             )
         }
-
-    suspend fun approveSubmission(submissionId: String) =
-        mutation("community:approveSubmission", mapOf("submissionId" to submissionId))
 }
