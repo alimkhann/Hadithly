@@ -174,6 +174,138 @@ export const getCurrentUser = query({
 });
 
 /**
+ * S1 portable export. Returns only the signed-in user's own data: account
+ * summary, reader preferences, Saved folders/items joined to canonical hadith
+ * identity, reading progress, legacy Saved rows, and the user's own
+ * contribution drafts. Never includes push tokens, other users, audit rows,
+ * or reports. Clients gate this behind an explicit user action plus device
+ * reauthentication (biometric/passcode) before sharing the file.
+ */
+export const exportCurrentUserData = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await requireIdentity(ctx);
+    const generatedAt = Date.now();
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.clerkId))
+      .unique();
+    if (!user) {
+      return {
+        generatedAt,
+        account: null,
+        readerPreferences: null,
+        savedFolders: [],
+        savedItems: [],
+        readingProgress: [],
+        legacy: { bookmarks: [], favorites: [], notes: [] },
+        submissions: [],
+      };
+    }
+
+    const [folders, items, progress, bookmarks, favorites, notes, submissions] =
+      await Promise.all([
+        ctx.db.query("savedFolders").withIndex("by_user", (q) => q.eq("userId", user._id)).collect(),
+        ctx.db.query("savedItems").withIndex("by_user", (q) => q.eq("userId", user._id)).collect(),
+        ctx.db.query("readingProgress").withIndex("by_user_collection", (q) => q.eq("userId", user._id)).collect(),
+        ctx.db.query("bookmarks").withIndex("by_user", (q) => q.eq("userId", user._id)).collect(),
+        ctx.db.query("favorites").withIndex("by_user", (q) => q.eq("userId", user._id)).collect(),
+        ctx.db.query("notes").withIndex("by_user_hadith", (q) => q.eq("userId", user._id)).collect(),
+        ctx.db.query("communitySubmissions").withIndex("by_submitted_by", (q) => q.eq("submittedBy", user._id)).collect(),
+      ]);
+
+    const hadithIds = new Set<string>();
+    for (const row of [...items, ...bookmarks, ...favorites, ...notes]) {
+      hadithIds.add(row.hadithId.toString());
+    }
+    for (const row of progress) {
+      hadithIds.add(row.hadithId.toString());
+    }
+    const hadithDocs = await Promise.all(
+      [...hadithIds].map(async (id) => {
+        try {
+          return await ctx.db.get(id as Id<"hadiths">);
+        } catch {
+          return null;
+        }
+      }),
+    );
+    const hadithById = new Map(
+      hadithDocs
+        .filter((doc): doc is NonNullable<typeof doc> => doc !== null)
+        .map((doc) => [doc._id.toString(), doc] as const),
+    );
+    const hadithRef = (hadithId: Id<"hadiths">) => {
+      const doc = hadithById.get(hadithId.toString());
+      if (!doc) return { hadithId: hadithId.toString(), missing: true as const };
+      return {
+        hadithId: hadithId.toString(),
+        canonicalId: doc.canonicalId ?? null,
+        collectionSlug: doc.collectionSlug,
+        providerHadithId: doc.providerHadithId,
+        referenceDisplay: doc.referenceDisplay,
+      };
+    };
+
+    return {
+      generatedAt,
+      account: {
+        email: user.email ?? null,
+        displayName: user.displayName ?? null,
+        subscriptionTier: user.subscriptionTier,
+        createdAt: user.createdAt,
+      },
+      readerPreferences:
+        (user.readerPreferences as ReaderPreferences | undefined) ?? null,
+      savedFolders: folders.map((folder) => ({
+        name: folder.name,
+        createdAt: folder.createdAt,
+        updatedAt: folder.updatedAt,
+      })),
+      savedItems: items.map((item) => ({
+        hadith: hadithRef(item.hadithId),
+        bookmarkCreatedAt: item.bookmarkCreatedAt ?? null,
+        favoriteCreatedAt: item.favoriteCreatedAt ?? null,
+        noteContent: item.noteContent ?? null,
+        noteUpdatedAt: item.noteUpdatedAt ?? null,
+        folderName: folders.find(
+          (folder) =>
+            item.folderId !== undefined && folder._id.toString() === item.folderId.toString(),
+        )?.name,
+        updatedAt: item.updatedAt,
+      })),
+      readingProgress: progress.map((row) => ({
+        collectionSlug: row.collectionSlug,
+        hadith: hadithRef(row.hadithId),
+        position: (row.position as unknown as Record<string, unknown> | undefined) ?? null,
+        updatedAt: row.updatedAt,
+      })),
+      legacy: {
+        bookmarks: bookmarks.map((row) => ({
+          hadith: hadithRef(row.hadithId),
+          createdAt: row.createdAt,
+        })),
+        favorites: favorites.map((row) => ({
+          hadith: hadithRef(row.hadithId),
+          createdAt: row.createdAt,
+        })),
+        notes: notes.map((row) => ({
+          hadith: hadithRef(row.hadithId),
+          content: row.content,
+          updatedAt: row.updatedAt,
+        })),
+      },
+      submissions: submissions.map((row) => ({
+        language: row.language,
+        proposedContent: row.proposedContent,
+        status: row.status,
+        createdAt: row.createdAt,
+      })),
+    };
+  },
+});
+
+/**
  * Permanently removes the authenticated user's Hadithly data. The client calls
  * this before deleting the Clerk identity so the Convex JWT is still valid.
  * It is deliberately idempotent: a retry after a partial client-side failure
