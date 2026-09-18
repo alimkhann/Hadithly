@@ -70,8 +70,10 @@ keeps the calm reader, hidden controls, strong Arabic typography, compact
 progress, and native sheets. It drops Quran-specific structures and anything
 that adds noise without helping a hadith reader.
 
-The design uses System, Light, Paper, and Dark themes. Emerald remains the
-single general accent. Bookmark and favorite colors appear only where their
+The design uses System, Light, Paper, and Dark themes. The chrome accent is
+neutral white; hierarchy comes from luminance, not hue. Emerald survives
+only as a semantic color for the brand mark, authenticity grade dots, and
+success states. Bookmark and favorite colors appear only where their
 meaning is needed. Arabic uses a licensed naskh-compatible font. UI text uses
 the platform system font. Dynamic Type and Android font scaling must work.
 
@@ -992,7 +994,46 @@ substantive: they own bounded implementation outcomes, not just inventories.
   The full iOS unit suite, focused Saved shortcut UI test, and simulator build
   passed. Android JDK 21 unit tests, debug and instrumentation builds, and all
   51 emulator instrumentation tests passed, including the shared-row hit-target
-  and preview fixture.
+   and preview fixture.
+
+### S1 Settings and profile completion (2026-09-17)
+
+- Settings is now a grouped root (account, reading, library, general,
+  danger) with eleven finished destinations on both clients: profile,
+  appearance, app language, hadith translation, reading & type, offline
+  storage, notifications, subscription, privacy & data, help & support, and
+  about & legal. Every row navigates or performs a real action; the
+  signed-out root keeps the guest card and hides profile-only rows.
+- Profile shows the Clerk avatar (AsyncImage on iOS, initial badge on
+  Android), editable first/last name and username, and read-only email.
+  iOS adds change-photo via `setProfileImage`; Android has no Clerk photo
+  API in its SDK, so the avatar stays read-only there.
+- Appearance, languages, direction, visibility, Arabic font ladder, size
+  slider with preview, and the Saved confirm-removal toggle all reuse the
+  F2 stores. Subscription shows tier, quota use, and expiry from
+  `users:getCurrentUser`, with plans (quota paywall), restore, and store
+  management actions. Offline shows real cache size, a clear-cache action,
+  an O2 locked notice with an explainer sheet, and a system-storage entry;
+  no dead placeholders.
+- New identity-scoped `users:exportCurrentUserData` query returns only
+  portable data (account summary, preferences, Saved folders/items joined
+  to canonical hadith identity, reading progress, legacy rows, own
+  submissions). iOS gates export behind device biometrics/passcode plus a
+  valid Clerk session; Android uses an explicit confirm plus a system
+  save dialog and asserts the forbidden fragments. Deletion keeps its
+  separate store-subscription warning on both platforms.
+- The admin queue is out of both consumer apps: iOS `AdminReviewView` and
+  Android `AdminReviewSheet` deleted, `canModerate` subscriptions removed,
+  and the Phase 4 UI flow now asserts the review entry is absent (E4 owns
+  the secured exception tool).
+- Evidence: development Convex deployed; backend typecheck and 102 tests
+  passed (4 new export isolation tests). iOS 174/174 unit tests (8 new
+  S1) and the new signed-out `SettingsS1UITests` navigation matrix (10
+  destinations) passed on the iPhone 17 Pro simulator. Android JDK 21
+  155/155 unit tests (8 new S1) passed; debug build installed on the
+  hadithly emulator showed the Settings root and Offline destination with
+  a real cache size. No production, credential, or store state changed.
+- Next allowed session: O1. This task stopped before O1.
 
 ## Delegation policy
 
