@@ -35,6 +35,30 @@ class ReaderR4Test {
         assertTrue(ReaderPalettes.paper.textPrimary != ReaderPalettes.paper.background)
     }
 
+    /**
+     * Monochrome restyle gate: the palette-aware interactive tint keeps WCAG
+     * AA contrast (4.5) for glyphs/links on every surface, and filled
+     * interactive controls keep contrast with their foreground, on all
+     * reader themes. A white accent on cream would fail this.
+     */
+    @Test
+    fun `interactive tint meets contrast on every palette`() {
+        listOf(ReaderPalettes.dark, ReaderPalettes.light, ReaderPalettes.paper).forEach { palette ->
+            assertTrue(
+                "interactive on background ${palette.interactive} ${palette.background}",
+                contrast(palette.interactive, palette.background) >= 4.5,
+            )
+            assertTrue(
+                "interactive on surface ${palette.interactive} ${palette.surface}",
+                contrast(palette.interactive, palette.surface) >= 4.5,
+            )
+            assertTrue(
+                "onInteractive on interactive",
+                contrast(palette.onInteractive, palette.interactive) >= 4.5,
+            )
+        }
+    }
+
     // Arabic type ladder
 
     @Test
@@ -123,4 +147,15 @@ class ReaderR4Test {
         val hadiths = listOf(hadith("a", null), hadith("b", "Belief"))
         assertEquals(setOf(1), ReaderChapterBoundaries.openingIndices(hadiths))
     }
+}
+
+private fun relativeLuminance(color: androidx.compose.ui.graphics.Color): Double {
+    fun lin(c: Double): Double = if (c <= 0.03928) c / 12.92 else Math.pow((c + 0.055) / 1.055, 2.4)
+    return 0.2126 * lin(color.red.toDouble()) + 0.7152 * lin(color.green.toDouble()) + 0.0722 * lin(color.blue.toDouble())
+}
+
+private fun contrast(a: androidx.compose.ui.graphics.Color, b: androidx.compose.ui.graphics.Color): Double {
+    val l1 = relativeLuminance(a)
+    val l2 = relativeLuminance(b)
+    return (maxOf(l1, l2) + 0.05) / (minOf(l1, l2) + 0.05)
 }

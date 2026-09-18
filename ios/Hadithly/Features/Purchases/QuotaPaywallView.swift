@@ -17,7 +17,7 @@ struct QuotaPaywallView: View {
                 VStack(spacing: 24) {
                     Image(systemName: "sparkles")
                         .font(.system(size: 30, weight: .medium))
-                        .foregroundStyle(Theme.accent)
+                        .foregroundStyle(palette.interactive)
                         .accessibilityHidden(true)
 
                     VStack(spacing: 8) {
@@ -135,13 +135,13 @@ struct QuotaPaywallView: View {
         VStack(spacing: 10) {
             Image(systemName: "checkmark.circle.fill")
                 .font(.title2)
-                .foregroundStyle(Theme.accent)
+                .foregroundStyle(palette.interactive)
             Text("Hadithly Pro is active")
                 .font(.headline)
                 .foregroundStyle(palette.textPrimary)
             Button("Continue reading") { unlockAndDismiss() }
                 .buttonStyle(.borderedProminent)
-                .tint(Theme.accent)
+                .tint(palette.interactive)
         }
         .padding(18)
         .frame(maxWidth: .infinity)

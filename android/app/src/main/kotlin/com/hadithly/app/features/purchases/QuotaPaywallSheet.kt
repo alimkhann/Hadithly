@@ -63,7 +63,7 @@ fun QuotaPaywallSheet(
                 .navigationBarsPadding()
                 .padding(horizontal = 24.dp, vertical = 18.dp),
         ) {
-            Text("✦", fontSize = 28.sp, color = colors.accent)
+            Text("✦", fontSize = 28.sp, color = colors.interactive)
             Text(
                 text = "More AI translations",
                 fontSize = 22.sp,
@@ -145,8 +145,8 @@ private fun PackageButton(packageToShow: Package, purchasing: Boolean, onPurchas
         enabled = !purchasing,
         onClick = onPurchase,
         colors = ButtonDefaults.buttonColors(
-            containerColor = colors.accent,
-            contentColor = androidx.compose.ui.graphics.Color.Black,
+            containerColor = colors.interactive,
+            contentColor = colors.onInteractive,
             disabledContainerColor = colors.surfaceElevated,
             disabledContentColor = colors.textSecondary,
         ),
@@ -175,8 +175,8 @@ private fun ActiveAccess(onUnlocked: () -> Unit) {
         Button(
             onClick = onUnlocked,
             colors = ButtonDefaults.buttonColors(
-                containerColor = colors.accent,
-                contentColor = androidx.compose.ui.graphics.Color.Black,
+                containerColor = colors.interactive,
+                contentColor = colors.onInteractive,
             ),
         ) { Text("Continue reading") }
     }

@@ -66,7 +66,7 @@ fun TranslationSubmissionSheet(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Text(if (result == null) "Suggest a translation" else "AI review", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary, modifier = Modifier.weight(1f))
-            TextButton(onClick = onDone) { Text(if (result == null) "Cancel" else "Done", color = colors.accent) }
+            TextButton(onClick = onDone) { Text(if (result == null) "Cancel" else "Done", color = colors.interactive) }
         }
 
         when {
@@ -113,15 +113,15 @@ fun TranslationSubmissionSheet(
                         }
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = colors.accent,
-                        contentColor = Color.Black,
+                        containerColor = colors.interactive,
+                        contentColor = colors.onInteractive,
                         disabledContainerColor = colors.surfaceElevated,
                         disabledContentColor = colors.textSecondary,
                     ),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth().testTag("submission.submit"),
                 ) {
-                    if (submitting) CircularProgressIndicator(color = Color.Black, modifier = Modifier.padding(end = 8.dp), strokeWidth = 2.dp)
+                    if (submitting) CircularProgressIndicator(color = colors.onInteractive, modifier = Modifier.padding(end = 8.dp), strokeWidth = 2.dp)
                     Text(if (submitting) "Reviewing…" else "Submit for AI review", fontWeight = FontWeight.SemiBold)
                 }
             }
@@ -154,7 +154,7 @@ private fun SubmissionVerdict(result: TranslationSubmissionResult, onRevise: () 
     }
     Column(verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.testTag("submission.verdict")) {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
-            Icon(icon, null, tint = colors.accent)
+            Icon(icon, null, tint = colors.interactive)
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
                 Text(message, fontSize = 14.sp, color = colors.textSecondary)
@@ -172,7 +172,7 @@ private fun SubmissionVerdict(result: TranslationSubmissionResult, onRevise: () 
             color = colors.textSecondary.copy(alpha = 0.8f),
         )
         if (result.status == "rejected") TextButton(onClick = onRevise, modifier = Modifier.testTag("submission.revise")) {
-            Text("Revise proposal", color = colors.accent, fontWeight = FontWeight.SemiBold)
+            Text("Revise proposal", color = colors.interactive, fontWeight = FontWeight.SemiBold)
         }
     }
 }
@@ -194,7 +194,7 @@ fun TranslationReportSheet(
     Column(verticalArrangement = Arrangement.spacedBy(14.dp), modifier = Modifier.fillMaxWidth().padding(20.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Text("Report translation", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary, modifier = Modifier.weight(1f))
-            TextButton(onClick = onDone) { Text(if (submitted) "Done" else "Cancel", color = colors.accent) }
+            TextButton(onClick = onDone) { Text(if (submitted) "Done" else "Cancel", color = colors.interactive) }
         }
         if (submitted) {
             Column(
@@ -202,7 +202,7 @@ fun TranslationReportSheet(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp).testTag("report.confirmation"),
             ) {
-                Icon(Icons.Filled.CheckCircle, null, tint = colors.accent)
+                Icon(Icons.Filled.CheckCircle, null, tint = colors.interactive)
                 Text("Report sent privately", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
                 Text("An admin can review the translation and your note.", fontSize = 12.sp, color = colors.textSecondary)
             }
@@ -235,7 +235,7 @@ fun TranslationReportSheet(
                 // submission sheet) in all four palettes — never the global
                 // MaterialTheme defaults.
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = colors.accent,
+                    containerColor = colors.interactive,
                     contentColor = Color.Black,
                     disabledContainerColor = colors.surfaceElevated,
                     disabledContentColor = colors.textSecondary,

@@ -2088,10 +2088,10 @@ private struct HadithBlock: View {
                     .font(.caption2)
                     .foregroundStyle(palette.textSecondary)
             }
-            .foregroundStyle(Theme.accent)
+            .foregroundStyle(palette.interactive)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
-            .background(Theme.accentSoft)
+            .background(palette.interactiveSoft)
             .clipShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -2109,10 +2109,10 @@ private struct HadithBlock: View {
                 .font(.caption2)
                 .foregroundStyle(palette.textSecondary)
         }
-        .foregroundStyle(Theme.accent)
+        .foregroundStyle(palette.interactive)
         .padding(.horizontal, 10)
         .padding(.vertical, 5)
-        .background(Theme.accentSoft)
+        .background(palette.interactiveSoft)
         .clipShape(Capsule())
         .accessibilityIdentifier("reader.communityBadge")
     }
@@ -2145,7 +2145,7 @@ private struct HadithBlock: View {
             if let actionTitle, let action {
                 Button(actionTitle, action: action)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(Theme.accent)
+                    .foregroundStyle(palette.interactive)
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("reader.quotaPaywall")
             } else if actionTitle != nil {
@@ -2225,7 +2225,7 @@ struct HadithSourceSheet: View {
                                 .lineLimit(1)
                                 .truncationMode(.middle)
                         }
-                        .foregroundStyle(Theme.accent)
+                        .foregroundStyle(palette.interactive)
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("reader.sourceSheet.url")
@@ -2240,7 +2240,7 @@ struct HadithSourceSheet: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
-                        .foregroundStyle(Theme.accent)
+                        .foregroundStyle(palette.interactive)
                 }
             }
         }
@@ -2298,7 +2298,7 @@ private struct NoteEditorSheet: View {
                         onSave(trimmed)
                         dismiss()
                     }
-                    .foregroundStyle(Theme.accent)
+                    .foregroundStyle(palette.interactive)
                     .accessibilityIdentifier("note.save")
                 }
             }

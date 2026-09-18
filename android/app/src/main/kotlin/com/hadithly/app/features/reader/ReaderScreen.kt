@@ -2468,7 +2468,7 @@ internal fun HadithHeader(
                 tint = when (marker) {
                     SavedMiniMarker.BOOKMARK -> colors.bookmark
                     SavedMiniMarker.FAVORITE -> colors.favorite
-                    SavedMiniMarker.NOTE -> colors.accent
+                    SavedMiniMarker.NOTE -> colors.interactive
                 },
                 modifier = Modifier
                     .size(12.dp)
@@ -2513,7 +2513,7 @@ internal fun HadithSourceSheet(hadith: ReaderHadith) {
             Text(
                 text = hadith.authenticity.sourceUrl,
                 fontSize = 12.sp,
-                color = colors.accent,
+                color = colors.interactive,
             )
         }
     }
@@ -2747,12 +2747,12 @@ private fun SourceBadge(
         horizontalArrangement = Arrangement.spacedBy(5.dp),
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .background(colors.accentSoft, RoundedCornerShape(50))
+            .background(colors.interactiveSoft, RoundedCornerShape(50))
             .clickable(enabled = onClick != null) { onClick?.invoke() }
             .padding(horizontal = 10.dp, vertical = 5.dp),
     ) {
-        Icon(icon, contentDescription = null, tint = colors.accent, modifier = Modifier.size(12.dp))
-        Text(main, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.accent)
+        Icon(icon, contentDescription = null, tint = colors.interactive, modifier = Modifier.size(12.dp))
+        Text(main, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.interactive)
         Text(trailing, fontSize = 11.sp, color = colors.textSecondary)
     }
 }
@@ -2787,7 +2787,7 @@ private fun QuietNotice(
         )
         if (actionTitle != null && onAction != null) {
             TextButton(onClick = onAction) {
-                Text(actionTitle, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.accent)
+                Text(actionTitle, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.interactive)
             }
         }
     }
@@ -2818,7 +2818,7 @@ internal fun SajdaCardRow(
         modifier = modifier
             .fillMaxWidth()
             .background(
-                if (selected) colors.accentSoft else colors.surface,
+                if (selected) colors.interactiveSoft else colors.surface,
                 RoundedCornerShape(16.dp),
             )
             .clickable(onClick = onClick)
@@ -2944,11 +2944,11 @@ internal fun ContentsSheet(
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = { submitJump() }),
                         colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = colors.accent,
+                            focusedBorderColor = colors.interactive,
                             unfocusedBorderColor = colors.divider,
                             focusedTextColor = colors.textPrimary,
                             unfocusedTextColor = colors.textPrimary,
-                            cursorColor = colors.accent,
+                            cursorColor = colors.interactive,
                             focusedContainerColor = colors.surfaceElevated,
                             unfocusedContainerColor = colors.surfaceElevated,
                             errorBorderColor = colors.favorite,
@@ -2966,7 +2966,7 @@ internal fun ContentsSheet(
                             "Go",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = if (jumpInput.isNotBlank()) colors.accent else colors.textSecondary,
+                            color = if (jumpInput.isNotBlank()) colors.interactive else colors.textSecondary,
                         )
                     }
                 }
@@ -3005,7 +3005,7 @@ internal fun ContentsSheet(
                             text = volume.title,
                             fontSize = 16.sp,
                             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-                            color = if (selected) colors.accent else colors.textPrimary,
+                            color = if (selected) colors.interactive else colors.textPrimary,
                             maxLines = 1,
                             overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                         )
@@ -3212,7 +3212,7 @@ internal fun SettingsSheet(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .background(
-                            if (selected) colors.accentSoft else androidx.compose.ui.graphics.Color.Transparent,
+                            if (selected) colors.interactiveSoft else androidx.compose.ui.graphics.Color.Transparent,
                             RoundedCornerShape(10.dp),
                         )
                         .selectable(
@@ -3233,7 +3233,7 @@ internal fun SettingsSheet(
                         text = theme.wire.replaceFirstChar { it.uppercase() },
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium,
-                        color = if (selected) colors.accent else colors.textSecondary,
+                        color = if (selected) colors.interactive else colors.textSecondary,
                         modifier = Modifier.padding(top = 4.dp),
                     )
                 }
@@ -3324,7 +3324,7 @@ internal fun SettingsSheet(
                     Icon(
                         Icons.Filled.CheckCircle,
                         contentDescription = null,
-                        tint = colors.accent,
+                        tint = colors.interactive,
                         modifier = Modifier.size(18.dp),
                     )
                 } else {
@@ -3361,7 +3361,7 @@ internal fun SettingsSheet(
                 ) {
                     Text(name, fontSize = 15.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
                     if (selected) {
-                        Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = colors.accent, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = colors.interactive, modifier = Modifier.size(18.dp))
                     } else {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.NavigateNext,
@@ -3401,7 +3401,7 @@ private fun VisibilityPill(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .background(if (isOn) colors.accentSoft else colors.surfaceElevated, RoundedCornerShape(50))
+            .background(if (isOn) colors.interactiveSoft else colors.surfaceElevated, RoundedCornerShape(50))
             .toggleable(
                 value = isOn,
                 role = Role.Switch,
@@ -3413,14 +3413,14 @@ private fun VisibilityPill(
         Icon(
             imageVector = if (isOn) Icons.Filled.CheckCircle else Icons.Outlined.RadioButtonUnchecked,
             contentDescription = null,
-            tint = if (isOn) colors.accent else colors.textSecondary,
+            tint = if (isOn) colors.interactive else colors.textSecondary,
             modifier = Modifier.size(18.dp),
         )
         Text(
             title,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
-            color = if (isOn) colors.accent else colors.textSecondary,
+            color = if (isOn) colors.interactive else colors.textSecondary,
         )
     }
 }
@@ -3443,7 +3443,7 @@ private fun CitationsSheet(translation: ReaderTranslation) {
             color = colors.textPrimary,
         )
         translation.sourceReferenceUrl?.let { url ->
-            Text("Reference: $url", fontSize = 12.sp, color = colors.accent)
+            Text("Reference: $url", fontSize = 12.sp, color = colors.interactive)
         }
         if (translation.citations.isNotEmpty()) {
             Text("Grounding citations", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = colors.textSecondary)
@@ -3485,11 +3485,11 @@ private fun NoteEditorSheet(
             onValueChange = { content = it },
             placeholder = { Text("Write a private note…", color = colors.textSecondary) },
             colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = colors.accent,
+                focusedBorderColor = colors.interactive,
                 unfocusedBorderColor = colors.surfaceElevated,
                 focusedTextColor = colors.textPrimary,
                 unfocusedTextColor = colors.textPrimary,
-                cursorColor = colors.accent,
+                cursorColor = colors.interactive,
                 focusedContainerColor = colors.surfaceElevated,
                 unfocusedContainerColor = colors.surfaceElevated,
             ),
@@ -3504,7 +3504,7 @@ private fun NoteEditorSheet(
                     val trimmed = content.trim()
                     if (trimmed.isNotEmpty()) onSave(trimmed)
                 },
-            ) { Text("Save", color = colors.accent, fontWeight = FontWeight.Bold) }
+            ) { Text("Save", color = colors.interactive, fontWeight = FontWeight.Bold) }
         }
     }
 }
@@ -3677,11 +3677,11 @@ internal fun ReaderSearchSheet(
             },
             singleLine = true,
             colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = colors.accent,
+                focusedBorderColor = colors.interactive,
                 unfocusedBorderColor = colors.divider,
                 focusedTextColor = colors.textPrimary,
                 unfocusedTextColor = colors.textPrimary,
-                cursorColor = colors.accent,
+                cursorColor = colors.interactive,
                 focusedContainerColor = colors.surfaceElevated,
                 unfocusedContainerColor = colors.surfaceElevated,
             ),
@@ -3910,7 +3910,7 @@ internal fun ReaderSavedSheet(
                                 .background(
                                     when (tab) {
                                         ReaderSavedTab.FAVORITES -> colors.favorite
-                                        ReaderSavedTab.NOTES -> colors.accent
+                                        ReaderSavedTab.NOTES -> colors.interactive
                                         ReaderSavedTab.BOOKMARKS -> colors.bookmark
                                     },
                                     RoundedCornerShape(10.dp),
@@ -4011,13 +4011,13 @@ private fun UnifiedReaderSavedSheet(
     }
     Column(Modifier.fillMaxWidth().fillMaxHeight().padding(20.dp).testTag("reader.saved.sheet")) {
         Text("Bookmarks & Notes", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
-        Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) { ReaderSavedTab.entries.forEach { candidate -> TextButton(onClick = { tab = candidate }, modifier = Modifier.weight(1f).testTag("reader.saved.tab.${candidate.tag}")) { Text(candidate.title, color = if (tab == candidate) colors.accent else colors.textSecondary) } } }
+        Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) { ReaderSavedTab.entries.forEach { candidate -> TextButton(onClick = { tab = candidate }, modifier = Modifier.weight(1f).testTag("reader.saved.tab.${candidate.tag}")) { Text(candidate.title, color = if (tab == candidate) colors.interactive else colors.textSecondary) } } }
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            TextButton(onClick = { folderId = null }) { Text(stringResource(R.string.saved_all_folders), color = if (folderId == null) colors.accent else colors.textSecondary) }
+            TextButton(onClick = { folderId = null }) { Text(stringResource(R.string.saved_all_folders), color = if (folderId == null) colors.interactive else colors.textSecondary) }
             folders.forEach { folder ->
                 val selected = folderId == folder.id
-                Row(Modifier.combinedClickable(onClick = { folderId = folder.id }, onLongClick = { folderMenu = folder }).background(if (selected) colors.accentSoft else colors.surfaceElevated, RoundedCornerShape(50)).padding(horizontal = 12.dp, vertical = 8.dp)) {
-                    Text(folder.name, color = if (selected) colors.accent else colors.textSecondary)
+                Row(Modifier.combinedClickable(onClick = { folderId = folder.id }, onLongClick = { folderMenu = folder }).background(if (selected) colors.interactiveSoft else colors.surfaceElevated, RoundedCornerShape(50)).padding(horizontal = 12.dp, vertical = 8.dp)) {
+                    Text(folder.name, color = if (selected) colors.interactive else colors.textSecondary)
                 }
                 DropdownMenu(expanded = folderMenu?.id == folder.id, onDismissRequest = { folderMenu = null }) {
                     DropdownMenuItem(text = { Text(stringResource(R.string.saved_delete_folder)) }, onClick = {

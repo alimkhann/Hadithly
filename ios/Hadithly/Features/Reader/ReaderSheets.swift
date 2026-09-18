@@ -165,7 +165,7 @@ struct CollectionOutlineSheet: View {
                     .onChange(of: jumpText) { _, _ in jumpError = nil }
                 Button("Go") { submitJump() }
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Theme.accent)
+                    .foregroundStyle(palette.interactive)
                     .frame(minWidth: 44, minHeight: 44)
                     .accessibilityIdentifier("reader.contents.jumpGo")
             }
@@ -328,7 +328,7 @@ struct CollectionOutlineSheet: View {
             if isSelected {
                 Image(systemName: "checkmark")
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(Theme.accent)
+                    .foregroundStyle(palette.interactive)
             } else if showsChevron {
                 Image(systemName: "chevron.right")
                     .font(.caption.weight(.semibold))
@@ -477,14 +477,14 @@ struct ReaderSettingsSheet: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
                             .strokeBorder(
-                                isSelected ? Theme.accent : palette.divider,
+                                isSelected ? palette.interactive : palette.divider,
                                 lineWidth: isSelected ? 2 : 1
                             )
                     )
                     .frame(height: 34)
                 Text(theme == .system ? "System" : theme == .light ? "Light" : theme == .paper ? "Paper" : "Dark")
                     .font(.caption2.weight(.medium))
-                    .foregroundStyle(isSelected ? Theme.accent : palette.textSecondary)
+                    .foregroundStyle(isSelected ? palette.interactive : palette.textSecondary)
             }
             .frame(maxWidth: .infinity)
             .padding(6)
@@ -579,7 +579,7 @@ struct ReaderSettingsSheet: View {
                     if isSelected {
                         Image(systemName: "checkmark")
                             .font(.caption.weight(.semibold))
-                            .foregroundStyle(Theme.accent)
+                            .foregroundStyle(palette.interactive)
                     }
                 }
                 .padding(.vertical, 10)
@@ -615,7 +615,7 @@ struct ReaderSettingsSheet: View {
                             if model.language == language.code {
                                 Image(systemName: "checkmark")
                                     .font(.caption.weight(.semibold))
-                                    .foregroundStyle(Theme.accent)
+                                    .foregroundStyle(palette.interactive)
                             } else {
                                 Image(systemName: "chevron.right")
                                     .font(.caption.weight(.semibold))
@@ -664,7 +664,7 @@ struct TranslationCitationsSheet: View {
                                     .truncationMode(.middle)
                             }
                             .font(.footnote)
-                            .foregroundStyle(Theme.accent)
+                            .foregroundStyle(palette.interactive)
                         }
                         .buttonStyle(.plain)
                     }
@@ -694,7 +694,7 @@ struct TranslationCitationsSheet: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
-                        .foregroundStyle(Theme.accent)
+                        .foregroundStyle(palette.interactive)
                 }
             }
         }
@@ -720,7 +720,7 @@ struct TranslationCitationsSheet: View {
                     if let domain = citation.domain {
                         Text(domain)
                             .font(.caption2)
-                            .foregroundStyle(Theme.accent)
+                            .foregroundStyle(palette.interactive)
                     }
                 }
                 Spacer()
@@ -825,14 +825,14 @@ struct TranslationSubmissionSheet: View {
                     Task { await submit() }
                 } label: {
                     HStack(spacing: 8) {
-                        if isSubmitting { ProgressView().tint(.black) }
+                        if isSubmitting { ProgressView().tint(palette.onInteractive) }
                         Text(isSubmitting ? "Reviewing…" : "Submit for AI review")
                             .font(.subheadline.weight(.semibold))
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(canSubmit ? Theme.accent : palette.surfaceElevated)
-                    .foregroundStyle(canSubmit ? .black : palette.textSecondary)
+                    .background(canSubmit ? palette.interactive : palette.surfaceElevated)
+                    .foregroundStyle(canSubmit ? palette.onInteractive : palette.textSecondary)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 .buttonStyle(.plain)
@@ -868,7 +868,7 @@ struct TranslationSubmissionSheet: View {
                 HStack(alignment: .top, spacing: 12) {
                     Image(systemName: verdictIcon(for: submission))
                         .font(.title2)
-                        .foregroundStyle(Theme.accent)
+                        .foregroundStyle(palette.interactive)
                     VStack(alignment: .leading, spacing: 4) {
                         Text(verdictTitle(for: submission))
                             .font(.headline)
@@ -906,7 +906,7 @@ struct TranslationSubmissionSheet: View {
                         errorMessage = nil
                     }
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Theme.accent)
+                    .foregroundStyle(palette.interactive)
                     .accessibilityIdentifier("submission.revise")
                 }
             }
@@ -991,7 +991,7 @@ struct TranslationReportSheet: View {
                     VStack(spacing: 12) {
                         Image(systemName: "checkmark.circle")
                             .font(.title2)
-                            .foregroundStyle(Theme.accent)
+                            .foregroundStyle(palette.interactive)
                         Text("Report sent privately")
                             .font(.headline)
                             .foregroundStyle(palette.textPrimary)
@@ -1031,8 +1031,8 @@ struct TranslationReportSheet: View {
                                 .font(.subheadline.weight(.semibold))
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 13)
-                                .background(canSubmit ? Theme.accent : palette.surfaceElevated)
-                                .foregroundStyle(canSubmit ? .black : palette.textSecondary)
+                                .background(canSubmit ? palette.interactive : palette.surfaceElevated)
+                                .foregroundStyle(canSubmit ? palette.onInteractive : palette.textSecondary)
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
                         }
                         .buttonStyle(.plain)
@@ -1049,7 +1049,7 @@ struct TranslationReportSheet: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(wasSubmitted ? "Done" : "Cancel") { dismiss() }
-                        .foregroundStyle(Theme.accent)
+                        .foregroundStyle(palette.interactive)
                 }
             }
         }
@@ -1422,14 +1422,14 @@ struct ReaderSavedShortcutSheet: View {
                 Button { folderId = nil } label: {
                     Text("All folders")
                         .font(.subheadline.weight(folderId == nil ? .semibold : .regular))
-                        .foregroundStyle(folderId == nil ? Theme.accent : palette.textSecondary)
+                        .foregroundStyle(folderId == nil ? palette.interactive : palette.textSecondary)
                 }
                 .buttonStyle(.bordered)
-                .tint(folderId == nil ? Theme.accent : palette.textSecondary)
+                .tint(folderId == nil ? palette.interactive : palette.textSecondary)
                 ForEach(library.folders) { folder in
                     Button(folder.name) { folderId = folder.id }
                         .buttonStyle(.bordered)
-                        .tint(folderId == folder.id ? Theme.accent : palette.textSecondary)
+                        .tint(folderId == folder.id ? palette.interactive : palette.textSecondary)
                         .contextMenu { Button("Delete folder", role: .destructive) { if folderId == folder.id { folderId = nil }; library.deleteFolder(folder) } }
                         .accessibilityAction(named: "Delete folder") { if folderId == folder.id { folderId = nil }; library.deleteFolder(folder) }
                 }

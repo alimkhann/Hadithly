@@ -1,3 +1,4 @@
+import SwiftUI
 import XCTest
 @testable import Hadithly
 
@@ -19,6 +20,27 @@ final class ReaderR4Tests: XCTestCase {
         for palette in [ReaderPalette.light, .paper] {
             XCTAssertTrue(palette.textPrimary != palette.background)
             XCTAssertTrue(palette.textSecondary != palette.background)
+        }
+    }
+
+    /// Monochrome restyle gate: the palette-aware interactive tint keeps
+    /// WCAG AA contrast (4.5) for glyphs/links on every surface, and filled
+    /// interactive controls keep contrast with their foreground, on all
+    /// four reader themes. A white accent on cream would fail this.
+    func testInteractiveTintMeetsContrastOnEveryPalette() {
+        for palette in [ReaderPalette.dark, .light, .paper] {
+            XCTAssertGreaterThanOrEqual(
+                contrast(palette.interactive, palette.background), 4.5,
+                "interactive on background"
+            )
+            XCTAssertGreaterThanOrEqual(
+                contrast(palette.interactive, palette.surface), 4.5,
+                "interactive on surface"
+            )
+            XCTAssertGreaterThanOrEqual(
+                contrast(palette.onInteractive, palette.interactive), 4.5,
+                "onInteractive on interactive"
+            )
         }
     }
 
@@ -192,4 +214,21 @@ final class ReaderR4Tests: XCTestCase {
         XCTAssertEqual(reanchored.layoutSignature, layout.signature)
         XCTAssertNotEqual(reanchored.layoutSignature, position.layoutSignature)
     }
+}
+
+// MARK: - Contrast helpers (monochrome restyle gate)
+
+private func relativeLuminance(_ color: Color) -> Double {
+    let environment = EnvironmentValues()
+    let components = color.resolve(in: environment).cgColor.components ?? [0, 0, 0, 1]
+    func lin(_ c: Double) -> Double {
+        c <= 0.03928 ? c / 12.92 : pow((c + 0.055) / 1.055, 2.4)
+    }
+    return 0.2126 * lin(components[0]) + 0.7152 * lin(components[1]) + 0.0722 * lin(components[2])
+}
+
+private func contrast(_ a: Color, _ b: Color) -> Double {
+    let l1 = relativeLuminance(a)
+    let l2 = relativeLuminance(b)
+    return (max(l1, l2) + 0.05) / (min(l1, l2) + 0.05)
 }

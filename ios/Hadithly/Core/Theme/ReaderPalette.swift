@@ -10,6 +10,12 @@ struct ReaderPalette: Equatable {
     let textPrimary: Color
     let textSecondary: Color
     let divider: Color
+    /// Monochrome interactive tint with guaranteed contrast on this palette's
+    /// surfaces: white on dark, near-black on light, umber on paper.
+    let interactive: Color
+    let interactiveSoft: Color
+    /// Text/icons drawn on top of `interactive` fills.
+    let onInteractive: Color
 
     static let dark = ReaderPalette(
         background: Theme.background,
@@ -17,7 +23,10 @@ struct ReaderPalette: Equatable {
         surfaceElevated: Theme.surfaceElevated,
         textPrimary: Theme.textPrimary,
         textSecondary: Theme.textSecondary,
-        divider: Color(hex: "2A2A2C")
+        divider: Color(hex: "2A2A2C"),
+        interactive: Color(hex: "FFFFFF"),
+        interactiveSoft: Color(hex: "FFFFFF").opacity(0.15),
+        onInteractive: Color(hex: "000000")
     )
 
     static let light = ReaderPalette(
@@ -26,7 +35,10 @@ struct ReaderPalette: Equatable {
         surfaceElevated: Color(hex: "E9E9E6"),
         textPrimary: Color(hex: "1C1C1E"),
         textSecondary: Color(hex: "6B6B70"),
-        divider: Color(hex: "D9D9D6")
+        divider: Color(hex: "D9D9D6"),
+        interactive: Color(hex: "1C1C1E"),
+        interactiveSoft: Color(hex: "1C1C1E").opacity(0.08),
+        onInteractive: Color(hex: "FFFFFF")
     )
 
     static let paper = ReaderPalette(
@@ -35,7 +47,10 @@ struct ReaderPalette: Equatable {
         surfaceElevated: Color(hex: "E5DABE"),
         textPrimary: Color(hex: "33301F"),
         textSecondary: Color(hex: "7A7357"),
-        divider: Color(hex: "D6C9A4")
+        divider: Color(hex: "D6C9A4"),
+        interactive: Color(hex: "33301F"),
+        interactiveSoft: Color(hex: "33301F").opacity(0.10),
+        onInteractive: Color(hex: "FFFFFF")
     )
 
     /// Resolves the stored preference against the current OS appearance.

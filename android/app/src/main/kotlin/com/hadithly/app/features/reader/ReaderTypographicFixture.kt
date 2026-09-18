@@ -110,7 +110,7 @@ fun ReaderTypographicFixture(extras: android.os.Bundle?) {
                             modifier = Modifier
                                 .fillMaxWidth(((pageIndex + 1).toDouble() / pageCount).toFloat())
                                 .height(3.dp)
-                                .background(colors.accent.copy(alpha = 0.8f), RoundedCornerShape(50))
+                                .background(colors.interactive.copy(alpha = 0.8f), RoundedCornerShape(50))
                                 .testTag("r4.compactProgress"),
                         )
                     }

@@ -45,6 +45,16 @@ data class HadithlyColors(
     val accent: Color = ThemeColors.Accent,
     val accentSoft: Color = ThemeColors.AccentSoft,
     val brand: Color = ThemeColors.Brand,
+    /**
+     * Palette-aware monochrome interactive tint. App chrome uses the white
+     * accent; reader palettes override this per surface (dark stays white,
+     * light goes near-black, paper goes umber) so selections, links, and
+     * buttons keep contrast on every theme.
+     */
+    val interactive: Color = ThemeColors.Accent,
+    val interactiveSoft: Color = ThemeColors.AccentSoft,
+    /** Text/icons drawn on top of [interactive] fills. */
+    val onInteractive: Color = Color(0xFF000000),
     val bookmark: Color = ThemeColors.Bookmark,
     val favorite: Color = ThemeColors.Favorite,
     val destructive: Color = ThemeColors.Destructive,
@@ -67,6 +77,9 @@ object ReaderPalettes {
         textPrimary = Color(0xFF1C1C1E),
         textSecondary = Color(0xFF6B6B70),
         divider = Color(0xFFD9D9D6),
+        interactive = Color(0xFF1C1C1E),
+        interactiveSoft = Color(0xFF1C1C1E).copy(alpha = 0.08f),
+        onInteractive = Color(0xFFFFFFFF),
     )
 
     val paper = HadithlyColors(
@@ -76,6 +89,9 @@ object ReaderPalettes {
         textPrimary = Color(0xFF33301F),
         textSecondary = Color(0xFF7A7357),
         divider = Color(0xFFD6C9A4),
+        interactive = Color(0xFF33301F),
+        interactiveSoft = Color(0xFF33301F).copy(alpha = 0.10f),
+        onInteractive = Color(0xFFFFFFFF),
     )
 
     val dark = HadithlyColors()
