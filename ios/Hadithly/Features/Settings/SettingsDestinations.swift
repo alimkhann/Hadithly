@@ -581,24 +581,60 @@ struct ReadingTypeView: View {
     }
 }
 
-// MARK: - Offline storage (locked until O2, no dead rows)
+// MARK: - Offline storage (O2 download management)
 
 struct OfflineStorageView: View {
+    @Environment(AppEnvironment.self) private var environment
     @State private var cacheSize: String = "…"
     @State private var clearNotice: String?
+    @State private var actionNotice: String?
     @State private var showLearnMore = false
+
+    private var locale: String {
+        environment.preferences.preferences.translationLocale
+    }
 
     var body: some View {
         SettingsList("Offline storage") {
             Section {
-                Button("How offline will work") {
+                LabeledContent("Downloads", value: OfflineModels.format(bytes: environment.offline.offlineBytes()))
+                if let free = environment.offline.freeBytes() {
+                    LabeledContent("Free", value: OfflineModels.format(bytes: free))
+                }
+                Toggle("Wi-Fi only", isOn: Binding(
+                    get: { environment.offline.registry.wifiOnly },
+                    set: { environment.offline.setWifiOnly($0) }
+                ))
+                .accessibilityIdentifier("settings.offline.wifiOnly")
+                Button("How offline works") {
                     showLearnMore = true
                 }
                 .accessibilityIdentifier("settings.offline.learnMore")
+                if let actionNotice {
+                    Text(actionNotice)
+                        .font(.caption)
+                        .foregroundStyle(Theme.textSecondary)
+                }
+                if let lastError = environment.offline.lastError {
+                    Text(lastError)
+                        .font(.caption)
+                        .foregroundStyle(Theme.textSecondary)
+                }
             } header: {
                 Text("Offline collections")
             } footer: {
-                Text("Full offline downloads arrive in the next update (O2). Reading, Saved items, and positions already work offline from your recent pages.")
+                Text("Base Arabic files plus a translation pack for your language. Every file is checksummed and licensed before it activates. The previous copy stays readable until the replacement and your saved positions check out.")
+            }
+
+            ForEach(ReaderModels.collections, id: \.slug) { collection in
+                Section {
+                    OfflineCollectionRow(
+                        slug: collection.slug,
+                        name: collection.name,
+                        locale: locale,
+                        onNotice: { actionNotice = $0 }
+                    )
+                }
             }
 
             Section {
@@ -615,7 +651,7 @@ struct OfflineStorageView: View {
             } header: {
                 Text("Temporary cache")
             } footer: {
-                Text("Clearing never deletes bookmarks, favorites, notes, or reading progress.")
+                Text("Clearing never deletes bookmarks, favorites, notes, reading progress, or downloaded collections.")
             }
 
             Section {
@@ -630,19 +666,22 @@ struct OfflineStorageView: View {
             }
         }
         .task { await refreshSize() }
+        .task {
+            await environment.offline.refresh(translationLocale: locale)
+        }
         .sheet(isPresented: $showLearnMore) {
             NavigationStack {
                 List {
                     Section {
-                        Text("Hadithly will ship versioned offline collections: a base Arabic dump plus translation packs, each checksummed and licensed. Downloads validate before activating and keep your Saved items and reading positions intact.")
-                        Text("Until then, your recent pages stay readable offline automatically.")
+                        Text("Hadithly ships versioned offline collections: a base Arabic dump plus translation packs, each checksummed and licensed. Downloads validate before activating and keep your Saved items and reading positions intact.")
+                        Text("Deleting a download removes files only. Your bookmarks, notes, and positions stay.")
                             .foregroundStyle(Theme.textSecondary)
                     }
                 }
                 .listStyle(.insetGrouped)
                 .scrollContentBackground(.hidden)
                 .background(Theme.background)
-                .navigationTitle("How offline will work")
+                .navigationTitle("How offline works")
                 .navigationBarTitleDisplayMode(.inline)
             }
         }
@@ -687,6 +726,133 @@ struct OfflineStorageView: View {
         if bytes < 1024 { return "\(bytes) B" }
         if bytes < 1024 * 1024 { return "\(bytes / 1024) KB" }
         return String(format: "%.1f MB", Double(bytes) / 1024 / 1024)
+    }
+}
+
+/// One collection's download state and actions. Base and translation-pack
+/// rows share the same state machine; deleting either removes files only.
+struct OfflineCollectionRow: View {
+    @Environment(AppEnvironment.self) private var environment
+    let slug: String
+    let name: String
+    let locale: String
+    let onNotice: (String) -> Void
+
+    var body: some View {
+        let store = environment.offline
+        let status = store.status(for: slug, translationLocale: locale)
+        VStack(alignment: .leading, spacing: 6) {
+            Text(name)
+                .foregroundStyle(Theme.textPrimary)
+            Text(statusLine(for: status, store: store))
+                .font(.caption)
+                .foregroundStyle(Theme.textSecondary)
+            if case .downloading(let fraction) = status {
+                ProgressView(value: fraction)
+                    .accessibilityIdentifier("settings.offline.\(slug).progress")
+            } else if case .queued(let fraction) = status, fraction > 0 {
+                ProgressView(value: fraction)
+                    .accessibilityIdentifier("settings.offline.\(slug).progress")
+            }
+            actionButtons(for: status, store: store)
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("settings.offline.\(slug).row")
+    }
+
+    private func statusLine(for status: OfflineCollectionStatus, store: OfflineStore) -> String {
+        switch status {
+        case .notInstalled:
+            if let manifest = store.baseManifest(for: slug) {
+                return "Not downloaded · \(OfflineModels.format(bytes: Int64(manifest.byteSize)))"
+            }
+            return "Not downloaded"
+        case .queued:
+            return "Waiting to download…"
+        case .downloading(let fraction):
+            return "Downloading… \(Int(fraction * 100))%"
+        case .paused:
+            return "Paused — resumes where it stopped."
+        case .verifying:
+            return "Checking the file…"
+        case .failed(let reason):
+            return reason
+        case .active(_, let updateAvailable, let stalePack):
+            var parts: [String] = ["Downloaded"]
+            if updateAvailable { parts.append("update available") }
+            if stalePack { parts.append("translation outdated") }
+            if let pack = store.packManifest(for: slug, locale: locale),
+               store.registry.record(for: slug).activePacks[locale] == nil
+            {
+                parts.append("\(OfflineModels.format(bytes: Int64(pack.byteSize))) translation available")
+            }
+            return parts.joined(separator: " · ")
+        case .appUpdateRequired(let minimum):
+            return "Needs Hadithly \(minimum) or newer."
+        }
+    }
+
+    @ViewBuilder
+    private func actionButtons(for status: OfflineCollectionStatus, store: OfflineStore) -> some View {
+        switch status {
+        case .notInstalled:
+            Button("Download") {
+                report(store.enqueue(slug: slug, kind: "base", locale: locale))
+            }
+            .accessibilityIdentifier("settings.offline.\(slug).download")
+        case .queued, .downloading:
+            HStack {
+                Button("Pause") { store.pause(slug: slug) }
+                    .accessibilityIdentifier("settings.offline.\(slug).pause")
+                Button("Cancel") { store.cancel(slug: slug) }
+                    .accessibilityIdentifier("settings.offline.\(slug).cancel")
+            }
+        case .paused:
+            HStack {
+                Button("Resume") { store.retry(slug: slug) }
+                    .accessibilityIdentifier("settings.offline.\(slug).resume")
+                Button("Cancel") { store.cancel(slug: slug) }
+                    .accessibilityIdentifier("settings.offline.\(slug).cancel")
+            }
+        case .verifying:
+            Text("Checking…")
+                .font(.caption)
+                .foregroundStyle(Theme.textSecondary)
+        case .failed:
+            HStack {
+                Button("Retry") { store.retry(slug: slug) }
+                    .accessibilityIdentifier("settings.offline.\(slug).retry")
+                Button("Cancel") { store.cancel(slug: slug) }
+                    .accessibilityIdentifier("settings.offline.\(slug).cancel")
+            }
+        case .active(_, let updateAvailable, _):
+            HStack {
+                if updateAvailable {
+                    Button("Update") { store.update(slug: slug, translationLocale: locale) }
+                        .accessibilityIdentifier("settings.offline.\(slug).update")
+                } else if store.packManifest(for: slug, locale: locale) != nil,
+                          store.registry.record(for: slug).activePacks[locale] == nil
+                {
+                    Button("Download translation") {
+                        report(store.enqueue(slug: slug, kind: "pack", locale: locale))
+                    }
+                    .accessibilityIdentifier("settings.offline.\(slug).downloadPack")
+                }
+                Button(updateAvailable ? "Delete" : "Delete download", role: .destructive) {
+                    store.delete(slug: slug)
+                    onNotice("Deleted the \(name) files. Your saved items and positions stay.")
+                }
+                .accessibilityIdentifier("settings.offline.\(slug).delete")
+            }
+        case .appUpdateRequired:
+            EmptyView()
+        }
+    }
+
+    private func report(_ result: OfflineEnqueueResult) {
+        if case .blocked(let reason) = result {
+            onNotice(reason)
+        }
     }
 }
 

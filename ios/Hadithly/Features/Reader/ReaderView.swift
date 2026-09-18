@@ -106,6 +106,9 @@ struct ReaderView: View {
                     currentPreferences: { environment.preferences.preferences },
                     widthClass: horizontalSizeClass == .regular ? .regular : .compact
                 )
+                model?.offlineStore = environment.offline
+                model?.offlineLocale = environment.preferences.preferences.translationLocale
+                model?.offlineProbeBaseURL = URL(string: environment.config.convexURL)
                 model?.start()
             }
         }

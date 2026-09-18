@@ -97,6 +97,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.hadithly.app.uitests
         GENERATE_INFOPLIST_FILE: true
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 6378AFQPXV
 schemes:
   Hadithly:
     build:

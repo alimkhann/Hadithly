@@ -42,7 +42,7 @@ enum SettingsDestination: String, CaseIterable, Identifiable {
         case .appLanguage: "Interface language"
         case .hadithTranslation: "Translation language"
         case .readingAndType: "Direction, visibility, Arabic type"
-        case .offlineStorage: "Downloads arrive in O2"
+        case .offlineStorage: "Collections, updates, usage"
         case .notifications: "Daily hadith reminder"
         case .subscription: "Free or Pro"
         case .privacyAndData: "Export, policies, deletion"

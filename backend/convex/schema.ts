@@ -197,6 +197,9 @@ export default defineSchema({
     approvedAt: v.optional(v.number()),
   })
     .index("by_hadith_language_default", ["hadithId", "language", "isDefault"])
+    // O1 pack generation: all live defaults for one language, then filtered
+    // to the target collection by hadith join in the generation action.
+    .index("by_language_status_default", ["language", "status", "isDefault"])
     .index("by_generated_user", ["generatedByUserId"])
     .index("by_contributor_user", ["contributorUserId"])
     .searchIndex("search_content", {
@@ -355,4 +358,26 @@ export default defineSchema({
   })
     .index("by_target", ["targetType", "targetId"])
     .index("by_actor", ["actorUserId"]),
+
+  // O1 versioned offline artifacts. Each row authorizes one immutable,
+  // checksummed dump or translation pack in Convex storage. Clients fetch
+  // the manifest (plus a download URL) and validate bytes before
+  // activating; O2 owns download, activation, and rollback.
+  offlineArtifacts: defineTable({
+    kind: v.union(v.literal("base"), v.literal("pack")),
+    collectionSlug: v.string(),
+    locale: v.optional(v.string()),
+    schemaVersion: v.number(),
+    contentVersion: v.string(),
+    baseContentVersion: v.optional(v.string()),
+    storageId: v.id("_storage"),
+    sha256: v.string(),
+    byteSize: v.number(),
+    minAppVersion: v.string(),
+    generatedAt: v.number(),
+    licenseRecordId: v.id("licenseRecords"),
+    compatiblePacks: v.array(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_kind_collection", ["kind", "collectionSlug"]),
 });

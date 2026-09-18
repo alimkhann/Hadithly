@@ -47,6 +47,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -59,6 +60,7 @@ import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -85,9 +87,13 @@ import com.clerk.api.user.User
 import com.clerk.api.user.update
 import com.hadithly.app.BuildConfig
 import com.hadithly.app.R
+import com.hadithly.app.core.data.Collections
 import com.hadithly.app.core.data.ExportPayload
 import com.hadithly.app.core.data.SubscriptionStatusResult
 import com.hadithly.app.core.data.SupportedLanguages
+import com.hadithly.app.core.offline.OfflineCollectionStatus
+import com.hadithly.app.core.offline.OfflineEnqueueResult
+import com.hadithly.app.core.offline.OfflineModels
 import com.hadithly.app.core.preferences.ArabicFont
 import com.hadithly.app.core.preferences.PreferencesStore
 import com.hadithly.app.core.preferences.ReaderPreferences
@@ -566,14 +572,21 @@ private fun directionLabel(direction: ReadingDirection): String = when (directio
     ReadingDirection.LTR -> stringResource(R.string.direction_left_to_right)
 }
 
-// ── Offline storage (locked until O2, no dead rows) ────────────────────────
+// ── Offline storage (O2 download management) ─────────────────────────────────
 
 @Composable
 private fun OfflineStorageDestination() {
     val colors = LocalHadithlyColors.current
     val context = LocalContext.current
+    val app = rememberApp()
+    val store = app.offline
+    val locale = app.preferences.preferences.collectAsStateWithLifecycle().value.translationLocale
+    // Read (not just collect) so every registry/progress change recomposes.
+    val revision by store.revision.collectAsStateWithLifecycle()
+    val progressMap by store.progress.collectAsStateWithLifecycle()
     var cacheSize by remember { mutableStateOf("…") }
     var notice by remember { mutableStateOf<String?>(null) }
+    var actionNotice by remember { mutableStateOf<String?>(null) }
     var showLearnMore by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
@@ -582,27 +595,53 @@ private fun OfflineStorageDestination() {
             val bytes = runCatching {
                 context.cacheDir.walkTopDown().filter { it.isFile }.sumOf { it.length() }
             }.getOrDefault(0L)
-            cacheSize = when {
-                bytes < 1024 -> "$bytes B"
-                bytes < 1024 * 1024 -> "${bytes / 1024} KB"
-                else -> "%.1f MB".format(bytes / 1024.0 / 1024.0)
-            }
+            cacheSize = OfflineModels.formatBytes(bytes)
         }
     }
-    LaunchedEffect(Unit) { refreshSize() }
+    LaunchedEffect(Unit) {
+        refreshSize()
+        runCatching { store.refresh(locale) }
+    }
 
+    key(revision) {
     ScrollColumn {
         CardColumn {
             Text("Offline collections", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
             Text(
-                "Full offline downloads arrive in the next update (O2). Reading, Saved items, and positions already work offline from your recent pages.",
+                "Downloads: ${OfflineModels.formatBytes(store.offlineBytes())} · Free: ${OfflineModels.formatBytes(store.freeBytes())}",
                 fontSize = 14.sp,
                 color = colors.textSecondary,
             )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Wi-Fi only", fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
+                Switch(
+                    checked = store.isWifiOnly(),
+                    onCheckedChange = { store.setWifiOnly(it) },
+                    modifier = Modifier.testTag("settings.offline.wifiOnly"),
+                )
+            }
             TextButton(
                 onClick = { showLearnMore = true },
                 modifier = Modifier.testTag("settings.offline.learnMore"),
-            ) { Text("How offline will work", color = colors.accent) }
+            ) { Text("How offline works", color = colors.accent) }
+            actionNotice?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
+            store.lastError?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
+            Text(
+                "Base Arabic files plus a translation pack for your language. Every file is checksummed and licensed before it activates. The previous copy stays readable until the replacement and your saved positions check out.",
+                fontSize = 12.sp,
+                color = colors.textSecondary,
+            )
+        }
+        for ((slug, name) in Collections.all) {
+            CardColumn {
+                OfflineCollectionRow(
+                    slug = slug,
+                    name = name,
+                    locale = locale,
+                    progressMap = progressMap,
+                    onNotice = { actionNotice = it },
+                )
+            }
         }
         CardColumn {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -620,7 +659,7 @@ private fun OfflineStorageDestination() {
                 modifier = Modifier.testTag("settings.offline.clearCache"),
             ) { Text("Clear temporary cache", color = colors.accent) }
             notice?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
-            Text("Clearing never deletes bookmarks, favorites, notes, or reading progress.", fontSize = 12.sp, color = colors.textSecondary)
+            Text("Clearing never deletes bookmarks, favorites, notes, reading progress, or downloaded collections.", fontSize = 12.sp, color = colors.textSecondary)
         }
         CardColumn {
             TextButton(
@@ -639,18 +678,157 @@ private fun OfflineStorageDestination() {
             Text("See Hadithly's total device storage from the system settings page.", fontSize = 12.sp, color = colors.textSecondary)
         }
     }
+    }
 
     if (showLearnMore) {
         AlertDialog(
             onDismissRequest = { showLearnMore = false },
-            title = { Text("How offline will work") },
+            title = { Text("How offline works") },
             text = {
-                Text("Hadithly will ship versioned offline collections: a base Arabic dump plus translation packs, each checksummed and licensed. Downloads validate before activating and keep your Saved items and reading positions intact. Until then, your recent pages stay readable offline automatically.")
+                Text("Hadithly ships versioned offline collections: a base Arabic dump plus translation packs, each checksummed and licensed. Downloads validate before activating and keep your Saved items and reading positions intact. Deleting a download removes files only — your bookmarks, notes, and positions stay.")
             },
             confirmButton = { TextButton(onClick = { showLearnMore = false }) { Text("Done") } },
             containerColor = colors.surface,
         )
     }
+}
+
+@Composable
+private fun OfflineCollectionRow(
+    slug: String,
+    name: String,
+    locale: String,
+    progressMap: Map<String, Double>,
+    onNotice: (String) -> Unit,
+) {
+    val colors = LocalHadithlyColors.current
+    val app = rememberApp()
+    val store = app.offline
+    val status = store.status(slug, locale)
+    Column(modifier = Modifier.testTag("settings.offline.$slug.row")) {
+        Text(name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+        Text(
+            offlineStatusLine(status, store, slug, locale),
+            fontSize = 13.sp,
+            color = colors.textSecondary,
+        )
+        val fraction = when (status) {
+            is OfflineCollectionStatus.Downloading -> status.progress
+            is OfflineCollectionStatus.Queued -> status.progress.takeIf { it > 0 }
+            else -> null
+        }
+        if (fraction != null) {
+            LinearProgressIndicator(
+                progress = { fraction.toFloat() },
+                modifier = Modifier.fillMaxWidth().testTag("settings.offline.$slug.progress"),
+            )
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            when (status) {
+                is OfflineCollectionStatus.NotInstalled -> {
+                    TextButton(
+                        onClick = {
+                            when (val result = store.enqueue(slug, "base", locale)) {
+                                is OfflineEnqueueResult.Blocked -> onNotice(result.reason)
+                                else -> Unit
+                            }
+                        },
+                        modifier = Modifier.testTag("settings.offline.$slug.download"),
+                    ) { Text("Download", color = colors.accent) }
+                }
+                is OfflineCollectionStatus.Queued, is OfflineCollectionStatus.Downloading -> {
+                    TextButton(
+                        onClick = { store.pause(slug) },
+                        modifier = Modifier.testTag("settings.offline.$slug.pause"),
+                    ) { Text("Pause", color = colors.accent) }
+                    TextButton(
+                        onClick = { store.cancel(slug) },
+                        modifier = Modifier.testTag("settings.offline.$slug.cancel"),
+                    ) { Text("Cancel", color = colors.accent) }
+                }
+                is OfflineCollectionStatus.Paused -> {
+                    TextButton(
+                        onClick = { store.retry(slug) },
+                        modifier = Modifier.testTag("settings.offline.$slug.resume"),
+                    ) { Text("Resume", color = colors.accent) }
+                    TextButton(
+                        onClick = { store.cancel(slug) },
+                        modifier = Modifier.testTag("settings.offline.$slug.cancel"),
+                    ) { Text("Cancel", color = colors.accent) }
+                }
+                is OfflineCollectionStatus.Verifying -> {
+                    Text("Checking…", fontSize = 13.sp, color = colors.textSecondary)
+                }
+                is OfflineCollectionStatus.Failed -> {
+                    TextButton(
+                        onClick = { store.retry(slug) },
+                        modifier = Modifier.testTag("settings.offline.$slug.retry"),
+                    ) { Text("Retry", color = colors.accent) }
+                    TextButton(
+                        onClick = { store.cancel(slug) },
+                        modifier = Modifier.testTag("settings.offline.$slug.cancel"),
+                    ) { Text("Cancel", color = colors.accent) }
+                }
+                is OfflineCollectionStatus.Active -> {
+                    if (status.updateAvailable) {
+                        TextButton(
+                            onClick = { store.update(slug, locale) },
+                            modifier = Modifier.testTag("settings.offline.$slug.update"),
+                        ) { Text("Update", color = colors.accent) }
+                    } else if (store.packManifest(slug, locale) != null &&
+                        store.recordFor(slug).activePacks[locale] == null
+                    ) {
+                        TextButton(
+                            onClick = {
+                                when (val result = store.enqueue(slug, "pack", locale)) {
+                                    is OfflineEnqueueResult.Blocked -> onNotice(result.reason)
+                                    else -> Unit
+                                }
+                            },
+                            modifier = Modifier.testTag("settings.offline.$slug.downloadPack"),
+                        ) { Text("Download translation", color = colors.accent) }
+                    }
+                    TextButton(
+                        onClick = {
+                            store.delete(slug)
+                            onNotice("Deleted the $name files. Your saved items and positions stay.")
+                        },
+                        modifier = Modifier.testTag("settings.offline.$slug.delete"),
+                    ) { Text(if (status.updateAvailable) "Delete" else "Delete download", color = colors.accent) }
+                }
+                is OfflineCollectionStatus.AppUpdateRequired -> Unit
+            }
+        }
+    }
+}
+
+private fun offlineStatusLine(
+    status: OfflineCollectionStatus,
+    store: com.hadithly.app.core.offline.OfflineStore,
+    slug: String,
+    locale: String,
+): String = when (status) {
+    is OfflineCollectionStatus.NotInstalled -> {
+        val manifest = store.baseManifest(slug)
+        if (manifest != null) "Not downloaded · ${OfflineModels.formatBytes(manifest.byteSize.toLong())}"
+        else "Not downloaded"
+    }
+    is OfflineCollectionStatus.Queued -> "Waiting to download…"
+    is OfflineCollectionStatus.Downloading -> "Downloading… ${(status.progress * 100).toInt()}%"
+    is OfflineCollectionStatus.Paused -> "Paused — resumes where it stopped."
+    is OfflineCollectionStatus.Verifying -> "Checking the file…"
+    is OfflineCollectionStatus.Failed -> status.reason
+    is OfflineCollectionStatus.Active -> {
+        val parts = mutableListOf("Downloaded")
+        if (status.updateAvailable) parts.add("update available")
+        if (status.stalePack) parts.add("translation outdated")
+        val pack = store.packManifest(slug, locale)
+        if (pack != null && store.recordFor(slug).activePacks[locale] == null) {
+            parts.add("${OfflineModels.formatBytes(pack.byteSize.toLong())} translation available")
+        }
+        parts.joinToString(" · ")
+    }
+    is OfflineCollectionStatus.AppUpdateRequired -> "Needs Hadithly ${status.minVersion} or newer."
 }
 
 // ── Notifications (ported from the pre-S1 card) ────────────────────────────

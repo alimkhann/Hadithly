@@ -61,6 +61,7 @@ final class AppEnvironment {
     let purchases: PurchaseManager
     let preferences: PreferencesStore
     let savedSafety: SavedSafetyPreferences
+    let offline: OfflineStore
     let links = LinkRouter()
 
     /// Summary of the last completed sign-in sync, surfaced in Settings.
@@ -89,6 +90,29 @@ final class AppEnvironment {
             guestData: self.guestData,
             isSignedIn: { Clerk.shared.session != nil }
         )
+        let client = convex
+        let probeURL = URL(string: config.convexURL)
+        self.offline = OfflineStore(manifestProvider: { locale in
+            var args: [String: ConvexEncodable?] = [:]
+            if let locale {
+                args["translationLocale"] = locale as ConvexEncodable?
+            }
+            for try await response in client.subscribe(
+                to: "offlineDumps:getOfflineManifests",
+                with: args,
+                yielding: OfflineManifestsResponse.self
+            ).values {
+                return response
+            }
+            throw OfflineDownloadError.noData
+        }, probeBaseURL: probeURL)
+        let library = self.library
+        let offline = self.offline
+        for slug in ReaderModels.collections.map(\.slug) {
+            offline.setAnchorProvider(for: slug) { [weak library] in
+                Self.offlineAnchors(for: slug, library: library)
+            }
+        }
         self.push = PushNotificationManager.shared
         self.push.uploadHandler = { [weak self] token in
             guard let self, Clerk.shared.session != nil else { return }
@@ -291,6 +315,39 @@ final class AppEnvironment {
             "translationVisible": prefs.translationVisible as ConvexEncodable?,
             "updatedAt": prefs.updatedAt as ConvexEncodable?,
         ]
+    }
+
+    /// Canonical ids the O2 activation gate must find in a replacement
+    /// dump before the pointer flips: every Saved hadith (`sunnah_now` is
+    /// the only provider writing Saved rows today) plus every stored R1
+    /// position anchor for the collection.
+    private static func offlineAnchors(for slug: String, library: UserLibraryModel?) -> Set<String> {
+        guard let library else { return [] }
+        var anchors = Set<String>()
+        func canonicalId(collectionSlug: String, hadithNumber: String?) -> String? {
+            guard collectionSlug == slug, let hadithNumber, !hadithNumber.isEmpty else { return nil }
+            return "sunnah_now:\(slug):\(hadithNumber)"
+        }
+        for item in library.savedItems {
+            if let id = canonicalId(collectionSlug: item.hadith?.collectionSlug ?? "", hadithNumber: item.hadith?.hadithNumber) {
+                anchors.insert(id)
+            }
+        }
+        for entry in [library.bookmarks, library.favorites, library.notes].joined() {
+            if let id = canonicalId(collectionSlug: entry.hadith?.collectionSlug ?? "", hadithNumber: entry.hadith?.hadithNumber) {
+                anchors.insert(id)
+            }
+        }
+        for entry in library.progress where entry.collectionSlug == slug {
+            if let position = entry.position {
+                anchors.insert("\(position.anchor.provider):\(slug):\(position.anchor.providerHadithId)")
+            } else if let hadith = entry.hadith,
+                      let id = canonicalId(collectionSlug: slug, hadithNumber: hadith.hadithNumber)
+            {
+                anchors.insert(id)
+            }
+        }
+        return anchors
     }
 
     private static func syncSummary(for result: GuestMergeResult) -> String {

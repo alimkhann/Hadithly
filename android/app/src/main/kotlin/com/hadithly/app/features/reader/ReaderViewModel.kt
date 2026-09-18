@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 
 /** Per-hadith AI translation state, keyed by the hadith's internal id. */
 sealed interface TranslationUiState {
@@ -179,10 +180,20 @@ class ReaderViewModel(
 
     // Lifecycle
 
+    /**
+     * A fetch that never resolves (dead network, hung socket) must not
+     * strand the reader on a spinner when a verified dump is on disk. Each
+     * fetch races a bounded timeout; the timeout falls into the same
+     * offline-fallback path as any other fetch failure.
+     */
+    private val fetchTimeoutMs = 10_000L
+
     private fun loadOutline() {
         viewModelScope.launch {
             try {
-                val result = app.repository.getCollectionOutline(collectionSlug)
+                val result = withTimeout(fetchTimeoutMs) {
+                    app.repository.getCollectionOutline(collectionSlug)
+                }
                 // Explicit deep links (Today/Saved) name a volume; a canonical
                 // link carries only the hadith number, so the volume holding
                 // it comes from the outline's source-provided counts. Unknown
@@ -206,9 +217,39 @@ class ReaderViewModel(
                     _state.update { it.copy(phase = Phase.Failed("No volumes found for this collection.")) }
                 }
             } catch (error: Exception) {
-                _state.update { it.copy(phase = Phase.Failed(errorMessage(error))) }
+                if (!useOfflineOutline()) {
+                    _state.update { it.copy(phase = Phase.Failed(errorMessage(error))) }
+                }
             }
         }
+    }
+
+    /**
+     * O2: when the outline fetch fails (airplane mode, revoked session) and
+     * a verified dump is active, read the outline from disk. Volumes come
+     * from the dump's own volume ids; titles fall back to the id so nothing
+     * is invented. Returns false when no dump is active.
+     */
+    private fun useOfflineOutline(): Boolean {
+        val outline = app.offline.offlineOutline(collectionSlug) ?: return false
+        if (outline.volumes.isEmpty()) return false
+        val target = ReaderTargetResolver.resolve(
+            ReaderTarget(targetSource, collectionSlug, openHadithNumber, openPosition),
+        )
+        restoredPosition = target.position
+        landingHadithNumber = target.hadithNumber
+        val targetVolume = target.hadithNumber?.let { volumeIdForHadithNumber(it, outline.volumes) }
+        val requested = outline.volumes.firstOrNull { it.volumeId == openVolumeId }?.volumeId
+        val restoredVolume = outline.volumes.firstOrNull { it.volumeId == target.volumeId }?.volumeId
+        val firstVolume = requested ?: restoredVolume ?: targetVolume ?: outline.volumes.firstOrNull()?.volumeId
+        _state.update { it.copy(phase = Phase.Reading, volumes = outline.volumes) }
+        if (firstVolume != null) {
+            _state.update { it.copy(selectedVolumeId = firstVolume) }
+            loadPage(0, firstVolume, target.hadithNumber)
+        } else {
+            _state.update { it.copy(phase = Phase.Failed("No volumes found for this collection.")) }
+        }
+        return true
     }
 
     fun volumeIdForHadithNumber(
@@ -457,12 +498,14 @@ class ReaderViewModel(
         pageJob = viewModelScope.launch {
             var shouldPrefetchNeighbor = false
             try {
-                val result = app.repository.getReaderPage(
-                    collectionSlug = collectionSlug,
-                    volumeId = volumeId,
-                    page = index,
-                    targetHadithNumber = jumpToHadithNumber,
-                )
+                val result = withTimeout(fetchTimeoutMs) {
+                    app.repository.getReaderPage(
+                        collectionSlug = collectionSlug,
+                        volumeId = volumeId,
+                        page = index,
+                        targetHadithNumber = jumpToHadithNumber,
+                    )
+                }
                 _state.update { s ->
                     val landingIndex = if (jumpToHadithNumber != null) maxOf(0, result.pageNumber - 1) else index
                     val pages = s.pages.toMutableList()
@@ -479,7 +522,9 @@ class ReaderViewModel(
                 }
                 cacheAdjacentVolumes()
             } catch (error: Exception) {
-                if (_state.value.pages.isEmpty()) {
+                if (!useOfflinePage(index, volumeId, jumpToHadithNumber) &&
+                    _state.value.pages.isEmpty()
+                ) {
                     _state.update { it.copy(phase = Phase.Failed(errorMessage(error))) }
                 }
             } finally {
@@ -494,6 +539,49 @@ class ReaderViewModel(
     }
 
     private fun emptyPage() = ReaderPageResult(items = emptyList(), page = 0.0)
+
+    /**
+     * O2: when a page fetch fails and a verified dump is active, serve the
+     * page from disk with the same content-sized chunking. Positions still
+     * resolve by semantic anchor, so approximate page numbers never strand
+     * the reader. Returns false when no dump covers the request.
+     */
+    private fun useOfflinePage(index: Int, volumeId: String, jumpToHadithNumber: String?): Boolean {
+        val store = app.offline
+        val language = _state.value.language
+        jumpToHadithNumber?.let { jump ->
+            store.offlineHadith("sunnah_now:$collectionSlug:$jump", collectionSlug, language)?.let { hadith ->
+                // Legacy wire values: an offline jump target has no server
+                // page identity; the anchor carries the position.
+                val result = ReaderPageResult(
+                    items = listOf(hadith),
+                    page = 1.0,
+                    pageSize = 1.0,
+                    totalPages = 1.0,
+                    hasMore = false,
+                    contentVersion = "legacy",
+                    paginationVersion = 1.0,
+                    pageKey = "legacy",
+                )
+                _state.update { s ->
+                    val pages = s.pages.toMutableList()
+                    while (pages.size < index) pages.add(emptyPage())
+                    if (index in pages.indices) pages[index] = result else pages.add(result)
+                    s.copy(pages = pages, phase = Phase.Reading)
+                }
+                _state.update { it.copy(pageIndex = index) }
+                return true
+            }
+        }
+        val result = store.offlinePage(collectionSlug, volumeId, index, language) ?: return false
+        _state.update { s ->
+            val pages = s.pages.toMutableList()
+            while (pages.size < index) pages.add(emptyPage())
+            if (index in pages.indices) pages[index] = result else pages.add(result)
+            s.copy(pages = pages, phase = Phase.Reading)
+        }
+        return true
+    }
 
     /** Swiping back onto a skipped-by-jump page loads it on demand. */
     fun onPageSettled(index: Int) {

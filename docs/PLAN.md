@@ -1035,6 +1035,167 @@ substantive: they own bounded implementation outcomes, not just inventories.
   a real cache size. No production, credential, or store state changed.
 - Next allowed session: O1. This task stopped before O1.
 
+### O1 offline dump manifests (2026-09-18)
+
+- Outcome: complete. Versioned per-collection base dumps and separate
+  live-default translation packs generate reproducibly, publish through
+  Convex storage, and expose the plan's manifest contract (schema version,
+  content version, byte size, SHA-256, minimum app version, generation
+  time, license record, compatible packs). iOS and Android add decoders
+  and fixture validation only; O2 owns download UI.
+- License (verified then shipped): the invite email and docs.sunnah.now
+  state the project is MIT-licensed and "free to use locally"; the
+  database README states its files "can also be used for offline use
+  cases" with versioned release dumps. The data repo itself carries no
+  SPDX file (GitHub `license: null`), so `recordSunnahNowLicense`
+  records `verified` with `permitsDisplay` + `permitsOfflineDistribution`
+  true and `permitsRedistribution` false, never overwriting a later
+  verified row. E3 owns production-grade confirmation.
+- Backend: `lib/offlineDumps.ts` (pure canonical JSON, dotted-id order,
+  fail-closed row/pack/manifest validators, `assertManifestForBytes`
+  activation gate); `offlineArtifacts` table; public `getBaseManifest`,
+  `getPackManifest`, `getOfflineManifests`; Node
+  `actions/offlineDumps:generateCollectionDump` (hash-then-store, skips
+  storage on identical content version, skips empty packs). New
+  `translations` index `by_language_status_default` scopes packs to live
+  defaults; history stays in Convex, out of the dumps.
+- Fail-closed: missing/unverified license, duplicate provider IDs,
+  invalid grades, bad references (slug, id shape, cross-collection rows,
+  unknown volume/chapter, empty Arabic), and re-serialization drift all
+  throw `OfflineDumpError` before any bytes publish.
+- iOS: `Core/Offline/OfflineDump.swift` (Codable + strict `init(from:)`,
+  CryptoKit activation gate). Android: `core/offline/OfflineDumps.kt`
+  (@Serializable + `MessageDigest` gate). Both mirror the backend
+  fixtures; no UI changed.
+- Evidence: backend typecheck clean, 126/126 tests (24 new); iOS 184/184
+  unit tests (9 new) on the iPhone 17 Pro (26.2) simulator; Android
+  164/164 unit tests (8 new) with JDK 21. Dev `festive-cobra-664`
+  deployed: two identical Bukhari generations returned identical
+  `contentVersion`/`sha256` (`06ffe29c…`, second run `reused: true`);
+  the public manifest serves a download URL whose bytes match size and
+  hash (1,544,910 bytes, 635 hadiths, canonical order, verified license
+  embedded). No production, credential, dashboard, or store state changed.
+- Behavior note: the verified dev license flips the F3 fallback to
+  `text.visible: true` on development — the trigger F3 designed for.
+  Production is untouched and still suppresses text.
+- Next allowed session: O2. This task stopped before O2.
+
+### O2 download and update offline collections (2026-09-18)
+
+- Outcome: complete. Both clients manage base-dump and translation-pack
+  downloads through the same verify → stage → migrate-check → activate
+  pipeline: size estimates from manifests, doubled-bytes storage preflight,
+  progress, pause/cancel/retry, Range resume where the server honors it,
+  checksum + license + schema + pack-compatibility gating, atomic pointer
+  flip, previous-version retention with pointer rollback, stale/update
+  badges, per-collection deletion, and a Wi-Fi-only toggle. The previous
+  copy stays readable until the replacement and the Saved/R1 anchor check
+  pass. Deleting a download removes files only. Choices stay device-local
+  (registry under app files, never synced or exported). No backend change;
+  manifests come from the O1 `getOfflineManifests` query.
+- iOS: `Core/Offline/OfflineModels.swift` (state, registry, semver,
+  server-mirrored chunking, dotted-id order), `OfflineDownloader.swift`
+  (URLSession foreground transport with 206-append/200-restart),
+  `OfflineStore.swift` (registry, boot reconcile, run-generation guard,
+  anchor-gated activation, reader fallback). `AppEnvironment` owns the
+  store with a subscribe-first-emission manifest provider and per-slug
+  Saved/R1 anchor providers. `ReaderModel` falls back to the active dump
+  (outline + content-sized pages + single-hadith jump) only when a fetch
+  throws. `OfflineStorageView` replaces the locked notice with per-row
+  actions and storage accounting.
+- Android: `core/offline/OfflineModels.kt`, `OfflineDownloader.kt`
+  (HttpURLConnection, Range resume), `OfflineStore.kt` (same pipeline,
+  StateFlow revision for recomposition), `ConvexRepository`
+  `getOfflineManifests`, `HadithlyApplication` wiring with the same anchor
+  providers, `ReaderViewModel` fallback, `SettingsScreen` rows.
+- Repair found by tests, fixed in session: (1) a cancelled run's catch
+  resumed after `retry` re-queued and clobbered the new run — both stores
+  now carry a run-generation guard; (2) `.accessibilityIdentifier` on the
+  iOS row container hid its buttons from XCTest — rows use
+  `.accessibilityElement(children: .contain)`; (3) Android collected the
+  store revision StateFlow without reading it, so the screen never
+  recomposed after refresh — the destination now keys on the revision.
+- Evidence: backend untouched. iOS 195/195 unit tests (11 new
+  `OfflineStoreTests`: happy path, corrupt update, missing anchors,
+  pause/resume, reconcile, rollback refusal, app-update block, delete,
+  chunking, dotted order, corrupt-registry rebuild) on the iPhone 17 Pro
+  (26.2) simulator; Android 176/176 unit tests (12 new
+  `OfflineStoreTest`, incl. incompatible-pack refusal and the
+  generation-guard regression) with JDK 25 (JDK 21 unavailable on this
+  machine; AGENTS.md still names 21). Simulator UI test
+  `OfflineStorageUITests` renders all seven rows and completes a live
+  1.5 MB Bukhari download → activation on dev (40 s). Emulator drive of
+  the installed debug build: offline screen renders with live manifest
+  sizes, a no-manifest Download degrades to its blocked notice, and a
+  live Bukhari download activates in ~15 s ("Downloaded", header usage
+  1.5 MB). No production, credential, dashboard, or store state changed.
+- Transport note: downloads run in the foreground with resume; iOS
+  suspends work in the background and Android may doze it — an
+  interrupted run reports `paused`/`failed` and resumes, never activating
+  partial bytes. A background URLSession/WorkManager upgrade stays
+  optional.
+- Repair pass (2026-09-18, owner report: only Bukhari downloadable;
+  offline Bukhari open hung). Three root causes, all fixed on both
+  clients with regression tests: (1) dev had published only the Bukhari
+  dump — Muslim generation failed fail-closed on provider id "0"
+  (the Muqaddimah, real content). The dump id pattern is now
+  `^[0-9]{1,12}(\.[0-9]{1,12})*$` in backend/iOS/Android, matching R1
+  (F3 links stay strict); all seven base dumps are published on dev
+  (1.5–8.6 MB). (2) One shared run task/job meant a second collection's
+  download cancelled the first — runs are now per-slug. (3) A hung
+  network call stranded the reader on a spinner forever and, on Android,
+  an offline open crashed in `saveProgress`: offline pages claimed the
+  dump's `od1:` version, violating the R1 `cv1:` contract. Fetches now
+  race a 10 s bound into the existing offline fallback, and offline
+  pages carry legacy wire values (semantic anchors still restore
+  exactly). Emulator airplane-mode proof: Bukhari 1 renders offline with
+  Arabic, zero fatals. Evidence: backend 126/126, iOS 199/199 unit plus
+  the live-download UI test, Android 179/179 unit. No production, credential,
+  dashboard, or store state changed.
+- Repair round 2 (2026-09-18, owner report: single-collection downloads;
+  offline open still infinite). Findings: (1) Pack choice was already
+  preferred-locale-only (manifests fetched for `translationLocale`, one
+  pack row per collection, stale-pack badges) — no change; dev holds no
+  live translations so packs stay unit-covered only. (2) The remaining
+  hang did not reproduce on current builds: Android airplane-mode and
+  stalled-server opens render Bukhari offline with zero fatals, and a
+  new iOS single-launch UI test (`-forceOfflineReader` DEBUG hook:
+  download online, then read offline in the same launch) renders the
+  dump with Arabic and no spinner — the earlier stall-test failure was
+  a methodology flaw (container churn across invocations left no dump,
+  plus an xcconfig `//`-comment quoting bug in the test setup). The one
+  genuine hang vector left was the download path itself — manifest
+  fetches had no bound, so a stalled subscription queued forever; both
+  stores now race manifest fetches against a 15 s bound into the
+  existing failed-with-retry path. If the owner still sees a spinner,
+  the running build predates the 10 s reader bound — rebuild/reinstall
+  and retest. Evidence: backend 126/126, iOS 199/199 unit plus both UI
+  tests, Android 179/179 unit. No production, credential, dashboard, or
+  store state changed.
+- Repair round 3 (2026-09-18, owner still saw the spinner on iOS).
+  Reproduced on the owner's physical iPhone 16 Pro with a true hanging
+  server (local stalling listener, app pointed at it): `loading=true`
+  past 90 s with the dump present — the 10 s task-group timeouts never
+  fired on-device although they always fire on the simulator. Root
+  cause: on a stalled network every in-flight Convex call can pin a
+  cooperative-pool thread, and the iPhone's 6-thread pool can wedge so
+  hard that Swift timer tasks never run (the simulator's bigger pool
+  always survived, which is why this never reproduced there). Fix: a
+  pool-independent `OfflineProbe` (URLSession, own threads, 3 s bound,
+  30 s TTL) runs before every reader fetch and manifest fetch; when the
+  backend is unreachable the reader serves the dump (or fails fast with
+  an offline message) without ever issuing the hung call. The 10 s
+  task-group bounds stay as backstop. Proof on the physical device:
+  plain open against the stalled server renders the dump in ~20 s
+  (previously infinite); DEBUG-only `-forceOfflineReader` UI test
+  (download online, read offline in one launch) passes on-device;
+  200/200 iOS unit, 179/179 Android unit. Android needed no change
+  (its `withTimeout` rides a dedicated scheduler and was proven twice
+  on-device). Secrets restored on both platforms; the owner's phone
+  was left with the fixed production build installed. No production,
+  credential, dashboard, or store state changed.
+- Next allowed session: N1. This task stopped before N1.
+
 ## Delegation policy
 
 Use GLM-5.3-Flash through OpenCode Go as the default author for bounded sessions

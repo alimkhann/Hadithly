@@ -38,6 +38,14 @@ final class ReaderModel {
     private let targetSource: ReaderTargetSource
     private let currentPreferences: () -> ReaderPreferences
     private let widthClass: ReadingWidthClass
+    /// O2 offline fallback. Set by the hosting view from AppEnvironment;
+    /// nil in tests and previews that drive the model with fixtures.
+    var offlineStore: OfflineStore?
+    var offlineLocale: String?
+    /// Base URL for the pool-independent reachability probe. When set, the
+    /// reader checks it before issuing Convex calls so a stalled network
+    /// serves the dump (or fails fast) instead of risking a wedged pool.
+    var offlineProbeBaseURL: URL?
 
     // Reading state
     private(set) var phase: Phase = .loadingOutline
@@ -192,12 +200,52 @@ final class ReaderModel {
         translationTask = nil
     }
 
+    /// A fetch that never resolves (dead network, hung socket) must not
+    /// strand the reader on a spinner when a verified dump is on disk.
+    /// Each Convex fetch races a bounded sleeper; the timeout error falls
+    /// into the same offline-fallback path as any other fetch failure.
+    private static let fetchTimeoutSeconds = 10.0
+
+    /// DEBUG-only test hook (`-forceOfflineReader` launch argument): skips
+    /// the network fetch so UI tests can prove the dump fallback path in a
+    /// single launch (download online, then read offline). Never compiled
+    /// into release builds.
+#if DEBUG
+    private static var forceOfflineReader: Bool {
+        CommandLine.arguments.contains("-forceOfflineReader")
+    }
+#endif
+
+    /// True when the backend is provably unreachable. The probe runs on
+    /// URLSession's own threads, so it answers even when every Convex call
+    /// would wedge the cooperative pool.
+    private func backendUnreachable() async -> Bool {
+        guard let probeURL = offlineProbeBaseURL else { return false }
+        return await OfflineProbe.shared.isReachable(probeURL) == false
+    }
+
     private func loadOutline() async {
         do {
-            let result: CollectionOutlineResult = try await convex.action(
-                "actions/hadithData:getCollectionOutline",
-                with: ["collectionSlug": collectionSlug as ConvexEncodable?]
-            )
+#if DEBUG
+            if Self.forceOfflineReader {
+                throw OfflineFetchTimeout.timedOut
+            }
+#endif
+            if await backendUnreachable() {
+                if useOfflineOutline() {
+                    outlineTask = nil
+                    return
+                }
+                phase = .failed("You're offline. Connect to load this collection.")
+                outlineTask = nil
+                return
+            }
+            let result: CollectionOutlineResult = try await OfflineModels.withFetchTimeout(seconds: Self.fetchTimeoutSeconds) {
+                try await self.convex.action(
+                    "actions/hadithData:getCollectionOutline",
+                    with: ["collectionSlug": self.collectionSlug as ConvexEncodable?]
+                )
+            }
             volumes = result.volumes
             warmedVolumeIds = []
             // Explicit deep links (Today/Saved) name a volume; a canonical
@@ -229,9 +277,47 @@ final class ReaderModel {
                 phase = .failed("No volumes found for this collection.")
             }
         } catch {
-            phase = .failed(ReaderModels.errorMessage(of: error))
+            if !useOfflineOutline() {
+                phase = .failed(ReaderModels.errorMessage(of: error))
+            }
         }
         outlineTask = nil
+    }
+
+    /// O2: when the outline fetch fails (airplane mode, revoked session)
+    /// and a verified dump is active, read the outline from disk. Volumes
+    /// come from the dump's own volume ids; titles fall back to the id so
+    /// nothing is invented. Returns false when no dump is active.
+    @discardableResult
+    private func useOfflineOutline() -> Bool {
+        guard let store = offlineStore,
+              let outline = store.offlineOutline(slug: collectionSlug),
+              !outline.volumes.isEmpty
+        else { return false }
+        volumes = outline.volumes
+        warmedVolumeIds = []
+        let target = ReaderTargetResolver.resolve(.init(
+            source: targetSource,
+            collectionSlug: collectionSlug,
+            hadithNumber: openHadithNumber,
+            position: openPosition
+        ))
+        restoredPosition = target.position
+        landingHadithNumber = target.hadithNumber
+        let targetVolume = target.hadithNumber.flatMap {
+            Self.volumeId(forHadithNumber: $0, in: volumes)
+        }
+        let requested = outline.volumes.first { $0.volumeId == openVolumeId }?.volumeId
+        let restoredVolume = outline.volumes.first { $0.volumeId == target.volumeId }?.volumeId
+        selectedVolumeId = requested ?? restoredVolume ?? targetVolume ?? outline.volumes.first?.volumeId
+        if let selectedVolumeId {
+            Task { [weak self] in
+                await self?.loadPage(0, volumeId: selectedVolumeId, jumpToHadithNumber: target.hadithNumber)
+            }
+        } else {
+            phase = .failed("No volumes found for this collection.")
+        }
+        return true
     }
 
     /// Locates the source-provided volume that holds a hadith number by
@@ -588,18 +674,34 @@ final class ReaderModel {
             }
         }
         do {
-            var args: [String: ConvexEncodable?] = [
+#if DEBUG
+            if Self.forceOfflineReader {
+                throw OfflineFetchTimeout.timedOut
+            }
+#endif
+            if await backendUnreachable() {
+                if !useOfflinePage(index, volumeId: volumeId, jumpToHadithNumber: jumpToHadithNumber),
+                   pages.isEmpty
+                {
+                    phase = .failed("You're offline. Connect to load this collection.")
+                }
+                return
+            }
+            var mutableArgs: [String: ConvexEncodable?] = [
                 "collectionSlug": collectionSlug as ConvexEncodable?,
                 "volumeId": volumeId as ConvexEncodable?,
                 "page": Double(index + 1) as ConvexEncodable?,
             ]
             if let jumpToHadithNumber {
-                args["targetHadithNumber"] = jumpToHadithNumber as ConvexEncodable?
+                mutableArgs["targetHadithNumber"] = jumpToHadithNumber as ConvexEncodable?
             }
-            let result: ReaderPageResult = try await convex.action(
-                "actions/hadithData:getReaderPage",
-                with: args
-            )
+            let args = mutableArgs
+            let result: ReaderPageResult = try await OfflineModels.withFetchTimeout(seconds: Self.fetchTimeoutSeconds) {
+                try await self.convex.action(
+                    "actions/hadithData:getReaderPage",
+                    with: args
+                )
+            }
 
             if jumpToHadithNumber != nil {
                 // The server picked the page; slot it at its real position
@@ -632,10 +734,59 @@ final class ReaderModel {
                 }
             }
         } catch {
-            if pages.isEmpty {
+            if !useOfflinePage(index, volumeId: volumeId, jumpToHadithNumber: jumpToHadithNumber),
+               pages.isEmpty
+            {
                 phase = .failed(ReaderModels.errorMessage(of: error))
             }
         }
+    }
+
+    /// O2: when a page fetch fails and a verified dump is active, serve the
+    /// page from disk with the same content-sized chunking. Positions still
+    /// resolve by semantic anchor, so approximate page numbers never strand
+    /// the reader. Returns false when no dump covers the request.
+    @discardableResult
+    private func useOfflinePage(_ index: Int, volumeId: String, jumpToHadithNumber: String?) -> Bool {
+        guard let store = offlineStore else { return false }
+        if let jump = jumpToHadithNumber,
+           let hadith = store.offlineHadith(
+               canonicalId: "sunnah_now:\(collectionSlug):\(jump)",
+               slug: collectionSlug,
+               locale: offlineLocale
+           )
+        {
+            // pageKey stays nil (→ R1 "legacy"): an offline jump target has
+            // no server page identity; the anchor carries the position.
+            let result = ReaderPageResult(
+                items: [hadith], page: 1, pageSize: 1, totalPages: 1, hasMore: false,
+                contentVersion: nil, paginationVersion: nil, pageKey: nil
+            )
+            while pages.count < index { pages.append(emptyPage()) }
+            if pages.indices.contains(index) {
+                pages[index] = result
+            } else {
+                pages.append(result)
+            }
+            phase = .reading
+            pageIndex = index
+            return true
+        }
+        guard let result = store.offlinePage(
+            slug: collectionSlug, volumeId: volumeId,
+            page: index, locale: offlineLocale
+        ) else { return false }
+        while pages.count < index { pages.append(emptyPage()) }
+        if pages.indices.contains(index) {
+            pages[index] = result
+        } else {
+            pages.append(result)
+        }
+        phase = .reading
+        if pageIndex == index {
+            saveCurrentProgress()
+        }
+        return true
     }
 
     private func emptyPage() -> ReaderPageResult {

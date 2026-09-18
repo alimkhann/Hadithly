@@ -21,7 +21,7 @@ enum class SettingsDestination(
     APP_LANGUAGE("appLanguage", "App language", "Interface language"),
     HADITH_TRANSLATION("hadithTranslation", "Hadith translation", "Translation language"),
     READING_AND_TYPE("readingAndType", "Reading & type", "Direction, visibility, Arabic type"),
-    OFFLINE_STORAGE("offlineStorage", "Offline storage", "Downloads arrive in O2"),
+    OFFLINE_STORAGE("offlineStorage", "Offline storage", "Collections, updates, usage"),
     NOTIFICATIONS("notifications", "Notifications", "Daily hadith reminder"),
     SUBSCRIPTION("subscription", "Subscription", "Free or Pro"),
     PRIVACY_AND_DATA("privacyAndData", "Privacy & data", "Export, policies, deletion"),

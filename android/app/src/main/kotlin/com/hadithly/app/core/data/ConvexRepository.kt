@@ -115,6 +115,23 @@ class ConvexRepository(context: Context) {
      * subscription opens, runs on Dispatchers.IO, and names its return
      * type explicitly (reified-call rule).
      */
+    /**
+     * O2: latest base manifests for every collection plus the packs for one
+     * translation locale. Identity-free server side; one call drives the
+     * storage screen without N+1 queries.
+     */
+    suspend fun getOfflineManifests(
+        translationLocale: String?,
+    ): com.hadithly.app.core.offline.OfflineManifestsResponse =
+        withContext(Dispatchers.IO) {
+            val args = mutableMapOf<String, Any?>()
+            if (!translationLocale.isNullOrBlank()) args["translationLocale"] = translationLocale
+            subscribe<com.hadithly.app.core.offline.OfflineManifestsResponse>(
+                "offlineDumps:getOfflineManifests",
+                args,
+            ).firstOrNull() ?: com.hadithly.app.core.offline.OfflineManifestsResponse()
+        }
+
     suspend fun searchEnglish(
         text: String,
         collectionSlug: String? = null,

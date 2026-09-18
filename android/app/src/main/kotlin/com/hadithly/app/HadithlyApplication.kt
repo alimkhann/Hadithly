@@ -2,9 +2,11 @@ package com.hadithly.app
 
 import android.app.Application
 import com.clerk.api.Clerk
+import com.hadithly.app.core.data.Collections
 import com.hadithly.app.core.data.ConvexRepository
 import com.hadithly.app.core.data.GuestDataStore
 import com.hadithly.app.core.data.UserLibraryModel
+import com.hadithly.app.core.offline.OfflineStore
 import com.hadithly.app.core.data.SavedSafetyPreferences
 import com.hadithly.app.core.session.SessionManager
 import com.hadithly.app.core.preferences.PreferencesStore
@@ -44,6 +46,8 @@ class HadithlyApplication : Application() {
         private set
     lateinit var purchases: PurchaseManager
         private set
+    lateinit var offline: OfflineStore
+        private set
 
     override fun onCreate() {
         super.onCreate()
@@ -74,6 +78,15 @@ class HadithlyApplication : Application() {
             scope = appScope,
             isSignedIn = { Clerk.sessionsFlow.value.isNotEmpty() },
         )
+        offline = OfflineStore(
+            root = java.io.File(filesDir, "offline"),
+            appVersion = BuildConfig.VERSION_NAME,
+            manifestProvider = { locale -> repository.getOfflineManifests(locale) },
+            ioScope = appScope,
+        )
+        for ((slug, _) in Collections.all) {
+            offline.setAnchorProvider(slug) { offlineAnchors(slug) }
+        }
         session = SessionManager(
             scope = appScope,
             settings = settings,
@@ -99,6 +112,39 @@ class HadithlyApplication : Application() {
     }
 
     fun isSignedIn(): Boolean = Clerk.sessionsFlow.value.isNotEmpty()
+
+    /**
+     * Canonical ids the O2 activation gate must find in a replacement dump
+     * before the pointer flips: every Saved hadith (`sunnah_now` is the only
+     * provider writing Saved rows today) plus every stored R1 position
+     * anchor for the collection.
+     */
+    private fun offlineAnchors(slug: String): Set<String> {
+        if (!::library.isInitialized) return emptySet()
+        val anchors = mutableSetOf<String>()
+        fun canonicalId(collectionSlug: String, hadithNumber: String?): String? {
+            if (collectionSlug != slug || hadithNumber.isNullOrBlank()) return null
+            return "sunnah_now:$slug:$hadithNumber"
+        }
+        for (item in library.savedItems.value) {
+            canonicalId(item.hadith?.collectionSlug ?: "", item.hadith?.hadithNumber)?.let { anchors.add(it) }
+        }
+        for (list in listOf(library.bookmarks.value, library.favorites.value, library.notes.value)) {
+            for (entry in list) {
+                canonicalId(entry.hadith?.collectionSlug ?: "", entry.hadith?.hadithNumber)?.let { anchors.add(it) }
+            }
+        }
+        for (entry in library.progress.value) {
+            if (entry.collectionSlug != slug) continue
+            val position = entry.position
+            if (position != null) {
+                anchors.add("${position.anchor.provider}:$slug:${position.anchor.providerHadithId}")
+            } else {
+                canonicalId(slug, entry.hadith?.hadithNumber)?.let { anchors.add(it) }
+            }
+        }
+        return anchors
+    }
 
     companion object {
         @Volatile
