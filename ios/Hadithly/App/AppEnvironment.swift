@@ -65,12 +65,9 @@ final class AppEnvironment {
 
     /// Summary of the last completed sign-in sync, surfaced in Settings.
     private(set) var lastSyncSummary: String?
-    /// Realtime, server-authorized access flag for the minimal moderation UI.
-    private(set) var canModerate = false
 
     private let authProvider: ClerkConvexAuthProvider
     private var authStateCancellable: AnyCancellable?
-    private var moderationAccessCancellable: AnyCancellable?
 
     init(config: AppConfig = AppConfig(), guestData: GuestDataStore? = nil) {
         self.config = config
@@ -119,9 +116,8 @@ final class AppEnvironment {
         // subscription opened before authentication errors and stays empty.
         authStateCancellable = convex.authState
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] state in
+            .sink { [weak self] _ in
                 self?.library.refresh()
-                self?.refreshModerationAccess(for: state)
             }
     }
 
@@ -242,9 +238,6 @@ final class AppEnvironment {
     /// merge cleared it), so the library flips back to guest mode cleanly.
     func handleSignOut() {
         library.refresh()
-        moderationAccessCancellable?.cancel()
-        moderationAccessCancellable = nil
-        canModerate = false
         Task { await purchases.logOut() }
     }
 
@@ -298,28 +291,6 @@ final class AppEnvironment {
             "translationVisible": prefs.translationVisible as ConvexEncodable?,
             "updatedAt": prefs.updatedAt as ConvexEncodable?,
         ]
-    }
-
-    private func refreshModerationAccess(for state: AuthState<String>) {        moderationAccessCancellable?.cancel()
-        moderationAccessCancellable = nil
-        guard case .authenticated = state else {
-            canModerate = false
-            return
-        }
-
-        moderationAccessCancellable = convex
-            .subscribe(to: "community:canModerate", yielding: Bool.self)
-            .receive(on: DispatchQueue.main)
-            .sink(
-                receiveCompletion: { [weak self] completion in
-                    if case .failure = completion {
-                        self?.canModerate = false
-                    }
-                },
-                receiveValue: { [weak self] canModerate in
-                    self?.canModerate = canModerate
-                }
-            )
     }
 
     private static func syncSummary(for result: GuestMergeResult) -> String {

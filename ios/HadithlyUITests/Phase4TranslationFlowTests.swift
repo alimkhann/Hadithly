@@ -54,30 +54,14 @@ final class Phase4TranslationFlowTests: XCTestCase {
         app.buttons["reader.close"].tap()
         app.tabBars.buttons["Settings"].tap()
 
-        let review = app.buttons["settings.translationReview"]
-        XCTAssertTrue(review.waitForExistence(timeout: timeout), "Admin review entry did not appear")
-        review.tap()
-
-        let approve = app.buttons.matching(
-            NSPredicate(format: "identifier BEGINSWITH 'admin.approve.'")
-        ).firstMatch
-        XCTAssertTrue(approve.waitForExistence(timeout: timeout), "Submission did not enter the admin queue")
-        approve.tap()
-        XCTAssertTrue(element("admin.empty", in: app).waitForExistence(timeout: timeout))
-        takeScreenshot(named: "03-admin-approved")
-        app.buttons["Done"].tap()
-
-        app.tabBars.buttons["Library"].tap()
-        app.buttons["library.collection.bukhari"].tap()
-        XCTAssertTrue(element("reader.page", in: app).waitForExistence(timeout: timeout))
-        chooseRussian(app)
-        let communityBadge = element("reader.communityBadge", in: app)
-        scrollUntilHittable(communityBadge, in: app)
-        XCTAssertTrue(
-            communityBadge.waitForExistence(timeout: timeout),
-            "Approved community translation did not become the reader default"
+        // S1 moved the admin queue out of the consumer app (E4 owns the
+        // secured exception tool): Settings must not expose a review entry.
+        XCTAssertFalse(
+            app.buttons["settings.translationReview"].waitForExistence(timeout: 3),
+            "Admin review must not ship in consumer Settings"
         )
-        takeScreenshot(named: "04-community-default")
+        // Approval and publish verification now belong to the E4 admin tool,
+        // so this flow ends at the submission verdict above.
     }
 
     private func openBukhariReader(_ app: XCUIApplication) {
