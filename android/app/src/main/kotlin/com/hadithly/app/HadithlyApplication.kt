@@ -11,6 +11,7 @@ import com.hadithly.app.core.data.SavedSafetyPreferences
 import com.hadithly.app.core.session.SessionManager
 import com.hadithly.app.core.preferences.PreferencesStore
 import com.hadithly.app.core.settings.AppSettings
+import com.hadithly.app.core.push.DevicePushProfile
 import com.hadithly.app.core.push.PushNotificationManager
 import com.hadithly.app.core.purchases.PurchaseManager
 import com.google.firebase.FirebaseApp
@@ -77,6 +78,14 @@ class HadithlyApplication : Application() {
             repository = repository,
             scope = appScope,
             isSignedIn = { Clerk.sessionsFlow.value.isNotEmpty() },
+            deviceProfile = {
+                val current = preferences.preferences.value
+                DevicePushProfile(
+                    timezoneId = PushNotificationManager.timezoneId(),
+                    uiLocale = current.uiLocale,
+                    translationLocale = current.translationLocale,
+                )
+            },
         )
         offline = OfflineStore(
             root = java.io.File(filesDir, "offline"),
@@ -106,6 +115,9 @@ class HadithlyApplication : Application() {
             if (isSignedIn()) {
                 appScope.launch {
                     runCatching { repository.updateReaderPreferences(updated.toWireMap()) }
+                    // N1: a locale change must also reach this device's push
+                    // row so the next notification uses the new translation.
+                    runCatching { push.syncToken() }
                 }
             }
         }

@@ -31,6 +31,17 @@ sealed interface PushRegistrationState {
 }
 
 /**
+ * Per-device N1 profile uploaded with every push registration: the IANA
+ * timezone (never a fixed offset — offsets cannot survive DST or zone
+ * changes) plus the UI and translation locales the cron materializes.
+ */
+data class DevicePushProfile(
+    val timezoneId: String,
+    val uiLocale: String,
+    val translationLocale: String,
+)
+
+/**
  * Owns the FCM registration identifier (a Firebase Installation ID). It can
  * arrive before Clerk restores;
  * the latest value is kept locally and upserted after Convex authentication.
@@ -40,6 +51,13 @@ class PushNotificationManager(
     private val repository: ConvexRepository,
     private val scope: CoroutineScope,
     private val isSignedIn: () -> Boolean,
+    private val deviceProfile: () -> DevicePushProfile = {
+        DevicePushProfile(
+            timezoneId = timezoneId(),
+            uiLocale = "en",
+            translationLocale = "en",
+        )
+    },
 ) {
     private val appContext = context.applicationContext
     private val prefs = appContext.getSharedPreferences("hadithly", Context.MODE_PRIVATE)
@@ -84,7 +102,7 @@ class PushNotificationManager(
             return
         }
         scope.launch {
-            runCatching { repository.savePushToken(installationId, timezoneOffsetMinutes()) }
+            runCatching { repository.savePushToken(installationId, deviceProfile()) }
                 .onSuccess { _state.value = PushRegistrationState.Registered }
                 .onFailure {
                     _state.value = PushRegistrationState.Failed(
@@ -103,7 +121,10 @@ class PushNotificationManager(
     companion object {
         private const val KEY_REGISTRATION_ID = "notifications.fcmInstallationId"
 
-        /** Same platform-neutral convention as iOS/JavaScript: UTC - local. */
+        /** IANA timezone id (e.g. "Asia/Almaty") for N1 scheduling. */
+        fun timezoneId(): String = java.time.ZoneId.systemDefault().id
+
+        /** Legacy fixed offset (UTC - local minutes). Kept for reference. */
         fun timezoneOffsetMinutes(now: Long = System.currentTimeMillis()): Double =
             -(TimeZone.getDefault().getOffset(now) / 60_000.0)
     }

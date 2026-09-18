@@ -22,6 +22,7 @@ import com.hadithly.app.core.theme.ThemeColors
 import com.hadithly.app.core.theme.HadithlyTheme
 import com.hadithly.app.core.preferences.LocaleFallback
 import com.hadithly.app.core.links.CanonicalHadithLink
+import com.hadithly.app.core.push.notificationHadithTarget
 import com.hadithly.app.features.auth.SignInScreen
 import com.hadithly.app.features.main.MainTabs
 import com.hadithly.app.features.main.ReaderOpenTarget
@@ -69,16 +70,21 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun notificationTarget(intent: android.content.Intent?): ReaderOpenTarget? {
-        val slug = intent?.getStringExtra("collectionSlug") ?: return null
-        val hadithNumber = intent.getStringExtra("providerHadithId") ?: return null
-        val link = CanonicalHadithLink.parse(
-            "https", CanonicalHadithLink.HOST, "/hadith/$slug/$hadithNumber",
+        if (intent == null) return null
+        val target = notificationHadithTarget(
+            mapOf(
+                "collectionSlug" to intent.getStringExtra("collectionSlug"),
+                "providerHadithId" to intent.getStringExtra("providerHadithId"),
+                "volumeId" to intent.getStringExtra("volumeId"),
+                "locale" to intent.getStringExtra("locale"),
+                "ai" to intent.getStringExtra("ai"),
+            ),
         ) ?: return null
         return ReaderOpenTarget(
-            slug = link.collectionSlug,
-            name = link.collectionName,
-            volumeId = intent.getStringExtra("volumeId"),
-            hadithNumber = link.providerHadithId,
+            slug = target.collectionSlug,
+            name = target.collectionName,
+            volumeId = target.volumeId,
+            hadithNumber = target.providerHadithId,
             source = ReaderTargetSource.NOTIFICATION,
         )
     }

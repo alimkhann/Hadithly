@@ -321,9 +321,10 @@ rechecked before Q2.
   an unbounded loop.
 - Cache by canonical hadith identity, target language, source revision, model,
   and prompt version. Use single-flight generation and idempotency keys.
-- The current 15-minute notification cron collects every enabled push token 96
-  times per day. N1 must replace the table scan with indexed delivery buckets,
-  bounded batches, retry state, stale-token removal, and provider backpressure.
+- The pre-N1 15-minute notification cron collected every enabled push token 96
+  times per day. N1 replaced the table scan with indexed delivery buckets,
+  bounded batches, retry state, stale-token removal, and provider backpressure
+  (physical-device gate still open).
 - The current mobile apps keep four personal Convex subscriptions open after
   sign-in. H3 should measure bandwidth and consolidate them into one private
   library snapshot or screen-scoped queries if that lowers cost without making
@@ -1196,6 +1197,102 @@ substantive: they own bounded implementation outcomes, not just inventories.
   credential, dashboard, or store state changed.
 - Next allowed session: N1. This task stopped before N1.
 
+### N1 translated exact-target notifications (2026-09-18)
+
+- Outcome: implementation complete on backend and both clients. The
+  physical-device gate remains open: a physical iPhone (`alimkhan`) was
+  visible to xcodebuild during this session and the Android FCM re-test
+  against `hadithlyapp` is still deferred, so the locale, DST, zone-change,
+  denial, retry, duplicate, stale-target, approved, and AI-label cases must
+  still pass on physical devices before W1.
+- Model decision (owner-confirmed): notification service generation stays
+  on **Gemini 2.5 Flash-Lite** paid tier (already wired, strongest cheap-tier
+  multilingual, N1 outputs are globally cached so cost is negligible either
+  way). **Qwen3.7 Flash via OpenRouter** ($0.03/$0.13 per 1M, 201 languages)
+  is the evaluated fallback, decided by a kk/ur/sw fixture plus L1
+  native-speaker review. No second provider inside N1. Medium models
+  (GPT-5 mini, Claude Haiku 4.5) and Kimi K3 are overkill for globally
+  cached output; DeepSeek V4 Flash is cheaper but weaker on Swahili/Bengali-
+  class pairs with peak/off-peak billing; GLM free tier fits dev only.
+- Approved = AI-approved: resolution is live `official` default first, live
+  `gemini_ai` default second (AI-approved at generation time), one quota-free
+  ungrounded service generation third (globally cached via
+  `cacheGeminiTranslation`, no quota event). No community/admin gate in the
+  notification path. Unresolved content skips with an observable reason;
+  Arabic-only or wrong-language bodies are never sent.
+- IANA decision (owner-confirmed): fresh registrations hard-require the IANA
+  zone; `tzOffsetMinutes` stays read-only for one release. The backfill
+  never invents a zone from an offset (one offset maps to many DST regimes);
+  zone-less rows skip observably as `missing-timezone` until the client
+  re-registers. Stale-token decision (owner-confirmed): delete on the first
+  permanent rejection (APNs 400/410, FCM UNREGISTERED/INVALID_ARGUMENT),
+  bounded retry (3 attempts per local date, 2^n-minute backoff capped at 4h)
+  for transients, full-run stop on 429, plus 30-day unseen purge.
+- Backend (deployed to development Convex `festive-cobra-664`; production
+  untouched): `lib/notifyContent.ts` (buckets, IANA clock, due selection,
+  error classes, labeled payload builder); `pushTokens` gains `timezone`,
+  `uiLocale`, `translationLocale`, `deliveryBucket`, retry fields,
+  `lastError`, `lastSeenAt` plus the `by_enabled_bucket` index; the 15-min
+  cron scans 96 indexed buckets in bounded pages (cap 500 sends/run),
+  picks one daily hadith per timezone, resolves one translation per
+  (hadith, locale), and returns `skippedReasons`. `migrateN1PushTokens`
+  backfilled the one dev row (second run: 0 migrated / 1 unchanged); a live
+  dev cron run returns clean with no providers configured there.
+- iOS: registration, settings save, and locale-change sync upload IANA zone
+  plus both locales; foreground banner, background/terminated routing via
+  the existing canonical boundary (volumeId/locale/ai keys ride along).
+  Android: same profile via `DevicePushProfile`; notification parsing
+  extracted to pure `notificationHadithTarget` for cold/warm intents; FID
+  targeting re-verified as FCM's recommended path (legacy offset kept
+  read-only for one release).
+- Evidence: backend typecheck clean, 159/159 tests (33 new: buckets,
+  DST fixture, due/idempotency, retry bounds, error classes, approved-first,
+  AI label, no-Arabic-fallback, permanent-delete, backpressure, migration
+  idempotency); iOS 204/204 unit tests (4 new notification-target tests) on
+  the iPhone 17 Pro (26.2) simulator; Android 184/184 unit tests (5 new)
+  with JDK 25 (JDK 21 unavailable on this machine; AGENTS.md still names
+  21). No production, credential, dashboard, or store state changed.
+- Live-device repair (2026-09-19, owner report: no notification at the set
+  time): the client's push row was perfect (IANA zone, bucket, locales) —
+  dev Convex simply had no APNs credentials, so the cron early-returned.
+  With owner confirmation, the D1 key MU78HDD896 (Sandbox & Production) was
+  installed into **dev only** with `APNS_ENVIRONMENT=sandbox`. The first
+  live send then exposed a real latent bug in `lib/apns.ts`: DER signatures
+  with a padded r/s integer (~75% of P-256 signatures) crashed
+  `derSignatureToRaw` (`targetStart out of range`); D1's smoke test had
+  passed on a 25% lucky signature. Fixed by stripping the DER leading zero
+  (new `apns.test.ts` verifies 50 converted signatures; pre-fix code fails
+  it), redeployed, and the matured retry sent live: `sent: 1` to the
+  owner's iPhone with Apple-accepted delivery. Owner confirmation of
+  on-phone receipt and exact-target open is the remaining gate item.
+- Copy repair (2026-09-19, owner review): the title joined collectionName +
+  referenceDisplay, but provider displays already read "Collection · Hadith
+  N" — the collection appeared twice. The builder now uses the display
+  as-is when it already contains the collection, prefixing only otherwise.
+  The AI body label stays (product rule 3; removing it needs an explicit
+  owner override of the rule, currently not given).
+- Secret-handling incident (2026-09-19): `npx convex env list | cut -d= -f1`
+  printed the PEM body and key fragments because multiline values contain
+  no `=`. The MU78HDD896 private key and GEMINI/SUNNAH fragments entered
+  the local AI transcript. Same self-contained situation as the waived
+  2026-09-03 exposure; rotation is the owner's call. Never use bare
+  `env list` for name checks — see the mistakes list.
+- Next allowed session: physical-device matrix, then W1. This task stopped
+  before W1.
+
+### Future topic browsing with the Jev classifier (not a session)
+
+- TypeSafe AI's **Jev** (System One model, launched 2026-09-15, early access
+  via typesafe.ai plus OpenRouter/Vercel/Cloudflare; $0.042 per 1M input
+  tokens, output free; typed Choice/Noul/Score answers with calibrated
+  probabilities, ~100 ms) is the recorded candidate for classifying hadiths
+  into browsable topics: one Choice call per hadith over an owner-approved
+  taxonomy, low-confidence results escalated to human review.
+- Requires an owner-approved topic taxonomy first. Auto-assigned topics must
+  be labeled as such and never presented as authoritative grades or rulings
+  (product rule 3). No code in any current session; a future post-L1 session
+  owns the evaluation.
+
 ## Delegation policy
 
 Use GLM-5.3-Flash through OpenCode Go as the default author for bounded sessions
@@ -1348,6 +1445,9 @@ Collect these only when the matching session reaches the final action:
   `aud: \"convex\"`.
 - Never expose a secret through a command argument, terminal output, screenshot,
   document, or chat. Install a tested replacement before revocation.
+- `convex env list | cut -d= -f1` does NOT redact multiline values (PEM
+  bodies contain no `=` and pass through intact). Pipe stdin for `env set`,
+  and never dump `env list` into a transcript to check names.
 
 ## Current external references
 

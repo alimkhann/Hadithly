@@ -1,6 +1,8 @@
 package com.hadithly.app.core.data
-
 import com.hadithly.app.BuildConfig
+import com.hadithly.app.core.push.DevicePushProfile
+import com.hadithly.app.core.push.PushNotificationManager
+
 import android.content.Context
 import com.clerk.convex.createClerkConvexClient
 import dev.convex.android.AuthState
@@ -306,24 +308,30 @@ class ConvexRepository(context: Context) {
 
     // Notifications
 
-    suspend fun savePushToken(token: String, tzOffsetMinutes: Double) =
+    suspend fun savePushToken(token: String, profile: DevicePushProfile) =
         mutation(
             "library:savePushToken",
             mapOf(
                 "token" to token,
                 "platform" to "android",
-                "tzOffsetMinutes" to tzOffsetMinutes,
+                "timezone" to profile.timezoneId,
+                "uiLocale" to profile.uiLocale,
+                "translationLocale" to profile.translationLocale,
+                "tzOffsetMinutes" to PushNotificationManager.timezoneOffsetMinutes(),
             ),
         )
 
-    suspend fun setDailyNotification(enabled: Boolean, dailyTime: String, tzOffsetMinutes: Double) =
+    suspend fun setDailyNotification(enabled: Boolean, dailyTime: String, profile: DevicePushProfile) =
         withContext(Dispatchers.IO) {
             convex.mutation<Double>(
                 "library:setDailyNotification",
                 mapOf(
                     "enabled" to enabled,
                     "dailyTime" to dailyTime,
-                    "tzOffsetMinutes" to tzOffsetMinutes,
+                    "timezone" to profile.timezoneId,
+                    "uiLocale" to profile.uiLocale,
+                    "translationLocale" to profile.translationLocale,
+                    "tzOffsetMinutes" to PushNotificationManager.timezoneOffsetMinutes(),
                 ),
             )
         }

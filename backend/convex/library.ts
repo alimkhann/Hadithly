@@ -12,6 +12,12 @@ import { v } from "convex/values";
 import { requireIdentity } from "./lib/identity";
 import { DEFAULT_COLLECTION_ORDER } from "./lib/sunnahNow";
 import {
+  DAILY_TIME_PATTERN,
+  assertIanaTimezone,
+  normalizeDeliveryBucket,
+} from "./lib/notifyContent";
+import { canonicalizeLocaleTag } from "./lib/preferences";
+import {
   legacyReadingPosition,
   parseReadingPosition,
   readingPositionValidator,
@@ -307,11 +313,18 @@ export const listReadingProgress = query({
  * Registers (or refreshes) a device push token. Upserts by token so
  * re-registrations never pile up rows, and never clobbers the user's
  * notification preferences — those live in setDailyNotification.
+ *
+ * N1: clients send their IANA timezone plus UI and translation locales so
+ * the cron can schedule in true local time and materialize the body in the
+ * chosen translation. tzOffsetMinutes is a legacy read-only fallback.
  */
 export const savePushToken = mutation({
   args: {
     token: v.string(),
     platform: v.union(v.literal("ios"), v.literal("android")),
+    timezone: v.optional(v.string()),
+    uiLocale: v.optional(v.string()),
+    translationLocale: v.optional(v.string()),
     tzOffsetMinutes: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
@@ -324,22 +337,45 @@ export const savePushToken = mutation({
       .withIndex("by_token", (q) => q.eq("token", args.token))
       .unique();
 
+    if (args.timezone !== undefined) assertIanaTimezone(args.timezone);
+    for (const tag of [args.uiLocale, args.translationLocale]) {
+      if (tag !== undefined && canonicalizeLocaleTag(tag) === null) {
+        throw new Error(`Invalid locale: ${tag}`);
+      }
+    }
+
+    const now = Date.now();
     const patch = {
       userId: user._id,
       platform: args.platform,
+      ...(args.timezone !== undefined ? { timezone: args.timezone } : {}),
+      ...(args.uiLocale !== undefined ? { uiLocale: args.uiLocale } : {}),
+      ...(args.translationLocale !== undefined
+        ? { translationLocale: args.translationLocale }
+        : {}),
       ...(args.tzOffsetMinutes !== undefined
         ? { tzOffsetMinutes: args.tzOffsetMinutes }
         : {}),
-      updatedAt: Date.now(),
+      lastSeenAt: now,
+      updatedAt: now,
     };
     if (existing) {
-      await ctx.db.patch(existing._id, patch);
+      // Re-registration proves the token is alive: clear retry state so a
+      // previously flaky device converges back to normal delivery.
+      await ctx.db.patch(existing._id, {
+        ...patch,
+        consecutiveFailures: 0,
+        nextRetryAt: undefined,
+        lastError: undefined,
+      });
       return existing._id;
     }
     return await ctx.db.insert("pushTokens", {
       token: args.token,
       dailyTime: "08:00",
+      deliveryBucket: normalizeDeliveryBucket("08:00") ?? "08:00",
       enabled: true,
+      consecutiveFailures: 0,
       ...patch,
     });
   },
@@ -350,22 +386,49 @@ export const setDailyNotification = mutation({
   args: {
     enabled: v.boolean(),
     dailyTime: v.string(),
+    timezone: v.optional(v.string()),
+    uiLocale: v.optional(v.string()),
+    translationLocale: v.optional(v.string()),
     tzOffsetMinutes: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const identity = await requireIdentity(ctx);
     const user = await userByClerkId(ctx, identity.clerkId);
     if (!user) throw new Error("User not found. Call users:ensureCurrentUser first.");
+    if (!DAILY_TIME_PATTERN.test(args.dailyTime.trim())) {
+      throw new Error(`Invalid dailyTime: ${args.dailyTime}`);
+    }
+    if (args.timezone !== undefined) {
+      assertIanaTimezone(args.timezone);
+    }
+    for (const tag of [args.uiLocale, args.translationLocale]) {
+      if (tag !== undefined && canonicalizeLocaleTag(tag) === null) {
+        throw new Error(`Invalid locale: ${tag}`);
+      }
+    }
     const rows = await ctx.db
       .query("pushTokens")
       .withIndex("by_user", (q) => q.eq("userId", user._id))
       .collect();
+    const bucket = normalizeDeliveryBucket(args.dailyTime);
+    if (bucket === null) throw new Error(`Invalid dailyTime: ${args.dailyTime}`);
     const now = Date.now();
     for (const row of rows) {
       await ctx.db.patch(row._id, {
         enabled: args.enabled,
         dailyTime: args.dailyTime,
+        deliveryBucket: bucket,
+        timezone: args.timezone ?? row.timezone,
+        uiLocale: args.uiLocale ?? row.uiLocale,
+        translationLocale: args.translationLocale ?? row.translationLocale,
         tzOffsetMinutes: args.tzOffsetMinutes ?? row.tzOffsetMinutes,
+        // A preference change re-arms delivery for today: the user asked
+        // for a new time, so today's stamp must not suppress it.
+        lastSentDate: undefined,
+        consecutiveFailures: 0,
+        nextRetryAt: undefined,
+        lastError: undefined,
+        lastSeenAt: now,
         updatedAt: now,
       });
     }
@@ -373,11 +436,30 @@ export const setDailyNotification = mutation({
   },
 });
 
-/** Internal: every enabled push token, for the daily send cron. */
-export const listEnabledPushTokens = internalQuery({
-  args: {},
-  handler: async (ctx) => {
-    return await ctx.db.query("pushTokens").collect();
+/**
+ * Internal: one bounded page of enabled tokens in a delivery bucket, for
+ * the daily send cron. Indexed — never scans the whole table.
+ */
+export const listBucketPage = internalQuery({
+  args: {
+    bucket: v.string(),
+    cursor: v.optional(v.string()),
+    limit: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const take = Math.min(Math.max(args.limit, 1), 500);
+    const page = await ctx.db
+      .query("pushTokens")
+      .withIndex("by_enabled_bucket", (q) =>
+        q.eq("enabled", true).eq("deliveryBucket", args.bucket),
+      )
+      .order("asc")
+      .paginate({ cursor: args.cursor ?? null, numItems: take });
+    return {
+      rows: page.page,
+      isDone: page.isDone,
+      cursor: page.continueCursor ?? undefined,
+    };
   },
 });
 
@@ -385,7 +467,40 @@ export const listEnabledPushTokens = internalQuery({
 export const markPushSent = internalMutation({
   args: { tokenId: v.id("pushTokens"), sentDate: v.string() },
   handler: async (ctx, args) => {
-    await ctx.db.patch(args.tokenId, { lastSentDate: args.sentDate });
+    await ctx.db.patch(args.tokenId, {
+      lastSentDate: args.sentDate,
+      consecutiveFailures: 0,
+      nextRetryAt: undefined,
+      lastError: undefined,
+      lastSeenAt: Date.now(),
+    });
+  },
+});
+
+/** Internal: record a transient send failure with bounded retry state. */
+export const recordPushFailure = internalMutation({
+  args: {
+    tokenId: v.id("pushTokens"),
+    error: v.string(),
+    nextRetryAt: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const row = await ctx.db.get(args.tokenId);
+    if (!row) return;
+    await ctx.db.patch(args.tokenId, {
+      consecutiveFailures: (row.consecutiveFailures ?? 0) + 1,
+      nextRetryAt: args.nextRetryAt,
+      lastError: args.error.slice(0, 300),
+      lastSeenAt: Date.now(),
+    });
+  },
+});
+
+/** Internal: delete a token the provider reports as permanently dead. */
+export const removeStaleToken = internalMutation({
+  args: { tokenId: v.id("pushTokens"), reason: v.string() },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.tokenId);
   },
 });
 

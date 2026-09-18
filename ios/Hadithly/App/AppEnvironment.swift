@@ -116,12 +116,16 @@ final class AppEnvironment {
         self.push = PushNotificationManager.shared
         self.push.uploadHandler = { [weak self] token in
             guard let self, Clerk.shared.session != nil else { return }
+            let prefs = self.preferences.preferences
             let tzOffsetMinutes = Double(-TimeZone.current.secondsFromGMT() / 60)
             try? await self.convex.mutation(
                 "library:savePushToken",
                 with: [
                     "token": token as ConvexEncodable?,
                     "platform": "ios" as ConvexEncodable?,
+                    "timezone": TimeZone.current.identifier as ConvexEncodable?,
+                    "uiLocale": prefs.uiLocale as ConvexEncodable?,
+                    "translationLocale": prefs.translationLocale as ConvexEncodable?,
                     "tzOffsetMinutes": tzOffsetMinutes as ConvexEncodable?,
                 ]
             )
@@ -283,6 +287,10 @@ final class AppEnvironment {
                 "users:updateReaderPreferences",
                 with: ["readerPreferences": Self.wireDict(for: updated) as ConvexEncodable?]
             )
+            // N1: a locale change must also reach this device's push row so
+            // the next notification is materialized in the new translation.
+            // No-ops when no APNs token is registered yet.
+            await self.push.uploadTokenIfNeeded()
         }
     }
 

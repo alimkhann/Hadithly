@@ -11,7 +11,7 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 import { v } from "convex/values";
-import { action } from "../_generated/server";
+import { action, internalAction } from "../_generated/server";
 import type { ActionCtx } from "../_generated/server";
 import { api, internal } from "../_generated/api";
 import type { Id } from "../_generated/dataModel";
@@ -423,6 +423,88 @@ export const submitTranslation = action({
     );
 
     return { submissionId, aiReview, status };
+  },
+});
+
+/**
+ * N1 service generation: one quota-free AI translation per (hadith,
+ * language), globally cached. Called only by the daily-push cron when no
+ * approved or reusable cached translation exists for the device's locale.
+ *
+ * Policy (PLAN.md N1): ordinary translation uses no paid web grounding, so
+ * this path runs without search tools; the result is stored as a live
+ * default and labeled AI everywhere it surfaces. It consumes no user's
+ * quota and requires no user identity. Concurrent runs converge: the cache
+ * mutation returns the existing default when a parallel run won the race.
+ */
+export const generateServiceTranslation = internalAction({
+  args: {
+    hadithId: v.id("hadiths"),
+    language: v.string(),
+  },
+  handler: async (
+    ctx,
+    args,
+  ): Promise<{ translationId: string; content: string; cached: boolean }> => {
+    const language = args.language.trim();
+    if (!language) throw new Error("Translation language must not be empty");
+    // Single-flight read: a cached default from any earlier run wins.
+    const already = await ctx.runQuery(
+      internal.translations.getDefaultForHadithLanguage,
+      { hadithId: args.hadithId, language },
+    );
+    if (already) {
+      return {
+        translationId: already._id as string,
+        content: already.content,
+        cached: true,
+      };
+    }
+    const hadith = await ctx.runQuery(internal.hadiths.getById, {
+      hadithId: args.hadithId,
+    });
+    if (!hadith) throw new Error("Unknown hadith for service translation");
+    const ai = gemini();
+    const prompt = [
+      "You are a careful translator of hadith (Prophetic narrations).",
+      `Translate the hadith faithfully into the target language (${language}).`,
+      "Preserve religious meaning and tone. Do not issue legal rulings (fatwa).",
+      'Respond with ONLY a single JSON object, no prose and no code fences, in exactly this shape: {"translation": string, "confidence": number between 0 and 1, "riskFlags": string[], "glossaryNotes": string[]}.',
+      "",
+      untrustedProviderDataBlock({
+        arabicText: hadith.arabicText,
+        englishText: hadith.englishText ?? undefined,
+        narrator: hadith.narrator ?? undefined,
+        referenceDisplay: hadith.referenceDisplay,
+      }),
+    ].join("\n");
+    const response = await ai.models.generateContent({
+      model: GEMINI_TRANSLATION_MODEL,
+      contents: prompt,
+      config: { temperature: 0.2 },
+    });
+    const rawText = response.text ?? "";
+    let payload = parseTranslationPayload(rawText);
+    if (!payload) {
+      payload = await repairTranslationJson(ai, rawText);
+    }
+    const translation = (payload?.translation ?? rawText).trim();
+    if (!translation) {
+      throw new Error("Gemini returned an empty service translation");
+    }
+    const translationId = await ctx.runMutation(
+      internal.translations.cacheGeminiTranslation,
+      {
+        hadithId: args.hadithId,
+        language,
+        content: translation,
+        aiModel: GEMINI_TRANSLATION_MODEL,
+        confidence: payload?.confidence ?? 0.5,
+        riskFlags: payload?.riskFlags ?? [],
+        groundingUsed: false,
+      },
+    );
+    return { translationId, content: translation, cached: false };
   },
 });
 

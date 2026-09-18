@@ -474,17 +474,15 @@ Model: GPT-5.6 Terra, high. Use `architect`, `domain-modeling`,
 
 ## S1: complete Settings and profile
 
-Model: GLM-5.3-Flash through OpenCode Go. GPT-5.6 Luna high is the fallback.
 Use `frontend-design`, `principle-experience-first`, `blast-radius`, and
 `principle-prove-it-works`. A separate GPT-5.6 Terra high task reviews export,
 privacy, deletion routing, and platform parity.
 
 > Read `AGENTS.md`, `docs/PLAN.md`, and `docs/REFERENCE_AUDIT.md` fully. Confirm
 > H3 passed. Execute only S1. Preserve unrelated changes and do not use Relay.
-> Build complete native Settings and profile destinations for account,
+> Build complete native Settings and profile destinations (profile picture, name, etc) for account,
 > appearance, reading, App language, Hadith translation, offline storage,
-> notifications, subscription status, privacy, help, legal, export, sign-out,
-> and delete account. Move admin review out of the consumer app.
+> notifications, subscription status, privacy, help, legal, export, sign-out, delete account, and anything else that is missing and conventionally included in app settings or for such hadith reader apps. Move admin review out of the consumer app.
 >
 > Every row on iOS and Android must perform a real action or open finished
 > content. Reading controls reuse F2. Offline controls may show a clear locked

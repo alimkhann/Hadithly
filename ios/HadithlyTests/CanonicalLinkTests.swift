@@ -97,6 +97,69 @@ final class CanonicalLinkTests: XCTestCase {
     }
 }
 
+/// N1 gate: translated exact-target pushes route through the same canonical
+/// boundary as Universal Links. Extra N1 keys (volumeId, locale, ai) ride
+/// along harmlessly; malformed or stale targets never displace the reader.
+final class NotificationTargetTests: XCTestCase {
+    @MainActor
+    func testNotificationRoutesToExactTarget() {
+        let router = LinkRouter()
+        let handled = router.handleNotification([
+            "collectionSlug": "bukhari",
+            "providerHadithId": "57",
+            "volumeId": "2",
+            "locale": "kk",
+            "ai": "1",
+            "hadithId": "sunnah_now:bukhari:57",
+        ])
+        XCTAssertTrue(handled)
+        let link = router.consumePending()
+        XCTAssertEqual(link?.collectionSlug, "bukhari")
+        XCTAssertEqual(link?.providerHadithId, "57")
+        XCTAssertNil(router.consumePending())
+    }
+
+    @MainActor
+    func testNotificationRejectsMalformedTargets() {
+        let router = LinkRouter()
+        // Malformed: non-numeric hadith id.
+        XCTAssertFalse(router.handleNotification([
+            "collectionSlug": "bukhari",
+            "providerHadithId": "57abc",
+        ]))
+        // Malformed: slug breaks the canonical shape.
+        XCTAssertFalse(router.handleNotification([
+            "collectionSlug": "Bukhari",
+            "providerHadithId": "57",
+        ]))
+        // Missing identity entirely.
+        XCTAssertFalse(router.handleNotification(["locale": "kk"]))
+        XCTAssertNil(router.consumePending())
+    }
+
+    @MainActor
+    func testNotificationWithUnknownSlugStillQueuesForReaderFallback() {
+        // A well-formed but unknown slug queues; the reader degrades to the
+        // first volume start (F3 stale-target fallback) instead of stalling.
+        let router = LinkRouter()
+        XCTAssertTrue(router.handleNotification([
+            "collectionSlug": "nope",
+            "providerHadithId": "57",
+        ]))
+        XCTAssertEqual(router.consumePending()?.collectionSlug, "nope")
+    }
+
+    @MainActor
+    func testNotificationWithoutOptionalsStillRoutes() {
+        let router = LinkRouter()
+        XCTAssertTrue(router.handleNotification([
+            "collectionSlug": "muslim",
+            "providerHadithId": "12",
+        ]))
+        XCTAssertEqual(router.consumePending()?.providerHadithId, "12")
+    }
+}
+
 /// F3: a canonical link carries no volume, so the reader locates the volume
 /// holding the hadith from the source-provided outline counts.
 final class CanonicalLinkVolumeTests: XCTestCase {

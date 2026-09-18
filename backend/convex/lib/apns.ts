@@ -43,17 +43,28 @@ function base64Url(input: Buffer | string): string {
  * DER → raw r||s. APNs (like all JOSE ES256 verifiers) expects the 64-byte
  * concatenated form, while node's createSign emits ASN.1 DER.
  */
-function derSignatureToRaw(der: Buffer): Buffer {
+function derIntegerBytes(field: Buffer): Buffer {
+  // DER pads integers whose top bit is set with a leading zero (~50% of
+  // signatures per integer); strip it so r||s stays exactly 64 bytes.
+  let start = 0;
+  while (start < field.length - 1 && field[start] === 0) start += 1;
+  const out = field.subarray(start);
+  if (out.length > 32) throw new Error("Unexpected ECDSA integer size");
+  return out;
+}
+
+/** Exported for tests: DER → 64-byte raw r||s for APNs (JOSE ES256). */
+export function derSignatureToRaw(der: Buffer): Buffer {
   if (der[0] !== 0x30) throw new Error("Unexpected ECDSA signature encoding");
   let offset = 2;
   if (der[1] & 0x80) offset += der[1] & 0x7f;
   if (der[offset] !== 0x02) throw new Error("Unexpected ECDSA r encoding");
   const rLength = der[offset + 1];
-  const r = der.subarray(offset + 2, offset + 2 + rLength);
+  const r = derIntegerBytes(der.subarray(offset + 2, offset + 2 + rLength));
   const sOffset = offset + 2 + rLength;
   if (der[sOffset] !== 0x02) throw new Error("Unexpected ECDSA s encoding");
   const sLength = der[sOffset + 1];
-  const s = der.subarray(sOffset + 2, sOffset + 2 + sLength);
+  const s = derIntegerBytes(der.subarray(sOffset + 2, sOffset + 2 + sLength));
   const raw = Buffer.alloc(64);
   r.copy(raw, 32 - r.length);
   s.copy(raw, 64 - s.length);

@@ -99,6 +99,7 @@ import com.hadithly.app.core.preferences.PreferencesStore
 import com.hadithly.app.core.preferences.ReaderPreferences
 import com.hadithly.app.core.preferences.ReaderTheme
 import com.hadithly.app.core.preferences.ReadingDirection
+import com.hadithly.app.core.push.DevicePushProfile
 import com.hadithly.app.core.push.PushNotificationManager
 import com.hadithly.app.core.push.PushRegistrationState
 import com.hadithly.app.core.theme.HadithlyColors
@@ -850,7 +851,16 @@ private fun NotificationDestination() {
         app.settings.setDailyNotificationEnabled(nextEnabled)
         scope.launch {
             runCatching {
-                app.repository.setDailyNotification(nextEnabled, nextTime, PushNotificationManager.timezoneOffsetMinutes())
+                val current = app.preferences.preferences.value
+                app.repository.setDailyNotification(
+                    nextEnabled,
+                    nextTime,
+                    DevicePushProfile(
+                        timezoneId = PushNotificationManager.timezoneId(),
+                        uiLocale = current.uiLocale,
+                        translationLocale = current.translationLocale,
+                    ),
+                )
             }.onFailure { status = it.message ?: "Could not save notification settings." }
         }
     }

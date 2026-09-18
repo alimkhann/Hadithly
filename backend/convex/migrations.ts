@@ -8,6 +8,7 @@ import {
   migrateLegacyAuthenticity,
 } from "./lib/contentPolicy";
 import { legacyReadingPosition } from "./lib/readingPositions";
+import { normalizeDeliveryBucket } from "./lib/notifyContent";
 
 /**
  * Backfills the F1 content contract in bounded, repeatable pages. Re-running
@@ -200,5 +201,47 @@ export const migrateH3SavedItems = internalMutation({
       migrated += 1;
     }
     return { source: args.source, migrated, unchanged, continueCursor: result.continueCursor, isDone: result.isDone };
+  },
+});
+
+/**
+ * N1's bounded push-token backfill. Fills delivery buckets from dailyTime,
+ * zeroes retry state, and stamps lastSeenAt — but never invents an IANA
+ * timezone from a fixed offset (one offset maps to many zones with
+ * different DST rules). Rows without a zone stay un-schedulable until the
+ * client re-registers; the cron skips them with `missing-timezone`.
+ * Idempotent: re-running leaves current rows unchanged.
+ */
+export const migrateN1PushTokens = internalMutation({
+  args: { paginationOpts: paginationOptsValidator },
+  handler: async (ctx, args) => {
+    const result = await ctx.db.query("pushTokens").paginate(args.paginationOpts);
+    let migrated = 0;
+    let unchanged = 0;
+    const now = Date.now();
+    for (const row of result.page) {
+      const bucket = row.dailyTime ? normalizeDeliveryBucket(row.dailyTime) : null;
+      const patch: {
+        deliveryBucket?: string;
+        consecutiveFailures?: number;
+        lastSeenAt?: number;
+      } = {};
+      if (bucket !== null && row.deliveryBucket !== bucket) {
+        patch.deliveryBucket = bucket;
+      }
+      if (row.consecutiveFailures === undefined) {
+        patch.consecutiveFailures = 0;
+      }
+      if (row.lastSeenAt === undefined) {
+        patch.lastSeenAt = now;
+      }
+      if (Object.keys(patch).length === 0) {
+        unchanged += 1;
+        continue;
+      }
+      await ctx.db.patch(row._id, patch);
+      migrated += 1;
+    }
+    return { migrated, unchanged, continueCursor: result.continueCursor, isDone: result.isDone };
   },
 });

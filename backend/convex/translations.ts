@@ -75,6 +75,27 @@ export const getDefaultForHadithLanguage = internalQuery({
 });
 
 /**
+ * Internal: every live default translation for a hadith + language. The
+ * notification resolver sorts approved/official text before reusable cached
+ * AI so a single-row lookup can never shadow an approved translation.
+ */
+export const listLiveDefaultsForHadithLanguage = internalQuery({
+  args: { hadithId: v.id("hadiths"), language: v.string() },
+  handler: async (ctx, args) => {
+    const rows = await ctx.db
+      .query("translations")
+      .withIndex("by_hadith_language_default", (q) =>
+        q
+          .eq("hadithId", args.hadithId)
+          .eq("language", args.language)
+          .eq("isDefault", true),
+      )
+      .collect();
+    return rows.filter((row) => row.status === "live");
+  },
+});
+
+/**
  * Internal: cache a generated AI translation. There is intentionally no
  * vote/rating tracking — translation quality is a curation concern, not a
  * popularity contest.

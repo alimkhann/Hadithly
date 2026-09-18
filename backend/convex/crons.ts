@@ -17,6 +17,7 @@ crons.interval(
   "dispatch due daily hadith pushes",
   { minutes: 15 },
   internal.actions.daily.sendDueDailyPushes,
+  {},
 );
 
 export default crons;

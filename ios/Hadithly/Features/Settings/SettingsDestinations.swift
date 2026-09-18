@@ -958,11 +958,15 @@ struct NotificationsView: View {
 
     private func savePreferences(enabled: Bool) async {
         let tzOffsetMinutes = Double(-TimeZone.current.secondsFromGMT() / 60)
+        let prefs = environment.preferences.preferences
         try? await environment.convex.mutation(
             "library:setDailyNotification",
             with: [
                 "enabled": enabled as ConvexEncodable?,
                 "dailyTime": dailyTime as ConvexEncodable?,
+                "timezone": TimeZone.current.identifier as ConvexEncodable?,
+                "uiLocale": prefs.uiLocale as ConvexEncodable?,
+                "translationLocale": prefs.translationLocale as ConvexEncodable?,
                 "tzOffsetMinutes": tzOffsetMinutes as ConvexEncodable?,
             ]
         )

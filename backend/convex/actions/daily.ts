@@ -24,6 +24,17 @@ import {
 } from "../lib/dailyEligibility";
 import { apnsConfigured, sendApnsPush } from "../lib/apns";
 import { fcmConfigured, sendFcmPush } from "../lib/fcm";
+import {
+  MAX_SENDS_PER_RUN,
+  STALE_TOKEN_DAYS,
+  allDeliveryBuckets,
+  buildNotificationPayload,
+  classifyPushError,
+  retryDelayMs,
+  selectDueTokens,
+  type NotificationTranslation,
+  type SkipReason,
+} from "../lib/notifyContent";
 
 type DailyHadith = {
   _id: string;
@@ -218,147 +229,298 @@ type PushTokenDoc = {
   token: string;
   platform: "ios" | "android";
   dailyTime?: string;
-  tzOffsetMinutes?: number;
+  timezone?: string;
+  uiLocale?: string;
+  translationLocale?: string;
+  deliveryBucket?: string;
   enabled: boolean;
   lastSentDate?: string;
+  consecutiveFailures?: number;
+  nextRetryAt?: number;
+  lastError?: string;
+  lastSeenAt?: number;
 };
 
 type SendResult = {
   sent: number;
   failed: number;
   skipped: number;
+  skippedReasons: Record<string, number>;
+  removedStale: number;
   apnsConfigured: boolean;
   fcmConfigured: boolean;
 };
 
-/** Internal: cron entry — sends the daily hadith to every due device. */
+type CronIo = Pick<ActionCtx, "runQuery" | "runMutation" | "runAction">;
+
+function emptyResult(hasApns: boolean, hasFcm: boolean): SendResult {
+  return {
+    sent: 0,
+    failed: 0,
+    skipped: 0,
+    skippedReasons: {},
+    removedStale: 0,
+    apnsConfigured: hasApns,
+    fcmConfigured: hasFcm,
+  };
+}
+
+/**
+ * Resolution order for one notification body: approved/official text first,
+ * reusable cached AI second, one globally cached labeled service generation
+ * only when policy permits (Gemini key configured). Returns null when
+ * nothing usable exists — the caller skips with an observable reason and
+ * never falls back to Arabic-only or the wrong language.
+ */
+async function resolveNotificationTranslation(
+  io: CronIo,
+  hadith: CachedHadith,
+  language: string,
+): Promise<NotificationTranslation | null> {
+  if (language === "en") {
+    const english = providerEnglishTranslation(hadith);
+    return english ? { ...english, language: "en" } : null;
+  }
+  const live = await io.runQuery(
+    internal.translations.listLiveDefaultsForHadithLanguage,
+    { hadithId: hadith._id, language },
+  );
+  const rank = (source: string) =>
+    source === "official" ? 0 : source === "gemini_ai" ? 2 : 1;
+  const best = [...live].sort((a, b) => rank(a.source) - rank(b.source))[0];
+  if (best) {
+    return {
+      text: best.content,
+      language,
+      isAI: best.source === "gemini_ai",
+    };
+  }
+  try {
+    const generated = await io.runAction(
+      internal.actions.ai.generateServiceTranslation,
+      { hadithId: hadith._id, language },
+    );
+    if (!generated.content.trim()) return null;
+    return { text: generated.content, language, isAI: true };
+  } catch (error) {
+    console.error(
+      `service translation for ${hadith.canonicalId}/${language} failed:`,
+      error instanceof Error ? error.message : error,
+    );
+    return null;
+  }
+}
+
+export type PushSenders = {
+  sendApns: (
+    token: string,
+    payload: { alert: { title: string; body: string }; custom: Record<string, string> },
+  ) => Promise<unknown>;
+  sendFcm: (
+    token: string,
+    payload: { title: string; body: string; data: Record<string, string> },
+  ) => Promise<unknown>;
+};
+
+/**
+ * The cron loop with injectable senders and clock. The action below wires
+ * the real providers; tests wire record-only fakes. Idempotent: re-running
+ * a tick converges (lastSentDate guards duplicates, retries are bounded
+ * per local date, permanent failures delete the token).
+ */
+export async function runDuePushes(
+  io: CronIo,
+  now: number,
+  senders: PushSenders,
+  providers: { hasApns: boolean; hasFcm: boolean },
+): Promise<SendResult> {
+    const { hasApns, hasFcm } = providers;
+    const result = emptyResult(hasApns, hasFcm);
+    const skip = (reason: SkipReason) => {
+      result.skipped += 1;
+      result.skippedReasons[reason] =
+        (result.skippedReasons[reason] ?? 0) + 1;
+    };
+    const staleCutoff = now - STALE_TOKEN_DAYS * 24 * 60 * 60 * 1000;
+    // One persisted pick per timezone (local dates differ across zones) and
+    // one resolved translation per (hadith, locale) within this run.
+    const picks = new Map<string, CachedHadith | null>();
+    const translations = new Map<string, NotificationTranslation | null>();
+
+    let stopped = false;
+    for (const bucket of allDeliveryBuckets()) {
+      if (stopped || result.sent + result.failed >= MAX_SENDS_PER_RUN) break;
+      let cursor: string | null | undefined = undefined;
+      let isDone = false;
+      while (
+        !stopped &&
+        !isDone &&
+        result.sent + result.failed < MAX_SENDS_PER_RUN
+      ) {
+        const page: {
+          rows: PushTokenDoc[];
+          isDone: boolean;
+          cursor: string | null | undefined;
+        } = await io.runQuery(internal.library.listBucketPage, {
+          bucket,
+          cursor: cursor ?? undefined,
+          limit: 200,
+        });
+        cursor = page.cursor;
+        isDone = page.isDone;
+        const { due, skipped } = selectDueTokens(page.rows, now);
+        for (const { token, reason } of skipped) {
+          // Opportunistic hygiene: a bucket read is the only indexed way
+          // to find tokens whose app was uninstalled long ago.
+          if (
+            token.lastSeenAt !== undefined &&
+            token.lastSeenAt < staleCutoff
+          ) {
+            await io.runMutation(internal.library.removeStaleToken, {
+              tokenId: token._id,
+              reason: "unseen",
+            });
+            result.removedStale += 1;
+            continue;
+          }
+          skip(reason);
+        }
+        for (const { token, localDate } of due) {
+          if (result.sent + result.failed >= MAX_SENDS_PER_RUN) break;
+          const timezone = token.timezone as string;
+          const locale = (token.translationLocale ?? "en").trim() || "en";
+          if (!picks.has(timezone)) {
+            picks.set(
+              timezone,
+              await pickDailyHadith(
+                { runQuery: io.runQuery, runMutation: io.runMutation },
+                timezone,
+                now,
+              ),
+            );
+          }
+          const picked = picks.get(timezone);
+          if (!picked) {
+            skip("missing-content");
+            continue;
+          }
+          const cacheKey = `${picked._id}:${locale}`;
+          if (!translations.has(cacheKey)) {
+            translations.set(
+              cacheKey,
+              await resolveNotificationTranslation(
+                {
+                  runQuery: io.runQuery,
+                  runMutation: io.runMutation,
+                  runAction: io.runAction,
+                },
+                picked,
+                locale,
+              ),
+            );
+          }
+          const translation = translations.get(cacheKey);
+          if (!translation) {
+            skip(
+              locale === "en" ? "missing-content" : "unresolved-translation",
+            );
+            continue;
+          }
+          const payload = buildNotificationPayload({
+            collectionName: picked.collectionName,
+            referenceDisplay: picked.referenceDisplay,
+            translation,
+            hadithId: picked._id as string,
+            collectionSlug: picked.collectionSlug,
+            providerHadithId: picked.providerHadithId,
+            volumeId: picked.volumeId,
+          });
+          const providerOk =
+            (token.platform === "ios" && hasApns) ||
+            (token.platform === "android" && hasFcm);
+          if (!providerOk) {
+            skip("provider-unconfigured");
+            continue;
+          }
+          try {
+            if (token.platform === "ios") {
+              await senders.sendApns(token.token, {
+                alert: { title: payload.title, body: payload.body },
+                custom: payload.data,
+              });
+            } else {
+              await senders.sendFcm(token.token, {
+                title: payload.title,
+                body: payload.body,
+                data: payload.data,
+              });
+            }
+            await io.runMutation(internal.library.markPushSent, {
+              tokenId: token._id,
+              sentDate: localDate,
+            });
+            result.sent += 1;
+          } catch (error) {
+            const kind = classifyPushError(error);
+            const message =
+              error instanceof Error ? error.message : String(error);
+            if (kind === "permanent") {
+              await io.runMutation(internal.library.removeStaleToken, {
+                tokenId: token._id,
+                reason: "permanent",
+              });
+              result.removedStale += 1;
+              result.failed += 1;
+            } else if (kind === "backpressure") {
+              await io.runMutation(internal.library.recordPushFailure, {
+                tokenId: token._id,
+                error: message,
+                nextRetryAt: now + retryDelayMs(
+                  (token.consecutiveFailures ?? 0) + 1,
+                ),
+              });
+              result.failed += 1;
+              // Stop this run; the next tick resumes the remainder.
+              stopped = true;
+              break;
+            } else {
+              await io.runMutation(internal.library.recordPushFailure, {
+                tokenId: token._id,
+                error: message,
+                nextRetryAt: now + retryDelayMs(
+                  (token.consecutiveFailures ?? 0) + 1,
+                ),
+              });
+              result.failed += 1;
+            }
+            console.error(
+              `daily push to token ${token._id} failed:`,
+              message,
+            );
+          }
+        }
+      }
+    }
+    return result;
+}
+
+/**
+ * Internal: cron entry — sends the daily hadith to every due device.
+ * nowMs is injectable for deterministic tests; the scheduler passes nothing.
+ */
 export const sendDueDailyPushes = internalAction({
-  args: {},
-  handler: async (ctx): Promise<SendResult> => {
+  args: { nowMs: v.optional(v.number()) },
+  handler: async (ctx, args): Promise<SendResult> => {
     const hasApns = apnsConfigured();
     const hasFcm = fcmConfigured();
     if (!hasApns && !hasFcm) {
-      return {
-        sent: 0,
-        failed: 0,
-        skipped: 0,
-        apnsConfigured: false,
-        fcmConfigured: false,
-      };
+      return emptyResult(false, false);
     }
-
-    const now = Date.now();
-    const tokens: PushTokenDoc[] = await ctx.runQuery(
-      internal.library.listEnabledPushTokens,
-      {},
+    return await runDuePushes(
+      ctx,
+      args.nowMs ?? Date.now(),
+      { sendApns: sendApnsPush, sendFcm: sendFcmPush },
+      { hasApns, hasFcm },
     );
-    const due: PushTokenDoc[] = [];
-    for (const token of tokens) {
-      if (!token.enabled || !token.dailyTime) continue;
-      const local = localClock(now, token.tzOffsetMinutes ?? 0);
-      const [hour, minute] = token.dailyTime.split(":").map(Number);
-      const dueMinutes = hour * 60 + minute;
-      const nowMinutes = local.hour * 60 + local.minute;
-      if (
-        nowMinutes >= dueMinutes &&
-        nowMinutes < dueMinutes + 15 &&
-        token.lastSentDate !== local.date
-      ) {
-        due.push(token);
-      }
-    }
-    if (due.length === 0) {
-      return {
-        sent: 0,
-        failed: 0,
-        skipped: tokens.length,
-        apnsConfigured: hasApns,
-        fcmConfigured: hasFcm,
-      };
-    }
-
-    const picked = await pickDailyHadith({
-      runQuery: ctx.runQuery,
-      runMutation: ctx.runMutation,
-    }, "Etc/UTC", now);
-    if (!picked) {
-      return {
-        sent: 0,
-        failed: 0,
-        skipped: due.length,
-        apnsConfigured: hasApns,
-        fcmConfigured: hasFcm,
-      };
-    }
-    const hadith = toDailyHadith(picked, providerEnglishTranslation(picked));
-
-    let sent = 0;
-    let failed = 0;
-    let skipped = 0;
-    for (const token of due) {
-      const local = localClock(now, token.tzOffsetMinutes ?? 0);
-      try {
-        const title = "Hadith of the day";
-        const subtitle = `${hadith.collectionName} · ${hadith.referenceDisplay}`;
-        const body = hadith.englishText ?? hadith.arabicText.slice(0, 180);
-        const custom = {
-          hadithId: hadith._id,
-          collectionSlug: hadith.collectionSlug,
-          ...(hadith.volumeId ? { volumeId: hadith.volumeId } : {}),
-          providerHadithId: hadith.providerHadithId,
-        };
-        if (token.platform === "ios") {
-          if (!hasApns) {
-            skipped += 1;
-            continue;
-          }
-          await sendApnsPush(token.token, {
-            alert: { title, subtitle, body },
-            custom,
-          });
-        } else {
-          if (!hasFcm) {
-            skipped += 1;
-            continue;
-          }
-          await sendFcmPush(token.token, {
-            title,
-            body: `${subtitle}\n${body}`,
-            data: custom,
-          });
-        }
-        await ctx.runMutation(internal.library.markPushSent, {
-          tokenId: token._id,
-          sentDate: local.date,
-        });
-        sent += 1;
-      } catch (error) {
-        failed += 1;
-        console.error(
-          `daily push to token ${token._id} failed:`,
-          error instanceof Error ? error.message : error,
-        );
-      }
-    }
-
-    return {
-      sent,
-      failed,
-      skipped,
-      apnsConfigured: hasApns,
-      fcmConfigured: hasFcm,
-    };
   },
 });
-
-/** Clock of the device's timezone, derived from its stored UTC offset. */
-function localClock(nowMs: number, tzOffsetMinutes: number) {
-  // Clients send the conventional UTC - local offset (matching JavaScript's
-  // Date.getTimezoneOffset and iOS's existing payload), so subtract it.
-  const shifted = new Date(nowMs - tzOffsetMinutes * 60 * 1000);
-  return {
-    hour: shifted.getUTCHours(),
-    minute: shifted.getUTCMinutes(),
-    date: shifted.toISOString().slice(0, 10),
-  };
-}

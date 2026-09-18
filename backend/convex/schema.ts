@@ -311,17 +311,38 @@ export default defineSchema({
     token: v.string(),
     platform: v.union(v.literal("ios"), v.literal("android")),
     dailyTime: v.optional(v.string()),
-    // UTC - local minutes at registration time (the Date.getTimezoneOffset
-    // convention), so the cron can derive the device's local clock.
+    // N1: IANA timezone of the device (e.g. "Asia/Almaty"). Fixed offsets
+    // cannot survive DST or zone changes, so scheduling uses this field.
+    // tzOffsetMinutes stays as a read-only legacy fallback for one release.
+    timezone: v.optional(v.string()),
+    // UTC - local minutes at registration time (legacy, pre-N1). Kept so
+    // old clients keep validating; the cron no longer reads it.
     tzOffsetMinutes: v.optional(v.number()),
+    // Per-device locales: the notification body is materialized in the
+    // translation locale; the title stays language-neutral.
+    uiLocale: v.optional(v.string()),
+    translationLocale: v.optional(v.string()),
+    // 15-minute delivery bucket floored from dailyTime ("08:07" → "08:00").
+    // The cron scans indexed buckets instead of the whole table.
+    deliveryBucket: v.optional(v.string()),
     enabled: v.boolean(),
-    // Local date (YYYY-MM-DD in the token's tz) of the last daily push
-    // actually sent, guarding the 15-minute cron against double sends.
+    // Local date (YYYY-MM-DD in the token's IANA zone) of the last daily
+    // push actually sent, guarding the 15-minute cron against double sends.
     lastSentDate: v.optional(v.string()),
+    // Bounded transient-retry state: failures since the last success and
+    // the earliest time a retry may run again.
+    consecutiveFailures: v.optional(v.number()),
+    nextRetryAt: v.optional(v.number()),
+    // Last provider error, observable forops without exposing the token.
+    lastError: v.optional(v.string()),
+    // Refreshed on every registration upload; tokens unseen for
+    // STALE_TOKEN_DAYS are purged as probably-uninstalled.
+    lastSeenAt: v.optional(v.number()),
     updatedAt: v.number(),
   })
     .index("by_user", ["userId"])
-    .index("by_token", ["token"]),
+    .index("by_token", ["token"])
+    .index("by_enabled_bucket", ["enabled", "deliveryBucket"]),
 
   translationReports: defineTable({
     translationId: v.id("translations"),
