@@ -2112,15 +2112,15 @@ internal enum class ReaderGrade {
 
 /**
  * R6A grade-dot color, resolved from the reader palette so it stays
- * theme-aware across System, Light, Paper, and Dark: sahih green (accent),
- * hasan amber (bookmark), daif red (destructive), anything else gray
- * (secondary text).
+ * theme-aware across System, Light, Paper, and Dark: sahih emerald
+ * (semantic-only, deliberately not the monochrome accent), hasan amber
+ * (bookmark), daif red (destructive), anything else gray (secondary text).
  */
 internal fun gradeDotColor(
     grade: ReaderGrade,
     colors: com.hadithly.app.core.theme.HadithlyColors,
 ): androidx.compose.ui.graphics.Color = when (grade) {
-    ReaderGrade.SAHIH -> colors.accent
+    ReaderGrade.SAHIH -> colors.gradeSahih
     ReaderGrade.HASAN -> colors.bookmark
     ReaderGrade.DAIF -> colors.destructive
     ReaderGrade.OTHER -> colors.textSecondary

@@ -10,7 +10,7 @@ struct WelcomeView: View {
             VStack(spacing: Theme.Spacing.lg) {
                 Image(systemName: "book.closed.fill")
                     .font(.system(size: 56))
-                    .foregroundStyle(Theme.accent)
+                    .foregroundStyle(Theme.brand)
                     .accessibilityHidden(true)
 
                 Text("Hadithly")

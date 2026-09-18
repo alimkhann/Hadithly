@@ -76,7 +76,7 @@ fun WelcomeScreen(onContinue: () -> Unit) {
             Icon(
                 imageVector = Icons.Filled.MenuBook,
                 contentDescription = null,
-                tint = colors.accent,
+                tint = colors.brand,
                 modifier = Modifier.size(56.dp),
             )
             Text(

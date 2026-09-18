@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Design tokens adapted from the Sajda-style reader reference:
-/// near-black canvas, elevated dark surfaces, emerald accent, serif Arabic.
+/// Design tokens: near-black canvas, elevated dark surfaces, neutral-white
+/// accent, serif Arabic. Hierarchy comes from luminance, not hue.
 enum Theme {
     /// The app's vertical rhythm. Auth screens and onboarding standardize on
     /// these steps so pages share one consistent spacing scale.
@@ -23,9 +23,14 @@ enum Theme {
     static let textPrimary = Color(hex: "F2F2F2")
     static let textSecondary = Color(hex: "98989E")
 
-    // Accent
-    static let accent = Color(hex: "10B981")
-    static let accentSoft = Color(hex: "10B981").opacity(0.18)
+    // Accent: neutral white. Hierarchy comes from luminance, not hue
+    // (achromatic system); emerald survives only as a semantic color for
+    // the brand mark, authenticity grade dots, and success states.
+    static let accent = Color(hex: "FFFFFF")
+    static let accentSoft = Color(hex: "FFFFFF").opacity(0.15)
+
+    /// Semantic-only emerald: the brand mark. Never used for chrome.
+    static let brand = Color(hex: "10B981")
 
     // Semantic
     static let bookmark = Color(hex: "F59E0B")

@@ -72,7 +72,7 @@ class ReaderR6ATest {
             ),
         )
         for (palette in palettes) {
-            assertEquals(palette.accent, gradeDotColor(ReaderGrade.SAHIH, palette))
+            assertEquals(palette.gradeSahih, gradeDotColor(ReaderGrade.SAHIH, palette))
             assertEquals(palette.bookmark, gradeDotColor(ReaderGrade.HASAN, palette))
             assertEquals(palette.destructive, gradeDotColor(ReaderGrade.DAIF, palette))
             assertEquals(palette.textSecondary, gradeDotColor(ReaderGrade.OTHER, palette))

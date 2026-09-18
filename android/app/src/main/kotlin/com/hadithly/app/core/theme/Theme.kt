@@ -9,8 +9,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 /**
- * Design tokens adapted from the Sajda-style reader reference:
- * near-black canvas, elevated dark surfaces, emerald accent. Mirrors
+ * Design tokens: near-black canvas, elevated dark surfaces, neutral-white
+ * accent. Hierarchy comes from luminance, not hue; emerald survives only as
+ * a semantic color (brand mark, grade dots, success states). Mirrors
  * ios/Hadithly/Core/Theme/Theme.swift — keep the two in sync.
  */
 object ThemeColors {
@@ -21,12 +22,18 @@ object ThemeColors {
     val TextPrimary = Color(0xFFF2F2F2)
     val TextSecondary = Color(0xFF98989E)
 
-    val Accent = Color(0xFF10B981)
-    val AccentSoft = Color(0xFF10B981).copy(alpha = 0.18f)
+    val Accent = Color(0xFFFFFFFF)
+    val AccentSoft = Color(0xFFFFFFFF).copy(alpha = 0.15f)
+
+    /** Semantic-only emerald: the brand mark. Never used for chrome. */
+    val Brand = Color(0xFF10B981)
 
     val Bookmark = Color(0xFFF59E0B)
     val Favorite = Color(0xFFEC4899)
     val Destructive = Color(0xFFEF4444)
+
+    /** Semantic-only emerald: authenticity grade dots and success states. */
+    val GradeSahih = Color(0xFF34D399)
 }
 
 data class HadithlyColors(
@@ -37,9 +44,11 @@ data class HadithlyColors(
     val textSecondary: Color = ThemeColors.TextSecondary,
     val accent: Color = ThemeColors.Accent,
     val accentSoft: Color = ThemeColors.AccentSoft,
+    val brand: Color = ThemeColors.Brand,
     val bookmark: Color = ThemeColors.Bookmark,
     val favorite: Color = ThemeColors.Favorite,
     val destructive: Color = ThemeColors.Destructive,
+    val gradeSahih: Color = ThemeColors.GradeSahih,
     val divider: Color = ThemeColors.SurfaceElevated,
 )
 
