@@ -390,11 +390,7 @@ struct ReaderView: View {
                 hadiths: model.currentPageHadiths,
                 arabicFontSize: arabicFontSizeBinding.wrappedValue,
                 preferences: environment.preferences.preferences,
-                restoration: model.restoredPosition,
-                restorationGeneration: model.restorationGeneration,
-                landingHadithNumber: model.landingHadithNumber,
-                scrollRestore: model.scrollRestoreSnapshot,
-                scrollRestoreGeneration: model.scrollRestoreGeneration,
+                verticalLanding: model.verticalLanding,
                 currentPageIndex: model.pageIndex,
                 pageCount: model.pages.count + (model.hasNextPage && model.pageIndex == model.pages.count - 1 ? 1 : 0),
                 topContentInset: windowSafeAreaInsets.top + 12,
@@ -443,10 +439,6 @@ struct ReaderView: View {
                     arabicFontSize: arabicFontSizeBinding.wrappedValue,
                     preferences: environment.preferences.preferences,
                     palette: palette,
-                    // The swipe preview starts at the remembered offset for
-                    // this page (when one is cached), so the preview and the
-                    // landing show the identical position with no top-flash.
-                    initialSnapshot: model.pageScrollCache[index],
                     onShowPaywall: { showQuotaPaywall = true }
                 )
             } else {
@@ -950,14 +942,7 @@ struct ReaderPageView: View {
     let hadiths: [ReaderHadith]
     let arabicFontSize: Double
     let preferences: ReaderPreferences
-    let restoration: ReadingPosition?
-    let restorationGeneration: Int
-    let landingHadithNumber: String?
-    /// Round 5, fix 4b: transient per-page offset restore when navigating
-    /// back to one of the last two pages. Takes precedence over the
-    /// semantic restoration/landing target; nil starts at the top.
-    let scrollRestore: PageScrollSnapshot?
-    let scrollRestoreGeneration: Int
+    let verticalLanding: ReaderVerticalLandingRequest?
     let currentPageIndex: Int
     let pageCount: Int
     let topContentInset: CGFloat
@@ -973,22 +958,8 @@ struct ReaderPageView: View {
     /// passes this; neighbor slots stay silent.
     var onScrollFraction: ((Double) -> Void)? = nil
 
-    @State private var appliedRestorationKey: String?
+    @State private var appliedLandingToken: Int?
     @State private var chapterOpenings: Set<Int> = []
-    /// Round 8: the page index the view last scrolled to top for. The
-    /// center page keeps a stable identity across turns (no re-key), so a
-    /// first visit must scroll to top explicitly; revisits and R2 targets
-    /// are claimed by the restoration block before this is consulted.
-    @State private var topResetPage: Int?
-
-    /// A cached snapshot at zero contains no vertical position. Treating it
-    /// as a hadith restoration skips the actual page header on a first visit.
-    private var meaningfulScrollRestore: PageScrollSnapshot? {
-        guard let scrollRestore,
-              scrollRestore.rawPageOffset > 0 || scrollRestore.normalizedOffset > 0
-        else { return nil }
-        return scrollRestore
-    }
 
     /// The selected volume backing this page, for the volume-start header.
     private var selectedVolume: OutlineVolume? {
@@ -1111,6 +1082,7 @@ struct ReaderPageView: View {
                                         )
                                         hadithRow(hadith)
                                     }
+                                    .id("reader.chapter.\(hadith.internalId)")
                                     .padding(.top, 12)
                                 } else {
                                     hadithRow(hadith)
@@ -1156,22 +1128,36 @@ struct ReaderPageView: View {
                     onScrollFraction((raw * 200).rounded() / 200)
                 }
                 .onPreferenceChange(ReaderAnchorFramesKey.self) { frames in
-                    let targetId = meaningfulScrollRestore?.providerHadithId
-                        ?? restoration?.anchor.providerHadithId ?? landingHadithNumber
-                    let targetOffset = meaningfulScrollRestore?.normalizedOffset
-                        ?? restoration?.normalizedOffset ?? 0
-                    if let targetId,
-                       let target = hadiths.first(where: { $0.providerHadithId == targetId }),
-                       let frame = frames[target.internalId] {
-                        let key = "\(scrollRestoreGeneration):\(restorationGeneration):\(target.internalId):\(targetOffset):\(viewport.size.height)"
-                        if appliedRestorationKey != key {
-                            appliedRestorationKey = key
-                            let anchorY = ReaderScrollRestoration.anchorY(
-                                normalizedOffset: targetOffset,
-                                itemHeight: frame.height,
-                                viewportHeight: viewport.size.height
-                            )
-                            proxy.scrollTo(target.internalId, anchor: UnitPoint(x: 0.5, y: anchorY))
+                    let activePage = ReaderVerticalLandingPage(
+                        volumeId: model.selectedVolumeId ?? "",
+                        pageIndex: currentPageIndex
+                    )
+                    if let landing = verticalLanding,
+                       landing.page == activePage,
+                       appliedLandingToken != landing.id {
+                        switch landing.landing {
+                        case .header:
+                            appliedLandingToken = landing.id
+                            proxy.scrollTo("reader.page.top.\(currentPageIndex)", anchor: .top)
+                            DispatchQueue.main.async { model.acknowledgeVerticalLanding(landing) }
+                            return
+                        case .semantic(let providerHadithId, let normalizedOffset):
+                            guard let targetIndex = hadiths.firstIndex(where: { $0.providerHadithId == providerHadithId }),
+                                  let frame = frames[hadiths[targetIndex].internalId]
+                            else { return }
+                            let target = hadiths[targetIndex]
+                            appliedLandingToken = landing.id
+                            if normalizedOffset == 0, chapterOpenings.contains(targetIndex) {
+                                proxy.scrollTo("reader.chapter.\(target.internalId)", anchor: .top)
+                            } else {
+                                let anchorY = ReaderScrollRestoration.anchorY(
+                                    normalizedOffset: normalizedOffset,
+                                    itemHeight: frame.height,
+                                    viewportHeight: viewport.size.height
+                                )
+                                proxy.scrollTo(target.internalId, anchor: UnitPoint(x: 0.5, y: anchorY))
+                            }
+                            DispatchQueue.main.async { model.acknowledgeVerticalLanding(landing) }
                             return
                         }
                     }
@@ -1183,45 +1169,12 @@ struct ReaderPageView: View {
                         abs(($0.1.minY + $0.1.height / 2) - viewport.size.height / 2)
                         < abs(($1.1.minY + $1.1.height / 2) - viewport.size.height / 2)
                     }) ?? indexed.first else { return }
-                    // First visit to a page: scroll to the very top exactly
-                    // once — but ONLY when no restore/landing target exists
-                    // for this page at all (checked against the hadiths, not
-                    // the frames, so a revisit whose frames haven't landed
-                    // yet can never be yanked to top before its restore
-                    // claims it below). The stable view identity keeps the
-                    // old offset otherwise, which would show mid-content of
-                    // the new page.
-                    let restoreTargetId = meaningfulScrollRestore?.providerHadithId
-                        ?? restoration?.anchor.providerHadithId ?? landingHadithNumber
-                    let hasRestoreTarget = restoreTargetId.flatMap { id in
-                        hadiths.first(where: { $0.providerHadithId == id })
-                    } != nil
-                    if !hasRestoreTarget, topResetPage != currentPageIndex {
-                        topResetPage = currentPageIndex
-                        proxy.scrollTo("reader.page.top.\(currentPageIndex)", anchor: .top)
-                        return
-                    }
                     model.captureStableScroll(
                         hadiths: hadiths,
                         leadingIndex: leading.0,
                         rawPageOffset: max(0, -leading.1.minY),
                         normalizedOffset: max(0, -leading.1.minY) / max(1, leading.1.height)
                     )
-                }
-                .onChange(of: currentPageIndex) { _, _ in
-                    let targetId = meaningfulScrollRestore?.providerHadithId
-                        ?? restoration?.anchor.providerHadithId ?? landingHadithNumber
-                    let hasTargetOnPage = targetId.flatMap { id in
-                        hadiths.first(where: { $0.providerHadithId == id })
-                    } != nil
-                    guard ReaderPageLanding.shouldResetToHeader(
-                        hasTargetOnPage: hasTargetOnPage,
-                        hasCachedOffset: meaningfulScrollRestore != nil
-                    ) else { return }
-                    topResetPage = currentPageIndex
-                    DispatchQueue.main.async {
-                        proxy.scrollTo("reader.page.top.\(currentPageIndex)", anchor: .top)
-                    }
                 }
             }
         }
@@ -1231,10 +1184,6 @@ struct ReaderPageView: View {
         .onChange(of: hadiths) { _, updated in
             chapterOpenings = ReaderChapterBoundaries.openingIndices(in: updated)
         }
-        // A volume switch can keep the page index: force the top-reset path
-        // to re-arm so a stale offset from the previous volume never sticks.
-        // (Restoration/revisit targets still claim first in the handler.)
-        .onChange(of: model.selectedVolumeId) { _, _ in topResetPage = nil }
         .accessibilityIdentifier("reader.page")
     }
 }
@@ -1242,25 +1191,18 @@ struct ReaderPageView: View {
 /// A pre-rendered neighbor page for the drag strip (R6 round 3): the same
 /// hadith blocks and chapter lines as the current page, but passive — no
 /// restoration, no scroll capture, no pills, no scrolling of its own. The
-/// blocks stay actionable (context menu, source sheet) on real data. When
-/// the reader visited this page recently, the preview starts at the
-/// remembered offset so it matches the landing exactly.
+/// blocks stay actionable (context menu, source sheet) on real data. Previews
+/// always begin at their header; only the active page can apply a landing.
 private struct ReaderNeighborContent: View {
     let model: ReaderModel
     let hadiths: [ReaderHadith]
     let arabicFontSize: Double
     let preferences: ReaderPreferences
     let palette: ReaderPalette
-    /// Remembered offset for this page, when one is cached. Applied the
-    /// moment the preview lays out — before any gesture reveals it.
-    var initialSnapshot: PageScrollSnapshot? = nil
     let onShowPaywall: () -> Void
 
     @State private var chapterOpenings: Set<Int> = []
-    @State private var appliedPreviewKey: String?
 
-    /// One hadith row with scroll-anchor tracking, so the remembered
-    /// offset can target the same anchor the landing restores.
     private func neighborRow(_ hadith: ReaderHadith) -> some View {
         HadithBlock(
             model: model,
@@ -1274,24 +1216,10 @@ private struct ReaderNeighborContent: View {
             onShowPaywall: onShowPaywall
         )
         .id(hadith.internalId)
-        .background(GeometryReader { geometry in
-            let frame = geometry.frame(in: .named("reader.neighbor"))
-            Color.clear.preference(
-                key: ReaderAnchorFramesKey.self,
-                value: [
-                    hadith.internalId: ReaderAnchorFrame(
-                        minY: frame.minY,
-                        height: frame.height
-                    ),
-                ]
-            )
-        })
     }
 
     var body: some View {
-        GeometryReader { viewport in
-            ScrollViewReader { proxy in
-                ScrollView {
+        ScrollView {
                     VStack(spacing: 28) {
                         ForEach(Array(hadiths.enumerated()), id: \.element.internalId) { index, hadith in
                             if chapterOpenings.contains(index) {
@@ -1326,37 +1254,14 @@ private struct ReaderNeighborContent: View {
                     .padding(.horizontal, 22)
                     .padding(.top, 20)
                     .padding(.bottom, 80)
-                }
-                .scrollDisabled(true)
-                .scrollIndicators(.hidden)
-                .coordinateSpace(name: "reader.neighbor")
-                .onPreferenceChange(ReaderAnchorFramesKey.self) { frames in
-                    guard let snapshot = initialSnapshot,
-                          let target = hadiths.first(where: { $0.providerHadithId == snapshot.providerHadithId }),
-                          let frame = frames[target.internalId]
-                    else { return }
-                    let key = "\(target.internalId):\(snapshot.normalizedOffset):\(viewport.size.height)"
-                    guard appliedPreviewKey != key else { return }
-                    appliedPreviewKey = key
-                    let anchorY = ReaderScrollRestoration.anchorY(
-                        normalizedOffset: snapshot.normalizedOffset,
-                        itemHeight: frame.height,
-                        viewportHeight: viewport.size.height
-                    )
-                    proxy.scrollTo(target.internalId, anchor: UnitPoint(x: 0.5, y: anchorY))
-                }
-            }
         }
+        .scrollDisabled(true)
+        .scrollIndicators(.hidden)
         .onAppear {
             chapterOpenings = ReaderChapterBoundaries.openingIndices(in: hadiths)
-            appliedPreviewKey = nil
         }
         .onChange(of: hadiths) { _, updated in
             chapterOpenings = ReaderChapterBoundaries.openingIndices(in: updated)
-            appliedPreviewKey = nil
-        }
-        .onChange(of: initialSnapshot) { _, _ in
-            appliedPreviewKey = nil
         }
         .accessibilityIdentifier("reader.neighborPage")
     }

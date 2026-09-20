@@ -126,12 +126,22 @@ enum ReaderConfirmedTap {
     }
 }
 
-/// Decides whether a page may preserve an offset. A page with neither an R1/R2
-/// target nor a recently captured offset must begin at its actual header.
-enum ReaderPageLanding {
-    static func shouldResetToHeader(hasTargetOnPage: Bool, hasCachedOffset: Bool) -> Bool {
-        !hasTargetOnPage && !hasCachedOffset
-    }
+/// The model owns one vertical landing command for the active reader page.
+/// Manual navigation is always `.header`; R1/R2 is the only semantic exception.
+struct ReaderVerticalLandingPage: Equatable {
+    let volumeId: String
+    let pageIndex: Int
+}
+
+enum ReaderVerticalLanding: Equatable {
+    case header
+    case semantic(providerHadithId: String, normalizedOffset: Double)
+}
+
+struct ReaderVerticalLandingRequest: Equatable, Identifiable {
+    let id: Int
+    let page: ReaderVerticalLandingPage
+    let landing: ReaderVerticalLanding
 }
 
 // MARK: - 2. Arabic-only narrator line + volume/chapter display titles
@@ -464,44 +474,6 @@ enum ReaderProgressBars {
         guard let total = totalPages, total > 0 else { return nil }
         let intra = min(1, max(0, intraPageFraction))
         return min(1, max(0, (Double(max(0, pageIndex)) + intra) / Double(total)))
-    }
-}
-
-// MARK: - Round 5: per-page vertical scroll offsets
-
-/// A page's vertical scroll position, captured when the reader leaves the
-/// page so navigating back restores the exact offset instead of jumping to
-/// the top. Mirrors the R1/R2 anchor + normalized-offset shape, keyed by
-/// the page index the snapshot was taken on.
-struct PageScrollSnapshot: Equatable {
-    /// Provider hadith id of the leading visible hadith.
-    let providerHadithId: String
-    let rawPageOffset: Double
-    let normalizedOffset: Double
-}
-
-/// A bounded (2-entry, insertion-ordered) cache of per-page scroll offsets.
-/// Pure so the eviction order is unit-pinned; the model owns the storage.
-enum ReaderPageScrollCache {
-    /// How many recent pages keep their scroll offset.
-    static let maxEntries = 2
-
-    /// Stores `snapshot` for `page`, refreshing its recency and evicting
-    /// the oldest entries beyond `maxEntries`.
-    static func storing(
-        cache: [Int: PageScrollSnapshot],
-        order: [Int],
-        page: Int,
-        snapshot: PageScrollSnapshot
-    ) -> (cache: [Int: PageScrollSnapshot], order: [Int]) {
-        var cache = cache
-        var order = order.filter { $0 != page }
-        order.append(page)
-        cache[page] = snapshot
-        while order.count > maxEntries {
-            cache.removeValue(forKey: order.removeFirst())
-        }
-        return (cache, order)
     }
 }
 

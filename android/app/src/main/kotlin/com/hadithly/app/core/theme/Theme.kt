@@ -3,10 +3,17 @@ package com.hadithly.app.core.theme
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
+import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 
 /**
  * Design tokens: near-black canvas, elevated dark surfaces, neutral-white
@@ -119,25 +126,52 @@ object Spacing {
     val xxl = 32.dp
 }
 
-private val darkScheme = darkColorScheme(
-    primary = ThemeColors.Accent,
-    onPrimary = Color.Black,
-    background = ThemeColors.Background,
-    onBackground = ThemeColors.TextPrimary,
-    surface = ThemeColors.Surface,
-    onSurface = ThemeColors.TextPrimary,
-    surfaceVariant = ThemeColors.SurfaceElevated,
-    onSurfaceVariant = ThemeColors.TextSecondary,
-    error = ThemeColors.Destructive,
-)
+private fun appScheme(colors: HadithlyColors, dark: Boolean) = if (dark) {
+    darkColorScheme(
+        primary = colors.interactive, onPrimary = colors.onInteractive,
+        background = colors.background, onBackground = colors.textPrimary,
+        surface = colors.surface, onSurface = colors.textPrimary,
+        surfaceVariant = colors.surfaceElevated, onSurfaceVariant = colors.textSecondary,
+        error = colors.destructive,
+    )
+} else {
+    lightColorScheme(
+        primary = colors.interactive, onPrimary = colors.onInteractive,
+        background = colors.background, onBackground = colors.textPrimary,
+        surface = colors.surface, onSurface = colors.textPrimary,
+        surfaceVariant = colors.surfaceElevated, onSurfaceVariant = colors.textSecondary,
+        error = colors.destructive,
+    )
+}
 
 @Composable
-fun HadithlyTheme(content: @Composable () -> Unit) {
-    // The app is a dark, quiet book — dark scheme regardless of system setting.
-    isSystemInDarkTheme()
-    androidx.compose.runtime.CompositionLocalProvider(LocalHadithlyColors provides HadithlyColors()) {
+fun HadithlyTheme(
+    theme: com.hadithly.app.core.preferences.ReaderTheme = com.hadithly.app.core.preferences.ReaderTheme.SYSTEM,
+    content: @Composable () -> Unit,
+) {
+    val systemDark = isSystemInDarkTheme()
+    val colors = ReaderPalettes.resolved(theme, systemDark)
+    val dark = when (theme) {
+        com.hadithly.app.core.preferences.ReaderTheme.SYSTEM -> systemDark
+        com.hadithly.app.core.preferences.ReaderTheme.DARK -> true
+        com.hadithly.app.core.preferences.ReaderTheme.LIGHT,
+        com.hadithly.app.core.preferences.ReaderTheme.PAPER -> false
+    }
+    val view = LocalView.current
+    SideEffect {
+        val activity = generateSequence(view.context) { context ->
+            (context as? android.content.ContextWrapper)?.baseContext
+        }.filterIsInstance<ComponentActivity>().firstOrNull() ?: return@SideEffect
+        val barStyle = if (dark) {
+            SystemBarStyle.dark(colors.background.toArgb())
+        } else {
+            SystemBarStyle.light(colors.background.toArgb(), colors.background.toArgb())
+        }
+        activity.enableEdgeToEdge(statusBarStyle = barStyle, navigationBarStyle = barStyle)
+    }
+    androidx.compose.runtime.CompositionLocalProvider(LocalHadithlyColors provides colors) {
         MaterialTheme(
-            colorScheme = darkScheme,
+            colorScheme = appScheme(colors, dark),
             content = content,
         )
     }

@@ -83,15 +83,6 @@ fun LibraryScreen(onOpenCollection: (String, String) -> Unit, onOpenTarget: (com
             ) {
                 Icon(if (grid) Icons.AutoMirrored.Filled.ViewList else Icons.Filled.GridView, null, tint = colors.textPrimary)            }
         }
-        continueReadingEntries(progress).takeIf { it.isNotEmpty() }?.let { entries ->
-            SectionTitleRow("Continue reading", Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp))
-            ContinueReadingRail(
-                entries,
-                cardTagPrefix = "library.continueCard",
-            ) { entry ->
-                onOpenTarget(continueReadingTarget(entry))
-            }
-        }
         if (grid) {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
@@ -166,7 +157,11 @@ private fun ProgressSlot(summary: CollectionProgressSummary?) {
         else -> "Progress unavailable"
     }
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Box(Modifier.fillMaxWidth().height(3.dp).background(colors.surfaceElevated, androidx.compose.foundation.shape.RoundedCornerShape(99.dp)))
+        Box(Modifier.fillMaxWidth().height(3.dp).background(colors.surfaceElevated, androidx.compose.foundation.shape.RoundedCornerShape(99.dp))) {
+            val fraction = summary?.takeIf { it.state == "in_progress" && (it.totalHadiths ?: 0.0) > 0.0 }
+                ?.let { (it.readOrdinal ?: 0.0) / (it.totalHadiths ?: 1.0) }?.coerceIn(0.0, 1.0)
+            if (fraction != null) Box(Modifier.fillMaxWidth(fraction.toFloat()).height(3.dp).background(colors.accent, androidx.compose.foundation.shape.RoundedCornerShape(99.dp)))
+        }
         Text(label, fontSize = 11.sp, color = colors.textSecondary)
     }
 }

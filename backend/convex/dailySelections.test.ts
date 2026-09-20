@@ -194,4 +194,40 @@ describe("persisted daily selection", () => {
       translationLocale: "ur-PK",
     })).resolves.toMatchObject({ translation: null });
   });
+
+  test("widget payload uses exact N1 materialized text without generation or fallback", async () => {
+    const t = convexTest(schema, modules);
+    const hadithId = await t.run(async (ctx) => await ctx.db.insert("hadiths", {
+      provider: "sunnah_now", canonicalId: "sunnah_now:bukhari:81", providerHadithId: "81",
+      collectionSlug: "bukhari", collectionName: "Sahih al-Bukhari", arabicText: "نص",
+      englishText: "Provider English", referenceDisplay: "Sahih al-Bukhari · Hadith 81",
+      authenticity: {
+        kind: "collection_scope", normalizedGrade: "sahih", claimScope: "collection",
+        sourceLabel: "Documented Sahih collection", sourceName: "Sunnah.now",
+        sourceUrl: "https://sunnah.now/bukhari/about", verificationMethod: "manual_collection_mapping",
+      }, createdAt: 1_000,
+    }));
+    await t.run(async (ctx) => await ctx.db.insert("translations", {
+      hadithId, language: "ur", content: "پرانا کمیونٹی متن", source: "community",
+      sourceLabel: "Community", status: "live", isDefault: true, groundingUsed: false,
+      createdAt: 1_000, updatedAt: 1_000,
+    }));
+    await expect(t.action(api.actions.daily.getDailyWidgetPayload, {
+      timezone: "Asia/Almaty", translationLocale: "ur",
+    })).resolves.toBeNull();
+    await t.run(async (ctx) => await ctx.db.insert("translations", {
+      hadithId, language: "ur", content: "N1 محفوظ متن", source: "gemini_ai",
+      sourceLabel: "AI", aiModel: "fixture", status: "live", isDefault: true,
+      groundingUsed: false, createdAt: 1_001, updatedAt: 1_001,
+    }));
+    await expect(t.action(api.actions.daily.getDailyWidgetPayload, {
+      timezone: "Asia/Almaty", translationLocale: "ur",
+    })).resolves.toMatchObject({
+      collectionSlug: "bukhari", providerHadithId: "81", text: "N1 محفوظ متن",
+      locale: "ur", isAI: true, sourceScope: "Sahih collection scope · Sunnah.now",
+    });
+    await expect(t.action(api.actions.daily.getDailyWidgetPayload, {
+      timezone: "Asia/Almaty", translationLocale: "ur-PK",
+    })).resolves.toBeNull();
+  });
 });

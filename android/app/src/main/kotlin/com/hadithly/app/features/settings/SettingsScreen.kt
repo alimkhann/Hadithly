@@ -12,6 +12,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -633,8 +634,9 @@ private fun OfflineStorageDestination() {
                 color = colors.textSecondary,
             )
         }
-        for ((slug, name) in Collections.all) {
-            CardColumn {
+        CardColumn {
+            Text("Collections", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = colors.textSecondary)
+            Collections.all.forEachIndexed { index, (slug, name) ->
                 OfflineCollectionRow(
                     slug = slug,
                     name = name,
@@ -642,6 +644,9 @@ private fun OfflineStorageDestination() {
                     progressMap = progressMap,
                     onNotice = { actionNotice = it },
                 )
+                if (index < Collections.all.lastIndex) {
+                    HorizontalDivider(color = colors.surfaceElevated, thickness = 0.75.dp)
+                }
             }
         }
         CardColumn {
@@ -848,7 +853,6 @@ private fun NotificationDestination() {
     var status by remember { mutableStateOf<String?>(null) }
 
     fun persist(nextEnabled: Boolean, nextTime: String = time) {
-        app.settings.setDailyNotificationEnabled(nextEnabled)
         scope.launch {
             runCatching {
                 val current = app.preferences.preferences.value
@@ -861,6 +865,9 @@ private fun NotificationDestination() {
                         translationLocale = current.translationLocale,
                     ),
                 )
+            }.onSuccess {
+                app.settings.setDailyNotificationEnabled(nextEnabled)
+                app.settings.setDailyNotificationTime(nextTime)
             }.onFailure { status = it.message ?: "Could not save notification settings." }
         }
     }
@@ -936,7 +943,6 @@ private fun NotificationDestination() {
             confirmButton = {
                 TextButton(onClick = {
                     val next = "%02d:%02d".format(picker.hour, picker.minute)
-                    app.settings.setDailyNotificationTime(next)
                     persist(enabled, next)
                     showTimePicker = false
                 }) { Text("Done", color = colors.accent) }
@@ -1290,11 +1296,17 @@ private fun optionRow(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
-            .background(if (selected) colors.accentSoft else colors.surfaceElevated, RoundedCornerShape(10.dp))
-            .clickable { onClick() }
-            .padding(horizontal = 14.dp, vertical = 11.dp),
+            .selectable(selected = selected, onClick = onClick, role = androidx.compose.ui.semantics.Role.RadioButton)
+            .padding(horizontal = 4.dp, vertical = 2.dp),
     ) {
-        Text(label, fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
-        if (selected) Icon(Icons.Filled.Check, null, tint = colors.accent, modifier = Modifier.size(16.dp))
+        androidx.compose.material3.RadioButton(
+            selected = selected,
+            onClick = null,
+            colors = androidx.compose.material3.RadioButtonDefaults.colors(
+                selectedColor = colors.interactive,
+                unselectedColor = colors.textSecondary,
+            ),
+        )
+        Text(label, fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f).padding(start = 8.dp))
     }
 }

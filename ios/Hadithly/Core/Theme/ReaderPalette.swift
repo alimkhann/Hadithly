@@ -18,11 +18,11 @@ struct ReaderPalette: Equatable {
     let onInteractive: Color
 
     static let dark = ReaderPalette(
-        background: Theme.background,
-        surface: Theme.surface,
-        surfaceElevated: Theme.surfaceElevated,
-        textPrimary: Theme.textPrimary,
-        textSecondary: Theme.textSecondary,
+        background: Color(hex: "0D0D0D"),
+        surface: Color(hex: "1A1A1A"),
+        surfaceElevated: Color(hex: "2A2A2C"),
+        textPrimary: Color(hex: "F2F2F2"),
+        textSecondary: Color(hex: "98989E"),
         divider: Color(hex: "2A2A2C"),
         interactive: Color(hex: "FFFFFF"),
         interactiveSoft: Color(hex: "FFFFFF").opacity(0.15),

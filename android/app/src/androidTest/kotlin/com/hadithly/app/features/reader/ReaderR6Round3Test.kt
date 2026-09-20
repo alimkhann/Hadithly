@@ -122,6 +122,12 @@ class ReaderR6Round3Test {
             modifier = Modifier.fillMaxSize().testTag("pager"),
         ) { page ->
             Box(modifier = Modifier.fillMaxSize()) {
+                Text(
+                    if (page == 0 || page == 2) "Volume header" else "Volume corner",
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .testTag(if (page == 0 || page == 2) "reader.volumeHeader" else "reader.volumeCorner"),
+                )
                 LazyColumn(
                     modifier = Modifier.fillMaxSize().testTag("long-page-$page"),
                 ) {
@@ -215,6 +221,45 @@ class ReaderR6Round3Test {
         compose.onNodeWithTag("page-1").assertIsDisplayed()
         compose.onNodeWithTag("page-0").assertExists()
         compose.onNodeWithTag("page-2").assertExists()
+    }
+
+    @Test
+    fun p1VerticalLandingMatrixShowsHeaderIdentifiersAfterManualTurns() {
+        compose.setContent { pager() }
+
+        // The initial Library-like page is an ordinary page with its corner.
+        compose.onNodeWithTag("reader.volumeCorner").assertIsDisplayed()
+        // Scroll it before leaving; a later manual revisit must still expose
+        // its header identifier rather than retaining the old list position.
+        compose.onNodeWithTag("long-page-1").performTouchInput {
+            swipe(start = center, end = center.copy(y = top + 160), durationMillis = 300)
+        }
+        compose.onNodeWithTag("pager").performTouchInput {
+            swipe(start = centerRight, end = centerLeft, durationMillis = 250)
+        }
+        compose.waitForIdle()
+        compose.onNodeWithTag("reader.volumeHeader").assertIsDisplayed()
+        // Returning to the loaded page preserves its page-top identifier.
+        compose.onNodeWithTag("pager").performTouchInput {
+            swipe(start = centerLeft, end = centerRight, durationMillis = 250)
+        }
+        compose.waitForIdle()
+        compose.onNodeWithTag("reader.volumeCorner").assertIsDisplayed()
+        // The other boundary is also a volume-header landing.
+        compose.onNodeWithTag("pager").performTouchInput {
+            swipe(start = centerLeft, end = centerRight, durationMillis = 250)
+        }
+        compose.waitForIdle()
+        compose.onNodeWithTag("reader.volumeHeader").assertIsDisplayed()
+
+        // A semantic continuation is deliberately distinct from every
+        // manual turn: it names the saved hadith and offset, not a cache.
+        val continuation = ReaderVerticalLandingRequest(
+            token = 9,
+            page = ReaderVerticalLandingPage("2", 1),
+            landing = ReaderVerticalLanding.Semantic("57", 0.5),
+        )
+        assertEquals(ReaderVerticalLanding.Semantic("57", 0.5), continuation.landing)
     }
 
     @Test

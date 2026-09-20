@@ -55,11 +55,16 @@ struct CanonicalHadithLink: Equatable, Identifiable {
 @Observable
 final class LinkRouter {
     private(set) var pendingLink: CanonicalHadithLink?
+    private(set) var pendingContinueRequest: UUID?
 
     /// Handles an inbound URL. Returns whether it was a canonical link so
     /// debug surfaces can distinguish "ignored" from "queued".
     @discardableResult
     func handle(_ url: URL) -> Bool {
+        if url.scheme == "com.hadithly.app", url.host == "continue" {
+            pendingContinueRequest = UUID()
+            return true
+        }
         guard let link = CanonicalHadithLink.parse(url) else {
             return false
         }
@@ -71,6 +76,12 @@ final class LinkRouter {
         let link = pendingLink
         pendingLink = nil
         return link
+    }
+
+    func consumeContinueRequest() -> Bool {
+        guard pendingContinueRequest != nil else { return false }
+        pendingContinueRequest = nil
+        return true
     }
 
     /// Daily pushes carry the same canonical identity fields as Android. They

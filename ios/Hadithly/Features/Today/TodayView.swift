@@ -107,11 +107,18 @@ struct TodayView: View {
         .background(Theme.background)
         .navigationTitle("Today")
         .navigationBarTitleDisplayMode(.large)
-        .task(id: preferences.translationLocale) {
+        .task(id: "\(preferences.translationLocale)|\(preferences.arabicVisible)|\(preferences.translationVisible)") {
             library.refresh()
+            writeContinueWidget()
             ReaderPrefetch.warmEntry(convex: environment.convex,
                                      target: ReaderPrefetchTargets.entryTarget(progress: library.continueReading))
             await loadDailyHadith()
+        }
+        .onChange(of: library.progress) { _, _ in
+            writeContinueWidget()
+        }
+        .onChange(of: environment.widgetProgress.progressSummaries) { _, _ in
+            writeContinueWidget()
         }
         .refreshable { await loadDailyHadith() }
         .fullScreenCover(item: $openTarget) { target in
@@ -185,11 +192,12 @@ struct TodayView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     ForEach(Array(ReaderModels.collections.enumerated()), id: \.element.slug) { index, collection in
-                        Button { openTarget = ReaderOpenTarget(slug: collection.slug, name: collection.name) } label: {
+                        Button { openTarget = collectionTarget(slug: collection.slug, name: collection.name) } label: {
                             VStack(alignment: .leading, spacing: 8) {
                                 CollectionCover(position: index + 1).frame(width: 126, height: 164)
                                 Text("\(index + 1)").font(.caption.monospacedDigit()).foregroundStyle(Theme.textSecondary)
                                 Text(collection.name).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.textPrimary).multilineTextAlignment(.leading).lineLimit(2)
+                                homeProgress(for: collection.slug)
                             }
                             .frame(width: 142, alignment: .leading)
                         }
@@ -206,6 +214,22 @@ struct TodayView: View {
         (ReaderModels.collections.firstIndex(where: { $0.slug == slug }) ?? 0) + 1
     }
 
+    private func homeProgress(for slug: String) -> some View {
+        let summary = environment.widgetProgress.progressSummaries[slug]
+        let localOrdinal = Double(library.progress(for: slug)?.hadith?.hadithNumber ?? "")
+        let read = summary?.readOrdinal ?? localOrdinal
+        let total = summary?.totalHadiths
+        let fraction = (read != nil && total != nil && total! > 0) ? min(1, max(0, read! / total!)) : nil
+        return VStack(alignment: .leading, spacing: 4) {
+            GeometryReader { proxy in
+                Capsule().fill(Theme.surfaceElevated)
+                if let fraction { Capsule().fill(Theme.accent).frame(width: proxy.size.width * fraction) }
+            }.frame(height: 3)
+            Text(fraction == nil ? "Not started" : "Hadith \(Int(read!)) of \(Int(total!))")
+                .font(.caption2).foregroundStyle(Theme.textSecondary).lineLimit(1)
+        }
+    }
+
     private func sectionTitle(_ title: LocalizedStringKey) -> some View { Text(title).font(.headline.weight(.semibold)).foregroundStyle(Theme.textPrimary) }
     private func homeShell<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         content().frame(maxWidth: .infinity, alignment: .leading).padding(16).background(Theme.surface).clipShape(RoundedRectangle(cornerRadius: 16))
@@ -213,6 +237,16 @@ struct TodayView: View {
     private func openDaily(_ hadith: DailyHadith) {
         openTarget = ReaderOpenTarget(slug: hadith.collectionSlug, name: hadith.collectionName,
                                       volumeId: hadith.volumeId, hadithNumber: hadith.providerHadithId, source: .today)
+    }
+
+    private func collectionTarget(slug: String, name: String) -> ReaderOpenTarget {
+        guard let progress = library.progress.first(where: { $0.collectionSlug == slug }),
+              let hadith = progress.hadith,
+              let position = progress.position
+        else { return ReaderOpenTarget(slug: slug, name: name) }
+        return ReaderOpenTarget(slug: slug, name: name, volumeId: hadith.volumeId,
+                                hadithNumber: hadith.hadithNumber, source: .continueReading,
+                                position: position)
     }
     private func copy(_ hadith: DailyHadith) {
         var parts: [String] = []
@@ -231,12 +265,59 @@ struct TodayView: View {
                 with: ["timezone": TimeZone.current.identifier, "translationLocale": preferences.translationLocale]
             )
             dailyHadith = result
-            if let result { DailyHadithCache.save(result, locale: preferences.translationLocale, timezone: TimeZone.current.identifier) }
+            if let result {
+                DailyHadithCache.save(result, locale: preferences.translationLocale, timezone: TimeZone.current.identifier)
+            }
+            await writeDailyWidget(timezone: TimeZone.current.identifier, isOffline: false)
             loadFailed = false; isOffline = false
         } catch {
-            if let cached = DailyHadithCache.load(locale: preferences.translationLocale, timezone: TimeZone.current.identifier) { dailyHadith = cached; isOffline = true; loadFailed = false }
+            if let cached = DailyHadithCache.load(locale: preferences.translationLocale, timezone: TimeZone.current.identifier) {
+                dailyHadith = cached
+                _ = WidgetSnapshotStore.markDailyOffline(locale: preferences.translationLocale, timezone: TimeZone.current.identifier)
+                isOffline = true; loadFailed = false
+            }
             else { loadFailed = true }
         }
+    }
+
+    private func writeDailyWidget(timezone: String, isOffline: Bool) async {
+        do {
+            let payload: DailyWidgetPayload? = try await environment.convex.action(
+                "actions/daily:getDailyWidgetPayload",
+                with: ["timezone": timezone, "translationLocale": preferences.translationLocale, "arabicVisible": preferences.arabicVisible, "translationVisible": preferences.translationVisible]
+            )
+            WidgetSnapshotStore.saveDaily(payload?.snapshot(isOffline: isOffline))
+        } catch {
+            // The Today view has already loaded successfully. Preserve an
+            // exact-locale safe cache instead of deriving a widget body from
+            // its broader reader model.
+            _ = WidgetSnapshotStore.markDailyOffline(locale: preferences.translationLocale, timezone: timezone)
+        }
+    }
+
+    private func writeContinueWidget() {
+        guard let entry = library.continueReading, let hadith = entry.hadith else {
+            WidgetSnapshotStore.saveContinue(nil)
+            return
+        }
+        let visibleText = preferences.translationVisible ? hadith.englishText : nil
+        let fallbackText = preferences.arabicVisible ? hadith.arabicText : ""
+        let summary = environment.widgetProgress.progressSummaries[entry.collectionSlug]
+        let ordinal = Double(hadith.hadithNumber ?? "")
+        let total = summary?.totalHadiths
+        let fraction = ordinal.flatMap { read in total.map { max(0, min(1, read / $0)) } }
+        let progressLabel = (ordinal != nil && total != nil) ? "Hadith \(Int(ordinal!)) of \(Int(total!))" : "Resume reading"
+        WidgetSnapshotStore.saveContinue(WidgetContinueSnapshot(
+            reference: hadith.referenceDisplay,
+            arabicExcerpt: WidgetContinueSnapshot.boundedExcerpt(hadith.arabicText),
+            translationExcerpt: WidgetContinueSnapshot.boundedExcerpt(visibleText ?? fallbackText),
+            arabicVisible: preferences.arabicVisible,
+            translationVisible: preferences.translationVisible,
+            progressFraction: fraction,
+            progressLabel: progressLabel,
+            locale: preferences.uiLocale,
+            updatedAt: entry.updatedAt
+        ))
     }
 }
 

@@ -69,6 +69,7 @@ class ReaderViewModel(
         val chromeVisible: Boolean = true,
         val language: String = "en",
         val translations: Map<String, TranslationUiState> = emptyMap(),
+        val verticalLanding: ReaderVerticalLandingRequest? = null,
     )
 
     private val _state = MutableStateFlow(ReaderState(language = app.preferences.preferences.value.translationLocale))
@@ -77,6 +78,7 @@ class ReaderViewModel(
     private var pageJob: Job? = null
     private var translationJob: Job? = null
     private var translationGeneration = 0
+    private var nextVerticalLandingToken = 0
     private var readingWidthClass = ReadingWidthClass.COMPACT
     private var lastPositionUpdatedAt = 0.0
     private var lastCapturedAnchor: String? = null
@@ -87,13 +89,6 @@ class ReaderViewModel(
     var restoredPosition: ReadingPosition? = null
         private set
 
-    /**
-     * Bumped every time the model re-issues restoration (layout-preference
-     * changes re-anchor the semantic position). The page keys its applied
-     * restoration on this so a preference change re-scrolls exactly once.
-     */
-    var restorationGeneration: Int = 0
-        private set
     var landingHadithNumber: String? = null
         private set
 
@@ -116,6 +111,51 @@ class ReaderViewModel(
         val pages = _state.value.pages
         val index = _state.value.pageIndex
         return if (index in pages.indices) pages[index].items else emptyList()
+    }
+
+    private fun requestVerticalLanding(
+        landing: ReaderVerticalLanding,
+        volumeId: String,
+        pageIndex: Int,
+    ) {
+        nextVerticalLandingToken += 1
+        _state.update {
+            it.copy(
+                verticalLanding = ReaderVerticalLandingRequest(
+                    token = nextVerticalLandingToken,
+                    page = ReaderVerticalLandingPage(volumeId, pageIndex),
+                    landing = landing,
+                ),
+            )
+        }
+    }
+
+    private fun requestHeaderLanding(pageIndex: Int = _state.value.pageIndex) {
+        _state.value.selectedVolumeId?.let { requestVerticalLanding(ReaderVerticalLanding.Header, it, pageIndex) }
+    }
+
+    private fun requestEntryLanding(pageIndex: Int) {
+        val state = _state.value
+        val volumeId = state.selectedVolumeId ?: return
+        val items = state.pages.getOrNull(pageIndex)?.items.orEmpty()
+        val position = restoredPosition
+        when {
+            position != null && items.any { it.providerHadithId == position.anchor.providerHadithId } ->
+                requestVerticalLanding(
+                    ReaderVerticalLanding.Semantic(position.anchor.providerHadithId, position.normalizedOffset),
+                    volumeId,
+                    pageIndex,
+                )
+            landingHadithNumber != null && items.any { it.providerHadithId == landingHadithNumber } ->
+                requestVerticalLanding(ReaderVerticalLanding.Semantic(landingHadithNumber!!, 0.0), volumeId, pageIndex)
+            else -> requestHeaderLanding(pageIndex)
+        }
+    }
+
+    fun acknowledgeVerticalLanding(request: ReaderVerticalLandingRequest) {
+        _state.update { state ->
+            if (state.verticalLanding == request) state.copy(verticalLanding = null) else state
+        }
     }
 
     fun positionedHadith(): ReaderHadith? {
@@ -345,6 +385,7 @@ class ReaderViewModel(
                 pages = emptyList(),
                 pageIndex = 0,
                 translations = emptyMap(),
+                verticalLanding = null,
             )
         }
         cancelTranslationRun()
@@ -382,6 +423,7 @@ class ReaderViewModel(
                 pageIndex = 0,
                 isLoadingPage = true,
                 translations = emptyMap(),
+                verticalLanding = null,
             )
         }
         pageJob = viewModelScope.launch {
@@ -397,6 +439,7 @@ class ReaderViewModel(
                 _state.update {
                     it.copy(pages = pages, pageIndex = landing, phase = Phase.Reading)
                 }
+                requestHeaderLanding(landing)
                 scheduleTranslationsForCurrentPage()
                 cacheAdjacentVolumes()
                 saveCurrentProgress()
@@ -454,6 +497,7 @@ class ReaderViewModel(
                 pages = emptyList(),
                 pageIndex = 0,
                 translations = emptyMap(),
+                verticalLanding = null,
             )
         }
         cancelTranslationRun()
@@ -471,6 +515,7 @@ class ReaderViewModel(
                 pages = emptyList(),
                 pageIndex = 0,
                 translations = emptyMap(),
+                verticalLanding = null,
             )
         }
         loadPage(0, volumeId, hadithNumber)
@@ -514,9 +559,12 @@ class ReaderViewModel(
                     s.copy(pages = pages, phase = Phase.Reading)
                 }
                 if (jumpToHadithNumber != null) {
-                    _state.update { it.copy(pageIndex = maxOf(0, result.pageNumber - 1)) }
+                    val landingIndex = maxOf(0, result.pageNumber - 1)
+                    _state.update { it.copy(pageIndex = landingIndex) }
+                    requestEntryLanding(landingIndex)
                     shouldPrefetchNeighbor = true
                 } else if (_state.value.pageIndex == index) {
+                    if (_state.value.verticalLanding == null) requestHeaderLanding(index)
                     scheduleTranslationsForCurrentPage()
                     shouldPrefetchNeighbor = true
                 }
@@ -588,6 +636,7 @@ class ReaderViewModel(
         val s = _state.value
         if (index == s.pageIndex) return
         _state.update { it.copy(pageIndex = index) }
+        requestHeaderLanding(index)
         // A settled scroll (user swipe or pill/edge turn) lands focused:
         // the menu is closed by the screen observing the page index, and
         // the chrome collapses here with no haptic.
@@ -836,6 +885,7 @@ class ReaderViewModel(
         rawPageOffset: Double,
         normalizedOffset: Double,
     ) {
+        if (_state.value.verticalLanding != null) return
         val page = _state.value.pages.getOrNull(_state.value.pageIndex) ?: return
         val anchor = hadiths.getOrNull(leadingIndex) ?: return
         val clamped = normalizedOffset.coerceIn(0.0, 1.0)
@@ -878,7 +928,13 @@ class ReaderViewModel(
             layoutSignature = layout.signature,
             updatedAt = System.currentTimeMillis().toDouble(),
         )
-        restorationGeneration += 1
+        s.selectedVolumeId?.let { volumeId ->
+            requestVerticalLanding(
+                ReaderVerticalLanding.Semantic(anchor.providerHadithId, lastStableNormalizedOffset),
+                volumeId,
+                s.pageIndex,
+            )
+        }
     }
 
     private fun readingLayout(page: ReaderPageResult): ReadingLayout {

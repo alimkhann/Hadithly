@@ -213,6 +213,38 @@ final class ReaderR6AUITests: XCTestCase {
         XCTAssertTrue(header.isHittable)
     }
 
+    func testP1VerticalLandingMatrix() {
+        // A fresh Library-style open begins at the first volume header.
+        let app = launchFixture()
+        XCTAssertTrue(element("reader.volumeHeader", in: app).waitForExistence(timeout: timeout))
+
+        // Turn onto the next page, scroll its content, then revisit it. The
+        // manual revisit must expose the page corner again, never its old
+        // vertical offset.
+        app.buttons["reader.nextPage"].tap()
+        let corner = element("reader.volumeCorner", in: app)
+        XCTAssertTrue(corner.waitForExistence(timeout: timeout))
+        app.swipeUp()
+        app.buttons["reader.previousPage"].tap()
+        XCTAssertTrue(element("reader.volumeHeader", in: app).waitForExistence(timeout: timeout))
+        app.buttons["reader.nextPage"].tap()
+        XCTAssertTrue(corner.waitForExistence(timeout: timeout))
+
+        // The outward turn crosses into an initially unvisited volume and
+        // must land at its source-provided volume header once it loads.
+        app.buttons["reader.nextPage"].tap()
+        let volume3 = element("reader.volumeHeader", in: app)
+        XCTAssertTrue(volume3.waitForExistence(timeout: timeout))
+        XCTAssertTrue(volume3.isHittable)
+
+        // The fixture's explicit page target is the semantic-continuation
+        // analogue: it remains on Hadith 59 rather than being reset to top.
+        app.terminate()
+        let continuation = launchFixture(environment: ["R6A_INITIAL_PAGE": "1"])
+        XCTAssertTrue(continuation.buttons.matching(identifier: "reader.hadithLabel").firstMatch.waitForExistence(timeout: timeout))
+        XCTAssertTrue(element("reader.volumeCorner", in: continuation).isHittable)
+    }
+
     func testTapAcrossBoundaryBackwardLandsOnPreviousVolumeLastPage() {
         let app = launchFixture()
         XCTAssertTrue(element("reader.pagePills", in: app).waitForExistence(timeout: timeout))

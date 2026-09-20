@@ -206,70 +206,28 @@ fun bookmarkDialogRows(
 fun pagePillFillFraction(intraPageFraction: Float): Float =
     intraPageFraction.coerceIn(0f, 1f)
 
-/**
- * R6 reader fix round 5: per-page vertical scroll offsets. Leaving a page
- * stores its LazyColumn position; navigating back to one of the last
- * [maxEntries] pages restores the exact offset instead of the top. Backed
- * by an access-ordered map so the least-recently-visited page evicts first.
- * One instance per volume (page indices reset on volume switches and jumps).
- */
-class ReaderScrollOffsetCache(maxEntries: Int = 2) {
-    private val limit = maxEntries.coerceAtLeast(1)
-    private val map = object : LinkedHashMap<Int, Pair<Int, Int>>(limit + 1, 0.75f, true) {
-        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Int, Pair<Int, Int>>): Boolean =
-            size > limit
-    }
+/** The model's single source of truth for vertical reader landing. */
+data class ReaderVerticalLandingPage(
+    val volumeId: String,
+    val pageIndex: Int,
+)
 
-    /** Stores the LazyColumn position for [pageIndex]. */
-    fun save(pageIndex: Int, firstVisibleItem: Int, firstVisibleItemOffset: Int) {
-        map[pageIndex] = firstVisibleItem to firstVisibleItemOffset
-    }
-
-    /** The stored position for [pageIndex], or null when evicted/never saved. */
-    fun restore(pageIndex: Int): Pair<Int, Int>? = map[pageIndex]
-
-    /** How many pages are currently cached (never more than the limit). */
-    fun size(): Int = map.size
+sealed interface ReaderVerticalLanding {
+    data object Header : ReaderVerticalLanding
+    data class Semantic(
+        val providerHadithId: String,
+        val normalizedOffset: Double,
+    ) : ReaderVerticalLanding
 }
 
-/**
- * Every rendered reader page begins with one non-hadith header item. Keeping
- * this mapping explicit prevents a target hadith from being mistaken for the
- * top item, and lets a never-visited page land on its real header. A cached
- * (index, offset) pair counts as a real visited position only when it is not
- * the top: a zero/zero snapshot is what a fresh page writes before any user
- * scroll, so treating it as visited would keep a returning page from
- * re-anchoring at its header.
- */
-internal fun readerPageLandingItemIndex(
-    targetHadithIndex: Int?,
-    hasCachedOffset: Boolean,
-): Int? = when {
-    targetHadithIndex != null -> targetHadithIndex + 1
-    !hasCachedOffset -> 0
-    else -> null
-}
-
-/** A stored (index, offset) pair represents an actual visited scroll position. */
-internal fun isStoredScrollOffsetVisited(offset: Pair<Int, Int>): Boolean =
-    offset.first > 0 || offset.second > 0
+data class ReaderVerticalLandingRequest(
+    val token: Int,
+    val page: ReaderVerticalLandingPage,
+    val landing: ReaderVerticalLanding,
+)
 
 internal fun readerHadithIndex(itemIndex: Int, hadithCount: Int): Int? =
     (itemIndex - 1).takeIf { it in 0 until hadithCount }
-
-internal fun readerInitialOffset(targetHadithIndex: Int?, cachedOffset: Pair<Int, Int>?): Pair<Int, Int> =
-    targetHadithIndex?.let { (it + 1) to 0 } ?: cachedOffset ?: (0 to 0)
-
-/**
- * R6 reader fix round 6: preview-at-offset tick. The moment a swipe targets
- * a neighbor page (gesture start primes both neighbors; the pager's target
- * change primes the new target), its tick bumps and the page restores its
- * remembered vertical offset from the [ReaderScrollOffsetCache] — the
- * preview shows the same position as the landing page, never the top.
- * Pure so unit tests can pin the rule; negative indices are ignored.
- */
-fun nextPreviewRestoreTicks(ticks: Map<Int, Int>, pageIndex: Int): Map<Int, Int> =
-    if (pageIndex < 0) ticks else ticks + (pageIndex to ((ticks[pageIndex] ?: 0) + 1))
 
 /**
  * R6 reader fix round: the unfocused Volume pill (`Volume N`) fills with

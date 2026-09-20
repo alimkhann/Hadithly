@@ -673,51 +673,14 @@ final class ReaderR6Round3Tests: XCTestCase {
         XCTAssertEqual(recorder.events, [.menuToggle, .bookmarkAdd, .layersRejected])
     }
 
-    // MARK: - Round 5: per-page scroll offset cache
-
-    private func snapshot(id: String = "57") -> PageScrollSnapshot {
-        PageScrollSnapshot(providerHadithId: id, rawPageOffset: 120, normalizedOffset: 0.25)
-    }
-
-    func testScrollCacheKeepsTwoMostRecentPages() {
-        var cache: [Int: PageScrollSnapshot] = [:]
-        var order: [Int] = []
-        for page in [3, 4, 5] {
-            let stored = ReaderPageScrollCache.storing(
-                cache: cache, order: order, page: page, snapshot: snapshot(id: "\(page)")
-            )
-            cache = stored.cache
-            order = stored.order
-        }
-        XCTAssertEqual(order, [4, 5])
-        XCTAssertNil(cache[3])
-        XCTAssertEqual(cache[4]?.providerHadithId, "4")
-        XCTAssertEqual(cache[5]?.providerHadithId, "5")
-    }
-
-    func testScrollCacheRestoringRefreshesRecency() {
-        let first = ReaderPageScrollCache.storing(
-            cache: [:], order: [], page: 3, snapshot: snapshot(id: "3")
+    func testManualPageTurnsAlwaysResetToTheirHeader() {
+        let request = ReaderVerticalLandingRequest(
+            id: 1,
+            page: .init(volumeId: "2", pageIndex: 1),
+            landing: .header
         )
-        let second = ReaderPageScrollCache.storing(
-            cache: first.cache, order: first.order, page: 4, snapshot: snapshot(id: "4")
-        )
-        // Re-storing page 3 moves it to the back; page 5 then evicts 4.
-        let third = ReaderPageScrollCache.storing(
-            cache: second.cache, order: second.order, page: 3, snapshot: snapshot(id: "3b")
-        )
-        let fourth = ReaderPageScrollCache.storing(
-            cache: third.cache, order: third.order, page: 5, snapshot: snapshot(id: "5")
-        )
-        XCTAssertEqual(fourth.order, [3, 5])
-        XCTAssertEqual(fourth.cache[3]?.providerHadithId, "3b")
-        XCTAssertNil(fourth.cache[4])
-    }
-
-    func testFreshPageAlwaysResetsToItsHeader() {
-        XCTAssertTrue(ReaderPageLanding.shouldResetToHeader(hasTargetOnPage: false, hasCachedOffset: false))
-        XCTAssertFalse(ReaderPageLanding.shouldResetToHeader(hasTargetOnPage: true, hasCachedOffset: false))
-        XCTAssertFalse(ReaderPageLanding.shouldResetToHeader(hasTargetOnPage: false, hasCachedOffset: true))
+        XCTAssertEqual(request.page, .init(volumeId: "2", pageIndex: 1))
+        XCTAssertEqual(request.landing, .header)
     }
 
     // MARK: - Round 7: confirmed tap vs drag

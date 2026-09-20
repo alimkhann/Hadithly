@@ -41,6 +41,7 @@ import java.util.Locale
  */
 class MainActivity : ComponentActivity() {
     private var notificationTarget by mutableStateOf<ReaderOpenTarget?>(null)
+    private var continueWidgetRequest by mutableStateOf<Long?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,14 +52,19 @@ class MainActivity : ComponentActivity() {
         val pendingLink = intent?.data
             ?.let { CanonicalHadithLink.parse(it.scheme, it.host, it.path, it.encodedPath) }
         notificationTarget = notificationTarget(intent)
+        continueWidgetRequest = widgetContinueRequest(intent)
         val fixtureExtras = if (BuildConfig.DEBUG && intent?.getStringExtra("fixture") == "r4") intent.extras else null
         setContent {
-            HadithlyTheme {
-                if (fixtureExtras != null) {
+            if (fixtureExtras != null) {
+                HadithlyTheme {
                     com.hadithly.app.features.reader.ReaderTypographicFixture(extras = fixtureExtras)
-                } else {
-                    LocalizedRootApp(pendingLink = pendingLink, notificationTarget = notificationTarget)
                 }
+            } else {
+                LocalizedRootApp(
+                    pendingLink = pendingLink,
+                    notificationTarget = notificationTarget,
+                    continueWidgetRequest = continueWidgetRequest,
+                )
             }
         }
     }
@@ -67,6 +73,7 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         notificationTarget = notificationTarget(intent)
+        continueWidgetRequest = widgetContinueRequest(intent)
     }
 
     private fun notificationTarget(intent: android.content.Intent?): ReaderOpenTarget? {
@@ -88,6 +95,9 @@ class MainActivity : ComponentActivity() {
             source = ReaderTargetSource.NOTIFICATION,
         )
     }
+
+    private fun widgetContinueRequest(intent: android.content.Intent?): Long? =
+        if (intent?.getBooleanExtra("widgetContinue", false) == true) System.nanoTime() else null
 }
 
 /** Applies the synced UI locale to resources and directional Compose layout. */
@@ -95,6 +105,7 @@ class MainActivity : ComponentActivity() {
 private fun LocalizedRootApp(
     pendingLink: CanonicalHadithLink?,
     notificationTarget: ReaderOpenTarget?,
+    continueWidgetRequest: Long?,
 ) {
     val baseContext = LocalContext.current
     val app = baseContext.applicationContext as HadithlyApplication
@@ -119,7 +130,13 @@ private fun LocalizedRootApp(
         LocalResources provides localizedResources,
         androidx.compose.ui.platform.LocalLayoutDirection provides layoutDirection,
     ) {
-        RootApp(pendingLink = pendingLink, notificationTarget = notificationTarget)
+        HadithlyTheme(theme = preferences.theme) {
+            RootApp(
+                pendingLink = pendingLink,
+                notificationTarget = notificationTarget,
+                continueWidgetRequest = continueWidgetRequest,
+            )
+        }
     }
 }
 
@@ -127,6 +144,7 @@ private fun LocalizedRootApp(
 fun RootApp(
     pendingLink: CanonicalHadithLink? = null,
     notificationTarget: ReaderOpenTarget? = null,
+    continueWidgetRequest: Long? = null,
 ) {
     val app = LocalContext.current.applicationContext as HadithlyApplication
     val onboardingCompleted by app.settings.onboardingCompleted.collectAsState()
@@ -141,6 +159,7 @@ fun RootApp(
             onDismissSignIn = { showSignIn = false },
             pendingLink = pendingLink,
             notificationTarget = notificationTarget,
+            continueWidgetRequest = continueWidgetRequest,
         )
     } else {
         OnboardingFlow(

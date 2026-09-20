@@ -479,28 +479,6 @@ private fun ReadingView(
         label = "readerChromeScale",
     )
 
-    // Round 5: vertical scroll offsets, 2 entries per volume. Page indices
-    // reset on volume switches and jumps, so each volume gets its own cache.
-    val volumeScrollCaches = remember { mutableMapOf<String, ReaderScrollOffsetCache>() }
-    val scrollCache = volumeScrollCaches.getOrPut(state.selectedVolumeId ?: "") {
-        ReaderScrollOffsetCache()
-    }
-
-    // Round 6, preview-at-offset: per-page restore ticks. A swipe primes
-    // both neighbors at gesture start (whichever direction it goes) and the
-    // pager's target change primes the new target, so the preview restores
-    // the remembered offset instantly — identical to the landing position.
-    var previewRestoreTicks by remember { mutableStateOf<Map<Int, Int>>(emptyMap()) }
-    fun primePreviewRestore(pageIndex: Int) {
-        previewRestoreTicks = nextPreviewRestoreTicks(previewRestoreTicks, pageIndex)
-    }
-    LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.currentPage }
-            .distinctUntilChanged()
-            .drop(1)
-            .collect { target -> primePreviewRestore(target) }
-    }
-
     fun turnPage(turn: ReaderPageTurn): Boolean {
         val destination = pagingPolicy.destination(
             pagerState.currentPage,
@@ -589,13 +567,10 @@ private fun ReadingView(
             policy = pagingPolicy,
             onOutwardEdgeTurn = ::turnPage,
             // A user horizontal drag collapses to focused immediately (no
-            // haptic) and closes the menu; it also primes both neighbors'
-            // preview offsets. Programmatic turns settle through
+            // haptic) and closes the menu. Programmatic turns settle through
             // onPageSettled, which collapses there.
             onUserDragStart = {
                 collapseToFocusedAndCloseMenu()
-                primePreviewRestore(pagerState.currentPage - 1)
-                primePreviewRestore(pagerState.currentPage + 1)
             },
             modifier = Modifier.fillMaxSize(),
         ) { pageIndex ->
@@ -603,11 +578,8 @@ private fun ReadingView(
                 // Stable per-page identity: volume plus the backend pageKey
                 // when loaded, the index otherwise. The key never involves
                 // the settled pageIndex, so a settle never re-creates the
-                // current page composition — scroll position is driven
-                // explicitly instead (top for first visits via the cache
-                // miss default, the cached offset for revisits, the
-                // preview tick for neighbors, R1/R2 restoration for
-                // landings). The pager's neighbor compositions
+                // current page composition. The model's one landing command
+                // is the only vertical-scroll authority. The pager's neighbor compositions
                 // (beyondViewportPageCount) then survive list appends and the
                 // outgoing page never drops mid-gesture (no flicker); a
                 // settle-or-cancel just reuses the kept composition.
@@ -637,12 +609,8 @@ private fun ReadingView(
                         pagingPolicy = pagingPolicy,
                         pageIndex = pageIndex,
                         pillState = pagePillState,
-                        restoration = viewModel.restoredPosition,
-                        restorationGeneration = viewModel.restorationGeneration,
-                        landingHadithNumber = viewModel.landingHadithNumber,
+                        verticalLanding = state.verticalLanding,
                         isSentinel = pageIndex >= pages.size,
-                        scrollCache = scrollCache,
-                        previewRestoreGeneration = previewRestoreTicks[pageIndex] ?: 0,
                         // Round 7: the inline corner label rides the chrome
                         // fade+scale through graphicsLayer — always composed,
                         // so the page layout never moves.
@@ -1119,12 +1087,8 @@ private fun ReaderPage(
     pagingPolicy: ReaderPagingPolicy,
     pageIndex: Int,
     pillState: ReaderPagePills.State,
-    restoration: ReadingPosition?,
-    restorationGeneration: Int,
-    landingHadithNumber: String?,
+    verticalLanding: ReaderVerticalLandingRequest?,
     isSentinel: Boolean,
-    scrollCache: ReaderScrollOffsetCache? = null,
-    previewRestoreGeneration: Int = 0,
     // Round 7: the animated chrome fade+scale driven in ReadingView. The
     // inline corner label rides these through graphicsLayer — always
     // composed, so page layout never moves.
@@ -1143,15 +1107,10 @@ private fun ReaderPage(
     var noteTarget by remember { mutableStateOf<ReaderHadith?>(null) }
     var submissionTarget by remember { mutableStateOf<Pair<ReaderHadith, ReaderTranslation?>?>(null) }
     var reportTarget by remember { mutableStateOf<Pair<ReaderHadith, ReaderTranslation>?>(null) }
-    val targetId = restoration?.anchor?.providerHadithId ?: landingHadithNumber
-    val targetHadithIndex = targetId?.let { id -> hadiths.indexOfFirst { it.providerHadithId == id }.takeIf { it >= 0 } }
-    val initialOffset = remember(pageIndex, scrollCache) {
-        readerInitialOffset(targetHadithIndex, scrollCache?.restore(pageIndex))
+    val landing = verticalLanding?.takeIf {
+        it.page == ReaderVerticalLandingPage(state.selectedVolumeId.orEmpty(), pageIndex)
     }
-    val listState = rememberLazyListState(
-        initialFirstVisibleItemIndex = initialOffset.first,
-        initialFirstVisibleItemScrollOffset = initialOffset.second,
-    )
+    val listState = rememberLazyListState()
     val chapterOpenings = remember(hadiths) { ReaderChapterBoundaries.openingIndices(hadiths) }
     // R6A: the selected volume's outline chapters feed the quiet chapter
     // header's optional Arabic second line; the cumulative counts feed the
@@ -1224,35 +1183,29 @@ private fun ReaderPage(
         }
     }
 
-    // Round 5: leaving a page stores its LazyColumn offset in the
-    // 2-entry per-volume cache (continuous save plus a dispose save so an
-    // eviction mid-transition never loses the position). R1/R2
-    // save/restore still runs on settle.
-    LaunchedEffect(listState, pageIndex, scrollCache) {
-        snapshotFlow {
-            listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset
+    // This is the only vertical-scroll writer. A command waits through a
+    // sentinel/unloaded page, then applies once the matching list exists.
+    LaunchedEffect(landing?.token, hadiths.firstOrNull()?._id, pageIndex) {
+        val request = landing ?: return@LaunchedEffect
+        if (hadiths.isEmpty()) return@LaunchedEffect
+        when (val destination = request.landing) {
+            ReaderVerticalLanding.Header -> listState.scrollToItem(0, 0)
+            is ReaderVerticalLanding.Semantic -> {
+                val itemIndex = hadiths.indexOfFirst {
+                    it.providerHadithId == destination.providerHadithId
+                }.takeIf { it >= 0 }?.plus(1) ?: return@LaunchedEffect
+                listState.scrollToItem(itemIndex)
+                if (destination.normalizedOffset > 0.0) {
+                    withFrameNanos { }
+                    val size = listState.layoutInfo.visibleItemsInfo
+                        .firstOrNull { it.index == itemIndex }
+                        ?.size
+                        ?: return@LaunchedEffect
+                    listState.scrollToItem(itemIndex, (size * destination.normalizedOffset).roundToInt())
+                }
+            }
         }
-            .distinctUntilChanged()
-            .collect { (index, offset) -> scrollCache?.save(pageIndex, index, offset) }
-    }
-    DisposableEffect(listState, pageIndex, scrollCache) {
-        onDispose {
-            scrollCache?.save(
-                pageIndex,
-                listState.firstVisibleItemIndex,
-                listState.firstVisibleItemScrollOffset,
-            )
-        }
-    }
-
-    // Round 6, preview-at-offset: the moment a swipe targets this page its
-    // tick bumps and the remembered offset restores instantly, so the
-    // preview shows the same position as the landing page (no top-flash).
-    // Unvisited pages have no cache entry and stay at the top.
-    LaunchedEffect(previewRestoreGeneration) {
-        if (previewRestoreGeneration == 0) return@LaunchedEffect
-        val (index, offset) = scrollCache?.restore(pageIndex) ?: return@LaunchedEffect
-        listState.scrollToItem(index, offset)
+        viewModel.acknowledgeVerticalLanding(request)
     }
 
     // Intra-page scroll fraction for the dynamic page bars: leading item
@@ -1271,18 +1224,6 @@ private fun ReaderPage(
             }
         }.distinctUntilChanged { a, b -> abs(a - b) < 0.005f }
             .collect { onPageScrollFraction(pageIndex, it) }
-    }
-
-    LaunchedEffect(restorationGeneration, targetId, hadiths.firstOrNull()?._id, pageIndex) {
-        val itemIndex = targetHadithIndex?.plus(1) ?: return@LaunchedEffect
-        val fraction = restoration?.normalizedOffset ?: 0.0
-        if (listState.firstVisibleItemIndex != itemIndex || restorationGeneration > 0) {
-            listState.scrollToItem(itemIndex)
-        }
-        if (fraction <= 0.0) return@LaunchedEffect
-        withFrameNanos { }
-        val size = listState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == itemIndex }?.size ?: return@LaunchedEffect
-        listState.scrollToItem(itemIndex, (size * fraction).roundToInt())
     }
 
     LaunchedEffect(listState, hadiths, state.pageIndex == pageIndex) {

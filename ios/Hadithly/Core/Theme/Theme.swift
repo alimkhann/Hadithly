@@ -1,8 +1,20 @@
 import SwiftUI
+import UIKit
 
 /// Design tokens: near-black canvas, elevated dark surfaces, neutral-white
 /// accent, serif Arabic. Hierarchy comes from luminance, not hue.
 enum Theme {
+    /// The root observes this preference and recreates its view hierarchy on a
+    /// change. Resolving here makes the existing shared tokens app-wide rather
+    /// than leaving Light, Paper, and System as reader-only previews.
+    private static var palette: ReaderPalette {
+        let stored = UserDefaults.standard.string(forKey: PreferencesStore.storeKey)
+        let theme = PreferencesStore.migrate(storedJSON: stored, legacyLanguage: nil).preferences.theme
+        return ReaderPalette.resolved(
+            theme,
+            systemDark: UITraitCollection.current.userInterfaceStyle != .light
+        )
+    }
     /// The app's vertical rhythm. Auth screens and onboarding standardize on
     /// these steps so pages share one consistent spacing scale.
     enum Spacing {
@@ -15,19 +27,19 @@ enum Theme {
     }
 
     // Canvas & surfaces
-    static let background = Color(hex: "0D0D0D")
-    static let surface = Color(hex: "1A1A1A")
-    static let surfaceElevated = Color(hex: "2A2A2C")
+    static var background: Color { palette.background }
+    static var surface: Color { palette.surface }
+    static var surfaceElevated: Color { palette.surfaceElevated }
 
     // Text
-    static let textPrimary = Color(hex: "F2F2F2")
-    static let textSecondary = Color(hex: "98989E")
+    static var textPrimary: Color { palette.textPrimary }
+    static var textSecondary: Color { palette.textSecondary }
 
     // Accent: neutral white. Hierarchy comes from luminance, not hue
     // (achromatic system); emerald survives only as a semantic color for
     // the brand mark, authenticity grade dots, and success states.
-    static let accent = Color(hex: "FFFFFF")
-    static let accentSoft = Color(hex: "FFFFFF").opacity(0.15)
+    static var accent: Color { palette.interactive }
+    static var accentSoft: Color { palette.interactiveSoft }
 
     /// Semantic-only emerald: the brand mark. Never used for chrome.
     static let brand = Color(hex: "10B981")

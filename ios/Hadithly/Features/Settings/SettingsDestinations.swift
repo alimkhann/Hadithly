@@ -9,7 +9,7 @@ import SwiftUI
 // Monochrome: interactive elements resolve to white; semantic colors
 // (red destructive, amber bookmark, pink favorite, emerald grade dots and
 // success) keep their meaning. No other hue is used for chrome.
-private let settingsTint = Color.white
+private var settingsTint: Color { Theme.accent }
 
 /// Subscription fields decoded from the identity-scoped `users:getCurrentUser`
 /// row. Unknown row fields are ignored by synthesis.
@@ -126,6 +126,7 @@ private func settingsCheckRow(
         }
     }
     .buttonStyle(.plain)
+    .accessibilityAddTraits(selected ? .isSelected : [])
 }
 
 private struct SettingsToggleRow: View {
@@ -934,6 +935,7 @@ struct NotificationsView: View {
     }
 
     private func setEnabled(_ newValue: Bool) async {
+        let previous = enabled
         isRegistering = true
         defer { isRegistering = false }
         if newValue {
@@ -947,29 +949,44 @@ struct NotificationsView: View {
         } else {
             statusLine = nil
         }
+        guard await savePreferences(enabled: newValue) else {
+            enabled = previous
+            return
+        }
         enabled = newValue
-        await savePreferences(enabled: newValue)
     }
 
     private func setDailyTime(_ date: Date) {
+        let previous = dailyTime
         dailyTime = Self.string(from: date)
-        Task { await savePreferences(enabled: enabled) }
+        Task {
+            guard await savePreferences(enabled: enabled) else {
+                dailyTime = previous
+                return
+            }
+        }
     }
 
-    private func savePreferences(enabled: Bool) async {
+    private func savePreferences(enabled: Bool) async -> Bool {
         let tzOffsetMinutes = Double(-TimeZone.current.secondsFromGMT() / 60)
         let prefs = environment.preferences.preferences
-        try? await environment.convex.mutation(
-            "library:setDailyNotification",
-            with: [
+        do {
+            try await environment.convex.mutation(
+                "library:setDailyNotification",
+                with: [
                 "enabled": enabled as ConvexEncodable?,
                 "dailyTime": dailyTime as ConvexEncodable?,
                 "timezone": TimeZone.current.identifier as ConvexEncodable?,
                 "uiLocale": prefs.uiLocale as ConvexEncodable?,
                 "translationLocale": prefs.translationLocale as ConvexEncodable?,
                 "tzOffsetMinutes": tzOffsetMinutes as ConvexEncodable?,
-            ]
-        )
+                ]
+            )
+            return true
+        } catch {
+            statusLine = "Could not save notification settings. Please try again."
+            return false
+        }
     }
 
     private var pushStateLine: String? {

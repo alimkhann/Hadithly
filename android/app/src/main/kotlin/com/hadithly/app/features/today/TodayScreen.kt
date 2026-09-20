@@ -59,6 +59,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hadithly.app.core.data.Collections
 import com.hadithly.app.core.data.DailyHadith
 import com.hadithly.app.core.data.HadithRef
@@ -75,8 +76,11 @@ import com.hadithly.app.features.main.rememberApp
 import com.hadithly.app.core.links.CanonicalHadithUrl
 import com.hadithly.app.features.reader.ReaderShare
 import com.hadithly.app.features.library.CollectionCover
+import com.hadithly.app.features.library.LibraryViewModel
 import com.hadithly.app.features.reader.ReaderGrade
 import com.hadithly.app.features.reader.gradeDotColor
+import com.hadithly.app.core.widgets.WidgetSnapshotStore
+import com.hadithly.app.features.widgets.refreshDailyWidgets
 import com.clerk.api.Clerk
 import java.time.ZoneId
 import java.time.LocalDate
@@ -100,6 +104,8 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
     val homeColors = LocalHadithlyColors.current
     val preferences by app.preferences.preferences.collectAsStateWithLifecycle()
     val progress by app.library.progress.collectAsStateWithLifecycle()
+    val libraryModel: LibraryViewModel = viewModel()
+    val summaries by libraryModel.summaries.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val readerColors = ReaderPalettes.resolved(preferences.theme, androidx.compose.foundation.isSystemInDarkTheme())
     var daily by remember { mutableStateOf<DailyHadith?>(null) }
@@ -108,7 +114,7 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
     var offline by remember { mutableStateOf(false) }
     var reloadKey by remember { mutableStateOf(0) }
 
-    LaunchedEffect(reloadKey, preferences.translationLocale) {
+    LaunchedEffect(reloadKey, preferences.translationLocale, preferences.arabicVisible, preferences.translationVisible) {
         val dailyCacheKey = "$DAILY_CACHE_KEY:${LocalDate.now(ZoneId.systemDefault())}:${ZoneId.systemDefault().id}:${preferences.translationLocale}"
         loading = daily == null
         runCatching { app.repository.getDailyHadith(preferences.translationLocale) }
@@ -121,8 +127,19 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
             .onFailure {
                 val cached = context.getSharedPreferences("hadithly", 0).getString(dailyCacheKey, null)
                     ?.let { encoded -> runCatching { Json.decodeFromString(DailyHadith.serializer(), encoded) }.getOrNull() }
-                if (cached != null) { daily = cached; offline = true; failed = false } else failed = true
+                if (cached != null) {
+                    daily = cached
+                    WidgetSnapshotStore(context).markDailyOffline(preferences.translationLocale, ZoneId.systemDefault().id)
+                    app.appScope.launch { refreshDailyWidgets(context) }
+                    offline = true; failed = false
+                } else failed = true
             }
+        if (!offline && !failed) {
+            WidgetSnapshotStore(context).saveDaily(
+                runCatching { app.repository.getDailyWidgetPayload(preferences.translationLocale, preferences.arabicVisible, preferences.translationVisible) }.getOrNull(),
+            )
+            app.appScope.launch { refreshDailyWidgets(context) }
+        }
         loading = false
     }
 
@@ -171,10 +188,23 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
                     CollectionCover(index + 1, Modifier.width(126.dp).height(164.dp))
                     Text((index + 1).toString(), fontSize = 12.sp, color = homeColors.textSecondary)
                     Text(name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = homeColors.textPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    HomeCollectionProgress(summaries[slug])
                 }
             }
         }
         Spacer(Modifier.height(24.dp))
+    }
+}
+
+@Composable private fun HomeCollectionProgress(summary: com.hadithly.app.core.data.CollectionProgressSummary?) {
+    val colors = LocalHadithlyColors.current
+    val fraction = summary?.takeIf { it.state == "in_progress" && (it.totalHadiths ?: 0.0) > 0.0 }
+        ?.let { ((it.readOrdinal ?: 0.0) / (it.totalHadiths ?: 1.0)).coerceIn(0.0, 1.0) }
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Box(Modifier.fillMaxWidth().height(3.dp).background(colors.surfaceElevated, RoundedCornerShape(99.dp))) {
+            if (fraction != null) Box(Modifier.fillMaxWidth(fraction.toFloat()).height(3.dp).background(colors.accent, RoundedCornerShape(99.dp)))
+        }
+        Text(if (summary?.state == "in_progress") "Hadith ${summary.readOrdinal?.toInt()} of ${summary.totalHadiths?.toInt()}" else "Not started", fontSize = 11.sp, color = colors.textSecondary, maxLines = 1)
     }
 }
 

@@ -6,6 +6,7 @@ import com.hadithly.app.core.data.Collections
 import com.hadithly.app.core.data.ConvexRepository
 import com.hadithly.app.core.data.GuestDataStore
 import com.hadithly.app.core.data.UserLibraryModel
+import com.hadithly.app.core.data.CollectionProgressSummary
 import com.hadithly.app.core.offline.OfflineStore
 import com.hadithly.app.core.data.SavedSafetyPreferences
 import com.hadithly.app.core.session.SessionManager
@@ -14,11 +15,15 @@ import com.hadithly.app.core.settings.AppSettings
 import com.hadithly.app.core.push.DevicePushProfile
 import com.hadithly.app.core.push.PushNotificationManager
 import com.hadithly.app.core.purchases.PurchaseManager
+import com.hadithly.app.core.widgets.WidgetSnapshotStore
+import com.hadithly.app.features.widgets.refreshContinueWidgets
+import com.hadithly.app.features.widgets.refreshDailyWidgets
 import com.google.firebase.FirebaseApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collect
 import com.hadithly.app.core.preferences.toWireMap
 
 /**
@@ -49,6 +54,7 @@ class HadithlyApplication : Application() {
         private set
     lateinit var offline: OfflineStore
         private set
+    private var widgetProgressSummaries: Map<String, CollectionProgressSummary> = emptyMap()
 
     override fun onCreate() {
         super.onCreate()
@@ -73,6 +79,39 @@ class HadithlyApplication : Application() {
             scope = appScope,
             isSignedIn = { Clerk.sessionsFlow.value.isNotEmpty() },
         )
+        // W2: widgets receive a bounded display snapshot only. The private
+        // R1 position stays in the library and is resolved after a generic tap.
+        appScope.launch {
+            library.progress.collect { rows ->
+                val current = preferences.preferences.value
+                val entry = rows.filter { it.hadith != null }.maxByOrNull { it.updatedAt }
+                val summary = entry?.let { widgetProgressSummaries[it.collectionSlug] }
+                val ordinal = entry?.hadith?.hadithNumber?.toDoubleOrNull()
+                val total = summary?.totalHadiths
+                WidgetSnapshotStore(this@HadithlyApplication).saveContinue(
+                    entry,
+                    locale = current.uiLocale,
+                    translationVisible = current.translationVisible,
+                    arabicVisible = current.arabicVisible,
+                    progressFraction = if (ordinal != null && total != null && total > 0) (ordinal / total).coerceIn(0.0, 1.0) else null,
+                    progressLabel = if (ordinal != null && total != null) "Hadith ${ordinal.toInt()} of ${total.toInt()}" else "Resume reading",
+                )
+                refreshContinueWidgets(this@HadithlyApplication)
+            }
+        }
+        appScope.launch(Dispatchers.IO) {
+            repository.subscribe<List<CollectionProgressSummary>>("library:listCollectionProgressSummaries").collect { summaries ->
+                widgetProgressSummaries = summaries.associateBy { it.collectionSlug }
+                val current = preferences.preferences.value
+                val entry = library.continueReading
+                val ordinal = entry?.hadith?.hadithNumber?.toDoubleOrNull()
+                val total = entry?.let { widgetProgressSummaries[it.collectionSlug]?.totalHadiths }
+                WidgetSnapshotStore(this@HadithlyApplication).saveContinue(entry, current.uiLocale, current.translationVisible, current.arabicVisible,
+                    if (ordinal != null && total != null && total > 0) (ordinal / total).coerceIn(0.0, 1.0) else null,
+                    if (ordinal != null && total != null) "Hadith ${ordinal.toInt()} of ${total.toInt()}" else "Resume reading")
+                refreshContinueWidgets(this@HadithlyApplication)
+            }
+        }
         push = PushNotificationManager(
             context = this,
             repository = repository,
@@ -112,6 +151,24 @@ class HadithlyApplication : Application() {
         // Explicit preference changes sync to Convex while signed in; while
         // signed out they stay device-local and merge on the next sign-in.
         preferences.onPreferencesChanged = { updated ->
+            WidgetSnapshotStore(this).saveContinue(
+                library.continueReading,
+                locale = updated.uiLocale,
+                translationVisible = updated.translationVisible,
+                arabicVisible = updated.arabicVisible,
+            )
+            appScope.launch { refreshContinueWidgets(this@HadithlyApplication) }
+            appScope.launch(Dispatchers.IO) {
+                val payload = runCatching {
+                    repository.getDailyWidgetPayload(
+                        updated.translationLocale,
+                        updated.arabicVisible,
+                        updated.translationVisible,
+                    )
+                }.getOrNull()
+                WidgetSnapshotStore(this@HadithlyApplication).saveDaily(payload)
+                refreshDailyWidgets(this@HadithlyApplication)
+            }
             if (isSignedIn()) {
                 appScope.launch {
                     runCatching { repository.updateReaderPreferences(updated.toWireMap()) }

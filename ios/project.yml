@@ -16,7 +16,7 @@ packages:
     from: 0.8.0
   revenuecat:
     url: https://github.com/RevenueCat/purchases-ios-spm.git
-    from: 5.43.0
+    from: 5.90.2
 settings:
   base:
     SWIFT_VERSION: "5.10"
@@ -39,6 +39,8 @@ targets:
         product: ConvexMobile
       - package: revenuecat
         product: RevenueCat
+      - target: HadithlyWidgets
+        embed: true
     info:
       path: Hadithly/Info.plist
       properties:
@@ -65,7 +67,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.hadithly.app
-        TARGETED_DEVICE_FAMILY: "1"
+        TARGETED_DEVICE_FAMILY: "1,2"
         SUPPORTS_MACCATALYST: false
         CODE_SIGN_ENTITLEMENTS: Hadithly/Hadithly.entitlements
         DEVELOPMENT_TEAM: 6378AFQPXV
@@ -75,6 +77,26 @@ targets:
     configFiles:
       Debug: Secrets.xcconfig
       Release: Production.xcconfig
+  HadithlyWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - HadithlyWidgets
+      - path: Hadithly/Core/Widgets/WidgetSnapshot.swift
+    info:
+      path: HadithlyWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: Hadithly Widgets
+        CFBundleShortVersionString: "0.1.0"
+        CFBundleVersion: "1"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.hadithly.app.widgets
+        CODE_SIGN_ENTITLEMENTS: HadithlyWidgets/HadithlyWidgets.entitlements
+        DEVELOPMENT_TEAM: 6378AFQPXV
+        TARGETED_DEVICE_FAMILY: "1,2"
   HadithlyTests:
     type: bundle.unit-test
     platform: iOS
@@ -104,6 +126,7 @@ schemes:
     build:
       targets:
         Hadithly: all
+        HadithlyWidgets: all
         HadithlyTests: [test]
     run:
       config: Debug

@@ -19,6 +19,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -39,6 +40,7 @@ import com.hadithly.app.features.reader.ReaderScreen
 import com.hadithly.app.features.settings.SettingsScreen
 import com.hadithly.app.features.saved.SavedScreen
 import com.hadithly.app.features.today.TodayScreen
+import com.hadithly.app.features.widgets.continueWidgetTarget
 
 /** Reach the dependency graph without a DI framework. */
 @Composable
@@ -71,12 +73,15 @@ fun MainTabs(
     onDismissSignIn: () -> Unit,
     pendingLink: CanonicalHadithLink? = null,
     notificationTarget: ReaderOpenTarget? = null,
+    continueWidgetRequest: Long? = null,
 ) {
     val app = rememberApp()
+    val progress by app.library.progress.collectAsState()
     val colors = LocalHadithlyColors.current
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var readerTarget by remember { mutableStateOf<ReaderOpenTarget?>(null) }
     var consumedLink by remember { mutableStateOf<CanonicalHadithLink?>(null) }
+    var consumedContinueRequest by remember { mutableStateOf<Long?>(null) }
 
     LaunchedEffect(pendingLink) {
         if (pendingLink != null && pendingLink != consumedLink) {
@@ -92,6 +97,21 @@ fun MainTabs(
 
     LaunchedEffect(notificationTarget?.instanceKey) {
         if (notificationTarget != null) readerTarget = notificationTarget
+    }
+
+    LaunchedEffect(continueWidgetRequest) {
+        if (continueWidgetRequest != null && continueWidgetRequest != consumedContinueRequest) {
+            app.library.refresh()
+        }
+    }
+
+    LaunchedEffect(continueWidgetRequest, progress) {
+        if (continueWidgetRequest != null && continueWidgetRequest != consumedContinueRequest) {
+            continueWidgetTarget(progress)?.let {
+                readerTarget = it
+                consumedContinueRequest = continueWidgetRequest
+            }
+        }
     }
 
     Scaffold(
@@ -142,7 +162,12 @@ fun MainTabs(
             when (tab) {
                 0 -> TodayScreen(onOpenTarget = { readerTarget = it })
                 1 -> LibraryScreen(
-                    onOpenCollection = { slug, name -> readerTarget = ReaderOpenTarget(slug, name) },
+                    onOpenCollection = { slug, name ->
+                        readerTarget = app.library.progress.value
+                            .firstOrNull { it.collectionSlug == slug && it.hadith != null && it.position != null }
+                            ?.let { com.hadithly.app.features.library.continueReadingTarget(it) }
+                            ?: ReaderOpenTarget(slug, name)
+                    },
                     onOpenTarget = { target -> readerTarget = target },
                 )
                 2 -> SavedScreen(onOpenTarget = { readerTarget = it })

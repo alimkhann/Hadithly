@@ -35,6 +35,20 @@
                ReferencedContainer = "container:Hadithly.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "675AB1670AFECDC1331B9699"
+               BuildableName = "HadithlyWidgets.appex"
+               BlueprintName = "HadithlyWidgets"
+               ReferencedContainer = "container:Hadithly.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction

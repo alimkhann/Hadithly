@@ -2,6 +2,7 @@ package com.hadithly.app.core.data
 import com.hadithly.app.BuildConfig
 import com.hadithly.app.core.push.DevicePushProfile
 import com.hadithly.app.core.push.PushNotificationManager
+import com.hadithly.app.core.widgets.DailyWidgetPayload
 
 import android.content.Context
 import com.clerk.convex.createClerkConvexClient
@@ -106,6 +107,19 @@ class ConvexRepository(context: Context) {
                 mapOf(
                     "timezone" to ZoneId.systemDefault().id,
                     "translationLocale" to translationLocale,
+                ),
+            )
+        }
+
+    suspend fun getDailyWidgetPayload(translationLocale: String, arabicVisible: Boolean = true, translationVisible: Boolean = true): DailyWidgetPayload? =
+        withContext(Dispatchers.IO) {
+            convex.action<DailyWidgetPayload?>(
+                "actions/daily:getDailyWidgetPayload",
+                mapOf(
+                    "timezone" to ZoneId.systemDefault().id,
+                    "translationLocale" to translationLocale,
+                    "arabicVisible" to arabicVisible,
+                    "translationVisible" to translationVisible,
                 ),
             )
         }
@@ -259,7 +273,7 @@ class ConvexRepository(context: Context) {
                     "folderLocalId" to it.folderLocalId,
                     "createdAt" to it.createdAt,
                     "updatedAt" to it.updatedAt,
-                )
+                ).filterValues { value -> value != null }
             },
         )
         return withContext(Dispatchers.IO) {

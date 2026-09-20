@@ -8,6 +8,7 @@ struct HadithlyApp: App {
 
     var body: some Scene {
         let uiLocale = environment.preferences.preferences.uiLocale
+        let theme = environment.preferences.preferences.theme
         WindowGroup {
             RootView()
                 .environment(environment)
@@ -20,7 +21,8 @@ struct HadithlyApp: App {
                     \.layoutDirection,
                     LocaleFallback.isRTL(uiLocale) ? .rightToLeft : .leftToRight
                 )
-                .preferredColorScheme(.dark)
+                .environment(\.readerTheme, theme)
+                .preferredColorScheme(ReaderPalette.preferredColorScheme(for: theme))
         }
     }
 }

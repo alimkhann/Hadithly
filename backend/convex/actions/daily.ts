@@ -59,6 +59,27 @@ type DailyTranslation = {
   isAI: boolean;
 };
 
+/**
+ * Deliberately narrow, device-local widget contract. This is the only
+ * server payload the Daily widget may persist: no account, Saved, note, or
+ * reading-position data can cross this boundary.
+ */
+type DailyWidgetPayload = {
+  collectionSlug: string;
+  providerHadithId: string;
+  reference: string;
+  text: string;
+  arabicText: string;
+  locale: string;
+  arabicVisible: boolean;
+  translationVisible: boolean;
+  isAI: boolean;
+  sourceScope: string;
+  localDate: string;
+  timezone: string;
+  updatedAt: number;
+};
+
 type CachedHadith = {
   _id: Id<"hadiths">;
   provider: HadithProviderName;
@@ -207,6 +228,45 @@ function toDailyHadith(
   };
 }
 
+function sourceScopeForWidget(authenticity: AuthenticityClaim): string {
+  if (authenticity.claimScope === "collection") {
+    return `Sahih collection scope · ${authenticity.sourceName}`;
+  }
+  if (authenticity.claimScope === "hadith") {
+    return `${authenticity.normalizedGrade} hadith grade · ${authenticity.sourceName}`;
+  }
+  return authenticity.sourceLabel;
+}
+
+/**
+ * W1 consumes only text materialized by N1's live-default policy. Unlike the
+ * notification cron, a widget refresh never asks Gemini to create content.
+ * It also deliberately ignores community rows: N1's public reading contract
+ * is official text first, then its globally cached AI text.
+ */
+async function resolveMaterializedWidgetTranslation(
+  io: DailyIo,
+  hadith: CachedHadith,
+  language: string,
+): Promise<DailyTranslation | null> {
+  if (language === "en") return providerEnglishTranslation(hadith);
+  const live = await io.runQuery(
+    internal.translations.listLiveDefaultsForHadithLanguage,
+    { hadithId: hadith._id, language },
+  );
+  const best = live
+    .filter((row) => row.source === "official" || row.source === "gemini_ai")
+    .sort((a, b) => (a.source === "official" ? 0 : 1) - (b.source === "official" ? 0 : 1))[0];
+  if (!best) return null;
+  return {
+    text: best.content,
+    language,
+    source: best.source,
+    sourceLabel: best.source === "gemini_ai" ? "AI translation" : best.sourceLabel,
+    isAI: best.source === "gemini_ai",
+  };
+}
+
 /** Public: today's hadith for the Today tab. */
 export const getDailyHadith = action({
   args: { timezone: v.string(), translationLocale: v.string() },
@@ -221,6 +281,37 @@ export const getDailyHadith = action({
       picked,
       await resolveDailyTranslation(io, picked, args.translationLocale),
     );
+  },
+});
+
+/** Public: the safe, cacheable payload consumed by native Daily widgets. */
+export const getDailyWidgetPayload = action({
+  args: { timezone: v.string(), translationLocale: v.string(), arabicVisible: v.optional(v.boolean()), translationVisible: v.optional(v.boolean()) },
+  handler: async (ctx, args): Promise<DailyWidgetPayload | null> => {
+    const io = { runQuery: ctx.runQuery, runMutation: ctx.runMutation };
+    const picked = await pickDailyHadith(io, args.timezone, Date.now());
+    if (!picked) return null;
+    const translation = await resolveMaterializedWidgetTranslation(
+      io,
+      picked,
+      args.translationLocale,
+    );
+    if (!translation?.text.trim()) return null;
+    return {
+      collectionSlug: picked.collectionSlug,
+      providerHadithId: picked.providerHadithId,
+      reference: picked.referenceDisplay,
+      text: translation.text,
+      arabicText: picked.arabicText,
+      locale: args.translationLocale,
+      arabicVisible: args.arabicVisible ?? true,
+      translationVisible: args.translationVisible ?? true,
+      isAI: translation.isAI,
+      sourceScope: sourceScopeForWidget(picked.authenticity),
+      localDate: localDateInTimezone(Date.now(), args.timezone),
+      timezone: args.timezone,
+      updatedAt: Date.now(),
+    };
   },
 });
 

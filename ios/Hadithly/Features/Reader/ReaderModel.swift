@@ -56,8 +56,7 @@ final class ReaderModel {
     var pageIndex = 0 {
         didSet {
             guard oldValue != pageIndex else { return }
-            snapshotScrollOffset(for: oldValue)
-            restoreScrollOffset(for: pageIndex)
+            requestHeaderLanding(for: pageIndex)
             collapseToFocused()
             lastCapturedAnchor = nil
             lastCapturedNormalizedOffset = nil
@@ -98,10 +97,6 @@ final class ReaderModel {
     private var lastStableRawPageOffset: Double = 0
     private var lastStableNormalizedOffset: Double = 0
     private(set) var restoredPosition: ReadingPosition?
-    /// Bumped every time the model re-issues restoration (layout-preference
-    /// changes re-anchor the semantic position). Views key their applied
-    /// restoration on this so a preference change re-scrolls exactly once.
-    private(set) var restorationGeneration = 0
 
     /// The reading location is the settled leading hadith, not the first
     /// row on a page. Reader-menu actions must use the same anchor that R1
@@ -116,17 +111,10 @@ final class ReaderModel {
         return page.first(where: { $0.providerHadithId == target }) ?? page.first
     }
     private(set) var landingHadithNumber: String?
-    /// Round 5: vertical scroll offsets of the last two visited pages,
-    /// keyed by page index. Leaving a page stores its offset; navigating
-    /// back restores the exact offset instead of jumping to the top. The
-    /// R1/R2 semantic save/restore still runs on settle underneath.
-    private(set) var pageScrollCache: [Int: PageScrollSnapshot] = [:]
-    private var pageScrollCacheOrder: [Int] = []
-    /// Transient restore target for the current page: set when the reader
-    /// lands on a cached page, nil otherwise. Consumed once by the page
-    /// view's restoration path (keyed by `scrollRestoreGeneration`).
-    private(set) var scrollRestoreSnapshot: PageScrollSnapshot?
-    private(set) var scrollRestoreGeneration = 0
+    /// The single state owner for vertical landing. It persists until the
+    /// matching rendered page acknowledges the command.
+    private(set) var verticalLanding: ReaderVerticalLandingRequest?
+    private var nextVerticalLandingToken = 0
 
     init(
         convex: ConvexClientWithAuth<String>,
@@ -458,6 +446,7 @@ final class ReaderModel {
                 pages = [first]
                 phase = .reading
                 pageIndex = 0
+                requestHeaderLanding(for: 0)
                 shouldPrefetchNeighbor = true
             case .last:
                 let landingIndex = total - 1
@@ -473,6 +462,7 @@ final class ReaderModel {
                 }
                 phase = .reading
                 pageIndex = landingIndex
+                requestHeaderLanding(for: landingIndex)
             }
             scheduleTranslationsForCurrentPage()
             saveCurrentProgress()
@@ -634,14 +624,10 @@ final class ReaderModel {
         translations = [:]
         lastCapturedAnchor = nil
         lastCapturedNormalizedOffset = nil
-        // A volume/jump change invalidates every cached offset: anchors
-        // belong to the previous volume's pages.
         lastStableAnchor = nil
         lastStableRawPageOffset = 0
         lastStableNormalizedOffset = 0
-        pageScrollCache = [:]
-        pageScrollCacheOrder = []
-        scrollRestoreSnapshot = nil
+        verticalLanding = nil
     }
 
     func setLanguage(_ code: String) {
@@ -716,6 +702,7 @@ final class ReaderModel {
                 }
                 phase = .reading
                 pageIndex = landingIndex
+                requestEntryLanding(for: landingIndex)
                 warmAdjacentVolumes()
                 shouldPrefetchNeighbor = true
             } else {
@@ -727,6 +714,9 @@ final class ReaderModel {
                 }
                 phase = .reading
                 if pageIndex == index {
+                    if verticalLanding == nil {
+                        requestHeaderLanding(for: index)
+                    }
                     scheduleTranslationsForCurrentPage()
                     saveCurrentProgress()
                     warmAdjacentVolumes()
@@ -770,6 +760,7 @@ final class ReaderModel {
             }
             phase = .reading
             pageIndex = index
+            requestEntryLanding(for: index)
             return true
         }
         guard let result = store.offlinePage(
@@ -784,6 +775,9 @@ final class ReaderModel {
         }
         phase = .reading
         if pageIndex == index {
+            if verticalLanding == nil {
+                requestHeaderLanding(for: index)
+            }
             saveCurrentProgress()
         }
         return true
@@ -1036,6 +1030,7 @@ final class ReaderModel {
         rawPageOffset: Double,
         normalizedOffset: Double
     ) {
+        guard verticalLanding == nil else { return }
         guard hadiths.indices.contains(leadingIndex), pages.indices.contains(pageIndex) else { return }
         let anchor = hadiths[leadingIndex]
         let clamped = min(1, max(0, normalizedOffset))
@@ -1063,38 +1058,52 @@ final class ReaderModel {
         )
     }
 
-    /// Round 5: stores the page being left in the 2-entry scroll cache.
-    /// Only the last stable anchor of that same page qualifies, so a stale
-    /// anchor from another volume can never poison the cache.
-    private func snapshotScrollOffset(for page: Int) {
-        guard pages.indices.contains(page),
-              let anchor = lastStableAnchor,
-              pages[page].items.contains(where: { $0.internalId == anchor.internalId })
-        else { return }
-        let stored = ReaderPageScrollCache.storing(
-            cache: pageScrollCache,
-            order: pageScrollCacheOrder,
-            page: page,
-            snapshot: PageScrollSnapshot(
-                providerHadithId: anchor.providerHadithId,
-                rawPageOffset: lastStableRawPageOffset,
-                normalizedOffset: lastStableNormalizedOffset
-            )
-        )
-        pageScrollCache = stored.cache
-        pageScrollCacheOrder = stored.order
+    private func requestHeaderLanding(for page: Int) {
+        guard let volumeId = selectedVolumeId else { return }
+        requestVerticalLanding(.header, volumeId: volumeId, page: page)
     }
 
-    /// Round 5: arms the transient restore when landing on one of the last
-    /// two pages; a first visit keeps nil so the page starts at the top
-    /// (or at the R2 jump target when one is armed).
-    private func restoreScrollOffset(for page: Int) {
-        if let snapshot = pageScrollCache[page] {
-            scrollRestoreSnapshot = snapshot
-            scrollRestoreGeneration += 1
+    /// R1/R2 targets are resolved only at an explicit entry boundary. A later
+    /// manual return to this page cannot resurrect the original position.
+    private func requestEntryLanding(for page: Int) {
+        guard let volumeId = selectedVolumeId,
+              pages.indices.contains(page)
+        else { return }
+        let items = pages[page].items
+        if let position = restoredPosition,
+           items.contains(where: { $0.providerHadithId == position.anchor.providerHadithId }) {
+            requestVerticalLanding(
+                .semantic(
+                    providerHadithId: position.anchor.providerHadithId,
+                    normalizedOffset: position.normalizedOffset
+                ),
+                volumeId: volumeId,
+                page: page
+            )
+        } else if let hadith = landingHadithNumber,
+                  items.contains(where: { $0.providerHadithId == hadith }) {
+            requestVerticalLanding(.semantic(providerHadithId: hadith, normalizedOffset: 0), volumeId: volumeId, page: page)
         } else {
-            scrollRestoreSnapshot = nil
+            requestHeaderLanding(for: page)
         }
+    }
+
+    private func requestVerticalLanding(
+        _ landing: ReaderVerticalLanding,
+        volumeId: String,
+        page: Int
+    ) {
+        nextVerticalLandingToken += 1
+        verticalLanding = ReaderVerticalLandingRequest(
+            id: nextVerticalLandingToken,
+            page: .init(volumeId: volumeId, pageIndex: page),
+            landing: landing
+        )
+    }
+
+    func acknowledgeVerticalLanding(_ request: ReaderVerticalLandingRequest) {
+        guard verticalLanding == request else { return }
+        verticalLanding = nil
     }
     /// Compact top progress fraction (R4): the visible page over the known
     /// total. Nil when the backend has not reported a total yet.
@@ -1121,10 +1130,13 @@ final class ReaderModel {
             normalizedOffset: lastStableNormalizedOffset,
             layout: readingLayout(page.paginationVersion ?? 1)
         )
-        restorationGeneration += 1
-        // The fresh semantic anchor wins over any cached scroll offset for
-        // this page: the cached points belong to the previous layout.
-        scrollRestoreSnapshot = nil
+        if let volumeId = selectedVolumeId {
+            requestVerticalLanding(
+                .semantic(providerHadithId: anchor.providerHadithId, normalizedOffset: lastStableNormalizedOffset),
+                volumeId: volumeId,
+                page: pageIndex
+            )
+        }
     }
 
     /// The pure projection behind `reanchorAfterLayoutChange`: rebuilds a V1

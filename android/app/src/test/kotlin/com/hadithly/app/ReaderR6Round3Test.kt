@@ -13,8 +13,9 @@ import com.hadithly.app.features.reader.BookmarkPlacement
 import com.hadithly.app.features.reader.CONFIRMED_TAP_TIMEOUT_MILLIS
 import com.hadithly.app.features.reader.ReaderHapticKind
 import com.hadithly.app.features.reader.ReaderHaptics
-import com.hadithly.app.features.reader.ReaderScrollOffsetCache
-import com.hadithly.app.features.reader.readerPageLandingItemIndex
+import com.hadithly.app.features.reader.ReaderVerticalLanding
+import com.hadithly.app.features.reader.ReaderVerticalLandingPage
+import com.hadithly.app.features.reader.ReaderVerticalLandingRequest
 import com.hadithly.app.features.reader.ReaderShare
 import com.hadithly.app.features.reader.bookmarkDialogRows
 import com.hadithly.app.features.reader.bookmarkPlacementTargets
@@ -23,7 +24,6 @@ import com.hadithly.app.features.reader.chapterTitleForDisplay
 import com.hadithly.app.features.reader.focusedProgressFraction
 import com.hadithly.app.features.reader.isConfirmedTap
 import com.hadithly.app.features.reader.narratorForMode
-import com.hadithly.app.features.reader.nextPreviewRestoreTicks
 import com.hadithly.app.features.reader.pagePillFillFraction
 import com.hadithly.app.features.reader.relativeTimeLabel
 import com.hadithly.app.features.reader.volumeHeaderNumber
@@ -452,32 +452,15 @@ class ReaderR6Round3Test {
         )
     }
 
-    // Round 5: 2-entry per-page scroll offset cache
-
     @Test
-    fun `scroll cache restores the exact stored offset`() {
-        val cache = ReaderScrollOffsetCache()
-        assertNull(cache.restore(0))
-        cache.save(0, 5, 120)
-        assertEquals(5 to 120, cache.restore(0))
-        assertEquals(1, cache.size())
-    }
-
-    @Test
-    fun `fresh page lands on the header while a target accounts for it`() {
-        assertEquals(0, readerPageLandingItemIndex(targetHadithIndex = null, hasCachedOffset = false))
-        assertEquals(1, readerPageLandingItemIndex(targetHadithIndex = 0, hasCachedOffset = false))
-        assertEquals(3, readerPageLandingItemIndex(targetHadithIndex = 2, hasCachedOffset = false))
-        assertNull(readerPageLandingItemIndex(targetHadithIndex = null, hasCachedOffset = true))
-    }
-
-    @Test
-    fun `initial landing preserves top cached offsets and explicit targets`() {
-        assertEquals(0 to 0, com.hadithly.app.features.reader.readerInitialOffset(null, null))
-        assertEquals(0 to 0, com.hadithly.app.features.reader.readerInitialOffset(null, 0 to 0))
-        assertEquals(2 to 148, com.hadithly.app.features.reader.readerInitialOffset(null, 2 to 148))
-        assertEquals(1 to 0, com.hadithly.app.features.reader.readerInitialOffset(0, 2 to 148))
-        assertEquals(4 to 0, com.hadithly.app.features.reader.readerInitialOffset(3, null))
+    fun `manual page turns land on the header even after a cached revisit`() {
+        val request = ReaderVerticalLandingRequest(
+            token = 1,
+            page = ReaderVerticalLandingPage("2", 1),
+            landing = ReaderVerticalLanding.Header,
+        )
+        assertEquals(ReaderVerticalLandingPage("2", 1), request.page)
+        assertEquals(ReaderVerticalLanding.Header, request.landing)
     }
 
     @Test
@@ -486,48 +469,6 @@ class ReaderR6Round3Test {
         assertEquals(0, com.hadithly.app.features.reader.readerHadithIndex(1, 3))
         assertEquals(2, com.hadithly.app.features.reader.readerHadithIndex(3, 3))
         assertNull(com.hadithly.app.features.reader.readerHadithIndex(4, 3))
-    }
-
-    @Test
-    fun `scroll cache keeps only the last two pages`() {
-        val cache = ReaderScrollOffsetCache()
-        cache.save(0, 5, 120)
-        cache.save(1, 0, 0)
-        cache.save(2, 3, 40)
-        assertEquals(2, cache.size())
-        assertNull(cache.restore(0))
-        assertEquals(0 to 0, cache.restore(1))
-        assertEquals(3 to 40, cache.restore(2))
-    }
-
-    @Test
-    fun `scroll cache re-save refreshes eviction order`() {
-        val cache = ReaderScrollOffsetCache()
-        cache.save(0, 1, 10)
-        cache.save(1, 2, 20)
-        cache.save(0, 1, 10)
-        cache.save(2, 3, 30)
-        assertNull(cache.restore(1))
-        assertEquals(1 to 10, cache.restore(0))
-        assertEquals(3 to 30, cache.restore(2))
-    }
-
-    // Round 6: preview-at-offset ticks
-
-    @Test
-    fun `preview tick bumps the targeted page only`() {
-        val ticks = nextPreviewRestoreTicks(emptyMap(), 3)
-        assertEquals(mapOf(3 to 1), ticks)
-        val again = nextPreviewRestoreTicks(ticks, 3)
-        assertEquals(mapOf(3 to 2), again)
-        val other = nextPreviewRestoreTicks(again, 4)
-        assertEquals(mapOf(3 to 2, 4 to 1), other)
-    }
-
-    @Test
-    fun `preview tick ignores negative pages`() {
-        val ticks = mapOf(0 to 1)
-        assertEquals(ticks, nextPreviewRestoreTicks(ticks, -1))
     }
 
     // Round 7: tap-vs-drag disambiguation for the chrome toggle

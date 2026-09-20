@@ -7,32 +7,17 @@ struct LibraryView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(UserLibraryModel.self) private var library
 
-    @State private var openCollection: OpenCollection?
     @State private var openTarget: ReaderOpenTarget?
     @State private var presentation: Presentation = .grid
     @State private var model = LibraryModel()
 
     private enum Presentation { case grid, list }
 
-    struct OpenCollection: Identifiable {
-        let slug: String
-        let name: String
-        var id: String { slug }
-    }
-
     private let columns = [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)]
 
     var body: some View {
         ScrollView {
             Group {
-                if library.continueReading != nil {
-                    ContinueReadingRail(entries: Array(library.progress.prefix(1)), showsTitle: false) { entry, hadith in
-                        openTarget = ReaderOpenTarget(slug: entry.collectionSlug, name: hadith.collectionName,
-                                                      volumeId: hadith.volumeId, hadithNumber: hadith.hadithNumber,
-                                                      source: .continueReading, position: entry.position)
-                    }
-                    .padding(.bottom, 8)
-                }
                 switch presentation {
                 case .grid:
                     LazyVGrid(columns: columns, spacing: 24) {
@@ -72,16 +57,13 @@ struct LibraryView: View {
                 target: ReaderPrefetchTargets.entryTarget(progress: library.continueReading)
             )
         }
-        .fullScreenCover(item: $openCollection) { collection in
-            ReaderView(collectionSlug: collection.slug, collectionName: collection.name)
-        }
         .fullScreenCover(item: $openTarget) { target in
             ReaderView(collectionSlug: target.slug, collectionName: target.name, openVolumeId: target.volumeId, openHadithNumber: target.hadithNumber, openPosition: target.position, targetSource: target.source)
         }
     }
 
     private func collectionGridItem(slug: String, name: String, position: Int) -> some View {
-        Button { openCollection = OpenCollection(slug: slug, name: name) } label: {
+        Button { openTarget = collectionTarget(slug: slug, name: name) } label: {
             VStack(alignment: .leading, spacing: 9) {
                 CollectionCover(position: position)
                     .frame(maxWidth: .infinity)
@@ -103,7 +85,7 @@ struct LibraryView: View {
     }
 
     private func collectionListItem(slug: String, name: String, position: Int) -> some View {
-        Button { openCollection = OpenCollection(slug: slug, name: name) } label: {
+        Button { openTarget = collectionTarget(slug: slug, name: name) } label: {
             HStack(spacing: 14) {
                 CollectionCover(position: position)
                     .frame(width: 56, height: 82)
@@ -128,6 +110,16 @@ struct LibraryView: View {
         .accessibilityIdentifier("library.collection.\(slug)")
     }
 
+    private func collectionTarget(slug: String, name: String) -> ReaderOpenTarget {
+        guard let progress = library.progress.first(where: { $0.collectionSlug == slug }),
+              let hadith = progress.hadith,
+              let position = progress.position
+        else { return ReaderOpenTarget(slug: slug, name: name) }
+        return ReaderOpenTarget(slug: slug, name: name, volumeId: hadith.volumeId,
+                                hadithNumber: hadith.hadithNumber, source: .continueReading,
+                                position: position)
+    }
+
     private func progressSlot(_ summary: LibraryModel.ProgressSummary?) -> some View {
         let label: String = switch summary?.state {
         case "unopened": "Not started"
@@ -137,9 +129,21 @@ struct LibraryView: View {
         default: "Progress unavailable"
         }
         return VStack(alignment: .leading, spacing: 4) {
-            Capsule().fill(Theme.surfaceElevated).frame(height: 3)
+            GeometryReader { proxy in
+                Capsule().fill(Theme.surfaceElevated)
+                if let fraction = progressFraction(summary) {
+                    Capsule().fill(Theme.accent).frame(width: proxy.size.width * fraction)
+                }
+            }
+            .frame(height: 3)
             Text(label).font(.caption2).foregroundStyle(Theme.textSecondary)
         }
+    }
+
+    private func progressFraction(_ summary: LibraryModel.ProgressSummary?) -> CGFloat? {
+        guard summary?.state == "in_progress", let read = summary?.readOrdinal,
+              let total = summary?.totalHadiths, total > 0 else { return nil }
+        return min(1, max(0, read / total))
     }
 
     private func summary(for slug: String) -> LibraryModel.ProgressSummary? {

@@ -62,6 +62,7 @@ final class AppEnvironment {
     let preferences: PreferencesStore
     let savedSafety: SavedSafetyPreferences
     let offline: OfflineStore
+    let widgetProgress = LibraryModel()
     let links = LinkRouter()
 
     /// Summary of the last completed sign-in sync, surfaced in Settings.
@@ -114,6 +115,7 @@ final class AppEnvironment {
             }
         }
         self.push = PushNotificationManager.shared
+        self.widgetProgress.start(convex: convex)
         self.push.uploadHandler = { [weak self] token in
             guard let self, Clerk.shared.session != nil else { return }
             let prefs = self.preferences.preferences
@@ -137,7 +139,9 @@ final class AppEnvironment {
         // Explicit preference changes sync to Convex while signed in; while
         // signed out they stay device-local and merge on the next sign-in.
         store.onPreferencesChanged = { [weak self] updated in
-            self?.syncPreferences(updated)
+            guard let self else { return }
+            self.syncPreferences(updated)
+            Task { await self.refreshDailyWidget(updated) }
         }
 
         // Personal-data subscriptions must follow the Convex session: a
@@ -238,17 +242,21 @@ final class AppEnvironment {
                         ] as [String: ConvexEncodable?]
                     },
                     "savedItems": payload.savedItems.map { item in
-                        [
+                        // Convex optional validators require an absent key,
+                        // not a JSON null. Sending the latter was the guest
+                        // merge failure shown in Settings.
+                        var wire: [String: ConvexEncodable?] = [
                             "hadithId": item.hadithId,
-                            "bookmarkCreatedAt": item.bookmarkCreatedAt,
-                            "favoriteCreatedAt": item.favoriteCreatedAt,
-                            "noteContent": item.noteContent,
-                            "noteCreatedAt": item.noteCreatedAt,
-                            "noteUpdatedAt": item.noteUpdatedAt,
-                            "folderLocalId": item.folderLocalId,
                             "createdAt": item.createdAt,
                             "updatedAt": item.updatedAt,
-                        ] as [String: ConvexEncodable?]
+                        ]
+                        if let value = item.bookmarkCreatedAt { wire["bookmarkCreatedAt"] = value }
+                        if let value = item.favoriteCreatedAt { wire["favoriteCreatedAt"] = value }
+                        if let value = item.noteContent { wire["noteContent"] = value }
+                        if let value = item.noteCreatedAt { wire["noteCreatedAt"] = value }
+                        if let value = item.noteUpdatedAt { wire["noteUpdatedAt"] = value }
+                        if let value = item.folderLocalId { wire["folderLocalId"] = value }
+                        return wire
                     },
                 ]
             )
@@ -292,6 +300,19 @@ final class AppEnvironment {
             // No-ops when no APNs token is registered yet.
             await self.push.uploadTokenIfNeeded()
         }
+    }
+
+    private func refreshDailyWidget(_ prefs: ReaderPreferences) async {
+        let payload: DailyWidgetPayload? = try? await convex.action(
+            "actions/daily:getDailyWidgetPayload",
+            with: [
+                "timezone": TimeZone.current.identifier,
+                "translationLocale": prefs.translationLocale,
+                "arabicVisible": prefs.arabicVisible,
+                "translationVisible": prefs.translationVisible,
+            ]
+        )
+        WidgetSnapshotStore.saveDaily(payload?.snapshot())
     }
 
     /// Adopts the authoritative stored preferences when the server row is
