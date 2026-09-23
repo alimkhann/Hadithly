@@ -5,7 +5,7 @@ import {
   licenseTermsValidator,
   providerValidator,
 } from "./lib/contentPolicy";
-import { readerPreferencesValidator } from "./lib/preferences";
+import { legacyReaderPreferencesValidator, readerPreferencesValidator } from "./lib/preferences";
 import { readingPositionValidator } from "./lib/readingPositions";
 
 const authenticityGrade = v.union(
@@ -28,7 +28,7 @@ export default defineSchema({
     // F2 reader preference contracts. Optional until every signed-in row has
     // been seeded by ensureCurrentUser; preferredLanguage stays as the legacy
     // dual-write field during the migration window.
-    readerPreferences: v.optional(readerPreferencesValidator),
+    readerPreferences: v.optional(v.union(readerPreferencesValidator, legacyReaderPreferencesValidator)),
     // Set once when readerPreferences is first seeded from preferredLanguage.
     // After it is true, ensureCurrentUser never re-seeds the locales, so a
     // later explicit choice is never reset.

@@ -4,6 +4,7 @@ import type { Id } from "./_generated/dataModel";
 import { requireIdentity } from "./lib/identity";
 import {
   defaultReaderPreferences,
+  legacyReaderPreferencesValidator,
   parseReaderPreferences,
   readerPreferencesValidator,
   type ReaderPreferences,
@@ -34,7 +35,7 @@ type EntitlementSyncResult =
 export const ensureCurrentUser = mutation({
   args: {
     preferredLanguage: v.optional(v.string()),
-    readerPreferences: v.optional(readerPreferencesValidator),
+    readerPreferences: v.optional(v.union(readerPreferencesValidator, legacyReaderPreferencesValidator)),
   },
   handler: async (ctx, args) => {
     const identity = await requireIdentity(ctx);
@@ -115,7 +116,7 @@ export const ensureCurrentUser = mutation({
  * all-hidden visibility state in shared domain logic.
  */
 export const updateReaderPreferences = mutation({
-  args: { readerPreferences: readerPreferencesValidator },
+  args: { readerPreferences: v.union(readerPreferencesValidator, legacyReaderPreferencesValidator) },
   handler: async (ctx, args) => {
     const identity = await requireIdentity(ctx);
     const now = Date.now();
@@ -156,8 +157,9 @@ export const getCurrentUserPreferences = query({
       .unique();
     if (!user) return { readerPreferences: null };
     return {
-      readerPreferences:
-        (user.readerPreferences as ReaderPreferences | undefined) ?? null,
+      readerPreferences: user.readerPreferences
+        ? parseReaderPreferences(user.readerPreferences)
+        : null,
     };
   },
 });

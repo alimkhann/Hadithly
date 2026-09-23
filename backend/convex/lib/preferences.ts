@@ -9,7 +9,7 @@ import { v } from "convex/values";
  * changes language silently. Arabic, Urdu, and Persian scripts are RTL.
  */
 
-export const READER_PREFERENCES_SCHEMA_VERSION = 1;
+export const READER_PREFERENCES_SCHEMA_VERSION = 2;
 
 export const MIN_ARABIC_FONT_SIZE = 18;
 export const MAX_ARABIC_FONT_SIZE = 40;
@@ -39,22 +39,36 @@ export const readerPreferencesValidator = v.object({
   uiLocale: v.string(),
   translationLocale: v.string(),
   readingDirection: readingDirectionValidator,
-  theme: themeValidator,
+  appTheme: themeValidator,
+  readerTheme: themeValidator,
+  usesSeparateReaderTheme: v.boolean(),
   arabicFont: arabicFontValidator,
   arabicFontSize: v.number(),
+  translationFontSize: v.number(),
   arabicVisible: v.boolean(),
   translationVisible: v.boolean(),
   updatedAt: v.number(),
 });
 
+/** Stored v1 rows remain readable until their next explicit preference save. */
+export const legacyReaderPreferencesValidator = v.object({
+  schemaVersion: v.literal(1), uiLocale: v.string(), translationLocale: v.string(),
+  readingDirection: readingDirectionValidator, theme: themeValidator,
+  arabicFont: arabicFontValidator, arabicFontSize: v.number(),
+  arabicVisible: v.boolean(), translationVisible: v.boolean(), updatedAt: v.number(),
+});
+
 export type ReaderPreferences = {
-  schemaVersion: 1;
+  schemaVersion: 2;
   uiLocale: string;
   translationLocale: string;
   readingDirection: "auto" | "rtl" | "ltr";
-  theme: "system" | "light" | "paper" | "dark";
+  appTheme: "system" | "light" | "paper" | "dark";
+  readerTheme: "system" | "light" | "paper" | "dark";
+  usesSeparateReaderTheme: boolean;
   arabicFont: string;
   arabicFontSize: number;
+  translationFontSize: number;
   arabicVisible: boolean;
   translationVisible: boolean;
   updatedAt: number;
@@ -181,9 +195,13 @@ export function parseReaderPreferences(raw: {
   uiLocale: string;
   translationLocale: string;
   readingDirection: "auto" | "rtl" | "ltr";
-  theme: "system" | "light" | "paper" | "dark";
+  appTheme?: "system" | "light" | "paper" | "dark";
+  readerTheme?: "system" | "light" | "paper" | "dark";
+  usesSeparateReaderTheme?: boolean;
   arabicFont: string;
   arabicFontSize: number;
+  translationFontSize?: number;
+  theme?: "system" | "light" | "paper" | "dark";
   arabicVisible: boolean;
   translationVisible: boolean;
   updatedAt: number;
@@ -220,9 +238,12 @@ export function parseReaderPreferences(raw: {
     uiLocale,
     translationLocale,
     readingDirection: raw.readingDirection,
-    theme: raw.theme,
+    appTheme: raw.appTheme ?? raw.theme ?? "system",
+    readerTheme: raw.readerTheme ?? raw.appTheme ?? raw.theme ?? "system",
+    usesSeparateReaderTheme: raw.usesSeparateReaderTheme ?? false,
     arabicFont: raw.arabicFont,
     arabicFontSize: fontSize,
+    translationFontSize: Math.min(22, Math.max(14, raw.translationFontSize ?? 16)),
     arabicVisible: raw.arabicVisible,
     translationVisible: raw.translationVisible,
     updatedAt: raw.updatedAt,
@@ -240,9 +261,12 @@ export function defaultReaderPreferences(
     uiLocale: locale,
     translationLocale: locale,
     readingDirection: "auto",
-    theme: "system",
+    appTheme: "system",
+    readerTheme: "system",
+    usesSeparateReaderTheme: false,
     arabicFont: "system",
     arabicFontSize: 26,
+    translationFontSize: 16,
     arabicVisible: true,
     translationVisible: true,
     updatedAt,

@@ -57,13 +57,16 @@ describe("locale tags and fallback", () => {
 describe("reader preference validation", () => {
   function raw(overrides: Partial<Parameters<typeof parseReaderPreferences>[0]> = {}) {
     return {
-      schemaVersion: 1,
+      schemaVersion: 2,
       uiLocale: "en",
       translationLocale: "en",
       readingDirection: "auto" as const,
-      theme: "system" as const,
+      appTheme: "system" as const,
+      readerTheme: "system" as const,
+      usesSeparateReaderTheme: false,
       arabicFont: "system",
       arabicFontSize: 26,
+      translationFontSize: 16,
       arabicVisible: true,
       translationVisible: true,
       updatedAt: 0,
@@ -152,6 +155,34 @@ describe("reading direction metadata", () => {
 });
 
 describe("preferences sync and one-time migration", () => {
+  test("accepts a v1 client preference and persists the v2 theme contract", async () => {
+    const t = convexTest(schema, modules);
+    const asUser = t.withIdentity(identity("user_pref_v1"));
+    await asUser.mutation(api.users.ensureCurrentUser, {
+      readerPreferences: {
+        schemaVersion: 1,
+        uiLocale: "en",
+        translationLocale: "ur",
+        readingDirection: "auto",
+        theme: "paper",
+        arabicFont: "system",
+        arabicFontSize: 26,
+        arabicVisible: true,
+        translationVisible: true,
+        updatedAt: 500,
+      },
+    });
+    const row = await asUser.query(api.users.getCurrentUserPreferences, {});
+    expect(row.readerPreferences).toMatchObject({
+      schemaVersion: 2,
+      appTheme: "paper",
+      readerTheme: "paper",
+      usesSeparateReaderTheme: false,
+      translationFontSize: 16,
+    });
+    expect(row.readerPreferences).not.toHaveProperty("theme");
+  });
+
   test("migrates an existing legacy row before accepting a fresh client default", async () => {
     const t = convexTest(schema, modules);
     await t.run(async (ctx) => {
@@ -172,13 +203,16 @@ describe("preferences sync and one-time migration", () => {
     await asUser.mutation(api.users.ensureCurrentUser, {
       preferredLanguage: "en",
       readerPreferences: {
-        schemaVersion: 1,
+        schemaVersion: 2,
         uiLocale: "en",
         translationLocale: "en",
         readingDirection: "auto",
-        theme: "system",
+        appTheme: "system",
+        readerTheme: "system",
+        usesSeparateReaderTheme: false,
         arabicFont: "system",
         arabicFontSize: 26,
+        translationFontSize: 16,
         arabicVisible: true,
         translationVisible: true,
         updatedAt: 0,
@@ -230,13 +264,16 @@ describe("preferences sync and one-time migration", () => {
     await asUser.mutation(api.users.ensureCurrentUser, { preferredLanguage: "en" });
     await asUser.mutation(api.users.updateReaderPreferences, {
       readerPreferences: {
-        schemaVersion: 1,
+        schemaVersion: 2,
         uiLocale: "en",
         translationLocale: "ar",
         readingDirection: "auto",
-        theme: "paper",
+        appTheme: "paper",
+        readerTheme: "paper",
+        usesSeparateReaderTheme: false,
         arabicFont: "amiri",
         arabicFontSize: 30,
+        translationFontSize: 16,
         arabicVisible: true,
         translationVisible: true,
         updatedAt: 1_800_000_000_000,
@@ -247,13 +284,16 @@ describe("preferences sync and one-time migration", () => {
     await asUser.mutation(api.users.ensureCurrentUser, {
       preferredLanguage: "en",
       readerPreferences: {
-        schemaVersion: 1,
+        schemaVersion: 2,
         uiLocale: "en",
         translationLocale: "en",
         readingDirection: "auto",
-        theme: "system",
+        appTheme: "system",
+        readerTheme: "system",
+        usesSeparateReaderTheme: false,
         arabicFont: "system",
         arabicFontSize: 26,
+        translationFontSize: 16,
         arabicVisible: true,
         translationVisible: true,
         updatedAt: 1_790_000_000_000,
@@ -267,7 +307,7 @@ describe("preferences sync and one-time migration", () => {
         .unique(),
     );
     expect(row?.readerPreferences?.translationLocale).toBe("ar");
-    expect(row?.readerPreferences?.theme).toBe("paper");
+    expect(row?.readerPreferences?.schemaVersion).toBe(2);
     expect(row?.localesMigrated).toBe(true);
 
     const adopted = await asUser.query(api.users.getCurrentUserPreferences, {});
@@ -281,13 +321,16 @@ describe("preferences sync and one-time migration", () => {
     await expect(
       asUser.mutation(api.users.updateReaderPreferences, {
         readerPreferences: {
-          schemaVersion: 1,
+          schemaVersion: 2,
           uiLocale: "en",
           translationLocale: "en",
           readingDirection: "auto",
-          theme: "system",
-          arabicFont: "system",
-          arabicFontSize: 26,
+          appTheme: "system",
+          readerTheme: "system",
+          usesSeparateReaderTheme: false,
+        arabicFont: "system",
+        arabicFontSize: 26,
+        translationFontSize: 16,
           arabicVisible: false,
           translationVisible: false,
           updatedAt: 1_800_000_000_000,
@@ -301,13 +344,16 @@ describe("preferences sync and one-time migration", () => {
     await expect(
       t.mutation(api.users.updateReaderPreferences, {
         readerPreferences: {
-          schemaVersion: 1,
+          schemaVersion: 2,
           uiLocale: "en",
           translationLocale: "en",
           readingDirection: "auto",
-          theme: "system",
-          arabicFont: "system",
-          arabicFontSize: 26,
+          appTheme: "system",
+          readerTheme: "system",
+          usesSeparateReaderTheme: false,
+        arabicFont: "system",
+        arabicFontSize: 26,
+        translationFontSize: 16,
           arabicVisible: true,
           translationVisible: true,
           updatedAt: 0,
