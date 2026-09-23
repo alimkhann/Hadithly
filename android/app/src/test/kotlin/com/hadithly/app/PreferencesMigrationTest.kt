@@ -38,7 +38,8 @@ class PreferencesMigrationTest {
         val explicit = ReaderPreferences(
             uiLocale = "en",
             translationLocale = "ar",
-            theme = com.hadithly.app.core.preferences.ReaderTheme.PAPER,
+            appTheme = com.hadithly.app.core.preferences.ReaderTheme.PAPER,
+            readerTheme = com.hadithly.app.core.preferences.ReaderTheme.PAPER,
             updatedAt = 500.0,
         )
         val json = kotlinx.serialization.json.Json { encodeDefaults = true }
@@ -47,7 +48,7 @@ class PreferencesMigrationTest {
         val result = PreferencesStore.migrate(storedJson = stored, legacyLanguage = "ur")
         assertFalse(result.seededFromLegacy)
         assertEquals("ar", result.preferences.translationLocale)
-        assertEquals(com.hadithly.app.core.preferences.ReaderTheme.PAPER, result.preferences.theme)
+        assertEquals(com.hadithly.app.core.preferences.ReaderTheme.PAPER, result.preferences.appTheme)
         assertEquals(500.0, result.preferences.updatedAt, 0.0)
     }
 
@@ -77,6 +78,7 @@ class PreferencesMigrationTest {
         """.trimIndent()
         val result = PreferencesStore.migrate(storedJson = stored, legacyLanguage = null)
         assertEquals(com.hadithly.app.core.preferences.ArabicFont.SYSTEM, result.preferences.arabicFont)
-        assertEquals("dark", result.preferences.theme.wire)
+        assertEquals("dark", result.preferences.appTheme.wire)
+        assertEquals("dark", result.preferences.readerTheme.wire)
     }
 }

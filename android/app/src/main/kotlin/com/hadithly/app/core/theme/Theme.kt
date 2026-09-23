@@ -87,6 +87,8 @@ object ReaderPalettes {
         interactive = Color(0xFF1C1C1E),
         interactiveSoft = Color(0xFF1C1C1E).copy(alpha = 0.08f),
         onInteractive = Color(0xFFFFFFFF),
+        accent = Color(0xFF1C1C1E),
+        accentSoft = Color(0xFF1C1C1E).copy(alpha = 0.08f),
     )
 
     val paper = HadithlyColors(
@@ -99,6 +101,8 @@ object ReaderPalettes {
         interactive = Color(0xFF33301F),
         interactiveSoft = Color(0xFF33301F).copy(alpha = 0.10f),
         onInteractive = Color(0xFFFFFFFF),
+        accent = Color(0xFF33301F),
+        accentSoft = Color(0xFF33301F).copy(alpha = 0.10f),
     )
 
     val dark = HadithlyColors()

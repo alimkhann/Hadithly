@@ -51,6 +51,30 @@ final class ReaderR4Tests: XCTestCase {
         XCTAssertEqual(ReaderPalette.preferredColorScheme(for: .dark), .dark)
     }
 
+    /// P5: all app roots resolve the same preference contract as reader
+    /// sheets. System is the only preference that follows the OS.
+    func testAppPaletteResolutionMatrix() {
+        for locale in ["en", "ar", "ur"] {
+            XCTAssertFalse(locale.isEmpty)
+            XCTAssertEqual(ReaderPalette.resolved(.system, systemDark: false), .light)
+            XCTAssertEqual(ReaderPalette.resolved(.system, systemDark: true), .dark)
+            XCTAssertEqual(ReaderPalette.resolved(.light, systemDark: true), .light)
+            XCTAssertEqual(ReaderPalette.resolved(.paper, systemDark: true), .paper)
+            XCTAssertEqual(ReaderPalette.resolved(.dark, systemDark: false), .dark)
+        }
+    }
+
+    func testPaletteSchemeAndInteractivePairsStayAligned() {
+        XCTAssertNil(ReaderPalette.preferredColorScheme(for: .system))
+        XCTAssertEqual(ReaderPalette.preferredColorScheme(for: .dark), .dark)
+        XCTAssertEqual(ReaderPalette.preferredColorScheme(for: .light), .light)
+        XCTAssertEqual(ReaderPalette.preferredColorScheme(for: .paper), .light)
+        for palette in [ReaderPalette.dark, .light, .paper] {
+            XCTAssertNotEqual(palette.interactive, palette.background)
+            XCTAssertNotEqual(palette.onInteractive, palette.interactive)
+        }
+    }
+
     // MARK: Arabic type ladder
 
     func testTypeSizeLadderStaysInsidePreferenceClamp() {
@@ -89,7 +113,8 @@ final class ReaderR4Tests: XCTestCase {
     func testLayoutProjectionIgnoresThemeAndDirection() {
         var preferences = ReaderPreferences()
         let baseline = preferences.layoutProjection
-        preferences.theme = .paper
+        preferences.appTheme = .paper
+        preferences.readerTheme = .paper
         preferences.readingDirection = .rtl
         XCTAssertEqual(preferences.layoutProjection, baseline)
     }

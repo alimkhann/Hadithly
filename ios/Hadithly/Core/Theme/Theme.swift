@@ -1,19 +1,21 @@
 import SwiftUI
-import UIKit
+import Observation
 
 /// Design tokens: near-black canvas, elevated dark surfaces, neutral-white
 /// accent, serif Arabic. Hierarchy comes from luminance, not hue.
 enum Theme {
-    /// The root observes this preference and recreates its view hierarchy on a
-    /// change. Resolving here makes the existing shared tokens app-wide rather
-    /// than leaving Light, Paper, and System as reader-only previews.
-    private static var palette: ReaderPalette {
-        let stored = UserDefaults.standard.string(forKey: PreferencesStore.storeKey)
-        let theme = PreferencesStore.migrate(storedJSON: stored, legacyLanguage: nil).preferences.theme
-        return ReaderPalette.resolved(
-            theme,
-            systemDark: UITraitCollection.current.userInterfaceStyle != .light
-        )
+    /// The app root resolves this from its SwiftUI environment. Existing views
+    /// still consume the shared semantic names below, while no view consults
+    /// UserDefaults or UIKit traits to decide its own palette.
+    @Observable
+    final class PaletteState {
+        var palette = ReaderPalette.dark
+    }
+
+    private static let state = PaletteState()
+
+    static func install(_ palette: ReaderPalette) {
+        state.palette = palette
     }
     /// The app's vertical rhythm. Auth screens and onboarding standardize on
     /// these steps so pages share one consistent spacing scale.
@@ -27,19 +29,19 @@ enum Theme {
     }
 
     // Canvas & surfaces
-    static var background: Color { palette.background }
-    static var surface: Color { palette.surface }
-    static var surfaceElevated: Color { palette.surfaceElevated }
+    static var background: Color { state.palette.background }
+    static var surface: Color { state.palette.surface }
+    static var surfaceElevated: Color { state.palette.surfaceElevated }
 
     // Text
-    static var textPrimary: Color { palette.textPrimary }
-    static var textSecondary: Color { palette.textSecondary }
+    static var textPrimary: Color { state.palette.textPrimary }
+    static var textSecondary: Color { state.palette.textSecondary }
 
     // Accent: neutral white. Hierarchy comes from luminance, not hue
     // (achromatic system); emerald survives only as a semantic color for
     // the brand mark, authenticity grade dots, and success states.
-    static var accent: Color { palette.interactive }
-    static var accentSoft: Color { palette.interactiveSoft }
+    static var accent: Color { state.palette.interactive }
+    static var accentSoft: Color { state.palette.interactiveSoft }
 
     /// Semantic-only emerald: the brand mark. Never used for chrome.
     static let brand = Color(hex: "10B981")

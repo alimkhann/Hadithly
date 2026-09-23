@@ -12,7 +12,7 @@ final class ReaderPreferencesTests: XCTestCase {
         XCTAssertEqual(preferences.arabicFontSize, 26)
         XCTAssertTrue(preferences.arabicVisible)
         XCTAssertTrue(preferences.translationVisible)
-        XCTAssertEqual(preferences.schemaVersion, 1)
+        XCTAssertEqual(preferences.schemaVersion, 2)
     }
 
     func testValidatedRejectsTheAllHiddenVisibilityState() throws {
@@ -64,7 +64,8 @@ final class ReaderPreferencesTests: XCTestCase {
         preferences.uiLocale = "ur-PK"
         preferences.translationLocale = "ar"
         preferences.readingDirection = .rtl
-        preferences.theme = .paper
+        preferences.appTheme = .paper
+        preferences.readerTheme = .paper
         preferences.arabicFont = .amiri
         preferences.arabicFontSize = 32
         preferences.arabicVisible = false

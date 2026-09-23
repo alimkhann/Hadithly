@@ -3,6 +3,7 @@ package com.hadithly.app
 import com.hadithly.app.core.preferences.ArabicFont
 import com.hadithly.app.core.preferences.PageDirection
 import com.hadithly.app.core.preferences.PreferencesException
+import com.hadithly.app.core.preferences.PreferencesStore
 import com.hadithly.app.core.preferences.ReaderPreferences
 import com.hadithly.app.core.preferences.ReaderPreferencesValidator
 import com.hadithly.app.core.preferences.ReadingDirection
@@ -25,7 +26,7 @@ class ReaderPreferencesTest {
         assertTrue(preferences.arabicVisible)
         assertTrue(preferences.translationVisible)
         assertEquals(26f, preferences.arabicFontSize)
-        assertEquals(1, preferences.schemaVersion)
+        assertEquals(2, preferences.schemaVersion)
     }
 
     @Test
@@ -64,7 +65,9 @@ class ReaderPreferencesTest {
             uiLocale = "ur-PK",
             translationLocale = "ar",
             readingDirection = ReadingDirection.RTL,
-            theme = com.hadithly.app.core.preferences.ReaderTheme.PAPER,
+            appTheme = com.hadithly.app.core.preferences.ReaderTheme.PAPER,
+            readerTheme = com.hadithly.app.core.preferences.ReaderTheme.DARK,
+            usesSeparateReaderTheme = true,
             arabicFont = ArabicFont.AMIRI,
             arabicFontSize = 32f,
             arabicVisible = false,
@@ -76,7 +79,8 @@ class ReaderPreferencesTest {
         assertEquals(preferences, json.decodeFromString<ReaderPreferences>(encoded))
         // Wire spellings must match the backend contract.
         assertTrue(encoded.contains(""""readingDirection":"rtl""""))
-        assertTrue(encoded.contains(""""theme":"paper""""))
+        assertTrue(encoded.contains(""""appTheme":"paper""""))
+        assertTrue(encoded.contains(""""readerTheme":"dark""""))
         assertTrue(encoded.contains(""""arabicFont":"amiri""""))
     }
 
@@ -86,10 +90,11 @@ class ReaderPreferencesTest {
         assertTrue(wire["schemaVersion"] is Double)
         assertTrue(wire["arabicFontSize"] is Double)
         assertTrue(wire["updatedAt"] is Double)
-        assertEquals(1.0, wire["schemaVersion"])
+        assertEquals(2.0, wire["schemaVersion"])
         assertEquals(26.0, wire["arabicFontSize"])
         assertEquals("auto", wire["readingDirection"])
-        assertEquals("system", wire["theme"])
+        assertEquals("system", wire["appTheme"])
+        assertEquals("system", wire["readerTheme"])
         assertEquals("system", wire["arabicFont"])
     }
 
@@ -145,11 +150,12 @@ class ReaderPreferencesTest {
               "updatedAt": 99.0
             }
         """.trimIndent()
-        val decoded = json.decodeFromString<ReaderPreferences>(newerBuild)
+        val decoded = PreferencesStore.migrate(newerBuild, null).preferences
         // A newer build's font id this build does not know falls back to the
         // system face instead of failing the decode, matching iOS.
         assertEquals(ArabicFont.SYSTEM, decoded.arabicFont)
-        assertEquals(com.hadithly.app.core.preferences.ReaderTheme.DARK, decoded.theme)
+        assertEquals(com.hadithly.app.core.preferences.ReaderTheme.DARK, decoded.appTheme)
+        assertEquals(com.hadithly.app.core.preferences.ReaderTheme.DARK, decoded.readerTheme)
         assertEquals(99.0, decoded.updatedAt, 0.0)
     }
 }

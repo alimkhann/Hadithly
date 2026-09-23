@@ -203,9 +203,9 @@ fun MainTabs(
 @Composable
 private fun navigationColors(colors: com.hadithly.app.core.theme.HadithlyColors) =
     NavigationBarItemDefaults.colors(
-        selectedIconColor = colors.accent,
-        selectedTextColor = colors.accent,
-        indicatorColor = colors.accentSoft,
+        selectedIconColor = colors.interactive,
+        selectedTextColor = colors.interactive,
+        indicatorColor = colors.interactiveSoft,
         unselectedIconColor = colors.textSecondary,
         unselectedTextColor = colors.textSecondary,
     )

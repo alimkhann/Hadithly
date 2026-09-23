@@ -24,6 +24,7 @@ struct MainTabsView: View {
     @Binding var showSignIn: Bool
 
     @Environment(AppEnvironment.self) private var environment
+    @Environment(\.readerPalette) private var palette
 
     @State private var linkTarget: ReaderOpenTarget?
     @State private var selection = 0
@@ -55,7 +56,9 @@ struct MainTabsView: View {
             .tabItem { Label("Settings", systemImage: "gearshape") }
             .tag(3)
         }
-        .tint(Theme.accent)
+        .tint(palette.interactive)
+        .toolbarBackground(palette.surface, for: .tabBar)
+        .toolbarBackground(.visible, for: .tabBar)
         .fullScreenCover(item: $linkTarget) { target in
             ReaderView(
                 collectionSlug: target.slug,

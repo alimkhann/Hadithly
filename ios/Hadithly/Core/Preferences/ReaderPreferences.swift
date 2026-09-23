@@ -117,7 +117,7 @@ struct DirectionMetadata: Equatable {
 }
 
 struct ReaderPreferences: Codable, Equatable {
-    static let schemaVersion = 1
+    static let schemaVersion = 2
     static let minArabicFontSize: Double = 18
     static let maxArabicFontSize: Double = 40
 
@@ -125,16 +125,19 @@ struct ReaderPreferences: Codable, Equatable {
     var uiLocale: String = "en"
     var translationLocale: String = "en"
     var readingDirection: ReadingDirection = .auto
-    var theme: ReaderTheme = .system
+    var appTheme: ReaderTheme = .system
+    var readerTheme: ReaderTheme = .system
+    var usesSeparateReaderTheme: Bool = false
     var arabicFont: ArabicFont = .system
     var arabicFontSize: Double = 26
+    var translationFontSize: Double = 16
     var arabicVisible: Bool = true
     var translationVisible: Bool = true
     var updatedAt: Double = 0
 
     enum CodingKeys: String, CodingKey {
         case schemaVersion, uiLocale, translationLocale, readingDirection
-        case theme, arabicFont, arabicFontSize
+        case theme, appTheme, readerTheme, usesSeparateReaderTheme, arabicFont, arabicFontSize, translationFontSize
         case arabicVisible, translationVisible, updatedAt
     }
 
@@ -142,16 +145,39 @@ struct ReaderPreferences: Codable, Equatable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        schemaVersion = try container.decodeIfPresent(Int.self, forKey: .schemaVersion) ?? Self.schemaVersion
+        schemaVersion = Self.schemaVersion
         uiLocale = try container.decodeIfPresent(String.self, forKey: .uiLocale) ?? "en"
         translationLocale = try container.decodeIfPresent(String.self, forKey: .translationLocale) ?? "en"
         readingDirection = try container.decodeIfPresent(ReadingDirection.self, forKey: .readingDirection) ?? .auto
-        theme = try container.decodeIfPresent(ReaderTheme.self, forKey: .theme) ?? .system
+        let legacyTheme = try container.decodeIfPresent(ReaderTheme.self, forKey: .theme) ?? .system
+        appTheme = try container.decodeIfPresent(ReaderTheme.self, forKey: .appTheme) ?? legacyTheme
+        readerTheme = try container.decodeIfPresent(ReaderTheme.self, forKey: .readerTheme) ?? legacyTheme
+        usesSeparateReaderTheme = try container.decodeIfPresent(Bool.self, forKey: .usesSeparateReaderTheme) ?? false
         arabicFont = ArabicFont(decoding: try container.decodeIfPresent(String.self, forKey: .arabicFont))
         arabicFontSize = try container.decodeIfPresent(Double.self, forKey: .arabicFontSize) ?? 26
+        translationFontSize = min(22, max(14, try container.decodeIfPresent(Double.self, forKey: .translationFontSize) ?? 16))
         arabicVisible = try container.decodeIfPresent(Bool.self, forKey: .arabicVisible) ?? true
         translationVisible = try container.decodeIfPresent(Bool.self, forKey: .translationVisible) ?? true
         updatedAt = try container.decodeIfPresent(Double.self, forKey: .updatedAt) ?? 0
+    }
+
+    var theme: ReaderTheme { usesSeparateReaderTheme ? readerTheme : appTheme }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(schemaVersion, forKey: .schemaVersion)
+        try container.encode(uiLocale, forKey: .uiLocale)
+        try container.encode(translationLocale, forKey: .translationLocale)
+        try container.encode(readingDirection, forKey: .readingDirection)
+        try container.encode(appTheme, forKey: .appTheme)
+        try container.encode(readerTheme, forKey: .readerTheme)
+        try container.encode(usesSeparateReaderTheme, forKey: .usesSeparateReaderTheme)
+        try container.encode(arabicFont, forKey: .arabicFont)
+        try container.encode(arabicFontSize, forKey: .arabicFontSize)
+        try container.encode(translationFontSize, forKey: .translationFontSize)
+        try container.encode(arabicVisible, forKey: .arabicVisible)
+        try container.encode(translationVisible, forKey: .translationVisible)
+        try container.encode(updatedAt, forKey: .updatedAt)
     }
 }
 

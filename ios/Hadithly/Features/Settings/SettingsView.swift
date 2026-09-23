@@ -13,6 +13,7 @@ struct SettingsView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(Clerk.self) private var clerk
     @Environment(UserLibraryModel.self) private var library
+    @Environment(\.readerPalette) private var palette
 
     @State private var isSigningOut = false
     @State private var subscriptionTier: String?
@@ -37,10 +38,6 @@ struct SettingsView: View {
                         }
                     }
                     .accessibilityIdentifier(SettingsDestination.profile.accessibilityID)
-                } footer: {
-                    if let summary = environment.lastSyncSummary {
-                        Text(summary)
-                    }
                 }
             } else {
                 Section {
@@ -116,16 +113,15 @@ struct SettingsView: View {
                 }
             }
 
-            #if DEBUG
-            Section("Debug") {
-                GuestDataDebugCard()
-            }
-            #endif
         }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
-        .background(Theme.background)
+        .listRowBackground(palette.surface)
+        .listRowSeparatorTint(palette.divider)
+        .background(palette.background)
         .navigationTitle("Settings")
+        .toolbarBackground(palette.background, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
         .navigationDestination(for: SettingsDestination.self) { destination in
             switch destination {
             case .profile: ProfileView()
@@ -227,34 +223,3 @@ private struct SettingsLinkRow: View {
         .accessibilityIdentifier(destination.accessibilityID)
     }
 }
-
-#if DEBUG
-/// Development-only helpers to exercise guest mode and the sign-in merge.
-private struct GuestDataDebugCard: View {
-    @Environment(GuestDataStore.self) private var guestData
-
-    /// A real hadith from the dev deployment, used to seed a mergeable item.
-    private let sampleHadithId = "jn7fxd3z54153q9j13kmhgzkv18df2zd"
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Local guest items: \(guestData.itemCount)")
-                .font(.footnote)
-                .foregroundStyle(Theme.textSecondary)
-
-            HStack(spacing: 8) {
-                Button("Seed bookmark") {
-                    guestData.addBookmark(hadithId: sampleHadithId)
-                }
-                .buttonStyle(.bordered)
-
-                Button("Seed note") {
-                    guestData.addNote(hadithId: sampleHadithId, content: "Guest note written on-device.")
-                }
-                .buttonStyle(.bordered)
-            }
-            .tint(Color.white)
-        }
-    }
-}
-#endif

@@ -57,9 +57,15 @@ android {
         buildConfigField("String", "PRIVACY_POLICY_URL", "\"${secret("privacy.url")}\"")
         buildConfigField("String", "TERMS_OF_USE_URL", "\"${secret("terms.url")}\"")
         buildConfigField("boolean", "FIREBASE_CONFIGURED", hasGoogleServices.toString())
+        buildConfigField("boolean", "AUTOMATION", "false")
     }
 
     buildTypes {
+        create("automation") {
+            initWith(getByName("debug"))
+            matchingFallbacks += listOf("debug")
+            buildConfigField("boolean", "AUTOMATION", "true")
+        }
         release {
             // Local release evidence runs on the emulator, which requires a
             // signed APK; signing with the debug key matches the SHA-1

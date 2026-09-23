@@ -73,6 +73,14 @@ struct ReaderPalette: Equatable {
         case .dark: .dark
         }
     }
+
+    static func isDark(_ theme: ReaderTheme, systemScheme: ColorScheme) -> Bool {
+        switch theme {
+        case .system: systemScheme == .dark
+        case .dark: true
+        case .light, .paper: false
+        }
+    }
 }
 
 private struct ReaderPaletteKey: EnvironmentKey {

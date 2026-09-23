@@ -5,6 +5,9 @@ struct ReadingLanguage: Identifiable, Hashable {
     let name: String
 
     var id: String { code }
+    var flag: String {
+        switch code { case "en": "🇬🇧"; case "kk": "🇰🇿"; case "ru": "🇷🇺"; case "uz": "🇺🇿"; case "tr": "🇹🇷"; case "id": "🇮🇩"; case "ur": "🇵🇰"; case "ar": "🇸🇦"; default: "🌐" }
+    }
 }
 
 /// Languages the app actively supports for translations. English is the

@@ -48,7 +48,8 @@ fun ReaderTypographicFixture(extras: android.os.Bundle?) {
         translationLocale = extras?.getString("R3_TRANSLATION_LOCALE") ?: "en",
         arabicVisible = extras?.getString("R3_ARABIC_VISIBLE") != "false",
         translationVisible = extras?.getString("R3_TRANSLATION_VISIBLE") != "false",
-        theme = ReaderTheme.fromWire(extras?.getString("R4_THEME")) ?: ReaderTheme.DARK,
+        appTheme = ReaderTheme.fromWire(extras?.getString("R4_THEME")) ?: ReaderTheme.DARK,
+        readerTheme = ReaderTheme.fromWire(extras?.getString("R4_THEME")) ?: ReaderTheme.DARK,
         arabicFont = ArabicFont.fromWire(extras?.getString("R4_FONT")),
         arabicFontSize = extras?.getString("R4_SIZE")?.toFloatOrNull()
             ?.coerceIn(ReaderPreferences.MIN_ARABIC_FONT_SIZE, ReaderPreferences.MAX_ARABIC_FONT_SIZE)
@@ -56,7 +57,7 @@ fun ReaderTypographicFixture(extras: android.os.Bundle?) {
     )
     val showChrome = extras?.getString("R4_CHROME") == "true"
     val systemDark = isSystemInDarkTheme()
-    val colors = ReaderPalettes.resolved(preferences.theme, systemDark)
+    val colors = ReaderPalettes.resolved(preferences.readerTheme, systemDark)
     val policy = ReaderPagingPolicy(preferences)
     val pageCount = 3
     val pageIndex = 1

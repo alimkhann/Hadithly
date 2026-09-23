@@ -27,7 +27,7 @@ final class SettingsS1UITests: XCTestCase {
             ("settings.row.appearance", "settings.appearance.system"),
             ("settings.row.appLanguage", "settings.uiLanguage.en"),
             ("settings.row.hadithTranslation", "settings.language.en"),
-            ("settings.row.readingAndType", "settings.arabicSize"),
+            ("settings.row.readingAndType", "settings.visibility.arabic"),
             ("settings.row.offlineStorage", "settings.offline.learnMore"),
             ("settings.row.notifications", "settings.notifications.signedOut"),
             ("settings.row.subscription", "settings.subscription.signedOut"),

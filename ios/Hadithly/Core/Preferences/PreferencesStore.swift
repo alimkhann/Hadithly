@@ -99,8 +99,15 @@ final class PreferencesStore {
     }
 
     func setTheme(_ theme: ReaderTheme) {
-        update { $0.theme = theme }
+        update {
+            $0.appTheme = theme
+            if !$0.usesSeparateReaderTheme { $0.readerTheme = theme }
+        }
     }
+
+    func setSeparateReaderTheme(_ enabled: Bool) { update { $0.usesSeparateReaderTheme = enabled } }
+    func setReaderTheme(_ theme: ReaderTheme) { update { $0.readerTheme = theme } }
+    func setTranslationFontSize(_ size: Double) { update { $0.translationFontSize = min(22, max(14, size)) } }
 
     func setArabicFont(_ font: ArabicFont) {
         update { $0.arabicFont = font }

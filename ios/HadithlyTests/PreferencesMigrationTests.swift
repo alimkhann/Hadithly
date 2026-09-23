@@ -42,7 +42,8 @@ final class PreferencesMigrationTests: XCTestCase {
         var explicit = ReaderPreferences()
         explicit.uiLocale = "en"
         explicit.translationLocale = "ar"
-        explicit.theme = .paper
+        explicit.appTheme = .paper
+        explicit.readerTheme = .paper
         explicit.updatedAt = 500
         let stored = String(data: try JSONEncoder().encode(explicit), encoding: .utf8)
 
@@ -127,7 +128,8 @@ final class PreferencesMigrationTests: XCTestCase {
 
         var server = ReaderPreferences()
         server.translationLocale = "ar"
-        server.theme = .paper
+        server.appTheme = .paper
+        server.readerTheme = .paper
         server.updatedAt = Date().timeIntervalSince1970 * 1000 + 60_000
 
         store.adoptServer(server)

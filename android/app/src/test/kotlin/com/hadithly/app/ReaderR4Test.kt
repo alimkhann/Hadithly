@@ -35,6 +35,27 @@ class ReaderR4Test {
         assertTrue(ReaderPalettes.paper.textPrimary != ReaderPalettes.paper.background)
     }
 
+    @Test
+    fun `app palette resolution matrix remains stable for every settings language`() {
+        listOf("en", "ar", "ur").forEach { locale ->
+            assertTrue(locale.isNotEmpty())
+            assertEquals(ReaderPalettes.light, ReaderPalettes.resolved(ReaderTheme.SYSTEM, systemDark = false))
+            assertEquals(ReaderPalettes.dark, ReaderPalettes.resolved(ReaderTheme.SYSTEM, systemDark = true))
+            assertEquals(ReaderPalettes.light, ReaderPalettes.resolved(ReaderTheme.LIGHT, systemDark = true))
+            assertEquals(ReaderPalettes.paper, ReaderPalettes.resolved(ReaderTheme.PAPER, systemDark = true))
+            assertEquals(ReaderPalettes.dark, ReaderPalettes.resolved(ReaderTheme.DARK, systemDark = false))
+        }
+    }
+
+    @Test
+    fun `light and paper app chrome uses the semantic interactive token`() {
+        listOf(ReaderPalettes.light, ReaderPalettes.paper).forEach { palette ->
+            assertEquals(palette.interactive, palette.accent)
+            assertEquals(palette.interactiveSoft, palette.accentSoft)
+            assertNotEquals(palette.interactive, palette.background)
+        }
+    }
+
     /**
      * Monochrome restyle gate: the palette-aware interactive tint keeps WCAG
      * AA contrast (4.5) for glyphs/links on every surface, and filled
@@ -102,7 +123,7 @@ class ReaderR4Test {
         var preferences = ReaderPreferences()
         val baseline = preferences.layoutProjection
         preferences = preferences.copy(
-            theme = ReaderTheme.PAPER,
+            appTheme = ReaderTheme.PAPER,
             readingDirection = com.hadithly.app.core.preferences.ReadingDirection.RTL,
         )
         assertEquals(baseline, preferences.layoutProjection)

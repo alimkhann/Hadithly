@@ -13,6 +13,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -42,6 +44,7 @@ import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.TextFields
+import androidx.compose.material.icons.outlined.RadioButtonUnchecked
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -223,7 +226,7 @@ private fun SettingsRoot(onOpen: (SettingsDestination) -> Unit, onShowSignIn: ()
                 Button(
                     onClick = onShowSignIn,
                     shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = colors.accent, contentColor = Color.Black),
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.interactive, contentColor = colors.onInteractive),
                     modifier = Modifier.fillMaxWidth().testTag("settings.signin"),
                 ) { Text("Sign in", fontWeight = FontWeight.SemiBold) }
             }
@@ -417,10 +420,9 @@ private fun AppearanceDestination() {
             Text("Appearance", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
             Text("Applies across the app. The reader previews each theme live.", fontSize = 12.sp, color = colors.textSecondary)
             ReaderTheme.entries.forEach { theme ->
-                optionRow(
+                SettingsSingleChoiceRow(
                     label = themeLabel(theme),
-                    selected = theme == preferences.theme,
-                    colors = colors,
+                    selected = theme == preferences.appTheme,
                     onClick = { app.preferences.setTheme(theme) },
                     modifier = Modifier.testTag("settings.appearance.${theme.wire}"),
                 )
@@ -457,10 +459,9 @@ private fun LanguageList(title: String, selection: String, prefix: String, onSel
         CardColumn {
             Text(title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
             SupportedLanguages.all.forEach { (code, name) ->
-                optionRow(
+                SettingsSingleChoiceRow(
                     label = name,
                     selected = code == selection,
-                    colors = colors,
                     onClick = { onSelect(code) },
                     modifier = Modifier.testTag("$prefix.$code"),
                 )
@@ -487,14 +488,48 @@ private fun ReadingTypeDestination() {
     val colors = LocalHadithlyColors.current
     val preferences by app.preferences.preferences.collectAsStateWithLifecycle()
     val store: PreferencesStore = app.preferences
+    var showingDetail by remember { mutableStateOf(false) }
     ScrollColumn {
+        if (!showingDetail) {
+            SettingsDestinationLabel("DISPLAY")
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                SettingsDisplayPill("Arabic", preferences.arabicVisible, Modifier.weight(1f).testTag("settings.visibility.arabic")) { store.setVisibility(arabic = !preferences.arabicVisible) }
+                SettingsDisplayPill("Translation", preferences.translationVisible, Modifier.weight(1f).testTag("settings.visibility.translation")) { store.setVisibility(translation = !preferences.translationVisible) }
+            }
+            Text("At least one layer stays visible.", fontSize = 12.sp, color = colors.textSecondary)
+
+            SettingsDestinationLabel("READER SETTINGS")
+            SettingsDestinationNavigationRow("Arabic font", "${fontLabel(preferences.arabicFont)} · ${preferences.arabicFontSize.toInt()} pt") { showingDetail = true }
+            SettingsDestinationNavigationRow("Translation", preferences.translationLocale.uppercase()) { showingDetail = true }
+            SettingsDestinationNavigationRow("Color themes", themeLabel(preferences.readerTheme)) { showingDetail = true }
+
+            SettingsDestinationLabel("READING DIRECTION")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                ReadingDirection.entries.forEach { direction ->
+                    val selected = direction == preferences.readingDirection
+                    TextButton(
+                        onClick = { store.setReadingDirection(direction) },
+                        modifier = Modifier.weight(1f).background(if (selected) colors.surfaceElevated else colors.surface, RoundedCornerShape(50)).testTag("settings.readingDirection.${direction.wire}"),
+                    ) { Text(directionLabel(direction), color = if (selected) colors.textPrimary else colors.textSecondary, maxLines = 1) }
+                }
+            }
+
+            SettingsDestinationLabel("SAVED")
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().background(colors.surfaceElevated, RoundedCornerShape(18.dp)).padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Text(stringResource(R.string.saved_confirm_removal), fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
+                Switch(checked = app.savedSafety.confirmsRemoval, onCheckedChange = { app.savedSafety.confirmsRemoval = it }, colors = SwitchDefaults.colors(checkedTrackColor = colors.interactive), modifier = Modifier.testTag("settings.confirmSavedRemoval"))
+            }
+        } else {
+            TextButton(onClick = { showingDetail = false }) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = colors.textSecondary)
+                Text("Reading & type", color = colors.textSecondary)
+            }
         CardColumn {
             Text("Arabic type", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
             ArabicFont.entries.forEach { font ->
-                optionRow(
+                SettingsSingleChoiceRow(
                     label = fontLabel(font),
                     selected = font == preferences.arabicFont,
-                    colors = colors,
                     onClick = { store.setArabicFont(font) },
                     modifier = Modifier.testTag("settings.arabicFont.${font.wire}"),
                 )
@@ -514,10 +549,9 @@ private fun ReadingTypeDestination() {
         CardColumn {
             Text(stringResource(R.string.settings_reading_direction), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
             ReadingDirection.entries.forEach { direction ->
-                optionRow(
+                SettingsSingleChoiceRow(
                     label = directionLabel(direction),
                     selected = direction == preferences.readingDirection,
-                    colors = colors,
                     onClick = { store.setReadingDirection(direction) },
                     modifier = Modifier.testTag("settings.readingDirection.${direction.wire}"),
                 )
@@ -550,6 +584,38 @@ private fun ReadingTypeDestination() {
                 )
             }
         }
+        }
+    }
+}
+
+@Composable
+private fun SettingsDestinationLabel(text: String) {
+    val colors = LocalHadithlyColors.current
+    Text(text, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.textSecondary, modifier = Modifier.padding(top = 12.dp))
+}
+
+@Composable
+private fun SettingsDisplayPill(title: String, isOn: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val colors = LocalHadithlyColors.current
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+        modifier = modifier.heightIn(min = 52.dp).background(if (isOn) colors.surfaceElevated else colors.surface, RoundedCornerShape(50)).toggleable(value = isOn, role = androidx.compose.ui.semantics.Role.Switch, onValueChange = { onClick() }).padding(horizontal = 12.dp),
+    ) {
+        Icon(if (isOn) Icons.Filled.Check else Icons.Outlined.RadioButtonUnchecked, contentDescription = null, tint = if (isOn) colors.interactive else colors.textSecondary, modifier = Modifier.size(18.dp))
+        Text(title, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = if (isOn) colors.textPrimary else colors.textSecondary, modifier = Modifier.padding(start = 6.dp))
+    }
+}
+
+@Composable
+private fun SettingsDestinationNavigationRow(title: String, subtitle: String, onClick: () -> Unit) {
+    val colors = LocalHadithlyColors.current
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp).clickable(onClick = onClick)) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, fontSize = 21.sp, fontWeight = FontWeight.Medium, color = colors.textPrimary)
+            Text(subtitle, fontSize = 16.sp, color = colors.textSecondary, modifier = Modifier.padding(top = 4.dp))
+        }
+        Icon(Icons.AutoMirrored.Filled.NavigateNext, contentDescription = null, tint = colors.textSecondary, modifier = Modifier.size(24.dp))
     }
 }
 
@@ -918,7 +984,7 @@ private fun NotificationDestination() {
                                 enableNotifications()
                             }
                         },
-                        colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = colors.accent),
+                        colors = SwitchDefaults.colors(checkedThumbColor = colors.onInteractive, checkedTrackColor = colors.interactive),
                         modifier = Modifier.testTag("settings.notificationsToggle"),
                     )
                 }
@@ -989,7 +1055,7 @@ private fun SubscriptionDestination() {
                 Button(
                     onClick = { showPaywall = true },
                     shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = colors.accent, contentColor = Color.Black),
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.interactive, contentColor = colors.onInteractive),
                     modifier = Modifier.fillMaxWidth().testTag("settings.subscription.plans"),
                 ) { Text("View plans", fontWeight = FontWeight.SemiBold) }
                 TextButton(
@@ -1075,7 +1141,7 @@ private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
                 Button(
                     onClick = onShowSignIn,
                     shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = colors.accent, contentColor = Color.Black),
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.interactive, contentColor = colors.onInteractive),
                     modifier = Modifier.fillMaxWidth().testTag("settings.signin"),
                 ) { Text("Sign in", fontWeight = FontWeight.SemiBold) }
             }
@@ -1285,19 +1351,20 @@ private fun CardColumn(content: @Composable androidx.compose.foundation.layout.C
 }
 
 @Composable
-private fun optionRow(
+internal fun SettingsSingleChoiceRow(
     label: String,
     selected: Boolean,
-    colors: HadithlyColors,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val colors = LocalHadithlyColors.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
+            .heightIn(min = 48.dp)
             .selectable(selected = selected, onClick = onClick, role = androidx.compose.ui.semantics.Role.RadioButton)
-            .padding(horizontal = 4.dp, vertical = 2.dp),
+            .padding(horizontal = 4.dp),
     ) {
         androidx.compose.material3.RadioButton(
             selected = selected,

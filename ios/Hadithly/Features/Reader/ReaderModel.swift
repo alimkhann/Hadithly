@@ -200,7 +200,7 @@ final class ReaderModel {
     /// into release builds.
 #if DEBUG
     private static var forceOfflineReader: Bool {
-        CommandLine.arguments.contains("-forceOfflineReader")
+        AutomationContext.allows("-forceOfflineReader")
     }
 #endif
 

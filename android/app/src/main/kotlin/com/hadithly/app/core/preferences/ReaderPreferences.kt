@@ -122,22 +122,26 @@ data class ReaderPreferences(
     val uiLocale: String = "en",
     val translationLocale: String = "en",
     val readingDirection: ReadingDirection = ReadingDirection.AUTO,
-    val theme: ReaderTheme = ReaderTheme.SYSTEM,
+    val appTheme: ReaderTheme = ReaderTheme.SYSTEM,
+    val readerTheme: ReaderTheme = ReaderTheme.SYSTEM,
+    val usesSeparateReaderTheme: Boolean = false,
     @Serializable(with = ArabicFontSerializer::class)
     val arabicFont: ArabicFont = ArabicFont.SYSTEM,
     val arabicFontSize: Float = 26f,
+    val translationFontSize: Float = 16f,
     val arabicVisible: Boolean = true,
     val translationVisible: Boolean = true,
     val updatedAt: Double = 0.0,
 ) {
     companion object {
-        const val SCHEMA_VERSION = 1
+        const val SCHEMA_VERSION = 2
         const val MIN_ARABIC_FONT_SIZE = 18f
         const val MAX_ARABIC_FONT_SIZE = 40f
         const val DEFAULT_ARABIC_FONT_SIZE = 26f
 
         /** The accessible Arabic type ladder behind the A−/A+ stepper. */
         val ARABIC_FONT_SIZE_STEPS = listOf(18f, 22f, 26f, 30f, 34f, 40f)
+        val TRANSLATION_FONT_SIZE_STEPS = listOf(14f, 16f, 18f, 20f, 22f)
     }
 
     /**
@@ -215,13 +219,17 @@ object ArabicTypeSize {
 }
 
 /** Convex wire encoding. All numbers travel as Double. */
-fun ReaderPreferences.toWireMap(): Map<String, Any?> = mapOf(    "schemaVersion" to schemaVersion.toDouble(),
+fun ReaderPreferences.toWireMap(): Map<String, Any?> = mapOf(
+    "schemaVersion" to schemaVersion.toDouble(),
     "uiLocale" to uiLocale,
     "translationLocale" to translationLocale,
     "readingDirection" to readingDirection.wire,
-    "theme" to theme.wire,
+    "appTheme" to appTheme.wire,
+    "readerTheme" to readerTheme.wire,
+    "usesSeparateReaderTheme" to usesSeparateReaderTheme,
     "arabicFont" to arabicFont.wire,
     "arabicFontSize" to arabicFontSize.toDouble(),
+    "translationFontSize" to translationFontSize.toDouble(),
     "arabicVisible" to arabicVisible,
     "translationVisible" to translationVisible,
     "updatedAt" to updatedAt,

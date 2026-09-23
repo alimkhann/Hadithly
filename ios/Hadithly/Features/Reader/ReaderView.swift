@@ -2324,7 +2324,9 @@ struct ReaderPagingTestFixtureView: View {
         preferences.readingDirection = ReadingDirection(
             rawValue: environment["R3_READING_DIRECTION"] ?? "auto"
         ) ?? .auto
-        preferences.theme = ReaderTheme(rawValue: environment["R4_THEME"] ?? "") ?? .dark
+        let fixtureTheme = ReaderTheme(rawValue: environment["R4_THEME"] ?? "") ?? .dark
+        preferences.appTheme = fixtureTheme
+        preferences.readerTheme = fixtureTheme
         preferences.arabicFont = ArabicFont(decoding: environment["R4_FONT"])
         if let size = Double(environment["R4_SIZE"] ?? "") {
             preferences.arabicFontSize = size

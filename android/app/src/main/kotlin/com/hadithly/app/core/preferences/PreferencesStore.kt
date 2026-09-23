@@ -4,6 +4,9 @@ import android.content.SharedPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.decodeFromJsonElement
 
 private val storeJson = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
@@ -47,10 +50,24 @@ class PreferencesStore(sharedPrefs: SharedPreferences) {
             legacyArabicFontSize: Float? = null,
         ): MigrationResult {
             if (storedJson != null) {
-                runCatching { storeJson.decodeFromString<ReaderPreferences>(storedJson) }
+                runCatching {
+                    val stored = storeJson.parseToJsonElement(storedJson) as JsonObject
+                    val legacyTheme = stored["theme"]
+                    val migrated = if (legacyTheme != null && "appTheme" !in stored) {
+                        JsonObject(stored + mapOf(
+                            "schemaVersion" to JsonPrimitive(ReaderPreferences.SCHEMA_VERSION),
+                            "appTheme" to legacyTheme,
+                            "readerTheme" to legacyTheme,
+                        ))
+                    } else stored
+                    storeJson.decodeFromJsonElement<ReaderPreferences>(migrated)
+                }
                     .getOrNull()
                     ?.let { stored ->
-                        return MigrationResult(preferences = stored, seededFromLegacy = false)
+                        return MigrationResult(
+                            preferences = stored.copy(schemaVersion = ReaderPreferences.SCHEMA_VERSION),
+                            seededFromLegacy = false,
+                        )
                     }
             }
             val canonical = legacyLanguage?.let { LocaleFallback.canonicalizeLocaleTag(it) }
@@ -94,7 +111,14 @@ class PreferencesStore(sharedPrefs: SharedPreferences) {
     fun setReadingDirection(direction: ReadingDirection) =
         update { it.copy(readingDirection = direction) }
 
-    fun setTheme(theme: ReaderTheme) = update { it.copy(theme = theme) }
+    fun setTheme(theme: ReaderTheme) = update {
+        it.copy(appTheme = theme, readerTheme = if (it.usesSeparateReaderTheme) it.readerTheme else theme)
+    }
+    fun setSeparateReaderTheme(enabled: Boolean) = update { it.copy(usesSeparateReaderTheme = enabled) }
+    fun setReaderTheme(theme: ReaderTheme) = update { it.copy(readerTheme = theme) }
+    fun setTranslationFontSize(size: Float) = update {
+        it.copy(translationFontSize = size.coerceIn(14f, 22f))
+    }
 
     fun setArabicFont(font: ArabicFont) = update { it.copy(arabicFont = font) }
 

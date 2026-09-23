@@ -8,9 +8,10 @@ struct HadithlyApp: App {
 
     var body: some Scene {
         let uiLocale = environment.preferences.preferences.uiLocale
-        let theme = environment.preferences.preferences.theme
         WindowGroup {
-            RootView()
+            AppPaletteRoot(theme: environment.preferences.preferences.appTheme) {
+                RootView()
+            }
                 .environment(environment)
                 .environment(environment.guestData)
                 .environment(environment.library)
@@ -21,8 +22,37 @@ struct HadithlyApp: App {
                     \.layoutDirection,
                     LocaleFallback.isRTL(uiLocale) ? .rightToLeft : .leftToRight
                 )
-                .environment(\.readerTheme, theme)
-                .preferredColorScheme(ReaderPalette.preferredColorScheme(for: theme))
         }
+    }
+}
+
+/// One palette owner for all app content, presented sheets, tabs, and bars.
+/// Updating the preference only invalidates this environment; it never changes
+/// a view identity, so NavigationStack and Reader state remain in place.
+private struct AppPaletteRoot<Content: View>: View {
+    @Environment(\.colorScheme) private var systemScheme
+    let theme: ReaderTheme
+    let content: Content
+
+    init(theme: ReaderTheme, @ViewBuilder content: () -> Content) {
+        self.theme = theme
+        self.content = content()
+    }
+
+    private var palette: ReaderPalette {
+        ReaderPalette.resolved(theme, systemDark: systemScheme == .dark)
+    }
+
+    private var themedContent: Content {
+        Theme.install(palette)
+        return content
+    }
+
+    var body: some View {
+        themedContent
+            .environment(\.readerPalette, palette)
+            .environment(\.readerTheme, theme)
+            .tint(palette.interactive)
+            .preferredColorScheme(ReaderPalette.preferredColorScheme(for: theme))
     }
 }

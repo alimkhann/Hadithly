@@ -3,7 +3,6 @@ package com.hadithly.app
 import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.CompositionLocalProvider
@@ -17,8 +16,6 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
-import androidx.compose.ui.graphics.toArgb
-import com.hadithly.app.core.theme.ThemeColors
 import com.hadithly.app.core.theme.HadithlyTheme
 import com.hadithly.app.core.preferences.LocaleFallback
 import com.hadithly.app.core.links.CanonicalHadithLink
@@ -45,15 +42,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.dark(ThemeColors.Background.toArgb()),
-            navigationBarStyle = SystemBarStyle.dark(ThemeColors.Background.toArgb()),
-        )
+        enableEdgeToEdge()
         val pendingLink = intent?.data
             ?.let { CanonicalHadithLink.parse(it.scheme, it.host, it.path, it.encodedPath) }
         notificationTarget = notificationTarget(intent)
         continueWidgetRequest = widgetContinueRequest(intent)
-        val fixtureExtras = if (BuildConfig.DEBUG && intent?.getStringExtra("fixture") == "r4") intent.extras else null
+        val fixtureExtras = if (BuildConfig.AUTOMATION && intent?.getStringExtra("fixture") == "r4") intent.extras else null
         setContent {
             if (fixtureExtras != null) {
                 HadithlyTheme {
@@ -130,7 +124,7 @@ private fun LocalizedRootApp(
         LocalResources provides localizedResources,
         androidx.compose.ui.platform.LocalLayoutDirection provides layoutDirection,
     ) {
-        HadithlyTheme(theme = preferences.theme) {
+        HadithlyTheme(theme = preferences.appTheme) {
             RootApp(
                 pendingLink = pendingLink,
                 notificationTarget = notificationTarget,

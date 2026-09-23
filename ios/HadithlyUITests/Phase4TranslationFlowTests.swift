@@ -82,6 +82,9 @@ final class Phase4TranslationFlowTests: XCTestCase {
         let settingsCard = app.buttons["reader.menu.settings"]
         XCTAssertTrue(settingsCard.waitForExistence(timeout: timeout), "reader menu never opened")
         settingsCard.tap()
+        let translationSettings = app.buttons["reader.settings.translation"]
+        XCTAssertTrue(translationSettings.waitForExistence(timeout: timeout))
+        translationSettings.tap()
         let russian = app.buttons["reader.language.ru"]
         XCTAssertTrue(russian.waitForExistence(timeout: timeout))
         russian.tap()

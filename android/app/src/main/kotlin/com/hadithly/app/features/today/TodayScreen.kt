@@ -107,7 +107,7 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
     val libraryModel: LibraryViewModel = viewModel()
     val summaries by libraryModel.summaries.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val readerColors = ReaderPalettes.resolved(preferences.theme, androidx.compose.foundation.isSystemInDarkTheme())
+    val readerColors = ReaderPalettes.resolved(if (preferences.usesSeparateReaderTheme) preferences.readerTheme else preferences.appTheme, androidx.compose.foundation.isSystemInDarkTheme())
     var daily by remember { mutableStateOf<DailyHadith?>(null) }
     var loading by remember { mutableStateOf(true) }
     var failed by remember { mutableStateOf(false) }

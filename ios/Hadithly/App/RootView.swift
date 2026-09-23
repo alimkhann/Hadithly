@@ -14,35 +14,19 @@ struct RootView: View {
     @State private var hasSyncedLaunchSession = false
 
     private var isR3PagingFixture: Bool {
-#if DEBUG
-        ProcessInfo.processInfo.arguments.contains("-R3PagingFixture")
-#else
-        false
-#endif
+        AutomationContext.allows("-R3PagingFixture")
     }
 
     private var isR5ContentsFixture: Bool {
-#if DEBUG
-        ProcessInfo.processInfo.arguments.contains("-R5ContentsFixture")
-#else
-        false
-#endif
+        AutomationContext.allows("-R5ContentsFixture")
     }
 
     private var isR6AReaderFixture: Bool {
-#if DEBUG
-        ProcessInfo.processInfo.arguments.contains("-R6AReaderFixture")
-#else
-        false
-#endif
+        AutomationContext.allows("-R6AReaderFixture")
     }
 
     private var isR6Round3Fixture: Bool {
-#if DEBUG
-        ProcessInfo.processInfo.arguments.contains("-R6Round3Fixture")
-#else
-        false
-#endif
+        AutomationContext.allows("-R6Round3Fixture")
     }
 
     @ViewBuilder

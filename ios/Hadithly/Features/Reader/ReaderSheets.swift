@@ -30,7 +30,7 @@ struct ReaderSheetChrome<Content: View>: View {
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.headline)
+                        .font(.title2.weight(.semibold))
                         .foregroundStyle(palette.textPrimary)
                         .accessibilityIdentifier(titleIdentifier ?? "")
                     if let subtitle, !subtitle.isEmpty {
@@ -44,7 +44,7 @@ struct ReaderSheetChrome<Content: View>: View {
                     Image(systemName: "xmark")
                         .font(.callout.weight(.semibold))
                         .foregroundStyle(palette.textSecondary)
-                        .frame(width: 36, height: 36)
+                        .frame(width: 44, height: 44)
                         .background(palette.surfaceElevated)
                         .clipShape(Circle())
                 }
@@ -347,12 +347,15 @@ struct ReaderSettingsSheet: View {
     @Environment(\.readerPalette) private var palette
     @Environment(\.readerTheme) private var readerTheme
     @Environment(AppEnvironment.self) private var environment
+    @State private var panel: Panel?
+
+    private enum Panel: String { case appearance = "Appearance", arabic = "Arabic type", translation = "Translation" }
 
     private var preferences: ReaderPreferences { environment.preferences.preferences }
 
     var body: some View {
         ReaderSheetChrome(
-            title: "Settings",
+            title: panel?.rawValue ?? "Settings",
             subtitle: nil,
             palette: palette,
             grabberIdentifier: "reader.settings.grabber",
@@ -362,20 +365,59 @@ struct ReaderSettingsSheet: View {
         ) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    ReaderSheetSectionLabel(text: "SHOW ON PAGE", palette: palette)
-                    visibilitySection
-                    ReaderSheetSectionLabel(text: "COLOR THEME", palette: palette)
-                    themeSection
-                    ReaderSheetSectionLabel(text: "ARABIC TYPE", palette: palette)
-                    typeSection
-                    ReaderSheetSectionLabel(text: "TRANSLATION LANGUAGE", palette: palette)
-                    languageSection
+                    if let panel {
+                        Button {
+                            self.panel = nil
+                        } label: {
+                            Label("Settings", systemImage: "chevron.left")
+                                .font(.subheadline.weight(.medium))
+                                .foregroundStyle(palette.textSecondary)
+                                .frame(minHeight: 44)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Back to reader settings")
+                        switch panel {
+                        case .appearance: themeSection
+                        case .arabic: typeSection
+                        case .translation: VStack(alignment: .leading, spacing: 16) { languageSection; translationSizeSection }
+                        }
+                    } else {
+                        ReaderSheetSectionLabel(text: "SHOW ON PAGE", palette: palette)
+                        visibilitySection
+                        ReaderSheetSectionLabel(text: "READER SETTINGS", palette: palette)
+                        settingsRow(.appearance, subtitle: preferences.theme.rawValue)
+                        settingsRow(.arabic, subtitle: "\(preferences.arabicFont.displayName) · \(Int(preferences.arabicFontSize)) pt")
+                        settingsRow(.translation, subtitle: "\(preferences.translationLocale) · \(Int(preferences.translationFontSize)) pt")
+                    }
                 }
                 .padding(.horizontal, 20)
                 .padding(.bottom, 16)
             }
         }
         .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
+    }
+
+    private func settingsRow(_ panel: Panel, subtitle: String) -> some View {
+        Button { self.panel = panel } label: {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(panel.rawValue)
+                        .font(.title3.weight(.medium))
+                        .foregroundStyle(palette.textPrimary)
+                    Text(subtitle)
+                        .font(.body)
+                        .foregroundStyle(palette.textSecondary)
+                }
+                Spacer(minLength: 12)
+                Image(systemName: "chevron.right")
+                    .font(.title3.weight(.medium))
+                    .foregroundStyle(palette.textSecondary.opacity(0.7))
+            }
+            .frame(minHeight: 70)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(panel == .appearance ? "reader.settings.appearance" : panel == .arabic ? "reader.settings.arabic" : "reader.settings.translation")
     }
 
     // MARK: Visibility
@@ -457,39 +499,35 @@ struct ReaderSettingsSheet: View {
     // MARK: Theme
 
     private var themeSection: some View {
-        HStack(spacing: 8) {
-            ForEach(ReaderTheme.allCases, id: \.self) { theme in
-                themeButton(theme)
-            }
+        VStack(spacing: 10) {
+            ForEach(ReaderTheme.allCases, id: \.self) { theme in themeButton(theme) }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func themeButton(_ theme: ReaderTheme) -> some View {
         let isSelected = preferences.theme == theme
         let swatch = ReaderPalette.resolved(theme, systemDark: true)
         return Button {
-            environment.preferences.setTheme(theme)
+            environment.preferences.setReaderTheme(theme)
         } label: {
-            VStack(spacing: 6) {
-                RoundedRectangle(cornerRadius: 8)
+            HStack(spacing: 12) {
+                RoundedRectangle(cornerRadius: 7)
                     .fill(swatch.background)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .strokeBorder(
-                                isSelected ? palette.interactive : palette.divider,
-                                lineWidth: isSelected ? 2 : 1
-                            )
-                    )
-                    .frame(height: 34)
+                    .frame(width: 34, height: 34)
+                    .overlay(RoundedRectangle(cornerRadius: 7).strokeBorder(palette.divider, lineWidth: 1))
                 Text(theme == .system ? "System" : theme == .light ? "Light" : theme == .paper ? "Paper" : "Dark")
-                    .font(.caption2.weight(.medium))
-                    .foregroundStyle(isSelected ? palette.interactive : palette.textSecondary)
+                    .font(.title3.weight(.medium))
+                Spacer()
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.title3.weight(.semibold))
+                }
             }
-            .frame(maxWidth: .infinity)
-            .padding(6)
-            .background(Color.clear)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .foregroundStyle(palette.textPrimary)
+            .padding(.horizontal, 18)
+            .frame(maxWidth: .infinity, minHeight: 62)
+            .background(palette.surfaceElevated)
+            .clipShape(Capsule())
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Color theme \(theme == .system ? "System" : theme == .light ? "Light" : theme == .paper ? "Paper" : "Dark")")
@@ -501,13 +539,16 @@ struct ReaderSettingsSheet: View {
 
     private var typeSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ")
+            Text("إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ")
                 .font(Theme.arabic(preferences.arabicFontSize, preferences.arabicFont))
                 .lineSpacing(preferences.arabicFontSize * 0.75)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(palette.textPrimary)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 10)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 24)
+                .background(palette.surfaceElevated)
+                .clipShape(RoundedRectangle(cornerRadius: 18))
                 .accessibilityLabel("Arabic type preview")
                 .accessibilityIdentifier("reader.typePreview")
 
@@ -521,7 +562,7 @@ struct ReaderSettingsSheet: View {
     }
 
     private var sizeStepper: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 0) {
             Button {
                 environment.preferences.setArabicFontSize(
                     ArabicTypeSize.stepDown(from: preferences.arabicFontSize)
@@ -529,18 +570,14 @@ struct ReaderSettingsSheet: View {
             } label: {
                 Text("A")
                     .font(.subheadline.weight(.semibold))
-                    .frame(maxWidth: .infinity, minHeight: 44)
-                    .background(palette.surfaceElevated)
-                    .clipShape(Capsule())
+                    .frame(maxWidth: .infinity, minHeight: 60)
             }
             .buttonStyle(.plain)
             .disabled(preferences.arabicFontSize <= ReaderPreferences.minArabicFontSize)
             .accessibilityLabel("Smaller Arabic type")
             .accessibilityIdentifier("reader.sizeSmaller")
 
-            Text("\(Int(preferences.arabicFontSize)) pt")
-                .font(.caption.monospacedDigit())
-                .foregroundStyle(palette.textSecondary)
+            Divider().overlay(palette.divider)
 
             Button {
                 environment.preferences.setArabicFontSize(
@@ -549,15 +586,16 @@ struct ReaderSettingsSheet: View {
             } label: {
                 Text("A")
                     .font(.title3.weight(.semibold))
-                    .frame(maxWidth: .infinity, minHeight: 44)
-                    .background(palette.surfaceElevated)
-                    .clipShape(Capsule())
+                    .frame(maxWidth: .infinity, minHeight: 60)
             }
             .buttonStyle(.plain)
             .disabled(preferences.arabicFontSize >= ReaderPreferences.maxArabicFontSize)
             .accessibilityLabel("Larger Arabic type")
             .accessibilityIdentifier("reader.sizeLarger")
         }
+        .background(palette.surfaceElevated)
+        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .accessibilityElement(children: .contain)
     }
 
     private func fontRow(_ font: ArabicFont) -> some View {
@@ -568,7 +606,7 @@ struct ReaderSettingsSheet: View {
             VStack(spacing: 0) {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("بِسْمِ اللَّهِ")
+                        Text("إِنَّمَا الْأَعْمَالُ")
                             .font(Theme.arabic(20, font))
                             .foregroundStyle(palette.textPrimary)
                         Text(font.displayName)
@@ -632,6 +670,39 @@ struct ReaderSettingsSheet: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var translationSizeSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Actions are judged by intentions.")
+                .font(.system(size: preferences.translationFontSize))
+                .foregroundStyle(palette.textPrimary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(16)
+                .background(palette.surfaceElevated)
+                .clipShape(RoundedRectangle(cornerRadius: 18))
+            HStack(spacing: 0) {
+                Button {
+                    environment.preferences.setTranslationFontSize(max(14, preferences.translationFontSize - 2))
+                } label: {
+                    Text("A").font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 60)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Smaller translation type")
+                Divider().overlay(palette.divider)
+                Button {
+                    environment.preferences.setTranslationFontSize(min(22, preferences.translationFontSize + 2))
+                } label: {
+                    Text("A").font(.title3.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 60)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Larger translation type")
+            }
+            .foregroundStyle(palette.textPrimary)
+            .background(palette.surfaceElevated)
+            .clipShape(RoundedRectangle(cornerRadius: 18))
+            .accessibilityIdentifier("reader.translationSize")
+        }
     }
 }
 

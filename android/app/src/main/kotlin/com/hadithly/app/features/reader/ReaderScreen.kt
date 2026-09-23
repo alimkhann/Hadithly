@@ -206,7 +206,8 @@ fun ReaderScreen(
     val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
     // R4: the reader honors the ReaderTheme preference; everything outside
     // keeps the app-wide dark canvas.
-    val colors = com.hadithly.app.core.theme.ReaderPalettes.resolved(preferences.theme, systemDark)
+    val effectiveReaderTheme = if (preferences.usesSeparateReaderTheme) preferences.readerTheme else preferences.appTheme
+    val colors = com.hadithly.app.core.theme.ReaderPalettes.resolved(effectiveReaderTheme, systemDark)
 
     var showContents by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
@@ -297,7 +298,7 @@ fun ReaderScreen(
                 language = state.language,
                 onLanguage = { viewModel.setLanguage(it) },
                 onArabicFontSize = app.preferences::setArabicFontSize,
-                onTheme = app.preferences::setTheme,
+                onTheme = app.preferences::setReaderTheme,
                 onArabicFont = app.preferences::setArabicFont,
                 onVisibility = { arabic: Boolean?, translation: Boolean? ->
                     app.preferences.setVisibility(arabic = arabic, translation = translation)
@@ -3081,6 +3082,7 @@ internal fun SettingsSheet(
 ) {
     val colors = LocalHadithlyColors.current
     val view = LocalView.current
+    var detail by remember { mutableStateOf<ReaderSettingsDetail?>(null) }
 
     // The all-hidden state is rejected by the store (returns false): answer
     // with the native reject haptic so the refusal is felt.
@@ -3102,15 +3104,15 @@ internal fun SettingsSheet(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(
-                "Settings",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
+                detail?.title ?: "Settings",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.SemiBold,
                 color = colors.textPrimary,
                 modifier = Modifier.weight(1f),
             )
             IconButton(
                 onClick = onDismiss,
-                modifier = Modifier.size(48.dp).testTag("reader.settings.close"),
+                modifier = Modifier.size(48.dp).background(colors.surfaceElevated, RoundedCornerShape(50)).testTag("reader.settings.close"),
             ) {
                 Icon(
                     Icons.Filled.Close,
@@ -3121,33 +3123,30 @@ internal fun SettingsSheet(
             }
         }
 
-        SettingsSectionLabel("SHOW ON PAGE")
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            VisibilityPill(
-                title = "Arabic",
-                isOn = preferences.arabicVisible,
-                testTag = "reader.visibility.arabic",
-            ) { attemptVisibility(!preferences.arabicVisible, null) }
-            VisibilityPill(
-                title = "Translation",
-                isOn = preferences.translationVisible,
-                testTag = "reader.visibility.translation",
-            ) { attemptVisibility(null, !preferences.translationVisible) }
-        }
-        Text(
-            "At least one text layer stays visible.",
-            fontSize = 12.sp,
-            color = colors.textSecondary,
-            modifier = Modifier.padding(top = 6.dp),
-        )
-
+        if (detail == null) {
+            SettingsSectionLabel("DISPLAY")
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                VisibilityPill("Arabic", preferences.arabicVisible, "reader.visibility.arabic") { attemptVisibility(!preferences.arabicVisible, null) }
+                VisibilityPill("Translation", preferences.translationVisible, "reader.visibility.translation") { attemptVisibility(null, !preferences.translationVisible) }
+            }
+            Text("At least one text layer stays visible.", fontSize = 12.sp, color = colors.textSecondary, modifier = Modifier.padding(top = 6.dp))
+            SettingsSectionLabel("SETTINGS")
+            ReaderSettingsNavigationRow("Arabic font", "${preferences.arabicFont.wire} · ${preferences.arabicFontSize.roundToInt()} pt", "reader.settings.arabic") { detail = ReaderSettingsDetail.ARABIC }
+            ReaderSettingsNavigationRow("Translation", language.uppercase(), "reader.settings.translation") { detail = ReaderSettingsDetail.TRANSLATION }
+            ReaderSettingsNavigationRow("Color themes", preferences.readerTheme.wire.replaceFirstChar { it.uppercase() }, "reader.settings.appearance") { detail = ReaderSettingsDetail.APPEARANCE }
+        } else {
+            TextButton(onClick = { detail = null }, modifier = Modifier.height(44.dp)) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = colors.textSecondary)
+                Text("Settings", color = colors.textSecondary)
+            }
+        if (detail == ReaderSettingsDetail.APPEARANCE) {
         SettingsSectionLabel("COLOR THEME")
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.padding(top = 4.dp),
         ) {
             for (theme in com.hadithly.app.core.preferences.ReaderTheme.entries) {
-                val selected = preferences.theme == theme
+                val selected = (if (preferences.usesSeparateReaderTheme) preferences.readerTheme else preferences.appTheme) == theme
                 val swatch = com.hadithly.app.core.theme.ReaderPalettes.resolved(theme, systemDark = true)
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -3180,7 +3179,9 @@ internal fun SettingsSheet(
                 }
             }
         }
+        }
 
+        if (detail == ReaderSettingsDetail.ARABIC) {
         SettingsSectionLabel("ARABIC TYPE")
         Text(
             text = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
@@ -3278,7 +3279,9 @@ internal fun SettingsSheet(
                 }
             }
         }
+        }
 
+        if (detail == ReaderSettingsDetail.TRANSLATION) {
         SettingsSectionLabel("TRANSLATION LANGUAGE")
         Column {
             val languages = SupportedLanguages.all
@@ -3314,6 +3317,27 @@ internal fun SettingsSheet(
                 }
             }
         }
+        }
+        }
+    }
+}
+
+private enum class ReaderSettingsDetail(val title: String) {
+    APPEARANCE("Color themes"), ARABIC("Arabic font"), TRANSLATION("Translation"),
+}
+
+@Composable
+private fun ReaderSettingsNavigationRow(title: String, subtitle: String, testTag: String, onClick: () -> Unit) {
+    val colors = LocalHadithlyColors.current
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp).clickable(onClick = onClick).testTag(testTag),
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, fontSize = 21.sp, fontWeight = FontWeight.Medium, color = colors.textPrimary)
+            Text(subtitle, fontSize = 16.sp, color = colors.textSecondary, modifier = Modifier.padding(top = 4.dp))
+        }
+        Icon(Icons.AutoMirrored.Filled.NavigateNext, contentDescription = null, tint = colors.textSecondary, modifier = Modifier.size(24.dp))
     }
 }
 
