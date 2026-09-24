@@ -3,10 +3,10 @@
 /**
  * AI actions (Gemini). Everything AI-related runs server-side with the key
  * in Convex env vars (GEMINI_API_KEY). Clients only ever receive finished
- * translations or review verdicts.
+ * translations.
  *
  * There is deliberately no public voting, rating, or leaderboard anywhere
- * in this flow. Quality is enforced by AI review + admin approval.
+ * in this flow. Evidence-backed contribution review is owned by E2-E4.
  */
 
 import { GoogleGenAI, Type } from "@google/genai";
@@ -25,7 +25,6 @@ import {
 import { parseInternalHadithId } from "../lib/sunnahNow";
 
 const GEMINI_TRANSLATION_MODEL = "gemini-2.5-flash-lite";
-const GEMINI_REVIEW_MODEL = "gemini-2.5-flash-lite";
 
 type HadithDoc = {
   _id: Id<"hadiths">;
@@ -246,111 +245,8 @@ export const translateHadith = action({
   },
 });
 
-type AiReview = {
-  model: string;
-  score: number;
-  riskFlags: string[];
-  missingMeaning?: string[];
-  addedMeaning?: string[];
-  glossaryIssues?: string[];
-  recommendation:
-    | "approve"
-    | "admin_review"
-    | "reject";
-};
-
-async function reviewWithGemini(
-  hadith: HadithDoc,
-  language: string,
-  proposedContent: string,
-): Promise<AiReview> {
-  const ai = gemini();
-  const prompt = [
-    "You are reviewing a community translation of a hadith (Prophetic narration).",
-    "Compare the proposal against the Arabic source and the English reference.",
-    "Judge meaning fidelity, tone, and proper rendering of Islamic terms. Do not judge style preference.",
-    "Be conservative: for religious text, uncertainty must escalate to human review.",
-    'Respond with ONLY a single JSON object, no prose and no code fences, in exactly this shape: {"score": number between 0 and 1, "riskFlags": string[], "missingMeaning": string[], "addedMeaning": string[], "glossaryIssues": string[], "recommendation": "approve" | "admin_review" | "reject"}.',
-    "",
-    `Reference: ${hadith.referenceDisplay}`,
-    `Narrator: ${hadith.narrator ?? "Unknown"}`,
-    `Arabic: ${hadith.arabicText}`,
-    `English source: ${hadith.englishText ?? ""}`,
-    `Target language: ${language}`,
-    `Proposal: ${proposedContent}`,
-  ].join("\n");
-
-  const response = await ai.models.generateContent({
-    model: GEMINI_REVIEW_MODEL,
-    contents: prompt,
-    config: {
-      temperature: 0.1,
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          score: { type: Type.NUMBER },
-          riskFlags: { type: Type.ARRAY, items: { type: Type.STRING } },
-          missingMeaning: { type: Type.ARRAY, items: { type: Type.STRING } },
-          addedMeaning: { type: Type.ARRAY, items: { type: Type.STRING } },
-          glossaryIssues: { type: Type.ARRAY, items: { type: Type.STRING } },
-          recommendation: {
-            type: Type.STRING,
-            enum: [
-              "approve",
-              "admin_review",
-              "reject",
-            ],
-          },
-        },
-        required: ["score", "riskFlags", "recommendation"],
-      },
-    },
-  });
-
-  try {
-    const raw = JSON.parse(
-      (extractObjectJson(response.text ?? "") ?? "{}") as string,
-    ) as Partial<AiReview>;
-    const recommendation = (
-      ["approve", "admin_review", "reject"] as const
-    ).includes(raw.recommendation as AiReview["recommendation"])
-      ? (raw.recommendation as AiReview["recommendation"])
-      : "admin_review";
-    return {
-      model: GEMINI_REVIEW_MODEL,
-      score:
-        typeof raw.score === "number"
-          ? Math.max(0, Math.min(1, raw.score))
-          : 0.5,
-      riskFlags: raw.riskFlags ?? [],
-      missingMeaning: raw.missingMeaning ?? [],
-      addedMeaning: raw.addedMeaning ?? [],
-      glossaryIssues: raw.glossaryIssues ?? [],
-      recommendation,
-    };
-  } catch {
-    return {
-      model: GEMINI_REVIEW_MODEL,
-      score: 0,
-      riskFlags: ["review_parse_failed"],
-      recommendation: "admin_review",
-    };
-  }
-}
-
-function extractObjectJson(raw: string): string | null {
-  const text = raw.trim();
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  if (start === -1 || end === -1 || end <= start) return null;
-  return text.slice(start, end + 1);
-}
-
 /**
- * Requires a signed-in user. Runs the AI review and records the submission.
- * Rejected recommendations are stored as rejected; ambiguous ones queue for
- * human review. Nothing here is publicly ranked.
+ * Retained for older builds; direct evidence-free proposals are closed.
  */
 export const submitTranslation = action({
   args: {
@@ -359,70 +255,8 @@ export const submitTranslation = action({
     proposedContent: v.string(),
     replacesTranslationId: v.optional(v.id("translations")),
   },
-  handler: async (
-    ctx,
-    args,
-  ): Promise<{ submissionId: string; aiReview: AiReview; status: string }> => {
-    const identity = await requireIdentity(ctx);
-
-    const userRow = await ctx.runQuery(internal.users.getByClerkId, {
-      clerkId: identity.clerkId,
-    });
-    if (!userRow) {
-      throw new Error(
-        "User not found. Call users:ensureCurrentUser after sign-in first.",
-      );
-    }
-
-    const hadith = await loadHadith(ctx, args.hadithInternalId);
-    if (!hadith) {
-      throw new Error("Unknown hadith for submission");
-    }
-    if (!args.proposedContent.trim()) {
-      throw new Error("Translation proposal must not be empty");
-    }
-    const language = args.language.trim();
-    if (!language) throw new Error("Translation language must not be empty");
-
-    if (args.replacesTranslationId) {
-      const replaced = await ctx.runQuery(internal.translations.getById, {
-        translationId: args.replacesTranslationId,
-      });
-      if (
-        !replaced ||
-        replaced.hadithId !== hadith._id ||
-        replaced.language !== language
-      ) {
-        throw new Error("Replacement translation does not match this hadith");
-      }
-    }
-
-    const aiReview = await reviewWithGemini(
-      hadith,
-      language,
-      args.proposedContent,
-    );
-    const status =
-      aiReview.recommendation === "reject"
-        ? ("rejected" as const)
-        : aiReview.recommendation === "admin_review"
-          ? ("needs_admin" as const)
-          : ("pending" as const);
-
-    const submissionId = await ctx.runMutation(
-      internal.community.insertSubmission,
-      {
-        clerkId: identity.clerkId,
-        hadithId: hadith._id,
-        language,
-        proposedContent: args.proposedContent.trim(),
-        replacesTranslationId: args.replacesTranslationId,
-        aiReview,
-        status,
-      },
-    );
-
-    return { submissionId, aiReview, status };
+  handler: async (): Promise<never> => {
+    throw new Error("Evidence is required. Update Hadithly to submit a translation with sources.");
   },
 });
 

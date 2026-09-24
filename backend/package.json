@@ -12,7 +12,9 @@
   },
   "dependencies": {
     "@google/genai": "^1.16.0",
-    "convex": "^1.29.3"
+    "convex": "^1.29.3",
+    "image-size": "^2.0.4",
+    "pdf-lib": "^1.17.1"
   },
   "devDependencies": {
     "convex-test": "^0.0.40",

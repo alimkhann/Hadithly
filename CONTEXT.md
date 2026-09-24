@@ -51,3 +51,23 @@ _Avoid_: Collection, shared folder
 **Saved-removal confirmation**:
 A device-local safety preference that asks before removing a bookmark, favorite, or note. It never changes another device's safety behavior.
 _Avoid_: Synced reader preference, undo
+
+**Evidence submission**:
+A private proposed translation tied to one hadith and language, with one to three evidence items. Receiving evidence does not mean its claim has been checked or published.
+_Avoid_: Approved translation, AI verdict
+
+**Evidence item**:
+One submitted HTTPS source link or supported file. A file is identified by its private storage record, not a public download URL.
+_Avoid_: Citation, license grant
+
+**Quarantine**:
+The state of a stored file before malware scanning and extraction. A quarantined file cannot be sent to AI or served publicly.
+_Avoid_: Clean evidence, published source
+
+**Provenance**:
+The trace from a translation claim to source material and exact citations, established only after safe extraction and review.
+_Avoid_: An uploaded file alone
+
+**License assessment**:
+A recorded decision about specific permitted uses of a source. Ability to access a source does not establish reuse rights.
+_Avoid_: Accessible URL, assumed permission

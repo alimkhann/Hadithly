@@ -192,6 +192,7 @@ export default defineSchema({
     sourceReferenceUrl: v.optional(v.string()),
     contributorUserId: v.optional(v.id("users")),
     contributorDisplayName: v.optional(v.string()),
+    legacyEvidenceMissing: v.optional(v.boolean()),
     createdAt: v.number(),
     updatedAt: v.number(),
     approvedAt: v.optional(v.number()),
@@ -202,6 +203,7 @@ export default defineSchema({
     .index("by_language_status_default", ["language", "status", "isDefault"])
     .index("by_generated_user", ["generatedByUserId"])
     .index("by_contributor_user", ["contributorUserId"])
+    .index("by_source_status", ["source", "status"])
     .searchIndex("search_content", {
       searchField: "content",
       filterFields: ["language", "status"],
@@ -215,7 +217,7 @@ export default defineSchema({
     submittedBy: v.id("users"),
     proposedContent: v.string(),
     replacesTranslationId: v.optional(v.id("translations")),
-    aiReview: v.object({
+    aiReview: v.optional(v.object({
       model: v.string(),
       score: v.number(),
       riskFlags: v.array(v.string()),
@@ -227,18 +229,90 @@ export default defineSchema({
         v.literal("admin_review"),
         v.literal("reject"),
       ),
-    }),
+    })),
     status: v.union(
       v.literal("pending"),
       v.literal("approved"),
       v.literal("rejected"),
       v.literal("needs_admin"),
+      v.literal("draft"),
+      v.literal("awaiting_processing"),
+      v.literal("legacy_evidence_missing"),
+      v.literal("expired"),
     ),
+    draftKey: v.optional(v.string()),
+    expiresAt: v.optional(v.number()),
+    legacyStatus: v.optional(v.string()),
     createdAt: v.number(),
     reviewedAt: v.optional(v.number()),
   })
     .index("by_status", ["status"])
-    .index("by_submitted_by", ["submittedBy"]),
+    .index("by_submitted_by", ["submittedBy"])
+    .index("by_submitter_draft_key", ["submittedBy", "draftKey"])
+    .index("by_submitter_created", ["submittedBy", "createdAt"])
+    .index("by_status_expiry", ["status", "expiresAt"]),
+
+  evidenceItems: defineTable({
+    submissionId: v.id("communitySubmissions"),
+    ownerUserId: v.id("users"),
+    clientItemKey: v.string(),
+    source: v.union(
+      v.object({ kind: v.literal("url"), url: v.string() }),
+      v.object({
+        kind: v.literal("file"),
+        declaredMime: v.string(),
+        declaredSize: v.number(),
+        declaredSha256: v.string(),
+        displayName: v.string(),
+        storageId: v.optional(v.id("_storage")),
+        verifiedMime: v.optional(v.string()),
+        sha256: v.optional(v.string()),
+        size: v.optional(v.number()),
+        width: v.optional(v.number()),
+        height: v.optional(v.number()),
+        pageCount: v.optional(v.number()),
+      }),
+    ),
+    state: v.union(
+      v.literal("reserved"),
+      v.literal("validating"),
+      v.literal("quarantined_unscanned"),
+      v.literal("pending_safe_fetch"),
+      v.literal("invalid"),
+      v.literal("expired"),
+    ),
+    uploadAttempts: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_submission", ["submissionId"])
+    .index("by_owner", ["ownerUserId"])
+    .index("by_storage_id", ["source.storageId"])
+    .index("by_reserved_size", ["state", "source.declaredSize"]),
+
+  evidenceCleanupCursor: defineTable({
+    name: v.literal("storage_orphans"),
+    cursor: v.optional(v.string()),
+    updatedAt: v.number(),
+  }).index("by_name", ["name"]),
+
+  evidenceUploadTombstones: defineTable({
+    declaredMime: v.string(),
+    declaredSize: v.number(),
+    declaredSha256: v.string(),
+    slotCreatedAt: v.number(),
+    expiresAt: v.number(),
+  })
+    .index("by_size", ["declaredSize"])
+    .index("by_expiry", ["expiresAt"]),
+
+  evidenceProvenance: defineTable({ submissionId: v.id("communitySubmissions"), evidenceItemId: v.id("evidenceItems"), status: v.literal("unassessed"), createdAt: v.number() }).index("by_submission", ["submissionId"]),
+  evidenceLicenseAssessments: defineTable({ submissionId: v.id("communitySubmissions"), evidenceItemId: v.id("evidenceItems"), status: v.literal("unassessed"), createdAt: v.number() }).index("by_submission", ["submissionId"]),
+  evidenceReviewPasses: defineTable({ submissionId: v.id("communitySubmissions"), status: v.literal("not_started"), createdAt: v.number() }).index("by_submission", ["submissionId"]),
+  evidencePublicationRevisions: defineTable({ submissionId: v.id("communitySubmissions"), status: v.literal("not_published"), createdAt: v.number() }).index("by_submission", ["submissionId"]),
+  evidenceAppeals: defineTable({ submissionId: v.id("communitySubmissions"), ownerUserId: v.id("users"), status: v.literal("not_requested"), createdAt: v.number() }).index("by_owner", ["ownerUserId"]),
+  evidenceAbuseEvents: defineTable({ submissionId: v.id("communitySubmissions"), ownerUserId: v.id("users"), status: v.literal("none"), createdAt: v.number() }).index("by_owner", ["ownerUserId"]),
+  evidenceDeletionStates: defineTable({ submissionId: v.id("communitySubmissions"), status: v.literal("active"), createdAt: v.number() }).index("by_submission", ["submissionId"]),
 
   bookmarks: defineTable({
     userId: v.id("users"),
@@ -400,5 +474,6 @@ export default defineSchema({
     compatiblePacks: v.array(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
-  }).index("by_kind_collection", ["kind", "collectionSlug"]),
+  }).index("by_kind_collection", ["kind", "collectionSlug"])
+    .index("by_storage_id", ["storageId"]),
 });

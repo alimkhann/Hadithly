@@ -1,0 +1,1 @@
+export const MAX_EVIDENCE_BYTES = 10_000_000;

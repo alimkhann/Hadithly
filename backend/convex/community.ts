@@ -148,76 +148,15 @@ export const listPendingSubmissions = query({
  */
 export const approveSubmission = mutation({
   args: { submissionId: v.id("communitySubmissions") },
-  handler: async (ctx, args) => {
-    const admin = await requireAdmin(ctx);
-    const submission = await ctx.db.get(args.submissionId);
-    if (!submission) throw new Error("Submission not found");
-    if (submission.status === "approved") return;
-
-    const previousDefault = await ctx.db
-      .query("translations")
-      .withIndex("by_hadith_language_default", (q) =>
-        q
-          .eq("hadithId", submission.hadithId)
-          .eq("language", submission.language)
-          .eq("isDefault", true),
-      )
-      .first();
-    const now = Date.now();
-    if (previousDefault) {
-      await ctx.db.patch(previousDefault._id, {
-        isDefault: false,
-        updatedAt: now,
-      });
-    }
-
-    await ctx.db.patch(args.submissionId, {
-      status: "approved",
-      reviewedAt: now,
-    });
-    await ctx.db.insert("translations", {
-      hadithId: submission.hadithId,
-      language: submission.language,
-      content: submission.proposedContent,
-      source: "community",
-      sourceLabel: "Community",
-      status: "live",
-      isDefault: true,
-      contributorUserId: submission.submittedBy,
-      groundingUsed: false,
-      approvedAt: now,
-      createdAt: now,
-      updatedAt: now,
-    });
-    await ctx.db.insert("adminAuditLog", {
-      actorUserId: admin._id,
-      action: "approve_submission",
-      targetType: "communitySubmissions",
-      targetId: args.submissionId,
-      metadata: { language: submission.language },
-      createdAt: now,
-    });
+  handler: async (): Promise<never> => {
+    throw new Error("Publication requires the evidence review pipeline.");
   },
 });
 
 export const rejectSubmission = mutation({
   args: { submissionId: v.id("communitySubmissions") },
-  handler: async (ctx, args) => {
-    const admin = await requireAdmin(ctx);
-    const submission = await ctx.db.get(args.submissionId);
-    if (!submission) throw new Error("Submission not found");
-    await ctx.db.patch(args.submissionId, {
-      status: "rejected",
-      reviewedAt: Date.now(),
-    });
-    await ctx.db.insert("adminAuditLog", {
-      actorUserId: admin._id,
-      action: "reject_submission",
-      targetType: "communitySubmissions",
-      targetId: args.submissionId,
-      metadata: { language: submission.language },
-      createdAt: Date.now(),
-    });
+  handler: async (): Promise<never> => {
+    throw new Error("Rejection requires the evidence exception pipeline.");
   },
 });
 

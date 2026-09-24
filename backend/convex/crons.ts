@@ -20,4 +20,18 @@ crons.interval(
   {},
 );
 
+crons.interval(
+  "expire abandoned evidence",
+  { hours: 1 },
+  internal.evidence.expireEvidence,
+  {},
+);
+
+crons.interval(
+  "sweep unreferenced file storage",
+  { hours: 1 },
+  internal.evidence.sweepStorageOrphans,
+  {},
+);
+
 export default crons;

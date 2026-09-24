@@ -2,6 +2,7 @@ import { internalMutation, internalQuery, mutation, query } from "./_generated/s
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { requireIdentity } from "./lib/identity";
+import { deleteEvidenceForSubmission } from "./evidence";
 import {
   defaultReaderPreferences,
   legacyReaderPreferencesValidator,
@@ -202,10 +203,11 @@ export const exportCurrentUserData = query({
         readingProgress: [],
         legacy: { bookmarks: [], favorites: [], notes: [] },
         submissions: [],
+        evidenceItems: [],
       };
     }
 
-    const [folders, items, progress, bookmarks, favorites, notes, submissions] =
+    const [folders, items, progress, bookmarks, favorites, notes, submissions, evidenceItems] =
       await Promise.all([
         ctx.db.query("savedFolders").withIndex("by_user", (q) => q.eq("userId", user._id)).collect(),
         ctx.db.query("savedItems").withIndex("by_user", (q) => q.eq("userId", user._id)).collect(),
@@ -214,6 +216,7 @@ export const exportCurrentUserData = query({
         ctx.db.query("favorites").withIndex("by_user", (q) => q.eq("userId", user._id)).collect(),
         ctx.db.query("notes").withIndex("by_user_hadith", (q) => q.eq("userId", user._id)).collect(),
         ctx.db.query("communitySubmissions").withIndex("by_submitted_by", (q) => q.eq("submittedBy", user._id)).collect(),
+        ctx.db.query("evidenceItems").withIndex("by_owner", (q) => q.eq("ownerUserId", user._id)).collect(),
       ]);
 
     const hadithIds = new Set<string>();
@@ -303,6 +306,15 @@ export const exportCurrentUserData = query({
         status: row.status,
         createdAt: row.createdAt,
       })),
+      evidenceItems: evidenceItems.map((item) => ({
+        submissionId: item.submissionId,
+        kind: item.source.kind,
+        state: item.state,
+        sourceUrl: item.source.kind === "url" ? item.source.url : null,
+        displayName: item.source.kind === "file" ? item.source.displayName : null,
+        contentType: item.source.kind === "file" ? item.source.verifiedMime ?? item.source.declaredMime : null,
+        size: item.source.kind === "file" ? item.source.size ?? null : null,
+      })),
     };
   },
 });
@@ -351,6 +363,10 @@ export const deleteCurrentUser = mutation({
       ctx.db.query("translationReports").withIndex("by_reporter", (q) => q.eq("reporterUserId", user._id)).collect(),
       ctx.db.query("adminAuditLog").withIndex("by_actor", (q) => q.eq("actorUserId", user._id)).collect(),
     ]);
+
+    for (const submission of submissions) {
+      await deleteEvidenceForSubmission(ctx, submission._id);
+    }
 
     for (const row of [
       ...bookmarks,
