@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-09-09. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-09-24. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
 D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its
 simulator/emulator and unit gates; its physical-device gate is open. R4's
@@ -19,7 +19,9 @@ auth, and the username contract is now: optional, auto-generated from the
 email local part at password sign-up, editable in Settings. The Android FCM
 device-push re-test deferred from D1 folds into D4's physical-device matrix.
 
-Current next session: the still-open R3 physical-device matrix. R5 is complete;
+Current next gate: the still-open R3 physical-device matrix. W1 and W2 code is
+implemented, but their full widget device gates remain open. E1 proceeds on
+the independent F1 evidence branch at the owner's direction. R5 is complete;
 R6 (reader chrome, density, and paging polish, owner-directed) is proposed and
 waits for the owner's answers on Arabic alignment, source labeling, the menu
 button, and slice order. Do not
@@ -1279,6 +1281,28 @@ substantive: they own bounded implementation outcomes, not just inventories.
   `env list` for name checks — see the mistakes list.
 - Next allowed session: physical-device matrix, then W1. This task stopped
   before W1.
+
+### W1 and W2 widget verification follow-up (2026-09-24)
+
+- The native Daily Hadith and Continue Reading widgets are present in
+  `41ce3e7`. `96576e1` removes hadith excerpts from Continue Reading caches,
+  clears old cache keys, and localizes its reference and progress copy for
+  English, Arabic, and Urdu. The app still resolves a widget tap from the
+  current private R1 position, rather than storing that position in the widget.
+- Backend scope: no new widget API. E1 work remains separate from the widget
+  payload. iOS app and extension builds passed, as did the focused widget
+  snapshot and route tests. Android unit tests and debug assembly passed.
+  The installed Android Continue Reading widget visibly showed its Arabic
+  no-progress state on the `hadithly` emulator. The old excerpt field is absent
+  from both snapshot shapes.
+- Open W1/W2 gate rows: installed iOS WidgetKit gallery placement and locked
+  rendering; populated guest and synced widget display; offline, stale, and
+  deleted-download behavior; and an installed-widget tap restoring the exact
+  semantic offset on both clients. The host's Xcode 27 setup has no controllable
+  Simulator app window, and the Android reader currently returns a fetch
+  timeout before progress can be created through the user journey. The N1 and
+  R3 physical-device gates above remain open. Neither widget is marked fully
+  passed by this record.
 
 ### Future topic browsing with the Jev classifier (not a session)
 
