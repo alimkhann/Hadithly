@@ -47,14 +47,15 @@ private struct DailyWidgetView: View {
     let entry: WidgetEntry<WidgetDailySnapshot>
     @Environment(\.widgetFamily) private var family
     @Environment(\.redactionReasons) private var redactionReasons
+    private var locale: String { entry.snapshot?.locale ?? WidgetSnapshotStore.uiLocale() }
 
     var body: some View {
         ZStack {
             if redactionReasons.contains(.privacy) {
-                Text("Unlock Hadithly to view today’s hadith.")
+                Text(DailyWidgetCopy.locked(locale))
                     .font(.subheadline)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                    .accessibilityLabel("Unlock Hadithly to view today’s hadith")
+                    .accessibilityLabel(DailyWidgetCopy.locked(locale))
             } else if let snapshot = entry.snapshot {
                 Link(destination: canonicalURL(snapshot)) {
                     DailyWidgetReading(snapshot: snapshot, family: family)
@@ -64,7 +65,7 @@ private struct DailyWidgetView: View {
                 .accessibilityLabel(accessibilityLabel(for: snapshot))
                 .privacySensitive()
             } else {
-                Text("Open Hadithly to prepare today’s hadith.")
+                Text(DailyWidgetCopy.empty(locale))
                     .font(.subheadline)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
             }
@@ -77,12 +78,12 @@ private struct DailyWidgetView: View {
     }
 
     private func layoutDirection(for locale: String) -> LayoutDirection {
-        Locale.characterDirection(forLanguage: Locale(identifier: locale).languageCode ?? "en") == .rightToLeft
+        Locale.Language(identifier: locale).characterDirection == .rightToLeft
             ? .rightToLeft : .leftToRight
     }
 
     private func accessibilityLabel(for snapshot: WidgetDailySnapshot) -> String {
-        var label = "Daily hadith, \(snapshot.reference), \(snapshot.sourceScope)"
+        var label = "\(DailyWidgetCopy.title(snapshot.locale)), \(snapshot.reference), \(snapshot.sourceScope)"
         if snapshot.isAI { label += ", AI translation" }
         if WidgetRefreshPolicy.isStale(snapshot) { label += ", update when opened" }
         return label
@@ -104,11 +105,11 @@ private struct DailyWidgetReading: View {
         case .systemExtraLarge:
             largeReading
         case .accessoryInline:
-            Text("Daily hadith").lineLimit(1)
+            Text(DailyWidgetCopy.title(snapshot.locale)).lineLimit(1)
         case .accessoryRectangular:
             VStack(alignment: .leading, spacing: 2) {
                 Text(shortReference).font(.headline).lineLimit(1)
-                Text("Daily hadith").font(.caption).lineLimit(1)
+                Text(DailyWidgetCopy.title(snapshot.locale)).font(.caption).lineLimit(1)
             }
         case .accessoryCircular:
             ZStack(alignment: .topTrailing) {
@@ -118,7 +119,7 @@ private struct DailyWidgetReading: View {
                     .font(.system(size: 11, weight: .semibold))
                     .padding(-2)
             }
-            .accessibilityLabel("Daily hadith")
+            .accessibilityLabel(DailyWidgetCopy.title(snapshot.locale))
         default:
             homeReading(previewLines: 3, referenceFont: .headline, spacing: 5)
         }
@@ -126,7 +127,7 @@ private struct DailyWidgetReading: View {
 
     private func homeReading(previewLines: Int, referenceFont: Font, spacing: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: spacing) {
-            Text("DAILY HADITH").font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
+            Text(DailyWidgetCopy.title(snapshot.locale).uppercased()).font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
             Text(snapshot.reference).font(referenceFont).lineLimit(1)
             if snapshot.arabicVisible && snapshot.translationVisible {
                 Text(snapshot.arabicText).font(.caption).lineLimit(1).multilineTextAlignment(.trailing).frame(maxWidth: .infinity, alignment: .trailing)
@@ -145,7 +146,7 @@ private struct DailyWidgetReading: View {
 
     private var largeReading: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("DAILY HADITH").font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
+            Text(DailyWidgetCopy.title(snapshot.locale).uppercased()).font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
             Text(snapshot.reference).font(.title3).lineLimit(1)
             if snapshot.arabicVisible && snapshot.translationVisible {
                 Text(snapshot.arabicText).font(.body).multilineTextAlignment(.trailing).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
@@ -200,23 +201,27 @@ private struct ContinueWidgetView: View {
     @Environment(\.widgetFamily) private var family
     @Environment(\.redactionReasons) private var redactionReasons
 
+    private var copy: ContinueWidgetPresentation {
+        entry.snapshot?.presentation ?? ContinueWidgetPresentation(reference: "", progressFraction: nil, progressOrdinal: nil, progressTotal: nil, locale: WidgetSnapshotStore.uiLocale())
+    }
+
     var body: some View {
         Group {
         if redactionReasons.contains(.privacy) {
-            Text(ContinueWidgetPresentation.lockMessage)
+            Text(copy.localizedLockMessage)
                 .font(.subheadline)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                .accessibilityLabel(ContinueWidgetPresentation.lockMessage)
+                .accessibilityLabel(copy.localizedLockMessage)
         } else if let snapshot = entry.snapshot {
             Link(destination: URL(string: "com.hadithly.app://continue")!) {
                 ContinueWidgetReading(snapshot: snapshot, family: family)
                     .environment(\.locale, Locale(identifier: snapshot.locale))
                     .environment(\.layoutDirection, layoutDirection(for: snapshot.locale))
             }
-            .accessibilityLabel("Continue reading \(snapshot.reference), \(snapshot.progressLabel)")
+            .accessibilityLabel("\(copy.title), \(copy.localizedReference), \(copy.progressLabel)")
             .privacySensitive()
         } else {
-            Text(ContinueWidgetPresentation.emptyMessage)
+            Text(copy.localizedEmptyMessage)
                 .font(.subheadline)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         }
@@ -225,7 +230,7 @@ private struct ContinueWidgetView: View {
     }
 
     private func layoutDirection(for locale: String) -> LayoutDirection {
-        Locale.characterDirection(forLanguage: Locale(identifier: locale).languageCode ?? "en") == .rightToLeft
+        Locale.Language(identifier: locale).characterDirection == .rightToLeft
             ? .rightToLeft : .leftToRight
     }
 }
@@ -237,9 +242,9 @@ private struct ContinueWidgetReading: View {
     var body: some View {
         switch family {
         case .systemSmall:
-            home(excerptLines: 2, spacing: 5)
+            home(spacing: 5)
         case .systemMedium:
-            home(excerptLines: snapshot.presentation.mediumExcerptLineLimit, spacing: 7)
+            home(spacing: 7)
         case .systemLarge:
             largeHome
         case .systemExtraLarge:
@@ -248,34 +253,27 @@ private struct ContinueWidgetReading: View {
             Text(snapshot.presentation.accessoryInlineText).lineLimit(1)
         case .accessoryRectangular:
             VStack(alignment: .leading, spacing: 2) {
-                Text("Resume reading").font(.headline).lineLimit(1)
+                Text(snapshot.presentation.resumeText).font(.headline).lineLimit(1)
                 Text(lockProgress).font(.caption).lineLimit(1)
             }
         case .accessoryCircular:
             progressGauge(size: 20)
-                .accessibilityLabel("Continue reading")
+                .accessibilityLabel(snapshot.presentation.title)
         default:
-            home(excerptLines: nil, spacing: 5)
+            home(spacing: 5)
         }
     }
 
-    private func home(excerptLines: Int?, spacing: CGFloat) -> some View {
+    private func home(spacing: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: spacing) {
-            Text("CONTINUE READING").font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
-            Text(snapshot.reference).font(.headline).lineLimit(1)
-            if let excerptLines {
-                Text(snapshot.translationVisible ? snapshot.translationExcerpt : snapshot.arabicExcerpt)
-                    .font(.subheadline)
-                    .lineLimit(excerptLines)
-                    .multilineTextAlignment(.leading)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
+            Text(snapshot.presentation.title.uppercased()).font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
+            Text(snapshot.presentation.localizedReference).font(.headline).lineLimit(2)
             HStack(spacing: 7) {
                 progressGauge(size: family == .systemSmall ? 28 : 32)
-                Text(snapshot.progressLabel).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                Text(snapshot.presentation.progressLabel).font(.caption).foregroundStyle(.secondary).lineLimit(1)
             }
             if WidgetRefreshPolicy.isStale(snapshot.updatedAt) {
-                Text("Position will be checked when opened").font(.caption2).foregroundStyle(.secondary).lineLimit(1)
+                Text(snapshot.presentation.staleMessage).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -283,17 +281,13 @@ private struct ContinueWidgetReading: View {
 
     private var largeHome: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("CONTINUE READING").font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
-            Text(snapshot.reference).font(.title3).lineLimit(1)
-            if snapshot.arabicVisible && snapshot.translationVisible {
-                Text(snapshot.arabicExcerpt).font(.body).multilineTextAlignment(.trailing).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                Text(snapshot.translationExcerpt).font(.subheadline).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            } else {
-                Text(snapshot.arabicVisible ? snapshot.arabicExcerpt : snapshot.translationExcerpt)
-                    .font(snapshot.arabicVisible ? .body : .subheadline)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: snapshot.arabicVisible ? .topTrailing : .topLeading)
+            Text(snapshot.presentation.title.uppercased()).font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
+            Text(snapshot.presentation.localizedReference).font(.title3).lineLimit(2)
+            Spacer(minLength: 0)
+            HStack(spacing: 7) { progressGauge(size: 32); Text(snapshot.presentation.progressLabel).font(.caption).foregroundStyle(.secondary) }
+            if WidgetRefreshPolicy.isStale(snapshot.updatedAt) {
+                Text(snapshot.presentation.staleMessage).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
             }
-            HStack(spacing: 7) { progressGauge(size: 32); Text(snapshot.progressLabel).font(.caption).foregroundStyle(.secondary) }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
@@ -326,8 +320,8 @@ private struct ContinueWidgetReading: View {
     }
 
     private var lockProgress: String {
-        guard let fraction = snapshot.progressFraction else { return "Resume" }
-        return "\(Int((fraction * 100).rounded()))% read"
+        guard let fraction = snapshot.progressFraction else { return snapshot.presentation.resumeText }
+        return "\(Int((fraction * 100).rounded()))%"
     }
 }
 

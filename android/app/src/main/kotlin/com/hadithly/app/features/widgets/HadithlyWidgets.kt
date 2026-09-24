@@ -26,6 +26,7 @@ import androidx.glance.unit.ColorProvider
 import com.hadithly.app.core.widgets.WidgetRefreshPolicy
 import com.hadithly.app.core.widgets.WidgetSnapshotStore
 import com.hadithly.app.core.widgets.DailyWidgetSnapshot
+import com.hadithly.app.core.widgets.DailyWidgetCopy
 import com.hadithly.app.core.widgets.ContinueWidgetPresentation
 import com.hadithly.app.core.data.ProgressEntry
 import com.hadithly.app.features.library.continueReadingTarget
@@ -40,14 +41,15 @@ class DailyHadithWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) = provideContent {
         val locked = isLocked(context)
         val snapshot = if (locked) null else WidgetSnapshotStore(context).daily()
+        val locale = snapshot?.locale ?: com.hadithly.app.HadithlyApplication.instance().preferences.preferences.value.uiLocale
         val size = dailyWidgetSize(LocalSize.current)
         Column(
             modifier = GlanceModifier.fillMaxSize().background(background).padding(14.dp),
             verticalAlignment = Alignment.Top,
         ) {
-            Text("DAILY HADITH", style = TextStyle(color = secondary, fontWeight = FontWeight.Medium))
+            Text(DailyWidgetCopy.title(locale), style = TextStyle(color = secondary, fontWeight = FontWeight.Medium))
             if (snapshot == null) {
-                Text(if (locked) "Unlock Hadithly to view today’s hadith." else "Open Hadithly to prepare today’s hadith.", style = TextStyle(color = foreground))
+                Text(if (locked) DailyWidgetCopy.locked(locale) else DailyWidgetCopy.empty(locale), style = TextStyle(color = foreground))
             } else {
                 Column(modifier = GlanceModifier.defaultWeight().clickable(actionStartActivity(ComponentName(context, DailyWidgetEntryActivity::class.java)))) {
                     Text(snapshot.reference, style = TextStyle(color = foreground, fontWeight = FontWeight.Bold), maxLines = 1)
@@ -84,28 +86,23 @@ class DailyHadithWidgetReceiver : GlanceAppWidgetReceiver() { override val glanc
 class ContinueReadingWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) = provideContent {
         val locked = isLocked(context)
-        val snapshot = if (locked) null else WidgetSnapshotStore(context).continueReading()
-        val size = continueWidgetSize(LocalSize.current)
+        val cached = WidgetSnapshotStore(context).continueReading()
+        val snapshot = if (locked) null else cached
+        val copy = ContinueWidgetPresentation("", null, null, null, cached?.locale ?: com.hadithly.app.HadithlyApplication.instance().preferences.preferences.value.uiLocale)
         Column(
             modifier = GlanceModifier.fillMaxSize().background(background).padding(14.dp),
             verticalAlignment = Alignment.Top,
         ) {
-            Text("CONTINUE READING", style = TextStyle(color = secondary, fontWeight = FontWeight.Medium))
+            Text(copy.title, style = TextStyle(color = secondary, fontWeight = FontWeight.Medium))
             if (snapshot == null) {
-                Text(if (locked) ContinueWidgetPresentation.LOCK_MESSAGE else ContinueWidgetPresentation.EMPTY_MESSAGE, style = TextStyle(color = foreground))
+                Text(if (locked) copy.lockMessage else copy.emptyMessage, style = TextStyle(color = foreground))
             } else {
-                val presentation = ContinueWidgetPresentation(snapshot.reference, snapshot.arabicExcerpt, snapshot.translationExcerpt, snapshot.arabicVisible, snapshot.translationVisible, snapshot.progressFraction, snapshot.progressLabel, snapshot.locale)
+                val presentation = ContinueWidgetPresentation(snapshot.reference, snapshot.progressFraction, snapshot.progressOrdinal, snapshot.progressTotal, snapshot.locale)
                 Column(modifier = GlanceModifier.defaultWeight().clickable(actionStartActivity(ComponentName(context, ContinueWidgetEntryActivity::class.java)))) {
-                    Text(presentation.reference, style = TextStyle(color = foreground, fontWeight = FontWeight.Bold), maxLines = 1)
-                    if (size == ContinueWidgetSize.LARGE && presentation.arabicVisible && presentation.translationVisible) {
-                        Text(presentation.arabicExcerpt, style = TextStyle(color = foreground), maxLines = 4)
-                        Text(presentation.translationExcerpt, style = TextStyle(color = foreground), maxLines = 4)
-                    } else if (size != ContinueWidgetSize.COMPACT && presentation.translationExcerpt.isNotBlank()) {
-                        Text(if (presentation.arabicVisible && !presentation.translationVisible) presentation.arabicExcerpt else presentation.translationExcerpt, style = TextStyle(color = foreground), maxLines = if (size == ContinueWidgetSize.MEDIUM) presentation.mediumExcerptLines else presentation.largeExcerptLines)
-                    }
-                    Text(snapshot.progressLabel, style = TextStyle(color = secondary), maxLines = 1)
+                    Text(presentation.localizedReference, style = TextStyle(color = foreground, fontWeight = FontWeight.Bold), maxLines = 2)
+                    Text(presentation.progressLabel, style = TextStyle(color = secondary), maxLines = 1)
                     if (WidgetRefreshPolicy.isStale(snapshot.updatedAt)) {
-                        Text("Position will be checked when opened", style = TextStyle(color = secondary), maxLines = 1)
+                        Text(presentation.staleMessage, style = TextStyle(color = secondary), maxLines = 1)
                     }
                 }
             }

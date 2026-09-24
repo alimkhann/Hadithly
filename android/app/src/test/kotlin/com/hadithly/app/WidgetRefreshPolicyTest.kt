@@ -2,6 +2,7 @@ package com.hadithly.app
 
 import com.hadithly.app.core.widgets.WidgetRefreshPolicy
 import com.hadithly.app.core.widgets.DailyWidgetSnapshot
+import com.hadithly.app.core.widgets.DailyWidgetCopy
 import com.hadithly.app.core.widgets.ContinueWidgetSnapshot
 import com.hadithly.app.core.widgets.ContinueWidgetPresentation
 import com.hadithly.app.features.widgets.ContinueWidgetSize
@@ -35,23 +36,24 @@ class WidgetRefreshPolicyTest {
 
     @Test fun `continue snapshot contains presentation only`() {
         val snapshot = ContinueWidgetSnapshot(
-            reference = "Bukhari · Hadith 57", arabicExcerpt = "نص", translationExcerpt = "A quiet reading excerpt.",
-            arabicVisible = true, translationVisible = true, progressLabel = "Hadith 57 of 100", locale = "ur", updatedAt = 1_000L,
+            reference = "Bukhari · Hadith 57", progressOrdinal = 57, progressTotal = 100,
+            locale = "ur", updatedAt = 1_000L,
         )
         val encoded = Json.encodeToString(snapshot)
-        listOf("collectionSlug", "providerHadithId", "position", "account", "note", "volumeId").forEach {
+        listOf("collectionSlug", "providerHadithId", "position", "account", "note", "volumeId", "arabicExcerpt", "translationExcerpt").forEach {
             assertFalse("Continue widget cache must not contain $it", encoded.contains(it))
         }
     }
 
     @Test fun `continue presentation keeps one reference and semantic progress`() {
-        val presentation = ContinueWidgetPresentation("Bukhari · Hadith 57", "نص", "A quiet reading excerpt.", true, true, 0.57, "Hadith 57 of 100", "en")
+        val presentation = ContinueWidgetPresentation("Bukhari · Hadith 57", 0.57, 57, 100, "en")
         org.junit.Assert.assertEquals(listOf("Bukhari · Hadith 57", "Hadith 57 of 100"), presentation.compactLines)
-        org.junit.Assert.assertEquals(2, presentation.mediumExcerptLines)
-        org.junit.Assert.assertEquals(4, presentation.largeExcerptLines)
         org.junit.Assert.assertEquals("Resume reading", presentation.accessoryInlineText)
         assertFalse(presentation.isRightToLeft)
-        assertTrue(ContinueWidgetPresentation("حوالہ", "متن", "text", true, true, 0.5, "Half read", "ur").isRightToLeft)
+        val urdu = ContinueWidgetPresentation("Bukhari · Hadith 57", 0.5, 57, 100, "ur")
+        assertTrue(urdu.isRightToLeft)
+        assertTrue(urdu.localizedReference.contains("حدیث"))
+        assertTrue(urdu.progressLabel.contains("حدیث"))
         org.junit.Assert.assertEquals("Read a hadith to continue here.", ContinueWidgetPresentation.EMPTY_MESSAGE)
         org.junit.Assert.assertEquals("Unlock Hadithly to resume reading.", ContinueWidgetPresentation.LOCK_MESSAGE)
     }
@@ -60,5 +62,11 @@ class WidgetRefreshPolicyTest {
         org.junit.Assert.assertEquals(ContinueWidgetSize.COMPACT, continueWidgetSize(DpSize(180.dp, 110.dp)))
         org.junit.Assert.assertEquals(ContinueWidgetSize.MEDIUM, continueWidgetSize(DpSize(240.dp, 160.dp)))
         org.junit.Assert.assertEquals(ContinueWidgetSize.LARGE, continueWidgetSize(DpSize(320.dp, 250.dp)))
+    }
+
+    @Test fun `widget empty copy follows the app locale`() {
+        org.junit.Assert.assertEquals("الحديث اليومي", DailyWidgetCopy.title("ar"))
+        org.junit.Assert.assertEquals("آج کی حدیث تیار کرنے کے لیے حدیثلی کھولیں۔", DailyWidgetCopy.empty("ur"))
+        org.junit.Assert.assertEquals("اقرأ حديثًا للمتابعة هنا.", ContinueWidgetPresentation("", null, null, null, "ar").emptyMessage)
     }
 }

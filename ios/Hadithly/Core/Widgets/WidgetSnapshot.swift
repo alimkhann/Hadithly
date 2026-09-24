@@ -21,6 +21,30 @@ struct WidgetDailySnapshot: Codable, Equatable {
     let updatedAt: Date
 }
 
+enum DailyWidgetCopy {
+    static func title(_ locale: String) -> String {
+        switch Locale(identifier: locale).language.languageCode?.identifier {
+        case "ar": "الحديث اليومي"
+        case "ur": "آج کی حدیث"
+        default: "Daily Hadith"
+        }
+    }
+    static func empty(_ locale: String) -> String {
+        switch Locale(identifier: locale).language.languageCode?.identifier {
+        case "ar": "افتح حديثلي لتحضير حديث اليوم."
+        case "ur": "آج کی حدیث تیار کرنے کے لیے حدیثلی کھولیں۔"
+        default: "Open Hadithly to prepare today’s hadith."
+        }
+    }
+    static func locked(_ locale: String) -> String {
+        switch Locale(identifier: locale).language.languageCode?.identifier {
+        case "ar": "افتح قفل الجهاز لعرض حديث اليوم."
+        case "ur": "آج کی حدیث دیکھنے کے لیے آلہ کھولیں۔"
+        default: "Unlock Hadithly to view today’s hadith."
+        }
+    }
+}
+
 /// Mirrors the public W1 payload and intentionally cannot represent a Saved
 /// item, account field, Arabic fallback, or private reading position.
 struct DailyWidgetPayload: Codable, Equatable {
@@ -60,12 +84,9 @@ struct DailyWidgetPayload: Codable, Equatable {
 
 struct WidgetContinueSnapshot: Codable, Equatable {
     let reference: String
-    let arabicExcerpt: String
-    let translationExcerpt: String
-    let arabicVisible: Bool
-    let translationVisible: Bool
     let progressFraction: Double?
-    let progressLabel: String
+    let progressOrdinal: Int?
+    let progressTotal: Int?
     let locale: String
     let updatedAt: Date
 }
@@ -80,34 +101,47 @@ enum ContinueWidgetProgress: String, Codable, Equatable {
 
 struct ContinueWidgetPresentation: Equatable {
     let reference: String
-    let arabicExcerpt: String
-    let translationExcerpt: String
-    let arabicVisible: Bool
-    let translationVisible: Bool
     let progressFraction: Double?
-    let progressLabel: String
+    let progressOrdinal: Int?
+    let progressTotal: Int?
     let locale: String
 
-    init(reference: String, arabicExcerpt: String, translationExcerpt: String, arabicVisible: Bool, translationVisible: Bool, progressFraction: Double?, progressLabel: String, locale: String) {
+    init(reference: String, progressFraction: Double?, progressOrdinal: Int?, progressTotal: Int?, locale: String) {
         self.reference = reference
-        self.arabicExcerpt = arabicExcerpt
-        self.translationExcerpt = translationExcerpt
-        self.arabicVisible = arabicVisible
-        self.translationVisible = translationVisible
         self.progressFraction = progressFraction.map { min(1, max(0, $0)) }
-        self.progressLabel = progressLabel
+        self.progressOrdinal = progressOrdinal
+        self.progressTotal = progressTotal
         self.locale = locale
     }
 
-    var compactLines: [String] { [reference, progressLabel] }
-    let mediumExcerptLineLimit = 2
-    let largeExcerptLineLimit = 4
-    var accessoryInlineText: String { "Resume reading" }
+    private var language: String { Locale(identifier: locale).language.languageCode?.identifier ?? "en" }
+    var title: String { language == "ar" ? "متابعة القراءة" : language == "ur" ? "مطالعہ جاری رکھیں" : "Continue Reading" }
+    var resumeText: String { language == "ar" ? "استئناف القراءة" : language == "ur" ? "مطالعہ جاری رکھیں" : "Resume reading" }
+    var progressLabel: String {
+        guard let progressOrdinal, let progressTotal, progressTotal > 0 else { return resumeText }
+        switch language {
+        case "ar": return "الحديث \(progressOrdinal) من \(progressTotal)"
+        case "ur": return "حدیث \(progressOrdinal)، کل \(progressTotal)"
+        default: return "Hadith \(progressOrdinal) of \(progressTotal)"
+        }
+    }
+    var localizedReference: String {
+        switch language {
+        case "ar": return reference.replacingOccurrences(of: "Hadith ", with: "الحديث ")
+        case "ur": return reference.replacingOccurrences(of: "Hadith ", with: "حدیث ")
+        default: return reference
+        }
+    }
+    var compactLines: [String] { [localizedReference, progressLabel] }
+    var accessoryInlineText: String { resumeText }
     var isRightToLeft: Bool {
-        Locale.characterDirection(forLanguage: Locale(identifier: locale).languageCode ?? "en") == .rightToLeft
+        Locale.Language(identifier: locale).characterDirection == .rightToLeft
     }
     static let emptyMessage = "Read a hadith to continue here."
     static let lockMessage = "Unlock Hadithly to resume reading."
+    var localizedEmptyMessage: String { language == "ar" ? "اقرأ حديثًا للمتابعة هنا." : language == "ur" ? "یہاں سے جاری رکھنے کے لیے حدیث پڑھیں۔" : Self.emptyMessage }
+    var localizedLockMessage: String { language == "ar" ? "افتح قفل الجهاز لمتابعة القراءة." : language == "ur" ? "مطالعہ جاری رکھنے کے لیے آلہ کھولیں۔" : Self.lockMessage }
+    var staleMessage: String { language == "ar" ? "سيُتحقق من الموضع عند الفتح" : language == "ur" ? "کھولنے پر مقام کی جانچ ہوگی" : "Position will be checked when opened" }
 }
 
 struct WidgetProgressGaugeValue: Equatable {
@@ -122,18 +156,16 @@ struct WidgetProgressGaugeValue: Equatable {
 
 extension WidgetContinueSnapshot {
     var presentation: ContinueWidgetPresentation {
-        ContinueWidgetPresentation(reference: reference, arabicExcerpt: arabicExcerpt, translationExcerpt: translationExcerpt, arabicVisible: arabicVisible, translationVisible: translationVisible, progressFraction: progressFraction, progressLabel: progressLabel, locale: locale)
-    }
-
-    static func boundedExcerpt(_ text: String, limit: Int = 280) -> String {
-        String(text.prefix(limit)).trimmingCharacters(in: .whitespacesAndNewlines)
+        ContinueWidgetPresentation(reference: reference, progressFraction: progressFraction, progressOrdinal: progressOrdinal, progressTotal: progressTotal, locale: locale)
     }
 }
 
 enum WidgetSnapshotStore {
     static let suiteName = "group.com.hadithly.app"
     private static let dailyKey = "widget.daily.v3"
-    private static let continueKey = "widget.continue.v2"
+    private static let continueKey = "widget.continue.v3"
+    private static let legacyContinueKey = "widget.continue.v2"
+    private static let uiLocaleKey = "widget.uiLocale.v1"
 
     private static var defaults: UserDefaults { UserDefaults(suiteName: suiteName) ?? .standard }
 
@@ -160,12 +192,23 @@ enum WidgetSnapshotStore {
     }
 
     static func saveContinue(_ snapshot: WidgetContinueSnapshot?) {
+        defaults.removeObject(forKey: legacyContinueKey)
         write(snapshot, key: continueKey)
         WidgetCenter.shared.reloadTimelines(ofKind: "ContinueReadingWidget")
     }
 
+    static func saveUILocale(_ locale: String) {
+        defaults.set(locale, forKey: uiLocaleKey)
+        WidgetCenter.shared.reloadTimelines(ofKind: "ContinueReadingWidget")
+    }
+
+    static func uiLocale() -> String { defaults.string(forKey: uiLocaleKey) ?? Locale.current.identifier }
+
     static func daily() -> WidgetDailySnapshot? { read(WidgetDailySnapshot.self, key: dailyKey) }
-    static func `continue`() -> WidgetContinueSnapshot? { read(WidgetContinueSnapshot.self, key: continueKey) }
+    static func `continue`() -> WidgetContinueSnapshot? {
+        defaults.removeObject(forKey: legacyContinueKey)
+        return read(WidgetContinueSnapshot.self, key: continueKey)
+    }
 
     private static func write<T: Encodable>(_ value: T?, key: String) {
         guard let value else { defaults.removeObject(forKey: key); return }

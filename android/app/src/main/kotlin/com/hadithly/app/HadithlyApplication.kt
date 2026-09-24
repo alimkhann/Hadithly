@@ -91,10 +91,9 @@ class HadithlyApplication : Application() {
                 WidgetSnapshotStore(this@HadithlyApplication).saveContinue(
                     entry,
                     locale = current.uiLocale,
-                    translationVisible = current.translationVisible,
-                    arabicVisible = current.arabicVisible,
                     progressFraction = if (ordinal != null && total != null && total > 0) (ordinal / total).coerceIn(0.0, 1.0) else null,
-                    progressLabel = if (ordinal != null && total != null) "Hadith ${ordinal.toInt()} of ${total.toInt()}" else "Resume reading",
+                    progressOrdinal = ordinal?.toInt(),
+                    progressTotal = total?.toInt(),
                 )
                 refreshContinueWidgets(this@HadithlyApplication)
             }
@@ -106,9 +105,9 @@ class HadithlyApplication : Application() {
                 val entry = library.continueReading
                 val ordinal = entry?.hadith?.hadithNumber?.toDoubleOrNull()
                 val total = entry?.let { widgetProgressSummaries[it.collectionSlug]?.totalHadiths }
-                WidgetSnapshotStore(this@HadithlyApplication).saveContinue(entry, current.uiLocale, current.translationVisible, current.arabicVisible,
+                WidgetSnapshotStore(this@HadithlyApplication).saveContinue(entry, current.uiLocale,
                     if (ordinal != null && total != null && total > 0) (ordinal / total).coerceIn(0.0, 1.0) else null,
-                    if (ordinal != null && total != null) "Hadith ${ordinal.toInt()} of ${total.toInt()}" else "Resume reading")
+                    ordinal?.toInt(), total?.toInt())
                 refreshContinueWidgets(this@HadithlyApplication)
             }
         }
@@ -151,11 +150,15 @@ class HadithlyApplication : Application() {
         // Explicit preference changes sync to Convex while signed in; while
         // signed out they stay device-local and merge on the next sign-in.
         preferences.onPreferencesChanged = { updated ->
+            val entry = library.continueReading
+            val ordinal = entry?.hadith?.hadithNumber?.toDoubleOrNull()
+            val total = entry?.let { widgetProgressSummaries[it.collectionSlug]?.totalHadiths }
             WidgetSnapshotStore(this).saveContinue(
-                library.continueReading,
+                entry,
                 locale = updated.uiLocale,
-                translationVisible = updated.translationVisible,
-                arabicVisible = updated.arabicVisible,
+                progressFraction = if (ordinal != null && total != null && total > 0) (ordinal / total).coerceIn(0.0, 1.0) else null,
+                progressOrdinal = ordinal?.toInt(),
+                progressTotal = total?.toInt(),
             )
             appScope.launch { refreshContinueWidgets(this@HadithlyApplication) }
             appScope.launch(Dispatchers.IO) {

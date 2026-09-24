@@ -300,21 +300,15 @@ struct TodayView: View {
             WidgetSnapshotStore.saveContinue(nil)
             return
         }
-        let visibleText = preferences.translationVisible ? hadith.englishText : nil
-        let fallbackText = preferences.arabicVisible ? hadith.arabicText : ""
         let summary = environment.widgetProgress.progressSummaries[entry.collectionSlug]
         let ordinal = Double(hadith.hadithNumber ?? "")
         let total = summary?.totalHadiths
         let fraction = ordinal.flatMap { read in total.map { max(0, min(1, read / $0)) } }
-        let progressLabel = (ordinal != nil && total != nil) ? "Hadith \(Int(ordinal!)) of \(Int(total!))" : "Resume reading"
         WidgetSnapshotStore.saveContinue(WidgetContinueSnapshot(
             reference: hadith.referenceDisplay,
-            arabicExcerpt: WidgetContinueSnapshot.boundedExcerpt(hadith.arabicText),
-            translationExcerpt: WidgetContinueSnapshot.boundedExcerpt(visibleText ?? fallbackText),
-            arabicVisible: preferences.arabicVisible,
-            translationVisible: preferences.translationVisible,
             progressFraction: fraction,
-            progressLabel: progressLabel,
+            progressOrdinal: ordinal.map(Int.init),
+            progressTotal: total.map(Int.init),
             locale: preferences.uiLocale,
             updatedAt: entry.updatedAt
         ))

@@ -78,6 +78,7 @@ final class AppEnvironment {
         self.purchases = PurchaseManager(apiKey: config.revenueCatAPIKey)
         let store = PreferencesStore()
         self.preferences = store
+        WidgetSnapshotStore.saveUILocale(store.preferences.uiLocale)
         self.savedSafety = SavedSafetyPreferences()
         let provider = ClerkConvexAuthProvider()
         self.authProvider = provider
@@ -140,6 +141,7 @@ final class AppEnvironment {
         // signed out they stay device-local and merge on the next sign-in.
         store.onPreferencesChanged = { [weak self] updated in
             guard let self else { return }
+            WidgetSnapshotStore.saveUILocale(updated.uiLocale)
             self.syncPreferences(updated)
             Task { await self.refreshDailyWidget(updated) }
         }
@@ -327,6 +329,7 @@ final class AppEnvironment {
             server.updatedAt > preferences.preferences.updatedAt
         else { return }
         preferences.adoptServer(server)
+        WidgetSnapshotStore.saveUILocale(server.uiLocale)
     }
 
     /// Wire encoding for the platform-neutral preference payload. All numbers

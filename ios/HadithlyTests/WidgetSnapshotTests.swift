@@ -36,22 +36,20 @@ final class WidgetSnapshotTests: XCTestCase {
 
     func testContinueSnapshotContainsPresentationOnly() throws {
         let snapshot = WidgetContinueSnapshot(
-            reference: "Bukhari · Hadith 57", arabicExcerpt: "متن", translationExcerpt: "A quiet reading excerpt.",
-            arabicVisible: true, translationVisible: true, progressFraction: 0.57, progressLabel: "Hadith 57 of 100", locale: "ur", updatedAt: Date(timeIntervalSince1970: 1_000)
+            reference: "Bukhari · Hadith 57", progressFraction: 0.57,
+            progressOrdinal: 57, progressTotal: 100, locale: "ur", updatedAt: Date(timeIntervalSince1970: 1_000)
         )
         let encoded = String(decoding: try JSONEncoder().encode(snapshot), as: UTF8.self)
-        for forbidden in ["collectionSlug", "providerHadithId", "position", "account", "note", "volumeId"] {
+        for forbidden in ["collectionSlug", "providerHadithId", "position", "account", "note", "volumeId", "arabicExcerpt", "translationExcerpt"] {
             XCTAssertFalse(encoded.contains(forbidden), "Continue widget cache must not contain \(forbidden)")
         }
     }
 
     func testContinuePresentationKeepsOnlyOneReferenceAndSemanticProgress() {
         let presentation = ContinueWidgetPresentation(
-            reference: "Bukhari · Hadith 57", arabicExcerpt: "متن", translationExcerpt: "A quiet reading excerpt.", arabicVisible: true, translationVisible: true, progressFraction: 0.57, progressLabel: "Hadith 57 of 100", locale: "en"
+            reference: "Bukhari · Hadith 57", progressFraction: 0.57, progressOrdinal: 57, progressTotal: 100, locale: "en"
         )
         XCTAssertEqual(presentation.compactLines, ["Bukhari · Hadith 57", "Hadith 57 of 100"])
-        XCTAssertEqual(presentation.mediumExcerptLineLimit, 2)
-        XCTAssertEqual(presentation.largeExcerptLineLimit, 4)
         XCTAssertEqual(presentation.accessoryInlineText, "Resume reading")
         XCTAssertFalse(presentation.isRightToLeft)
         XCTAssertEqual(ContinueWidgetPresentation.emptyMessage, "Read a hadith to continue here.")
@@ -59,8 +57,16 @@ final class WidgetSnapshotTests: XCTestCase {
     }
 
     func testContinuePresentationMirrorsUrdu() {
-        let presentation = ContinueWidgetPresentation(reference: "حوالہ", arabicExcerpt: "متن", translationExcerpt: "text", arabicVisible: true, translationVisible: true, progressFraction: 0.5, progressLabel: "Half read", locale: "ur")
+        let presentation = ContinueWidgetPresentation(reference: "Bukhari · Hadith 57", progressFraction: 0.5, progressOrdinal: 57, progressTotal: 100, locale: "ur")
         XCTAssertTrue(presentation.isRightToLeft)
+        XCTAssertTrue(presentation.localizedReference.contains("حدیث"))
+        XCTAssertTrue(presentation.progressLabel.contains("حدیث"))
+    }
+
+    func testWidgetEmptyCopyUsesSelectedLocale() {
+        XCTAssertEqual(DailyWidgetCopy.title("ar"), "الحديث اليومي")
+        XCTAssertEqual(DailyWidgetCopy.empty("ur"), "آج کی حدیث تیار کرنے کے لیے حدیثلی کھولیں۔")
+        XCTAssertEqual(ContinueWidgetPresentation(reference: "", progressFraction: nil, progressOrdinal: nil, progressTotal: nil, locale: "ar").localizedEmptyMessage, "اقرأ حديثًا للمتابعة هنا.")
     }
 
     func testNativeGaugeReceivesAClampedRoundedFraction() {

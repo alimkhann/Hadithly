@@ -28,6 +28,24 @@ data class DailyWidgetSnapshot(
     val updatedAt: Long,
 )
 
+object DailyWidgetCopy {
+    fun title(locale: String): String = when (locale.substringBefore('-')) {
+        "ar" -> "الحديث اليومي"
+        "ur" -> "آج کی حدیث"
+        else -> "Daily Hadith"
+    }
+    fun empty(locale: String): String = when (locale.substringBefore('-')) {
+        "ar" -> "افتح حديثلي لتحضير حديث اليوم."
+        "ur" -> "آج کی حدیث تیار کرنے کے لیے حدیثلی کھولیں۔"
+        else -> "Open Hadithly to prepare today’s hadith."
+    }
+    fun locked(locale: String): String = when (locale.substringBefore('-')) {
+        "ar" -> "افتح قفل الجهاز لعرض حديث اليوم."
+        "ur" -> "آج کی حدیث دیکھنے کے لیے آلہ کھولیں۔"
+        else -> "Unlock Hadithly to view today’s hadith."
+    }
+}
+
 /** Public W1 payload; its shape cannot carry notes, accounts, or positions. */
 @Serializable
 data class DailyWidgetPayload(
@@ -49,31 +67,41 @@ data class DailyWidgetPayload(
 @Serializable
 data class ContinueWidgetSnapshot(
     val reference: String,
-    val arabicExcerpt: String,
-    val translationExcerpt: String,
-    val arabicVisible: Boolean,
-    val translationVisible: Boolean,
     val progressFraction: Double? = null,
-    val progressLabel: String,
+    val progressOrdinal: Int? = null,
+    val progressTotal: Int? = null,
     val locale: String,
     val updatedAt: Long,
 )
 
 data class ContinueWidgetPresentation(
     val reference: String,
-    val arabicExcerpt: String,
-    val translationExcerpt: String,
-    val arabicVisible: Boolean,
-    val translationVisible: Boolean,
     val progressFraction: Double?,
-    val progressLabel: String,
+    val progressOrdinal: Int?,
+    val progressTotal: Int?,
     val locale: String,
 ) {
-    val compactLines: List<String> get() = listOf(reference, progressLabel)
-    val mediumExcerptLines: Int get() = 2
-    val largeExcerptLines: Int get() = 4
-    val accessoryInlineText: String get() = "Resume reading"
+    private val language: String get() = locale.substringBefore('-')
+    val title: String get() = when (language) { "ar" -> "متابعة القراءة"; "ur" -> "مطالعہ جاری رکھیں"; else -> "Continue Reading" }
+    val resumeText: String get() = when (language) { "ar" -> "استئناف القراءة"; "ur" -> "مطالعہ جاری رکھیں"; else -> "Resume reading" }
+    val progressLabel: String get() = if (progressOrdinal != null && progressTotal != null && progressTotal > 0) {
+        when (language) {
+            "ar" -> "الحديث $progressOrdinal من $progressTotal"
+            "ur" -> "حدیث $progressOrdinal، کل $progressTotal"
+            else -> "Hadith $progressOrdinal of $progressTotal"
+        }
+    } else resumeText
+    val localizedReference: String get() = when (language) {
+        "ar" -> reference.replace("Hadith ", "الحديث ")
+        "ur" -> reference.replace("Hadith ", "حدیث ")
+        else -> reference
+    }
+    val compactLines: List<String> get() = listOf(localizedReference, progressLabel)
+    val accessoryInlineText: String get() = resumeText
     val isRightToLeft: Boolean get() = locale.substringBefore('-') in setOf("ar", "fa", "ur")
+    val emptyMessage: String get() = when (language) { "ar" -> "اقرأ حديثًا للمتابعة هنا."; "ur" -> "یہاں سے جاری رکھنے کے لیے حدیث پڑھیں۔"; else -> EMPTY_MESSAGE }
+    val lockMessage: String get() = when (language) { "ar" -> "افتح قفل الجهاز لمتابعة القراءة."; "ur" -> "مطالعہ جاری رکھنے کے لیے آلہ کھولیں۔"; else -> LOCK_MESSAGE }
+    val staleMessage: String get() = when (language) { "ar" -> "سيُتحقق من الموضع عند الفتح"; "ur" -> "کھولنے پر مقام کی جانچ ہوگی"; else -> "Position will be checked when opened" }
 
     companion object {
         const val EMPTY_MESSAGE = "Read a hadith to continue here."
@@ -110,31 +138,29 @@ class WidgetSnapshotStore(context: Context) {
         return true
     }
 
-    fun saveContinue(entry: ProgressEntry?, locale: String, translationVisible: Boolean, arabicVisible: Boolean, progressFraction: Double? = null, progressLabel: String = "Resume reading") {
+    fun saveContinue(entry: ProgressEntry?, locale: String, progressFraction: Double? = null, progressOrdinal: Int? = null, progressTotal: Int? = null) {
         val hadith = entry?.hadith
         val snapshot = if (entry != null && hadith != null) {
             ContinueWidgetSnapshot(
                 reference = hadith.referenceDisplay,
-                arabicExcerpt = boundedExcerpt(hadith.arabicText),
-                translationExcerpt = boundedExcerpt(hadith.englishText ?: ""),
-                arabicVisible = arabicVisible,
-                translationVisible = translationVisible,
                 progressFraction = progressFraction,
-                progressLabel = progressLabel,
+                progressOrdinal = progressOrdinal,
+                progressTotal = progressTotal,
                 locale = locale,
                 updatedAt = entry.updatedAt.toLong(),
             )
         } else null
         prefs.edit().apply {
+            remove(LEGACY_CONTINUE)
             if (snapshot == null) remove(CONTINUE) else putString(CONTINUE, json.encodeToString(snapshot))
         }.apply()
     }
 
     fun daily(): DailyWidgetSnapshot? = read(DAILY)
-    fun continueReading(): ContinueWidgetSnapshot? = read(CONTINUE)
-
-    private fun boundedExcerpt(text: String, limit: Int = 280): String =
-        text.take(limit).trim()
+    fun continueReading(): ContinueWidgetSnapshot? {
+        prefs.edit().remove(LEGACY_CONTINUE).apply()
+        return read(CONTINUE)
+    }
 
     private inline fun <reified T> read(key: String): T? =
         prefs.getString(key, null)?.let { runCatching { json.decodeFromString<T>(it) }.getOrNull() }
@@ -142,7 +168,8 @@ class WidgetSnapshotStore(context: Context) {
     private companion object {
         const val PREFS = "hadithly.widgets"
         const val DAILY = "daily.v2"
-        const val CONTINUE = "continue.v1"
+        const val CONTINUE = "continue.v2"
+        const val LEGACY_CONTINUE = "continue.v1"
         val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     }
 }
