@@ -226,12 +226,10 @@ class ReaderViewModel(
      * fetch races a bounded timeout; the timeout falls into the same
      * offline-fallback path as any other fetch failure.
      */
-    private val fetchTimeoutMs = 10_000L
-
     private fun loadOutline() {
         viewModelScope.launch {
             try {
-                val result = withTimeout(fetchTimeoutMs) {
+                val result = withTimeout(FETCH_TIMEOUT_MS) {
                     app.repository.getCollectionOutline(collectionSlug)
                 }
                 // Explicit deep links (Today/Saved) name a volume; a canonical
@@ -298,6 +296,8 @@ class ReaderViewModel(
     ): String? = Companion.volumeIdForHadithNumber(hadithNumber, volumes)
 
     companion object {
+        private const val FETCH_TIMEOUT_MS = 10_000L
+
         /**
          * Locates the source-provided volume that holds a hadith number by
          * walking the outline's counts in order. Sub-references ("4.5") use
@@ -543,7 +543,7 @@ class ReaderViewModel(
         pageJob = viewModelScope.launch {
             var shouldPrefetchNeighbor = false
             try {
-                val result = withTimeout(fetchTimeoutMs) {
+                val result = withTimeout(FETCH_TIMEOUT_MS) {
                     app.repository.getReaderPage(
                         collectionSlug = collectionSlug,
                         volumeId = volumeId,
