@@ -1303,6 +1303,18 @@ substantive: they own bounded implementation outcomes, not just inventories.
   timeout before progress can be created through the user journey. The N1 and
   R3 physical-device gates above remain open. Neither widget is marked fully
   passed by this record.
+- On 2026-09-25, an installed Android Continue Reading widget displayed an
+  Arabic guest-progress fixture with reference and hadith ordinal, then
+  returned to its Arabic no-progress state when that progress was deleted.
+  `ContinueWidgetRuntimeTest` checked the live launcher text and the device
+  cache; it passed after fixing a Glance composition that kept an old visible
+  snapshot after the cache was cleared. The app-wide collection-summary
+  subscriber now retries after a closed Convex channel instead of crashing the
+  process. Android assembly, unit tests, and the installed-widget test passed;
+  iOS app build and unit tests passed. The iOS reader UI test reached the
+  collection but failed at `OfflineFetchTimeout`; a direct development Convex
+  outline call took about four seconds. This does not close the remaining W2
+  live-device cases above.
 
 ### Future topic browsing with the Jev classifier (not a session)
 

@@ -118,7 +118,14 @@ struct ContinueWidgetPresentation: Equatable {
     var title: String { language == "ar" ? "متابعة القراءة" : language == "ur" ? "مطالعہ جاری رکھیں" : "Continue Reading" }
     var resumeText: String { language == "ar" ? "استئناف القراءة" : language == "ur" ? "مطالعہ جاری رکھیں" : "Resume reading" }
     var progressLabel: String {
-        guard let progressOrdinal, let progressTotal, progressTotal > 0 else { return resumeText }
+        guard let progressOrdinal else { return resumeText }
+        guard let progressTotal, progressTotal > 0 else {
+            switch language {
+            case "ar": return "التقدم: الحديث \(progressOrdinal)"
+            case "ur": return "پیش رفت: حدیث \(progressOrdinal)"
+            default: return "Progress: Hadith \(progressOrdinal)"
+            }
+        }
         switch language {
         case "ar": return "الحديث \(progressOrdinal) من \(progressTotal)"
         case "ur": return "حدیث \(progressOrdinal)، کل \(progressTotal)"

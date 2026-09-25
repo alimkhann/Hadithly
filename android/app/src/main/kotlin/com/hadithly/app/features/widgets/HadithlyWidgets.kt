@@ -3,6 +3,8 @@ package com.hadithly.app.features.widgets
 import android.content.ComponentName
 import android.content.Context
 import android.app.KeyguardManager
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.LocalSize
@@ -38,28 +40,34 @@ private fun isLocked(context: Context): Boolean =
     context.getSystemService(KeyguardManager::class.java)?.isDeviceLocked == true
 
 class DailyHadithWidget : GlanceAppWidget() {
-    override suspend fun provideGlance(context: Context, id: GlanceId) = provideContent {
+    override suspend fun provideGlance(context: Context, id: GlanceId) {
         val locked = isLocked(context)
-        val snapshot = if (locked) null else WidgetSnapshotStore(context).daily()
-        val locale = snapshot?.locale ?: com.hadithly.app.HadithlyApplication.instance().preferences.preferences.value.uiLocale
-        val size = dailyWidgetSize(LocalSize.current)
-        Column(
-            modifier = GlanceModifier.fillMaxSize().background(background).padding(14.dp),
-            verticalAlignment = Alignment.Top,
-        ) {
-            Text(DailyWidgetCopy.title(locale), style = TextStyle(color = secondary, fontWeight = FontWeight.Medium))
-            if (snapshot == null) {
-                Text(if (locked) DailyWidgetCopy.locked(locale) else DailyWidgetCopy.empty(locale), style = TextStyle(color = foreground))
-            } else {
-                Column(modifier = GlanceModifier.defaultWeight().clickable(actionStartActivity(ComponentName(context, DailyWidgetEntryActivity::class.java)))) {
-                    Text(snapshot.reference, style = TextStyle(color = foreground, fontWeight = FontWeight.Bold), maxLines = 1)
-                    if (size == DailyWidgetSize.LARGE && snapshot.arabicVisible && snapshot.translationVisible) {
-                        Text(snapshot.arabicText, style = TextStyle(color = foreground), maxLines = 4)
-                        Text(snapshot.text, style = TextStyle(color = foreground), maxLines = 4)
-                    } else {
-                        Text(if (snapshot.arabicVisible && !snapshot.translationVisible) snapshot.arabicText else snapshot.text, style = TextStyle(color = foreground), maxLines = size.previewLines)
+        val store = WidgetSnapshotStore(context)
+        val initial = store.daily()
+        val updates = store.observeDaily()
+        provideContent {
+            val current by updates.collectAsState(initial)
+            val snapshot = if (locked) null else current
+            val locale = snapshot?.locale ?: com.hadithly.app.HadithlyApplication.instance().preferences.preferences.value.uiLocale
+            val size = dailyWidgetSize(LocalSize.current)
+            Column(
+                modifier = GlanceModifier.fillMaxSize().background(background).padding(14.dp),
+                verticalAlignment = Alignment.Top,
+            ) {
+                Text(DailyWidgetCopy.title(locale), style = TextStyle(color = secondary, fontWeight = FontWeight.Medium))
+                if (snapshot == null) {
+                    Text(if (locked) DailyWidgetCopy.locked(locale) else DailyWidgetCopy.empty(locale), style = TextStyle(color = foreground))
+                } else {
+                    Column(modifier = GlanceModifier.defaultWeight().clickable(actionStartActivity(ComponentName(context, DailyWidgetEntryActivity::class.java)))) {
+                        Text(snapshot.reference, style = TextStyle(color = foreground, fontWeight = FontWeight.Bold), maxLines = 1)
+                        if (size == DailyWidgetSize.LARGE && snapshot.arabicVisible && snapshot.translationVisible) {
+                            Text(snapshot.arabicText, style = TextStyle(color = foreground), maxLines = 4)
+                            Text(snapshot.text, style = TextStyle(color = foreground), maxLines = 4)
+                        } else {
+                            Text(if (snapshot.arabicVisible && !snapshot.translationVisible) snapshot.arabicText else snapshot.text, style = TextStyle(color = foreground), maxLines = size.previewLines)
+                        }
+                        Text(dailyMetadata(snapshot), style = TextStyle(color = secondary), maxLines = 1)
                     }
-                    Text(dailyMetadata(snapshot), style = TextStyle(color = secondary), maxLines = 1)
                 }
             }
         }
@@ -84,25 +92,30 @@ private fun dailyMetadata(snapshot: DailyWidgetSnapshot): String = buildString {
 class DailyHadithWidgetReceiver : GlanceAppWidgetReceiver() { override val glanceAppWidget = DailyHadithWidget() }
 
 class ContinueReadingWidget : GlanceAppWidget() {
-    override suspend fun provideGlance(context: Context, id: GlanceId) = provideContent {
+    override suspend fun provideGlance(context: Context, id: GlanceId) {
         val locked = isLocked(context)
-        val cached = WidgetSnapshotStore(context).continueReading()
-        val snapshot = if (locked) null else cached
-        val copy = ContinueWidgetPresentation("", null, null, null, cached?.locale ?: com.hadithly.app.HadithlyApplication.instance().preferences.preferences.value.uiLocale)
-        Column(
-            modifier = GlanceModifier.fillMaxSize().background(background).padding(14.dp),
-            verticalAlignment = Alignment.Top,
-        ) {
-            Text(copy.title, style = TextStyle(color = secondary, fontWeight = FontWeight.Medium))
-            if (snapshot == null) {
-                Text(if (locked) copy.lockMessage else copy.emptyMessage, style = TextStyle(color = foreground))
-            } else {
-                val presentation = ContinueWidgetPresentation(snapshot.reference, snapshot.progressFraction, snapshot.progressOrdinal, snapshot.progressTotal, snapshot.locale)
-                Column(modifier = GlanceModifier.defaultWeight().clickable(actionStartActivity(ComponentName(context, ContinueWidgetEntryActivity::class.java)))) {
-                    Text(presentation.localizedReference, style = TextStyle(color = foreground, fontWeight = FontWeight.Bold), maxLines = 2)
-                    Text(presentation.progressLabel, style = TextStyle(color = secondary), maxLines = 1)
-                    if (WidgetRefreshPolicy.isStale(snapshot.updatedAt)) {
-                        Text(presentation.staleMessage, style = TextStyle(color = secondary), maxLines = 1)
+        val store = WidgetSnapshotStore(context)
+        val initial = store.continueReading()
+        val updates = store.observeContinue()
+        provideContent {
+            val cached by updates.collectAsState(initial)
+            val snapshot = if (locked) null else cached
+            val copy = ContinueWidgetPresentation("", null, null, null, cached?.locale ?: com.hadithly.app.HadithlyApplication.instance().preferences.preferences.value.uiLocale)
+            Column(
+                modifier = GlanceModifier.fillMaxSize().background(background).padding(14.dp),
+                verticalAlignment = Alignment.Top,
+            ) {
+                Text(copy.title, style = TextStyle(color = secondary, fontWeight = FontWeight.Medium))
+                if (snapshot == null) {
+                    Text(if (locked) copy.lockMessage else copy.emptyMessage, style = TextStyle(color = foreground))
+                } else {
+                    val presentation = ContinueWidgetPresentation(snapshot.reference, snapshot.progressFraction, snapshot.progressOrdinal, snapshot.progressTotal, snapshot.locale)
+                    Column(modifier = GlanceModifier.defaultWeight().clickable(actionStartActivity(ComponentName(context, ContinueWidgetEntryActivity::class.java)))) {
+                        Text(presentation.localizedReference, style = TextStyle(color = foreground, fontWeight = FontWeight.Bold), maxLines = 2)
+                        Text(presentation.progressLabel, style = TextStyle(color = secondary), maxLines = 1)
+                        if (WidgetRefreshPolicy.isStale(snapshot.updatedAt)) {
+                            Text(presentation.staleMessage, style = TextStyle(color = secondary), maxLines = 1)
+                        }
                     }
                 }
             }

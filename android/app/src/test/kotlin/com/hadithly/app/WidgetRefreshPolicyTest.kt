@@ -54,6 +54,10 @@ class WidgetRefreshPolicyTest {
         assertTrue(urdu.isRightToLeft)
         assertTrue(urdu.localizedReference.contains("حدیث"))
         assertTrue(urdu.progressLabel.contains("حدیث"))
+        org.junit.Assert.assertEquals(
+            "التقدم: الحديث 57",
+            ContinueWidgetPresentation("Bukhari · Hadith 57", null, 57, null, "ar").progressLabel,
+        )
         org.junit.Assert.assertEquals("Read a hadith to continue here.", ContinueWidgetPresentation.EMPTY_MESSAGE)
         org.junit.Assert.assertEquals("Unlock Hadithly to resume reading.", ContinueWidgetPresentation.LOCK_MESSAGE)
     }

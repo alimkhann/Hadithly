@@ -20,8 +20,10 @@ import com.hadithly.app.features.widgets.refreshContinueWidgets
 import com.hadithly.app.features.widgets.refreshDailyWidgets
 import com.google.firebase.FirebaseApp
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.collect
 import com.hadithly.app.core.preferences.toWireMap
@@ -99,16 +101,25 @@ class HadithlyApplication : Application() {
             }
         }
         appScope.launch(Dispatchers.IO) {
-            repository.subscribe<List<CollectionProgressSummary>>("library:listCollectionProgressSummaries").collect { summaries ->
-                widgetProgressSummaries = summaries.associateBy { it.collectionSlug }
-                val current = preferences.preferences.value
-                val entry = library.continueReading
-                val ordinal = entry?.hadith?.hadithNumber?.toDoubleOrNull()
-                val total = entry?.let { widgetProgressSummaries[it.collectionSlug]?.totalHadiths }
-                WidgetSnapshotStore(this@HadithlyApplication).saveContinue(entry, current.uiLocale,
-                    if (ordinal != null && total != null && total > 0) (ordinal / total).coerceIn(0.0, 1.0) else null,
-                    ordinal?.toInt(), total?.toInt())
-                refreshContinueWidgets(this@HadithlyApplication)
+            while (true) {
+                try {
+                    repository.subscribe<List<CollectionProgressSummary>>("library:listCollectionProgressSummaries").collect { summaries ->
+                        widgetProgressSummaries = summaries.associateBy { it.collectionSlug }
+                        val current = preferences.preferences.value
+                        val entry = library.continueReading
+                        val ordinal = entry?.hadith?.hadithNumber?.toDoubleOrNull()
+                        val total = entry?.let { widgetProgressSummaries[it.collectionSlug]?.totalHadiths }
+                        WidgetSnapshotStore(this@HadithlyApplication).saveContinue(entry, current.uiLocale,
+                            if (ordinal != null && total != null && total > 0) (ordinal / total).coerceIn(0.0, 1.0) else null,
+                            ordinal?.toInt(), total?.toInt())
+                        refreshContinueWidgets(this@HadithlyApplication)
+                    }
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    // The cached widget stays usable while Convex reconnects.
+                    delay(5_000)
+                }
             }
         }
         push = PushNotificationManager(

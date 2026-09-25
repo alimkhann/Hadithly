@@ -1,6 +1,10 @@
 package com.hadithly.app.core.widgets
 
 import android.content.Context
+import android.content.SharedPreferences
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import com.hadithly.app.core.data.ProgressEntry
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -84,13 +88,19 @@ data class ContinueWidgetPresentation(
     private val language: String get() = locale.substringBefore('-')
     val title: String get() = when (language) { "ar" -> "متابعة القراءة"; "ur" -> "مطالعہ جاری رکھیں"; else -> "Continue Reading" }
     val resumeText: String get() = when (language) { "ar" -> "استئناف القراءة"; "ur" -> "مطالعہ جاری رکھیں"; else -> "Resume reading" }
-    val progressLabel: String get() = if (progressOrdinal != null && progressTotal != null && progressTotal > 0) {
-        when (language) {
+    val progressLabel: String get() = when {
+        progressOrdinal == null -> resumeText
+        progressTotal == null || progressTotal <= 0 -> when (language) {
+            "ar" -> "التقدم: الحديث $progressOrdinal"
+            "ur" -> "پیش رفت: حدیث $progressOrdinal"
+            else -> "Progress: Hadith $progressOrdinal"
+        }
+        else -> when (language) {
             "ar" -> "الحديث $progressOrdinal من $progressTotal"
             "ur" -> "حدیث $progressOrdinal، کل $progressTotal"
             else -> "Hadith $progressOrdinal of $progressTotal"
         }
-    } else resumeText
+    }
     val localizedReference: String get() = when (language) {
         "ar" -> reference.replace("Hadith ", "الحديث ")
         "ur" -> reference.replace("Hadith ", "حدیث ")
@@ -157,10 +167,27 @@ class WidgetSnapshotStore(context: Context) {
     }
 
     fun daily(): DailyWidgetSnapshot? = read(DAILY)
+    fun observeDaily() = callbackFlow<DailyWidgetSnapshot?> {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == DAILY) trySend(daily())
+        }
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        trySend(daily())
+        awaitClose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
+    }.distinctUntilChanged()
+
     fun continueReading(): ContinueWidgetSnapshot? {
         prefs.edit().remove(LEGACY_CONTINUE).apply()
         return read(CONTINUE)
     }
+    fun observeContinue() = callbackFlow<ContinueWidgetSnapshot?> {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == CONTINUE) trySend(continueReading())
+        }
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        trySend(continueReading())
+        awaitClose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
+    }.distinctUntilChanged()
 
     private inline fun <reified T> read(key: String): T? =
         prefs.getString(key, null)?.let { runCatching { json.decodeFromString<T>(it) }.getOrNull() }

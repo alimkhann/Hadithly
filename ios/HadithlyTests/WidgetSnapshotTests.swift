@@ -63,6 +63,11 @@ final class WidgetSnapshotTests: XCTestCase {
         XCTAssertTrue(presentation.progressLabel.contains("حدیث"))
     }
 
+    func testContinueProgressUsesOrdinalWhenTotalIsUnavailable() {
+        let presentation = ContinueWidgetPresentation(reference: "Bukhari · Hadith 57", progressFraction: nil, progressOrdinal: 57, progressTotal: nil, locale: "ar")
+        XCTAssertEqual(presentation.progressLabel, "التقدم: الحديث 57")
+    }
+
     func testWidgetEmptyCopyUsesSelectedLocale() {
         XCTAssertEqual(DailyWidgetCopy.title("ar"), "الحديث اليومي")
         XCTAssertEqual(DailyWidgetCopy.empty("ur"), "آج کی حدیث تیار کرنے کے لیے حدیثلی کھولیں۔")
