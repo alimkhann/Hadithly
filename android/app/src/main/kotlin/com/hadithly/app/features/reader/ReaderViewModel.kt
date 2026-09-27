@@ -870,11 +870,22 @@ class ReaderViewModel(
         val landingHadith = landingHadithNumber?.let { number ->
             page.items.firstOrNull { it.providerHadithId == number }
         }
+        val stableHadith = lastStableAnchor?.let { stable ->
+            page.items.firstOrNull { it.internalId == stable.internalId }
+        }
         saveProgress(
-            anchor = restoredHadith ?: landingHadith ?: first,
+            anchor = stableHadith ?: restoredHadith ?: landingHadith ?: first,
             page = page,
-            rawPageOffset = if (restoredHadith == null) 0.0 else restoredPosition?.rawPageOffset ?: 0.0,
-            normalizedOffset = if (restoredHadith == null) 0.0 else restoredPosition?.normalizedOffset ?: 0.0,
+            rawPageOffset = when {
+                stableHadith != null -> lastStableRawPageOffset
+                restoredHadith != null -> restoredPosition?.rawPageOffset ?: 0.0
+                else -> 0.0
+            },
+            normalizedOffset = when {
+                stableHadith != null -> lastStableNormalizedOffset
+                restoredHadith != null -> restoredPosition?.normalizedOffset ?: 0.0
+                else -> 0.0
+            },
         )
     }
 

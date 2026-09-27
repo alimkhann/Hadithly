@@ -1013,12 +1013,26 @@ final class ReaderModel {
         let landingHadith = landingHadithNumber.flatMap { number in
             page.items.first { $0.providerHadithId == number }
         }
-        let usesRestoredOffset = restoredHadith != nil
+        let stableHadith = lastStableAnchor.flatMap { stable in
+            page.items.first { $0.internalId == stable.internalId }
+        }
+        let rawPageOffset: Double
+        let normalizedOffset: Double
+        if stableHadith != nil {
+            rawPageOffset = lastStableRawPageOffset
+            normalizedOffset = lastStableNormalizedOffset
+        } else if restoredHadith != nil {
+            rawPageOffset = restoredPosition?.rawPageOffset ?? 0
+            normalizedOffset = restoredPosition?.normalizedOffset ?? 0
+        } else {
+            rawPageOffset = 0
+            normalizedOffset = 0
+        }
         saveProgress(
-            anchor: restoredHadith ?? landingHadith ?? first,
+            anchor: stableHadith ?? restoredHadith ?? landingHadith ?? first,
             page: page,
-            rawPageOffset: usesRestoredOffset ? restoredPosition?.rawPageOffset ?? 0 : 0,
-            normalizedOffset: usesRestoredOffset ? restoredPosition?.normalizedOffset ?? 0 : 0
+            rawPageOffset: rawPageOffset,
+            normalizedOffset: normalizedOffset
         )
     }
 

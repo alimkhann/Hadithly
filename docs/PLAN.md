@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-09-24. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-09-27. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
 D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its
 simulator/emulator and unit gates; its physical-device gate is open. R4's
@@ -1299,8 +1299,9 @@ substantive: they own bounded implementation outcomes, not just inventories.
   rendering; populated guest and synced widget display; offline, stale, and
   deleted-download behavior; and an installed-widget tap restoring the exact
   semantic offset on both clients. The host's Xcode 27 setup has no controllable
-  Simulator app window, and the Android reader currently returns a fetch
-  timeout before progress can be created through the user journey. The N1 and
+  Simulator app window. The Android reader's immediate fetch timeout was fixed
+  in `65e4fb8`, allowing progress to be created through the user journey; the
+  iOS reader UI test still reaches a fetch timeout. The N1 and
   R3 physical-device gates above remain open. Neither widget is marked fully
   passed by this record.
 - On 2026-09-25, an installed Android Continue Reading widget displayed an
@@ -1312,9 +1313,22 @@ substantive: they own bounded implementation outcomes, not just inventories.
   subscriber now retries after a closed Convex channel instead of crashing the
   process. Android assembly, unit tests, and the installed-widget test passed;
   iOS app build and unit tests passed. The iOS reader UI test reached the
-  collection but failed at `OfflineFetchTimeout`; a direct development Convex
-  outline call took about four seconds. This does not close the remaining W2
+  collection but failed at `OfflineFetchTimeout`; direct development Convex
+  outline and page calls each took about three to four seconds. Android's
+  installed reader now opens through the app, and its guest evidence sheet
+  correctly requires sign-in. This does not close the remaining W2
   live-device cases above.
+- The installed Android widget also displayed progress created by reading
+  Bukhari in the app, with Arabic reference and `Hadith 1 of 7277`. Its tap
+  opened the reader. A nonzero semantic position (`normalizedOffset` about
+  `0.50`) exposed a reader lifecycle save that reset the position to zero;
+  both native readers now prefer their last stable scroll anchor when saving
+  on close. On Android the stored offset remained `0.505` after the next
+  widget tap. A later tap on the same installed widget visibly reopened the
+  reader at the saved hadith content near the chapter boundary, and the
+  private position still recorded `0.505`. Android guest semantic restoration
+  now has device evidence; iOS, synced progress, lock, stale/offline, and
+  deleted-download cases remain open.
 
 ### Future topic browsing with the Jev classifier (not a session)
 
