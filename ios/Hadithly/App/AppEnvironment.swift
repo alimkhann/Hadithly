@@ -72,6 +72,16 @@ final class AppEnvironment {
     private var authStateCancellable: AnyCancellable?
 
     init(config: AppConfig = AppConfig(), guestData: GuestDataStore? = nil) {
+        let evidenceDirectory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appending(path: "EvidenceDrafts", directoryHint: .isDirectory)
+        if let files = try? FileManager.default.contentsOfDirectory(at: evidenceDirectory, includingPropertiesForKeys: [.contentModificationDateKey]) {
+            for file in files {
+                if let modified = try? file.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate,
+                   Date().timeIntervalSince(modified) > 7 * 24 * 60 * 60 {
+                    try? FileManager.default.removeItem(at: file)
+                }
+            }
+        }
         self.config = config
         self.guestData = guestData ?? GuestDataStore()
         Clerk.configure(publishableKey: config.clerkPublishableKey)
@@ -283,7 +293,9 @@ final class AppEnvironment {
     /// then removes the Clerk identity and its sessions. Safe to retry if the
     /// second step fails because the backend mutation is idempotent.
     func deleteAccount() async throws {
+        let accountId = Clerk.shared.user?.id
         let _: Bool? = try await convex.mutation("users:deleteCurrentUser")
+        if let accountId { EvidenceLocalDrafts.clear(for: accountId) }
         guard let user = Clerk.shared.user else { return }
         try await user.delete()
         handleSignOut()

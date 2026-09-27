@@ -1,10 +1,12 @@
 package com.hadithly.app.core.session
 
+import android.content.Context
 import com.clerk.api.Clerk
 import com.clerk.api.network.serialization.ClerkResult
 import com.clerk.api.network.serialization.errorMessage
 import com.clerk.api.user.delete
 import com.hadithly.app.core.data.ConvexRepository
+import com.hadithly.app.core.data.EvidenceLocalDrafts
 import com.hadithly.app.core.data.GuestDataStore
 import com.hadithly.app.core.data.GuestMergePlanner
 import com.hadithly.app.core.data.UserLibraryModel
@@ -29,6 +31,7 @@ import dev.convex.android.AuthState
  * run again. Mirrors iOS AppEnvironment.completeSignIn.
  */
 class SessionManager(
+    private val context: Context,
     private val scope: CoroutineScope,
     private val settings: AppSettings,
     private val preferences: PreferencesStore,
@@ -157,7 +160,9 @@ class SessionManager(
 
     /** Delete backend data while authenticated, then delete the Clerk user. */
     suspend fun deleteAccount(): Result<Unit> = runCatching {
+        val accountId = Clerk.user?.id
         repository.deleteCurrentUser()
+        if (accountId != null) EvidenceLocalDrafts.clearForAccount(context, accountId)
         val user = Clerk.user ?: return@runCatching
         when (val result = user.delete()) {
             is ClerkResult.Success -> purchases.logOut()

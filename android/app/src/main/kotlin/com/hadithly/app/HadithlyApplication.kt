@@ -60,6 +60,9 @@ class HadithlyApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        java.io.File(filesDir, "evidenceDrafts").listFiles()?.forEach { file ->
+            if (System.currentTimeMillis() - file.lastModified() > 7L * 24 * 60 * 60 * 1000) file.delete()
+        }
         sharedInstance = this
         val publishableKey = BuildConfig.CLERK_PUBLISHABLE_KEY
         check(!publishableKey.startsWith("PLACEHOLDER")) {
@@ -146,6 +149,7 @@ class HadithlyApplication : Application() {
             offline.setAnchorProvider(slug) { offlineAnchors(slug) }
         }
         session = SessionManager(
+            context = this,
             scope = appScope,
             settings = settings,
             preferences = preferences,

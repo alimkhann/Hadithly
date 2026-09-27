@@ -20,7 +20,6 @@ import com.hadithly.app.core.data.ReaderTarget
 import com.hadithly.app.core.data.ReaderTargetResolver
 import com.hadithly.app.core.data.ReaderTargetSource
 import com.hadithly.app.core.data.TranslationFailure
-import com.hadithly.app.core.data.TranslationSubmissionResult
 import com.hadithly.app.core.links.CanonicalHadithLink
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.CancellationException
@@ -812,17 +811,6 @@ class ReaderViewModel(
     }
 
     val canContribute: Boolean get() = app.isSignedIn()
-
-    suspend fun submitTranslation(
-        hadith: ReaderHadith,
-        proposedContent: String,
-        replacing: ReaderTranslation?,
-    ): TranslationSubmissionResult = app.repository.submitTranslation(
-        hadithInternalId = hadith.internalId,
-        language = _state.value.language,
-        proposedContent = proposedContent,
-        replacesTranslationId = replacing?.translationId,
-    )
 
     suspend fun reportTranslation(translation: ReaderTranslation, reason: String) {
         app.repository.reportTranslation(translation.translationId, reason)

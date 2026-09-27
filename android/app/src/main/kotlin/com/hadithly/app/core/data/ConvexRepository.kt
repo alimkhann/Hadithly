@@ -6,6 +6,8 @@ import com.hadithly.app.core.widgets.DailyWidgetPayload
 
 import android.content.Context
 import com.clerk.convex.createClerkConvexClient
+import com.clerk.api.Clerk
+import com.clerk.api.network.serialization.ClerkResult
 import dev.convex.android.AuthState
 import dev.convex.android.ConvexClientWithAuth
 import kotlinx.coroutines.Dispatchers
@@ -14,6 +16,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.ensureActive
+import java.io.File
+import java.net.HttpURLConnection
+import java.net.URL
+import kotlin.coroutines.coroutineContext
 import java.time.ZoneId
 
 @kotlinx.serialization.Serializable
@@ -28,6 +35,7 @@ data class FolderDeletionResult(val name: String, val hadithIds: List<String>, v
  * Numeric arguments travel as Double.
  */
 class ConvexRepository(context: Context) {
+    private val appContext = context.applicationContext
 
     val convex: ConvexClientWithAuth<String> = createClerkConvexClient(
         deploymentUrl = BuildConfig.CONVEX_URL,
@@ -165,20 +173,87 @@ class ConvexRepository(context: Context) {
         }
     }
 
-    suspend fun submitTranslation(
+    suspend fun createEvidenceDraft(
         hadithInternalId: String,
         language: String,
         proposedContent: String,
         replacesTranslationId: String?,
-    ): TranslationSubmissionResult {
+        legacySubmissionId: String?,
+        draftKey: String,
+        items: List<Map<String, Any?>>,
+    ): EvidenceDraftView {
         val args = mutableMapOf<String, Any?>(
             "hadithInternalId" to hadithInternalId,
             "language" to language,
             "proposedContent" to proposedContent,
+            "draftKey" to draftKey,
+            "items" to items,
         )
         if (replacesTranslationId != null) args["replacesTranslationId"] = replacesTranslationId
+        if (legacySubmissionId != null) args["legacySubmissionId"] = legacySubmissionId
         return withContext(Dispatchers.IO) {
-            convex.action<TranslationSubmissionResult>("actions/ai:submitTranslation", args)
+            convex.mutation<EvidenceDraftView>("evidence:createEvidenceDraft", args)
+        }
+    }
+
+    suspend fun getOwnEvidenceDraft(submissionId: String): EvidenceDraftView? = withContext(Dispatchers.IO) {
+        subscribe<EvidenceDraftView>("evidence:getOwnEvidenceDraft", mapOf("submissionId" to submissionId)).firstOrNull()
+    }
+
+    suspend fun getOwnLegacyProposal(hadithInternalId: String, language: String): LegacyEvidenceProposal? = withContext(Dispatchers.IO) {
+        subscribe<LegacyEvidenceProposal?>("evidence:getOwnLegacyProposal", mapOf("hadithInternalId" to hadithInternalId, "language" to language)).firstOrNull()
+    }
+
+    suspend fun replaceEvidenceSlot(submissionId: String, itemId: String, descriptor: Map<String, Any?>) = withContext(Dispatchers.IO) {
+        convex.mutation<Boolean>("evidence:replaceEvidenceSlot", mapOf("submissionId" to submissionId, "itemId" to itemId, "descriptor" to descriptor))
+    }
+
+    suspend fun finalizeEvidenceDraft(submissionId: String): EvidenceSubmitResult = withContext(Dispatchers.IO) {
+        convex.mutation<EvidenceSubmitResult>("evidence:finalizeEvidenceDraft", mapOf("submissionId" to submissionId))
+    }
+
+    suspend fun deleteEvidenceDraft(submissionId: String) = withContext(Dispatchers.IO) {
+        convex.mutation<Boolean>("evidence:deleteEvidenceDraft", mapOf("submissionId" to submissionId))
+    }
+
+    suspend fun uploadEvidence(submissionId: String, itemId: String, mime: String, file: File, onProgress: (Double) -> Unit) = withContext(Dispatchers.IO) {
+        require(EvidenceClientPolicy.acceptsFileSize(file.length())) { "Each evidence file must be 10 MB or smaller." }
+        val token = when (val result = Clerk.auth.getToken()) {
+            is ClerkResult.Success -> result.value
+            is ClerkResult.Failure -> error("Sign in again to upload evidence.")
+        }
+        val cloud = BuildConfig.CONVEX_URL
+        require(cloud.endsWith(".convex.cloud")) { "Upload endpoint is unavailable." }
+        val endpoint = cloud.removeSuffix(".convex.cloud") + ".convex.site/evidence/upload"
+        val connection = (URL(endpoint).openConnection() as HttpURLConnection).apply {
+            requestMethod = "POST"
+            doOutput = true
+            connectTimeout = 15_000
+            readTimeout = 60_000
+            setFixedLengthStreamingMode(file.length())
+            setRequestProperty("Authorization", "Bearer $token")
+            setRequestProperty("Content-Type", mime)
+            setRequestProperty("X-Evidence-Submission-Id", submissionId)
+            setRequestProperty("X-Evidence-Item-Id", itemId)
+        }
+        try {
+            file.inputStream().use { input ->
+                connection.outputStream.use { output ->
+                    val buffer = ByteArray(64 * 1024)
+                    var sent = 0L
+                    while (true) {
+                        coroutineContext.ensureActive()
+                        val count = input.read(buffer)
+                        if (count < 0) break
+                        output.write(buffer, 0, count)
+                        sent += count
+                        withContext(Dispatchers.Main) { onProgress(sent.toDouble() / file.length().toDouble()) }
+                    }
+                }
+            }
+            if (connection.responseCode != 200) error("Evidence upload failed (HTTP ${connection.responseCode}).")
+        } finally {
+            connection.disconnect()
         }
     }
 

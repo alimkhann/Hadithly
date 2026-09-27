@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		07B31C70CF0320731E38DBDD /* EvidenceSubmissionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4016420E5535FD74227FB40F /* EvidenceSubmissionSheet.swift */; };
 		099867F584FA17C92889A353 /* OfflineProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = DED99B0D0A9341E8C0F4F7B2 /* OfflineProbe.swift */; };
 		09ED84C239244371FB8D8038 /* SavedSafetyPreferencesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 818CE94950FD120AE763B0DF /* SavedSafetyPreferencesTests.swift */; };
 		0E4E4BEE5E879F6B48AFBB95 /* SavedItemRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1206BAE2B160FC2733042D53 /* SavedItemRow.swift */; };
@@ -47,6 +48,7 @@
 		4FF7B958CF2AB65A86D5748C /* ScheherazadeNew-OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = 78950CF24100E898584B3D25 /* ScheherazadeNew-OFL.txt */; };
 		5032362AD386E85B0C7A9003 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DFB6D276EC727353BA7A9C6 /* LibraryView.swift */; };
 		5211F7A8D82B18416F3A0D0C /* NotoNaskhArabic-OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = 1EC5FC146BA4F00BEE07DF7F /* NotoNaskhArabic-OFL.txt */; };
+		532B7953629062D77C7C0449 /* EvidenceLocalDraftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17AFF54B96ACA0EAE98B57B3 /* EvidenceLocalDraftTests.swift */; };
 		581C8B465D5BFD06642298E2 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = E152E3795F9B1126C9D136DC /* AppEnvironment.swift */; };
 		59753E4D6E90CEF1F782815D /* GuestMergePlannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A12F42BB6E8D75C76573394 /* GuestMergePlannerTests.swift */; };
 		5AC9D6E7A454C5B5DB441088 /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10894632004E617D6947770 /* SignInView.swift */; };
@@ -158,6 +160,7 @@
 		14213D148CCC3FF6195D0960 /* LocalizationCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationCatalogTests.swift; sourceTree = "<group>"; };
 		1424D8A40132B5F39FA23E7D /* ReaderModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderModel.swift; sourceTree = "<group>"; };
 		14379C576B39E8C048BCE832 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		17AFF54B96ACA0EAE98B57B3 /* EvidenceLocalDraftTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvidenceLocalDraftTests.swift; sourceTree = "<group>"; };
 		1A72BA33F7DEE5EA75518DF7 /* HadithlyWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HadithlyWidgets.entitlements; sourceTree = "<group>"; };
 		1D0D0E5563F36FB768BF5991 /* SavedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedView.swift; sourceTree = "<group>"; };
 		1EC5FC146BA4F00BEE07DF7F /* NotoNaskhArabic-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "NotoNaskhArabic-OFL.txt"; sourceTree = "<group>"; };
@@ -172,6 +175,7 @@
 		30CBA6737A888372D8DE9DAE /* cover_ibn_majah.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = cover_ibn_majah.png; sourceTree = "<group>"; };
 		30CC2E71A270EECA2E3A0904 /* ReaderModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderModelsTests.swift; sourceTree = "<group>"; };
 		398D9309E16109EB729AE761 /* cover_mishkat.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = cover_mishkat.png; sourceTree = "<group>"; };
+		4016420E5535FD74227FB40F /* EvidenceSubmissionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvidenceSubmissionSheet.swift; sourceTree = "<group>"; };
 		493BD2510A9F66D5B3DDE11C /* TabChromeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabChromeUITests.swift; sourceTree = "<group>"; };
 		4962698F596A699C8B5250D3 /* QuotaPaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaPaywallView.swift; sourceTree = "<group>"; };
 		498F77309F82C41BF08E487B /* HadithlyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HadithlyApp.swift; sourceTree = "<group>"; };
@@ -249,8 +253,8 @@
 		F8CBAF558598DAAEC889C224 /* Amiri-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Amiri-Regular.ttf"; sourceTree = "<group>"; };
 		FA7143E72E104DB258A51D0D /* PushNotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationManager.swift; sourceTree = "<group>"; };
 		FBD00493F3B0CA46FF1DDAB8 /* Amiri-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Amiri-OFL.txt"; sourceTree = "<group>"; };
-		"TEMP_30F21240-E703-4622-9B18-19786C36ECA8" /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
-		"TEMP_5CCF4653-EE1E-44F7-B3DD-39EC1DCF1121" /* Production.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Production.xcconfig; sourceTree = "<group>"; };
+		"TEMP_2407BE3B-FED4-4D04-8E3A-FAF59E4459EB" /* Production.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Production.xcconfig; sourceTree = "<group>"; };
+		"TEMP_340B5E79-FCCD-424F-B4E4-F4E71DCA21C7" /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -495,6 +499,7 @@
 			children = (
 				049EFD457EA97A89CA137890 /* CanonicalLinkTests.swift */,
 				CAD84836C648AD1409AB694D /* ContinueWidgetRouteTests.swift */,
+				17AFF54B96ACA0EAE98B57B3 /* EvidenceLocalDraftTests.swift */,
 				6A12F42BB6E8D75C76573394 /* GuestMergePlannerTests.swift */,
 				70F98F5B177BFB48360BAEDB /* LocaleFallbackTests.swift */,
 				14213D148CCC3FF6195D0960 /* LocalizationCatalogTests.swift */,
@@ -556,6 +561,7 @@
 			isa = PBXGroup;
 			children = (
 				2D02AD7C700EF70DF761938B /* CollectionCover.swift */,
+				4016420E5535FD74227FB40F /* EvidenceSubmissionSheet.swift */,
 				8915CABC1FAD246BEAAE5CAA /* LibraryModel.swift */,
 				5DFB6D276EC727353BA7A9C6 /* LibraryView.swift */,
 				23DC026E62A1CE99ADDC578E /* ReaderChapterBoundaries.swift */,
@@ -608,11 +614,11 @@
 			);
 			sourceTree = "<group>";
 		};
-		"TEMP_D1D39CB4-609A-4E7E-827B-35108AF3F4A3" /* ios */ = {
+		"TEMP_CA27A01C-C949-49F2-A13D-3E911FF177CA" /* ios */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_30F21240-E703-4622-9B18-19786C36ECA8" /* Secrets.xcconfig */,
-				"TEMP_5CCF4653-EE1E-44F7-B3DD-39EC1DCF1121" /* Production.xcconfig */,
+				"TEMP_340B5E79-FCCD-424F-B4E4-F4E71DCA21C7" /* Secrets.xcconfig */,
+				"TEMP_2407BE3B-FED4-4D04-8E3A-FAF59E4459EB" /* Production.xcconfig */,
 			);
 			path = ios;
 			sourceTree = "<group>";
@@ -795,6 +801,7 @@
 			files = (
 				83790F736B7B3A455423C4D1 /* CanonicalLinkTests.swift in Sources */,
 				C4D7DA33C202F2FAE49523B6 /* ContinueWidgetRouteTests.swift in Sources */,
+				532B7953629062D77C7C0449 /* EvidenceLocalDraftTests.swift in Sources */,
 				59753E4D6E90CEF1F782815D /* GuestMergePlannerTests.swift in Sources */,
 				7658997B1A2EDD9CB1A2DDDC /* LocaleFallbackTests.swift in Sources */,
 				72535E78B5A85511AA4651C0 /* LocalizationCatalogTests.swift in Sources */,
@@ -825,6 +832,7 @@
 				726636C90A05CEF5457CDAA9 /* AutomationContext.swift in Sources */,
 				3B23E69EF62410EE33249CD0 /* CollectionCover.swift in Sources */,
 				9D557AD7F1F2D7E3D4B94EAA /* ContinueReadingRail.swift in Sources */,
+				07B31C70CF0320731E38DBDD /* EvidenceSubmissionSheet.swift in Sources */,
 				92772F9145AF4DE5EDCB8AB6 /* GuestDataModels.swift in Sources */,
 				33FC99DE32E942D10DA1A0E8 /* GuestDataStore.swift in Sources */,
 				97895D6035CF1D70762E9219 /* GuestMergePlanner.swift in Sources */,
@@ -904,7 +912,7 @@
 /* Begin XCBuildConfiguration section */
 		081EA1614EAE1CB1451F28EB /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_5CCF4653-EE1E-44F7-B3DD-39EC1DCF1121" /* Production.xcconfig */;
+			baseConfigurationReference = "TEMP_2407BE3B-FED4-4D04-8E3A-FAF59E4459EB" /* Production.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Hadithly/Hadithly.entitlements;
@@ -924,7 +932,7 @@
 		};
 		1DB6B6403B644CF2BD507A46 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_30F21240-E703-4622-9B18-19786C36ECA8" /* Secrets.xcconfig */;
+			baseConfigurationReference = "TEMP_340B5E79-FCCD-424F-B4E4-F4E71DCA21C7" /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Hadithly/Hadithly.entitlements;

@@ -1330,6 +1330,34 @@ substantive: they own bounded implementation outcomes, not just inventories.
   now has device evidence; iOS, synced progress, lock, stale/offline, and
   deleted-download cases remain open.
 
+### E1 evidence intake implementation (2026-09-27)
+
+- `1b2013b` adds the owned draft and evidence-slot lifecycle, authenticated
+  Convex HTTP upload route, server-side byte and file validation, private
+  quarantine, expiry and orphan cleanup, legacy backfill, old-path closure,
+  account deletion, and owner export. The schema and functions were deployed
+  to development with `npx convex dev --once`; backend typechecking and all
+  176 tests passed. The development backfill migrated two legacy proposals
+  and flagged two already-live community translations; repeat runs changed
+  zero rows. No E1 evidence was sent to AI or published.
+- Both native apps now have a signed-in evidence form with one to three HTTPS
+  links or JPEG, PNG, WebP, or PDF files, local draft recovery, upload progress,
+  cancellation, retry, private status, and account-specific local storage.
+  Account deletion removes that account's local draft metadata and copied
+  files. Android's installed reader reached the guest sign-in gate. Native
+  assembly, iOS build, unit suites, and focused local cleanup and preflight
+  checks passed. The focused iOS E1 UI test reached the same guest sign-in
+  sheet on the iPhone 18 Pro simulator. Earlier runs hit an intermittent
+  reader `OfflineFetchTimeout`. The separate report UI check skipped because
+  no stored Russian translation loaded in development; report privacy remains
+  a live test prerequisite outside the E1 evidence path.
+- E1 remains open: a signed-in upload on each app, owned-draft readback, and
+  confirmation that it created no AI review or public translation have not
+  been exercised. The broader native picker, interruption, relaunch, account
+  switch, RTL, accessibility, and private-status device matrix also remains.
+  A disposable development Clerk account or a user-signed-in test session is
+  needed for the authenticated device gate. E2 has not started.
+
 ### Future topic browsing with the Jev classifier (not a session)
 
 - TypeSafe AI's **Jev** (System One model, launched 2026-09-15, early access
