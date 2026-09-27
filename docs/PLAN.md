@@ -1297,7 +1297,8 @@ substantive: they own bounded implementation outcomes, not just inventories.
   from both snapshot shapes.
 - Open W1/W2 gate rows: installed iOS locked rendering and exact nonzero-offset
   restoration; synced widget display; no-progress first-install on iOS; and
-  offline, stale, and deleted-download behavior on both platforms. The host's
+  offline and deleted-download behavior on both platforms, plus iOS stale
+  behavior. The host's
   Xcode 27 setup has no controllable Simulator app window, but XCTest can drive
   SpringBoard. The Android reader's immediate fetch timeout was fixed in
   `65e4fb8`. The N1 and R3 physical-device gates above remain open. Neither
@@ -1336,6 +1337,12 @@ substantive: they own bounded implementation outcomes, not just inventories.
   picker but Xcode stalled there for ten minutes; it was interrupted and that
   test-created simulator was removed. The no-progress first-install and exact
   nonzero-offset iOS cases remain open.
+- The installed Android widget also rendered a 37-hour-old Arabic guest
+  position with an explicit stale-position message, then cleared the visible
+  reference when that test fixture was deleted. The focused emulator test
+  passed. The emulator's earlier test-created guest reading position was
+  recreated through the reader after this fixture run; its widget again showed
+  the ordinary Arabic reference and progress.
 
 ### E1 evidence intake implementation (2026-09-27)
 

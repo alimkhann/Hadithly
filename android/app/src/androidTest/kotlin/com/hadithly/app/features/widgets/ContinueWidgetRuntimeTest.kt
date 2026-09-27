@@ -66,6 +66,24 @@ class ContinueWidgetRuntimeTest {
             val screenshot = instrumentation.uiAutomation.takeScreenshot()
             val output = File(app.getExternalFilesDir(null), "w2-continue-populated.png")
             output.outputStream().use { screenshot.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+
+            val staleAt = now - 37 * 60 * 60 * 1_000
+            app.guestData.clearAll()
+            app.library.refresh()
+            app.guestData.saveProgress(GuestReadingProgressDraft(
+                collectionSlug = "bukhari", collectionName = "Sahih al-Bukhari",
+                hadithId = "fixture-only", volumeId = "2", hadithNumber = "57",
+                referenceDisplay = "Bukhari · Hadith 57", updatedAt = staleAt,
+                arabicText = "private fixture text", englishText = "private fixture translation",
+                position = ReadingPosition.legacy("bukhari", "57", "2", staleAt),
+            ))
+            app.library.refresh()
+            assertTrue("Stale widget did not disclose its refresh state", waitForWidgetText(instrumentation.uiAutomation.rootInActiveWindow, "سيُتحقق من الموضع عند الفتح") {
+                instrumentation.uiAutomation.rootInActiveWindow
+            })
+            val staleScreenshot = instrumentation.uiAutomation.takeScreenshot()
+            val staleOutput = File(app.getExternalFilesDir(null), "w2-continue-stale.png")
+            staleOutput.outputStream().use { staleScreenshot.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
         } finally {
             app.guestData.clearAll()
             app.library.refresh()
