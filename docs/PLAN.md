@@ -1295,15 +1295,13 @@ substantive: they own bounded implementation outcomes, not just inventories.
   The installed Android Continue Reading widget visibly showed its Arabic
   no-progress state on the `hadithly` emulator. The old excerpt field is absent
   from both snapshot shapes.
-- Open W1/W2 gate rows: installed iOS WidgetKit gallery placement and locked
-  rendering; populated guest and synced widget display; offline, stale, and
-  deleted-download behavior; and an installed-widget tap restoring the exact
-  semantic offset on both clients. The host's Xcode 27 setup has no controllable
-  Simulator app window. The Android reader's immediate fetch timeout was fixed
-  in `65e4fb8`, allowing progress to be created through the user journey; the
-  iOS reader UI test still reaches a fetch timeout. The N1 and
-  R3 physical-device gates above remain open. Neither widget is marked fully
-  passed by this record.
+- Open W1/W2 gate rows: installed iOS locked rendering and exact nonzero-offset
+  restoration; synced widget display; no-progress first-install on iOS; and
+  offline, stale, and deleted-download behavior on both platforms. The host's
+  Xcode 27 setup has no controllable Simulator app window, but XCTest can drive
+  SpringBoard. The Android reader's immediate fetch timeout was fixed in
+  `65e4fb8`. The N1 and R3 physical-device gates above remain open. Neither
+  widget is marked fully passed by this record.
 - On 2026-09-25, an installed Android Continue Reading widget displayed an
   Arabic guest-progress fixture with reference and hadith ordinal, then
   returned to its Arabic no-progress state when that progress was deleted.
@@ -1329,6 +1327,15 @@ substantive: they own bounded implementation outcomes, not just inventories.
   private position still recorded `0.505`. Android guest semantic restoration
   now has device evidence; iOS, synced progress, lock, stale/offline, and
   deleted-download cases remain open.
+- On 2026-09-27, `W2WidgetGalleryUITests` used SpringBoard on the iPhone 18 Pro
+  iOS 27 simulator to open Hadithly's WidgetKit gallery, select and install
+  Continue Reading, and read its populated guest reference and progress from
+  the home-screen accessibility tree. A widget tap opened a rendered Bukhari
+  reader page. The gallery and populated tap route now have installed-device
+  evidence. A second run on a newly created empty simulator reached the widget
+  picker but Xcode stalled there for ten minutes; it was interrupted and that
+  test-created simulator was removed. The no-progress first-install and exact
+  nonzero-offset iOS cases remain open.
 
 ### E1 evidence intake implementation (2026-09-27)
 
