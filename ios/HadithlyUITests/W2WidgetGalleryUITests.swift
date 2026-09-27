@@ -7,10 +7,13 @@ final class W2WidgetGalleryUITests: XCTestCase {
         XCUIDevice.shared.press(.home)
         let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
         XCTAssertTrue(springboard.wait(for: .runningForeground, timeout: 10))
-        let installedWidget = springboard.icons.matching(
-            NSPredicate(format: "identifier == 'Hadithly' AND value == 'Widget'")
+        let resumeWidget = springboard.buttons.matching(
+            NSPredicate(format: "label BEGINSWITH 'Continue Reading,'")
         ).firstMatch
-        let alreadyInstalled = installedWidget.exists
+        let emptyWidget = springboard.staticTexts.matching(
+            NSPredicate(format: "label CONTAINS 'Read a hadith to continue here.' OR label CONTAINS 'اقرأ حديثًا للمتابعة هنا.' OR label CONTAINS 'یہاں سے جاری رکھنے کے لیے حدیث پڑھیں۔'")
+        ).firstMatch
+        let alreadyInstalled = resumeWidget.exists || emptyWidget.exists
 
         springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.6)).press(forDuration: 1.2)
         springboard.buttons["Edit"].tap()
@@ -28,17 +31,14 @@ final class W2WidgetGalleryUITests: XCTestCase {
             springboard.buttons[" Add Widget"].tap()
         }
         if springboard.buttons["Done"].isHittable { springboard.buttons["Done"].tap() }
-        XCTAssertTrue(installedWidget.waitForExistence(timeout: 10))
+        XCTAssertTrue(resumeWidget.exists || emptyWidget.waitForExistence(timeout: 10))
         let installedScreenshot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
         installedScreenshot.name = "continue-reading-installed"
         installedScreenshot.lifetime = .keepAlways
         add(installedScreenshot)
 
-        let resume = springboard.buttons.matching(
-            NSPredicate(format: "label BEGINSWITH 'Continue Reading,'")
-        ).firstMatch
-        if resume.exists {
-            resume.tap()
+        if resumeWidget.exists {
+            resumeWidget.tap()
             XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
             XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "reader.page").firstMatch.waitForExistence(timeout: 25))
         }
