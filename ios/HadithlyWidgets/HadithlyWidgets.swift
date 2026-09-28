@@ -267,10 +267,19 @@ private struct ContinueWidgetReading: View {
     private func home(spacing: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: spacing) {
             Text(snapshot.presentation.title.uppercased()).font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
-            Text(snapshot.presentation.localizedReference).font(.headline).lineLimit(2)
-            HStack(spacing: 7) {
-                progressGauge(size: family == .systemSmall ? 28 : 32)
-                Text(snapshot.presentation.progressLabel).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+            Text(snapshot.presentation.localizedReference)
+                .font(family == .systemSmall ? .subheadline.weight(.semibold) : .headline)
+                .lineLimit(2)
+            if family == .systemSmall {
+                Text(snapshot.presentation.progressLabel)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+            } else {
+                HStack(spacing: 7) {
+                    progressGauge(size: 32)
+                    Text(snapshot.presentation.progressLabel).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                }
             }
             if WidgetRefreshPolicy.isStale(snapshot.updatedAt) {
                 Text(snapshot.presentation.staleMessage).font(.caption2).foregroundStyle(.secondary).lineLimit(1)

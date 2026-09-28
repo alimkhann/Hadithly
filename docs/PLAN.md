@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-09-27. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-09-28. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
 D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its
 simulator/emulator and unit gates; its physical-device gate is open. R4's
@@ -1343,6 +1343,10 @@ substantive: they own bounded implementation outcomes, not just inventories.
   passed. The emulator's earlier test-created guest reading position was
   recreated through the reader after this fixture run; its widget again showed
   the ordinary Arabic reference and progress.
+- On 2026-09-28, the iOS small widget dropped its gauge to give the required
+  reference and progress enough width. After an app and extension build and a
+  simulator install, the settled home-screen widget showed the full
+  `Sahih al-Bukhari · Hadith 2` reference and `Hadith 2 of 7277` progress.
 
 ### E1 evidence intake implementation (2026-09-27)
 
