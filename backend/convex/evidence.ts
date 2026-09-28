@@ -92,8 +92,14 @@ export const createEvidenceDraft = mutation({
     if (new Set(args.items.map(item => item.clientItemKey)).size !== args.items.length || args.items.some(item => !/^[A-Za-z0-9_-]{8,100}$/.test(item.clientItemKey))) throw new Error("Evidence item keys must be unique");
     const content = args.proposedContent.trim();
     if (!content || [...content].length > 10_000) throw new Error("Invalid translation length");
-    const hadithId = ctx.db.normalizeId("hadiths", args.hadithInternalId);
-    if (!hadithId || !await ctx.db.get(hadithId)) throw new Error("Unknown hadith");
+    const directId = ctx.db.normalizeId("hadiths", args.hadithInternalId);
+    const hadith = directId
+      ? await ctx.db.get(directId)
+      : await ctx.db.query("hadiths")
+        .withIndex("by_canonical_id", q => q.eq("canonicalId", args.hadithInternalId))
+        .unique();
+    if (!hadith) throw new Error("Unknown hadith");
+    const hadithId = hadith._id;
     const language = args.language.trim();
     if (!/^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/.test(language)) throw new Error("Invalid language");
     if (args.replacesTranslationId) {
@@ -144,8 +150,14 @@ export const getOwnLegacyProposal = query({
   args: { hadithInternalId: v.string(), language: v.string() },
   handler: async (ctx, args) => {
     const user = await currentUser(ctx);
-    const hadithId = ctx.db.normalizeId("hadiths", args.hadithInternalId);
-    if (!hadithId) return null;
+    const directId = ctx.db.normalizeId("hadiths", args.hadithInternalId);
+    const hadith = directId
+      ? await ctx.db.get(directId)
+      : await ctx.db.query("hadiths")
+        .withIndex("by_canonical_id", q => q.eq("canonicalId", args.hadithInternalId))
+        .unique();
+    if (!hadith) return null;
+    const hadithId = hadith._id;
     const rows = await ctx.db.query("communitySubmissions")
       .withIndex("by_submitted_by", q => q.eq("submittedBy", user._id)).collect();
     const row = rows.filter(item => item.hadithId === hadithId && item.language === args.language && item.status === "legacy_evidence_missing")

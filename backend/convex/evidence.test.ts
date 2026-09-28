@@ -20,18 +20,28 @@ async function fixture() {
   const outsider = t.withIdentity(asIdentity("evidence_outsider"));
   await owner.mutation(api.users.ensureCurrentUser, { preferredLanguage: "en" });
   await outsider.mutation(api.users.ensureCurrentUser, { preferredLanguage: "en" });
+  const canonicalId = "sunnah_now:bukhari:1";
   const hadithId = await t.run(ctx => ctx.db.insert("hadiths", {
-    provider: "sunnah_now", providerHadithId: "1", collectionSlug: "bukhari",
+    provider: "sunnah_now", canonicalId, providerHadithId: "1", collectionSlug: "bukhari",
     arabicText: "نص", englishText: "Text", referenceDisplay: "Bukhari · Hadith 1",
     collectionName: "Sahih al-Bukhari", createdAt: 1,
   }));
-  return { t, owner, outsider, hadithId };
+  return { t, owner, outsider, hadithId, canonicalId };
 }
 
 const urlItem = { kind: "url" as const, clientItemKey: "url_item_1", url: "https://example.org/source#section" };
 const fileItem = { kind: "file" as const, clientItemKey: "file_item_1", declaredMime: "image/png" as const, declaredSize: png.length, declaredSha256: pngSha256, displayName: "evidence.png" };
 
 describe("E1 private evidence intake", () => {
+  test("resolves the reader's canonical hadith target to its stored row", async () => {
+    const { t, owner, hadithId, canonicalId } = await fixture();
+    const draft = await owner.mutation(api.evidence.createEvidenceDraft, {
+      hadithInternalId: canonicalId, language: "ur", proposedContent: "Faithful translation",
+      draftKey: "canonical_target_1", items: [urlItem],
+    });
+    expect((await t.run(ctx => ctx.db.get(draft.submissionId)))?.hadithId).toBe(hadithId);
+  });
+
   test("creates a private URL draft, normalizes its source, and only finalizes to processing", async () => {
     const { owner, outsider, hadithId } = await fixture();
     const args = { hadithInternalId: hadithId, language: "ur", proposedContent: "Faithful translation", draftKey: "draft_key_1", items: [urlItem] };
@@ -195,13 +205,14 @@ describe("E1 private evidence intake", () => {
   });
 
   test("legacy rows cannot use old AI or admin publication paths", async () => {
-    const { t, owner, hadithId } = await fixture();
+    const { t, owner, hadithId, canonicalId } = await fixture();
     const userId = await t.run(async ctx => (await ctx.db.query("users").withIndex("by_clerk_id", q => q.eq("clerkId", "evidence_owner")).unique())!._id);
     const legacyId = await t.run(ctx => ctx.db.insert("communitySubmissions", { hadithId, language: "ur", submittedBy: userId, proposedContent: "Old", aiReview: { model: "old", score: 1, riskFlags: [], recommendation: "approve" }, status: "pending", createdAt: 1 }));
     await t.mutation(internal.evidence.migrateLegacySubmissions, { paginationOpts: { numItems: 10, cursor: null } });
     const legacy = await t.run(ctx => ctx.db.get(legacyId));
     expect(legacy?.status).toBe("legacy_evidence_missing");
     expect(await owner.query(api.evidence.getOwnLegacyProposal, { hadithInternalId: hadithId, language: "ur" })).toMatchObject({ submissionId: legacyId, proposedContent: "Old" });
+    expect(await owner.query(api.evidence.getOwnLegacyProposal, { hadithInternalId: canonicalId, language: "ur" })).toMatchObject({ submissionId: legacyId });
     await expect(owner.action(api.actions.ai.submitTranslation, { hadithInternalId: hadithId, language: "ur", proposedContent: "No source" })).rejects.toThrow("Evidence is required");
     await expect(owner.mutation(api.community.approveSubmission, { submissionId: legacyId })).rejects.toThrow("evidence review");
     await expect(owner.mutation(api.community.rejectSubmission, { submissionId: legacyId })).rejects.toThrow("exception pipeline");
