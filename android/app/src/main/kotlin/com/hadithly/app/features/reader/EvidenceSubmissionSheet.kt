@@ -216,6 +216,19 @@ fun TranslationSubmissionSheet(
             draft?.status == "awaiting_processing" -> Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.testTag("submission.confirmation")) {
                 Text("Evidence received; awaiting checks.", color = colors.textPrimary, fontSize = 18.sp)
                 Text("Your suggestion is private while its sources are checked. It has not been reviewed or published.", color = colors.textSecondary)
+                error?.let { Text(it, color = colors.textSecondary, modifier = Modifier.testTag("submission.error")) }
+                TextButton(onClick = {
+                    draft?.submissionId?.let { id -> scope.launch {
+                        runCatching { repository.deleteEvidenceDraft(id) }
+                            .onSuccess {
+                                localPrefs.edit().remove(localKey).apply()
+                                choices.forEach { it.filePath?.let(::File)?.delete() }
+                                choices.clear(); draft = null; content = ""; urlInput = ""; legacySubmissionId = null
+                                draftKey = UUID.randomUUID().toString(); localCreatedAt = System.currentTimeMillis(); error = null
+                            }
+                            .onFailure { error = it.message ?: "Could not withdraw this suggestion." }
+                    } }
+                }, modifier = Modifier.testTag("submission.deleteDraft")) { Text("Withdraw suggestion") }
             }
             else -> {
                 Text(hadith.referenceDisplay, color = colors.textPrimary)

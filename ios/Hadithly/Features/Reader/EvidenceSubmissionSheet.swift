@@ -143,6 +143,12 @@ struct TranslationSubmissionSheet: View {
                         Text("Evidence received; awaiting checks.").font(.headline)
                         Text("Your suggestion is private while its sources are checked. It has not been reviewed or published.")
                             .font(.subheadline).foregroundStyle(palette.textSecondary)
+                        if let errorMessage {
+                            Text(errorMessage).font(.caption).foregroundStyle(palette.textSecondary)
+                                .accessibilityIdentifier("submission.error")
+                        }
+                        Button("Withdraw suggestion", role: .destructive) { Task { await deleteDraft() } }
+                            .accessibilityIdentifier("submission.deleteDraft")
                     }
                     .frame(maxWidth: .infinity)
                     .padding(30)

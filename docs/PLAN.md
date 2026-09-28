@@ -1348,7 +1348,7 @@ substantive: they own bounded implementation outcomes, not just inventories.
   simulator install, the settled home-screen widget showed the full
   `Sahih al-Bukhari · Hadith 2` reference and `Hadith 2 of 7277` progress.
 
-### E1 evidence intake implementation (2026-09-27)
+### E1 evidence intake implementation (2026-09-27–28)
 
 - `1b2013b` adds the owned draft and evidence-slot lifecycle, authenticated
   Convex HTTP upload route, server-side byte and file validation, private
@@ -1375,6 +1375,16 @@ substantive: they own bounded implementation outcomes, not just inventories.
   switch, RTL, accessibility, and private-status device matrix also remains.
   A disposable development Clerk account or a user-signed-in test session is
   needed for the authenticated device gate. E2 has not started.
+- On 2026-09-28, the iOS simulator was signed in and the live E1 form opened.
+  Its first URL-draft attempt returned `Unknown hadith`: native readers send
+  the canonical ID while E1 only looked up Convex document IDs. E1 now resolves
+  both, including for legacy proposal lookup. The backend fix passed 177 tests
+  and was deployed to development with `npx convex dev --once`. A subsequent
+  iOS UI run stalled in the Xcode test runner before upload; no new development
+  submission was created. Android remains signed out. Both clients now expose
+  withdrawal of a private awaiting-processing suggestion. The signed-in
+  upload/readback/no-publication gate and remaining native device matrix are
+  still open.
 
 ### Future topic browsing with the Jev classifier (not a session)
 
