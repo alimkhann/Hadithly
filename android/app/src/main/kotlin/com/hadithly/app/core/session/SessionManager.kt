@@ -184,6 +184,9 @@ class SessionManager(
         val deadline = System.currentTimeMillis() + timeoutMs
         while (System.currentTimeMillis() < deadline) {
             if (repository.isAuthenticated) return true
+            // Clerk may restore a session after the Convex client starts.
+            // Re-attempt its cached login until the verified session is active.
+            repository.convex.loginFromCache()
             delay(250)
         }
         return repository.isAuthenticated

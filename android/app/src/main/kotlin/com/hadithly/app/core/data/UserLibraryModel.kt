@@ -1,6 +1,7 @@
 package com.hadithly.app.core.data
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -358,24 +359,36 @@ class UserLibraryModel(
         unsubscribeJobs()
         subscriptions.add(
             scope.launch(Dispatchers.IO) {
-                repository.subscribe<SavedSnapshotRow>("library:listSavedSnapshot")
-                    .collect { snapshot -> apply(snapshot) }
-            }.failed()
+                try {
+                    repository.subscribe<SavedSnapshotRow>("library:listSavedSnapshot")
+                        .collect { snapshot -> apply(snapshot) }
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    scope.launch { subscriptionFailed() }
+                }
+            }
         )
         subscriptions.add(
             scope.launch(Dispatchers.IO) {
-                repository.subscribe<List<ProgressRow>>("library:listReadingProgressDetailed")
-                    .collect { rows ->
-                        _progress.value = rows.map {
-                            ProgressEntry(
-                                collectionSlug = it.collectionSlug,
-                                hadith = it.hadith?.let { h -> h.toRef() },
-                                position = it.position,
-                                updatedAt = it.updatedAt,
-                            )
+                try {
+                    repository.subscribe<List<ProgressRow>>("library:listReadingProgressDetailed")
+                        .collect { rows ->
+                            _progress.value = rows.map {
+                                ProgressEntry(
+                                    collectionSlug = it.collectionSlug,
+                                    hadith = it.hadith?.let { h -> h.toRef() },
+                                    position = it.position,
+                                    updatedAt = it.updatedAt,
+                                )
+                            }
                         }
-                    }
-            }.failed()
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    scope.launch { subscriptionFailed() }
+                }
+            }
         )
     }
 
@@ -383,20 +396,18 @@ class UserLibraryModel(
      * A subscription that raced the Convex session errors without data.
      * Re-open everything, bounded.
      */
-    private fun Job.failed(): Job = this.also { job ->
-        // collect() throws into the coroutine; wrap via invokeOnCompletion.
-        job.invokeOnCompletion { cause ->
-            if (cause != null) subscriptionFailed()
-        }
-    }
-
     private fun subscriptionFailed() {
+        if (!subscriptionsActive) return
         subscriptionsActive = false
+        unsubscribeJobs()
         if (retriesLeft > 0 && isSignedIn()) {
             retriesLeft -= 1
             scope.launch {
                 delay(1500)
-                refresh()
+                if (!subscriptionsActive && isSignedIn()) {
+                    subscriptionsActive = true
+                    subscribeAll()
+                }
             }
         }
     }

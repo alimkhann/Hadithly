@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -53,6 +54,14 @@ import java.io.File
 import java.security.MessageDigest
 import java.util.UUID
 
+private fun evidenceError(failure: Throwable): String {
+    val message = failure.message.orEmpty()
+    if ("Unauthenticated" in message) return "Sign-in is reconnecting. Retry in a moment."
+    val serverReason = Regex("Uncaught Error: ([^\\n]+)").find(message)?.groupValues?.get(1)
+    return (serverReason ?: message.takeUnless { "Server Error" in it }?.lineSequence()?.firstOrNull())
+        ?.take(180) ?: "Evidence could not be submitted. Please retry."
+}
+
 @Composable
 fun TranslationSubmissionSheet(
     viewModel: ReaderViewModel,
@@ -84,6 +93,17 @@ fun TranslationSubmissionSheet(
     var uploading by remember(localKey) { mutableStateOf(false) }
     var error by remember(localKey) { mutableStateOf<String?>(null) }
     var uploadJob by remember(localKey) { mutableStateOf<Job?>(null) }
+
+    fun persistRemoteDraft(remote: EvidenceDraftView, selected: List<LocalEvidenceChoice>) {
+        val saved = LocalEvidenceDraft(
+            submissionId = remote.submissionId, draftKey = draftKey,
+            proposedContent = content, urlInput = urlInput, choices = selected,
+            legacySubmissionId = legacySubmissionId, createdAt = localCreatedAt,
+        )
+        check(localPrefs.edit().putString(localKey, Json.encodeToString(saved)).commit()) {
+            "Could not save this evidence draft on the device."
+        }
+    }
 
     DisposableEffect(localKey) {
         onDispose { uploadJob?.cancel() }
@@ -192,7 +212,7 @@ fun TranslationSubmissionSheet(
 
     Column(
         verticalArrangement = Arrangement.spacedBy(14.dp),
-        modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp),
+        modifier = Modifier.fillMaxWidth().navigationBarsPadding().verticalScroll(rememberScrollState()).padding(20.dp),
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {
             Text("Suggest a translation", fontSize = 20.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
@@ -240,9 +260,9 @@ fun TranslationSubmissionSheet(
                         val url = EvidenceClientPolicy.httpsURL(urlInput)
                         if (url == null || choices.size >= 3) error = "Enter an HTTPS source link without credentials."
                         else { choices.add(LocalEvidenceChoice(UUID.randomUUID().toString(), "url", url.host ?: url.toString(), url = url.toString())); urlInput = ""; error = null }
-                    }, enabled = draft == null && choices.size < 3) { Text("Add link") }
+                    }, enabled = localLoaded && draft == null && choices.size < 3) { Text("Add link") }
                 }
-                TextButton(onClick = { picker.launch(arrayOf("image/jpeg", "image/png", "image/webp", "application/pdf")) }, enabled = draft == null && choices.size < 3, modifier = Modifier.testTag("submission.evidence.file")) { Text("Add image or PDF") }
+                TextButton(onClick = { picker.launch(arrayOf("image/jpeg", "image/png", "image/webp", "application/pdf")) }, enabled = localLoaded && draft == null && choices.size < 3, modifier = Modifier.testTag("submission.evidence.file")) { Text("Add image or PDF") }
                 choices.forEach { choice ->
                     Row(modifier = Modifier.fillMaxWidth()) {
                         Text(choice.label, color = colors.textPrimary, modifier = Modifier.weight(1f))
@@ -276,7 +296,7 @@ fun TranslationSubmissionSheet(
                     } }
                 }, modifier = Modifier.testTag("submission.deleteDraft")) { Text("Delete draft") }
                 Button(
-                    enabled = !uploading && content.isNotBlank() && (draft != null || choices.isNotEmpty()),
+                    enabled = localLoaded && !uploading && content.isNotBlank() && (draft != null || choices.isNotEmpty()),
                     onClick = {
                         uploadJob = scope.launch {
                             uploading = true
@@ -298,9 +318,11 @@ fun TranslationSubmissionSheet(
                                     draft = created
                                 }
                                 draft = current
+                                persistRemoteDraft(current, choices.toList())
                                 if (current.status == "awaiting_processing") {
                                     choices.forEach { it.filePath?.let(::File)?.delete() }
                                     choices.clear()
+                                    persistRemoteDraft(current, emptyList())
                                     return@launch
                                 }
                                 if (current.status == "expired") return@launch
@@ -316,10 +338,11 @@ fun TranslationSubmissionSheet(
                                 draft = current.copy(status = "awaiting_processing")
                                 choices.forEach { it.filePath?.let(::File)?.delete() }
                                 choices.clear()
+                                persistRemoteDraft(current, emptyList())
                             } catch (cancelled: kotlinx.coroutines.CancellationException) {
                                 error = "Upload paused. Retry when you are ready."
                             } catch (failure: Exception) {
-                                error = failure.message ?: "Evidence could not be submitted."
+                                error = evidenceError(failure)
                             } finally { uploading = false; uploadJob = null }
                         }
                     },
