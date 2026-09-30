@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-09-28. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-09-30. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
 D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its
 simulator/emulator and unit gates; its physical-device gate is open. R4's
@@ -999,6 +999,15 @@ substantive: they own bounded implementation outcomes, not just inventories.
   51 emulator instrumentation tests passed, including the shared-row hit-target
    and preview fixture.
 
+### Cross-device private sync follow-up (reported 2026-09-30)
+
+- The owner signed into the Android emulator with the same account used on
+  iOS. Android reported a guest-data merge, but the account's existing iOS
+  reading progress and Saved entries did not appear. Reproduce with two
+  signed-in devices, inspect the owned backend progress and Saved rows plus
+  both clients' subscriptions and merge ordering, then verify restoration in
+  both directions. This is a separate follow-up; it does not expand E1.
+
 ### S1 Settings and profile completion (2026-09-17)
 
 - Settings is now a grouped root (account, reading, library, general,
@@ -1348,7 +1357,7 @@ substantive: they own bounded implementation outcomes, not just inventories.
   simulator install, the settled home-screen widget showed the full
   `Sahih al-Bukhari · Hadith 2` reference and `Hadith 2 of 7277` progress.
 
-### E1 evidence intake implementation (2026-09-27–28)
+### E1 evidence intake implementation (2026-09-27–30)
 
 - `1b2013b` adds the owned draft and evidence-slot lifecycle, authenticated
   Convex HTTP upload route, server-side byte and file validation, private
@@ -1369,12 +1378,6 @@ substantive: they own bounded implementation outcomes, not just inventories.
   reader `OfflineFetchTimeout`. The separate report UI check skipped because
   no stored Russian translation loaded in development; report privacy remains
   a live test prerequisite outside the E1 evidence path.
-- E1 remains open: a signed-in upload on each app, owned-draft readback, and
-  confirmation that it created no AI review or public translation have not
-  been exercised. The broader native picker, interruption, relaunch, account
-  switch, RTL, accessibility, and private-status device matrix also remains.
-  A disposable development Clerk account or a user-signed-in test session is
-  needed for the authenticated device gate. E2 has not started.
 - On 2026-09-28, the iOS simulator was signed in and the live E1 form opened.
   Its first URL-draft attempt returned `Unknown hadith`: native readers send
   the canonical ID while E1 only looked up Convex document IDs. E1 now resolves
@@ -1383,8 +1386,35 @@ substantive: they own bounded implementation outcomes, not just inventories.
   iOS UI run stalled in the Xcode test runner before upload; no new development
   submission was created. Android remains signed out. Both clients now expose
   withdrawal of a private awaiting-processing suggestion. The signed-in
-  upload/readback/no-publication gate and remaining native device matrix are
-  still open.
+  upload/readback/no-publication gate and remaining native device matrix were
+  still open at that point.
+- On 2026-09-30, the signed-in iOS and Android forms each submitted an HTTPS
+  source and restored its private awaiting-processing status. The Android
+  system picker selected a 64 × 64 PNG; upload reached private quarantine.
+  An iOS app-hosted test used its restored Clerk session to upload a generated
+  PNG to the same authenticated HTTP route, read back its owned
+  `quarantined_unscanned` slot, finalized it, and read back
+  `awaiting_processing`. Backend typechecking and 178 tests, Android assembly
+  and unit tests, and the focused iOS live tests passed. During these tests,
+  development had no new `aiReview` or community translation: the old counts
+  stayed at two reviews and two live community translations. All disposable
+  test submissions and evidence were withdrawn; the development tables
+  returned to two existing approved submissions, zero evidence items, and 19
+  translations.
+- Live testing also found that older cached hadith rows can lack a stored
+  `canonicalId`; E1 now falls back to the indexed provider reference. Android
+  now catches transient unauthenticated subscription failures, reactivates
+  Convex from the cached Clerk session, keeps the confirmation action above
+  the navigation bar, and synchronously saves the remote draft ID before
+  upload. A new Android suggestion survived force-stop and relaunch, restored
+  the owned private confirmation, and was withdrawn. The original Android PNG
+  upload reached quarantine, but its local draft ID was lost before this fix;
+  that disposable row was withdrawn through the owned API.
+- E1 remains open for the iOS Files picker completion and the remaining native
+  cancellation, retry, account-switch, RTL, and accessibility device matrix.
+  The focused iOS picker test reached Files but later runs stalled in Xcode's
+  UI runner before app launch, so its upload result is unverified. E2 has not
+  started.
 
 ### Future topic browsing with the Jev classifier (not a session)
 
