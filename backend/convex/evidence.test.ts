@@ -42,6 +42,16 @@ describe("E1 private evidence intake", () => {
     expect((await t.run(ctx => ctx.db.get(draft.submissionId)))?.hadithId).toBe(hadithId);
   });
 
+  test("resolves a canonical reader target against legacy rows without a stored canonical ID", async () => {
+    const { t, owner, hadithId, canonicalId } = await fixture();
+    await t.run(ctx => ctx.db.patch(hadithId, { canonicalId: undefined }));
+    const draft = await owner.mutation(api.evidence.createEvidenceDraft, {
+      hadithInternalId: canonicalId, language: "ur", proposedContent: "Faithful translation",
+      draftKey: "legacy_canonical_target_1", items: [urlItem],
+    });
+    expect((await t.run(ctx => ctx.db.get(draft.submissionId)))?.hadithId).toBe(hadithId);
+  });
+
   test("creates a private URL draft, normalizes its source, and only finalizes to processing", async () => {
     const { owner, outsider, hadithId } = await fixture();
     const args = { hadithInternalId: hadithId, language: "ur", proposedContent: "Faithful translation", draftKey: "draft_key_1", items: [urlItem] };

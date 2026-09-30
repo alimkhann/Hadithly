@@ -1,7 +1,7 @@
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
-import type { Id } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { requireIdentity } from "./lib/identity";
 import { MAX_EVIDENCE_BYTES } from "./lib/evidencePolicy";
@@ -49,6 +49,21 @@ async function currentUser(ctx: QueryCtx | MutationCtx) {
   return user;
 }
 
+async function resolveHadith(ctx: QueryCtx | MutationCtx, target: string): Promise<Doc<"hadiths"> | null> {
+  const directId = ctx.db.normalizeId("hadiths", target);
+  if (directId) return await ctx.db.get(directId);
+  const indexed = await ctx.db.query("hadiths")
+    .withIndex("by_canonical_id", q => q.eq("canonicalId", target)).unique();
+  if (indexed) return indexed;
+  const [provider, collectionSlug, providerHadithId, extra] = target.split(":");
+  if (extra !== undefined || !collectionSlug || !providerHadithId ||
+      (provider !== "sunnah_now" && provider !== "sunnah_com" && provider !== "local_dump")) return null;
+  return await ctx.db.query("hadiths")
+    .withIndex("by_provider_ref", q => q.eq("provider", provider)
+      .eq("collectionSlug", collectionSlug).eq("providerHadithId", providerHadithId))
+    .unique();
+}
+
 async function ownDraft(ctx: QueryCtx | MutationCtx, submissionId: Id<"communitySubmissions">) {
   const user = await currentUser(ctx);
   const submission = await ctx.db.get(submissionId);
@@ -92,12 +107,7 @@ export const createEvidenceDraft = mutation({
     if (new Set(args.items.map(item => item.clientItemKey)).size !== args.items.length || args.items.some(item => !/^[A-Za-z0-9_-]{8,100}$/.test(item.clientItemKey))) throw new Error("Evidence item keys must be unique");
     const content = args.proposedContent.trim();
     if (!content || [...content].length > 10_000) throw new Error("Invalid translation length");
-    const directId = ctx.db.normalizeId("hadiths", args.hadithInternalId);
-    const hadith = directId
-      ? await ctx.db.get(directId)
-      : await ctx.db.query("hadiths")
-        .withIndex("by_canonical_id", q => q.eq("canonicalId", args.hadithInternalId))
-        .unique();
+    const hadith = await resolveHadith(ctx, args.hadithInternalId);
     if (!hadith) throw new Error("Unknown hadith");
     const hadithId = hadith._id;
     const language = args.language.trim();
@@ -150,12 +160,7 @@ export const getOwnLegacyProposal = query({
   args: { hadithInternalId: v.string(), language: v.string() },
   handler: async (ctx, args) => {
     const user = await currentUser(ctx);
-    const directId = ctx.db.normalizeId("hadiths", args.hadithInternalId);
-    const hadith = directId
-      ? await ctx.db.get(directId)
-      : await ctx.db.query("hadiths")
-        .withIndex("by_canonical_id", q => q.eq("canonicalId", args.hadithInternalId))
-        .unique();
+    const hadith = await resolveHadith(ctx, args.hadithInternalId);
     if (!hadith) return null;
     const hadithId = hadith._id;
     const rows = await ctx.db.query("communitySubmissions")
