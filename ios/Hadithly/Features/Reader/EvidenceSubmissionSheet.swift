@@ -131,16 +131,18 @@ struct TranslationSubmissionSheet: View {
                 } else if draft?.status == "expired" {
                     VStack(spacing: 12) {
                         Text("Evidence expired").font(.headline)
+                            .accessibilityIdentifier("submission.expired")
                         Text("The private files were removed before processing. You can start a new suggestion.")
                             .font(.subheadline).foregroundStyle(palette.textSecondary)
                         Button("Start a new suggestion") { Task { await deleteDraft() } }
+                            .frame(minHeight: 44)
                     }
                     .padding(30)
-                    .accessibilityIdentifier("submission.expired")
                 } else if draft?.status == "awaiting_processing" {
                     VStack(spacing: 12) {
                         Image(systemName: "checkmark.circle").font(.largeTitle)
                         Text("Evidence received; awaiting checks.").font(.headline)
+                            .accessibilityIdentifier("submission.confirmation")
                         Text("Your suggestion is private while its sources are checked. It has not been reviewed or published.")
                             .font(.subheadline).foregroundStyle(palette.textSecondary)
                         if let errorMessage {
@@ -148,11 +150,11 @@ struct TranslationSubmissionSheet: View {
                                 .accessibilityIdentifier("submission.error")
                         }
                         Button("Withdraw suggestion", role: .destructive) { Task { await deleteDraft() } }
+                            .frame(minHeight: 44)
                             .accessibilityIdentifier("submission.deleteDraft")
                     }
                     .frame(maxWidth: .infinity)
                     .padding(30)
-                    .accessibilityIdentifier("submission.confirmation")
                 } else {
                     form
                 }
@@ -206,17 +208,24 @@ struct TranslationSubmissionSheet: View {
                 .padding(8)
                 .background(palette.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
+                .disabled(!localReady)
+                .accessibilityLabel("Proposed translation")
                 .accessibilityIdentifier("submission.editor")
 
             HStack {
                 TextField("https://source.example/page", text: $urlText)
                     .textInputAutocapitalization(.never)
                     .keyboardType(.URL)
+                    .frame(minHeight: 44)
+                    .disabled(!localReady)
                     .accessibilityIdentifier("submission.evidence.url")
-                Button("Add link") { addURL() }.disabled(evidence.count >= 3)
+                Button("Add link") { addURL() }
+                    .frame(minHeight: 44)
+                    .disabled(!localReady || evidence.count >= 3)
             }
             Button("Add image or PDF") { isPickingFile = true }
-                .disabled(evidence.count >= 3 || draft != nil)
+                .frame(minHeight: 44)
+                .disabled(!localReady || evidence.count >= 3 || draft != nil)
                 .accessibilityIdentifier("submission.evidence.file")
 
             ForEach(evidence) { item in
@@ -226,6 +235,8 @@ struct TranslationSubmissionSheet: View {
                     Spacer()
                     if draft == nil {
                         Button("Remove") { remove(item) }
+                            .frame(minWidth: 44, minHeight: 44)
+                            .accessibilityLabel("Remove \(item.label)")
                     }
                 }
                 .font(.subheadline)
@@ -243,27 +254,36 @@ struct TranslationSubmissionSheet: View {
                                 replacingItemKey = item.clientItemKey
                                 isPickingFile = true
                             }
+                            .frame(minHeight: 44)
                         }
                     }
                 }
             }
-            if isSubmitting { ProgressView(value: progress).accessibilityIdentifier("submission.uploadProgress") }
+            if isSubmitting {
+                ProgressView(value: progress)
+                    .accessibilityLabel("Evidence upload progress")
+                    .accessibilityValue(Text("\(Int(progress * 100)) percent"))
+                    .accessibilityIdentifier("submission.uploadProgress")
+            }
             if let errorMessage {
                 Text(errorMessage).font(.caption).foregroundStyle(palette.textSecondary)
                     .accessibilityIdentifier("submission.error")
             }
             if isSubmitting {
                 Button("Cancel upload") { activeUpload?.cancel() }
+                    .frame(minHeight: 44)
                     .accessibilityIdentifier("submission.cancelUpload")
             }
             if draft != nil && !isSubmitting {
                 Button("Delete draft") { Task { await deleteDraft() } }
+                    .frame(minHeight: 44)
                     .foregroundStyle(palette.textSecondary)
                     .accessibilityIdentifier("submission.deleteDraft")
             }
             Button(draft == nil ? "Submit with evidence" : "Retry evidence upload") {
                 activeUpload = Task { await submit() }
             }
+            .frame(minHeight: 44)
             .disabled(!localReady || isSubmitting || content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || (draft == nil && evidence.isEmpty))
             .accessibilityIdentifier("submission.submit")
         }
