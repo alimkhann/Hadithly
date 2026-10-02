@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-09-30. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-10-02. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
 D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its
 simulator/emulator and unit gates; its physical-device gate is open. R4's
@@ -1357,7 +1357,7 @@ substantive: they own bounded implementation outcomes, not just inventories.
   simulator install, the settled home-screen widget showed the full
   `Sahih al-Bukhari · Hadith 2` reference and `Hadith 2 of 7277` progress.
 
-### E1 evidence intake implementation (2026-09-27–30)
+### E1 evidence intake implementation (2026-09-27–2026-10-02)
 
 - `1b2013b` adds the owned draft and evidence-slot lifecycle, authenticated
   Convex HTTP upload route, server-side byte and file validation, private
@@ -1410,11 +1410,25 @@ substantive: they own bounded implementation outcomes, not just inventories.
   the owned private confirmation, and was withdrawn. The original Android PNG
   upload reached quarantine, but its local draft ID was lost before this fix;
   that disposable row was withdrawn through the owned API.
-- E1 remains open for the iOS Files picker completion and the remaining native
-  cancellation, retry, account-switch, RTL, and accessibility device matrix.
-  The focused iOS picker test reached Files but later runs stalled in Xcode's
-  UI runner before app launch, so its upload result is unverified. E2 has not
-  started.
+- On 2026-09-30, after restarting the iOS simulator, a focused UI test opened
+  Files, selected the PNG, confirmed it with **Open**, and submitted it. The
+  test reopened the owned private confirmation and withdrew the suggestion.
+  A second focused iOS test cancelled Files and confirmed the form remained
+  usable with submission
+  disabled.
+- On 2026-10-02, Android's system picker returned to the form on cancellation
+  without adding a file. A 7.69 MB PNG displayed the progress bar and
+  Cancel upload action. Cancellation left the local file for retry; submitting
+  again after restoring network reached the private confirmation. The test row
+  was withdrawn. Accessibility inspection found text-sized iOS action targets
+  and a confirmation identifier inherited by its child button. The iOS form
+  now gives actions 44-point targets, separates the status and button
+  identifiers, and labels its editor and spoken upload progress; Android labels
+  its progress indicator. The iOS simulator build and Android assembly/unit
+  tests passed. A focused iOS accessibility UI run stalled before app launch,
+  so the updated VoiceOver target tree is unverified. E1 remains open for the
+  iOS progress/cancellation, account-switch, RTL, and assistive-technology
+  device matrix. E2 has not started.
 
 ### Future topic browsing with the Jev classifier (not a session)
 
