@@ -42,5 +42,6 @@ crons.interval(
 );
 
 crons.interval("dispatch queued evidence processing", { minutes: 5 }, internal.evidenceProcessing.dispatchPending, {});
+crons.interval("dispatch evidence reviews", { minutes: 5 }, internal.evidenceReview.dispatch, {});
 
 export default crons;

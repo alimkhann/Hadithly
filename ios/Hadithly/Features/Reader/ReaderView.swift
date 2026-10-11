@@ -1900,7 +1900,9 @@ private struct HadithBlock: View {
     @ViewBuilder
     private var translationSection: some View {
         if language == "en" {
-            if let english = hadith.englishText, !english.isEmpty {
+            if let stored = activeTranslation {
+                translationText(stored.translation, storedTranslation: stored)
+            } else if let english = hadith.englishText, !english.isEmpty {
                 translationText(english)
             } else {
                 Text("No English translation available yet.")
@@ -1956,73 +1958,10 @@ private struct HadithBlock: View {
         }
     }
 
-    private func translationText(
-        _ text: String,
-        storedTranslation: ReaderTranslation? = nil
-    ) -> some View {
-        VStack(spacing: 10) {
-            if let storedTranslation, storedTranslation.source == "gemini_ai" {
-                aiBadge
-            } else if storedTranslation?.source == "community" {
-                communityBadge
-            }
-            Text(text)
-                .font(.system(size: 16, weight: .regular))
-                .lineSpacing(7)
-                .multilineTextAlignment(.leading)
-                .foregroundStyle(palette.textPrimary.opacity(0.92))
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .accessibilityIdentifier(
-                    storedTranslation?.source == "gemini_ai"
-                        ? "reader.aiTranslation"
-                        : "reader.translation"
-                )
+    private func translationText(_ text: String, storedTranslation: ReaderTranslation? = nil) -> some View {
+        ReaderStoredTranslationView(text: text, translation: storedTranslation, palette: palette) {
+            citationsTranslation = storedTranslation
         }
-    }
-
-    private var aiBadge: some View {
-        Button {
-            if case .loaded(let translation) = translationState {
-                citationsTranslation = translation
-            }
-        } label: {
-            HStack(spacing: 5) {
-                Image(systemName: "sparkles")
-                    .font(.caption2)
-                Text("AI")
-                    .font(.caption2.weight(.bold))
-                Text("· sources")
-                    .font(.caption2)
-                    .foregroundStyle(palette.textSecondary)
-            }
-            .foregroundStyle(palette.interactive)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
-            .background(palette.interactiveSoft)
-            .clipShape(Capsule())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("AI translation, view cited sources")
-        .accessibilityIdentifier("reader.aiBadge")
-    }
-
-    private var communityBadge: some View {
-        HStack(spacing: 5) {
-            Image(systemName: "checkmark.shield")
-                .font(.caption2)
-            Text("Community")
-                .font(.caption2.weight(.bold))
-            Text("· admin approved")
-                .font(.caption2)
-                .foregroundStyle(palette.textSecondary)
-        }
-        .foregroundStyle(palette.interactive)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 5)
-        .background(palette.interactiveSoft)
-        .clipShape(Capsule())
-        .accessibilityIdentifier("reader.communityBadge")
     }
 
     private func glossaryNotes(_ notes: [String]) -> some View {
@@ -2072,7 +2011,7 @@ private struct HadithBlock: View {
 
     private var displayedTranslation: String? {
         if language == "en" {
-            return hadith.englishText
+            return activeTranslation?.translation ?? hadith.englishText
         }
         return activeTranslation?.translation
     }

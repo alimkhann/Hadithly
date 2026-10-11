@@ -833,7 +833,6 @@ final class ReaderModel {
     // MARK: - Translations
 
     private func scheduleTranslationsForCurrentPage() {
-        guard language != "en" else { return }
         guard pages.indices.contains(pageIndex) else { return }
         let hadiths = pages[pageIndex].items
         guard !hadiths.isEmpty else { return }
@@ -851,6 +850,19 @@ final class ReaderModel {
 
     private func translateIfNeeded(_ hadith: ReaderHadith, generation: Int) async {
         if translations[hadith.internalId] != nil { return }
+        if language == "en" {
+            do {
+                for try await stored in convex.subscribe(to: "translations:getDefaultForProviderRef", with: [
+                    "provider": hadith.provider, "collectionSlug": hadith.collectionSlug,
+                    "providerHadithId": hadith.providerHadithId, "language": language,
+                ], yielding: StoredReaderTranslation?.self).values {
+                    guard generation == translationGeneration, !Task.isCancelled else { return }
+                    if let stored { translations[hadith.internalId] = .loaded(stored.readerTranslation) }
+                    break
+                }
+            } catch { /* Provider English remains readable offline. */ }
+            return
+        }
         guard isSignedIn() else {
             translations[hadith.internalId] = .failed(.requiresSignIn)
             return

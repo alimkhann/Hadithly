@@ -35,7 +35,7 @@ const span = v.object({
 const processingResult = v.union(
   v.object({ kind: v.literal("infected") }),
   v.object({ kind: v.literal("failed"), retryable: v.boolean() }),
-  v.object({ kind: v.literal("ready"), mime: v.string(), sha256: v.string(), finalUrl: v.optional(v.string()), sourceStorageId: v.optional(v.id("_storage")), text: v.string(), spans: v.array(span) }),
+  v.object({ kind: v.literal("ready"), mime: v.string(), sha256: v.string(), finalUrl: v.optional(v.string()), sourceStorageId: v.optional(v.id("_storage")), accessChain: v.optional(v.array(v.string())), text: v.string(), spans: v.array(span) }),
 );
 
 async function updateSubmission(ctx: MutationCtx, submissionId: Id<"communitySubmissions">): Promise<void> {
@@ -59,6 +59,7 @@ async function updateSubmission(ctx: MutationCtx, submissionId: Id<"communitySub
     await ctx.db.patch(submissionId, { status: "infected" });
   } else if (items.every(item => item.state === "ready")) {
     await ctx.db.patch(submissionId, { status: "evidence_ready" });
+    await ctx.scheduler.runAfter(0, internal.actions.evidenceReview.reviewSubmission, { submissionId });
   } else if (items.every(item => item.state === "ready" || item.state === "failed") && items.some(item => item.state === "failed")) {
     await ctx.db.patch(submissionId, { status: "processing_failed" });
   }
@@ -97,6 +98,10 @@ export const finish = internalMutation({
       const result = args.result;
       const finalUrl = result.finalUrl ? new URL(result.finalUrl) : null;
       const snapshot = result.sourceStorageId ? await ctx.db.system.get(result.sourceStorageId) : null;
+      const accessChain = result.accessChain;
+      if (accessChain && (item.source.kind !== "url" || accessChain.length < 1 || accessChain.length > 4 || accessChain[0] !== item.source.url || accessChain.at(-1) !== result.finalUrl || accessChain.some(raw => {
+        try { const url = new URL(raw); return url.protocol !== "https:" || !!url.username || !!url.password; } catch { return true; }
+      }))) throw new Error("Invalid access chain");
       if (!/^[a-f0-9]{64}$/.test(result.sha256) || result.text.length > 100_000 || result.spans.length > 3_000 ||
           !["text/html", "application/pdf", "image/png", "image/jpeg", "image/webp"].includes(result.mime) ||
           (item.source.kind === "url" && (!finalUrl || finalUrl.protocol !== "https:" || finalUrl.username || finalUrl.password || result.mime === "text/html" && result.spans.some(entry => entry.source.kind !== "html_chars"))) ||
@@ -110,7 +115,7 @@ export const finish = internalMutation({
             result.text.slice(entry.start, entry.end).trim().length === 0)) throw new Error("Invalid processor result");
       const existing = await ctx.db.query("evidenceExtractions").withIndex("by_item", q => q.eq("evidenceItemId", item._id)).unique();
       if (existing) await ctx.db.delete(existing._id);
-      await ctx.db.insert("evidenceExtractions", { submissionId: item.submissionId, evidenceItemId: item._id, trust: "untrusted", mime: result.mime, sha256: result.sha256, finalUrl: result.finalUrl, sourceStorageId: result.sourceStorageId, text: result.text, spans: result.spans, createdAt: now });
+      await ctx.db.insert("evidenceExtractions", { submissionId: item.submissionId, evidenceItemId: item._id, trust: "untrusted", mime: result.mime, sha256: result.sha256, finalUrl: result.finalUrl, sourceStorageId: result.sourceStorageId, accessChain, text: result.text, spans: result.spans, createdAt: now });
       await ctx.db.patch(item._id, { state: "ready", processingLease: undefined, updatedAt: now });
     } else if (args.result.kind === "infected") {
       if (item.source.kind === "file" && item.source.storageId) {

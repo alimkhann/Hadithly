@@ -30,12 +30,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hadithly.app.HadithlyApplication
+import com.hadithly.app.R
+import com.hadithly.app.core.data.EvidenceCitation
 import com.clerk.api.Clerk
 import com.hadithly.app.core.data.EvidenceDraftView
 import com.hadithly.app.core.data.EvidenceClientPolicy
@@ -67,16 +71,35 @@ private fun evidenceError(failure: Throwable): String {
 }
 
 @Composable
-internal fun EvidenceProcessingStatusContent(status: String, retryItems: List<String>, onRetry: (String) -> Unit) {
+internal fun EvidenceProcessingStatusContent(status: String, retryItems: List<String>, citations: List<EvidenceCitation> = emptyList(), onRetry: (String) -> Unit) {
     val colors = LocalHadithlyColors.current
+    val uriHandler = LocalUriHandler.current
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         if (status == "awaiting_processing") {
             CircularProgressIndicator(modifier = Modifier.testTag("submission.processing").semantics { contentDescription = "Processing evidence" })
             Text("Evidence received; awaiting checks.", color = colors.textPrimary, fontSize = 18.sp)
             Text("Processing evidence. Your suggestion stays private and has not been reviewed or published.", color = colors.textSecondary)
+        } else if (status in setOf("under_review", "approved", "held", "rejected", "review_unavailable")) {
+            val title = when (status) {
+                "under_review" -> R.string.e3_reviewing
+                "approved" -> R.string.e3_published
+                "held" -> R.string.e3_exception
+                "rejected" -> R.string.e3_rejected
+                else -> R.string.e3_unavailable
+            }
+            val message = when (status) {
+                "under_review" -> R.string.e3_reviewing_message
+                "approved" -> R.string.e3_published_message
+                "held" -> R.string.e3_exception_message
+                "rejected" -> R.string.e3_rejected_message
+                else -> R.string.e3_unavailable_message
+            }
+            Text(stringResource(title), color = colors.textPrimary, fontSize = 18.sp, modifier = Modifier.testTag("submission.$status"))
+            Text(stringResource(message), color = colors.textSecondary)
+            if (status == "under_review") CircularProgressIndicator()
         } else if (status == "evidence_ready") {
             Text("Evidence checks complete", color = colors.textPrimary, fontSize = 18.sp, modifier = Modifier.testTag("submission.ready"))
-            Text("Your suggestion is still private. It has not been reviewed or published.", color = colors.textSecondary)
+            Text(stringResource(R.string.e3_waiting), color = colors.textSecondary)
         } else {
             Text(if (status == "infected") "Evidence cannot be used" else "Evidence processing failed", color = colors.textPrimary, fontSize = 18.sp,
                 modifier = Modifier.testTag(if (status == "infected") "submission.infected" else "submission.failed"))
@@ -84,6 +107,19 @@ internal fun EvidenceProcessingStatusContent(status: String, retryItems: List<St
         }
         if (status in setOf("awaiting_processing", "processing_failed")) retryItems.forEach { itemId ->
             TextButton(onClick = { onRetry(itemId) }, modifier = Modifier.testTag("submission.retryProcessing")) { Text("Retry evidence") }
+        }
+        if (citations.isNotEmpty()) {
+            Text(stringResource(R.string.e3_sources), color = colors.textPrimary)
+            citations.forEachIndexed { index, citation ->
+                if (EvidenceClientPolicy.httpsURL(citation.url) != null) {
+                    TextButton(onClick = { uriHandler.openUri(citation.url) }, modifier = Modifier.fillMaxWidth().testTag("submission.citation.$index")) {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Text(citation.title, color = colors.textPrimary)
+                            Text(citation.location, color = colors.textSecondary)
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -270,10 +306,11 @@ fun TranslationSubmissionSheet(
                     } }
                 }) { Text("Start a new suggestion") }
             }
-            draft?.status in setOf("awaiting_processing", "evidence_ready", "processing_failed", "infected") -> Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.testTag("submission.confirmation")) {
+            draft?.status in setOf("awaiting_processing", "evidence_ready", "processing_failed", "infected", "under_review", "approved", "held", "rejected", "review_unavailable") -> Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.testTag("submission.confirmation")) {
                 EvidenceProcessingStatusContent(
                     status = draft?.status ?: "processing_failed",
                     retryItems = draft?.items?.filter { it.state == "failed" && it.retryable }?.map { it.itemId }.orEmpty(),
+                    citations = draft?.citations.orEmpty(),
                     onRetry = { itemId ->
                         draft?.submissionId?.let { submissionId -> scope.launch {
                             runCatching { repository.retryEvidenceProcessing(submissionId, itemId) }
@@ -282,7 +319,7 @@ fun TranslationSubmissionSheet(
                     },
                 )
                 error?.let { Text(it, color = colors.textSecondary, modifier = Modifier.testTag("submission.error")) }
-                TextButton(onClick = {
+                if (draft?.status != "approved") TextButton(onClick = {
                     draft?.submissionId?.let { id -> scope.launch {
                         runCatching { repository.deleteEvidenceDraft(id) }
                             .onSuccess {
@@ -368,7 +405,7 @@ fun TranslationSubmissionSheet(
                                 }
                                 draft = current
                                 persistRemoteDraft(current, choices.toList())
-                                if (current.status in setOf("awaiting_processing", "evidence_ready", "processing_failed", "infected")) {
+                                if (current.status in setOf("awaiting_processing", "evidence_ready", "processing_failed", "infected", "under_review", "approved", "held", "rejected", "review_unavailable")) {
                                     choices.forEach { it.filePath?.let(::File)?.delete() }
                                     choices.clear()
                                     persistRemoteDraft(current, emptyList())
@@ -400,6 +437,7 @@ fun TranslationSubmissionSheet(
                     if (uploading) CircularProgressIndicator(modifier = Modifier.padding(end = 8.dp))
                     Text(if (draft == null) "Submit with evidence" else "Retry evidence upload")
                 }
+                Text(stringResource(R.string.e3_consent), color = colors.textSecondary)
             }
         }
     }

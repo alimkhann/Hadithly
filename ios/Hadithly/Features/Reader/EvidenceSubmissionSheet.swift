@@ -11,18 +11,24 @@ struct EvidenceProcessingStatusView: View {
     let errorMessage: String?
     let onRetry: (String) -> Void
     let onWithdraw: () -> Void
+    var citations: [EvidenceCitation] = []
 
     var body: some View {
+        ScrollView {
         VStack(spacing: 12) {
             if status == "awaiting_processing" {
                 ProgressView().accessibilityLabel("Processing evidence").accessibilityIdentifier("submission.processing")
                 Text("Evidence received; awaiting checks.").font(.headline).accessibilityIdentifier("submission.confirmation")
                 Text("Processing evidence. Your suggestion stays private and has not been reviewed or published.")
                     .font(.subheadline).foregroundStyle(palette.textSecondary)
+            } else if ["under_review", "approved", "held", "rejected", "review_unavailable"].contains(status) {
+                Text(reviewTitle).font(.headline).accessibilityIdentifier("submission.\(status)")
+                Text(reviewMessage).font(.subheadline).foregroundStyle(palette.textSecondary)
+                if status == "under_review" { ProgressView().accessibilityLabel("e3.reviewing") }
             } else if status == "evidence_ready" {
                 Image(systemName: "checkmark.circle").font(.largeTitle)
                 Text("Evidence checks complete").font(.headline).accessibilityIdentifier("submission.ready")
-                Text("Your suggestion is still private. It has not been reviewed or published.")
+                Text("e3.waiting")
                     .font(.subheadline).foregroundStyle(palette.textSecondary)
             } else {
                 Image(systemName: "exclamationmark.circle").font(.largeTitle)
@@ -39,25 +45,78 @@ struct EvidenceProcessingStatusView: View {
                 }
             }
             if let errorMessage { Text(errorMessage).font(.caption).foregroundStyle(palette.textSecondary).accessibilityIdentifier("submission.error") }
+            if !citations.isEmpty {
+                Text("e3.sources").font(.headline)
+                ForEach(Array(citations.enumerated()), id: \.offset) { index, citation in
+                    if let url = EvidenceClientPolicy.httpsURL(citation.url) {
+                        Link(destination: url) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(citation.title).multilineTextAlignment(.leading)
+                                Text(citation.location).font(.caption).foregroundStyle(palette.textSecondary)
+                            }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle())
+                        }.accessibilityIdentifier("submission.citation.\(index)")
+                    }
+                }
+            }
+            if status != "approved" {
             Button(role: .destructive, action: onWithdraw) {
                 Text("Withdraw suggestion").frame(minHeight: 44).contentShape(Rectangle())
             }.accessibilityIdentifier("submission.deleteDraft")
+            }
         }
         .foregroundStyle(palette.textPrimary).frame(maxWidth: .infinity).padding(30)
+        }
     }
+
+    private var reviewTitle: LocalizedStringKey {
+        switch status {
+        case "under_review": "e3.reviewing"
+        case "approved": "e3.published"
+        case "held": "e3.exception"
+        case "rejected": "e3.rejected"
+        default: "e3.unavailable"
+        }
+    }
+    private var reviewMessage: LocalizedStringKey {
+        switch status {
+        case "under_review": "e3.reviewing_message"
+        case "approved": "e3.published_message"
+        case "held": "e3.exception_message"
+        case "rejected": "e3.rejected_message"
+        default: "e3.unavailable_message"
+        }
+    }
+}
+
+struct EvidenceCitation: Decodable {
+    let url: String
+    let title: String
+    let location: String
 }
 
 #if DEBUG
 struct EvidenceProcessingFixture: View {
     @State private var status = "awaiting_processing"
+    @State private var showCommunitySources = false
+    private var communityTranslation: ReaderTranslation {
+        ReaderTranslation(translationId: "fixture", translation: "This is a test text.", confidence: nil, riskFlags: [], glossaryNotes: [], source: "community", sourceLabel: "Community", aiModel: nil, groundingUsed: false, citations: [ReaderCitation(url: "https://example.org/fixture", title: "Licensed source", domain: "example.org")], sourceReferenceUrl: "https://example.org/fixture", cached: true)
+    }
+
     var body: some View {
         VStack {
-            ForEach(["awaiting_processing", "processing_failed", "infected", "evidence_ready"], id: \.self) { state in
+            ForEach(["awaiting_processing", "processing_failed", "infected", "evidence_ready", "under_review", "approved", "held", "rejected", "review_unavailable"], id: \.self) { state in
                 Button(state) { status = state }.accessibilityIdentifier("e2.fixture.\(state)")
             }
             EvidenceProcessingStatusView(status: status, retryItems: ["test-item"], errorMessage: nil,
-                onRetry: { _ in status = "awaiting_processing" }, onWithdraw: {})
+                onRetry: { _ in status = "awaiting_processing" }, onWithdraw: {},
+                citations: [EvidenceCitation(url: "https://example.org/fixture", title: "Licensed source", location: "p. 1")])
+            ReaderStoredTranslationView(text: "This is a test text.", translation: communityTranslation, palette: .dark) {
+                showCommunitySources = true
+            }
         }.background(ReaderPalette.dark.background).environment(\.readerPalette, .dark)
+        .sheet(isPresented: $showCommunitySources) {
+            TranslationCitationsSheet(translation: communityTranslation)
+        }
     }
 }
 #endif
@@ -78,6 +137,7 @@ private struct EvidenceDraftView: Decodable {
     let status: String
     let proposedContent: String
     let items: [Item]
+    let citations: [EvidenceCitation]?
 }
 
 private struct EvidenceSubmitResult: Decodable { let status: String }
@@ -197,7 +257,7 @@ struct TranslationSubmissionSheet: View {
                             .frame(minHeight: 44)
                     }
                     .padding(30)
-                } else if let draft, ["awaiting_processing", "evidence_ready", "processing_failed", "infected"].contains(draft.status) {
+                } else if let draft, ["awaiting_processing", "evidence_ready", "processing_failed", "infected", "under_review", "approved", "held", "rejected", "review_unavailable"].contains(draft.status) {
                     processingStatus(draft)
                 } else {
                     form
@@ -334,6 +394,7 @@ struct TranslationSubmissionSheet: View {
             .frame(minHeight: 44)
             .disabled(!localReady || isSubmitting || content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || (draft == nil && evidence.isEmpty))
             .accessibilityIdentifier("submission.submit")
+            Text("e3.consent").font(.caption).foregroundStyle(palette.textSecondary)
         }
         .foregroundStyle(palette.textPrimary)
         .padding(20)
@@ -344,7 +405,7 @@ struct TranslationSubmissionSheet: View {
             retryItems: draft.items.filter { $0.state == "failed" && $0.retryable == true }.map(\.itemId),
             errorMessage: errorMessage,
             onRetry: { itemId in Task { await retryProcessing(itemId, submissionId: draft.submissionId) } },
-            onWithdraw: { Task { await deleteDraft() } })
+            onWithdraw: { Task { await deleteDraft() } }, citations: draft.citations ?? [])
     }
 
     private func observeProcessing(_ submissionId: String, owner: String) async {
@@ -524,7 +585,7 @@ struct TranslationSubmissionSheet: View {
                 current = try await fetchDraft(draft.submissionId)
                 try ensureCurrentOwner(submissionOwner)
                 self.draft = current
-                if ["awaiting_processing", "evidence_ready", "processing_failed", "infected"].contains(current.status) {
+                if ["awaiting_processing", "evidence_ready", "processing_failed", "infected", "under_review", "approved", "held", "rejected", "review_unavailable"].contains(current.status) {
                     for choice in evidence { if let file = choice.fileURL { try? FileManager.default.removeItem(at: file) } }
                     evidence = []
                     persistLocal()
@@ -569,7 +630,7 @@ struct TranslationSubmissionSheet: View {
                 try await upload(file: file, item: item, mime: choice.mime ?? item.declaredMime, submissionId: current.submissionId)
                 try ensureCurrentOwner(submissionOwner)
             }
-            let _: EvidenceSubmitResult = try await environment.convex.mutation("evidence:finalizeEvidenceDraft", with: ["submissionId": current.submissionId as ConvexEncodable?])
+            let _: EvidenceSubmitResult = try await environment.convex.mutation("evidence:finalizeEvidenceDraft", with: ["submissionId": current.submissionId as ConvexEncodable?, "contributionConsentVersion": "e3-contribution-v1" as ConvexEncodable?])
             try ensureCurrentOwner(submissionOwner)
             draft = try await fetchDraft(current.submissionId)
             try ensureCurrentOwner(submissionOwner)

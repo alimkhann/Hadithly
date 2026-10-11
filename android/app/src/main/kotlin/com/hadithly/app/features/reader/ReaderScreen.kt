@@ -2128,14 +2128,12 @@ internal fun HadithBlock(
     }
 
     val loadedTranslation = (translationState as? TranslationUiState.Loaded)?.translation
-    // Report gating matches the old inline row: a Loaded state only exists
-    // for non-English translations, so its presence implies reportability.
     val visibleArabic = hadith.arabicText.takeIf { preferences.arabicVisible }
     val visibleTranslation: String?
     val visibleTranslationIsAi: Boolean
     if (language == "en") {
-        visibleTranslation = hadith.englishText.takeIf { preferences.translationVisible }
-        visibleTranslationIsAi = false
+        visibleTranslation = (loadedTranslation?.translation ?: hadith.englishText).takeIf { preferences.translationVisible }
+        visibleTranslationIsAi = loadedTranslation?.source == "gemini_ai"
     } else {
         visibleTranslation = loadedTranslation?.translation.takeIf { preferences.translationVisible }
         visibleTranslationIsAi = loadedTranslation?.source == "gemini_ai"
@@ -2592,7 +2590,7 @@ internal fun HadithContextMenu(
 }
 
 @Composable
-private fun TranslationSection(
+internal fun TranslationSection(
     hadith: ReaderHadith,
     translationState: TranslationUiState?,
     language: String,
@@ -2603,8 +2601,11 @@ private fun TranslationSection(
     val colors = LocalHadithlyColors.current
 
     if (language == "en") {
+        val stored = (translationState as? TranslationUiState.Loaded)?.translation
         val english = hadith.englishText
-        if (!english.isNullOrEmpty()) {
+        if (stored != null) {
+            TranslationText(text = stored.translation, storedTranslation = stored, onShowCitations = { onShowCitations(stored) })
+        } else if (!english.isNullOrEmpty()) {
             TranslationText(text = english, storedTranslation = null, onShowCitations = {})
         } else {
             Text("No English translation available yet.", fontSize = 12.sp, color = colors.textSecondary)
@@ -2664,8 +2665,8 @@ private fun TranslationText(
             "community" -> SourceBadge(
                 icon = Icons.Filled.CheckCircle,
                 main = "Community",
-                trailing = "· admin approved",
-                onClick = null,
+                trailing = stringResource(R.string.e3_contributor_label),
+                onClick = onShowCitations,
             )
         }
         Text(
@@ -2691,6 +2692,7 @@ private fun SourceBadge(
         modifier = Modifier
             .background(colors.interactiveSoft, RoundedCornerShape(50))
             .clickable(enabled = onClick != null) { onClick?.invoke() }
+            .heightIn(min = 48.dp)
             .padding(horizontal = 10.dp, vertical = 5.dp),
     ) {
         Icon(icon, contentDescription = null, tint = colors.interactive, modifier = Modifier.size(12.dp))
@@ -3393,12 +3395,13 @@ private fun VisibilityPill(
 // Citations sheet
 
 @Composable
-private fun CitationsSheet(translation: ReaderTranslation) {
+internal fun CitationsSheet(translation: ReaderTranslation) {
     val colors = LocalHadithlyColors.current
     Column(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier
             .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
             .padding(20.dp),
     ) {
         Text("Sources", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
@@ -3420,9 +3423,10 @@ private fun CitationsSheet(translation: ReaderTranslation) {
             }
         }
         Text(
-            text = "AI translations are generated with ${translation.aiModel ?: "an AI model"} and grounded in cited sources, but are not authoritative.",
+            text = if (translation.source == "gemini_ai") "AI translations are generated with ${translation.aiModel ?: "an AI model"} and grounded in cited sources, but are not authoritative." else stringResource(R.string.e3_community_sources_message),
             fontSize = 11.sp,
             color = colors.textSecondary,
+            modifier = Modifier.testTag(if (translation.source == "gemini_ai") "translation.sources.ai" else "translation.sources.community"),
         )
     }
 }

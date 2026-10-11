@@ -482,7 +482,7 @@ privacy, deletion routing, and platform parity.
 > H3 passed. Execute only S1. Preserve unrelated changes and do not use Relay.
 > Build complete native Settings and profile destinations (profile picture, name, etc) for account,
 > appearance, reading, App language, Hadith translation, offline storage,
-> notifications, subscription status, privacy, help, legal, export, sign-out, delete account, and anything else that is missing and conventionally included in app settings or for such hadith reader apps. Move admin review out of the consumer app.
+> notifications, subscription status, privacy, help, legal, export, sign-out, delete account, and anything else that is missing and conventionally included in app settings or for such hadith reader apps. Keep routine reviews automated; any optional operator exception tool stays outside the consumer app.
 >
 > Every row on iOS and Android must perform a real action or open finished
 > content. Reading controls reuse F2. Offline controls may show a clear locked
@@ -646,7 +646,7 @@ Model: GPT-5.6 Sol, xhigh. Use `architect`,
 
 ## E3: provenance, licensing, review, and auto-publication
 
-Model: GPT-5.6 Sol, xhigh. Use `architect`, `domain-modeling`,
+Model: GPT-6.1 Sol, high. Use `architect`, `domain-modeling`,
 `principle-boundary-discipline`, `typescript-best-practices`, `interrogate`, and
 `principle-prove-it-works`.
 
@@ -676,19 +676,25 @@ Model: GPT-5.6 Terra, high. Use `architect`, `blast-radius`,
 
 > Read `AGENTS.md`, `docs/PLAN.md`, and E1 through E3 fully. Confirm E3 passed.
 > Execute only E4. Preserve unrelated changes and do not use Relay. Build a
-> secured admin exception and audit tool outside consumer Settings. Add appeals,
-> audit sampling, abuse controls, publication revocation, takedown, and retention
-> jobs.
+> AI-driven exception, report, appeal, and recheck processing with deterministic
+> safety and publication gates. Add audit sampling, abuse controls, publication
+> revocation, takedown, and retention jobs. Add an optional secured operator tool
+> outside consumer Settings; do not make human approval part of routine operation.
 >
-> The admin tool shows only exceptions, appeals, sampled audits, and active
-> incidents. It is not a routine approval queue. Every action requires verified
-> admin identity, reason, before and after state, and an audit row. iOS and
+> Automated jobs handle routine decisions and bounded retries. Unresolved cases
+> stay private or expire without requiring the sole operator to act. Source-policy
+> changes trigger automatic reassessment. The optional operator tool shows only
+> exceptions, appeals, sampled audits, and incidents. Human actions require verified
+> operator identity, reason, before/after state, and an audit row. Automated actions
+> identify their policy/model revisions and produce equivalent audit facts. Neither
+> path may waive scan, URL, provenance, or license gates. iOS and
 > Android expose contributor appeal and status flows only. Rejected private
 > evidence expires after 30 days. Takedown removes content and sensitive assets
 > while retaining only policy-permitted audit facts.
 >
-> Gate: authorization, appeal window, abuse throttling, audit immutability,
-> revocation propagation, deletion, and consumer-app absence tests pass. Stop
+> Gate: automated report/appeal resolution, no mandatory approval queue, operator
+> authorization, appeal window, abuse throttling, audit immutability, revocation
+> propagation, deletion, and consumer-app absence tests pass. Stop
 > before Q1.
 
 ## Q1: rolling quotas, cache reuse, and abuse controls

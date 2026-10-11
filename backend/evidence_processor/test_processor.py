@@ -59,6 +59,32 @@ def dns(*addresses):
 
 
 class ProcessorSecurityTests(unittest.TestCase):
+    def test_access_origin_canonicalization_blocks_case_and_default_port_variants(self):
+        for url in ["https://DENIED.example/a", "https://denied.example:443/a"]:
+            resolver = Mock(return_value=dns("8.8.8.8"))
+            with self.assertRaises(processor.Rejected):
+                processor.safe_fetch(url, resolver=resolver, denied_origins=["https://denied.example"])
+            resolver.assert_not_called()
+        self.assertEqual(processor.safe_url("https://PUBLIC.example:443/a"), "https://public.example/a")
+        with self.assertRaises(processor.Rejected): processor.safe_url("https://sunnah.com/allowed/../other")
+
+    def test_sunnah_com_requires_access_permission_before_dns_and_at_every_hop(self):
+        resolver = Mock(return_value=dns("8.8.8.8"))
+        with self.assertRaises(processor.Rejected):
+            processor.safe_fetch("https://sunnah.com/bukhari:1", resolver=resolver)
+        resolver.assert_not_called()
+        calls = []
+        responses = [Response(302, headers={"Location": "https://sunnah.com/bukhari:1"})]
+        with self.assertRaises(processor.Rejected):
+            processor.safe_fetch("https://public.example/a", resolver=resolver, connection_factory=lambda host, address, timeout: Connection(host, address, timeout, responses, calls))
+        self.assertEqual(len(calls), 1)
+        calls.clear()
+        responses = [Response()]
+        result = processor.safe_fetch("https://sunnah.com/bukhari:1", resolver=resolver, connection_factory=lambda host, address, timeout: Connection(host, address, timeout, responses, calls), access_scopes=[{"origin": "https://sunnah.com", "pathPrefix": "/bukhari:"}])
+        self.assertEqual(result.access_chain, ["https://sunnah.com/bukhari:1"])
+        with self.assertRaises(processor.Rejected):
+            processor.safe_fetch("https://sunnah.com/muslim:1", resolver=resolver, access_scopes=[{"origin": "https://sunnah.com", "pathPrefix": "/bukhari:"}])
+
     def fetch(self, responses, answers):
         calls = []
         resolved = []

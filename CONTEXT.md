@@ -65,9 +65,27 @@ The state of a stored file before malware scanning and extraction. A quarantined
 _Avoid_: Clean evidence, published source
 
 **Provenance**:
-The trace from a translation claim to source material and exact citations, established only after safe extraction and review.
+The verified connection between a source artifact, its exact text, a canonical hadith, and a language. A familiar website or confident AI answer is insufficient.
 _Avoid_: An uploaded file alone
 
 **License assessment**:
 A recorded decision about specific permitted uses of a source. Ability to access a source does not establish reuse rights.
 _Avoid_: Accessible URL, assumed permission
+
+**Access permission**:
+Permission to obtain a source. It does not establish permission to translate,
+republish, or disclose the source to an AI service.
+
+**Reuse permission**:
+Affirmative rights to adapt, display, or distribute a source under stated terms.
+
+**Review pass**:
+An independent assessment of translation meaning and cited evidence. It cannot
+grant rights or decide publication.
+
+**Publication revision**:
+The retained source facts and decision associated with a published translation.
+Contributor scores and reputation are outside the product.
+
+**Source policy**:
+A cached assessment of a source's permitted uses, tied to its terms and review date. Unknown sources remain unresolved until permission is established.

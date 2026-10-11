@@ -10,6 +10,7 @@ import http.client
 import ipaddress
 import json
 import os
+import re
 import socket
 import shutil
 import ssl
@@ -71,6 +72,7 @@ class Fetched:
     body: bytes
     mime: str
     url: str
+    access_chain: list[str]
 
 
 def safe_url(raw: str) -> str:
@@ -92,7 +94,12 @@ def safe_url(raw: str) -> str:
         pass
     else:
         raise Rejected("ip literal")
-    return urlunsplit(("https", parts.netloc, parts.path or "/", parts.query, ""))
+    # Match the canonical origins used by Convex URL.origin before access checks.
+    host = parts.hostname.lower().encode("idna").decode("ascii")
+    path = parts.path or "/"
+    if re.search(r"%2f|%5c|\\", path, re.IGNORECASE) or any(segment.lower() in {".", "..", "%2e", "%2e%2e", ".%2e", "%2e."} for segment in path.split("/")):
+        raise Rejected("path")
+    return urlunsplit(("https", host, path, parts.query, ""))
 
 
 def bounded_getaddrinfo(host: str, port: int, type: int, deadline: float | None = None):
@@ -194,15 +201,27 @@ def bounded_body(response: http.client.HTTPResponse, deadline: float) -> bytes:
     return b"".join(chunks)
 
 
-def safe_fetch(raw: str, resolver=bounded_getaddrinfo, connection_factory=PinnedHTTPS) -> Fetched:
+def path_within_policy(path: str, prefix: str) -> bool:
+    return path == prefix or path.startswith(prefix) and (prefix.endswith(("/", ":")) or path[len(prefix):].startswith("/"))
+
+
+def safe_fetch(raw: str, resolver=bounded_getaddrinfo, connection_factory=PinnedHTTPS, access_scopes=None, denied_origins=None) -> Fetched:
     current = safe_url(raw)
     visited: set[str] = set()
+    access_chain: list[str] = []
     deadline = time.monotonic() + FETCH_SECONDS
     for hop in range(MAX_REDIRECTS + 1):
         if current in visited:
             raise Rejected("redirect loop")
         visited.add(current)
         parts = urlsplit(current)
+        origin = f"https://{parts.netloc}"
+        if origin in (denied_origins or []):
+            raise Rejected("source access")
+        if parts.hostname == "sunnah.com" or (parts.hostname or "").endswith(".sunnah.com"):
+            if not any(scope.get("origin") == origin and path_within_policy(parts.path, scope.get("pathPrefix", "\x00")) for scope in (access_scopes or [])):
+                raise Rejected("source access")
+        access_chain.append(current)
         addresses = public_addresses(parts.hostname or "", resolver, deadline)
         remaining = deadline - time.monotonic()
         if remaining <= 0:
@@ -242,7 +261,7 @@ def safe_fetch(raw: str, resolver=bounded_getaddrinfo, connection_factory=Pinned
             body = bounded_body(response, deadline)
             if not body:
                 raise Rejected("empty")
-            return Fetched(body, mime, current)
+            return Fetched(body, mime, current, access_chain)
         except (socket.timeout, ssl.SSLError, OSError, http.client.HTTPException) as exc:
             raise TemporaryFailure("network") from exc
         finally:
@@ -483,8 +502,15 @@ def process_request(request: dict) -> dict:
         raise Rejected("language")
     languages = ocr_languages(language)
     if request.get("kind") == "url" and isinstance(request.get("url"), str):
-        fetched = safe_fetch(request["url"])
-        return extraction(fetched.body, fetched.mime, fetched.url, languages)
+        scopes, denied = request.get("accessScopes", []), request.get("deniedOrigins", [])
+        if not isinstance(scopes, list) or len(scopes) > 20 or not all(isinstance(scope, dict) and isinstance(scope.get("origin"), str) and isinstance(scope.get("pathPrefix"), str) and scope["pathPrefix"].startswith("/") for scope in scopes):
+            raise Rejected("source access")
+        if not isinstance(denied, list) or len(denied) > 100 or not all(isinstance(origin, str) for origin in denied):
+            raise Rejected("source access")
+        fetched = safe_fetch(request["url"], access_scopes=scopes, denied_origins=denied)
+        result = extraction(fetched.body, fetched.mime, fetched.url, languages)
+        if result.get("kind") == "ready": result["accessChain"] = fetched.access_chain
+        return result
     if request.get("kind") == "file" and request.get("mime") in ALLOWED_MIME - {"text/html"}:
         try:
             body = base64.b64decode(request["bytesBase64"], validate=True)
@@ -499,7 +525,9 @@ def process_request(request: dict) -> dict:
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         self.send_response(200 if self.path == "/health" else 404)
+        self.send_header("Content-Type", "application/json")
         self.end_headers()
+        if self.path == "/health": self.wfile.write(b'{"accessPolicyVersion":"e3-v1"}')
 
     def do_POST(self) -> None:
         if self.path != "/process":

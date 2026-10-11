@@ -740,7 +740,6 @@ class ReaderViewModel(
 
     private fun scheduleTranslationsForCurrentPage() {
         val s = _state.value
-        if (s.language == "en") return
         val hadiths = currentPageHadiths()
         if (hadiths.isEmpty()) return
 
@@ -756,6 +755,13 @@ class ReaderViewModel(
 
     private suspend fun translateIfNeeded(hadith: ReaderHadith, generation: Int) {
         if (_state.value.translations[hadith.internalId] != null) return
+        if (_state.value.language == "en") {
+            val stored = runCatching { app.repository.storedReaderTranslation(hadith, "en") }.getOrNull()
+            if (generation == translationGeneration && stored != null) {
+                _state.update { it.copy(translations = it.translations + (hadith.internalId to TranslationUiState.Loaded(stored))) }
+            }
+            return
+        }
         if (!app.isSignedIn()) {
             _state.update {
                 it.copy(translations = it.translations + (hadith.internalId to TranslationUiState.Failed(TranslationFailure.RequiresSignIn)))

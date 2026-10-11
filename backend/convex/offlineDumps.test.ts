@@ -521,6 +521,20 @@ describe("offline artifact storage", () => {
     expect(second).toEqual(first);
   });
 
+  test("pre-existing version 1 translation packs are not advertised or distributed", async () => {
+    const t = convexTest(schema, modules);
+    const licenseId = await t.mutation(internal.offlineDumps.recordSunnahNowLicense, {});
+    const storageId = await t.run(ctx => ctx.storage.store(new Blob(["{}"], { type: "application/json" })));
+    const shared = { collectionSlug: "bukhari", schemaVersion: 1, storageId, sha256: "b".repeat(64), byteSize: 2, minAppVersion: "0.1.0", generatedAt: 5, licenseRecordId: licenseId, compatiblePacks: ["od1:" + "c".repeat(64)] };
+    await t.mutation(internal.offlineDumps.upsertArtifact, { ...shared, kind: "base", contentVersion: "od1:" + "a".repeat(64) });
+    await t.mutation(internal.offlineDumps.upsertArtifact, { ...shared, kind: "pack", locale: "ur", baseContentVersion: "od1:" + "a".repeat(64), contentVersion: "od1:" + "c".repeat(64) });
+    expect(await t.query(api.offlineDumps.getPackManifest, { collectionSlug: "bukhari", locale: "ur" })).toBeNull();
+    const manifests = await t.query(api.offlineDumps.getOfflineManifests, { translationLocale: "ur" });
+    expect(manifests.bases).toHaveLength(1);
+    expect(manifests.bases[0]?.compatiblePacks).toEqual([]);
+    expect(manifests.packs).toEqual([]);
+  });
+
   test("public manifests are empty before the first publish", async () => {
     const t = convexTest(schema, modules);
     expect(
@@ -533,7 +547,7 @@ describe("offline artifact storage", () => {
     ).toEqual({ bases: [], packs: [] });
   });
 
-  test("pack generation reads only live default translations", async () => {
+  test("version 1 packs cannot export unbound translation rights", async () => {
     const t = convexTest(schema, modules);
     const rows = await t.run(async (ctx) => {
       const hadithId = await ctx.db.insert("hadiths", {
@@ -588,8 +602,6 @@ describe("offline artifact storage", () => {
       internal.offlineDumps.listLiveDefaultsForLanguage,
       { language: "ur" },
     );
-    expect(found).toHaveLength(1);
-    expect(found[0].translation._id).toEqual(rows.live);
-    expect(found[0].translation.content).toBe("زندہ");
+    expect(found).toHaveLength(0);
   });
 });

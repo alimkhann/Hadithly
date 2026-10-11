@@ -7,6 +7,7 @@ import {
 } from "./lib/contentPolicy";
 import { legacyReaderPreferencesValidator, readerPreferencesValidator } from "./lib/preferences";
 import { readingPositionValidator } from "./lib/readingPositions";
+import { permissionGrant, publicCitation, reviewPass, sourcePolicy } from "./lib/evidenceReviewPolicy";
 
 const authenticityGrade = v.union(
   v.literal("sahih"),
@@ -193,6 +194,7 @@ export default defineSchema({
     contributorUserId: v.optional(v.id("users")),
     contributorDisplayName: v.optional(v.string()),
     legacyEvidenceMissing: v.optional(v.boolean()),
+    evidencePublicationId: v.optional(v.id("evidencePublicationRevisions")),
     createdAt: v.number(),
     updatedAt: v.number(),
     approvedAt: v.optional(v.number()),
@@ -209,8 +211,7 @@ export default defineSchema({
       filterFields: ["language", "status"],
     }),
 
-  // Community translation submissions. Quality is enforced by AI review +
-  // admin approval — never by public voting or rankings.
+  // Community publication belongs to the deterministic evidence gate.
   communitySubmissions: defineTable({
     hadithId: v.id("hadiths"),
     language: v.string(),
@@ -238,6 +239,9 @@ export default defineSchema({
       v.literal("draft"),
       v.literal("awaiting_processing"),
       v.literal("evidence_ready"),
+      v.literal("under_review"),
+      v.literal("review_unavailable"),
+      v.literal("held"),
       v.literal("processing_failed"),
       v.literal("infected"),
       v.literal("legacy_evidence_missing"),
@@ -248,6 +252,7 @@ export default defineSchema({
     legacyStatus: v.optional(v.string()),
     createdAt: v.number(),
     reviewedAt: v.optional(v.number()),
+    contributionConsentVersion: v.optional(v.string()),
   })
     .index("by_status", ["status"])
     .index("by_submitted_by", ["submittedBy"])
@@ -311,6 +316,7 @@ export default defineSchema({
     sha256: v.string(),
     finalUrl: v.optional(v.string()),
     sourceStorageId: v.optional(v.id("_storage")),
+    accessChain: v.optional(v.array(v.string())),
     text: v.string(),
     spans: v.array(v.object({
       start: v.number(), end: v.number(),
@@ -323,7 +329,7 @@ export default defineSchema({
   }).index("by_item", ["evidenceItemId"]).index("by_submission", ["submissionId"]).index("by_source_storage", ["sourceStorageId"]),
 
   evidenceWorkerLease: defineTable({
-    name: v.literal("processor"),
+    name: v.union(v.literal("processor"), v.literal("reviewer")),
     token: v.string(),
     deadline: v.number(),
   }).index("by_name", ["name"]),
@@ -344,13 +350,44 @@ export default defineSchema({
     .index("by_size", ["declaredSize"])
     .index("by_expiry", ["expiresAt"]),
 
-  evidenceProvenance: defineTable({ submissionId: v.id("communitySubmissions"), evidenceItemId: v.id("evidenceItems"), status: v.literal("unassessed"), createdAt: v.number() }).index("by_submission", ["submissionId"]),
-  evidenceLicenseAssessments: defineTable({ submissionId: v.id("communitySubmissions"), evidenceItemId: v.id("evidenceItems"), status: v.literal("unassessed"), createdAt: v.number() }).index("by_submission", ["submissionId"]),
-  evidenceReviewPasses: defineTable({ submissionId: v.id("communitySubmissions"), status: v.literal("not_started"), createdAt: v.number() }).index("by_submission", ["submissionId"]),
-  evidencePublicationRevisions: defineTable({ submissionId: v.id("communitySubmissions"), status: v.literal("not_published"), createdAt: v.number() }).index("by_submission", ["submissionId"]),
+  evidencePermissionGrants: defineTable({ grant: permissionGrant, submissionId: v.optional(v.id("communitySubmissions")), createdAt: v.number() })
+    .index("by_artifact", ["grant.artifactSha256"]).index("by_submission", ["submissionId"])
+    .index("by_scope", ["grant.artifactSha256", "grant.textSha256", "grant.canonicalId", "grant.sourceKind", "grant.sourceUrl", "submissionId", "grant.language"]),
+  evidenceSourcePolicies: defineTable({ policy: sourcePolicy }).index("by_origin_kind", ["policy.origin", "policy.sourceKind"]).index("by_assessment", ["policy.assessment.kind"]).index("by_kind", ["policy.sourceKind"]),
+  evidenceSourceDependencies: defineTable({ submissionId: v.id("communitySubmissions"), origin: v.string() })
+    .index("by_origin", ["origin"]).index("by_submission", ["submissionId"]),
+  evidenceReviewJobs: defineTable({
+    submissionId: v.id("communitySubmissions"), token: v.string(), deadline: v.number(), snapshotSha256: v.string(),
+    status: v.union(v.literal("running"), v.literal("complete"), v.literal("failed")),
+    policyVersion: v.string(), reasons: v.array(v.string()), createdAt: v.number(),
+  }).index("by_submission", ["submissionId"]).index("by_status_deadline", ["status", "deadline"]),
+  evidenceProvenance: defineTable({ submissionId: v.id("communitySubmissions"), evidenceItemId: v.id("evidenceItems"),
+    status: v.union(v.literal("unassessed"), v.literal("verified"), v.literal("unresolved")),
+    artifactSha256: v.optional(v.string()), textSha256: v.optional(v.string()), canonicalId: v.optional(v.string()), language: v.optional(v.string()),
+    citation: v.optional(publicCitation), grantId: v.optional(v.id("evidencePermissionGrants")), createdAt: v.number(),
+  }).index("by_submission", ["submissionId"]),
+  evidenceLicenseAssessments: defineTable({ submissionId: v.id("communitySubmissions"), evidenceItemId: v.id("evidenceItems"),
+    status: v.union(v.literal("unassessed"), v.literal("affirmative"), v.literal("ambiguous"), v.literal("denied")),
+    grantId: v.optional(v.id("evidencePermissionGrants")), createdAt: v.number(),
+  }).index("by_submission", ["submissionId"]),
+  evidenceReviewPasses: defineTable({ submissionId: v.id("communitySubmissions"), status: v.union(v.literal("not_started"), v.literal("complete")),
+    snapshotSha256: v.optional(v.string()), policyVersion: v.optional(v.string()), result: v.optional(reviewPass), createdAt: v.number(),
+  }).index("by_submission", ["submissionId"]),
+  evidencePublicationRevisions: defineTable({ submissionId: v.id("communitySubmissions"), status: v.union(v.literal("not_published"), v.literal("published")),
+    translationId: v.optional(v.id("translations")), snapshotSha256: v.optional(v.string()), policyVersion: v.optional(v.string()),
+    citations: v.optional(v.array(publicCitation)),
+    permissions: v.optional(v.array(v.object({ licenseName: v.string(), permissionUrl: v.string(), attribution: v.string(), offline: v.boolean() }))),
+    outputSha256: v.optional(v.string()),
+    previousDefaultIds: v.optional(v.array(v.id("translations"))),
+    permissionDependencies: v.optional(v.array(v.union(
+      v.object({ kind: v.literal("grant"), id: v.id("evidencePermissionGrants"), snapshot: permissionGrant }),
+      v.object({ kind: v.literal("policy"), id: v.id("evidenceSourcePolicies"), snapshot: sourcePolicy }),
+    ))),
+    createdAt: v.number(),
+  }).index("by_submission", ["submissionId"]),
   evidenceAppeals: defineTable({ submissionId: v.id("communitySubmissions"), ownerUserId: v.id("users"), status: v.literal("not_requested"), createdAt: v.number() }).index("by_owner", ["ownerUserId"]),
-  evidenceAbuseEvents: defineTable({ submissionId: v.id("communitySubmissions"), ownerUserId: v.id("users"), status: v.literal("none"), createdAt: v.number() }).index("by_owner", ["ownerUserId"]),
-  evidenceDeletionStates: defineTable({ submissionId: v.id("communitySubmissions"), status: v.literal("active"), createdAt: v.number() }).index("by_submission", ["submissionId"]),
+  evidenceAbuseEvents: defineTable({ submissionId: v.id("communitySubmissions"), ownerUserId: v.id("users"), status: v.union(v.literal("none"), v.literal("blocked")), createdAt: v.number() }).index("by_owner", ["ownerUserId"]).index("by_submission", ["submissionId"]),
+  evidenceDeletionStates: defineTable({ submissionId: v.id("communitySubmissions"), status: v.union(v.literal("active"), v.literal("deleted")), createdAt: v.number() }).index("by_submission", ["submissionId"]),
 
   bookmarks: defineTable({
     userId: v.id("users"),

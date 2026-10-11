@@ -31,6 +31,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.hadithly.app.R
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
@@ -71,7 +73,7 @@ fun TranslationReportSheet(
             ) {
                 Icon(Icons.Filled.CheckCircle, null, tint = colors.interactive)
                 Text("Report sent privately", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
-                Text("An admin can review the translation and your note.", fontSize = 12.sp, color = colors.textSecondary)
+                Text(stringResource(R.string.e3_report_saved_detail), fontSize = 12.sp, color = colors.textSecondary)
             }
         } else {
             Text(referenceDisplay, fontSize = 12.sp, color = colors.textSecondary)

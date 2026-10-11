@@ -42,7 +42,7 @@ type Citation = { url: string; title?: string; domain?: string };
 type TranslationResult = {
   translationId: string;
   translation: string;
-  confidence: number;
+  confidence?: number;
   riskFlags: string[];
   glossaryNotes: string[];
   source: string;
@@ -144,8 +144,8 @@ export const translateHadith = action({
       return {
         translationId: cached._id as string,
         translation: cached.content,
-        confidence: cached.confidence ?? 1,
-        riskFlags: cached.riskFlags ?? [],
+        ...(cached.source === "gemini_ai" ? { confidence: cached.confidence } : {}),
+        riskFlags: cached.source === "gemini_ai" ? cached.riskFlags ?? [] : [],
         glossaryNotes: [] as string[],
         source: cached.source,
         sourceLabel: cached.sourceLabel,
@@ -342,7 +342,7 @@ export const generateServiceTranslation = internalAction({
   },
 });
 
-/** Requires a signed-in user. Flags a translation for moderation review. */
+/** Stores an identity-derived private report. E4 owns automated triage. */
 export const reportTranslation = action({
   args: {
     translationId: v.id("translations"),

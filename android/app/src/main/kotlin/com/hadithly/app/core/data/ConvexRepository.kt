@@ -98,6 +98,13 @@ class ConvexRepository(context: Context) {
         return ref.copy(arabicText = hadith.arabicText, englishText = hadith.englishText)
     }
 
+    suspend fun storedReaderTranslation(hadith: ReaderHadith, language: String): ReaderTranslation? = withContext(Dispatchers.IO) {
+        subscribe<StoredReaderTranslation?>("translations:getDefaultForProviderRef", mapOf(
+            "provider" to hadith.provider, "collectionSlug" to hadith.collectionSlug,
+            "providerHadithId" to hadith.providerHadithId, "language" to language,
+        )).firstOrNull()?.readerTranslation()
+    }
+
     suspend fun translateHadith(hadithInternalId: String, targetLanguage: String): ReaderTranslation =
         withContext(Dispatchers.IO) {
             convex.action<ReaderTranslation>(
@@ -217,7 +224,7 @@ class ConvexRepository(context: Context) {
     }
 
     suspend fun finalizeEvidenceDraft(submissionId: String): EvidenceSubmitResult = withContext(Dispatchers.IO) {
-        convex.mutation<EvidenceSubmitResult>("evidence:finalizeEvidenceDraft", mapOf("submissionId" to submissionId))
+        convex.mutation<EvidenceSubmitResult>("evidence:finalizeEvidenceDraft", mapOf("submissionId" to submissionId, "contributionConsentVersion" to "e3-contribution-v1"))
     }
 
     suspend fun deleteEvidenceDraft(submissionId: String) = withContext(Dispatchers.IO) {

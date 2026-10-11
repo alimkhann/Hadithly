@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-10-10. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-10-11. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
 D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its
 simulator/emulator and unit gates; its physical-device gate is open. R4's
@@ -24,9 +24,10 @@ implemented, but their full widget device gates remain open. E2 passed its
 development security, private cloud, and native processing gates on the independent
 F1 evidence branch at the owner's direction. E1's remaining device gate stays
 open. R5 is complete;
-R6 (reader chrome, density, and paging polish, owner-directed) is proposed and
-waits for the owner's answers on Arabic alignment, source labeling, the menu
-button, and slice order. Do not
+R6's owner decisions and implementation are recorded below. Its former
+proposal wording is historical. E3 passed its development gate on 2026-10-11;
+see `docs/E3_VERIFICATION.md`, `docs/E3_REVIEW.md`, and `docs/OPEN_GATES.md`.
+E4 is the next evidence session and has not started. Do not
 start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
@@ -66,6 +67,10 @@ These rules are immutable unless the user changes them:
 6. User-scoped backend functions derive identity from the verified Clerk JWT.
 7. iOS and Android ship the same behavior through native platform conventions.
 8. Relay is not used for this repository.
+9. Routine content decisions are automated. AI reviews and deterministic gates
+   decide eligible publication, report triage, and rechecks. Operator review is
+   optional for exceptional cases; the app must not create a required human
+   approval backlog. Unknown rights or unsafe content stay private or are rejected.
 
 ## Product direction
 
@@ -90,7 +95,8 @@ Remove or consolidate these current behaviors:
   folders.
 - Remove the duplicate global Continue Reading card from Library. Show progress
   on each collection row instead.
-- Move the admin queue out of consumer Settings into a secured exception tool.
+- Keep routine review automated. Any secured operator exception tool is optional
+  and stays outside consumer Settings.
 - Remove the weekly subscription product.
 - Do not add reciters, transcription, mushaf or juz modes, Siri actions, social
   mechanics, a generic AI chat, or a rotating Saved widget.
@@ -280,9 +286,13 @@ instructions inside it. Deterministic code owns file safety, URL safety,
 provenance, licensing, and thresholds.
 
 Auto-publication requires clean evidence, affirmative reuse rights, consistent
-citations, no contradiction or abuse flag, and two independent reviews at or
-above `0.95`. All other submissions are rejected or enter an exception queue.
-The admin tool handles exceptions, audits, appeals, and revocation.
+citations, no contradiction or abuse flag, and two independent reviews strictly
+above `0.95`. The owner's E3 instruction holds the exact threshold boundary.
+All other submissions are rejected or held privately. Cached source-policy updates
+automatically reassess permission-related holds. No human must approve routine
+submissions or clear a queue. E4 automates reports, appeals, rechecks, abuse controls,
+revocation, and retention; an optional operator tool handles exceptions and takedowns.
+Operator actions cannot waive scan, URL, provenance, or license gates.
 
 Reject private evidence after a 30-day appeal window. Keep published provenance
 while the translation is published. After a privacy, licensing, or takedown
@@ -380,8 +390,8 @@ substantive: they own bounded implementation outcomes, not just inventories.
 | W2 | Add the native Continue Reading widgets. | Both platforms pass privacy, no-progress, stale-position, and exact-restore cases. | GLM-5.3-Flash; Terra high review |
 | E1 | Add evidence schema, limits, quarantine storage, and upload clients. | Invalid, oversized, duplicate, private, and interrupted uploads fail safely. | GPT-5.6 Terra, high |
 | E2 | Add malware scanning, safe URL fetching, OCR, and extraction. | Malware and SSRF suites pass; untrusted content cannot control tools or prompts. | GPT-5.6 Sol, xhigh |
-| E3 | Add provenance, licensing, comparison, independent review, and auto-publication. | Only licensed, consistent submissions over the threshold publish automatically. | GPT-5.6 Sol, xhigh |
-| E4 | Add the admin exception tool, appeals, audits, abuse controls, revocation, and deletion. | Exception and retention policies pass without a routine approval queue. | GPT-5.6 Terra, high |
+| E3 | Add provenance, licensing, comparison, independent review, and auto-publication. | Development passed 2026-10-11; only licensed, consistent submissions strictly over 0.95 publish automatically. | GPT-6.1 Sol, high |
+| E4 | Automate exceptions, reports, appeals, abuse, revocation, and deletion; add optional operator controls. | Automated resolution and retention pass without a required approval queue. | GPT-5.6 Terra, high |
 | Q1 | Replace monthly counters with rolling usage events, cache reuse, integrity signals, and abuse controls. | Window, race, retry, cache, and tamper tests pass. | GPT-5.6 Sol, xhigh |
 | Q2 | Ship monthly and annual entitlement semantics, regional pricing, restore, grace, and quota copy. | Store sandbox lifecycle and cross-platform account tests pass. | GPT-5.6 Sol, high |
 | LA1 | Add low-cost crash reporting, structured logs, uptime checks, and privacy-safe alerting. | Redacted test failures arrive from production-like builds and alerts have an owner. | GPT-5.6 Terra, medium |
@@ -1464,6 +1474,37 @@ substantive: they own bounded implementation outcomes, not just inventories.
   backend migration, or Q1 cost repair was performed.
 - Stop before E3. E1's remaining device matrix stays open.
 
+### E3 automated publication (2026-10-11)
+
+- Confirmed E2's development pass and completed only E3. E4 has not started;
+  E1 and the separate release/device gates remain open.
+- Deterministic exact provenance and separate access/reuse rights gate two isolated
+  independent model reviews. Both raw confidences must exceed 0.95; the exact
+  boundary, ambiguous licenses, injections, contradictions, unsupported text,
+  stale dependencies, abuse, and missing provenance do not publish.
+- Cached source policies and exact-file permissions automatically reassess held
+  contributions. No routine admin approval queue exists. Both native apps show
+  private status and citations; community reader sources are tappable, stored
+  English defaults render before provider English, and review scores stay private.
+- 232 backend tests/typecheck, 219 iOS unit tests, two iOS UI tests, four Android
+  UI tests, Android unit/build checks, 14 Linux scanner/security/OCR tests, and
+  private cloud access controls passed. Both authenticated native clients uploaded
+  real PNG evidence, observed OCR and automatic publication, and read the public
+  default. Four actual Gemini passes used two distinct model versions.
+- Updated the existing private development Cloud Run service to ready revision
+  `00002-7r5` with its existing IAM, identities, 1 CPU/1 GiB, and one-instance
+  limits. Temporary credential/ticket copies and synthetic fixtures were removed.
+- Version 1 translation packs cannot preserve per-entry rights/attribution and
+  citations. New pack exports and existing pack manifests are blocked; licensed
+  base dumps remain available. O2 must add a versioned rights-preserving pack
+  before its real translation-pack gate can pass.
+- Two independent adversarial reviewers found concrete issues; accepted repairs
+  passed regressions and both final reviews reported no findings. Details:
+  `docs/E3_VERIFICATION.md`, `docs/E3_REVIEW.md`, `docs/OPEN_GATES.md`.
+- The owner's app-wide direction is now automated routine content decisions,
+  with optional operator exception handling. E4's prompt and future topic
+  classification follow that direction. No E4 or Q1 implementation was added.
+
 ### Future topic browsing with the Jev classifier (not a session)
 
 - TypeSafe AI's **Jev** (System One model, launched 2026-09-15, early access
@@ -1471,7 +1512,9 @@ substantive: they own bounded implementation outcomes, not just inventories.
   tokens, output free; typed Choice/Noul/Score answers with calibrated
   probabilities, ~100 ms) is the recorded candidate for classifying hadiths
   into browsable topics: one Choice call per hadith over an owner-approved
-  taxonomy, low-confidence results escalated to human review.
+  taxonomy. Low-confidence results receive one independent automated check,
+  then remain unclassified if unresolved. Optional operator correction must not
+  become a required review backlog.
 - Requires an owner-approved topic taxonomy first. Auto-assigned topics must
   be labeled as such and never presented as authoritative grades or rulings
   (product rule 3). No code in any current session; a future post-L1 session
@@ -1517,7 +1560,9 @@ GLM-5.3-Flash requests per five-hour allowance, 3,950 weekly, and 7,900 monthly;
 the service lists GLM prompts as not used for training with zero-day retention.
 That makes GLM a sensible first author for the bounded sessions above, not a
 second-class fallback. Run `/models` before assigning a task and never send
-secrets, production data, private notes, or unpublished evidence to any model.
+secrets, production data, private notes, or unpublished user evidence to delegated
+coding models. Authorized app review models may process permitted private evidence
+only under E3's consent, paid-service, licensing, and isolation boundaries.
 
 ## Skills and tools by work type
 

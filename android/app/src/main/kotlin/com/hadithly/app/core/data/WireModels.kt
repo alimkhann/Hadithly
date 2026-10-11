@@ -117,7 +117,7 @@ data class ReaderCitation(
 data class ReaderTranslation(
     val translationId: String,
     val translation: String,
-    val confidence: Double = 0.0,
+    val confidence: Double? = null,
     val riskFlags: List<String> = emptyList(),
     val glossaryNotes: List<String> = emptyList(),
     val source: String,
@@ -128,6 +128,15 @@ data class ReaderTranslation(
     val sourceReferenceUrl: String? = null,
     val cached: Boolean = false,
 )
+
+@Serializable
+data class StoredReaderTranslation(
+    val _id: String, val content: String, val source: String, val sourceLabel: String,
+    val aiModel: String? = null, val confidence: Double? = null, val riskFlags: List<String> = emptyList(),
+    val groundingUsed: Boolean = false, val citations: List<ReaderCitation> = emptyList(), val sourceReferenceUrl: String? = null,
+) {
+    fun readerTranslation() = ReaderTranslation(_id, content, confidence, riskFlags, emptyList(), source, sourceLabel, aiModel, groundingUsed, citations, sourceReferenceUrl, true)
+}
 
 @Serializable
 data class DailyTranslation(

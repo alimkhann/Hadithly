@@ -57,4 +57,21 @@
         <item quantity="one">%d حدیث</item>
         <item quantity="other">%d احادیث</item>
     </plurals>
+    <string name="e3_reviewing">تجویز کا جائزہ جاری ہے</string>
+    <string name="e3_published">تجویز شائع ہو گئی</string>
+    <string name="e3_exception">تجویز کو مزید جائزے کی ضرورت ہے</string>
+    <string name="e3_rejected">تجویز شائع نہیں ہوئی</string>
+    <string name="e3_unavailable">جائزہ دستیاب نہیں</string>
+    <string name="e3_reviewing_message">معنی اور ذرائع کی جانچ کے دوران آپ کی تجویز نجی رہتی ہے۔</string>
+    <string name="e3_published_message">آپ کا ترجمہ اب قاری میں دستیاب ہے۔ آپ کی شراکت کی حیثیت نجی رہتی ہے۔</string>
+    <string name="e3_exception_message">آپ کی تجویز نجی ہے کیونکہ ذرائع کی اجازت یا ثبوت کو مزید جانچ کی ضرورت ہے۔</string>
+    <string name="e3_rejected_message">جانچ کے نتائج اشاعت کے لیے کافی نہیں تھے۔ آپ کی تجویز نجی رہتی ہے۔</string>
+    <string name="e3_unavailable_message">آپ کی تجویز نجی ہے۔ ضرورت ہو تو اسے واپس لیں اور بعد میں دوبارہ کوشش کریں۔</string>
+    <string name="e3_waiting">جائزے کے انتظار میں آپ کی تجویز نجی رہتی ہے۔</string>
+    <string name="e3_sources">ذرائع</string>
+    <string name="e3_consent">تجویز بھیج کر آپ Hadithly کو اس کا جائزہ لینے اور شائع کرنے کی اجازت دیتے ہیں۔ ثبوت کے ذرائع کے لیے پھر بھی اجازت درکار ہے۔</string>
+    <string name="e3_translation_sources">ترجمے کے ذرائع</string>
+    <string name="e3_community_sources_message">ایک شراکت کنندہ نے یہ ترجمہ تجویز کیا۔ خودکار جائزوں نے اسے حوالہ دیے گئے ثبوت سے جانچا۔ یہ مستند ترجمہ نہیں ہے۔</string>
+    <string name="e3_contributor_label">· شراکت کنندہ کا ترجمہ</string>
+    <string name="e3_report_saved_detail">رپورٹس نجی طور پر محفوظ ہوتی ہیں۔ آپ پڑھنا جاری رکھ سکتے ہیں۔</string>
 </resources>

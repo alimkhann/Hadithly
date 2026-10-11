@@ -14,7 +14,11 @@ data class EvidenceDraftView(
     val proposedContent: String,
     val expiresAt: Double? = null,
     val items: List<EvidenceItemView>,
+    val citations: List<EvidenceCitation> = emptyList(),
 )
+
+@Serializable
+data class EvidenceCitation(val url: String, val title: String, val location: String)
 
 @Serializable
 data class EvidenceItemView(

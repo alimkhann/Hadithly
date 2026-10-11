@@ -153,7 +153,8 @@ export const getOwnEvidenceDraft = query({
   handler: async (ctx, args) => {
     const { submission } = await ownDraft(ctx, args.submissionId);
     const items = await ctx.db.query("evidenceItems").withIndex("by_submission", q => q.eq("submissionId", submission._id)).collect();
-    return snapshot(submission, items);
+    const provenance = await ctx.db.query("evidenceProvenance").withIndex("by_submission", q => q.eq("submissionId", submission._id)).collect();
+    return { ...snapshot(submission, items), citations: provenance.flatMap(row => row.status === "verified" && row.citation ? [row.citation] : []) };
   },
 });
 
@@ -191,7 +192,7 @@ export const replaceEvidenceSlot = mutation({
 });
 
 export const finalizeEvidenceDraft = mutation({
-  args: { submissionId: v.id("communitySubmissions") },
+  args: { submissionId: v.id("communitySubmissions"), contributionConsentVersion: v.optional(v.literal("e3-contribution-v1")) },
   handler: async (ctx, args) => {
     const { submission } = await ownDraft(ctx, args.submissionId);
     if (submission.status === "awaiting_processing") return { status: "awaiting_processing" as const };
@@ -200,7 +201,7 @@ export const finalizeEvidenceDraft = mutation({
     if (items.length < 1 || items.length > 3 || items.some(item => item.state !== "quarantined_unscanned" && item.state !== "pending_safe_fetch")) throw new Error("All evidence must finish uploading");
     const identities = items.map(item => item.source.kind === "url" ? `url:${item.source.url}` : `file:${item.source.sha256 ?? ""}`);
     if (new Set(identities).size !== identities.length) throw new Error("Duplicate evidence");
-    await ctx.db.patch(submission._id, { status: "awaiting_processing", expiresAt: Date.now() + PROCESSING_EXPIRY_MS });
+    await ctx.db.patch(submission._id, { status: "awaiting_processing", contributionConsentVersion: args.contributionConsentVersion, expiresAt: Date.now() + PROCESSING_EXPIRY_MS });
     for (const item of items) {
       await ctx.db.patch(item._id, { processingQueued: true });
     }
@@ -210,6 +211,10 @@ export const finalizeEvidenceDraft = mutation({
 });
 
 export async function deleteEvidenceForSubmission(ctx: MutationCtx, submissionId: Id<"communitySubmissions">) {
+  for (const table of ["evidenceProvenance", "evidenceLicenseAssessments", "evidenceReviewPasses", "evidencePublicationRevisions", "evidenceReviewJobs", "evidenceDeletionStates", "evidenceAbuseEvents", "evidencePermissionGrants", "evidenceSourceDependencies"] as const) {
+    const rows = await ctx.db.query(table).withIndex("by_submission", q => q.eq("submissionId", submissionId)).collect();
+    for (const row of rows) await ctx.db.delete(row._id);
+  }
   const extractions = await ctx.db.query("evidenceExtractions").withIndex("by_submission", q => q.eq("submissionId", submissionId)).collect();
   for (const extraction of extractions) {
     if (extraction.sourceStorageId) await ctx.storage.delete(extraction.sourceStorageId);
@@ -237,7 +242,7 @@ export const deleteEvidenceDraft = mutation({
   args: { submissionId: v.id("communitySubmissions") },
   handler: async (ctx, args) => {
     const { submission } = await ownDraft(ctx, args.submissionId);
-    if (!["draft", "awaiting_processing", "evidence_ready", "processing_failed", "infected", "expired"].includes(submission.status)) throw new Error("Evidence submission cannot be deleted here");
+    if (!["draft", "awaiting_processing", "evidence_ready", "processing_failed", "infected", "expired", "under_review", "review_unavailable", "held", "needs_admin", "rejected"].includes(submission.status)) throw new Error("Evidence submission cannot be deleted here");
     await deleteEvidenceForSubmission(ctx, submission._id);
     await ctx.db.delete(submission._id);
     return true;
@@ -302,7 +307,7 @@ export const expireEvidence = internalMutation({
   args: {},
   handler: async ctx => {
     let expired = 0;
-    for (const status of ["draft", "awaiting_processing", "evidence_ready", "processing_failed", "infected"] as const) {
+    for (const status of ["draft", "awaiting_processing", "evidence_ready", "processing_failed", "infected", "under_review", "review_unavailable", "held", "needs_admin", "rejected"] as const) {
       const rows = await ctx.db.query("communitySubmissions").withIndex("by_status_expiry", q => q.eq("status", status).lt("expiresAt", Date.now())).take(25);
       for (const row of rows) {
         await deleteEvidenceForSubmission(ctx, row._id);

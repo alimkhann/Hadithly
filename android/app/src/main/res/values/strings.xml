@@ -58,4 +58,21 @@
         <item quantity="one">%d hadith</item>
         <item quantity="other">%d hadiths</item>
     </plurals>
+    <string name="e3_reviewing">Reviewing suggestion</string>
+    <string name="e3_published">Suggestion published</string>
+    <string name="e3_exception">Suggestion needs review</string>
+    <string name="e3_rejected">Suggestion was not published</string>
+    <string name="e3_unavailable">Review unavailable</string>
+    <string name="e3_reviewing_message">Your suggestion stays private while its meaning and sources are checked.</string>
+    <string name="e3_published_message">Your translation is now available in the reader. Your contribution status stays private.</string>
+    <string name="e3_exception_message">Your suggestion stays private while source permissions or supporting evidence need another check.</string>
+    <string name="e3_rejected_message">The checks did not support publication. Your suggestion remains private.</string>
+    <string name="e3_unavailable_message">Your suggestion remains private. Withdraw it and try again later if needed.</string>
+    <string name="e3_waiting">Your suggestion stays private while waiting for review.</string>
+    <string name="e3_sources">Sources</string>
+    <string name="e3_consent">By submitting, you allow Hadithly to review and publish your suggestion. Evidence sources still require permission.</string>
+    <string name="e3_translation_sources">Translation sources</string>
+    <string name="e3_community_sources_message">A contributor suggested this translation. Automated reviews checked it against the cited evidence. It is not an authoritative rendering.</string>
+    <string name="e3_contributor_label">· contributor translation</string>
+    <string name="e3_report_saved_detail">Reports are saved privately. You can keep reading.</string>
 </resources>

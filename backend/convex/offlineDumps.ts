@@ -78,26 +78,10 @@ export const recordSunnahNowLicense = internalMutation({
   },
 });
 
-/** Internal: live default translations for one language, joined to hadiths. */
+/** Version 1 packs cannot retain translation-specific attribution and rights. */
 export const listLiveDefaultsForLanguage = internalQuery({
   args: { language: v.string() },
-  handler: async (ctx, args) => {
-    const rows = await ctx.db
-      .query("translations")
-      .withIndex("by_language_status_default", (q) =>
-        q
-          .eq("language", args.language)
-          .eq("status", "live")
-          .eq("isDefault", true),
-      )
-      .collect();
-    const withHadiths = [];
-    for (const row of rows) {
-      const hadith = await ctx.db.get(row.hadithId);
-      if (hadith) withHadiths.push({ translation: row, hadith });
-    }
-    return withHadiths;
-  },
+  handler: async (): Promise<Array<{ translation: Doc<"translations">; hadith: Doc<"hadiths"> }>> => [],
 });
 
 /**
@@ -168,6 +152,7 @@ async function manifestView(
   ctx: QueryCtx,
   artifact: Doc<"offlineArtifacts">,
 ): Promise<OfflineManifestView | null> {
+  if (artifact.kind === "pack") return null;
   const license = await ctx.db.get(artifact.licenseRecordId);
   if (!license) return null;
   const downloadUrl = await ctx.storage.getUrl(artifact.storageId);
@@ -192,7 +177,7 @@ async function manifestView(
       sourceUrl: license.sourceUrl,
       terms: license.terms,
     },
-    compatiblePacks: artifact.compatiblePacks,
+    compatiblePacks: [],
     downloadUrl,
   };
   return view;

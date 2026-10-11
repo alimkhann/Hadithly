@@ -178,7 +178,7 @@ describe("E2 processing state and privacy", () => {
     vi.stubEnv("EVIDENCE_PROCESSOR_URL", "https://hadithly-evidence-example.run.app");
     vi.stubEnv("EVIDENCE_PROCESSOR_GOOGLE_CREDENTIALS", JSON.stringify({ client_email: "invoker@example.iam.gserviceaccount.com", private_key: "test-only-key" }));
     vi.spyOn(JWT.prototype, "fetchIdToken").mockResolvedValue("test-only-id-token");
-    vi.stubGlobal("fetch", vi.fn(async () => Response.json({ kind: "ready", mime: "text/html", sha256: htmlSha, finalUrl: "https://example.org/source", sourceBytesBase64: Buffer.from(htmlBytes).toString("base64"), text: "quoted source", spans: [{ start: 0, end: 13, source: { kind: "html_chars", start: 3, end: 16 } }] })));
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => url.endsWith("/health") ? Response.json({ accessPolicyVersion: "e3-v1" }) : Response.json({ kind: "ready", mime: "text/html", accessChain: ["https://example.org/source"], sha256: htmlSha, finalUrl: "https://example.org/source", sourceBytesBase64: Buffer.from(htmlBytes).toString("base64"), text: "quoted source", spans: [{ start: 0, end: 13, source: { kind: "html_chars", start: 3, end: 16 } }] })));
     await t.action(internal.actions.evidenceProcessing.processItem, { itemId });
     const extraction = await t.run(ctx => ctx.db.query("evidenceExtractions").withIndex("by_item", q => q.eq("evidenceItemId", itemId)).unique());
     expect(extraction?.sourceStorageId).toBeDefined();

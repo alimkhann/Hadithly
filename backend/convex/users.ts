@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { requireIdentity } from "./lib/identity";
 import { deleteEvidenceForSubmission } from "./evidence";
+import { deleteContribution } from "./translations";
 import {
   defaultReaderPreferences,
   legacyReaderPreferencesValidator,
@@ -364,6 +365,7 @@ export const deleteCurrentUser = mutation({
       ctx.db.query("adminAuditLog").withIndex("by_actor", (q) => q.eq("actorUserId", user._id)).collect(),
     ]);
 
+    for (const translation of contributedTranslations) await deleteContribution(ctx, translation);
     for (const submission of submissions) {
       await deleteEvidenceForSubmission(ctx, submission._id);
     }
@@ -383,9 +385,6 @@ export const deleteCurrentUser = mutation({
     }
 
     const contributedIds = new Set(contributedTranslations.map((row) => row._id.toString()));
-    for (const translation of contributedTranslations) {
-      await ctx.db.delete(translation._id);
-    }
     for (const translation of generatedTranslations) {
       if (!contributedIds.has(translation._id.toString())) {
         await ctx.db.patch(translation._id, { generatedByUserId: undefined });

@@ -1,12 +1,398 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "e3.report_saved_detail" : {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reports are saved privately. You can keep reading."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تُحفظ البلاغات بشكل خاص. يمكنك متابعة القراءة."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "رپورٹس نجی طور پر محفوظ ہوتی ہیں۔ آپ پڑھنا جاری رکھ سکتے ہیں۔"
+          }
+        }
+      }
+    },
+    "e3.contributor_label" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "· contributor translation"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "· ترجمة مساهم"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "· شراکت کنندہ کا ترجمہ"
+          }
+        }
+      }
+    },
+    "e3.translation_sources" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Translation sources"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مصادر الترجمة"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ترجمے کے ذرائع"
+          }
+        }
+      }
+    },
+    "e3.community_sources_message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A contributor suggested this translation. Automated reviews checked it against the cited evidence. It is not an authoritative rendering."
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اقترح أحد المساهمين هذه الترجمة، وتحققت المراجعات الآلية منها بمقارنتها بالأدلة المذكورة. وهي ليست ترجمة معتمدة."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ایک شراکت کنندہ نے یہ ترجمہ تجویز کیا۔ خودکار جائزوں نے اسے حوالہ دیے گئے ثبوت سے جانچا۔ یہ مستند ترجمہ نہیں ہے۔"
+          }
+        }
+      }
+    },
+    "e3.reviewing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reviewing suggestion"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جارٍ مراجعة الاقتراح"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تجویز کا جائزہ جاری ہے"
+          }
+        }
+      }
+    },
+    "e3.published" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suggestion published"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نُشر الاقتراح"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تجویز شائع ہو گئی"
+          }
+        }
+      }
+    },
+    "e3.exception" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suggestion needs review"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الاقتراح يحتاج إلى مراجعة"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تجویز کو مزید جائزے کی ضرورت ہے"
+          }
+        }
+      }
+    },
+    "e3.rejected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suggestion was not published"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لم يُنشر الاقتراح"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تجویز شائع نہیں ہوئی"
+          }
+        }
+      }
+    },
+    "e3.unavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Review unavailable"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "المراجعة غير متاحة"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جائزہ دستیاب نہیں"
+          }
+        }
+      }
+    },
+    "e3.reviewing_message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your suggestion stays private while its meaning and sources are checked."
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يبقى اقتراحك خاصًا أثناء التحقق من معناه ومصادره."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "معنی اور ذرائع کی جانچ کے دوران آپ کی تجویز نجی رہتی ہے۔"
+          }
+        }
+      }
+    },
+    "e3.published_message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your translation is now available in the reader. Your contribution status stays private."
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ترجمتك متاحة الآن في القارئ. وتبقى حالة مساهمتك خاصة."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "آپ کا ترجمہ اب قاری میں دستیاب ہے۔ آپ کی شراکت کی حیثیت نجی رہتی ہے۔"
+          }
+        }
+      }
+    },
+    "e3.exception_message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your suggestion stays private while source permissions or supporting evidence need another check."
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يبقى اقتراحك خاصًا لأن أذونات المصادر أو الأدلة تحتاج إلى تحقق إضافي."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "آپ کی تجویز نجی ہے کیونکہ ذرائع کی اجازت یا ثبوت کو مزید جانچ کی ضرورت ہے۔"
+          }
+        }
+      }
+    },
+    "e3.rejected_message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The checks did not support publication. Your suggestion remains private."
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لم تدعم نتائج التحقق النشر. يبقى اقتراحك خاصًا."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جانچ کے نتائج اشاعت کے لیے کافی نہیں تھے۔ آپ کی تجویز نجی رہتی ہے۔"
+          }
+        }
+      }
+    },
+    "e3.unavailable_message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your suggestion remains private. Withdraw it and try again later if needed."
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يبقى اقتراحك خاصًا. يمكنك سحبه والمحاولة لاحقًا عند الحاجة."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "آپ کی تجویز نجی ہے۔ ضرورت ہو تو اسے واپس لیں اور بعد میں دوبارہ کوشش کریں۔"
+          }
+        }
+      }
+    },
+    "e3.waiting" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your suggestion stays private while waiting for review."
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يبقى اقتراحك خاصًا في انتظار المراجعة."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جائزے کے انتظار میں آپ کی تجویز نجی رہتی ہے۔"
+          }
+        }
+      }
+    },
+    "e3.sources" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sources"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "المصادر"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ذرائع"
+          }
+        }
+      }
+    },
+    "e3.consent" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By submitting, you allow Hadithly to review and publish your suggestion. Evidence sources still require permission."
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بإرسال اقتراحك، تسمح لـ Hadithly بمراجعته ونشره. ولا تزال مصادر الأدلة تتطلب إذنًا."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تجویز بھیج کر آپ Hadithly کو اس کا جائزہ لینے اور شائع کرنے کی اجازت دیتے ہیں۔ ثبوت کے ذرائع کے لیے پھر بھی اجازت درکار ہے۔"
+          }
+        }
+      }
+    },
     "· %@" : {
       "comment" : "A footnote in the hadith view, displayed when there are additional notes. The text inside the footnote is a bullet point followed by the note text.",
-      "isCommentAutoGenerated" : true
-    },
-    "· admin approved" : {
-      "comment" : "A description of a badge indicating that a hadith has been approved by an admin.",
       "isCommentAutoGenerated" : true
     },
     "· sources" : {
@@ -203,10 +589,6 @@
           }
         }
       }
-    },
-    "An admin can review the translation and your note." : {
-      "comment" : "A description of what will happen after submitting a translation report.",
-      "isCommentAutoGenerated" : true
     },
     "App appearance" : {
 
@@ -808,10 +1190,6 @@
     "Review notes" : {
 
     },
-    "Reviewed by %@. AI review is advisory; only an admin can publish a contribution." : {
-      "comment" : "A footer displaying information about the AI review process.",
-      "isCommentAutoGenerated" : true
-    },
     "Right to left" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1039,9 +1417,6 @@
     "What's your email?" : {
       "comment" : "A heading in the email entry screen of the sign-in view.",
       "isCommentAutoGenerated" : true
-    },
-    "Write the clearest faithful rendering you can. AI checks meaning and terminology; an admin decides whether it is published." : {
-
     },
     "You can change this any time in Settings." : {
       "localizations" : {

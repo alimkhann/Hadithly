@@ -206,7 +206,7 @@ struct ReaderTranslation: Decodable {
     /// Convex `translations` row id, used by the report action.
     let translationId: String
     let translation: String
-    let confidence: Double
+    let confidence: Double?
     let riskFlags: [String]
     let glossaryNotes: [String]
     let source: String
@@ -216,6 +216,26 @@ struct ReaderTranslation: Decodable {
     let citations: [ReaderCitation]
     let sourceReferenceUrl: String?
     let cached: Bool
+}
+
+struct StoredReaderTranslation: Decodable {
+    let _id: String
+    let content: String
+    let source: String
+    let sourceLabel: String
+    let aiModel: String?
+    let confidence: Double?
+    let riskFlags: [String]?
+    let groundingUsed: Bool
+    let citations: [ReaderCitation]?
+    let sourceReferenceUrl: String?
+
+    var readerTranslation: ReaderTranslation {
+        ReaderTranslation(translationId: _id, translation: content, confidence: confidence,
+                          riskFlags: riskFlags ?? [], glossaryNotes: [], source: source, sourceLabel: sourceLabel,
+                          aiModel: aiModel, groundingUsed: groundingUsed, citations: citations ?? [],
+                          sourceReferenceUrl: sourceReferenceUrl, cached: true)
+    }
 }
 
 struct TranslationAIReview: Decodable, Equatable, Sendable {

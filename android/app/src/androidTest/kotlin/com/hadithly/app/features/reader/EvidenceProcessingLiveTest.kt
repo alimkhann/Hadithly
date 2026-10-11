@@ -79,7 +79,7 @@ class EvidenceProcessingLiveTest {
             }
             repository.finalizeEvidenceDraft(draft.submissionId)
             val ready = withTimeout(165_000) { repository.observeEvidenceDraft(draft.submissionId).first { it.status != "awaiting_processing" } }
-            assertEquals("evidence_ready", ready.status)
+            assertTrue(ready.status in setOf("evidence_ready", "held"))
             assertEquals(listOf("ready", "ready", "ready"), ready.items.map { it.state })
         } finally {
             submissionId?.let { repository.deleteEvidenceDraft(it) }

@@ -38,7 +38,7 @@ async function verify() {
   try {
     const clean = await draft('https://example.org/');
     const ready = await terminal(clean.submissionId);
-    assert.equal(ready.status, 'evidence_ready');
+    assert.ok(['evidence_ready', 'held'].includes(ready.status));
     assert.equal(ready.items[0].state, 'ready');
     for (const key of ['text', 'extractedText', 'storageId', 'sourceStorageId', 'scanner', 'signature']) {
       assert.ok(!(key in ready));

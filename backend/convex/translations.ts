@@ -1,5 +1,42 @@
 import { internalMutation, internalQuery, query } from "./_generated/server";
 import { v } from "convex/values";
+import type { Doc } from "./_generated/dataModel";
+import type { MutationCtx } from "./_generated/server";
+
+export async function deleteContribution(ctx: MutationCtx, translation: Doc<"translations">) {
+  const revision = translation.evidencePublicationId ? await ctx.db.get(translation.evidencePublicationId) : null;
+  // Keep surviving replacements connected to earlier defaults when an
+  // intermediate contributor deletes their account.
+  for (const isDefault of [false, true]) {
+    const descendants = await ctx.db.query("translations").withIndex("by_hadith_language_default", q => q.eq("hadithId", translation.hadithId).eq("language", translation.language).eq("isDefault", isDefault)).collect();
+    for (const descendant of descendants) {
+      if (descendant._id === translation._id || !descendant.evidencePublicationId) continue;
+      const childRevision = await ctx.db.get(descendant.evidencePublicationId);
+      if (childRevision?.previousDefaultIds?.includes(translation._id)) {
+        const prior = childRevision.previousDefaultIds.flatMap(id => id === translation._id ? revision?.previousDefaultIds ?? [] : [id]);
+        await ctx.db.patch(childRevision._id, { previousDefaultIds: [...new Set(prior)] });
+      }
+    }
+  }
+  await ctx.db.delete(translation._id);
+  if (!translation.isDefault) return;
+  const current = await ctx.db.query("translations").withIndex("by_hadith_language_default", q => q.eq("hadithId", translation.hadithId).eq("language", translation.language).eq("isDefault", true)).first();
+  if (current) return;
+  for (const previousId of revision?.previousDefaultIds ?? []) {
+    const previous = await ctx.db.get(previousId);
+    if (previous?.status === "live") { await ctx.db.patch(previous._id, { isDefault: true, updatedAt: Date.now() }); return; }
+  }
+}
+
+function publicTranslation(row: Doc<"translations">) {
+  return {
+    _id: row._id, _creationTime: row._creationTime, hadithId: row.hadithId, language: row.language, content: row.content,
+    source: row.source, sourceLabel: row.sourceLabel, aiModel: row.aiModel, aiPromptVersion: row.aiPromptVersion,
+    status: row.status, isDefault: row.isDefault, groundingUsed: row.groundingUsed, groundingSourceCount: row.groundingSourceCount,
+    citations: row.citations, sourceReferenceUrl: row.sourceReferenceUrl, createdAt: row.createdAt, updatedAt: row.updatedAt,
+    approvedAt: row.approvedAt, ...(row.source === "gemini_ai" ? { confidence: row.confidence, riskFlags: row.riskFlags } : {}),
+  };
+}
 
 const citationsValidator = v.optional(
   v.array(
@@ -34,7 +71,7 @@ export const getDefaultForProviderRef = query({
       )
       .unique();
     if (!hadith) return null;
-    return await ctx.db
+    const row = await ctx.db
       .query("translations")
       .withIndex("by_hadith_language_default", (q) =>
         q
@@ -43,6 +80,7 @@ export const getDefaultForProviderRef = query({
           .eq("isDefault", true),
       )
       .first();
+    return row?.status === "live" ? publicTranslation(row) : null;
   },
 });
 
@@ -144,35 +182,6 @@ export const cacheGeminiTranslation = internalMutation({
       groundingSourceCount: args.groundingSourceCount,
       citations: args.citations,
       sourceReferenceUrl: args.sourceReferenceUrl,
-      createdAt: now,
-      updatedAt: now,
-    });
-  },
-});
-
-/** Internal: publish an approved community submission as a live translation. */
-export const publishCommunityTranslation = internalMutation({
-  args: {
-    hadithId: v.id("hadiths"),
-    language: v.string(),
-    content: v.string(),
-    contributorUserId: v.id("users"),
-    contributorDisplayName: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    const now = Date.now();
-    return await ctx.db.insert("translations", {
-      hadithId: args.hadithId,
-      language: args.language,
-      content: args.content,
-      source: "community",
-      sourceLabel: "Community",
-      status: "live",
-      isDefault: false,
-      contributorUserId: args.contributorUserId,
-      contributorDisplayName: args.contributorDisplayName,
-      groundingUsed: false,
-      approvedAt: now,
       createdAt: now,
       updatedAt: now,
     });

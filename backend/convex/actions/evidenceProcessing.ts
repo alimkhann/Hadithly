@@ -10,7 +10,7 @@ import type { Id } from "../_generated/dataModel";
 type Source = { kind: "html_chars"; start: number; end: number } |
   { kind: "page_box"; page: number; x: number; y: number; width: number; height: number };
 type Result = { kind: "infected" } | { kind: "failed"; retryable: boolean } |
-  { kind: "ready"; mime: string; sha256: string; finalUrl?: string; sourceBytesBase64?: string; text: string; spans: Array<{ start: number; end: number; source: Source }> };
+  { kind: "ready"; mime: string; sha256: string; finalUrl?: string; accessChain?: string[]; sourceBytesBase64?: string; text: string; spans: Array<{ start: number; end: number; source: Source }> };
 
 function record(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
@@ -40,7 +40,8 @@ function parseResult(value: unknown): Result {
   }
   if (row.finalUrl !== undefined && row.finalUrl !== null && typeof row.finalUrl !== "string") throw new Error("Invalid processor URL");
   if (row.sourceBytesBase64 !== undefined && (typeof row.sourceBytesBase64 !== "string" || row.sourceBytesBase64.length > 13_333_336 || !/^[A-Za-z0-9+/]*={0,2}$/.test(row.sourceBytesBase64))) throw new Error("Invalid source snapshot");
-  return { kind: "ready", mime: row.mime, sha256: row.sha256, text: row.text, spans, ...(typeof row.finalUrl === "string" ? { finalUrl: row.finalUrl } : {}), ...(typeof row.sourceBytesBase64 === "string" ? { sourceBytesBase64: row.sourceBytesBase64 } : {}) };
+  if (row.accessChain !== undefined && (!Array.isArray(row.accessChain) || row.accessChain.length < 1 || row.accessChain.length > 4 || !row.accessChain.every((url): url is string => typeof url === "string" && url.length <= 2048))) throw new Error("Invalid access chain");
+  return { kind: "ready", mime: row.mime, sha256: row.sha256, text: row.text, spans, ...(typeof row.finalUrl === "string" ? { finalUrl: row.finalUrl } : {}), ...(Array.isArray(row.accessChain) ? { accessChain: row.accessChain } : {}), ...(typeof row.sourceBytesBase64 === "string" ? { sourceBytesBase64: row.sourceBytesBase64 } : {}) };
 }
 
 function processorConfig(): { url: string; credentials: { client_email: string; private_key: string } } {
@@ -59,6 +60,12 @@ async function privateProcess(payload: object, config: ReturnType<typeof process
   client.transporter.defaults.timeout = 5_000;
   client.transporter.defaults.retry = false;
   const idToken = await client.fetchIdToken(config.url);
+  if ("kind" in payload && payload.kind === "url") {
+    const health = await fetch(`${config.url}/health`, { redirect: "error", signal: AbortSignal.timeout(15_000), headers: { Authorization: `Bearer ${idToken}` } });
+    if (!health.ok) throw new Error("Processor unavailable");
+    const capability: unknown = await health.json();
+    if (!record(capability) || record(capability)?.accessPolicyVersion !== "e3-v1") throw new Error("Processor access policy unavailable");
+  }
   const response = await fetch(`${config.url}/process`, {
     method: "POST", redirect: "error", signal: AbortSignal.timeout(115_000),
     headers: { "Authorization": `Bearer ${idToken}`, "Content-Type": "application/json" },
@@ -89,7 +96,9 @@ export const processItem = internalAction({
     let result: Result;
     try {
       if (claim.source.kind === "url") {
-        result = await privateProcess({ kind: "url", url: claim.source.url, language: claim.language }, config);
+        const accessRules = await ctx.runQuery(internal.evidenceReview.accessRules, {});
+        result = await privateProcess({ kind: "url", url: claim.source.url, language: claim.language, ...accessRules }, config);
+        if (result.kind === "ready" && !result.accessChain) throw new Error("Missing access chain");
       } else {
         if (!claim.source.storageId || !claim.source.sha256 || !claim.source.verifiedMime) throw new Error("Evidence upload unavailable");
         const blob = await ctx.storage.get(claim.source.storageId);

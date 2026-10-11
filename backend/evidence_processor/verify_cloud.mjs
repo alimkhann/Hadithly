@@ -19,6 +19,7 @@ const unauthenticated = await fetch(`${origin}/health`, { signal: AbortSignal.ti
 assert.equal(unauthenticated.status, 403);
 const health = await fetch(`${origin}/health`, { headers, signal: AbortSignal.timeout(110000), redirect: 'error' });
 assert.equal(health.status, 200);
+assert.equal((await health.json()).accessPolicyVersion, 'e3-v1');
 console.log('Private IAM boundary and startup scanner/sandbox controls passed');
 
 async function processPayload(payload) {
@@ -48,9 +49,15 @@ for (const destination of ['https://127.0.0.1/', 'https://metadata.google.intern
   assert.deepEqual(await processPayload({ kind: 'url', url: destination, language: 'en' }), { kind: 'failed', retryable: false });
 }
 console.log('Malformed PDF, loopback and metadata rejection passed');
+for (const destination of ['https://sunnah.com/bukhari:1', 'https://SUNNAH.COM:443/bukhari:1', 'https://sunnah.com/allowed/../other']) {
+  assert.deepEqual(await processPayload({ kind: 'url', url: destination, language: 'en' }), { kind: 'failed', retryable: false });
+}
+assert.deepEqual(await processPayload({ kind: 'url', url: 'https://example.org/', language: 'en', deniedOrigins: ['https://example.org'] }), { kind: 'failed', retryable: false });
+console.log('Sunnah.com access permission and cached avoid-policy rejection passed');
 const page = await processPayload({ kind: 'url', url: 'https://example.org/', language: 'en' });
 assert.equal(page.kind, 'ready');
 assert.equal(page.finalUrl, 'https://example.org/');
+assert.deepEqual(page.accessChain, ['https://example.org/']);
 assert.equal(page.sha256, createHash('sha256').update(Buffer.from(page.sourceBytesBase64, 'base64')).digest('hex'));
 assert.ok(page.spans.every(span => span.source.kind === 'html_chars'));
 console.log('Public HTTPS fetch and exact source snapshot passed');

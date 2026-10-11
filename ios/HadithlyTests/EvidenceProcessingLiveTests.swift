@@ -95,7 +95,7 @@ final class EvidenceProcessingLiveTests: XCTestCase {
             }
             defer { timeout.cancel() }
             let ready = try await completion.value
-            XCTAssertEqual(ready.status, "evidence_ready")
+            XCTAssertTrue(["evidence_ready", "held"].contains(ready.status))
             XCTAssertEqual(ready.items.map(\.state), ["ready", "ready", "ready"])
             let _: Bool = try await client.mutation("evidence:deleteEvidenceDraft", with: ["submissionId": draft.submissionId])
         } catch {
