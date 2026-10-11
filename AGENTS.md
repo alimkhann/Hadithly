@@ -36,8 +36,9 @@ cd android
 
 1. **No competition features.** No leaderboards, public votes or ratings,
    reputation, streaks, or badges. Translation quality comes from evidence,
-   deterministic checks, AI review, and an admin exception path. Reading
-   progress stays private.
+   deterministic checks, AI review, and optional operator intervention for
+   exceptions. Routine content decisions run automatically; the sole operator
+   must not maintain a required approval queue. Reading progress stays private.
 2. **Convex is the only mobile API and control plane.** Sunnah.now and Gemini
    are called exclusively from Convex actions; API keys live in Convex env
    vars. An immutable, checksummed offline artifact may be downloaded from a
@@ -66,3 +67,13 @@ cd android
   platform is a no-change parity check.
 - Use separate Codex tasks for delegated sessions. Do not use Relay for this
   repository.
+
+## Session completion and commits
+
+- Commit the finished session's implementation, verification, and documentation
+  before the final handoff. Open device, external-service, or release gates do
+  not prevent committing completed work; record those gates accurately in
+  `docs/PLAN.md` and the verification record.
+- Separate outstanding work from previous sessions into logical commits. Preserve
+  unrelated changes, exclude secrets and build artifacts, and report commit hashes
+  and remaining gates in the handoff. Push only when the user requests it.

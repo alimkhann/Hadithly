@@ -46,6 +46,10 @@ product.
 - `docs/LAUNCH_STACK_RESEARCH.md` holds cost and launch-service evidence.
 - `docs/app-store/` holds store metadata and the privacy worksheet.
 
+Every session ends with the commit workflow in `AGENTS.md`: commit its completed
+scope before handing it back, even when accurately documented gates remain open.
+Keep prior sessions in separate logical commits.
+
 ## Product contract
 
 Hadithly is a quiet native reader for the seven major hadith collections. The
