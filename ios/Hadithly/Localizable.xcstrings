@@ -1,6 +1,94 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "q1.generate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generate AI translation"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إنشاء ترجمة بالذكاء الاصطناعي"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اے آئی ترجمہ بنائیں"
+          }
+        }
+      }
+    },
+    "q1.remaining": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seven-day allowance: %1$d of %2$d left"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "متبقي %1$d من %2$d ترجمة جديدة خلال سبعة أيام"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سات دنوں میں %2$d میں سے %1$d نئے ترجمے باقی ہیں"
+          }
+        }
+      }
+    },
+    "q1.retry_at": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available again %1$@"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "متاح مجددًا %1$@"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "دوبارہ دستیاب: %1$@"
+          }
+        }
+      }
+    },
+    "q1.quota_exhausted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your rolling seven-day allowance is used. Existing translations and reading stay free."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "استخدمت حصة الأيام السبعة المتحركة. تبقى القراءة والترجمات الموجودة مجانية."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آپ کی گزشتہ سات دنوں کی حد استعمال ہو چکی ہے۔ موجودہ ترجمے اور مطالعہ مفت رہیں گے۔"
+          }
+        }
+      }
+    },
     "e4.appeal": {
       "localizations": {
         "en": {

@@ -29,6 +29,34 @@ Source inspection explains the leading read cost. `library.ts:946` collects ever
 
 My recommendation for the measured workload is to keep Convex, reduce these large reads, and consider Starter with spending limits if Free caps keep blocking testing. Professional's $25 base is not justified merely by this September overage. Backups and higher concurrency are separate reasons to choose it.
 
+## Q1 read-cost repair on 2026-10-12
+
+Q1 now uses compact `collectionCounts` for progress and removes seven unused
+chapter-rich outline subscriptions from each native Library implementation.
+A representative fixture proves that counts are over 100 times smaller and
+produce the same progress results even after full outlines are removed.
+Both readers also request existing translations in one page batch. Opening and
+paging never initiate Gemini. User and notification generation share one lock.
+Ordinary generation has no Search grounding or JSON repair call.
+
+The server reserves a conservative cost before provider work and settles returned
+numeric token usage against a default $10 monthly application budget. Unknown or
+abandoned calls retain their reservation. This preserves more usable short-text
+capacity than a flat small attempt limit. Rate, concurrency, output and attempt
+backstops remain. It is an application admission budget at the recorded prices,
+not an invoice or cloud billing-account cap. [Gemini pricing](https://ai.google.dev/gemini-api/docs/pricing).
+
+Development deployment and compact-count backfill still need the owner's
+existing action-time confirmation. No paid plan, dashboard setting, provider,
+credential or hosting migration changed. The October 12 dashboard refresh reached
+a sign-in page, so the readings above remain the dated October 10 audit.
+No post-deployment bill reduction is claimed. See `Q1_VERIFICATION.md` for the
+local proof and rollout boundaries.
+
+The next cost work to measure is reader page materialization, indexed next-due
+notification dispatch, and CDN delivery for licensed immutable offline bytes.
+Those are separate scoped changes, not Q2 or part of this Q1 patch.
+
 ## Current price points
 
 | Service | Current public price and allowance | Hadithly implication |

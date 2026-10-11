@@ -70,10 +70,12 @@ targets:
         TARGETED_DEVICE_FAMILY: "1,2"
         SUPPORTS_MACCATALYST: false
         CODE_SIGN_ENTITLEMENTS: Hadithly/Hadithly.entitlements
+        APP_ATTEST_ENVIRONMENT: production
         DEVELOPMENT_TEAM: 6378AFQPXV
       configs:
         Debug:
           SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
+          APP_ATTEST_ENVIRONMENT: development
     configFiles:
       Debug: Secrets.xcconfig
       Release: Production.xcconfig

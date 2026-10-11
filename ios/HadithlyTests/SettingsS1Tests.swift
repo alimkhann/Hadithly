@@ -63,12 +63,5 @@ final class SettingsS1Tests: XCTestCase {
         XCTAssertEqual(SettingsSubscription.displayName(tier: nil), "Free")
     }
 
-    func testSubscriptionQuotaLine() {
-        XCTAssertEqual(
-            SettingsSubscription.quotaLine(used: 2, limit: 20),
-            "2 of 20 AI translations used this month"
-        )
-        XCTAssertNil(SettingsSubscription.quotaLine(used: nil, limit: 20))
-        XCTAssertNil(SettingsSubscription.quotaLine(used: 2, limit: 0))
-    }
+
 }

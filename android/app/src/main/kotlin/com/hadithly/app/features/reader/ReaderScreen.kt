@@ -186,6 +186,8 @@ fun ReaderScreen(
         )
     }
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val sessions by com.clerk.api.Clerk.sessionsFlow.collectAsStateWithLifecycle()
+    LaunchedEffect(sessions.map { it.id }) { viewModel.resetTranslationRequestsForAccount() }
     DisposableEffect(viewModel) {
         onDispose { viewModel.saveCurrentProgress() }
     }
@@ -1345,6 +1347,7 @@ private fun ReaderPage(
                         HadithBlock(
                             hadith = hadith,
                             translationState = state.translations[hadith.internalId],
+                            allowance = state.translationAllowances[hadith.internalId],
                             language = state.language,
                             arabicFontSize = arabicFontSize,
                             preferences = preferences,
@@ -2086,6 +2089,7 @@ internal fun HadithBlock(
     hadith: ReaderHadith,
     translationState: TranslationUiState?,
     language: String,
+    allowance: com.hadithly.app.core.data.TranslationAllowance? = null,
     arabicFontSize: Float,
     preferences: ReaderPreferences,
     deps: HadithBlockDeps,
@@ -2276,6 +2280,13 @@ internal fun HadithBlock(
                     onShowCitations = onShowCitations,
                     onShowPaywall = onShowPaywall,
                 )
+                allowance?.let {
+                    Text(stringResource(R.string.q1_remaining, it.remaining.toInt(), it.limit.toInt()), fontSize = 12.sp, color = colors.textSecondary, modifier = Modifier.testTag("reader.translationAllowance"))
+                    it.retryAt?.let { retry ->
+                        val date = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT, java.text.DateFormat.SHORT).format(java.util.Date(retry.toLong()))
+                        Text(stringResource(R.string.q1_retry_at, date), fontSize = 12.sp, color = colors.textSecondary, modifier = Modifier.testTag("reader.translationRetryAt"))
+                    }
+                }
             }
         }
 
@@ -2614,7 +2625,10 @@ internal fun TranslationSection(
     }
 
     when (translationState) {
-        null, is TranslationUiState.Loading -> Row(
+        null -> TextButton(onClick = onRetry, modifier = Modifier.heightIn(min = 48.dp).testTag("reader.generateTranslation")) {
+            Text(stringResource(R.string.q1_generate), fontSize = 12.sp, color = colors.interactive)
+        }
+        is TranslationUiState.Loading -> Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -2636,12 +2650,18 @@ internal fun TranslationSection(
                 text = "Sign in to get AI translations in your language. Sign-in lives on the Settings tab.",
             )
             TranslationFailure.QuotaExceeded -> QuietNotice(
-                text = "You've used your free AI translations for this month. Reading continues as usual.",
+                text = stringResource(R.string.q1_quota_exhausted),
                 actionTitle = "See plans",
                 onAction = onShowPaywall,
             )
-            is TranslationFailure.Failed -> TextButton(onClick = onRetry) {
-                Text("AI translation unavailable · retry", fontSize = 12.sp, color = colors.textSecondary)
+            is TranslationFailure.Failed -> Column {
+                translationState.failure.retryAt?.let { retry ->
+                    val date = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT, java.text.DateFormat.SHORT).format(java.util.Date(retry.toLong()))
+                    Text(stringResource(R.string.q1_retry_at, date), fontSize = 12.sp, color = colors.textSecondary)
+                }
+                TextButton(onClick = onRetry) {
+                    Text("AI translation unavailable · retry", fontSize = 12.sp, color = colors.textSecondary)
+                }
             }
         }
     }

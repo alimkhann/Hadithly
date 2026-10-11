@@ -289,6 +289,14 @@ enum TranslationFailure: Equatable {
     case requiresSignIn
     case failed(String)
 
+    var retryAt: Double? {
+        guard case .failed(let message) = self,
+              let regex = try? NSRegularExpression(pattern: #"retryAt["\\\s]*[:=]\s*([0-9]+)"#),
+              let match = regex.firstMatch(in: message, range: NSRange(message.startIndex..., in: message)),
+              let range = Range(match.range(at: 1), in: message) else { return nil }
+        return Double(message[range])
+    }
+
     init(error: Error) {
         self.init(message: ReaderModels.errorMessage(of: error))
     }

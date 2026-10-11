@@ -1032,7 +1032,6 @@ private fun SubscriptionDestination() {
     val purchaseState by app.purchases.state.collectAsStateWithLifecycle()
     var status by remember(signedIn) { mutableStateOf<SubscriptionStatusResult?>(null) }
     var restoring by remember { mutableStateOf(false) }
-    var showPaywall by remember { mutableStateOf(false) }
     LaunchedEffect(signedIn) {
         status = if (signedIn) runCatching { app.repository.getSubscriptionStatus() }.getOrNull() else null
     }
@@ -1048,16 +1047,7 @@ private fun SubscriptionDestination() {
                         Text("Active", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.accent)
                     }
                 }
-                SettingsSubscription.quotaLine(status?.aiGenerationsThisMonth, status?.aiGenerationLimit)?.let {
-                    Text(it, fontSize = 14.sp, color = colors.textSecondary)
-                }
                 Text("Pro unlocks 100 AI translations per rolling week. Reading, saved items, and existing translations stay free.", fontSize = 12.sp, color = colors.textSecondary)
-                Button(
-                    onClick = { showPaywall = true },
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = colors.interactive, contentColor = colors.onInteractive),
-                    modifier = Modifier.fillMaxWidth().testTag("settings.subscription.plans"),
-                ) { Text("View plans", fontWeight = FontWeight.SemiBold) }
                 TextButton(
                     enabled = !restoring,
                     onClick = {
@@ -1077,7 +1067,6 @@ private fun SubscriptionDestination() {
             }
         }
     }
-    if (showPaywall) QuotaPaywallSheet(purchases = app.purchases, onDismiss = { showPaywall = false }, onUnlocked = { showPaywall = false })
 }
 
 // ── Privacy & data (export + deletion) ─────────────────────────────────────

@@ -79,8 +79,5 @@ object SettingsSubscription {
         else -> "Free"
     }
 
-    fun quotaLine(used: Double?, limit: Double?): String? {
-        if (used == null || limit == null || limit <= 0) return null
-        return "${used.toInt()} of ${limit.toInt()} AI translations used this month"
-    }
+
 }

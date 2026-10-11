@@ -71,7 +71,7 @@ fun QuotaPaywallSheet(
                 color = colors.textPrimary,
             )
             Text(
-                text = "You reached this month’s free AI limit. Reading, saved items, and existing translations stay free.",
+                text = androidx.compose.ui.res.stringResource(com.hadithly.app.R.string.q1_quota_exhausted),
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
                 color = colors.textSecondary,

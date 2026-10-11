@@ -1,8 +1,22 @@
-import { internalMutation, internalQuery, query } from "./_generated/server";
+import { internalQuery, query } from "./_generated/server";
 import { v } from "convex/values";
 import type { Doc } from "./_generated/dataModel";
-import type { MutationCtx } from "./_generated/server";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { publicTranslationAvailable, publicationExpiry } from "./lib/evidencePublication";
+import { generationIdentity, generationLanguage } from "./lib/generationPolicy";
+import { canonicalizeLocaleTag } from "./lib/preferences";
+
+export async function availableDefault(ctx: QueryCtx | MutationCtx, hadith: Doc<"hadiths">, language: string) {
+  const rows = await ctx.db.query("translations").withIndex("by_hadith_language_default", q =>
+    q.eq("hadithId", hadith._id).eq("language", language).eq("isDefault", true)).collect();
+  const key = (await generationIdentity(hadith, language)).generationKey;
+  rows.sort((a, b) => Number(a.source === "gemini_ai") - Number(b.source === "gemini_ai"));
+  for (const row of rows) {
+    if (row.source === "gemini_ai" && row.generationKey && row.generationKey !== key) continue;
+    if (await publicTranslationAvailable(ctx, row)) return row;
+  }
+  return null;
+}
 
 export async function deleteContribution(ctx: MutationCtx, translation: Doc<"translations">) {
   const revision = translation.evidencePublicationId ? await ctx.db.get(translation.evidencePublicationId) : null;
@@ -29,7 +43,7 @@ export async function deleteContribution(ctx: MutationCtx, translation: Doc<"tra
   }
 }
 
-function publicTranslation(row: Doc<"translations">) {
+export function publicTranslation(row: Doc<"translations">) {
   return {
     _id: row._id, _creationTime: row._creationTime, hadithId: row.hadithId, language: row.language, content: row.content,
     source: row.source, sourceLabel: row.sourceLabel, aiModel: row.aiModel, aiPromptVersion: row.aiPromptVersion,
@@ -39,16 +53,6 @@ function publicTranslation(row: Doc<"translations">) {
   };
 }
 
-const citationsValidator = v.optional(
-  v.array(
-    v.object({
-      url: v.string(),
-      title: v.optional(v.string()),
-      domain: v.optional(v.string()),
-    }),
-  ),
-);
-
 export const watchPublications = query({
   args: { translationIds: v.array(v.id("translations")) },
   handler: async (ctx, args) => {
@@ -56,6 +60,25 @@ export const watchPublications = query({
     return Promise.all([...new Set(args.translationIds)].map(async translationId => {
       const row = await ctx.db.get(translationId);
       return { translationId, available: await publicTranslationAvailable(ctx, row), validUntil: row?.evidencePublicationId ? await publicationExpiry(ctx, row.evidencePublicationId) : null };
+    }));
+  },
+});
+
+/** Cache-only page read: guests can reuse the exact selected locale. */
+export const getReaderDefaults = query({
+  args: { hadithInternalIds: v.array(v.string()), language: v.string() },
+  handler: async (ctx, args) => {
+    if (args.hadithInternalIds.length > 10) throw new Error("Too many reader hadiths");
+    const language = generationLanguage(args.language);
+    return Promise.all([...new Set(args.hadithInternalIds)].map(async internalId => {
+      const hadith = await ctx.db.query("hadiths").withIndex("by_canonical_id", q => q.eq("canonicalId", internalId)).unique();
+      // Pre-F1 cache rows may lack canonicalId.
+      const parts = internalId.split(":");
+      const legacy = !hadith && parts.length === 3 && parts[0] === "sunnah_now" ? await ctx.db.query("hadiths")
+        .withIndex("by_provider_ref", q => q.eq("provider", "sunnah_now").eq("collectionSlug", parts[1]).eq("providerHadithId", parts[2])).unique() : null;
+      const source = hadith ?? legacy;
+      const row = source ? await availableDefault(ctx, source, language) : null;
+      return { hadithInternalId: internalId, translation: row ? publicTranslation(row) : null };
     }));
   },
 });
@@ -83,16 +106,10 @@ export const getDefaultForProviderRef = query({
       )
       .unique();
     if (!hadith) return null;
-    const row = await ctx.db
-      .query("translations")
-      .withIndex("by_hadith_language_default", (q) =>
-        q
-          .eq("hadithId", hadith._id)
-          .eq("language", args.language)
-          .eq("isDefault", true),
-      )
-      .first();
-    return row && await publicTranslationAvailable(ctx, row) ? publicTranslation(row) : null;
+    const language = canonicalizeLocaleTag(args.language);
+    if (!language) return null;
+    const row = await availableDefault(ctx, hadith, language);
+    return row ? publicTranslation(row) : null;
   },
 });
 
@@ -111,16 +128,9 @@ export const getById = internalQuery({
 export const getDefaultForHadithLanguage = internalQuery({
   args: { hadithId: v.id("hadiths"), language: v.string() },
   handler: async (ctx, args) => {
-    const translation = await ctx.db
-      .query("translations")
-      .withIndex("by_hadith_language_default", (q) =>
-        q
-          .eq("hadithId", args.hadithId)
-          .eq("language", args.language)
-          .eq("isDefault", true),
-      )
-      .first();
-    return translation && await publicTranslationAvailable(ctx, translation) ? translation : null;
+    const hadith = await ctx.db.get(args.hadithId);
+    const language = canonicalizeLocaleTag(args.language);
+    return hadith && language ? await availableDefault(ctx, hadith, language) : null;
   },
 });
 
@@ -143,61 +153,5 @@ export const listLiveDefaultsForHadithLanguage = internalQuery({
       .collect();
     const available = await Promise.all(rows.map(row => publicTranslationAvailable(ctx, row)));
     return rows.filter((_, index) => available[index]);
-  },
-});
-
-/**
- * Internal: cache a generated AI translation. There is intentionally no
- * vote/rating tracking — translation quality is a curation concern, not a
- * popularity contest.
- */
-export const cacheGeminiTranslation = internalMutation({
-  args: {
-    hadithId: v.id("hadiths"),
-    language: v.string(),
-    content: v.string(),
-    aiModel: v.string(),
-    confidence: v.optional(v.number()),
-    riskFlags: v.optional(v.array(v.string())),
-    generatedByUserId: v.optional(v.id("users")),
-    groundingUsed: v.optional(v.boolean()),
-    groundingSourceCount: v.optional(v.number()),
-    citations: citationsValidator,
-    sourceReferenceUrl: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    const existing = await ctx.db
-      .query("translations")
-      .withIndex("by_hadith_language_default", (q) =>
-        q
-          .eq("hadithId", args.hadithId)
-          .eq("language", args.language)
-          .eq("isDefault", true),
-      )
-      .first();
-    if (existing && await publicTranslationAvailable(ctx, existing)) return existing._id;
-    if (existing) await ctx.db.patch(existing._id, { isDefault: false });
-
-    const now = Date.now();
-    return await ctx.db.insert("translations", {
-      hadithId: args.hadithId,
-      language: args.language,
-      content: args.content,
-      source: "gemini_ai",
-      sourceLabel: "AI",
-      aiModel: args.aiModel,
-      aiPromptVersion: "v1",
-      generatedByUserId: args.generatedByUserId,
-      status: "live",
-      isDefault: true,
-      confidence: args.confidence,
-      riskFlags: args.riskFlags,
-      groundingUsed: args.groundingUsed ?? false,
-      groundingSourceCount: args.groundingSourceCount,
-      citations: args.citations,
-      sourceReferenceUrl: args.sourceReferenceUrl,
-      createdAt: now,
-      updatedAt: now,
-    });
   },
 });

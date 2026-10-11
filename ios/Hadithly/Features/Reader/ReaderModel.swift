@@ -1,3 +1,4 @@
+import ClerkKit
 import ConvexMobile
 import Foundation
 import Observation
@@ -81,6 +82,8 @@ final class ReaderModel {
 
     // Translation state, keyed by hadith internal id.
     private(set) var translations: [String: TranslationState] = [:]
+    private(set) var translationAllowances: [String: TranslationAllowance] = [:]
+    private var generationTasks: [String: Task<Void, Never>] = [:]
     private(set) var language: String
 
     private var outlineTask: Task<Void, Never>?
@@ -496,6 +499,11 @@ final class ReaderModel {
 
 #if DEBUG
     /// Seeds outline state for the R5 contents fixture without network.
+    func seedQ1TranslationForUITest(id: String, state: TranslationState, allowance: TranslationAllowance?) {
+        translations[id] = state
+        translationAllowances[id] = allowance
+    }
+
     func seedForUITest(volumes: [OutlineVolume], selectedVolumeId: String) {
         self.volumes = volumes
         self.selectedVolumeId = selectedVolumeId
@@ -629,6 +637,7 @@ final class ReaderModel {
         pages = []
         pageIndex = 0
         translations = [:]
+        translationAllowances = [:]
         lastCapturedAnchor = nil
         lastCapturedNormalizedOffset = nil
         lastStableAnchor = nil
@@ -645,6 +654,7 @@ final class ReaderModel {
         publicationDeadlineTask?.cancel()
         translationGeneration += 1
         translations = [:]
+        translationAllowances = [:]
         scheduleTranslationsForCurrentPage()
     }
 
@@ -841,62 +851,70 @@ final class ReaderModel {
 
     // MARK: - Translations
 
+    /// Opening and paging only read existing exact-locale translations.
     private func scheduleTranslationsForCurrentPage() {
         guard pages.indices.contains(pageIndex) else { return }
         let hadiths = pages[pageIndex].items
         guard !hadiths.isEmpty else { return }
-
         translationGeneration += 1
         let generation = translationGeneration
+        let requestedLanguage = language
         translationTask?.cancel()
         translationTask = Task { [weak self] in
-            for hadith in hadiths {
-                guard !Task.isCancelled else { return }
-                await self?.translateIfNeeded(hadith, generation: generation)
-            }
+            guard let self else { return }
+            do {
+                for try await rows in convex.subscribe(to: "translations:getReaderDefaults", with: [
+                    "hadithInternalIds": hadiths.map(\.internalId), "language": requestedLanguage,
+                ], yielding: [ReaderDefaultTranslation].self).values {
+                    guard generation == translationGeneration, !Task.isCancelled else { return }
+                    for row in rows {
+                        if let stored = row.translation {
+                            translations[row.hadithInternalId] = .loaded(stored.readerTranslation)
+                        }
+                    }
+                    watchLoadedPublications()
+                    break
+                }
+            } catch { /* Cached/offline/provider reading stays available. */ }
         }
     }
 
-    private func translateIfNeeded(_ hadith: ReaderHadith, generation: Int) async {
-        if translations[hadith.internalId] != nil { return }
-        if language == "en" {
-            do {
-                for try await stored in convex.subscribe(to: "translations:getDefaultForProviderRef", with: [
-                    "provider": hadith.provider, "collectionSlug": hadith.collectionSlug,
-                    "providerHadithId": hadith.providerHadithId, "language": language,
-                ], yielding: StoredReaderTranslation?.self).values {
-                    guard generation == translationGeneration, !Task.isCancelled else { return }
-                    if let stored { translations[hadith.internalId] = .loaded(stored.readerTranslation); watchLoadedPublications() }
-                    break
-                }
-            } catch { /* Provider English remains readable offline. */ }
-            return
-        }
-        guard isSignedIn() else {
-            translations[hadith.internalId] = .failed(.requiresSignIn)
-            return
-        }
-        translations[hadith.internalId] = .loading
+    private func generateTranslation(_ hadith: ReaderHadith, requestedLanguage: String) async {
+        let id = hadith.internalId
+        let requestedAccountId = Clerk.shared.user?.id
+        guard isSignedIn() else { translations[id] = .failed(.requiresSignIn); return }
+        translations[id] = .loading
         do {
-            let result: ReaderTranslation = try await convex.action(
-                "actions/ai:translateHadith",
-                with: [
-                    "hadithInternalId": hadith.internalId as ConvexEncodable?,
-                    "targetLanguage": language as ConvexEncodable?,
-                ]
-            )
-            guard generation == translationGeneration, !Task.isCancelled else { return }
-            translations[hadith.internalId] = .loaded(result)
+            // An action retry can reuse a result even if device proof is unavailable.
+            let stored = try? await convex.subscribe(to: "translations:getDefaultForProviderRef", with: [
+                "provider": hadith.provider, "collectionSlug": hadith.collectionSlug,
+                "providerHadithId": hadith.providerHadithId, "language": requestedLanguage,
+            ], yielding: StoredReaderTranslation?.self).values.first(where: { _ in true })
+            if let stored = stored ?? nil {
+                guard language == requestedLanguage, Clerk.shared.user?.id == requestedAccountId else { return }
+                translations[id] = .loaded(stored.readerTranslation)
+                watchLoadedPublications()
+                await refreshTranslationAllowance(for: id, language: requestedLanguage, accountId: requestedAccountId)
+                return
+            }
+            await refreshTranslationAllowance(for: id, language: requestedLanguage, accountId: requestedAccountId)
+            let arguments = try await GenerationRequest.arguments(hadithId: id, language: requestedLanguage, convex: convex)
+            let result: ReaderTranslation = try await convex.action("actions/ai:translateHadith", with: arguments)
+            guard language == requestedLanguage, Clerk.shared.user?.id == requestedAccountId else { return }
+            translations[id] = .loaded(result)
             watchLoadedPublications()
         } catch {
-            guard generation == translationGeneration, !Task.isCancelled else { return }
-            let failure = TranslationFailure(error: error)
-            translations[hadith.internalId] = .failed(failure)
-            // A hard wall (quota, sign-in) applies to the rest of the page;
-            // stop burning calls and let the rows surface the state.
-            if failure == .quotaExceeded || failure == .requiresSignIn {
-                translationTask?.cancel()
-            }
+            guard language == requestedLanguage, Clerk.shared.user?.id == requestedAccountId else { return }
+            translations[id] = .failed(TranslationFailure(error: error))
+        }
+        await refreshTranslationAllowance(for: id, language: requestedLanguage, accountId: requestedAccountId)
+    }
+
+    private func refreshTranslationAllowance(for id: String, language requestedLanguage: String, accountId: String?) async {
+        if let allowance = try? await convex.subscribe(to: "quotas:getTranslationAllowance", yielding: TranslationAllowance.self)
+            .values.first(where: { _ in true }) {
+            guard language == requestedLanguage, Clerk.shared.user?.id == accountId, isSignedIn() else { return }
+            translationAllowances[id] = allowance
         }
     }
 
@@ -940,12 +958,25 @@ final class ReaderModel {
         translations = ReaderPublicationPolicy.keepingAvailable(translations, statuses: statuses, now: now)
     }
 
-    /// Manual retry from a failed translation row.
+    /// The only path that creates new reader translations.
     func retryTranslation(for hadith: ReaderHadith) {
-        translationTask?.cancel()
-        translationTask = Task { [weak self] in
-            await self?.translateIfNeeded(hadith, generation: self?.translationGeneration ?? 0)
+        guard generationTasks[hadith.internalId] == nil else { return }
+        let requestedLanguage = language
+        generationTasks[hadith.internalId] = Task { [weak self] in
+            guard let self else { return }
+            defer { generationTasks.removeValue(forKey: hadith.internalId) }
+            await generateTranslation(hadith, requestedLanguage: requestedLanguage)
         }
+    }
+
+    func resetTranslationRequestsForAccount() {
+        translationAllowances = [:]
+        translations = translations.filter { _, state in
+            if case .loaded = state { return true }
+            return false
+        }
+        for task in generationTasks.values { task.cancel() }
+        generationTasks = [:]
     }
 
     var hasQuotaFailure: Bool {
@@ -955,15 +986,13 @@ final class ReaderModel {
         }
     }
 
-    /// RevenueCat unlocks asynchronously through the signed webhook. Clear
-    /// the local wall and retry the current page after a successful purchase;
-    /// if webhook propagation is still in flight the backend remains final.
+    /// Purchase retry resumes only the hadiths explicitly rejected at quota.
     func retryTranslationsAfterPurchase() {
-        translations = translations.filter { _, state in
-            if case .failed(.quotaExceeded) = state { return false }
-            return true
+        let requested = currentPageHadiths.filter { hadith in
+            if case .failed(.quotaExceeded) = translations[hadith.internalId] { return true }
+            return false
         }
-        scheduleTranslationsForCurrentPage()
+        for hadith in requested { retryTranslation(for: hadith) }
     }
 
     // MARK: - Translation contributions

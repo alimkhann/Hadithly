@@ -37,6 +37,7 @@ data class FolderDeletionResult(val name: String, val hadithIds: List<String>, v
  */
 class ConvexRepository(context: Context) {
     private val appContext = context.applicationContext
+    private val generationRequest = GenerationRequest(appContext)
 
     val convex: ConvexClientWithAuth<String> = createClerkConvexClient(
         deploymentUrl = BuildConfig.CONVEX_URL,
@@ -112,15 +113,27 @@ class ConvexRepository(context: Context) {
         convex.mutation<EvidenceSubmitResult>("evidenceCases:requestAppeal", mapOf("submissionId" to submissionId, "reason" to reason))
     }
 
+    suspend fun storedReaderTranslations(hadiths: List<ReaderHadith>, language: String): List<ReaderDefaultTranslation> =
+        withContext(Dispatchers.IO) {
+            subscribe<List<ReaderDefaultTranslation>>("translations:getReaderDefaults", mapOf(
+                "hadithInternalIds" to hadiths.map { it.internalId }, "language" to language,
+            )).firstOrNull() ?: emptyList()
+        }
+
+    suspend fun translationAllowance(): TranslationAllowance? = withContext(Dispatchers.IO) {
+        subscribe<TranslationAllowance>("quotas:getTranslationAllowance").firstOrNull()
+    }
+
     suspend fun translateHadith(hadithInternalId: String, targetLanguage: String): ReaderTranslation =
         withContext(Dispatchers.IO) {
-            convex.action<ReaderTranslation>(
-                "actions/ai:translateHadith",
-                mapOf(
-                    "hadithInternalId" to hadithInternalId,
-                    "targetLanguage" to targetLanguage,
-                ),
-            )
+            val challenge = convex.mutation<GenerationChallenge>("generationIntegrity:beginChallenge", mapOf(
+                "hadithInternalId" to hadithInternalId, "targetLanguage" to targetLanguage,
+            ))
+            val proof = generationRequest.proof(challenge)
+            convex.action<ReaderTranslation>("actions/ai:translateHadith", mapOf(
+                "hadithInternalId" to hadithInternalId, "targetLanguage" to targetLanguage,
+                "challengeId" to challenge.challengeId, "proof" to proof,
+            ))
         }
 
     suspend fun getDailyHadith(translationLocale: String): DailyHadith? =

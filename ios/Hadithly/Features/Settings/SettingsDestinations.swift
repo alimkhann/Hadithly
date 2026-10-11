@@ -16,8 +16,6 @@ private var settingsTint: Color { Theme.accent }
 private struct SubscriptionStatus: Decodable {
     var subscriptionTier: String?
     var entitlementExpiresAt: Double?
-    var aiGenerationsThisMonth: Double?
-    var aiGenerationLimit: Double?
 }
 
 /// Portable export document from `users:exportCurrentUserData`. Mirrors the
@@ -1187,19 +1185,12 @@ struct SubscriptionView: View {
 
     @State private var status: SubscriptionStatus?
     @State private var isRestoring = false
-    @State private var showPaywall = false
 
     var body: some View {
         SettingsList("Subscription") {
             if clerk.session != nil {
                 Section {
                     LabeledContent("Plan", value: SettingsSubscription.displayName(tier: status?.subscriptionTier))
-                    if let line = SettingsSubscription.quotaLine(
-                        used: status?.aiGenerationsThisMonth,
-                        limit: status?.aiGenerationLimit
-                    ) {
-                        LabeledContent("AI translations", value: line)
-                    }
                     if let expires = status?.entitlementExpiresAt, expires > 0 {
                         LabeledContent(
                             "Renews",
@@ -1215,8 +1206,6 @@ struct SubscriptionView: View {
                 }
 
                 Section {
-                    Button("View plans") { showPaywall = true }
-                        .accessibilityIdentifier("settings.subscription.plans")
                     Button {
                         Task {
                             isRestoring = true
@@ -1240,9 +1229,6 @@ struct SubscriptionView: View {
             }
         }
         .task { await loadStatus() }
-        .sheet(isPresented: $showPaywall) {
-            QuotaPaywallView {}
-        }
     }
 
     private func loadStatus() async {

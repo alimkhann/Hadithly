@@ -295,7 +295,10 @@ final class AppEnvironment {
     func deleteAccount() async throws {
         let accountId = Clerk.shared.user?.id
         let _: Bool? = try await convex.mutation("users:deleteCurrentUser")
-        if let accountId { EvidenceLocalDrafts.clear(for: accountId) }
+        if let accountId {
+            EvidenceLocalDrafts.clear(for: accountId)
+            UserDefaults.standard.removeObject(forKey: "q1.appAttest.\(accountId)")
+        }
         guard let user = Clerk.shared.user else { return }
         try await user.delete()
         handleSignOut()

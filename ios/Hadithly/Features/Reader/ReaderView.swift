@@ -116,6 +116,11 @@ struct ReaderView: View {
             model?.saveCurrentProgress()
             model?.stop()
         }
+        .onChange(of: clerk.user?.id) { _, _ in
+            model?.resetTranslationRequestsForAccount()
+            showQuotaPaywall = false
+            hasAutoPresentedQuotaPaywall = false
+        }
         .onChange(of: scenePhase) { _, phase in
             if phase != .active { model?.saveCurrentProgress() }
         }
@@ -1539,6 +1544,7 @@ private struct HadithBlock: View {
     @State private var reportedTranslation: ReaderTranslation?
     @State private var showingSource = false
     @Environment(AppEnvironment.self) private var environment
+    @Environment(\.locale) private var locale
     @State private var pendingSavedRemoval: String?
     @State private var undoNotice: SavedUndoNotice?
 
@@ -1615,11 +1621,25 @@ private struct HadithBlock: View {
             }
 
             if preferences.translationVisible {
-                translationSection
-                    .environment(
-                        \.layoutDirection,
-                        LocaleFallback.isRTL(preferences.translationLocale) ? .rightToLeft : .leftToRight
-                    )
+                VStack(alignment: .leading, spacing: 8) {
+                    translationSection
+                    if let allowance = model.translationAllowances[hadith.internalId] {
+                        Text(String(format: String(localized: "q1.remaining", locale: locale), Int(allowance.remaining), Int(allowance.limit)))
+                            .font(.caption)
+                            .foregroundStyle(palette.textSecondary)
+                            .accessibilityIdentifier("reader.translationAllowance")
+                        if let retryAt = allowance.retryAt {
+                            Text(String(format: String(localized: "q1.retry_at", locale: locale), Date(timeIntervalSince1970: retryAt / 1000).formatted(Date.FormatStyle(date: .abbreviated, time: .shortened).locale(locale))))
+                                .font(.caption)
+                                .foregroundStyle(palette.textSecondary)
+                                .accessibilityIdentifier("reader.translationRetryAt")
+                        }
+                    }
+                }
+                .environment(
+                    \.layoutDirection,
+                    LocaleFallback.isRTL(preferences.translationLocale) ? .rightToLeft : .leftToRight
+                )
             }
         }
         // R5 context menu unchanged: the only sighted path to actions is
@@ -1917,7 +1937,18 @@ private struct HadithBlock: View {
     @ViewBuilder
     private var aiTranslationSection: some View {
         switch translationState {
-        case .none, .loading:
+        case .none:
+            Button(action: onRetry) {
+                Text("q1.generate")
+                    .font(.caption)
+                    .foregroundStyle(palette.interactive)
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
+            }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("reader.generateTranslation")
+
+        case .loading:
             HStack(spacing: 8) {
                 ProgressView()
                     .tint(palette.textSecondary)
@@ -1943,18 +1974,26 @@ private struct HadithBlock: View {
         case .failed(.quotaExceeded):
             quietNotice(
                 icon: "sparkles",
-                text: "You've used your free AI translations for this month. Reading continues as usual.",
+                text: String(localized: "q1.quota_exhausted", locale: locale),
                 actionTitle: "See plans",
                 action: onShowPaywall
             )
 
-        case .failed(.failed):
+        case .failed(let failure):
+            if let retryAt = failure.retryAt {
+                Text(String(format: String(localized: "q1.retry_at", locale: locale), Date(timeIntervalSince1970: retryAt / 1000).formatted(Date.FormatStyle(date: .abbreviated, time: .shortened).locale(locale))))
+                    .font(.caption)
+                    .foregroundStyle(palette.textSecondary)
+            }
             Button(action: onRetry) {
                 Text("AI translation unavailable · retry")
                     .font(.caption)
                     .foregroundStyle(palette.textSecondary)
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier("reader.retryTranslation")
         }
     }
 
@@ -2701,7 +2740,7 @@ struct ReaderR6ATestFixtureView: View {
             convex: convex,
             collectionSlug: "bukhari",
             collectionName: "Sahih al-Bukhari",
-            language: "en",
+            language: environment["Q1_LANGUAGE"] ?? "en",
             isSignedIn: { false }
         )
         seeded.seedSavedStateForUITest(
@@ -2709,6 +2748,19 @@ struct ReaderR6ATestFixtureView: View {
             favoritedIds: ["fixture-59"]
         )
         seeded.seedNotesForUITest(notedIds: ["fixture-59"])
+        switch environment["Q1_STATE"] {
+        case "quota":
+            seeded.seedQ1TranslationForUITest(id: "sunnah_now:bukhari:57", state: .failed(.quotaExceeded),
+                allowance: TranslationAllowance(limit: 5, remaining: 0, retryAt: Date().timeIntervalSince1970 * 1000 + 60_000))
+        case "rate":
+            seeded.seedQ1TranslationForUITest(id: "sunnah_now:bukhari:57", state: .failed(.failed("AI_RATE_LIMITED")), allowance: nil)
+        case "cached":
+            seeded.seedQ1TranslationForUITest(id: "sunnah_now:bukhari:57", state: .loaded(ReaderTranslation(
+                translationId: "fixture-cache", translation: "Cached exact-locale text", confidence: nil, riskFlags: [], glossaryNotes: [],
+                source: "official", sourceLabel: "Official", aiModel: nil, groundingUsed: false, citations: [], sourceReferenceUrl: nil, cached: true)), allowance: nil)
+        default: break
+        }
+
         seeded.seedForUITest(
             volumes: [
                 OutlineVolume(
@@ -3010,12 +3062,12 @@ struct ReaderR6ATestFixtureView: View {
         HadithBlock(
             model: model,
             hadith: hadith,
-            translationState: nil,
-            language: "en",
+            translationState: model.translations[hadith.internalId],
+            language: model.language,
             arabicFontSize: 26,
             preferences: preferences,
             palette: palette,
-            onRetry: {},
+            onRetry: { model.retryTranslation(for: hadith) },
             onShowPaywall: {}
         )
     }

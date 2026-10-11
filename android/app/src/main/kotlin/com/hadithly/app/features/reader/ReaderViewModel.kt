@@ -1,5 +1,6 @@
 package com.hadithly.app.features.reader
 
+import com.clerk.api.Clerk
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hadithly.app.HadithlyApplication
@@ -70,6 +71,7 @@ class ReaderViewModel(
         val chromeVisible: Boolean = true,
         val language: String = "en",
         val translations: Map<String, TranslationUiState> = emptyMap(),
+        val translationAllowances: Map<String, com.hadithly.app.core.data.TranslationAllowance> = emptyMap(),
         val verticalLanding: ReaderVerticalLandingRequest? = null,
     )
 
@@ -78,6 +80,7 @@ class ReaderViewModel(
 
     private var pageJob: Job? = null
     private var translationJob: Job? = null
+    private val generationJobs = mutableMapOf<String, Job>()
     private var publicationJob: Job? = null
     private var publicationDeadlineJob: Job? = null
     private var translationGeneration = 0
@@ -387,7 +390,7 @@ class ReaderViewModel(
                 selectedVolumeId = volumeId,
                 pages = emptyList(),
                 pageIndex = 0,
-                translations = emptyMap(),
+                translations = emptyMap(), translationAllowances = emptyMap(),
                 verticalLanding = null,
             )
         }
@@ -425,7 +428,7 @@ class ReaderViewModel(
                 pages = emptyList(),
                 pageIndex = 0,
                 isLoadingPage = true,
-                translations = emptyMap(),
+                translations = emptyMap(), translationAllowances = emptyMap(),
                 verticalLanding = null,
             )
         }
@@ -499,7 +502,7 @@ class ReaderViewModel(
                 selectedVolumeId = volumeId,
                 pages = emptyList(),
                 pageIndex = 0,
-                translations = emptyMap(),
+                translations = emptyMap(), translationAllowances = emptyMap(),
                 verticalLanding = null,
             )
         }
@@ -517,7 +520,7 @@ class ReaderViewModel(
                 selectedVolumeId = volumeId,
                 pages = emptyList(),
                 pageIndex = 0,
-                translations = emptyMap(),
+                translations = emptyMap(), translationAllowances = emptyMap(),
                 verticalLanding = null,
             )
         }
@@ -528,7 +531,7 @@ class ReaderViewModel(
         if (code == _state.value.language) return
         app.preferences.setTranslationLocale(code)
         cancelTranslationRun()
-        _state.update { it.copy(language = code, translations = emptyMap()) }
+        _state.update { it.copy(language = code, translations = emptyMap(), translationAllowances = emptyMap()) }
         scheduleTranslationsForCurrentPage()
     }
 
@@ -742,59 +745,61 @@ class ReaderViewModel(
         translationGeneration += 1
     }
 
+    /** Page opening/paging reads one batch of existing exact-locale defaults. */
     private fun scheduleTranslationsForCurrentPage() {
-        val s = _state.value
         val hadiths = currentPageHadiths()
         if (hadiths.isEmpty()) return
-
         translationGeneration += 1
         val generation = translationGeneration
+        val language = _state.value.language
         translationJob?.cancel()
         translationJob = viewModelScope.launch {
-            for (hadith in hadiths) {
-                translateIfNeeded(hadith, generation)
-            }
+            try {
+                val rows = app.repository.storedReaderTranslations(hadiths, language)
+                if (generation != translationGeneration) return@launch
+                val loaded = rows.mapNotNull { row -> row.translation?.let { row.hadithInternalId to TranslationUiState.Loaded(it.readerTranslation()) } }.toMap()
+                _state.update { it.copy(translations = it.translations + loaded) }
+                watchLoadedPublications()
+            } catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: Exception) { /* Existing provider/offline content remains readable. */ }
         }
     }
 
-    private suspend fun translateIfNeeded(hadith: ReaderHadith, generation: Int) {
-        if (_state.value.translations[hadith.internalId] != null) return
-        if (_state.value.language == "en") {
-            val stored = runCatching { app.repository.storedReaderTranslation(hadith, "en") }.getOrNull()
-            if (generation == translationGeneration && stored != null) {
-                _state.update { it.copy(translations = it.translations + (hadith.internalId to TranslationUiState.Loaded(stored))) }
-                watchLoadedPublications()
-            }
-            return
-        }
+    private suspend fun generateTranslation(hadith: ReaderHadith, language: String) {
+        val id = hadith.internalId
+        val requestedAccountId = Clerk.user?.id
         if (!app.isSignedIn()) {
-            _state.update {
-                it.copy(translations = it.translations + (hadith.internalId to TranslationUiState.Failed(TranslationFailure.RequiresSignIn)))
-            }
+            _state.update { it.copy(translations = it.translations + (id to TranslationUiState.Failed(TranslationFailure.RequiresSignIn))) }
             return
         }
-        _state.update {
-            it.copy(translations = it.translations + (hadith.internalId to TranslationUiState.Loading))
-        }
+        _state.update { it.copy(translations = it.translations + (id to TranslationUiState.Loading)) }
         try {
-            val result = app.repository.translateHadith(hadith.internalId, _state.value.language)
-            if (generation != translationGeneration) return
-            _state.update {
-                it.copy(translations = it.translations + (hadith.internalId to TranslationUiState.Loaded(result)))
+            val cached = app.repository.storedReaderTranslation(hadith, language)
+            if (cached != null) {
+                if (_state.value.language == language && Clerk.user?.id == requestedAccountId) {
+                    _state.update { it.copy(translations = it.translations + (id to TranslationUiState.Loaded(cached))) }
+                    watchLoadedPublications()
+                    refreshTranslationAllowance(id, language, requestedAccountId)
+                }
+                return
             }
+            refreshTranslationAllowance(id, language, requestedAccountId)
+            val result = app.repository.translateHadith(id, language)
+            if (_state.value.language != language || Clerk.user?.id != requestedAccountId) return
+            _state.update { it.copy(translations = it.translations + (id to TranslationUiState.Loaded(result))) }
             watchLoadedPublications()
-        } catch (error: Exception) {
-            if (generation != translationGeneration) return
-            val failure = TranslationFailure.of(errorMessage(error))
-            _state.update {
-                it.copy(translations = it.translations + (hadith.internalId to TranslationUiState.Failed(failure)))
-            }
-            // A hard wall (quota, sign-in) applies to the rest of the page;
-            // stop burning calls and let the rows surface the state.
-            if (failure == TranslationFailure.QuotaExceeded || failure == TranslationFailure.RequiresSignIn) {
-                translationJob?.cancel()
-            }
+        } catch (cancelled: CancellationException) { throw cancelled }
+        catch (error: Exception) {
+            if (_state.value.language != language || Clerk.user?.id != requestedAccountId) return
+            _state.update { it.copy(translations = it.translations + (id to TranslationUiState.Failed(TranslationFailure.of(errorMessage(error))))) }
         }
+        refreshTranslationAllowance(id, language, requestedAccountId)
+    }
+
+    private suspend fun refreshTranslationAllowance(id: String, language: String, accountId: String?) {
+        val allowance = runCatching { app.repository.translationAllowance() }.getOrNull() ?: return
+        if (_state.value.language != language || Clerk.user?.id != accountId || !app.isSignedIn()) return
+        _state.update { it.copy(translationAllowances = it.translationAllowances + (id to allowance)) }
     }
 
     private fun watchLoadedPublications() {
@@ -827,29 +832,33 @@ class ReaderViewModel(
         }
     }
 
-    /** Manual retry from a failed translation row. */
+    /** The only reader path that creates a new global translation. */
     fun retryTranslation(hadith: ReaderHadith) {
-        translationJob?.cancel()
-        translationJob = viewModelScope.launch {
-            translateIfNeeded(hadith, translationGeneration)
+        if (generationJobs[hadith.internalId]?.isActive == true) return
+        val language = _state.value.language
+        generationJobs[hadith.internalId] = viewModelScope.launch {
+            try { generateTranslation(hadith, language) }
+            finally { generationJobs.remove(hadith.internalId) }
         }
+    }
+
+    fun resetTranslationRequestsForAccount() {
+        _state.update { it.copy(translationAllowances = emptyMap(), translations = it.translations.filterValues { state -> state is TranslationUiState.Loaded }) }
+        generationJobs.values.forEach { it.cancel() }
+        generationJobs.clear()
     }
 
     fun hasQuotaFailure(): Boolean = _state.value.translations.values.any { translationState ->
         translationState is TranslationUiState.Failed && translationState.failure == TranslationFailure.QuotaExceeded
     }
 
-    /** Retry only the quota-blocked rows after RevenueCat reports Pro active. */
+    /** Purchase retry resumes only explicitly requested, quota-rejected hadiths. */
     fun retryTranslationsAfterPurchase() {
-        _state.update { current ->
-            current.copy(
-                translations = current.translations.filterValues { translationState ->
-                    translationState !is TranslationUiState.Failed ||
-                        translationState.failure != TranslationFailure.QuotaExceeded
-                },
-            )
+        val requested = currentPageHadiths().filter { hadith ->
+            val translation = _state.value.translations[hadith.internalId]
+            translation is TranslationUiState.Failed && translation.failure == TranslationFailure.QuotaExceeded
         }
-        scheduleTranslationsForCurrentPage()
+        requested.forEach(::retryTranslation)
     }
 
     val canContribute: Boolean get() = app.isSignedIn()

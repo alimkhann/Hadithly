@@ -45,14 +45,48 @@ export default defineSchema({
     entitlementExpiresAt: v.optional(v.number()),
     revenueCatEventTimestamp: v.optional(v.number()),
     entitlementUpdatedAt: v.optional(v.number()),
-    aiGenerationsThisMonth: v.number(),
-    aiGenerationLimit: v.number(),
+    // Read-only legacy fields until the bounded Q1 migration erases them.
+    aiGenerationsThisMonth: v.optional(v.number()),
+    aiGenerationLimit: v.optional(v.number()),
     // Assigned only through the Convex dashboard/internal admin bootstrap.
     // Admin access is never inferred from client-supplied data.
     isAdmin: v.optional(v.boolean()),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_clerk_id", ["clerkId"]),
+
+  aiGenerationJobs: defineTable({
+    generationKey: v.string(), sourceDigest: v.string(), hadithId: v.id("hadiths"), language: v.string(),
+    userId: v.optional(v.id("users")), origin: v.union(v.literal("user"), v.literal("service")),
+    status: v.union(v.literal("pending"), v.literal("completed"), v.literal("failed")),
+    attempt: v.number(), expiresAt: v.number(), createdAt: v.number(),
+    translationId: v.optional(v.id("translations")),
+  }).index("by_key", ["generationKey"]).index("by_user_status", ["userId", "status"])
+    .index("by_user_status_expiry", ["userId", "status", "expiresAt"])
+    .index("by_status_expiry", ["status", "expiresAt"]),
+  // Global immutable success fact. No account, device, prompt, or user text.
+  aiUsageEvents: defineTable({ generationKey: v.string(), translationId: v.id("translations"), createdAt: v.number() })
+    .index("by_key", ["generationKey"]),
+  aiUsageCharges: defineTable({ userId: v.id("users"), eventId: v.id("aiUsageEvents"), createdAt: v.number() })
+    .index("by_user_time", ["userId", "createdAt"]),
+  aiCostEvents: defineTable({ jobId: v.id("aiGenerationJobs"), attempt: v.number(), model: v.string(),
+    pricingVersion: v.string(), inputTokens: v.number(), outputTokens: v.number(), thinkingTokens: v.number(),
+    estimatedMicroUsd: v.number(), tokenUsageKnown: v.boolean(), durationMs: v.number(),
+    outcome: v.union(v.literal("published"), v.literal("cached"), v.literal("failed"), v.literal("stale")),
+    groundingUsed: v.literal(false), createdAt: v.number(),
+  }).index("by_job_attempt", ["jobId", "attempt"]).index("by_time", ["createdAt"]),
+  aiRateLimits: defineTable({ key: v.string(), userId: v.optional(v.id("users")), startedAt: v.number(), count: v.number() })
+    .index("by_key", ["key"]).index("by_user", ["userId"]),
+  aiSpendBudgets: defineTable({ monthKey: v.string(), committedMicroUsd: v.number() }).index("by_month", ["monthKey"]),
+  aiSpendReservations: defineTable({ jobId: v.id("aiGenerationJobs"), attempt: v.number(), monthKey: v.string(),
+    reservedMicroUsd: v.number(), settled: v.boolean() }).index("by_job_attempt", ["jobId", "attempt"]),
+  generationChallenges: defineTable({ userId: v.id("users"), hadithId: v.id("hadiths"), language: v.string(),
+    generationKey: v.string(), nonce: v.string(), createdAt: v.number(), expiresAt: v.number(),
+  }).index("by_user_time", ["userId", "createdAt"]),
+  generationCredentials: defineTable({ userId: v.id("users"), keyId: v.string(), publicKey: v.string(), signCount: v.number() })
+    .index("by_key", ["keyId"]).index("by_user", ["userId"]),
+  collectionCounts: defineTable({ collectionSlug: v.string(), totalHadiths: v.number(), indexedAt: v.number() })
+    .index("by_collection", ["collectionSlug"]),
 
   // Cached Sunnah.now books (the seven collections).
   collections: defineTable({
@@ -160,6 +194,8 @@ export default defineSchema({
 
   translations: defineTable({
     hadithId: v.id("hadiths"),
+    generationKey: v.optional(v.string()),
+    sourceDigest: v.optional(v.string()),
     language: v.string(),
     content: v.string(),
     source: v.union(

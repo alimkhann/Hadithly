@@ -82,4 +82,9 @@
     <string name="e4_appeal_error">اپیل کی درخواست نہیں ہو سکی۔ مدت چیک کریں اور رابطہ ہونے پر دوبارہ کوشش کریں۔</string>
     <string name="e4_revoked">اشاعت واپس لے لی گئی</string>
     <string name="e4_revoked_message">اشاعت کی دوبارہ جانچ کے دوران یہ تجویز نجی ہے۔</string>
+
+    <string name="q1_generate">اے آئی ترجمہ بنائیں</string>
+    <string name="q1_remaining">سات دنوں میں %2$d میں سے %1$d نئے ترجمے باقی ہیں</string>
+    <string name="q1_retry_at">دوبارہ دستیاب: %1$s</string>
+    <string name="q1_quota_exhausted">آپ کی گزشتہ سات دنوں کی حد استعمال ہو چکی ہے۔ موجودہ ترجمے اور مطالعہ مفت رہیں گے۔</string>
 </resources>

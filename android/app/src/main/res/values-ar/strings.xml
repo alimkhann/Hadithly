@@ -90,4 +90,9 @@
     <string name="e4_appeal_error">تعذر طلب الاستئناف. تحقق من المهلة وحاول عند الاتصال.</string>
     <string name="e4_revoked">سُحب النشر</string>
     <string name="e4_revoked_message">هذا الاقتراح خاص أثناء إعادة تقييم نشره.</string>
+
+    <string name="q1_generate">إنشاء ترجمة بالذكاء الاصطناعي</string>
+    <string name="q1_remaining">متبقي %1$d من %2$d ترجمة جديدة خلال سبعة أيام</string>
+    <string name="q1_retry_at">متاح مجددًا %1$s</string>
+    <string name="q1_quota_exhausted">استخدمت حصة الأيام السبعة المتحركة. تبقى القراءة والترجمات الموجودة مجانية.</string>
 </resources>

@@ -245,3 +245,36 @@ export const migrateN1PushTokens = internalMutation({
     return { migrated, unchanged, continueCursor: result.continueCursor, isDone: result.isDone };
   },
 });
+
+/** Q1 never invents event dates from the old monthly aggregate. */
+export const migrateQ1Users = internalMutation({
+  args: { paginationOpts: paginationOptsValidator },
+  handler: async (ctx, args) => {
+    const page = await ctx.db.query("users").paginate(args.paginationOpts);
+    let erased = 0;
+    for (const user of page.page) {
+      if (user.aiGenerationsThisMonth === undefined && user.aiGenerationLimit === undefined) continue;
+      await ctx.db.patch(user._id, { aiGenerationsThisMonth: undefined, aiGenerationLimit: undefined });
+      erased++;
+    }
+    return { erased, isDone: page.isDone, continueCursor: page.continueCursor };
+  },
+});
+
+/** Only the seven cached outlines, run once after Q1 deployment. */
+export const materializeQ1CollectionCounts = internalMutation({
+  args: {},
+  handler: async ctx => {
+    let written = 0;
+    for (const outline of await ctx.db.query("collectionOutlines").take(8)) {
+      const existing = await ctx.db.query("collectionCounts").withIndex("by_collection", q => q.eq("collectionSlug", outline.collectionSlug)).unique();
+      const totalHadiths = outline.volumes.reduce((sum, volume) => sum + volume.hadithCount, 0);
+      if (existing && existing.totalHadiths === totalHadiths && existing.indexedAt === outline.indexedAt) continue;
+      const fields = { collectionSlug: outline.collectionSlug, totalHadiths, indexedAt: outline.indexedAt };
+      if (existing) await ctx.db.patch(existing._id, fields);
+      else await ctx.db.insert("collectionCounts", fields);
+      written++;
+    }
+    return { written };
+  },
+});

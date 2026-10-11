@@ -24,7 +24,7 @@ struct QuotaPaywallView: View {
                         Text("More AI translations")
                             .font(.title2.weight(.semibold))
                             .foregroundStyle(palette.textPrimary)
-                        Text("You reached this month’s free AI limit. Reading, saved items, and existing translations stay free.")
+                        Text("q1.quota_exhausted")
                             .font(.subheadline)
                             .foregroundStyle(palette.textSecondary)
                             .multilineTextAlignment(.center)

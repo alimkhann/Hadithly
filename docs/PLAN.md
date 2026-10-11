@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-10-11. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-10-12. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
 D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its
 simulator/emulator and unit gates; its physical-device gate is open. R4's
@@ -29,6 +29,9 @@ proposal wording is historical. E3 passed its development gate on 2026-10-11;
 see `docs/E3_VERIFICATION.md`, `docs/E3_REVIEW.md`, and `docs/OPEN_GATES.md`.
 E4 passed its development gate on 2026-10-11 under the owner's deployment approval.
 See `docs/E4_VERIFICATION.md`.
+Q1 implementation and its local race/property gate pass on 2026-10-12.
+Development rollout and real platform-integrity proof remain open; see
+`docs/Q1_VERIFICATION.md`. Q2 has not started.
 Do not
 start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
@@ -324,9 +327,9 @@ deletion, retain only non-sensitive audit facts that the policy permits.
 
 AI generation is an explicit hadith action. Opening or paging the reader may
 load official, approved, or already cached translations, but it must not create
-paid AI translations for every visible hadith. The current clients do schedule
-generation for an entire non-English page; Q1 must remove that behavior before
-production quotas or paid acquisition. Grounding is reserved for evidence
+paid AI translations for every visible hadith. Q1 removes the former whole-page generation behavior on both clients. Its
+new batch cache query requires the recorded development rollout before those
+native builds are used for live verification. Grounding is reserved for evidence
 review and exceptional verification, not ordinary translation generation.
 
 Ordinary translation uses licensed source material and cache reuse. It does not
@@ -1547,6 +1550,44 @@ substantive: they own bounded implementation outcomes, not just inventories.
   IDs. Only permitted detached audit facts, daily admission counters, and anonymous
   global spend events remain. No ticket or credential was created or copied.
 - E4 passed in development. Stop before Q1.
+
+### Q1 rolling quotas and operating cost (2026-10-12)
+
+- Implemented only Q1 and the owner's related read-cost repair. F1's completion
+  was confirmed. The local race/property gate passes; development deployment,
+  migrations, real native generation and physical integrity gates remain open.
+  Q2 has not started. See `docs/Q1_DESIGN.md` and `docs/Q1_VERIFICATION.md`.
+- Immutable global success events replace monthly user counters. Private charge
+  bindings enforce five free/100 Pro new generations in a rolling seven days.
+  Atomic reservations and fenced completion unify user and notification service
+  generation. Cache/approved winners, failures and retries cannot double charge.
+  Deletion erases private bindings and keeps anonymous global success facts.
+- Both readers use one cache-only exact-locale page batch, including for guests.
+  New generation is one explicit hadith action. Purchase retry resumes only
+  rejected requests. Allowance/retry appears with requested content; account and
+  locale transitions erase private request state. Settings has restore/manage
+  without a quota display or paywall shortcut.
+- Ordinary Gemini has structured output, bounded input/output, no Search, no
+  repair call and no SDK retry. Numeric prompt-free token/cost telemetry settles
+  a monthly server budget reservation. Unknown/abandoned calls retain it.
+  Authentication, one-use bound challenges, native App Attest/Play Integrity
+  verification, account/global rate/concurrency and spend caps protect admission.
+- Convex cost repair materializes small collection counts and removes seven
+  unused full-outline Library subscriptions on each client. The representative
+  count fixture is over 100 times smaller and still produces identical progress
+  after the full outlines are removed. October 10's audit attributed the earlier
+  cap to database I/O, not egress. A current dashboard refresh needed sign-in;
+  no post-rollout bill saving is claimed.
+- Local proof: backend typecheck and 292 tests; iOS 224 local unit tests plus
+  four Q1 UI tests on iPhone 18 Pro iOS 27; Android 195 unit plus three installed
+  Q1 UI tests on `hadithly`, Android 16, JDK 21. The two unrelated E2/E3 live iOS
+  tests remain opt-in and were skipped. Q1 tests have no skips. Independent reviews
+  reproduced permission/source/proof races and stale native allowance state;
+  accepted repairs are covered by actual regression checks.
+- No live deployment, migration, cloud/credential/billing setting, paid Gemini
+  request, or push ran. The finished local work is committed under `AGENTS.md`.
+  Next allowed work is Q1's explicit development action boundary and integrity
+  proof. Prior release, E1, widget, sync, rights and device gates remain open.
 
 ### Future topic browsing with the Jev classifier (not a session)
 

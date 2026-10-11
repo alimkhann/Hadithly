@@ -15,6 +15,7 @@
     "convex": "^1.29.3",
     "google-auth-library": "^10.3.0",
     "image-size": "^2.0.4",
+    "node-app-attest": "1.0.1",
     "pdf-lib": "^1.17.1"
   },
   "devDependencies": {

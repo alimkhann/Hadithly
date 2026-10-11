@@ -1,6 +1,6 @@
 # Open gates
 
-Updated 2026-10-11 from the current plan, dashboard checklist, and E3 checks.
+Updated 2026-10-12 from the current plan, dashboard checklist, and E3 checks.
 This is a record of outstanding proof, not a fresh production dashboard audit.
 Later session records take precedence over older unchecked boxes and summaries.
 
@@ -21,6 +21,7 @@ Later session records take precedence over older unchecked boxes and summaries.
 | W1 / W2 | iOS locked rendering, empty first install, exact nonzero restoration; synced widgets; offline and deleted-download behavior on both platforms; remaining iOS stale cases. | Installed iOS gallery/tap and Android guest offset/stale behavior have evidence. The full widget gate is not passed. |
 | E1 | iOS progress/cancellation and account-switch tests; RTL and assistive-technology device matrix. | Signed-in native intake, private upload, withdrawal, and local recovery passed. E2 proceeded under an explicit owner exception. |
 | E3 | Production provider-rights coverage and release rollout remain with O1/D4. | Development passed: 232 backend tests, 219 iOS units, both native upload/OCR/review/publication/readback paths, production status/source UI fixtures, private cloud controls, 14 Linux tests, and two final clean adversarial reviews. |
+| Q1 | Development deployment and bounded user/count migrations; real native generation/cache/quota retry; physical App Attest registration/assertion and configured Play Integrity decode/native round trip. | Local race/property gate, token/spend/privacy controls, backend 292 tests, iOS 224 local unit plus four Q1 UI tests, Android 195 unit plus three Q1 UI tests pass. No cloud or paid-provider action ran. |
 | E4 | Production rollout remains with the release track. | Development passed: owner-approved deployment and idempotent legacy revocation; backend 257, iOS 222 unit plus three UI, Android 194 unit plus five UI tests; both real signed-in native report/appeal flows and fixture cleanup passed. No mandatory human queue. |
 
 R5, R6, H1, H2, and S1 have no separate unresolved implementation gate in their
@@ -36,8 +37,8 @@ must be replaced by evidence-pipeline checks, not used to revive that workflow.
 - E4 passed in development. Reports, appeals, rechecks, abuse, revocation, and
   retention run automatically. Operator handling is optional; production rollout
   stays with the release track.
-- Q1 still owns rolling quotas, generation only on explicit user action,
-  single-flight charging, cache reuse, and abuse/spend controls.
+- Q1's local implementation and race/property gate pass. Its remaining action
+  boundaries and live integrity/runtime proof are recorded above. Q2 is unopened.
 - Q2, LA1 through LA4, and L1 remain future sessions, not passed feature gates.
 
 ## App-wide operation rule

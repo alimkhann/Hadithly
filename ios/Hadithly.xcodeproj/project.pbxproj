@@ -22,6 +22,7 @@
 		1E12EC45E3933C4A5A8FA0FF /* ReaderModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1424D8A40132B5F39FA23E7D /* ReaderModel.swift */; };
 		20B74F1EE251CAEE00BD55FD /* ClerkConvex in Frameworks */ = {isa = PBXBuildFile; productRef = 29379B7F31920A83A0638E04 /* ClerkConvex */; };
 		213D967240CFA2A93AE85BF9 /* UserLibraryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F16E29AA1FEEB93DF8895F92 /* UserLibraryModel.swift */; };
+		2448C9C601CA460CDB5AA975 /* TranslationQ1UITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F2C006A6ADF164BFFE5626C /* TranslationQ1UITests.swift */; };
 		24D09D58DF6B0BA1E0CE3869 /* ReaderPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0452F82CBFD45C811E9216B /* ReaderPalette.swift */; };
 		2914F7DE6345DFBCC6A64E7F /* EvidenceProcessingLiveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFA2FD4D05F733D974EA4AE7 /* EvidenceProcessingLiveTests.swift */; };
 		29EED2CDA165D85E959D4658 /* cover_ibn_majah.png in Resources */ = {isa = PBXBuildFile; fileRef = 30CBA6737A888372D8DE9DAE /* cover_ibn_majah.png */; };
@@ -43,6 +44,7 @@
 		40005CAC146B94EEE62A8E7A /* PurchaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08FCCB643524BAD19F468A58 /* PurchaseManager.swift */; };
 		4137E4BEC4D9AB99B0CBEB6D /* ReaderModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D35DB572137529526C5AA2 /* ReaderModels.swift */; };
 		43B022473DE465BE5F3623B0 /* LinkRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FB024ED7912D71646528AF /* LinkRouter.swift */; };
+		4803AEBD5F3BA577285F29A3 /* TranslationQ1Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0464ACE8D759D0F51F3DF6 /* TranslationQ1Tests.swift */; };
 		48F9D8BBFE746F017DD36757 /* cover_tirmidhi.png in Resources */ = {isa = PBXBuildFile; fileRef = D107B2FAEF96D16E16F442F1 /* cover_tirmidhi.png */; };
 		4ABC8D15C40380439DA00A33 /* ReaderR6Round3UITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF8EEEAA15EA9544CA62E1C8 /* ReaderR6Round3UITests.swift */; };
 		4D7694056267EE1FBF537010 /* EvidenceProcessingUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 513538F1B3444147AA79C72C /* EvidenceProcessingUITests.swift */; };
@@ -64,6 +66,7 @@
 		6E3CDFC6F756A6D19D962257 /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = C214D59D6095D0E12AC6322B /* WidgetSnapshot.swift */; };
 		72535E78B5A85511AA4651C0 /* LocalizationCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14213D148CCC3FF6195D0960 /* LocalizationCatalogTests.swift */; };
 		726636C90A05CEF5457CDAA9 /* AutomationContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = F14D210E33058A60A979FBCC /* AutomationContext.swift */; };
+		7388108FA5AD5C068739A7BF /* GenerationRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 458281970E1E2168F5725489 /* GenerationRequest.swift */; };
 		74E51CCAABFB40B9A9F79499 /* cover_sunan_nasai.png in Resources */ = {isa = PBXBuildFile; fileRef = A8D1159CA1AF2180E1E2C965 /* cover_sunan_nasai.png */; };
 		7658997B1A2EDD9CB1A2DDDC /* LocaleFallbackTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70F98F5B177BFB48360BAEDB /* LocaleFallbackTests.swift */; };
 		7A397A1C224B341745F5063F /* ReaderPagingUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A89540301945C047C73D02 /* ReaderPagingUITests.swift */; };
@@ -174,6 +177,7 @@
 		21B165348425F36BB25A5B5A /* Hadithly.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Hadithly.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		235969919272723C20A049BE /* SavedSafetyPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedSafetyPreferences.swift; sourceTree = "<group>"; };
 		23DC026E62A1CE99ADDC578E /* ReaderChapterBoundaries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderChapterBoundaries.swift; sourceTree = "<group>"; };
+		2A0464ACE8D759D0F51F3DF6 /* TranslationQ1Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationQ1Tests.swift; sourceTree = "<group>"; };
 		2A50BDEFB0F097AEA7D35CC9 /* MainTabsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabsView.swift; sourceTree = "<group>"; };
 		2D02AD7C700EF70DF761938B /* CollectionCover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionCover.swift; sourceTree = "<group>"; };
 		2DB77C4DAC4E74EC0E77C50C /* GuestMergePlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestMergePlanner.swift; sourceTree = "<group>"; };
@@ -182,6 +186,7 @@
 		30CC2E71A270EECA2E3A0904 /* ReaderModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderModelsTests.swift; sourceTree = "<group>"; };
 		398D9309E16109EB729AE761 /* cover_mishkat.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = cover_mishkat.png; sourceTree = "<group>"; };
 		4016420E5535FD74227FB40F /* EvidenceSubmissionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvidenceSubmissionSheet.swift; sourceTree = "<group>"; };
+		458281970E1E2168F5725489 /* GenerationRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerationRequest.swift; sourceTree = "<group>"; };
 		493BD2510A9F66D5B3DDE11C /* TabChromeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabChromeUITests.swift; sourceTree = "<group>"; };
 		4962698F596A699C8B5250D3 /* QuotaPaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaPaywallView.swift; sourceTree = "<group>"; };
 		498F77309F82C41BF08E487B /* HadithlyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HadithlyApp.swift; sourceTree = "<group>"; };
@@ -194,6 +199,7 @@
 		58DDF1A3D4E9ECCDEC8EC1A3 /* HadithlyUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = HadithlyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5DFB6D276EC727353BA7A9C6 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
 		5E176D05E5AEA5A34C63D3FF /* EvidenceE4Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvidenceE4Tests.swift; sourceTree = "<group>"; };
+		5F2C006A6ADF164BFFE5626C /* TranslationQ1UITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationQ1UITests.swift; sourceTree = "<group>"; };
 		60ADF5B4FE4B19D653444A35 /* GuestDataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestDataStore.swift; sourceTree = "<group>"; };
 		6120A24450F78D02EAD3D3E6 /* OfflineReaderUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineReaderUITests.swift; sourceTree = "<group>"; };
 		612B24DAC5D49A38CD0FB400 /* OfflineDump.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineDump.swift; sourceTree = "<group>"; };
@@ -263,8 +269,8 @@
 		FA7143E72E104DB258A51D0D /* PushNotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationManager.swift; sourceTree = "<group>"; };
 		FBD00493F3B0CA46FF1DDAB8 /* Amiri-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Amiri-OFL.txt"; sourceTree = "<group>"; };
 		FFA2FD4D05F733D974EA4AE7 /* EvidenceProcessingLiveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvidenceProcessingLiveTests.swift; sourceTree = "<group>"; };
-		"TEMP_34B06028-A856-406F-B772-DE346F72CB5B" /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
-		"TEMP_72EB1915-72C1-49AC-B567-BE93A69E9F40" /* Production.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Production.xcconfig; sourceTree = "<group>"; };
+		"TEMP_381309EB-1736-46D0-83B5-F56086F3EB62" /* Production.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Production.xcconfig; sourceTree = "<group>"; };
+		"TEMP_4CA61CDC-3CE7-468C-84C6-A7E560F9AC8A" /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -531,6 +537,7 @@
 				4A44969E4A11AACEF52E2E43 /* SettingsS1Tests.swift */,
 				E44FCAA45E0A462774A84DA1 /* SupportedLanguagesTests.swift */,
 				095290F9C1C4A16C55AA4836 /* TodayTests.swift */,
+				2A0464ACE8D759D0F51F3DF6 /* TranslationQ1Tests.swift */,
 				9BEA04AF518ACAFD1B3EF36B /* WidgetSnapshotTests.swift */,
 			);
 			path = HadithlyTests;
@@ -549,6 +556,7 @@
 				DF8EEEAA15EA9544CA62E1C8 /* ReaderR6Round3UITests.swift */,
 				A081F6E81EAD5FF436B9DFED /* SettingsS1UITests.swift */,
 				493BD2510A9F66D5B3DDE11C /* TabChromeUITests.swift */,
+				5F2C006A6ADF164BFFE5626C /* TranslationQ1UITests.swift */,
 				E74A4174BAE832BB024BA244 /* W2WidgetGalleryUITests.swift */,
 			);
 			path = HadithlyUITests;
@@ -577,6 +585,7 @@
 			children = (
 				2D02AD7C700EF70DF761938B /* CollectionCover.swift */,
 				4016420E5535FD74227FB40F /* EvidenceSubmissionSheet.swift */,
+				458281970E1E2168F5725489 /* GenerationRequest.swift */,
 				8915CABC1FAD246BEAAE5CAA /* LibraryModel.swift */,
 				5DFB6D276EC727353BA7A9C6 /* LibraryView.swift */,
 				23DC026E62A1CE99ADDC578E /* ReaderChapterBoundaries.swift */,
@@ -629,11 +638,11 @@
 			);
 			sourceTree = "<group>";
 		};
-		"TEMP_E9EEBB5A-8561-4674-9C27-7AA5CFC7E5A3" /* ios */ = {
+		"TEMP_BE06020A-B661-4D51-9C53-6EB06FBCBDE8" /* ios */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_34B06028-A856-406F-B772-DE346F72CB5B" /* Secrets.xcconfig */,
-				"TEMP_72EB1915-72C1-49AC-B567-BE93A69E9F40" /* Production.xcconfig */,
+				"TEMP_4CA61CDC-3CE7-468C-84C6-A7E560F9AC8A" /* Secrets.xcconfig */,
+				"TEMP_381309EB-1736-46D0-83B5-F56086F3EB62" /* Production.xcconfig */,
 			);
 			path = ios;
 			sourceTree = "<group>";
@@ -808,6 +817,7 @@
 				4ABC8D15C40380439DA00A33 /* ReaderR6Round3UITests.swift in Sources */,
 				E77D4F827BB0EC657E01449F /* SettingsS1UITests.swift in Sources */,
 				0E612DAD150E279A6B367A95 /* TabChromeUITests.swift in Sources */,
+				2448C9C601CA460CDB5AA975 /* TranslationQ1UITests.swift in Sources */,
 				8E561608CA8D4981D91C5C51 /* W2WidgetGalleryUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -840,6 +850,7 @@
 				A9DCB00A5270C523F27CA774 /* SettingsS1Tests.swift in Sources */,
 				387B3ED9A915C443A4D6BE7F /* SupportedLanguagesTests.swift in Sources */,
 				371448E96EA75B28B253047D /* TodayTests.swift in Sources */,
+				4803AEBD5F3BA577285F29A3 /* TranslationQ1Tests.swift in Sources */,
 				14ED172B48EB3DC8D74EEF3C /* WidgetSnapshotTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -853,6 +864,7 @@
 				3B23E69EF62410EE33249CD0 /* CollectionCover.swift in Sources */,
 				9D557AD7F1F2D7E3D4B94EAA /* ContinueReadingRail.swift in Sources */,
 				07B31C70CF0320731E38DBDD /* EvidenceSubmissionSheet.swift in Sources */,
+				7388108FA5AD5C068739A7BF /* GenerationRequest.swift in Sources */,
 				92772F9145AF4DE5EDCB8AB6 /* GuestDataModels.swift in Sources */,
 				33FC99DE32E942D10DA1A0E8 /* GuestDataStore.swift in Sources */,
 				97895D6035CF1D70762E9219 /* GuestMergePlanner.swift in Sources */,
@@ -932,8 +944,9 @@
 /* Begin XCBuildConfiguration section */
 		081EA1614EAE1CB1451F28EB /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_72EB1915-72C1-49AC-B567-BE93A69E9F40" /* Production.xcconfig */;
+			baseConfigurationReference = "TEMP_381309EB-1736-46D0-83B5-F56086F3EB62" /* Production.xcconfig */;
 			buildSettings = {
+				APP_ATTEST_ENVIRONMENT = production;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Hadithly/Hadithly.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -952,8 +965,9 @@
 		};
 		1DB6B6403B644CF2BD507A46 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_34B06028-A856-406F-B772-DE346F72CB5B" /* Secrets.xcconfig */;
+			baseConfigurationReference = "TEMP_4CA61CDC-3CE7-468C-84C6-A7E560F9AC8A" /* Secrets.xcconfig */;
 			buildSettings = {
+				APP_ATTEST_ENVIRONMENT = development;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Hadithly/Hadithly.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";

@@ -84,13 +84,5 @@ class SettingsS1Test {
         assertEquals("Free", SettingsSubscription.displayName(null))
     }
 
-    @Test
-    fun subscriptionQuotaLine() {
-        assertEquals(
-            "2 of 20 AI translations used this month",
-            SettingsSubscription.quotaLine(2.0, 20.0),
-        )
-        assertNull(SettingsSubscription.quotaLine(null, 20.0))
-        assertNull(SettingsSubscription.quotaLine(2.0, 0.0))
-    }
+
 }

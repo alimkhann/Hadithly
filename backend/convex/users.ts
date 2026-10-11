@@ -13,8 +13,6 @@ import {
   type ReaderPreferences,
 } from "./lib/preferences";
 
-export const DEFAULT_AI_GENERATION_LIMIT = 20;
-export const PRO_AI_GENERATION_LIMIT = 500;
 
 type EntitlementSyncResult =
   | { kind: "ignored_unknown_user" }
@@ -105,8 +103,6 @@ export const ensureCurrentUser = mutation({
       readerPreferences,
       localesMigrated: true,
       subscriptionTier: "free",
-      aiGenerationsThisMonth: 0,
-      aiGenerationLimit: DEFAULT_AI_GENERATION_LIMIT,
       createdAt: now,
       updatedAt: now,
     });
@@ -395,6 +391,13 @@ export const deleteCurrentUser = mutation({
       await ctx.db.patch(auditRow._id, { actorUserId: undefined });
     }
     for (const row of await ctx.db.query("evidenceAuditActors").withIndex("by_user", q => q.eq("userId", user._id)).collect()) await ctx.db.delete(row._id);
+    for (const row of await ctx.db.query("aiUsageCharges").withIndex("by_user_time", q => q.eq("userId", user._id)).collect()) await ctx.db.delete(row._id);
+    // Keep the global lease and immutable success facts. A late completion can
+    // still cache public content, but cannot charge a deleted/recreated account.
+    for (const row of await ctx.db.query("aiGenerationJobs").withIndex("by_user_status", q => q.eq("userId", user._id)).collect()) await ctx.db.patch(row._id, { userId: undefined });
+    for (const row of await ctx.db.query("generationChallenges").withIndex("by_user_time", q => q.eq("userId", user._id)).collect()) await ctx.db.delete(row._id);
+    for (const row of await ctx.db.query("generationCredentials").withIndex("by_user", q => q.eq("userId", user._id)).collect()) await ctx.db.delete(row._id);
+    for (const row of await ctx.db.query("aiRateLimits").withIndex("by_user", q => q.eq("userId", user._id)).collect()) await ctx.db.delete(row._id);
     for (const kind of ["submission", "report", "appeal"] as const) {
       const rows = await ctx.db.query("evidenceRequestEvents").withIndex("by_user_kind_time", q => q.eq("userId", user._id).eq("kind", kind)).collect();
       for (const row of rows) await ctx.db.delete(row._id);
@@ -462,10 +465,6 @@ export const syncRevenueCatEntitlement = internalMutation({
       entitlementExpiresAt: args.entitlementExpiresAt,
       revenueCatEventTimestamp: args.eventTimestampMs,
       entitlementUpdatedAt: now,
-      aiGenerationLimit:
-        args.subscriptionTier === "free"
-          ? DEFAULT_AI_GENERATION_LIMIT
-          : PRO_AI_GENERATION_LIMIT,
       updatedAt: now,
     });
     return { kind: "updated", userId: existing._id };

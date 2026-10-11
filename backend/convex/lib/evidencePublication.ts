@@ -3,6 +3,7 @@ import type { QueryCtx, MutationCtx } from "../_generated/server";
 import { canonicalJson } from "./offlineDumps";
 import { textDigest, pathWithinPolicy } from "./evidenceReviewPolicy";
 import { storageHashMatches } from "../evidence";
+import { generationIdentity } from "./generationPolicy";
 
 export async function currentPublicationPermissions(ctx: QueryCtx | MutationCtx, revision: Doc<"evidencePublicationRevisions"> | null, use: "comparison" | "offline" | "display") {
   const bindings = [];
@@ -26,6 +27,12 @@ export async function currentPublicationPermissions(ctx: QueryCtx | MutationCtx,
 
 export async function publicTranslationAvailable(ctx: QueryCtx | MutationCtx, row: Doc<"translations"> | null, visited: ReadonlySet<string> = new Set()): Promise<boolean> {
   if (!row || row.status !== "live") return false;
+  if (row.source === "gemini_ai" && row.generationKey) {
+    const hadith = await ctx.db.get(row.hadithId);
+    const license = hadith?.licenseRecordId ? await ctx.db.get(hadith.licenseRecordId) : null;
+    if (!hadith || row.generationKey !== (await generationIdentity(hadith, row.language)).generationKey ||
+      license?.terms.kind !== "verified" || !license.terms.permitsDisplay) return false;
+  }
   if (!row.evidencePublicationId) return row.source !== "community";
   const revision = await ctx.db.get(row.evidencePublicationId);
   if (visited.has(row.evidencePublicationId) || visited.size >= 20) return false;

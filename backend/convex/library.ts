@@ -943,8 +943,8 @@ export const listReadingProgressDetailed = query({
 export const listCollectionProgressSummaries = query({
   args: {},
   handler: async (ctx) => {
-    const outlines = await ctx.db.query("collectionOutlines").collect();
-    const outlineBySlug = new Map(outlines.map((outline) => [outline.collectionSlug, outline]));
+    const counts = await ctx.db.query("collectionCounts").collect();
+    const countBySlug = new Map(counts.map((count) => [count.collectionSlug, count]));
     const rawIdentity = await ctx.auth.getUserIdentity();
     const clerkId = identitySubject(rawIdentity);
     const user = clerkId ? await userByClerkId(ctx, clerkId) : null;
@@ -957,10 +957,12 @@ export const listCollectionProgressSummaries = query({
     const progressBySlug = new Map(progress.map((row) => [row.collectionSlug, row]));
 
     return Promise.all(DEFAULT_COLLECTION_ORDER.map(async (collectionSlug) => {
-      const outline = outlineBySlug.get(collectionSlug);
-      const totalHadiths = outline?.volumes.reduce((total, volume) => total + volume.hadithCount, 0);
+      const count = countBySlug.get(collectionSlug);
+      // Rollout fallback for old deployments until the idempotent Q1 backfill.
+      const outline = !count ? await ctx.db.query("collectionOutlines").withIndex("by_collection_slug", q => q.eq("collectionSlug", collectionSlug)).unique() : null;
+      const totalHadiths = count?.totalHadiths ?? outline?.volumes.reduce((total, volume) => total + volume.hadithCount, 0);
       const row = progressBySlug.get(collectionSlug);
-      if (!outline || !totalHadiths) {
+      if (!totalHadiths) {
         return { collectionSlug, state: "unavailable" as const, totalHadiths: null, readOrdinal: null };
       }
       if (!row) {

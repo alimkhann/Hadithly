@@ -225,6 +225,11 @@ sealed interface TranslationFailure {
     data object RequiresSignIn : TranslationFailure
     data class Failed(val message: String) : TranslationFailure
 
+    val retryAt: Double?
+        get() = (this as? Failed)?.message?.let { message ->
+            Regex("""retryAt["\\\s]*[:=]\s*([0-9]+)""").find(message)?.groupValues?.get(1)?.toDoubleOrNull()
+        }
+
     companion object {
         fun of(message: String): TranslationFailure = when {
             message.contains("AI_GENERATION_QUOTA_EXCEEDED") -> QuotaExceeded
@@ -280,8 +285,6 @@ data class UserPreferencesResult(
 data class SubscriptionStatusResult(
     val subscriptionTier: String? = null,
     val entitlementExpiresAt: Double? = null,
-    val aiGenerationsThisMonth: Double? = null,
-    val aiGenerationLimit: Double? = null,
 )
 
 /**

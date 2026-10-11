@@ -128,8 +128,5 @@ enum SettingsSubscription {
         }
     }
 
-    static func quotaLine(used: Double?, limit: Double?) -> String? {
-        guard let used, let limit, limit > 0 else { return nil }
-        return "\(Int(used)) of \(Int(limit)) AI translations used this month"
-    }
+
 }

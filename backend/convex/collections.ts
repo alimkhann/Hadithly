@@ -66,6 +66,10 @@ export const upsertOutline = internalMutation({
   },
   handler: async (ctx, args) => {
     const now = Date.now();
+    const count = await ctx.db.query("collectionCounts").withIndex("by_collection", q => q.eq("collectionSlug", args.collectionSlug)).unique();
+    const summary = { collectionSlug: args.collectionSlug, totalHadiths: args.volumes.reduce((sum, volume) => sum + volume.hadithCount, 0), indexedAt: now };
+    if (count) await ctx.db.patch(count._id, summary);
+    else await ctx.db.insert("collectionCounts", summary);
     const existing = await ctx.db
       .query("collectionOutlines")
       .withIndex("by_collection_slug", (q) =>

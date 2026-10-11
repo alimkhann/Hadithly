@@ -114,6 +114,7 @@ dependencies {
     implementation(libs.convex.mobile)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
+    implementation("com.google.android.play:integrity:1.6.0")
     implementation(libs.revenuecat.purchases)
 
     testImplementation(libs.junit)

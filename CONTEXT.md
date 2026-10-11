@@ -89,3 +89,24 @@ Contributor scores and reputation are outside the product.
 
 **Source policy**:
 A cached assessment of a source's permitted uses, tied to its terms and review date. Unknown sources remain unresolved until permission is established.
+
+**New global generation**:
+An AI translation successfully published for one canonical hadith, source revision,
+exact locale, model, and translation policy. Reading an existing result is not a
+new generation.
+_Avoid_: Translation request, provider attempt
+
+**Usage event**:
+An immutable success fact for one new global generation. A separate private charge
+links that fact to the initiating account until privacy erasure.
+_Avoid_: Monthly counter, billable request
+
+**Translation allowance**:
+The number of new generations an account can request within a rolling seven-day
+window, after its successful charges and active reservations.
+_Avoid_: Monthly quota, remaining cached translations
+
+**Generation reservation**:
+One pending new generation holding a prospective allowance slot for its initiating
+account. Failure or expiry releases the slot without creating usage.
+_Avoid_: Successful charge, purchased credit
