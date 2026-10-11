@@ -1458,6 +1458,10 @@ substantive: they own bounded implementation outcomes, not just inventories.
   old request completes. Both three-item native checks then passed concurrently.
 - Docker was fully cleaned at the owner's explicit request. Final readback shows
   no containers, images, volumes, or build cache, and only built-in networks.
+- `docs/COST_REVIEW.md` records the separate requested cost audit. September's
+  free-tier limit was database I/O, mainly large progress-summary and outline
+  reads. Its hypothetical Starter overage was about $0.12. No Convex upgrade,
+  backend migration, or Q1 cost repair was performed.
 - Stop before E3. E1's remaining device matrix stays open.
 
 ### Future topic browsing with the Jev classifier (not a session)
