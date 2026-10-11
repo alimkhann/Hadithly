@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import com.hadithly.app.HadithlyApplication
 import com.hadithly.app.R
 import com.hadithly.app.core.data.EvidenceCitation
+import com.hadithly.app.core.data.EvidenceAppealState
 import com.clerk.api.Clerk
 import com.hadithly.app.core.data.EvidenceDraftView
 import com.hadithly.app.core.data.EvidenceClientPolicy
@@ -71,7 +73,7 @@ private fun evidenceError(failure: Throwable): String {
 }
 
 @Composable
-internal fun EvidenceProcessingStatusContent(status: String, retryItems: List<String>, citations: List<EvidenceCitation> = emptyList(), onRetry: (String) -> Unit) {
+internal fun EvidenceProcessingStatusContent(status: String, retryItems: List<String>, citations: List<EvidenceCitation> = emptyList(), appeal: EvidenceAppealState? = null, onAppeal: (String) -> Unit = {}, onRetry: (String) -> Unit) {
     val colors = LocalHadithlyColors.current
     val uriHandler = LocalUriHandler.current
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -79,12 +81,13 @@ internal fun EvidenceProcessingStatusContent(status: String, retryItems: List<St
             CircularProgressIndicator(modifier = Modifier.testTag("submission.processing").semantics { contentDescription = "Processing evidence" })
             Text("Evidence received; awaiting checks.", color = colors.textPrimary, fontSize = 18.sp)
             Text("Processing evidence. Your suggestion stays private and has not been reviewed or published.", color = colors.textSecondary)
-        } else if (status in setOf("under_review", "approved", "held", "rejected", "review_unavailable")) {
+        } else if (status in setOf("under_review", "approved", "held", "rejected", "review_unavailable", "revoked")) {
             val title = when (status) {
                 "under_review" -> R.string.e3_reviewing
                 "approved" -> R.string.e3_published
                 "held" -> R.string.e3_exception
                 "rejected" -> R.string.e3_rejected
+                "revoked" -> R.string.e4_revoked
                 else -> R.string.e3_unavailable
             }
             val message = when (status) {
@@ -92,6 +95,7 @@ internal fun EvidenceProcessingStatusContent(status: String, retryItems: List<St
                 "approved" -> R.string.e3_published_message
                 "held" -> R.string.e3_exception_message
                 "rejected" -> R.string.e3_rejected_message
+                "revoked" -> R.string.e4_revoked_message
                 else -> R.string.e3_unavailable_message
             }
             Text(stringResource(title), color = colors.textPrimary, fontSize = 18.sp, modifier = Modifier.testTag("submission.$status"))
@@ -108,6 +112,7 @@ internal fun EvidenceProcessingStatusContent(status: String, retryItems: List<St
         if (status in setOf("awaiting_processing", "processing_failed")) retryItems.forEach { itemId ->
             TextButton(onClick = { onRetry(itemId) }, modifier = Modifier.testTag("submission.retryProcessing")) { Text("Retry evidence") }
         }
+        EvidenceAppealContent(appeal, onAppeal)
         if (citations.isNotEmpty()) {
             Text(stringResource(R.string.e3_sources), color = colors.textPrimary)
             citations.forEachIndexed { index, citation ->
@@ -121,6 +126,19 @@ internal fun EvidenceProcessingStatusContent(status: String, retryItems: List<St
                 }
             }
         }
+    }
+}
+
+@Composable
+internal fun EvidenceAppealContent(appeal: EvidenceAppealState?, onAppeal: (String) -> Unit) {
+    var reason by remember(appeal?.status) { mutableStateOf("") }
+    if (appeal?.canRequest() == true) {
+        Text(stringResource(R.string.e4_appeal_window))
+        OutlinedTextField(value = reason, onValueChange = { reason = it }, label = { Text(stringResource(R.string.e4_appeal_reason)) }, minLines = 3,
+            modifier = Modifier.fillMaxWidth().testTag("submission.appealReason"))
+        TextButton(onClick = { onAppeal(reason) }, enabled = reason.trim().length in 8..2000, modifier = Modifier.heightIn(min = 48.dp).testTag("submission.appeal")) { Text(stringResource(R.string.e4_appeal)) }
+    } else if (appeal != null && appeal.status != "not_requested") {
+        Text(stringResource(if (appeal.status == "processing") R.string.e4_appeal_processing else R.string.e4_appeal_resolved), modifier = Modifier.testTag("submission.appealStatus"))
     }
 }
 
@@ -249,7 +267,9 @@ fun TranslationSubmissionSheet(
             }
         }
         if (active == null && viewModel.canContribute && accountId != null) {
-            runCatching { repository.getOwnLegacyProposal(hadith.internalId, viewModel.state.value.language) }
+            val latest = runCatching { repository.getOwnEvidenceForTarget(hadith.internalId, viewModel.state.value.language) }.getOrNull()
+            if (latest != null) { draft = latest; content = latest.proposedContent }
+            else runCatching { repository.getOwnLegacyProposal(hadith.internalId, viewModel.state.value.language) }
                 .getOrNull()?.let { legacy ->
                     legacySubmissionId = legacy.submissionId
                     content = legacy.proposedContent
@@ -258,6 +278,15 @@ fun TranslationSubmissionSheet(
         localLoaded = true
     }
 
+    LaunchedEffect(draft?.status) {
+        val remote = draft ?: return@LaunchedEffect
+        if (remote.status != "draft") {
+            choices.forEach { it.filePath?.let(::File)?.delete() }
+            choices.clear()
+            content = remote.proposedContent
+            urlInput = ""
+        }
+    }
     LaunchedEffect(localKey, localLoaded, content, urlInput, choices.toList(), draft?.submissionId, legacySubmissionId) {
         if (!localLoaded || !viewModel.canContribute || accountId == null) return@LaunchedEffect
         if (draft == null && content.isEmpty() && urlInput.isEmpty() && choices.isEmpty()) {
@@ -306,11 +335,17 @@ fun TranslationSubmissionSheet(
                     } }
                 }) { Text("Start a new suggestion") }
             }
-            draft?.status in setOf("awaiting_processing", "evidence_ready", "processing_failed", "infected", "under_review", "approved", "held", "rejected", "review_unavailable") -> Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.testTag("submission.confirmation")) {
+            draft?.status in setOf("awaiting_processing", "evidence_ready", "processing_failed", "infected", "under_review", "approved", "held", "rejected", "review_unavailable", "revoked") -> Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.testTag("submission.confirmation")) {
                 EvidenceProcessingStatusContent(
                     status = draft?.status ?: "processing_failed",
                     retryItems = draft?.items?.filter { it.state == "failed" && it.retryable }?.map { it.itemId }.orEmpty(),
                     citations = draft?.citations.orEmpty(),
+                    appeal = draft?.appeal,
+                    onAppeal = { reason -> draft?.submissionId?.let { id -> scope.launch {
+                        runCatching { repository.requestEvidenceAppeal(id, reason) }
+                            .onSuccess { draft = repository.getOwnEvidenceDraft(id); error = null }
+                            .onFailure { error = context.getString(R.string.e4_appeal_error) }
+                    } } },
                     onRetry = { itemId ->
                         draft?.submissionId?.let { submissionId -> scope.launch {
                             runCatching { repository.retryEvidenceProcessing(submissionId, itemId) }

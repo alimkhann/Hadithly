@@ -70,7 +70,7 @@
     <string name="e3_exception">الاقتراح يحتاج إلى مراجعة</string>
     <string name="e3_rejected">لم يُنشر الاقتراح</string>
     <string name="e3_unavailable">المراجعة غير متاحة</string>
-    <string name="e3_reviewing_message">يبقى اقتراحك خاصًا أثناء التحقق من معناه ومصادره.</string>
+    <string name="e3_reviewing_message">يجري التحقق من معنى اقتراحك ومصادره.</string>
     <string name="e3_published_message">ترجمتك متاحة الآن في القارئ. وتبقى حالة مساهمتك خاصة.</string>
     <string name="e3_exception_message">يبقى اقتراحك خاصًا لأن أذونات المصادر أو الأدلة تحتاج إلى تحقق إضافي.</string>
     <string name="e3_rejected_message">لم تدعم نتائج التحقق النشر. يبقى اقتراحك خاصًا.</string>
@@ -82,4 +82,12 @@
     <string name="e3_community_sources_message">اقترح أحد المساهمين هذه الترجمة، وتحققت المراجعات الآلية منها بمقارنتها بالأدلة المذكورة. وهي ليست ترجمة معتمدة.</string>
     <string name="e3_contributor_label">· ترجمة مساهم</string>
     <string name="e3_report_saved_detail">تُحفظ البلاغات بشكل خاص. يمكنك متابعة القراءة.</string>
+    <string name="e4_appeal">طلب استئناف</string>
+    <string name="e4_appeal_reason">وضّح ما ينبغي إعادة فحصه</string>
+    <string name="e4_appeal_window">يمكن طلب استئناف آلي واحد خلال 30 يومًا. لا يمدد مدة الاحتفاظ بالأدلة.</string>
+    <string name="e4_appeal_processing">يجري فحص استئنافك آليًا.</string>
+    <string name="e4_appeal_resolved">اكتمل الاستئناف. تظهر النتيجة في حالة الاقتراح.</string>
+    <string name="e4_appeal_error">تعذر طلب الاستئناف. تحقق من المهلة وحاول عند الاتصال.</string>
+    <string name="e4_revoked">سُحب النشر</string>
+    <string name="e4_revoked_message">هذا الاقتراح خاص أثناء إعادة تقييم نشره.</string>
 </resources>

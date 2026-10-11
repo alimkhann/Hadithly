@@ -12,6 +12,7 @@ import com.hadithly.app.core.data.ReaderHadith
 import com.hadithly.app.core.data.ReaderPageResult
 import com.hadithly.app.core.data.ReaderPrefetch
 import com.hadithly.app.core.data.ReaderTranslation
+import com.hadithly.app.core.data.PublicationAvailability
 import com.hadithly.app.core.data.ReadingLayout
 import com.hadithly.app.core.data.ReadingPosition
 import com.hadithly.app.core.data.ReadingPositionAnchor
@@ -28,6 +29,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.delay
 
 /** Per-hadith AI translation state, keyed by the hadith's internal id. */
 sealed interface TranslationUiState {
@@ -76,6 +78,8 @@ class ReaderViewModel(
 
     private var pageJob: Job? = null
     private var translationJob: Job? = null
+    private var publicationJob: Job? = null
+    private var publicationDeadlineJob: Job? = null
     private var translationGeneration = 0
     private var nextVerticalLandingToken = 0
     private var readingWidthClass = ReadingWidthClass.COMPACT
@@ -759,6 +763,7 @@ class ReaderViewModel(
             val stored = runCatching { app.repository.storedReaderTranslation(hadith, "en") }.getOrNull()
             if (generation == translationGeneration && stored != null) {
                 _state.update { it.copy(translations = it.translations + (hadith.internalId to TranslationUiState.Loaded(stored))) }
+                watchLoadedPublications()
             }
             return
         }
@@ -777,6 +782,7 @@ class ReaderViewModel(
             _state.update {
                 it.copy(translations = it.translations + (hadith.internalId to TranslationUiState.Loaded(result)))
             }
+            watchLoadedPublications()
         } catch (error: Exception) {
             if (generation != translationGeneration) return
             val failure = TranslationFailure.of(errorMessage(error))
@@ -788,6 +794,36 @@ class ReaderViewModel(
             if (failure == TranslationFailure.QuotaExceeded || failure == TranslationFailure.RequiresSignIn) {
                 translationJob?.cancel()
             }
+        }
+    }
+
+    private fun watchLoadedPublications() {
+        publicationJob?.cancel()
+        publicationDeadlineJob?.cancel()
+        val entries = _state.value.translations.entries.filter { it.value is TranslationUiState.Loaded }.sortedBy { it.key }
+        val observed = entries.takeLast(40)
+        val retained = observed.map { it.key }.toSet()
+        _state.update { current -> current.copy(translations = current.translations.filter { it.value !is TranslationUiState.Loaded || it.key in retained }) }
+        if (observed.isEmpty()) return
+        val ids = observed.mapNotNull { (it.value as? TranslationUiState.Loaded)?.translation?.translationId }
+        publicationJob = viewModelScope.launch {
+            try {
+                app.repository.watchPublications(ids).collect { statuses ->
+                    _state.update { it.copy(translations = keepAvailableTranslations(it.translations, statuses)) }
+                    publicationDeadlineJob?.cancel()
+                    if (statuses.any { it.validUntil != null }) {
+                        publicationDeadlineJob = viewModelScope.launch {
+                            while (true) {
+                                val deadline = statuses.mapNotNull { it.validUntil }.filter { it > System.currentTimeMillis() }.minOrNull() ?: break
+                                delay((deadline - System.currentTimeMillis()).toLong().coerceAtLeast(1))
+                                _state.update { it.copy(translations = keepAvailableTranslations(it.translations, statuses)) }
+                            }
+                        }
+                    }
+                }
+                _state.update { it.copy(translations = it.translations.filterKeys { key -> key !in retained }) }
+            } catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: Exception) { _state.update { it.copy(translations = it.translations.filterKeys { key -> key !in retained }) } }
         }
     }
 
@@ -996,3 +1032,10 @@ class ReaderViewModel(
         super.onCleared()
     }
 }
+
+internal fun keepAvailableTranslations(translations: Map<String, TranslationUiState>, statuses: List<PublicationAvailability>, now: Long = System.currentTimeMillis()): Map<String, TranslationUiState> =
+    translations.filterValues { state ->
+        val translation = (state as? TranslationUiState.Loaded)?.translation
+        val status = statuses.firstOrNull { it.translationId == translation?.translationId }
+        status == null || status.available && (status.validUntil?.let { it > now } ?: true)
+    }

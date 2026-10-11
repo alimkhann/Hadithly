@@ -2,6 +2,7 @@ import { internalMutation, internalQuery, query } from "./_generated/server";
 import { v } from "convex/values";
 import type { Doc } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
+import { publicTranslationAvailable, publicationExpiry } from "./lib/evidencePublication";
 
 export async function deleteContribution(ctx: MutationCtx, translation: Doc<"translations">) {
   const revision = translation.evidencePublicationId ? await ctx.db.get(translation.evidencePublicationId) : null;
@@ -24,7 +25,7 @@ export async function deleteContribution(ctx: MutationCtx, translation: Doc<"tra
   if (current) return;
   for (const previousId of revision?.previousDefaultIds ?? []) {
     const previous = await ctx.db.get(previousId);
-    if (previous?.status === "live") { await ctx.db.patch(previous._id, { isDefault: true, updatedAt: Date.now() }); return; }
+    if (previous && await publicTranslationAvailable(ctx, previous)) { await ctx.db.patch(previous._id, { isDefault: true, updatedAt: Date.now() }); return; }
   }
 }
 
@@ -47,6 +48,17 @@ const citationsValidator = v.optional(
     }),
   ),
 );
+
+export const watchPublications = query({
+  args: { translationIds: v.array(v.id("translations")) },
+  handler: async (ctx, args) => {
+    if (args.translationIds.length > 40) throw new Error("Too many loaded translations");
+    return Promise.all([...new Set(args.translationIds)].map(async translationId => {
+      const row = await ctx.db.get(translationId);
+      return { translationId, available: await publicTranslationAvailable(ctx, row), validUntil: row?.evidencePublicationId ? await publicationExpiry(ctx, row.evidencePublicationId) : null };
+    }));
+  },
+});
 
 /** Public: the default live translation for a hadith + language. */
 export const getDefaultForProviderRef = query({
@@ -80,7 +92,7 @@ export const getDefaultForProviderRef = query({
           .eq("isDefault", true),
       )
       .first();
-    return row?.status === "live" ? publicTranslation(row) : null;
+    return row && await publicTranslationAvailable(ctx, row) ? publicTranslation(row) : null;
   },
 });
 
@@ -108,7 +120,7 @@ export const getDefaultForHadithLanguage = internalQuery({
           .eq("isDefault", true),
       )
       .first();
-    return translation?.status === "live" ? translation : null;
+    return translation && await publicTranslationAvailable(ctx, translation) ? translation : null;
   },
 });
 
@@ -129,7 +141,8 @@ export const listLiveDefaultsForHadithLanguage = internalQuery({
           .eq("isDefault", true),
       )
       .collect();
-    return rows.filter((row) => row.status === "live");
+    const available = await Promise.all(rows.map(row => publicTranslationAvailable(ctx, row)));
+    return rows.filter((_, index) => available[index]);
   },
 });
 
@@ -162,7 +175,8 @@ export const cacheGeminiTranslation = internalMutation({
           .eq("isDefault", true),
       )
       .first();
-    if (existing) return existing._id;
+    if (existing && await publicTranslationAvailable(ctx, existing)) return existing._id;
+    if (existing) await ctx.db.patch(existing._id, { isDefault: false });
 
     const now = Date.now();
     return await ctx.db.insert("translations", {

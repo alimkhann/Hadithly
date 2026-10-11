@@ -13,13 +13,15 @@ final class EvidenceReviewLiveTests: XCTestCase {
         let status: String
         let items: [Item]
         let citations: [EvidenceCitation]?
+        let appeal: EvidenceAppealState?
     }
     private struct Finalized: Decodable { let status: String }
-    private struct Translation: Decodable { let content: String; let source: String; let citations: [ReaderCitation]?; let aiModel: String? }
+    private struct Translation: Decodable { let _id: String; let content: String; let source: String; let citations: [ReaderCitation]?; let aiModel: String? }
 
     @MainActor
     func testSignedInEvidencePublishesThroughBothReviewsAndMaterializesForReader() async throws {
-        guard ProcessInfo.processInfo.environment["E3_LIVE_VERIFICATION"] == "1" else { throw XCTSkip("Opt-in development E3 integration") }
+        let e4 = ProcessInfo.processInfo.environment["E4_LIVE_VERIFICATION"] == "1"
+        guard e4 || ProcessInfo.processInfo.environment["E3_LIVE_VERIFICATION"] == "1" else { throw XCTSkip("Opt-in development evidence integration") }
         let config = AppConfig()
         let url = try XCTUnwrap(URL(string: config.convexURL))
         XCTAssertTrue(url.host?.contains("festive-cobra-664") == true)
@@ -35,7 +37,13 @@ final class EvidenceReviewLiveTests: XCTestCase {
         }
         let descriptor: [String: ConvexEncodable?] = ["kind": "file", "clientItemKey": "e3_native_fixture", "declaredMime": "image/png", "declaredSize": Double(png.count),
             "declaredSha256": SHA256.hash(data: png).map { String(format: "%02x", $0) }.joined(), "displayName": "e3-verification.png"]
-        let draft: Draft = try await client.mutation("evidence:createEvidenceDraft", with: ["hadithInternalId": "local_dump:e3_fixture:9001", "language": "en", "proposedContent": phrase, "draftKey": UUID().uuidString, "items": [descriptor] as ConvexEncodable?])
+        let resumed: Draft?
+        if e4 {
+            resumed = try await client.subscribe(to: "evidence:getOwnEvidenceForTarget", with: ["hadithInternalId": "local_dump:e3_fixture:9001", "language": "en"], yielding: Draft?.self).values.first(where: { _ in true }) ?? nil
+        } else { resumed = nil }
+        let draft: Draft
+        if let resumed { draft = resumed } else {
+        draft = try await client.mutation("evidence:createEvidenceDraft", with: ["hadithInternalId": "local_dump:e3_fixture:9001", "language": "en", "proposedContent": phrase, "draftKey": UUID().uuidString, "items": [descriptor] as ConvexEncodable?])
         let item = try XCTUnwrap(draft.items.first)
         let cachedToken = try await Clerk.shared.auth.getToken()
         let token = try XCTUnwrap(cachedToken)
@@ -48,14 +56,15 @@ final class EvidenceReviewLiveTests: XCTestCase {
         let (_, response) = try await URLSession.shared.upload(for: request, from: png)
         XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 200)
         let _: Finalized = try await client.mutation("evidence:finalizeEvidenceDraft", with: ["submissionId": draft.submissionId, "contributionConsentVersion": "e3-contribution-v1"])
+        }
         let completion = Task { @MainActor in
             for try await snapshot in client.subscribe(to: "evidence:getOwnEvidenceDraft", with: ["submissionId": draft.submissionId], yielding: Draft.self).values {
-                if ["approved", "rejected", "review_unavailable", "processing_failed", "infected"].contains(snapshot.status) { return snapshot }
+                if e4 ? snapshot.status == "approved" : ["approved", "rejected", "review_unavailable", "processing_failed", "infected"].contains(snapshot.status) { return snapshot }
             }
             throw NSError(domain: "E3Live", code: 1)
         }
         let timeout = Task {
-            try? await Task.sleep(for: .seconds(240))
+            try? await Task.sleep(for: .seconds(e4 ? 600 : 240))
             if !Task.isCancelled { completion.cancel() }
         }
         defer { timeout.cancel() }
@@ -65,5 +74,17 @@ final class EvidenceReviewLiveTests: XCTestCase {
         let materialized = try await stream.values.first(where: { $0 != nil })
         let translation = try XCTUnwrap(materialized ?? nil)
         XCTAssertEqual(translation.content, phrase); XCTAssertEqual(translation.source, "community"); XCTAssertNil(translation.aiModel); XCTAssertFalse(translation.citations?.isEmpty ?? true)
+        if e4 {
+            let _: TranslationReportResult = try await client.action("actions/ai:reportTranslation", with: ["translationId": translation._id, "reason": "Compare the complete supplied source again."])
+            let replacement = try await client.subscribe(to: "translations:getDefaultForProviderRef", with: ["provider": "local_dump", "collectionSlug": "e3_fixture", "providerHadithId": "9001", "language": "en"], yielding: Translation?.self).values.first(where: { $0 != nil && $0?._id != translation._id })
+            XCTAssertEqual(try XCTUnwrap(replacement ?? nil).content, phrase)
+            let availability = try await client.subscribe(to: "translations:watchPublications", with: ["translationIds": [translation._id]], yielding: [PublicationAvailability].self).values.first(where: { $0.first?.available == false })
+            XCTAssertEqual(availability?.first?.available, false)
+            let adverse = try await client.subscribe(to: "evidence:getOwnEvidenceDraft", with: ["submissionId": draft.submissionId], yielding: Draft.self).values.first(where: { $0.status == "rejected" })
+            XCTAssertEqual(adverse?.appeal?.available, true)
+            let _: Finalized = try await client.mutation("evidenceCases:requestAppeal", with: ["submissionId": draft.submissionId, "reason": "The supplied source supports this exact test text."])
+            let resolved = try await client.subscribe(to: "evidence:getOwnEvidenceDraft", with: ["submissionId": draft.submissionId], yielding: Draft.self).values.first(where: { $0.appeal?.status == "published" })
+            XCTAssertEqual(resolved?.status, "approved")
+        }
     }
 }

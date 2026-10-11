@@ -1,5 +1,6 @@
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { requireIdentity } from "./lib/identity";
 import { deleteEvidenceForSubmission } from "./evidence";
@@ -392,6 +393,16 @@ export const deleteCurrentUser = mutation({
     }
     for (const auditRow of auditRows) {
       await ctx.db.patch(auditRow._id, { actorUserId: undefined });
+    }
+    for (const row of await ctx.db.query("evidenceAuditActors").withIndex("by_user", q => q.eq("userId", user._id)).collect()) await ctx.db.delete(row._id);
+    for (const kind of ["submission", "report", "appeal"] as const) {
+      const rows = await ctx.db.query("evidenceRequestEvents").withIndex("by_user_kind_time", q => q.eq("userId", user._id).eq("kind", kind)).collect();
+      for (const row of rows) await ctx.db.delete(row._id);
+    }
+    await ctx.scheduler.runAfter(0, internal.evidenceCases.reassessPublished, { paginationOpts: { cursor: null, numItems: 25 } });
+    for (const submission of submissions) {
+      const rows = await ctx.db.query("evidenceReviewSpendEvents").withIndex("by_submission_time", q => q.eq("submissionId", submission._id)).collect();
+      for (const row of rows) await ctx.db.delete(row._id);
     }
 
     await ctx.db.delete(user._id);

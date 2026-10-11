@@ -1,6 +1,182 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "e4.appeal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request an appeal"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "طلب استئناف"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اپیل کی درخواست"
+          }
+        }
+      }
+    },
+    "e4.appeal_reason": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explain what should be checked again"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "وضّح ما ينبغي إعادة فحصه"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "بتائیں کہ کیا دوبارہ جانچنا چاہیے"
+          }
+        }
+      }
+    },
+    "e4.appeal_window": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can request one automatic appeal within 30 days. It does not extend evidence retention."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يمكن طلب استئناف آلي واحد خلال 30 يومًا. لا يمدد مدة الاحتفاظ بالأدلة."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آپ 30 دن کے اندر ایک خودکار اپیل کی درخواست کر سکتے ہیں۔ اس سے شواہد رکھنے کی مدت نہیں بڑھتی۔"
+          }
+        }
+      }
+    },
+    "e4.appeal_processing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your appeal is being checked automatically."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يجري فحص استئنافك آليًا."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آپ کی اپیل کی خودکار جانچ ہو رہی ہے۔"
+          }
+        }
+      }
+    },
+    "e4.appeal_resolved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your appeal is complete. The suggestion status shows the result."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اكتمل الاستئناف. تظهر النتيجة في حالة الاقتراح."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آپ کی اپیل مکمل ہو گئی ہے۔ نتیجہ تجویز کی حالت میں دکھایا گیا ہے۔"
+          }
+        }
+      }
+    },
+    "e4.appeal_error": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The appeal could not be requested. Check the window and try again when connected."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذر طلب الاستئناف. تحقق من المهلة وحاول عند الاتصال."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اپیل کی درخواست نہیں ہو سکی۔ مدت چیک کریں اور رابطہ ہونے پر دوبارہ کوشش کریں۔"
+          }
+        }
+      }
+    },
+    "e4.revoked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publication withdrawn"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سُحب النشر"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اشاعت واپس لے لی گئی"
+          }
+        }
+      }
+    },
+    "e4.revoked_message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This suggestion is private while its publication is reassessed."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "هذا الاقتراح خاص أثناء إعادة تقييم نشره."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اشاعت کی دوبارہ جانچ کے دوران یہ تجویز نجی ہے۔"
+          }
+        }
+      }
+    },
     "e3.report_saved_detail" : {
       "localizations": {
         "en": {
@@ -213,19 +389,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your suggestion stays private while its meaning and sources are checked."
+            "value" : "We are checking the meaning and sources of your suggestion."
           }
         },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "يبقى اقتراحك خاصًا أثناء التحقق من معناه ومصادره."
+            "value" : "يجري التحقق من معنى اقتراحك ومصادره."
           }
         },
         "ur" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "معنی اور ذرائع کی جانچ کے دوران آپ کی تجویز نجی رہتی ہے۔"
+            "value" : "آپ کی تجویز کے معنی اور ذرائع کی جانچ ہو رہی ہے۔"
           }
         }
       }

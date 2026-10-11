@@ -9,10 +9,12 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.unit.dp
 import com.hadithly.app.core.data.EvidenceCitation
+import com.hadithly.app.core.data.EvidenceAppealState
 import com.hadithly.app.core.data.ReaderTranslation
 import com.hadithly.app.core.data.ReaderHadith
 import com.hadithly.app.core.data.AuthenticityClaim
@@ -23,6 +25,21 @@ import org.junit.Test
 
 class EvidenceProcessingStatusTest {
     @get:Rule val compose = createComposeRule()
+
+    @Test fun e4AppealControlUsesProductionFormAndResolvesWithoutOperatorControls() {
+        val appeal = mutableStateOf(EvidenceAppealState(true, System.currentTimeMillis() + 60_000.0, "not_requested"))
+        compose.setContent { HadithlyTheme { Column { EvidenceAppealContent(appeal.value) { reason ->
+            assert(reason == "Compare the complete supplied source.")
+            appeal.value = EvidenceAppealState(false, appeal.value.deadline, "processing")
+        } } } }
+        compose.onNodeWithTag("submission.appealReason").performTextInput("Compare the complete supplied source.")
+        compose.onNodeWithTag("submission.appeal").assertHeightIsAtLeast(48.dp).performClick()
+        compose.onNodeWithTag("submission.appeal").assertDoesNotExist()
+        compose.onNodeWithTag("submission.appealStatus").assertIsDisplayed()
+        compose.onNodeWithText("Operator", substring = true).assertDoesNotExist()
+        compose.runOnIdle { appeal.value = EvidenceAppealState(false, appeal.value.deadline, "private") }
+        compose.onNodeWithTag("submission.appealStatus").assertIsDisplayed()
+    }
 
     @Test fun communitySourceSheetDoesNotClaimAIAuthorship() {
         compose.setContent {

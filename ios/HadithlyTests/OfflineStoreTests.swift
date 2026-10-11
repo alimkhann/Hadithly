@@ -142,6 +142,41 @@ final class OfflineStoreTests: XCTestCase {
 
     // MARK: - Corruption never replaces usable data
 
+    func testInstalledVersionOnePackCannotBypassRevocationIdentity() async throws {
+        let baseVersion = String(repeating: "a", count: 64)
+        let packVersion = String(repeating: "d", count: 64)
+        let bytes = Self.baseDump(versionHex: baseVersion, ids: ["1"])
+        let base = Self.manifest(versionHex: baseVersion, bytes: bytes)
+        let transport = FakeTransport()
+        transport.handler = { _ in bytes }
+        let server = FakeManifests(bases: [base])
+        let (store, root) = makeStore(transport: transport, manifests: server)
+        defer { try? FileManager.default.removeItem(at: root) }
+        XCTAssertEqual(store.enqueue(slug: "bukhari", kind: "base", locale: nil), .started)
+        await waitUntil(store.registry.record(for: "bukhari").activeBase != nil)
+        let packBytes = Data("""
+            {"format":"hadithly-translation-pack","schemaVersion":1,"collectionSlug":"bukhari","language":"ur",
+            "baseContentVersion":"od1:\(baseVersion)","contentVersion":"od1:\(packVersion)","generatedAt":1700000100000,
+            "license":\(Self.license),"entries":[{"canonicalId":"sunnah_now:bukhari:1","language":"ur","content":"Unvalidated legacy community text","source":"community","sourceLabel":"Community"}]}
+            """.utf8)
+        let manifestBytes = Data("""
+            {"format":"hadithly-offline-manifest","schemaVersion":1,"kind":"pack","collectionSlug":"bukhari","locale":"ur",
+            "contentVersion":"od1:\(packVersion)","baseContentVersion":"od1:\(baseVersion)","byteSize":\(packBytes.count),
+            "sha256":"\(OfflineDumpValidation.sha256Hex(packBytes))","minAppVersion":"0.1.0","generatedAt":1700000100000,
+            "license":\(Self.license),"compatiblePacks":[],"downloadUrl":"https://example.invalid/pack.json"}
+            """.utf8)
+        let pack = try JSONDecoder().decode(OfflineManifest.self, from: manifestBytes)
+        transport.handler = { _ in packBytes }
+        store.noteManifests(bases: [base], packs: [pack])
+        XCTAssertEqual(store.enqueue(slug: "bukhari", kind: "pack", locale: "ur"), .started)
+        await waitUntil(store.registry.record(for: "bukhari").activePacks["ur"] != nil)
+        XCTAssertNotNil(store.loadActivePack(slug: "bukhari", locale: "ur"))
+        XCTAssertNil(store.translation(for: "sunnah_now:bukhari:1", slug: "bukhari", locale: "ur"))
+        let reader = try XCTUnwrap(store.offlineHadith(canonicalId: "sunnah_now:bukhari:1", slug: "bukhari", locale: "ur"))
+        XCTAssertFalse(reader.arabicText.isEmpty)
+        XCTAssertNotEqual(reader.englishText, "Unvalidated legacy community text")
+    }
+
     func testCorruptUpdateKeepsPreviousVersionActive() async {
         let v1 = Self.baseDump(versionHex: String(repeating: "a", count: 64), ids: ["1", "2"])
         let m1 = Self.manifest(versionHex: String(repeating: "a", count: 64), bytes: v1)

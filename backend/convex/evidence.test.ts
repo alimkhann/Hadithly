@@ -215,7 +215,8 @@ describe("E1 private evidence intake", () => {
     await t.run(ctx => ctx.db.patch(draft.submissionId, { expiresAt: Date.now() - 1 }));
     expect(await t.mutation(internal.evidence.expireEvidence, {})).toBe(1);
     expect((await owner.query(api.evidence.getOwnEvidenceDraft, { submissionId: draft.submissionId })).status).toBe("expired");
-    await expect(owner.mutation(api.evidence.finalizeEvidenceDraft, { submissionId: draft.submissionId })).rejects.toThrow("closed");
+    expect(await t.run(ctx => ctx.db.get(draft.submissionId))).toBeNull();
+    await expect(owner.mutation(api.evidence.finalizeEvidenceDraft, { submissionId: draft.submissionId })).rejects.toThrow("not found");
   });
 
   test("legacy rows cannot use old AI or admin publication paths", async () => {

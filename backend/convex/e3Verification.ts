@@ -30,6 +30,8 @@ export const seed = internalMutation({ args: {}, handler: async ctx => {
   for (const target of TARGETS) {
     const hadithId = await fixtureHadith(ctx, target); const hadith = await ctx.db.get(hadithId); if (!hadith) throw new Error("Missing fixture");
     const sha = await textDigest(hadith.arabicText);
+    const existing = await ctx.db.query("evidencePermissionGrants").withIndex("by_artifact", q => q.eq("grant.artifactSha256", sha)).collect();
+    if (existing.some(row => row.grant.canonicalId === target && row.grant.language === "ar" && row.grant.revokedAt === undefined)) continue;
     await ctx.runMutation(internal.evidenceReview.recordPermission, { grant: await fixtureGrant(target, "ar", sha, sha, "https://hadithly.app") });
   }
   return { canonicalIds: TARGETS };
@@ -49,6 +51,8 @@ export const prepareReady = internalMutation({ args: {}, handler: async ctx => {
     const extraction = await ctx.db.query("evidenceExtractions").withIndex("by_item", q => q.eq("evidenceItemId", item._id)).unique();
     if (!extraction || extraction.text.trim() !== PROPOSAL) throw new Error("Synthetic fixture OCR mismatch");
     if (await ctx.db.query("evidencePermissionGrants").withIndex("by_submission", q => q.eq("submissionId", submission._id)).first()) continue;
+    // Keep opt-in proof counts stable; production receipts remain random.
+    await ctx.db.patch(submission._id, { auditReceipt: `00000001${crypto.randomUUID().slice(8)}` });
     await ctx.runMutation(internal.evidenceReview.recordPermission, { grant: await fixtureGrant(hadith.target, "en", extraction.sha256, await textDigest(extraction.text), ""), submissionId: submission._id });
     prepared++;
   }
@@ -76,7 +80,11 @@ export const cleanup = internalMutation({ args: {}, handler: async ctx => {
   for (const target of TARGETS) {
     const hadith = await ctx.db.query("hadiths").withIndex("by_canonical_id", q => q.eq("canonicalId", target)).unique(); if (!hadith) continue;
     for (const translation of (await ctx.db.query("translations").take(100)).filter(row => row.hadithId === hadith._id)) await deleteContribution(ctx, translation);
-    for (const submission of (await ctx.db.query("communitySubmissions").take(100)).filter(row => row.hadithId === hadith._id)) { await deleteEvidenceForSubmission(ctx, submission._id); await ctx.db.delete(submission._id); removed++; }
+    for (const submission of (await ctx.db.query("communitySubmissions").take(100)).filter(row => row.hadithId === hadith._id)) {
+      await deleteEvidenceForSubmission(ctx, submission._id);
+      for (const event of await ctx.db.query("evidenceReviewSpendEvents").withIndex("by_submission_time", q => q.eq("submissionId", submission._id)).collect()) await ctx.db.delete(event._id);
+      await ctx.db.delete(submission._id); removed++;
+    }
     for (const grant of (await ctx.db.query("evidencePermissionGrants").collect()).filter(row => row.grant.canonicalId === target)) await ctx.db.delete(grant._id);
     await ctx.db.delete(hadith._id);
   }

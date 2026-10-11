@@ -20,7 +20,8 @@ Later session records take precedence over older unchecked boxes and summaries.
 | N1 | Physical locale/timezone/DST, retry, stale-target, selected-language, receipt, and exact-open matrix; physical Android FCM retest. | The development APNs request was Apple-accepted. Owner receipt/exact-open confirmation and the broader device matrix remain open. |
 | W1 / W2 | iOS locked rendering, empty first install, exact nonzero restoration; synced widgets; offline and deleted-download behavior on both platforms; remaining iOS stale cases. | Installed iOS gallery/tap and Android guest offset/stale behavior have evidence. The full widget gate is not passed. |
 | E1 | iOS progress/cancellation and account-switch tests; RTL and assistive-technology device matrix. | Signed-in native intake, private upload, withdrawal, and local recovery passed. E2 proceeded under an explicit owner exception. |
-| E3 | Production provider-rights coverage and release rollout remain with O1/D4. E4 has not started. | Development passed: 232 backend tests, 219 iOS units, both native upload/OCR/review/publication/readback paths, production status/source UI fixtures, private cloud controls, 14 Linux tests, and two final clean adversarial reviews. |
+| E3 | Production provider-rights coverage and release rollout remain with O1/D4. | Development passed: 232 backend tests, 219 iOS units, both native upload/OCR/review/publication/readback paths, production status/source UI fixtures, private cloud controls, 14 Linux tests, and two final clean adversarial reviews. |
+| E4 | Production rollout remains with the release track. | Development passed: owner-approved deployment and idempotent legacy revocation; backend 257, iOS 222 unit plus three UI, Android 194 unit plus five UI tests; both real signed-in native report/appeal flows and fixture cleanup passed. No mandatory human queue. |
 
 R5, R6, H1, H2, and S1 have no separate unresolved implementation gate in their
 latest records. They still participate in D4's production/physical regression
@@ -32,8 +33,9 @@ must be replaced by evidence-pipeline checks, not used to revive that workflow.
 - D4 remains blocked by the release handoffs. It covers signed-out reading,
   auth, guest merge, cross-device sync, provider/AI reads, quotas/paywall,
   purchases, entitlements, push, privacy, and account deletion on production devices.
-- E4 follows a passed E3. It now prioritizes automated reports, appeals,
-  rechecks, abuse controls, revocation, and retention. Operator handling is optional.
+- E4 passed in development. Reports, appeals, rechecks, abuse, revocation, and
+  retention run automatically. Operator handling is optional; production rollout
+  stays with the release track.
 - Q1 still owns rolling quotas, generation only on explicit user action,
   single-flight charging, cache reuse, and abuse/spend controls.
 - Q2, LA1 through LA4, and L1 remain future sessions, not passed feature gates.

@@ -794,7 +794,9 @@ final class OfflineStore {
     }
 
     func translation(for canonicalId: String, slug: String, locale: String) -> String? {
-        loadActivePack(slug: slug, locale: locale)?.entries.first { $0.canonicalId == canonicalId }?.content
+        // Version 1 packs cannot preserve per-entry rights or revocation identity.
+        // E3 blocks their manifests; E4 also blocks previously installed bytes.
+        nil
     }
 
     func offlineHadith(canonicalId: String, slug: String, locale: String?) -> ReaderHadith? {

@@ -354,6 +354,7 @@ export const reportTranslation = action({
       clerkId: identity.clerkId,
     });
     const reason = args.reason.trim();
+    if (!userRow) throw new Error("Sign in is required");
     if (!reason) throw new Error("Report reason must not be empty");
     const translation = await ctx.runQuery(internal.translations.getById, {
       translationId: args.translationId,

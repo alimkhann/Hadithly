@@ -671,7 +671,7 @@ Model: GPT-6.1 Sol, high. Use `architect`, `domain-modeling`,
 
 ## E4: exceptions, appeals, abuse, revocation, and deletion
 
-Model: GPT-5.6 Terra, high. Use `architect`, `blast-radius`,
+Model: GPT-6.1 Sol, high. Use `architect`, `blast-radius`,
 `principle-boundary-discipline`, and `principle-prove-it-works`.
 
 > Read `AGENTS.md`, `docs/PLAN.md`, and E1 through E3 fully. Confirm E3 passed.

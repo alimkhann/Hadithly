@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import type { Infer } from "convex/values";
 
-export const POLICY_VERSION = "e3-v1";
+export const POLICY_VERSION = "e4-review-v1";
 export const REVIEW_MODELS = ["gemini-3.8-flash", "gemini-3.5-flash-lite"] as const;
 export const AUTO_PUBLICATION_THRESHOLD = 0.95;
 
@@ -61,7 +61,7 @@ export type ReviewSource = {
   spans: Array<{ id: string; start: number; end: number; text: string }>;
 };
 export type ReviewPacket = { policyVersion: string; untrustedData: {
-  canonicalId: string; language: string; proposedTranslation: string; sources: ReviewSource[];
+  canonicalId: string; language: string; proposedTranslation: string; sources: ReviewSource[]; concerns?: string[];
 } };
 
 export async function textDigest(text: string): Promise<string> {

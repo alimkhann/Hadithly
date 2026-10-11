@@ -5,6 +5,7 @@ import {
 } from "./_generated/server";
 import { v } from "convex/values";
 import { optionalIdentity, requireIdentity } from "./lib/identity";
+import { acceptTranslationReport } from "./evidenceCases";
 
 /** Internal: record a translation report (called from the AI action). */
 export const insertReport = internalMutation({
@@ -13,12 +14,10 @@ export const insertReport = internalMutation({
     reporterUserId: v.optional(v.id("users")),
     reason: v.string(),
   },
-  handler: async (ctx, args) =>
-    await ctx.db.insert("translationReports", {
-      ...args,
-      status: "open",
-      createdAt: Date.now(),
-    }),
+  handler: async (ctx, args) => {
+    if (!args.reporterUserId || !await ctx.db.get(args.reporterUserId)) throw new Error("Sign in is required");
+    await acceptTranslationReport(ctx, { ...args, reporterUserId: args.reporterUserId });
+  },
 });
 
 /** Verified operator capability for the optional exception tool. */

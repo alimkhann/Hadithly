@@ -86,6 +86,8 @@ final class ReaderModel {
     private var outlineTask: Task<Void, Never>?
     private var pageTask: Task<Void, Never>?
     private var translationTask: Task<Void, Never>?
+    private var publicationTask: Task<Void, Never>?
+    private var publicationDeadlineTask: Task<Void, Never>?
     private var translationGeneration = 0
     private var lastPositionUpdatedAt = 0.0
     private var lastCapturedAnchor: String?
@@ -173,6 +175,7 @@ final class ReaderModel {
     // MARK: - Lifecycle
 
     func start() {
+        watchLoadedPublications()
         guard case .loadingOutline = phase, outlineTask == nil else { return }
         outlineTask = Task { [weak self] in
             await self?.loadOutline()
@@ -183,6 +186,8 @@ final class ReaderModel {
         outlineTask?.cancel()
         pageTask?.cancel()
         translationTask?.cancel()
+        publicationTask?.cancel()
+        publicationDeadlineTask?.cancel()
         outlineTask = nil
         pageTask = nil
         translationTask = nil
@@ -616,6 +621,8 @@ final class ReaderModel {
     private func resetReading() {
         pageTask?.cancel()
         translationTask?.cancel()
+        publicationTask?.cancel()
+        publicationDeadlineTask?.cancel()
         pageTask = nil
         translationTask = nil
         translationGeneration += 1
@@ -634,6 +641,8 @@ final class ReaderModel {
         guard code != language else { return }
         language = code
         translationTask?.cancel()
+        publicationTask?.cancel()
+        publicationDeadlineTask?.cancel()
         translationGeneration += 1
         translations = [:]
         scheduleTranslationsForCurrentPage()
@@ -857,7 +866,7 @@ final class ReaderModel {
                     "providerHadithId": hadith.providerHadithId, "language": language,
                 ], yielding: StoredReaderTranslation?.self).values {
                     guard generation == translationGeneration, !Task.isCancelled else { return }
-                    if let stored { translations[hadith.internalId] = .loaded(stored.readerTranslation) }
+                    if let stored { translations[hadith.internalId] = .loaded(stored.readerTranslation); watchLoadedPublications() }
                     break
                 }
             } catch { /* Provider English remains readable offline. */ }
@@ -878,6 +887,7 @@ final class ReaderModel {
             )
             guard generation == translationGeneration, !Task.isCancelled else { return }
             translations[hadith.internalId] = .loaded(result)
+            watchLoadedPublications()
         } catch {
             guard generation == translationGeneration, !Task.isCancelled else { return }
             let failure = TranslationFailure(error: error)
@@ -888,6 +898,46 @@ final class ReaderModel {
                 translationTask?.cancel()
             }
         }
+    }
+
+    private func watchLoadedPublications() {
+        publicationTask?.cancel()
+        publicationDeadlineTask?.cancel()
+        let entries = translations.compactMap { key, state -> (String, String)? in
+            if case .loaded(let translation) = state { return (key, translation.translationId) }
+            return nil
+        }.sorted { $0.0 < $1.0 }
+        let observed = Array(entries.suffix(40))
+        for entry in entries.dropLast(observed.count) { translations.removeValue(forKey: entry.0) }
+        guard !observed.isEmpty else { return }
+        publicationTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                for try await statuses in convex.subscribe(to: "translations:watchPublications", with: ["translationIds": observed.map(\.1)], yielding: [PublicationAvailability].self).values {
+                    guard !Task.isCancelled else { return }
+                    applyPublicationAvailability(statuses)
+                    publicationDeadlineTask?.cancel()
+                    if statuses.contains(where: { $0.validUntil != nil }) {
+                        publicationDeadlineTask = Task { [weak self] in
+                            while let deadline = statuses.compactMap(\.validUntil).filter({ $0 > Date().timeIntervalSince1970 * 1000 }).min() {
+                                let delay = max(0, deadline / 1000 - Date().timeIntervalSince1970)
+                                try? await Task.sleep(for: .seconds(delay))
+                                guard !Task.isCancelled else { return }
+                                self?.applyPublicationAvailability(statuses)
+                            }
+                        }
+                    }
+                }
+                if !Task.isCancelled { for entry in observed { translations.removeValue(forKey: entry.0) } }
+            } catch {
+                guard !Task.isCancelled else { return }
+                for entry in observed { translations.removeValue(forKey: entry.0) }
+            }
+        }
+    }
+
+    func applyPublicationAvailability(_ statuses: [PublicationAvailability], now: Double = Date().timeIntervalSince1970 * 1000) {
+        translations = ReaderPublicationPolicy.keepingAvailable(translations, statuses: statuses, now: now)
     }
 
     /// Manual retry from a failed translation row.

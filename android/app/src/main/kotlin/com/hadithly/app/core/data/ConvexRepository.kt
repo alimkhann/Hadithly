@@ -105,6 +105,13 @@ class ConvexRepository(context: Context) {
         )).firstOrNull()?.readerTranslation()
     }
 
+    fun watchPublications(ids: List<String>): Flow<List<PublicationAvailability>> =
+        subscribe<List<PublicationAvailability>>("translations:watchPublications", mapOf("translationIds" to ids)).flowOn(Dispatchers.IO)
+
+    suspend fun requestEvidenceAppeal(submissionId: String, reason: String): EvidenceSubmitResult = withContext(Dispatchers.IO) {
+        convex.mutation<EvidenceSubmitResult>("evidenceCases:requestAppeal", mapOf("submissionId" to submissionId, "reason" to reason))
+    }
+
     suspend fun translateHadith(hadithInternalId: String, targetLanguage: String): ReaderTranslation =
         withContext(Dispatchers.IO) {
             convex.action<ReaderTranslation>(
@@ -206,6 +213,10 @@ class ConvexRepository(context: Context) {
 
     suspend fun getOwnEvidenceDraft(submissionId: String): EvidenceDraftView? = withContext(Dispatchers.IO) {
         subscribe<EvidenceDraftView>("evidence:getOwnEvidenceDraft", mapOf("submissionId" to submissionId)).firstOrNull()
+    }
+
+    suspend fun getOwnEvidenceForTarget(hadithInternalId: String, language: String): EvidenceDraftView? = withContext(Dispatchers.IO) {
+        subscribe<EvidenceDraftView?>("evidence:getOwnEvidenceForTarget", mapOf("hadithInternalId" to hadithInternalId, "language" to language)).firstOrNull()
     }
 
     fun observeEvidenceDraft(submissionId: String): Flow<EvidenceDraftView> =

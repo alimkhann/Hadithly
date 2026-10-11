@@ -43,5 +43,9 @@ crons.interval(
 
 crons.interval("dispatch queued evidence processing", { minutes: 5 }, internal.evidenceProcessing.dispatchPending, {});
 crons.interval("dispatch evidence reviews", { minutes: 5 }, internal.evidenceReview.dispatch, {});
+crons.interval("resolve evidence cases", { minutes: 5 }, internal.evidenceCases.dispatch, {});
+crons.interval("retry transient evidence processing", { minutes: 5 }, internal.evidenceProcessing.retryFailedAutomatically, {});
+crons.interval("reassess publication permissions", { minutes: 5 }, internal.evidenceCases.reassessPublished, { paginationOpts: { cursor: null, numItems: 25 } });
+crons.interval("retain only permitted evidence facts", { hours: 1 }, internal.evidenceCases.retain, {});
 
 export default crons;

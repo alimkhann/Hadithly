@@ -173,3 +173,15 @@ export const dispatchPending = internalMutation({
     await scheduleNext(ctx);
   },
 });
+
+export const retryFailedAutomatically = internalMutation({ args: {}, handler: async ctx => {
+  const failed = await ctx.db.query("evidenceItems").withIndex("by_retryable", q => q.eq("state", "failed").eq("retryable", true)).take(10);
+  for (const item of failed) {
+    const submission = await ctx.db.get(item.submissionId);
+    if (!submission || !["awaiting_processing", "processing_failed"].includes(submission.status) || (submission.expiresAt ?? 0) <= Date.now() || (item.processingAttempts ?? 0) >= MAX_ATTEMPTS) continue;
+    if (item.updatedAt + 60_000 * 2 ** (item.processingAttempts ?? 0) > Date.now()) continue;
+    await ctx.db.patch(item._id, { state: item.source.kind === "url" ? "pending_safe_fetch" : "quarantined_unscanned", processingQueued: true, retryable: undefined });
+    await ctx.db.patch(submission._id, { status: "awaiting_processing" });
+  }
+  await scheduleNext(ctx);
+} });

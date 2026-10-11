@@ -6,6 +6,10 @@ import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { requireIdentity } from "./lib/identity";
 import { MAX_EVIDENCE_BYTES } from "./lib/evidencePolicy";
+import { admitEvidenceRequest } from "./lib/evidenceAdmission";
+import { appealAllowed } from "./lib/evidenceCasePolicy";
+import { appendEvidenceAudit, automatedActor } from "./lib/evidenceAudit";
+import { deleteContribution } from "./translations";
 
 const DAY = 24 * 60 * 60 * 1000;
 export const DRAFT_EXPIRY_MS = 7 * DAY;
@@ -98,6 +102,7 @@ export const createEvidenceDraft = mutation({
       const items = await ctx.db.query("evidenceItems").withIndex("by_submission", q => q.eq("submissionId", existing._id)).collect();
       return snapshot(existing, items);
     }
+    await admitEvidenceRequest(ctx, user._id, "submission");
     if (!args.legacySubmissionId) {
       const recent = await ctx.db.query("communitySubmissions")
         .withIndex("by_submitter_created", q => q.eq("submittedBy", user._id).gte("createdAt", now - DAY))
@@ -148,13 +153,31 @@ export const createEvidenceDraft = mutation({
   },
 });
 
+async function projectOwnDraft(ctx: QueryCtx, submission: Doc<"communitySubmissions">) {
+    const items = await ctx.db.query("evidenceItems").withIndex("by_submission", q => q.eq("submissionId", submission._id)).collect();
+    const provenance = await ctx.db.query("evidenceProvenance").withIndex("by_submission", q => q.eq("submissionId", submission._id)).collect();
+    const appeal = await ctx.db.query("evidenceAppeals").withIndex("by_submission", q => q.eq("submissionId", submission._id)).first();
+    return { ...snapshot(submission, items), citations: provenance.flatMap(row => row.status === "verified" && row.citation ? [row.citation] : []),
+      appeal: { available: appealAllowed(submission.status, submission.expiresAt, !!appeal && appeal.status !== "not_requested", Date.now()), deadline: submission.expiresAt ?? null, status: appeal?.status ?? "not_requested" } };
+}
 export const getOwnEvidenceDraft = query({
   args: { submissionId: v.id("communitySubmissions") },
   handler: async (ctx, args) => {
-    const { submission } = await ownDraft(ctx, args.submissionId);
-    const items = await ctx.db.query("evidenceItems").withIndex("by_submission", q => q.eq("submissionId", submission._id)).collect();
-    const provenance = await ctx.db.query("evidenceProvenance").withIndex("by_submission", q => q.eq("submissionId", submission._id)).collect();
-    return { ...snapshot(submission, items), citations: provenance.flatMap(row => row.status === "verified" && row.citation ? [row.citation] : []) };
+    const user = await currentUser(ctx), submission = await ctx.db.get(args.submissionId);
+    if (!submission) return { submissionId: args.submissionId, status: "expired", proposedContent: "", expiresAt: null, items: [], citations: [], appeal: { available: false, deadline: null, status: "not_requested" } };
+    if (submission.submittedBy !== user._id) throw new Error("Evidence draft not found");
+    return projectOwnDraft(ctx, submission);
+  },
+});
+
+export const getOwnEvidenceForTarget = query({
+  args: { hadithInternalId: v.string(), language: v.string() },
+  handler: async (ctx, args) => {
+    const user = await currentUser(ctx), hadith = await resolveHadith(ctx, args.hadithInternalId);
+    if (!hadith) return null;
+    const rows = await ctx.db.query("communitySubmissions").withIndex("by_owner_target", q => q.eq("submittedBy", user._id).eq("hadithId", hadith._id).eq("language", args.language)).order("desc").take(10);
+    const submission = rows.find(row => !["expired", "draft", "legacy_evidence_missing"].includes(row.status));
+    return submission ? projectOwnDraft(ctx, submission) : null;
   },
 });
 
@@ -211,7 +234,23 @@ export const finalizeEvidenceDraft = mutation({
 });
 
 export async function deleteEvidenceForSubmission(ctx: MutationCtx, submissionId: Id<"communitySubmissions">) {
-  for (const table of ["evidenceProvenance", "evidenceLicenseAssessments", "evidenceReviewPasses", "evidencePublicationRevisions", "evidenceReviewJobs", "evidenceDeletionStates", "evidenceAbuseEvents", "evidencePermissionGrants", "evidenceSourceDependencies"] as const) {
+  const revisions = await ctx.db.query("evidencePublicationRevisions").withIndex("by_submission", q => q.eq("submissionId", submissionId)).collect();
+  for (const revision of revisions) {
+    if (!revision.translationId) continue;
+    const translation = await ctx.db.get(revision.translationId);
+    if (translation) await deleteContribution(ctx, translation);
+    const reports = await ctx.db.query("translationReports").withIndex("by_translation", q => q.eq("translationId", revision.translationId!)).collect();
+    for (const report of reports) await ctx.db.delete(report._id);
+  }
+  const cases = await ctx.db.query("evidenceCases").withIndex("by_submission", q => q.eq("target.submissionId", submissionId)).collect();
+  for (const row of cases) {
+    const reports = await ctx.db.query("translationReports").withIndex("by_case", q => q.eq("caseId", row._id)).collect();
+    for (const report of reports) await ctx.db.delete(report._id);
+    await ctx.db.delete(row._id);
+  }
+  const submission = await ctx.db.get(submissionId);
+  if (submission?.auditReceipt) await appendEvidenceAudit(ctx, { receipt: submission.auditReceipt, actor: automatedActor, reason: "withdrawal", before: submission.status, after: "deleted", models: [] });
+  for (const table of ["evidenceProvenance", "evidenceLicenseAssessments", "evidenceReviewPasses", "evidencePublicationRevisions", "evidenceReviewJobs", "evidenceDeletionStates", "evidenceAbuseEvents", "evidencePermissionGrants", "evidenceSourceDependencies", "evidenceAppeals"] as const) {
     const rows = await ctx.db.query(table).withIndex("by_submission", q => q.eq("submissionId", submissionId)).collect();
     for (const row of rows) await ctx.db.delete(row._id);
   }
@@ -241,8 +280,10 @@ export async function deleteEvidenceForSubmission(ctx: MutationCtx, submissionId
 export const deleteEvidenceDraft = mutation({
   args: { submissionId: v.id("communitySubmissions") },
   handler: async (ctx, args) => {
-    const { submission } = await ownDraft(ctx, args.submissionId);
-    if (!["draft", "awaiting_processing", "evidence_ready", "processing_failed", "infected", "expired", "under_review", "review_unavailable", "held", "needs_admin", "rejected"].includes(submission.status)) throw new Error("Evidence submission cannot be deleted here");
+    const user = await currentUser(ctx), submission = await ctx.db.get(args.submissionId);
+    if (!submission) return true;
+    if (submission.submittedBy !== user._id) throw new Error("Evidence draft not found");
+    if (!["draft", "awaiting_processing", "evidence_ready", "processing_failed", "infected", "expired", "under_review", "review_unavailable", "held", "needs_admin", "rejected", "revoked"].includes(submission.status)) throw new Error("Evidence submission cannot be deleted here");
     await deleteEvidenceForSubmission(ctx, submission._id);
     await ctx.db.delete(submission._id);
     return true;
@@ -307,14 +348,20 @@ export const expireEvidence = internalMutation({
   args: {},
   handler: async ctx => {
     let expired = 0;
-    for (const status of ["draft", "awaiting_processing", "evidence_ready", "processing_failed", "infected", "under_review", "review_unavailable", "held", "needs_admin", "rejected"] as const) {
-      const rows = await ctx.db.query("communitySubmissions").withIndex("by_status_expiry", q => q.eq("status", status).lt("expiresAt", Date.now())).take(25);
+    let remaining = false;
+    for (const status of ["draft", "awaiting_processing", "evidence_ready", "processing_failed", "infected", "under_review", "review_unavailable", "held", "needs_admin", "rejected", "revoked"] as const) {
+      const rows = await ctx.db.query("communitySubmissions").withIndex("by_status_expiry", q => q.eq("status", status).lte("expiresAt", Date.now())).take(25);
+      remaining = remaining || rows.length === 25;
       for (const row of rows) {
         await deleteEvidenceForSubmission(ctx, row._id);
-        await ctx.db.patch(row._id, { status: "expired", expiresAt: undefined });
+        await ctx.db.delete(row._id);
         expired += 1;
       }
     }
+    const oldExpired = await ctx.db.query("communitySubmissions").withIndex("by_status", q => q.eq("status", "expired")).take(25);
+    for (const row of oldExpired) { await deleteEvidenceForSubmission(ctx, row._id); await ctx.db.delete(row._id); }
+    remaining = remaining || oldExpired.length === 25;
+    if (remaining) await ctx.scheduler.runAfter(0, internal.evidence.expireEvidence, {});
     return expired;
   },
 });

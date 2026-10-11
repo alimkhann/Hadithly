@@ -218,6 +218,22 @@ struct ReaderTranslation: Decodable {
     let cached: Bool
 }
 
+struct PublicationAvailability: Decodable {
+    let translationId: String
+    let available: Bool
+    let validUntil: Double?
+}
+
+enum ReaderPublicationPolicy {
+    static func keepingAvailable(_ translations: [String: ReaderModel.TranslationState], statuses: [PublicationAvailability], now: Double) -> [String: ReaderModel.TranslationState] {
+        translations.filter { _, state in
+            guard case .loaded(let translation) = state,
+                  let status = statuses.first(where: { $0.translationId == translation.translationId }) else { return true }
+            return status.available && (status.validUntil.map { $0 > now } ?? true)
+        }
+    }
+}
+
 struct StoredReaderTranslation: Decodable {
     let _id: String
     let content: String

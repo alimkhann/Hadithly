@@ -15,7 +15,16 @@ data class EvidenceDraftView(
     val expiresAt: Double? = null,
     val items: List<EvidenceItemView>,
     val citations: List<EvidenceCitation> = emptyList(),
+    val appeal: EvidenceAppealState? = null,
 )
+
+@Serializable
+data class EvidenceAppealState(val available: Boolean, val deadline: Double? = null, val status: String) {
+    fun canRequest(now: Long = System.currentTimeMillis()): Boolean = available && status == "not_requested" && (deadline ?: 0.0) > now
+}
+
+@Serializable
+data class PublicationAvailability(val translationId: String, val available: Boolean, val validUntil: Double? = null)
 
 @Serializable
 data class EvidenceCitation(val url: String, val title: String, val location: String)

@@ -12,6 +12,8 @@ struct EvidenceProcessingStatusView: View {
     let onRetry: (String) -> Void
     let onWithdraw: () -> Void
     var citations: [EvidenceCitation] = []
+    var appeal: EvidenceAppealState? = nil
+    var onAppeal: (String) -> Void = { _ in }
 
     var body: some View {
         ScrollView {
@@ -21,7 +23,7 @@ struct EvidenceProcessingStatusView: View {
                 Text("Evidence received; awaiting checks.").font(.headline).accessibilityIdentifier("submission.confirmation")
                 Text("Processing evidence. Your suggestion stays private and has not been reviewed or published.")
                     .font(.subheadline).foregroundStyle(palette.textSecondary)
-            } else if ["under_review", "approved", "held", "rejected", "review_unavailable"].contains(status) {
+            } else if ["under_review", "approved", "held", "rejected", "review_unavailable", "revoked"].contains(status) {
                 Text(reviewTitle).font(.headline).accessibilityIdentifier("submission.\(status)")
                 Text(reviewMessage).font(.subheadline).foregroundStyle(palette.textSecondary)
                 if status == "under_review" { ProgressView().accessibilityLabel("e3.reviewing") }
@@ -45,6 +47,7 @@ struct EvidenceProcessingStatusView: View {
                 }
             }
             if let errorMessage { Text(errorMessage).font(.caption).foregroundStyle(palette.textSecondary).accessibilityIdentifier("submission.error") }
+            EvidenceAppealContent(appeal: appeal, onAppeal: onAppeal)
             if !citations.isEmpty {
                 Text("e3.sources").font(.headline)
                 ForEach(Array(citations.enumerated()), id: \.offset) { index, citation in
@@ -74,6 +77,7 @@ struct EvidenceProcessingStatusView: View {
         case "approved": "e3.published"
         case "held": "e3.exception"
         case "rejected": "e3.rejected"
+        case "revoked": "e4.revoked"
         default: "e3.unavailable"
         }
     }
@@ -83,7 +87,37 @@ struct EvidenceProcessingStatusView: View {
         case "approved": "e3.published_message"
         case "held": "e3.exception_message"
         case "rejected": "e3.rejected_message"
+        case "revoked": "e4.revoked_message"
         default: "e3.unavailable_message"
+        }
+    }
+}
+
+struct EvidenceAppealState: Decodable {
+    let available: Bool
+    let deadline: Double?
+    let status: String
+    var canRequest: Bool { available && status == "not_requested" && (deadline ?? 0) > Date().timeIntervalSince1970 * 1000 }
+}
+
+struct EvidenceAppealContent: View {
+    let appeal: EvidenceAppealState?
+    let onAppeal: (String) -> Void
+    @State private var reason = ""
+    var body: some View {
+        if let appeal {
+            if appeal.canRequest {
+                Text("e4.appeal_window").font(.caption)
+                TextField("e4.appeal_reason", text: $reason, axis: .vertical)
+                    .lineLimit(3...8).textFieldStyle(.roundedBorder)
+                    .accessibilityIdentifier("submission.appealReason")
+                Button { onAppeal(reason) } label: { Text("e4.appeal").frame(minHeight: 44) }
+                    .disabled(reason.trimmingCharacters(in: .whitespacesAndNewlines).count < 8 || reason.count > 2000)
+                    .accessibilityIdentifier("submission.appeal")
+            } else if appeal.status != "not_requested" {
+                Text(appeal.status == "processing" ? "e4.appeal_processing" : "e4.appeal_resolved")
+                    .font(.subheadline).accessibilityIdentifier("submission.appealStatus")
+            }
         }
     }
 }
@@ -104,12 +138,14 @@ struct EvidenceProcessingFixture: View {
 
     var body: some View {
         VStack {
-            ForEach(["awaiting_processing", "processing_failed", "infected", "evidence_ready", "under_review", "approved", "held", "rejected", "review_unavailable"], id: \.self) { state in
+            ForEach(["awaiting_processing", "processing_failed", "infected", "evidence_ready", "under_review", "approved", "held", "rejected", "review_unavailable", "revoked"], id: \.self) { state in
                 Button(state) { status = state }.accessibilityIdentifier("e2.fixture.\(state)")
             }
             EvidenceProcessingStatusView(status: status, retryItems: ["test-item"], errorMessage: nil,
                 onRetry: { _ in status = "awaiting_processing" }, onWithdraw: {},
-                citations: [EvidenceCitation(url: "https://example.org/fixture", title: "Licensed source", location: "p. 1")])
+                citations: [EvidenceCitation(url: "https://example.org/fixture", title: "Licensed source", location: "p. 1")],
+                appeal: ["held", "rejected", "review_unavailable"].contains(status) ? EvidenceAppealState(available: true, deadline: Date().timeIntervalSince1970 * 1000 + 600_000, status: "not_requested") : nil,
+                onAppeal: { _ in status = "under_review" })
             ReaderStoredTranslationView(text: "This is a test text.", translation: communityTranslation, palette: .dark) {
                 showCommunitySources = true
             }
@@ -138,6 +174,7 @@ private struct EvidenceDraftView: Decodable {
     let proposedContent: String
     let items: [Item]
     let citations: [EvidenceCitation]?
+    let appeal: EvidenceAppealState?
 }
 
 private struct EvidenceSubmitResult: Decodable { let status: String }
@@ -257,7 +294,7 @@ struct TranslationSubmissionSheet: View {
                             .frame(minHeight: 44)
                     }
                     .padding(30)
-                } else if let draft, ["awaiting_processing", "evidence_ready", "processing_failed", "infected", "under_review", "approved", "held", "rejected", "review_unavailable"].contains(draft.status) {
+                } else if let draft, ["awaiting_processing", "evidence_ready", "processing_failed", "infected", "under_review", "approved", "held", "rejected", "review_unavailable", "revoked"].contains(draft.status) {
                     processingStatus(draft)
                 } else {
                     form
@@ -405,7 +442,16 @@ struct TranslationSubmissionSheet: View {
             retryItems: draft.items.filter { $0.state == "failed" && $0.retryable == true }.map(\.itemId),
             errorMessage: errorMessage,
             onRetry: { itemId in Task { await retryProcessing(itemId, submissionId: draft.submissionId) } },
-            onWithdraw: { Task { await deleteDraft() } }, citations: draft.citations ?? [])
+            onWithdraw: { Task { await deleteDraft() } }, citations: draft.citations ?? [],
+            appeal: draft.appeal, onAppeal: { reason in Task { await requestAppeal(reason, submissionId: draft.submissionId) } })
+    }
+
+    private func requestAppeal(_ reason: String, submissionId: String) async {
+        do {
+            let _: EvidenceSubmitResult = try await environment.convex.mutation("evidenceCases:requestAppeal", with: ["submissionId": submissionId as ConvexEncodable?, "reason": reason as ConvexEncodable?])
+            draft = try await fetchDraft(submissionId)
+            errorMessage = nil
+        } catch { errorMessage = String(localized: "e4.appeal_error") }
     }
 
     private func observeProcessing(_ submissionId: String, owner: String) async {
@@ -418,6 +464,13 @@ struct TranslationSubmissionSheet: View {
             for try await remote in stream.values {
                 guard !Task.isCancelled, ownerLanguageKey == owner else { return }
                 draft = remote
+                if remote.status != "draft" {
+                    for choice in evidence { if let file = choice.fileURL { try? FileManager.default.removeItem(at: file) } }
+                    evidence = []
+                    content = remote.proposedContent
+                    urlText = ""
+                    persistLocal()
+                }
             }
         } catch {
             if !Task.isCancelled && ownerLanguageKey == owner { errorMessage = "Evidence status is unavailable. Try again when connected." }
@@ -543,6 +596,13 @@ struct TranslationSubmissionSheet: View {
     private func loadLegacyProposal() async {
         guard model.canContribute, Clerk.shared.user != nil else { return }
         let requestedKey = localKey
+        let owned = environment.convex.subscribe(to: "evidence:getOwnEvidenceForTarget", with: ["hadithInternalId": hadith.internalId as ConvexEncodable?, "language": model.language as ConvexEncodable?], yielding: EvidenceDraftView?.self)
+        if let latest = try? await owned.values.first(where: { _ in true }), let latest {
+            guard !Task.isCancelled, localKey == requestedKey else { return }
+            draft = latest
+            content = latest.proposedContent
+            return
+        }
         let stream = environment.convex.subscribe(
             to: "evidence:getOwnLegacyProposal",
             with: ["hadithInternalId": hadith.internalId as ConvexEncodable?, "language": model.language as ConvexEncodable?],
@@ -585,7 +645,7 @@ struct TranslationSubmissionSheet: View {
                 current = try await fetchDraft(draft.submissionId)
                 try ensureCurrentOwner(submissionOwner)
                 self.draft = current
-                if ["awaiting_processing", "evidence_ready", "processing_failed", "infected", "under_review", "approved", "held", "rejected", "review_unavailable"].contains(current.status) {
+                if ["awaiting_processing", "evidence_ready", "processing_failed", "infected", "under_review", "approved", "held", "rejected", "review_unavailable", "revoked"].contains(current.status) {
                     for choice in evidence { if let file = choice.fileURL { try? FileManager.default.removeItem(at: file) } }
                     evidence = []
                     persistLocal()

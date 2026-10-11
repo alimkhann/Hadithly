@@ -1,6 +1,26 @@
 import XCTest
 
 final class EvidenceProcessingUITests: XCTestCase {
+    func testE4ContributorAppealAndOperatorAbsence() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-E2ProcessingFixture"]
+        app.launchEnvironment["HADITHLY_UI_TESTING"] = "1"
+        app.launch()
+        app.buttons["e2.fixture.rejected"].tap()
+        let reason = app.textFields["submission.appealReason"]
+        if !reason.isHittable { app.swipeUp() }
+        XCTAssertTrue(reason.waitForExistence(timeout: 5))
+        reason.tap()
+        reason.typeText("Check the supplied source again.")
+        let appeal = app.buttons["submission.appeal"]
+        if !appeal.isHittable { app.swipeUp() }
+        XCTAssertGreaterThanOrEqual(appeal.frame.height, 44)
+        appeal.tap()
+        XCTAssertTrue(app.staticTexts["submission.under_review"].exists)
+        XCTAssertFalse(app.buttons["submission.appeal"].exists)
+        XCTAssertFalse(app.debugDescription.contains("Operator"))
+        XCTAssertFalse(app.debugDescription.contains("Admin review"))
+    }
     func testE3PrivateStatusAndCitations() {
         let app = XCUIApplication()
         app.launchArguments = ["-E2ProcessingFixture"]

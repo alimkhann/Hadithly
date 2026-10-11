@@ -8,6 +8,7 @@ import {
 import { legacyReaderPreferencesValidator, readerPreferencesValidator } from "./lib/preferences";
 import { readingPositionValidator } from "./lib/readingPositions";
 import { permissionGrant, publicCitation, reviewPass, sourcePolicy } from "./lib/evidenceReviewPolicy";
+import { caseReason, caseState } from "./lib/evidenceCasePolicy";
 
 const authenticityGrade = v.union(
   v.literal("sahih"),
@@ -206,6 +207,7 @@ export default defineSchema({
     .index("by_generated_user", ["generatedByUserId"])
     .index("by_contributor_user", ["contributorUserId"])
     .index("by_source_status", ["source", "status"])
+    .index("by_publication", ["evidencePublicationId"])
     .searchIndex("search_content", {
       searchField: "content",
       filterFields: ["language", "status"],
@@ -246,6 +248,7 @@ export default defineSchema({
       v.literal("infected"),
       v.literal("legacy_evidence_missing"),
       v.literal("expired"),
+      v.literal("revoked"),
     ),
     draftKey: v.optional(v.string()),
     expiresAt: v.optional(v.number()),
@@ -253,11 +256,15 @@ export default defineSchema({
     createdAt: v.number(),
     reviewedAt: v.optional(v.number()),
     contributionConsentVersion: v.optional(v.string()),
+    firstRejectedAt: v.optional(v.number()),
+    auditReceipt: v.optional(v.string()),
+    recheckAttempts: v.optional(v.number()),
   })
     .index("by_status", ["status"])
     .index("by_submitted_by", ["submittedBy"])
     .index("by_submitter_draft_key", ["submittedBy", "draftKey"])
     .index("by_submitter_created", ["submittedBy", "createdAt"])
+    .index("by_owner_target", ["submittedBy", "hadithId", "language", "createdAt"])
     .index("by_status_expiry", ["status", "expiresAt"]),
 
   evidenceItems: defineTable({
@@ -306,6 +313,7 @@ export default defineSchema({
     .index("by_storage_id", ["source.storageId"])
     .index("by_processing_deadline", ["state", "processingLease.deadline"])
     .index("by_processing_queue", ["processingQueued", "createdAt"])
+    .index("by_retryable", ["state", "retryable"])
     .index("by_reserved_size", ["state", "source.declaredSize"]),
 
   evidenceExtractions: defineTable({
@@ -360,6 +368,7 @@ export default defineSchema({
     submissionId: v.id("communitySubmissions"), token: v.string(), deadline: v.number(), snapshotSha256: v.string(),
     status: v.union(v.literal("running"), v.literal("complete"), v.literal("failed")),
     policyVersion: v.string(), reasons: v.array(v.string()), createdAt: v.number(),
+    caseId: v.optional(v.id("evidenceCases")),
   }).index("by_submission", ["submissionId"]).index("by_status_deadline", ["status", "deadline"]),
   evidenceProvenance: defineTable({ submissionId: v.id("communitySubmissions"), evidenceItemId: v.id("evidenceItems"),
     status: v.union(v.literal("unassessed"), v.literal("verified"), v.literal("unresolved")),
@@ -373,19 +382,40 @@ export default defineSchema({
   evidenceReviewPasses: defineTable({ submissionId: v.id("communitySubmissions"), status: v.union(v.literal("not_started"), v.literal("complete")),
     snapshotSha256: v.optional(v.string()), policyVersion: v.optional(v.string()), result: v.optional(reviewPass), createdAt: v.number(),
   }).index("by_submission", ["submissionId"]),
-  evidencePublicationRevisions: defineTable({ submissionId: v.id("communitySubmissions"), status: v.union(v.literal("not_published"), v.literal("published")),
+  evidencePublicationRevisions: defineTable({ submissionId: v.id("communitySubmissions"), status: v.union(v.literal("not_published"), v.literal("published"), v.literal("revoked")),
     translationId: v.optional(v.id("translations")), snapshotSha256: v.optional(v.string()), policyVersion: v.optional(v.string()),
     citations: v.optional(v.array(publicCitation)),
     permissions: v.optional(v.array(v.object({ licenseName: v.string(), permissionUrl: v.string(), attribution: v.string(), offline: v.boolean() }))),
     outputSha256: v.optional(v.string()),
     previousDefaultIds: v.optional(v.array(v.id("translations"))),
+    comparisonPublicationIds: v.optional(v.array(v.id("evidencePublicationRevisions"))),
+    scanBindings: v.optional(v.array(v.object({ itemId: v.id("evidenceItems"), storageId: v.id("_storage"), sha256: v.string() }))),
+    accessDependencies: v.optional(v.array(v.object({ origin: v.string(), path: v.string(), sourceKind: v.union(v.literal("sunnah_com"), v.literal("evidence")) }))),
     permissionDependencies: v.optional(v.array(v.union(
-      v.object({ kind: v.literal("grant"), id: v.id("evidencePermissionGrants"), snapshot: permissionGrant }),
-      v.object({ kind: v.literal("policy"), id: v.id("evidenceSourcePolicies"), snapshot: sourcePolicy }),
+      v.object({ kind: v.literal("grant"), id: v.id("evidencePermissionGrants"), snapshot: permissionGrant, use: v.optional(v.literal("comparison")) }),
+      v.object({ kind: v.literal("policy"), id: v.id("evidenceSourcePolicies"), snapshot: sourcePolicy, use: v.optional(v.literal("comparison")) }),
     ))),
     createdAt: v.number(),
-  }).index("by_submission", ["submissionId"]),
-  evidenceAppeals: defineTable({ submissionId: v.id("communitySubmissions"), ownerUserId: v.id("users"), status: v.literal("not_requested"), createdAt: v.number() }).index("by_owner", ["ownerUserId"]),
+  }).index("by_submission", ["submissionId"]).index("by_status", ["status"]),
+  evidenceAppeals: defineTable({ submissionId: v.id("communitySubmissions"), ownerUserId: v.id("users"), status: v.union(v.literal("not_requested"), v.literal("processing"), v.literal("published"), v.literal("private")), reason: v.optional(v.string()), expiresAt: v.optional(v.number()), createdAt: v.number() }).index("by_owner", ["ownerUserId"]).index("by_submission", ["submissionId"]),
+  evidenceCases: defineTable({
+    kind: v.union(v.literal("exception"), v.literal("report"), v.literal("appeal"), v.literal("audit"), v.literal("recheck"), v.literal("incident")),
+    target: v.union(v.object({ kind: v.literal("submission"), submissionId: v.id("communitySubmissions") }), v.object({ kind: v.literal("translation"), translationId: v.id("translations") })),
+    state: caseState, attempts: v.number(), receipt: v.string(), reason: caseReason,
+    context: v.optional(v.string()), expiresAt: v.number(), createdAt: v.number(),
+  }).index("by_submission", ["target.submissionId"]).index("by_translation", ["target.translationId"])
+    .index("by_due", ["state.kind", "state.dueAt"]).index("by_kind", ["kind"]).index("by_expiry", ["expiresAt"]),
+  evidenceRequestEvents: defineTable({ userId: v.id("users"), kind: v.union(v.literal("submission"), v.literal("report"), v.literal("appeal")), createdAt: v.number() })
+    .index("by_user_kind_time", ["userId", "kind", "createdAt"]).index("by_time", ["createdAt"]),
+  evidenceAuditActors: defineTable({ userId: v.id("users"), key: v.string() }).index("by_user", ["userId"]),
+  evidenceReviewSpendEvents: defineTable({ submissionId: v.id("communitySubmissions"), createdAt: v.number() })
+    .index("by_submission_time", ["submissionId", "createdAt"]).index("by_time", ["createdAt"]),
+  evidenceReviewGlobalSpendEvents: defineTable({ createdAt: v.number() }).index("by_time", ["createdAt"]),
+  evidenceAuditFacts: defineTable({
+    receipt: v.string(), actor: v.union(v.object({ kind: v.literal("automated") }), v.object({ kind: v.literal("operator"), verified: v.literal(true), key: v.string() })),
+    reason: caseReason, before: v.string(), after: v.string(), policyVersion: v.string(), publicationPolicyVersion: v.string(),
+    models: v.array(v.object({ model: v.string(), revision: v.string() })), createdAt: v.number(),
+  }).index("by_receipt", ["receipt"]).index("by_time", ["createdAt"]),
   evidenceAbuseEvents: defineTable({ submissionId: v.id("communitySubmissions"), ownerUserId: v.id("users"), status: v.union(v.literal("none"), v.literal("blocked")), createdAt: v.number() }).index("by_owner", ["ownerUserId"]).index("by_submission", ["submissionId"]),
   evidenceDeletionStates: defineTable({ submissionId: v.id("communitySubmissions"), status: v.union(v.literal("active"), v.literal("deleted")), createdAt: v.number() }).index("by_submission", ["submissionId"]),
 
@@ -503,9 +533,15 @@ export default defineSchema({
       v.literal("dismissed"),
     ),
     createdAt: v.number(),
+    expiresAt: v.optional(v.number()),
+    caseId: v.optional(v.id("evidenceCases")),
   })
     .index("by_status", ["status"])
-    .index("by_reporter", ["reporterUserId"]),
+    .index("by_reporter", ["reporterUserId"])
+    .index("by_reporter_target", ["reporterUserId", "translationId"])
+    .index("by_translation", ["translationId"])
+    .index("by_case", ["caseId"])
+    .index("by_expiry", ["expiresAt"]),
 
   languageCoverage: defineTable({
     language: v.string(),

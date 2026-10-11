@@ -823,7 +823,8 @@ class OfflineStore(
     }
 
     fun translation(canonicalId: String, slug: String, locale: String): String? =
-        loadActivePack(slug, locale)?.entries?.firstOrNull { it.canonicalId == canonicalId }?.content
+        // Version 1 packs have no per-entry rights or revocation identity.
+        null
 
     fun offlineHadith(canonicalId: String, slug: String, locale: String?): ReaderHadith? {
         val dump = loadActiveDump(slug) ?: return null

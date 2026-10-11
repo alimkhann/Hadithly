@@ -27,7 +27,9 @@ open. R5 is complete;
 R6's owner decisions and implementation are recorded below. Its former
 proposal wording is historical. E3 passed its development gate on 2026-10-11;
 see `docs/E3_VERIFICATION.md`, `docs/E3_REVIEW.md`, and `docs/OPEN_GATES.md`.
-E4 is the next evidence session and has not started. Do not
+E4 passed its development gate on 2026-10-11 under the owner's deployment approval.
+See `docs/E4_VERIFICATION.md`.
+Do not
 start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
@@ -395,7 +397,7 @@ substantive: they own bounded implementation outcomes, not just inventories.
 | E1 | Add evidence schema, limits, quarantine storage, and upload clients. | Invalid, oversized, duplicate, private, and interrupted uploads fail safely. | GPT-5.6 Terra, high |
 | E2 | Add malware scanning, safe URL fetching, OCR, and extraction. | Malware and SSRF suites pass; untrusted content cannot control tools or prompts. | GPT-5.6 Sol, xhigh |
 | E3 | Add provenance, licensing, comparison, independent review, and auto-publication. | Development passed 2026-10-11; only licensed, consistent submissions strictly over 0.95 publish automatically. | GPT-6.1 Sol, high |
-| E4 | Automate exceptions, reports, appeals, abuse, revocation, and deletion; add optional operator controls. | Automated resolution and retention pass without a required approval queue. | GPT-5.6 Terra, high |
+| E4 | Automate exceptions, reports, appeals, abuse, revocation, and deletion; add optional operator controls. | Development passed 2026-10-11: automated resolution and retention without a required approval queue. | GPT-6.1 Sol, high |
 | Q1 | Replace monthly counters with rolling usage events, cache reuse, integrity signals, and abuse controls. | Window, race, retry, cache, and tamper tests pass. | GPT-5.6 Sol, xhigh |
 | Q2 | Ship monthly and annual entitlement semantics, regional pricing, restore, grace, and quota copy. | Store sandbox lifecycle and cross-platform account tests pass. | GPT-5.6 Sol, high |
 | LA1 | Add low-cost crash reporting, structured logs, uptime checks, and privacy-safe alerting. | Redacted test failures arrive from production-like builds and alerts have an owner. | GPT-5.6 Terra, medium |
@@ -1508,6 +1510,43 @@ substantive: they own bounded implementation outcomes, not just inventories.
 - The owner's app-wide direction is now automated routine content decisions,
   with optional operator exception handling. E4's prompt and future topic
   classification follow that direction. No E4 or Q1 implementation was added.
+
+### E4 evidence lifecycle (2026-10-11)
+
+- Confirmed E3's development pass and implemented only E4. Earlier E1, device,
+  widget, sync, and release gates remain open. Q1 has not started.
+- Reports, appeals, exceptions, sampled audits, source changes, and transient
+  processing failures resolve automatically with bounded retries. E3's atomic
+  mutation remains the sole publisher. No human approval queue exists.
+- Rights changes and comparison ancestry invalidate public reads immediately.
+  Native loaded translations observe availability and each permission deadline;
+  unsupported installed version-1 packs cannot render stored translation text.
+- Appeals derive ownership from the Clerk JWT and retain a fixed 30-day window
+  per adverse decision. Successful publication ends that private window. Retries
+  and appeals cannot extend it. Expiry and takedown erase sensitive content and
+  retain only detached, typed audit facts.
+- The optional JWT/operator CLI is outside both consumer apps. Its actions
+  require a current case version and reason, and record verified identity through
+  a private mapping plus immutable before/after facts. It has no publication or
+  deterministic-gate waiver command.
+- Local proof: backend typecheck and 257 tests, 222 iOS unit tests and three UI
+  tests, 194 Android unit tests and five UI tests passed. Two independent
+  read-only blast-radius reviews produced reproduced findings that were repaired
+  with focused regressions. `docs/E4_VERIFICATION.md` records the details.
+- The owner approved development deployment, legacy migration, and bounded real
+  native checks. Two unproven legacy community publications were withdrawn;
+  repeat migration changed zero rows. Development source/model checks remain
+  fail-closed. Production, IAM, billing settings, and credentials are unchanged.
+- The initial live challenge outputs omitted Arabic comparisons and were held.
+  The request now constrains the complete comparison set; incomplete judgments
+  retry within the same safety/publication gate. Both signed-in native report and
+  appeal flows passed without skips. Sixteen accepted passes used 22 actual model
+  calls, within the approved 24-call ceiling. Fixture setup was made idempotent;
+  a premature synthetic decision was repaired through a guarded recheck.
+- Fixture cleanup preserved all existing user, evidence, translation, and case
+  IDs. Only permitted detached audit facts, daily admission counters, and anonymous
+  global spend events remain. No ticket or credential was created or copied.
+- E4 passed in development. Stop before Q1.
 
 ### Future topic browsing with the Jev classifier (not a session)
 

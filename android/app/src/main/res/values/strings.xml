@@ -63,7 +63,7 @@
     <string name="e3_exception">Suggestion needs review</string>
     <string name="e3_rejected">Suggestion was not published</string>
     <string name="e3_unavailable">Review unavailable</string>
-    <string name="e3_reviewing_message">Your suggestion stays private while its meaning and sources are checked.</string>
+    <string name="e3_reviewing_message">We are checking the meaning and sources of your suggestion.</string>
     <string name="e3_published_message">Your translation is now available in the reader. Your contribution status stays private.</string>
     <string name="e3_exception_message">Your suggestion stays private while source permissions or supporting evidence need another check.</string>
     <string name="e3_rejected_message">The checks did not support publication. Your suggestion remains private.</string>
@@ -75,4 +75,12 @@
     <string name="e3_community_sources_message">A contributor suggested this translation. Automated reviews checked it against the cited evidence. It is not an authoritative rendering.</string>
     <string name="e3_contributor_label">· contributor translation</string>
     <string name="e3_report_saved_detail">Reports are saved privately. You can keep reading.</string>
+    <string name="e4_appeal">Request an appeal</string>
+    <string name="e4_appeal_reason">Explain what should be checked again</string>
+    <string name="e4_appeal_window">You can request one automatic appeal within 30 days. It does not extend evidence retention.</string>
+    <string name="e4_appeal_processing">Your appeal is being checked automatically.</string>
+    <string name="e4_appeal_resolved">Your appeal is complete. The suggestion status shows the result.</string>
+    <string name="e4_appeal_error">The appeal could not be requested. Check the window and try again when connected.</string>
+    <string name="e4_revoked">Publication withdrawn</string>
+    <string name="e4_revoked_message">This suggestion is private while its publication is reassessed.</string>
 </resources>

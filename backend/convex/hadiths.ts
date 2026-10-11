@@ -16,6 +16,7 @@ import {
   parseCanonicalHadithPath,
 } from "./lib/canonicalLinks";
 import { isRTLLocale } from "./lib/preferences";
+import { publicTranslationAvailable } from "./lib/evidencePublication";
 
 export const hadithInput = v.object({
   provider: providerValidator,
@@ -267,6 +268,7 @@ function currentHadith(hadith: Doc<"hadiths">): HadithDocument {
 
     const translatedHadiths: Array<Doc<"hadiths">> = [];
     for (const translation of translationResults) {
+      if (!await publicTranslationAvailable(ctx, translation)) continue;
       const hadith = await ctx.db.get(translation.hadithId);
       if (
         hadith &&
@@ -646,7 +648,7 @@ async function resolveLiveTranslation(
           .eq("isDefault", true),
       )
       .first();
-    if (row && row.status === "live") {
+    if (row && await publicTranslationAvailable(ctx, row)) {
       return {
         translation: {
           language: row.language,

@@ -324,6 +324,30 @@ class OfflineStoreTest {
     }
 
     @Test
+    fun installedVersionOnePackCannotBypassRevocationIdentity() = runBlocking {
+        val bytes = baseBytes(hex('a'), listOf("1"))
+        val base = manifest(hex('a'), bytes)
+        val transport = FakeTransport().apply { handler = { bytes } }
+        val server = FakeManifests(listOf(base))
+        val (store, _) = makeStore(transport, server, scope = this)
+        assertEquals(OfflineEnqueueResult.Started, store.enqueue("bukhari", "base", null))
+        waitUntil { store.recordFor("bukhari").activeBase != null }
+        val pack = OfflineTranslationPack(OfflineDumps.PACK_FORMAT, 1.0, "bukhari", "ur", "od1:${hex('a')}", "od1:${hex('d')}", 1700000100000.0, license,
+            listOf(OfflinePackEntry("sunnah_now:bukhari:1", "ur", "Unvalidated legacy community text", "community", "Community")))
+        val packBytes = json.encodeToString(OfflineTranslationPack.serializer(), pack).toByteArray()
+        val packManifest = OfflineManifest(OfflineDumps.MANIFEST_FORMAT, 1.0, "pack", "bukhari", "ur", "od1:${hex('d')}", "od1:${hex('a')}", packBytes.size.toDouble(), OfflineDumps.sha256Hex(packBytes), "0.1.0", 1700000100000.0, license, emptyList(), "https://example.invalid/pack.json")
+        transport.handler = { packBytes }
+        store.noteManifests(listOf(base), listOf(packManifest))
+        assertEquals(OfflineEnqueueResult.Started, store.enqueue("bukhari", "pack", "ur"))
+        waitUntil { store.recordFor("bukhari").activePacks["ur"] != null }
+        assertNotNull(store.loadActivePack("bukhari", "ur"))
+        assertNull(store.translation("sunnah_now:bukhari:1", "bukhari", "ur"))
+        val reader = store.offlineHadith("sunnah_now:bukhari:1", "bukhari", "ur")
+        assertNotNull(reader); assertTrue(reader!!.arabicText.isNotEmpty())
+        assertFalse(reader.englishText == "Unvalidated legacy community text")
+    }
+
+    @Test
     fun twoCollectionsDownloadConcurrently() = runBlocking {
         // Regression: one shared run job meant starting a second collection
         // cancelled the first, so only one could download.

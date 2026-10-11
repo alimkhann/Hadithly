@@ -62,7 +62,7 @@
     <string name="e3_exception">تجویز کو مزید جائزے کی ضرورت ہے</string>
     <string name="e3_rejected">تجویز شائع نہیں ہوئی</string>
     <string name="e3_unavailable">جائزہ دستیاب نہیں</string>
-    <string name="e3_reviewing_message">معنی اور ذرائع کی جانچ کے دوران آپ کی تجویز نجی رہتی ہے۔</string>
+    <string name="e3_reviewing_message">آپ کی تجویز کے معنی اور ذرائع کی جانچ ہو رہی ہے۔</string>
     <string name="e3_published_message">آپ کا ترجمہ اب قاری میں دستیاب ہے۔ آپ کی شراکت کی حیثیت نجی رہتی ہے۔</string>
     <string name="e3_exception_message">آپ کی تجویز نجی ہے کیونکہ ذرائع کی اجازت یا ثبوت کو مزید جانچ کی ضرورت ہے۔</string>
     <string name="e3_rejected_message">جانچ کے نتائج اشاعت کے لیے کافی نہیں تھے۔ آپ کی تجویز نجی رہتی ہے۔</string>
@@ -74,4 +74,12 @@
     <string name="e3_community_sources_message">ایک شراکت کنندہ نے یہ ترجمہ تجویز کیا۔ خودکار جائزوں نے اسے حوالہ دیے گئے ثبوت سے جانچا۔ یہ مستند ترجمہ نہیں ہے۔</string>
     <string name="e3_contributor_label">· شراکت کنندہ کا ترجمہ</string>
     <string name="e3_report_saved_detail">رپورٹس نجی طور پر محفوظ ہوتی ہیں۔ آپ پڑھنا جاری رکھ سکتے ہیں۔</string>
+    <string name="e4_appeal">اپیل کی درخواست</string>
+    <string name="e4_appeal_reason">بتائیں کہ کیا دوبارہ جانچنا چاہیے</string>
+    <string name="e4_appeal_window">آپ 30 دن کے اندر ایک خودکار اپیل کی درخواست کر سکتے ہیں۔ اس سے شواہد رکھنے کی مدت نہیں بڑھتی۔</string>
+    <string name="e4_appeal_processing">آپ کی اپیل کی خودکار جانچ ہو رہی ہے۔</string>
+    <string name="e4_appeal_resolved">آپ کی اپیل مکمل ہو گئی ہے۔ نتیجہ تجویز کی حالت میں دکھایا گیا ہے۔</string>
+    <string name="e4_appeal_error">اپیل کی درخواست نہیں ہو سکی۔ مدت چیک کریں اور رابطہ ہونے پر دوبارہ کوشش کریں۔</string>
+    <string name="e4_revoked">اشاعت واپس لے لی گئی</string>
+    <string name="e4_revoked_message">اشاعت کی دوبارہ جانچ کے دوران یہ تجویز نجی ہے۔</string>
 </resources>
