@@ -34,4 +34,13 @@ crons.interval(
   {},
 );
 
+crons.interval(
+  "recover stalled evidence processing",
+  { minutes: 5 },
+  internal.evidenceProcessing.recoverStalled,
+  {},
+);
+
+crons.interval("dispatch queued evidence processing", { minutes: 5 }, internal.evidenceProcessing.dispatchPending, {});
+
 export default crons;

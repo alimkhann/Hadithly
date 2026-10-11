@@ -46,7 +46,9 @@ import com.hadithly.app.core.data.ReaderHadith
 import com.hadithly.app.core.data.ReaderTranslation
 import com.hadithly.app.core.theme.LocalHadithlyColors
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
@@ -62,6 +64,28 @@ private fun evidenceError(failure: Throwable): String {
     val serverReason = Regex("Uncaught Error: ([^\\n]+)").find(message)?.groupValues?.get(1)
     return (serverReason ?: message.takeUnless { "Server Error" in it }?.lineSequence()?.firstOrNull())
         ?.take(180) ?: "Evidence could not be submitted. Please retry."
+}
+
+@Composable
+internal fun EvidenceProcessingStatusContent(status: String, retryItems: List<String>, onRetry: (String) -> Unit) {
+    val colors = LocalHadithlyColors.current
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        if (status == "awaiting_processing") {
+            CircularProgressIndicator(modifier = Modifier.testTag("submission.processing").semantics { contentDescription = "Processing evidence" })
+            Text("Evidence received; awaiting checks.", color = colors.textPrimary, fontSize = 18.sp)
+            Text("Processing evidence. Your suggestion stays private and has not been reviewed or published.", color = colors.textSecondary)
+        } else if (status == "evidence_ready") {
+            Text("Evidence checks complete", color = colors.textPrimary, fontSize = 18.sp, modifier = Modifier.testTag("submission.ready"))
+            Text("Your suggestion is still private. It has not been reviewed or published.", color = colors.textSecondary)
+        } else {
+            Text(if (status == "infected") "Evidence cannot be used" else "Evidence processing failed", color = colors.textPrimary, fontSize = 18.sp,
+                modifier = Modifier.testTag(if (status == "infected") "submission.infected" else "submission.failed"))
+            Text("Your suggestion remains private. Withdraw it and submit different evidence if needed.", color = colors.textSecondary)
+        }
+        if (status in setOf("awaiting_processing", "processing_failed")) retryItems.forEach { itemId ->
+            TextButton(onClick = { onRetry(itemId) }, modifier = Modifier.testTag("submission.retryProcessing")) { Text("Retry evidence") }
+        }
+    }
 }
 
 @Composable
@@ -212,6 +236,17 @@ fun TranslationSubmissionSheet(
         }
     }
 
+    LaunchedEffect(localKey, draft?.submissionId) {
+        val submissionId = draft?.submissionId ?: return@LaunchedEffect
+        try {
+            repository.observeEvidenceDraft(submissionId).collect { remote -> draft = remote }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            error = "Evidence status is unavailable. Try again when connected."
+        }
+    }
+
     Column(
         verticalArrangement = Arrangement.spacedBy(14.dp),
         modifier = Modifier.fillMaxWidth().navigationBarsPadding().verticalScroll(rememberScrollState()).padding(20.dp),
@@ -235,9 +270,17 @@ fun TranslationSubmissionSheet(
                     } }
                 }) { Text("Start a new suggestion") }
             }
-            draft?.status == "awaiting_processing" -> Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.testTag("submission.confirmation")) {
-                Text("Evidence received; awaiting checks.", color = colors.textPrimary, fontSize = 18.sp)
-                Text("Your suggestion is private while its sources are checked. It has not been reviewed or published.", color = colors.textSecondary)
+            draft?.status in setOf("awaiting_processing", "evidence_ready", "processing_failed", "infected") -> Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.testTag("submission.confirmation")) {
+                EvidenceProcessingStatusContent(
+                    status = draft?.status ?: "processing_failed",
+                    retryItems = draft?.items?.filter { it.state == "failed" && it.retryable }?.map { it.itemId }.orEmpty(),
+                    onRetry = { itemId ->
+                        draft?.submissionId?.let { submissionId -> scope.launch {
+                            runCatching { repository.retryEvidenceProcessing(submissionId, itemId) }
+                                .onFailure { error = "Evidence could not be retried right now." }
+                        } }
+                    },
+                )
                 error?.let { Text(it, color = colors.textSecondary, modifier = Modifier.testTag("submission.error")) }
                 TextButton(onClick = {
                     draft?.submissionId?.let { id -> scope.launch {
@@ -325,7 +368,7 @@ fun TranslationSubmissionSheet(
                                 }
                                 draft = current
                                 persistRemoteDraft(current, choices.toList())
-                                if (current.status == "awaiting_processing") {
+                                if (current.status in setOf("awaiting_processing", "evidence_ready", "processing_failed", "infected")) {
                                     choices.forEach { it.filePath?.let(::File)?.delete() }
                                     choices.clear()
                                     persistRemoteDraft(current, emptyList())
@@ -341,7 +384,7 @@ fun TranslationSubmissionSheet(
                                     repository.uploadEvidence(current.submissionId, item.itemId, choice.mime ?: item.declaredMime ?: kotlin.error("Missing file type"), file) { progress = it }
                                 }
                                 repository.finalizeEvidenceDraft(current.submissionId)
-                                draft = current.copy(status = "awaiting_processing")
+                                draft = repository.getOwnEvidenceDraft(current.submissionId) ?: current.copy(status = "awaiting_processing")
                                 choices.forEach { it.filePath?.let(::File)?.delete() }
                                 choices.clear()
                                 persistRemoteDraft(current, emptyList())

@@ -31,7 +31,11 @@ struct RootView: View {
 
     @ViewBuilder
     var body: some View {
-        if isR3PagingFixture {
+        if AutomationContext.allows("-E2ProcessingFixture") {
+#if DEBUG
+            EvidenceProcessingFixture()
+#endif
+        } else if isR3PagingFixture {
 #if DEBUG
             ReaderPagingTestFixtureView()
 #endif

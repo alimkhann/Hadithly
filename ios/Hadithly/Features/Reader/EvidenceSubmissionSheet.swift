@@ -4,12 +4,71 @@ import CryptoKit
 import SwiftUI
 import UniformTypeIdentifiers
 
+struct EvidenceProcessingStatusView: View {
+    @Environment(\.readerPalette) private var palette
+    let status: String
+    let retryItems: [String]
+    let errorMessage: String?
+    let onRetry: (String) -> Void
+    let onWithdraw: () -> Void
+
+    var body: some View {
+        VStack(spacing: 12) {
+            if status == "awaiting_processing" {
+                ProgressView().accessibilityLabel("Processing evidence").accessibilityIdentifier("submission.processing")
+                Text("Evidence received; awaiting checks.").font(.headline).accessibilityIdentifier("submission.confirmation")
+                Text("Processing evidence. Your suggestion stays private and has not been reviewed or published.")
+                    .font(.subheadline).foregroundStyle(palette.textSecondary)
+            } else if status == "evidence_ready" {
+                Image(systemName: "checkmark.circle").font(.largeTitle)
+                Text("Evidence checks complete").font(.headline).accessibilityIdentifier("submission.ready")
+                Text("Your suggestion is still private. It has not been reviewed or published.")
+                    .font(.subheadline).foregroundStyle(palette.textSecondary)
+            } else {
+                Image(systemName: "exclamationmark.circle").font(.largeTitle)
+                Text(status == "infected" ? "Evidence cannot be used" : "Evidence processing failed")
+                    .font(.headline).accessibilityIdentifier(status == "infected" ? "submission.infected" : "submission.failed")
+                Text("Your suggestion remains private. Withdraw it and submit different evidence if needed.")
+                    .font(.subheadline).foregroundStyle(palette.textSecondary)
+            }
+            if ["awaiting_processing", "processing_failed"].contains(status) {
+                ForEach(retryItems, id: \.self) { itemId in
+                    Button { onRetry(itemId) } label: {
+                        Text("Retry evidence").frame(minHeight: 44).contentShape(Rectangle())
+                    }.accessibilityIdentifier("submission.retryProcessing")
+                }
+            }
+            if let errorMessage { Text(errorMessage).font(.caption).foregroundStyle(palette.textSecondary).accessibilityIdentifier("submission.error") }
+            Button(role: .destructive, action: onWithdraw) {
+                Text("Withdraw suggestion").frame(minHeight: 44).contentShape(Rectangle())
+            }.accessibilityIdentifier("submission.deleteDraft")
+        }
+        .foregroundStyle(palette.textPrimary).frame(maxWidth: .infinity).padding(30)
+    }
+}
+
+#if DEBUG
+struct EvidenceProcessingFixture: View {
+    @State private var status = "awaiting_processing"
+    var body: some View {
+        VStack {
+            ForEach(["awaiting_processing", "processing_failed", "infected", "evidence_ready"], id: \.self) { state in
+                Button(state) { status = state }.accessibilityIdentifier("e2.fixture.\(state)")
+            }
+            EvidenceProcessingStatusView(status: status, retryItems: ["test-item"], errorMessage: nil,
+                onRetry: { _ in status = "awaiting_processing" }, onWithdraw: {})
+        }.background(ReaderPalette.dark.background).environment(\.readerPalette, .dark)
+    }
+}
+#endif
+
 private struct EvidenceDraftView: Decodable {
     struct Item: Decodable, Identifiable {
         let itemId: String
         let clientItemKey: String
         let kind: String
         let state: String
+        let retryable: Bool?
         let url: String?
         let displayName: String?
         let declaredMime: String?
@@ -85,7 +144,7 @@ private final class EvidenceUploadProgress: NSObject, URLSessionTaskDelegate {
     }
 }
 
-/// E1 receives private evidence. Scan, extraction, and review follow in later sessions.
+/// Private evidence intake and coarse E2 processing status.
 struct TranslationSubmissionSheet: View {
     @Environment(\.readerPalette) private var palette
     @Environment(\.readerTheme) private var readerTheme
@@ -138,23 +197,8 @@ struct TranslationSubmissionSheet: View {
                             .frame(minHeight: 44)
                     }
                     .padding(30)
-                } else if draft?.status == "awaiting_processing" {
-                    VStack(spacing: 12) {
-                        Image(systemName: "checkmark.circle").font(.largeTitle)
-                        Text("Evidence received; awaiting checks.").font(.headline)
-                            .accessibilityIdentifier("submission.confirmation")
-                        Text("Your suggestion is private while its sources are checked. It has not been reviewed or published.")
-                            .font(.subheadline).foregroundStyle(palette.textSecondary)
-                        if let errorMessage {
-                            Text(errorMessage).font(.caption).foregroundStyle(palette.textSecondary)
-                                .accessibilityIdentifier("submission.error")
-                        }
-                        Button("Withdraw suggestion", role: .destructive) { Task { await deleteDraft() } }
-                            .frame(minHeight: 44)
-                            .accessibilityIdentifier("submission.deleteDraft")
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(30)
+                } else if let draft, ["awaiting_processing", "evidence_ready", "processing_failed", "infected"].contains(draft.status) {
+                    processingStatus(draft)
                 } else {
                     form
                 }
@@ -194,6 +238,10 @@ struct TranslationSubmissionSheet: View {
             .onChange(of: evidence) { _, _ in persistLocal() }
             .onChange(of: ownerLanguageKey) { _, _ in activeUpload?.cancel() }
             .onDisappear { activeUpload?.cancel() }
+            .task(id: draft?.submissionId) {
+                guard let submissionId = draft?.submissionId else { return }
+                await observeProcessing(submissionId, owner: ownerLanguageKey)
+            }
         }
         .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
     }
@@ -289,6 +337,41 @@ struct TranslationSubmissionSheet: View {
         }
         .foregroundStyle(palette.textPrimary)
         .padding(20)
+    }
+
+    private func processingStatus(_ draft: EvidenceDraftView) -> some View {
+        EvidenceProcessingStatusView(status: draft.status,
+            retryItems: draft.items.filter { $0.state == "failed" && $0.retryable == true }.map(\.itemId),
+            errorMessage: errorMessage,
+            onRetry: { itemId in Task { await retryProcessing(itemId, submissionId: draft.submissionId) } },
+            onWithdraw: { Task { await deleteDraft() } })
+    }
+
+    private func observeProcessing(_ submissionId: String, owner: String) async {
+        let stream = environment.convex.subscribe(
+            to: "evidence:getOwnEvidenceDraft",
+            with: ["submissionId": submissionId as ConvexEncodable?],
+            yielding: EvidenceDraftView.self
+        )
+        do {
+            for try await remote in stream.values {
+                guard !Task.isCancelled, ownerLanguageKey == owner else { return }
+                draft = remote
+            }
+        } catch {
+            if !Task.isCancelled && ownerLanguageKey == owner { errorMessage = "Evidence status is unavailable. Try again when connected." }
+        }
+    }
+
+    private func retryProcessing(_ itemId: String, submissionId: String) async {
+        do {
+            let _: Bool = try await environment.convex.mutation("evidenceProcessing:retryOwnEvidenceProcessing", with: [
+                "submissionId": submissionId as ConvexEncodable?, "itemId": itemId as ConvexEncodable?
+            ])
+            errorMessage = nil
+        } catch {
+            errorMessage = "Evidence could not be retried right now."
+        }
     }
 
     private var ownerLanguageKey: String { "\(Clerk.shared.user?.id ?? "guest").\(model.language)" }
@@ -441,7 +524,7 @@ struct TranslationSubmissionSheet: View {
                 current = try await fetchDraft(draft.submissionId)
                 try ensureCurrentOwner(submissionOwner)
                 self.draft = current
-                if current.status == "awaiting_processing" {
+                if ["awaiting_processing", "evidence_ready", "processing_failed", "infected"].contains(current.status) {
                     for choice in evidence { if let file = choice.fileURL { try? FileManager.default.removeItem(at: file) } }
                     evidence = []
                     persistLocal()
@@ -488,7 +571,8 @@ struct TranslationSubmissionSheet: View {
             }
             let _: EvidenceSubmitResult = try await environment.convex.mutation("evidence:finalizeEvidenceDraft", with: ["submissionId": current.submissionId as ConvexEncodable?])
             try ensureCurrentOwner(submissionOwner)
-            draft = EvidenceDraftView(submissionId: current.submissionId, status: "awaiting_processing", proposedContent: content, items: current.items)
+            draft = try await fetchDraft(current.submissionId)
+            try ensureCurrentOwner(submissionOwner)
             for choice in evidence { if let file = choice.fileURL { try? FileManager.default.removeItem(at: file) } }
             evidence = []
             persistLocal()

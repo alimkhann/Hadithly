@@ -22,6 +22,7 @@ data class EvidenceItemView(
     val clientItemKey: String,
     val kind: String,
     val state: String,
+    val retryable: Boolean = false,
     val url: String? = null,
     val displayName: String? = null,
     val declaredMime: String? = null,

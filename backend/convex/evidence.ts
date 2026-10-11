@@ -1,5 +1,6 @@
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
@@ -32,7 +33,7 @@ function displayName(raw: string): string {
   return name;
 }
 
-function storageHashMatches(stored: string, declaredHex: string): boolean {
+export function storageHashMatches(stored: string, declaredHex: string): boolean {
   if (/^[a-f0-9]{64}$/.test(stored)) return stored === declaredHex;
   try {
     const decoded = atob(stored);
@@ -71,13 +72,13 @@ async function ownDraft(ctx: QueryCtx | MutationCtx, submissionId: Id<"community
   return { user, submission };
 }
 
-function snapshot(submission: { _id: Id<"communitySubmissions">; status: string; proposedContent: string; expiresAt?: number }, items: Array<{ _id: Id<"evidenceItems">; clientItemKey: string; state: string; source: { kind: string; url?: string; displayName?: string; declaredMime?: string; declaredSize?: number; size?: number } }>) {
+function snapshot(submission: { _id: Id<"communitySubmissions">; status: string; proposedContent: string; expiresAt?: number }, items: Array<{ _id: Id<"evidenceItems">; clientItemKey: string; state: string; retryable?: boolean; source: { kind: string; url?: string; displayName?: string; declaredMime?: string; declaredSize?: number; size?: number } }>) {
   return {
     submissionId: submission._id,
     status: submission.status,
     proposedContent: submission.proposedContent,
     expiresAt: submission.expiresAt ?? null,
-    items: items.map(item => ({ itemId: item._id, clientItemKey: item.clientItemKey, kind: item.source.kind, state: item.state, url: item.source.url ?? null, displayName: item.source.displayName ?? null, declaredMime: item.source.declaredMime ?? null, declaredSize: item.source.declaredSize ?? null, size: item.source.size ?? null })),
+    items: items.map(item => ({ itemId: item._id, clientItemKey: item.clientItemKey, kind: item.source.kind, state: item.state, retryable: item.state === "failed" && item.retryable === true, url: item.source.url ?? null, displayName: item.source.displayName ?? null, declaredMime: item.source.declaredMime ?? null, declaredSize: item.source.declaredSize ?? null, size: item.source.size ?? null })),
   };
 }
 
@@ -184,7 +185,7 @@ export const replaceEvidenceSlot = mutation({
       : { kind: "file" as const, declaredMime: args.descriptor.declaredMime, declaredSize: args.descriptor.declaredSize, declaredSha256: args.descriptor.declaredSha256, displayName: displayName(args.descriptor.displayName) };
     if (source.kind === "file" && (!Number.isInteger(source.declaredSize) || source.declaredSize < 1 || source.declaredSize > MAX_EVIDENCE_BYTES)) throw new Error("Evidence file exceeds the 10 MB limit");
     if (source.kind === "file" && !/^[a-f0-9]{64}$/.test(source.declaredSha256)) throw new Error("Invalid evidence file checksum");
-    await ctx.db.patch(item._id, { source, state: source.kind === "url" ? "pending_safe_fetch" : "reserved", updatedAt: Date.now() });
+    await ctx.db.patch(item._id, { source, state: source.kind === "url" ? "pending_safe_fetch" : "reserved", processingAttempts: 0, processingLease: undefined, retryable: undefined, updatedAt: Date.now() });
     return true;
   },
 });
@@ -200,11 +201,20 @@ export const finalizeEvidenceDraft = mutation({
     const identities = items.map(item => item.source.kind === "url" ? `url:${item.source.url}` : `file:${item.source.sha256 ?? ""}`);
     if (new Set(identities).size !== identities.length) throw new Error("Duplicate evidence");
     await ctx.db.patch(submission._id, { status: "awaiting_processing", expiresAt: Date.now() + PROCESSING_EXPIRY_MS });
+    for (const item of items) {
+      await ctx.db.patch(item._id, { processingQueued: true });
+    }
+    await ctx.scheduler.runAfter(0, internal.evidenceProcessing.dispatchPending, {});
     return { status: "awaiting_processing" as const };
   },
 });
 
 export async function deleteEvidenceForSubmission(ctx: MutationCtx, submissionId: Id<"communitySubmissions">) {
+  const extractions = await ctx.db.query("evidenceExtractions").withIndex("by_submission", q => q.eq("submissionId", submissionId)).collect();
+  for (const extraction of extractions) {
+    if (extraction.sourceStorageId) await ctx.storage.delete(extraction.sourceStorageId);
+    await ctx.db.delete(extraction._id);
+  }
   const items = await ctx.db.query("evidenceItems").withIndex("by_submission", q => q.eq("submissionId", submissionId)).collect();
   for (const item of items) {
     if (item.source.kind === "file") {
@@ -227,7 +237,7 @@ export const deleteEvidenceDraft = mutation({
   args: { submissionId: v.id("communitySubmissions") },
   handler: async (ctx, args) => {
     const { submission } = await ownDraft(ctx, args.submissionId);
-    if (submission.status !== "draft" && submission.status !== "awaiting_processing" && submission.status !== "expired") throw new Error("Evidence submission cannot be deleted here");
+    if (!["draft", "awaiting_processing", "evidence_ready", "processing_failed", "infected", "expired"].includes(submission.status)) throw new Error("Evidence submission cannot be deleted here");
     await deleteEvidenceForSubmission(ctx, submission._id);
     await ctx.db.delete(submission._id);
     return true;
@@ -292,7 +302,7 @@ export const expireEvidence = internalMutation({
   args: {},
   handler: async ctx => {
     let expired = 0;
-    for (const status of ["draft", "awaiting_processing"] as const) {
+    for (const status of ["draft", "awaiting_processing", "evidence_ready", "processing_failed", "infected"] as const) {
       const rows = await ctx.db.query("communitySubmissions").withIndex("by_status_expiry", q => q.eq("status", status).lt("expiresAt", Date.now())).take(25);
       for (const row of rows) {
         await deleteEvidenceForSubmission(ctx, row._id);
@@ -314,6 +324,11 @@ export const sweepStorageOrphans = internalMutation({
     let deleted = 0;
     for (const file of page.page) {
       if (now - file._creationTime < 2 * 60 * 60 * 1000) continue;
+      if (file.contentType === "application/x-hadithly-evidence-source") {
+        const reference = await ctx.db.query("evidenceExtractions").withIndex("by_source_storage", q => q.eq("sourceStorageId", file._id)).first();
+        if (!reference) { await ctx.storage.delete(file._id); deleted++; }
+        continue;
+      }
       const [evidenceRef, offlineRef] = await Promise.all([
         ctx.db.query("evidenceItems").withIndex("by_storage_id", q => q.eq("source.storageId", file._id)).first(),
         ctx.db.query("offlineArtifacts").withIndex("by_storage_id", q => q.eq("storageId", file._id)).first(),

@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 import { convexTest } from "convex-test";
-import { describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { PDFDocument } from "pdf-lib";
 import { createHash } from "node:crypto";
 import { api, internal } from "./_generated/api";
@@ -33,6 +33,8 @@ const urlItem = { kind: "url" as const, clientItemKey: "url_item_1", url: "https
 const fileItem = { kind: "file" as const, clientItemKey: "file_item_1", declaredMime: "image/png" as const, declaredSize: png.length, declaredSha256: pngSha256, displayName: "evidence.png" };
 
 describe("E1 private evidence intake", () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
   test("resolves the reader's canonical hadith target to its stored row", async () => {
     const { t, owner, hadithId, canonicalId } = await fixture();
     const draft = await owner.mutation(api.evidence.createEvidenceDraft, {
@@ -53,7 +55,7 @@ describe("E1 private evidence intake", () => {
   });
 
   test("creates a private URL draft, normalizes its source, and only finalizes to processing", async () => {
-    const { owner, outsider, hadithId } = await fixture();
+    const { t, owner, outsider, hadithId } = await fixture();
     const args = { hadithInternalId: hadithId, language: "ur", proposedContent: "Faithful translation", draftKey: "draft_key_1", items: [urlItem] };
     const draft = await owner.mutation(api.evidence.createEvidenceDraft, args);
     expect(draft.items[0]?.url).toBe("https://example.org/source");
@@ -63,6 +65,7 @@ describe("E1 private evidence intake", () => {
     const saved = await owner.query(api.evidence.getOwnEvidenceDraft, { submissionId: draft.submissionId });
     expect(saved.status).toBe("awaiting_processing");
     expect(JSON.stringify(saved)).not.toContain("storageId");
+    await t.finishInProgressScheduledFunctions();
   });
 
   test("rejects missing, duplicate, unsupported, and oversized evidence before storage", async () => {
@@ -105,6 +108,7 @@ describe("E1 private evidence intake", () => {
     await owner.mutation(api.evidence.finalizeEvidenceDraft, { submissionId: draft.submissionId });
     const translations = await t.run(ctx => ctx.db.query("translations").collect());
     expect(translations).toHaveLength(0);
+    await t.finishInProgressScheduledFunctions();
   });
 
   test("a changed file is rejected against the preflight checksum", async () => {
@@ -235,6 +239,7 @@ describe("E1 private evidence intake", () => {
     expect(await owner.mutation(api.evidence.finalizeEvidenceDraft, { submissionId: legacyId })).toEqual({ status: "awaiting_processing" });
     expect((await t.run(ctx => ctx.db.get(legacyId)))?.aiReview?.model).toBe("old");
     expect(await t.run(ctx => ctx.db.query("translations").collect())).toHaveLength(0);
+    await t.finishInProgressScheduledFunctions();
   });
 
   test("historical live community text stays live while its evidence gap is flagged", async () => {

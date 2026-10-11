@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.ensureActive
@@ -198,6 +199,13 @@ class ConvexRepository(context: Context) {
 
     suspend fun getOwnEvidenceDraft(submissionId: String): EvidenceDraftView? = withContext(Dispatchers.IO) {
         subscribe<EvidenceDraftView>("evidence:getOwnEvidenceDraft", mapOf("submissionId" to submissionId)).firstOrNull()
+    }
+
+    fun observeEvidenceDraft(submissionId: String): Flow<EvidenceDraftView> =
+        subscribe<EvidenceDraftView>("evidence:getOwnEvidenceDraft", mapOf("submissionId" to submissionId)).flowOn(Dispatchers.IO)
+
+    suspend fun retryEvidenceProcessing(submissionId: String, itemId: String) = withContext(Dispatchers.IO) {
+        convex.mutation<Boolean>("evidenceProcessing:retryOwnEvidenceProcessing", mapOf("submissionId" to submissionId, "itemId" to itemId))
     }
 
     suspend fun getOwnLegacyProposal(hadithInternalId: String, language: String): LegacyEvidenceProposal? = withContext(Dispatchers.IO) {

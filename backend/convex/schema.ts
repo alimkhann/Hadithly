@@ -237,6 +237,9 @@ export default defineSchema({
       v.literal("needs_admin"),
       v.literal("draft"),
       v.literal("awaiting_processing"),
+      v.literal("evidence_ready"),
+      v.literal("processing_failed"),
+      v.literal("infected"),
       v.literal("legacy_evidence_missing"),
       v.literal("expired"),
     ),
@@ -278,17 +281,52 @@ export default defineSchema({
       v.literal("validating"),
       v.literal("quarantined_unscanned"),
       v.literal("pending_safe_fetch"),
+      v.literal("processing"),
+      v.literal("ready"),
+      v.literal("failed"),
+      v.literal("infected"),
       v.literal("invalid"),
       v.literal("expired"),
     ),
     uploadAttempts: v.number(),
+    processingAttempts: v.optional(v.number()),
+    processingQueued: v.optional(v.boolean()),
+    processingLease: v.optional(v.object({ token: v.string(), deadline: v.number() })),
+    retryable: v.optional(v.boolean()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index("by_submission", ["submissionId"])
     .index("by_owner", ["ownerUserId"])
     .index("by_storage_id", ["source.storageId"])
+    .index("by_processing_deadline", ["state", "processingLease.deadline"])
+    .index("by_processing_queue", ["processingQueued", "createdAt"])
     .index("by_reserved_size", ["state", "source.declaredSize"]),
+
+  evidenceExtractions: defineTable({
+    submissionId: v.id("communitySubmissions"),
+    evidenceItemId: v.id("evidenceItems"),
+    trust: v.literal("untrusted"),
+    mime: v.string(),
+    sha256: v.string(),
+    finalUrl: v.optional(v.string()),
+    sourceStorageId: v.optional(v.id("_storage")),
+    text: v.string(),
+    spans: v.array(v.object({
+      start: v.number(), end: v.number(),
+      source: v.union(
+        v.object({ kind: v.literal("html_chars"), start: v.number(), end: v.number() }),
+        v.object({ kind: v.literal("page_box"), page: v.number(), x: v.number(), y: v.number(), width: v.number(), height: v.number() }),
+      ),
+    })),
+    createdAt: v.number(),
+  }).index("by_item", ["evidenceItemId"]).index("by_submission", ["submissionId"]).index("by_source_storage", ["sourceStorageId"]),
+
+  evidenceWorkerLease: defineTable({
+    name: v.literal("processor"),
+    token: v.string(),
+    deadline: v.number(),
+  }).index("by_name", ["name"]),
 
   evidenceCleanupCursor: defineTable({
     name: v.literal("storage_orphans"),

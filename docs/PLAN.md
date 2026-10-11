@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-10-02. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-10-10. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
 D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its
 simulator/emulator and unit gates; its physical-device gate is open. R4's
@@ -20,8 +20,10 @@ email local part at password sign-up, editable in Settings. The Android FCM
 device-push re-test deferred from D1 folds into D4's physical-device matrix.
 
 Current next gate: the still-open R3 physical-device matrix. W1 and W2 code is
-implemented, but their full widget device gates remain open. E1 proceeds on
-the independent F1 evidence branch at the owner's direction. R5 is complete;
+implemented, but their full widget device gates remain open. E2 passed its
+development security, private cloud, and native processing gates on the independent
+F1 evidence branch at the owner's direction. E1's remaining device gate stays
+open. R5 is complete;
 R6 (reader chrome, density, and paging polish, owner-directed) is proposed and
 waits for the owner's answers on Arabic alignment, source labeling, the menu
 button, and slice order. Do not
@@ -1429,6 +1431,34 @@ substantive: they own bounded implementation outcomes, not just inventories.
   so the updated VoiceOver target tree is unverified. E1 remains open for the
   iOS progress/cancellation, account-switch, RTL, and assistive-technology
   device matrix. E2 has not started.
+
+### E2 safe processing verification (2026-10-10)
+
+- The owner authorized E2 while explicitly retaining E1's remaining device gate.
+  E2 adds private safe HTTPS fetch, ClamAV scanning before extraction, bounded
+  image/PDF OCR, untrusted text with source offsets, and coarse native processing,
+  failed, infected, and Retry states. No E3 review or publication was added.
+- Action-time approvals covered Google billing, a $10 monthly Cloud Run cap,
+  private processor deployment, and a dedicated development invocation credential.
+  The worker and invoker have no project roles; only the invoker can call the
+  one-slot service. Canonical service URL and runtime readbacks are recorded in
+  `docs/E2_VERIFICATION.md`.
+- Typechecking and 190 backend tests passed. All 12 Linux scanner/fetch/OCR
+  controls passed. Actual private-cloud requests passed IAM, scan, OCR, malformed
+  PDF, private-address, HTTPS snapshot, and source-offset checks. The deployed
+  Convex workflow passed owner privacy, three manual attempts, withdrawal, and
+  preservation of existing records.
+- Both native status tests passed. Each signed-in native integration uploaded a
+  generated PNG and PDF plus an HTTPS source, observed all three items ready, and
+  withdrew its disposable submission. The owner approved short-lived Clerk test
+  tickets after the earlier sessions were absent; their private files were removed.
+- Live testing exposed parallel jobs overrunning the single cloud slot. A Convex
+  worker lease now serializes claims, retains waiting items without spending an
+  attempt, schedules the next job immediately, and survives withdrawal until the
+  old request completes. Both three-item native checks then passed concurrently.
+- Docker was fully cleaned at the owner's explicit request. Final readback shows
+  no containers, images, volumes, or build cache, and only built-in networks.
+- Stop before E3. E1's remaining device matrix stays open.
 
 ### Future topic browsing with the Jev classifier (not a session)
 
