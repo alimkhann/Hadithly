@@ -1677,6 +1677,10 @@ substantive: they own bounded implementation outcomes, not just inventories.
   remain unfinished. The agent inspected forms and explained identifiers without
   entering private information or submitting declarations. Activation and real
   product availability remain open; see the latest Q2 verification record.
+- October 13 readback supersedes that financial status: both U.S. tax forms are
+  **Active**, while Paid Apps Agreement and banking are **Processing**. The
+  physical product-read retry cannot run while the iPhone is disconnected.
+  Full Q2 remains an open store gate; no exception to start LA1 has been granted.
 - A separately approved sandbox-only RevenueCat webhook is saved for development.
   Its real dashboard TEST exposed an app-ID validation defect; authenticated
   synthetic tests now acknowledge without any grant or reconciliation. Actual

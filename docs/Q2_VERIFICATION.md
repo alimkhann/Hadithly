@@ -142,6 +142,17 @@ Apple Small Business enrollment is open in a separate tab. The owner confirmed
 the proceeds threshold; associated accounts and program declarations remain
 unconfirmed. No reduced commission approval or effective date is claimed.
 
+October 13 live Business readback: both U.S. tax forms now show **Active**.
+Paid Apps Agreement and banking show **Processing**; Apple's banking notice
+still states that changes should appear within 24 hours. The EU trader
+declaration remains unfinished. These owner-completed tax submissions are
+separate from agent actions. A physical product-lookup retry was started, but
+the iPhone is currently disconnected; no new store product or purchase pass is
+claimed. The last completed physical lookup returned zero products before
+these submissions. EU trader status and Small Business enrollment remain
+distribution/commission work, separate from the observed U.S. sandbox
+agreement/financial-setup blocker. Full Q2 stays open, and LA1 has not started.
+
 The owner explicitly approved sending the existing development Authorization
 credential to RevenueCat. The saved integration is
 `whintgr2c4758e948`, named Hadithly Q2 Development Sandbox, pointing to
