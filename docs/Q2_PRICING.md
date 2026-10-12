@@ -17,6 +17,12 @@ under maximum-size generation attempts. Those are separate claims.
   the start. Enrollment has not been verified, so retain the 30% case.
   [Apple subscriptions](https://developer.apple.com/app-store/subscriptions/),
   [Small Business Program](https://developer.apple.com/app-store/small-business-program/).
+  The live enrollment page has been opened for the owner. The owner confirmed
+  proceeds are below the $1M threshold; associated-account disclosure and the
+  program's declarations still need completion. No enrollment was submitted or
+  approved during this review. Keep the 30% stress case until Apple confirms
+  enrollment and its effective date. Store commission is separate from the
+  W-8BEN withholding claim and Kazakhstan income-tax obligations.
 - Play auto-renewing subscriptions ordinarily total 15%. The official October
   page describes updated regions as 10% service plus 5% Play billing, and
   remaining markets as 15%. No alternate billing program is assumed.

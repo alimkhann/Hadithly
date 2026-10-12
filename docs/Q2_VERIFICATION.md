@@ -131,6 +131,17 @@ entering identifying/tax/banking data, or submitting either form. No personal
 addresses, tax identifiers, birth dates or bank-account identifiers are retained
 in this record. The Active-agreement/product-availability gate remains open.
 
+The owner's filled W-8BEN was reviewed without submission. Foreign identifier
+format/check digit and date format checks passed locally; no values were copied
+into repository files. The U.S. identifier, reference number and treaty claim
+were still blank, with certifications unchecked. SS-4 is an EIN application,
+not a requirement for the described non-U.S. individual path. Current IRS
+instructions, the Kazakhstan-U.S. treaty and Apple's supplied tips were reviewed;
+any proposed business-profits claim remains the owner's unsubmitted certification.
+Apple Small Business enrollment is open in a separate tab. The owner confirmed
+the proceeds threshold; associated accounts and program declarations remain
+unconfirmed. No reduced commission approval or effective date is claimed.
+
 The owner explicitly approved sending the existing development Authorization
 credential to RevenueCat. The saved integration is
 `whintgr2c4758e948`, named Hadithly Q2 Development Sandbox, pointing to

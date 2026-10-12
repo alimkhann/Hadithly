@@ -554,6 +554,10 @@ with the unresolved release prerequisites explicitly recorded.
   artifact was submitted to work around that gate.
 - [ ] Approve production Q2 activation at action time. Production code and the
   existing production webhook remain unchanged by this development rollout.
+- [ ] Finish App Store Small Business enrollment and verify Apple's approval
+  and effective date before treating 15% as the actual first-year commission.
+  Enrollment page opened; proceeds threshold owner-confirmed; associated-account
+  disclosure/program declarations remain open. Q2 math retains its 30% stress case.
 
 Full Q2 acceptance requires both real store lifecycle matrices. Local fixtures,
 SDK boundary tests and build success do not substitute for store receipts.
