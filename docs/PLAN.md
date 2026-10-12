@@ -29,9 +29,13 @@ proposal wording is historical. E3 passed its development gate on 2026-10-11;
 see `docs/E3_VERIFICATION.md`, `docs/E3_REVIEW.md`, and `docs/OPEN_GATES.md`.
 E4 passed its development gate on 2026-10-11 under the owner's deployment approval.
 See `docs/E4_VERIFICATION.md`.
-Q1 implementation and its local race/property gate pass on 2026-10-12.
-Development rollout and real platform-integrity proof remain open; see
-`docs/Q1_VERIFICATION.md`. Q2 has not started.
+Q1 implementation, local race/property gate, development deployment/migrations,
+live backend quotas and physical Apple attestation/assertion pass on 2026-10-12.
+Authenticated Android and physical iPhone Clerk-to-generation checks remain open;
+Play Integrity is explicitly deferred with Play Console. See `docs/Q1_VERIFICATION.md`.
+E2's deployed security and both authenticated native paths were refreshed and pass.
+The owner's iPhone language-switch defect was reproduced and repaired; see
+`docs/LANGUAGE_SWITCH_VERIFICATION.md`. Q2 has not started.
 Do not
 start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
@@ -1554,8 +1558,8 @@ substantive: they own bounded implementation outcomes, not just inventories.
 ### Q1 rolling quotas and operating cost (2026-10-12)
 
 - Implemented only Q1 and the owner's related read-cost repair. F1's completion
-  was confirmed. The local race/property gate passes; development deployment,
-  migrations, real native generation and physical integrity gates remain open.
+  was confirmed. At the local checkpoint, rollout and physical gates remained
+  open. The approved development follow-up below supersedes that checkpoint.
   Q2 has not started. See `docs/Q1_DESIGN.md` and `docs/Q1_VERIFICATION.md`.
 - Immutable global success events replace monthly user counters. Private charge
   bindings enforce five free/100 Pro new generations in a rolling seven days.
@@ -1584,10 +1588,45 @@ substantive: they own bounded implementation outcomes, not just inventories.
   tests remain opt-in and were skipped. Q1 tests have no skips. Independent reviews
   reproduced permission/source/proof races and stale native allowance state;
   accepted repairs are covered by actual regression checks.
-- No live deployment, migration, cloud/credential/billing setting, paid Gemini
+- At the initial checkpoint, no live deployment, migration, cloud/credential/billing setting, paid Gemini
   request, or push ran. The finished local work is committed under `AGENTS.md`.
   Next allowed work is Q1's explicit development action boundary and integrity
   proof. Prior release, E1, widget, sync, rights and device gates remain open.
+
+### Q1/E2 approved development follow-up and iPhone language repair (2026-10-12)
+
+- Q1 deployed only to `festive-cobra-664`. Four obsolete monthly aggregates
+  erased and seven compact counts materialized; repeats changed zero rows.
+  Account entitlements, Saved, folders, progress and existing translations
+  preserved. Actual count payload fell from 965,228 to 1,077 bytes (99.89%).
+- Live backend proved five free generations, cache reuse at exhaustion, sixth
+  rejection, fixture-only Pro upgrade/retry and service zero-user-charge.
+  Authenticated iOS simulator generation/cache/allowance passed. Real physical
+  Apple attestation and assertion admitted two generations and rejected replay.
+  Android real guest cache/exact-locale/auth-denial passed. Across these runs,
+  ten new global generations produced ten unique immutable events and ten
+  ungrounded calls, estimated token cost $0.000455.
+- Deleted ten disposable self-authored sources and private charge bindings,
+  preserved existing rows and anonymous global facts, restored strict development
+  policy, removed the temporary internal fixture module and redeployed. Final
+  backend typecheck/293 tests pass. No production or billing-plan change or push.
+- E2 security/cloud/workflow and both real signed-in native PNG/PDF/HTTPS
+  upload/processing/withdrawal journeys re-ran successfully. This refresh is
+  committed as `4ab8846`; E1 and release gates remain separate.
+- Reproduced the owner's English-looking RTL screen on the physical iPhone:
+  stored app language was Arabic, translation English, and reader direction LTR.
+  Missing shell translations and dynamic Settings labels produced mixed chrome;
+  navigation titles also retained the previous locale. Both apps now localize
+  shell/destinations, and iOS titles/date follow live app-locale changes. The
+  owner's app and translation are left in English. Complete LA1 remains future.
+- Final local proof: iOS 225 passes, four explicitly opt-in live skips, zero
+  failures; Android 195 units; installed Android four Q1/language UI tests and
+  physical iPhone six Q1/language UI tests pass with zero skips/failures.
+- Still open: authenticated Android and physical iPhone Clerk-to-generation
+  journey need a development login. Two temporary tickets were authorized but
+  not created because no usable Clerk admin session/key is available. Real Play
+  Integrity remains explicitly deferred until Play Console exists. Q1's full
+  platform gate is not declared passed. Stop before Q2.
 
 ### Future topic browsing with the Jev classifier (not a session)
 

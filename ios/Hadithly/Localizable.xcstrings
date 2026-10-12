@@ -1,6 +1,358 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Support" : {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Support"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الدعم"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "معاونت"
+          }
+        }
+      }
+    },
+    "As-salamu alaykum" : {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As-salamu alaykum"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "السلام عليكم"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "السلام علیکم"
+          }
+        }
+      }
+    },
+    "As-salamu alaykum, %@" : {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As-salamu alaykum, %@"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "السلام عليكم، %@"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "السلام علیکم، %@"
+          }
+        }
+      }
+    },
+    "Today" : {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اليوم"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آج"
+          }
+        }
+      }
+    },
+    "Library" : {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Library"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المكتبة"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "کتب خانہ"
+          }
+        }
+      }
+    },
+    "Saved" : {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المحفوظات"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "محفوظ کردہ"
+          }
+        }
+      }
+    },
+    "Settings" : {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الإعدادات"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ترتیبات"
+          }
+        }
+      }
+    },
+    "Profile" : {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الملف الشخصي"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "پروفائل"
+          }
+        }
+      }
+    },
+    "Appearance" : {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appearance"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المظهر"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ظاہری شکل"
+          }
+        }
+      }
+    },
+    "Reading & type" : {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading & type"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "القراءة والخط"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مطالعہ اور خط"
+          }
+        }
+      }
+    },
+    "Offline storage" : {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offline storage"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "التخزين دون اتصال"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آف لائن ذخیرہ"
+          }
+        }
+      }
+    },
+    "Notifications" : {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notifications"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الإشعارات"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اطلاعات"
+          }
+        }
+      }
+    },
+    "Subscription" : {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subscription"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الاشتراك"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "رکنیت"
+          }
+        }
+      }
+    },
+    "Privacy & data" : {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy & data"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الخصوصية والبيانات"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "رازداری اور ڈیٹا"
+          }
+        }
+      }
+    },
+    "Help & support" : {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Help & support"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المساعدة والدعم"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مدد اور معاونت"
+          }
+        }
+      }
+    },
+    "About & legal" : {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About & legal"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حول التطبيق والمعلومات القانونية"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعارف اور قانونی معلومات"
+          }
+        }
+      }
+    },
     "q1.generate": {
       "localizations": {
         "en": {
@@ -1077,7 +1429,26 @@
 
     },
     "Daily hadith" : {
-
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daily hadith"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حديث اليوم"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آج کی حدیث"
+          }
+        }
+      }
     },
     "Delete account" : {
       "comment" : "A button label that allows a user to delete their account.",
@@ -1138,8 +1509,26 @@
       "isCommentAutoGenerated" : true
     },
     "Everything you need to read works without an account. Sign in to carry your bookmarks, favorites, and notes across devices." : {
-      "comment" : "A description of the benefits of signing in as a guest.",
-      "isCommentAutoGenerated" : true
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Everything you need to read works without an account. Sign in to carry your bookmarks, favorites, and notes across devices."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يمكنك القراءة دون حساب. سجّل الدخول لمزامنة إشاراتك المرجعية ومفضلاتك وملاحظاتك بين أجهزتك."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آپ بغیر اکاؤنٹ کے مطالعہ کر سکتے ہیں۔ اپنے بُک مارکس، پسندیدہ احادیث اور نوٹس کو مختلف آلات پر رکھنے کے لیے سائن ان کریں۔"
+          }
+        }
+      }
     },
     "Export your profile, preferences, Saved items, folders, reading progress, and your own contributions as JSON. Guest data never leaves this device." : {
       "comment" : "A footer text in the \"Privacy & data\" section of the settings view, explaining that user data is not shared with third parties.",
@@ -1374,7 +1763,26 @@
       }
     },
     "Reading as a guest" : {
-
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading as a guest"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "القراءة كضيف"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "بطور مہمان مطالعہ"
+          }
+        }
+      }
     },
     "Reading direction" : {
       "extractionState" : "stale",
@@ -1538,8 +1946,26 @@
       }
     },
     "Sign in" : {
-      "comment" : "A button label that says \"Sign in\".",
-      "isCommentAutoGenerated" : true
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تسجيل الدخول"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سائن ان"
+          }
+        }
+      }
     },
     "Sign in to contribute a translation." : {
 

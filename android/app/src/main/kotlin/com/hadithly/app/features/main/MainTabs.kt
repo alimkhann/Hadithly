@@ -1,5 +1,7 @@
 package com.hadithly.app.features.main
 
+import com.hadithly.app.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.unit.dp
 import com.hadithly.app.features.saved.SavedUndoBanner
@@ -125,28 +127,28 @@ fun MainTabs(
                         selected = tab == 0,
                         onClick = { tab = 0 },
                         icon = { Icon(Icons.Filled.WbSunny, contentDescription = null) },
-                        label = { Text("Today") },
+                        label = { Text(stringResource(R.string.app_today)) },
                         colors = navigationColors(colors),
                     )
                     NavigationBarItem(
                         selected = tab == 1,
                         onClick = { tab = 1 },
                         icon = { Icon(Icons.Filled.CollectionsBookmark, contentDescription = null) },
-                        label = { Text("Library") },
+                        label = { Text(stringResource(R.string.app_library)) },
                         colors = navigationColors(colors),
                     )
                     NavigationBarItem(
                         selected = tab == 2,
                         onClick = { tab = 2 },
                         icon = { Icon(Icons.Filled.BookmarkBorder, contentDescription = null) },
-                        label = { Text("Saved") },
+                        label = { Text(stringResource(R.string.app_saved)) },
                         colors = navigationColors(colors),
                     )
                     NavigationBarItem(
                         selected = tab == 3,
                         onClick = { tab = 3 },
                         icon = { Icon(Icons.Filled.Settings, contentDescription = null) },
-                        label = { Text("Settings") },
+                        label = { Text(stringResource(R.string.app_settings)) },
                         colors = navigationColors(colors),
                     )
                 }

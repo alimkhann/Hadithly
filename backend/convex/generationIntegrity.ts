@@ -11,9 +11,13 @@ export const integrityProof = v.union(
   v.object({ kind: v.literal("unavailable") }),
 );
 
+export function isNamedDevelopmentDeployment(): boolean {
+  return ["https://festive-cobra-664.eu-west-1.convex.cloud", "https://festive-cobra-664.convex.cloud"]
+    .includes(process.env.CONVEX_CLOUD_URL ?? "");
+}
+
 export function allowUnattestedDevelopment(): boolean {
-  return process.env.AI_ALLOW_UNATTESTED_DEV === "true" &&
-    process.env.CONVEX_CLOUD_URL === "https://festive-cobra-664.eu-west-1.convex.cloud";
+  return process.env.AI_ALLOW_UNATTESTED_DEV === "true" && isNamedDevelopmentDeployment();
 }
 
 export const beginChallenge = mutation({

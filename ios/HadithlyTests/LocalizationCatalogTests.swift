@@ -5,6 +5,14 @@ import XCTest
 /// exist with English, Arabic, and Urdu localizations, and the plural fixture
 /// carries the Arabic plural categories.
 final class LocalizationCatalogTests: XCTestCase {
+    func testSelectedLocaleResolvesShellAndDynamicNavigationTitles() {
+        XCTAssertEqual(AppLocalization.string("Today", locale: Locale(identifier: "ar")), "اليوم")
+        XCTAssertEqual(AppLocalization.string("Settings", locale: Locale(identifier: "ur")), "ترتیبات")
+        XCTAssertEqual(AppLocalization.string("App language", locale: Locale(identifier: "ar")), "لغة التطبيق")
+        XCTAssertEqual(AppLocalization.string("Today", locale: Locale(identifier: "en")), "Today")
+        XCTAssertEqual(AppLocalization.string("Today", locale: Locale(identifier: "fr")), "Today")
+    }
+
     private func catalogJSON() throws -> [String: Any] {
         let catalogURL = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()

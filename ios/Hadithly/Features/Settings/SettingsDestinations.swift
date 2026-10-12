@@ -104,7 +104,7 @@ private struct SettingsList<Content: View>: View {
         .listRowBackground(palette.surface)
         .listRowSeparatorTint(palette.divider)
         .background(palette.background)
-        .navigationTitle(title)
+        .appNavigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(palette.background, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
@@ -440,7 +440,7 @@ private struct LanguageListView: View {
     let selection: String
     let accessibilityPrefix: String
     let onSelect: (String) -> Void
-    let footer: String
+    let footer: LocalizedStringKey
 
     var body: some View {
         SettingsList(title) {

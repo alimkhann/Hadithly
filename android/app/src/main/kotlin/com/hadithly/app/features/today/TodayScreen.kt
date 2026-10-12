@@ -154,7 +154,7 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
         modifier = Modifier.fillMaxSize().background(homeColors.background).verticalScroll(rememberScrollState()),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(2.dp), modifier = Modifier.padding(horizontal = 16.dp)) {
-            Text("Today", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = homeColors.textPrimary)
+            Text(stringResource(R.string.app_today), fontSize = 30.sp, fontWeight = FontWeight.Bold, color = homeColors.textPrimary)
             Text(
                 Clerk.user?.username?.takeIf { it.isNotBlank() }?.let { "As-salamu alaykum, $it" }
                     ?: Clerk.user?.firstName?.takeIf { it.isNotBlank() }?.let { "As-salamu alaykum, $it" }
@@ -169,7 +169,7 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
                 onOpenTarget(com.hadithly.app.features.library.continueReadingTarget(entry))
             }
         }
-        SectionTitle("Daily hadith", homeColors, Modifier.padding(horizontal = 16.dp))
+        SectionTitle(stringResource(R.string.app_daily_hadith), homeColors, Modifier.padding(horizontal = 16.dp))
         Box(Modifier.padding(horizontal = 16.dp)) {
             when {
                 daily != null -> DailyCard(daily!!, preferences, readerColors, offline, app.library, onOpenTarget)
@@ -178,7 +178,7 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
                 else -> CardShell(homeColors) { Column { Text("No eligible hadith is cached yet", fontWeight = FontWeight.Medium, color = homeColors.textPrimary); Text("Open a collection in the Library and Today will prepare one from verified content.", fontSize = 12.sp, color = homeColors.textSecondary) } }
             }
         }
-        SectionTitle("Library", homeColors, Modifier.padding(horizontal = 16.dp))
+        SectionTitle(stringResource(R.string.app_library), homeColors, Modifier.padding(horizontal = 16.dp))
         LazyRow(contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             itemsIndexed(Collections.all, key = { _, collection -> collection.first }) { index, (slug, name) ->
                 Column(

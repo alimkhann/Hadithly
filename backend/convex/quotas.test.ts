@@ -328,3 +328,16 @@ test("cost reservation settles known tokens but keeps unknown failure spend", as
   expect(await f.admit(2)).toMatchObject({ kind: "rejected", code: "AI_SERVICE_LIMIT" });
   expect(await f.owner.query(api.quotas.getTranslationAllowance, {})).toMatchObject({ used: 0, remaining: 5 });
 });
+
+test("development App Attest environment stays separate from unavailable-proof admission", async () => {
+  const { isNamedDevelopmentDeployment } = await import("./generationIntegrity");
+  vi.stubEnv("CONVEX_CLOUD_URL", "https://festive-cobra-664.convex.cloud");
+  vi.stubEnv("AI_ALLOW_UNATTESTED_DEV", "false");
+  expect(isNamedDevelopmentDeployment()).toBe(true);
+  expect(allowUnattestedDevelopment()).toBe(false);
+  vi.stubEnv("AI_ALLOW_UNATTESTED_DEV", "true");
+  expect(allowUnattestedDevelopment()).toBe(true);
+  vi.stubEnv("CONVEX_CLOUD_URL", "https://giddy-ox-648.eu-west-1.convex.cloud");
+  expect(isNamedDevelopmentDeployment()).toBe(false);
+  expect(allowUnattestedDevelopment()).toBe(false);
+});

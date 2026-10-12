@@ -36,7 +36,7 @@ struct LibraryView: View {
             .padding(16)
         }
         .background(Theme.background)
-        .navigationTitle("Library")
+        .appNavigationTitle("Library")
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

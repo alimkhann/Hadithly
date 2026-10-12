@@ -138,3 +138,28 @@ Collect a 30-day or current-cycle usage report by resource, deployment, and func
 ## Costs not yet attributed
 
 The domain's actual renewal invoice, the current Vercel plan, Sunnah.now provider terms or paid allowances, and Gemini's app-specific billed usage were not read back. Store memberships and subscription commissions are separate from backend hosting. Optional monitoring and support services should enter the budget when their launch sessions configure them. No subscription, backend upgrade, or migration was purchased during this audit.
+
+## Q1 development repairs verified on 2026-10-12
+
+Q1 is deployed to development under the owner's follow-up authorization. It
+removes the whole-page model behavior described in historical multiplier 4,
+ordinary Search grounding and JSON repair calls. Opening/paging loads a bounded
+exact-locale existing-translation batch; new model work requires an explicit
+hadith action. Shared canonical-key single flight reuses successful generations
+globally. Numeric cost events contain no prompt or user text; an application
+budget reserves attempts before calls. See `Q1_VERIFICATION.md` for limits.
+
+Materialized counts replace progress's full-outline reads, and seven unused
+Library outline subscriptions were removed on each native platform. Existing
+development rows measured 965,228 bytes for outlines versus 1,077 bytes for counts,
+a 99.89% payload reduction with identical totals. Migrations repeated at zero
+changes while preserving account entitlements, Saved, folders, progress and
+translations. No post-rollout meter/invoice saving is claimed.
+
+Ten bounded actual model generations across backend/native/hardware proof
+produced ten unique global events and ten ungrounded calls, estimated token cost
+$0.000455 at the recorded official rates. Test sources and private charge links
+were cleaned. Convex stays the only mobile API; no service plan, billing setting
+or production deployment changed. Full-volume paging, notification bucket scans,
+licensed offline CDN delivery and evidence-file transport remain separate
+measurable cost opportunities.

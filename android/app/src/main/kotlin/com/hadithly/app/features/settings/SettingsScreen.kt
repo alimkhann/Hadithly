@@ -148,7 +148,7 @@ private fun SettingsDestinationScreen(
             IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = colors.textPrimary)
             }
-            Text(destination.title, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+            Text(destination.localizedTitle(), fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
         }
         when (destination) {
             SettingsDestination.PROFILE -> ProfileDestination()
@@ -191,7 +191,7 @@ private fun SettingsRoot(onOpen: (SettingsDestination) -> Unit, onShowSignIn: ()
         verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier.fillMaxSize().background(colors.background).verticalScroll(rememberScrollState()).padding(16.dp),
     ) {
-        Text("Settings", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
+        Text(stringResource(R.string.app_settings), fontSize = 30.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
         if (signedIn) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -304,7 +304,7 @@ private fun SettingsGroup(header: String, rows: List<Pair<SettingsDestination, S
                 ) {
                     SettingsIcon(destination)
                     Spacer(Modifier.size(14.dp))
-                    Text(destination.title, fontSize = 16.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
+                    Text(destination.localizedTitle(), fontSize = 16.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
                     detail?.let { Text(it, fontSize = 14.sp, color = colors.textSecondary) }
                     Icon(Icons.AutoMirrored.Filled.NavigateNext, null, tint = colors.textSecondary, modifier = Modifier.size(18.dp))
                 }
@@ -417,7 +417,7 @@ private fun AppearanceDestination() {
     val preferences by app.preferences.preferences.collectAsStateWithLifecycle()
     ScrollColumn {
         CardColumn {
-            Text("Appearance", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+            Text(stringResource(R.string.settings_appearance), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
             Text("Applies across the app. The reader previews each theme live.", fontSize = 12.sp, color = colors.textSecondary)
             ReaderTheme.entries.forEach { theme ->
                 SettingsSingleChoiceRow(
@@ -442,14 +442,14 @@ private fun themeLabel(theme: ReaderTheme): String = when (theme) {
 private fun AppLanguageDestination() {
     val app = rememberApp()
     val preferences by app.preferences.preferences.collectAsStateWithLifecycle()
-    LanguageList(title = "App language", selection = preferences.uiLocale, prefix = "settings.uiLanguage", onSelect = app.preferences::setUILocale)
+    LanguageList(title = stringResource(R.string.settings_app_language), selection = preferences.uiLocale, prefix = "settings.uiLanguage", onSelect = app.preferences::setUILocale)
 }
 
 @Composable
 private fun TranslationLanguageDestination() {
     val app = rememberApp()
     val preferences by app.preferences.preferences.collectAsStateWithLifecycle()
-    LanguageList(title = "Hadith translation", selection = preferences.translationLocale, prefix = "settings.language", onSelect = app.preferences::setTranslationLocale)
+    LanguageList(title = stringResource(R.string.settings_hadith_translation), selection = preferences.translationLocale, prefix = "settings.language", onSelect = app.preferences::setTranslationLocale)
 }
 
 @Composable
@@ -522,7 +522,7 @@ private fun ReadingTypeDestination() {
         } else {
             TextButton(onClick = { showingDetail = false }) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = colors.textSecondary)
-                Text("Reading & type", color = colors.textSecondary)
+                Text(stringResource(R.string.settings_reading_type), color = colors.textSecondary)
             }
         CardColumn {
             Text("Arabic type", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
@@ -955,7 +955,7 @@ private fun NotificationDestination() {
         CardColumn {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Filled.Notifications, null, tint = colors.textSecondary)
-                Text("Daily hadith", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+                Text(stringResource(R.string.app_daily_hadith), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
             }
             if (!signedIn) {
                 Text("Sign in to receive the daily hadith on this device.", fontSize = 14.sp, color = colors.textSecondary)
@@ -1366,3 +1366,18 @@ internal fun SettingsSingleChoiceRow(
         Text(label, fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f).padding(start = 8.dp))
     }
 }
+
+@Composable
+private fun SettingsDestination.localizedTitle(): String = stringResource(when (this) {
+    SettingsDestination.PROFILE -> R.string.settings_profile
+    SettingsDestination.APPEARANCE -> R.string.settings_appearance
+    SettingsDestination.APP_LANGUAGE -> R.string.settings_app_language
+    SettingsDestination.HADITH_TRANSLATION -> R.string.settings_hadith_translation
+    SettingsDestination.READING_AND_TYPE -> R.string.settings_reading_type
+    SettingsDestination.OFFLINE_STORAGE -> R.string.settings_offline_storage
+    SettingsDestination.NOTIFICATIONS -> R.string.settings_notifications
+    SettingsDestination.SUBSCRIPTION -> R.string.settings_subscription
+    SettingsDestination.PRIVACY_AND_DATA -> R.string.settings_privacy_data
+    SettingsDestination.HELP_AND_SUPPORT -> R.string.settings_help_support
+    SettingsDestination.ABOUT_AND_LEGAL -> R.string.settings_about_legal
+})

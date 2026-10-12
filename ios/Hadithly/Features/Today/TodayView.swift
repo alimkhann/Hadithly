@@ -77,6 +77,7 @@ private enum DailyHadithCache {
 }
 
 struct TodayView: View {
+    @Environment(\.locale) private var locale
     @Environment(AppEnvironment.self) private var environment
     @Environment(Clerk.self) private var clerk
     @Environment(UserLibraryModel.self) private var library
@@ -105,7 +106,7 @@ struct TodayView: View {
             .padding(16)
         }
         .background(Theme.background)
-        .navigationTitle("Today")
+        .appNavigationTitle("Today")
         .navigationBarTitleDisplayMode(.large)
         .task(id: "\(preferences.translationLocale)|\(preferences.arabicVisible)|\(preferences.translationVisible)") {
             library.refresh()
@@ -145,16 +146,17 @@ struct TodayView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(greeting).font(.title3.weight(.semibold)).foregroundStyle(Theme.textPrimary)
-            Text(Date.now.formatted(date: .complete, time: .omitted)).font(.subheadline).foregroundStyle(Theme.textSecondary)
+            greeting.font(.title3.weight(.semibold)).foregroundStyle(Theme.textPrimary)
+            Text(Date.now.formatted(Date.FormatStyle(date: .complete, time: .omitted).locale(locale))).font(.subheadline).foregroundStyle(Theme.textSecondary)
         }
     }
 
-    private var greeting: String {
-        guard let username = clerk.user?.username?.trimmingCharacters(in: .whitespacesAndNewlines), !username.isEmpty else {
-            return "As-salamu alaykum"
+    @ViewBuilder private var greeting: some View {
+        if let username = clerk.user?.username?.trimmingCharacters(in: .whitespacesAndNewlines), !username.isEmpty {
+            Text("As-salamu alaykum, \(username)")
+        } else {
+            Text("As-salamu alaykum")
         }
-        return "As-salamu alaykum, \(username)"
     }
 
     private var continueReadingSection: some View {

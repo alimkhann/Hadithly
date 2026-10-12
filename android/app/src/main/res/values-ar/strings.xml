@@ -95,4 +95,18 @@
     <string name="q1_remaining">متبقي %1$d من %2$d ترجمة جديدة خلال سبعة أيام</string>
     <string name="q1_retry_at">متاح مجددًا %1$s</string>
     <string name="q1_quota_exhausted">استخدمت حصة الأيام السبعة المتحركة. تبقى القراءة والترجمات الموجودة مجانية.</string>
+    <string name="app_today">اليوم</string>
+    <string name="app_library">المكتبة</string>
+    <string name="app_saved">المحفوظات</string>
+    <string name="app_settings">الإعدادات</string>
+    <string name="app_daily_hadith">حديث اليوم</string>
+    <string name="settings_profile">الملف الشخصي</string>
+    <string name="settings_appearance">المظهر</string>
+    <string name="settings_reading_type">القراءة والخط</string>
+    <string name="settings_offline_storage">التخزين دون اتصال</string>
+    <string name="settings_notifications">الإشعارات</string>
+    <string name="settings_subscription">الاشتراك</string>
+    <string name="settings_privacy_data">الخصوصية والبيانات</string>
+    <string name="settings_help_support">المساعدة والدعم</string>
+    <string name="settings_about_legal">حول التطبيق والمعلومات القانونية</string>
 </resources>

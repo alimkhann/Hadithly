@@ -1,5 +1,7 @@
 package com.hadithly.app.features.library
 
+import com.hadithly.app.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -74,7 +76,7 @@ fun LibraryScreen(onOpenCollection: (String, String) -> Unit, onOpenTarget: (com
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 20.dp, bottom = 8.dp),
         ) {
-            Text("Library", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary, modifier = Modifier.weight(1f))
+            Text(stringResource(R.string.app_library), fontSize = 30.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary, modifier = Modifier.weight(1f))
             IconButton(
                 onClick = { grid = !grid },
                 modifier = Modifier.testTag("library.layoutToggle").semantics {

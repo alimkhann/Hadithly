@@ -87,4 +87,18 @@
     <string name="q1_remaining">سات دنوں میں %2$d میں سے %1$d نئے ترجمے باقی ہیں</string>
     <string name="q1_retry_at">دوبارہ دستیاب: %1$s</string>
     <string name="q1_quota_exhausted">آپ کی گزشتہ سات دنوں کی حد استعمال ہو چکی ہے۔ موجودہ ترجمے اور مطالعہ مفت رہیں گے۔</string>
+    <string name="app_today">آج</string>
+    <string name="app_library">کتب خانہ</string>
+    <string name="app_saved">محفوظ کردہ</string>
+    <string name="app_settings">ترتیبات</string>
+    <string name="app_daily_hadith">آج کی حدیث</string>
+    <string name="settings_profile">پروفائل</string>
+    <string name="settings_appearance">ظاہری شکل</string>
+    <string name="settings_reading_type">مطالعہ اور خط</string>
+    <string name="settings_offline_storage">آف لائن ذخیرہ</string>
+    <string name="settings_notifications">اطلاعات</string>
+    <string name="settings_subscription">رکنیت</string>
+    <string name="settings_privacy_data">رازداری اور ڈیٹا</string>
+    <string name="settings_help_support">مدد اور معاونت</string>
+    <string name="settings_about_legal">تعارف اور قانونی معلومات</string>
 </resources>

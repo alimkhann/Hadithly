@@ -119,7 +119,7 @@ struct SettingsView: View {
         .listRowBackground(palette.surface)
         .listRowSeparatorTint(palette.divider)
         .background(palette.background)
-        .navigationTitle("Settings")
+        .appNavigationTitle("Settings")
         .toolbarBackground(palette.background, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .navigationDestination(for: SettingsDestination.self) { destination in
@@ -210,7 +210,7 @@ private struct SettingsLinkRow: View {
                     .font(.body)
                     .foregroundStyle(Theme.textPrimary)
                     .frame(width: 26)
-                Text(destination.title)
+                Text(LocalizedStringKey(destination.title))
                     .foregroundStyle(Theme.textPrimary)
                 Spacer()
                 if let value {

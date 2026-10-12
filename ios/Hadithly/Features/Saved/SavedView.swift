@@ -47,7 +47,7 @@ struct SavedView: View {
                 }.listStyle(.plain)
             }
         }
-        .padding(.horizontal).navigationTitle("Saved")
+        .padding(.horizontal).appNavigationTitle("Saved")
         .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("New folder", systemImage: "folder.badge.plus") { showNewFolder = true }.accessibilityLabel("Create saved folder") } }
         .overlay(alignment: .bottom) {
             if let notice = undoNotice {

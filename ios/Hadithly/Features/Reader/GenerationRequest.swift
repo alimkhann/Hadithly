@@ -34,9 +34,9 @@ enum GenerationRequest {
             keyId = try await service.generateKey()
             UserDefaults.standard.set(keyId, forKey: storageKey)
         }
-        let challenge: GenerationChallenge = try await convex.mutation("generationIntegrity:beginChallenge", with: [
-            "hadithInternalId": hadithId, "targetLanguage": language, "keyId": keyId,
-        ])
+        var challengeArguments: [String: ConvexEncodable?] = ["hadithInternalId": hadithId, "targetLanguage": language]
+        if let keyId { challengeArguments["keyId"] = keyId }
+        let challenge: GenerationChallenge = try await convex.mutation("generationIntegrity:beginChallenge", with: challengeArguments)
         let proof: [String: ConvexEncodable?]
         if service.isSupported, let keyId {
             let hash = Data(SHA256.hash(data: Data(challenge.payload.utf8)))

@@ -6,7 +6,7 @@ import type { Infer } from "convex/values";
 import type { ActionCtx } from "../_generated/server";
 import type { Id } from "../_generated/dataModel";
 import { internal } from "../_generated/api";
-import { allowUnattestedDevelopment, integrityProof } from "../generationIntegrity";
+import { allowUnattestedDevelopment, isNamedDevelopmentDeployment, integrityProof } from "../generationIntegrity";
 import { validPlayIntegrity } from "../lib/playIntegrity";
 
 function record(value: unknown): value is Record<string, unknown> { return value !== null && typeof value === "object" && !Array.isArray(value); }
@@ -44,7 +44,7 @@ export async function verifyGenerationProof(ctx: ActionCtx, input: {
       } else {
         if (!proof.attestation || proof.assertion) throw new Error("Invalid attestation");
         const verified: unknown = verifyAttestation({ attestation: proofBytes(proof.attestation), challenge: payload, keyId: proof.keyId,
-          bundleIdentifier, teamIdentifier, allowDevelopmentEnvironment: allowUnattestedDevelopment() });
+          bundleIdentifier, teamIdentifier, allowDevelopmentEnvironment: isNamedDevelopmentDeployment() });
         if (!record(verified) || typeof verified.publicKey !== "string" || verified.keyId !== proof.keyId) throw new Error("Invalid attestation");
         await ctx.runMutation(internal.generationIntegrity.consumeVerified, { challengeId: challenge._id,
           credential: { keyId: proof.keyId, publicKey: verified.publicKey, signCount: 0 } });

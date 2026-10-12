@@ -36,7 +36,7 @@ charge. A crashed external request can still have incurred upstream cost.
 
 | Check | Result and artifact |
 | --- | --- |
-| Backend | Typecheck and 292 tests pass. `/tmp/hadithly-q1-complete-proof.log`. |
+| Backend | Final typecheck and 293 tests pass. `/tmp/hadithly-q1-final-backend.log`. |
 | Race/property gate | Same-key user/service races, last-slot distinct-key races, public-action provider race, replay, generated schedules, failure/retry, lease takeover, permission/source/proof races, and zero-event real E3-approved cache all pass in `backend/convex/quotas.test.ts`. |
 | Platform integrity | Actual signed App Attest fixtures validate and tampered challenge/key/app or development-in-production fail. Challenge expiry, user/locale/source binding, one-use consumption and atomic assertion counters pass. Play decoded-verdict policy rejects wrong hash/package/certificate/device/license/time. |
 | Cost | Known token usage settles the reservation; unknown failures retain it. Service exhaustion never becomes user quota. Telemetry has no prompt, source/user text, account, raw proof, response, or provider exception. |
@@ -104,22 +104,78 @@ immutable offline artifacts, and service-plan changes remain separate cost work.
   on the exact named development URL. Production ignores it. Supplied invalid
   proofs fail even in development. Raw proofs/tokens are never stored.
 
-## Open action boundaries
+## Approved development rollout and live proof
 
-No `convex dev --once`, live migration, env edit, credential/IAM/billing change,
-production deployment, or paid live Gemini request ran in Q1. `convex codegen`
-refreshed local bindings; it does not activate the deployment. The new native
-builds need the Q1 backend rollout to load their new batch query.
+The owner authorized the remaining Q1/E2 development work. `convex dev --once`
+deployed only to `festive-cobra-664`; the final deployment removed the temporary
+internal fixture module. Production was untouched.
 
-The reviewable next step is development deployment to `festive-cobra-664`, bounded
-`migrateQ1Users` pages, and `materializeQ1CollectionCounts`. The old monthly aggregate
-cannot recover historical event dates, so rollout erases it without synthesizing
-charges. Existing Saved, progress, subscriptions and cached translations remain.
-A simulator generation check additionally needs the explicitly unverified dev
-lane or actual device attestation. Neither is enabled here.
+| Check | Actual result and artifact |
+| --- | --- |
+| Migration | Four monthly aggregates erased without inventing event dates; seven compact collection counts materialized. Repetition changed zero rows. Existing account entitlements, Saved, folders, progress and translations preserved. `/tmp/hadithly-q1-live-migrations.log`. |
+| Actual count payload | Existing outlines: 965,228 bytes; counts: 1,077 bytes, a 99.89% reduction. This measures read shape, not invoice savings. |
+| Real backend/model boundary | Five free new generations, full-allowance cached reuse, sixth rejected, fixture-only entitlement upgrade and retry, and one service generation. Seven unique global success events, six private charges, zero service charges and zero new events for cache/rejection. Numeric estimated token cost $0.000316. `/tmp/hadithly-q1-live-backend3.log`. |
+| Authenticated iOS simulator | Actual Clerk/Convex new generation, cached retry, exact-locale cache and allowance delta passed. Fixed omitted optional App Attest key being sent as JSON null. `/tmp/hadithly-q1-live-ios2.xcresult`; strict-policy cached rerun `/tmp/hadithly-q1-live-ios-cached.xcresult`. |
+| Physical Apple proof | iPhone 16 Pro produced real Apple attestation and then an assertion. Deployed certificate/nonce/app validation and signature/counter validation admitted two actual generations; consumed-challenge replay rejected; counter readback was one. `/tmp/hadithly-q1-hardware-proof.log`. |
+| Android live guest | Actual deployed public exact-locale cache read, missing-locale null and authenticated-action denial passed, one test, zero skips. `/tmp/hadithly-q1-android-guest-live.log`. |
+| Aggregate provider/event proof | Ten fresh global generations, ten unique immutable events and ten ungrounded model calls across backend, simulator and hardware runs. Estimated token cost $0.000455. |
+| Cleanup | Ten disposable self-authored fixture sources and their cached translations removed; private charge links erased; anonymous global events/cost facts retained. Existing rows preserved. Temporary unverified development flag removed. `/tmp/hadithly-q1-live-cleanup.log`; `/tmp/hadithly-q1-final-deploy.log`. |
 
-Still open: real physical App Attest round trip, configured Play Integrity decode
-and native round trip, and a bounded real native generation/cache/quota retry
-check after the approved development rollout. Production remains the release
-track. Prior E1, device, widget, sync, rights and release gates remain open.
-Do not start Q2.
+The Apple hardware test deliberately uses a trusted development operator fixture
+identity. It proves the hardware/server cryptographic round trip; it is not a
+physical Clerk login test. The public native production path remains authenticated.
+Development Apple attestation is accepted only on the exact named development
+origin, independently of the unavailable-proof simulator flag. Production rejects
+development attestation, and invalid supplied proofs always fail.
+
+The first entitlement-retry run hit the five-per-minute unverified rate limit.
+The continuation after cooldown reused its completed generations and passed.
+No provider retry or duplicate charge was introduced.
+
+Final iOS local suite: 225 passed, four opt-in live tests skipped, zero failures
+(`/tmp/hadithly-q1-final-ios-unit.xcresult`). Skips are not live evidence: E2,
+Q1 simulator and hardware checks above were executed separately under their flags.
+Android's final build and 195 unit tests pass (`/tmp/hadithly-language-android.log`).
+Installed final reader/language UI proof also passes: four tests on Android
+(`/tmp/hadithly-q1-android-final-ui.log`) and six on the physical iPhone
+(`/tmp/hadithly-q1-phone-final.xcresult`), all without failures or skips. Physical
+Q1 reader cases use the existing explicit fixtures; they do not substitute for
+the open authenticated real-generation journey.
+
+## Rerunning the live checks
+
+Live helpers are development operator tools, not mobile endpoints. Obtain fresh
+action-time authorization for deployment, paid calls and credentials. From
+`backend/`, run `node scripts/rollout-q1.mjs` for bounded migrations and preservation
+checks. For disposable model proof, temporarily copy
+`scripts/fixtures/q1LiveVerification.ts` into `convex/q1LiveVerification.ts` and
+deploy to the named development environment. Then use
+`node scripts/verify-q1-live.mjs prepare <private-metadata-path>`, `verify`, and
+`cleanup`. Reuse an active metadata path to resume; use a fresh path after cleanup.
+The completed backend checkpoint makes no further provider calls on replay.
+Remove the fixture module and redeploy after cleanup, including after a failed run.
+
+`verify-q1-device.mjs` drives opt-in physical hardware XCTest using private
+challenge/proof files. Set `Q1_IOS_DEVICE_ID` and `Q1_SWIFT_PACKAGES` to the
+connected phone and verified package directory; build the physical Hadithly test
+scheme into `/tmp/hadithly-q1-device` before its `test-without-building` run.
+`private-convex-run.mjs` keeps raw proof out of operating-system
+process arguments. Raw artifacts are erased by the controller. Native live tests
+accept an existing development login or a separately authorized short-lived sign-in
+ticket file; consume and delete ticket files, never log them.
+
+## Remaining gates
+
+Play Console remains explicitly deferred by the owner, so real Google decode and
+native Play Integrity proof cannot pass yet. Authenticated Android generation and
+the physical iPhone Clerk-to-generation journey remain open: the emulator's cached
+login was removed by Gradle's connected-test cleanup and the phone has no test
+session. The owner authorized two ten-minute sign-in tickets, but none was created:
+the Clerk CLI has no admin session, and neither workspace nor development Convex
+has a usable development admin key. No authentication was bypassed. Guest reader
+and language checks require no account and proceeded.
+
+Q1's implementation, local race/property gate, development deployment/migration,
+backend live quotas and Apple hardware gate pass. Its complete cross-platform
+integrity/authenticated-device gate is not declared passed. Production, prior E1,
+widget, sync, rights and release gates stay open. Q2 has not started.
