@@ -78,27 +78,32 @@ export const admit = internalMutation({
     }
     const active = await ctx.db.query("aiGenerationJobs").withIndex("by_status_expiry", q => q.eq("status", "pending").gt("expiresAt", now)).take(10);
     if (active.length >= 10) return { kind: "rejected", code: "AI_GENERATION_BUSY", retryAt: active[0].expiresAt };
-    const globalRetry = await admitRate(ctx, "generation:global", 60);
-    if (globalRetry) return { kind: "rejected", code: "AI_RATE_LIMITED", retryAt: globalRetry };
+    const globalBucket = await ctx.db.query("aiRateLimits").withIndex("by_key", q => q.eq("key", "generation:global")).unique();
+    if (globalBucket && now < globalBucket.startedAt + 60000 && globalBucket.count >= 60)
+      return { kind: "rejected", code: "AI_RATE_LIMITED", retryAt: globalBucket.startedAt + 60000 };
     // The global daily bound includes failed provider attempts, unlike allowance.
-    const dailyRetry = await admitDailySpend(ctx, now);
+    const dailyRetry = await admitDailySpend(ctx, now, false);
     if (dailyRetry) return { kind: "rejected", code: "AI_SERVICE_LIMIT", retryAt: dailyRetry };
-    const spend = await reserveMonthlySpend(ctx, now);
+    const freePool = !user || generationLimit(user, now) === 5;
+    const spend = await reserveMonthlySpend(ctx, now, freePool);
     if (spend.kind === "rejected") return { kind: "rejected", code: "AI_SERVICE_LIMIT", retryAt: spend.retryAt };
+    await admitDailySpend(ctx, now, true);
+    await admitRate(ctx, "generation:global", 60);
     const attempt = (job?.attempt ?? 0) + 1;
     const fields = { ...identity, hadithId: hadith._id, language, userId: user?._id,
       origin: user ? "user" : "service", status: "pending", attempt, expiresAt: now + LEASE_MS, createdAt: now, translationId: undefined } satisfies Omit<Doc<"aiGenerationJobs">, "_id" | "_creationTime">;
     const jobId = job ? job._id : await ctx.db.insert("aiGenerationJobs", fields);
     if (job) await ctx.db.patch(job._id, fields);
-    await ctx.db.insert("aiSpendReservations", { jobId, attempt, monthKey: spend.monthKey, reservedMicroUsd: spend.reservedMicroUsd, settled: false });
+    await ctx.db.insert("aiSpendReservations", { jobId, attempt, monthKey: spend.monthKey, reservedMicroUsd: spend.reservedMicroUsd, freePool, settled: false });
     return { kind: "claimed", jobId, attempt, hadith };
   },
 });
 
-async function admitDailySpend(ctx: MutationCtx, now: number) {
+async function admitDailySpend(ctx: MutationCtx, now: number, consume: boolean) {
   const key = "generation:daily", start = Math.floor(now / 86_400_000) * 86_400_000;
   const row = await ctx.db.query("aiRateLimits").withIndex("by_key", q => q.eq("key", key)).unique();
   if (row?.startedAt === start && row.count >= 500) return start + 86_400_000;
+  if (!consume) return null;
   if (row) await ctx.db.patch(row._id, { startedAt: start, count: row.startedAt === start ? row.count + 1 : 1 });
   else await ctx.db.insert("aiRateLimits", { key, startedAt: start, count: 1 });
   return null;
@@ -107,7 +112,7 @@ async function admitDailySpend(ctx: MutationCtx, now: number) {
 // Reserve above the maximum source/output size at the pinned token rates.
 // Unknown and abandoned attempts keep the reservation. Known usage releases
 // unused money, so ordinary short translations do not hit a tiny attempt cap.
-async function reserveMonthlySpend(ctx: MutationCtx, now: number): Promise<
+async function reserveMonthlySpend(ctx: MutationCtx, now: number, freePool: boolean): Promise<
   { kind: "reserved"; monthKey: string; reservedMicroUsd: number } | { kind: "rejected"; retryAt: number }
 > {
   const date = new Date(now), start = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1);
@@ -119,13 +124,18 @@ async function reserveMonthlySpend(ctx: MutationCtx, now: number): Promise<
   const reservedMicroUsd = 20_000, monthKey = String(start);
   const budget = await ctx.db.query("aiSpendBudgets").withIndex("by_month", q => q.eq("monthKey", monthKey)).unique();
   if ((budget?.committedMicroUsd ?? 0) + reservedMicroUsd > budgetMicroUsd) return { kind: "rejected", retryAt: next };
+  const configuredFreeUsd = Number(process.env.AI_FREE_MONTHLY_BUDGET_USD ?? "2");
+  const freeLimit = Math.min(budgetMicroUsd, Math.floor((Number.isFinite(configuredFreeUsd) && configuredFreeUsd >= 0 && configuredFreeUsd <= 1000 ? configuredFreeUsd : 2) * 1_000_000));
+  // Pre-Q2 spend has no pool attribution. Count it as free until this month ends.
+  const freeCommitted = budget?.freeCommittedMicroUsd ?? budget?.committedMicroUsd ?? 0;
+  if (freePool && freeCommitted + reservedMicroUsd > freeLimit) return { kind: "rejected", retryAt: next };
   const key = "generation:monthly";
   const row = await ctx.db.query("aiRateLimits").withIndex("by_key", q => q.eq("key", key)).unique();
   if (row?.startedAt === start && row.count >= limit) return { kind: "rejected", retryAt: next };
   if (row) await ctx.db.patch(row._id, { startedAt: start, count: row.startedAt === start ? row.count + 1 : 1 });
   else await ctx.db.insert("aiRateLimits", { key, startedAt: start, count: 1 });
-  if (budget) await ctx.db.patch(budget._id, { committedMicroUsd: budget.committedMicroUsd + reservedMicroUsd });
-  else await ctx.db.insert("aiSpendBudgets", { monthKey, committedMicroUsd: reservedMicroUsd });
+  if (budget) await ctx.db.patch(budget._id, { committedMicroUsd: budget.committedMicroUsd + reservedMicroUsd, freeCommittedMicroUsd: freeCommitted + (freePool ? reservedMicroUsd : 0) });
+  else await ctx.db.insert("aiSpendBudgets", { monthKey, committedMicroUsd: reservedMicroUsd, freeCommittedMicroUsd: freePool ? reservedMicroUsd : 0 });
   return { kind: "reserved", monthKey, reservedMicroUsd };
 }
 
@@ -148,7 +158,8 @@ export const finish = internalMutation({
       const budget = await ctx.db.query("aiSpendBudgets").withIndex("by_month", q => q.eq("monthKey", reservation.monthKey)).unique();
       if (!budget) throw new Error("MISSING_SPEND_RESERVATION");
       const charged = args.telemetry.tokenUsageKnown ? estimatedMicroUsd : reservation.reservedMicroUsd;
-      await ctx.db.patch(budget._id, { committedMicroUsd: budget.committedMicroUsd - reservation.reservedMicroUsd + charged });
+      await ctx.db.patch(budget._id, { committedMicroUsd: budget.committedMicroUsd - reservation.reservedMicroUsd + charged,
+        freeCommittedMicroUsd: (budget.freeCommittedMicroUsd ?? budget.committedMicroUsd) - (reservation.freePool !== false ? reservation.reservedMicroUsd - charged : 0) });
       await ctx.db.patch(reservation._id, { settled: true });
     }
     const stale = job.status !== "pending" || job.attempt !== args.attempt || job.expiresAt <= now;

@@ -30,6 +30,15 @@ struct QuotaPaywallView: View {
                             .multilineTextAlignment(.center)
                     }
 
+                    Text("q2.quota")
+                        .font(.footnote)
+                        .foregroundStyle(palette.textSecondary)
+                        .multilineTextAlignment(.center)
+                    Text("q2.devices")
+                        .font(.footnote)
+                        .foregroundStyle(palette.textSecondary)
+                        .multilineTextAlignment(.center)
+
                     if environment.purchases.hasProEntitlement {
                         activeAccess
                     } else if environment.purchases.isLoading {
@@ -139,7 +148,9 @@ struct QuotaPaywallView: View {
             Text("Hadithly Pro is active")
                 .font(.headline)
                 .foregroundStyle(palette.textPrimary)
-            Button("Continue reading") { unlockAndDismiss() }
+            Text("q2.wait")
+                .font(.footnote)
+            Button("Continue reading") { dismiss() }
                 .buttonStyle(.borderedProminent)
                 .tint(palette.interactive)
         }
@@ -152,12 +163,7 @@ struct QuotaPaywallView: View {
     private func title(for package: Package) -> String {
         switch package.packageType {
         case .annual: "Yearly"
-        case .sixMonth: "Six months"
-        case .threeMonth: "Three months"
-        case .twoMonth: "Two months"
         case .monthly: "Monthly"
-        case .weekly: "Weekly"
-        case .lifetime: "Lifetime"
         default: package.storeProduct.localizedTitle
         }
     }

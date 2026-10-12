@@ -329,11 +329,17 @@ class ConvexRepository(context: Context) {
         }
     }
 
+    fun observeSubscriptionStatus() = subscribe<SubscriptionStatusResult>("subscriptions:getStatus")
+
     /** S1 subscription + quota status from the caller's own user row. */
     suspend fun getSubscriptionStatus(): SubscriptionStatusResult? =
         withContext(Dispatchers.IO) {
-            subscribe<SubscriptionStatusResult>("users:getCurrentUser").firstOrNull()
+            subscribe<SubscriptionStatusResult>("subscriptions:getStatus").firstOrNull()
         }
+
+    suspend fun refreshSubscriptionAccess(): Boolean = withContext(Dispatchers.IO) {
+        convex.action<Boolean>("actions/subscriptions:refresh", emptyMap())
+    }
 
     /**
      * S1 portable export. Identity-scoped server side: contains only the

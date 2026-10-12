@@ -1,3 +1,4 @@
+import { subscriptionAccess, type SubscriptionFields } from "./revenueCat";
 import { v } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { canonicalizeLocaleTag } from "./preferences";
@@ -31,8 +32,8 @@ export async function generationIdentity(hadith: Doc<"hadiths">, language: strin
   return { generationKey, sourceDigest };
 }
 
-export function generationLimit(user: Pick<Doc<"users">, "subscriptionTier" | "entitlementExpiresAt">, now: number): 5 | 100 {
-  return user.subscriptionTier !== "free" && (user.entitlementExpiresAt === undefined || user.entitlementExpiresAt > now) ? 100 : 5;
+export function generationLimit(user: SubscriptionFields, now: number): 5 | 100 {
+  return subscriptionAccess(user, now) !== null ? 100 : 5;
 }
 
 export function rollingAllowance(input: { now: number; limit: number; successes: number[]; reservations: number[] }) {

@@ -2650,6 +2650,7 @@ struct ReaderR6ATestFixtureView: View {
     @State private var pageIndex: Int
     @State private var loadingVolumeId: String?
     @State private var visitedVolumes: Set<String>
+    @State private var showQuotaPaywallFixture = false
 
     private let preferences: ReaderPreferences
     private let palette = ReaderPalette.dark
@@ -3048,12 +3049,13 @@ struct ReaderR6ATestFixtureView: View {
         .overlay {
             WindowSwipeRecognizer(
                 pageDirection: policy.pageDirection,
-                isEnabled: { loadingVolumeId == nil },
+                isEnabled: { loadingVolumeId == nil && !showQuotaPaywallFixture },
                 onTurn: turnPage
             )
             .frame(width: 0, height: 0)
             .accessibilityHidden(true)
         }
+        .sheet(isPresented: $showQuotaPaywallFixture) { QuotaPaywallView {} }
         .accessibilityAction(named: "Previous page") { turnPage(.previous) }
         .accessibilityAction(named: "Next page") { turnPage(.next) }
     }
@@ -3068,7 +3070,7 @@ struct ReaderR6ATestFixtureView: View {
             preferences: preferences,
             palette: palette,
             onRetry: { model.retryTranslation(for: hadith) },
-            onShowPaywall: {}
+            onShowPaywall: { showQuotaPaywallFixture = true }
         )
     }
 }

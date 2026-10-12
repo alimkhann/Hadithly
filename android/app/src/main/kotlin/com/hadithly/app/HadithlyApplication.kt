@@ -70,13 +70,14 @@ class HadithlyApplication : Application() {
         }
         Clerk.initialize(context = this, publishableKey = publishableKey)
         if (BuildConfig.FIREBASE_CONFIGURED) FirebaseApp.initializeApp(this)
-        purchases = PurchaseManager(this, BuildConfig.REVENUECAT_API_KEY)
+        purchases = PurchaseManager(this, BuildConfig.REVENUECAT_API_KEY, appScope)
 
         settings = AppSettings(this)
         val sharedPreferences = getSharedPreferences("hadithly", MODE_PRIVATE)
         preferences = PreferencesStore(sharedPreferences)
         savedSafety = SavedSafetyPreferences(sharedPreferences)
         repository = ConvexRepository(this)
+        purchases.verifyBackendAccess = { repository.refreshSubscriptionAccess() }
         guestData = GuestDataStore(this)
         library = UserLibraryModel(
             repository = repository,

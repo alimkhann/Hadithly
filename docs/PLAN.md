@@ -35,7 +35,11 @@ Authenticated Android and physical iPhone Clerk-to-generation checks remain open
 Play Integrity is explicitly deferred with Play Console. See `docs/Q1_VERIFICATION.md`.
 E2's deployed security and both authenticated native paths were refreshed and pass.
 The owner's iPhone language-switch defect was reproduced and repaired; see
-`docs/LANGUAGE_SWITCH_VERIFICATION.md`. Q2 has not started.
+`docs/LANGUAGE_SWITCH_VERIFICATION.md`. Q2 implementation, local lifecycle tests,
+approved Apple regional pricing and development rollout are complete. Its full
+two-store sandbox gate remains open: Play Console is unavailable and real store
+lifecycle receipts are still required. See `docs/Q2_VERIFICATION.md` and
+`docs/Q2_PRICING.md`. L1 has not started.
 Do not
 start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
@@ -147,9 +151,9 @@ Known launch facts:
   until `CLERK_FRONTEND_API_URL` is correct.
 - Production Sunnah.now key rotation is waived by the owner. The Gemini
   replacement is installed and validated in production.
-- RevenueCat's current Test Store offering contains monthly and annual packages
-  attached to `pro`; weekly was removed on 2026-09-04. Real App Store and Play
-  products are not connected.
+- RevenueCat's current offering contains the real Apple monthly and annual
+  packages attached to `pro`; weekly is absent. Apple regional tiers were
+  approved in Q2. Play products remain deferred with the developer account.
 - `hadithly.app` and its public policy, support, deletion, terms, fallback, and
   Apple association pages are live on Vercel. App Store Connect, Play Console,
   and store agreements remain incomplete.
@@ -1627,6 +1631,41 @@ substantive: they own bounded implementation outcomes, not just inventories.
   not created because no usable Clerk admin session/key is available. Real Play
   Integrity remains explicitly deferred until Play Console exists. Q1's full
   platform gate is not declared passed. Stop before Q2.
+
+### Q2 products, entitlements and pricing (2026-10-12)
+
+- The owner directed Q2 to proceed while D3A release handoffs, D3G and Q1's full
+  authenticated-device/Play gates remained open. Those prerequisites are not
+  retroactively marked passed. Only Q2 ran; stop before L1.
+- Base prices remain USD 2.99/month and 24.99/year. The owner approved all 175
+  exact Apple regional monthly/annual tiers after the cost table. The selected
+  60% paid-unit margin floor passes at typical quota bursts under 30% store fees,
+  export taxes/proceeds and a 15% FX haircut. Worst margins are 78.6% monthly and
+  71.7% annual. Free subsidy, fixed overhead and maximum-size text stress are
+  excluded; price adequacy is not proof of willingness to pay.
+- The approved free/service generation pool is $2 inside the existing $10
+  monthly ordinary AI cap. Cached reading survives exhaustion. Rejected free
+  budget admissions cannot consume shared provider-attempt slots. Hosting,
+  evidence review and fixed overhead are not covered by this translation cap.
+- Exact catalog and current RevenueCat snapshots now determine one own-account
+  `pro` entitlement. Finite cancellation/grace/expiry, hold/refund/revocation,
+  overlapping purchases, replay and ownership conflicts share quota authority.
+  Durable delivery, bounded retry, hourly failed/stalled-worker recovery and
+  deletion-safe bindings replace direct event tier writes.
+- Both native apps fence account changes and serialize SDK identity with store
+  operations. Persisted unresolved purchase ownership protects relaunch before
+  settlement. Manage/restore remains in Settings, quota rejection remains the
+  only paywall entry, and weekly/Family Sharing stay off.
+- Development-only rollout, existing subscriber-read key and $10/$2 caps were
+  approved and read back. Apple products are both level 1, multiseat off, with
+  16-day paid-renewal grace in sandbox only. One US tester was created by the
+  owner. Original-account restore behavior is saved in RevenueCat. Apple could
+  not disable Streamlined Purchasing without an updated approved binary.
+- Proof: backend typecheck/313 tests; Android 198 units plus two installed Q2
+  tests; iOS five installed UI checks and final four purchase tests; six actual
+  Swift manager transport checks. Signed live development HTTP, real RevenueCat
+  reconciliation and replay pass, with fixture cleanup. Store receipts and
+  cross-platform sandbox journeys remain open. See `docs/Q2_VERIFICATION.md`.
 
 ### Future topic browsing with the Jev classifier (not a session)
 

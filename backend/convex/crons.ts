@@ -41,4 +41,7 @@ crons.interval("retry transient evidence processing", { minutes: 5 }, internal.e
 crons.interval("reassess publication permissions", { minutes: 5 }, internal.evidenceCases.reassessPublished, { paginationOpts: { cursor: null, numItems: 25 } });
 crons.interval("retain only permitted evidence facts", { hours: 1 }, internal.evidenceCases.retain, {});
 
+crons.interval("subscription recovery", { hours: 1 }, internal.subscriptions.recoverDeliveries, {});
+crons.interval("subscription receipt retention", { hours: 24 }, internal.subscriptions.pruneReceipts, {});
+
 export default crons;

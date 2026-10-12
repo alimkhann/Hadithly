@@ -285,6 +285,8 @@ data class UserPreferencesResult(
 data class SubscriptionStatusResult(
     val subscriptionTier: String? = null,
     val entitlementExpiresAt: Double? = null,
+    val phase: String? = null,
+    val store: String? = null,
 )
 
 /**

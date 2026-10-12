@@ -4,6 +4,7 @@ import { internal } from "./_generated/api";
 import {
   authorizeRevenueCatWebhook,
   parseRevenueCatEvent,
+  revenueCatPolicy,
 } from "./lib/revenueCat";
 import { requireIdentity } from "./lib/identity";
 import { verifyEvidenceFile } from "./lib/evidenceFiles";
@@ -35,23 +36,14 @@ const revenueCatWebhook = httpAction(async (ctx, request) => {
     });
   }
 
-  const body: unknown = await request.json().catch(() => null);
-  const parsed = parseRevenueCatEvent({ body, now: Date.now() });
-  if (parsed.kind === "invalid") {
-    return new Response(JSON.stringify({ error: parsed.message }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  await ctx.runMutation(internal.users.syncRevenueCatEntitlement, {
-    clerkId: parsed.event.appUserId,
-    revenueCatAppUserId: parsed.event.appUserId,
-    eventTimestampMs: parsed.event.eventTimestampMs,
-    subscriptionTier: parsed.event.subscriptionTier,
-    entitlementProductId: parsed.event.entitlementProductId,
-    entitlementExpiresAt: parsed.event.entitlementExpiresAt,
-  });
+  let policy;
+  try { policy = revenueCatPolicy(); } catch { return Response.json({ error: "Subscriptions not configured" }, { status: 503 }); }
+  if (!policy.appIds.length) return Response.json({ error: "Subscriptions not configured" }, { status: 503 });
+  const parsed = parseRevenueCatEvent(await request.json().catch(() => null), policy);
+  if (parsed.kind === "invalid") return Response.json({ error: "Invalid RevenueCat event" }, { status: 400 });
+  if (parsed.kind === "ignored") return Response.json({ ok: true });
+  await ctx.runMutation(internal.subscriptions.enqueueDelivery, { eventId: parsed.delivery.id,
+    accountIds: parsed.delivery.accountIds, deny: parsed.delivery.deny, transferDestinations: parsed.delivery.transferDestinations });
 
   return new Response(JSON.stringify({ ok: true }), {
     status: 200,

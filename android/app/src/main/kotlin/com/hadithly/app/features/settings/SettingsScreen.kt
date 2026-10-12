@@ -1028,12 +1028,19 @@ private fun SubscriptionDestination() {
     val colors = LocalHadithlyColors.current
     val uriHandler = LocalUriHandler.current
     val scope = rememberCoroutineScope()
-    val signedIn = Clerk.sessionsFlow.collectAsStateWithLifecycle().value.isNotEmpty()
+    val accountId = Clerk.userFlow.collectAsStateWithLifecycle().value?.id
+    val signedIn = accountId != null
     val purchaseState by app.purchases.state.collectAsStateWithLifecycle()
-    var status by remember(signedIn) { mutableStateOf<SubscriptionStatusResult?>(null) }
+    var status by remember(accountId) { mutableStateOf<SubscriptionStatusResult?>(null) }
     var restoring by remember { mutableStateOf(false) }
-    LaunchedEffect(signedIn) {
-        status = if (signedIn) runCatching { app.repository.getSubscriptionStatus() }.getOrNull() else null
+    LaunchedEffect(accountId) {
+        status = null
+        if (signedIn) {
+            try { app.repository.observeSubscriptionStatus().collect { value ->
+                if (Clerk.user?.id == accountId) status = value
+            } } catch (error: kotlinx.coroutines.CancellationException) { throw error }
+            catch (_: Exception) { status = null }
+        }
     }
 
     ScrollColumn {
@@ -1043,16 +1050,16 @@ private fun SubscriptionDestination() {
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(SettingsSubscription.displayName(status?.subscriptionTier), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary, modifier = Modifier.weight(1f))
-                    if (purchaseState.hasProEntitlement) {
+                    if (status?.subscriptionTier == "pro") {
                         Text("Active", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.accent)
                     }
                 }
-                Text("Pro unlocks 100 AI translations per rolling week. Reading, saved items, and existing translations stay free.", fontSize = 12.sp, color = colors.textSecondary)
+                Text(androidx.compose.ui.res.stringResource(com.hadithly.app.R.string.q2_quota), fontSize = 12.sp, color = colors.textSecondary)
                 TextButton(
                     enabled = !restoring,
                     onClick = {
                         restoring = true
-                        app.purchases.restore {
+                        app.purchases.restore { _ ->
                             restoring = false
                             scope.launch { status = runCatching { app.repository.getSubscriptionStatus() }.getOrNull() }
                         }
@@ -1061,9 +1068,12 @@ private fun SubscriptionDestination() {
                     },
                     modifier = Modifier.testTag("settings.subscription.restore"),
                 ) { Text(if (restoring) "Restoring…" else "Restore purchases", color = colors.textPrimary) }
-                TextButton(onClick = { uriHandler.openUri(SettingsLinks.PLAY_SUBSCRIPTIONS) }) {
+                TextButton(onClick = { uriHandler.openUri(if (status?.store == "app_store") "https://apps.apple.com/account/subscriptions" else SettingsLinks.PLAY_SUBSCRIPTIONS) }) {
                     Text("Manage subscription", color = colors.textSecondary)
                 }
+                Text(androidx.compose.ui.res.stringResource(com.hadithly.app.R.string.q2_manage), fontSize = 12.sp, color = colors.textSecondary)
+                purchaseState.errorMessage?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
+
             }
         }
     }

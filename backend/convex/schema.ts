@@ -1,3 +1,4 @@
+import { purchaseAccess } from "./lib/revenueCat";
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 import {
@@ -45,6 +46,10 @@ export default defineSchema({
     entitlementExpiresAt: v.optional(v.number()),
     revenueCatEventTimestamp: v.optional(v.number()),
     entitlementUpdatedAt: v.optional(v.number()),
+    subscriptionPurchases: v.optional(v.array(purchaseAccess)),
+    subscriptionRefreshRevision: v.optional(v.number()),
+    subscriptionSnapshotAt: v.optional(v.number()),
+    subscriptionOwnershipConflict: v.optional(v.boolean()),
     // Read-only legacy fields until the bounded Q1 migration erases them.
     aiGenerationsThisMonth: v.optional(v.number()),
     aiGenerationLimit: v.optional(v.number()),
@@ -54,6 +59,11 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_clerk_id", ["clerkId"]),
+
+  subscriptionWebhookReceipts: defineTable({ eventId: v.string(), createdAt: v.number(), queuedAt: v.optional(v.number()), state: v.union(v.literal("queued"), v.literal("completed"), v.literal("failed")) }).index("by_event", ["eventId"]).index("by_time", ["createdAt"]).index("by_state", ["state", "createdAt"]).index("by_queue", ["state", "queuedAt"]),
+
+  subscriptionWebhookTargets: defineTable({ receiptId: v.id("subscriptionWebhookReceipts"), userId: v.id("users"), deny: v.boolean(), ownershipConflict: v.boolean() })
+    .index("by_receipt", ["receiptId"]).index("by_user", ["userId"]),
 
   aiGenerationJobs: defineTable({
     generationKey: v.string(), sourceDigest: v.string(), hadithId: v.id("hadiths"), language: v.string(),
@@ -77,9 +87,9 @@ export default defineSchema({
   }).index("by_job_attempt", ["jobId", "attempt"]).index("by_time", ["createdAt"]),
   aiRateLimits: defineTable({ key: v.string(), userId: v.optional(v.id("users")), startedAt: v.number(), count: v.number() })
     .index("by_key", ["key"]).index("by_user", ["userId"]),
-  aiSpendBudgets: defineTable({ monthKey: v.string(), committedMicroUsd: v.number() }).index("by_month", ["monthKey"]),
+  aiSpendBudgets: defineTable({ monthKey: v.string(), committedMicroUsd: v.number(), freeCommittedMicroUsd: v.optional(v.number()) }).index("by_month", ["monthKey"]),
   aiSpendReservations: defineTable({ jobId: v.id("aiGenerationJobs"), attempt: v.number(), monthKey: v.string(),
-    reservedMicroUsd: v.number(), settled: v.boolean() }).index("by_job_attempt", ["jobId", "attempt"]),
+    reservedMicroUsd: v.number(), freePool: v.optional(v.boolean()), settled: v.boolean() }).index("by_job_attempt", ["jobId", "attempt"]),
   generationChallenges: defineTable({ userId: v.id("users"), hadithId: v.id("hadiths"), language: v.string(),
     generationKey: v.string(), nonce: v.string(), createdAt: v.number(), expiresAt: v.number(),
   }).index("by_user_time", ["userId", "createdAt"]),

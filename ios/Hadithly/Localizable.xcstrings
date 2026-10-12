@@ -2160,6 +2160,98 @@
     },
     "إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ" : {
 
+    },
+    "q2.quota": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free includes 5 new AI translations in any 7 days; Pro includes 100. Cached translations use no allowance. Reading and saved items stay free. New AI translations may be temporarily unavailable."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تتضمن الخطة المجانية 5 ترجمات جديدة بالذكاء الاصطناعي خلال أي 7 أيام، وتتضمن Pro 100 ترجمة. لا تستهلك الترجمات المخزنة حصتك. تظل القراءة والعناصر المحفوظة مجانية. قد لا تتوفر ترجمات جديدة مؤقتاً."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مفت پلان میں کسی بھی 7 دنوں میں 5 نئی AI تراجم ملتے ہیں؛ Pro میں 100۔ پہلے سے محفوظ تراجم آپ کے کوٹے سے کم نہیں ہوتے۔ پڑھنا اور محفوظ کردہ چیزیں مفت رہتی ہیں۔ نئے AI تراجم عارضی طور پر دستیاب نہ ہوں تو بعد میں کوشش کریں۔"
+          }
+        }
+      }
+    },
+    "q2.devices": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Pro on your own iOS and Android devices with the same Hadithly account. Family Sharing is off."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "استخدم Pro على أجهزتك الخاصة بنظامي iOS وAndroid باستخدام حساب Hadithly نفسه. المشاركة العائلية غير مفعّلة."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اپنے iOS اور Android آلات پر ایک ہی Hadithly اکاؤنٹ سے Pro استعمال کریں۔ فیملی شیئرنگ بند ہے۔"
+          }
+        }
+      }
+    },
+    "q2.manage": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage billing in the store where you purchased. Restore with your original Hadithly account. Pro works on your own iOS and Android devices; Family Sharing is off."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أدر الفوترة في المتجر الذي اشتريت منه. استعد مشترياتك باستخدام حساب Hadithly الأصلي. يعمل Pro على أجهزتك الخاصة بنظامي iOS وAndroid؛ المشاركة العائلية غير مفعّلة."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "بلنگ اسی اسٹور میں سنبھالیں جہاں خریداری کی تھی۔ بحالی کے لیے اپنا اصل Hadithly اکاؤنٹ استعمال کریں۔ Pro آپ کے اپنے iOS اور Android آلات پر کام کرتا ہے؛ فیملی شیئرنگ بند ہے۔"
+          }
+        }
+      }
+    },
+    "q2.wait": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Pro allowance returns as earlier translations leave the 7-day window. Cached translations and reading stay available."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعود حصتك في Pro عندما تخرج الترجمات السابقة من فترة الأيام السبعة. تظل الترجمات المخزنة والقراءة متاحة."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "پچھلے تراجم 7 دن کی مدت سے باہر ہونے پر آپ کا Pro کوٹہ واپس دستیاب ہوتا ہے۔ پہلے سے محفوظ تراجم اور پڑھنے کی سہولت دستیاب رہتی ہے۔"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

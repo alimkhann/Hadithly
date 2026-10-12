@@ -46,4 +46,21 @@ final class TranslationQ1UITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Cached exact-locale text"].waitForExistence(timeout: 10))
         XCTAssertFalse(app.buttons["reader.quotaPaywall"].exists)
     }
+
+    func testQ2QuotaPaywallShowsFiniteAllowanceOwnAccountAndNoWeeklyProduct() {
+        let app = launch("quota")
+        let plans = app.buttons["reader.quotaPaywall"]
+        XCTAssertTrue(plans.waitForExistence(timeout: 10))
+        plans.tap()
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label == %@", "Free includes 5 new AI translations in any 7 days; Pro includes 100. Cached translations use no allowance. Reading and saved items stay free. New AI translations may be temporarily unavailable.")).firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label == %@", "Use Pro on your own iOS and Android devices with the same Hadithly account. Family Sharing is off.")).firstMatch.exists)
+        XCTAssertTrue(app.buttons["Restore purchases"].exists)
+        XCTAssertFalse(app.buttons["Weekly"].exists)
+        let restore = app.buttons["Restore purchases"]
+        if !restore.isHittable { app.swipeUp() }
+        restore.tap()
+        XCTAssertTrue(app.staticTexts["Sign in to your original Hadithly account before restoring."].waitForExistence(timeout: 5))
+        app.buttons["Close"].tap()
+        XCTAssertTrue(plans.waitForExistence(timeout: 5))
+    }
 }

@@ -78,11 +78,10 @@ fun QuotaPaywallSheet(
                 textAlign = TextAlign.Center,
             )
 
+            Text(androidx.compose.ui.res.stringResource(com.hadithly.app.R.string.q2_quota), fontSize = 12.sp, color = colors.textSecondary, textAlign = TextAlign.Center)
+            Text(androidx.compose.ui.res.stringResource(com.hadithly.app.R.string.q2_devices), fontSize = 12.sp, color = colors.textSecondary, textAlign = TextAlign.Center)
             when {
-                state.hasProEntitlement -> ActiveAccess(onUnlocked = {
-                    onUnlocked()
-                    onDismiss()
-                })
+                state.hasProEntitlement -> ActiveAccess(onUnlocked = onDismiss)
                 state.loading -> CircularProgressIndicator(color = colors.textSecondary)
                 else -> state.packages.forEach { packageToShow ->
                     PackageButton(
@@ -107,9 +106,8 @@ fun QuotaPaywallSheet(
             TextButton(
                 enabled = !state.purchasing,
                 onClick = {
-                    purchases.restore {
-                        onUnlocked()
-                        onDismiss()
+                    purchases.restore { active ->
+                        if (active) { onUnlocked(); onDismiss() }
                     }
                 },
             ) {
@@ -172,6 +170,7 @@ private fun ActiveAccess(onUnlocked: () -> Unit) {
             .padding(18.dp),
     ) {
         Text("Hadithly Pro is active", fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+        Text(androidx.compose.ui.res.stringResource(com.hadithly.app.R.string.q2_wait), fontSize = 12.sp, color = colors.textSecondary)
         Button(
             onClick = onUnlocked,
             colors = ButtonDefaults.buttonColors(

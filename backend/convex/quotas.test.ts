@@ -66,13 +66,15 @@ describe("Q1 rolling allowance", () => {
     const f = await fixture(); const now = Date.now();
     await seedCharges(f, Array.from({ length: 10 }, (_, i) => now - 10_000 + i * 100));
     expect(await f.owner.query(api.quotas.getTranslationAllowance, {})).toMatchObject({ limit: 5, remaining: 0, retryAt: now - 9_500 + WINDOW_MS });
-    await f.t.mutation(internal.users.syncRevenueCatEntitlement, { clerkId: "q1-owner", revenueCatAppUserId: "q1-owner", eventTimestampMs: now, subscriptionTier: "pro", entitlementExpiresAt: now + 100 });
+    const ticket = await f.t.mutation(internal.subscriptions.beginRefresh, { clerkId: "q1-owner", deny: false, ownershipConflict: false });
+    if (!ticket) throw new Error("No account");
+    await f.t.mutation(internal.subscriptions.applySnapshot, { ...ticket, observedAt: now, ownershipConflict: false, purchases: [{ productId: "com.hadithly.app.pro.monthly", store: "app_store", paidUntil: now + 100, until: now + 100, phase: "paid" }] });
     expect(await f.owner.query(api.quotas.getTranslationAllowance, {})).toMatchObject({ limit: 100, used: 10, remaining: 90 });
     vi.setSystemTime(now + 100);
     expect(await f.owner.query(api.quotas.getTranslationAllowance, {})).toMatchObject({ limit: 5, used: 10, remaining: 0 });
   });
   test("admitted work remains valid across entitlement downgrade", async () => {
-    const f = await fixture(); await f.t.run(async ctx => ctx.db.patch(f.userId, { subscriptionTier: "pro" }));
+    const f = await fixture(); await f.t.run(async ctx => ctx.db.patch(f.userId, { subscriptionTier: "pro", entitlementExpiresAt: Date.now() + WINDOW_MS }));
     await seedCharges(f, Array(5).fill(Date.now()));
     const claim = await f.admit(); if (claim.kind !== "claimed") throw new Error("No claim");
     await f.t.run(async ctx => ctx.db.patch(f.userId, { subscriptionTier: "free" }));
@@ -340,4 +342,34 @@ test("development App Attest environment stays separate from unavailable-proof a
   vi.stubEnv("CONVEX_CLOUD_URL", "https://giddy-ox-648.eu-west-1.convex.cloud");
   expect(isNamedDevelopmentDeployment()).toBe(false);
   expect(allowUnattestedDevelopment()).toBe(false);
+});
+
+describe("Q2 free spend isolation", () => {
+  test("budget-rejected free requests consume no shared provider capacity", async () => {
+    const f = await fixture();
+    vi.stubEnv("AI_FREE_MONTHLY_BUDGET_USD", "0");
+    await f.t.run(async ctx => {
+      await ctx.db.insert("aiRateLimits", { key: "generation:daily", startedAt: Math.floor(Date.now() / 86400000) * 86400000, count: 499 });
+      await ctx.db.insert("aiRateLimits", { key: "generation:global", startedAt: Date.now(), count: 59 });
+    });
+    expect(await f.admit(0)).toMatchObject({ kind: "rejected", code: "AI_SERVICE_LIMIT" });
+    expect(await f.t.run(ctx => ctx.db.query("aiRateLimits").withIndex("by_key", q => q.eq("key", "generation:daily")).unique())).toMatchObject({ count: 499 });
+    expect(await f.t.run(ctx => ctx.db.query("aiRateLimits").withIndex("by_key", q => q.eq("key", "generation:global")).unique())).toMatchObject({ count: 59 });
+    await f.t.run(ctx => ctx.db.patch(f.userId, { subscriptionTier: "pro", entitlementExpiresAt: Date.now() + WINDOW_MS }));
+    expect(await f.admit(1)).toMatchObject({ kind: "claimed" });
+  });
+
+  test("free/service reservation ceiling leaves paid headroom and known costs settle only their own pool", async () => {
+    const f = await fixture();
+    vi.stubEnv("AI_MONTHLY_BUDGET_USD", "0.06");
+    vi.stubEnv("AI_FREE_MONTHLY_BUDGET_USD", "0.02");
+    const first = await f.admit(0); if (first.kind !== "claimed") throw new Error("No free reservation");
+    expect(await f.admit(1)).toMatchObject({ kind: "rejected", code: "AI_SERVICE_LIMIT" });
+    await f.t.mutation(internal.quotas.finish, { jobId: first.jobId, attempt: first.attempt, telemetry: { ...telemetry, tokenUsageKnown: false } });
+    await f.t.run(ctx => ctx.db.patch(f.userId, { subscriptionTier: "pro", entitlementExpiresAt: Date.now() + WINDOW_MS }));
+    const paid = await f.admit(1); if (paid.kind !== "claimed") throw new Error("No paid headroom");
+    await f.t.mutation(internal.quotas.finish, { jobId: paid.jobId, attempt: paid.attempt, telemetry, output });
+    expect(await f.t.run(ctx => ctx.db.query("aiSpendBudgets").unique())).toMatchObject({ freeCommittedMicroUsd: 20000, committedMicroUsd: 20400 });
+    expect(await f.t.mutation(internal.quotas.admit, { hadithId: f.hadithIds[2], language: "ru", signal: "service" })).toMatchObject({ kind: "rejected", code: "AI_SERVICE_LIMIT" });
+  });
 });

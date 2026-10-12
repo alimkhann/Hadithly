@@ -65,7 +65,9 @@ async function verify() {
     data.freeBoundaryVerified = true;
     await writeFile(metadataPath, JSON.stringify(data), {mode:0o600});
   }
-  await run('users:syncRevenueCatEntitlement',{clerkId:identity.subject,revenueCatAppUserId:identity.subject,eventTimestampMs:Date.now(),subscriptionTier:'pro',entitlementExpiresAt:Date.now()+3600000});
+  const ticket = await run('subscriptions:beginRefresh', {clerkId:identity.subject,deny:false,ownershipConflict:false});
+  assert.ok(ticket);
+  await run('subscriptions:applySnapshot',{...ticket,observedAt:Date.now(),ownershipConflict:false,purchases:[{productId:'com.hadithly.app.pro.monthly',store:'app_store',paidUntil:Date.now()+3600000,until:Date.now()+3600000,phase:'paid'}]});
   assert.ok([94,95].includes((await run('quotas:getTranslationAllowance',{},identity)).remaining));
   assert.ok((await invoke(targets[5])).translation.trim());
   await run('actions/ai:generateServiceTranslation',{hadithId:targets[6]._id,language:'ru'});

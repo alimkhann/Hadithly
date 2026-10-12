@@ -22,6 +22,7 @@ Later session records take precedence over older unchecked boxes and summaries.
 | E1 | iOS progress/cancellation and account-switch tests; RTL and assistive-technology device matrix. | Signed-in native intake, private upload, withdrawal, and local recovery passed. E2 proceeded under an explicit owner exception. |
 | E3 | Production provider-rights coverage and release rollout remain with O1/D4. | Development passed: 232 backend tests, 219 iOS units, both native upload/OCR/review/publication/readback paths, production status/source UI fixtures, private cloud controls, 14 Linux tests, and two final clean adversarial reviews. |
 | Q1 | Authenticated Android generation/cache/allowance and physical iPhone Clerk-to-generation journey need a development login. Play Integrity decode/native round trip is explicitly deferred until Play Console exists. Production remains release work. | Development deploy/migrations, preserved existing rows, actual five-free/reject/upgrade retry and service quotas, iOS authenticated simulator, Android live guest cache, real physical Apple attestation/assertion/replay checks pass. Ten global generations produced ten unique events and ten ungrounded calls. Backend 293 tests; iOS 225 local passes; Android 195 units. See `Q1_VERIFICATION.md`. |
+| Q2 | Actual Apple/Google sandbox purchase/renewal/cancellation/grace/hold/expiry/refund/revocation/restore, interrupted purchase/relaunch, account-switch/shared-device and cross-platform quota retry receipts. Play account/products/SDK key/regional export and approval are unavailable. Apple Streamlined Purchasing needs an updated approved binary. Production activation remains separate. | Approved 175 Apple regional tiers pass the 60% paid-unit floor; approved $2 free/$10 total translation cap deployed in development. Backend 313 tests, Android 198 units/two installed Q2 tests, iOS final four purchase/five UI checks, six Swift manager transport checks and signed development HTTP/reconciliation/replay pass. One US sandbox tester exists. See `Q2_VERIFICATION.md`. |
 | E4 | Production rollout remains with the release track. | Development passed: owner-approved deployment and idempotent legacy revocation; backend 257, iOS 222 unit plus three UI, Android 194 unit plus five UI tests; both real signed-in native report/appeal flows and fixture cleanup passed. No mandatory human queue. |
 
 R5, R6, H1, H2, and S1 have no separate unresolved implementation gate in their
@@ -40,8 +41,10 @@ must be replaced by evidence-pipeline checks, not used to revive that workflow.
 - Q1's local gate, development rollout, live backend quotas and real Apple hardware
   proof pass. Its complete authenticated-device/Play gate remains open above.
   E2's deployed security and both authenticated native processing paths were
-  refreshed successfully on October 12. Q2 is unopened.
-- Q2, LA1 through LA4, and L1 remain future sessions, not passed feature gates.
+  refreshed successfully on October 12.
+- Q2 implementation and approved development rollout are recorded above; its
+  complete two-store gate has not passed. LA1 through LA4 and L1 remain future
+  sessions. The owner's stop-before-L1 instruction remains in force.
 
 ## App-wide operation rule
 

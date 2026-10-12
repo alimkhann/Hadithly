@@ -53,6 +53,9 @@ struct CurrentPreferencesRow: Decodable {
 @MainActor
 @Observable
 final class AppEnvironment {
+    #if DEBUG
+    static weak var activeForStoreVerification: AppEnvironment?
+    #endif
     let config: AppConfig
     let convex: ConvexClientWithAuth<String>
     let guestData: GuestDataStore
@@ -97,6 +100,8 @@ final class AppEnvironment {
             authProvider: provider
         )
         provider.bind(client: convex)
+        let purchaseClient = self.convex
+        purchases.verifyBackendAccess = { try await purchaseClient.action("actions/subscriptions:refresh", with: [:]) }
         self.library = UserLibraryModel(
             convex: convex,
             guestData: self.guestData,
@@ -163,6 +168,9 @@ final class AppEnvironment {
             .sink { [weak self] _ in
                 self?.library.refresh()
             }
+        #if DEBUG
+        Self.activeForStoreVerification = self
+        #endif
     }
 
     /// Runs after a Clerk session becomes active: makes sure the user row
@@ -286,6 +294,7 @@ final class AppEnvironment {
     /// merge cleared it), so the library flips back to guest mode cleanly.
     func handleSignOut() {
         library.refresh()
+        purchases.clearAccount()
         Task { await purchases.logOut() }
     }
 

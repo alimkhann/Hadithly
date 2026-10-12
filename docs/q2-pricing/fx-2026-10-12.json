@@ -1,0 +1,303 @@
+{
+  "USD": {
+    "usdPerUnit": 1.0,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "KZT": {
+    "usdPerUnit": 0.002202982838763686,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "AUD": {
+    "usdPerUnit": 0.6973982772674201,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "AZN": {
+    "usdPerUnit": 0.5899808340493028,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "AMD": {
+    "usdPerUnit": 0.0027735553940034805,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "BYN": {
+    "usdPerUnit": 0.3295001431938845,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "BRL": {
+    "usdPerUnit": 0.19925979776617542,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "HUF": {
+    "usdPerUnit": 0.003070958077236578,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "VND": {
+    "usdPerUnit": 3.864031899191505e-05,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "HKD": {
+    "usdPerUnit": 0.12744255722247924,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "GEL": {
+    "usdPerUnit": 0.39017029057343644,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "DKK": {
+    "usdPerUnit": 0.14993501200625647,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "AED": {
+    "usdPerUnit": 0.27228867887119157,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "EUR": {
+    "usdPerUnit": 1.1207014297358624,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "EGP": {
+    "usdPerUnit": 0.019121891040468793,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "ILS": {
+    "usdPerUnit": 0.3273852796686714,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "INR": {
+    "usdPerUnit": 0.010331989513801688,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "IDR": {
+    "usdPerUnit": 5.5933734276209986e-05,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "IRR": {
+    "usdPerUnit": 5.661665895622673e-07,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "CAD": {
+    "usdPerUnit": 0.7023990483114136,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "QAR": {
+    "usdPerUnit": 0.2748881986209327,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "CNY": {
+    "usdPerUnit": 0.14942832595334082,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "KWD": {
+    "usdPerUnit": 3.2456986760073137,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "KGS": {
+    "usdPerUnit": 0.011433480933183532,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "MYR": {
+    "usdPerUnit": 0.24492763201374662,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "MXN": {
+    "usdPerUnit": 0.054942391998766334,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "MDL": {
+    "usdPerUnit": 0.05630824135879981,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "MNT": {
+    "usdPerUnit": 0.00027823673253585355,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "NOK": {
+    "usdPerUnit": 0.10442138655739872,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "OMR": {
+    "usdPerUnit": 2.597537065186262,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "PKR": {
+    "usdPerUnit": 0.003612891855572445,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "PLN": {
+    "usdPerUnit": 0.25587645672240217,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "SAR": {
+    "usdPerUnit": 0.26636265503491724,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "RUB": {
+    "usdPerUnit": 0.011785958187385719,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "RON": {
+    "usdPerUnit": 0.20996629436256692,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "XDR": {
+    "usdPerUnit": 1.3518383891789483,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "SGD": {
+    "usdPerUnit": 0.7810675654836648,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "TJS": {
+    "usdPerUnit": 0.10928997863106646,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "THB": {
+    "usdPerUnit": 0.02985041746524795,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "TRY": {
+    "usdPerUnit": 0.020355561430176458,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "UZS": {
+    "usdPerUnit": 8.41539444407728e-05,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "UAH": {
+    "usdPerUnit": 0.022272156499900865,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "GBP": {
+    "usdPerUnit": 1.322010001542088,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "CZK": {
+    "usdPerUnit": 0.0460203115017734,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "SEK": {
+    "usdPerUnit": 0.10025774899213534,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "CHF": {
+    "usdPerUnit": 1.20322516687595,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "ZAR": {
+    "usdPerUnit": 0.060449849095675544,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "KRW": {
+    "usdPerUnit": 0.0007459299892053842,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "JPY": {
+    "usdPerUnit": 0.006322560747251779,
+    "date": "2026-10-12",
+    "source": "https://nationalbank.kz/rss/rates_all.xml"
+  },
+  "CLP": {
+    "usdPerUnit": 0.0010187345279693565,
+    "date": "2026-10-09",
+    "provider": "BCCH",
+    "source": "https://si3.bcentral.cl/Siete/es/Siete/API",
+    "retrieval": "https://api.frankfurter.dev/v2/rates?base=USD&quotes=CLP,COP,NGN,NZD,PEN,PHP,TWD,TZS&expand=providers"
+  },
+  "COP": {
+    "usdPerUnit": 0.0003130439138002279,
+    "date": "2026-10-10",
+    "provider": "BANREP",
+    "source": "https://www.datos.gov.co/Econom-a-y-Finanzas/Tasa-de-Cambio-Representativa-del-Mercado-TRM/32sa-8pi3/about_data",
+    "retrieval": "https://api.frankfurter.dev/v2/rates?base=USD&quotes=CLP,COP,NGN,NZD,PEN,PHP,TWD,TZS&expand=providers"
+  },
+  "NGN": {
+    "usdPerUnit": 0.00075148982858517,
+    "date": "2026-10-09",
+    "provider": "CBN",
+    "source": "https://www.cbn.gov.ng/rates/exchratebycurrency.asp",
+    "retrieval": "https://api.frankfurter.dev/v2/rates?base=USD&quotes=CLP,COP,NGN,NZD,PEN,PHP,TWD,TZS&expand=providers"
+  },
+  "NZD": {
+    "usdPerUnit": 0.5613877505192837,
+    "date": "2026-10-09",
+    "provider": "ECB",
+    "source": "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html",
+    "retrieval": "https://api.frankfurter.dev/v2/rates?base=USD&quotes=CLP,COP,NGN,NZD,PEN,PHP,TWD,TZS&expand=providers"
+  },
+  "PEN": {
+    "usdPerUnit": 0.28935185185185186,
+    "date": "2026-10-09",
+    "provider": "BCP",
+    "source": "https://www.bcp.gov.py/webapps/web/cotizacion/monedas",
+    "retrieval": "https://api.frankfurter.dev/v2/rates?base=USD&quotes=CLP,COP,NGN,NZD,PEN,PHP,TWD,TZS&expand=providers"
+  },
+  "PHP": {
+    "usdPerUnit": 0.015918243899333027,
+    "date": "2026-10-09",
+    "provider": "ECB",
+    "source": "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html",
+    "retrieval": "https://api.frankfurter.dev/v2/rates?base=USD&quotes=CLP,COP,NGN,NZD,PEN,PHP,TWD,TZS&expand=providers"
+  },
+  "TWD": {
+    "usdPerUnit": 0.03131850923896023,
+    "date": "2026-10-12",
+    "provider": "MAS",
+    "source": "https://eservices.mas.gov.sg/statistics/msb/ExchangeRates.aspx",
+    "retrieval": "https://api.frankfurter.dev/v2/rates?base=USD&quotes=CLP,COP,NGN,NZD,PEN,PHP,TWD,TZS&expand=providers"
+  },
+  "TZS": {
+    "usdPerUnit": 0.00038003161863067004,
+    "date": "2026-10-10",
+    "provider": "BOTA",
+    "source": "https://www.bot.go.tz/exchangerate/excrates",
+    "retrieval": "https://api.frankfurter.dev/v2/rates?base=USD&quotes=CLP,COP,NGN,NZD,PEN,PHP,TWD,TZS&expand=providers"
+  }
+}

@@ -14,11 +14,6 @@ import {
 } from "./lib/preferences";
 
 
-type EntitlementSyncResult =
-  | { kind: "ignored_unknown_user" }
-  | { kind: "ignored_stale_event" }
-  | { kind: "updated"; userId: Id<"users"> };
-
 /**
  * Upserts the signed-in user from their Clerk identity. Called by the app
  * right after sign-in.
@@ -397,6 +392,7 @@ export const deleteCurrentUser = mutation({
     for (const row of await ctx.db.query("aiGenerationJobs").withIndex("by_user_status", q => q.eq("userId", user._id)).collect()) await ctx.db.patch(row._id, { userId: undefined });
     for (const row of await ctx.db.query("generationChallenges").withIndex("by_user_time", q => q.eq("userId", user._id)).collect()) await ctx.db.delete(row._id);
     for (const row of await ctx.db.query("generationCredentials").withIndex("by_user", q => q.eq("userId", user._id)).collect()) await ctx.db.delete(row._id);
+    for (const row of await ctx.db.query("subscriptionWebhookTargets").withIndex("by_user", q => q.eq("userId", user._id)).collect()) await ctx.db.delete(row._id);
     for (const row of await ctx.db.query("aiRateLimits").withIndex("by_user", q => q.eq("userId", user._id)).collect()) await ctx.db.delete(row._id);
     for (const kind of ["submission", "report", "appeal"] as const) {
       const rows = await ctx.db.query("evidenceRequestEvents").withIndex("by_user_kind_time", q => q.eq("userId", user._id).eq("kind", kind)).collect();
@@ -422,51 +418,4 @@ export const getByClerkId = internalQuery({
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
       .unique(),
-});
-
-/**
- * Internal: sync a RevenueCat entitlement by Clerk id. Called from the
- * RevenueCat webhook httpAction. app_user_id is the Clerk user id.
- */
-export const syncRevenueCatEntitlement = internalMutation({
-  args: {
-    clerkId: v.string(),
-    revenueCatAppUserId: v.string(),
-    eventTimestampMs: v.number(),
-    subscriptionTier: v.union(
-      v.literal("free"),
-      v.literal("trial"),
-      v.literal("pro"),
-    ),
-    entitlementProductId: v.optional(v.string()),
-    entitlementExpiresAt: v.optional(v.number()),
-  },
-  handler: async (ctx, args): Promise<EntitlementSyncResult> => {
-    const now = Date.now();
-    const existing = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
-      .unique();
-
-    if (!existing) {
-      return { kind: "ignored_unknown_user" };
-    }
-    if (
-      existing.revenueCatEventTimestamp !== undefined &&
-      args.eventTimestampMs < existing.revenueCatEventTimestamp
-    ) {
-      return { kind: "ignored_stale_event" };
-    }
-
-    await ctx.db.patch(existing._id, {
-      subscriptionTier: args.subscriptionTier,
-      revenueCatAppUserId: args.revenueCatAppUserId,
-      entitlementProductId: args.entitlementProductId,
-      entitlementExpiresAt: args.entitlementExpiresAt,
-      revenueCatEventTimestamp: args.eventTimestampMs,
-      entitlementUpdatedAt: now,
-      updatedAt: now,
-    });
-    return { kind: "updated", userId: existing._id };
-  },
 });

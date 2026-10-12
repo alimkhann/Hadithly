@@ -101,4 +101,8 @@
     <string name="settings_privacy_data">رازداری اور ڈیٹا</string>
     <string name="settings_help_support">مدد اور معاونت</string>
     <string name="settings_about_legal">تعارف اور قانونی معلومات</string>
+    <string name="q2_quota">مفت پلان میں کسی بھی 7 دنوں میں 5 نئی AI تراجم ملتے ہیں؛ Pro میں 100۔ پہلے سے محفوظ تراجم آپ کے کوٹے سے کم نہیں ہوتے۔ پڑھنا اور محفوظ کردہ چیزیں مفت رہتی ہیں۔ نئے AI تراجم عارضی طور پر دستیاب نہ ہوں تو بعد میں کوشش کریں۔</string>
+    <string name="q2_devices">اپنے iOS اور Android آلات پر ایک ہی Hadithly اکاؤنٹ سے Pro استعمال کریں۔ فیملی شیئرنگ بند ہے۔</string>
+    <string name="q2_manage">بلنگ اسی اسٹور میں سنبھالیں جہاں خریداری کی تھی۔ بحالی کے لیے اپنا اصل Hadithly اکاؤنٹ استعمال کریں۔ Pro آپ کے اپنے iOS اور Android آلات پر کام کرتا ہے؛ فیملی شیئرنگ بند ہے۔</string>
+    <string name="q2_wait">پچھلے تراجم 7 دن کی مدت سے باہر ہونے پر آپ کا Pro کوٹہ واپس دستیاب ہوتا ہے۔ پہلے سے محفوظ تراجم اور پڑھنے کی سہولت دستیاب رہتی ہے۔</string>
 </resources>

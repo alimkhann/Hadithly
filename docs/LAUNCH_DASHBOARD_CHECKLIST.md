@@ -515,8 +515,41 @@ Status on 2026-09-07:
 D3 operational work now covers the live domain, policies, store records, product
 IDs, RevenueCat offering, and webhook. The release track still has Apple legal,
 compliance, and sandbox handoffs, plus the deferred Google Play account and
-store work. Feature sessions may proceed; D4 and Q2 remain gated on the release
-track.
+store work. Feature sessions may proceed; D4 remains gated on the release track.
+The owner directed Q2 implementation and development verification to proceed
+with the unresolved release prerequisites explicitly recorded.
+
+### Q2 approved development and Apple readback — 2026-10-12
+
+- [x] Approve the actual 175 monthly/annual Apple regional tiers after the cost
+  table. US remains $2.99/$24.99; all tiers exceed the selected 60% paid-unit
+  floor under the recorded stress assumptions. See `Q2_PRICING.md`.
+- [x] Keep one `pro` entitlement and only monthly/annual in the real Apple offering.
+- [x] Detach obsolete Test Store links from “Hadithly Pro” and make that legacy
+  entitlement inactive; verify only `pro` remains in the active list.
+- [x] Save RevenueCat “Keep with original App User ID”, with no sandbox transfer override.
+- [x] Apple monthly and annual at level 1, multiseat off, Family Sharing off.
+- [x] Save 16-day paid-to-paid grace for sandbox only.
+- [x] Owner creates a US sandbox tester; storefront readback confirms one tester.
+- [x] Approved Q2 development deployment only to `festive-cobra-664`, exact
+  Apple app/environment policy and existing subscriber GET key, with $10 total
+  and $2 free/service ordinary-generation monthly caps.
+- [x] Signed development HTTP queue/reconciliation/replay and fixture cleanup.
+- [ ] Save the prepared sandbox-only development RevenueCat webhook after the
+  requested specific approval to transmit its existing Authorization credential.
+- [ ] Complete actual Apple purchase/restore/renewal/cancel/grace/expiry/refund,
+  interrupted-purchase and own-account/shared-device receipt journeys.
+- [ ] Complete Google products, regional export/approval and sandbox journeys
+  when the developer account becomes available.
+- [ ] Disable Apple Streamlined Purchasing after an updated approved binary
+  supplies required StoreKit APIs. Apple rejected the change in Q2; no release
+  artifact was submitted to work around that gate.
+- [ ] Approve production Q2 activation at action time. Production code and the
+  existing production webhook remain unchanged by this development rollout.
+
+Full Q2 acceptance requires both real store lifecycle matrices. Local fixtures,
+SDK boundary tests and build success do not substitute for store receipts.
+See `Q2_VERIFICATION.md`. L1 has not started.
 
 ## D4 production matrix
 

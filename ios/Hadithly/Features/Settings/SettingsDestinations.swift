@@ -16,6 +16,8 @@ private var settingsTint: Color { Theme.accent }
 private struct SubscriptionStatus: Decodable {
     var subscriptionTier: String?
     var entitlementExpiresAt: Double?
+    var phase: String?
+    var store: String?
 }
 
 /// Portable export document from `users:exportCurrentUserData`. Mirrors the
@@ -1193,16 +1195,16 @@ struct SubscriptionView: View {
                     LabeledContent("Plan", value: SettingsSubscription.displayName(tier: status?.subscriptionTier))
                     if let expires = status?.entitlementExpiresAt, expires > 0 {
                         LabeledContent(
-                            "Renews",
+                            status?.phase == "grace" ? "Grace ends" : "Access until",
                             value: Date(timeIntervalSince1970: expires / 1000).formatted(date: .abbreviated, time: .omitted)
                         )
                     }
-                    if environment.purchases.hasProEntitlement {
-                        Label("Pro is active on this device", systemImage: "checkmark.circle.fill")
+                    if status?.subscriptionTier == "pro" {
+                        Label("Pro is active for this account", systemImage: "checkmark.circle.fill")
                             .foregroundStyle(Theme.textPrimary)
                     }
                 } footer: {
-                    Text("Pro unlocks 100 AI translations per rolling week. Reading, saved items, and existing translations stay free.")
+                    Text("q2.quota")
                 }
 
                 Section {
@@ -1218,7 +1220,10 @@ struct SubscriptionView: View {
                     }
                     .disabled(isRestoring)
                     .accessibilityIdentifier("settings.subscription.restore")
-                    Link("Manage subscription", destination: SettingsLinks.appleSubscriptions)
+                    Link("Manage subscription", destination: status?.store == "play_store" ? URL(string: "https://play.google.com/store/account/subscriptions")! : SettingsLinks.appleSubscriptions)
+                    Text("q2.manage")
+                        .font(.footnote)
+                    if let message = environment.purchases.errorMessage { Text(message).font(.footnote) }
                 }
             } else {
                 Section {
@@ -1228,13 +1233,23 @@ struct SubscriptionView: View {
                 }
             }
         }
-        .task { await loadStatus() }
+        .task(id: clerk.user?.id) { status = nil; await observeStatus() }
+    }
+
+    private func observeStatus() async {
+        guard let accountID = clerk.user?.id else { return }
+        do {
+            for try await value in environment.convex.subscribe(to: "subscriptions:getStatus", yielding: SubscriptionStatus.self).values {
+                guard !Task.isCancelled, clerk.user?.id == accountID else { return }
+                status = value
+            }
+        } catch { if !Task.isCancelled, clerk.user?.id == accountID { status = nil } }
     }
 
     private func loadStatus() async {
         guard clerk.session != nil else { return }
         status = try? await environment.convex
-            .subscribe(to: "users:getCurrentUser", yielding: SubscriptionStatus.self)
+            .subscribe(to: "subscriptions:getStatus", yielding: SubscriptionStatus.self)
             .values
             .first(where: { _ in true })
     }
