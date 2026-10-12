@@ -1661,11 +1661,21 @@ substantive: they own bounded implementation outcomes, not just inventories.
   16-day paid-renewal grace in sandbox only. One US tester was created by the
   owner. Original-account restore behavior is saved in RevenueCat. Apple could
   not disable Streamlined Purchasing without an updated approved binary.
-- Proof: backend typecheck/313 tests; Android 198 units plus two installed Q2
+- Proof: backend typecheck/314 tests; Android 198 units plus two installed Q2
   tests; iOS five installed UI checks and final four purchase tests; six actual
   Swift manager transport checks. Signed live development HTTP, real RevenueCat
   reconciliation and replay pass, with fixture cleanup. Store receipts and
   cross-platform sandbox journeys remain open. See `docs/Q2_VERIFICATION.md`.
+- The owner's real Google sign-in inside the physical Hadithly development app
+  was verified. Both the app offering and independent StoreKit product lookup
+  still returned zero Apple products. Fresh Business readback shows Paid Apps
+  Agreement **New**, with a legal-entity update required before signing. The
+  owner was asked to finish that legal/tax/banking handoff. No store purchase
+  was attempted and no legal agreement was accepted by the agent.
+- A separately approved sandbox-only RevenueCat webhook is saved for development.
+  Its real dashboard TEST exposed an app-ID validation defect; authenticated
+  synthetic tests now acknowledge without any grant or reconciliation. Actual
+  purchase events retain exact app/environment admission. Production is unchanged.
 
 ### Future topic browsing with the Jev classifier (not a session)
 

@@ -64,13 +64,13 @@ Existing English, Arabic and Urdu UI resources carry the new copy on both apps.
 
 | Check | Result / artifact |
 | --- | --- |
-| Backend | Typecheck and 313 tests across 26 files pass. `/tmp/hadithly-q2-backend-final.log`; `subscriptions.test.ts` and `quotas.test.ts` retain lifecycle, race and budget regressions. |
+| Backend | Typecheck and 314 tests across 26 files pass. `/tmp/hadithly-q2-backend-final2.log`; `subscriptions.test.ts` and `quotas.test.ts` retain lifecycle, race and budget regressions. |
 | Free budget blast radius | Atomic admission/settlement protects paid headroom; budget-denied free requests do not consume shared provider-attempt slots. Unknown cost retains its reservation. |
 | iOS | Full suite before the final persistence addition: 232 executed, four opt-in live skips, zero failures. Final focused four purchase tests pass, including compilation of the opt-in real-store read/purchase tests. `/tmp/hadithly-q2-purchase-final5.xcresult`. Physical signed device build also passes. |
 | iOS installed UI | Five tests pass, zero skips/failures: Q1 reading/quota continuity plus the real Q2 quota sheet and failed restore. iPhone 18 Pro / iOS 27 simulator `40FDE642-C9F1-46C4-83E3-4D2469BDE3A6`; `/tmp/hadithly-q2-ios-ui4.xcresult`. |
 | Android | 198 unit tests pass, zero failures/skips. Two installed Q2 tests pass on `hadithly`, Android 16, `emulator-5554`, including actual SharedPreferences relaunch/corruption. `/tmp/hadithly-q2-android-final-complete.log`. JDK 21. |
 | SDK ownership boundary | `scripts/verify-q2-purchase-queue.sh`: six checks pass using the actual Swift manager and deterministic Clerk/SDK transport. This is not a store sandbox substitute. `/tmp/hadithly-q2-queue-final.log`. |
-| Live development | Latest approved code deployed to `festive-cobra-664` with sandbox-only backend policy, exact Apple app ID, $10 total/$2 free caps and existing read key. `backend/scripts/verify-q2-live.mjs` passes actual RevenueCat GET, signed HTTP queue/replay, finite fixture projection and cleanup. `/tmp/hadithly-q2-live-final.log`. CLI fixture identity is not real Clerk or store purchase proof. |
+| Live development | Latest approved code deployed to `festive-cobra-664` with sandbox-only backend policy, exact Apple app ID, $10 total/$2 free caps and existing read key. `backend/scripts/verify-q2-live.mjs` passes actual RevenueCat GET, signed HTTP queue/replay, finite fixture projection and cleanup. `/tmp/hadithly-q2-live-final2.log`. CLI fixture identity is not real Clerk or store purchase proof. |
 | Regional pricing | All 175 monthly and annual Apple tiers pass the selected 60% floor: lowest monthly 78.6%, lowest annual 71.7%. Official/export deductions, 30% commission stress, 15% FX haircut and typical quota bursts included. `/tmp/hadithly-q2-pricing-final.log`; rerun command in `Q2_PRICING.md`. |
 
 Live fixtures preserved the existing account IDs and erased private development
@@ -100,21 +100,54 @@ returns exactly the registered Apple monthly and annual packages. The unused
 Test Store weekly product is inactive; readback confirms it is absent from the
 active product list.
 
-The physical product-read test was started on `alimkhan`, iOS 27.0.1, but Xcode
-cannot launch it while the device is locked. The owner was asked to unlock it
-and sign in to the development app and sandbox tester. Rerunnable opt-in tests
-are `PurchaseQ2LiveTests`; `Q2_LIVE_STORE_READ=1` reads real StoreKit products and
-`Q2_LIVE_STORE_PURCHASE=1` runs the real monthly purchase, backend Pro/100 check
-and original-account restore. Apple's confirmation is completed on the device
-by the owner. Neither test has passed yet.
+The physical check initially waited for `alimkhan`, iOS 27.0.1, to unlock,
+then failed its unsigned-in app-session precondition. After the owner signed in
+with Google inside Hadithly, the real app-session/Convex/SDK identity path
+passed that precondition and reached product loading. RevenueCat returned zero
+plans because StoreKit returned none. An independent direct
+`Product.products(for:)` test also returned an empty array for both registered
+IDs, with no local StoreKit configuration file. Artifacts:
+`/tmp/hadithly-q2-store-account3.xcresult` and
+`/tmp/hadithly-q2-store-products.xcresult`. These are failing external acceptance
+checks, not passing sandbox evidence. No purchase was attempted.
 
-A new RevenueCat webhook draft points to
+Apple Business readback shows Free Apps Agreement **Active**, Paid Apps Agreement
+**New**, and a notice requiring updated legal-entity details before signing.
+Apple's [TN3186](https://developer.apple.com/documentation/technotes/tn3186-troubleshooting-in-app-purchases-availability-in-the-sandbox)
+requires an Active Paid Apps Agreement and complete banking/tax information for
+product availability. The owner was asked to complete those declarations;
+no agreement, legal-entity or financial form was accepted by the agent. Bundle
+ID, explicit app signing and registered product IDs match; no product review
+submission is required for sandbox. Metadata propagation can also take up to an
+hour after changes. Real purchase/restore waits for Apple to return the plans.
+
+The owner explicitly approved sending the existing development Authorization
+credential to RevenueCat. The saved integration is
+`whintgr2c4758e948`, named Hadithly Q2 Development Sandbox, pointing to
 `https://festive-cobra-664.eu-west-1.convex.site/webhooks/revenuecat`, Sandbox
-only, all event types. It is not saved: transmitting the existing development
-Authorization credential to RevenueCat requires the specific approval requested
-in this session. No credential was entered before that approval. This does not
-affect the passing signed development HTTP tests, but real RevenueCat sandbox
-callbacks require the integration.
+only, all event types. Readback masks the installed credential and shows Save
+disabled. The temporary owner-only local transfer file was removed; browser
+password saving was declined. Production integration is unchanged.
+
+RevenueCat's real dashboard TEST used the old Test Store app ID and initially
+received 400. The parser now acknowledges authenticated synthetic TEST events
+before catalog admission, with no receipt, reconciliation or grant. Real
+purchase events still require the exact configured app/environment. An actual
+HTTP regression rejects unauthorized TEST with 401 and keeps the user Free.
+Backend 314 tests/typecheck and the approved development redeployment pass.
+After deployment, a real RevenueCat dashboard test delivery returned HTTP 200
+from the saved development integration. The full signed development queue,
+subscriber reconciliation, replay and private fixture cleanup script passed
+again. The vendor TEST is connectivity proof only, not purchase lifecycle proof.
+
+Rerunnable opt-in tests are `PurchaseQ2LiveTests`:
+`testRegisteredAppleProductsAreAvailable` independently reads Apple products;
+`testRealAppleOfferingLoadsForVerifiedHadithlyAccount` checks the app's actual
+RevenueCat plans; `testRealAppleSandboxMonthlyPurchaseAndRestore` checks the
+real monthly receipt, Convex Pro/100 allowance and original-account restore.
+The first two use `Q2_LIVE_STORE_READ=1`; the third uses
+`Q2_LIVE_STORE_PURCHASE=1`. Apple's sandbox confirmation is completed by the
+owner on the device. The real-store acceptance methods have not passed yet.
 
 Reproduce the physical read after unlocking the device and signing in:
 
@@ -129,7 +162,7 @@ TEST_RUNNER_Q2_LIVE_STORE_READ=1 xcodebuild \
   test-without-building
 ```
 
-The existing physical `build-for-testing` result contains both live test
+The existing physical `build-for-testing` result contains all three live test
 methods. Only run the purchase method with the US sandbox tester signed in and
 the owner present for Apple's on-device confirmation; use
 `TEST_RUNNER_Q2_LIVE_STORE_PURCHASE=1` and its exact method name above.

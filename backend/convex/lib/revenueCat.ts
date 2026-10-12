@@ -39,9 +39,11 @@ const clerkAccount = (id: unknown): id is string => typeof id === "string" && /^
 export function parseRevenueCatEvent(body: unknown, policy: Policy): ParseDelivery {
   if (!isRecord(body) || !isRecord(body.event)) return { kind: "invalid" };
   const event = body.event;
-  if (typeof event.id !== "string" || !event.id || event.id.length > 200 || typeof event.type !== "string" ||
-      typeof event.app_id !== "string" || !policy.appIds.includes(event.app_id)) return { kind: "invalid" };
-  if (event.type === "TEST" || event.environment !== policy.environment) return { kind: "ignored" };
+  if (typeof event.id !== "string" || !event.id || event.id.length > 200 || typeof event.type !== "string") return { kind: "invalid" };
+  // Dashboard tests can use the project's Test Store app, never an access grant.
+  if (event.type === "TEST") return { kind: "ignored" };
+  if (typeof event.app_id !== "string" || !policy.appIds.includes(event.app_id)) return { kind: "invalid" };
+  if (event.environment !== policy.environment) return { kind: "ignored" };
   if (event.type === "TRANSFER") {
     if (!Array.isArray(event.transferred_from) || !Array.isArray(event.transferred_to) ||
         event.transferred_from.length + event.transferred_to.length > 100) return { kind: "invalid" };

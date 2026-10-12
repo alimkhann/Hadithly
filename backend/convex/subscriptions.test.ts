@@ -197,6 +197,16 @@ describe("Q2 HTTP to reconciliation to quota", () => {
     await expect(f.owner.action(api.actions.subscriptions.refresh, {})).rejects.toThrow("SUBSCRIPTION_RATE_LIMITED");
     expect(provider).toHaveBeenCalledTimes(5);
   });
+  test("authenticated dashboard TEST from a different project app is acknowledged without reconciling or granting", async () => {
+    const f = await fixture();
+    const body = event("TEST", "dashboard-test", { app_id: "legacy_test_store", app_user_id: "not-a-clerk-id", environment: "SANDBOX" });
+    expect((await post(f.t, body)).status).toBe(200);
+    expect((await f.t.fetch("/webhooks/revenuecat", { method: "POST", headers: { Authorization: "incorrect", "Content-Type": "application/json" }, body: JSON.stringify(body) })).status).toBe(401);
+    await drain(f.t);
+    expect(provider).not.toHaveBeenCalled();
+    expect(await f.t.run(ctx => ctx.db.query("subscriptionWebhookReceipts").collect())).toHaveLength(0);
+    expect(await f.owner.query(api.quotas.getTranslationAllowance, {})).toMatchObject({ limit: 5 });
+  });
   test("90-day retention drains batches and erases retry bindings without removing recent receipts", async () => {
     const f = await fixture();
     const cutoff = now - 90 * 86400000;

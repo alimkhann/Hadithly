@@ -535,8 +535,14 @@ with the unresolved release prerequisites explicitly recorded.
   Apple app/environment policy and existing subscriber GET key, with $10 total
   and $2 free/service ordinary-generation monthly caps.
 - [x] Signed development HTTP queue/reconciliation/replay and fixture cleanup.
-- [ ] Save the prepared sandbox-only development RevenueCat webhook after the
-  requested specific approval to transmit its existing Authorization credential.
+- [x] Save the sandbox-only development RevenueCat webhook after specific
+  approval to transmit its existing Authorization credential. Integration
+  `whintgr2c4758e948` targets only `festive-cobra-664`.
+- [x] Real RevenueCat dashboard test delivery returns HTTP 200 from the saved
+  development integration. Synthetic TEST grants no access; real receipts remain open.
+- [ ] Activate Apple Paid Apps Agreement and required legal/tax/banking setup.
+  Fresh readback shows Paid Apps Agreement **New** and direct physical StoreKit
+  lookup returns zero registered products; owner handoff remains required.
 - [ ] Complete actual Apple purchase/restore/renewal/cancel/grace/expiry/refund,
   interrupted-purchase and own-account/shared-device receipt journeys.
 - [ ] Complete Google products, regional export/approval and sandbox journeys

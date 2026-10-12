@@ -1,12 +1,27 @@
 import ClerkKit
 import ConvexMobile
 import RevenueCat
+import StoreKit
 import XCTest
 @testable import Hadithly
 
 final class PurchaseQ2LiveTests: XCTestCase {
     private struct Status: Decodable { let subscriptionTier: String; let store: String? }
     private struct Allowance: Decodable { let limit: Double }
+
+    @MainActor
+    func testRegisteredAppleProductsAreAvailable() async throws {
+        guard ProcessInfo.processInfo.environment["Q2_LIVE_STORE_READ"] == "1" else { throw XCTSkip("Opt-in real Apple product availability read") }
+        XCTAssertTrue(AppConfig().convexURL.contains("festive-cobra-664"))
+        let ids = ["com.hadithly.app.pro.monthly", "com.hadithly.app.pro.annual"]
+        let products = try await Product.products(for: ids)
+        XCTAssertEqual(products.map(\.id).sorted(), ids.sorted(), "Both actual Apple products must resolve without a StoreKit configuration file")
+        for product in products {
+            XCTAssertEqual(product.type, .autoRenewable)
+            XCTAssertGreaterThan(product.price, 0)
+            print("Q2 real Apple product: \(product.id), \(product.displayPrice)")
+        }
+    }
 
     @MainActor
     func testRealAppleOfferingLoadsForVerifiedHadithlyAccount() async throws {
