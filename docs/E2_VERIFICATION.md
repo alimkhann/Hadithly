@@ -1,7 +1,8 @@
 # E2 verification
 
-Updated 2026-10-10. E2 passed in development. E1's remaining device matrix stays
-open under the owner's explicit exception. E3 has not started.
+Refreshed 2026-10-12. E2 passed in development. E1's remaining device matrix stays
+open under the owner's explicit exception. E3 and E4 subsequently passed their
+separate development gates. The original session evidence below is retained.
 
 | Check | Evidence | State |
 | --- | --- | --- |
@@ -25,7 +26,32 @@ open under the owner's explicit exception. E3 has not started.
 | Deployed Convex workflow | Actual private Cloud Run action, untrusted extraction, coarse owner status, SSRF failure, three attempts, cleanup | Passed |
 | Native signed-in end-to-end | Each native client uploaded generated PNG/PDF plus HTTPS source, observed three ready items, then withdrew its submission | Passed |
 
-## Cloud readback
+## Current development refresh (2026-10-12)
+
+The owner requested completion of the remaining Q1 and E2 work. E2 already had no
+open development implementation gate. These checks refresh its deployed proof:
+
+| Check | Result |
+| --- | --- |
+| Private worker | Unauthenticated health HTTP 403; authenticated health HTTP 200 and `e3-v1`. Actual PNG/PDF OCR, EICAR, malformed PDF, metadata/loopback, denied source policy, and exact HTTPS snapshot checks pass. `/tmp/hadithly-e2-refresh-cloud2.log`. |
+| Deployed processing | Private Cloud Run processing produces private untrusted extraction and coarse owned status. Private destinations fail closed; three manual attempts exhaust correctly. Withdrawal cleans the disposable rows and preserves existing users, submissions, and translations. `/tmp/hadithly-e2-refresh-convex2.log`. |
+| Native iOS | Existing Clerk session, actual PNG/PDF/HTTPS uploads, three ready items, and withdrawal pass without skips on iPhone 18 Pro iOS 27. `/tmp/hadithly-e2-refresh-ios2.xcresult`. |
+| Native Android | Same actual three-item flow passes on `hadithly`, Android 16, `emulator-5554`. Instrumentation XML reports one test, zero failures, zero skips. `/tmp/hadithly-e2-refresh-android.log`. |
+
+The first cloud/workflow attempts ran alongside other worker verification and
+failed. Isolated reruns and both authenticated native flows pass. No processor
+implementation, IAM, worker credential, billing setting, or production service
+changed. The canonical URL and worker access policy are verified live. Resource
+and IAM configuration were last read back in E3 on October 11; that readback is
+not relabeled as a new audit.
+
+`backend/scripts/verify-e2-cloud.mjs` captures the existing development invoker
+credential without printing it, stages it in a mode-0600 private temporary file,
+runs the existing synthetic verifier, and removes it in `finally`. It prints
+only the verifier's assertion summaries. No temporary credential file remains.
+No Docker resource was created by this refresh.
+
+## Original cloud readback (2026-10-10)
 
 The owner approved billing, the $10 monthly Cloud Run cap, private source upload,
 service deployment, and the dedicated invocation credential at their action
@@ -81,7 +107,8 @@ source snapshots, and worker leases after all disposable checks.
 ## Scope and cleanup
 
 E2 stores extracted text as untrusted private evidence. It does not perform AI
-review, licensing decisions, or publication. E3 remains untouched. E1's iOS
+review, licensing decisions, or publication. The original E2 session left E3 untouched; later E3/E4 evidence is recorded in
+their own verification files. E1's iOS
 progress/cancellation, account-switch, RTL, and assistive-technology device
 matrix remains open.
 
