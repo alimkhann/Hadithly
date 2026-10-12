@@ -1672,6 +1672,11 @@ substantive: they own bounded implementation outcomes, not just inventories.
   Agreement **New**, with a legal-entity update required before signing. The
   owner was asked to finish that legal/tax/banking handoff. No store purchase
   was attempted and no legal agreement was accepted by the agent.
+- Owner follow-up advanced Apple Paid Apps Agreement to **Pending User Info**.
+  Banking is processing; both U.S. tax forms and the DSA trader declaration
+  remain unfinished. The agent inspected forms and explained identifiers without
+  entering private information or submitting declarations. Activation and real
+  product availability remain open; see the latest Q2 verification record.
 - A separately approved sandbox-only RevenueCat webhook is saved for development.
   Its real dashboard TEST exposed an app-ID validation defect; authenticated
   synthetic tests now acknowledge without any grant or reconciliation. Actual

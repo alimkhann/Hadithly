@@ -541,8 +541,10 @@ with the unresolved release prerequisites explicitly recorded.
 - [x] Real RevenueCat dashboard test delivery returns HTTP 200 from the saved
   development integration. Synthetic TEST grants no access; real receipts remain open.
 - [ ] Activate Apple Paid Apps Agreement and required legal/tax/banking setup.
-  Fresh readback shows Paid Apps Agreement **New** and direct physical StoreKit
-  lookup returns zero registered products; owner handoff remains required.
+  Latest owner follow-up/readback shows Paid Apps Agreement **Pending User Info**,
+  banking **Processing**, both U.S. tax forms **Missing Tax Info**, and DSA
+  declaration unfinished. Earlier direct physical StoreKit lookup returned zero
+  registered products; owner declarations and activation remain required.
 - [ ] Complete actual Apple purchase/restore/renewal/cancel/grace/expiry/refund,
   interrupted-purchase and own-account/shared-device receipt journeys.
 - [ ] Complete Google products, regional export/approval and sandbox journeys

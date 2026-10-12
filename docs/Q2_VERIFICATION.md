@@ -121,6 +121,16 @@ ID, explicit app signing and registered product IDs match; no product review
 submission is required for sandbox. Metadata propagation can also take up to an
 hour after changes. Real purchase/restore waits for Apple to return the plans.
 
+Owner financial-setup follow-up on October 12: the Paid Apps Agreement advanced
+to **Pending User Info**. Apple shows banking **Processing**, with its displayed
+24-hour processing notice; both U.S. tax forms still show **Missing Tax Info**.
+The DSA trader declaration is also unfinished. These statuses were confirmed
+from the owner's screenshots and the live Business page. The agent inspected
+the foreign-status certificate and W-8BEN without checking declarations,
+entering identifying/tax/banking data, or submitting either form. No personal
+addresses, tax identifiers, birth dates or bank-account identifiers are retained
+in this record. The Active-agreement/product-availability gate remains open.
+
 The owner explicitly approved sending the existing development Authorization
 credential to RevenueCat. The saved integration is
 `whintgr2c4758e948`, named Hadithly Q2 Development Sandbox, pointing to
