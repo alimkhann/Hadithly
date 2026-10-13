@@ -189,7 +189,8 @@ fun ReaderScreen(
     val sessions by com.clerk.api.Clerk.sessionsFlow.collectAsStateWithLifecycle()
     LaunchedEffect(sessions.map { it.id }) { viewModel.resetTranslationRequestsForAccount() }
     DisposableEffect(viewModel) {
-        onDispose { viewModel.saveCurrentProgress() }
+        viewModel.beginMeasurement()
+        onDispose { viewModel.endMeasurement(); viewModel.saveCurrentProgress() }
     }
     val readingWidthClass = ReadingWidthClass.fromWidthDp(
         LocalConfiguration.current.screenWidthDp.toDouble()
@@ -1211,6 +1212,20 @@ private fun ReaderPage(
         viewModel.acknowledgeVerticalLanding(request)
     }
 
+    // Clearing the command cancels its effect; observe the acknowledged frame separately.
+    LaunchedEffect(state.verticalLanding, state.pageIndex, hadiths, state.translations, preferences.arabicVisible, preferences.translationVisible) {
+        if (state.verticalLanding != null || state.pageIndex != pageIndex || hadiths.isEmpty()) return@LaunchedEffect
+        withFrameNanos { }
+        val visible = listState.layoutInfo.visibleItemsInfo.mapNotNull { item ->
+            readerHadithIndex(item.index, hadiths.size)?.let { index ->
+                Triple(hadiths[index].providerHadithId, item.offset.toDouble(), item.size.toDouble())
+            }
+        }
+        viewModel.inspectInitialTarget(visible, listState.layoutInfo.viewportEndOffset.toDouble())
+        visible.forEach { anchor -> viewModel.observeVisibleEntry(anchor.first, anchor.second, anchor.third,
+            listState.layoutInfo.viewportEndOffset.toDouble()) }
+    }
+
     // Intra-page scroll fraction for the dynamic page bars: leading item
     // plus its consumed offset over the page's item count.
     LaunchedEffect(listState, hadiths) {
@@ -1243,6 +1258,10 @@ private fun ReaderPage(
             .distinctUntilChanged()
             .debounce(500)
             .collect { (index, offset, size) ->
+                readerHadithIndex(index, hadiths.size)?.let { hadithIndex ->
+                    viewModel.observeVisibleEntry(hadiths[hadithIndex].providerHadithId, offset.toDouble(), size.toDouble(),
+                        listState.layoutInfo.viewportEndOffset.toDouble())
+                }
                 viewModel.captureStableScroll(
                     hadiths = hadiths,
                     leadingIndex = readerHadithIndex(index, hadiths.size) ?: return@collect,
@@ -2637,11 +2656,11 @@ internal fun TranslationSection(
         }
 
         is TranslationUiState.Loaded -> {
-            TranslationText(
+            com.hadithly.app.core.theme.TranslationReveal(com.hadithly.app.core.theme.TranslationPresentationPhase.Available) { TranslationText(
                 text = translationState.translation.translation,
                 storedTranslation = translationState.translation,
                 onShowCitations = { onShowCitations(translationState.translation) },
-            )
+            ) }
             GlossaryNotes(translationState.translation.glossaryNotes)
         }
 

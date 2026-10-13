@@ -38,6 +38,8 @@ class HadithlyApplication : Application() {
 
     lateinit var settings: AppSettings
         private set
+    lateinit var analytics: com.hadithly.app.core.analytics.UsageStatistics
+        private set
     lateinit var preferences: PreferencesStore
         private set
     lateinit var repository: ConvexRepository
@@ -75,6 +77,8 @@ class HadithlyApplication : Application() {
 
         settings = AppSettings(this)
         val sharedPreferences = getSharedPreferences("hadithly", MODE_PRIVATE)
+        analytics = com.hadithly.app.core.analytics.UsageStatistics(getSharedPreferences("usageStatistics", MODE_PRIVATE), BuildConfig.CONVEX_URL, appScope)
+        purchases.analytics = analytics
         preferences = PreferencesStore(sharedPreferences)
         savedSafety = SavedSafetyPreferences(sharedPreferences)
         repository = ConvexRepository(this)
@@ -148,6 +152,7 @@ class HadithlyApplication : Application() {
             ioScope = appScope,
         )
         for ((slug, _) in Collections.all) {
+            offline.analytics = analytics
             offline.setAnchorProvider(slug) { offlineAnchors(slug) }
         }
         session = SessionManager(

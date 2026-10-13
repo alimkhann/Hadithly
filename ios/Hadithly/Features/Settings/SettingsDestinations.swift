@@ -1275,6 +1275,11 @@ struct PrivacyDataView: View {
     var body: some View {
         SettingsList("Privacy & data") {
             Section {
+                Toggle("la2.usage", isOn: Binding(get: { environment.analytics.sharing },
+                    set: { environment.analytics.setSharing($0) }))
+                    .accessibilityIdentifier("settings.usageStatistics")
+            } footer: { Text("la2.usage_explanation") }
+            Section {
                 Toggle("Send crash reports", isOn: $crashConsent)
                     .accessibilityIdentifier("settings.crashReports")
                     .onChange(of: crashConsent) { _, enabled in CrashReporting.shared.setConsent(enabled) }

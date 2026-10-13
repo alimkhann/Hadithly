@@ -45,6 +45,7 @@ class OfflineStore(
     private val manifestProvider: (suspend (String?) -> OfflineManifestsResponse)? = null,
     private val ioScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main),
 ) {
+    var analytics: com.hadithly.app.core.analytics.UsageStatistics? = null
     private val json = Json { ignoreUnknownKeys = true }
 
     private val _revision = MutableStateFlow(0L)
@@ -348,6 +349,7 @@ class OfflineStore(
             )
         }
         startRun(slug)
+        analytics?.record(com.hadithly.app.core.analytics.AnalyticsMetric.offlineActivationResultStarted)
         return OfflineEnqueueResult.Started
     }
 
@@ -368,6 +370,7 @@ class OfflineStore(
         invalidateRun(slug)
         val record = recordFor(slug)
         record.download?.let { download ->
+            analytics?.record(com.hadithly.app.core.analytics.AnalyticsMetric.offlineActivationResultCancelled)
             _progress.value = _progress.value - OfflineModels.progressKey(slug, download.kind, download.locale)
         }
         tmpFile(slug, record)?.delete()
@@ -592,6 +595,7 @@ class OfflineStore(
             }
         } catch (_: Exception) {
             if (isCurrentRun(slug, generation)) {
+                analytics?.record(com.hadithly.app.core.analytics.AnalyticsMetric.offlineActivationResultFailed)
                 updateRecord(slug) {
                     it.copy(
                         download = it.download?.copy(
@@ -751,6 +755,7 @@ class OfflineStore(
      */
     fun activateStaged(slug: String) {
         val record = recordFor(slug)
+        val hadStaged = record.stagedBase != null || record.stagedPacks.isNotEmpty()
         val previousBase = record.activeBase
         var next = record
         val staged = record.stagedBase
@@ -774,6 +779,10 @@ class OfflineStore(
             if (previousBase != null && previousBase != next.activeBase) add(previousBase)
         }
         prune(slug, keep)
+        if (hadStaged) {
+            analytics?.record(if (previousBase == null) com.hadithly.app.core.analytics.AnalyticsMetric.offlineActivationResultActivated else com.hadithly.app.core.analytics.AnalyticsMetric.offlineActivationResultUpdated)
+            analytics?.flush()
+        }
         changed()
     }
 

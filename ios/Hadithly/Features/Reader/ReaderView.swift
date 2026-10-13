@@ -107,12 +107,15 @@ struct ReaderView: View {
                     widthClass: horizontalSizeClass == .regular ? .regular : .compact
                 )
                 model?.offlineStore = environment.offline
+                model?.analytics = environment.analytics
+                model?.beginMeasurement()
                 model?.offlineLocale = environment.preferences.preferences.translationLocale
                 model?.offlineProbeBaseURL = URL(string: environment.config.convexURL)
                 model?.start()
             }
         }
         .onDisappear {
+            model?.endMeasurement()
             model?.saveCurrentProgress()
             model?.stop()
         }
@@ -914,11 +917,6 @@ private struct ReaderUnfocusedProgressPills: View {
 
 // MARK: - One reader page
 
-private struct ReaderAnchorFrame: Equatable {
-    let minY: CGFloat
-    let height: CGFloat
-}
-
 private struct ReaderAnchorFramesKey: PreferenceKey {
     static var defaultValue: [String: ReaderAnchorFrame] = [:]
 
@@ -964,7 +962,17 @@ struct ReaderPageView: View {
     var onScrollFraction: ((Double) -> Void)? = nil
 
     @State private var appliedLandingToken: Int?
+    @State private var latestAnchorFrames: [String: ReaderAnchorFrame] = [:]
+    @State private var inspectedEntry = false
     @State private var chapterOpenings: Set<Int> = []
+
+    private func chapterAnchor(_ hadith: ReaderHadith) -> some View {
+        GeometryReader { geometry in
+            let frame: CGRect = geometry.frame(in: .named("reader.page"))
+            Color.clear.preference(key: ReaderAnchorFramesKey.self,
+                value: ["chapter." + hadith.internalId: ReaderAnchorFrame(minY: frame.minY, height: frame.height)])
+        }
+    }
 
     /// The selected volume backing this page, for the volume-start header.
     private var selectedVolume: OutlineVolume? {
@@ -1087,6 +1095,7 @@ struct ReaderPageView: View {
                                         )
                                         hadithRow(hadith)
                                     }
+                                    .background(chapterAnchor(hadith))
                                     .id("reader.chapter.\(hadith.internalId)")
                                     .padding(.top, 12)
                                 } else {
@@ -1133,6 +1142,7 @@ struct ReaderPageView: View {
                     onScrollFraction((raw * 200).rounded() / 200)
                 }
                 .onPreferenceChange(ReaderAnchorFramesKey.self) { frames in
+                    latestAnchorFrames = frames
                     let activePage = ReaderVerticalLandingPage(
                         volumeId: model.selectedVolumeId ?? "",
                         pageIndex: currentPageIndex
@@ -1144,7 +1154,15 @@ struct ReaderPageView: View {
                         case .header:
                             appliedLandingToken = landing.id
                             proxy.scrollTo("reader.page.top.\(currentPageIndex)", anchor: .top)
-                            DispatchQueue.main.async { model.acknowledgeVerticalLanding(landing) }
+                            DispatchQueue.main.async {
+                                model.acknowledgeVerticalLanding(landing)
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                                    model.observeVisibleContent(hadiths: hadiths, frames: latestAnchorFrames, viewport: viewport.size.height)
+                                    if !inspectedEntry { inspectedEntry = true
+                                        model.inspectInitialTarget(hadiths: hadiths, frames: latestAnchorFrames, viewport: viewport.size.height)
+                                    }
+                                }
+                            }
                             return
                         case .semantic(let providerHadithId, let normalizedOffset):
                             guard let targetIndex = hadiths.firstIndex(where: { $0.providerHadithId == providerHadithId }),
@@ -1162,11 +1180,22 @@ struct ReaderPageView: View {
                                 )
                                 proxy.scrollTo(target.internalId, anchor: UnitPoint(x: 0.5, y: anchorY))
                             }
-                            DispatchQueue.main.async { model.acknowledgeVerticalLanding(landing) }
+                            DispatchQueue.main.async {
+                                model.acknowledgeVerticalLanding(landing)
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                                    model.observeVisibleContent(hadiths: hadiths, frames: latestAnchorFrames, viewport: viewport.size.height)
+                                    if !inspectedEntry { inspectedEntry = true
+                                        model.inspectInitialTarget(hadiths: hadiths, frames: latestAnchorFrames, viewport: viewport.size.height)
+                                    }
+                                }
+                            }
                             return
                         }
                     }
 
+                    if currentPageIndex == model.pageIndex {
+                        model.observeVisibleContent(hadiths: hadiths, frames: frames, viewport: viewport.size.height)
+                    }
                     let indexed = hadiths.enumerated().compactMap { index, hadith in
                         frames[hadith.internalId].map { (index, $0) }
                     }
@@ -1936,6 +1965,7 @@ private struct HadithBlock: View {
 
     @ViewBuilder
     private var aiTranslationSection: some View {
+        TranslationReveal(phase: translationState?.presentationPhase ?? .idle) {
         switch translationState {
         case .none:
             Button(action: onRetry) {
@@ -1994,6 +2024,7 @@ private struct HadithBlock: View {
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier("reader.retryTranslation")
+        }
         }
     }
 

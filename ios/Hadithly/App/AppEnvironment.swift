@@ -63,6 +63,7 @@ final class AppEnvironment {
     let push: PushNotificationManager
     let purchases: PurchaseManager
     let preferences: PreferencesStore
+    let analytics: UsageStatistics
     let savedSafety: SavedSafetyPreferences
     let offline: OfflineStore
     let widgetProgress = LibraryModel()
@@ -102,9 +103,11 @@ final class AppEnvironment {
             }
         }
         self.config = config
+        self.analytics = UsageStatistics(cloudURL: config.convexURL)
         self.guestData = guestData ?? GuestDataStore()
         Clerk.configure(publishableKey: config.clerkPublishableKey)
         self.purchases = PurchaseManager(apiKey: config.revenueCatAPIKey)
+        self.purchases.analytics = self.analytics
         let store = PreferencesStore()
         self.preferences = store
         WidgetSnapshotStore.saveUILocale(store.preferences.uiLocale)
@@ -141,6 +144,7 @@ final class AppEnvironment {
         }, probeBaseURL: probeURL)
         let library = self.library
         let offline = self.offline
+        offline.analytics = analytics
         for slug in ReaderModels.collections.map(\.slug) {
             offline.setAnchorProvider(for: slug) { [weak library] in
                 Self.offlineAnchors(for: slug, library: library)
@@ -309,6 +313,7 @@ final class AppEnvironment {
     /// Called when the Clerk session ends. The SwiftData store is empty (the
     /// merge cleared it), so the library flips back to guest mode cleanly.
     func handleSignOut() {
+        analytics.clearPending()
         library.refresh()
         purchases.clearAccount()
         Task { await purchases.logOut() }
@@ -318,6 +323,7 @@ final class AppEnvironment {
     /// then removes the Clerk identity and its sessions. Safe to retry if the
     /// second step fails because the backend mutation is idempotent.
     func deleteAccount() async throws {
+        analytics.setSharing(false)
         let accountId = Clerk.shared.user?.id
         let _: Bool? = try await convex.mutation("users:deleteCurrentUser")
         if let accountId {

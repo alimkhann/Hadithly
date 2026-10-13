@@ -153,6 +153,7 @@ class SessionManager(
 
     /** Called when the Clerk session ends; the guest store was already cleared. */
     fun handleSignOut() {
+        (context.applicationContext as com.hadithly.app.HadithlyApplication).analytics.clearPending()
         library.refresh()
         _syncSummary.value = null
         purchases.logOut()
@@ -160,6 +161,7 @@ class SessionManager(
 
     /** Delete backend data while authenticated, then delete the Clerk user. */
     suspend fun deleteAccount(): Result<Unit> = runCatching {
+        (context.applicationContext as com.hadithly.app.HadithlyApplication).analytics.setSharing(false)
         val accountId = Clerk.user?.id
         repository.deleteCurrentUser()
         if (accountId != null) EvidenceLocalDrafts.clearForAccount(context, accountId)

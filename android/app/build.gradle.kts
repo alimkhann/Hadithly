@@ -129,6 +129,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
     implementation("io.sentry:sentry-android-core:8.60.0")
+    implementation("com.squareup.okhttp3:okhttp:5.4.0")
     implementation("com.google.android.play:integrity:1.6.0")
     implementation(libs.revenuecat.purchases)
 

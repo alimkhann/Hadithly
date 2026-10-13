@@ -28,6 +28,7 @@ enum OfflineEnqueueResult: Equatable, Sendable {
 @MainActor
 @Observable
 final class OfflineStore {
+    var analytics: UsageStatistics?
     typealias ManifestProvider = (String?) async throws -> OfflineManifestsResponse
 
     private(set) var registry: OfflineRegistry
@@ -357,6 +358,7 @@ final class OfflineStore {
             )
         }
         startRun(slug: slug)
+        analytics?.record(.offlineActivationResultStarted)
         return .started
     }
 
@@ -374,6 +376,7 @@ final class OfflineStore {
         invalidateRun(slug: slug)
         let record = registry.record(for: slug)
         if let download = record.download {
+            analytics?.record(.offlineActivationResultCancelled)
             progress[Self.progressKey(slug: slug, kind: download.kind, locale: download.locale)] = nil
         }
         if let tmp = tmpURL(for: slug, record: record) {
@@ -589,6 +592,7 @@ final class OfflineStore {
             }
         } catch {
             if isCurrentRun(slug: slug, generation: generation) {
+                analytics?.record(.offlineActivationResultFailed)
                 setRecord(slug) {
                     $0.download?.state = .failed
                     $0.download?.reason = "The download was interrupted. Your installed copy still works."
@@ -713,6 +717,7 @@ final class OfflineStore {
     /// stays on disk for rollback; older generations are pruned.
     func activateStaged(slug: String) {
         var record = registry.record(for: slug)
+        let hadStaged = record.stagedBase != nil || !record.stagedPacks.isEmpty
         let previousBase = record.activeBase
         if let staged = record.stagedBase {
             record.activeBase = staged
@@ -738,6 +743,10 @@ final class OfflineStore {
             keep.append(previous)
         }
         prune(slug: slug, keeping: keep)
+        if hadStaged {
+            analytics?.record(previousBase == nil ? .offlineActivationResultActivated : .offlineActivationResultUpdated)
+            analytics?.flush()
+        }
     }
 
     /// Rollback is a pointer flip back to the retained previous version.

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="la2_welcome">Baca hadis dalam bahasa Anda</string>
+    <string name="la2_get_started">Mulai</string>
+    <string name="la2_language">Pilih bahasa Anda</string>
+    <string name="la2_suggested">Disarankan dari perangkat Anda. Dapat diubah nanti.</string>
+    <string name="la2_demo_title">Baca dalam bahasa Anda</string>
+    <string name="la2_see_example">Lihat contoh</string>
+    <string name="la2_source">Sumber Arab</string>
+    <string name="la2_sample_label">Contoh AI yang disiapkan</string>
+    <string name="la2_sample_notice">Teks contoh oleh Hadithly, bukan hadis. Terjemahan AI dapat mengandung kesalahan.</string>
+    <string name="la2_source_details">Contoh ini mempertahankan sumber Arab. Sumber: Hadithly. CC0 1.0.</string>
+    <string name="la2_account_title">Jadikan Hadithly milik Anda</string>
+    <string name="la2_account_body">Buat terjemahan dalam bahasa Anda. Simpan posisi baca antarperangkat.</string>
+    <string name="la2_create_account">Buat akun</string>
+    <string name="la2_sign_in">Masuk</string>
+    <string name="la2_guest">Lanjutkan sebagai tamu</string>
+    <string name="la2_reading_free">Membaca tetap gratis.</string>
+    <string name="la2_continue">Lanjutkan</string>
+    <string name="la2_back">Kembali</string>
+    <string name="la2_skip">Lewati</string>
+    <string name="la2_usage">Bagikan statistik penggunaan privat</string>
+    <string name="la2_usage_explanation">Hasil agregat dikirim melalui Convex ke PostHog EU. Tanpa teks bacaan, target, identitas akun atau perangkat. Menonaktifkan menghapus statistik tertunda. Total yang diterbitkan tidak mengidentifikasi Anda.</string>
+    <string name="la2_more_translations">Lebih banyak terjemahan AI</string>
+    <string name="la2_allowance">5 terjemahan baru gratis atau 100 dengan Pro dalam 7 hari berjalan. Terjemahan yang disetujui dan tersimpan tetap gratis.</string>
+    <string name="la2_monthly">Bulanan</string>
+    <string name="la2_annual">Tahunan</string>
+    <string name="la2_subscribe_monthly">Berlangganan bulanan</string>
+    <string name="la2_subscribe_annual">Berlangganan tahunan</string>
+    <string name="la2_keep_reading">Tetap membaca gratis</string>
+    <string name="la2_restore">Pulihkan pembelian</string>
+    <string name="la2_retry">Coba lagi</string>
+    <string name="la2_close">Tutup</string>
+    <string name="la2_privacy">Privasi</string>
+    <string name="la2_terms">Ketentuan</string>
+    <string name="la2_renewal">Diperpanjang otomatis dengan harga yang ditampilkan untuk periode terpilih. Kelola atau batalkan di akun toko Anda.</string>
+    <string name="la2_checking">Memeriksa akses Pro…</string>
+    <string name="la2_cancelled">Pembelian dibatalkan. Anda dapat terus membaca.</string>
+    <string name="la2_pending">Pembayaran tertunda. Pro terbuka setelah toko mengonfirmasi.</string>
+</resources>

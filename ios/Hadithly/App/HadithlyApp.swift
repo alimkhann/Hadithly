@@ -5,6 +5,7 @@ import ClerkKit
 struct HadithlyApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var environment = AppEnvironment()
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
         let uiLocale = environment.preferences.preferences.uiLocale
@@ -17,6 +18,9 @@ struct HadithlyApp: App {
                 .environment(environment.library)
                 .environment(environment.push)
                 .environment(Clerk.shared)
+                .onChange(of: scenePhase) { _, phase in
+                    if phase == .background { environment.analytics.flush() }
+                }
                 .environment(\.locale, Locale(identifier: uiLocale))
                 .environment(
                     \.layoutDirection,

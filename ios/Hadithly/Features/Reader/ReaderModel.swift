@@ -42,6 +42,40 @@ final class ReaderModel {
     /// O2 offline fallback. Set by the hosting view from AppEnvironment;
     /// nil in tests and previews that drive the model with fixtures.
     var offlineStore: OfflineStore?
+    var analytics: UsageStatistics?
+    private var measurement = ReaderMeasurement()
+    private var usedOfflineForEntry = false
+    func beginMeasurement() {
+        emitMeasurement(measurement.begin(guest: !isSignedIn(), restoration: openPosition != nil, notification: targetSource == .notification))
+    }
+    private func emitMeasurement(_ facts: [AnalyticsMetric]) { for fact in facts { analytics?.record(fact) } }
+    private func readable(_ hadith: ReaderHadith) -> Bool {
+        let preferences = currentPreferences()
+        if preferences.arabicVisible, !hadith.arabicText.isEmpty { return true }
+        guard preferences.translationVisible else { return false }
+        if case .loaded(let translation) = translations[hadith.internalId], !translation.translation.isEmpty { return true }
+        return language == "en" && !(hadith.englishText ?? "").isEmpty
+    }
+    func observeVisibleContent(hadiths: [ReaderHadith], frames: [String: ReaderAnchorFrame], viewport: Double) {
+        guard verticalLanding == nil, hadiths.contains(where: { hadith in
+            guard let frame = frames[hadith.internalId] else { return false }
+            return frame.minY < viewport && frame.minY + frame.height > 0 && readable(hadith)
+        }) else { return }
+        let wasRendered = measurement.rendered
+        emitMeasurement(measurement.visible(offline: usedOfflineForEntry))
+        if !wasRendered, measurement.rendered { analytics?.firstReaderSucceeded() }
+    }
+    func inspectInitialTarget(hadiths: [ReaderHadith], frames: [String: ReaderAnchorFrame], viewport: Double) {
+        let expected = openPosition?.anchor.providerHadithId ?? (targetSource == .notification ? openHadithNumber : nil)
+        let desired = openPosition?.normalizedOffset ?? 0
+        var exact = false
+        if let hadith = hadiths.first(where: { $0.providerHadithId == expected }),
+           let frame = (desired == 0 ? frames["chapter." + hadith.internalId] : nil) ?? frames[hadith.internalId] {
+            exact = frame.minY < viewport && frame.minY + frame.height > 0 && abs(frame.minY + desired * frame.height) <= 8
+        }
+        emitMeasurement(measurement.settleTarget(exact: exact)); analytics?.flush()
+    }
+    func endMeasurement() { emitMeasurement(measurement.close()); analytics?.flush() }
     var offlineLocale: String?
     /// Base URL for the pool-independent reachability probe. When set, the
     /// reader checks it before issuing Convex calls so a stalled network
@@ -49,7 +83,9 @@ final class ReaderModel {
     var offlineProbeBaseURL: URL?
 
     // Reading state
-    private(set) var phase: Phase = .loadingOutline
+    private(set) var phase: Phase = .loadingOutline {
+        didSet { if case .failed = phase { emitMeasurement(measurement.failure()) } }
+    }
     private(set) var volumes: [OutlineVolume] = []
     private(set) var pages: [ReaderPageResult] = []
     private(set) var selectedVolumeId: String?
@@ -286,6 +322,7 @@ final class ReaderModel {
     /// nothing is invented. Returns false when no dump is active.
     @discardableResult
     private func useOfflineOutline() -> Bool {
+        usedOfflineForEntry = true
         guard let store = offlineStore,
               let outline = store.offlineOutline(slug: collectionSlug),
               !outline.volumes.isEmpty
@@ -757,6 +794,7 @@ final class ReaderModel {
     /// the reader. Returns false when no dump covers the request.
     @discardableResult
     private func useOfflinePage(_ index: Int, volumeId: String, jumpToHadithNumber: String?) -> Bool {
+        usedOfflineForEntry = true
         guard let store = offlineStore else { return false }
         if let jump = jumpToHadithNumber,
            let hadith = store.offlineHadith(
@@ -880,9 +918,10 @@ final class ReaderModel {
     }
 
     private func generateTranslation(_ hadith: ReaderHadith, requestedLanguage: String) async {
+        analytics?.record(.translationResultStarted)
         let id = hadith.internalId
         let requestedAccountId = Clerk.shared.user?.id
-        guard isSignedIn() else { translations[id] = .failed(.requiresSignIn); return }
+        guard isSignedIn() else { translations[id] = .failed(.requiresSignIn); analytics?.record(.translationResultSignInRequired); return }
         translations[id] = .loading
         do {
             // An action retry can reuse a result even if device proof is unavailable.
@@ -893,6 +932,7 @@ final class ReaderModel {
             if let stored = stored ?? nil {
                 guard language == requestedLanguage, Clerk.shared.user?.id == requestedAccountId else { return }
                 translations[id] = .loaded(stored.readerTranslation)
+                analytics?.record(.translationResultCache)
                 watchLoadedPublications()
                 await refreshTranslationAllowance(for: id, language: requestedLanguage, accountId: requestedAccountId)
                 return
@@ -902,10 +942,17 @@ final class ReaderModel {
             let result: ReaderTranslation = try await convex.action("actions/ai:translateHadith", with: arguments)
             guard language == requestedLanguage, Clerk.shared.user?.id == requestedAccountId else { return }
             translations[id] = .loaded(result)
+            analytics?.record(result.cached ? .translationResultCache : .translationResultGenerated)
             watchLoadedPublications()
         } catch {
+            guard !Task.isCancelled, !(error is CancellationError) else { return }
             guard language == requestedLanguage, Clerk.shared.user?.id == requestedAccountId else { return }
             translations[id] = .failed(TranslationFailure(error: error))
+            switch TranslationFailure(error: error) {
+            case .quotaExceeded: analytics?.record(.translationResultQuota)
+            case .requiresSignIn: analytics?.record(.translationResultSignInRequired)
+            case .failed: analytics?.record(.translationResultFailed)
+            }
         }
         await refreshTranslationAllowance(for: id, language: requestedLanguage, accountId: requestedAccountId)
     }

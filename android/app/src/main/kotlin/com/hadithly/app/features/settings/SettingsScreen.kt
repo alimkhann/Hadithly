@@ -1096,6 +1096,7 @@ private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
     var deletingAccount by remember { mutableStateOf(false) }
     var deletionError by remember { mutableStateOf<String?>(null) }
     var crashConsent by remember { mutableStateOf(com.hadithly.app.core.diagnostics.CrashReporting.hasConsent) }
+    val usageSharing by app.analytics.sharing.collectAsStateWithLifecycle()
 
     val saveDocument = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if (uri == null) {
@@ -1124,6 +1125,17 @@ private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
     }
 
     ScrollColumn {
+        CardColumn {
+            Row(verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                    .toggleable(value = usageSharing, role = androidx.compose.ui.semantics.Role.Switch,
+                        onValueChange = { app.analytics.setSharing(it) }).testTag("settings.usageStatistics")) {
+                Text(stringResource(R.string.la2_usage), modifier = Modifier.weight(1f), color = colors.textPrimary)
+                Switch(checked = usageSharing, onCheckedChange = null,
+                    colors = SwitchDefaults.colors(checkedTrackColor = colors.interactive))
+            }
+            Text(stringResource(R.string.la2_usage_explanation), color = colors.textSecondary)
+        }
         CardColumn {
             Row(verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)

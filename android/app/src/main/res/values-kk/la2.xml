@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="la2_welcome">Хадистерді өз тіліңізде оқыңыз</string>
+    <string name="la2_get_started">Бастау</string>
+    <string name="la2_language">Тіліңізді таңдаңыз</string>
+    <string name="la2_suggested">Құрылғы тіліне сай ұсынылды. Кейін өзгерте аласыз.</string>
+    <string name="la2_demo_title">Өз тіліңізде оқыңыз</string>
+    <string name="la2_see_example">Мысалды көру</string>
+    <string name="la2_source">Арабша түпнұсқа</string>
+    <string name="la2_sample_label">Дайын ЖИ мысалы</string>
+    <string name="la2_sample_notice">Hadithly мысал мәтіні, хадис емес. ЖИ аудармасында қате болуы мүмкін.</string>
+    <string name="la2_source_details">Мысалда арабша түпнұсқа сақталады. Дереккөз: Hadithly. CC0 1.0.</string>
+    <string name="la2_account_title">Hadithly-ді өзіңізге бейімдеңіз</string>
+    <string name="la2_account_body">Өз тіліңізде аударма жасаңыз. Оқу орныңызды құрылғылар арасында сақтаңыз.</string>
+    <string name="la2_create_account">Тіркелу</string>
+    <string name="la2_sign_in">Кіру</string>
+    <string name="la2_guest">Қонақ ретінде жалғастыру</string>
+    <string name="la2_reading_free">Оқу тегін болып қалады.</string>
+    <string name="la2_continue">Жалғастыру</string>
+    <string name="la2_back">Артқа</string>
+    <string name="la2_skip">Өткізіп жіберу</string>
+    <string name="la2_usage">Жеке пайдалану статистикасын бөлісу</string>
+    <string name="la2_usage_explanation">Жинақталған нәтижелер Convex арқылы PostHog EU-ға жіберіледі. Мәтін, оқу нысанасы, тіркелгі не құрылғы сәйкестігі берілмейді. Өшіру күтудегі статистиканы жояды. Жарияланған жиынтық сізді анықтамайды.</string>
+    <string name="la2_more_translations">Көбірек ЖИ аудармасы</string>
+    <string name="la2_allowance">Соңғы 7 күнде 5 тегін немесе Pro-мен 100 жаңа аударма. Бекітілген және сақталған аудармалар тегін.</string>
+    <string name="la2_monthly">Ай сайын</string>
+    <string name="la2_annual">Жыл сайын</string>
+    <string name="la2_subscribe_monthly">Айлық жазылым</string>
+    <string name="la2_subscribe_annual">Жылдық жазылым</string>
+    <string name="la2_keep_reading">Тегін оқуды жалғастыру</string>
+    <string name="la2_restore">Сатып алуды қалпына келтіру</string>
+    <string name="la2_retry">Қайталау</string>
+    <string name="la2_close">Жабу</string>
+    <string name="la2_privacy">Құпиялылық</string>
+    <string name="la2_terms">Шарттар</string>
+    <string name="la2_renewal">Таңдалған кезең үшін көрсетілген бағамен автоматты түрде жаңарады. Дүкен тіркелгісінде басқарыңыз не тоқтатыңыз.</string>
+    <string name="la2_checking">Pro қолжетімділігі тексерілуде…</string>
+    <string name="la2_cancelled">Сатып алу тоқтатылды. Оқуды жалғастыра аласыз.</string>
+    <string name="la2_pending">Төлем күтілуде. Pro дүкен растағаннан кейін ашылады.</string>
+</resources>

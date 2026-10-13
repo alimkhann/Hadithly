@@ -1,5 +1,9 @@
 import ConvexMobile
 import Foundation
+struct ReaderAnchorFrame: Equatable {
+    let minY: CGFloat
+    let height: CGFloat
+}
 
 /// Wire types for the reader, decoded straight from Convex action results.
 

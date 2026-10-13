@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="la2_welcome">Читайте хадисы на своём языке</string>
+    <string name="la2_get_started">Начать</string>
+    <string name="la2_language">Выберите язык</string>
+    <string name="la2_suggested">Предложено по языку устройства. Можно изменить позже.</string>
+    <string name="la2_demo_title">Читайте на своём языке</string>
+    <string name="la2_see_example">Посмотреть пример</string>
+    <string name="la2_source">Арабский оригинал</string>
+    <string name="la2_sample_label">Подготовленный пример ИИ</string>
+    <string name="la2_sample_notice">Пример текста Hadithly, не хадис. Переводы ИИ могут содержать ошибки.</string>
+    <string name="la2_source_details">Пример сохраняет арабский оригинал. Источник: Hadithly. CC0 1.0.</string>
+    <string name="la2_account_title">Ваш Hadithly</string>
+    <string name="la2_account_body">Создавайте переводы на своём языке. Сохраняйте место чтения между устройствами.</string>
+    <string name="la2_create_account">Создать аккаунт</string>
+    <string name="la2_sign_in">Войти</string>
+    <string name="la2_guest">Продолжить без аккаунта</string>
+    <string name="la2_reading_free">Чтение остаётся бесплатным.</string>
+    <string name="la2_continue">Продолжить</string>
+    <string name="la2_back">Назад</string>
+    <string name="la2_skip">Пропустить</string>
+    <string name="la2_usage">Делиться обезличенной статистикой</string>
+    <string name="la2_usage_explanation">Общие результаты передаются через Convex в PostHog EU без текстов, ссылок на хадисы и идентификаторов аккаунта или устройства. Отключение удаляет ожидающую статистику. Опубликованные итоги не идентифицируют вас.</string>
+    <string name="la2_more_translations">Больше переводов ИИ</string>
+    <string name="la2_allowance">5 новых переводов бесплатно или 100 с Pro за скользящие 7 дней. Готовые и одобренные переводы бесплатны.</string>
+    <string name="la2_monthly">Ежемесячно</string>
+    <string name="la2_annual">Ежегодно</string>
+    <string name="la2_subscribe_monthly">Подписаться на месяц</string>
+    <string name="la2_subscribe_annual">Подписаться на год</string>
+    <string name="la2_keep_reading">Продолжить читать бесплатно</string>
+    <string name="la2_restore">Восстановить покупки</string>
+    <string name="la2_retry">Повторить</string>
+    <string name="la2_close">Закрыть</string>
+    <string name="la2_privacy">Конфиденциальность</string>
+    <string name="la2_terms">Условия</string>
+    <string name="la2_renewal">Автоматическое продление по указанной цене за выбранный период. Управление и отмена в аккаунте магазина.</string>
+    <string name="la2_checking">Проверяем доступ Pro…</string>
+    <string name="la2_cancelled">Покупка отменена. Можно продолжить чтение.</string>
+    <string name="la2_pending">Платёж ожидает подтверждения. Pro появится после подтверждения магазина.</string>
+</resources>

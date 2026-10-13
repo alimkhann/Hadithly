@@ -6,6 +6,9 @@ import RevenueCat
 @MainActor
 @Observable
 final class PurchaseManager {
+    enum Outcome { case idle, cancelled, pending, failed, syncing, confirmed, restoreEmpty }
+    private(set) var outcome: Outcome = .idle
+    var analytics: UsageStatistics?
     private(set) var packages: [Package] = []
     private(set) var isConfigured = false
     private(set) var isLoading = false
@@ -17,6 +20,7 @@ final class PurchaseManager {
     private let operations = PurchaseOperationQueue()
     private let pendingStore: PendingPurchaseStore
 
+    var operationRevision: Int { gate.revision }
     var hasProEntitlement: Bool { confirmedPro && gate.accepts(gate.revision, currentAccountID: Clerk.shared.user?.id) }
 
     init(apiKey: String, pendingStore: PendingPurchaseStore = PendingPurchaseStore()) {
@@ -31,6 +35,7 @@ final class PurchaseManager {
     }
 
     func clearAccount() {
+        outcome = .idle
         _ = gate.bind(nil)
         confirmedPro = false
         packages = []
@@ -112,6 +117,8 @@ final class PurchaseManager {
             errorMessage = "Finish or restore the pending purchase with your original Hadithly account first."; return false
         }
         isPurchasing = true
+        outcome = .idle
+        analytics?.record(package.packageType == .annual ? .purchaseResultAnnualStarted : .purchaseResultMonthlyStarted)
         errorMessage = nil
         defer { if gate.revision == revision { isPurchasing = false } }
         let result: (CustomerInfo?, Error?, Bool, Bool) = await operations.run { [self] in
@@ -122,12 +129,22 @@ final class PurchaseManager {
         }
         if (!hadPendingOperation && (result.2 || !result.3)) || (result.3 && result.1 == nil && result.0 != nil) { pendingStore.clear(ownerID: ownerID) }
         if !gate.accepts(revision, currentAccountID: Clerk.shared.user?.id) { await identifyAfterResolvedStoreOperation(); return false }
-        if result.2 { return false }
-        if result.1 != nil { errorMessage = "Purchase could not be completed. Try again."; return false }
-        return await confirmBackend(revision)
+        if result.2 { outcome = .cancelled; analytics?.record(.purchaseResultCancelled); return false }
+        if let error = result.1 {
+            outcome = (error as NSError).code == ErrorCode.paymentPendingError.rawValue ? .pending : .failed
+            analytics?.record(outcome == .pending ? .purchaseResultPending : .purchaseResultFailed)
+            errorMessage = "Purchase could not be completed. Try again."; return false
+        }
+        outcome = .syncing
+        let active = await confirmBackend(revision)
+        guard gate.accepts(revision, currentAccountID: Clerk.shared.user?.id) else { return false }
+        outcome = active ? .confirmed : .syncing
+        analytics?.record(active ? .purchaseResultConfirmed : .purchaseResultSyncing); analytics?.flush()
+        return active
     }
 
     func restore() async -> Bool {
+        analytics?.record(.purchaseResultRestoreStarted)
         let revision = gate.revision
         if !isConfigured, gate.accepts(revision, currentAccountID: Clerk.shared.user?.id), verifyBackendAccess != nil {
             return await confirmBackend(revision)
@@ -152,8 +169,12 @@ final class PurchaseManager {
             pendingStore.clear(ownerID: ownerID)
         }
         if !gate.accepts(revision, currentAccountID: Clerk.shared.user?.id) { await identifyAfterResolvedStoreOperation(); return false }
-        if result.1 != nil { errorMessage = "Restore failed. Use the original Hadithly account and store account, then try again."; return false }
-        return await confirmBackend(revision)
+        if result.1 != nil { outcome = .failed; analytics?.record(.purchaseResultRestoreFailed); errorMessage = "Restore failed. Use the original Hadithly account and store account, then try again."; return false }
+        let active = await confirmBackend(revision)
+        guard gate.accepts(revision, currentAccountID: Clerk.shared.user?.id) else { return false }
+        outcome = active ? .confirmed : .restoreEmpty
+        analytics?.record(active ? .purchaseResultRestoreConfirmed : .purchaseResultRestoreEmpty); analytics?.flush()
+        return active
     }
 
     private func identifyAfterResolvedStoreOperation() async {

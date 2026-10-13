@@ -54,6 +54,39 @@ class ReaderViewModel(
     private val openPosition: ReadingPosition?,
     private val targetSource: ReaderTargetSource,
 ) : ViewModel() {
+    private val measurement = com.hadithly.app.core.analytics.ReaderMeasurement()
+    private var usedOfflineForEntry = false
+    private var initialTargetInspected = false
+    fun beginMeasurement() {
+        emitMeasurement(measurement.begin(Clerk.user == null, openPosition != null, targetSource == ReaderTargetSource.NOTIFICATION))
+        if (_state.value.phase is Phase.Failed) emitMeasurement(measurement.failure())
+    }
+    private fun emitMeasurement(facts: List<com.hadithly.app.core.analytics.AnalyticsMetric>) { facts.forEach(app.analytics::record) }
+    fun endMeasurement() { emitMeasurement(measurement.close()); app.analytics.flush() }
+    private fun readable(hadith: ReaderHadith): Boolean {
+        val preferences = app.preferences.preferences.value
+        if (preferences.arabicVisible && hadith.arabicText.isNotEmpty()) return true
+        if (!preferences.translationVisible) return false
+        val translation = (_state.value.translations[hadith.internalId] as? TranslationUiState.Loaded)?.translation
+        return translation?.translation?.isNotEmpty() == true || _state.value.language == "en" && !hadith.englishText.isNullOrEmpty()
+    }
+    fun observeVisibleEntry(providerHadithId: String, minY: Double, height: Double, viewport: Double) {
+        val hadith = currentPageHadiths().firstOrNull { it.providerHadithId == providerHadithId } ?: return
+        if (_state.value.verticalLanding != null || minY >= viewport || minY + height <= 0 || !readable(hadith)) return
+        val wasRendered = measurement.rendered
+        emitMeasurement(measurement.visible(usedOfflineForEntry))
+        if (!wasRendered && measurement.rendered) app.analytics.firstReaderSucceeded()
+    }
+    fun inspectInitialTarget(anchors: List<Triple<String, Double, Double>>, viewport: Double) {
+        if (initialTargetInspected) return
+        initialTargetInspected = true
+        val expected = openPosition?.anchor?.providerHadithId ?: if (targetSource == ReaderTargetSource.NOTIFICATION) openHadithNumber else null
+        val anchor = anchors.firstOrNull { it.first == expected }
+        val desired = openPosition?.normalizedOffset ?: 0.0
+        val exact = anchor != null && anchor.second < viewport && anchor.second + anchor.third > 0 &&
+            kotlin.math.abs(anchor.second + desired * anchor.third) <= 8.0 * app.resources.displayMetrics.density
+        emitMeasurement(measurement.settleTarget(exact)); app.analytics.flush()
+    }
 
     sealed interface Phase {
         data object LoadingOutline : Phase
@@ -101,6 +134,7 @@ class ReaderViewModel(
     val library = app.library
 
     init {
+        viewModelScope.launch { _state.collect { if (it.phase is Phase.Failed) emitMeasurement(measurement.failure()) } }
         loadOutline()
     }
 
@@ -159,6 +193,7 @@ class ReaderViewModel(
     }
 
     fun acknowledgeVerticalLanding(request: ReaderVerticalLandingRequest) {
+        if (_state.value.verticalLanding != request) return
         _state.update { state ->
             if (state.verticalLanding == request) state.copy(verticalLanding = null) else state
         }
@@ -277,6 +312,7 @@ class ReaderViewModel(
     private fun useOfflineOutline(): Boolean {
         val outline = app.offline.offlineOutline(collectionSlug) ?: return false
         if (outline.volumes.isEmpty()) return false
+        usedOfflineForEntry = true
         val target = ReaderTargetResolver.resolve(
             ReaderTarget(targetSource, collectionSlug, openHadithNumber, openPosition),
         )
@@ -601,6 +637,7 @@ class ReaderViewModel(
      * the reader. Returns false when no dump covers the request.
      */
     private fun useOfflinePage(index: Int, volumeId: String, jumpToHadithNumber: String?): Boolean {
+        usedOfflineForEntry = true
         val store = app.offline
         val language = _state.value.language
         jumpToHadithNumber?.let { jump ->
@@ -766,9 +803,11 @@ class ReaderViewModel(
     }
 
     private suspend fun generateTranslation(hadith: ReaderHadith, language: String) {
+        app.analytics.record(com.hadithly.app.core.analytics.AnalyticsMetric.translationResultStarted)
         val id = hadith.internalId
         val requestedAccountId = Clerk.user?.id
         if (!app.isSignedIn()) {
+            app.analytics.record(com.hadithly.app.core.analytics.AnalyticsMetric.translationResultSignInRequired)
             _state.update { it.copy(translations = it.translations + (id to TranslationUiState.Failed(TranslationFailure.RequiresSignIn))) }
             return
         }
@@ -778,6 +817,7 @@ class ReaderViewModel(
             if (cached != null) {
                 if (_state.value.language == language && Clerk.user?.id == requestedAccountId) {
                     _state.update { it.copy(translations = it.translations + (id to TranslationUiState.Loaded(cached))) }
+                    app.analytics.record(com.hadithly.app.core.analytics.AnalyticsMetric.translationResultCache)
                     watchLoadedPublications()
                     refreshTranslationAllowance(id, language, requestedAccountId)
                 }
@@ -787,11 +827,17 @@ class ReaderViewModel(
             val result = app.repository.translateHadith(id, language)
             if (_state.value.language != language || Clerk.user?.id != requestedAccountId) return
             _state.update { it.copy(translations = it.translations + (id to TranslationUiState.Loaded(result))) }
+            app.analytics.record(if (result.cached) com.hadithly.app.core.analytics.AnalyticsMetric.translationResultCache else com.hadithly.app.core.analytics.AnalyticsMetric.translationResultGenerated)
             watchLoadedPublications()
         } catch (cancelled: CancellationException) { throw cancelled }
         catch (error: Exception) {
             if (_state.value.language != language || Clerk.user?.id != requestedAccountId) return
             _state.update { it.copy(translations = it.translations + (id to TranslationUiState.Failed(TranslationFailure.of(errorMessage(error))))) }
+            app.analytics.record(when (TranslationFailure.of(errorMessage(error))) {
+                TranslationFailure.QuotaExceeded -> com.hadithly.app.core.analytics.AnalyticsMetric.translationResultQuota
+                TranslationFailure.RequiresSignIn -> com.hadithly.app.core.analytics.AnalyticsMetric.translationResultSignInRequired
+                else -> com.hadithly.app.core.analytics.AnalyticsMetric.translationResultFailed
+            })
         }
         refreshTranslationAllowance(id, language, requestedAccountId)
     }

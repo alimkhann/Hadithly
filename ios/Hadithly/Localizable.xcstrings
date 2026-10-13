@@ -1,6 +1,1967 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+  "la2.welcome": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Read hadith in your language"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "اقرأ الحديث بلغتك"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Читайте хадисы на своём языке"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Хадистерді өз тіліңізде оқыңыз"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Hadislarni o‘z tilingizda o‘qing"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Hadisleri kendi dilinizde okuyun"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Baca hadis dalam bahasa Anda"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "اپنی زبان میں حدیث پڑھیں"
+        }
+      }
+    }
+  },
+  "la2.get_started": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Get started"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "ابدأ"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Начать"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Бастау"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Boshlash"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Başlayın"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Mulai"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "شروع کریں"
+        }
+      }
+    }
+  },
+  "la2.language": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose your language"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "اختر لغتك"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Выберите язык"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Тіліңізді таңдаңыз"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Tilingizni tanlang"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Dilinizi seçin"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Pilih bahasa Anda"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "اپنی زبان منتخب کریں"
+        }
+      }
+    }
+  },
+  "la2.suggested": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Suggested from your device. You can change it later."
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "اقتراح من جهازك. يمكنك تغييره لاحقًا."
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Предложено по языку устройства. Можно изменить позже."
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Құрылғы тіліне сай ұсынылды. Кейін өзгерте аласыз."
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Qurilmangiz tiliga mos tavsiya. Keyin o‘zgartirishingiz mumkin."
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Cihazınıza göre önerildi. Daha sonra değiştirebilirsiniz."
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Disarankan dari perangkat Anda. Dapat diubah nanti."
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "آپ کے آلے کے مطابق تجویز۔ بعد میں بدل سکتے ہیں۔"
+        }
+      }
+    }
+  },
+  "la2.demo_title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Read in your language"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "اقرأ بلغتك"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Читайте на своём языке"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Өз тіліңізде оқыңыз"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "O‘z tilingizda o‘qing"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Kendi dilinizde okuyun"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Baca dalam bahasa Anda"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "اپنی زبان میں پڑھیں"
+        }
+      }
+    }
+  },
+  "la2.see_example": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "See example"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "شاهد المثال"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Посмотреть пример"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Мысалды көру"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Misolni ko‘rish"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Örneği görün"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Lihat contoh"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "مثال دیکھیں"
+        }
+      }
+    }
+  },
+  "la2.source": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Arabic source"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "النص العربي"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Арабский оригинал"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Арабша түпнұсқа"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Arabcha asl matn"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Arapça kaynak"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sumber Arab"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "عربی اصل متن"
+        }
+      }
+    }
+  },
+  "la2.sample_label": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Prepared AI example"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "مثال مُعدّ بالذكاء الاصطناعي"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Подготовленный пример ИИ"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Дайын ЖИ мысалы"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Tayyor SI misoli"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Hazırlanmış yapay zekâ örneği"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Contoh AI yang disiapkan"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "تیار کردہ AI مثال"
+        }
+      }
+    }
+  },
+  "la2.sample_notice": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Illustrative text by Hadithly, not a hadith. AI translations may contain errors."
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "نص توضيحي من Hadithly، وليس حديثًا. قد تحتوي ترجمات الذكاء الاصطناعي على أخطاء."
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Пример текста Hadithly, не хадис. Переводы ИИ могут содержать ошибки."
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Hadithly мысал мәтіні, хадис емес. ЖИ аудармасында қате болуы мүмкін."
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Hadithly misol matni, hadis emas. SI tarjimalarida xatolar bo‘lishi mumkin."
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Hadithly örnek metnidir, hadis değildir. Yapay zekâ çevirileri hata içerebilir."
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Teks contoh oleh Hadithly, bukan hadis. Terjemahan AI dapat mengandung kesalahan."
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Hadithly کا مثالی متن، حدیث نہیں۔ AI ترجمے میں غلطیاں ہو سکتی ہیں۔"
+        }
+      }
+    }
+  },
+  "la2.source_details": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This example preserves the original Arabic. Source: Hadithly. CC0 1.0."
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "يحافظ هذا المثال على النص العربي الأصلي. المصدر: Hadithly. CC0 1.0."
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Пример сохраняет арабский оригинал. Источник: Hadithly. CC0 1.0."
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Мысалда арабша түпнұсқа сақталады. Дереккөз: Hadithly. CC0 1.0."
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Misolda arabcha asl matn saqlanadi. Manba: Hadithly. CC0 1.0."
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Bu örnek Arapça kaynağı korur. Kaynak: Hadithly. CC0 1.0."
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Contoh ini mempertahankan sumber Arab. Sumber: Hadithly. CC0 1.0."
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "یہ مثال عربی اصل متن محفوظ رکھتی ہے۔ ماخذ: Hadithly۔ CC0 1.0۔"
+        }
+      }
+    }
+  },
+  "la2.account_title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Make Hadithly yours"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "اجعل Hadithly لك"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ваш Hadithly"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Hadithly-ді өзіңізге бейімдеңіз"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Hadithly’ni o‘zingizniki qiling"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Hadithly sizin olsun"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Jadikan Hadithly milik Anda"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Hadithly کو اپنا بنائیں"
+        }
+      }
+    }
+  },
+  "la2.account_body": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Create translations in your language. Keep your place across devices."
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "أنشئ ترجمات بلغتك. احتفظ بموضع قراءتك عبر أجهزتك."
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Создавайте переводы на своём языке. Сохраняйте место чтения между устройствами."
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Өз тіліңізде аударма жасаңыз. Оқу орныңызды құрылғылар арасында сақтаңыз."
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "O‘z tilingizda tarjima yarating. O‘qish joyingizni qurilmalar orasida saqlang."
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Kendi dilinizde çeviri oluşturun. Okuduğunuz yeri cihazlar arasında koruyun."
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Buat terjemahan dalam bahasa Anda. Simpan posisi baca antarperangkat."
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "اپنی زبان میں ترجمے بنائیں۔ اپنے آلات میں پڑھنے کی جگہ محفوظ رکھیں۔"
+        }
+      }
+    }
+  },
+  "la2.create_account": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Create account"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "أنشئ حسابًا"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Создать аккаунт"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Тіркелу"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Hisob yaratish"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Hesap oluşturun"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Buat akun"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "اکاؤنٹ بنائیں"
+        }
+      }
+    }
+  },
+  "la2.sign_in": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sign in"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "تسجيل الدخول"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Войти"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Кіру"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Kirish"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Giriş yapın"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Masuk"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "سائن ان کریں"
+        }
+      }
+    }
+  },
+  "la2.guest": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Continue as guest"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "تابع كضيف"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Продолжить без аккаунта"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Қонақ ретінде жалғастыру"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Mehmon sifatida davom etish"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Misafir olarak devam edin"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Lanjutkan sebagai tamu"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "مہمان کے طور پر جاری رکھیں"
+        }
+      }
+    }
+  },
+  "la2.reading_free": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reading stays free."
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "تبقى القراءة مجانية."
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Чтение остаётся бесплатным."
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Оқу тегін болып қалады."
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "O‘qish bepul qoladi."
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Okumak ücretsiz kalır."
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Membaca tetap gratis."
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "پڑھنا مفت رہتا ہے۔"
+        }
+      }
+    }
+  },
+  "la2.continue": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Continue"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "متابعة"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Продолжить"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Жалғастыру"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Davom etish"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Devam edin"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Lanjutkan"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "جاری رکھیں"
+        }
+      }
+    }
+  },
+  "la2.back": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Back"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "رجوع"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Назад"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Артқа"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Orqaga"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Geri"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Kembali"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "واپس"
+        }
+      }
+    }
+  },
+  "la2.skip": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Skip"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "تخطي"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Пропустить"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Өткізіп жіберу"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "O‘tkazib yuborish"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Atlayın"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Lewati"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "چھوڑ دیں"
+        }
+      }
+    }
+  },
+  "la2.usage": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Share private usage statistics"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "مشاركة إحصاءات الاستخدام الخاصة"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Делиться обезличенной статистикой"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Жеке пайдалану статистикасын бөлісу"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Shaxsiy foydalanish statistikasini ulashish"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Özel kullanım istatistiklerini paylaş"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Bagikan statistik penggunaan privat"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "نجی استعمال کے اعدادوشمار شیئر کریں"
+        }
+      }
+    }
+  },
+  "la2.usage_explanation": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Shares grouped outcomes through Convex with PostHog EU. No reading text, targets, account or device identity. Turning off clears pending statistics. Published totals cannot identify you."
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "يشارك النتائج المجمّعة عبر Convex مع PostHog EU، دون نصوص القراءة أو المراجع أو هوية الحساب والجهاز. التعطيل يمسح الإحصاءات المعلّقة. المجاميع المنشورة لا تحدد هويتك."
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Общие результаты передаются через Convex в PostHog EU без текстов, ссылок на хадисы и идентификаторов аккаунта или устройства. Отключение удаляет ожидающую статистику. Опубликованные итоги не идентифицируют вас."
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Жинақталған нәтижелер Convex арқылы PostHog EU-ға жіберіледі. Мәтін, оқу нысанасы, тіркелгі не құрылғы сәйкестігі берілмейді. Өшіру күтудегі статистиканы жояды. Жарияланған жиынтық сізді анықтамайды."
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Yig‘ma natijalar Convex orqali PostHog EU’ga yuboriladi. Matn, hadis manzili, hisob yoki qurilma identifikatori yuborilmaydi. O‘chirish kutilayotgan statistikani tozalaydi. Yig‘ma natijalar sizni aniqlamaydi."
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Toplu sonuçlar Convex üzerinden PostHog EU ile paylaşılır. Okuma metni, hedefler, hesap veya cihaz kimliği gönderilmez. Kapatmak bekleyen istatistikleri siler. Yayımlanan toplamlar sizi tanımlamaz."
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Hasil agregat dikirim melalui Convex ke PostHog EU. Tanpa teks bacaan, target, identitas akun atau perangkat. Menonaktifkan menghapus statistik tertunda. Total yang diterbitkan tidak mengidentifikasi Anda."
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "مجموعی نتائج Convex کے ذریعے PostHog EU کو بھیجے جاتے ہیں۔ متن، حدیث کا ہدف، اکاؤنٹ یا آلے کی شناخت نہیں۔ بند کرنے سے زیر التوا اعدادوشمار مٹ جاتے ہیں۔ شائع شدہ مجموعے آپ کو شناخت نہیں کرتے۔"
+        }
+      }
+    }
+  },
+  "la2.more_translations": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "More AI translations"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "المزيد من ترجمات الذكاء الاصطناعي"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Больше переводов ИИ"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Көбірек ЖИ аудармасы"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ko‘proq SI tarjimalari"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Daha fazla yapay zekâ çevirisi"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Lebih banyak terjemahan AI"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "مزید AI ترجمے"
+        }
+      }
+    }
+  },
+  "la2.allowance": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "5 free or 100 Pro new translations in a rolling 7 days. Approved and cached translations stay free."
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "5 ترجمات جديدة مجانًا أو 100 مع Pro خلال آخر 7 أيام. الترجمات المعتمدة والمخزنة تبقى مجانية."
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "5 новых переводов бесплатно или 100 с Pro за скользящие 7 дней. Готовые и одобренные переводы бесплатны."
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Соңғы 7 күнде 5 тегін немесе Pro-мен 100 жаңа аударма. Бекітілген және сақталған аудармалар тегін."
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Oxirgi 7 kunda 5 bepul yoki Pro bilan 100 yangi tarjima. Tasdiqlangan va saqlangan tarjimalar bepul."
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Son 7 günde ücretsiz 5 veya Pro ile 100 yeni çeviri. Onaylı ve önbellekteki çeviriler ücretsizdir."
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "5 terjemahan baru gratis atau 100 dengan Pro dalam 7 hari berjalan. Terjemahan yang disetujui dan tersimpan tetap gratis."
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "گزشتہ مسلسل 7 دنوں میں 5 مفت یا Pro کے ساتھ 100 نئے ترجمے۔ منظور شدہ اور محفوظ ترجمے مفت رہتے ہیں۔"
+        }
+      }
+    }
+  },
+  "la2.monthly": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Monthly"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "شهري"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ежемесячно"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ай сайын"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Oylik"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Aylık"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Bulanan"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "ماہانہ"
+        }
+      }
+    }
+  },
+  "la2.annual": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Yearly"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "سنوي"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ежегодно"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Жыл сайын"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Yillik"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Yıllık"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Tahunan"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "سالانہ"
+        }
+      }
+    }
+  },
+  "la2.subscribe_monthly": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Subscribe monthly"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "اشترك شهريًا"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Подписаться на месяц"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Айлық жазылым"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Oylik obuna bo‘lish"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Aylık abone olun"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Berlangganan bulanan"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "ماہانہ رکنیت لیں"
+        }
+      }
+    }
+  },
+  "la2.subscribe_annual": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Subscribe yearly"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "اشترك سنويًا"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Подписаться на год"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Жылдық жазылым"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Yillik obuna bo‘lish"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Yıllık abone olun"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Berlangganan tahunan"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "سالانہ رکنیت لیں"
+        }
+      }
+    }
+  },
+  "la2.keep_reading": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Keep reading free"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "واصل القراءة مجانًا"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Продолжить читать бесплатно"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Тегін оқуды жалғастыру"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Bepul o‘qishni davom ettirish"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ücretsiz okumaya devam edin"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Tetap membaca gratis"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "مفت پڑھنا جاری رکھیں"
+        }
+      }
+    }
+  },
+  "la2.restore": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Restore purchases"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "استعادة المشتريات"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Восстановить покупки"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Сатып алуды қалпына келтіру"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Xaridlarni tiklash"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Satın alımları geri yükle"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Pulihkan pembelian"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "خریداری بحال کریں"
+        }
+      }
+    }
+  },
+  "la2.retry": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Try again"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "حاول مجددًا"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Повторить"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Қайталау"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Qayta urinish"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Tekrar deneyin"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Coba lagi"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "دوبارہ کوشش کریں"
+        }
+      }
+    }
+  },
+  "la2.close": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Close"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "إغلاق"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Закрыть"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Жабу"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Yopish"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Kapat"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Tutup"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "بند کریں"
+        }
+      }
+    }
+  },
+  "la2.privacy": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Privacy"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "الخصوصية"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Конфиденциальность"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Құпиялылық"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Maxfiylik"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Gizlilik"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Privasi"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "رازداری"
+        }
+      }
+    }
+  },
+  "la2.terms": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Terms"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "الشروط"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Условия"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Шарттар"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Shartlar"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Koşullar"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ketentuan"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "شرائط"
+        }
+      }
+    }
+  },
+  "la2.renewal": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Renews automatically at the displayed price for the selected billing period. Manage or cancel in your store account."
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "يتجدد تلقائيًا بالسعر المعروض للفترة المختارة. يمكنك الإدارة أو الإلغاء في حساب المتجر."
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Автоматическое продление по указанной цене за выбранный период. Управление и отмена в аккаунте магазина."
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Таңдалған кезең үшін көрсетілген бағамен автоматты түрде жаңарады. Дүкен тіркелгісінде басқарыңыз не тоқтатыңыз."
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Tanlangan davr uchun ko‘rsatilgan narxda avtomatik yangilanadi. Do‘kon hisobida boshqaring yoki bekor qiling."
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Seçilen dönem için gösterilen fiyattan otomatik yenilenir. Mağaza hesabınızdan yönetin veya iptal edin."
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Diperpanjang otomatis dengan harga yang ditampilkan untuk periode terpilih. Kelola atau batalkan di akun toko Anda."
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "منتخب مدت کے لیے دکھائی گئی قیمت پر خودکار تجدید ہوتی ہے۔ اسٹور اکاؤنٹ میں انتظام یا منسوخی کریں۔"
+        }
+      }
+    }
+  },
+  "la2.checking": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Checking Pro access…"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "جارٍ التحقق من Pro…"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Проверяем доступ Pro…"
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Pro қолжетімділігі тексерілуде…"
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Pro huquqi tekshirilmoqda…"
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Pro erişimi kontrol ediliyor…"
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Memeriksa akses Pro…"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Pro رسائی کی جانچ…"
+        }
+      }
+    }
+  },
+  "la2.cancelled": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Purchase cancelled. You can keep reading."
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "تم إلغاء الشراء. يمكنك متابعة القراءة."
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Покупка отменена. Можно продолжить чтение."
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Сатып алу тоқтатылды. Оқуды жалғастыра аласыз."
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Xarid bekor qilindi. O‘qishni davom ettirishingiz mumkin."
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Satın alma iptal edildi. Okumaya devam edebilirsiniz."
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Pembelian dibatalkan. Anda dapat terus membaca."
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "خریداری منسوخ۔ آپ پڑھنا جاری رکھ سکتے ہیں۔"
+        }
+      }
+    }
+  },
+  "la2.pending": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Payment is pending. Pro unlocks after the store confirms it."
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "الدفع معلّق. يُفعّل Pro بعد تأكيد المتجر."
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Платёж ожидает подтверждения. Pro появится после подтверждения магазина."
+        }
+      },
+      "kk": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Төлем күтілуде. Pro дүкен растағаннан кейін ашылады."
+        }
+      },
+      "uz": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "To‘lov kutilmoqda. Do‘kon tasdiqlagach Pro ochiladi."
+        }
+      },
+      "tr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ödeme bekliyor. Mağaza onayından sonra Pro açılır."
+        }
+      },
+      "id": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Pembayaran tertunda. Pro terbuka setelah toko mengonfirmasi."
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "ادائیگی زیر التوا ہے۔ اسٹور کی تصدیق پر Pro کھلے گا۔"
+        }
+      }
+    }
+  },
   "Send crash reports": {
     "extractionState": "manual",
     "localizations": {

@@ -24,15 +24,19 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 class PurchaseManager(context: Context, apiKey: String, private val scope: CoroutineScope) {
+    enum class Outcome { IDLE, CANCELLED, PENDING, FAILED, SYNCING, CONFIRMED, RESTORE_EMPTY }
+    var analytics: com.hadithly.app.core.analytics.UsageStatistics? = null
     data class State(
         val packages: List<Package> = emptyList(), val configured: Boolean = false,
         val loading: Boolean = false, val purchasing: Boolean = false,
         val hasProEntitlement: Boolean = false, val errorMessage: String? = null,
+        val outcome: Outcome = Outcome.IDLE,
     )
     private val _state = MutableStateFlow(State())
     val state: StateFlow<State> = _state
     var verifyBackendAccess: (suspend () -> Boolean)? = null
     private val gate = PurchaseAccountGate()
+    val operationRevision: Int get() = gate.revision
     private val operations = PurchaseOperationQueue()
     private val pendingStore = PendingPurchaseStore(context.getSharedPreferences("purchaseIntent", Context.MODE_PRIVATE))
 
@@ -130,25 +134,43 @@ class PurchaseManager(context: Context, apiKey: String, private val scope: Corou
         if (!pendingStore.begin(ownerId, packageToPurchase.product.id, true)) {
             _state.update { it.copy(errorMessage = "Finish or restore the pending purchase with your original Hadithly account first.") }; return
         }
-        _state.update { it.copy(purchasing = true, errorMessage = null) }
+        _state.update { it.copy(purchasing = true, errorMessage = null, outcome = Outcome.IDLE) }
+        analytics?.record(if (packageToPurchase.packageType == PackageType.ANNUAL) com.hadithly.app.core.analytics.AnalyticsMetric.purchaseResultAnnualStarted else com.hadithly.app.core.analytics.AnalyticsMetric.purchaseResultMonthlyStarted)
         scope.launch {
             val purchased = operations.run {
                 if (!accepts(revision)) { if (!hadPendingOperation) pendingStore.clear(ownerId); return@run false }
                 suspendCoroutine<Boolean> { continuation ->
                     Purchases.sharedInstance.purchaseWith(PurchaseParams.Builder(activity, packageToPurchase).build(),
-                        onError = { _, userCancelled ->
+                        onError = { error, userCancelled ->
                             if (userCancelled && !hadPendingOperation) pendingStore.clear(ownerId)
-                            if (accepts(revision)) _state.update { it.copy(purchasing = false, errorMessage = if (userCancelled) null else "Purchase could not be completed. Try again.") }
+                            if (accepts(revision)) {
+                                val outcome = if (userCancelled) Outcome.CANCELLED else if (error.code == com.revenuecat.purchases.PurchasesErrorCode.PaymentPendingError) Outcome.PENDING else Outcome.FAILED
+                                _state.update { it.copy(purchasing = false, outcome = outcome, errorMessage = if (userCancelled) null else "Purchase could not be completed. Try again.") }
+                                analytics?.record(when (outcome) {
+                                    Outcome.CANCELLED -> com.hadithly.app.core.analytics.AnalyticsMetric.purchaseResultCancelled
+                                    Outcome.PENDING -> com.hadithly.app.core.analytics.AnalyticsMetric.purchaseResultPending
+                                    else -> com.hadithly.app.core.analytics.AnalyticsMetric.purchaseResultFailed
+                                })
+                            }
                             continuation.resume(false)
                         }, onSuccess = { _, _ -> pendingStore.clear(ownerId); continuation.resume(true) })
                 }
             }
-            if (purchased && accepts(revision)) confirmBackend(revision) { if (it) onUnlocked() }
+            if (purchased && accepts(revision)) {
+                _state.update { it.copy(outcome = Outcome.SYNCING) }
+                confirmBackend(revision) { active ->
+                    if (!accepts(revision)) return@confirmBackend
+                    _state.update { it.copy(outcome = if (active) Outcome.CONFIRMED else Outcome.SYNCING) }
+                    analytics?.record(if (active) com.hadithly.app.core.analytics.AnalyticsMetric.purchaseResultConfirmed else com.hadithly.app.core.analytics.AnalyticsMetric.purchaseResultSyncing)
+                    analytics?.flush(); if (active) onUnlocked()
+                }
+            }
             else if (!accepts(revision) && pendingStore.pending == null) Clerk.user?.id?.let(::logIn)
         }
     }
 
     fun restore(onComplete: (Boolean) -> Unit) {
+        analytics?.record(com.hadithly.app.core.analytics.AnalyticsMetric.purchaseResultRestoreStarted)
         val revision = gate.revision
         if (!_state.value.configured && accepts(revision) && verifyBackendAccess != null) {
             scope.launch { confirmBackend(revision, onComplete) }; return
@@ -168,8 +190,11 @@ class PurchaseManager(context: Context, apiKey: String, private val scope: Corou
                 suspendCoroutine<Boolean> { continuation ->
                     Purchases.sharedInstance.restorePurchasesWith(
                         onError = {
-                            if (accepts(revision)) _state.update { it.copy(purchasing = false,
-                                errorMessage = "Restore failed. Use the original Hadithly account and store account, then try again.") }
+                            if (accepts(revision)) {
+                                analytics?.record(com.hadithly.app.core.analytics.AnalyticsMetric.purchaseResultRestoreFailed)
+                                _state.update { it.copy(purchasing = false, outcome = Outcome.FAILED,
+                                    errorMessage = "Restore failed. Use the original Hadithly account and store account, then try again.") }
+                            }
                             continuation.resume(false)
                         }, onSuccess = { info ->
                             val pending = pendingStore.pending
@@ -178,7 +203,12 @@ class PurchaseManager(context: Context, apiKey: String, private val scope: Corou
                             continuation.resume(true) })
                 }
             }
-            if (restored && accepts(revision)) confirmBackend(revision, onComplete) else {
+            if (restored && accepts(revision)) confirmBackend(revision) { active ->
+                if (!accepts(revision)) return@confirmBackend
+                _state.update { it.copy(outcome = if (active) Outcome.CONFIRMED else Outcome.RESTORE_EMPTY) }
+                analytics?.record(if (active) com.hadithly.app.core.analytics.AnalyticsMetric.purchaseResultRestoreConfirmed else com.hadithly.app.core.analytics.AnalyticsMetric.purchaseResultRestoreEmpty)
+                analytics?.flush(); onComplete(active)
+            } else {
                 onComplete(false)
                 if (!accepts(revision) && pendingStore.pending == null) Clerk.user?.id?.let(::logIn)
             }
