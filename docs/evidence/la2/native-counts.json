@@ -1,0 +1,267 @@
+{
+  "capturedAt": "2026-10-13T19:26:29.357Z",
+  "buckets": [
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "summaries": 18,
+      "counters": [
+        {
+          "count": 7,
+          "metric": "onboarding_completed.guest"
+        },
+        {
+          "count": 7,
+          "metric": "onboarding_step.demo_used"
+        },
+        {
+          "count": 7,
+          "metric": "onboarding_step.ordered_completed"
+        },
+        {
+          "count": 7,
+          "metric": "onboarding_step.ordered_demo"
+        },
+        {
+          "count": 7,
+          "metric": "onboarding_step.ordered_entry"
+        },
+        {
+          "count": 7,
+          "metric": "onboarding_step.ordered_language"
+        },
+        {
+          "count": 7,
+          "metric": "onboarding_step.ordered_started"
+        },
+        {
+          "count": 5,
+          "metric": "notification_open_result.exact"
+        },
+        {
+          "count": 5,
+          "metric": "notification_open_result.started"
+        },
+        {
+          "count": 6,
+          "metric": "onboarding_completed.first_reader_success"
+        },
+        {
+          "count": 6,
+          "metric": "onboarding_step.ordered_first_reader"
+        },
+        {
+          "count": 6,
+          "metric": "reader_open_result.guest_online"
+        },
+        {
+          "count": 6,
+          "metric": "reader_open_result.guest_started"
+        },
+        {
+          "count": 5,
+          "metric": "restoration_result.exact"
+        },
+        {
+          "count": 5,
+          "metric": "restoration_result.started"
+        },
+        {
+          "count": 5,
+          "metric": "offline_activation_result.activated"
+        },
+        {
+          "count": 5,
+          "metric": "offline_activation_result.started"
+        },
+        {
+          "count": 5,
+          "metric": "paywall_result.available"
+        },
+        {
+          "count": 5,
+          "metric": "paywall_result.confirmed"
+        },
+        {
+          "count": 5,
+          "metric": "paywall_result.purchase_started"
+        },
+        {
+          "count": 5,
+          "metric": "paywall_result.shown"
+        },
+        {
+          "count": 5,
+          "metric": "purchase_result.confirmed"
+        },
+        {
+          "count": 5,
+          "metric": "purchase_result.monthly_started"
+        },
+        {
+          "count": 5,
+          "metric": "recoverable_error.translation"
+        },
+        {
+          "count": 5,
+          "metric": "recoverable_error.translation_recovered"
+        },
+        {
+          "count": 5,
+          "metric": "translation_result.quota"
+        },
+        {
+          "count": 5,
+          "metric": "translation_result.started"
+        },
+        {
+          "count": 2,
+          "metric": "onboarding_step.auth_cancelled"
+        },
+        {
+          "count": 2,
+          "metric": "onboarding_step.auth_started"
+        }
+      ]
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "summaries": 33,
+      "counters": [
+        {
+          "count": 11,
+          "metric": "onboarding_completed.guest"
+        },
+        {
+          "count": 11,
+          "metric": "onboarding_step.demo_used"
+        },
+        {
+          "count": 11,
+          "metric": "onboarding_step.ordered_completed"
+        },
+        {
+          "count": 11,
+          "metric": "onboarding_step.ordered_demo"
+        },
+        {
+          "count": 11,
+          "metric": "onboarding_step.ordered_entry"
+        },
+        {
+          "count": 11,
+          "metric": "onboarding_step.ordered_language"
+        },
+        {
+          "count": 11,
+          "metric": "onboarding_step.ordered_started"
+        },
+        {
+          "count": 5,
+          "metric": "notification_open_result.exact"
+        },
+        {
+          "count": 5,
+          "metric": "notification_open_result.started"
+        },
+        {
+          "count": 7,
+          "metric": "onboarding_completed.first_reader_success"
+        },
+        {
+          "count": 7,
+          "metric": "onboarding_step.ordered_first_reader"
+        },
+        {
+          "count": 7,
+          "metric": "reader_open_result.guest_online"
+        },
+        {
+          "count": 10,
+          "metric": "reader_open_result.guest_started"
+        },
+        {
+          "count": 5,
+          "metric": "restoration_result.exact"
+        },
+        {
+          "count": 5,
+          "metric": "restoration_result.started"
+        },
+        {
+          "count": 5,
+          "metric": "offline_activation_result.activated"
+        },
+        {
+          "count": 5,
+          "metric": "offline_activation_result.started"
+        },
+        {
+          "count": 5,
+          "metric": "paywall_result.available"
+        },
+        {
+          "count": 5,
+          "metric": "paywall_result.confirmed"
+        },
+        {
+          "count": 5,
+          "metric": "paywall_result.purchase_started"
+        },
+        {
+          "count": 7,
+          "metric": "paywall_result.shown"
+        },
+        {
+          "count": 5,
+          "metric": "purchase_result.confirmed"
+        },
+        {
+          "count": 5,
+          "metric": "purchase_result.monthly_started"
+        },
+        {
+          "count": 5,
+          "metric": "recoverable_error.translation"
+        },
+        {
+          "count": 5,
+          "metric": "recoverable_error.translation_recovered"
+        },
+        {
+          "count": 5,
+          "metric": "translation_result.quota"
+        },
+        {
+          "count": 5,
+          "metric": "translation_result.started"
+        },
+        {
+          "count": 6,
+          "metric": "onboarding_step.auth_cancelled"
+        },
+        {
+          "count": 6,
+          "metric": "onboarding_step.auth_started"
+        },
+        {
+          "count": 2,
+          "metric": "paywall_result.unavailable"
+        },
+        {
+          "count": 2,
+          "metric": "reader_open_result.abandoned"
+        },
+        {
+          "count": 1,
+          "metric": "reader_open_result.failed"
+        },
+        {
+          "count": 1,
+          "metric": "recoverable_error.reader"
+        }
+      ]
+    }
+  ]
+}

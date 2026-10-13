@@ -770,8 +770,8 @@ Model: GPT-5.6 Terra, medium. Use `architect`, `blast-radius`,
 
 ## LA2: minimal product analytics
 
-Model: GLM-5.3-Flash through OpenCode Go. GPT-5.6 Luna high is the fallback. A
-separate GPT-5.6 Terra medium task reviews privacy and deletion semantics.
+Model: GPT-6.1 Sol High. A separate review covers privacy and deletion semantics.
+The owner-approved LA2 expansion and aggregate architecture are in `LA2_DESIGN.md`: native typed counters → Convex → one server PostHog EU SDK; no native vendor SDK.
 
 > Read `AGENTS.md`, `docs/PLAN.md`, and `docs/LAUNCH_STACK_RESEARCH.md` fully.
 > Confirm LA1 passed. Execute only LA2. Preserve unrelated changes and do not

@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-10-13. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-10-14. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
 D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its
 simulator/emulator and unit gates; its physical-device gate is open. R4's
@@ -42,7 +42,9 @@ lifecycle receipts are still required. See `docs/Q2_VERIFICATION.md` and
 `docs/Q2_PRICING.md`. L1 has not started.
 LA1 passed its development acceptance gate on October 13 under the owner's
 explicit dependency exception. H3/O2/W2/Q2 and release/device gates remain open.
-See `docs/LA1_VERIFICATION.md`. This task stops before LA2.
+See `docs/LA1_VERIFICATION.md`. LA2 implementation and approved development provider
+proof are recorded in `docs/LA2_VERIFICATION.md`; its remaining device, account,
+store and production gates are open. Stop before LA3.
 Do not
 start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
@@ -169,7 +171,8 @@ D4 requires direct production and physical-device evidence.
 
 ### Languages and reading direction
 
-Onboarding asks only `Choose your language`. The answer initializes both
+LA2 onboarding contains welcome, `Choose your language`, a prepared demonstration
+and optional account entry. Language is the only preference question. The answer initializes both
 `uiLocale` and `translationLocale`. Settings later edits `App language` and
 `Hadith translation` separately.
 
@@ -415,7 +418,7 @@ substantive: they own bounded implementation outcomes, not just inventories.
 | Q1 | Replace monthly counters with rolling usage events, cache reuse, integrity signals, and abuse controls. | Window, race, retry, cache, and tamper tests pass. | GPT-5.6 Sol, xhigh |
 | Q2 | Ship monthly and annual entitlement semantics, regional pricing, restore, grace, and quota copy. | Store sandbox lifecycle and cross-platform account tests pass. | GPT-5.6 Sol, high |
 | LA1 | Add low-cost crash reporting, structured logs, uptime checks, and privacy-safe alerting. | Development passed; release/device limitations remain in `LA1_VERIFICATION.md`. | GPT-6.1 Sol, high, owner override |
-| LA2 | Add minimal privacy-preserving product analytics and a deletion/retention contract. | A tiny event taxonomy answers launch questions without capturing reading content. | GLM-5.3-Flash; Terra medium review |
+| LA2 | Add minimal privacy-preserving product analytics and a deletion/retention contract. | A tiny event taxonomy answers launch questions without capturing reading content. | GPT-6.1 Sol High; separate privacy/deletion review |
 | LA3 | Add support email, transactional email, status/incident copy, backups, and cost budgets. | Every channel is tested, has retention and spend limits, and degrades safely. | GLM-5.3-Flash; Terra medium review |
 | LA4 | Decide whether to expand the fallback into a read-only web reader after native launch. | Licensing, demand, maintenance, privacy, and cost evidence support an explicit build-or-defer decision. | GLM-5.3-Flash; Terra medium review |
 | L1 | Finish Wave 1 localization, native-speaker QA, metadata, screenshots, and the release candidate. | No critical untranslated UI, broken RTL, policy gap, cost alarm, or dashboard blocker remains. | GLM-5.3-Flash; Terra high review; Sol high final gate |
@@ -1721,6 +1724,37 @@ substantive: they own bounded implementation outcomes, not just inventories.
 - Production activation, disclosures/store privacy, physical native cache/retry/
   upgrade matrix, ANR/tombstone proof and older gates remain open. Development
   only was deployed. Native test reporting was turned off. Stop before LA2.
+
+### LA2 private aggregate analytics and first experience (2026-10-14)
+
+- Owner-approved four-screen native onboarding and quota sheet expansion. Eight
+  existing languages, System appearance, guest entry, reused initial Clerk modes,
+  offline original/CC0 prepared example and decorative book artwork. Quota,
+  prices, product ownership and Q2 backend entitlement confirmation are retained.
+- Ten closed event families, 77 literal variants. Native typed facts become
+  short local ordered onboarding/paywall flows and bounded counters; Convex alone
+  receives summaries and exports anonymous day/platform totals to PostHog EU.
+  No native PostHog SDK, persistent reader identity, content or locale collection.
+- Owner approved free development setup, credentials, dashboard changes and
+  deployment. Created a separate free organization because the existing one was
+  paid. Project304602 has no card, capped allowance, IP discard, autocapture/replay
+  disabled. Six queried panels are on dashboard1020618. Production is untouched.
+- Actual Swift/Kotlin transports produced five deterministic fixtures per
+  platform. Actual guest onboarding→visible reading counters followed on both
+  installed platforms. 62 vendor grouped rows exactly match frozen Convex counts;
+  final provider properties contain only the sixteen approved coarse fields.
+- The one-time internal current-day verification export used an explicit flag
+  confined to the exact development URL. Normal cron/production settlement remains
+  day-end plus24h. The flag is removed; development collection/export is off after
+  proof. Exports are labelled development verification, never production readers.
+- Backend typecheck/333 tests; native serialization/cap/expiry/order checks and
+  real onboarding/guest-reader journeys pass. Rerunnable audit checks catalog,
+  resource parity, dashboard definitions, strict payloads and exact provider totals.
+  Separate GPT-6.1 Sol High privacy/deletion review passed its scoped local gate.
+- Full sign-up/sign-in, assistive technology/large-text/reduced-motion and physical
+  offline/routing/restoration matrix, genuine store receipts, legal consent and
+  privacy publication/production activation remain open. See `LA2_VERIFICATION.md`,
+  `LA2_REVIEW.md`, `LA2_OPERATIONS.md` and `OPEN_GATES.md`. Stop before LA3.
 
 ### Future topic browsing with the Jev classifier (not a session)
 

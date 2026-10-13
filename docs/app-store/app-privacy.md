@@ -8,6 +8,23 @@ Sunnah.now services. Recheck provider behavior immediately before publishing.
 Hadithly does not contain ads and does not use data for third-party advertising
 or cross-company tracking.
 
+## LA2 disclosure candidate
+
+The new binary includes device-local grouped usage measurement, independently
+controlled by Settings, Privacy & data, Share private usage statistics. No native
+analytics vendor SDK or stable installation identifier is installed. Convex
+receives hour-rounded count summaries and a 24-hour batch-deduplication UUID;
+PostHog EU receives only settled daily platform counts. No account linking,
+locale, content identifiers, text, searches, notes, evidence or purchase identity
+enters analytics. Assess unlinked Product Interaction for Analytics against the
+actual distributed binary and provider configuration. Do not mark it Tracking.
+Production activation, a jurisdiction-appropriate disclosure/consent basis and
+the effective published policy remain release gates. Policy prose is not consent.
+Already accepted aggregate counts have no account binding and are not removable
+as a person's history. Opt-out/deletion remove queued device data; anonymous
+receipts expire and are physically purged by bounded hourly cleanup. See
+`docs/LA2_DESIGN.md` for exact retention and limitations.
+
 | App Store data type | Linked to user | Tracking | Purpose | Why |
 | --- | --- | --- | --- | --- |
 | Name | Yes | No | App Functionality | Optional profile name from Clerk |

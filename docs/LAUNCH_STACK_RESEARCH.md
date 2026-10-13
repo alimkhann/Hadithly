@@ -71,29 +71,28 @@ Allow only build, operating-system, device-class, screen name, anonymous session
 
 Sentry is a later alternative, not an additional launch SDK. Its [pricing](https://sentry.io/pricing/) lists a one-user Developer tier with 5,000 errors, 5 GB logs, 5 million spans, 50 replays, and one uptime or cron monitor; Team starts at $26/month and Business at $80/month. If adopted later, turn off replay, screenshots, PII, and body capture first.
 
-### Product analytics
+### Product analytics — LA2 decision (2026-10-14)
 
-TelemetryDeck is the preferred launch option because it has official [Swift and Android integration guidance](https://telemetrydeck.com/docs/) and a small free allowance that hard-stops instead of silently creating overage. Its [July 2026 pricing change](https://telemetrydeck.com/blog/pricing-update-2026/) gives new accounts 50,000 events/month. Disable paid auto-upgrade.
+The owner selected PostHog Cloud EU **aggregate reporting**. This supersedes the
+older TelemetryDeck/native-install-ID recommendation. Native apps send closed
+counter summaries to Convex; one server Node SDK exports day/platform totals.
+No stable reader identity, content, locale or direct native vendor request exists.
+See `LA2_DESIGN.md`, `analytics-catalog.json` and `LA2_OPERATIONS.md` for the actual
+contract, retention, opt-out/deletion distinction, caps and dashboard formulas.
 
-TelemetryDeck is not “no data.” Its [privacy FAQ](https://telemetrydeck.com/docs/guides/privacy-faq/) says it processes events, an anonymized per-install identifier, hour-rounded timestamps, and device metadata; it does not store IP addresses or use cookies. It also describes long retention for cold events, with no guaranteed individual-event deletion and analytics retained after account closure. That retention must appear in the vendor assessment and privacy policy.
+The dedicated free project was verified in its billing UI: one million analytics
+events/month, no card, capped usage and one-year provider retention displayed.
+Application export admission is much smaller: 10,000 envelopes/month, including
+retries. The project's one-year retention exceeds the ninety-day Convex aggregate
+retention; do not promise arbitrary short provider expiry. See [PostHog pricing](https://posthog.com/pricing)
+and [data storage](https://posthog.com/docs/privacy/data-storage).
 
-Use a random installation identifier that is never joined to Clerk, RevenueCat, Firebase Messaging, email, or crash identity. Regenerate it when a user opts out. Allow only these launch events and properties:
-
-| Event | Allowed properties |
-| --- | --- |
-| `onboarding_completed` | app version only; do not send the selected language |
-| `reader_opened` | entry point and offline/online boolean |
-| `position_restore_result` | success or a fixed fallback-reason enum |
-| `offline_download_result` | result and coarse size bucket |
-| `translation_result` | approved, cache, generated, quota, or failure; never text |
-| `paywall_shown` | fixed reason, which must be quota |
-| `purchase_result` | store, period, and result; never amount or identity |
-| `account_sync_result` | fixed result enum |
-| `notification_opened` | whether exact routing succeeded; no content identifier |
-
-Do not collect searches, reading duration by content, collection or hadith identifiers, notes, saves, language selection, evidence/contribution activity, precise location, or any free-form property.
-
-PostHog is a valid alternative when aggregate funnels become operationally necessary. Its [official pricing page](https://posthog.com/) lists 1 million product analytics events/month free and then $0.00005/event, with EU hosting in Frankfurt. Official [iOS](https://github.com/PostHog/posthog-ios) and [Android](https://github.com/PostHog/posthog-android) SDKs are available. If chosen, use the EU region and disable autocapture, session replay, person profiles, and all content-bearing properties. Do not run PostHog and TelemetryDeck in parallel.
+TelemetryDeck was rejected for this approved design because its cold-storage
+policy does not support the simple expiry promise. Do not run both vendors.
+Profiles, replay, autocapture, GeoIP enrichment, advertising/customer integrations,
+surveys, experiments and error tracking remain absent from the app integration.
+Policy disclosure does not establish a worldwide consent exemption; the existing
+release legal/privacy gate must resolve distribution-specific consent requirements.
 
 ## Email and support
 
@@ -207,8 +206,8 @@ second sequence:
    deletion, content methodology, association files, and the canonical fallback.
 2. **LA1 — Diagnostics and operational visibility.** Crashlytics, redacted logs,
    Better Stack probes/status, symbols, alerts, and provider-outage evidence.
-3. **LA2 — Minimal analytics.** Exactly one analytics SDK behind its own local
-   control and a fixed event/property allowlist.
+3. **LA2 — Minimal analytics.** Typed local counters behind an independent device
+   control, strict Convex ingress and one server SDK for grouped reporting.
 4. **LA3 — Support, mail, backups, and cost controls.** Support routing,
    SPF/DKIM/DMARC where needed, hard budgets, kill switches, cost ledger, and a
    restore drill.

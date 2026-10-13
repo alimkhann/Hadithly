@@ -1,0 +1,27 @@
+{
+  "backend": {
+    "tests": 333,
+    "failures": 0
+  },
+  "iosFull": {
+    "tests": 250,
+    "skipped": 8,
+    "failures": 0
+  },
+  "iosFinalPrivacy": {
+    "tests": 13,
+    "skipped": 1,
+    "failures": 0
+  },
+  "androidUnits": {
+    "tests": 201,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "eventFamilies": 10,
+  "variants": 77,
+  "providerRows": 62,
+  "providerKeys": 16,
+  "developmentEnabledAfterProof": false
+}

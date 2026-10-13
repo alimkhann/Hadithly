@@ -1,0 +1,401 @@
+{
+  "matchedNativeCounts": true,
+  "checkedAt": "2026-10-13T21:01:50.630Z",
+  "environment": "development",
+  "projectId": "304602",
+  "dashboardId": 1020618,
+  "propertyKeys": [
+    "$geoip_disable",
+    "$process_person_profile",
+    "admitted_monthly",
+    "count",
+    "day",
+    "distinct_id",
+    "environment",
+    "export_failures",
+    "exported_monthly",
+    "measurement_month",
+    "observed_hour",
+    "platform",
+    "rejected_monthly",
+    "schema_version",
+    "suppressed_buckets",
+    "variant"
+  ],
+  "families": 10,
+  "rows": [
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "notification_open_result.exact",
+      "count": 5
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "notification_open_result.started",
+      "count": 5
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "offline_activation_result.activated",
+      "count": 5
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "offline_activation_result.started",
+      "count": 5
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "onboarding_completed.first_reader_success",
+      "count": 7
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "onboarding_completed.guest",
+      "count": 11
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "onboarding_step.auth_cancelled",
+      "count": 6
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "onboarding_step.auth_started",
+      "count": 6
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "onboarding_step.demo_used",
+      "count": 11
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "onboarding_step.ordered_completed",
+      "count": 11
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "onboarding_step.ordered_demo",
+      "count": 11
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "onboarding_step.ordered_entry",
+      "count": 11
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "onboarding_step.ordered_first_reader",
+      "count": 7
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "onboarding_step.ordered_language",
+      "count": 11
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "onboarding_step.ordered_started",
+      "count": 11
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "paywall_result.available",
+      "count": 5
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "paywall_result.confirmed",
+      "count": 5
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "paywall_result.purchase_started",
+      "count": 5
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "paywall_result.shown",
+      "count": 7
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "paywall_result.unavailable",
+      "count": 2
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "purchase_result.confirmed",
+      "count": 5
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "purchase_result.monthly_started",
+      "count": 5
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "reader_open_result.abandoned",
+      "count": 2
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "reader_open_result.failed",
+      "count": 1
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "reader_open_result.guest_online",
+      "count": 7
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "reader_open_result.guest_started",
+      "count": 10
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "recoverable_error.reader",
+      "count": 1
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "recoverable_error.translation",
+      "count": 5
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "recoverable_error.translation_recovered",
+      "count": 5
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "restoration_result.exact",
+      "count": 5
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "restoration_result.started",
+      "count": 5
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "translation_result.quota",
+      "count": 5
+    },
+    {
+      "platform": "android",
+      "day": "2026-10-13",
+      "metric": "translation_result.started",
+      "count": 5
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "notification_open_result.exact",
+      "count": 5
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "notification_open_result.started",
+      "count": 5
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "offline_activation_result.activated",
+      "count": 5
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "offline_activation_result.started",
+      "count": 5
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "onboarding_completed.first_reader_success",
+      "count": 6
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "onboarding_completed.guest",
+      "count": 7
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "onboarding_step.auth_cancelled",
+      "count": 2
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "onboarding_step.auth_started",
+      "count": 2
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "onboarding_step.demo_used",
+      "count": 7
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "onboarding_step.ordered_completed",
+      "count": 7
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "onboarding_step.ordered_demo",
+      "count": 7
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "onboarding_step.ordered_entry",
+      "count": 7
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "onboarding_step.ordered_first_reader",
+      "count": 6
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "onboarding_step.ordered_language",
+      "count": 7
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "onboarding_step.ordered_started",
+      "count": 7
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "paywall_result.available",
+      "count": 5
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "paywall_result.confirmed",
+      "count": 5
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "paywall_result.purchase_started",
+      "count": 5
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "paywall_result.shown",
+      "count": 5
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "purchase_result.confirmed",
+      "count": 5
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "purchase_result.monthly_started",
+      "count": 5
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "reader_open_result.guest_online",
+      "count": 6
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "reader_open_result.guest_started",
+      "count": 6
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "recoverable_error.translation",
+      "count": 5
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "recoverable_error.translation_recovered",
+      "count": 5
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "restoration_result.exact",
+      "count": 5
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "restoration_result.started",
+      "count": 5
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "translation_result.quota",
+      "count": 5
+    },
+    {
+      "platform": "ios",
+      "day": "2026-10-13",
+      "metric": "translation_result.started",
+      "count": 5
+    }
+  ],
+  "interpretation": "Five synthetic native reducer/transport fixtures per platform plus real guest onboarding and reader verification traffic. Purchase, restoration, offline and notification fixture outcomes do not close live/device/store gates."
+}
