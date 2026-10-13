@@ -60,17 +60,26 @@ import com.hadithly.app.core.theme.Spacing
 fun SignInScreen(
     onAuthenticated: () -> Unit,
     onDismiss: () -> Unit,
+    initialSignUp: Boolean = false,
+    onCreationResult: ((Boolean?) -> Unit)? = null,
+    onAuthenticationFailure: (() -> Unit)? = null,
 ) {
     val viewModel: SignInViewModel = viewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val colors = LocalHadithlyColors.current
 
-    androidx.compose.runtime.LaunchedEffect(Unit) {
+    androidx.compose.runtime.LaunchedEffect(initialSignUp) {
         viewModel.resetForPresentation()
+        if (initialSignUp) viewModel.showSignUp()
+    }
+
+    androidx.compose.runtime.LaunchedEffect(state.errorMessage) {
+        if (state.errorMessage != null) onAuthenticationFailure?.invoke()
     }
 
     // Flow completion: the custom email flow reports completion directly.
     if (state.flowComplete) {
+        onCreationResult?.invoke(state.completedCreation)
         viewModel.consumeCompletion()
         onAuthenticated()
     }
@@ -180,8 +189,8 @@ private fun MethodsScreen(
     ) {
         Spacer(modifier = Modifier.height(Spacing.xl))
         AuthHeader(
-            title = "Sync your reading",
-            subtitle = "Guests can read everything. An account just carries your bookmarks and notes across devices.",
+            title = androidx.compose.ui.res.stringResource(com.hadithly.app.R.string.la2_account_title),
+            subtitle = androidx.compose.ui.res.stringResource(com.hadithly.app.R.string.la2_account_body),
         )
 
         Spacer(modifier = Modifier.weight(1f))
@@ -677,7 +686,7 @@ private fun AccentButton(
         onClick = onClick,
         enabled = enabled,
         shape = RoundedCornerShape(14.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = colors.accent, contentColor = Color.Black),
+        colors = ButtonDefaults.buttonColors(containerColor = colors.accent, contentColor = colors.onInteractive),
         modifier = Modifier.fillMaxWidth().height(52.dp),
     ) {
         if (busy) {

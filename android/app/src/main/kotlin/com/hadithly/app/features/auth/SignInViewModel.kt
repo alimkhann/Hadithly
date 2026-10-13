@@ -45,6 +45,7 @@ data class SignInUiState(
     val isBusy: Boolean = false,
     val errorMessage: String? = null,
     val flowComplete: Boolean = false,
+    val completedCreation: Boolean? = null,
 )
 
 /**
@@ -143,7 +144,7 @@ class SignInViewModel : ViewModel() {
             _state.update { it.copy(isBusy = true, errorMessage = null) }
             Clerk.auth.startHostedAuth(HostedAuthMode.SIGN_IN)
                 .onSuccess {
-                    _state.update { it.copy(isBusy = false, flowComplete = true) }
+                    _state.update { it.copy(isBusy = false, flowComplete = true, completedCreation = null) }
                 }
                 .onFailure(::presentError)
         }
@@ -319,7 +320,7 @@ class SignInViewModel : ViewModel() {
                 signUp.verifyCode(code, VerificationType.EMAIL)
                     .onSuccess { updated ->
                         if (updated.status == SignUp.Status.COMPLETE) {
-                            setActiveAndFinish(updated.createdSessionId)
+                            setActiveAndFinish(updated.createdSessionId, created = true)
                         } else {
                             _state.update {
                                 it.copy(isBusy = false, errorMessage = "Sign-up could not be completed. Please try again.")
@@ -384,14 +385,14 @@ class SignInViewModel : ViewModel() {
         }
     }
 
-    private fun setActiveAndFinish(createdSessionId: String?) {
+    private fun setActiveAndFinish(createdSessionId: String?, created: Boolean = false) {
         if (createdSessionId == null) {
-            _state.update { it.copy(isBusy = false, flowComplete = true) }
+            _state.update { it.copy(isBusy = false, flowComplete = true, completedCreation = created) }
             return
         }
         viewModelScope.launch {
             Clerk.auth.setActive(sessionId = createdSessionId)
-                .onSuccess { _state.update { it.copy(isBusy = false, flowComplete = true) } }
+                .onSuccess { _state.update { it.copy(isBusy = false, flowComplete = true, completedCreation = created) } }
                 .onFailure { failure ->
                     _state.update { it.copy(isBusy = false, errorMessage = failure.errorMessage) }
                 }
@@ -406,7 +407,7 @@ class SignInViewModel : ViewModel() {
         if (isSignUp) {
             val signUp = Clerk.auth.currentSignUp
             if (signUp?.status == SignUp.Status.COMPLETE) {
-                setActiveAndFinish(signUp.createdSessionId)
+                setActiveAndFinish(signUp.createdSessionId, created = true)
                 return
             }
         } else {

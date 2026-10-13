@@ -37,6 +37,11 @@ import java.util.Locale
  * links are ignored and the app opens wherever it normally would.
  */
 class MainActivity : ComponentActivity() {
+    private var canonicalLink by mutableStateOf<CanonicalHadithLink?>(null)
+    override fun onStop() {
+        (application as HadithlyApplication).analytics.flush()
+        super.onStop()
+    }
     private var notificationTarget by mutableStateOf<ReaderOpenTarget?>(null)
     private var continueWidgetRequest by mutableStateOf<Long?>(null)
 
@@ -50,7 +55,7 @@ class MainActivity : ComponentActivity() {
             com.hadithly.app.core.diagnostics.CrashReporting.setConsent(false)
         }
         enableEdgeToEdge()
-        val pendingLink = intent?.data
+        canonicalLink = intent?.data
             ?.let { CanonicalHadithLink.parse(it.scheme, it.host, it.path, it.encodedPath) }
         notificationTarget = notificationTarget(intent)
         continueWidgetRequest = widgetContinueRequest(intent)
@@ -62,7 +67,7 @@ class MainActivity : ComponentActivity() {
                 }
             } else {
                 LocalizedRootApp(
-                    pendingLink = pendingLink,
+                    pendingLink = canonicalLink,
                     notificationTarget = notificationTarget,
                     continueWidgetRequest = continueWidgetRequest,
                 )
@@ -73,8 +78,9 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: android.content.Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        notificationTarget = notificationTarget(intent)
-        continueWidgetRequest = widgetContinueRequest(intent)
+        intent.data?.let { CanonicalHadithLink.parse(it.scheme, it.host, it.path, it.encodedPath) }?.let { canonicalLink = it }
+        notificationTarget(intent)?.let { notificationTarget = it }
+        widgetContinueRequest(intent)?.let { continueWidgetRequest = it }
     }
 
     private fun notificationTarget(intent: android.content.Intent?): ReaderOpenTarget? {

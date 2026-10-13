@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.hadithly.app.HadithlyApplication
@@ -131,6 +132,7 @@ fun MainTabs(
                         colors = navigationColors(colors),
                     )
                     NavigationBarItem(
+                        modifier = Modifier.testTag("tabs.library"),
                         selected = tab == 1,
                         onClick = { tab = 1 },
                         icon = { Icon(Icons.Filled.CollectionsBookmark, contentDescription = null) },

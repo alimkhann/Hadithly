@@ -26,17 +26,18 @@ enum SupportedLanguages {
 }
 
 struct LanguagePickerView: View {
+    @Environment(\.readerPalette) private var palette
     @Binding var selection: String
     let onContinue: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
-            Text("Choose your language")
+            Text("la2.language")
                 .font(.title2.bold())
                 .foregroundStyle(Theme.textPrimary)
                 .padding(.top, Theme.Spacing.xl)
 
-            Text("You can change this any time in Settings.")
+            Text("la2.suggested")
                 .font(.subheadline)
                 .foregroundStyle(Theme.textSecondary)
                 .padding(.top, Theme.Spacing.xs)
@@ -52,15 +53,16 @@ struct LanguagePickerView: View {
             }
 
             Button(action: onContinue) {
-                Text("Continue")
+                    Text("la2.continue")
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .background(Theme.accent)
-                    .foregroundStyle(.black)
+                        .foregroundStyle(palette.onInteractive)
                     .clipShape(RoundedRectangle(cornerRadius: 16))
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier("onboarding.continue")
             .padding(.horizontal, 20)
             .padding(.bottom, Theme.Spacing.xxl)
         }

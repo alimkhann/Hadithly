@@ -41,6 +41,7 @@ enum Theme {
     // (achromatic system); emerald survives only as a semantic color for
     // the brand mark, authenticity grade dots, and success states.
     static var accent: Color { state.palette.interactive }
+    static var onInteractive: Color { state.palette.onInteractive }
     static var accentSoft: Color { state.palette.interactiveSoft }
 
     /// Semantic-only emerald: the brand mark. Never used for chrome.

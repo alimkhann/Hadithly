@@ -36,8 +36,13 @@ final class PreferencesStore {
             legacyArabicFontSize: legacySize
         )
         self.preferences = result.preferences
+        if userDefaults.string(forKey: Self.storeKey) == nil, legacyLanguage == nil {
+            let suggested = Self.suggestedLanguage(Locale.preferredLanguages)
+            self.preferences.uiLocale = suggested
+            self.preferences.translationLocale = suggested
+        }
         userDefaults.set(
-            (try? JSONEncoder().encode(result.preferences)).map { String(data: $0, encoding: .utf8) } ?? "",
+            (try? JSONEncoder().encode(self.preferences)).map { String(data: $0, encoding: .utf8) } ?? "",
             forKey: Self.storeKey
         )
     }
@@ -72,6 +77,14 @@ final class PreferencesStore {
     }
 
     // MARK: - Mutations
+    nonisolated static func suggestedLanguage(_ preferred: [String]) -> String {
+        let supported = ["en", "ar", "ru", "kk", "uz", "tr", "id", "ur"]
+        for tag in preferred {
+            let base = tag.replacingOccurrences(of: "_", with: "-").lowercased().split(separator: "-").first.map(String.init) ?? ""
+            if supported.contains(base) { return base }
+        }
+        return "en"
+    }
 
     /// Onboarding "Choose your language": writes both locales at once.
     func applyOnboardingLanguage(_ code: String) {

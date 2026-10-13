@@ -35,6 +35,11 @@ class PreferencesStore(sharedPrefs: SharedPreferences) {
     var onPreferencesChanged: ((ReaderPreferences) -> Unit)? = null
 
     companion object {
+        fun suggestedLanguage(preferred: List<String>): String {
+            val supported = setOf("en", "ar", "ru", "kk", "uz", "tr", "id", "ur")
+            return preferred.asSequence().map { it.replace('_', '-').lowercase().substringBefore('-') }
+                .firstOrNull { it in supported } ?: "en"
+        }
         const val STORE_KEY = "reader.preferences.v1"
         const val LEGACY_LANGUAGE_KEY = "user.preferredLanguage"
         const val LEGACY_ARABIC_FONT_SIZE_KEY = "reader.arabicFontSize"
@@ -168,8 +173,13 @@ class PreferencesStore(sharedPrefs: SharedPreferences) {
             null
         }
         val result = migrate(storedJson, legacyLanguage, legacySize)
-        target.edit().putString(STORE_KEY, storeJson.encodeToString(result.preferences)).apply()
-        return result.preferences
+        val initial = if (storedJson == null && legacyLanguage == null) {
+            val languages = android.content.res.Resources.getSystem().configuration.locales
+            val suggested = suggestedLanguage((0 until languages.size()).map { languages[it].toLanguageTag() })
+            result.preferences.copy(uiLocale = suggested, translationLocale = suggested)
+        } else result.preferences
+        target.edit().putString(STORE_KEY, storeJson.encodeToString(initial)).apply()
+        return initial
     }
 
     private fun update(mutate: (ReaderPreferences) -> ReaderPreferences) {

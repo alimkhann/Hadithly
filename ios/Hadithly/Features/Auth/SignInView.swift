@@ -22,9 +22,13 @@ struct SignInView: View {
     /// Runs the post-sign-in sync and dismisses. Called directly on flow
     /// completion — ClerkKit's independent auth events do not fire for
     /// custom service-level flows.
+    @Environment(\.readerPalette) private var palette
     var onAuthenticated: () async -> Void
 
     var onDismiss: () -> Void = {}
+    var initialSignUp = false
+    var onCreationResult: ((Bool?) -> Void)? = nil
+    var onAuthenticationFailure: (() -> Void)? = nil
 
     @Environment(AppEnvironment.self) private var environment
 
@@ -39,6 +43,7 @@ struct SignInView: View {
     }
 
     @State private var mode: Mode = .methods
+    @State private var appliedInitialMode = false
     @State private var email = ""
     @State private var password = ""
     @State private var confirmPassword = ""
@@ -75,7 +80,9 @@ struct SignInView: View {
                 }
             }
         }
-        .preferredColorScheme(.dark)
+        .onAppear {
+            if !appliedInitialMode { appliedInitialMode = true; if initialSignUp { mode = .signUp } }
+        }
     }
 
     // MARK: - Method selection
@@ -83,12 +90,12 @@ struct SignInView: View {
     private var methodsScreen: some View {
         VStack(spacing: 0) {
             VStack(spacing: 8) {
-                Text("Sync your reading")
+                Text("la2.account_title")
                     .font(.title2.bold())
-                    .foregroundStyle(Theme.textPrimary)
-                Text("Guests can read everything. An account just carries your bookmarks and notes across devices.")
+                    .foregroundStyle(palette.textPrimary)
+                Text("la2.account_body")
                     .font(.subheadline)
-                    .foregroundStyle(Theme.textSecondary)
+                    .foregroundStyle(palette.textSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 24)
             }
@@ -109,17 +116,17 @@ struct SignInView: View {
 
                 hostedAuthButton(
                     title: "Continue with Google",
-                    background: Theme.surfaceElevated,
-                    foreground: Theme.textPrimary
+                    background: palette.surfaceElevated,
+                    foreground: palette.textPrimary
                 )
                 .accessibilityIdentifier("signin.google")
 
                 HStack(spacing: 12) {
-                    Rectangle().fill(Theme.surfaceElevated).frame(height: 1)
+                    Rectangle().fill(palette.surfaceElevated).frame(height: 1)
                     Text("or")
                         .font(.footnote)
-                        .foregroundStyle(Theme.textSecondary)
-                    Rectangle().fill(Theme.surfaceElevated).frame(height: 1)
+                        .foregroundStyle(palette.textSecondary)
+                    Rectangle().fill(palette.surfaceElevated).frame(height: 1)
                 }
                 .padding(.vertical, 4)
 
@@ -132,8 +139,8 @@ struct SignInView: View {
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
-                        .background(Theme.accent)
-                        .foregroundStyle(.black)
+                        .background(palette.interactive)
+                        .foregroundStyle(palette.onInteractive)
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                 }
                 .buttonStyle(.plain)
@@ -146,7 +153,7 @@ struct SignInView: View {
                     mode = .signUp
                 }
                 .font(.subheadline)
-                .foregroundStyle(Theme.textSecondary)
+                .foregroundStyle(palette.textSecondary)
                 .disabled(isBusy)
                 .accessibilityIdentifier("signin.createAccount")
 
@@ -169,11 +176,11 @@ struct SignInView: View {
                 onDismiss()
             }
             .font(.subheadline)
-            .foregroundStyle(Theme.textSecondary)
+            .foregroundStyle(palette.textSecondary)
             .padding(.bottom, 24)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Theme.background)
+        .background(palette.background)
     }
 
     // MARK: - Password sign-in
@@ -183,10 +190,10 @@ struct SignInView: View {
             VStack(spacing: 8) {
                 Text("Welcome back")
                     .font(.title2.bold())
-                    .foregroundStyle(Theme.textPrimary)
+                    .foregroundStyle(palette.textPrimary)
                 Text("Sign in with your email or username.")
                     .font(.subheadline)
-                    .foregroundStyle(Theme.textSecondary)
+                    .foregroundStyle(palette.textSecondary)
             }
             .padding(.top, 24)
 
@@ -195,7 +202,7 @@ struct SignInView: View {
                 .autocorrectionDisabled()
                 .font(.body)
                 .padding(16)
-                .background(Theme.surface)
+                .background(palette.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .padding(.horizontal, 20)
                 .padding(.top, 24)
@@ -206,7 +213,7 @@ struct SignInView: View {
                 .autocorrectionDisabled()
                 .font(.body)
                 .padding(16)
-                .background(Theme.surface)
+                .background(palette.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .padding(.horizontal, 20)
                 .padding(.top, 12)
@@ -227,8 +234,8 @@ struct SignInView: View {
                 }
             }
             .buttonStyle(.plain)
-            .background(Theme.accent)
-            .foregroundStyle(.black)
+            .background(palette.interactive)
+            .foregroundStyle(palette.onInteractive)
             .clipShape(RoundedRectangle(cornerRadius: 14))
             .padding(.horizontal, 20)
             .padding(.top, 16)
@@ -240,7 +247,7 @@ struct SignInView: View {
                 mode = .forgotPasswordEntry
             }
             .font(.subheadline)
-            .foregroundStyle(Theme.textSecondary)
+            .foregroundStyle(palette.textSecondary)
             .padding(.top, 12)
             .disabled(isBusy)
 
@@ -249,7 +256,7 @@ struct SignInView: View {
                 mode = .emailEntry
             }
             .font(.footnote)
-            .foregroundStyle(Theme.accent)
+            .foregroundStyle(palette.interactive)
             .padding(.top, 8)
             .disabled(isBusy)
 
@@ -262,7 +269,7 @@ struct SignInView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Theme.background)
+        .background(palette.background)
     }
 
     // MARK: - Sign-up
@@ -272,10 +279,10 @@ struct SignInView: View {
             VStack(spacing: 8) {
                 Text("Create your account")
                     .font(.title2.bold())
-                    .foregroundStyle(Theme.textPrimary)
+                    .foregroundStyle(palette.textPrimary)
                 Text("Carry your bookmarks and notes across devices.")
                     .font(.subheadline)
-                    .foregroundStyle(Theme.textSecondary)
+                    .foregroundStyle(palette.textSecondary)
             }
             .padding(.top, 24)
 
@@ -288,7 +295,7 @@ struct SignInView: View {
                         .autocorrectionDisabled()
                         .font(.body)
                         .padding(16)
-                        .background(Theme.surface)
+                        .background(palette.surface)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         .accessibilityIdentifier("signup.email.field")
 
@@ -298,7 +305,7 @@ struct SignInView: View {
                         .autocorrectionDisabled()
                         .font(.body)
                         .padding(16)
-                        .background(Theme.surface)
+                        .background(palette.surface)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         .accessibilityIdentifier("signup.password.field")
 
@@ -308,7 +315,7 @@ struct SignInView: View {
                         .autocorrectionDisabled()
                         .font(.body)
                         .padding(16)
-                        .background(Theme.surface)
+                        .background(palette.surface)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         .accessibilityIdentifier("signup.confirmPassword.field")
 
@@ -334,8 +341,8 @@ struct SignInView: View {
                         }
                     }
                     .buttonStyle(.plain)
-                    .background(Theme.accent)
-                    .foregroundStyle(.black)
+                    .background(palette.interactive)
+                    .foregroundStyle(palette.onInteractive)
                     .clipShape(RoundedRectangle(cornerRadius: 14))
                     .disabled(isBusy || !signUpInputIsValid)
                     .accessibilityIdentifier("signup.submit")
@@ -356,7 +363,7 @@ struct SignInView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Theme.background)
+        .background(palette.background)
     }
 
     private var signUpInputIsValid: Bool {
@@ -372,10 +379,10 @@ struct SignInView: View {
             VStack(spacing: 8) {
                 Text("What's your email?")
                     .font(.title2.bold())
-                    .foregroundStyle(Theme.textPrimary)
+                    .foregroundStyle(palette.textPrimary)
                 Text("We'll send a six-digit sign-in code.")
                     .font(.subheadline)
-                    .foregroundStyle(Theme.textSecondary)
+                    .foregroundStyle(palette.textSecondary)
             }
             .padding(.top, 24)
 
@@ -386,7 +393,7 @@ struct SignInView: View {
                 .autocorrectionDisabled()
                 .font(.body)
                 .padding(16)
-                .background(Theme.surface)
+                .background(palette.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .padding(.horizontal, 20)
                 .padding(.top, 24)
@@ -407,8 +414,8 @@ struct SignInView: View {
                 }
             }
             .buttonStyle(.plain)
-            .background(Theme.accent)
-            .foregroundStyle(.black)
+            .background(palette.interactive)
+            .foregroundStyle(palette.onInteractive)
             .clipShape(RoundedRectangle(cornerRadius: 14))
             .padding(.horizontal, 20)
             .padding(.top, 16)
@@ -424,7 +431,7 @@ struct SignInView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Theme.background)
+        .background(palette.background)
     }
 
     // MARK: - Code entry
@@ -434,10 +441,10 @@ struct SignInView: View {
             VStack(spacing: 8) {
                 Text("Check your email")
                     .font(.title2.bold())
-                    .foregroundStyle(Theme.textPrimary)
+                    .foregroundStyle(palette.textPrimary)
                 Text("Enter the code we sent to \(email).")
                     .font(.subheadline)
-                    .foregroundStyle(Theme.textSecondary)
+                    .foregroundStyle(palette.textSecondary)
                     .multilineTextAlignment(.center)
             }
             .padding(.top, 24)
@@ -448,7 +455,7 @@ struct SignInView: View {
                 .multilineTextAlignment(.center)
                 .font(.title.monospacedDigit())
                 .padding(16)
-                .background(Theme.surface)
+                .background(palette.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .padding(.horizontal, 20)
                 .padding(.top, 24)
@@ -473,8 +480,8 @@ struct SignInView: View {
                 }
             }
             .buttonStyle(.plain)
-            .background(Theme.accent)
-            .foregroundStyle(.black)
+            .background(palette.interactive)
+            .foregroundStyle(palette.onInteractive)
             .clipShape(RoundedRectangle(cornerRadius: 14))
             .padding(.horizontal, 20)
             .padding(.top, 16)
@@ -485,7 +492,7 @@ struct SignInView: View {
                 Task { await resendCode(isSignUp: isSignUp) }
             }
             .font(.subheadline)
-            .foregroundStyle(Theme.accent)
+            .foregroundStyle(palette.interactive)
             .padding(.top, 12)
             .disabled(isBusy)
 
@@ -498,7 +505,7 @@ struct SignInView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Theme.background)
+        .background(palette.background)
     }
 
     // MARK: - Forgot password
@@ -508,10 +515,10 @@ struct SignInView: View {
             VStack(spacing: 8) {
                 Text("Reset your password")
                     .font(.title2.bold())
-                    .foregroundStyle(Theme.textPrimary)
+                    .foregroundStyle(palette.textPrimary)
                 Text("We'll send a code to your email address.")
                     .font(.subheadline)
-                    .foregroundStyle(Theme.textSecondary)
+                    .foregroundStyle(palette.textSecondary)
             }
             .padding(.top, 24)
 
@@ -522,7 +529,7 @@ struct SignInView: View {
                 .autocorrectionDisabled()
                 .font(.body)
                 .padding(16)
-                .background(Theme.surface)
+                .background(palette.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .padding(.horizontal, 20)
                 .padding(.top, 24)
@@ -542,8 +549,8 @@ struct SignInView: View {
                 }
             }
             .buttonStyle(.plain)
-            .background(Theme.accent)
-            .foregroundStyle(.black)
+            .background(palette.interactive)
+            .foregroundStyle(palette.onInteractive)
             .clipShape(RoundedRectangle(cornerRadius: 14))
             .padding(.horizontal, 20)
             .padding(.top, 16)
@@ -558,7 +565,7 @@ struct SignInView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Theme.background)
+        .background(palette.background)
     }
 
     private var resetPasswordScreen: some View {
@@ -566,10 +573,10 @@ struct SignInView: View {
             VStack(spacing: 8) {
                 Text("Choose a new password")
                     .font(.title2.bold())
-                    .foregroundStyle(Theme.textPrimary)
+                    .foregroundStyle(palette.textPrimary)
                 Text("Enter the code sent to \(email) and your new password.")
                     .font(.subheadline)
-                    .foregroundStyle(Theme.textSecondary)
+                    .foregroundStyle(palette.textSecondary)
                     .multilineTextAlignment(.center)
             }
             .padding(.top, 24)
@@ -580,7 +587,7 @@ struct SignInView: View {
                 .multilineTextAlignment(.center)
                 .font(.title.monospacedDigit())
                 .padding(16)
-                .background(Theme.surface)
+                .background(palette.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .padding(.horizontal, 20)
                 .padding(.top, 24)
@@ -594,7 +601,7 @@ struct SignInView: View {
                 .autocorrectionDisabled()
                 .font(.body)
                 .padding(16)
-                .background(Theme.surface)
+                .background(palette.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .padding(.horizontal, 20)
                 .padding(.top, 12)
@@ -614,8 +621,8 @@ struct SignInView: View {
                 }
             }
             .buttonStyle(.plain)
-            .background(Theme.accent)
-            .foregroundStyle(.black)
+            .background(palette.interactive)
+            .foregroundStyle(palette.onInteractive)
             .clipShape(RoundedRectangle(cornerRadius: 14))
             .padding(.horizontal, 20)
             .padding(.top, 16)
@@ -630,7 +637,7 @@ struct SignInView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Theme.background)
+        .background(palette.background)
     }
 
     // MARK: - Actions
@@ -651,7 +658,7 @@ struct SignInView: View {
                 defer { isBusy = false }
                 do {
                     _ = try await Clerk.shared.auth.startHostedAuth()
-                    await onAuthenticated()
+                    await finishAuthentication()
                 } catch {
                     if !error.isCancellation {
                         present(error)
@@ -695,13 +702,13 @@ struct SignInView: View {
                     switch result {
                     case .signIn(let signIn):
                         if signIn.status == .complete {
-                            await onAuthenticated()
+                            await finishAuthentication(created: false)
                         } else {
                             errorMessage = "Sign-in needs another step. This flow is not fully supported yet."
                         }
                     case .signUp(let signUp):
                         if signUp.status == .complete {
-                            await onAuthenticated()
+                            await finishAuthentication(created: true)
                         } else {
                             errorMessage = "Sign-in needs another step. This flow is not fully supported yet."
                         }
@@ -740,7 +747,7 @@ struct SignInView: View {
                 password: password
             )
             if signIn.status == .complete {
-                await onAuthenticated()
+                await finishAuthentication(created: false)
             } else {
                 errorMessage = "Sign-in needs another step. Please try again."
             }
@@ -833,7 +840,7 @@ struct SignInView: View {
                 }
                 let updated = try await signUp.verifyEmailCode(code)
                 if updated.status == .complete {
-                    await onAuthenticated()
+                    await finishAuthentication(created: isSignUp)
                 } else {
                     errorMessage = "Sign-up could not be completed. Please try again."
                 }
@@ -844,7 +851,7 @@ struct SignInView: View {
                 }
                 let updated = try await signIn.verifyCode(code)
                 if updated.status == .complete {
-                    await onAuthenticated()
+                    await finishAuthentication(created: false)
                 }
             }
         } catch let error as ClerkAPIError where error.code == "verification_already_verified" {
@@ -858,9 +865,9 @@ struct SignInView: View {
     /// step was interrupted). If the flow is complete, finish it.
     private func handleAlreadyVerified(isSignUp: Bool) async {
         if isSignUp, let signUp = Clerk.shared.auth.currentSignUp, signUp.status == .complete {
-            await onAuthenticated()
+            await finishAuthentication(created: true)
         } else if let signIn = Clerk.shared.auth.currentSignIn, signIn.status == .complete {
-            await onAuthenticated()
+            await finishAuthentication(created: false)
         } else {
             errorMessage = "This code was already used. Please request a new one."
         }
@@ -891,7 +898,7 @@ struct SignInView: View {
             let updated = try await signIn.verifyCode(code)
             let reset = try await updated.resetPassword(newPassword: newPassword)
             if reset.status == .complete {
-                await onAuthenticated()
+                await finishAuthentication(created: false)
             } else {
                 errorMessage = "Could not reset the password. Please try again."
             }
@@ -933,7 +940,12 @@ struct SignInView: View {
         email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
     }
 
+    private func finishAuthentication(created: Bool? = nil) async {
+        onCreationResult?(created)
+        await onAuthenticated()
+    }
     private func present(_ error: Error) {
+        onAuthenticationFailure?()
         if let apiError = error as? ClerkAPIError {
             errorMessage = apiError.longMessage ?? apiError.errorDescription
         } else {
@@ -957,10 +969,11 @@ private struct ErrorBanner: View {
     }
 }
 
-/// "By continuing, you agree to our Terms of Use and Privacy Policy." shown on
+/// Terms acceptance and a separate Privacy Policy notice shown on
 /// the method chooser and the email sign-up screen. Terms of Use and Privacy
 /// Policy are tappable links that open the public policy pages.
 private struct LegalText: View {
+    @Environment(\.readerPalette) private var palette
     let termsURL: URL?
     let privacyURL: URL?
 
@@ -972,17 +985,17 @@ private struct LegalText: View {
 
     private func legalLine(terms: URL, privacy: URL) -> some View {
         var text = AttributedString("By continuing, you agree to our ")
-        text.foregroundColor = Theme.textSecondary
+        text.foregroundColor = palette.textSecondary
         var termsPart = AttributedString("Terms of Use")
         termsPart.link = terms
-        termsPart.foregroundColor = Theme.accent
-        var andPart = AttributedString(" and ")
-        andPart.foregroundColor = Theme.textSecondary
+        termsPart.foregroundColor = palette.interactive
+        var andPart = AttributedString(". Read our ")
+        andPart.foregroundColor = palette.textSecondary
         var privacyPart = AttributedString("Privacy Policy")
         privacyPart.link = privacy
-        privacyPart.foregroundColor = Theme.accent
+        privacyPart.foregroundColor = palette.interactive
         var dotPart = AttributedString(".")
-        dotPart.foregroundColor = Theme.textSecondary
+        dotPart.foregroundColor = palette.textSecondary
         return Text(text + termsPart + andPart + privacyPart + dotPart)
             .font(.caption)
             .multilineTextAlignment(.center)
