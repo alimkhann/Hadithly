@@ -43,5 +43,7 @@ crons.interval("retain only permitted evidence facts", { hours: 1 }, internal.ev
 
 crons.interval("subscription recovery", { hours: 1 }, internal.subscriptions.recoverDeliveries, {});
 crons.interval("subscription receipt retention", { hours: 24 }, internal.subscriptions.pruneReceipts, {});
+crons.interval("analytics summary retention", { hours: 1 }, internal.analytics.retain, {});
+crons.interval("export anonymous analytics totals", { minutes: 5 }, internal.actions.analytics.exportDaily, {});
 
 export default crons;

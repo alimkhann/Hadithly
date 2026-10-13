@@ -10,6 +10,7 @@ import { requireIdentity } from "./lib/identity";
 import { verifyEvidenceFile } from "./lib/evidenceFiles";
 import { MAX_EVIDENCE_BYTES } from "./lib/evidencePolicy";
 import { parseWebFailure, diagnosticsEnvironment } from "./lib/diagnosticsPolicy";
+import { parseSummary } from "./lib/analyticsPolicy";
 
 /**
  * RevenueCat webhook. app_user_id is the Clerk user id (the app configures
@@ -53,6 +54,30 @@ const revenueCatWebhook = httpAction(async (ctx, request) => {
 });
 
 export const http = httpRouter();
+
+http.route({ path: "/analytics/summary", method: "POST", handler: httpAction(async (ctx, request) => {
+  if (process.env.ANALYTICS_ENABLED !== "1") return new Response(null, { status: 503 });
+  const reject = async (status: number) => { await ctx.runMutation(internal.analytics.recordRejection, {}); return new Response(null, { status }); };
+  if (request.headers.has("authorization") || request.headers.has("cookie") || request.headers.has("origin"))
+    return reject(403);
+  if (request.headers.get("content-type")?.split(";")[0] !== "application/json" || !request.body)
+    return reject(400);
+  const reader = request.body.getReader(), chunks: Uint8Array[] = []; let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read(); if (done) break;
+    size += value.byteLength;
+    if (size > 4096) { await reader.cancel(); return reject(413); }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(size); let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  let raw: unknown; try { raw = JSON.parse(new TextDecoder().decode(bytes)); } catch { return reject(400); }
+  const summary = parseSummary(raw, Date.now());
+  if (!summary) return reject(400);
+  const result = await ctx.runMutation(internal.analytics.accept, summary);
+  return new Response(null, { status: result === "accepted" || result === "duplicate" ? 204
+    : result === "limited" ? 429 : result === "disabled" ? 503 : 400 });
+}) });
 
 for (const [path, component] of [["/health/public", "api"], ["/health/notifications", "notifications"], ["/health/alert-test", "alert_test"]] as const) {
   http.route({ path, method: "GET", handler: httpAction(async ctx => {

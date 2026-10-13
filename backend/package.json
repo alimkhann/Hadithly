@@ -16,7 +16,8 @@
     "google-auth-library": "^10.3.0",
     "image-size": "^2.0.4",
     "node-app-attest": "1.0.1",
-    "pdf-lib": "^1.17.1"
+    "pdf-lib": "^1.17.1",
+    "posthog-node": "5.55.3"
   },
   "devDependencies": {
     "convex-test": "^0.0.40",

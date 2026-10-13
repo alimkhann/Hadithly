@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "families": {
+    "onboarding_step": [
+      "welcome_viewed",
+      "language_viewed",
+      "demo_viewed",
+      "demo_used",
+      "demo_skipped",
+      "entry_viewed",
+      "auth_started",
+      "auth_failed",
+      "auth_cancelled",
+      "ordered_started",
+      "ordered_language",
+      "ordered_demo",
+      "ordered_entry",
+      "ordered_completed",
+      "ordered_first_reader"
+    ],
+    "onboarding_completed": [
+      "guest",
+      "account_new",
+      "account_existing",
+      "first_reader_success",
+      "account_unknown"
+    ],
+    "reader_open_result": [
+      "guest_started",
+      "account_started",
+      "guest_online",
+      "guest_offline",
+      "account_online",
+      "account_offline",
+      "failed",
+      "abandoned"
+    ],
+    "restoration_result": [
+      "started",
+      "exact",
+      "fallback",
+      "failed"
+    ],
+    "offline_activation_result": [
+      "started",
+      "activated",
+      "updated",
+      "failed",
+      "cancelled"
+    ],
+    "notification_open_result": [
+      "started",
+      "exact",
+      "fallback",
+      "failed"
+    ],
+    "translation_result": [
+      "started",
+      "cache",
+      "generated",
+      "quota",
+      "sign_in_required",
+      "failed"
+    ],
+    "paywall_result": [
+      "shown",
+      "available",
+      "unavailable",
+      "selected_monthly",
+      "selected_annual",
+      "dismissed",
+      "purchase_started",
+      "confirmed"
+    ],
+    "purchase_result": [
+      "monthly_started",
+      "annual_started",
+      "restore_started",
+      "confirmed",
+      "cancelled",
+      "pending",
+      "failed",
+      "syncing",
+      "restore_confirmed",
+      "restore_empty",
+      "restore_failed"
+    ],
+    "recoverable_error": [
+      "reader",
+      "offline",
+      "translation",
+      "authentication",
+      "purchase",
+      "reader_recovered",
+      "offline_recovered",
+      "translation_recovered",
+      "authentication_recovered",
+      "purchase_recovered",
+      "measurement_clipped"
+    ]
+  }
+}

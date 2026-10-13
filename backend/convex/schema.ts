@@ -21,6 +21,16 @@ const authenticityGrade = v.union(
 );
 
 export default defineSchema({
+  analyticsReceipts: defineTable({ batchId: v.string(), expiresAt: v.number() })
+    .index("by_batch", ["batchId"]).index("by_expiry", ["expiresAt"]),
+  analyticsBuckets: defineTable({ day: v.string(), platform: v.union(v.literal("ios"), v.literal("android")),
+    summaries: v.number(), counters: v.array(v.object({ metric: v.string(), count: v.number() })),
+    exported: v.boolean(), exportId: v.optional(v.string()), attempts: v.optional(v.number()),
+    nextAttemptAt: v.optional(v.number()), expiresAt: v.number() })
+    .index("by_day_platform", ["day", "platform"]).index("by_pending", ["exported", "day"]).index("by_expiry", ["expiresAt"]),
+  analyticsState: defineTable({ day: v.string(), month: v.string(), admittedDaily: v.number(),
+    admittedMonthly: v.number(), exportedMonthly: v.number(), lastExportAt: v.number(), exportFailures: v.number(),
+    rejectedMonthly: v.optional(v.number()) }),
   diagnosticsState: defineTable({
     month: v.string(), reports: v.number(), webReports: v.number(), failures: v.number(), windowStart: v.number(),
     lastFailureAt: v.number(), lastReportAt: v.number(), lastWebReportAt: v.number(), heartbeatAt: v.number(), alertTestUntil: v.number(),
