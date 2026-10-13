@@ -42,6 +42,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (BuildConfig.AUTOMATION && intent?.getStringExtra("fixture") == "la1_crash") {
+            com.hadithly.app.core.diagnostics.CrashReporting.setConsent(true)
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({ error("LA1SyntheticFailure") }, 3000)
+        }
+        if (BuildConfig.AUTOMATION && intent?.getStringExtra("fixture") == "la1_disable") {
+            com.hadithly.app.core.diagnostics.CrashReporting.setConsent(false)
+        }
         enableEdgeToEdge()
         val pendingLink = intent?.data
             ?.let { CanonicalHadithLink.parse(it.scheme, it.host, it.path, it.encodedPath) }

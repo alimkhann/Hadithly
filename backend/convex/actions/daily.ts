@@ -6,6 +6,7 @@
  */
 
 import { v } from "convex/values";
+import { reportFailure } from "../lib/reportFailure";
 import { action, internalAction } from "../_generated/server";
 import type { ActionCtx } from "../_generated/server";
 import type { Id } from "../_generated/dataModel";
@@ -393,11 +394,8 @@ async function resolveNotificationTranslation(
     );
     if (!generated.content.trim()) return null;
     return { text: generated.content, language, isAI: true };
-  } catch (error) {
-    console.error(
-      `service translation for ${hadith.canonicalId}/${language} failed:`,
-      error instanceof Error ? error.message : error,
-    );
+  } catch {
+    await reportFailure(io, "daily_translation");
     return null;
   }
 }
@@ -553,8 +551,7 @@ export async function runDuePushes(
             result.sent += 1;
           } catch (error) {
             const kind = classifyPushError(error);
-            const message =
-              error instanceof Error ? error.message : String(error);
+            await reportFailure(io, "daily_push");
             if (kind === "permanent") {
               await io.runMutation(internal.library.removeStaleToken, {
                 tokenId: token._id,
@@ -565,7 +562,7 @@ export async function runDuePushes(
             } else if (kind === "backpressure") {
               await io.runMutation(internal.library.recordPushFailure, {
                 tokenId: token._id,
-                error: message,
+                error: "push_provider_failure",
                 nextRetryAt: now + retryDelayMs(
                   (token.consecutiveFailures ?? 0) + 1,
                 ),
@@ -577,17 +574,13 @@ export async function runDuePushes(
             } else {
               await io.runMutation(internal.library.recordPushFailure, {
                 tokenId: token._id,
-                error: message,
+                error: "push_provider_failure",
                 nextRetryAt: now + retryDelayMs(
                   (token.consecutiveFailures ?? 0) + 1,
                 ),
               });
               result.failed += 1;
             }
-            console.error(
-              `daily push to token ${token._id} failed:`,
-              message,
-            );
           }
         }
       }
@@ -605,13 +598,20 @@ export const sendDueDailyPushes = internalAction({
     const hasApns = apnsConfigured();
     const hasFcm = fcmConfigured();
     if (!hasApns && !hasFcm) {
+      if (process.env.DIAGNOSTICS_ENABLED === "1") {
+        try { await ctx.runMutation(internal.diagnostics.heartbeat, {}); } catch {}
+      }
       return emptyResult(false, false);
     }
-    return await runDuePushes(
+    const result = await runDuePushes(
       ctx,
       args.nowMs ?? Date.now(),
       { sendApns: sendApnsPush, sendFcm: sendFcmPush },
       { hasApns, hasFcm },
     );
+    if (process.env.DIAGNOSTICS_ENABLED === "1") {
+      try { await ctx.runMutation(internal.diagnostics.heartbeat, {}); } catch {}
+    }
+    return result;
   },
 });

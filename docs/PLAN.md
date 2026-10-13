@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-10-12. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-10-13. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
 D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its
 simulator/emulator and unit gates; its physical-device gate is open. R4's
@@ -40,6 +40,9 @@ approved Apple regional pricing and development rollout are complete. Its full
 two-store sandbox gate remains open: Play Console is unavailable and real store
 lifecycle receipts are still required. See `docs/Q2_VERIFICATION.md` and
 `docs/Q2_PRICING.md`. L1 has not started.
+LA1 passed its development acceptance gate on October 13 under the owner's
+explicit dependency exception. H3/O2/W2/Q2 and release/device gates remain open.
+See `docs/LA1_VERIFICATION.md`. This task stops before LA2.
 Do not
 start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
@@ -411,7 +414,7 @@ substantive: they own bounded implementation outcomes, not just inventories.
 | E4 | Automate exceptions, reports, appeals, abuse, revocation, and deletion; add optional operator controls. | Development passed 2026-10-11: automated resolution and retention without a required approval queue. | GPT-6.1 Sol, high |
 | Q1 | Replace monthly counters with rolling usage events, cache reuse, integrity signals, and abuse controls. | Window, race, retry, cache, and tamper tests pass. | GPT-5.6 Sol, xhigh |
 | Q2 | Ship monthly and annual entitlement semantics, regional pricing, restore, grace, and quota copy. | Store sandbox lifecycle and cross-platform account tests pass. | GPT-5.6 Sol, high |
-| LA1 | Add low-cost crash reporting, structured logs, uptime checks, and privacy-safe alerting. | Redacted test failures arrive from production-like builds and alerts have an owner. | GPT-5.6 Terra, medium |
+| LA1 | Add low-cost crash reporting, structured logs, uptime checks, and privacy-safe alerting. | Development passed; release/device limitations remain in `LA1_VERIFICATION.md`. | GPT-6.1 Sol, high, owner override |
 | LA2 | Add minimal privacy-preserving product analytics and a deletion/retention contract. | A tiny event taxonomy answers launch questions without capturing reading content. | GLM-5.3-Flash; Terra medium review |
 | LA3 | Add support email, transactional email, status/incident copy, backups, and cost budgets. | Every channel is tested, has retention and spend limits, and degrades safely. | GLM-5.3-Flash; Terra medium review |
 | LA4 | Decide whether to expand the fallback into a read-only web reader after native launch. | Licensing, demand, maintenance, privacy, and cost evidence support an explicit build-or-defer decision. | GLM-5.3-Flash; Terra medium review |
@@ -1680,11 +1683,44 @@ substantive: they own bounded implementation outcomes, not just inventories.
 - October 13 readback supersedes that financial status: both U.S. tax forms are
   **Active**, while Paid Apps Agreement and banking are **Processing**. The
   physical product-read retry cannot run while the iPhone is disconnected.
-  Full Q2 remains an open store gate; no exception to start LA1 has been granted.
+  Full Q2 remains an open store gate. The owner subsequently authorized LA1
+  while retaining that gate, as recorded below.
 - A separately approved sandbox-only RevenueCat webhook is saved for development.
   Its real dashboard TEST exposed an app-ID validation defect; authenticated
   synthetic tests now acknowledge without any grant or reconciliation. Actual
   purchase events retain exact app/environment admission. Production is unchanged.
+
+### LA1 crash reports, logs, uptime and alerts (2026-10-13)
+
+- R5/S1/E4 development gates passed; H3/O2/W2/Q2 entry gates did not all pass.
+  The owner explicitly directed LA1 to proceed with those gates retained.
+- Selected Sentry Developer for pre-upload native payload filtering and symbols,
+  direct fixed-code Convex/web envelopes, and four existing-project Google uptime
+  checks. Crashlytics could not meet the fatal-message/identifier redaction
+  boundary. No Linear, replay, analytics, paid upgrade or second app backend.
+- Four actual synthetic reports have readable redacted vendor evidence and the
+  shared release `hadithly@fdf9ebf96361`, environment `development`. iOS Release
+  and Android non-debuggable verification builds exercised fatal/restart paths.
+  The retained Apple symbols have neutral paths and no uploaded source contents.
+- Owner-confirmed Google test alert; test mode is off. Four saved policies each
+  require two failed regions for ten minutes, with an owner email channel.
+  Sentry's four-project development rule has a one-hour per-issue cooldown.
+- Recorded 5,000 shared free Sentry errors/month, 800 backend and 200 web
+  admitted reports/month, five native reports/day/device, and 107,136 Google
+  regional executions/month for the fixed four-check configuration. These are
+  admission/configuration ceilings, not an unverified Google/Convex billing
+  hard stop. Provider hard-limit/log-retention readback remains release work.
+- Privacy findings were fixed and proven: server-derived geography is filtered;
+  symbol paths map to a neutral build root. Approved initial test issues and the
+  obsolete dSYM were deleted. Temporary upload-only tokens were revoked.
+- Proof: backend typecheck/321 tests; Android builds/199 units; final iOS full
+  suite 238 executed, seven pre-existing opt-in skips, zero failures; actual
+  compressed Cocoa envelope test; four vendor-export audit and policy JSON.
+  See `docs/LA1_DESIGN.md`, `docs/LA1_OPERATIONS.md`, `docs/LA1_VERIFICATION.md`,
+  `docs/LA1_EVIDENCE.json`, and `docs/LA1_UPTIME_EVIDENCE.json`.
+- Production activation, disclosures/store privacy, physical native cache/retry/
+  upgrade matrix, ANR/tombstone proof and older gates remain open. Development
+  only was deployed. Native test reporting was turned off. Stop before LA2.
 
 ### Future topic browsing with the Jev classifier (not a session)
 

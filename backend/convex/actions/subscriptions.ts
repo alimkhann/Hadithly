@@ -1,4 +1,5 @@
 "use node";
+import { reportFailure } from "../lib/reportFailure";
 import { v } from "convex/values";
 import { action, internalAction } from "../_generated/server";
 import type { ActionCtx } from "../_generated/server";
@@ -32,6 +33,7 @@ export const processDelivery = internalAction({
       }
       await ctx.runMutation(internal.subscriptions.completeDelivery, { eventId: args.eventId });
     } catch {
+      await reportFailure(ctx, "subscription_refresh");
       if (args.attempt < 3) await ctx.scheduler.runAfter([60000, 300000, 900000][args.attempt],
         internal.actions.subscriptions.processDelivery, { ...args, attempt: args.attempt + 1 });
       else await ctx.runMutation(internal.subscriptions.failDelivery, { eventId: args.eventId });

@@ -1095,6 +1095,7 @@ private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     var deletingAccount by remember { mutableStateOf(false) }
     var deletionError by remember { mutableStateOf<String?>(null) }
+    var crashConsent by remember { mutableStateOf(com.hadithly.app.core.diagnostics.CrashReporting.hasConsent) }
 
     val saveDocument = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if (uri == null) {
@@ -1123,6 +1124,20 @@ private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
     }
 
     ScrollColumn {
+        CardColumn {
+            Row(verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                    .toggleable(value = crashConsent, role = androidx.compose.ui.semantics.Role.Switch,
+                        onValueChange = { enabled ->
+                            com.hadithly.app.core.diagnostics.CrashReporting.setConsent(enabled)
+                            crashConsent = com.hadithly.app.core.diagnostics.CrashReporting.hasConsent
+                        }).testTag("settings.crashReports")) {
+                Text(stringResource(R.string.diagnostics_consent), modifier = Modifier.weight(1f), color = colors.textPrimary)
+                Switch(checked = crashConsent, onCheckedChange = null,
+                    colors = SwitchDefaults.colors(checkedTrackColor = colors.interactive))
+            }
+            Text(stringResource(R.string.diagnostics_privacy), fontSize = 14.sp, color = colors.textSecondary)
+        }
         CardColumn {
             Text("Your data", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
             if (signedIn) {

@@ -4,7 +4,7 @@ import Foundation
 /// Debug app with a copied command-line argument.
 enum AutomationContext {
     static var isActive: Bool {
-#if DEBUG
+#if DEBUG || DIAGNOSTICS_VERIFICATION
         ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil ||
             ProcessInfo.processInfo.environment["HADITHLY_UI_TESTING"] == "1"
 #else

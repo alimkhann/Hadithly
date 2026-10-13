@@ -10,6 +10,7 @@ import { deriveSourceReferenceUrl, parseTranslationPayload, untrustedProviderDat
 import { parseInternalHadithId } from "../lib/sunnahNow";
 import { GENERATION_MODEL, PROVIDER_TIMEOUT_MS, generationLanguage } from "../lib/generationPolicy";
 import { integrityProof } from "../generationIntegrity";
+import { reportFailure } from "../lib/reportFailure";
 import { verifyGenerationProof } from "./generationIntegrity";
 
 type TranslationResult = {
@@ -58,6 +59,7 @@ async function generate(ctx: ActionCtx, admission: { jobId: Id<"aiGenerationJobs
     if (!completed) throw new Error("AI_GENERATION_RETRY");
     return result(completed.translation, completed.cached);
   } catch {
+    await reportFailure(ctx, "generation");
     // No provider exception, prompt, response text, proof, or account enters telemetry.
     await ctx.runMutation(internal.quotas.finish, { jobId: admission.jobId, attempt: admission.attempt,
       telemetry: { ...telemetry, durationMs: Math.min(120_000, Date.now() - startedAt) } });

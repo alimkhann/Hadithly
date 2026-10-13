@@ -1,4 +1,5 @@
 "use node";
+import { reportFailure } from "../lib/reportFailure";
 
 import { createHash } from "node:crypto";
 import { JWT } from "google-auth-library";
@@ -124,6 +125,7 @@ export const processItem = internalAction({
         attached = await ctx.runMutation(internal.evidenceProcessing.finish, { itemId: args.itemId, token: claim.token, result: { ...extracted, sourceStorageId } });
       } else attached = await ctx.runMutation(internal.evidenceProcessing.finish, { itemId: args.itemId, token: claim.token, result });
     } catch {
+      await reportFailure(ctx, "evidence_processing");
       await ctx.runMutation(internal.evidenceProcessing.finish, { itemId: args.itemId, token: claim.token, result: { kind: "failed", retryable: true } }).catch(() => undefined);
     } finally {
       if (sourceStorageId && !attached) await ctx.storage.delete(sourceStorageId);

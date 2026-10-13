@@ -1,6 +1,52 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+  "Send crash reports": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Send crash reports"
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "إرسال تقارير الأعطال"
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "کریش کی رپورٹس بھیجیں"
+        }
+      }
+    }
+  },
+  "Optional. Sends redacted failures and build information to Sentry. No reading text or account details. Reports expire after 30 days. Turning off clears pending reports on this device.": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Optional. Sends redacted failures and build information to Sentry. No reading text or account details. Reports expire after 30 days. Turning off clears pending reports on this device."
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "اختياري. يرسل معلومات الأعطال والإصدار بعد تنقيحها إلى Sentry، دون نصوص القراءة أو تفاصيل الحساب. تنتهي صلاحية التقارير بعد 30 يوماً. يؤدي إيقافه إلى حذف التقارير المعلقة على هذا الجهاز."
+        }
+      },
+      "ur": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "اختیاری۔ Sentry کو حساس معلومات سے پاک خرابیوں اور بلڈ کی معلومات بھیجتا ہے۔ پڑھنے کا متن یا اکاؤنٹ کی تفصیلات شامل نہیں۔ رپورٹس 30 دن بعد ختم ہو جاتی ہیں۔ بند کرنے سے اس آلے کی زیر التوا رپورٹس حذف ہو جاتی ہیں۔"
+        }
+      }
+    }
+  },
     "Support" : {
       "localizations": {
         "en": {

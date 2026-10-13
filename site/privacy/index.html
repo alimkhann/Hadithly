@@ -53,11 +53,20 @@
 
         <h2>Changes</h2>
         <p>We will update the effective date and this page when the policy changes materially.</p>
+        <h2>Optional error reports</h2>
+        <p>Native crash reporting starts off. If you enable Send crash reports in Privacy &amp; data, Hadithly sends redacted code stacks, build identifiers and coarse failure codes to Sentry. We remove exception messages, account identifiers, reading text, notes, evidence, queries, URLs, screenshots and breadcrumbs. Reports are not joined to your account. Sentry also receives your network address while delivering a report; provider privacy and security terms apply.</p>
+        <p>Turning reporting off stops new reports and clears this device's pending crash files. A request already in flight may complete. Already received events follow Sentry's 30-day event retention; uploaded build symbols are retained separately for crash diagnosis. Account deletion cannot locate anonymous reports by account identity. For a provider deletion request, contact support.</p>
+        <p>Backend diagnostics contain fixed failure codes and release/environment information, with no account or content data. Google Cloud Monitoring checks fixed public health URLs. These checks never generate translations or notifications.</p>
+        <label><input type="checkbox" id="page-error-consent"> Send page error reports</label>
+        <p>This optional browser choice sends one fixed page-failure code and build information per page. It sends no page path, query, reading text or account data. It is separate from the native crash setting.</p>
       </main>
       <footer>
         <span>© 2026 Hadithly</span>
         <span><a href="/terms/">Terms</a> · <a href="/delete-account/">Delete an account</a></span>
       </footer>
     </div>
+    <script src="/diagnostics-config.js"></script>
+    <script src="/diagnostics-release.js"></script>
+    <script src="/diagnostics.js"></script>
   </body>
 </html>

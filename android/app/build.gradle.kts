@@ -58,6 +58,8 @@ android {
         buildConfigField("String", "TERMS_OF_USE_URL", "\"${secret("terms.url")}\"")
         buildConfigField("boolean", "FIREBASE_CONFIGURED", hasGoogleServices.toString())
         buildConfigField("boolean", "AUTOMATION", "false")
+        buildConfigField("String", "DIAGNOSTICS_DSN", "\"${secrets.getProperty("diagnostics.dsn", "")}\"")
+        buildConfigField("String", "DIAGNOSTICS_ENVIRONMENT", "\"development\"")
     }
 
     buildTypes {
@@ -67,6 +69,8 @@ android {
             buildConfigField("boolean", "AUTOMATION", "true")
         }
         release {
+            buildConfigField("String", "DIAGNOSTICS_DSN", "\"${productionSecrets.getProperty("diagnostics.dsn", "")}\"")
+            buildConfigField("String", "DIAGNOSTICS_ENVIRONMENT", "\"production\"")
             // Local release evidence runs on the emulator, which requires a
             // signed APK; signing with the debug key matches the SHA-1
             // registered with Google for local release testing.
@@ -78,6 +82,16 @@ android {
             buildConfigField("String", "TERMS_OF_USE_URL", "\"${productionSecret("terms.url")}\"")
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+        create("diagnosticsVerification") {
+            initWith(getByName("release"))
+            matchingFallbacks += listOf("release")
+            buildConfigField("boolean", "AUTOMATION", "true")
+            buildConfigField("String", "CONVEX_URL", "\"${secret("convex.url")}\"")
+            buildConfigField("String", "CLERK_PUBLISHABLE_KEY", "\"${secret("clerk.publishableKey")}\"")
+            buildConfigField("String", "REVENUECAT_API_KEY", "\"${secret("revenuecat.apiKey")}\"")
+            buildConfigField("String", "DIAGNOSTICS_DSN", "\"${secrets.getProperty("diagnostics.dsn", "")}\"")
+            buildConfigField("String", "DIAGNOSTICS_ENVIRONMENT", "\"development\"")
         }
     }
     compileOptions {
@@ -114,6 +128,7 @@ dependencies {
     implementation(libs.convex.mobile)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
+    implementation("io.sentry:sentry-android-core:8.60.0")
     implementation("com.google.android.play:integrity:1.6.0")
     implementation(libs.revenuecat.purchases)
 

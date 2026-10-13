@@ -9,6 +9,7 @@ import {
 import { requireIdentity } from "./lib/identity";
 import { verifyEvidenceFile } from "./lib/evidenceFiles";
 import { MAX_EVIDENCE_BYTES } from "./lib/evidencePolicy";
+import { parseWebFailure, diagnosticsEnvironment } from "./lib/diagnosticsPolicy";
 
 /**
  * RevenueCat webhook. app_user_id is the Clerk user id (the app configures
@@ -52,6 +53,54 @@ const revenueCatWebhook = httpAction(async (ctx, request) => {
 });
 
 export const http = httpRouter();
+
+for (const [path, component] of [["/health/public", "api"], ["/health/notifications", "notifications"], ["/health/alert-test", "alert_test"]] as const) {
+  http.route({ path, method: "GET", handler: httpAction(async ctx => {
+    try {
+      const health = await ctx.runQuery(internal.diagnostics.health, { component });
+      return Response.json(health, { status: health.status === "ready" ? 200 : 503,
+        headers: { "Cache-Control": "no-store" } });
+    } catch { return Response.json({ status: "degraded" }, { status: 503, headers: { "Cache-Control": "no-store" } }); }
+  }) });
+}
+
+function diagnosticOrigin(): string {
+  const configured = process.env.DIAGNOSTICS_WEB_ORIGIN ?? "https://hadithly.app";
+  try {
+    const url = new URL(configured);
+    return url.protocol === "https:" && url.origin === configured ? configured : "https://hadithly.app";
+  } catch { return "https://hadithly.app"; }
+}
+function diagnosticCors() { return { "Access-Control-Allow-Origin": diagnosticOrigin(), "Vary": "Origin" }; }
+http.route({ path: "/diagnostics/web", method: "OPTIONS", handler: httpAction(async () => new Response(null,
+  { status: 204, headers: { ...diagnosticCors(), "Access-Control-Allow-Methods": "POST", "Access-Control-Allow-Headers": "Content-Type" } })) });
+http.route({ path: "/diagnostics/web", method: "POST", handler: httpAction(async (ctx, request) => {
+  const cors = diagnosticCors();
+  if (request.headers.get("origin") !== diagnosticOrigin()) return new Response(null, { status: 403 });
+  if (request.headers.get("content-type")?.split(";")[0] !== "application/json" || !request.body)
+    return new Response(null, { status: 400, headers: cors });
+  const reader = request.body.getReader(), chunks: Uint8Array[] = [];
+  let size = 0;
+  while (true) {
+    const item = await reader.read();
+    if (item.done) break;
+    size += item.value.length;
+    if (size > 512) { await reader.cancel(); return new Response(null, { status: 413, headers: cors }); }
+    chunks.push(item.value);
+  }
+  const bytes = new Uint8Array(size); let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+  let value: unknown;
+  try { value = JSON.parse(new TextDecoder().decode(bytes)); } catch { value = null; }
+  const parsed = parseWebFailure(value);
+  if (!parsed || parsed.environment !== diagnosticsEnvironment()
+    || (parsed.operation === "synthetic" && parsed.environment !== "development"))
+    return new Response(null, { status: 400, headers: cors });
+  try {
+    await ctx.runMutation(internal.diagnostics.recordFailure, { surface: "web", operation: parsed.operation, webRelease: parsed.release });
+  } catch { /* No recursive reporting and no product failure. */ }
+  return new Response(null, { status: 204, headers: cors });
+}) });
 
 http.route({
   path: "/webhooks/revenuecat",

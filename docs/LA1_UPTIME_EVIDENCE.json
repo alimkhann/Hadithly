@@ -1,0 +1,39 @@
+{
+  "checks": 4,
+  "regions_per_check": 3,
+  "interval_seconds": 300,
+  "policies": [
+    {
+      "name": "Hadithly website unavailable",
+      "enabled": true,
+      "failed_regions": 2,
+      "retest_seconds": 600,
+      "alignment_seconds": 1200,
+      "notification": "owner email"
+    },
+    {
+      "name": "Hadithly fallback unavailable",
+      "enabled": true,
+      "failed_regions": 2,
+      "retest_seconds": 600,
+      "alignment_seconds": 1200,
+      "notification": "owner email"
+    },
+    {
+      "name": "Hadithly development API degraded",
+      "enabled": true,
+      "failed_regions": 2,
+      "retest_seconds": 600,
+      "alignment_seconds": 1200,
+      "notification": "owner email"
+    },
+    {
+      "name": "Hadithly development notifications stale",
+      "enabled": true,
+      "failed_regions": 2,
+      "retest_seconds": 600,
+      "alignment_seconds": 1200,
+      "notification": "owner email"
+    }
+  ]
+}

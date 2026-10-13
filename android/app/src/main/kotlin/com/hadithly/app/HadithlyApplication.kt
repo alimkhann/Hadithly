@@ -60,6 +60,7 @@ class HadithlyApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        com.hadithly.app.core.diagnostics.CrashReporting.initialize(this)
         java.io.File(filesDir, "evidenceDrafts").listFiles()?.forEach { file ->
             if (System.currentTimeMillis() - file.lastModified() > 7L * 24 * 60 * 60 * 1000) file.delete()
         }

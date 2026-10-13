@@ -35,6 +35,10 @@
 	<string>$(CLERK_PUBLISHABLE_KEY)</string>
 	<key>ConvexURL</key>
 	<string>$(CONVEX_URL)</string>
+	<key>DiagnosticsDSN</key>
+	<string>$(DIAGNOSTICS_DSN)</string>
+	<key>DiagnosticsEnvironment</key>
+	<string>$(DIAGNOSTICS_ENVIRONMENT)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>PrivacyPolicyURL</key>

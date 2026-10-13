@@ -216,6 +216,7 @@ final class OfflineStore {
             lastError = nil
         } catch {
             lastError = "Could not check for updates. Your downloads keep working offline."
+            CrashReporting.shared.failure(.offlineManifest)
         }
     }
 

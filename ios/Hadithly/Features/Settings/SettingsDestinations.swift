@@ -1270,9 +1270,17 @@ struct PrivacyDataView: View {
     @State private var showDeleteConfirmation = false
     @State private var isDeletingAccount = false
     @State private var deletionError: String?
+    @State private var crashConsent = CrashReporting.shared.hasConsent
 
     var body: some View {
         SettingsList("Privacy & data") {
+            Section {
+                Toggle("Send crash reports", isOn: $crashConsent)
+                    .accessibilityIdentifier("settings.crashReports")
+                    .onChange(of: crashConsent) { _, enabled in CrashReporting.shared.setConsent(enabled) }
+            } footer: {
+                Text("Optional. Sends redacted failures and build information to Sentry. No reading text or account details. Reports expire after 30 days. Turning off clears pending reports on this device.")
+            }
             Section {
                 if clerk.session != nil {
                     Button {

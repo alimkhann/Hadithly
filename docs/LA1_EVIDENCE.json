@@ -1,0 +1,45 @@
+{
+  "release": "hadithly@fdf9ebf96361",
+  "reports": [
+    {
+      "surface": "ios",
+      "event_id": "3fa3ed391562446290bbf7459d363139",
+      "release": "hadithly@fdf9ebf96361",
+      "environment": "development",
+      "operation": "native_crash",
+      "redaction": "passed",
+      "readable_app_frames": 113,
+      "private_export_sha256": "8b40f8565726eca19e1a9bee505f2ce8cac10e08efec8201182b80117ae55f53"
+    },
+    {
+      "surface": "android",
+      "event_id": "36a315b7921a4ee5b150672232df30ab",
+      "release": "hadithly@fdf9ebf96361",
+      "environment": "development",
+      "operation": "native_crash",
+      "redaction": "passed",
+      "readable_app_frames": 2,
+      "private_export_sha256": "73a945dedbb077deb9b0152661cbf114655d96312180bc33b246f77f38ec44ca"
+    },
+    {
+      "surface": "backend",
+      "event_id": "fc2400081c974d0eb85c0af0b53d0ff8",
+      "release": "hadithly@fdf9ebf96361",
+      "environment": "development",
+      "operation": "synthetic",
+      "redaction": "passed",
+      "readable_app_frames": 0,
+      "private_export_sha256": "4c897c3b0f9759625c9e05295b54556fa299e168f77db3a33ce9365ec0946bfd"
+    },
+    {
+      "surface": "web",
+      "event_id": "fa7c0a5a4b154419a332aaaca3b05457",
+      "release": "hadithly@fdf9ebf96361",
+      "environment": "development",
+      "operation": "synthetic",
+      "redaction": "passed",
+      "readable_app_frames": 0,
+      "private_export_sha256": "61d7fa5fd3c51b7309ce1558ce98146d543e0f76c2605292d7a7b641f1acc74b"
+    }
+  ]
+}

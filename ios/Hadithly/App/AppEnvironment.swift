@@ -75,6 +75,22 @@ final class AppEnvironment {
     private var authStateCancellable: AnyCancellable?
 
     init(config: AppConfig = AppConfig(), guestData: GuestDataStore? = nil) {
+        #if DEBUG || DIAGNOSTICS_VERIFICATION
+        if AutomationContext.allows("-LA1DisableCrashReports") { CrashReporting.shared.setConsent(false) }
+        if AutomationContext.allows("-LA1SyntheticCrash") { CrashReporting.shared.setConsent(true) }
+        #endif
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil {
+            CrashReporting.shared.startIfConsented()
+        }
+        #else
+        CrashReporting.shared.startIfConsented()
+        #endif
+        #if DEBUG || DIAGNOSTICS_VERIFICATION
+        if AutomationContext.allows("-LA1SyntheticCrash") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) { fatalError("LA1SyntheticFailure") }
+        }
+        #endif
         let evidenceDirectory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appending(path: "EvidenceDrafts", directoryHint: .isDirectory)
         if let files = try? FileManager.default.contentsOfDirectory(at: evidenceDirectory, includingPropertiesForKeys: [.contentModificationDateKey]) {

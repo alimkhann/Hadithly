@@ -1,0 +1,1 @@
+window.HADITHLY_DIAGNOSTICS_RELEASE = "hadithly@fdf9ebf96361";

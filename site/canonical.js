@@ -172,6 +172,7 @@
         renderResolved(result, request);
       }
     }).catch(function () {
+      if (window.HadithlyDiagnostics) window.HadithlyDiagnostics.failure();
       status.textContent =
         "This page could not load the hadith. Try again, or open the app.";
     });

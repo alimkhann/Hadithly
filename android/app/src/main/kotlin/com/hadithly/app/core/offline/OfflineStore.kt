@@ -234,7 +234,7 @@ class OfflineStore(
             lastError = null
             changed()
         } catch (error: Exception) {
-            android.util.Log.w("OfflineStore", "manifest refresh failed", error)
+            com.hadithly.app.core.diagnostics.CrashReporting.failure(com.hadithly.app.core.diagnostics.DiagnosticFailure.OfflineManifest)
             lastError = "Could not check for updates (${error.message?.take(120)}). Your downloads keep working offline."
             changed()
         }

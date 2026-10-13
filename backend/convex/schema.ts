@@ -21,6 +21,10 @@ const authenticityGrade = v.union(
 );
 
 export default defineSchema({
+  diagnosticsState: defineTable({
+    month: v.string(), reports: v.number(), webReports: v.number(), failures: v.number(), windowStart: v.number(),
+    lastFailureAt: v.number(), lastReportAt: v.number(), lastWebReportAt: v.number(), heartbeatAt: v.number(), alertTestUntil: v.number(),
+  }),
   // Signed-in users only. Guest mode is device-local and never touches Convex.
   users: defineTable({
     clerkId: v.string(),
