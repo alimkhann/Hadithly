@@ -52,7 +52,7 @@ final class TranslationQ1UITests: XCTestCase {
         let plans = app.buttons["reader.quotaPaywall"]
         XCTAssertTrue(plans.waitForExistence(timeout: 10))
         plans.tap()
-        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label == %@", "Free includes 5 new AI translations in any 7 days; Pro includes 100. Cached translations use no allowance. Reading and saved items stay free. New AI translations may be temporarily unavailable.")).firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label == %@", "5 free or 100 Pro new translations in a rolling 7 days. Approved and cached translations stay free.")).firstMatch.waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label == %@", "Use Pro on your own iOS and Android devices with the same Hadithly account. Family Sharing is off.")).firstMatch.exists)
         XCTAssertTrue(app.buttons["Restore purchases"].exists)
         XCTAssertFalse(app.buttons["Weekly"].exists)

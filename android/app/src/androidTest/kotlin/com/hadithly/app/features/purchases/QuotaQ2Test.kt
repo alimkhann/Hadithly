@@ -4,6 +4,8 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.platform.app.InstrumentationRegistry
 import com.hadithly.app.R
 import com.hadithly.app.core.purchases.PurchaseManager
@@ -49,10 +51,10 @@ class QuotaQ2Test {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val purchases = PurchaseManager(context, "", scope)
         compose.setContent { HadithlyTheme { QuotaPaywallSheet(purchases, {}, {}) } }
-        compose.onNodeWithText(context.getString(R.string.q2_quota)).assertIsDisplayed()
+        compose.onNodeWithText(context.getString(R.string.la2_allowance)).assertIsDisplayed()
         compose.onNodeWithText(context.getString(R.string.q2_devices)).assertIsDisplayed()
         compose.onNodeWithText("Weekly").assertDoesNotExist()
-        compose.onNodeWithText("Restore purchases").performClick()
+        compose.onNodeWithTag("paywall.restore").performScrollTo().performClick()
         compose.onNodeWithText("Sign in to your original Hadithly account before restoring.").assertIsDisplayed()
         compose.runOnIdle { assertFalse(purchases.state.value.purchasing); assertFalse(purchases.state.value.hasProEntitlement) }
     }
