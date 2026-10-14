@@ -33,6 +33,19 @@ final class LocalizationCatalogTests: XCTestCase {
         XCTAssertEqual(try XCTUnwrap(catalog["sourceLanguage"] as? String), "en")
     }
 
+    func testEveryWaveOneLocaleHasEveryCatalogKey() throws {
+        let catalog = try catalogJSON()
+        let strings = try XCTUnwrap(catalog["strings"] as? [String: Any])
+        let locales = ["en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn"]
+        for (key, rawEntry) in strings {
+            let entry = try XCTUnwrap(rawEntry as? [String: Any])
+            let localizations = try XCTUnwrap(entry["localizations"] as? [String: Any], "missing localizations for \(key)")
+            for locale in locales {
+                XCTAssertNotNil(localizations[locale], "\(key) lacks \(locale)")
+            }
+        }
+    }
+
     func testF2KeysHaveArabicAndUrduUnitTranslations() throws {
         let catalog = try catalogJSON()
         let keys = [

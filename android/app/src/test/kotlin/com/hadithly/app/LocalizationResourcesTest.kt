@@ -51,6 +51,29 @@ class LocalizationResourcesTest {
     }
 
     @Test
+    fun `Wave 1 resource directories contain every English resource`() {
+        val locales = mapOf(
+            "ar" to "values-ar", "ru" to "values-ru", "kk" to "values-kk", "ky" to "values-ky",
+            "uz" to "values-uz", "tr" to "values-tr", "id" to "values-id", "ur" to "values-ur",
+            "fr" to "values-fr", "es-419" to "values-b+es+419", "pt-BR" to "values-pt-rBR",
+            "sw" to "values-sw", "hi" to "values-hi", "bn" to "values-bn",
+        )
+        for (fileName in listOf("strings.xml", "la2.xml")) {
+            val englishFile = File(resDir("values"), fileName)
+            val englishDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(englishFile)
+            val englishStrings = englishDoc.getElementsByTagName("string").length
+            val englishPlurals = englishDoc.getElementsByTagName("plurals").length
+            for ((locale, directory) in locales) {
+                val file = File(resDir(directory), fileName)
+                assertTrue("missing $locale/$fileName resources", file.exists())
+                val doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
+                assertEquals("$locale/$fileName string count", englishStrings, doc.getElementsByTagName("string").length)
+                assertEquals("$locale/$fileName plural count", englishPlurals, doc.getElementsByTagName("plurals").length)
+            }
+        }
+    }
+
+    @Test
     fun `English foundations exist with the plural fixture`() {
         val strings = strings("values")
         assertEquals("Choose your language", strings["onboarding_choose_language_title"])

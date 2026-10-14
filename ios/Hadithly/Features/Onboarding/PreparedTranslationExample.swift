@@ -11,5 +11,12 @@ enum PreparedTranslationExample {
         "tr": "Özgün metni okuyun ve anlamını kendi dilinizde anlayın.",
         "id": "Baca teks asli dan pahami maknanya dalam bahasa Anda.",
         "ur": "اصل متن پڑھیں اور اس کا مطلب اپنی زبان میں سمجھیں۔",
+        "ky": "Түп нуска текстти окуп, маанисин өз тилиңизде түшүнүңүз.",
+        "fr": "Lisez le texte original et comprenez-en le sens dans votre langue.",
+        "es-419": "Lee el texto original y entiende su significado en tu idioma.",
+        "pt-BR": "Leia o texto original e entenda seu significado no seu idioma.",
+        "sw": "Soma maandishi ya asili na uelewe maana yake kwa lugha yako.",
+        "hi": "मूल पाठ पढ़ें और उसका अर्थ अपनी भाषा में समझें।",
+        "bn": "মূল পাঠ পড়ুন এবং আপনার ভাষায় এর অর্থ বুঝুন।",
     ]
 }

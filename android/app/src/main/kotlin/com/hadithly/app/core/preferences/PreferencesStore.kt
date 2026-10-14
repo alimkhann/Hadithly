@@ -36,7 +36,7 @@ class PreferencesStore(sharedPrefs: SharedPreferences) {
 
     companion object {
         fun suggestedLanguage(preferred: List<String>): String {
-            val supported = setOf("en", "ar", "ru", "kk", "uz", "tr", "id", "ur")
+            val supported = com.hadithly.app.core.data.SupportedLanguages.all.map { it.first }.toSet()
             return preferred.asSequence().map { it.replace('_', '-').lowercase().substringBefore('-') }
                 .firstOrNull { it in supported } ?: "en"
         }

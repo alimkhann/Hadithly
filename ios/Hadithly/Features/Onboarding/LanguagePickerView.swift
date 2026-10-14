@@ -6,7 +6,24 @@ struct ReadingLanguage: Identifiable, Hashable {
 
     var id: String { code }
     var flag: String {
-        switch code { case "en": "🇬🇧"; case "kk": "🇰🇿"; case "ru": "🇷🇺"; case "uz": "🇺🇿"; case "tr": "🇹🇷"; case "id": "🇮🇩"; case "ur": "🇵🇰"; case "ar": "🇸🇦"; default: "🌐" }
+        switch code {
+        case "en": "🇬🇧"
+        case "ar": "🇸🇦"
+        case "ru": "🇷🇺"
+        case "kk": "🇰🇿"
+        case "ky": "🇰🇬"
+        case "uz": "🇺🇿"
+        case "tr": "🇹🇷"
+        case "id": "🇮🇩"
+        case "ur": "🇵🇰"
+        case "fr": "🇫🇷"
+        case "es-419": "🌎"
+        case "pt-BR": "🇧🇷"
+        case "sw": "🇰🇪"
+        case "hi": "🇮🇳"
+        case "bn": "🇧🇩"
+        default: "🌐"
+        }
     }
 }
 
@@ -15,13 +32,20 @@ struct ReadingLanguage: Identifiable, Hashable {
 enum SupportedLanguages {
     static let all: [ReadingLanguage] = [
         ReadingLanguage(code: "en", name: "English"),
-        ReadingLanguage(code: "kk", name: "Қазақша"),
+        ReadingLanguage(code: "ar", name: "العربية"),
         ReadingLanguage(code: "ru", name: "Русский"),
+        ReadingLanguage(code: "kk", name: "Қазақша"),
+        ReadingLanguage(code: "ky", name: "Кыргызча"),
         ReadingLanguage(code: "uz", name: "Oʻzbekcha"),
         ReadingLanguage(code: "tr", name: "Türkçe"),
         ReadingLanguage(code: "id", name: "Bahasa Indonesia"),
         ReadingLanguage(code: "ur", name: "اردو"),
-        ReadingLanguage(code: "ar", name: "العربية"),
+        ReadingLanguage(code: "fr", name: "Français"),
+        ReadingLanguage(code: "es-419", name: "Español (Latinoamérica)"),
+        ReadingLanguage(code: "pt-BR", name: "Português (Brasil)"),
+        ReadingLanguage(code: "sw", name: "Kiswahili"),
+        ReadingLanguage(code: "hi", name: "हिन्दी"),
+        ReadingLanguage(code: "bn", name: "বাংলা"),
     ]
 }
 

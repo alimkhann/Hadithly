@@ -84,8 +84,8 @@ private struct DailyWidgetView: View {
 
     private func accessibilityLabel(for snapshot: WidgetDailySnapshot) -> String {
         var label = "\(DailyWidgetCopy.title(snapshot.locale)), \(snapshot.reference), \(snapshot.sourceScope)"
-        if snapshot.isAI { label += ", AI translation" }
-        if WidgetRefreshPolicy.isStale(snapshot) { label += ", update when opened" }
+        if snapshot.isAI { label += ", \(DailyWidgetCopy.ai(snapshot.locale))" }
+        if WidgetRefreshPolicy.isStale(snapshot) { label += ", \(DailyWidgetCopy.stale(snapshot.locale))" }
         return label
     }
 }
@@ -163,9 +163,9 @@ private struct DailyWidgetReading: View {
 
     private var metadata: String {
         var parts = [snapshot.sourceScope]
-        if snapshot.isAI { parts.append("AI translation") }
-        if snapshot.isOffline { parts.append("Saved offline copy") }
-        if WidgetRefreshPolicy.isStale(snapshot) { parts.append("Update when opened") }
+        if snapshot.isAI { parts.append(DailyWidgetCopy.ai(snapshot.locale)) }
+        if snapshot.isOffline { parts.append(DailyWidgetCopy.offline(snapshot.locale)) }
+        if WidgetRefreshPolicy.isStale(snapshot) { parts.append(DailyWidgetCopy.stale(snapshot.locale)) }
         return parts.joined(separator: " · ")
     }
 

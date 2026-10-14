@@ -1,0 +1,241 @@
+platform	locale	category	keys	generated_drafts	native_reviewer	status
+ios	en	reading	127	83	native speaker	draft
+ios	en	authenticity	2	2	native speaker	draft
+ios	en	ai-quota	38	26	native speaker	draft
+ios	en	purchase	12	5	native speaker	draft
+ios	en	privacy	7	2	native speaker	draft
+ios	en	evidence	38	9	native speaker	draft
+ios	en	export	0	0	native speaker	review required
+ios	en	deletion	9	9	native speaker	draft
+ios	ar	reading	127	64	native speaker	draft
+ios	ar	authenticity	2	2	native speaker	draft
+ios	ar	ai-quota	38	22	native speaker	draft
+ios	ar	purchase	12	5	native speaker	draft
+ios	ar	privacy	7	2	native speaker	draft
+ios	ar	evidence	38	9	native speaker	draft
+ios	ar	export	0	0	native speaker	review required
+ios	ar	deletion	9	2	native speaker	draft
+ios	ru	reading	127	102	native speaker	draft
+ios	ru	authenticity	2	2	native speaker	draft
+ios	ru	ai-quota	38	35	native speaker	draft
+ios	ru	purchase	12	6	native speaker	draft
+ios	ru	privacy	7	4	native speaker	draft
+ios	ru	evidence	38	36	native speaker	draft
+ios	ru	export	0	0	native speaker	review required
+ios	ru	deletion	9	9	native speaker	draft
+ios	kk	reading	127	102	native speaker	draft
+ios	kk	authenticity	2	2	native speaker	draft
+ios	kk	ai-quota	38	35	native speaker	draft
+ios	kk	purchase	12	6	native speaker	draft
+ios	kk	privacy	7	4	native speaker	draft
+ios	kk	evidence	38	36	native speaker	draft
+ios	kk	export	0	0	native speaker	review required
+ios	kk	deletion	9	9	native speaker	draft
+ios	ky	reading	127	126	native speaker	draft
+ios	ky	authenticity	2	2	native speaker	draft
+ios	ky	ai-quota	38	37	native speaker	draft
+ios	ky	purchase	12	12	native speaker	draft
+ios	ky	privacy	7	7	native speaker	draft
+ios	ky	evidence	38	38	native speaker	draft
+ios	ky	export	0	0	native speaker	review required
+ios	ky	deletion	9	9	native speaker	draft
+ios	uz	reading	127	102	native speaker	draft
+ios	uz	authenticity	2	2	native speaker	draft
+ios	uz	ai-quota	38	35	native speaker	draft
+ios	uz	purchase	12	6	native speaker	draft
+ios	uz	privacy	7	4	native speaker	draft
+ios	uz	evidence	38	36	native speaker	draft
+ios	uz	export	0	0	native speaker	review required
+ios	uz	deletion	9	9	native speaker	draft
+ios	tr	reading	127	102	native speaker	draft
+ios	tr	authenticity	2	2	native speaker	draft
+ios	tr	ai-quota	38	35	native speaker	draft
+ios	tr	purchase	12	6	native speaker	draft
+ios	tr	privacy	7	4	native speaker	draft
+ios	tr	evidence	38	36	native speaker	draft
+ios	tr	export	0	0	native speaker	review required
+ios	tr	deletion	9	9	native speaker	draft
+ios	id	reading	127	102	native speaker	draft
+ios	id	authenticity	2	2	native speaker	draft
+ios	id	ai-quota	38	35	native speaker	draft
+ios	id	purchase	12	6	native speaker	draft
+ios	id	privacy	7	4	native speaker	draft
+ios	id	evidence	38	36	native speaker	draft
+ios	id	export	0	0	native speaker	review required
+ios	id	deletion	9	9	native speaker	draft
+ios	ur	reading	127	65	native speaker	draft
+ios	ur	authenticity	2	2	native speaker	draft
+ios	ur	ai-quota	38	22	native speaker	draft
+ios	ur	purchase	12	5	native speaker	draft
+ios	ur	privacy	7	2	native speaker	draft
+ios	ur	evidence	38	9	native speaker	draft
+ios	ur	export	0	0	native speaker	review required
+ios	ur	deletion	9	2	native speaker	draft
+ios	fr	reading	127	126	native speaker	draft
+ios	fr	authenticity	2	2	native speaker	draft
+ios	fr	ai-quota	38	37	native speaker	draft
+ios	fr	purchase	12	12	native speaker	draft
+ios	fr	privacy	7	7	native speaker	draft
+ios	fr	evidence	38	38	native speaker	draft
+ios	fr	export	0	0	native speaker	review required
+ios	fr	deletion	9	9	native speaker	draft
+ios	es-419	reading	127	126	native speaker	draft
+ios	es-419	authenticity	2	2	native speaker	draft
+ios	es-419	ai-quota	38	37	native speaker	draft
+ios	es-419	purchase	12	12	native speaker	draft
+ios	es-419	privacy	7	7	native speaker	draft
+ios	es-419	evidence	38	38	native speaker	draft
+ios	es-419	export	0	0	native speaker	review required
+ios	es-419	deletion	9	9	native speaker	draft
+ios	pt-BR	reading	127	126	native speaker	draft
+ios	pt-BR	authenticity	2	2	native speaker	draft
+ios	pt-BR	ai-quota	38	37	native speaker	draft
+ios	pt-BR	purchase	12	12	native speaker	draft
+ios	pt-BR	privacy	7	7	native speaker	draft
+ios	pt-BR	evidence	38	38	native speaker	draft
+ios	pt-BR	export	0	0	native speaker	review required
+ios	pt-BR	deletion	9	9	native speaker	draft
+ios	sw	reading	127	126	native speaker	draft
+ios	sw	authenticity	2	2	native speaker	draft
+ios	sw	ai-quota	38	37	native speaker	draft
+ios	sw	purchase	12	12	native speaker	draft
+ios	sw	privacy	7	7	native speaker	draft
+ios	sw	evidence	38	38	native speaker	draft
+ios	sw	export	0	0	native speaker	review required
+ios	sw	deletion	9	9	native speaker	draft
+ios	hi	reading	127	126	native speaker	draft
+ios	hi	authenticity	2	2	native speaker	draft
+ios	hi	ai-quota	38	37	native speaker	draft
+ios	hi	purchase	12	12	native speaker	draft
+ios	hi	privacy	7	7	native speaker	draft
+ios	hi	evidence	38	38	native speaker	draft
+ios	hi	export	0	0	native speaker	review required
+ios	hi	deletion	9	9	native speaker	draft
+ios	bn	reading	127	126	native speaker	draft
+ios	bn	authenticity	2	2	native speaker	draft
+ios	bn	ai-quota	38	37	native speaker	draft
+ios	bn	purchase	12	12	native speaker	draft
+ios	bn	privacy	7	7	native speaker	draft
+ios	bn	evidence	38	38	native speaker	draft
+ios	bn	export	0	0	native speaker	review required
+ios	bn	deletion	9	9	native speaker	draft
+android	en	reading	48	0	native speaker	review required
+android	en	authenticity	0	0	native speaker	review required
+android	en	ai-quota	13	0	native speaker	review required
+android	en	purchase	1	0	native speaker	review required
+android	en	privacy	3	0	native speaker	review required
+android	en	evidence	26	0	native speaker	review required
+android	en	export	0	0	native speaker	review required
+android	en	deletion	11	0	native speaker	review required
+android	ar	reading	48	0	native speaker	review required
+android	ar	authenticity	0	0	native speaker	review required
+android	ar	ai-quota	13	0	native speaker	review required
+android	ar	purchase	1	0	native speaker	review required
+android	ar	privacy	3	0	native speaker	review required
+android	ar	evidence	26	0	native speaker	review required
+android	ar	export	0	0	native speaker	review required
+android	ar	deletion	11	0	native speaker	review required
+android	ru	reading	48	46	native speaker	draft
+android	ru	authenticity	0	0	native speaker	review required
+android	ru	ai-quota	13	13	native speaker	draft
+android	ru	purchase	1	1	native speaker	draft
+android	ru	privacy	3	2	native speaker	draft
+android	ru	evidence	26	25	native speaker	draft
+android	ru	export	0	0	native speaker	review required
+android	ru	deletion	11	11	native speaker	draft
+android	kk	reading	48	46	native speaker	draft
+android	kk	authenticity	0	0	native speaker	review required
+android	kk	ai-quota	13	13	native speaker	draft
+android	kk	purchase	1	1	native speaker	draft
+android	kk	privacy	3	2	native speaker	draft
+android	kk	evidence	26	25	native speaker	draft
+android	kk	export	0	0	native speaker	review required
+android	kk	deletion	11	11	native speaker	draft
+android	ky	reading	48	46	native speaker	draft
+android	ky	authenticity	0	0	native speaker	review required
+android	ky	ai-quota	13	11	native speaker	draft
+android	ky	purchase	1	1	native speaker	draft
+android	ky	privacy	3	2	native speaker	draft
+android	ky	evidence	26	25	native speaker	draft
+android	ky	export	0	0	native speaker	review required
+android	ky	deletion	11	11	native speaker	draft
+android	uz	reading	48	46	native speaker	draft
+android	uz	authenticity	0	0	native speaker	review required
+android	uz	ai-quota	13	13	native speaker	draft
+android	uz	purchase	1	1	native speaker	draft
+android	uz	privacy	3	2	native speaker	draft
+android	uz	evidence	26	25	native speaker	draft
+android	uz	export	0	0	native speaker	review required
+android	uz	deletion	11	11	native speaker	draft
+android	tr	reading	48	46	native speaker	draft
+android	tr	authenticity	0	0	native speaker	review required
+android	tr	ai-quota	13	13	native speaker	draft
+android	tr	purchase	1	1	native speaker	draft
+android	tr	privacy	3	2	native speaker	draft
+android	tr	evidence	26	25	native speaker	draft
+android	tr	export	0	0	native speaker	review required
+android	tr	deletion	11	11	native speaker	draft
+android	id	reading	48	46	native speaker	draft
+android	id	authenticity	0	0	native speaker	review required
+android	id	ai-quota	13	13	native speaker	draft
+android	id	purchase	1	1	native speaker	draft
+android	id	privacy	3	2	native speaker	draft
+android	id	evidence	26	25	native speaker	draft
+android	id	export	0	0	native speaker	review required
+android	id	deletion	11	11	native speaker	draft
+android	ur	reading	48	0	native speaker	review required
+android	ur	authenticity	0	0	native speaker	review required
+android	ur	ai-quota	13	0	native speaker	review required
+android	ur	purchase	1	0	native speaker	review required
+android	ur	privacy	3	0	native speaker	review required
+android	ur	evidence	26	0	native speaker	review required
+android	ur	export	0	0	native speaker	review required
+android	ur	deletion	11	0	native speaker	review required
+android	fr	reading	48	46	native speaker	draft
+android	fr	authenticity	0	0	native speaker	review required
+android	fr	ai-quota	13	11	native speaker	draft
+android	fr	purchase	1	1	native speaker	draft
+android	fr	privacy	3	2	native speaker	draft
+android	fr	evidence	26	25	native speaker	draft
+android	fr	export	0	0	native speaker	review required
+android	fr	deletion	11	11	native speaker	draft
+android	es-419	reading	48	46	native speaker	draft
+android	es-419	authenticity	0	0	native speaker	review required
+android	es-419	ai-quota	13	11	native speaker	draft
+android	es-419	purchase	1	1	native speaker	draft
+android	es-419	privacy	3	2	native speaker	draft
+android	es-419	evidence	26	25	native speaker	draft
+android	es-419	export	0	0	native speaker	review required
+android	es-419	deletion	11	11	native speaker	draft
+android	pt-BR	reading	48	46	native speaker	draft
+android	pt-BR	authenticity	0	0	native speaker	review required
+android	pt-BR	ai-quota	13	11	native speaker	draft
+android	pt-BR	purchase	1	1	native speaker	draft
+android	pt-BR	privacy	3	2	native speaker	draft
+android	pt-BR	evidence	26	25	native speaker	draft
+android	pt-BR	export	0	0	native speaker	review required
+android	pt-BR	deletion	11	11	native speaker	draft
+android	sw	reading	48	46	native speaker	draft
+android	sw	authenticity	0	0	native speaker	review required
+android	sw	ai-quota	13	11	native speaker	draft
+android	sw	purchase	1	1	native speaker	draft
+android	sw	privacy	3	2	native speaker	draft
+android	sw	evidence	26	25	native speaker	draft
+android	sw	export	0	0	native speaker	review required
+android	sw	deletion	11	11	native speaker	draft
+android	hi	reading	48	46	native speaker	draft
+android	hi	authenticity	0	0	native speaker	review required
+android	hi	ai-quota	13	11	native speaker	draft
+android	hi	purchase	1	1	native speaker	draft
+android	hi	privacy	3	2	native speaker	draft
+android	hi	evidence	26	25	native speaker	draft
+android	hi	export	0	0	native speaker	review required
+android	hi	deletion	11	11	native speaker	draft
+android	bn	reading	48	46	native speaker	draft
+android	bn	authenticity	0	0	native speaker	review required
+android	bn	ai-quota	13	11	native speaker	draft
+android	bn	purchase	1	1	native speaker	draft
+android	bn	privacy	3	2	native speaker	draft
+android	bn	evidence	26	25	native speaker	draft
+android	bn	export	0	0	native speaker	review required
+android	bn	deletion	11	11	native speaker	draft

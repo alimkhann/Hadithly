@@ -1,3 +1,4 @@
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="saved_confirm_removal">التأكيد قبل إزالة العناصر المحفوظة</string>
     <string name="saved_remove_title">إزالة العنصر المحفوظ؟</string>
@@ -90,7 +91,6 @@
     <string name="e4_appeal_error">تعذر طلب الاستئناف. تحقق من المهلة وحاول عند الاتصال.</string>
     <string name="e4_revoked">سُحب النشر</string>
     <string name="e4_revoked_message">هذا الاقتراح خاص أثناء إعادة تقييم نشره.</string>
-
     <string name="q1_generate">إنشاء ترجمة بالذكاء الاصطناعي</string>
     <string name="q1_remaining">متبقي %1$d من %2$d ترجمة جديدة خلال سبعة أيام</string>
     <string name="q1_retry_at">متاح مجددًا %1$s</string>
@@ -115,4 +115,5 @@
     <string name="q2_wait">تعود حصتك في Pro عندما تخرج الترجمات السابقة من فترة الأيام السبعة. تظل الترجمات المخزنة والقراءة متاحة.</string>
     <string name="diagnostics_consent">إرسال تقارير الأعطال</string>
     <string name="diagnostics_privacy">اختياري. يرسل معلومات الأعطال والإصدار بعد تنقيحها إلى Sentry، دون نصوص القراءة أو تفاصيل الحساب. تنتهي صلاحية التقارير بعد 30 يوماً. يؤدي إيقافه إلى حذف التقارير المعلقة على هذا الجهاز.</string>
+    <string name="app_name">Hadithly</string>
 </resources>

@@ -1,3 +1,4 @@
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="saved_confirm_removal">محفوظہ آئٹمز ہٹانے سے پہلے تصدیق کریں</string>
     <string name="saved_remove_title">محفوظہ آئٹم ہٹائیں؟</string>
@@ -82,7 +83,6 @@
     <string name="e4_appeal_error">اپیل کی درخواست نہیں ہو سکی۔ مدت چیک کریں اور رابطہ ہونے پر دوبارہ کوشش کریں۔</string>
     <string name="e4_revoked">اشاعت واپس لے لی گئی</string>
     <string name="e4_revoked_message">اشاعت کی دوبارہ جانچ کے دوران یہ تجویز نجی ہے۔</string>
-
     <string name="q1_generate">اے آئی ترجمہ بنائیں</string>
     <string name="q1_remaining">سات دنوں میں %2$d میں سے %1$d نئے ترجمے باقی ہیں</string>
     <string name="q1_retry_at">دوبارہ دستیاب: %1$s</string>
@@ -107,4 +107,5 @@
     <string name="q2_wait">پچھلے تراجم 7 دن کی مدت سے باہر ہونے پر آپ کا Pro کوٹہ واپس دستیاب ہوتا ہے۔ پہلے سے محفوظ تراجم اور پڑھنے کی سہولت دستیاب رہتی ہے۔</string>
     <string name="diagnostics_consent">کریش کی رپورٹس بھیجیں</string>
     <string name="diagnostics_privacy">اختیاری۔ Sentry کو حساس معلومات سے پاک خرابیوں اور بلڈ کی معلومات بھیجتا ہے۔ پڑھنے کا متن یا اکاؤنٹ کی تفصیلات شامل نہیں۔ رپورٹس 30 دن بعد ختم ہو جاتی ہیں۔ بند کرنے سے اس آلے کی زیر التوا رپورٹس حذف ہو جاتی ہیں۔</string>
+    <string name="app_name">Hadithly</string>
 </resources>

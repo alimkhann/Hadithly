@@ -264,13 +264,20 @@ object Collections {
 object SupportedLanguages {
     val all: List<Pair<String, String>> = listOf(
         "en" to "English",
-        "kk" to "Қазақша",
+        "ar" to "العربية",
         "ru" to "Русский",
+        "kk" to "Қазақша",
+        "ky" to "Кыргызча",
         "uz" to "Oʻzbekcha",
         "tr" to "Türkçe",
         "id" to "Bahasa Indonesia",
         "ur" to "اردو",
-        "ar" to "العربية",
+        "fr" to "Français",
+        "es-419" to "Español (Latinoamérica)",
+        "pt-BR" to "Português (Brasil)",
+        "sw" to "Kiswahili",
+        "hi" to "हिन्दी",
+        "bn" to "বাংলা",
     )
 }
 
