@@ -137,6 +137,16 @@ li {
   box-shadow: 0 1.2rem 3rem rgba(24, 53, 45, 0.06);
 }
 
+.card > h2:first-child { margin-top: 0; }
+form label { display: block; margin: 1rem 0 0.4rem; font-weight: 600; }
+input, select, textarea { display: block; width: 100%; min-height: 44px; padding: 0.7rem; border: 1px solid var(--line); border-radius: 0.5rem; color: var(--ink); background: var(--paper); font: inherit; }
+textarea { resize: vertical; }
+button { min-height: 44px; font: inherit; cursor: pointer; }
+button:disabled { opacity: 0.65; cursor: wait; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.honeypot { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+[hidden] { display: none !important; }
+
 .document h1 {
   max-width: 18ch;
   font-size: clamp(2.4rem, 7vw, 4rem);

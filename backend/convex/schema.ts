@@ -10,6 +10,7 @@ import { legacyReaderPreferencesValidator, readerPreferencesValidator } from "./
 import { readingPositionValidator } from "./lib/readingPositions";
 import { permissionGrant, publicCitation, reviewPass, sourcePolicy } from "./lib/evidenceReviewPolicy";
 import { caseReason, caseState } from "./lib/evidenceCasePolicy";
+import { supportFields, noticeKind } from "./lib/supportPolicy";
 
 const authenticityGrade = v.union(
   v.literal("sahih"),
@@ -21,6 +22,16 @@ const authenticityGrade = v.union(
 );
 
 export default defineSchema({
+  supportRequests: defineTable({ ...supportFields, expiresAt: v.number() })
+    .index("by_reference", ["requestId"]).index("by_expiry", ["expiresAt"]),
+  supportRates: defineTable({ emailHash: v.string(), count: v.number(), expiresAt: v.number() })
+    .index("by_hash", ["emailHash"]).index("by_expiry", ["expiresAt"]),
+  operationsState: defineTable({ day: v.string(), month: v.string(), minute: v.number(), ingressMinute: v.number(), ingressDaily: v.number(),
+    supportDaily: v.number(), supportMonthly: v.number(), mailDaily: v.number(), mailMonthly: v.number(), suppressed: v.boolean() }),
+  operationsMail: defineTable({ kind: noticeKind, reference: v.string(), expiresAt: v.number(), providerId: v.optional(v.string()),
+    state: v.union(v.literal("queued"), v.literal("attempted"), v.literal("sent"), v.literal("delivered"), v.literal("bounced"), v.literal("complained")) })
+    .index("by_kind_reference", ["kind", "reference"]).index("by_provider", ["providerId"]).index("by_state", ["state"]).index("by_expiry", ["expiresAt"]),
+  reviewMonthlyBudgets: defineTable({ month: v.string(), attempts: v.number() }).index("by_month", ["month"]),
   analyticsReceipts: defineTable({ batchId: v.string(), expiresAt: v.number() })
     .index("by_batch", ["batchId"]).index("by_expiry", ["expiresAt"]),
   analyticsBuckets: defineTable({ day: v.string(), platform: v.union(v.literal("ios"), v.literal("android")),

@@ -11,6 +11,7 @@ import { verifyEvidenceFile } from "./lib/evidenceFiles";
 import { MAX_EVIDENCE_BYTES } from "./lib/evidencePolicy";
 import { parseWebFailure, diagnosticsEnvironment } from "./lib/diagnosticsPolicy";
 import { parseSummary } from "./lib/analyticsPolicy";
+import { boundedText, parseSupport, record, verifyMailSignature } from "./lib/supportPolicy";
 
 /**
  * RevenueCat webhook. app_user_id is the Clerk user id (the app configures
@@ -54,6 +55,38 @@ const revenueCatWebhook = httpAction(async (ctx, request) => {
 });
 
 export const http = httpRouter();
+
+const supportCors = { "Access-Control-Allow-Origin": "https://hadithly.app", "Vary": "Origin", "Cache-Control": "no-store" };
+http.route({ path: "/support/request", method: "OPTIONS", handler: httpAction(async () => new Response(null,
+  { status: 204, headers: { ...supportCors, "Access-Control-Allow-Methods": "POST", "Access-Control-Allow-Headers": "Content-Type" } })) });
+http.route({ path: "/support/request", method: "POST", handler: httpAction(async (ctx, request) => {
+  const reply = (status: number) => new Response(null, { status, headers: supportCors });
+  if (request.headers.get("origin") !== "https://hadithly.app" || request.headers.has("authorization") || request.headers.has("cookie")) return reply(403);
+  if (process.env.SUPPORT_ENABLED !== "1" || process.env.OPERATIONS_MAIL_ENABLED !== "1" || !process.env.RESEND_API_KEY
+    || !process.env.OPERATIONS_EMAIL || !process.env.SUPPORT_TURNSTILE_SECRET || !process.env.SUPPORT_RATE_SECRET) return reply(503);
+  if (request.headers.get("content-type")?.split(";")[0] !== "application/json") return reply(400);
+  const text = await boundedText(request, 12_288); if (text === null) return reply(413);
+  let raw: unknown; try { raw = JSON.parse(text); } catch { return reply(400); }
+  const parsed = parseSupport(raw); if (!parsed) return reply(400);
+  if (!await ctx.runMutation(internal.support.ingress, {})) return reply(429);
+  const emailHash = await ctx.runAction(internal.actions.support.verifyChallenge, { token: parsed.token, email: parsed.email });
+  if (!emailHash) return reply(403);
+  const { token, website, ...fields } = parsed;
+  const result = await ctx.runMutation(internal.support.accept, { ...fields, emailHash });
+  return reply(result === "accepted" || result === "duplicate" ? 202 : result === "limited" ? 429 : 503);
+}) });
+http.route({ path: "/webhooks/operations-mail", method: "POST", handler: httpAction(async (ctx, request) => {
+  const secret = process.env.RESEND_WEBHOOK_SECRET; if (!secret) return new Response(null, { status: 503 });
+  const text = await boundedText(request, 20_000); if (text === null) return new Response(null, { status: 413 });
+  if (!await verifyMailSignature(text, request.headers, secret, Date.now())) return new Response(null, { status: 401 });
+  let raw: unknown; try { raw = JSON.parse(text); } catch { return new Response(null, { status: 400 }); }
+  if (!record(raw) || typeof raw.type !== "string") return new Response(null, { status: 400 });
+  if (raw.type !== "email.delivered" && raw.type !== "email.bounced" && raw.type !== "email.complained") return new Response(null, { status: 204 });
+  if (!record(raw.data) || typeof raw.data.email_id !== "string" || !/^[a-zA-Z0-9-]{1,100}$/.test(raw.data.email_id)) return new Response(null, { status: 400 });
+  const outcome = raw.type === "email.delivered" ? "delivered" : raw.type === "email.bounced" ? "bounced" : "complained";
+  const found = await ctx.runMutation(internal.support.mailEvent, { providerId: raw.data.email_id, outcome });
+  return new Response(null, { status: found ? 204 : 503 });
+}) });
 
 http.route({ path: "/analytics/summary", method: "POST", handler: httpAction(async (ctx, request) => {
   if (process.env.ANALYTICS_ENABLED !== "1") return new Response(null, { status: 503 });

@@ -1,0 +1,21 @@
+{
+  "recordedAt": "2026-10-14T01:27:41.137Z",
+  "scope": "isolated anonymous local Convex, current Hadithly schema, synthetic data only",
+  "tables": [
+    "users",
+    "hadiths",
+    "savedFolders",
+    "savedItems",
+    "readingProgress"
+  ],
+  "documents": 5,
+  "storageFiles": 1,
+  "snapshotBytes": 30223,
+  "snapshotSha256": "af5cea6fb5a967f206253823e40fbf599596bc83ee0b1c2840cc9b8c7aa9675e",
+  "exactRestoredDocumentsAndStorageMetadata": true,
+  "restoredFileBytesVerified": true,
+  "restoreMs": 2131,
+  "drillMs": 4196,
+  "productionRestoreTested": false,
+  "configSecretsSchedulesIncluded": false
+}

@@ -6,7 +6,7 @@ import { requireIdentity } from "./lib/identity";
 import { availableDefault } from "./translations";
 import { publicTranslationAvailable } from "./lib/evidencePublication";
 import { GENERATION_MODEL, GENERATION_PROMPT_VERSION, LEASE_MS, PRICING_VERSION, WINDOW_MS,
-  generationIdentity, generationLanguage, generationLimit, generationSourceAllowed, rollingAllowance, telemetryValidator, tokenCostMicroUsd } from "./lib/generationPolicy";
+  generationIdentity, generationLanguage, generationLimit, generationSourceAllowed, monthlyGenerationSpendPolicy, rollingAllowance, telemetryValidator, tokenCostMicroUsd } from "./lib/generationPolicy";
 
 export async function allowanceFor(ctx: QueryCtx | MutationCtx, user: Doc<"users">, now: number) {
   const charges = await ctx.db.query("aiUsageCharges").withIndex("by_user_time", q =>
@@ -115,17 +115,10 @@ async function admitDailySpend(ctx: MutationCtx, now: number, consume: boolean) 
 async function reserveMonthlySpend(ctx: MutationCtx, now: number, freePool: boolean): Promise<
   { kind: "reserved"; monthKey: string; reservedMicroUsd: number } | { kind: "rejected"; retryAt: number }
 > {
-  const date = new Date(now), start = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1);
-  const next = Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 1);
-  const configured = Number(process.env.AI_MONTHLY_ATTEMPT_LIMIT ?? "25000");
-  const limit = Number.isSafeInteger(configured) && configured > 0 && configured <= 100_000 ? configured : 25000;
-  const configuredUsd = Number(process.env.AI_MONTHLY_BUDGET_USD ?? "10");
-  const budgetMicroUsd = Math.floor((Number.isFinite(configuredUsd) && configuredUsd >= 0.02 && configuredUsd <= 1000 ? configuredUsd : 10) * 1_000_000);
-  const reservedMicroUsd = 20_000, monthKey = String(start);
+  const { start, next, monthKey, limit, budgetMicroUsd, freeLimit } = monthlyGenerationSpendPolicy(now);
+  const reservedMicroUsd = 20_000;
   const budget = await ctx.db.query("aiSpendBudgets").withIndex("by_month", q => q.eq("monthKey", monthKey)).unique();
   if ((budget?.committedMicroUsd ?? 0) + reservedMicroUsd > budgetMicroUsd) return { kind: "rejected", retryAt: next };
-  const configuredFreeUsd = Number(process.env.AI_FREE_MONTHLY_BUDGET_USD ?? "2");
-  const freeLimit = Math.min(budgetMicroUsd, Math.floor((Number.isFinite(configuredFreeUsd) && configuredFreeUsd >= 0 && configuredFreeUsd <= 1000 ? configuredFreeUsd : 2) * 1_000_000));
   // Pre-Q2 spend has no pool attribution. Count it as free until this month ends.
   const freeCommitted = budget?.freeCommittedMicroUsd ?? budget?.committedMicroUsd ?? 0;
   if (freePool && freeCommitted + reservedMicroUsd > freeLimit) return { kind: "rejected", retryAt: next };

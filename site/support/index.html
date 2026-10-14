@@ -6,6 +6,8 @@
     <meta name="description" content="Get help with Hadithly.">
     <title>Support · Hadithly</title>
     <link rel="stylesheet" href="/styles.css">
+    <script src="/operations-config.js" defer></script>
+    <script src="/support.js" defer></script>
   </head>
   <body>
     <div class="shell">
@@ -18,12 +20,32 @@
       </header>
       <main>
         <p class="eyebrow">Support</p>
-        <h1>We’ll help you get back to reading.</h1>
+        <h1>Get help with Hadithly.</h1>
         <p class="lede">For account, subscription, translation, notification, or accessibility help, email us. Include your platform and app version. Never send a password, one-time code, purchase token, or private note.</p>
         <div class="card">
           <p><a class="button primary" href="mailto:support@hadithly.app">Email support@hadithly.app</a></p>
           <p class="meta">For subscription cancellations or refunds, use the App Store or Google Play account that made the purchase. Hadithly cannot view or change your payment-card details.</p>
         </div>
+        <p><a href="/status/">Service status and incident updates</a></p>
+        <section class="card" aria-labelledby="form-title">
+          <h2 id="form-title">Send a support request</h2>
+          <p id="form-unavailable">The support form is temporarily unavailable. You can email support above.</p>
+          <form id="support-form" hidden>
+            <label for="email">Your reply email</label>
+            <input id="email" name="email" type="email" autocomplete="email" maxlength="254" required>
+            <label for="topic">What do you need help with?</label>
+            <select id="topic" name="topic"><option value="account">Account</option><option value="subscription">Subscription</option><option value="reading">Reading</option><option value="accessibility">Accessibility</option><option value="other">Other</option></select>
+            <label for="platform">Platform</label>
+            <select id="platform" name="platform"><option value="ios">iOS</option><option value="android">Android</option><option value="web">Website</option></select>
+            <label for="message">How can we help?</label>
+            <textarea id="message" name="message" minlength="10" maxlength="2000" rows="6" aria-describedby="privacy-note" required></textarea>
+            <p id="privacy-note" class="meta">Include your app version if useful. Do not include passwords, codes, notes, reading history, evidence, or payment details. No attachments. Requests expire from our support database after 30 days. Email sent directly to support is kept for up to 90 days after closure.</p>
+            <div class="honeypot" aria-hidden="true"><label for="website">Leave this empty</label><input id="website" name="website" tabindex="-1" autocomplete="off"></div>
+            <div id="support-challenge"></div>
+            <button class="button primary" type="submit" id="send-request">Send request</button>
+          </form>
+          <p id="form-result" role="status" aria-live="polite"></p>
+        </section>
       </main>
       <footer>
         <span>© 2026 Hadithly</span>

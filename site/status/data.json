@@ -1,0 +1,38 @@
+{
+  "updatedAt": "2026-10-14T01:10:00Z",
+  "components": [
+    {
+      "name": "Website",
+      "state": "unknown"
+    },
+    {
+      "name": "Reading API",
+      "state": "unknown"
+    },
+    {
+      "name": "Sign-in",
+      "state": "unknown"
+    },
+    {
+      "name": "Notifications",
+      "state": "unknown"
+    },
+    {
+      "name": "Translation",
+      "state": "unknown"
+    }
+  ],
+  "incidents": [
+    {
+      "id": "la3-synthetic-2026-10-14",
+      "exercise": true,
+      "state": "resolved",
+      "startedAt": "2026-10-14T01:00:00Z",
+      "resolvedAt": "2026-10-14T01:10:00Z",
+      "title": "Synthetic translation outage exercise",
+      "impact": "Test scenario only. No actual service outage or user data is involved.",
+      "mitigation": "Exercise fallback: pause new translations and continue cached or downloaded reading.",
+      "resolution": "The local status publication path was exercised. Live provider recovery is a separate check."
+    }
+  ]
+}

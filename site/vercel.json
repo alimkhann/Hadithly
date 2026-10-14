@@ -11,6 +11,10 @@
   ],
   "headers": [
     {
+      "source": "/status/:path*",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+    },
+    {
       "source": "/.well-known/assetlinks.json",
       "headers": [
         {

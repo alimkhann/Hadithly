@@ -45,5 +45,8 @@ crons.interval("subscription recovery", { hours: 1 }, internal.subscriptions.rec
 crons.interval("subscription receipt retention", { hours: 24 }, internal.subscriptions.pruneReceipts, {});
 crons.interval("analytics summary retention", { hours: 1 }, internal.analytics.retain, {});
 crons.interval("export anonymous analytics totals", { minutes: 5 }, internal.actions.analytics.exportDaily, {});
+crons.interval("support retention", { hours: 1 }, internal.support.retain, {});
+crons.interval("operational budget warnings", { hours: 1 }, internal.support.budgetWarnings, {});
+crons.interval("dispatch operational notices", { hours: 1 }, internal.support.dispatch, {});
 
 export default crons;

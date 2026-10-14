@@ -167,7 +167,8 @@ async function snapshotFor(ctx: Ctx, submission: Doc<"communitySubmissions">) {
   const appeals = await ctx.db.query("evidenceAppeals").withIndex("by_submission", q => q.eq("submissionId", submission._id)).collect();
   concerns.push(...appeals.flatMap(appeal => appeal.status === "processing" && appeal.reason ? [appeal.reason] : []));
   const packet: ReviewPacket = { policyVersion: POLICY_VERSION, untrustedData: { canonicalId, language: submission.language, proposedTranslation: submission.proposedContent, sources, ...(concerns.length ? { concerns: concerns.slice(0, 10) } : {}) } };
-  if (JSON.stringify(packet).length > 120_000) clean = false;
+  const serializedPacket = JSON.stringify(packet);
+  if (serializedPacket.length > 120_000 || new TextEncoder().encode(serializedPacket).length > 131_072) clean = false;
   const abuse = abuseRows.some(row => row.status !== "none") || deletionRows.some(row => row.status !== "active");
   const defaults = await ctx.db.query("translations").withIndex("by_hadith_language_default", q => q.eq("hadithId", hadith._id).eq("language", submission.language).eq("isDefault", true)).collect();
   const binding = await textDigest(canonicalJson({ packet, bindings, defaults, consent: submission.contributionConsentVersion, replacement: submission.replacesTranslationId, abuseRows, deletionRows }));
@@ -308,6 +309,10 @@ export const claim = internalMutation({
       return null;
     }
     if (!args.reviewEnabled) return null;
+    // Reserve a pair before either provider call. Unknown failures still spend it.
+    const month = new Date().toISOString().slice(0, 7);
+    const monthly = await ctx.db.query("reviewMonthlyBudgets").withIndex("by_month", q => q.eq("month", month)).unique();
+    if ((monthly?.attempts ?? 0) >= 100) return null;
     const targetSpend = await ctx.db.query("evidenceReviewSpendEvents").withIndex("by_submission_time", q => q.eq("submissionId", submission._id).gte("createdAt", Date.now() - APPEAL_WINDOW_MS)).take(6);
     const globalSpend = await ctx.db.query("evidenceReviewGlobalSpendEvents").withIndex("by_time", q => q.gte("createdAt", Date.now() - DAY_MS)).take(100);
     if (targetSpend.length >= 6 || globalSpend.length >= 100 || activeCase && activeCase.attempts >= 3) {
@@ -317,6 +322,8 @@ export const claim = internalMutation({
       return null;
     }
     const token = crypto.randomUUID();
+    if (monthly) await ctx.db.patch(monthly._id, { attempts: monthly.attempts + 1 });
+    else await ctx.db.insert("reviewMonthlyBudgets", { month, attempts: 1 });
     await ctx.db.insert("evidenceReviewSpendEvents", { submissionId: submission._id, createdAt: Date.now() });
     await ctx.db.insert("evidenceReviewGlobalSpendEvents", { createdAt: Date.now() });
     if (activeCase) await ctx.db.patch(activeCase._id, { attempts: activeCase.attempts + 1, state: { kind: "running", dueAt: Date.now() + 180_000, token } });
