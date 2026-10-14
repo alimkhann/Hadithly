@@ -44,6 +44,13 @@ Keep the launch site static wherever possible. Do not put a Worker in front of e
 
 ### Optional read-only web reader
 
+LA4 refresh, October 14, 2026: [the decision is defer](LA4_DECISION.md). Native
+launch and post-launch demand are unestablished. Live readback confirms the older
+static routing notice, not the local F3 text resolver. Vercel analytics is
+unavailable, rights/redistribution and commercial hosting remain open, and
+published rates do not establish actual monthly cost. No web-reader code or
+implementation sessions were added. The post-launch acceptance gate stays open.
+
 A complete signed-in web app would duplicate native account, sync, offline, purchase, accessibility, and security work. It should not be a launch dependency. If demand is demonstrated, the first web reader should be read-only and use the same canonical identifiers, attribution rules, authenticity language, and localized metadata as the apps. It should omit AI generation, contributions, personal saves, and subscription management until those surfaces have a justified web threat model.
 
 Large immutable collection dumps deserve a separate delivery path. [Cloudflare R2 pricing](https://developers.cloudflare.com/r2/pricing/) includes 10 GB-month storage, 1 million Class A operations, and 10 million Class B operations per month at no cost; internet egress is free. Above that, standard storage is $0.015/GB-month, Class A is $4.50/million, and Class B is $0.36/million. Use content-addressed filenames, signed manifests, checksums, versions, long immutable cache headers, and an atomic manifest switch.

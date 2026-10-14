@@ -48,6 +48,9 @@ store and production gates are open. LA3 implementation and approved live suppor
 authenticated email, published status, isolated recovery and Google budget proof
 are recorded in `docs/LA3_VERIFICATION.md`. Production backups/RPO/RTO/deletion
 replay, provider invoice/contract readbacks and release rollout remain open.
+LA4 received a pre-launch defer record on October 14. Its post-launch
+acceptance gate remains open; no reader code or implementation sessions were
+authorized. See `docs/LA4_DECISION.md` and `docs/LA4_VERIFICATION.md`.
 Stop before L1.
 Do not
 start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
@@ -424,7 +427,7 @@ substantive: they own bounded implementation outcomes, not just inventories.
 | LA1 | Add low-cost crash reporting, structured logs, uptime checks, and privacy-safe alerting. | Development passed; release/device limitations remain in `LA1_VERIFICATION.md`. | GPT-6.1 Sol, high, owner override |
 | LA2 | Add minimal privacy-preserving product analytics and a deletion/retention contract. | A tiny event taxonomy answers launch questions without capturing reading content. | GPT-6.1 Sol High; separate privacy/deletion review |
 | LA3 | Add support email, transactional email, status/incident copy, backups, and cost budgets. | Approved live support/mail/status, isolated restore and Google alarm pass; production/provider-contract gates retained. | GPT-6.1 Sol High, owner override; separate delivery-security/cost review |
-| LA4 | Decide whether to expand the fallback into a read-only web reader after native launch. | Licensing, demand, maintenance, privacy, and cost evidence support an explicit build-or-defer decision. | GLM-5.3-Flash; Terra medium review |
+| LA4 | Decide whether to expand the fallback into a read-only web reader after native launch. | Pre-launch defer recorded October 14; actual post-launch demand, rights, commercial hosting and cost proof remain open. No reader implementation authorized. | Luna high fallback after GLM Go access failure; Terra medium review |
 | L1 | Finish Wave 1 localization, native-speaker QA, metadata, screenshots, and the release candidate. | No critical untranslated UI, broken RTL, policy gap, cost alarm, or dashboard blocker remains. | GLM-5.3-Flash; Terra high review; Sol high final gate |
 
 ### F1 session record (2026-09-07)
@@ -1799,6 +1802,34 @@ substantive: they own bounded implementation outcomes, not just inventories.
   `docs/LA3_RECOVERY_EVIDENCE.json`, `docs/LA3_LIVE_EVIDENCE.json` and
   `docs/LA3_VERIFICATION.md`. Approved development/live proof is complete; the
   production operations and earlier release gates remain recorded. Stop before L1.
+
+### LA4 pre-launch web-reader deferral (2026-10-14)
+
+- Decision: defer. This is a dependency/evidence audit, not a passed post-launch
+  acceptance gate. L1 has not started, D4 remains blocked, and native launch is
+  unestablished. Earlier device, release, production and rights gates stay open.
+- The actual canonical URL serves the older 1,212-byte static `noindex` routing
+  notice. `/canonical.js` is 404; the local F3 licensed-text resolver is not live.
+  Its production deployment gate remains open. The landing page matches checkout.
+- Correctly scoped Vercel production analytics returned `404 Web Analytics not
+  found`. LA2's 62 provider rows are development verification, not referral or
+  desktop demand; development collection/export is off. Missing evidence is not
+  zero demand. No analytics or account setting was changed.
+- O1's source record denies general redistribution. Per-corpus/translation web,
+  commercial, cache and indexing scope remain unproven. Vercel Hobby commercial
+  eligibility and shared provider usage/invoices also remain open. Published
+  prices and illustrative byte/cache math are not actual monthly costs.
+- Maximum future proposal: 100 canonical pages from one collection, Arabic plus
+  one affirmatively licensed existing translation, signed-out/read-only, Convex
+  authority and data-only static/CDN delivery. No accounts, contributions, AI,
+  Saved sync, subscriptions, search or second backend. No implementation sessions
+  were created. Proposed demand and shutdown thresholds authorize no spend or code.
+- GLM through OpenCode Go failed with a subscription-required 403. The requested
+  Luna high fallback authored the record; separate Terra medium reviewed rights,
+  architecture and costs. Only documentation/evidence changed. See
+  `docs/LA4_DECISION.md`, `docs/LA4_EVIDENCE.json`, `docs/LA4_REVIEW.md` and
+  `docs/LA4_VERIFICATION.md`. Reopen after native launch and a real 28-day demand
+  window, with the recorded rights/hosting/cost proof. Stop here.
 
 ### Future topic browsing with the Jev classifier (not a session)
 

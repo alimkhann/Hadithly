@@ -1,0 +1,124 @@
+{
+  "recordedAtUtc": "2026-10-14T18:23:21.242356+00:00",
+  "nativeLaunch": "not established; PLAN says L1 has not started and D4 is blocked",
+  "nativeAnalytics": "LA2 development fixtures only; collection/export disabled after proof; no referral/device/web demand metrics in closed catalog",
+  "webAnalytics": {
+    "provider": "Vercel",
+    "project": "hadithly",
+    "scope": "production, 2026-09-02T00:00:00Z through 2026-10-14T18:00:00Z, grouped by deviceType",
+    "result": "404 not_found: Web Analytics not found",
+    "interpretation": "unavailable, not measured zero"
+  },
+  "publicReadback": [
+    {
+      "url": "https://hadithly.app/",
+      "status": 200,
+      "bytes": 1279,
+      "sha256": "b9956e8d7dcb50df4c2268d4c4ebd508b9521af1b5356f5aa027814c4ee6c735",
+      "cacheControl": "public, max-age=0, must-revalidate",
+      "cdnCache": "HIT",
+      "robots": [],
+      "title": "Hadithly",
+      "scripts": [],
+      "hasAnalyticsBeacon": false,
+      "hasConvexResolver": false,
+      "hasOpenGraph": false,
+      "matchesLocalCheckout": true
+    },
+    {
+      "url": "https://hadithly.app/hadith/bukhari/1",
+      "status": 200,
+      "bytes": 1212,
+      "sha256": "9d525233287ea5b9c51eab5409e497f3e3cb846e7575fc978d2ede11ed8f265c",
+      "cacheControl": "public, max-age=0, must-revalidate",
+      "cdnCache": "MISS",
+      "robots": [
+        "noindex"
+      ],
+      "title": "Open a hadith \u00b7 Hadithly",
+      "scripts": [],
+      "hasAnalyticsBeacon": false,
+      "hasConvexResolver": false,
+      "hasOpenGraph": false,
+      "matchesLocalCheckout": false
+    },
+    {
+      "url": "https://hadithly.app/canonical.js",
+      "status": 404,
+      "bytes": 79,
+      "sha256": "af9120a3dc0bca8c2ed23c1c8484025a49f0043c3c84b19d57ede52fb07d5c7f",
+      "cacheControl": "public, max-age=0, must-revalidate",
+      "cdnCache": null,
+      "robots": [],
+      "title": "",
+      "scripts": [],
+      "hasAnalyticsBeacon": false,
+      "hasConvexResolver": false,
+      "hasOpenGraph": false
+    },
+    {
+      "url": "https://hadithly.app/robots.txt",
+      "status": 404,
+      "bytes": 79,
+      "sha256": "601c5c2bd6a49051b4c3237700e4d2106b067ad8756d061653160ae4a95fff94",
+      "cacheControl": "public, max-age=0, must-revalidate",
+      "cdnCache": null,
+      "robots": [],
+      "title": "",
+      "scripts": [],
+      "hasAnalyticsBeacon": false,
+      "hasConvexResolver": false,
+      "hasOpenGraph": false
+    },
+    {
+      "url": "https://hadithly.app/sitemap.xml",
+      "status": 404,
+      "bytes": 79,
+      "sha256": "58b00859e1efbf633125ef6a5d53b44c5df46bcfca126324beec842ff1ac6cb6",
+      "cacheControl": "public, max-age=0, must-revalidate",
+      "cdnCache": null,
+      "robots": [],
+      "title": "",
+      "scripts": [],
+      "hasAnalyticsBeacon": false,
+      "hasConvexResolver": false,
+      "hasOpenGraph": false
+    }
+  ],
+  "pricingSourcesRefreshed": [
+    "https://vercel.com/docs/plans/hobby",
+    "https://vercel.com/pricing",
+    "https://www.convex.dev/pricing",
+    "https://developers.cloudflare.com/r2/pricing/",
+    "https://docs.convex.dev/production/state/limits"
+  ],
+  "currentCost": "LA3 same-day prior readback: Vercel Hobby/no card and Convex Free; no current usage or invoice values for those providers; commercial hosting unresolved",
+  "rates": {
+    "vercelProSeatUsdMonth": 20,
+    "vercelHobbyCommercialAllowed": false,
+    "convexCallsIncluded": 1000000,
+    "convexStarterExtraMillionCallsUsd": 2.2,
+    "convexEgressIncludedGb": 1,
+    "convexStarterExtraGbUsdBaseRegion": 0.132,
+    "r2StandardStorageFreeGbMonth": 10,
+    "r2ClassAFree": 1000000,
+    "r2ClassBFree": 10000000,
+    "r2InternetEgressUsd": 0,
+    "convexOutsideUsPriceMultiplier": 1.3
+  },
+  "rightsSourcesRefreshed": [
+    "https://docs.sunnah.now/guide/going-in-the-future.html",
+    "https://sunnah.com/about",
+    "https://github.com/sunnah-now/database"
+  ],
+  "rightsCaution": "Free API access and MIT software license are not blanket data rights. O1 record allows display/offlineDistribution but explicitly denies general redistribution. Per-entry translation rights and production scope remain open.",
+  "accessibilityReference": "https://www.w3.org/TR/WCAG22/",
+  "baselineCommit": "6fc242cb6b1986b8159f86b5b9afc0d037bd1b32",
+  "scope": "pre-launch dependency audit, not post-launch acceptance; no public account state changed",
+  "modelExecution": {
+    "requested": "opencode-go/glm-5.3-flash",
+    "result": "403 active OpenCode Go subscription required",
+    "fallback": "gpt-5.6-luna high",
+    "independentReviewer": "gpt-5.6-terra medium"
+  }
+}

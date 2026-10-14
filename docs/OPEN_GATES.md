@@ -1,6 +1,7 @@
 # Open gates
 
-Updated 2026-10-14 from the current plan and LA3 approved development/live proof.
+Updated 2026-10-14 from the current plan, LA3 approved development/live proof,
+and the LA4 pre-launch deferral.
 This is a record of outstanding proof, not a fresh production dashboard audit.
 Later session records take precedence over older unchecked boxes and summaries.
 
@@ -24,6 +25,7 @@ Later session records take precedence over older unchecked boxes and summaries.
 | Q1 | Authenticated Android generation/cache/allowance and physical iPhone Clerk-to-generation journey need a development login. Play Integrity decode/native round trip is explicitly deferred until Play Console exists. Production remains release work. | Development deploy/migrations, preserved existing rows, actual five-free/reject/upgrade retry and service quotas, iOS authenticated simulator, Android live guest cache, real physical Apple attestation/assertion/replay checks pass. Ten global generations produced ten unique events and ten ungrounded calls. Backend 293 tests; iOS 225 local passes; Android 195 units. See `Q1_VERIFICATION.md`. |
 | Q2 | Actual Apple/Google sandbox purchase/renewal/cancellation/grace/hold/expiry/refund/revocation/restore, interrupted purchase/relaunch, account-switch/shared-device and cross-platform quota retry receipts. October 13 Apple readback: Paid Apps Agreement and banking **Processing**, both U.S. tax forms **Active**, DSA declaration unfinished; both earlier physical product lookups returned zero and today's retry needs the disconnected iPhone. Play account/products/SDK key/regional export and approval are unavailable. Apple Streamlined Purchasing needs an updated approved binary. Production activation remains separate. | Approved 175 Apple regional tiers pass the 60% paid-unit floor; approved $2 free/$10 total translation cap deployed in development. Backend 314 tests, Android 198 units/two installed Q2 tests, iOS final four purchase/five UI checks, six Swift manager transport checks and signed development HTTP/reconciliation/replay pass. Owner's physical Hadithly sign-in is verified; one US sandbox tester exists. Approved sandbox-only RevenueCat webhook saved. See `Q2_VERIFICATION.md`. |
 | E4 | Production rollout remains with the release track. | Development passed: owner-approved deployment and idempotent legacy revocation; backend 257, iOS 222 unit plus three UI, Android 194 unit plus five UI tests; both real signed-in native report/appeal flows and fixture cleanup passed. No mandatory human queue. |
+| LA4 | Native launch and a real post-launch demand window; affirmative scoped corpus/translation rights; commercial hosting eligibility, shared usage/invoices, accessibility and cache-purge proof. Post-launch acceptance gate remains open. | Pre-launch defer only: live old noindex routing page and unavailable Vercel analytics readback. No reader code, telemetry changes or implementation sessions. See `LA4_DECISION.md` and `LA4_VERIFICATION.md`. |
 | LA3 | Production Convex activation, encrypted daily off-device backup/schedule and production RPO/RTO/deletion replay; remaining provider invoice/contract readbacks, Sunnah.now broader allowance and commercial hosting eligibility. | Approved live support route/form/Turnstile and three received synthetic emails, SPF/DKIM/DMARC PASS, public synthetic incident, $30 all-services Google alarm across both projects; typecheck/346 tests and real isolated Convex export/wipe/import restored five synthetic records and a file exactly. See `LA3_VERIFICATION.md`, `LA3_LIVE_EVIDENCE.json` and the cost ledger. |
 | LA2 | Full fresh sign-up/sign-in and interruption/link matrix; VoiceOver/TalkBack, large-text/Reduced Motion, Urdu/small-screen physical proof; offline/update/corruption, exact restoration and notification device matrix; real two-store receipts; published consent/disclosures and production activation. Development analytics is disabled after verification. | Ten-family contracts, 333 backend tests, both native serialized transport fixtures, actual guest onboarding→visible reading, exact 62-row PostHog readback, strict canaries and expiry/deletion queue checks; separate privacy/deletion review. See `LA2_VERIFICATION.md`. |
 | LA1 | Production DSNs/alerts/disclosures/store privacy; physical cache/retry/upgrade/revoked-restart matrix; Android ANR/converted tombstone proof and Android 8–11 C/C++ gap; Convex plan/log-retention/hard-limit readback. H3/O2/W2/Q2 gates stay open under the owner's entry exception. | Development passed: four readable redacted reports with one release, source-free neutral Apple symbols, four live Google checks/two-region ten-minute policies, owner-confirmed alert, recorded admission/configuration caps, backend 321 tests, Android 199 units, iOS 238 executed/seven earlier opt-in skips/zero failures. See `LA1_VERIFICATION.md`. |
@@ -49,8 +51,8 @@ must be replaced by evidence-pipeline checks, not used to revive that workflow.
   complete two-store gate has not passed. LA1 passed development under the
   owner's explicit exception. LA2 implementation/development proof is recorded above;
   LA3 approved development/live proof is complete with production/provider-contract
-  gates still open. LA4 and L1 have
-  not started. Stop before L1.
+  gates still open. LA4 has a pre-launch defer record; its post-launch acceptance
+  gate has not passed. L1 has not started. Stop before L1.
 
 ## App-wide operation rule
 
