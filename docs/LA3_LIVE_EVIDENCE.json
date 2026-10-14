@@ -1,0 +1,147 @@
+{
+  "recordedAt": "2026-10-14T17:30:30.543806+00:00",
+  "scope": "owner-approved LA3 development activation and public static support/status",
+  "developmentDeployment": "festive-cobra-664",
+  "productionConvexChanged": false,
+  "paidUpgradePerformed": false,
+  "syntheticMessagesSent": 3,
+  "operatorMailboxMatchesApprovedAddress": true,
+  "supportForwarding": {
+    "alias": "support@hadithly.app",
+    "receivedInSelectedMailbox": true,
+    "earlierForwardRemoved": true,
+    "apexMxSpfPreserved": true
+  },
+  "mail": {
+    "domain": "updates.hadithly.app",
+    "region": "eu-west-1",
+    "sendingKeyScope": "sending access, updates.hadithly.app only",
+    "spf": "pass",
+    "dkim": "pass",
+    "dmarc": "pass",
+    "alignedDomain": "updates.hadithly.app",
+    "returnPathDomain": "rsend.updates.hadithly.app",
+    "tls": "TLS1.3",
+    "mime": "text/plain",
+    "trackingPixelsPresent": false,
+    "receivedAfterSeconds": 1,
+    "signedDeliveryWebhook": "204 and delivered state"
+  },
+  "support": {
+    "realTurnstileVerification": true,
+    "hostname": "hadithly.app",
+    "action": "support",
+    "preClearance": false,
+    "accepted": true,
+    "exactSelfAuthoredBodyReadBack": true,
+    "fakeContactOnly": true,
+    "referenceOnlyNoticeReceived": true,
+    "noticeState": "delivered",
+    "syntheticRequestBodyDeleted": true,
+    "temporaryVerifierRemoved": true,
+    "coarseAdmissionCountsPreserved": true
+  },
+  "status": {
+    "url": "https://hadithly.app/status/",
+    "syntheticIncidentVisible": true,
+    "components": 5,
+    "availabilityNeverInferredFromStaleAssessment": true
+  },
+  "staticPublication": {
+    "deploymentId": "dpl_GwA7h6AXgWW4xSKLqqDBVo7WFY9W",
+    "projectId": "prj_LlB1AWW5BFd2ZWlYTrQESlbPrzSH",
+    "baselineCommit": "54f78ca9b0c6a51f9133fdc936069d99bb187f30",
+    "rootDirectory": "site",
+    "unchangedPages": [
+      "home",
+      "privacy",
+      "terms",
+      "deletion",
+      "hadith fallback"
+    ],
+    "readyState": "READY",
+    "finalByteComparison": [
+      {
+        "file": "index.html",
+        "baselineUnchanged": true,
+        "sha256": "b9956e8d7dcb50df4c2268d4c4ebd508b9521af1b5356f5aa027814c4ee6c735"
+      },
+      {
+        "file": "privacy/index.html",
+        "baselineUnchanged": true,
+        "sha256": "f3c6b124d11df3a34e75a4e890fe70dbacf6ad1ec7ccbc8ae070483499aa6eb2"
+      },
+      {
+        "file": "terms/index.html",
+        "baselineUnchanged": true,
+        "sha256": "41b12507929139d0b926e9d847ddf07ddc50811a7b8d607ef362cce3acc68a13"
+      },
+      {
+        "file": "delete-account/index.html",
+        "baselineUnchanged": true,
+        "sha256": "16e201e4acfbca700d9df80bf508eb5b5ff06707f0529fb8a44bf5892dae6951"
+      },
+      {
+        "file": "hadith/index.html",
+        "baselineUnchanged": true,
+        "sha256": "9d525233287ea5b9c51eab5409e497f3e3cb846e7575fc978d2ede11ed8f265c"
+      },
+      {
+        "file": "operations-config.js",
+        "reviewedSourceMatches": true
+      },
+      {
+        "file": "support.js",
+        "reviewedSourceMatches": true
+      },
+      {
+        "file": "support/index.html",
+        "reviewedSourceMatches": true
+      },
+      {
+        "file": "status/index.html",
+        "reviewedSourceMatches": true
+      },
+      {
+        "file": "status/data.json",
+        "reviewedSourceMatches": true
+      }
+    ]
+  },
+  "budgets": {
+    "googleMonthlyUsd": 30,
+    "googleProjects": [
+      "hadithlyapp",
+      "gen-lang-client-0557645035"
+    ],
+    "services": "all",
+    "actualThresholdsPercent": [
+      50,
+      80,
+      100
+    ],
+    "forecastThresholdPercent": 100,
+    "creditsExcluded": true,
+    "notificationChannel": "Hadithly owner email",
+    "recipientMatchesApprovedMailbox": true,
+    "wholeGoogleAlarmIsHardCap": false,
+    "cloudRunMonthlyUsd": 10,
+    "existingCloudRunCapPreserved": true,
+    "convexCurrentPlan": "Free",
+    "resendCurrentPlan": "Free",
+    "resendMonthlyUsed": 35,
+    "resendMonthlyAllowance": 3000,
+    "resendDailyUsed": 3,
+    "resendDailyAllowance": 100,
+    "resendPaidOveragesEnabled": false
+  },
+  "remainingReleaseGates": [
+    "production Convex rollout",
+    "production encrypted off-device backups and RPO/RTO/deletion replay",
+    "full native device/accessibility/store/auth matrix",
+    "commercial hosting and remaining provider contract/invoice readbacks",
+    "privacy/store disclosures and consent",
+    "engagement consent/unsubscribe/localization and explicit sending approval"
+  ],
+  "l1Started": false
+}

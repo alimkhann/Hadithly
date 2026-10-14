@@ -1,6 +1,6 @@
 // Public deployment configuration. Enable only after LA3 delivery/domain checks.
 window.HADITHLY_OPERATIONS = {
-  enabled: false,
-  endpoint: "https://festive-cobra-664.convex.site/support/request",
-  turnstileSiteKey: ""
+  enabled: true,
+  endpoint: "https://festive-cobra-664.eu-west-1.convex.site/support/request",
+  turnstileSiteKey: "0x4AAAAAAFWUKhwfmiM4PghS"
 };

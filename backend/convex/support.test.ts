@@ -123,7 +123,7 @@ test("webhook authenticates raw bytes and timestamp; bounce suppresses all mail 
   await t.mutation(internal.support.claimMail, { mailId: mail._id });
   await t.mutation(internal.support.finishMail, { mailId: mail._id, providerId: "synthetic-provider" });
   const key = "synthetic-secret", secret = `whsec_${Buffer.from(key).toString("base64")}`; vi.stubEnv("RESEND_WEBHOOK_SECRET", secret);
-  const timestamp = String(Math.floor(Date.now() / 1000)), body = JSON.stringify({ type: "email.bounced", data: { email_id: "synthetic-provider", to: ["private-canary"] } });
+  const timestamp = String(Math.floor(Date.now() / 1000)), body = JSON.stringify({ type: "email.bounced", data: { from: "Hadithly operations <operations@updates.hadithly.app>", email_id: "synthetic-provider", to: ["private-canary"] } });
   const signature = createHmac("sha256", key).update(`synthetic-event.${timestamp}.${body}`).digest("base64");
   const headers = new Headers({ "svix-id": "synthetic-event", "svix-timestamp": timestamp, "svix-signature": `v1,${signature}` });
   expect(await verifyMailSignature(body, headers, secret, Date.now())).toBe(true);
@@ -134,6 +134,18 @@ test("webhook authenticates raw bytes and timestamp; bounce suppresses all mail 
   expect(await t.query(internal.support.health, {})).toMatchObject({ suppressed: true });
   expect((await t.run(ctx => ctx.db.get(mail._id)))?.state).toBe("bounced");
   expect(JSON.stringify(await t.run(ctx => ctx.db.query("operationsState").collect()))).not.toContain("private-canary");
+});
+test("team-wide webhook ignores other senders while preserving the own-message binding retry", async () => {
+  const t = convexTest(schema, modules), key = "synthetic-webhook-secret", secret = `whsec_${Buffer.from(key).toString("base64")}`;
+  vi.stubEnv("RESEND_WEBHOOK_SECRET", secret);
+  const timestamp = String(Math.floor(Date.now() / 1000));
+  for (const [from, status] of [["other@other.example", 204], ["operations@updates.hadithly.app", 503]] as const) {
+    const body = JSON.stringify({ type: "email.delivered", data: { from, email_id: "not-bound-yet" } });
+    const signature = createHmac("sha256", key).update(`synthetic-event.${timestamp}.${body}`).digest("base64");
+    expect((await t.fetch("/webhooks/operations-mail", { method: "POST", body, headers: {
+      "svix-id": "synthetic-event", "svix-timestamp": timestamp, "svix-signature": `v1,${signature}` } })).status).toBe(status);
+  }
+  expect(await t.run(ctx => ctx.db.query("operationsState").collect())).toHaveLength(0);
 });
 test("monthly AI and evidence warnings deduplicate; review cap cannot leak extra paid requests", async () => {
   const t = convexTest(schema, modules), month = "2026-10";

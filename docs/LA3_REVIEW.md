@@ -30,3 +30,28 @@ The review does not prove live support forwarding, inbox receipt, aligned domain
 headers, published status, production backup operation, whole-provider spend
 alarms, or physical accessibility. Marketing templates remain unsent designs.
 L1 remains stopped.
+
+## Final activation review
+
+The same independent reviewer ran a separate final read-only pass after the
+approved live activation and evidence updates. It inspected the changes since
+`717dc70`, operating/gate/cost records, `LA3_LIVE_EVIDENCE.json`, and all four
+live screenshots. It did not access provider accounts, secrets, real-user data,
+or send any email. Eighty-one focused tests and backend typecheck passed.
+
+One P2 finding concerned the new routing-test script: checking `.env.local`
+alone could allow process environment variables to select an unrelated or
+production deployment when fetching its sending key. The repair anchors the
+file and subprocess directory via `import.meta.url` and passes explicit
+`--deployment festive-cobra-664`. The reviewer checked the installed Convex CLI's
+selector precedence, syntax, and diff whitespace. No repeat send was needed.
+
+The final review passed with no blocking code findings. It confirmed that saved
+screenshots show domain authentication PASS, a synthetic accepted support receipt,
+five stale/unknown status components and synthetic exercise, and the $30 alarm
+separate from the preserved $10 configured Cloud Run cap. The source/evidence
+preserve production backup, provider invoice/contract, commercial hosting,
+privacy/store and earlier release gates. The review is an independent assessment
+of code and saved proof; it is not an independent live provider audit or proof
+that every provider invoice/recipient setting is verified. Engagement designs
+remain unsent and L1 remains stopped.

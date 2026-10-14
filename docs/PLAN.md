@@ -44,10 +44,11 @@ LA1 passed its development acceptance gate on October 13 under the owner's
 explicit dependency exception. H3/O2/W2/Q2 and release/device gates remain open.
 See `docs/LA1_VERIFICATION.md`. LA2 implementation and approved development provider
 proof are recorded in `docs/LA2_VERIFICATION.md`; its remaining device, account,
-store and production gates are open. LA3 local implementation and a synthetic
-Convex restore drill are recorded in `docs/LA3_VERIFICATION.md`. Its delivery,
-domain authentication, publication, backup operation, and provider alarm gates
-remain open. Stop before L1.
+store and production gates are open. LA3 implementation and approved live support,
+authenticated email, published status, isolated recovery and Google budget proof
+are recorded in `docs/LA3_VERIFICATION.md`. Production backups/RPO/RTO/deletion
+replay, provider invoice/contract readbacks and release rollout remain open.
+Stop before L1.
 Do not
 start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
@@ -422,7 +423,7 @@ substantive: they own bounded implementation outcomes, not just inventories.
 | Q2 | Ship monthly and annual entitlement semantics, regional pricing, restore, grace, and quota copy. | Store sandbox lifecycle and cross-platform account tests pass. | GPT-5.6 Sol, high |
 | LA1 | Add low-cost crash reporting, structured logs, uptime checks, and privacy-safe alerting. | Development passed; release/device limitations remain in `LA1_VERIFICATION.md`. | GPT-6.1 Sol, high, owner override |
 | LA2 | Add minimal privacy-preserving product analytics and a deletion/retention contract. | A tiny event taxonomy answers launch questions without capturing reading content. | GPT-6.1 Sol High; separate privacy/deletion review |
-| LA3 | Add support email, transactional email, status/incident copy, backups, and cost budgets. | Local candidate and synthetic restore pass; external delivery/domain/alarm gates open. | GPT-6.1 Sol High, owner override; separate delivery-security/cost review |
+| LA3 | Add support email, transactional email, status/incident copy, backups, and cost budgets. | Approved live support/mail/status, isolated restore and Google alarm pass; production/provider-contract gates retained. | GPT-6.1 Sol High, owner override; separate delivery-security/cost review |
 | LA4 | Decide whether to expand the fallback into a read-only web reader after native launch. | Licensing, demand, maintenance, privacy, and cost evidence support an explicit build-or-defer decision. | GLM-5.3-Flash; Terra medium review |
 | L1 | Finish Wave 1 localization, native-speaker QA, metadata, screenshots, and the release candidate. | No critical untranslated UI, broken RTL, policy gap, cost alarm, or dashboard blocker remains. | GLM-5.3-Flash; Terra high review; Sol high final gate |
 
@@ -1775,21 +1776,29 @@ substantive: they own bounded implementation outcomes, not just inventories.
   backend restored five synthetic documents and one storage file exactly. Shared
   development and production data were untouched. RPO of 24 hours and RTO of 4 hours are objectives;
   production encrypted off-device copies/scheduling/deletion replay remain open.
-- Backend typecheck and 345 tests pass. Browser form/status checks pass with
-  synthetic network fixtures. A monthly 100-pair evidence review admission limit
+- Backend typecheck and 346 tests pass. Browser form/status checks pass with
+  synthetic network fixtures; real public form/Turnstile and operator receipt also
+  pass. A monthly 100-pair evidence review admission limit
   closes an uncapped calendar-month path; it is not a whole-provider dollar cap.
-- Current readbacks: Porkbun support forwarding exists to the earlier mailbox,
-  Resend Free with paid overages disabled, Vercel Hobby/no card/no team budget,
-  and Google's existing $10 Cloud Run-only monthly cap/50-80-100% alerts. Gmail
-  rerouting, sending-domain authentication, real email/form delivery, status
-  publication, and broader provider budget readbacks remain open.
+- Owner-approved live activation completed: support forwards only to the selected
+  Gmail mailbox; verified EU Resend domain and domain-scoped sending-only key;
+  received SPF/DKIM/DMARC PASS; exactly three controlled synthetic messages;
+  real protected form and reference-only operator delivery; public synthetic status
+  exercise. Private synthetic request removed and temporary verifier deleted.
+  Production Convex, real-user data and paid plans were not changed.
+- Saved $30 monthly all-services Google alarm covers both Hadithly projects with
+  actual 50/80/100%, forecast 100% and the selected owner channel. Existing $10
+  Cloud Run cap remains. Convex Free, Resend Free/overages off and Vercel Hobby/no
+  card are documented. The all-services alarm and review count cap are not dollar
+  hard caps. Provider contract/invoice and commercial hosting gates remain.
 - The owner later requested engagement email design. Three optional-consent HTML
   and plain-text drafts plus a preview gallery are separate unsent artifacts.
   No contacts, marketing chain, tracking, second auth-email system or paid upgrade
   was activated. See `docs/LA3_ENGAGEMENT_EMAILS.md`.
 - See `docs/LA3_OPERATIONS.md`, `docs/LA3_COST_LEDGER.json`,
-  `docs/LA3_RECOVERY_EVIDENCE.json` and `docs/LA3_VERIFICATION.md`. LA3 is not marked
-  passed from local checks alone. Earlier gates remain recorded. Stop before L1.
+  `docs/LA3_RECOVERY_EVIDENCE.json`, `docs/LA3_LIVE_EVIDENCE.json` and
+  `docs/LA3_VERIFICATION.md`. Approved development/live proof is complete; the
+  production operations and earlier release gates remain recorded. Stop before L1.
 
 ### Future topic browsing with the Jev classifier (not a session)
 

@@ -13,9 +13,9 @@
       "boundary": "Published Free/Starter inclusions:1M calls,20GB-hour actions,0.5GB database,1GB files,0.5GB search storage,1GB DB I/O,1GB egress,3000 query-GB search; Starter overages require current limits and approved upgrade",
       "warning": "warning at 80% of each allowance",
       "response": "Stop new writes/provider work at configured limit; cached/offline reading",
-      "evidence": "Current dashboard allowance/hard-limit and recipient readback open",
+      "evidence": "October14 billing UI: Free is Current Plan; no paid upgrade. Published included resource boundaries remain the team hard free boundary.",
       "source": "https://www.convex.dev/pricing",
-      "verification": "open",
+      "verification": "verified",
       "currentUsage": null
     },
     {
@@ -47,11 +47,11 @@
       "provider": "Gemini ordinary translation",
       "billedUnit": "reserved estimated token spend",
       "boundary": "Existing app $10/month; $2 free/service inside it",
-      "warning": "80% once/month via operational notice",
+      "warning": "Live $30 monthly all-services alarm across hadithlyapp and gen-lang-client-0557645035: actual50/80/100%, forecast100%, approved owner channel. App AI warning at80% remains.",
       "response": "Existing server reservation rejects new calls; cached reading remains",
-      "evidence": "App limits verified in Q1/Q2; LA3 warning local only. Whole-provider alarm open",
+      "evidence": "Approved development rollout plus whole-provider alarm covering the recorded Hadithly Gemini project. Monthly review attempt cap is not a dollar cap.",
       "source": "https://ai.google.dev/gemini-api/docs/pricing",
-      "verification": "partial",
+      "verification": "verified",
       "currentUsage": null
     },
     {
@@ -59,11 +59,11 @@
       "provider": "Gemini evidence review",
       "billedUnit": "paired provider attempts",
       "boundary": "New 100 pairs/month; 128 KiB packet; 8192 output tokens/pass; not a dollar cap",
-      "warning": "80 pairs once/month via operational notice",
+      "warning": "Live $30 monthly all-services alarm across hadithlyapp and gen-lang-client-0557645035: actual50/80/100%, forecast100%, approved owner channel. App AI warning at80% remains.",
       "response": "Private pending review; no calls after exhaustion",
-      "evidence": "Candidate local only. Price/whole-provider dollar boundary still open",
+      "evidence": "Approved development rollout plus whole-provider alarm covering the recorded Hadithly Gemini project. Monthly review attempt cap is not a dollar cap.",
       "source": "https://ai.google.dev/gemini-api/docs/pricing",
-      "verification": "partial",
+      "verification": "verified",
       "currentUsage": null
     },
     {
@@ -86,12 +86,12 @@
       "id": "google_other",
       "provider": "Google Cloud Build, Artifact Registry, storage, Logging, Monitoring and Gemini billing",
       "billedUnit": "all cloud service SKUs",
-      "boundary": "Proposed $30/month all-services hadithlyapp alarm, not activated",
-      "warning": "Proposed 50%,80%,100%, plus forecast",
+      "boundary": "Live $30 monthly all-services alarm across both Hadithly projects, credits excluded. Existing Cloud Run $10 cap preserved. Alarm is not a hard cap.",
+      "warning": "Live $30 monthly all-services alarm across hadithlyapp and gen-lang-client-0557645035: actual50/80/100%, forecast100%, approved owner channel. App AI warning at80% remains.",
       "response": "Owner stops implicated work; keep existing Cloud Run cap and AI reservations",
-      "evidence": "Existing Cloud Run budget excludes these. Current all-services coverage open",
+      "evidence": "October14 saved budget f1c50468-cae4-42cb-adc7-ffbfb884a794, both project scopes and owner email channel read back.",
       "source": "https://docs.cloud.google.com/billing/docs/how-to/budgets",
-      "verification": "open",
+      "verification": "verified",
       "currentUsage": null
     },
     {
@@ -137,14 +137,14 @@
       "boundary": "Live Free 3000/month,100/day; no paid overages; LA3 app 500/month,50/day",
       "warning": "Review at app 400 or provider 2400/month; paid overages remain off",
       "response": "Provider refusal or local cap pauses sending; direct mailbox support",
-      "evidence": "October14 live free-plan readback; domain/key/webhook/tracking/delivery pending",
+      "evidence": "Verified EU sending domain, domain-scoped sending-only key, one signed webhook, received auth/header and three controlled-message proof; Free paid overages off.",
       "source": "https://resend.com/pricing",
-      "verification": "partial",
+      "verification": "verified",
       "currentUsage": {
-        "monthlyEmails": 32,
-        "dailyEmails": 0,
+        "monthlyEmails": 35,
+        "dailyEmails": 3,
         "verifiedDate": "2026-10-14",
-        "scope": "whole existing shared Resend team"
+        "scope": "shared existing Free team"
       }
     },
     {
@@ -154,7 +154,7 @@
       "boundary": "Live 20 free forwards; one current support alias. Domain renewal invoice unknown",
       "warning": "Owner monthly checks expiry and renewal invoice; no new paid inbox",
       "response": "Keep MX/SPF and working route; recover DNS with registrar",
-      "evidence": "Live support routes to earlier mailbox; Gmail reroute pending",
+      "evidence": "Support alias now forwards only to approved Gmail mailbox; actual controlled forwarding received. Apex MX/SPF preserved. Renewal invoice remains release work.",
       "source": "https://porkbun.com/products/email_forwarding",
       "verification": "partial",
       "currentUsage": null
@@ -166,9 +166,9 @@
       "boundary": "Published Free; no paid plan/addons; app challenge admission1000/day",
       "warning": "App/provider failure checks; no spending upgrade",
       "response": "Fail closed with direct email fallback",
-      "evidence": "Not provisioned for Hadithly yet",
+      "evidence": "Free Managed widget created for hadithly.app, pre-clearance off; real hostname/action Siteverify accepted synthetic form.",
       "source": "https://developers.cloudflare.com/turnstile/plans/",
-      "verification": "open",
+      "verification": "verified",
       "currentUsage": null
     },
     {
@@ -178,7 +178,7 @@
       "boundary": "Live Hobby, no card, 1M CDN requests/100GB transfer; no team budget",
       "warning": "80% of allowance via owner usage review/provider notice",
       "response": "Quota denial; installed cached reader and direct email fallback",
-      "evidence": "Live October14 readback; commercial hosting eligibility and publication open",
+      "evidence": "Live October14 Hobby/no-card readback; approved static support/status publication passed. Commercial hosting eligibility remains a release gate.",
       "source": "https://vercel.com/docs/plans/hobby",
       "verification": "partial",
       "currentUsage": null
@@ -187,12 +187,12 @@
       "id": "sunnah_now",
       "provider": "Sunnah.now",
       "billedUnit": "content API usage",
-      "boundary": "Existing invitation/free-use evidence; no paid upgrade configured by LA3",
+      "boundary": "Public v0.1 early-access documentation promises free Bukhari Arabic/English. No published request quota or verified expanded-catalog commercial price; no new paid account or upgrade authorized.",
       "warning": "Respect429 and inspect provider allowance before launch",
       "response": "Cached outlines/content/downloads; bounded retries",
-      "evidence": "Exact current API free/rate contractual boundary and billing alarm open",
-      "source": "https://docs.sunnah.now/",
-      "verification": "open",
+      "evidence": "Primary documentation refreshed October14; broader catalog/production contract remains an existing release gate. Cache/offline fallback and zero paid-upgrade authorization remain.",
+      "source": "https://docs.sunnah.now/guide/going-in-the-future.html",
+      "verification": "documented",
       "currentUsage": null
     },
     {
@@ -231,5 +231,7 @@
       "verification": "deferred",
       "currentUsage": null
     }
-  ]
+  ],
+  "activeRuntimeBoundaryDocumented": true,
+  "remainingInvoiceContractReadbacksAreReleaseGates": true
 }

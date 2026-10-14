@@ -1,10 +1,11 @@
-# Activate the tested LA3 candidate
+# LA3 bounded activation record
 
-Local implementation and separate security/cost review are complete. These are
-the concrete pending external actions. Use the owner's operational mailbox
-provided in the current chat, keep credentials private, and retain every earlier
-gate. No paid upgrade, production Convex deployment, real-user export/restore,
-marketing activation, or git push is part of this candidate.
+The owner approved this bounded activation in chat on October 14, 2026.
+The actions below have completed within that approval; see
+`LA3_LIVE_EVIDENCE.json` and `LA3_VERIFICATION.md` for the results. This is a
+historical action boundary, not permission to repeat sends or expand scope.
+No paid upgrade, production Convex deployment, real-user export/restore,
+marketing activation, or git push was authorized or performed.
 
 1. Redirect only `support@hadithly.app` from the earlier mailbox to the requested
    Gmail mailbox in Porkbun. Preserve existing MX/SPF and all other routes.
@@ -14,7 +15,7 @@ marketing activation, or git push is part of this candidate.
    operational messages. Respect the account's one-webhook limit and do not replace
    another project's existing webhook. If the slot is occupied, resolve isolation
    with the owner instead of silently replacing it or buying capacity.
-3. Add only Resend's generated public DKIM and return-path SPF/MX DNS records to
+3. Add only Resend's generated public DKIM and return-path SPF DNS records to
    Porkbun, plus monitoring DMARC at `_dmarc.updates`. Inventory Clerk before an
    owner-approved apex DMARC policy. Never replace an existing SPF record blindly.
 4. Create a free Turnstile widget limited to `hadithly.app`, with `support` action
@@ -32,19 +33,24 @@ marketing activation, or git push is part of this candidate.
    existing static site, preserving unrelated pending policy/fallback changes.
    Verify its five components and explicitly synthetic incident from the public
    URL. Add an optional status subdomain only if needed.
-8. Add a $30 monthly all-services alarm for the Hadithly Google project at 50%,
+8. Add a $30 monthly all-services alarm across the two Hadithly Google projects at 50%,
    80%, 100%, plus forecast warning. Keep its existing $10 Cloud Run cap and app
    $10/$2 translation reservations. A budget is not permission to spend and its
    reporting delay is not a hard no-overshoot guarantee. Do not disable billing
    for the owner's whole account. Read back scope and actual alert recipient.
-9. Obtain remaining provider plan/free-boundary/limit and recipient readbacks.
-   Convex's browser login currently requires GitHub OAuth read-profile/email
-   authorization. Do not grant new permissions silently. Vercel commercial hosting,
-   Sunnah.now contractual allowance, and production backup scheduling remain owner
-   decisions even after development email proof.
+9. Read back provider boundaries without changing plans. Convex reads Free;
+   existing Vercel Hobby and shared Resend Free boundaries remain. Remaining
+   Clerk/RevenueCat/Sentry account invoice readbacks, Sunnah.now's broader contract,
+   commercial hosting eligibility, and production backup scheduling remain release
+   gates in the ledger. No paid limit is invented where evidence is absent.
 
-Action-time approval is required by the owner's recorded Hadithly credential,
-deployment, cloud, and billing boundaries. Signing into the dashboards establishes
-access for inspection, not permission for every credential or service change.
-If the owner is unavailable, keep this candidate disabled and commit the finished
-implementation with these exact gates open.
+Private credentials were installed directly into the development environment;
+no secret values were saved in repository files or evidence. An automatic login
+URL briefly exposed an expiring OIDC callback token in tool output. It expired
+before handoff and was not retained in artifacts or commits. Long-lived sending,
+webhook, Turnstile, and rate keys were kept out of outputs. The operating-system
+clipboard was cleared after credential installation.
+
+Exactly three synthetic emails consumed the approved test allowance. Do not run
+`backend/scripts/verify-la3-routing.mjs --send` again without a fresh bounded test
+authorization. No further activation is required to reproduce the local tests.

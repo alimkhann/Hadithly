@@ -4,7 +4,7 @@
   if (!config?.enabled || !config.turnstileSiteKey || !form || !result) return;
   let endpoint;
   try { endpoint = new URL(config.endpoint); } catch { return; }
-  if (endpoint.protocol !== "https:" || !["festive-cobra-664.convex.site", "giddy-ox-648.convex.site"].includes(endpoint.hostname)
+  if (endpoint.protocol !== "https:" || !["festive-cobra-664.eu-west-1.convex.site", "giddy-ox-648.eu-west-1.convex.site"].includes(endpoint.hostname)
     || endpoint.pathname !== "/support/request" || endpoint.search || endpoint.hash || endpoint.username || endpoint.password || endpoint.port) return;
   form.hidden = false;
   document.getElementById("form-unavailable").hidden = true;

@@ -82,7 +82,11 @@ http.route({ path: "/webhooks/operations-mail", method: "POST", handler: httpAct
   let raw: unknown; try { raw = JSON.parse(text); } catch { return new Response(null, { status: 400 }); }
   if (!record(raw) || typeof raw.type !== "string") return new Response(null, { status: 400 });
   if (raw.type !== "email.delivered" && raw.type !== "email.bounced" && raw.type !== "email.complained") return new Response(null, { status: 204 });
-  if (!record(raw.data) || typeof raw.data.email_id !== "string" || !/^[a-zA-Z0-9-]{1,100}$/.test(raw.data.email_id)) return new Response(null, { status: 400 });
+  if (!record(raw.data) || typeof raw.data.from !== "string") return new Response(null, { status: 400 });
+  // The one free webhook is team-wide. Other domains must not enter retry loops.
+  if (raw.data.from !== "Hadithly operations <operations@updates.hadithly.app>"
+    && raw.data.from !== "operations@updates.hadithly.app") return new Response(null, { status: 204 });
+  if (typeof raw.data.email_id !== "string" || !/^[a-zA-Z0-9-]{1,100}$/.test(raw.data.email_id)) return new Response(null, { status: 400 });
   const outcome = raw.type === "email.delivered" ? "delivered" : raw.type === "email.bounced" ? "bounced" : "complained";
   const found = await ctx.runMutation(internal.support.mailEvent, { providerId: raw.data.email_id, outcome });
   return new Response(null, { status: found ? 204 : 503 });

@@ -1,7 +1,8 @@
 # LA3 support, mail, status, recovery, and costs
 
 Recorded October 14, 2026, Asia/Almaty. This is the operating contract for the
-local LA3 candidate. External activation and delivery remain separate gates.
+approved LA3 development activation and published static surfaces. Production
+activation and backup operation remain separate gates.
 L1 has not started. Earlier device, account, store, consent, rights, and release
 gates stay open. See `LA3_VERIFICATION.md` for tested scope.
 
@@ -12,9 +13,9 @@ existing Gmail mailbox in this session. Keep its address in server configuration
 and dashboards, not the repository. All LA3 operational notices use that one
 fixed recipient. No additional operator or escalation service is required.
 
-Porkbun is the authoritative DNS provider. Its dashboard currently forwards
-`support@hadithly.app` to the owner's earlier Proton mailbox. The requested Gmail
-route is a pending change. Porkbun allows twenty free forwarding addresses.
+Porkbun is the authoritative DNS provider. Its dashboard forwards
+`support@hadithly.app` only to the selected Gmail mailbox. The controlled routing
+test was received there. Porkbun allows twenty free forwarding addresses.
 Keep existing MX and apex SPF records. Cloudflare DNS migration and paid inboxes
 are unnecessary. Inbound forwarding does not grant authenticated outbound use
 of `support@hadithly.app` in Gmail.
@@ -26,11 +27,21 @@ notification to the operator. It contains a fixed message and a support referenc
 never the visitor's address, message, account, reading history, or attachments.
 The support database keeps the contact address and request text privately.
 
+To answer a form request, open the owned Convex dashboard, select development
+`festive-cobra-664`, then Data → `supportRequests` and locate the emailed
+`requestId`. Read only that request, reply manually to its contact address from
+the selected mailbox, and apply the retention policy below. Do not export the
+inbox or forward request bodies into email/CRM. The optional `support.inbox`
+query requires a verified Clerk identity whose existing server user is an admin;
+it accepts bounded pagination and never grants operator access from the browser.
+No operator UI is added to consumer Settings.
+
 Resend fits this scope. The live existing account is Free with 3,000 monthly and
 100 daily emails, three domains, one webhook, and paid transactional overages
-disabled. It currently has one unrelated domain and 32 emails this month, zero
-today. These allowances are shared across that account. Use a domain-scoped
-sending key for `updates.hadithly.app`; do not use or alter the unrelated domain.
+disabled. It has the unrelated domain plus the verified Hadithly domain and
+35 emails this month, three today after the approved proof. These allowances are
+shared across the account. The installed sending-only key is restricted to
+`updates.hadithly.app`; do not use or alter the unrelated domain.
 If independent isolation is required, create a dedicated free team only after
 approval. Provider refusal must pause mail, never trigger an upgrade.
 
@@ -64,15 +75,15 @@ confirms database intake, not provider delivery or a reply.
 
 ## Domain authentication and delivery
 
-Configure the Resend sending domain `updates.hadithly.app` and copy its exact
-generated public DNS records. Add its DKIM TXT selector and SPF/MX records at its
-dedicated return-path host. Do not replace the apex forwarding MX or create a
+The verified Resend sending domain is `updates.hadithly.app` with its generated
+public DKIM and
+return-path CNAME SPF records installed. Preserve these records at the dedicated
+return-path host. Do not replace the apex forwarding MX or create a
 second SPF TXT record at an existing host. The fixed visible sender is
-`operations@updates.hadithly.app`. Disable domain open and click tracking before
-the first message. No image tracking, contacts, broadcasts, CRM, or sending
+`operations@updates.hadithly.app`. Keep domain open and click tracking disabled. No image tracking, contacts, broadcasts, CRM, or sending
 automation is installed in LA3.
 
-Add `_dmarc.updates.hadithly.app` with `v=DMARC1; p=none; adkim=r; aspf=r` for
+`_dmarc.updates.hadithly.app` is installed with `v=DMARC1; p=none; adkim=r; aspf=r` for
 initial monitoring. Add reporting only to a verified operator-controlled report
 mailbox, because reports contain third-party sender metadata. Verify Clerk's
 existing sender separately before tightening apex DMARC. No apex DMARC TXT was
@@ -91,7 +102,8 @@ Gate proof requires all of:
 4. Signed `email.delivered`, `email.bounced`, and `email.complained` tests exercise
    `/webhooks/operations-mail`. Verify raw bytes, HMAC, and a five-minute timestamp
    tolerance. Unknown message IDs receive 503 so the provider can retry after the
-   send result is bound. Unrelated webhook types are ignored.
+   send result is bound. Unrelated webhook types and other senders are ignored with 204.
+   This isolates the existing Free team-wide webhook from other projects.
 
 A bounce or complaint on the fixed recipient permanently suppresses operational
 mail until the owner verifies a working address and explicitly resets suppression.
@@ -147,7 +159,7 @@ failures make current availability unknown. A displayed past incident remains
 historical, not evidence of present availability. The synthetic incident is
 explicitly marked Exercise and does not announce a real outage.
 
-Publish at `/status/`; an optional `status.hadithly.app` alias can use the same
+The approved page is published at `/status/`; an optional `status.hadithly.app` alias can use the same
 static project after approved DNS/domain setup. Do not add Better Stack merely
 for this page. LA1 already has four Google uptime checks and owner email alerts.
 The static host survives a Convex/provider outage but shares the website hosting
@@ -223,19 +235,21 @@ warning, stop action, and unresolved gate. Review weekly for the first launch
 month, then monthly. UTC app budgets and provider billing periods may differ.
 Do not equate app admission ceilings with whole-account invoice caps.
 
-The current Google budget is scoped to Cloud Run only, $10 monthly, with 50%,
-80%, and 100% alerts and a configured spend cap. It excludes Gemini, Cloud Build,
-Artifact Registry, storage, logs, and uptime. Google reports costs with delay,
-typically up to twenty-four hours, so even its cap can overshoot. Proposed coverage
-is an additional $30 monthly all-services Hadithly project alarm at 50%, 80%, and
-100%, with a forecast warning. It is not an authorization to spend $30 or disable
-billing globally. Existing Cloud Run and app $10/$2 controls stay in place.
+The saved Google $30 monthly all-services alarm covers both `hadithlyapp` and
+`gen-lang-client-0557645035`, with credits excluded, actual 50/80/100% and forecast
+100% thresholds. Only the linked **Hadithly owner email** channel is enabled and
+its address matches the selected operational mailbox. Budget delivery itself was
+not forced by creating a real charge. The existing Cloud Run-only $10 monthly
+cap and app $10/$2 translation reservations remain. Google's reporting delay can
+allow overshoot; the new all-services alarm is not a hard cap or authorization to
+spend $30. Do not disable billing globally.
 
 Application budget warnings email the fixed owner at 80% once per UTC month.
 No alert can be guaranteed when its own mail cap, suppression, provider, or operator
 is unavailable. Provider billing emails and dashboard checks are the independent
-fallback. Convex, Clerk, Sentry, RevenueCat, and whole-project Google settings
-still require current dashboard readback where the ledger says open. Vercel's
+fallback. Clerk, Sentry and RevenueCat account invoice/recipient settings
+still require current dashboard readback where the ledger says open. Convex Free
+and whole-project Google scope/recipient have been read back. Vercel's
 current Hobby plan has no team budget and no payment method. Commercial hosting
 eligibility must be resolved before launch. No paid upgrade is authorized here.
 
