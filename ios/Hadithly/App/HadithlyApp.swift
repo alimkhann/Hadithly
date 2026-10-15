@@ -5,28 +5,41 @@ import ClerkKit
 struct HadithlyApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var environment = AppEnvironment()
-    @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
-        let uiLocale = environment.preferences.preferences.uiLocale
         WindowGroup {
-            AppPaletteRoot(theme: environment.preferences.preferences.appTheme) {
-                RootView()
-            }
+            LocalizedAppRoot()
                 .environment(environment)
-                .environment(environment.guestData)
-                .environment(environment.library)
-                .environment(environment.push)
-                .environment(Clerk.shared)
-                .onChange(of: scenePhase) { _, phase in
-                    if phase == .background { environment.analytics.flush() }
-                }
-                .environment(\.locale, Locale(identifier: uiLocale))
-                .environment(
-                    \.layoutDirection,
-                    LocaleFallback.isRTL(uiLocale) ? .rightToLeft : .leftToRight
-                )
         }
+    }
+}
+
+/// Reads locale and direction inside the observable view tree. Keeping these
+/// environment values here makes a live RTL-to-LTR switch update the existing
+/// window instead of relying on the App scene body to be reevaluated.
+private struct LocalizedAppRoot: View {
+    @Environment(AppEnvironment.self) private var environment
+    @Environment(\.scenePhase) private var scenePhase
+
+    var body: some View {
+        let preferences = environment.preferences.preferences
+        let uiLocale = preferences.uiLocale
+
+        AppPaletteRoot(theme: preferences.appTheme) {
+            RootView()
+        }
+            .environment(environment.guestData)
+            .environment(environment.library)
+            .environment(environment.push)
+            .environment(Clerk.shared)
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .background { environment.analytics.flush() }
+            }
+            .environment(\.locale, Locale(identifier: uiLocale))
+            .environment(
+                \.layoutDirection,
+                LocaleFallback.isRTL(uiLocale) ? .rightToLeft : .leftToRight
+            )
     }
 }
 
