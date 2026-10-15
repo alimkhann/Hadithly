@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-15",
+  "scope": "Prepared native UI and dispatch policy; no live paid-generation or physical-device acceptance",
+  "ios_main": {
+    "result": "Passed",
+    "totalTestCount": 39,
+    "passedTests": 39,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "startTime": 1792074021.335,
+    "finishTime": 1792074411.069
+  },
+  "ios_final_reviewed": {
+    "result": "Passed",
+    "totalTestCount": 10,
+    "passedTests": 10,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "startTime": 1792075012.21,
+    "finishTime": 1792075128.15
+  },
+  "ios_title_pixel_red": {
+    "result": "Failed",
+    "totalTestCount": 1,
+    "passedTests": 0,
+    "failedTests": 1,
+    "skippedTests": 0,
+    "startTime": 1792074508.46,
+    "finishTime": 1792075149.302
+  },
+  "ios_handoff_red": {
+    "result": "Failed",
+    "totalTestCount": 1,
+    "passedTests": 0,
+    "failedTests": 1,
+    "skippedTests": 0,
+    "startTime": 1792073094.766,
+    "finishTime": 1792073741.745
+  },
+  "ios_regressions_note": "Title had0.0 visible ink despite passing accessibility semantics; handoff text differed by177.33pt. Both final focused checks pass.",
+  "android_unit_final": {
+    "tests": 203,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "android_main_instrumentation": {
+    "tests": 47,
+    "failures": 0,
+    "skipped": 0,
+    "result": "BUILD SUCCESSFUL",
+    "source": "/tmp/hadithly-reader-followup-android-reviewed.log",
+    "log_sha256": "22b5b078a139c50fdcd04f4c55240a42c8f8b3d94b7c17f2d7ef0a9e892c9e2f"
+  },
+  "android_hint_final_instrumentation": {
+    "tests": 9,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "android_hint_note": "9 focused checks include the new early-close/reopen lifecycle case. Eight were repeated from the main47; total48 unique UI checks."
+}

@@ -1883,6 +1883,22 @@ substantive: they own bounded implementation outcomes, not just inventories.
   Physical-device, accessibility traversal, authenticated/live-service and all
   earlier gates remain open in `docs/OPEN_GATES.md`. Stop before L1.
 
+### Reader source details, hints and page continuity (2026-10-15)
+
+- Owner follow-up to native polish: merged translation citations/provenance into
+  the hadith reference sheet, removed the separate reading badge, added a
+  one-time nonblocking action hint, and refined Settings title/sign-in presentation.
+- Automatic translation defaults on for visible untranslated content, with a
+  device-local manual switch in both settings entry points. Existing sign-in,
+  device-proof, allowance and publication rules remain the generation boundary.
+- Native red checks reproduced an iOS 177.33 pt preview/active-layout handoff and
+  an Android cache-append snap-back during a drag. Shared iOS page rendering and
+  guarded Android synchronization repair those causes; native gesture behavior
+  and reduced-motion controls remain in place.
+- Verification and exact remaining gates: `docs/READER_INTERACTION_POLISH.md`.
+  No live paid-generation, backend/schema, external-service or release action is
+  part of this follow-up. Stop before L1.
+
 ## Delegation policy
 
 Use GLM-5.3-Flash through OpenCode Go as the default author for bounded sessions

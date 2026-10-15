@@ -23,6 +23,14 @@ struct ReaderView: View {
     var openPosition: ReadingPosition?
     var targetSource: ReaderTargetSource = .collection
 
+#if DEBUG
+    static func fixture(model: ReaderModel) -> ReaderView {
+        var view = ReaderView(collectionSlug: model.collectionSlug, collectionName: model.collectionName)
+        view._model = State(initialValue: model)
+        return view
+    }
+#endif
+
     @State private var model: ReaderModel?
     @State private var showIndex = false
     @State private var showSettings = false
@@ -33,6 +41,7 @@ struct ReaderView: View {
     @State private var showQuotaPaywall = false
     @State private var hasAutoPresentedQuotaPaywall = false
     @State private var pageDragOffset: CGFloat = 0
+    @State private var pageSettling = false
     @State private var horizontalDragging = false
     @State private var pageScrollFraction: Double = 1
     /// Latest viewport width, for the drag-settle target. Written from the
@@ -106,6 +115,7 @@ struct ReaderView: View {
                     currentPreferences: { environment.preferences.preferences },
                     widthClass: horizontalSizeClass == .regular ? .regular : .compact
                 )
+                model?.automaticTranslationEnabled = { environment.readerExperience.automaticallyTranslates }
                 model?.offlineStore = environment.offline
                 model?.analytics = environment.analytics
                 model?.beginMeasurement()
@@ -291,6 +301,25 @@ struct ReaderView: View {
                 }
             }
         }
+        .overlay(alignment: .bottom) {
+            if environment.readerExperience.showsActionHint {
+                HStack(spacing: 12) {
+                    Text("Touch and hold a hadith to bookmark, add a note or share.").font(.caption)
+                    Button { environment.readerExperience.dismissActionHint() } label: { Image(systemName: "xmark").frame(width: 32, height: 32) }
+                        .accessibilityLabel("Dismiss hint")
+                }
+                .foregroundStyle(palette.textPrimary)
+                .padding(.leading, 16).padding(.trailing, 6).padding(.vertical, 8)
+                .background(palette.surfaceElevated, in: RoundedRectangle(cornerRadius: 16))
+                .padding(.horizontal, 24).padding(.bottom, 96)
+                .accessibilityIdentifier("reader.actionHint")
+            }
+        }
+        .task {
+            environment.readerExperience.offerActionHint()
+            try? await Task.sleep(for: .seconds(7))
+            environment.readerExperience.dismissActionHint()
+        }
         .overlay {
             WindowSwipeRecognizer(
                 pageDirection: pagingPolicy.pageDirection,
@@ -325,6 +354,9 @@ struct ReaderView: View {
         // A layout-affecting preference change (font, size, visibility,
         // translation locale) invalidates the raw offset; the semantic
         // anchor restores the exact position against the new signature.
+        .onChange(of: environment.readerExperience.automaticallyTranslates) { _, _ in
+            model.refreshAutomaticTranslationPreference()
+        }
         .onChange(of: environment.preferences.preferences.layoutProjection) { _, _ in
             model.reanchorAfterLayoutChange()
         }
@@ -367,96 +399,63 @@ struct ReaderView: View {
     /// rendered together so the neighbor is visible mid-gesture, with
     /// cancel-back when the finger releases short. Cross-volume targets
     /// show a quiet loading slot until their first page arrives. Every slot
-    /// keeps a stable identity across page turns (no `.id`, no removal
-    /// transition): the center page never rebuilds on a turn, so the
-    /// header/corner slot cannot pop in late and shift content. Scroll
-    /// position is driven explicitly instead — cached offset for revisits,
-    /// top for first visits (see ReaderPageView).
+    /// keeps its volume/page identity across turns and uses the same layout
+    /// before and after handoff. Only the active page owns scroll restoration
+    /// and model updates.
     private func pageStrip(_ model: ReaderModel, viewportWidth: CGFloat) -> some View {
         let targets = stripTargets(model)
-        let slots = ReaderDragStrip.slots(
-            hasPrevious: targets.previous,
-            hasNext: targets.next,
-            pageDirection: pagingPolicy.pageDirection
-        )
-        let baseOffset = slots.left == nil ? 0 : -viewportWidth
+        let slots = ReaderDragStrip.slots(hasPrevious: targets.previous, hasNext: targets.next, pageDirection: pagingPolicy.pageDirection)
+        let index = model.pageIndex
+        let indices = [slots.left.map { index + ($0 == .previous ? -1 : 1) }, index,
+                       slots.right.map { index + ($0 == .previous ? -1 : 1) }].compactMap { $0 }
         return HStack(spacing: 0) {
-            if let left = slots.left {
-                stripSlot(model, turn: left, viewportWidth: viewportWidth)
-            }
-            ReaderPageView(
-                model: model,
-                hadiths: model.currentPageHadiths,
-                arabicFontSize: arabicFontSizeBinding.wrappedValue,
-                preferences: environment.preferences.preferences,
-                verticalLanding: model.verticalLanding,
-                currentPageIndex: model.pageIndex,
-                pageCount: model.pages.count + (model.hasNextPage && model.pageIndex == model.pages.count - 1 ? 1 : 0),
-                topContentInset: windowSafeAreaInsets.top + 12,
-                palette: palette,
-                onTurn: { turnPage(model, turn: $0) },
-                onTap: {
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    toggleChrome(model)
-                },
-                onShowPaywall: { showQuotaPaywall = true },
-                onScrollFraction: { pageScrollFraction = $0 }
-            )
-            .frame(width: viewportWidth)
-            .scrollDisabled(horizontalDragging)
-            if let right = slots.right {
-                stripSlot(model, turn: right, viewportWidth: viewportWidth)
+            ForEach(indices, id: \.self) { page in
+                Group {
+                    if model.pages.indices.contains(page), !model.pages[page].isPlaceholder {
+                        ReaderPageView(
+                            model: model, hadiths: model.pages[page].items,
+                            arabicFontSize: arabicFontSizeBinding.wrappedValue,
+                            preferences: environment.preferences.preferences,
+                            verticalLanding: page == index ? model.verticalLanding : nil,
+                            currentPageIndex: page,
+                            pageCount: model.pages.count,
+                            topContentInset: windowSafeAreaInsets.top + 12,
+                            palette: palette,
+                            onTurn: { turnPage(model, turn: $0) },
+                            onTap: { toggleChrome(model) },
+                            onShowPaywall: { showQuotaPaywall = true },
+                            onScrollFraction: page == index ? { pageScrollFraction = $0 } : nil
+                        )
+                        .scrollDisabled(page != index || horizontalDragging || pageSettling)
+                        .allowsHitTesting(page == index && !pageSettling)
+                        .accessibilityHidden(page != index)
+                    } else {
+                        ArticleLoadingView(title: "Loading page").accessibilityIdentifier("reader.neighborLoading")
+                    }
+                }
+                .id("\(model.selectedVolumeId ?? ""):\(page)")
+                .frame(width: viewportWidth)
             }
         }
-        .offset(x: baseOffset + pageDragOffset)
-        // The reading page, unlike its controls, intentionally owns the
-        // entire display. This is constant across focused/unfocused chrome;
-        // toggling never changes the scroll view's geometry or shifts text.
+        .offset(x: (slots.left == nil ? 0 : -viewportWidth) + pageDragOffset)
         .ignoresSafeArea(edges: [.top, .bottom])
-        // The strip is wider than the screen while a neighbor slot is
-        // attached: pin the layout width to the viewport (leading edge,
-        // so the drag offset math holds) and clip the overflow. Without
-        // this the ZStack grows to the strip width and pushes the chrome
-        // circles and progress bars off-screen.
         .frame(width: viewportWidth, alignment: .leading)
         .clipped()
         .contentShape(Rectangle())
-        .onChange(of: viewportWidth, initial: true) { _, width in
-            dragViewportWidth = width
-        }
-    }
-
-    private func stripSlot(_ model: ReaderModel, turn: ReaderPageTurn, viewportWidth: CGFloat) -> some View {
-        let index = turn == .previous ? model.pageIndex - 1 : model.pageIndex + 1
-        return Group {
-            if model.pages.indices.contains(index),
-               !model.pages[index].isPlaceholder,
-               !model.pages[index].items.isEmpty {
-                ReaderNeighborContent(
-                    model: model,
-                    hadiths: model.pages[index].items,
-                    arabicFontSize: arabicFontSizeBinding.wrappedValue,
-                    preferences: environment.preferences.preferences,
-                    palette: palette,
-                    onShowPaywall: { showQuotaPaywall = true }
-                )
-            } else {
-                ArticleLoadingView(title: "Loading page")
-                    .accessibilityIdentifier("reader.neighborLoading")
-            }
-        }
-        .frame(width: viewportWidth)
+        .onChange(of: viewportWidth, initial: true) { _, width in dragViewportWidth = width }
     }
 
     /// Gesture-driven progress: clamped to the available drag targets so a
     /// swipe with no neighbor goes nowhere. Any horizontal movement locks
     /// the vertical scroll out until release (axis lock, vice versa).
     private func dragProgress(_ model: ReaderModel, offset: CGFloat) {
-        _ = model
+        guard !pageSettling else { return }
+        let targets = stripTargets(model)
+        let slots = ReaderDragStrip.slots(hasPrevious: targets.previous, hasNext: targets.next, pageDirection: pagingPolicy.pageDirection)
         let clamped: CGFloat
-        if offset > 0, !stripTargets(model).previous {
+        if offset > 0, slots.left == nil {
             clamped = 0
-        } else if offset < 0, !stripTargets(model).next {
+        } else if offset < 0, slots.right == nil {
             clamped = 0
         } else {
             clamped = offset
@@ -474,10 +473,11 @@ struct ReaderView: View {
     /// the swap is invisible and nothing ever flickers. Anything short
     /// springs back in place. No haptic: page settle is silent (round 5).
     private func dragReleased(_ model: ReaderModel, turn: ReaderPageTurn?) {
-        horizontalDragging = false
+        guard !pageSettling else { return }
         guard let turn else {
+            horizontalDragging = false
             if pageDragOffset != 0 {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.9)) {
+                withAnimation(reduceMotion ? nil : .timingCurve(0.22, 1, 0.36, 1, duration: InterfaceMotion.step)) {
                     pageDragOffset = 0
                 }
             }
@@ -491,14 +491,22 @@ struct ReaderView: View {
         let width = max(1, dragViewportWidth)
         if !reduceMotion,
            let target = ReaderDragStrip.commitDragOffset(viewportWidth: width, turn: turn, slots: slots) {
-            withAnimation(.easeOut(duration: 0.22)) {
+            pageSettling = true
+            withAnimation(.timingCurve(0.22, 1, 0.36, 1, duration: InterfaceMotion.step)) {
                 pageDragOffset = target
             } completion: {
-                turnPage(model, turn: turn)
-                pageDragOffset = 0
+                var transaction = Transaction(animation: nil)
+                transaction.disablesAnimations = true
+                withTransaction(transaction) {
+                    turnPage(model, turn: turn)
+                    pageDragOffset = 0
+                    horizontalDragging = false
+                    pageSettling = false
+                }
             }
         } else {
             pageDragOffset = 0
+            horizontalDragging = false
             turnPage(model, turn: turn)
         }
     }
@@ -1039,6 +1047,77 @@ struct ReaderPageView: View {
     var body: some View {
         GeometryReader { viewport in
             ScrollViewReader { proxy in
+                let handleFrames: ([String: ReaderAnchorFrame]) -> Void = { frames in
+                    latestAnchorFrames = frames
+                    guard currentPageIndex == model.pageIndex else { return }
+                    let activePage = ReaderVerticalLandingPage(
+                        volumeId: model.selectedVolumeId ?? "",
+                        pageIndex: currentPageIndex
+                    )
+                    if let landing = verticalLanding,
+                       landing.page == activePage,
+                       appliedLandingToken != landing.id {
+                        switch landing.landing {
+                        case .header:
+                            appliedLandingToken = landing.id
+                            proxy.scrollTo("reader.page.top.\(currentPageIndex)", anchor: .top)
+                            DispatchQueue.main.async {
+                                model.acknowledgeVerticalLanding(landing)
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                                    model.observeVisibleContent(hadiths: hadiths, frames: latestAnchorFrames, viewport: viewport.size.height)
+                                    if !inspectedEntry { inspectedEntry = true
+                                        model.inspectInitialTarget(hadiths: hadiths, frames: latestAnchorFrames, viewport: viewport.size.height)
+                                    }
+                                }
+                            }
+                            return
+                        case .semantic(let providerHadithId, let normalizedOffset):
+                            guard let targetIndex = hadiths.firstIndex(where: { $0.providerHadithId == providerHadithId }),
+                                  let frame = frames[hadiths[targetIndex].internalId]
+                            else { return }
+                            let target = hadiths[targetIndex]
+                            appliedLandingToken = landing.id
+                            if normalizedOffset == 0, chapterOpenings.contains(targetIndex) {
+                                proxy.scrollTo("reader.chapter.\(target.internalId)", anchor: .top)
+                            } else {
+                                let anchorY = ReaderScrollRestoration.anchorY(
+                                    normalizedOffset: normalizedOffset,
+                                    itemHeight: frame.height,
+                                    viewportHeight: viewport.size.height
+                                )
+                                proxy.scrollTo(target.internalId, anchor: UnitPoint(x: 0.5, y: anchorY))
+                            }
+                            DispatchQueue.main.async {
+                                model.acknowledgeVerticalLanding(landing)
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                                    model.observeVisibleContent(hadiths: hadiths, frames: latestAnchorFrames, viewport: viewport.size.height)
+                                    if !inspectedEntry { inspectedEntry = true
+                                        model.inspectInitialTarget(hadiths: hadiths, frames: latestAnchorFrames, viewport: viewport.size.height)
+                                    }
+                                }
+                            }
+                            return
+                        }
+                    }
+
+                    if currentPageIndex == model.pageIndex {
+                        model.observeVisibleContent(hadiths: hadiths, frames: frames, viewport: viewport.size.height)
+                    }
+                    let indexed = hadiths.enumerated().compactMap { index, hadith in
+                        frames[hadith.internalId].map { (index, $0) }
+                    }
+                    guard let leading = indexed.min(by: {
+                        abs(($0.1.minY + $0.1.height / 2) - viewport.size.height / 2)
+                        < abs(($1.1.minY + $1.1.height / 2) - viewport.size.height / 2)
+                    }) ?? indexed.first else { return }
+                    model.captureStableScroll(
+                        hadiths: hadiths,
+                        leadingIndex: leading.0,
+                        rawPageOffset: max(0, -leading.1.minY),
+                        normalizedOffset: max(0, -leading.1.minY) / max(1, leading.1.height)
+                    )
+
+                }
                 ScrollView {
                     if hadiths.isEmpty {
                         ArticleLoadingView(title: "Loading page")
@@ -1113,7 +1192,7 @@ struct ReaderPageView: View {
                 .scrollIndicators(.hidden)
                 .coordinateSpace(name: "reader.page")
                 .onPreferenceChange(ReaderScrollStateKey.self) { state in
-                    guard let onScrollFraction, let state else { return }
+                    guard currentPageIndex == model.pageIndex, let onScrollFraction, let state else { return }
                     let scrolled = max(0, -state.minY)
                     let raw = ReaderProgressBars.scrollFraction(
                         contentHeight: state.contentHeight,
@@ -1122,75 +1201,9 @@ struct ReaderPageView: View {
                     )
                     onScrollFraction((raw * 200).rounded() / 200)
                 }
-                .onPreferenceChange(ReaderAnchorFramesKey.self) { frames in
-                    latestAnchorFrames = frames
-                    let activePage = ReaderVerticalLandingPage(
-                        volumeId: model.selectedVolumeId ?? "",
-                        pageIndex: currentPageIndex
-                    )
-                    if let landing = verticalLanding,
-                       landing.page == activePage,
-                       appliedLandingToken != landing.id {
-                        switch landing.landing {
-                        case .header:
-                            appliedLandingToken = landing.id
-                            proxy.scrollTo("reader.page.top.\(currentPageIndex)", anchor: .top)
-                            DispatchQueue.main.async {
-                                model.acknowledgeVerticalLanding(landing)
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                                    model.observeVisibleContent(hadiths: hadiths, frames: latestAnchorFrames, viewport: viewport.size.height)
-                                    if !inspectedEntry { inspectedEntry = true
-                                        model.inspectInitialTarget(hadiths: hadiths, frames: latestAnchorFrames, viewport: viewport.size.height)
-                                    }
-                                }
-                            }
-                            return
-                        case .semantic(let providerHadithId, let normalizedOffset):
-                            guard let targetIndex = hadiths.firstIndex(where: { $0.providerHadithId == providerHadithId }),
-                                  let frame = frames[hadiths[targetIndex].internalId]
-                            else { return }
-                            let target = hadiths[targetIndex]
-                            appliedLandingToken = landing.id
-                            if normalizedOffset == 0, chapterOpenings.contains(targetIndex) {
-                                proxy.scrollTo("reader.chapter.\(target.internalId)", anchor: .top)
-                            } else {
-                                let anchorY = ReaderScrollRestoration.anchorY(
-                                    normalizedOffset: normalizedOffset,
-                                    itemHeight: frame.height,
-                                    viewportHeight: viewport.size.height
-                                )
-                                proxy.scrollTo(target.internalId, anchor: UnitPoint(x: 0.5, y: anchorY))
-                            }
-                            DispatchQueue.main.async {
-                                model.acknowledgeVerticalLanding(landing)
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                                    model.observeVisibleContent(hadiths: hadiths, frames: latestAnchorFrames, viewport: viewport.size.height)
-                                    if !inspectedEntry { inspectedEntry = true
-                                        model.inspectInitialTarget(hadiths: hadiths, frames: latestAnchorFrames, viewport: viewport.size.height)
-                                    }
-                                }
-                            }
-                            return
-                        }
-                    }
+                .onPreferenceChange(ReaderAnchorFramesKey.self, perform: handleFrames)
+                .onChange(of: verticalLanding?.id) { _, _ in handleFrames(latestAnchorFrames) }
 
-                    if currentPageIndex == model.pageIndex {
-                        model.observeVisibleContent(hadiths: hadiths, frames: frames, viewport: viewport.size.height)
-                    }
-                    let indexed = hadiths.enumerated().compactMap { index, hadith in
-                        frames[hadith.internalId].map { (index, $0) }
-                    }
-                    guard let leading = indexed.min(by: {
-                        abs(($0.1.minY + $0.1.height / 2) - viewport.size.height / 2)
-                        < abs(($1.1.minY + $1.1.height / 2) - viewport.size.height / 2)
-                    }) ?? indexed.first else { return }
-                    model.captureStableScroll(
-                        hadiths: hadiths,
-                        leadingIndex: leading.0,
-                        rawPageOffset: max(0, -leading.1.minY),
-                        normalizedOffset: max(0, -leading.1.minY) / max(1, leading.1.height)
-                    )
-                }
             }
         }
         .contentShape(Rectangle())
@@ -1200,85 +1213,6 @@ struct ReaderPageView: View {
             chapterOpenings = ReaderChapterBoundaries.openingIndices(in: updated)
         }
         .accessibilityIdentifier("reader.page")
-    }
-}
-
-/// A pre-rendered neighbor page for the drag strip (R6 round 3): the same
-/// hadith blocks and chapter lines as the current page, but passive — no
-/// restoration, no scroll capture, no pills, no scrolling of its own. The
-/// blocks stay actionable (context menu, source sheet) on real data. Previews
-/// always begin at their header; only the active page can apply a landing.
-private struct ReaderNeighborContent: View {
-    let model: ReaderModel
-    let hadiths: [ReaderHadith]
-    let arabicFontSize: Double
-    let preferences: ReaderPreferences
-    let palette: ReaderPalette
-    let onShowPaywall: () -> Void
-
-    @State private var chapterOpenings: Set<Int> = []
-
-    private func neighborRow(_ hadith: ReaderHadith) -> some View {
-        HadithBlock(
-            model: model,
-            hadith: hadith,
-            translationState: model.translations[hadith.internalId],
-            language: model.language,
-            arabicFontSize: arabicFontSize,
-            preferences: preferences,
-            palette: palette,
-            onRetry: { model.retryTranslation(for: hadith) },
-            onShowPaywall: onShowPaywall
-        )
-        .id(hadith.internalId)
-    }
-
-    var body: some View {
-        ScrollView {
-                    VStack(spacing: 28) {
-                        ForEach(Array(hadiths.enumerated()), id: \.element.internalId) { index, hadith in
-                            if chapterOpenings.contains(index) {
-                                VStack(spacing: 12) {
-                                    ReaderChapterHeader(
-                                        title: ReaderChapterLine.displayTitle(
-                                            title: hadith.chapterName ?? "",
-                                            arabicTitle: ReaderChapterLine.arabicTitle(
-                                                forChapterId: hadith.chapterId,
-                                                in: model.volumes,
-                                                volumeId: model.selectedVolumeId
-                                            ),
-                                            arabicVisible: preferences.arabicVisible,
-                                            translationVisible: preferences.translationVisible
-                                        ),
-                                        arabicTitle: ReaderChapterLine.arabicTitle(
-                                            forChapterId: hadith.chapterId,
-                                            in: model.volumes,
-                                            volumeId: model.selectedVolumeId
-                                        ),
-                                        arabicVisible: preferences.arabicVisible,
-                                        palette: palette
-                                    )
-                                    neighborRow(hadith)
-                                }
-                                .padding(.top, 12)
-                            } else {
-                                neighborRow(hadith)
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 22)
-                    .padding(.top, 20)
-                    .padding(.bottom, 80)
-        }
-        .scrollDisabled(true)
-        .scrollIndicators(.hidden)
-        .onAppear {
-            chapterOpenings = ReaderChapterBoundaries.openingIndices(in: hadiths)
-        }
-        .onChange(of: hadiths) { _, updated in
-            chapterOpenings = ReaderChapterBoundaries.openingIndices(in: updated)
-        }
-        .accessibilityIdentifier("reader.neighborPage")
     }
 }
 
@@ -1548,7 +1482,6 @@ private struct HadithBlock: View {
     let onRetry: () -> Void
     let onShowPaywall: () -> Void
 
-    @State private var citationsTranslation: ReaderTranslation?
     @State private var isEditingNote = false
     @State private var isSubmittingTranslation = false
     @State private var reportedTranslation: ReaderTranslation?
@@ -1663,6 +1596,7 @@ private struct HadithBlock: View {
         // the 0.5s hold): a touch-down that becomes a swipe or scroll must
         // never tick.
         .onLongPressGesture(minimumDuration: 0.5) {
+            environment.readerExperience.dismissActionHint()
             ReaderHapticDispatcher.trigger(.contextMenuOpen)
         }
         .overlay(alignment: .bottom) { if let undoNotice { SavedUndoBanner(notice: undoNotice, onExpire: { self.undoNotice = nil }) } }
@@ -1672,11 +1606,9 @@ private struct HadithBlock: View {
             Button("Cancel", role: .cancel) {}
         }
         .sheet(isPresented: $showingSource) {
-            HadithSourceSheet(hadith: hadith)
-                .presentationDetents([.medium])
-        }
-        .sheet(item: $citationsTranslation) { translation in
-            TranslationCitationsSheet(translation: translation)
+            HadithSourceSheet(hadith: hadith, translation: activeTranslation)
+                .environment(\.readerPalette, palette)
+                .environment(\.readerTheme, preferences.theme)
                 .presentationDetents([.medium, .large])
         }
         .sheet(isPresented: $isEditingNote) {
@@ -1935,9 +1867,7 @@ private struct HadithBlock: View {
             } else if let english = hadith.englishText, !english.isEmpty {
                 translationText(english)
             } else {
-                Text("No English translation available yet.")
-                    .font(.caption)
-                    .foregroundStyle(palette.textSecondary)
+                aiTranslationSection
             }
         } else {
             aiTranslationSection
@@ -2003,9 +1933,7 @@ private struct HadithBlock: View {
     }
 
     private func translationText(_ text: String, storedTranslation: ReaderTranslation? = nil) -> some View {
-        ReaderStoredTranslationView(text: text, translation: storedTranslation, palette: palette) {
-            citationsTranslation = storedTranslation
-        }
+        ReaderStoredTranslationView(text: text, translation: storedTranslation, palette: palette)
     }
 
     private func glossaryNotes(_ notes: [String]) -> some View {
@@ -2092,9 +2020,11 @@ struct HadithSourceSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     let hadith: ReaderHadith
+    var translation: ReaderTranslation? = nil
 
     var body: some View {
         NavigationStack {
+            ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 Text(hadith.authenticity.sourceName)
                     .font(.headline)
@@ -2121,10 +2051,15 @@ struct HadithSourceSheet: View {
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("reader.sourceSheet.url")
                 }
-                Spacer(minLength: 0)
+                if let translation {
+                    Divider().overlay(palette.divider).padding(.vertical, 8)
+                    Text("Translation sources").font(.headline).foregroundStyle(palette.textPrimary)
+                    TranslationSourceDetails(translation: translation, showsTranslation: false)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(20)
+            }
             .background(palette.background)
             .navigationTitle(ReaderSourceLabel.text(for: hadith))
             .navigationBarTitleDisplayMode(.inline)
@@ -2655,6 +2590,7 @@ struct ReaderR6ATestFixtureView: View {
     @State private var pageIndex: Int
     @State private var loadingVolumeId: String?
     @State private var visitedVolumes: Set<String>
+    @State private var productionFixtureReady = false
     @State private var showQuotaPaywallFixture = false
 
     private let preferences: ReaderPreferences
@@ -2766,6 +2702,11 @@ struct ReaderR6ATestFixtureView: View {
                 allowance: TranslationAllowance(limit: 5, remaining: 0, retryAt: Date().timeIntervalSince1970 * 1000 + 60_000))
         case "rate":
             seeded.seedQ1TranslationForUITest(id: "sunnah_now:bukhari:57", state: .failed(.failed("AI_RATE_LIMITED")), allowance: nil)
+        case "sources":
+            seeded.seedQ1TranslationForUITest(id: "sunnah_now:bukhari:57", state: .loaded(ReaderTranslation(
+                translationId: "fixture-sources", translation: "Prepared sourced translation", confidence: nil, riskFlags: [], glossaryNotes: [],
+                source: "gemini_ai", sourceLabel: "AI translation", aiModel: "Prepared model", groundingUsed: true,
+                citations: [ReaderCitation(url: "https://example.org/reference", title: "Prepared reference", domain: "example.org")], sourceReferenceUrl: nil, cached: true)), allowance: nil)
         case "cached":
             seeded.seedQ1TranslationForUITest(id: "sunnah_now:bukhari:57", state: .loaded(ReaderTranslation(
                 translationId: "fixture-cache", translation: "Cached exact-locale text", confidence: nil, riskFlags: [], glossaryNotes: [],
@@ -2992,7 +2933,14 @@ struct ReaderR6ATestFixtureView: View {
     var body: some View {
         ZStack {
             palette.background.ignoresSafeArea()
-            if loadingVolumeId != nil {
+            if ProcessInfo.processInfo.environment["PAGING_RENDER"] == "interactive" {
+                if productionFixtureReady { ReaderView.fixture(model: model) }
+                else { Color.clear.task { model.seedPagesForUITest(cachedPages(for: selectedVolumeId)); productionFixtureReady = true } }
+            } else if ProcessInfo.processInfo.environment["PAGING_RENDER"] != nil {
+                ReaderPageView(model: model, hadiths: currentHadiths, arabicFontSize: 26, preferences: preferences,
+                    verticalLanding: nil, currentPageIndex: 0, pageCount: 2, topContentInset: 74,
+                    palette: palette, onTurn: { _ in }, onTap: {}, onShowPaywall: {})
+            } else if loadingVolumeId != nil {
                 ArticleLoadingView(title: "Loading page")
                     .accessibilityIdentifier("reader.pageLoading")
             } else {
@@ -3063,7 +3011,7 @@ struct ReaderR6ATestFixtureView: View {
         .overlay {
             WindowSwipeRecognizer(
                 pageDirection: policy.pageDirection,
-                isEnabled: { loadingVolumeId == nil && !showQuotaPaywallFixture },
+                isEnabled: { ProcessInfo.processInfo.environment["PAGING_RENDER"] != "interactive" && loadingVolumeId == nil && !showQuotaPaywallFixture },
                 onTurn: turnPage
             )
             .frame(width: 0, height: 0)

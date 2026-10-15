@@ -25,6 +25,9 @@ import com.hadithly.app.core.preferences.PageDirection
 import com.hadithly.app.core.preferences.ReaderPagingPolicy
 import com.hadithly.app.core.preferences.ReaderPageTurn
 import com.hadithly.app.core.theme.HadithlyTheme
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -138,6 +141,37 @@ class DirectionAwareHorizontalPagerTest {
             .assertContentDescriptionEquals("Next page, Page 2")
             .performClick()
         compose.runOnIdle { assertEquals(ReaderPageTurn.NEXT, turn) }
+    }
+
+    @Test
+    fun appendedPagesDoNotInterruptAnActiveSwipe() {
+        lateinit var pager: androidx.compose.foundation.pager.PagerState
+        lateinit var scope: kotlinx.coroutines.CoroutineScope
+        var count by androidx.compose.runtime.mutableStateOf(3)
+        compose.setContent {
+            pager = rememberPagerState(pageCount = { count })
+            scope = androidx.compose.runtime.rememberCoroutineScope()
+            SynchronizeReaderPager(pager, 0, count)
+            DirectionAwareHorizontalPager(pager, ReaderPagingPolicy(PageDirection.LTR), modifier = Modifier.fillMaxSize()) { TestPage(it, false) }
+        }
+        compose.runOnIdle {
+            scope.launch {
+                pager.scroll {
+                    scrollBy(pager.layoutInfo.pageSize * .65f)
+                    kotlinx.coroutines.awaitCancellation()
+                }
+            }
+        }
+        compose.waitForIdle()
+        compose.runOnIdle {
+            assertEquals(1, pager.currentPage)
+            count = 4
+        }
+        compose.waitForIdle()
+        compose.runOnIdle {
+            assertEquals("Appending cached pages must not snap the active swipe back", 1, pager.currentPage)
+            assertEquals(true, pager.isScrollInProgress)
+        }
     }
 
     private fun setPager(direction: PageDirection, longContent: Boolean = false) {

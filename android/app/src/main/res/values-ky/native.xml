@@ -147,4 +147,10 @@
     <string name="native_d68761cc1eb2" formatted="false">Тексттин өлчөмү</string>
     <string name="native_324b134f57c7" formatted="false">Алдын ала көрүү</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
+    <string name="native_2981c4cfc618" formatted="false">Автоматтык котормо</string>
+    <string name="native_5423d44a5cf5" formatted="false">Которулбаган текстти чегиңиздин ичинде автоматтык которуу. Сурам боюнча которуу үчүн өчүрүңүз.</string>
+    <string name="native_fa05769818e1" formatted="false">Кыстарма же жазма кошуу, же бөлүшүү үчүн хадисти басып туруңуз.</string>
+    <string name="native_279166910494" formatted="false">Кеңешти жабуу</string>
+    <string name="native_9ad22124e012" formatted="false">Кыстармалар менен жазмаларды түзмөктөр арасында шайкештириңиз.</string>
+    <string name="native_43b0446666d2" formatted="false">Котормонун булактары</string>
 </resources>

@@ -38,10 +38,12 @@ struct NativePolishFixtureView: View {
         .environment(\.layoutDirection, LocaleFallback.isRTL(values["POLISH_LOCALE"] ?? "en") ? .rightToLeft : .leftToRight)
         .preferredColorScheme(ReaderPalette.preferredColorScheme(for: theme))
         .task {
+            if values["POLISH_RESET_HINT"] == "1" { environment.readerExperience.resetHintForUITest() }
             environment.preferences.setTheme(theme)
             environment.preferences.setSeparateReaderTheme(false)
             environment.preferences.setUILocale(values["POLISH_LOCALE"] ?? "en")
             environment.preferences.setTranslationLocale("en")
+            environment.preferences.setReadingDirection(ReadingDirection(rawValue: values["POLISH_DIRECTION"] ?? "auto") ?? .auto)
             UserDefaults.standard.set(0, forKey: "onboarding.la2.step")
             UserDefaults.standard.set(0, forKey: "onboarding.la2.visited")
             configured = true

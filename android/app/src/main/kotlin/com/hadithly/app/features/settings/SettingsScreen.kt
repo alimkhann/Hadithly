@@ -210,21 +210,15 @@ private fun SettingsRoot(onOpen: (SettingsDestination) -> Unit, onShowSignIn: ()
             syncSummary?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
         } else {
             CardColumn {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Icon(Icons.Filled.Person, null, tint = colors.textSecondary)
-                    Text(nativeText("Reading as a guest"), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+                Row(Modifier.fillMaxWidth().clickable(onClick = onShowSignIn).padding(vertical = 8.dp).testTag("settings.signin"),
+                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Icon(Icons.Filled.Person, null, tint = colors.textSecondary, modifier = Modifier.size(32.dp))
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(nativeText("Sign in"), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+                        Text(nativeText("Sync bookmarks and notes across devices."), fontSize = 14.sp, color = colors.textSecondary)
+                    }
+                    Icon(Icons.AutoMirrored.Filled.NavigateNext, null, tint = colors.textSecondary)
                 }
-                Text(
-                    nativeText("Everything you need to read works without an account. Sign in to carry your bookmarks, favorites, and notes across devices."),
-                    fontSize = 14.sp,
-                    color = colors.textSecondary,
-                )
-                Button(
-                    onClick = onShowSignIn,
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = colors.interactive, contentColor = colors.onInteractive),
-                    modifier = Modifier.fillMaxWidth().testTag("settings.signin"),
-                ) { Text(nativeText("Sign in"), fontWeight = FontWeight.SemiBold) }
             }
         }
 

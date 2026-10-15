@@ -91,7 +91,6 @@ class ReaderR6AQuietTest {
                 deps = deps,
                 onTap = {},
                 onRetry = {},
-                onShowCitations = {},
                 onShowSource = onShowSource,
                 onEditNote = {},
                 onSuggest = {},
@@ -99,6 +98,23 @@ class ReaderR6AQuietTest {
                 onShowPaywall = {},
             )
         }
+    }
+
+    @Test fun translationSourcesShareTheHadithHeaderSheet() {
+        val translation = com.hadithly.app.core.data.ReaderTranslation("prepared-sources", "Prepared sourced translation", source = "gemini_ai", sourceLabel = "AI translation", citations = listOf(com.hadithly.app.core.data.ReaderCitation("https://example.org/reference", "Prepared reference", "example.org")))
+        val open = androidx.compose.runtime.mutableStateOf(false)
+        compose.setContent {
+            HadithlyTheme {
+                if (open.value) HadithSourceSheet(hadith(), translation)
+                else block(translationState = TranslationUiState.Loaded(translation), onShowSource = { open.value = true })
+            }
+        }
+        compose.onNodeWithText("Prepared sourced translation").assertIsDisplayed()
+        compose.onNodeWithText("AI").assertDoesNotExist()
+        compose.onNodeWithTag("reader.hadithLabel").performClick()
+        compose.onNodeWithTag("reader.sourceSheet").assertIsDisplayed()
+        compose.onNodeWithText("Prepared reference").assertIsDisplayed()
+        compose.onNodeWithTag("translation.sources.ai").assertIsDisplayed()
     }
 
     @Test

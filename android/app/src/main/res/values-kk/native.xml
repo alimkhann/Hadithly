@@ -147,4 +147,10 @@
     <string name="native_d68761cc1eb2" formatted="false">Мәтін өлшемі</string>
     <string name="native_324b134f57c7" formatted="false">Алдын ала қарау</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
+    <string name="native_2981c4cfc618" formatted="false">Автоматты аударма</string>
+    <string name="native_5423d44a5cf5" formatted="false">Жетіспейтін мәтінді лимитіңіз шегінде автоматты аудару. Сұрау бойынша аудару үшін өшіріңіз.</string>
+    <string name="native_fa05769818e1" formatted="false">Бетбелгі, жазба қосу немесе бөлісу үшін хадисті басып тұрыңыз.</string>
+    <string name="native_279166910494" formatted="false">Кеңесті жабу</string>
+    <string name="native_9ad22124e012" formatted="false">Бетбелгілер мен жазбаларды құрылғылар арасында синхрондаңыз.</string>
+    <string name="native_43b0446666d2" formatted="false">Аударма дереккөздері</string>
 </resources>

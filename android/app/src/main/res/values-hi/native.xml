@@ -147,4 +147,10 @@
     <string name="native_d68761cc1eb2" formatted="false">टेक्स्ट का आकार</string>
     <string name="native_324b134f57c7" formatted="false">पूर्वावलोकन</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
+    <string name="native_2981c4cfc618" formatted="false">अपने आप अनुवाद</string>
+    <string name="native_5423d44a5cf5" formatted="false">अपनी सीमा के भीतर बिना अनुवाद वाले पाठ का अपने आप अनुवाद करें। अनुरोध पर अनुवाद के लिए बंद करें।</string>
+    <string name="native_fa05769818e1" formatted="false">बुकमार्क, नोट जोड़ने या साझा करने के लिए हदीस को दबाकर रखें।</string>
+    <string name="native_279166910494" formatted="false">सुझाव बंद करें</string>
+    <string name="native_9ad22124e012" formatted="false">डिवाइसों के बीच बुकमार्क और नोट सिंक करें।</string>
+    <string name="native_43b0446666d2" formatted="false">अनुवाद के स्रोत</string>
 </resources>

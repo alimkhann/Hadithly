@@ -147,4 +147,10 @@
     <string name="native_d68761cc1eb2" formatted="false">Matn o‘lchami</string>
     <string name="native_324b134f57c7" formatted="false">Oldindan ko‘rish</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
+    <string name="native_2981c4cfc618" formatted="false">Avtomatik tarjima</string>
+    <string name="native_5423d44a5cf5" formatted="false">Tarjima qilinmagan matnni limitingiz doirasida avtomatik tarjima qilish. So‘rov bo‘yicha tarjima uchun o‘chiring.</string>
+    <string name="native_fa05769818e1" formatted="false">Xatcho‘p yoki qayd qo‘shish yoxud ulashish uchun hadisni bosib turing.</string>
+    <string name="native_279166910494" formatted="false">Maslahatni yopish</string>
+    <string name="native_9ad22124e012" formatted="false">Xatcho‘plar va qaydlarni qurilmalar o‘rtasida sinxronlang.</string>
+    <string name="native_43b0446666d2" formatted="false">Tarjima manbalari</string>
 </resources>

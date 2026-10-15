@@ -113,6 +113,7 @@ class ReaderViewModel(
 
     private var pageJob: Job? = null
     private var translationJob: Job? = null
+    private val automaticRequests = com.hadithly.app.core.preferences.ReaderAutomaticTranslationLedger()
     private val generationJobs = mutableMapOf<String, Job>()
     private var publicationJob: Job? = null
     private var publicationDeadlineJob: Job? = null
@@ -879,6 +880,17 @@ class ReaderViewModel(
     }
 
     /** The only reader path that creates a new global translation. */
+    fun automaticallyTranslateVisible(ids: List<String>) {
+        val preferences = app.preferences.preferences.value
+        if (!app.readerExperience.automaticallyTranslates.value || !preferences.translationVisible || !app.isSignedIn() || hasQuotaFailure()) return
+        val state = _state.value
+        currentPageHadiths().filter { it.internalId in ids }.forEach { hadith ->
+            if (automaticRequests.claim(hadith.internalId, state.language,
+                hasTranslation = state.language == "en" && !hadith.englishText.isNullOrEmpty(),
+                hasRequestState = state.translations[hadith.internalId] != null)) retryTranslation(hadith)
+        }
+    }
+
     fun retryTranslation(hadith: ReaderHadith) {
         if (generationJobs[hadith.internalId]?.isActive == true) return
         val language = _state.value.language
@@ -889,6 +901,7 @@ class ReaderViewModel(
     }
 
     fun resetTranslationRequestsForAccount() {
+        automaticRequests.reset()
         _state.update { it.copy(translationAllowances = emptyMap(), translations = it.translations.filterValues { state -> state is TranslationUiState.Loaded }) }
         generationJobs.values.forEach { it.cancel() }
         generationJobs.clear()

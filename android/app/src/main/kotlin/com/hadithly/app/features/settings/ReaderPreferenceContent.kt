@@ -41,6 +41,8 @@ internal fun ReaderPreferenceContent(
     extraContent: @Composable () -> Unit = {},
 ) {
     val colors = LocalHadithlyColors.current
+    val experience = com.hadithly.app.HadithlyApplication.instance().readerExperience
+    val automatic by experience.automaticallyTranslates.collectAsState()
     var panel by remember { mutableStateOf<String?>(null) }
     BackHandler(enabled = panel != null) { panel = null }
     val scrollState = key(panel) { rememberScrollState() }
@@ -72,6 +74,10 @@ internal fun ReaderPreferenceContent(
                     PreferenceSwitch("Translation", preferences.translationVisible, "$prefix.visibility.translation") { onVisibility(null, it) }
                 }
                 Text(nativeText("At least one text layer stays visible."), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary, modifier = Modifier.padding(top = 6.dp, start = 16.dp))
+                PreferenceSection("Translation") {
+                    PreferenceSwitch("Automatic translation", automatic, "$prefix.automaticTranslation", experience::setAutomaticTranslation)
+                }
+                Text(nativeText("Translate missing text automatically, within your allowance. Turn off to translate on request."), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
                 extraContent()
             }
             "Appearance" -> PreferenceSection("Reader appearance") {

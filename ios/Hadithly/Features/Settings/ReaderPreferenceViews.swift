@@ -30,6 +30,17 @@ struct ReaderPreferenceSections: View {
             Text("At least one text layer stays visible.")
         }
         .listRowBackground(palette.surface)
+        Section {
+            Toggle("Automatic translation", isOn: Binding(
+                get: { environment.readerExperience.automaticallyTranslates },
+                set: { environment.readerExperience.automaticallyTranslates = $0 }
+            ))
+            .tint(palette.textSecondary)
+            .accessibilityIdentifier("\(prefix).automaticTranslation")
+        } footer: {
+            Text("Translate missing text automatically, within your allowance. Turn off to translate on request.")
+        }
+        .listRowBackground(palette.surface)
     }
 
     private func link(_ panel: ReaderPreferencePanel, value: String) -> some View {

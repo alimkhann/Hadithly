@@ -75,7 +75,7 @@ behavior, not a new provider, billing or authenticated production acceptance.
 | iOS text/layout | Large text and RTL Library grid/list plus reduced-motion onboarding reveal pass |
 | Android native states | 202 unit tests and 13 focused instrumented checks pass on the final reviewed implementation, including Today expansion (`/tmp/hadithly-polish-android-reviewed.log`) |
 | Android text/layout/motion | Three-theme waiting/skeleton renders, 2x RTL baseline layout, real animator scale zero and active-motion pixel comparisons pass |
-| Scoped copy | `scripts/generate-ui-polish-copy.py --check` passes: ten keys in 15 locales; non-English strings remain explicitly draft/needs_review |
+| Scoped copy | `scripts/generate-ui-polish-copy.py --check` passes: initial ten keys in 15 locales (six follow-up keys are recorded in `../READER_INTERACTION_POLISH.md`); non-English strings remain explicitly draft/needs_review |
 
 Final iOS follow-up: large RTL Library/onboarding passed on the final source. The
 old Saved shortcut test initially failed before mounting its fixture because its

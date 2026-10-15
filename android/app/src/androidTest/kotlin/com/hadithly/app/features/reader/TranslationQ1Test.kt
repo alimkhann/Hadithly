@@ -29,7 +29,7 @@ class TranslationQ1Test {
         compose.setContent { HadithlyTheme { TranslationSection(hadith, state.value, "ru", {
             requests++
             state.value = TranslationUiState.Loaded(ReaderTranslation("generated", "Generated text", source = "gemini_ai", sourceLabel = "AI"))
-        }, {}, {}) } }
+        }, {}) } }
         compose.onNodeWithTag("reader.generateTranslation").assertHeightIsAtLeast(48.dp).assertIsDisplayed()
         compose.runOnIdle { assertEquals(0, requests) }
         compose.onNodeWithTag("reader.generateTranslation").performClick()
@@ -40,7 +40,7 @@ class TranslationQ1Test {
     @Test fun onlyActualQuotaRejectionOffersPlans() {
         var paywalls = 0
         val state = mutableStateOf<TranslationUiState?>(TranslationUiState.Failed(TranslationFailure.Failed("AI_RATE_LIMITED")))
-        compose.setContent { HadithlyTheme { TranslationSection(hadith, state.value, "ru", {}, {}, { paywalls++ }) } }
+        compose.setContent { HadithlyTheme { TranslationSection(hadith, state.value, "ru", {}, { paywalls++ }) } }
         compose.onNodeWithText("See plans").assertDoesNotExist()
         compose.runOnIdle { state.value = TranslationUiState.Failed(TranslationFailure.RequiresSignIn) }
         compose.onNodeWithText("See plans").assertDoesNotExist()
@@ -51,7 +51,7 @@ class TranslationQ1Test {
 
     @Test fun cachedGuestTranslationRendersWithoutGenerateOrPaywall() {
         compose.setContent { HadithlyTheme { TranslationSection(hadith, TranslationUiState.Loaded(
-            ReaderTranslation("cached", "Cached exact-locale text", source = "official", sourceLabel = "Official", cached = true)), "ru", {}, {}, {}) } }
+            ReaderTranslation("cached", "Cached exact-locale text", source = "official", sourceLabel = "Official", cached = true)), "ru", {}, {}) } }
         compose.onNodeWithText("Cached exact-locale text").assertIsDisplayed()
         compose.onNodeWithTag("reader.generateTranslation").assertDoesNotExist()
         compose.onNodeWithText("See plans").assertDoesNotExist()

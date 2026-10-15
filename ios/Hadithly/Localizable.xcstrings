@@ -3516,6 +3516,576 @@
         }
       }
     },
+    "Translation sources" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Translation sources"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "مصادر الترجمة"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Источники перевода"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Аударма дереккөздері"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Котормонун булактары"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tarjima manbalari"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Çeviri kaynakları"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sumber terjemahan"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ترجمے کے مصادر"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sources de traduction"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Fuentes de traducción"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Fontes da tradução"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Vyanzo vya tafsiri"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "अनुवाद के स्रोत"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "অনুবাদের উৎস"
+          }
+        }
+      }
+    },
+    "Sync bookmarks and notes across devices." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync bookmarks and notes across devices."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "زامن العلامات والملاحظات بين أجهزتك."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Синхронизируйте закладки и заметки между устройствами."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бетбелгілер мен жазбаларды құрылғылар арасында синхрондаңыз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Кыстармалар менен жазмаларды түзмөктөр арасында шайкештириңиз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Xatcho‘plar va qaydlarni qurilmalar o‘rtasida sinxronlang."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Yer imlerini ve notları cihazlar arasında eşitleyin."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sinkronkan penanda dan catatan antarperangkat."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "اپنے آلات پر نشانیاں اور نوٹس ہم آہنگ کریں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Synchronisez les signets et les notes entre vos appareils."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sincroniza marcadores y notas entre dispositivos."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sincronize marcadores e notas entre dispositivos."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sawazisha alamisho na madokezo kati ya vifaa."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "डिवाइसों के बीच बुकमार्क और नोट सिंक करें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ডিভাইসগুলোর মধ্যে বুকমার্ক ও নোট সিঙ্ক করুন।"
+          }
+        }
+      }
+    },
+    "Dismiss hint" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dismiss hint"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "إخفاء التلميح"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Скрыть подсказку"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Кеңесті жабу"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Кеңешти жабуу"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Maslahatni yopish"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "İpucunu kapat"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tutup petunjuk"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "اشارہ بند کریں"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Fermer le conseil"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cerrar sugerencia"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Fechar dica"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Funga kidokezo"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "सुझाव बंद करें"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ইঙ্গিত বন্ধ করুন"
+          }
+        }
+      }
+    },
+    "Touch and hold a hadith to bookmark, add a note or share." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Touch and hold a hadith to bookmark, add a note or share."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "المس الحديث مطولًا لإضافة علامة أو ملاحظة أو مشاركته."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Нажмите и удерживайте хадис, чтобы добавить закладку, заметку или поделиться."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бетбелгі, жазба қосу немесе бөлісу үшін хадисті басып тұрыңыз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Кыстарма же жазма кошуу, же бөлүшүү үчүн хадисти басып туруңуз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Xatcho‘p yoki qayd qo‘shish yoxud ulashish uchun hadisni bosib turing."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Yer imi veya not eklemek ya da paylaşmak için hadise dokunup basılı tutun."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sentuh dan tahan hadis untuk menandai, menambahkan catatan, atau berbagi."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "نشانی یا نوٹ شامل کرنے یا شیئر کرنے کے لیے حدیث کو دبا کر رکھیں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Touchez un hadith de façon prolongée pour ajouter un signet, une note ou le partager."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mantén presionado un hadiz para marcarlo, añadir una nota o compartirlo."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Toque e segure um hadith para marcar, adicionar uma nota ou compartilhar."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Gusa na ushikilie hadith ili kuweka alama, kuongeza dokezo au kushiriki."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "बुकमार्क, नोट जोड़ने या साझा करने के लिए हदीस को दबाकर रखें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "বুকমার্ক, নোট যোগ বা শেয়ার করতে হাদিস চেপে ধরে রাখুন।"
+          }
+        }
+      }
+    },
+    "Translate missing text automatically, within your allowance. Turn off to translate on request." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Translate missing text automatically, within your allowance. Turn off to translate on request."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ترجمة النص غير المترجم تلقائيًا ضمن حصتك. عطّل الخيار للترجمة عند الطلب."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Переводить отсутствующий текст автоматически в пределах лимита. Отключите, чтобы переводить по запросу."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жетіспейтін мәтінді лимитіңіз шегінде автоматты аудару. Сұрау бойынша аудару үшін өшіріңіз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Которулбаган текстти чегиңиздин ичинде автоматтык которуу. Сурам боюнча которуу үчүн өчүрүңүз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tarjima qilinmagan matnni limitingiz doirasida avtomatik tarjima qilish. So‘rov bo‘yicha tarjima uchun o‘chiring."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Çevrilmemiş metni hakkınız dahilinde otomatik çevirir. İstek üzerine çevirmek için kapatın."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Terjemahkan teks yang belum diterjemahkan secara otomatis sesuai kuota Anda. Nonaktifkan untuk menerjemahkan saat diminta."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "اپنی حد کے اندر غیر مترجم متن کا خودکار ترجمہ کریں۔ درخواست پر ترجمے کے لیے بند کریں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Traduire automatiquement les textes manquants dans la limite de votre quota. Désactivez pour traduire sur demande."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Traduce automáticamente el texto faltante dentro de tu cuota. Desactiva para traducir cuando lo solicites."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Traduz automaticamente o texto ausente dentro da sua cota. Desative para traduzir quando solicitar."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tafsiri maandishi ambayo hayajatafsiriwa kiotomatiki ndani ya kikomo chako. Zima ili kutafsiri unapoomba."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "अपनी सीमा के भीतर बिना अनुवाद वाले पाठ का अपने आप अनुवाद करें। अनुरोध पर अनुवाद के लिए बंद करें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "আপনার সীমার মধ্যে অনূদিত নয় এমন লেখা স্বয়ংক্রিয়ভাবে অনুবাদ করুন। অনুরোধে অনুবাদ করতে বন্ধ করুন।"
+          }
+        }
+      }
+    },
+    "Automatic translation" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatic translation"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "الترجمة التلقائية"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Автоматический перевод"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Автоматты аударма"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Автоматтык котормо"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Avtomatik tarjima"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Otomatik çeviri"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Terjemahan otomatis"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "خودکار ترجمہ"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Traduction automatique"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Traducción automática"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tradução automática"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tafsiri ya moja kwa moja"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "अपने आप अनुवाद"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "স্বয়ংক্রিয় অনুবাদ"
+          }
+        }
+      }
+    },
     "Preview" : {
       "extractionState": "manual",
       "localizations": {

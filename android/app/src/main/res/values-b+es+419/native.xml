@@ -147,4 +147,10 @@
     <string name="native_d68761cc1eb2" formatted="false">Tamaño del texto</string>
     <string name="native_324b134f57c7" formatted="false">Vista previa</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
+    <string name="native_2981c4cfc618" formatted="false">Traducción automática</string>
+    <string name="native_5423d44a5cf5" formatted="false">Traduce automáticamente el texto faltante dentro de tu cuota. Desactiva para traducir cuando lo solicites.</string>
+    <string name="native_fa05769818e1" formatted="false">Mantén presionado un hadiz para marcarlo, añadir una nota o compartirlo.</string>
+    <string name="native_279166910494" formatted="false">Cerrar sugerencia</string>
+    <string name="native_9ad22124e012" formatted="false">Sincroniza marcadores y notas entre dispositivos.</string>
+    <string name="native_43b0446666d2" formatted="false">Fuentes de traducción</string>
 </resources>

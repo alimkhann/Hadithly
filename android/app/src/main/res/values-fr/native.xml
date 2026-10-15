@@ -147,4 +147,10 @@
     <string name="native_d68761cc1eb2" formatted="false">Taille du texte</string>
     <string name="native_324b134f57c7" formatted="false">Aperçu</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
+    <string name="native_2981c4cfc618" formatted="false">Traduction automatique</string>
+    <string name="native_5423d44a5cf5" formatted="false">Traduire automatiquement les textes manquants dans la limite de votre quota. Désactivez pour traduire sur demande.</string>
+    <string name="native_fa05769818e1" formatted="false">Touchez un hadith de façon prolongée pour ajouter un signet, une note ou le partager.</string>
+    <string name="native_279166910494" formatted="false">Fermer le conseil</string>
+    <string name="native_9ad22124e012" formatted="false">Synchronisez les signets et les notes entre vos appareils.</string>
+    <string name="native_43b0446666d2" formatted="false">Sources de traduction</string>
 </resources>

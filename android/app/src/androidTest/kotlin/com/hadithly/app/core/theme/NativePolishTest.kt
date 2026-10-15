@@ -34,6 +34,50 @@ import kotlin.math.abs
 class NativePolishTest {
     @get:Rule val compose = createComposeRule()
 
+    @Test fun readerManualChoicePersistsAndHintOnlyAppearsOnce() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val defaults = context.getSharedPreferences("reader-experience-test", android.content.Context.MODE_PRIVATE)
+        defaults.edit().clear().commit()
+        try {
+            val preferences = com.hadithly.app.core.preferences.ReaderExperiencePreferences(defaults)
+            assertTrue(preferences.automaticallyTranslates.value)
+            preferences.setAutomaticTranslation(false)
+            assertFalse(com.hadithly.app.core.preferences.ReaderExperiencePreferences(defaults).automaticallyTranslates.value)
+            preferences.offerActionHint()
+            assertTrue(preferences.showsActionHint.value)
+            preferences.dismissActionHint()
+            preferences.offerActionHint()
+            assertFalse(preferences.showsActionHint.value)
+            val relaunched = com.hadithly.app.core.preferences.ReaderExperiencePreferences(defaults)
+            relaunched.offerActionHint()
+            assertFalse(relaunched.showsActionHint.value)
+        } finally { defaults.edit().clear().commit() }
+    }
+
+    @Test fun closingReaderBeforeHintExpiresDoesNotShowItAgain() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val defaults = context.getSharedPreferences("reader-hint-disposal-test", android.content.Context.MODE_PRIVATE)
+        defaults.edit().clear().commit()
+        val experience = com.hadithly.app.core.preferences.ReaderExperiencePreferences(defaults)
+        try {
+            compose.setContent {
+                var opened by remember { mutableStateOf(true) }
+                HadithlyTheme {
+                    Column {
+                        TextButton(onClick = { opened = !opened }, modifier = Modifier.testTag("toggle-reader")) { Text("Toggle reader") }
+                        if (opened) com.hadithly.app.features.reader.ReaderActionHint(experience)
+                    }
+                }
+            }
+            compose.onNodeWithTag("reader.actionHint").assertIsDisplayed()
+            compose.onNodeWithTag("toggle-reader").performClick()
+            compose.onNodeWithTag("reader.actionHint").assertDoesNotExist()
+            compose.runOnIdle { assertFalse(experience.showsActionHint.value) }
+            compose.onNodeWithTag("toggle-reader").performClick()
+            compose.onNodeWithTag("reader.actionHint").assertDoesNotExist()
+        } finally { defaults.edit().clear().commit() }
+    }
+
     @Test fun lightSettingsSurfaceDiffersFromCanvas() {
         compose.setContent {
             HadithlyTheme(ReaderTheme.LIGHT) {

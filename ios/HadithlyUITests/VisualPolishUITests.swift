@@ -2,6 +2,71 @@ import XCTest
 import UIKit
 
 final class VisualPolishUITests: XCTestCase {
+    func testPageHandoffKeepsIncomingTextGeometry() {
+        var positions: [CGFloat] = []
+        for renderer in ["neighbor", "active"] {
+            let app = XCUIApplication()
+            app.launchArguments = ["-NativePolishFixture"]
+            app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "POLISH_SCREEN": "reader", "POLISH_THEME": "light", "PAGING_RENDER": renderer]
+            app.launch()
+            let text = app.staticTexts["reader.arabic"].firstMatch
+            XCTAssertTrue(text.waitForExistence(timeout: 10))
+            positions.append(text.frame.minY)
+            capture("page-handoff-\(renderer)", app)
+            app.terminate()
+        }
+        XCTAssertEqual(positions[0], positions[1], accuracy: 1, "Incoming text must not jump when its page becomes active")
+    }
+    func testReaderSourcesOpenFromHadithHeader() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-NativePolishFixture"]
+        app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "POLISH_SCREEN": "reader", "POLISH_THEME": "paper", "Q1_STATE": "sources"]
+        app.launch()
+        XCTAssertTrue(app.staticTexts["Prepared sourced translation"].waitForExistence(timeout: 10))
+        XCTAssertFalse(app.buttons["reader.aiBadge"].exists)
+        app.buttons.matching(identifier: "reader.hadithLabel").firstMatch.tap()
+        XCTAssertTrue(app.staticTexts["Prepared reference"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["reader.sourceSheet.name"].exists)
+        XCTAssertTrue(element("translation.sources.ai", app).exists)
+        capture("combined-reader-sources", app)
+    }
+
+    func testProductionReaderSwipesAndHintDoesNotRepeat() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-NativePolishFixture"]
+        app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "POLISH_SCREEN": "reader", "POLISH_THEME": "light", "PAGING_RENDER": "interactive", "POLISH_RESET_HINT": "1"]
+        app.launch()
+        XCTAssertTrue(element("reader.volumeHeader", app).waitForExistence(timeout: 10))
+        XCTAssertTrue(element("reader.actionHint", app).waitForExistence(timeout: 5))
+        app.buttons["Dismiss hint"].tap()
+        app.swipeLeft()
+        XCTAssertTrue(element("reader.volumeCorner", app).waitForExistence(timeout: 5))
+        app.swipeRight()
+        XCTAssertTrue(element("reader.volumeHeader", app).waitForExistence(timeout: 5))
+        let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.7, dy: 0.5))
+        start.press(forDuration: 0.2, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.65, dy: 0.5)))
+        XCTAssertTrue(element("reader.volumeHeader", app).exists)
+        app.terminate()
+        app.launchEnvironment["POLISH_RESET_HINT"] = "0"
+        app.launch()
+        XCTAssertTrue(element("reader.volumeHeader", app).waitForExistence(timeout: 10))
+        XCTAssertFalse(element("reader.actionHint", app).exists)
+        capture("reader-final", app)
+    }
+
+    func testProductionReaderRTLSwipes() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-NativePolishFixture"]
+        app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "POLISH_SCREEN": "reader", "POLISH_THEME": "paper", "PAGING_RENDER": "interactive", "POLISH_DIRECTION": "rtl"]
+        app.launch()
+        XCTAssertTrue(element("reader.volumeHeader", app).waitForExistence(timeout: 10))
+        app.swipeRight()
+        XCTAssertTrue(element("reader.volumeCorner", app).waitForExistence(timeout: 5))
+        app.swipeLeft()
+        XCTAssertTrue(element("reader.volumeHeader", app).waitForExistence(timeout: 5))
+        capture("reader-rtl-final", app)
+    }
+
     override func setUpWithError() throws { continueAfterFailure = false }
     override func tearDownWithError() throws {
         let app = XCUIApplication()
@@ -15,6 +80,10 @@ final class VisualPolishUITests: XCTestCase {
         app.launchArguments = ["-ReaderSettingsFixture"]
         app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "READER_SETTINGS_CONTEXT": "global", "READER_SETTINGS_THEME": "light"]
         app.launch()
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 10))
+        let title = app.navigationBars["Settings"].staticTexts["Settings"]
+        XCTAssertTrue(title.exists)
+        XCTAssertGreaterThan(inkFraction(in: app, rect: title.frame), 0.02, "The Settings title must contain visible dark text, not only an accessibility label")
         let row = app.buttons["settings.row.appearance"]
         XCTAssertTrue(row.waitForExistence(timeout: 10))
         let canvas = pixel(in: app, at: CGPoint(x: 4, y: row.frame.midY))
@@ -186,6 +255,18 @@ final class VisualPolishUITests: XCTestCase {
         add(attachment)
         let file = FileManager.default.temporaryDirectory.appendingPathComponent("polish-\(name).png")
         try? app.screenshot().pngRepresentation.write(to: file)
+    }
+
+    private func inkFraction(in app: XCUIApplication, rect: CGRect) -> Double {
+        guard rect.width > 0, rect.height > 0 else { return 0 }
+        let image = app.screenshot().image.cgImage!
+        let scale = CGFloat(image.width) / app.frame.width
+        guard let crop = image.cropping(to: CGRect(x: rect.minX * scale, y: rect.minY * scale, width: rect.width * scale, height: rect.height * scale)) else { return 0 }
+        var rgba = [UInt8](repeating: 255, count: 64 * 24 * 4)
+        let context = CGContext(data: &rgba, width: 64, height: 24, bitsPerComponent: 8, bytesPerRow: 64 * 4,
+            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
+        context.draw(crop, in: CGRect(x: 0, y: 0, width: 64, height: 24))
+        return Double(stride(from: 0, to: rgba.count, by: 4).filter { Int(rgba[$0]) + Int(rgba[$0 + 1]) + Int(rgba[$0 + 2]) < 450 }.count) / (64 * 24)
     }
 
     private func pixel(in app: XCUIApplication, at point: CGPoint) -> [UInt8] {

@@ -145,4 +145,10 @@
     <string name="native_b226874c014f" formatted="false">Reader appearance</string>
     <string name="native_d68761cc1eb2" formatted="false">Text size</string>
     <string name="native_324b134f57c7" formatted="false">Preview</string>
+    <string name="native_2981c4cfc618" formatted="false">Automatic translation</string>
+    <string name="native_5423d44a5cf5" formatted="false">Translate missing text automatically, within your allowance. Turn off to translate on request.</string>
+    <string name="native_fa05769818e1" formatted="false">Touch and hold a hadith to bookmark, add a note or share.</string>
+    <string name="native_279166910494" formatted="false">Dismiss hint</string>
+    <string name="native_9ad22124e012" formatted="false">Sync bookmarks and notes across devices.</string>
+    <string name="native_43b0446666d2" formatted="false">Translation sources</string>
 </resources>

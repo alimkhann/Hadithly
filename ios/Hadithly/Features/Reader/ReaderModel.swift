@@ -41,6 +41,13 @@ final class ReaderModel {
     private let widthClass: ReadingWidthClass
     /// O2 offline fallback. Set by the hosting view from AppEnvironment;
     /// nil in tests and previews that drive the model with fixtures.
+    var automaticTranslationEnabled: () -> Bool = { false }
+    private var automaticTranslationTask: Task<Void, Never>?
+    private var automaticVisibleHadiths: [ReaderHadith] = []
+    private var automaticRequests = ReaderAutomaticTranslationLedger()
+#if DEBUG
+    var automaticRequestForUITest: ((ReaderHadith) -> Void)?
+#endif
     var offlineStore: OfflineStore?
     var analytics: UsageStatistics?
     private var measurement = ReaderMeasurement()
@@ -57,6 +64,13 @@ final class ReaderModel {
         return language == "en" && !(hadith.englishText ?? "").isEmpty
     }
     func observeVisibleContent(hadiths: [ReaderHadith], frames: [String: ReaderAnchorFrame], viewport: Double) {
+        if verticalLanding == nil {
+            let visible = hadiths.filter { hadith in
+                guard let frame = frames[hadith.internalId] else { return false }
+                return frame.minY < viewport && frame.minY + frame.height > 0
+            }
+            scheduleAutomaticTranslations(visible)
+        }
         guard verticalLanding == nil, hadiths.contains(where: { hadith in
             guard let frame = frames[hadith.internalId] else { return false }
             return frame.minY < viewport && frame.minY + frame.height > 0 && readable(hadith)
@@ -65,6 +79,35 @@ final class ReaderModel {
         emitMeasurement(measurement.visible(offline: usedOfflineForEntry))
         if !wasRendered, measurement.rendered { analytics?.firstReaderSucceeded() }
     }
+    private func invalidateAutomaticTranslationVisibility() {
+        automaticTranslationTask?.cancel()
+        automaticVisibleHadiths = []
+    }
+
+    private func scheduleAutomaticTranslations(_ visible: [ReaderHadith], force: Bool = false) {
+        guard force || visible.map(\.internalId) != automaticVisibleHadiths.map(\.internalId) else { return }
+        automaticVisibleHadiths = visible
+        automaticTranslationTask?.cancel()
+        let requestedLanguage = language
+        automaticTranslationTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(450))
+            guard let self, !Task.isCancelled, language == requestedLanguage,
+                  automaticTranslationEnabled(), currentPreferences().translationVisible, isSignedIn() else { return }
+            for hadith in visible {
+                guard !hasQuotaFailure else { break }
+                guard automaticRequests.claim(hadithId: hadith.internalId, locale: requestedLanguage,
+                    hasTranslation: language == "en" && !(hadith.englishText ?? "").isEmpty,
+                    hasRequestState: translations[hadith.internalId] != nil) else { continue }
+#if DEBUG
+                if let automaticRequestForUITest { automaticRequestForUITest(hadith); continue }
+#endif
+                retryTranslation(for: hadith)
+            }
+        }
+    }
+
+    func refreshAutomaticTranslationPreference() { scheduleAutomaticTranslations(automaticVisibleHadiths, force: true) }
+
     func inspectInitialTarget(hadiths: [ReaderHadith], frames: [String: ReaderAnchorFrame], viewport: Double) {
         let expected = openPosition?.anchor.providerHadithId ?? (targetSource == .notification ? openHadithNumber : nil)
         let desired = openPosition?.normalizedOffset ?? 0
@@ -93,6 +136,7 @@ final class ReaderModel {
     var pageIndex = 0 {
         didSet {
             guard oldValue != pageIndex else { return }
+            invalidateAutomaticTranslationVisibility()
             requestHeaderLanding(for: pageIndex)
             collapseToFocused()
             lastCapturedAnchor = nil
@@ -222,6 +266,8 @@ final class ReaderModel {
     }
 
     func stop() {
+        automaticTranslationTask?.cancel()
+        automaticVisibleHadiths = []
         outlineTask?.cancel()
         pageTask?.cancel()
         translationTask?.cancel()
@@ -540,6 +586,8 @@ final class ReaderModel {
         translations[id] = state
         translationAllowances[id] = allowance
     }
+
+    func seedPagesForUITest(_ pages: [ReaderPageResult]) { self.pages = pages }
 
     func seedForUITest(volumes: [OutlineVolume], selectedVolumeId: String) {
         self.volumes = volumes
@@ -1017,6 +1065,8 @@ final class ReaderModel {
     }
 
     func resetTranslationRequestsForAccount() {
+        automaticTranslationTask?.cancel()
+        automaticRequests = ReaderAutomaticTranslationLedger()
         translationAllowances = [:]
         translations = translations.filter { _, state in
             if case .loaded = state { return true }
@@ -1024,6 +1074,7 @@ final class ReaderModel {
         }
         for task in generationTasks.values { task.cancel() }
         generationTasks = [:]
+        refreshAutomaticTranslationPreference()
     }
 
     var hasQuotaFailure: Bool {
@@ -1249,6 +1300,7 @@ final class ReaderModel {
     /// a font, size, visibility, or locale change the raw offset is stale; the
     /// last stable semantic anchor recovers the exact position.
     func reanchorAfterLayoutChange() {
+        invalidateAutomaticTranslationVisibility()
         guard phase == .reading,
               pages.indices.contains(pageIndex),
               let anchor = lastStableAnchor,

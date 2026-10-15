@@ -147,4 +147,10 @@
     <string name="native_d68761cc1eb2" formatted="false">Ukuran teks</string>
     <string name="native_324b134f57c7" formatted="false">Pratinjau</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
+    <string name="native_2981c4cfc618" formatted="false">Terjemahan otomatis</string>
+    <string name="native_5423d44a5cf5" formatted="false">Terjemahkan teks yang belum diterjemahkan secara otomatis sesuai kuota Anda. Nonaktifkan untuk menerjemahkan saat diminta.</string>
+    <string name="native_fa05769818e1" formatted="false">Sentuh dan tahan hadis untuk menandai, menambahkan catatan, atau berbagi.</string>
+    <string name="native_279166910494" formatted="false">Tutup petunjuk</string>
+    <string name="native_9ad22124e012" formatted="false">Sinkronkan penanda dan catatan antarperangkat.</string>
+    <string name="native_43b0446666d2" formatted="false">Sumber terjemahan</string>
 </resources>

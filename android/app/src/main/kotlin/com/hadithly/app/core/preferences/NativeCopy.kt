@@ -164,5 +164,11 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "Reader appearance" -> R.string.native_b226874c014f
     "Text size" -> R.string.native_d68761cc1eb2
     "Preview" -> R.string.native_324b134f57c7
+    "Automatic translation" -> R.string.native_2981c4cfc618
+    "Translate missing text automatically, within your allowance. Turn off to translate on request." -> R.string.native_5423d44a5cf5
+    "Touch and hold a hadith to bookmark, add a note or share." -> R.string.native_fa05769818e1
+    "Dismiss hint" -> R.string.native_279166910494
+    "Sync bookmarks and notes across devices." -> R.string.native_9ad22124e012
+    "Translation sources" -> R.string.native_43b0446666d2
     else -> null
 }

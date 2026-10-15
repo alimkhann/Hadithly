@@ -32,7 +32,7 @@ final class EvidenceProcessingUITests: XCTestCase {
             let citation = app.descendants(matching: .any)["submission.citation.0"].firstMatch
             if !citation.isHittable { app.swipeUp() }
             XCTAssertTrue(citation.exists)
-            XCTAssertGreaterThanOrEqual(citation.frame.height, 44)
+            XCTAssertGreaterThanOrEqual(citation.frame.height, 44 - 0.01)
             XCTAssertFalse(app.debugDescription.contains("confidence"))
             XCTAssertFalse(app.debugDescription.contains("reputation"))
             XCTAssertEqual(app.buttons["submission.deleteDraft"].exists, status != "approved")

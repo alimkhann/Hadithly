@@ -97,7 +97,6 @@ class ReaderR6Round3Test {
                 deps = deps,
                 onTap = {},
                 onRetry = {},
-                onShowCitations = {},
                 onShowSource = {},
                 onEditNote = {},
                 onSuggest = {},

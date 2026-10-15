@@ -147,4 +147,10 @@
     <string name="native_d68761cc1eb2" formatted="false">Metin boyutu</string>
     <string name="native_324b134f57c7" formatted="false">Önizleme</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
+    <string name="native_2981c4cfc618" formatted="false">Otomatik çeviri</string>
+    <string name="native_5423d44a5cf5" formatted="false">Çevrilmemiş metni hakkınız dahilinde otomatik çevirir. İstek üzerine çevirmek için kapatın.</string>
+    <string name="native_fa05769818e1" formatted="false">Yer imi veya not eklemek ya da paylaşmak için hadise dokunup basılı tutun.</string>
+    <string name="native_279166910494" formatted="false">İpucunu kapat</string>
+    <string name="native_9ad22124e012" formatted="false">Yer imlerini ve notları cihazlar arasında eşitleyin.</string>
+    <string name="native_43b0446666d2" formatted="false">Çeviri kaynakları</string>
 </resources>

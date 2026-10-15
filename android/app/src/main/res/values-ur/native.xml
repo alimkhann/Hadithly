@@ -147,4 +147,10 @@
     <string name="native_d68761cc1eb2" formatted="false">متن کا سائز</string>
     <string name="native_324b134f57c7" formatted="false">پیش نظارہ</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
+    <string name="native_2981c4cfc618" formatted="false">خودکار ترجمہ</string>
+    <string name="native_5423d44a5cf5" formatted="false">اپنی حد کے اندر غیر مترجم متن کا خودکار ترجمہ کریں۔ درخواست پر ترجمے کے لیے بند کریں۔</string>
+    <string name="native_fa05769818e1" formatted="false">نشانی یا نوٹ شامل کرنے یا شیئر کرنے کے لیے حدیث کو دبا کر رکھیں۔</string>
+    <string name="native_279166910494" formatted="false">اشارہ بند کریں</string>
+    <string name="native_9ad22124e012" formatted="false">اپنے آلات پر نشانیاں اور نوٹس ہم آہنگ کریں۔</string>
+    <string name="native_43b0446666d2" formatted="false">ترجمے کے مصادر</string>
 </resources>

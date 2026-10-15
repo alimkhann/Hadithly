@@ -361,6 +361,8 @@ private fun ReadingView(
     onOpenSaved: () -> Unit,
 ) {
     val colors = LocalHadithlyColors.current
+    val experience = com.hadithly.app.HadithlyApplication.instance().readerExperience
+
     val androidView = LocalView.current
     var readerMenuExpanded by remember { mutableStateOf(false) }
     var showSearch by remember { mutableStateOf(false) }
@@ -410,11 +412,7 @@ private fun ReadingView(
     // Deep links resolve their containing page on the backend after the
     // pager is created. Move the visual pager to that resolved index so
     // Today/Saved/continue-reading never land on an earlier placeholder.
-    LaunchedEffect(state.pageIndex, pageCount) {
-        if (state.pageIndex in 0 until maxOf(pageCount, 1) && pagerState.currentPage != state.pageIndex) {
-            pagerState.scrollToPage(state.pageIndex)
-        }
-    }
+    SynchronizeReaderPager(pagerState, state.pageIndex, pageCount)
 
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.settledPage }
@@ -436,13 +434,7 @@ private fun ReadingView(
     // Reduce Motion: follow the system animator scale; snap instead of
     // animating page turns when animation is disabled.
     val context = androidx.compose.ui.platform.LocalContext.current
-    val reduceMotion = remember(context) {
-        android.provider.Settings.Global.getFloat(
-            context.contentResolver,
-            android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
-            1f,
-        ) == 0f
-    }
+    val reduceMotion = !com.hadithly.app.core.theme.rememberMotionAllowed()
 
     // Round 6: the status bar stays ALWAYS visible (no programmatic
     // hiding). The page is full-bleed edge-to-edge into the system-bar
@@ -813,6 +805,27 @@ private fun ReadingView(
             }
         }
 
+        ReaderActionHint(experience, Modifier.align(Alignment.BottomCenter).padding(horizontal = 24.dp).padding(bottom = 96.dp))
+    }
+}
+
+@Composable
+internal fun ReaderActionHint(experience: com.hadithly.app.core.preferences.ReaderExperiencePreferences, modifier: Modifier = Modifier) {
+    val colors = LocalHadithlyColors.current
+    val visible by experience.showsActionHint.collectAsStateWithLifecycle()
+    LaunchedEffect(experience) {
+        experience.offerActionHint()
+        if (experience.showsActionHint.value) {
+            try { kotlinx.coroutines.delay(7000) }
+            finally { experience.dismissActionHint() }
+        }
+    }
+    if (visible) {
+        Row(modifier.background(colors.surfaceElevated, RoundedCornerShape(16.dp))
+            .padding(start = 16.dp, end = 6.dp, top = 8.dp, bottom = 8.dp).testTag("reader.actionHint"), verticalAlignment = Alignment.CenterVertically) {
+            Text(nativeText("Touch and hold a hadith to bookmark, add a note or share."), color = colors.textPrimary, fontSize = 12.sp, modifier = Modifier.weight(1f))
+            IconButton(onClick = experience::dismissActionHint) { Icon(Icons.Filled.Close, nativeText("Dismiss hint"), tint = colors.textSecondary) }
+        }
     }
 }
 
@@ -960,6 +973,16 @@ private fun ReaderMenuCard(
 }
 
 @Composable
+internal fun SynchronizeReaderPager(state: PagerState, pageIndex: Int, pageCount: Int) {
+    LaunchedEffect(pageIndex, pageCount) {
+        val draggingFromModelPage = state.isScrollInProgress && state.settledPage == pageIndex
+        if (!draggingFromModelPage && pageIndex in 0 until maxOf(pageCount, 1) && state.currentPage != pageIndex) {
+            state.scrollToPage(pageIndex)
+        }
+    }
+}
+
+@Composable
 internal fun DirectionAwareHorizontalPager(
     state: PagerState,
     policy: ReaderPagingPolicy,
@@ -1091,7 +1114,6 @@ private fun ReaderPage(
 ) {
     val colors = LocalHadithlyColors.current
     val resContext = androidx.compose.ui.platform.LocalResources.current
-    var citationsTranslation by remember { mutableStateOf<ReaderTranslation?>(null) }
     var sourceHadith by remember { mutableStateOf<ReaderHadith?>(null) }
     var noteTarget by remember { mutableStateOf<ReaderHadith?>(null) }
     var submissionTarget by remember { mutableStateOf<Pair<ReaderHadith, ReaderTranslation?>?>(null) }
@@ -1256,6 +1278,19 @@ private fun ReaderPage(
             }
     }
 
+    val experience = com.hadithly.app.HadithlyApplication.instance().readerExperience
+    val automatic by experience.automaticallyTranslates.collectAsStateWithLifecycle()
+    val sessions by com.clerk.api.Clerk.sessionsFlow.collectAsStateWithLifecycle()
+    LaunchedEffect(listState, state.pageIndex == pageIndex, automatic, preferences.translationVisible, state.language, sessions.map { it.id }) {
+        if (state.pageIndex != pageIndex || !automatic || !preferences.translationVisible) return@LaunchedEffect
+        snapshotFlow {
+            val info = listState.layoutInfo
+            info.visibleItemsInfo.mapNotNull { item ->
+                readerHadithIndex(item.index, hadiths.size)?.let { hadiths[it].internalId }
+            }
+        }.distinctUntilChanged().debounce(450).collect(viewModel::automaticallyTranslateVisible)
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -1369,7 +1404,6 @@ private fun ReaderPage(
                             },
                             onTap = onTap,
                             onRetry = { viewModel.retryTranslation(hadith) },
-                            onShowCitations = { citationsTranslation = it },
                             onShowSource = { sourceHadith = hadith },
                             onEditNote = { noteTarget = hadith },
                             onSuggest = { translation -> submissionTarget = hadith to translation },
@@ -1392,15 +1426,6 @@ private fun ReaderPage(
             }
         }
 
-        citationsTranslation?.let { translation ->
-            ModalBottomSheet(
-                onDismissRequest = { citationsTranslation = null },
-                containerColor = colors.surface,
-            ) {
-                CitationsSheet(translation = translation)
-            }
-        }
-
         // R6A: one tap on the grade-dot label opens the small source sheet.
         // Copy/share payloads keep the full source line (ReaderShare).
         sourceHadith?.let { hadith ->
@@ -1408,7 +1433,8 @@ private fun ReaderPage(
                 onDismissRequest = { sourceHadith = null },
                 containerColor = colors.surface,
             ) {
-                HadithSourceSheet(hadith = hadith)
+                val translation = (state.translations[hadith.internalId] as? TranslationUiState.Loaded)?.translation
+                HadithSourceSheet(hadith = hadith, translation = translation)
             }
         }
 
@@ -2100,7 +2126,6 @@ internal fun HadithBlock(
     modifier: Modifier = Modifier,
     onTap: () -> Unit,
     onRetry: () -> Unit,
-    onShowCitations: (ReaderTranslation) -> Unit,
     onShowSource: () -> Unit,
     onEditNote: () -> Unit,
     onSuggest: (ReaderTranslation?) -> Unit,
@@ -2208,6 +2233,7 @@ internal fun HadithBlock(
                 // so the page-level tap detector must be invoked explicitly.
                 onClick = onTap,
                 onLongClick = {
+                    app.readerExperience.dismissActionHint()
                     ReaderHaptics.perform(hapticView, ReaderHapticKind.LONG_PRESS_MENU)
                     menuExpanded = true
                 },
@@ -2281,7 +2307,6 @@ internal fun HadithBlock(
                     translationState = translationState,
                     language = language,
                     onRetry = onRetry,
-                    onShowCitations = onShowCitations,
                     onShowPaywall = onShowPaywall,
                 )
                 allowance?.let {
@@ -2444,12 +2469,12 @@ internal fun HadithHeader(
  * source URL when present.
  */
 @Composable
-internal fun HadithSourceSheet(hadith: ReaderHadith) {
+internal fun HadithSourceSheet(hadith: ReaderHadith, translation: ReaderTranslation? = null) {
     val colors = LocalHadithlyColors.current
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxWidth().verticalScroll(rememberScrollState())
             .padding(20.dp)
             .testTag("reader.sourceSheet"),
     ) {
@@ -2470,6 +2495,11 @@ internal fun HadithSourceSheet(hadith: ReaderHadith) {
                 fontSize = 12.sp,
                 color = colors.interactive,
             )
+        }
+        translation?.let {
+            HorizontalDivider(color = colors.divider, modifier = Modifier.padding(vertical = 12.dp))
+            Text(nativeText("Translation sources"), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+            TranslationSourceDetails(it, showsTranslation = false)
         }
     }
 }
@@ -2610,7 +2640,6 @@ internal fun TranslationSection(
     translationState: TranslationUiState?,
     language: String,
     onRetry: () -> Unit,
-    onShowCitations: (ReaderTranslation) -> Unit,
     onShowPaywall: () -> Unit,
 ) {
     val colors = LocalHadithlyColors.current
@@ -2619,13 +2648,11 @@ internal fun TranslationSection(
         val stored = (translationState as? TranslationUiState.Loaded)?.translation
         val english = hadith.englishText
         if (stored != null) {
-            TranslationText(text = stored.translation, storedTranslation = stored, onShowCitations = { onShowCitations(stored) })
+            TranslationText(text = stored.translation, storedTranslation = stored)
         } else if (!english.isNullOrEmpty()) {
-            TranslationText(text = english, storedTranslation = null, onShowCitations = {})
-        } else {
-            Text(nativeText("No English translation available yet."), fontSize = 12.sp, color = colors.textSecondary)
+            TranslationText(text = english, storedTranslation = null)
         }
-        return
+        if (stored != null || !english.isNullOrEmpty()) return
     }
 
     when (translationState) {
@@ -2638,7 +2665,6 @@ internal fun TranslationSection(
             com.hadithly.app.core.theme.TranslationReveal(com.hadithly.app.core.theme.TranslationPresentationPhase.Available) { TranslationText(
                 text = translationState.translation.translation,
                 storedTranslation = translationState.translation,
-                onShowCitations = { onShowCitations(translationState.translation) },
             ) }
             GlossaryNotes(translationState.translation.glossaryNotes)
         }
@@ -2669,53 +2695,15 @@ internal fun TranslationSection(
 private fun TranslationText(
     text: String,
     storedTranslation: ReaderTranslation?,
-    onShowCitations: () -> Unit,
 ) {
     val colors = LocalHadithlyColors.current
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        when (storedTranslation?.source) {
-            "gemini_ai" -> SourceBadge(
-                icon = Icons.Filled.AutoAwesome,
-                main = "AI",
-                trailing = "· sources",
-                onClick = onShowCitations,
-            )
-            "community" -> SourceBadge(
-                icon = Icons.Filled.CheckCircle,
-                main = "Community",
-                trailing = stringResource(R.string.e3_contributor_label),
-                onClick = onShowCitations,
-            )
-        }
         Text(
             text = text,
             fontSize = 16.sp,
             lineHeight = 23.sp,
             color = colors.textPrimary.copy(alpha = 0.92f),
         )
-    }
-}
-
-@Composable
-private fun SourceBadge(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    main: String,
-    trailing: String,
-    onClick: (() -> Unit)?,
-) {
-    val colors = LocalHadithlyColors.current
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(5.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .background(colors.interactiveSoft, RoundedCornerShape(50))
-            .clickable(enabled = onClick != null) { onClick?.invoke() }
-            .heightIn(min = 48.dp)
-            .padding(horizontal = 10.dp, vertical = 5.dp),
-    ) {
-        Icon(icon, contentDescription = null, tint = colors.interactive, modifier = Modifier.size(12.dp))
-        Text(main, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.interactive)
-        Text(trailing, fontSize = 11.sp, color = colors.textSecondary)
     }
 }
 
@@ -3114,16 +3102,19 @@ internal fun SettingsSheet(
 
 @Composable
 internal fun CitationsSheet(translation: ReaderTranslation) {
+    Column(Modifier.verticalScroll(rememberScrollState()).padding(20.dp)) { TranslationSourceDetails(translation) }
+}
+
+@Composable
+internal fun TranslationSourceDetails(translation: ReaderTranslation, showsTranslation: Boolean = true) {
     val colors = LocalHadithlyColors.current
     Column(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
-            .padding(20.dp),
+            .padding(vertical = 8.dp),
     ) {
-        Text(nativeText("Sources"), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
-        Text(
+        if (showsTranslation) Text(
             text = translation.translation,
             fontSize = 15.sp,
             color = colors.textPrimary,

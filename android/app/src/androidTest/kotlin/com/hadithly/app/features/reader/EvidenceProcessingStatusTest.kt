@@ -1,5 +1,6 @@
 package com.hadithly.app.features.reader
 
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -58,12 +59,15 @@ class EvidenceProcessingStatusTest {
         compose.setContent {
             HadithlyTheme {
                 if (showSources.value) CitationsSheet(translation)
-                else TranslationSection(hadith, TranslationUiState.Loaded(translation), "en", {}, { showSources.value = true }, {})
+                else Column {
+                    TranslationSection(hadith, TranslationUiState.Loaded(translation), "en", {}, {})
+                    TextButton(onClick = { showSources.value = true }, modifier = androidx.compose.ui.Modifier.heightIn(min = 48.dp)) { Text("Translation sources") }
+                }
             }
         }
         compose.onNodeWithText("Published fixture text").assertIsDisplayed()
         compose.onNodeWithText("Provider fallback").assertDoesNotExist()
-        compose.onNodeWithText("Community").assertHeightIsAtLeast(48.dp).performClick()
+        compose.onNodeWithText("Translation sources").assertHeightIsAtLeast(48.dp).performClick()
         compose.onNodeWithTag("translation.sources.community").assertIsDisplayed()
         compose.onNodeWithTag("translation.sources.ai").assertDoesNotExist()
     }

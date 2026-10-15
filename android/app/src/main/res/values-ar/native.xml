@@ -147,4 +147,10 @@
     <string name="native_d68761cc1eb2" formatted="false">حجم النص</string>
     <string name="native_324b134f57c7" formatted="false">معاينة</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
+    <string name="native_2981c4cfc618" formatted="false">الترجمة التلقائية</string>
+    <string name="native_5423d44a5cf5" formatted="false">ترجمة النص غير المترجم تلقائيًا ضمن حصتك. عطّل الخيار للترجمة عند الطلب.</string>
+    <string name="native_fa05769818e1" formatted="false">المس الحديث مطولًا لإضافة علامة أو ملاحظة أو مشاركته.</string>
+    <string name="native_279166910494" formatted="false">إخفاء التلميح</string>
+    <string name="native_9ad22124e012" formatted="false">زامن العلامات والملاحظات بين أجهزتك.</string>
+    <string name="native_43b0446666d2" formatted="false">مصادر الترجمة</string>
 </resources>

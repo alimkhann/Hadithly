@@ -10,7 +10,13 @@
     "Subscription details could not load",
     "Reader appearance",
     "Text size",
-    "Preview"
+    "Preview",
+    "Automatic translation",
+    "Translate missing text automatically, within your allowance. Turn off to translate on request.",
+    "Touch and hold a hadith to bookmark, add a note or share.",
+    "Dismiss hint",
+    "Sync bookmarks and notes across devices.",
+    "Translation sources"
   ],
   "locales": {
     "en": [
@@ -23,7 +29,13 @@
       "Subscription details could not load",
       "Reader appearance",
       "Text size",
-      "Preview"
+      "Preview",
+      "Automatic translation",
+      "Translate missing text automatically, within your allowance. Turn off to translate on request.",
+      "Touch and hold a hadith to bookmark, add a note or share.",
+      "Dismiss hint",
+      "Sync bookmarks and notes across devices.",
+      "Translation sources"
     ],
     "ar": [
       "جارٍ التحميل…",
@@ -35,7 +47,13 @@
       "تعذّر تحميل تفاصيل الاشتراك",
       "مظهر القارئ",
       "حجم النص",
-      "معاينة"
+      "معاينة",
+      "الترجمة التلقائية",
+      "ترجمة النص غير المترجم تلقائيًا ضمن حصتك. عطّل الخيار للترجمة عند الطلب.",
+      "المس الحديث مطولًا لإضافة علامة أو ملاحظة أو مشاركته.",
+      "إخفاء التلميح",
+      "زامن العلامات والملاحظات بين أجهزتك.",
+      "مصادر الترجمة"
     ],
     "ru": [
       "Загрузка…",
@@ -47,7 +65,13 @@
       "Не удалось загрузить сведения о подписке",
       "Оформление читалки",
       "Размер текста",
-      "Предпросмотр"
+      "Предпросмотр",
+      "Автоматический перевод",
+      "Переводить отсутствующий текст автоматически в пределах лимита. Отключите, чтобы переводить по запросу.",
+      "Нажмите и удерживайте хадис, чтобы добавить закладку, заметку или поделиться.",
+      "Скрыть подсказку",
+      "Синхронизируйте закладки и заметки между устройствами.",
+      "Источники перевода"
     ],
     "kk": [
       "Жүктелуде…",
@@ -59,7 +83,13 @@
       "Жазылым мәліметтерін жүктеу мүмкін болмады",
       "Оқу көрінісі",
       "Мәтін өлшемі",
-      "Алдын ала қарау"
+      "Алдын ала қарау",
+      "Автоматты аударма",
+      "Жетіспейтін мәтінді лимитіңіз шегінде автоматты аудару. Сұрау бойынша аудару үшін өшіріңіз.",
+      "Бетбелгі, жазба қосу немесе бөлісу үшін хадисті басып тұрыңыз.",
+      "Кеңесті жабу",
+      "Бетбелгілер мен жазбаларды құрылғылар арасында синхрондаңыз.",
+      "Аударма дереккөздері"
     ],
     "ky": [
       "Жүктөлүүдө…",
@@ -71,7 +101,13 @@
       "Жазылуу маалыматын жүктөө мүмкүн болгон жок",
       "Окуу көрүнүшү",
       "Тексттин өлчөмү",
-      "Алдын ала көрүү"
+      "Алдын ала көрүү",
+      "Автоматтык котормо",
+      "Которулбаган текстти чегиңиздин ичинде автоматтык которуу. Сурам боюнча которуу үчүн өчүрүңүз.",
+      "Кыстарма же жазма кошуу, же бөлүшүү үчүн хадисти басып туруңуз.",
+      "Кеңешти жабуу",
+      "Кыстармалар менен жазмаларды түзмөктөр арасында шайкештириңиз.",
+      "Котормонун булактары"
     ],
     "uz": [
       "Yuklanmoqda…",
@@ -83,7 +119,13 @@
       "Obuna ma’lumotlarini yuklab bo‘lmadi",
       "O‘qish ko‘rinishi",
       "Matn o‘lchami",
-      "Oldindan ko‘rish"
+      "Oldindan ko‘rish",
+      "Avtomatik tarjima",
+      "Tarjima qilinmagan matnni limitingiz doirasida avtomatik tarjima qilish. So‘rov bo‘yicha tarjima uchun o‘chiring.",
+      "Xatcho‘p yoki qayd qo‘shish yoxud ulashish uchun hadisni bosib turing.",
+      "Maslahatni yopish",
+      "Xatcho‘plar va qaydlarni qurilmalar o‘rtasida sinxronlang.",
+      "Tarjima manbalari"
     ],
     "tr": [
       "Yükleniyor…",
@@ -95,7 +137,13 @@
       "Abonelik ayrıntıları yüklenemedi",
       "Okuyucu görünümü",
       "Metin boyutu",
-      "Önizleme"
+      "Önizleme",
+      "Otomatik çeviri",
+      "Çevrilmemiş metni hakkınız dahilinde otomatik çevirir. İstek üzerine çevirmek için kapatın.",
+      "Yer imi veya not eklemek ya da paylaşmak için hadise dokunup basılı tutun.",
+      "İpucunu kapat",
+      "Yer imlerini ve notları cihazlar arasında eşitleyin.",
+      "Çeviri kaynakları"
     ],
     "id": [
       "Memuat…",
@@ -107,7 +155,13 @@
       "Detail langganan tidak dapat dimuat",
       "Tampilan pembaca",
       "Ukuran teks",
-      "Pratinjau"
+      "Pratinjau",
+      "Terjemahan otomatis",
+      "Terjemahkan teks yang belum diterjemahkan secara otomatis sesuai kuota Anda. Nonaktifkan untuk menerjemahkan saat diminta.",
+      "Sentuh dan tahan hadis untuk menandai, menambahkan catatan, atau berbagi.",
+      "Tutup petunjuk",
+      "Sinkronkan penanda dan catatan antarperangkat.",
+      "Sumber terjemahan"
     ],
     "ur": [
       "لوڈ ہو رہا ہے…",
@@ -119,7 +173,13 @@
       "سبسکرپشن کی تفصیلات لوڈ نہیں ہو سکیں",
       "مطالعے کی ظاہری شکل",
       "متن کا سائز",
-      "پیش نظارہ"
+      "پیش نظارہ",
+      "خودکار ترجمہ",
+      "اپنی حد کے اندر غیر مترجم متن کا خودکار ترجمہ کریں۔ درخواست پر ترجمے کے لیے بند کریں۔",
+      "نشانی یا نوٹ شامل کرنے یا شیئر کرنے کے لیے حدیث کو دبا کر رکھیں۔",
+      "اشارہ بند کریں",
+      "اپنے آلات پر نشانیاں اور نوٹس ہم آہنگ کریں۔",
+      "ترجمے کے مصادر"
     ],
     "fr": [
       "Chargement…",
@@ -131,7 +191,13 @@
       "Impossible de charger les détails de l’abonnement",
       "Apparence du lecteur",
       "Taille du texte",
-      "Aperçu"
+      "Aperçu",
+      "Traduction automatique",
+      "Traduire automatiquement les textes manquants dans la limite de votre quota. Désactivez pour traduire sur demande.",
+      "Touchez un hadith de façon prolongée pour ajouter un signet, une note ou le partager.",
+      "Fermer le conseil",
+      "Synchronisez les signets et les notes entre vos appareils.",
+      "Sources de traduction"
     ],
     "es-419": [
       "Cargando…",
@@ -143,7 +209,13 @@
       "No se pudieron cargar los detalles de la suscripción",
       "Apariencia del lector",
       "Tamaño del texto",
-      "Vista previa"
+      "Vista previa",
+      "Traducción automática",
+      "Traduce automáticamente el texto faltante dentro de tu cuota. Desactiva para traducir cuando lo solicites.",
+      "Mantén presionado un hadiz para marcarlo, añadir una nota o compartirlo.",
+      "Cerrar sugerencia",
+      "Sincroniza marcadores y notas entre dispositivos.",
+      "Fuentes de traducción"
     ],
     "pt-BR": [
       "Carregando…",
@@ -155,7 +227,13 @@
       "Não foi possível carregar os detalhes da assinatura",
       "Aparência do leitor",
       "Tamanho do texto",
-      "Prévia"
+      "Prévia",
+      "Tradução automática",
+      "Traduz automaticamente o texto ausente dentro da sua cota. Desative para traduzir quando solicitar.",
+      "Toque e segure um hadith para marcar, adicionar uma nota ou compartilhar.",
+      "Fechar dica",
+      "Sincronize marcadores e notas entre dispositivos.",
+      "Fontes da tradução"
     ],
     "sw": [
       "Inapakia…",
@@ -167,7 +245,13 @@
       "Maelezo ya usajili hayakuweza kupakiwa",
       "Mwonekano wa kisomaji",
       "Ukubwa wa maandishi",
-      "Hakiki"
+      "Hakiki",
+      "Tafsiri ya moja kwa moja",
+      "Tafsiri maandishi ambayo hayajatafsiriwa kiotomatiki ndani ya kikomo chako. Zima ili kutafsiri unapoomba.",
+      "Gusa na ushikilie hadith ili kuweka alama, kuongeza dokezo au kushiriki.",
+      "Funga kidokezo",
+      "Sawazisha alamisho na madokezo kati ya vifaa.",
+      "Vyanzo vya tafsiri"
     ],
     "hi": [
       "लोड हो रहा है…",
@@ -179,7 +263,13 @@
       "सदस्यता का विवरण लोड नहीं हो सका",
       "रीडर का रूप",
       "टेक्स्ट का आकार",
-      "पूर्वावलोकन"
+      "पूर्वावलोकन",
+      "अपने आप अनुवाद",
+      "अपनी सीमा के भीतर बिना अनुवाद वाले पाठ का अपने आप अनुवाद करें। अनुरोध पर अनुवाद के लिए बंद करें।",
+      "बुकमार्क, नोट जोड़ने या साझा करने के लिए हदीस को दबाकर रखें।",
+      "सुझाव बंद करें",
+      "डिवाइसों के बीच बुकमार्क और नोट सिंक करें।",
+      "अनुवाद के स्रोत"
     ],
     "bn": [
       "লোড হচ্ছে…",
@@ -191,7 +281,13 @@
       "সাবস্ক্রিপশনের বিবরণ লোড করা যায়নি",
       "রিডারের চেহারা",
       "লেখার আকার",
-      "প্রিভিউ"
+      "প্রিভিউ",
+      "স্বয়ংক্রিয় অনুবাদ",
+      "আপনার সীমার মধ্যে অনূদিত নয় এমন লেখা স্বয়ংক্রিয়ভাবে অনুবাদ করুন। অনুরোধে অনুবাদ করতে বন্ধ করুন।",
+      "বুকমার্ক, নোট যোগ বা শেয়ার করতে হাদিস চেপে ধরে রাখুন।",
+      "ইঙ্গিত বন্ধ করুন",
+      "ডিভাইসগুলোর মধ্যে বুকমার্ক ও নোট সিঙ্ক করুন।",
+      "অনুবাদের উৎস"
     ]
   }
 }

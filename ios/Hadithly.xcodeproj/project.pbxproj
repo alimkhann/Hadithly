@@ -99,6 +99,7 @@
 		996D428A8AD43CB81F550011 /* PurchaseOperationQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2551260A0763FE446F62383A /* PurchaseOperationQueue.swift */; };
 		99B5073BD906E9E47D7329B4 /* PendingPurchaseStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16AD031EA0A9738535FAAC6A /* PendingPurchaseStore.swift */; };
 		9A4308D33FB86639EB1F1363 /* LanguagePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A83DB98EF37EA23342864B08 /* LanguagePickerView.swift */; };
+		9BFC23DBC9D9B79C6AB35D92 /* ReaderExperiencePreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8753ACFA5F70E8E2703F7828 /* ReaderExperiencePreferences.swift */; };
 		9CD181086BFA639ED121ADB9 /* LibraryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8915CABC1FAD246BEAAE5CAA /* LibraryModel.swift */; };
 		9D557AD7F1F2D7E3D4B94EAA /* ContinueReadingRail.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA0418AE417B3C27F2AEC28D /* ContinueReadingRail.swift */; };
 		A2B5E165DECB31A19250EAC8 /* OnboardingLA2UITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABDD6442E755600762023A17 /* OnboardingLA2UITests.swift */; };
@@ -254,6 +255,7 @@
 		818CE94950FD120AE763B0DF /* SavedSafetyPreferencesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedSafetyPreferencesTests.swift; sourceTree = "<group>"; };
 		83A89540301945C047C73D02 /* ReaderPagingUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderPagingUITests.swift; sourceTree = "<group>"; };
 		87352C5138774D69E58E772B /* DiagnosticsRelease.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsRelease.swift; sourceTree = "<group>"; };
+		8753ACFA5F70E8E2703F7828 /* ReaderExperiencePreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderExperiencePreferences.swift; sourceTree = "<group>"; };
 		8816170D7A566E7711FA13EF /* ReaderPreferencesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderPreferencesTests.swift; sourceTree = "<group>"; };
 		88E1E99DA628230A244E7FA6 /* ScheherazadeNew-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ScheherazadeNew-Regular.ttf"; sourceTree = "<group>"; };
 		8915CABC1FAD246BEAAE5CAA /* LibraryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryModel.swift; sourceTree = "<group>"; };
@@ -320,8 +322,8 @@
 		FBD00493F3B0CA46FF1DDAB8 /* Amiri-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Amiri-OFL.txt"; sourceTree = "<group>"; };
 		FEE2EDCE1837EFE09808E544 /* PurchaseQ2LiveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurchaseQ2LiveTests.swift; sourceTree = "<group>"; };
 		FFA2FD4D05F733D974EA4AE7 /* EvidenceProcessingLiveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvidenceProcessingLiveTests.swift; sourceTree = "<group>"; };
-		"TEMP_3D33D369-E072-4BA9-BCED-DE781C1B492E" /* Production.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Production.xcconfig; sourceTree = "<group>"; };
-		"TEMP_E3FF925E-651F-4C14-BC58-67F56B422E4E" /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		"TEMP_4303DAE1-9138-43EE-94EE-C7FFB45669C1" /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		"TEMP_72F19030-8673-4946-BFCC-4A7F600EDF24" /* Production.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Production.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -346,6 +348,7 @@
 			children = (
 				289966E0A9D018574481C504 /* AppLocalization.swift */,
 				54DF2AF5CB3DBB296C2C4D48 /* PreferencesStore.swift */,
+				8753ACFA5F70E8E2703F7828 /* ReaderExperiencePreferences.swift */,
 				C1EE521FDA5DE9A2253AE14B /* ReaderPreferences.swift */,
 			);
 			path = Preferences;
@@ -731,11 +734,11 @@
 			);
 			sourceTree = "<group>";
 		};
-		"TEMP_C2EC7A75-B1C2-4A21-BC88-33B75523B428" /* ios */ = {
+		"TEMP_867B09EA-F645-4693-B0AA-1861D051D3B5" /* ios */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_E3FF925E-651F-4C14-BC58-67F56B422E4E" /* Secrets.xcconfig */,
-				"TEMP_3D33D369-E072-4BA9-BCED-DE781C1B492E" /* Production.xcconfig */,
+				"TEMP_4303DAE1-9138-43EE-94EE-C7FFB45669C1" /* Secrets.xcconfig */,
+				"TEMP_72F19030-8673-4946-BFCC-4A7F600EDF24" /* Production.xcconfig */,
 			);
 			path = ios;
 			sourceTree = "<group>";
@@ -1013,6 +1016,7 @@
 				2E65001F6F40C6BE3B3FF181 /* PushNotificationManager.swift in Sources */,
 				89B1F07C2F0CD8BB75236E45 /* QuotaPaywallView.swift in Sources */,
 				CD8314A241F19DE0EF0A0563 /* ReaderChapterBoundaries.swift in Sources */,
+				9BFC23DBC9D9B79C6AB35D92 /* ReaderExperiencePreferences.swift in Sources */,
 				398A19655C950A49E1FC59C8 /* ReaderMeasurement.swift in Sources */,
 				1E12EC45E3933C4A5A8FA0FF /* ReaderModel.swift in Sources */,
 				4137E4BEC4D9AB99B0CBEB6D /* ReaderModels.swift in Sources */,
@@ -1076,7 +1080,7 @@
 /* Begin XCBuildConfiguration section */
 		081EA1614EAE1CB1451F28EB /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_3D33D369-E072-4BA9-BCED-DE781C1B492E" /* Production.xcconfig */;
+			baseConfigurationReference = "TEMP_72F19030-8673-4946-BFCC-4A7F600EDF24" /* Production.xcconfig */;
 			buildSettings = {
 				APP_ATTEST_ENVIRONMENT = production;
 				ASSETCATALOG_COMPILER_APPICON_NAME = "";
@@ -1099,7 +1103,7 @@
 		};
 		1DB6B6403B644CF2BD507A46 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_E3FF925E-651F-4C14-BC58-67F56B422E4E" /* Secrets.xcconfig */;
+			baseConfigurationReference = "TEMP_4303DAE1-9138-43EE-94EE-C7FFB45669C1" /* Secrets.xcconfig */;
 			buildSettings = {
 				APP_ATTEST_ENVIRONMENT = development;
 				ASSETCATALOG_COMPILER_APPICON_NAME = "";

@@ -42,28 +42,20 @@ struct SettingsView: View {
                 }
             } else {
                 Section {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Reading as a guest")
-                            .font(.headline)
-                            .foregroundStyle(Theme.textPrimary)
-                        Text("Everything you need to read works without an account. Sign in to carry your bookmarks, favorites, and notes across devices.")
-                            .font(.subheadline)
-                            .foregroundStyle(Theme.textSecondary)
-                        Button {
-                            showSignIn = true
-                        } label: {
-                            Text("Sign in")
-                                .font(.subheadline.weight(.semibold))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 10)
-                                .background(palette.interactive)
-                                .foregroundStyle(palette.onInteractive)
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier("settings.signin")
+                    Button { showSignIn = true } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "person.crop.circle").font(.system(size: 32, weight: .light))
+                                .foregroundStyle(palette.textSecondary).accessibilityHidden(true)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Sign in").font(.headline).foregroundStyle(palette.textPrimary)
+                                Text("Sync bookmarks and notes across devices.").font(.subheadline).foregroundStyle(palette.textSecondary)
+                            }
+                            Spacer(minLength: 4)
+                            Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(palette.textSecondary).accessibilityHidden(true)
+                        }.padding(.vertical, 6).contentShape(Rectangle())
                     }
-                    .padding(.vertical, 4)
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("settings.signin")
                 }
             }
 
@@ -121,9 +113,7 @@ struct SettingsView: View {
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .background(palette.background)
-        .appNavigationTitle("Settings")
         .toolbarBackground(palette.background, for: .navigationBar)
-        .toolbarBackground(.visible, for: .navigationBar)
         .navigationDestination(for: SettingsDestination.self) { destination in
             switch destination {
             case .profile: ProfileView()
@@ -139,6 +129,9 @@ struct SettingsView: View {
             case .aboutAndLegal: AboutLegalView()
             }
         }
+        .appNavigationTitle("Settings")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar(.visible, for: .navigationBar)
         .task {
             library.refresh()
             await loadSubscriptionTier()

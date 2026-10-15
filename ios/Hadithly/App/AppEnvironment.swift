@@ -64,6 +64,7 @@ final class AppEnvironment {
     let purchases: PurchaseManager
     let preferences: PreferencesStore
     let analytics: UsageStatistics
+    let readerExperience = ReaderExperiencePreferences()
     let savedSafety: SavedSafetyPreferences
     let offline: OfflineStore
     let widgetProgress = LibraryModel()

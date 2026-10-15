@@ -146,9 +146,8 @@ struct EvidenceProcessingFixture: View {
                 citations: [EvidenceCitation(url: "https://example.org/fixture", title: "Licensed source", location: "p. 1")],
                 appeal: ["held", "rejected", "review_unavailable"].contains(status) ? EvidenceAppealState(available: true, deadline: Date().timeIntervalSince1970 * 1000 + 600_000, status: "not_requested") : nil,
                 onAppeal: { _ in status = "under_review" })
-            ReaderStoredTranslationView(text: "This is a test text.", translation: communityTranslation, palette: .dark) {
-                showCommunitySources = true
-            }
+            ReaderStoredTranslationView(text: "This is a test text.", translation: communityTranslation, palette: .dark)
+            Button("Translation sources") { showCommunitySources = true }.frame(minHeight: 44).accessibilityIdentifier("reader.communityBadge")
         }.background(ReaderPalette.dark.background).environment(\.readerPalette, .dark)
         .sheet(isPresented: $showCommunitySources) {
             TranslationCitationsSheet(translation: communityTranslation)
