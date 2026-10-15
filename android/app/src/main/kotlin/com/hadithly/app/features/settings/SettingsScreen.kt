@@ -2,6 +2,8 @@
 
 package com.hadithly.app.features.settings
 
+import com.hadithly.app.core.preferences.nativeText
+
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -146,7 +148,7 @@ private fun SettingsDestinationScreen(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp),
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = colors.textPrimary)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = nativeText("Back"), tint = colors.textPrimary)
             }
             Text(destination.localizedTitle(), fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
         }
@@ -216,10 +218,10 @@ private fun SettingsRoot(onOpen: (SettingsDestination) -> Unit, onShowSignIn: ()
             CardColumn {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Icon(Icons.Filled.Person, null, tint = colors.textSecondary)
-                    Text("Reading as a guest", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+                    Text(nativeText("Reading as a guest"), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
                 }
                 Text(
-                    "Everything you need to read works without an account. Sign in to carry your bookmarks, favorites, and notes across devices.",
+                    nativeText("Everything you need to read works without an account. Sign in to carry your bookmarks, favorites, and notes across devices."),
                     fontSize = 14.sp,
                     color = colors.textSecondary,
                 )
@@ -228,7 +230,7 @@ private fun SettingsRoot(onOpen: (SettingsDestination) -> Unit, onShowSignIn: ()
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = colors.interactive, contentColor = colors.onInteractive),
                     modifier = Modifier.fillMaxWidth().testTag("settings.signin"),
-                ) { Text("Sign in", fontWeight = FontWeight.SemiBold) }
+                ) { Text(nativeText("Sign in"), fontWeight = FontWeight.SemiBold) }
             }
         }
 
@@ -265,7 +267,7 @@ private fun SettingsRoot(onOpen: (SettingsDestination) -> Unit, onShowSignIn: ()
             TextButton(
                 onClick = { scope.launch { Clerk.auth.signOut() } },
                 modifier = Modifier.testTag("settings.signout"),
-            ) { Text("Sign out", color = colors.textPrimary) }
+            ) { Text(nativeText("Sign out"), color = colors.textPrimary) }
         }
         Spacer(Modifier.size(16.dp))
     }
@@ -365,15 +367,15 @@ private fun ProfileDestination() {
                     val email = Clerk.user?.emailAddresses?.firstOrNull { it.id == Clerk.user?.primaryEmailAddressId }?.emailAddress
                     email?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
                     if (Clerk.user?.hasImage != true) {
-                        Text("Avatar is set by your sign-in method.", fontSize = 11.sp, color = colors.textSecondary)
+                        Text(nativeText("Avatar is set by your sign-in method."), fontSize = 11.sp, color = colors.textSecondary)
                     }
                 }
             }
         }
         CardColumn {
-            Text("Name", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
-            OutlinedTextField(value = firstName, onValueChange = { firstName = it }, label = { Text("First name") }, singleLine = true, enabled = !saving)
-            OutlinedTextField(value = lastName, onValueChange = { lastName = it }, label = { Text("Last name") }, singleLine = true, enabled = !saving)
+            Text(nativeText("Name"), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+            OutlinedTextField(value = firstName, onValueChange = { firstName = it }, label = { Text(nativeText("First name")) }, singleLine = true, enabled = !saving)
+            OutlinedTextField(value = lastName, onValueChange = { lastName = it }, label = { Text(nativeText("Last name")) }, singleLine = true, enabled = !saving)
             Button(
                 enabled = !saving,
                 onClick = {
@@ -385,12 +387,12 @@ private fun ProfileDestination() {
                     }
                 },
                 modifier = Modifier.fillMaxWidth().testTag("settings.profile.saveName"),
-            ) { Text("Save name") }
+            ) { Text(nativeText("Save name")) }
         }
         CardColumn {
-            Text("Username", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
-            Text("Usernames start with a letter and use letters, numbers, and underscores.", fontSize = 13.sp, color = colors.textSecondary)
-            OutlinedTextField(value = username, onValueChange = { username = it }, label = { Text("Username") }, singleLine = true, enabled = !saving)
+            Text(nativeText("Username"), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+            Text(nativeText("Usernames start with a letter and use letters, numbers, and underscores."), fontSize = 13.sp, color = colors.textSecondary)
+            OutlinedTextField(value = username, onValueChange = { username = it }, label = { Text(nativeText("Username")) }, singleLine = true, enabled = !saving)
             Button(
                 enabled = !saving && username.trim().length >= 3,
                 onClick = {
@@ -402,7 +404,7 @@ private fun ProfileDestination() {
                     }
                 },
                 modifier = Modifier.fillMaxWidth().testTag("settings.profile.saveUsername"),
-            ) { Text("Save username") }
+            ) { Text(nativeText("Save username")) }
         }
         notice?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
     }
@@ -418,7 +420,7 @@ private fun AppearanceDestination() {
     ScrollColumn {
         CardColumn {
             Text(stringResource(R.string.settings_appearance), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
-            Text("Applies across the app. The reader previews each theme live.", fontSize = 12.sp, color = colors.textSecondary)
+            Text(nativeText("Applies across the app. The reader previews each theme live."), fontSize = 12.sp, color = colors.textSecondary)
             ReaderTheme.entries.forEach { theme ->
                 SettingsSingleChoiceRow(
                     label = themeLabel(theme),
@@ -496,7 +498,7 @@ private fun ReadingTypeDestination() {
                 SettingsDisplayPill("Arabic", preferences.arabicVisible, Modifier.weight(1f).testTag("settings.visibility.arabic")) { store.setVisibility(arabic = !preferences.arabicVisible) }
                 SettingsDisplayPill("Translation", preferences.translationVisible, Modifier.weight(1f).testTag("settings.visibility.translation")) { store.setVisibility(translation = !preferences.translationVisible) }
             }
-            Text("At least one layer stays visible.", fontSize = 12.sp, color = colors.textSecondary)
+            Text(nativeText("At least one layer stays visible."), fontSize = 12.sp, color = colors.textSecondary)
 
             SettingsDestinationLabel("READER SETTINGS")
             SettingsDestinationNavigationRow("Arabic font", "${fontLabel(preferences.arabicFont)} · ${preferences.arabicFontSize.toInt()} pt") { showingDetail = true }
@@ -525,7 +527,7 @@ private fun ReadingTypeDestination() {
                 Text(stringResource(R.string.settings_reading_type), color = colors.textSecondary)
             }
         CardColumn {
-            Text("Arabic type", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+            Text(nativeText("Arabic type"), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
             ArabicFont.entries.forEach { font ->
                 SettingsSingleChoiceRow(
                     label = fontLabel(font),
@@ -543,7 +545,7 @@ private fun ReadingTypeDestination() {
                 colors = SliderDefaults.colors(thumbColor = colors.accent, activeTrackColor = colors.accent, inactiveTrackColor = colors.surfaceElevated),
                 modifier = Modifier.testTag("settings.arabicSize"),
             )
-            Text("${preferences.arabicFontSize.toInt()} pt", fontSize = 11.sp, color = colors.textSecondary)
+            Text(nativeText("%1\$s pt", preferences.arabicFontSize.toInt()), fontSize = 11.sp, color = colors.textSecondary)
             Text("نَعْبُدُكَ وَإِيَّاكَ نَسْتَعِينُ", fontSize = preferences.arabicFontSize.sp, color = colors.textPrimary, modifier = Modifier.fillMaxWidth())
         }
         CardColumn {
@@ -558,7 +560,7 @@ private fun ReadingTypeDestination() {
             }
         }
         CardColumn {
-            Text("Text layers", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+            Text(nativeText("Text layers"), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
             LayerSwitch(
                 label = stringResource(R.string.settings_visibility_arabic),
                 checked = preferences.arabicVisible,
@@ -571,7 +573,7 @@ private fun ReadingTypeDestination() {
                 onCheckedChange = { store.setVisibility(translation = it) },
                 modifier = Modifier.testTag("settings.visibility.translation"),
             )
-            Text("At least one layer stays visible.", fontSize = 12.sp, color = colors.textSecondary)
+            Text(nativeText("At least one layer stays visible."), fontSize = 12.sp, color = colors.textSecondary)
         }
         CardColumn {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
@@ -674,14 +676,14 @@ private fun OfflineStorageDestination() {
     key(revision) {
     ScrollColumn {
         CardColumn {
-            Text("Offline collections", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+            Text(nativeText("Offline collections"), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
             Text(
-                "Downloads: ${OfflineModels.formatBytes(store.offlineBytes())} · Free: ${OfflineModels.formatBytes(store.freeBytes())}",
+                nativeText("Downloads: %1\$s · Free: %2\$s", OfflineModels.formatBytes(store.offlineBytes()), OfflineModels.formatBytes(store.freeBytes())),
                 fontSize = 14.sp,
                 color = colors.textSecondary,
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Wi-Fi only", fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
+                Text(nativeText("Wi-Fi only"), fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
                 Switch(
                     checked = store.isWifiOnly(),
                     onCheckedChange = { store.setWifiOnly(it) },
@@ -691,17 +693,17 @@ private fun OfflineStorageDestination() {
             TextButton(
                 onClick = { showLearnMore = true },
                 modifier = Modifier.testTag("settings.offline.learnMore"),
-            ) { Text("How offline works", color = colors.accent) }
+            ) { Text(nativeText("How offline works"), color = colors.accent) }
             actionNotice?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
             store.lastError?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
             Text(
-                "Base Arabic files plus a translation pack for your language. Every file is checksummed and licensed before it activates. The previous copy stays readable until the replacement and your saved positions check out.",
+                nativeText("Base Arabic files plus a translation pack for your language. Every file is checksummed and licensed before it activates. The previous copy stays readable until the replacement and your saved positions check out."),
                 fontSize = 12.sp,
                 color = colors.textSecondary,
             )
         }
         CardColumn {
-            Text("Collections", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = colors.textSecondary)
+            Text(nativeText("Collections"), fontSize = 14.sp, fontWeight = FontWeight.Medium, color = colors.textSecondary)
             Collections.all.forEachIndexed { index, (slug, name) ->
                 OfflineCollectionRow(
                     slug = slug,
@@ -717,7 +719,7 @@ private fun OfflineStorageDestination() {
         }
         CardColumn {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Temporary cache", fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
+                Text(nativeText("Temporary cache"), fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
                 Text(cacheSize, fontSize = 14.sp, color = colors.textSecondary)
             }
             TextButton(
@@ -729,9 +731,9 @@ private fun OfflineStorageDestination() {
                     refreshSize()
                 },
                 modifier = Modifier.testTag("settings.offline.clearCache"),
-            ) { Text("Clear temporary cache", color = colors.accent) }
+            ) { Text(nativeText("Clear temporary cache"), color = colors.accent) }
             notice?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
-            Text("Clearing never deletes bookmarks, favorites, notes, reading progress, or downloaded collections.", fontSize = 12.sp, color = colors.textSecondary)
+            Text(nativeText("Clearing never deletes bookmarks, favorites, notes, reading progress, or downloaded collections."), fontSize = 12.sp, color = colors.textSecondary)
         }
         CardColumn {
             TextButton(
@@ -746,8 +748,8 @@ private fun OfflineStorageDestination() {
                     }
                 },
                 modifier = Modifier.testTag("settings.offline.systemSettings"),
-            ) { Text("Open device storage", color = colors.textPrimary) }
-            Text("See Hadithly's total device storage from the system settings page.", fontSize = 12.sp, color = colors.textSecondary)
+            ) { Text(nativeText("Open device storage"), color = colors.textPrimary) }
+            Text(nativeText("See Hadithly's total device storage from the system settings page."), fontSize = 12.sp, color = colors.textSecondary)
         }
     }
     }
@@ -755,11 +757,11 @@ private fun OfflineStorageDestination() {
     if (showLearnMore) {
         AlertDialog(
             onDismissRequest = { showLearnMore = false },
-            title = { Text("How offline works") },
+            title = { Text(nativeText("How offline works")) },
             text = {
-                Text("Hadithly ships versioned offline collections: a base Arabic dump plus translation packs, each checksummed and licensed. Downloads validate before activating and keep your Saved items and reading positions intact. Deleting a download removes files only — your bookmarks, notes, and positions stay.")
+                Text(nativeText("Hadithly ships versioned offline collections: a base Arabic dump plus translation packs, each checksummed and licensed. Downloads validate before activating and keep your Saved items and reading positions intact. Deleting a download removes files only — your bookmarks, notes, and positions stay."))
             },
-            confirmButton = { TextButton(onClick = { showLearnMore = false }) { Text("Done") } },
+            confirmButton = { TextButton(onClick = { showLearnMore = false }) { Text(nativeText("Done")) } },
             containerColor = colors.surface,
         )
     }
@@ -806,47 +808,47 @@ private fun OfflineCollectionRow(
                             }
                         },
                         modifier = Modifier.testTag("settings.offline.$slug.download"),
-                    ) { Text("Download", color = colors.accent) }
+                    ) { Text(nativeText("Download"), color = colors.accent) }
                 }
                 is OfflineCollectionStatus.Queued, is OfflineCollectionStatus.Downloading -> {
                     TextButton(
                         onClick = { store.pause(slug) },
                         modifier = Modifier.testTag("settings.offline.$slug.pause"),
-                    ) { Text("Pause", color = colors.accent) }
+                    ) { Text(nativeText("Pause"), color = colors.accent) }
                     TextButton(
                         onClick = { store.cancel(slug) },
                         modifier = Modifier.testTag("settings.offline.$slug.cancel"),
-                    ) { Text("Cancel", color = colors.accent) }
+                    ) { Text(nativeText("Cancel"), color = colors.accent) }
                 }
                 is OfflineCollectionStatus.Paused -> {
                     TextButton(
                         onClick = { store.retry(slug) },
                         modifier = Modifier.testTag("settings.offline.$slug.resume"),
-                    ) { Text("Resume", color = colors.accent) }
+                    ) { Text(nativeText("Resume"), color = colors.accent) }
                     TextButton(
                         onClick = { store.cancel(slug) },
                         modifier = Modifier.testTag("settings.offline.$slug.cancel"),
-                    ) { Text("Cancel", color = colors.accent) }
+                    ) { Text(nativeText("Cancel"), color = colors.accent) }
                 }
                 is OfflineCollectionStatus.Verifying -> {
-                    Text("Checking…", fontSize = 13.sp, color = colors.textSecondary)
+                    Text(nativeText("Checking…"), fontSize = 13.sp, color = colors.textSecondary)
                 }
                 is OfflineCollectionStatus.Failed -> {
                     TextButton(
                         onClick = { store.retry(slug) },
                         modifier = Modifier.testTag("settings.offline.$slug.retry"),
-                    ) { Text("Retry", color = colors.accent) }
+                    ) { Text(nativeText("Retry"), color = colors.accent) }
                     TextButton(
                         onClick = { store.cancel(slug) },
                         modifier = Modifier.testTag("settings.offline.$slug.cancel"),
-                    ) { Text("Cancel", color = colors.accent) }
+                    ) { Text(nativeText("Cancel"), color = colors.accent) }
                 }
                 is OfflineCollectionStatus.Active -> {
                     if (status.updateAvailable) {
                         TextButton(
                             onClick = { store.update(slug, locale) },
                             modifier = Modifier.testTag("settings.offline.$slug.update"),
-                        ) { Text("Update", color = colors.accent) }
+                        ) { Text(nativeText("Update"), color = colors.accent) }
                     } else if (store.packManifest(slug, locale) != null &&
                         store.recordFor(slug).activePacks[locale] == null
                     ) {
@@ -858,7 +860,7 @@ private fun OfflineCollectionRow(
                                 }
                             },
                             modifier = Modifier.testTag("settings.offline.$slug.downloadPack"),
-                        ) { Text("Download translation", color = colors.accent) }
+                        ) { Text(nativeText("Download translation"), color = colors.accent) }
                     }
                     TextButton(
                         onClick = {
@@ -958,11 +960,11 @@ private fun NotificationDestination() {
                 Text(stringResource(R.string.app_daily_hadith), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
             }
             if (!signedIn) {
-                Text("Sign in to receive the daily hadith on this device.", fontSize = 14.sp, color = colors.textSecondary)
+                Text(nativeText("Sign in to receive the daily hadith on this device."), fontSize = 14.sp, color = colors.textSecondary)
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text("Send me a hadith every day", fontSize = 14.sp, color = colors.textPrimary)
+                        Text(nativeText("Send me a hadith every day"), fontSize = 14.sp, color = colors.textPrimary)
                         val stateLine = status ?: when (val currentPushState = pushState) {
                             PushRegistrationState.NotConfigured -> "Add Firebase configuration to enable FCM in this build."
                             PushRegistrationState.Registered -> "This device is registered."
@@ -993,7 +995,7 @@ private fun NotificationDestination() {
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth().background(colors.surfaceElevated, RoundedCornerShape(10.dp)).clickable { showTimePicker = true }.testTag("settings.notificationsTime").padding(14.dp),
                     ) {
-                        Text("Time", fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
+                        Text(nativeText("Time"), fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
                         Text(time, fontSize = 14.sp, color = colors.accent)
                     }
                 }
@@ -1011,9 +1013,9 @@ private fun NotificationDestination() {
                     val next = "%02d:%02d".format(picker.hour, picker.minute)
                     persist(enabled, next)
                     showTimePicker = false
-                }) { Text("Done", color = colors.accent) }
+                }) { Text(nativeText("Done"), color = colors.accent) }
             },
-            dismissButton = { TextButton(onClick = { showTimePicker = false }) { Text("Cancel", color = colors.textSecondary) } },
+            dismissButton = { TextButton(onClick = { showTimePicker = false }) { Text(nativeText("Cancel"), color = colors.textSecondary) } },
             text = { TimePicker(state = picker) },
             containerColor = colors.surface,
         )
@@ -1046,12 +1048,12 @@ private fun SubscriptionDestination() {
     ScrollColumn {
         CardColumn {
             if (!signedIn) {
-                Text("Sign in to see your subscription. Purchases stay attached to your Hadithly account across devices.", fontSize = 14.sp, color = colors.textSecondary)
+                Text(nativeText("Sign in to see your subscription. Purchases stay attached to your Hadithly account across devices."), fontSize = 14.sp, color = colors.textSecondary)
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(SettingsSubscription.displayName(status?.subscriptionTier), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary, modifier = Modifier.weight(1f))
                     if (status?.subscriptionTier == "pro") {
-                        Text("Active", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.accent)
+                        Text(nativeText("Active"), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.accent)
                     }
                 }
                 Text(androidx.compose.ui.res.stringResource(com.hadithly.app.R.string.q2_quota), fontSize = 12.sp, color = colors.textSecondary)
@@ -1069,7 +1071,7 @@ private fun SubscriptionDestination() {
                     modifier = Modifier.testTag("settings.subscription.restore"),
                 ) { Text(if (restoring) "Restoring…" else "Restore purchases", color = colors.textPrimary) }
                 TextButton(onClick = { uriHandler.openUri(if (status?.store == "app_store") "https://apps.apple.com/account/subscriptions" else SettingsLinks.PLAY_SUBSCRIPTIONS) }) {
-                    Text("Manage subscription", color = colors.textSecondary)
+                    Text(nativeText("Manage subscription"), color = colors.textSecondary)
                 }
                 Text(androidx.compose.ui.res.stringResource(com.hadithly.app.R.string.q2_manage), fontSize = 12.sp, color = colors.textSecondary)
                 purchaseState.errorMessage?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
@@ -1151,9 +1153,9 @@ private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
             Text(stringResource(R.string.diagnostics_privacy), fontSize = 14.sp, color = colors.textSecondary)
         }
         CardColumn {
-            Text("Your data", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+            Text(nativeText("Your data"), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
             if (signedIn) {
-                Text("Export your profile, preferences, Saved items, folders, reading progress, and your own contributions as JSON.", fontSize = 14.sp, color = colors.textSecondary)
+                Text(nativeText("Export your profile, preferences, Saved items, folders, reading progress, and your own contributions as JSON."), fontSize = 14.sp, color = colors.textSecondary)
                 Button(
                     enabled = !exporting,
                     onClick = { showExportConfirm = true },
@@ -1163,13 +1165,13 @@ private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
                 ) { Text(if (exporting) "Preparing…" else "Export my data", fontWeight = FontWeight.SemiBold) }
                 exportNotice?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
             } else {
-                Text("Sign in to export your synced data. Guest data never leaves this device.", fontSize = 14.sp, color = colors.textSecondary)
+                Text(nativeText("Sign in to export your synced data. Guest data never leaves this device."), fontSize = 14.sp, color = colors.textSecondary)
                 Button(
                     onClick = onShowSignIn,
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = colors.interactive, contentColor = colors.onInteractive),
                     modifier = Modifier.fillMaxWidth().testTag("settings.signin"),
-                ) { Text("Sign in", fontWeight = FontWeight.SemiBold) }
+                ) { Text(nativeText("Sign in"), fontWeight = FontWeight.SemiBold) }
             }
         }
         CardColumn {
@@ -1196,8 +1198,8 @@ private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
     if (showExportConfirm) {
         AlertDialog(
             onDismissRequest = { if (!exporting) showExportConfirm = false },
-            title = { Text("Export your data?") },
-            text = { Text("The file contains only your portable data. You must be signed in; an expired session signs you in again first.") },
+            title = { Text(nativeText("Export your data?")) },
+            text = { Text(nativeText("The file contains only your portable data. You must be signed in; an expired session signs you in again first.")) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -1205,10 +1207,10 @@ private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
                         exporting = true
                         saveDocument.launch(SettingsExport.fileName())
                     },
-                ) { Text("Choose location") }
+                ) { Text(nativeText("Choose location")) }
             },
             dismissButton = {
-                TextButton(onClick = { showExportConfirm = false }) { Text("Cancel", color = colors.textSecondary) }
+                TextButton(onClick = { showExportConfirm = false }) { Text(nativeText("Cancel"), color = colors.textSecondary) }
             },
             containerColor = colors.surface,
         )
@@ -1233,11 +1235,11 @@ private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
                             deletingAccount = false
                         }
                     },
-                ) { Text("Delete account and data", color = Color(0xFFFF6B6B)) }
+                ) { Text(nativeText("Delete account and data"), color = Color(0xFFFF6B6B)) }
             },
             dismissButton = {
                 TextButton(enabled = !deletingAccount, onClick = { showDeleteConfirmation = false }) {
-                    Text("Cancel", color = colors.textSecondary)
+                    Text(nativeText("Cancel"), color = colors.textSecondary)
                 }
             },
             containerColor = colors.surface,
@@ -1246,9 +1248,9 @@ private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
     deletionError?.let { message ->
         AlertDialog(
             onDismissRequest = { deletionError = null },
-            title = { Text("Account deletion failed") },
+            title = { Text(nativeText("Account deletion failed")) },
             text = { Text(message) },
-            confirmButton = { TextButton(onClick = { deletionError = null }) { Text("OK") } },
+            confirmButton = { TextButton(onClick = { deletionError = null }) { Text(nativeText("OK")) } },
             containerColor = colors.surface,
         )
     }
@@ -1300,7 +1302,7 @@ private fun HelpSupportDestination() {
                     }
                 },
             )
-            Text("Include the collection and hadith number.", fontSize = 12.sp, color = colors.textSecondary)
+            Text(nativeText("Include the collection and hadith number."), fontSize = 12.sp, color = colors.textSecondary)
             PolicyRow(
                 title = "Share Hadithly",
                 onClick = {
@@ -1330,7 +1332,7 @@ private fun AboutLegalDestination() {
                 Text("${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})", fontSize = 12.sp, color = colors.textSecondary)
             }
             Text(
-                "A quiet reader for the seven major hadith collections. Arabic text is licensed from its sources; AI translations are always labeled.",
+                nativeText("A quiet reader for the seven major hadith collections. Arabic text is licensed from its sources; AI translations are always labeled."),
                 fontSize = 14.sp,
                 color = colors.textSecondary,
             )
@@ -1344,11 +1346,11 @@ private fun AboutLegalDestination() {
     if (showLicenses) {
         AlertDialog(
             onDismissRequest = { showLicenses = false },
-            title = { Text("Licenses") },
+            title = { Text(nativeText("Licenses")) },
             text = {
                 Text("Arabic reading faces — Amiri, Scheherazade New, and Noto Naskh Arabic — are licensed under the SIL Open Font License 1.1 (https://openfontlicense.org). Full license records live in docs/FONT_LICENSES.md. Hadith source identity, authenticity scope, and license records travel with every text.")
             },
-            confirmButton = { TextButton(onClick = { showLicenses = false }) { Text("Done") } },
+            confirmButton = { TextButton(onClick = { showLicenses = false }) { Text(nativeText("Done")) } },
             containerColor = colors.surface,
         )
     }

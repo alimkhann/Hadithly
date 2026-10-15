@@ -1,5 +1,7 @@
 package com.hadithly.app.features.reader
 
+import com.hadithly.app.core.preferences.nativeText
+
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -79,8 +81,8 @@ internal fun EvidenceProcessingStatusContent(status: String, retryItems: List<St
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         if (status == "awaiting_processing") {
             CircularProgressIndicator(modifier = Modifier.testTag("submission.processing").semantics { contentDescription = "Processing evidence" })
-            Text("Evidence received; awaiting checks.", color = colors.textPrimary, fontSize = 18.sp)
-            Text("Processing evidence. Your suggestion stays private and has not been reviewed or published.", color = colors.textSecondary)
+            Text(nativeText("Evidence received; awaiting checks."), color = colors.textPrimary, fontSize = 18.sp)
+            Text(nativeText("Processing evidence. Your suggestion stays private and has not been reviewed or published."), color = colors.textSecondary)
         } else if (status in setOf("under_review", "approved", "held", "rejected", "review_unavailable", "revoked")) {
             val title = when (status) {
                 "under_review" -> R.string.e3_reviewing
@@ -102,15 +104,15 @@ internal fun EvidenceProcessingStatusContent(status: String, retryItems: List<St
             Text(stringResource(message), color = colors.textSecondary)
             if (status == "under_review") CircularProgressIndicator()
         } else if (status == "evidence_ready") {
-            Text("Evidence checks complete", color = colors.textPrimary, fontSize = 18.sp, modifier = Modifier.testTag("submission.ready"))
+            Text(nativeText("Evidence checks complete"), color = colors.textPrimary, fontSize = 18.sp, modifier = Modifier.testTag("submission.ready"))
             Text(stringResource(R.string.e3_waiting), color = colors.textSecondary)
         } else {
             Text(if (status == "infected") "Evidence cannot be used" else "Evidence processing failed", color = colors.textPrimary, fontSize = 18.sp,
                 modifier = Modifier.testTag(if (status == "infected") "submission.infected" else "submission.failed"))
-            Text("Your suggestion remains private. Withdraw it and submit different evidence if needed.", color = colors.textSecondary)
+            Text(nativeText("Your suggestion remains private. Withdraw it and submit different evidence if needed."), color = colors.textSecondary)
         }
         if (status in setOf("awaiting_processing", "processing_failed")) retryItems.forEach { itemId ->
-            TextButton(onClick = { onRetry(itemId) }, modifier = Modifier.testTag("submission.retryProcessing")) { Text("Retry evidence") }
+            TextButton(onClick = { onRetry(itemId) }, modifier = Modifier.testTag("submission.retryProcessing")) { Text(nativeText("Retry evidence")) }
         }
         EvidenceAppealContent(appeal, onAppeal)
         if (citations.isNotEmpty()) {
@@ -317,14 +319,14 @@ fun TranslationSubmissionSheet(
         modifier = Modifier.fillMaxWidth().navigationBarsPadding().verticalScroll(rememberScrollState()).padding(20.dp),
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {
-            Text("Suggest a translation", fontSize = 20.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
-            TextButton(onClick = { uploadJob?.cancel(); onDone() }) { Text("Done", color = colors.interactive) }
+            Text(nativeText("Suggest a translation"), fontSize = 20.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
+            TextButton(onClick = { uploadJob?.cancel(); onDone() }) { Text(nativeText("Done"), color = colors.interactive) }
         }
         when {
-            !viewModel.canContribute || accountId == null -> Text("Sign in from Settings to suggest a translation with evidence.", color = colors.textSecondary, modifier = Modifier.testTag("submission.signInRequired"))
+            !viewModel.canContribute || accountId == null -> Text(nativeText("Sign in from Settings to suggest a translation with evidence."), color = colors.textSecondary, modifier = Modifier.testTag("submission.signInRequired"))
             draft?.status == "expired" -> Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.testTag("submission.expired")) {
-                Text("Evidence expired", color = colors.textPrimary, fontSize = 18.sp)
-                Text("The private files were removed before processing. You can start a new suggestion.", color = colors.textSecondary)
+                Text(nativeText("Evidence expired"), color = colors.textPrimary, fontSize = 18.sp)
+                Text(nativeText("The private files were removed before processing. You can start a new suggestion."), color = colors.textSecondary)
                 TextButton(onClick = {
                     draft?.submissionId?.let { id -> scope.launch {
                         runCatching { repository.deleteEvidenceDraft(id) }
@@ -333,7 +335,7 @@ fun TranslationSubmissionSheet(
                         choices.clear(); draft = null; content = ""; urlInput = ""; legacySubmissionId = null
                         draftKey = UUID.randomUUID().toString(); localCreatedAt = System.currentTimeMillis(); error = null
                     } }
-                }) { Text("Start a new suggestion") }
+                }) { Text(nativeText("Start a new suggestion")) }
             }
             draft?.status in setOf("awaiting_processing", "evidence_ready", "processing_failed", "infected", "under_review", "approved", "held", "rejected", "review_unavailable", "revoked") -> Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.testTag("submission.confirmation")) {
                 EvidenceProcessingStatusContent(
@@ -365,25 +367,25 @@ fun TranslationSubmissionSheet(
                             }
                             .onFailure { error = it.message ?: "Could not withdraw this suggestion." }
                     } }
-                }, modifier = Modifier.testTag("submission.deleteDraft")) { Text("Withdraw suggestion") }
+                }, modifier = Modifier.testTag("submission.deleteDraft")) { Text(nativeText("Withdraw suggestion")) }
             }
             else -> {
                 Text(hadith.referenceDisplay, color = colors.textPrimary)
-                Text("Add one to three source links or files. Evidence stays private while checked.", color = colors.textSecondary, fontSize = 12.sp)
+                Text(nativeText("Add one to three source links or files. Evidence stays private while checked."), color = colors.textSecondary, fontSize = 12.sp)
                 OutlinedTextField(value = content, onValueChange = { content = it }, modifier = Modifier.fillMaxWidth().height(170.dp).testTag("submission.editor"))
                 Row {
-                    OutlinedTextField(value = urlInput, onValueChange = { urlInput = it }, label = { Text("HTTPS source link") }, modifier = Modifier.weight(1f).testTag("submission.evidence.url"))
+                    OutlinedTextField(value = urlInput, onValueChange = { urlInput = it }, label = { Text(nativeText("HTTPS source link")) }, modifier = Modifier.weight(1f).testTag("submission.evidence.url"))
                     TextButton(onClick = {
                         val url = EvidenceClientPolicy.httpsURL(urlInput)
                         if (url == null || choices.size >= 3) error = "Enter an HTTPS source link without credentials."
                         else { choices.add(LocalEvidenceChoice(UUID.randomUUID().toString(), "url", url.host ?: url.toString(), url = url.toString())); urlInput = ""; error = null }
-                    }, enabled = localLoaded && draft == null && choices.size < 3) { Text("Add link") }
+                    }, enabled = localLoaded && draft == null && choices.size < 3) { Text(nativeText("Add link")) }
                 }
-                TextButton(onClick = { picker.launch(arrayOf("image/jpeg", "image/png", "image/webp", "application/pdf")) }, enabled = localLoaded && draft == null && choices.size < 3, modifier = Modifier.testTag("submission.evidence.file")) { Text("Add image or PDF") }
+                TextButton(onClick = { picker.launch(arrayOf("image/jpeg", "image/png", "image/webp", "application/pdf")) }, enabled = localLoaded && draft == null && choices.size < 3, modifier = Modifier.testTag("submission.evidence.file")) { Text(nativeText("Add image or PDF")) }
                 choices.forEach { choice ->
                     Row(modifier = Modifier.fillMaxWidth()) {
                         Text(choice.label, color = colors.textPrimary, modifier = Modifier.weight(1f))
-                        if (draft == null) TextButton(onClick = { choice.filePath?.let { File(it).delete() }; choices.remove(choice) }) { Text("Remove") }
+                        if (draft == null) TextButton(onClick = { choice.filePath?.let { File(it).delete() }; choices.remove(choice) }) { Text(nativeText("Remove")) }
                     }
                 }
                 draft?.items?.forEach { item ->
@@ -393,7 +395,7 @@ fun TranslationSubmissionSheet(
                             TextButton(onClick = {
                                 replacingItemKey = item.clientItemKey
                                 picker.launch(arrayOf("image/jpeg", "image/png", "image/webp", "application/pdf"))
-                            }) { Text("Select again") }
+                            }) { Text(nativeText("Select again")) }
                         }
                     }
                 }
@@ -403,7 +405,7 @@ fun TranslationSubmissionSheet(
                         .testTag("submission.uploadProgress"),
                 )
                 error?.let { Text(it, color = colors.textSecondary, modifier = Modifier.testTag("submission.error")) }
-                if (uploading) TextButton(onClick = { uploadJob?.cancel() }, modifier = Modifier.testTag("submission.cancelUpload")) { Text("Cancel upload") }
+                if (uploading) TextButton(onClick = { uploadJob?.cancel() }, modifier = Modifier.testTag("submission.cancelUpload")) { Text(nativeText("Cancel upload")) }
                 if (draft != null && !uploading) TextButton(onClick = {
                     draft?.submissionId?.let { id -> scope.launch {
                         runCatching { repository.deleteEvidenceDraft(id) }
@@ -415,7 +417,7 @@ fun TranslationSubmissionSheet(
                             }
                             .onFailure { error = it.message ?: "Could not delete this draft." }
                     } }
-                }, modifier = Modifier.testTag("submission.deleteDraft")) { Text("Delete draft") }
+                }, modifier = Modifier.testTag("submission.deleteDraft")) { Text(nativeText("Delete draft")) }
                 Button(
                     enabled = localLoaded && !uploading && content.isNotBlank() && (draft != null || choices.isNotEmpty()),
                     onClick = {

@@ -485,7 +485,7 @@ describe("N1 cron loop", () => {
       hasFcm: true,
     });
     expect(result.sent).toBe(1);
-    expect(senders.fcm[0].body).toContain("AI translation");
+    expect(senders.fcm[0].body).toContain("Перевод ИИ");
   });
 
   test("deletes permanently dead tokens and retries transient failures", async () => {

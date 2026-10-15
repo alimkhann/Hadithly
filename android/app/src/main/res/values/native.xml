@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_004e9ce2b80f" formatted="false">Describe a meaning, wording, or attribution concern. Reports are private and are not votes or ratings.</string>
+    <string name="native_00cb857374a6" formatted="false">Save username</string>
+    <string name="native_03c47f10db6d" formatted="false">Start a new suggestion</string>
+    <string name="native_099cd53b4147" formatted="false">Export your profile, preferences, Saved items, folders, reading progress, and your own contributions as JSON.</string>
+    <string name="native_0ab48e787f8a" formatted="false">Add one to three source links or files. Evidence stays private while checked.</string>
+    <string name="native_0ccfef828950" formatted="false">Close settings</string>
+    <string name="native_102b5d6815d5" formatted="false">Sign in from Settings to suggest a translation with evidence.</string>
+    <string name="native_11a6767d5674" formatted="false">Done</string>
+    <string name="native_12d8c4057f56" formatted="false">AI translation…</string>
+    <string name="native_1509f561f241" formatted="false">Save</string>
+    <string name="native_161faa795821" formatted="false">The private files were removed before processing. You can start a new suggestion.</string>
+    <string name="native_18a0c098c7fb" formatted="false">EDIT</string>
+    <string name="native_19766ed6ccb2" formatted="false">Cancel</string>
+    <string name="native_1bac4007880b" formatted="false">Bookmark</string>
+    <string name="native_1ddc2d9a1a21" formatted="false">Private reason</string>
+    <string name="native_21d749165449" formatted="false">Avatar is set by your sign-in method.</string>
+    <string name="native_258de606097f" formatted="false">VOLUMES</string>
+    <string name="native_29887a5ff984" formatted="false">Share</string>
+    <string name="native_2f4412f8bb6a" formatted="false">Processing evidence. Your suggestion stays private and has not been reviewed or published.</string>
+    <string name="native_30b8238e7f5b" formatted="false">Send me a hadith every day</string>
+    <string name="native_30c1d8d3e912" formatted="false">Forgot password?</string>
+    <string name="native_326d9c957d5a" formatted="false">Cancel upload</string>
+    <string name="native_33b93476cf59" formatted="false">Time</string>
+    <string name="native_3740fd6cbdff" formatted="false">Could not open this collection</string>
+    <string name="native_3bad88c3376c" formatted="false">Clear temporary cache</string>
+    <string name="native_3c707d34de67" formatted="false">Suggest translation</string>
+    <string name="native_3ea7835d6d78" formatted="false">Sign in to receive the daily hadith on this device.</string>
+    <string name="native_437aea62a5bd" formatted="false">Contents</string>
+    <string name="native_46495379257b" formatted="false">Delete draft</string>
+    <string name="native_4814c85aa23d" formatted="false">Text layers</string>
+    <string name="native_482a6cdaa409">Page %1$s</string>
+    <string name="native_483dc4ca0c62" formatted="false">The file contains only your portable data. You must be signed in; an expired session signs you in again first.</string>
+    <string name="native_48f0d3d397d4" formatted="false">Sign out</string>
+    <string name="native_49103f50966a">No %1$s translation is available yet.</string>
+    <string name="native_49c266baaaa7" formatted="false">Search</string>
+    <string name="native_4dc42835fbc3">Reference: %1$s</string>
+    <string name="native_4f543e452064" formatted="false">Hadithly Pro is active</string>
+    <string name="native_4fa960716706" formatted="false">Remove and don\'t ask again</string>
+    <string name="native_50deba1f29ea" formatted="false">Sign in to see your subscription. Purchases stay attached to your Hadithly account across devices.</string>
+    <string name="native_51da6060f286" formatted="false">Evidence expired</string>
+    <string name="native_540ec6e92d83" formatted="false">No matches in Sunnah.now English text.</string>
+    <string name="native_5457393ebfcc" formatted="false">No English translation available yet.</string>
+    <string name="native_5474755405da" formatted="false">Select again</string>
+    <string name="native_565339bc4d33" formatted="false">OK</string>
+    <string name="native_58d330f27985" formatted="false">A quiet reader for the seven major hadith collections. Arabic text is licensed from its sources; AI translations are always labeled.</string>
+    <string name="native_5a22ad9780f1">Opening %1$s…</string>
+    <string name="native_5d69219595e8" formatted="false">Account deletion failed</string>
+    <string name="native_5f8fefc620cb" formatted="false">Close contents</string>
+    <string name="native_61c2709f9d99" formatted="false">AI translation unavailable · retry</string>
+    <string name="native_63624455a1b0" formatted="false">End of page</string>
+    <string name="native_657e34fbabb2" formatted="false">Usernames start with a letter and use letters, numbers, and underscores.</string>
+    <string name="native_6a77e7691626" formatted="false">Report sent privately</string>
+    <string name="native_6aeba22b0308" formatted="false">Add image or PDF</string>
+    <string name="native_6c6e178ad2a8" formatted="false">Passwords do not match.</string>
+    <string name="native_6cc8519b9158" formatted="false">Go</string>
+    <string name="native_6d5d90047973" formatted="false">Licenses</string>
+    <string name="native_6ef998ee12f7" formatted="false">No eligible hadith is cached yet</string>
+    <string name="native_702ef921ed1d" formatted="false">First name</string>
+    <string name="native_709e31254bdd" formatted="false">At least one layer stays visible.</string>
+    <string name="native_71223a24948d" formatted="false">Suggest a translation</string>
+    <string name="native_7175517a370b" formatted="false">or</string>
+    <string name="native_71c7158ec4ea" formatted="false">At least one text layer stays visible.</string>
+    <string name="native_74a883a037bc" formatted="false">Settings</string>
+    <string name="native_76900f1bfd16" formatted="false">Back</string>
+    <string name="native_76a282009ba8" formatted="false">HTTPS source link</string>
+    <string name="native_77889b3bab7e" formatted="false">Bookmarks &amp; Notes</string>
+    <string name="native_798ca2ce18bf" formatted="false">Create account</string>
+    <string name="native_7b4888049459" formatted="false">Last name</string>
+    <string name="native_7b503321357a" formatted="false">Delete account and data</string>
+    <string name="native_7d94fc6f0852" formatted="false">Write a private note…</string>
+    <string name="native_7d9eb7acb13e" formatted="false">Close</string>
+    <string name="native_82095f5cb9a4" formatted="false">Open a collection in the Library and Today will prepare one from verified content.</string>
+    <string name="native_82c66ec1be55" formatted="false">Evidence received; awaiting checks.</string>
+    <string name="native_83bbbb83cfbe" formatted="false">Choose location</string>
+    <string name="native_858e4ba7a29f" formatted="false">Pause</string>
+    <string name="native_8809dd9048f8" formatted="false">Today\'s hadith could not load</string>
+    <string name="native_892ffa345a39" formatted="false">How offline works</string>
+    <string name="native_8b9ffadf4985">Page %1$s of %2$s</string>
+    <string name="native_8ba1f434afb9" formatted="false">Sign in to export your synced data. Guest data never leaves this device.</string>
+    <string name="native_8e3a83b3d254" formatted="false">You can undo this action from the message at the top.</string>
+    <string name="native_8f6ca5461ed2">Downloads: %1$s · Free: %2$s</string>
+    <string name="native_9041c6aa2c3d" formatted="false">Manage subscription</string>
+    <string name="native_92340695899b" formatted="false">Active</string>
+    <string name="native_9361eac22a4e" formatted="false">Nothing saved here yet.</string>
+    <string name="native_942087cc2d41" formatted="false">Retry</string>
+    <string name="native_9449e60a6bd1" formatted="false">Include the collection and hadith number.</string>
+    <string name="native_96b3b31d45ab" formatted="false">Open device storage</string>
+    <string name="native_96be15d18327" formatted="false">Arabic type</string>
+    <string name="native_98770753608c" formatted="false">Evidence checks complete</string>
+    <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
+    <string name="native_9f9feade761d" formatted="false">Collections</string>
+    <string name="native_a1794783aab7" formatted="false">Offline</string>
+    <string name="native_a1a6ea9533fa" formatted="false">Search is unavailable offline.</string>
+    <string name="native_a4194ff09706" formatted="false">Bringing today\'s hadith…</string>
+    <string name="native_b01111be1821" formatted="false">Search English text</string>
+    <string name="native_b5a1c683ff49" formatted="false">Base Arabic files plus a translation pack for your language. Every file is checksummed and licensed before it activates. The previous copy stays readable until the replacement and your saved positions check out.</string>
+    <string name="native_b67dee925588" formatted="false">Sunnah.now English text</string>
+    <string name="native_b7297226fd1f" formatted="false">Save name</string>
+    <string name="native_b7337027ef1f" formatted="false">Use a different email</string>
+    <string name="native_b7bd92f57552" formatted="false">Withdraw suggestion</string>
+    <string name="native_b7d74756ff3b" formatted="false">Clearing never deletes bookmarks, favorites, notes, reading progress, or downloaded collections.</string>
+    <string name="native_b97457409ab5" formatted="false">Resend code</string>
+    <string name="native_b9c98d6ecdf1" formatted="false">Your suggestion remains private. Withdraw it and submit different evidence if needed.</string>
+    <string name="native_bdd5c6b7f515" formatted="false">Hadith number</string>
+    <string name="native_bf948705a783" formatted="false">Hadithly ships versioned offline collections: a base Arabic dump plus translation packs, each checksummed and licensed. Downloads validate before activating and keep your Saved items and reading positions intact. Deleting a download removes files only — your bookmarks, notes, and positions stay.</string>
+    <string name="native_bfd402b2f6f3" formatted="false">Sign in</string>
+    <string name="native_c1c1009d3f37" formatted="false">Update</string>
+    <string name="native_c31723ab3302" formatted="false">Searching…</string>
+    <string name="native_c3812fc4acb8" formatted="false">Remove</string>
+    <string name="native_c4bbcbb7a6a7" formatted="false">Grounding citations</string>
+    <string name="native_ca99bb9196aa" formatted="false">Wi-Fi only</string>
+    <string name="native_caf85b0888d7" formatted="false">Sources</string>
+    <string name="native_d0dc72eadb20" formatted="false">Type above to search the English text.</string>
+    <string name="native_d640c7421da0" formatted="false">Resume</string>
+    <string name="native_d6eafe823591" formatted="false">Download</string>
+    <string name="native_d8b8392e2c54" formatted="false">Try again</string>
+    <string name="native_d8da2c49df39" formatted="false">Note</string>
+    <string name="native_d96ad3ca286c" formatted="false">See Hadithly\'s total device storage from the system settings page.</string>
+    <string name="native_d9a85e0a70d8" formatted="false">Sign in with a code instead</string>
+    <string name="native_dcd1d5223f73" formatted="false">Name</string>
+    <string name="native_dddd7b14feda" formatted="false">Remove saved item?</string>
+    <string name="native_de60e9e3043d">%1$s pt</string>
+    <string name="native_dfe9ca4d0f96" formatted="false">Add link</string>
+    <string name="native_e05372bd9e28" formatted="false">Download translation</string>
+    <string name="native_e21f935f11d7" formatted="false">Copy</string>
+    <string name="native_e3b89e9d33f8" formatted="false">Username</string>
+    <string name="native_e820440bb043" formatted="false">Reading as a guest</string>
+    <string name="native_ec0c8dea1a19" formatted="false">Temporary cache</string>
+    <string name="native_ec963ffc911b" formatted="false">Checking…</string>
+    <string name="native_ecdba5aa3ba4" formatted="false">Export your data?</string>
+    <string name="native_ee5ef73aae18" formatted="false">Your data</string>
+    <string name="native_f038ae10080f" formatted="false">Report translation</string>
+    <string name="native_f5a77522b1ba" formatted="false">Offline collections</string>
+    <string name="native_fa8a45b3662d" formatted="false">Everything you need to read works without an account. Sign in to carry your bookmarks, favorites, and notes across devices.</string>
+    <string name="native_ff6c3270c09d" formatted="false">Applies across the app. The reader previews each theme live.</string>
+</resources>

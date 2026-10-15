@@ -1,5 +1,7 @@
 package com.hadithly.app.features.reader
 
+import com.hadithly.app.core.preferences.nativeText
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -62,7 +64,7 @@ fun TranslationReportSheet(
 
     Column(verticalArrangement = Arrangement.spacedBy(14.dp), modifier = Modifier.fillMaxWidth().padding(20.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            Text("Report translation", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary, modifier = Modifier.weight(1f))
+            Text(nativeText("Report translation"), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary, modifier = Modifier.weight(1f))
             TextButton(onClick = onDone) { Text(if (submitted) "Done" else "Cancel", color = colors.interactive) }
         }
         if (submitted) {
@@ -72,16 +74,16 @@ fun TranslationReportSheet(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp).testTag("report.confirmation"),
             ) {
                 Icon(Icons.Filled.CheckCircle, null, tint = colors.interactive)
-                Text("Report sent privately", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+                Text(nativeText("Report sent privately"), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
                 Text(stringResource(R.string.e3_report_saved_detail), fontSize = 12.sp, color = colors.textSecondary)
             }
         } else {
             Text(referenceDisplay, fontSize = 12.sp, color = colors.textSecondary)
-            Text("Describe a meaning, wording, or attribution concern. Reports are private and are not votes or ratings.", fontSize = 12.sp, color = colors.textSecondary)
+            Text(nativeText("Describe a meaning, wording, or attribution concern. Reports are private and are not votes or ratings."), fontSize = 12.sp, color = colors.textSecondary)
             OutlinedTextField(
                 value = reason,
                 onValueChange = { reason = it },
-                placeholder = { Text("Private reason", color = colors.textSecondary) },
+                placeholder = { Text(nativeText("Private reason"), color = colors.textSecondary) },
                 colors = editorColors(),
                 modifier = Modifier.fillMaxWidth().height(130.dp).testTag("report.editor"),
             )

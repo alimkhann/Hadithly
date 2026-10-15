@@ -1,5 +1,7 @@
 package com.hadithly.app.features.today
 
+import com.hadithly.app.core.preferences.nativeText
+
 import android.content.Intent
 import android.content.ClipData
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -173,9 +175,9 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
         Box(Modifier.padding(horizontal = 16.dp)) {
             when {
                 daily != null -> DailyCard(daily!!, preferences, readerColors, offline, app.library, onOpenTarget)
-                loading -> CardShell(homeColors) { Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) { CircularProgressIndicator(color = homeColors.textSecondary, modifier = Modifier.size(18.dp), strokeWidth = 2.dp); Text("Bringing today's hadith…", color = homeColors.textSecondary) } }
-                failed -> CardShell(homeColors) { Column { Text("Today's hadith could not load", fontWeight = FontWeight.Medium, color = homeColors.textPrimary); TextButton(onClick = { reloadKey++ }) { Text("Try again", color = homeColors.accent) } } }
-                else -> CardShell(homeColors) { Column { Text("No eligible hadith is cached yet", fontWeight = FontWeight.Medium, color = homeColors.textPrimary); Text("Open a collection in the Library and Today will prepare one from verified content.", fontSize = 12.sp, color = homeColors.textSecondary) } }
+                loading -> CardShell(homeColors) { Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) { CircularProgressIndicator(color = homeColors.textSecondary, modifier = Modifier.size(18.dp), strokeWidth = 2.dp); Text(nativeText("Bringing today's hadith…"), color = homeColors.textSecondary) } }
+                failed -> CardShell(homeColors) { Column { Text(nativeText("Today's hadith could not load"), fontWeight = FontWeight.Medium, color = homeColors.textPrimary); TextButton(onClick = { reloadKey++ }) { Text(nativeText("Try again"), color = homeColors.accent) } } }
+                else -> CardShell(homeColors) { Column { Text(nativeText("No eligible hadith is cached yet"), fontWeight = FontWeight.Medium, color = homeColors.textPrimary); Text(nativeText("Open a collection in the Library and Today will prepare one from verified content."), fontSize = 12.sp, color = homeColors.textSecondary) } }
             }
         }
         SectionTitle(stringResource(R.string.app_library), homeColors, Modifier.padding(horizontal = 16.dp))
@@ -241,12 +243,12 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
                     Box(Modifier.size(8.dp).background(gradeDotColor(ReaderGrade.from(hadith.authenticity.normalizedGrade), colors), CircleShape))
                     Text(hadith.referenceDisplay, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
                     Spacer(Modifier.weight(1f))
-                    if (offline) Text("Offline", fontSize = 11.sp, color = colors.textSecondary)
+                    if (offline) Text(nativeText("Offline"), fontSize = 11.sp, color = colors.textSecondary)
                 }
                 if (preferences.arabicVisible) Text(hadith.arabicText, fontSize = preferences.arabicFontSize.sp, lineHeight = (preferences.arabicFontSize * 1.75f).sp, color = colors.textPrimary, maxLines = if (expanded || !collapse) Int.MAX_VALUE else 7)
                 if (preferences.translationVisible) {
                     hadith.translation?.let { translation -> Text(translation.text, fontSize = 16.sp, lineHeight = 22.sp, color = colors.textPrimary, maxLines = if (expanded || !collapse) Int.MAX_VALUE else 7) }
-                        ?: Text("No ${preferences.translationLocale} translation is available yet.", fontSize = 12.sp, color = colors.textSecondary)
+                        ?: Text(nativeText("No %1\$s translation is available yet.", preferences.translationLocale), fontSize = 12.sp, color = colors.textSecondary)
                 }
                 if (collapse) TextButton(onClick = { expanded = !expanded }) { Text(if (expanded) "Show less" else "Read more", color = colors.accent) }
             }
@@ -258,12 +260,12 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
             DropdownMenuItem(text = { Text(if (library.isBookmarked(hadith._id)) "Remove Bookmark" else "Bookmark") }, onClick = { requestBookmark(); menu = false })
             DropdownMenuItem(text = { Text(if (library.isFavorite(hadith._id)) "Remove Favorite" else "Favorite") }, onClick = { requestFavorite(); menu = false })
             DropdownMenuItem(text = { Text(if (library.noteContentFor(hadith._id) == null) "Add Note" else "Edit Note") }, onClick = { note = true; menu = false })
-            DropdownMenuItem(text = { Text("Copy") }, onClick = { copy(); menu = false })
-            DropdownMenuItem(text = { Text("Share") }, onClick = { share(); menu = false })
-            DropdownMenuItem(text = { Text("Suggest translation") }, onClick = { open(); menu = false })
+            DropdownMenuItem(text = { Text(nativeText("Copy")) }, onClick = { copy(); menu = false })
+            DropdownMenuItem(text = { Text(nativeText("Share")) }, onClick = { share(); menu = false })
+            DropdownMenuItem(text = { Text(nativeText("Suggest translation")) }, onClick = { open(); menu = false })
         }
     }
-    if (pendingRemoval != null) AlertDialog(onDismissRequest = { pendingRemoval = null }, title = { Text("Remove saved item?") }, text = { Text("You can undo this action from the message at the top.") }, confirmButton = { TextButton(onClick = { if (pendingRemoval == "bookmark") toggleBookmark() else toggleFavorite(); pendingRemoval = null }) { Text("Remove") } }, dismissButton = { Column { TextButton(onClick = { app.savedSafety.confirmsRemoval = false; if (pendingRemoval == "bookmark") toggleBookmark() else toggleFavorite(); pendingRemoval = null }) { Text("Remove and don't ask again") }; TextButton(onClick = { pendingRemoval = null }) { Text("Cancel") } } })
+    if (pendingRemoval != null) AlertDialog(onDismissRequest = { pendingRemoval = null }, title = { Text(nativeText("Remove saved item?")) }, text = { Text(nativeText("You can undo this action from the message at the top.")) }, confirmButton = { TextButton(onClick = { if (pendingRemoval == "bookmark") toggleBookmark() else toggleFavorite(); pendingRemoval = null }) { Text(nativeText("Remove")) } }, dismissButton = { Column { TextButton(onClick = { app.savedSafety.confirmsRemoval = false; if (pendingRemoval == "bookmark") toggleBookmark() else toggleFavorite(); pendingRemoval = null }) { Text(nativeText("Remove and don't ask again")) }; TextButton(onClick = { pendingRemoval = null }) { Text(nativeText("Cancel")) } } })
     if (sourceSheet) {
         ModalBottomSheet(onDismissRequest = { sourceSheet = false }, containerColor = colors.surface) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth().padding(20.dp).testTag("today.sourceSheet")) {
@@ -273,7 +275,7 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
             }
         }
     }
-    if (note) AlertDialog(onDismissRequest = { note = false }, title = { Text("Note") }, text = { OutlinedTextField(noteText, { noteText = it }) }, confirmButton = { TextButton(onClick = { library.saveNote(reference, noteText); note = false }) { Text("Save") } }, dismissButton = { TextButton(onClick = { note = false }) { Text("Cancel") } })
+    if (note) AlertDialog(onDismissRequest = { note = false }, title = { Text(nativeText("Note")) }, text = { OutlinedTextField(noteText, { noteText = it }) }, confirmButton = { TextButton(onClick = { library.saveNote(reference, noteText); note = false }) { Text(nativeText("Save")) } }, dismissButton = { TextButton(onClick = { note = false }) { Text(nativeText("Cancel")) } })
 }
 
 @Composable private fun CardShell(colors: HadithlyColors, content: @Composable () -> Unit) = Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(colors.surface).padding(16.dp)) { content() }

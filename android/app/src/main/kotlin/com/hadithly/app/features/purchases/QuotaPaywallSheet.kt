@@ -1,6 +1,8 @@
 @file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 package com.hadithly.app.features.purchases
 
+import com.hadithly.app.core.preferences.nativeText
+
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
@@ -72,7 +74,7 @@ fun QuotaPaywallSheet(purchases: PurchaseManager, onDismiss: () -> Unit, onUnloc
             Text(stringResource(R.string.la2_allowance), style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary, textAlign = TextAlign.Center)
             Text(stringResource(R.string.q2_devices), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary, textAlign = TextAlign.Center)
             when {
-                state.hasProEntitlement -> Text("Hadithly Pro is active", color = colors.textPrimary)
+                state.hasProEntitlement -> Text(nativeText("Hadithly Pro is active"), color = colors.textPrimary)
                 state.loading -> CircularProgressIndicator(color = colors.textSecondary)
                 else -> {
                     state.packages.forEach { option ->

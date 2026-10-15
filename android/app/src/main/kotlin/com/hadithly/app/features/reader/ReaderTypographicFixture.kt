@@ -1,5 +1,7 @@
 package com.hadithly.app.features.reader
 
+import com.hadithly.app.core.preferences.nativeText
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -88,7 +90,7 @@ fun ReaderTypographicFixture(extras: android.os.Bundle?) {
             ) {
                 if (showChrome) {
                     Text(
-                        text = "Page ${pageIndex + 1} of $pageCount",
+                        text = nativeText("Page %1\$s of %2\$s", pageIndex + 1, pageCount),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
                         color = colors.textSecondary,
@@ -118,7 +120,7 @@ fun ReaderTypographicFixture(extras: android.os.Bundle?) {
                 }
 
                 Text(
-                    text = "Page ${pageIndex + 1}",
+                    text = nativeText("Page %1\$s", pageIndex + 1),
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     color = colors.textPrimary,
@@ -169,7 +171,7 @@ fun ReaderTypographicFixture(extras: android.os.Bundle?) {
                 }
 
                 Text(
-                    text = "End of page",
+                    text = nativeText("End of page"),
                     fontSize = 14.sp,
                     color = colors.textSecondary,
                     modifier = Modifier.testTag("r3.end"),

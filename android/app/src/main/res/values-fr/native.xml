@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="native_19766ed6ccb2">Cancel</string>
+    <string name="native_29887a5ff984">Share</string>
+    <string name="native_3c707d34de67">Suggest translation</string>
+    <string name="native_4fa960716706">Remove and don\'t ask again</string>
+    <string name="native_74a883a037bc">Settings</string>
+    <string name="native_76900f1bfd16">Retour</string>
+    <string name="native_798ca2ce18bf">Create account</string>
+    <string name="native_7d9eb7acb13e">Close</string>
+    <string name="native_bfd402b2f6f3">Sign in</string>
+    <string name="native_c3812fc4acb8">Remove</string>
+    <string name="native_caf85b0888d7">Sources</string>
+    <string name="native_d8b8392e2c54">Try again</string>
+    <string name="native_dddd7b14feda">Remove saved item?</string>
+    <string name="native_e21f935f11d7">Copy</string>
+</resources>

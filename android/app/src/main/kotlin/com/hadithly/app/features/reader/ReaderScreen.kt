@@ -2,6 +2,8 @@
 
 package com.hadithly.app.features.reader
 
+import com.hadithly.app.core.preferences.nativeText
+
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FiniteAnimationSpec
@@ -336,7 +338,7 @@ private fun LoadingView(collectionName: String) {
     ) {
         CircularProgressIndicator(color = colors.textSecondary)
         Text(
-            text = "Opening $collectionName…",
+            text = nativeText("Opening %1\$s…", collectionName),
             fontSize = 15.sp,
             color = colors.textSecondary,
         )
@@ -353,7 +355,7 @@ private fun FailureView(message: String) {
             .fillMaxSize()
             .padding(32.dp),
     ) {
-        Text("Could not open this collection", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
+        Text(nativeText("Could not open this collection"), fontSize = 17.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
         Text(
             text = message,
             fontSize = 13.sp,
@@ -902,7 +904,7 @@ internal fun ReaderMenuStack(
             )
             ReaderMenuIconButton(
                 icon = Icons.Filled.Search,
-                contentDescription = "Search",
+                contentDescription = nativeText("Search"),
                 onClick = { tapped(onSearch) },
                 modifier = Modifier.weight(1f).height(56.dp),
                 testTag = "reader.menu.search",
@@ -2313,7 +2315,7 @@ internal fun HadithBlock(
         // header (source sheet tap lives there; copy/share payloads keep
         // the full source line via ReaderShare).
     }
-    if (pendingRemoval != null) AlertDialog(onDismissRequest = { pendingRemoval = null }, title = { Text("Remove saved item?") }, text = { Text(stringResource(R.string.saved_removal_undo_message)) }, confirmButton = { TextButton(onClick = { if (pendingRemoval == "bookmark") toggleBookmarkSafely() else toggleFavoriteSafely(); pendingRemoval = null }) { Text("Remove") } }, dismissButton = { Column { TextButton(onClick = { app.savedSafety.confirmsRemoval = false; if (pendingRemoval == "bookmark") toggleBookmarkSafely() else toggleFavoriteSafely(); pendingRemoval = null }) { Text("Remove and don't ask again") }; TextButton(onClick = { pendingRemoval = null }) { Text("Cancel") } } })
+    if (pendingRemoval != null) AlertDialog(onDismissRequest = { pendingRemoval = null }, title = { Text(nativeText("Remove saved item?")) }, text = { Text(stringResource(R.string.saved_removal_undo_message)) }, confirmButton = { TextButton(onClick = { if (pendingRemoval == "bookmark") toggleBookmarkSafely() else toggleFavoriteSafely(); pendingRemoval = null }) { Text(nativeText("Remove")) } }, dismissButton = { Column { TextButton(onClick = { app.savedSafety.confirmsRemoval = false; if (pendingRemoval == "bookmark") toggleBookmarkSafely() else toggleFavoriteSafely(); pendingRemoval = null }) { Text(nativeText("Remove and don't ask again")) }; TextButton(onClick = { pendingRemoval = null }) { Text(nativeText("Cancel")) } } })
 }
 
 /**
@@ -2638,7 +2640,7 @@ internal fun TranslationSection(
         } else if (!english.isNullOrEmpty()) {
             TranslationText(text = english, storedTranslation = null, onShowCitations = {})
         } else {
-            Text("No English translation available yet.", fontSize = 12.sp, color = colors.textSecondary)
+            Text(nativeText("No English translation available yet."), fontSize = 12.sp, color = colors.textSecondary)
         }
         return
     }
@@ -2652,7 +2654,7 @@ internal fun TranslationSection(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             CircularProgressIndicator(color = colors.textSecondary, modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
-            Text("AI translation…", fontSize = 12.sp, color = colors.textSecondary)
+            Text(nativeText("AI translation…"), fontSize = 12.sp, color = colors.textSecondary)
         }
 
         is TranslationUiState.Loaded -> {
@@ -2679,7 +2681,7 @@ internal fun TranslationSection(
                     Text(stringResource(R.string.q1_retry_at, date), fontSize = 12.sp, color = colors.textSecondary)
                 }
                 TextButton(onClick = onRetry) {
-                    Text("AI translation unavailable · retry", fontSize = 12.sp, color = colors.textSecondary)
+                    Text(nativeText("AI translation unavailable · retry"), fontSize = 12.sp, color = colors.textSecondary)
                 }
             }
         }
@@ -2882,7 +2884,7 @@ internal fun ContentsSheet(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Contents",
+                        nativeText("Contents"),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = colors.textPrimary,
@@ -2901,7 +2903,7 @@ internal fun ContentsSheet(
                 ) {
                     Icon(
                         Icons.Filled.Close,
-                        contentDescription = "Close contents",
+                        contentDescription = nativeText("Close contents"),
                         tint = colors.textSecondary,
                         modifier = Modifier.size(20.dp),
                     )
@@ -2920,7 +2922,7 @@ internal fun ContentsSheet(
                             jumpInput = it
                             jumpError = null
                         },
-                        label = { Text("Hadith number", color = colors.textSecondary) },
+                        label = { Text(nativeText("Hadith number"), color = colors.textSecondary) },
                         placeholder = { Text("e.g. 57", color = colors.textSecondary) },
                         singleLine = true,
                         isError = jumpError != null,
@@ -2946,7 +2948,7 @@ internal fun ContentsSheet(
                         modifier = Modifier.testTag("reader.contents.go"),
                     ) {
                         Text(
-                            "Go",
+                            nativeText("Go"),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = if (jumpInput.isNotBlank()) colors.interactive else colors.textSecondary,
@@ -2963,7 +2965,7 @@ internal fun ContentsSheet(
         }
         item(key = "contents-volumes-label") {
             Text(
-                "VOLUMES",
+                nativeText("VOLUMES"),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = colors.textSecondary,
@@ -3157,7 +3159,7 @@ internal fun SettingsSheet(
             ) {
                 Icon(
                     Icons.Filled.Close,
-                    contentDescription = "Close settings",
+                    contentDescription = nativeText("Close settings"),
                     tint = colors.textSecondary,
                     modifier = Modifier.size(20.dp),
                 )
@@ -3170,7 +3172,7 @@ internal fun SettingsSheet(
                 VisibilityPill("Arabic", preferences.arabicVisible, "reader.visibility.arabic") { attemptVisibility(!preferences.arabicVisible, null) }
                 VisibilityPill("Translation", preferences.translationVisible, "reader.visibility.translation") { attemptVisibility(null, !preferences.translationVisible) }
             }
-            Text("At least one text layer stays visible.", fontSize = 12.sp, color = colors.textSecondary, modifier = Modifier.padding(top = 6.dp))
+            Text(nativeText("At least one text layer stays visible."), fontSize = 12.sp, color = colors.textSecondary, modifier = Modifier.padding(top = 6.dp))
             SettingsSectionLabel("SETTINGS")
             ReaderSettingsNavigationRow("Arabic font", "${preferences.arabicFont.wire} · ${preferences.arabicFontSize.roundToInt()} pt", "reader.settings.arabic") { detail = ReaderSettingsDetail.ARABIC }
             ReaderSettingsNavigationRow("Translation", language.uppercase(), "reader.settings.translation") { detail = ReaderSettingsDetail.TRANSLATION }
@@ -3178,7 +3180,7 @@ internal fun SettingsSheet(
         } else {
             TextButton(onClick = { detail = null }, modifier = Modifier.height(44.dp)) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = colors.textSecondary)
-                Text("Settings", color = colors.textSecondary)
+                Text(nativeText("Settings"), color = colors.textSecondary)
             }
         if (detail == ReaderSettingsDetail.APPEARANCE) {
         SettingsSectionLabel("COLOR THEME")
@@ -3254,7 +3256,7 @@ internal fun SettingsSheet(
                 contentAlignment = Alignment.Center,
             ) { Text("A", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary) }
             Text(
-                text = "${preferences.arabicFontSize.roundToInt()} pt",
+                text = nativeText("%1\$s pt", preferences.arabicFontSize.roundToInt()),
                 fontSize = 12.sp,
                 color = colors.textSecondary,
             )
@@ -3443,17 +3445,17 @@ internal fun CitationsSheet(translation: ReaderTranslation) {
             .verticalScroll(rememberScrollState())
             .padding(20.dp),
     ) {
-        Text("Sources", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
+        Text(nativeText("Sources"), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
         Text(
             text = translation.translation,
             fontSize = 15.sp,
             color = colors.textPrimary,
         )
         translation.sourceReferenceUrl?.let { url ->
-            Text("Reference: $url", fontSize = 12.sp, color = colors.interactive)
+            Text(nativeText("Reference: %1\$s", url), fontSize = 12.sp, color = colors.interactive)
         }
         if (translation.citations.isNotEmpty()) {
-            Text("Grounding citations", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = colors.textSecondary)
+            Text(nativeText("Grounding citations"), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = colors.textSecondary)
             for (citation in translation.citations) {
                 Column {
                     Text(citation.title ?: citation.url, fontSize = 13.sp, color = colors.textPrimary)
@@ -3487,11 +3489,11 @@ private fun NoteEditorSheet(
             .fillMaxWidth()
             .padding(20.dp),
     ) {
-        Text("Note", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
+        Text(nativeText("Note"), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
         androidx.compose.material3.OutlinedTextField(
             value = content,
             onValueChange = { content = it },
-            placeholder = { Text("Write a private note…", color = colors.textSecondary) },
+            placeholder = { Text(nativeText("Write a private note…"), color = colors.textSecondary) },
             colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = colors.interactive,
                 unfocusedBorderColor = colors.surfaceElevated,
@@ -3506,13 +3508,13 @@ private fun NoteEditorSheet(
                 .height(160.dp),
         )
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            TextButton(onClick = onCancel) { Text("Cancel", color = colors.textSecondary) }
+            TextButton(onClick = onCancel) { Text(nativeText("Cancel"), color = colors.textSecondary) }
             TextButton(
                 onClick = {
                     val trimmed = content.trim()
                     if (trimmed.isNotEmpty()) onSave(trimmed)
                 },
-            ) { Text("Save", color = colors.interactive, fontWeight = FontWeight.Bold) }
+            ) { Text(nativeText("Save"), color = colors.interactive, fontWeight = FontWeight.Bold) }
         }
     }
 }
@@ -3549,7 +3551,7 @@ internal fun BookmarkPlacementSheet(
             .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 12.dp)
             .testTag("reader.bookmarkSheet"),
     ) {
-        Text("Bookmark", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
+        Text(nativeText("Bookmark"), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
         PlacementRow(
             title = pageStartRow.title,
             subtitle = pageStartRow.subtitle,
@@ -3672,14 +3674,14 @@ internal fun ReaderSearchSheet(
             .padding(20.dp)
             .testTag("reader.search.sheet"),
     ) {
-        Text("Search", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
+        Text(nativeText("Search"), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
         OutlinedTextField(
             value = query,
             onValueChange = {
                 query = it
                 runSearch(it)
             },
-            label = { Text("Search English text", color = colors.textSecondary) },
+            label = { Text(nativeText("Search English text"), color = colors.textSecondary) },
             leadingIcon = {
                 Icon(Icons.Filled.Search, contentDescription = null, tint = colors.textSecondary)
             },
@@ -3711,7 +3713,7 @@ internal fun ReaderSearchSheet(
                         modifier = Modifier.size(14.dp),
                         strokeWidth = 2.dp,
                     )
-                    Text("Searching…", fontSize = 12.sp, color = colors.textSecondary)
+                    Text(nativeText("Searching…"), fontSize = 12.sp, color = colors.textSecondary)
                 }
             }
 
@@ -3720,7 +3722,7 @@ internal fun ReaderSearchSheet(
                 modifier = Modifier.fillMaxWidth().weight(1f),
             ) {
                 Text(
-                    "Search is unavailable offline.",
+                    nativeText("Search is unavailable offline."),
                     fontSize = 13.sp,
                     color = colors.textSecondary,
                 )
@@ -3731,7 +3733,7 @@ internal fun ReaderSearchSheet(
                 modifier = Modifier.fillMaxWidth().weight(1f),
             ) {
                 Text(
-                    "Type above to search the English text.",
+                    nativeText("Type above to search the English text."),
                     fontSize = 13.sp,
                     color = colors.textSecondary,
                     modifier = Modifier.testTag("reader.search.hint"),
@@ -3743,7 +3745,7 @@ internal fun ReaderSearchSheet(
                 modifier = Modifier.fillMaxWidth().weight(1f),
             ) {
                 Text(
-                    "No matches in Sunnah.now English text.",
+                    nativeText("No matches in Sunnah.now English text."),
                     fontSize = 13.sp,
                     color = colors.textSecondary,
                     modifier = Modifier.testTag("reader.search.empty"),
@@ -3786,7 +3788,7 @@ internal fun ReaderSearchSheet(
                                 )
                             }
                             Text(
-                                text = "Sunnah.now English text",
+                                text = nativeText("Sunnah.now English text"),
                                 fontSize = 11.sp,
                                 color = colors.textSecondary,
                                 modifier = Modifier
@@ -3844,7 +3846,7 @@ internal fun ReaderSavedSheet(
             .testTag("reader.saved.sheet"),
     ) {
         Text(
-            "Bookmarks & Notes",
+            nativeText("Bookmarks & Notes"),
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = colors.textPrimary,
@@ -3886,7 +3888,7 @@ internal fun ReaderSavedSheet(
                 modifier = Modifier.fillMaxWidth().weight(1f),
             ) {
                 Text(
-                    "Nothing saved here yet.",
+                    nativeText("Nothing saved here yet."),
                     fontSize = 13.sp,
                     color = colors.textSecondary,
                 )
@@ -3976,7 +3978,7 @@ internal fun ReaderSavedSheet(
         TextButton(
             onClick = onEdit,
             modifier = Modifier.align(Alignment.End).testTag("reader.saved.edit"),
-        ) { Text("EDIT", color = colors.textSecondary, fontWeight = FontWeight.Bold) }
+        ) { Text(nativeText("EDIT"), color = colors.textSecondary, fontWeight = FontWeight.Bold) }
     }
 }
 
@@ -4018,7 +4020,7 @@ private fun UnifiedReaderSavedSheet(
         }
     }
     Column(Modifier.fillMaxWidth().fillMaxHeight().padding(20.dp).testTag("reader.saved.sheet")) {
-        Text("Bookmarks & Notes", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
+        Text(nativeText("Bookmarks & Notes"), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
         Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) { ReaderSavedTab.entries.forEach { candidate -> TextButton(onClick = { tab = candidate }, modifier = Modifier.weight(1f).testTag("reader.saved.tab.${candidate.tag}")) { Text(candidate.title, color = if (tab == candidate) colors.interactive else colors.textSecondary) } } }
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             TextButton(onClick = { folderId = null }) { Text(stringResource(R.string.saved_all_folders), color = if (folderId == null) colors.interactive else colors.textSecondary) }
@@ -4036,10 +4038,10 @@ private fun UnifiedReaderSavedSheet(
                 }
             }
         }
-        if (visible.isEmpty()) Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { Text("Nothing saved here yet.", color = colors.textSecondary) }
+        if (visible.isEmpty()) Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { Text(nativeText("Nothing saved here yet."), color = colors.textSecondary) }
         else Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) { visible.forEach { item -> com.hadithly.app.features.saved.SharedSavedItemRow(item, folders, folderId == null, onOpen, { facet, saved, ref -> val request = Triple(facet, saved, ref); if (app.savedSafety.confirmsRemoval) removal = request else remove(request) }, { library.assignFolder(item.hadithId, it) }, { ref -> scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(ref.referenceDisplay, listOfNotNull(ref.arabicText, ref.englishText, ref.referenceDisplay).joinToString("\n\n")))) } }, { ref -> context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "https://hadithly.app/hadith/${ref.collectionSlug}/${ref.hadithNumber}"), null)) }, onOpen, { ref -> withContext(Dispatchers.IO) { app.repository.loadSavedPreview(ref) } }) } }
         com.hadithly.app.features.saved.SavedUndoBanner(testTag = "reader.saved.undoBanner")
-        TextButton(onClick = onEdit, modifier = Modifier.align(Alignment.End)) { Text("EDIT") }
+        TextButton(onClick = onEdit, modifier = Modifier.align(Alignment.End)) { Text(nativeText("EDIT")) }
     }
-    removal?.let { request -> AlertDialog(onDismissRequest = { removal = null }, title = { Text("Remove saved item?") }, text = { Text(stringResource(R.string.saved_removal_undo_message)) }, confirmButton = { TextButton(onClick = { remove(request); removal = null }) { Text("Remove") } }, dismissButton = { Column { TextButton(onClick = { app.savedSafety.confirmsRemoval = false; remove(request); removal = null }) { Text("Remove and don't ask again") }; TextButton(onClick = { removal = null }) { Text("Cancel") } } }) }
+    removal?.let { request -> AlertDialog(onDismissRequest = { removal = null }, title = { Text(nativeText("Remove saved item?")) }, text = { Text(stringResource(R.string.saved_removal_undo_message)) }, confirmButton = { TextButton(onClick = { remove(request); removal = null }) { Text(nativeText("Remove")) } }, dismissButton = { Column { TextButton(onClick = { app.savedSafety.confirmsRemoval = false; remove(request); removal = null }) { Text(nativeText("Remove and don't ask again")) }; TextButton(onClick = { removal = null }) { Text(nativeText("Cancel")) } } }) }
 }

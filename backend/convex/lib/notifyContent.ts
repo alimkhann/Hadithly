@@ -11,6 +11,8 @@
  * unresolved content is skipped with an observable reason.
  */
 
+import { notificationAITranslationLabel } from "./notificationLocalization";
+
 export const DAILY_TIME_PATTERN = /^([01][0-9]|2[0-3]):[0-5][0-9]$/;
 
 /** Cron cadence in minutes. Delivery windows are [due, due + WINDOW). */
@@ -281,7 +283,7 @@ export function buildNotificationPayload(input: {
   volumeId?: string | null;
 }): NotificationPayload {
   const body = input.translation.isAI
-    ? `${truncateBody(input.translation.text)}\n— AI translation`
+    ? `${truncateBody(input.translation.text)}\n— ${notificationAITranslationLabel(input.translation.language)}`
     : truncateBody(input.translation.text);
   const title = input.referenceDisplay.includes(input.collectionName)
     ? input.referenceDisplay

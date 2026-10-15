@@ -10,7 +10,7 @@ final class LocalizationCatalogTests: XCTestCase {
         XCTAssertEqual(AppLocalization.string("Settings", locale: Locale(identifier: "ur")), "ترتیبات")
         XCTAssertEqual(AppLocalization.string("App language", locale: Locale(identifier: "ar")), "لغة التطبيق")
         XCTAssertEqual(AppLocalization.string("Today", locale: Locale(identifier: "en")), "Today")
-        XCTAssertEqual(AppLocalization.string("Today", locale: Locale(identifier: "fr")), "Today")
+        XCTAssertEqual(AppLocalization.string("Today", locale: Locale(identifier: "fr")), "Aujourd’hui")
     }
 
     private func catalogJSON() throws -> [String: Any] {

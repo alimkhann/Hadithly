@@ -1,5 +1,7 @@
 package com.hadithly.app.features.auth
 
+import com.hadithly.app.core.preferences.nativeText
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -97,7 +99,7 @@ fun SignInScreen(
                 horizontalArrangement = Arrangement.End,
             ) {
                 TextButton(onClick = onDismiss) {
-                    Text("Close", color = colors.textSecondary)
+                    Text(nativeText("Close"), color = colors.textSecondary)
                 }
             }
 
@@ -210,7 +212,7 @@ private fun MethodsScreen(
                 modifier = Modifier.padding(vertical = Spacing.xs),
             ) {
                 Box(modifier = Modifier.weight(1f).height(1.dp).background(colors.surfaceElevated))
-                Text("or", fontSize = 13.sp, color = colors.textSecondary)
+                Text(nativeText("or"), fontSize = 13.sp, color = colors.textSecondary)
                 Box(modifier = Modifier.weight(1f).height(1.dp).background(colors.surfaceElevated))
             }
             AccentButton(
@@ -219,7 +221,7 @@ private fun MethodsScreen(
                 enabled = !state.isBusy,
             )
             TextButton(onClick = onSignUp, enabled = !state.isBusy) {
-                Text("Create account", color = colors.textSecondary, fontSize = 15.sp)
+                Text(nativeText("Create account"), color = colors.textSecondary, fontSize = 15.sp)
             }
 
             LegalLine(modifier = Modifier.padding(top = Spacing.sm))
@@ -283,10 +285,10 @@ private fun PasswordSignInScreen(
         )
 
         TextButton(onClick = onForgotPassword, enabled = !state.isBusy) {
-            Text("Forgot password?", color = colors.textSecondary, fontSize = 15.sp)
+            Text(nativeText("Forgot password?"), color = colors.textSecondary, fontSize = 15.sp)
         }
         TextButton(onClick = onUseCode, enabled = !state.isBusy) {
-            Text("Sign in with a code instead", color = colors.accent, fontSize = 13.sp)
+            Text(nativeText("Sign in with a code instead"), color = colors.accent, fontSize = 13.sp)
         }
 
         state.errorMessage?.let { message ->
@@ -353,7 +355,7 @@ private fun SignUpScreen(
 
         if (state.confirmPassword.isNotEmpty() && state.confirmPassword != state.password) {
             Text(
-                text = "Passwords do not match.",
+                text = nativeText("Passwords do not match."),
                 fontSize = 13.sp,
                 color = colors.destructive,
                 modifier = Modifier.padding(top = Spacing.sm),
@@ -460,10 +462,10 @@ private fun CodeEntryScreen(
         )
 
         TextButton(onClick = onResend, enabled = !state.isBusy) {
-            Text("Resend code", color = colors.accent, fontSize = 15.sp)
+            Text(nativeText("Resend code"), color = colors.accent, fontSize = 15.sp)
         }
         TextButton(onClick = onBack, enabled = !state.isBusy) {
-            Text("Use a different email", color = colors.textSecondary, fontSize = 15.sp)
+            Text(nativeText("Use a different email"), color = colors.textSecondary, fontSize = 15.sp)
         }
 
         state.errorMessage?.let { message ->

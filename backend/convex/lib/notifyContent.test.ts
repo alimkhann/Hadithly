@@ -231,7 +231,7 @@ describe("buildNotificationPayload", () => {
       collectionSlug: "bukhari",
       providerHadithId: "57",
     });
-    expect(ai.body).toContain("AI translation");
+    expect(ai.body).toContain("ЖИ аудармасы");
     expect(ai.data.ai).toBe("1");
     expect(ai.data.volumeId).toBeUndefined();
   });

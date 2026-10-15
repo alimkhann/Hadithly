@@ -76,10 +76,10 @@
     <string name="e4_appeal_error">The appeal could not be requested. Check the window and try again when connected.</string>
     <string name="e4_revoked">Publication withdrawn</string>
     <string name="e4_revoked_message">This suggestion is private while its publication is reassessed.</string>
-    <string name="q1_generate">Generate AI translation</string>
+    <string name="q1_generate">AI অনুবাদ তৈরি করুন</string>
     <string name="q1_remaining">Seven-day allowance: %1$d of %2$d left</string>
     <string name="q1_retry_at">Available again %1$s</string>
-    <string name="q1_quota_exhausted">Your rolling seven-day allowance is used. Existing translations and reading stay free.</string>
+    <string name="q1_quota_exhausted">আপনার সাত দিনের সীমা শেষ হয়েছে। পড়া এবং বিদ্যমান অনুবাদ বিনামূল্যে থাকবে।</string>
     <string name="app_today">Today</string>
     <string name="app_library">Library</string>
     <string name="app_saved">Saved</string>
