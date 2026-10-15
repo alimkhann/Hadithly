@@ -63,6 +63,7 @@ fun LibraryScreen(onOpenCollection: (String, String) -> Unit, onOpenTarget: (com
     val colors = LocalHadithlyColors.current
     val progress by app.library.progress.collectAsStateWithLifecycle()
     val summaries by viewModel.summaries.collectAsStateWithLifecycle()
+    val loading by viewModel.loading.collectAsStateWithLifecycle()
     var grid by rememberSaveable { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
@@ -94,7 +95,7 @@ fun LibraryScreen(onOpenCollection: (String, String) -> Unit, onOpenTarget: (com
                 modifier = Modifier.fillMaxSize(),
             ) {
                 gridItemsIndexed(Collections.all, key = { _, collection -> collection.first }) { index, (slug, name) ->
-                    GridCollection(position = index + 1, name = name, summary = summaryFor(slug, summaries[slug], progress), onClick = { onOpenCollection(slug, name) }, modifier = Modifier.testTag("library.collection.$slug"))
+                    GridCollection(position = index + 1, name = name, loading = loading, summary = summaryFor(slug, summaries[slug], progress), onClick = { onOpenCollection(slug, name) }, modifier = Modifier.testTag("library.collection.$slug"))
                 }
             }
         } else {
@@ -104,7 +105,7 @@ fun LibraryScreen(onOpenCollection: (String, String) -> Unit, onOpenTarget: (com
                 modifier = Modifier.fillMaxSize(),
             ) {
                 listItemsIndexed(Collections.all, key = { _, collection -> collection.first }) { index, (slug, name) ->
-                    ListCollection(position = index + 1, name = name, summary = summaryFor(slug, summaries[slug], progress), onClick = { onOpenCollection(slug, name) }, modifier = Modifier.testTag("library.collection.$slug"))
+                    ListCollection(position = index + 1, name = name, loading = loading, summary = summaryFor(slug, summaries[slug], progress), onClick = { onOpenCollection(slug, name) }, modifier = Modifier.testTag("library.collection.$slug"))
                 }
             }
         }
@@ -118,21 +119,20 @@ private fun summaryFor(slug: String, summary: CollectionProgressSummary?, progre
 }
 
 @Composable
-private fun GridCollection(position: Int, name: String, summary: CollectionProgressSummary?, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun GridCollection(position: Int, name: String, loading: Boolean, summary: CollectionProgressSummary?, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = LocalHadithlyColors.current
     Column(
         verticalArrangement = Arrangement.spacedBy(9.dp),
         modifier = modifier.fillMaxWidth().clickable(onClick = onClick).semantics { contentDescription = "$position. $name" },
     ) {
         CollectionCover(position, Modifier.fillMaxWidth().aspectRatio(0.66f))
-        Text(position.toString(), fontSize = 12.sp, color = colors.textSecondary)
-        Text(name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
-        ProgressSlot(summary)
+        CollectionTitle(position, name)
+        ProgressSlot(summary, loading)
     }
 }
 
 @Composable
-private fun ListCollection(position: Int, name: String, summary: CollectionProgressSummary?, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun ListCollection(position: Int, name: String, loading: Boolean, summary: CollectionProgressSummary?, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = LocalHadithlyColors.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -141,19 +141,24 @@ private fun ListCollection(position: Int, name: String, summary: CollectionProgr
         CollectionCover(position, Modifier.width(56.dp).height(82.dp))
         Spacer(Modifier.size(14.dp))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-            Text(position.toString(), fontSize = 12.sp, color = colors.textSecondary)
-            Text(name, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
-            ProgressSlot(summary)
+            CollectionTitle(position, name, fontSize = 16.sp)
+            ProgressSlot(summary, loading)
         }
     }
 }
 
 @Composable
-private fun ProgressSlot(summary: CollectionProgressSummary?) {
+private fun ProgressSlot(summary: CollectionProgressSummary?, loading: Boolean) {
+    if (summary == null && loading) {
+        com.hadithly.app.core.theme.ContentSkeleton(com.hadithly.app.core.theme.SkeletonKind.Compact, label = "Loading reading progress")
+        return
+    }
     val colors = LocalHadithlyColors.current
     val label = when (summary?.state) {
         "unopened" -> "Not started"
-        "in_progress" -> "Hadith ${summary.readOrdinal?.toInt()} of ${summary.totalHadiths?.toInt()}"
+        "in_progress" -> if (summary.readOrdinal != null && (summary.totalHadiths ?: 0.0) > 0.0) {
+            "Hadith ${summary.readOrdinal.toInt()} of ${summary.totalHadiths?.toInt()}"
+        } else "Continue reading"
         "completed" -> "Complete"
         "stale" -> "Position unavailable"
         else -> "Progress unavailable"
@@ -165,5 +170,15 @@ private fun ProgressSlot(summary: CollectionProgressSummary?) {
             if (fraction != null) Box(Modifier.fillMaxWidth(fraction.toFloat()).height(3.dp).background(colors.accent, androidx.compose.foundation.shape.RoundedCornerShape(99.dp)))
         }
         Text(label, fontSize = 11.sp, color = colors.textSecondary)
+    }
+}
+
+@Composable
+fun CollectionTitle(position: Int, name: String, modifier: Modifier = Modifier, fontSize: androidx.compose.ui.unit.TextUnit = 15.sp) {
+    val colors = LocalHadithlyColors.current
+    Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(position.toString(), fontSize = 12.sp, color = colors.textSecondary, modifier = Modifier.alignByBaseline().testTag("collection.number.$position"))
+        Text(name, fontSize = fontSize, fontWeight = FontWeight.SemiBold, color = colors.textPrimary,
+            maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f).alignByBaseline().testTag("collection.name.$position"))
     }
 }

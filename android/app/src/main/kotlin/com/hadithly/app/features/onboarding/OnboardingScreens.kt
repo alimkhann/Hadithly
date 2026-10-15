@@ -1,5 +1,7 @@
 package com.hadithly.app.features.onboarding
 
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -17,6 +19,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
@@ -72,7 +76,14 @@ fun OnboardingFlow(selectedLanguage: String, onSelectLanguage: (String) -> Unit,
             if (step == 2) TextButton(onClick = { app.analytics.record(AnalyticsMetric.onboardingStepDemoSkipped); advance(3) },
                 modifier = Modifier.testTag("onboarding.skip")) { Text(stringResource(R.string.la2_skip)) }
         }
-        when (step) {
+        val motionAllowed = com.hadithly.app.core.theme.rememberMotionAllowed()
+        val stepDistance = with(androidx.compose.ui.platform.LocalDensity.current) { com.hadithly.app.core.theme.InterfaceMotion.TRAVEL_DP.dp.roundToPx() } *
+            if (androidx.compose.ui.platform.LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl) -1 else 1
+        AnimatedContent(targetState = step, label = "onboarding step", modifier = Modifier.weight(1f), transitionSpec = {
+            val distance = if (motionAllowed) { if (targetState > initialState) stepDistance else -stepDistance } else 0
+            (fadeIn(tween(if (motionAllowed) com.hadithly.app.core.theme.InterfaceMotion.STEP else 0)) + slideInHorizontally(tween(if (motionAllowed) com.hadithly.app.core.theme.InterfaceMotion.STEP else 0)) { distance }) togetherWith fadeOut(tween(if (motionAllowed) com.hadithly.app.core.theme.InterfaceMotion.QUICK else 0))
+        }) { currentStep ->
+        when (currentStep) {
             0 -> WelcomeScreen { app.analytics.startOnboarding(); advance(1) }
             1 -> LanguagePickerScreen(selectedLanguage, onSelectLanguage) { advance(2) }
             2 -> TranslationDemonstration(selectedLanguage, { app.analytics.record(AnalyticsMetric.onboardingStepDemoUsed) }) { advance(3) }
@@ -91,6 +102,7 @@ fun OnboardingFlow(selectedLanguage: String, onSelectLanguage: (String) -> Unit,
                 Text(stringResource(R.string.la2_reading_free), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
             }
         }
+        }
     }
 }
 
@@ -103,7 +115,7 @@ fun BookArtwork(modifier: Modifier = Modifier) {
 @Composable
 fun WelcomeScreen(onContinue: () -> Unit) {
     val colors = LocalHadithlyColors.current
-    Column(Modifier.fillMaxSize()) {
+    Column(Modifier.fillMaxSize().animateContentSize(animationSpec = androidx.compose.animation.core.tween(com.hadithly.app.core.theme.InterfaceMotion.REVEAL))) {
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(24.dp)) {
             Text("Hadithly", style = MaterialTheme.typography.titleLarge, color = colors.textPrimary, modifier = Modifier.padding(top = 36.dp))
@@ -136,15 +148,24 @@ fun LanguagePickerScreen(selection: String, onSelect: (String) -> Unit, onContin
 }
 
 @Composable
-private fun TranslationDemonstration(locale: String, onReveal: () -> Unit, onContinue: () -> Unit) {
+internal fun TranslationDemonstration(locale: String, onReveal: () -> Unit, onContinue: () -> Unit) {
     val colors = LocalHadithlyColors.current
     var phase by remember { mutableStateOf(TranslationPresentationPhase.Idle) }
+    var preparedShimmerActive by remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(com.hadithly.app.core.theme.InterfaceMotion.SHIMMER.toLong())
+        preparedShimmerActive = false
+    }
     Column(Modifier.fillMaxSize()) {
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(28.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
             Text(stringResource(R.string.la2_demo_title), style = MaterialTheme.typography.headlineLarge, color = colors.textPrimary)
             Text(stringResource(R.string.la2_source), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
             Text(PreparedTranslationExample.arabic, style = MaterialTheme.typography.headlineMedium.copy(fontFamily = com.hadithly.app.core.theme.ArabicTypefaces.amiri, textDirection = androidx.compose.ui.text.style.TextDirection.Rtl),
                 color = colors.textPrimary, textAlign = TextAlign.End, modifier = Modifier.fillMaxWidth())
+            if (phase == TranslationPresentationPhase.Idle) {
+                com.hadithly.app.core.theme.ContentSkeleton(animated = preparedShimmerActive, label = stringResource(R.string.la2_sample_label),
+                    modifier = Modifier.fillMaxWidth().background(colors.surface, RoundedCornerShape(14.dp)).padding(18.dp).testTag("onboarding.preparedPlaceholder"))
+            }
             TranslationReveal(phase) {
                 Text(if (locale == "ar") stringResource(R.string.la2_source_details) else PreparedTranslationExample.translations[locale] ?: "",
                     style = MaterialTheme.typography.titleLarge, color = colors.textPrimary,
@@ -163,7 +184,12 @@ private fun TranslationDemonstration(locale: String, onReveal: () -> Unit, onCon
 @Composable
 fun AccentButton(text: String, onClick: () -> Unit, tag: String = "") {
     val colors = LocalHadithlyColors.current
-    Button(onClick = onClick, shape = RoundedCornerShape(16.dp),
+    val interactions = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    val pressed by interactions.collectIsPressedAsState()
+    val scale by androidx.compose.animation.core.animateFloatAsState(
+        if (pressed && com.hadithly.app.core.theme.rememberMotionAllowed()) .96f else 1f,
+        animationSpec = tween(com.hadithly.app.core.theme.InterfaceMotion.QUICK), label = "button press")
+    Button(onClick = onClick, interactionSource = interactions, shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults.buttonColors(containerColor = colors.interactive, contentColor = colors.onInteractive),
-        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag(tag)) { Text(text, style = MaterialTheme.typography.titleMedium) }
+        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).graphicsLayer { scaleX = scale; scaleY = scale }.testTag(tag)) { Text(text, style = MaterialTheme.typography.titleMedium) }
 }

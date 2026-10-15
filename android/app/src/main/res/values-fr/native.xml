@@ -136,4 +136,15 @@
     <string name="native_e05372bd9e28">Télécharger la traduction</string>
     <string name="native_ecdba5aa3ba4">Exporter vos données ?</string>
     <string name="native_f038ae10080f">Signaler la traduction</string>
+    <string name="native_ba3bbbe10d8b" formatted="false">Chargement…</string>
+    <string name="native_91bf928d3527" formatted="false">Chargement de la page</string>
+    <string name="native_dacaf10d67cb" formatted="false">Chargement de la progression de lecture</string>
+    <string name="native_ff5b3391a8bb" formatted="false">Chargement des éléments enregistrés</string>
+    <string name="native_5499da335be2" formatted="false">Impossible de charger les éléments enregistrés</string>
+    <string name="native_af0a04c700a8" formatted="false">Chargement de l’abonnement</string>
+    <string name="native_6333ae18362e" formatted="false">Impossible de charger les détails de l’abonnement</string>
+    <string name="native_b226874c014f" formatted="false">Apparence du lecteur</string>
+    <string name="native_d68761cc1eb2" formatted="false">Taille du texte</string>
+    <string name="native_324b134f57c7" formatted="false">Aperçu</string>
+    <!-- UI-polish locale entries are generated drafts; native review pending. -->
 </resources>

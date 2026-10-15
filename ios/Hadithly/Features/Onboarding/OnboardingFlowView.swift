@@ -7,6 +7,8 @@ struct OnboardingFlowView: View {
     let onComplete: () -> Void
     @Environment(AppEnvironment.self) private var environment
     @Environment(\.readerPalette) private var palette
+    @Environment(\.accessibilityReduceMotion) private var reducedMotion
+    @Environment(\.layoutDirection) private var layoutDirection
     @AppStorage("onboarding.la2.step") private var storedStep = 0
     @AppStorage("onboarding.la2.visited") private var visited = 0
     @State private var completedCreation: Bool?
@@ -28,6 +30,7 @@ struct OnboardingFlowView: View {
                     }
                 }.font(.subheadline).padding(.horizontal, 24).foregroundStyle(palette.textSecondary)
             }
+            Group {
             switch step {
             case .welcome:
                 WelcomeView { environment.analytics.startOnboarding(); storedStep = 1 }
@@ -57,7 +60,12 @@ struct OnboardingFlowView: View {
                     }.padding(.horizontal, 24).padding(.bottom, 24)
                 }
             }
-        }.background(palette.background.ignoresSafeArea()).foregroundStyle(palette.textPrimary)
+            }
+            .id(step)
+            .transition(.opacity.combined(with: .offset(x: reducedMotion ? 0 : (layoutDirection == .rightToLeft ? -InterfaceMotion.travel : InterfaceMotion.travel))))
+        }
+        .animation(reducedMotion ? nil : .timingCurve(0.22, 1, 0.36, 1, duration: InterfaceMotion.step), value: storedStep)
+        .background(palette.background.ignoresSafeArea()).foregroundStyle(palette.textPrimary)
         .onAppear { recordStep() }.onChange(of: storedStep) { _, _ in recordStep() }
         .sheet(item: $auth) { entry in
             SignInView(onAuthenticated: {
@@ -89,7 +97,7 @@ struct OnboardingPrimaryButton: View {
         Button(action: action) {
             Text(title).font(.headline).frame(maxWidth: .infinity, minHeight: 52).background(palette.interactive)
                 .foregroundStyle(palette.onInteractive).clipShape(RoundedRectangle(cornerRadius: 16))
-        }.buttonStyle(.plain)
+        }.buttonStyle(QuietPressStyle())
     }
 }
 
@@ -99,6 +107,7 @@ struct OnboardingTranslationView: View {
     let onContinue: () -> Void
     @Environment(\.readerPalette) private var palette
     @State private var phase: TranslationPresentationPhase = .idle
+    @State private var preparedShimmerActive = true
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
@@ -107,7 +116,18 @@ struct OnboardingTranslationView: View {
                 Text(PreparedTranslationExample.arabic).font(Theme.arabic(30, .amiri))
                     .frame(maxWidth: .infinity, alignment: .trailing).environment(\.layoutDirection, .rightToLeft)
                 TranslationReveal(phase: phase) {
-                    if phase == .available {
+                    if phase == .idle {
+                        ContentSkeleton(animated: preparedShimmerActive, label: "la2.sample_label")
+                            .padding(18)
+                            .background(palette.surface, in: RoundedRectangle(cornerRadius: 14))
+                            .accessibilityIdentifier("onboarding.preparedPlaceholder")
+                            .task {
+                                do {
+                                    try await Task.sleep(for: .seconds(InterfaceMotion.shimmerPeriod))
+                                    preparedShimmerActive = false
+                                } catch {}
+                            }
+                    } else if phase == .available {
                         if locale == "ar" { Text("la2.source_details").foregroundStyle(palette.textSecondary) }
                         else if let text = PreparedTranslationExample.translations[locale] {
                             Text(text).font(.title3).lineSpacing(5).accessibilityIdentifier("onboarding.example")

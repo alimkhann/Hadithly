@@ -129,6 +129,10 @@ class UserLibraryModel(
     private val isSignedIn: () -> Boolean,
 ) {
 
+    enum class LoadState { Loading, Ready, Failed }
+    private val _loadState = MutableStateFlow(LoadState.Loading)
+    val loadState: StateFlow<LoadState> = _loadState
+
     private val _savedItems = MutableStateFlow<List<SavedItemEntry>>(emptyList())
     val savedItems: StateFlow<List<SavedItemEntry>> = _savedItems
 
@@ -163,6 +167,7 @@ class UserLibraryModel(
         if (isSignedIn()) {
             if (subscriptionsActive) return
             subscriptionsActive = true
+            if (_loadState.value != LoadState.Ready) _loadState.value = LoadState.Loading
             retriesLeft = 5
             subscribeAll()
         } else {
@@ -365,7 +370,7 @@ class UserLibraryModel(
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (_: Exception) {
-                    scope.launch { subscriptionFailed() }
+                    scope.launch { subscriptionFailed(savedSnapshot = true) }
                 }
             }
         )
@@ -386,7 +391,7 @@ class UserLibraryModel(
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (_: Exception) {
-                    scope.launch { subscriptionFailed() }
+                    scope.launch { subscriptionFailed(savedSnapshot = false) }
                 }
             }
         )
@@ -396,8 +401,9 @@ class UserLibraryModel(
      * A subscription that raced the Convex session errors without data.
      * Re-open everything, bounded.
      */
-    private fun subscriptionFailed() {
+    private fun subscriptionFailed(savedSnapshot: Boolean) {
         if (!subscriptionsActive) return
+        if (savedSnapshot && _savedItems.value.isEmpty()) _loadState.value = LoadState.Failed
         subscriptionsActive = false
         unsubscribeJobs()
         if (retriesLeft > 0 && isSignedIn()) {
@@ -466,6 +472,7 @@ class UserLibraryModel(
         }
         _folders.value = snapshot.savedFolders.map { SavedFolder(it.localId, it.name, it.createdAt) }
         rebuildGuestSavedItems(snapshot.savedMemberships)
+        _loadState.value = LoadState.Ready
     }
 
     private fun apply(snapshot: SavedSnapshotRow) {
@@ -476,6 +483,7 @@ class UserLibraryModel(
         _bookmarks.value = _savedItems.value.mapNotNull { item -> item.bookmarkCreatedAt?.let { SavedEntry(item.hadithId, it, hadith = item.hadith) } }
         _favorites.value = _savedItems.value.mapNotNull { item -> item.favoriteCreatedAt?.let { SavedEntry(item.hadithId, it, hadith = item.hadith) } }
         _notes.value = _savedItems.value.mapNotNull { item -> item.noteContent?.let { SavedEntry(item.hadithId, item.createdAt, item.updatedAt, it, item.hadith) } }
+        _loadState.value = LoadState.Ready
     }
 
     private fun rebuildGuestSavedItems(memberships: List<GuestSavedMembership> = emptyList()) {

@@ -31,11 +31,11 @@ struct ReaderPalette: Equatable {
 
     static let light = ReaderPalette(
         background: Color(hex: "FFFFFF"),
-        surface: Color(hex: "F4F4F2"),
-        surfaceElevated: Color(hex: "E9E9E6"),
+        surface: Color(hex: "F0F1F4"),
+        surfaceElevated: Color(hex: "E1E3E9"),
         textPrimary: Color(hex: "1C1C1E"),
-        textSecondary: Color(hex: "6B6B70"),
-        divider: Color(hex: "D9D9D6"),
+        textSecondary: Color(hex: "60636B"),
+        divider: Color(hex: "D1D4DC"),
         interactive: Color(hex: "1C1C1E"),
         interactiveSoft: Color(hex: "1C1C1E").opacity(0.08),
         onInteractive: Color(hex: "FFFFFF")
@@ -46,7 +46,7 @@ struct ReaderPalette: Equatable {
         surface: Color(hex: "EFE6D0"),
         surfaceElevated: Color(hex: "E5DABE"),
         textPrimary: Color(hex: "33301F"),
-        textSecondary: Color(hex: "7A7357"),
+        textSecondary: Color(hex: "645D44"),
         divider: Color(hex: "D6C9A4"),
         interactive: Color(hex: "33301F"),
         interactiveSoft: Color(hex: "33301F").opacity(0.10),

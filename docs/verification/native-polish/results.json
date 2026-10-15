@@ -1,0 +1,262 @@
+{
+  "date": "2026-10-15",
+  "scope": "Native interface presentation; prepared UI state fixtures, no new live generation or store acceptance",
+  "ios_main": {
+    "result": "Passed",
+    "totalTestCount": 41,
+    "passedTests": 41,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "startTime": 1792072084.356,
+    "finishTime": 1792072424.724
+  },
+  "ios_saved_final": {
+    "result": "Passed",
+    "totalTestCount": 1,
+    "passedTests": 1,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "startTime": 1792072635.224,
+    "finishTime": 1792072675.821
+  },
+  "ios_followup_with_fixture_guard_failure": {
+    "result": "Failed",
+    "totalTestCount": 2,
+    "passedTests": 1,
+    "failedTests": 1,
+    "skippedTests": 0,
+    "startTime": 1792072447.485,
+    "finishTime": 1792072605.98
+  },
+  "ios_followup_note": "Large RTL passed; Saved shortcut helper omitted HADITHLY_UI_TESTING, so fixture did not mount. Guard retained; helper repaired and final Saved rerun passed.",
+  "android_unit": {
+    "totals": {
+      "tests": 202,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "suites": [
+      {
+        "name": "com.hadithly.app.CanonicalLinkTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.ContinueWidgetRouteTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.EvidenceClientPolicyTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.EvidenceE4Test",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.GuestMergePlannerTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.LocaleFallbackTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.LocalizationResourcesTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.NotificationTargetTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.OfflineDumpsTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.OfflineStoreTest",
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.PreferencesMigrationTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.PurchaseQ2Test",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.ReaderLinkVolumeTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.ReaderMeasurementTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.ReaderPagingTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.ReaderPreferencesTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.ReaderR4Test",
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.ReaderR5Test",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.ReaderR6ATest",
+        "tests": 25,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.ReaderR6Round3Test",
+        "tests": 29,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.ReadingPositionTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.SavedUndoControllerTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.SettingsS1Test",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.TodayTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.TranslationFailureTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.TranslationQ1Test",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.WidgetRefreshPolicyTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.WireModelsTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.hadithly.app.core.diagnostics.DiagnosticsTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "android_instrumentation_final": {
+    "totals": {
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "suites": [
+      {
+        "name": null,
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ]
+  }
+}

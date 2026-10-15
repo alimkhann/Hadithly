@@ -140,6 +140,8 @@ private struct SavedSnapshotRow: Decodable, Sendable {
 @MainActor
 @Observable
 final class UserLibraryModel {
+    enum LoadState { case loading, ready, failed }
+    private(set) var loadState: LoadState = .loading
     private(set) var savedItems: [SavedItemEntry] = []
     private(set) var folders: [SavedFolder] = []
     private(set) var lastFolderDeletion: SavedFolderDeletion?
@@ -183,6 +185,7 @@ final class UserLibraryModel {
         if isSignedIn() {
             guard !subscriptionsActive else { return }
             subscriptionsActive = true
+            if loadState != .ready { loadState = .loading }
             subscriptionRetriesLeft = 5
             subscribeAll()
         } else {
@@ -440,7 +443,7 @@ final class UserLibraryModel {
             .sink(
                 receiveCompletion: { [weak self] completion in
                     if case .failure(let error) = completion {
-                        self?.subscriptionFailed(error)
+                        self?.subscriptionFailed(error, query: name)
                     }
                 },
                 receiveValue: onUpdate
@@ -450,7 +453,8 @@ final class UserLibraryModel {
 
     /// A subscription that raced the Convex session (opened unauthenticated)
     /// errors out without delivering data. Re-open everything, bounded.
-    private func subscriptionFailed(_ error: Error) {
+    private func subscriptionFailed(_ error: Error, query: String) {
+        if query == "library:listSavedSnapshot" && savedItems.isEmpty { loadState = .failed }
         subscriptionsActive = false
         guard subscriptionRetriesLeft > 0, isSignedIn() else { return }
         subscriptionRetriesLeft -= 1
@@ -475,6 +479,7 @@ final class UserLibraryModel {
 
     private func loadGuestData() {
         guard !isSignedIn() else { return }
+        defer { loadState = .ready }
         bookmarks = guestData.bookmarkDrafts().map { draft in
             SavedEntry(
                 rowId: "guest-bookmark-\(draft.hadithId)",
@@ -511,6 +516,7 @@ final class UserLibraryModel {
     }
 
     private func apply(snapshot: SavedSnapshotRow) {
+        defer { loadState = .ready }
         folders = snapshot.folders.map {
             SavedFolder(id: $0._id, name: $0.name, createdAt: Date(timeIntervalSince1970: $0.createdAt / 1_000))
         }

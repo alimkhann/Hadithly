@@ -176,6 +176,7 @@ final class ReaderR6Round3UITests: XCTestCase {
     private func launchRound3(environment: [String: String] = [:]) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["-R6Round3Fixture"]
+        app.launchEnvironment["HADITHLY_UI_TESTING"] = "1"
         for (key, value) in environment {
             app.launchEnvironment[key] = value
         }

@@ -82,13 +82,20 @@ struct TodayView: View {
     @Environment(Clerk.self) private var clerk
     @Environment(UserLibraryModel.self) private var library
     @Environment(\.colorScheme) private var systemColorScheme
+    @Environment(\.accessibilityReduceMotion) private var reducedMotion
     @State private var dailyHadith: DailyHadith?
-    @State private var isLoadingDaily = false
+    @State private var isLoadingDaily = true
     @State private var loadFailed = false
     @State private var isOffline = false
     @State private var openTarget: ReaderOpenTarget?
     @State private var noteTarget: DailyHadith?
     @State private var showingDailySource = false
+
+#if DEBUG
+    private var previewState: String?
+    @State private var previewRequests = 0
+    init(previewState: String? = nil) { self.previewState = previewState }
+#endif
 
     private var preferences: ReaderPreferences { environment.preferences.preferences }
     private var readerPalette: ReaderPalette {
@@ -110,15 +117,28 @@ struct TodayView: View {
         .navigationBarTitleDisplayMode(.large)
         .task(id: "\(preferences.translationLocale)|\(preferences.arabicVisible)|\(preferences.translationVisible)") {
             library.refresh()
+#if DEBUG
+            if previewState == nil { writeContinueWidget() }
+#else
             writeContinueWidget()
+#endif
+#if DEBUG
+            if previewState != nil { await loadDailyHadith(); return }
+#endif
             ReaderPrefetch.warmEntry(convex: environment.convex,
                                      target: ReaderPrefetchTargets.entryTarget(progress: library.continueReading))
             await loadDailyHadith()
         }
         .onChange(of: library.progress) { _, _ in
+#if DEBUG
+            if previewState != nil { return }
+#endif
             writeContinueWidget()
         }
         .onChange(of: environment.widgetProgress.progressSummaries) { _, _ in
+#if DEBUG
+            if previewState != nil { return }
+#endif
             writeContinueWidget()
         }
         .refreshable { await loadDailyHadith() }
@@ -178,14 +198,17 @@ struct TodayView: View {
                                 onOpen: { openDaily(hadith) }, onBookmark: { library.toggleBookmark(hadith.ref) },
                                 onFavorite: { library.toggleFavorite(hadith.ref) }, onNote: { noteTarget = hadith }, onCopy: { copy(hadith) }, onSuggest: { openDaily(hadith) }, onSource: { showingDailySource = true })
                     .accessibilityIdentifier("today.dailyCard")
+                    .transition(.opacity)
             } else if isLoadingDaily {
-                homeShell { HStack(spacing: 10) { ProgressView().tint(Theme.textSecondary); Text("Bringing today's hadith…").foregroundStyle(Theme.textSecondary) } }
+                homeShell { ContentSkeleton(kind: .daily, label: "Bringing today's hadith…").accessibilityIdentifier("today.dailyLoading") }
             } else if loadFailed {
                 homeShell { VStack(alignment: .leading, spacing: 8) { Text("Today's hadith could not load").font(.subheadline.weight(.medium)); Text("Pull down to try again.").font(.caption).foregroundStyle(Theme.textSecondary) } }
             } else {
                 homeShell { VStack(alignment: .leading, spacing: 8) { Text("No eligible hadith is cached yet").font(.subheadline.weight(.medium)); Text("Open a collection in the Library and Today will prepare one from verified content.").font(.caption).foregroundStyle(Theme.textSecondary) } }
             }
         }
+        .animation(reducedMotion ? nil : .easeInOut(duration: InterfaceMotion.reveal), value: dailyHadith?.id)
+        .animation(reducedMotion ? nil : .easeInOut(duration: InterfaceMotion.reveal), value: isLoadingDaily)
     }
 
     private var libraryShelf: some View {
@@ -197,13 +220,12 @@ struct TodayView: View {
                         Button { openTarget = collectionTarget(slug: collection.slug, name: collection.name) } label: {
                             VStack(alignment: .leading, spacing: 8) {
                                 CollectionCover(position: index + 1).frame(width: 126, height: 164)
-                                Text("\(index + 1)").font(.caption.monospacedDigit()).foregroundStyle(Theme.textSecondary)
-                                Text(collection.name).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.textPrimary).multilineTextAlignment(.leading).lineLimit(2)
+                                CollectionTitle(number: index + 1, name: collection.name)
                                 homeProgress(for: collection.slug)
                             }
                             .frame(width: 142, alignment: .leading)
                         }
-                        .buttonStyle(.plain).accessibilityIdentifier("today.library.\(collection.slug)")
+                        .buttonStyle(QuietPressStyle()).accessibilityIdentifier("today.library.\(collection.slug)")
                     }
                 }
                 .padding(.horizontal, 16)
@@ -223,12 +245,16 @@ struct TodayView: View {
         let total = summary?.totalHadiths
         let fraction = (read != nil && total != nil && total! > 0) ? min(1, max(0, read! / total!)) : nil
         return VStack(alignment: .leading, spacing: 4) {
+            if summary == nil && environment.widgetProgress.isLoading {
+                ContentSkeleton(kind: .compact, label: "Loading reading progress")
+            } else {
             GeometryReader { proxy in
                 Capsule().fill(Theme.surfaceElevated)
                 if let fraction { Capsule().fill(Theme.accent).frame(width: proxy.size.width * fraction) }
             }.frame(height: 3)
             Text(fraction == nil ? "Not started" : "Hadith \(Int(read!)) of \(Int(total!))")
                 .font(.caption2).foregroundStyle(Theme.textSecondary).lineLimit(1)
+            }
         }
     }
 
@@ -259,6 +285,16 @@ struct TodayView: View {
         UIPasteboard.general.string = parts.isEmpty ? source : parts.joined(separator: "\n\n") + "\n\n\(source)"
     }
     private func loadDailyHadith() async {
+#if DEBUG
+        if let previewState {
+            previewRequests += 1
+            if previewState == "loading" && previewRequests == 1 { isLoadingDaily = true; return }
+            isLoadingDaily = false
+            loadFailed = previewState == "failure" && previewRequests == 1
+            dailyHadith = !loadFailed && previewState != "empty" ? NativePolishFixtureView.dailyExample : nil
+            return
+        }
+#endif
         isLoadingDaily = dailyHadith == nil
         defer { isLoadingDaily = false }
         do {
@@ -321,6 +357,7 @@ private struct DailyHadithCard: View {
     let hadith: DailyHadith; let preferences: ReaderPreferences; let palette: ReaderPalette
     let offline: Bool; let isBookmarked: Bool; let isFavorited: Bool; let hasNote: Bool
     let onOpen: () -> Void; let onBookmark: () -> Void; let onFavorite: () -> Void; let onNote: () -> Void; let onCopy: () -> Void; let onSuggest: () -> Void; let onSource: () -> Void
+    @Environment(\.accessibilityReduceMotion) private var reducedMotion
     @State private var expanded = false
     @Environment(AppEnvironment.self) private var environment
     @Environment(UserLibraryModel.self) private var library
@@ -330,6 +367,7 @@ private struct DailyHadithCard: View {
 
     var body: some View {
         Group { if expanded && shouldCollapse { ScrollView { readingUnit }.frame(maxHeight: TodayContentPolicy.expandedScrollHeight) } else { readingUnit } }
+            .animation(reducedMotion ? nil : .easeInOut(duration: InterfaceMotion.step), value: expanded)
             .padding(18).background(palette.surface).clipShape(RoundedRectangle(cornerRadius: 18))
             .contentShape(RoundedRectangle(cornerRadius: 18)).onTapGesture { onOpen() }.contextMenu { menuContents }
             .overlay(alignment: .bottom) { if let undoNotice { SavedUndoBanner(notice: undoNotice, onExpire: { self.undoNotice = nil }) } }

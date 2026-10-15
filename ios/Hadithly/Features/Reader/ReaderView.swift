@@ -83,10 +83,10 @@ struct ReaderView: View {
             if let model {
                 readerContent(model)
             } else {
-                Theme.background.ignoresSafeArea()
+                palette.background.ignoresSafeArea()
             }
         }
-        .background(Theme.background.ignoresSafeArea())
+        .background(palette.background.ignoresSafeArea())
         .environment(\.readerTheme, readerTheme)
         .environment(\.readerPalette, palette)
         .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
@@ -218,15 +218,8 @@ struct ReaderView: View {
     }
 
     private var loadingView: some View {
-        VStack(spacing: 12) {
-            ProgressView()
-                .tint(palette.textSecondary)
-            Text("Opening \(collectionName)…")
-                .font(.subheadline)
-                .foregroundStyle(palette.textSecondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .accessibilityIdentifier("reader.loading")
+        ArticleLoadingView(title: "Opening \(collectionName)…")
+            .accessibilityIdentifier("reader.loading")
     }
 
     private func failureView(_ message: String) -> some View {
@@ -448,13 +441,8 @@ struct ReaderView: View {
                     onShowPaywall: { showQuotaPaywall = true }
                 )
             } else {
-                VStack {
-                    ProgressView()
-                        .tint(palette.textSecondary)
-                        .padding(.top, 120)
-                        .accessibilityIdentifier("reader.neighborLoading")
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                ArticleLoadingView(title: "Loading page")
+                    .accessibilityIdentifier("reader.neighborLoading")
             }
         }
         .frame(width: viewportWidth)
@@ -1053,13 +1041,8 @@ struct ReaderPageView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     if hadiths.isEmpty {
-                        VStack {
-                            ProgressView("Loading page")
-                                .tint(palette.textSecondary)
-                                .padding(.top, 120)
-                                .accessibilityIdentifier("reader.pageLoading")
-                        }
-                        .frame(maxWidth: .infinity)
+                        ArticleLoadingView(title: "Loading page")
+                            .accessibilityIdentifier("reader.pageLoading")
                     } else {
                         // Slice A (R6): whitespace separates hadiths — no divider
                         // hairlines. The corner label yields to the volume
@@ -1977,14 +1960,7 @@ private struct HadithBlock: View {
                 .accessibilityIdentifier("reader.generateTranslation")
 
         case .loading:
-            HStack(spacing: 8) {
-                ProgressView()
-                    .tint(palette.textSecondary)
-                Text("AI translation…")
-                    .font(.caption)
-                    .foregroundStyle(palette.textSecondary)
-            }
-            .padding(.vertical, 6)
+            TranslationThinkingView()
 
         case .loaded(let translation):
             translationText(translation.translation, storedTranslation: translation)
@@ -2682,7 +2658,7 @@ struct ReaderR6ATestFixtureView: View {
     @State private var showQuotaPaywallFixture = false
 
     private let preferences: ReaderPreferences
-    private let palette = ReaderPalette.dark
+    private let palette: ReaderPalette
     private let policy: ReaderPagingPolicy
     private let fullyCached: Bool
     private let volumeDelay: Double
@@ -2746,6 +2722,10 @@ struct ReaderR6ATestFixtureView: View {
     init() {
         let environment = ProcessInfo.processInfo.environment
         var preferences = ReaderPreferences()
+        let theme = ReaderTheme(rawValue: environment["POLISH_THEME"] ?? "dark") ?? .dark
+        preferences.appTheme = theme
+        preferences.readerTheme = theme
+        self.palette = ReaderPalette.resolved(theme, systemDark: true)
         preferences.arabicVisible = environment["R6A_ARABIC_VISIBLE"] != "false"
         preferences.translationVisible = environment["R6A_TRANSLATION_VISIBLE"] != "false"
         self.preferences = preferences
@@ -2779,6 +2759,8 @@ struct ReaderR6ATestFixtureView: View {
         )
         seeded.seedNotesForUITest(notedIds: ["fixture-59"])
         switch environment["Q1_STATE"] {
+        case "loading":
+            seeded.seedQ1TranslationForUITest(id: "sunnah_now:bukhari:57", state: .loading, allowance: nil)
         case "quota":
             seeded.seedQ1TranslationForUITest(id: "sunnah_now:bukhari:57", state: .failed(.quotaExceeded),
                 allowance: TranslationAllowance(limit: 5, remaining: 0, retryAt: Date().timeIntervalSince1970 * 1000 + 60_000))
@@ -3011,13 +2993,8 @@ struct ReaderR6ATestFixtureView: View {
         ZStack {
             palette.background.ignoresSafeArea()
             if loadingVolumeId != nil {
-                VStack {
-                    ProgressView("Loading page")
-                        .tint(palette.textSecondary)
-                        .padding(.top, 120)
-                        .accessibilityIdentifier("reader.pageLoading")
-                }
-                .frame(maxWidth: .infinity)
+                ArticleLoadingView(title: "Loading page")
+                    .accessibilityIdentifier("reader.pageLoading")
             } else {
                 ScrollView {
                     VStack(spacing: 28) {
@@ -3071,10 +3048,18 @@ struct ReaderR6ATestFixtureView: View {
                 }
             }
         }
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("r6a.page")
         .environment(\.readerPalette, palette)
-        .environment(\.readerTheme, ReaderTheme.dark)
-        .preferredColorScheme(.dark)
+        .environment(\.readerTheme, preferences.theme)
+        .preferredColorScheme(ReaderPalette.preferredColorScheme(for: preferences.theme))
+        .simultaneousGesture(TapGesture(count: 2).onEnded {
+            guard ProcessInfo.processInfo.environment["POLISH_INTERACTIVE"] == "1" else { return }
+            model.seedQ1TranslationForUITest(id: "sunnah_now:bukhari:57", state: .loaded(ReaderTranslation(
+                translationId: "visual-preview", translation: "Prepared translation preview.", confidence: nil,
+                riskFlags: [], glossaryNotes: [], source: "ai", sourceLabel: "AI translation", aiModel: nil,
+                groundingUsed: false, citations: [], sourceReferenceUrl: nil, cached: true)), allowance: nil)
+        })
         .overlay {
             WindowSwipeRecognizer(
                 pageDirection: policy.pageDirection,

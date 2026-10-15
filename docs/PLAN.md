@@ -1866,6 +1866,23 @@ substantive: they own bounded implementation outcomes, not just inventories.
   Existing physical-device, sync, offline-pack, widget, quota/store, operational
   and release gates remain open in `docs/OPEN_GATES.md`. L1 has not started.
 
+### Native interface loading, surfaces and motion (2026-10-15)
+
+- Owner-authorized follow-up: Light canvas/surface/elevated hierarchy, native
+  content skeletons, AI waiting and completed-text reveal, prepared onboarding
+  reveal and short step/selection/expansion feedback across both native apps.
+- Collection numbers now sit beside collection names in Library grid/list and
+  the Today shelf. Cached content stays visible on refresh; initial Saved and
+  subscription loads distinguish loading, empty and failed states.
+- Used the official Transitions.dev skill to find missing feedback, then ran one
+  hosted Motion Agent polish on an isolated UI-only web study. The free-plan
+  service reported 1/10 fixes used. Its score describes that study only; native
+  code uses SwiftUI/Compose and separate runtime checks.
+- Verification and screenshots: `docs/verification/NATIVE_INTERFACE_POLISH.md`.
+  New copy is scoped generated draft text, pending native-speaker review.
+  Physical-device, accessibility traversal, authenticated/live-service and all
+  earlier gates remain open in `docs/OPEN_GATES.md`. Stop before L1.
+
 ## Delegation policy
 
 Use GLM-5.3-Flash through OpenCode Go as the default author for bounded sessions

@@ -112,14 +112,8 @@ struct CollectionOutlineSheet: View {
         ) {
             Group {
                 if model.volumes.isEmpty {
-                    VStack(spacing: 10) {
-                        ProgressView()
-                            .tint(palette.textSecondary)
-                        Text("Building the index…")
-                            .font(.caption)
-                            .foregroundStyle(palette.textSecondary)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    ContentSkeleton(kind: .rows, label: "Building the index…")
+                        .padding(20)
                 } else {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 4) {
@@ -720,16 +714,9 @@ struct ReaderSearchSheet: View {
     }
 
     private var loadingState: some View {
-        HStack(spacing: 10) {
-            ProgressView()
-                .tint(palette.textSecondary)
-            Text("Searching cached English…")
-                .font(.caption)
-                .foregroundStyle(palette.textSecondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(.vertical, 12)
-        .accessibilityIdentifier("reader.search.loading")
+        ContentSkeleton(kind: .rows, label: "Searching cached English…")
+            .padding(.vertical, 12)
+            .accessibilityIdentifier("reader.search.loading")
     }
 
     private var hintState: some View {

@@ -325,19 +325,7 @@ fun ReaderScreen(
 
 @Composable
 private fun LoadingView(collectionName: String) {
-    val colors = LocalHadithlyColors.current
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        CircularProgressIndicator(color = colors.textSecondary)
-        Text(
-            text = nativeText("Opening %1\$s…", collectionName),
-            fontSize = 15.sp,
-            color = colors.textSecondary,
-        )
-    }
+    com.hadithly.app.core.theme.ArticleLoadingView(nativeText("Opening %1\$s…", collectionName), Modifier.testTag("reader.loading"))
 }
 
 @Composable
@@ -1278,7 +1266,7 @@ private fun ReaderPage(
                 modifier = Modifier.fillMaxSize().testTag("reader.pageLoading"),
                 contentAlignment = Alignment.TopCenter,
             ) {
-                CircularProgressIndicator(color = colors.textSecondary, modifier = Modifier.padding(top = 120.dp))
+                com.hadithly.app.core.theme.ArticleLoadingView(nativeText("Loading page"))
             }
         } else {
             LazyColumn(
@@ -2644,13 +2632,7 @@ internal fun TranslationSection(
         null -> TextButton(onClick = onRetry, modifier = Modifier.heightIn(min = 48.dp).testTag("reader.generateTranslation")) {
             Text(stringResource(R.string.q1_generate), fontSize = 12.sp, color = colors.interactive)
         }
-        is TranslationUiState.Loading -> Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            CircularProgressIndicator(color = colors.textSecondary, modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
-            Text(nativeText("AI translation…"), fontSize = 12.sp, color = colors.textSecondary)
-        }
+        is TranslationUiState.Loading -> com.hadithly.app.core.theme.TranslationThinkingView()
 
         is TranslationUiState.Loaded -> {
             com.hadithly.app.core.theme.TranslationReveal(com.hadithly.app.core.theme.TranslationPresentationPhase.Available) { TranslationText(
@@ -3399,17 +3381,7 @@ internal fun ReaderSearchSheet(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.fillMaxWidth().weight(1f),
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    CircularProgressIndicator(
-                        color = colors.textSecondary,
-                        modifier = Modifier.size(14.dp),
-                        strokeWidth = 2.dp,
-                    )
-                    Text(nativeText("Searching…"), fontSize = 12.sp, color = colors.textSecondary)
-                }
+                com.hadithly.app.core.theme.ContentSkeleton(com.hadithly.app.core.theme.SkeletonKind.Rows, label = nativeText("Searching…"))
             }
 
             unavailable -> Box(

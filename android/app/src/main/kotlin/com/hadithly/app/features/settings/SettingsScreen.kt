@@ -901,15 +901,19 @@ private fun SubscriptionDestination() {
     val accountId = Clerk.userFlow.collectAsStateWithLifecycle().value?.id
     val signedIn = accountId != null
     val purchaseState by app.purchases.state.collectAsStateWithLifecycle()
+    var loading by remember(accountId) { mutableStateOf(true) }
+    var loadFailed by remember(accountId) { mutableStateOf(false) }
     var status by remember(accountId) { mutableStateOf<SubscriptionStatusResult?>(null) }
     var restoring by remember { mutableStateOf(false) }
     LaunchedEffect(accountId) {
         status = null
+        loading = true
+        loadFailed = false
         if (signedIn) {
             try { app.repository.observeSubscriptionStatus().collect { value ->
-                if (Clerk.user?.id == accountId) status = value
+                if (Clerk.user?.id == accountId) { status = value; loading = false; loadFailed = false }
             } } catch (error: kotlinx.coroutines.CancellationException) { throw error }
-            catch (_: Exception) { status = null }
+            catch (_: Exception) { loading = false; loadFailed = true }
         }
     }
 
@@ -918,11 +922,18 @@ private fun SubscriptionDestination() {
             if (!signedIn) {
                 Text(nativeText("Sign in to see your subscription. Purchases stay attached to your Hadithly account across devices."), fontSize = 14.sp, color = colors.textSecondary)
             } else {
+                if (loading && status == null) {
+                    com.hadithly.app.core.theme.ContentSkeleton(com.hadithly.app.core.theme.SkeletonKind.Compact, label = "Loading subscription")
+                } else if (loadFailed && status == null) {
+                    Text(nativeText("Subscription details could not load"), color = colors.textSecondary)
+                    TextButton(onClick = { scope.launch { loading = true; status = runCatching { app.repository.getSubscriptionStatus() }.getOrNull(); loading = false; loadFailed = status == null } }) { Text(nativeText("Try again"), color = colors.interactive) }
+                } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(SettingsSubscription.displayName(status?.subscriptionTier), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary, modifier = Modifier.weight(1f))
                     if (status?.subscriptionTier == "pro") {
                         Text(nativeText("Active"), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.accent)
                     }
+                }
                 }
                 Text(androidx.compose.ui.res.stringResource(com.hadithly.app.R.string.q2_quota), fontSize = 12.sp, color = colors.textSecondary)
                 TextButton(
@@ -931,7 +942,7 @@ private fun SubscriptionDestination() {
                         restoring = true
                         app.purchases.restore { _ ->
                             restoring = false
-                            scope.launch { status = runCatching { app.repository.getSubscriptionStatus() }.getOrNull() }
+                            scope.launch { runCatching { app.repository.getSubscriptionStatus() }.onSuccess { status = it; loadFailed = false }.onFailure { loadFailed = true } }
                         }
                         // restore() early-returns when unconfigured; never strand the spinner.
                         if (!purchaseState.configured) restoring = false

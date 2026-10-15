@@ -1,0 +1,49 @@
+{
+  "version": "0.11.1",
+  "score": 100,
+  "grade": "smooth",
+  "scannedFiles": 2,
+  "findings": [
+    {
+      "rule": "recipe-available",
+      "severity": "info",
+      "path": "motion.css",
+      "line": 5,
+      "recipe": "thinking-states",
+      "related": [
+        "index.html"
+      ],
+      "message": "Hand-rolled thinking states. The transitions.dev Thinking states recipe fits: An AI status line that narrates what the agent is doing: \"Setting up a workplace\", \"Running a command\", \"Browsing files\"."
+    }
+  ],
+  "components": [
+    {
+      "recipe": "thinking-states",
+      "name": "Thinking states",
+      "tier": "free",
+      "url": "transitions.dev/transitions/thinking-states",
+      "path": "motion.css",
+      "line": 5,
+      "selector": ".thinking",
+      "status": "available",
+      "usesRecipe": false,
+      "issues": [],
+      "offScale": [],
+      "motion": {
+        "open": null,
+        "close": null,
+        "ease": null,
+        "scale": null,
+        "exit": false,
+        "layout": []
+      },
+      "recipeSpec": null
+    }
+  ],
+  "counts": {
+    "recipe-available": 1
+  },
+  "severities": {
+    "info": 1
+  }
+}

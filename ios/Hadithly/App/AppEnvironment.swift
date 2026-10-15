@@ -177,6 +177,9 @@ final class AppEnvironment {
         store.onPreferencesChanged = { [weak self] updated in
             guard let self else { return }
             WidgetSnapshotStore.saveUILocale(updated.uiLocale)
+#if DEBUG
+            if AutomationContext.allows("-NativePolishFixture") { return }
+#endif
             self.syncPreferences(updated)
             Task { await self.refreshDailyWidget(updated) }
         }

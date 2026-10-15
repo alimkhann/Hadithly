@@ -2,6 +2,7 @@
 
 package com.hadithly.app.features.saved
 
+import com.hadithly.app.core.preferences.nativeText
 import com.hadithly.app.R
 
 import androidx.compose.foundation.background
@@ -75,6 +76,7 @@ fun SavedScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
     val context = LocalContext.current
     val colors = LocalHadithlyColors.current
     val saved by app.library.savedItems.collectAsStateWithLifecycle()
+    val loadState by app.library.loadState.collectAsStateWithLifecycle()
     val folders by app.library.folders.collectAsStateWithLifecycle()
     val bookmarkRemoved = stringResource(R.string.saved_bookmark_removed)
     val favoriteRemoved = stringResource(R.string.saved_favorite_removed)
@@ -128,7 +130,14 @@ fun SavedScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
                 }
             }
         }
-        if (visible.isEmpty()) {
+        if (visible.isEmpty() && loadState == com.hadithly.app.core.data.UserLibraryModel.LoadState.Loading) {
+            com.hadithly.app.core.theme.ContentSkeleton(com.hadithly.app.core.theme.SkeletonKind.Rows, label = "Loading saved items", modifier = Modifier.padding(top = 20.dp))
+        } else if (visible.isEmpty() && loadState == com.hadithly.app.core.data.UserLibraryModel.LoadState.Failed) {
+            Column(Modifier.padding(top = 32.dp)) {
+                Text(nativeText("Saved items could not load"), color = colors.textPrimary)
+                TextButton(onClick = app.library::refresh) { Text(nativeText("Try again"), color = colors.interactive) }
+            }
+        } else if (visible.isEmpty()) {
             Column(Modifier.fillMaxWidth().padding(top = 64.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Icon(Icons.Filled.Bookmark, null, tint = colors.textSecondary)
                 Text(stringResource(R.string.saved_empty_title), fontWeight = FontWeight.Medium, color = colors.textPrimary)
@@ -136,7 +145,7 @@ fun SavedScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
             }
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxSize().testTag("saved.list")) {
-                items(visible, key = { it.hadithId }) { item -> SharedSavedItemRow(item, folders, folderId == null, { ref -> onOpenTarget(ReaderOpenTarget(ref.collectionSlug, ref.collectionName, ref.volumeId, ref.hadithNumber, ReaderTargetSource.SAVED)) }, ::requestRemoval, { app.library.assignFolder(item.hadithId, it) }, { ref -> (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText(ref.referenceDisplay, listOfNotNull(ref.arabicText, ref.englishText, ref.referenceDisplay).joinToString("\n\n"))) }, { ref -> context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "https://hadithly.app/hadith/${ref.collectionSlug}/${ref.hadithNumber}"), null)) }, { ref -> onOpenTarget(ReaderOpenTarget(ref.collectionSlug, ref.collectionName, ref.volumeId, ref.hadithNumber, ReaderTargetSource.SAVED)) }, { ref -> withContext(Dispatchers.IO) { app.repository.loadSavedPreview(ref) } }) }
+                items(visible, key = { it.hadithId }) { item -> androidx.compose.foundation.layout.Box(Modifier.animateItem()) { SharedSavedItemRow(item, folders, folderId == null, { ref -> onOpenTarget(ReaderOpenTarget(ref.collectionSlug, ref.collectionName, ref.volumeId, ref.hadithNumber, ReaderTargetSource.SAVED)) }, ::requestRemoval, { app.library.assignFolder(item.hadithId, it) }, { ref -> (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText(ref.referenceDisplay, listOfNotNull(ref.arabicText, ref.englishText, ref.referenceDisplay).joinToString("\n\n"))) }, { ref -> context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "https://hadithly.app/hadith/${ref.collectionSlug}/${ref.hadithNumber}"), null)) }, { ref -> onOpenTarget(ReaderOpenTarget(ref.collectionSlug, ref.collectionName, ref.volumeId, ref.hadithNumber, ReaderTargetSource.SAVED)) }, { ref -> withContext(Dispatchers.IO) { app.repository.loadSavedPreview(ref) } }) } }
             }
         }
     }

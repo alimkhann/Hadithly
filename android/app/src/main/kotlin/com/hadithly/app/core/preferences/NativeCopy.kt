@@ -154,5 +154,15 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "Offline collections" -> R.string.native_f5a77522b1ba
     "Everything you need to read works without an account. Sign in to carry your bookmarks, favorites, and notes across devices." -> R.string.native_fa8a45b3662d
     "Applies across the app. The reader previews each theme live." -> R.string.native_ff6c3270c09d
+    "Loading…" -> R.string.native_ba3bbbe10d8b
+    "Loading page" -> R.string.native_91bf928d3527
+    "Loading reading progress" -> R.string.native_dacaf10d67cb
+    "Loading saved items" -> R.string.native_ff5b3391a8bb
+    "Saved items could not load" -> R.string.native_5499da335be2
+    "Loading subscription" -> R.string.native_af0a04c700a8
+    "Subscription details could not load" -> R.string.native_6333ae18362e
+    "Reader appearance" -> R.string.native_b226874c014f
+    "Text size" -> R.string.native_d68761cc1eb2
+    "Preview" -> R.string.native_324b134f57c7
     else -> null
 }

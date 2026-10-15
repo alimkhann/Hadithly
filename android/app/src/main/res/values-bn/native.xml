@@ -136,4 +136,15 @@
     <string name="native_e05372bd9e28">অনুবাদ ডাউনলোড করুন</string>
     <string name="native_ecdba5aa3ba4">আপনার ডেটা রপ্তানি করবেন?</string>
     <string name="native_f038ae10080f">অনুবাদ রিপোর্ট করুন</string>
+    <string name="native_ba3bbbe10d8b" formatted="false">লোড হচ্ছে…</string>
+    <string name="native_91bf928d3527" formatted="false">পৃষ্ঠা লোড হচ্ছে</string>
+    <string name="native_dacaf10d67cb" formatted="false">পড়ার অগ্রগতি লোড হচ্ছে</string>
+    <string name="native_ff5b3391a8bb" formatted="false">সংরক্ষিত বিষয়বস্তু লোড হচ্ছে</string>
+    <string name="native_5499da335be2" formatted="false">সংরক্ষিত বিষয়বস্তু লোড করা যায়নি</string>
+    <string name="native_af0a04c700a8" formatted="false">সাবস্ক্রিপশন লোড হচ্ছে</string>
+    <string name="native_6333ae18362e" formatted="false">সাবস্ক্রিপশনের বিবরণ লোড করা যায়নি</string>
+    <string name="native_b226874c014f" formatted="false">রিডারের চেহারা</string>
+    <string name="native_d68761cc1eb2" formatted="false">লেখার আকার</string>
+    <string name="native_324b134f57c7" formatted="false">প্রিভিউ</string>
+    <!-- UI-polish locale entries are generated drafts; native review pending. -->
 </resources>

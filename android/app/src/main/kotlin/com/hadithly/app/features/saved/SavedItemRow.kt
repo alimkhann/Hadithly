@@ -2,6 +2,9 @@
 
 package com.hadithly.app.features.saved
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
@@ -28,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hadithly.app.core.data.*
 import com.hadithly.app.core.theme.LocalHadithlyColors
+import com.hadithly.app.core.theme.InterfaceMotion
+import com.hadithly.app.core.theme.rememberMotionAllowed
 import com.hadithly.app.R
 import androidx.compose.ui.res.stringResource
 
@@ -48,6 +53,7 @@ fun SharedSavedItemRow(
 ) {
     val ref = item.hadith ?: return
     val colors = LocalHadithlyColors.current
+    val motionAllowed = rememberMotionAllowed()
     var expanded by remember(item.hadithId) { mutableStateOf(false) }
     var preview by remember(ref) { mutableStateOf(ref) }
     var loading by remember(ref) { mutableStateOf(false) }
@@ -70,7 +76,9 @@ fun SharedSavedItemRow(
             loading = false
         }
     }
-    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(colors.surface).padding(12.dp).testTag("saved.row.${item.hadithId}")) {
+    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(colors.surface)
+        .animateContentSize(if (motionAllowed) tween(InterfaceMotion.STEP) else snap())
+        .padding(12.dp).testTag("saved.row.${item.hadithId}")) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f).combinedClickable(onClick = { onOpen(ref) }, onLongClick = { menuOpen = true }).padding(vertical = 8.dp)) {
                 Text(ref.referenceDisplay.ifBlank { ref.collectionName }, fontWeight = FontWeight.SemiBold, color = colors.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)

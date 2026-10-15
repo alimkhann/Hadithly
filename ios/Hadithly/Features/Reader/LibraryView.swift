@@ -6,12 +6,23 @@ import SwiftUI
 struct LibraryView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(UserLibraryModel.self) private var library
+    @Environment(\.accessibilityReduceMotion) private var reducedMotion
 
     @State private var openTarget: ReaderOpenTarget?
     @State private var presentation: Presentation = .grid
     @State private var model = LibraryModel()
 
-    private enum Presentation { case grid, list }
+#if DEBUG
+    private var isPreview = false
+    init(previewLoading: Bool? = nil) {
+        isPreview = previewLoading != nil
+        let preview = LibraryModel()
+        if let previewLoading { preview.seedPreview(loading: previewLoading) }
+        _model = State(initialValue: preview)
+    }
+#endif
+
+    private enum Presentation: Hashable { case grid, list }
 
     private let columns = [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)]
 
@@ -34,7 +45,10 @@ struct LibraryView: View {
                 }
             }
             .padding(16)
+            .id(presentation)
+            .transition(.opacity)
         }
+        .animation(reducedMotion ? nil : .easeInOut(duration: InterfaceMotion.step), value: presentation)
         .background(Theme.background)
         .appNavigationTitle("Library")
         .navigationBarTitleDisplayMode(.large)
@@ -50,6 +64,9 @@ struct LibraryView: View {
             }
         }
         .task {
+#if DEBUG
+            if isPreview { return }
+#endif
             library.refresh()
             model.start(convex: environment.convex)
             ReaderPrefetch.warmEntry(
@@ -67,19 +84,11 @@ struct LibraryView: View {
             VStack(alignment: .leading, spacing: 9) {
                 CollectionCover(position: position)
                     .frame(maxWidth: .infinity)
-                Text("\(position)")
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(Theme.textSecondary)
-                Text(name)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Theme.textPrimary)
-                    .multilineTextAlignment(.leading)
-                    .lineLimit(2)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                CollectionTitle(number: position, name: name)
                 progressSlot(summary(for: slug))
             }
         }
-        .buttonStyle(.plain)
+        .buttonStyle(QuietPressStyle())
         .accessibilityLabel("\(position). \(name)")
         .accessibilityIdentifier("library.collection.\(slug)")
     }
@@ -90,13 +99,7 @@ struct LibraryView: View {
                 CollectionCover(position: position)
                     .frame(width: 56, height: 82)
                 VStack(alignment: .leading, spacing: 7) {
-                    Text("\(position)")
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(Theme.textSecondary)
-                    Text(name)
-                        .font(.body.weight(.semibold))
-                        .foregroundStyle(Theme.textPrimary)
-                        .multilineTextAlignment(.leading)
+                    CollectionTitle(number: position, name: name, font: .body)
                     progressSlot(summary(for: slug))
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -105,7 +108,7 @@ struct LibraryView: View {
             .background(Theme.surface)
             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(QuietPressStyle())
         .accessibilityLabel("\(position). \(name)")
         .accessibilityIdentifier("library.collection.\(slug)")
     }
@@ -123,12 +126,18 @@ struct LibraryView: View {
     private func progressSlot(_ summary: LibraryModel.ProgressSummary?) -> some View {
         let label: String = switch summary?.state {
         case "unopened": "Not started"
-        case "in_progress": "Hadith \(Int(summary?.readOrdinal ?? 0)) of \(Int(summary?.totalHadiths ?? 0))"
+        case "in_progress":
+            if let read = summary?.readOrdinal, let total = summary?.totalHadiths, total > 0 {
+                "Hadith \(Int(read)) of \(Int(total))"
+            } else { "Continue reading" }
         case "completed": "Complete"
         case "stale": "Position unavailable"
         default: "Progress unavailable"
         }
         return VStack(alignment: .leading, spacing: 4) {
+            if summary == nil && model.isLoading {
+                ContentSkeleton(kind: .compact, label: "Loading reading progress")
+            } else {
             GeometryReader { proxy in
                 Capsule().fill(Theme.surfaceElevated)
                 if let fraction = progressFraction(summary) {
@@ -137,6 +146,7 @@ struct LibraryView: View {
             }
             .frame(height: 3)
             Text(label).font(.caption2).foregroundStyle(Theme.textSecondary)
+            }
         }
     }
 
@@ -151,5 +161,26 @@ struct LibraryView: View {
             return .init(collectionSlug: slug, state: "in_progress", totalHadiths: model.progressSummaries[slug]?.totalHadiths, readOrdinal: Double(progress.hadith?.hadithNumber ?? "") )
         }
         return model.progressSummaries[slug]
+    }
+}
+
+struct CollectionTitle: View {
+    let number: Int
+    let name: String
+    var font: Font = .subheadline
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            Text("\(number)")
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(Theme.textSecondary)
+                .fixedSize()
+            Text(name)
+                .font(font.weight(.semibold))
+                .foregroundStyle(Theme.textPrimary)
+                .multilineTextAlignment(.leading)
+                .lineLimit(2)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .accessibilityElement(children: .combine)
     }
 }

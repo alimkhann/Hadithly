@@ -4,6 +4,10 @@ import com.hadithly.app.core.preferences.nativeText
 
 import android.content.Intent
 import android.content.ClipData
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.snap
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -101,13 +105,14 @@ object TodayContentPolicy {
 private const val DAILY_CACHE_KEY = "today.daily-hadith.cache.v1"
 
 @Composable
-fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
+fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit, previewState: String? = null) {
     val app = rememberApp()
     val homeColors = LocalHadithlyColors.current
     val preferences by app.preferences.preferences.collectAsStateWithLifecycle()
     val progress by app.library.progress.collectAsStateWithLifecycle()
     val libraryModel: LibraryViewModel = viewModel()
     val summaries by libraryModel.summaries.collectAsStateWithLifecycle()
+    val progressLoading by libraryModel.loading.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val readerColors = ReaderPalettes.resolved(if (preferences.usesSeparateReaderTheme) preferences.readerTheme else preferences.appTheme, androidx.compose.foundation.isSystemInDarkTheme())
     var daily by remember { mutableStateOf<DailyHadith?>(null) }
@@ -116,7 +121,14 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
     var offline by remember { mutableStateOf(false) }
     var reloadKey by remember { mutableStateOf(0) }
 
-    LaunchedEffect(reloadKey, preferences.translationLocale, preferences.arabicVisible, preferences.translationVisible) {
+    LaunchedEffect(reloadKey, preferences.translationLocale, preferences.arabicVisible, preferences.translationVisible, previewState) {
+        if (com.hadithly.app.BuildConfig.DEBUG && previewState != null) {
+            loading = previewState == "loading"
+            failed = previewState == "failure"
+            daily = if (previewState == "ready") dailyInterfaceExample() else null
+            offline = false
+            return@LaunchedEffect
+        }
         val dailyCacheKey = "$DAILY_CACHE_KEY:${LocalDate.now(ZoneId.systemDefault())}:${ZoneId.systemDefault().id}:${preferences.translationLocale}"
         loading = daily == null
         runCatching { app.repository.getDailyHadith(preferences.translationLocale) }
@@ -146,6 +158,7 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
     }
 
     LaunchedEffect(Unit) {
+        if (com.hadithly.app.BuildConfig.DEBUG && previewState != null) return@LaunchedEffect
         withContext(Dispatchers.IO) {
             ReaderPrefetch.warmEntryCache(app.repository, Collections.all.map { it.first }, app.library.progress.value)
         }
@@ -172,12 +185,32 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
             }
         }
         SectionTitle(stringResource(R.string.app_daily_hadith), homeColors, Modifier.padding(horizontal = 16.dp))
-        Box(Modifier.padding(horizontal = 16.dp)) {
-            when {
-                daily != null -> DailyCard(daily!!, preferences, readerColors, offline, app.library, onOpenTarget)
-                loading -> CardShell(homeColors) { Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) { CircularProgressIndicator(color = homeColors.textSecondary, modifier = Modifier.size(18.dp), strokeWidth = 2.dp); Text(nativeText("Bringing today's hadith…"), color = homeColors.textSecondary) } }
-                failed -> CardShell(homeColors) { Column { Text(nativeText("Today's hadith could not load"), fontWeight = FontWeight.Medium, color = homeColors.textPrimary); TextButton(onClick = { reloadKey++ }) { Text(nativeText("Try again"), color = homeColors.accent) } } }
-                else -> CardShell(homeColors) { Column { Text(nativeText("No eligible hadith is cached yet"), fontWeight = FontWeight.Medium, color = homeColors.textPrimary); Text(nativeText("Open a collection in the Library and Today will prepare one from verified content."), fontSize = 12.sp, color = homeColors.textSecondary) } }
+        val dailyPresentation = when {
+            daily != null -> DailyPresentation.Ready(daily!!)
+            loading -> DailyPresentation.Loading
+            failed -> DailyPresentation.Failed
+            else -> DailyPresentation.Empty
+        }
+        Crossfade(targetState = dailyPresentation, animationSpec = tween(com.hadithly.app.core.theme.InterfaceMotion.REVEAL),
+            label = "Daily content reveal", modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) { presentation ->
+            when (presentation) {
+                is DailyPresentation.Ready -> DailyCard(presentation.hadith, preferences, readerColors, offline, app.library, onOpenTarget)
+                DailyPresentation.Loading -> CardShell(homeColors) {
+                    com.hadithly.app.core.theme.ContentSkeleton(com.hadithly.app.core.theme.SkeletonKind.Daily,
+                        label = nativeText("Bringing today's hadith…"), modifier = Modifier.testTag("today.dailyLoading"))
+                }
+                DailyPresentation.Failed -> CardShell(homeColors) {
+                    Column {
+                        Text(nativeText("Today's hadith could not load"), fontWeight = FontWeight.Medium, color = homeColors.textPrimary)
+                        TextButton(onClick = { reloadKey++ }) { Text(nativeText("Try again"), color = homeColors.interactive) }
+                    }
+                }
+                DailyPresentation.Empty -> CardShell(homeColors) {
+                    Column {
+                        Text(nativeText("No eligible hadith is cached yet"), fontWeight = FontWeight.Medium, color = homeColors.textPrimary)
+                        Text(nativeText("Open a collection in the Library and Today will prepare one from verified content."), fontSize = 12.sp, color = homeColors.textSecondary)
+                    }
+                }
             }
         }
         SectionTitle(stringResource(R.string.app_library), homeColors, Modifier.padding(horizontal = 16.dp))
@@ -188,9 +221,8 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
                     modifier = Modifier.width(142.dp).combinedClickable(onClick = { onOpenTarget(ReaderOpenTarget(slug, name)) }).testTag("today.library.$slug"),
                 ) {
                     CollectionCover(index + 1, Modifier.width(126.dp).height(164.dp))
-                    Text((index + 1).toString(), fontSize = 12.sp, color = homeColors.textSecondary)
-                    Text(name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = homeColors.textPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    HomeCollectionProgress(summaries[slug])
+                    com.hadithly.app.features.library.CollectionTitle(index + 1, name)
+                    HomeCollectionProgress(summaries[slug], progressLoading)
                 }
             }
         }
@@ -198,7 +230,11 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
     }
 }
 
-@Composable private fun HomeCollectionProgress(summary: com.hadithly.app.core.data.CollectionProgressSummary?) {
+@Composable private fun HomeCollectionProgress(summary: com.hadithly.app.core.data.CollectionProgressSummary?, loading: Boolean) {
+    if (summary == null && loading) {
+        com.hadithly.app.core.theme.ContentSkeleton(com.hadithly.app.core.theme.SkeletonKind.Compact, label = "Loading reading progress")
+        return
+    }
     val colors = LocalHadithlyColors.current
     val fraction = summary?.takeIf { it.state == "in_progress" && (it.totalHadiths ?: 0.0) > 0.0 }
         ?.let { ((it.readOrdinal ?: 0.0) / (it.totalHadiths ?: 1.0)).coerceIn(0.0, 1.0) }
@@ -206,7 +242,11 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
         Box(Modifier.fillMaxWidth().height(3.dp).background(colors.surfaceElevated, RoundedCornerShape(99.dp))) {
             if (fraction != null) Box(Modifier.fillMaxWidth(fraction.toFloat()).height(3.dp).background(colors.accent, RoundedCornerShape(99.dp)))
         }
-        Text(if (summary?.state == "in_progress") "Hadith ${summary.readOrdinal?.toInt()} of ${summary.totalHadiths?.toInt()}" else "Not started", fontSize = 11.sp, color = colors.textSecondary, maxLines = 1)
+        val label = if (summary?.state == "in_progress") {
+            if (summary.readOrdinal != null && (summary.totalHadiths ?: 0.0) > 0.0) "Hadith ${summary.readOrdinal.toInt()} of ${summary.totalHadiths?.toInt()}"
+            else "Continue reading"
+        } else "Not started"
+        Text(label, fontSize = 11.sp, color = colors.textSecondary, maxLines = 1)
     }
 }
 
@@ -250,10 +290,13 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
                     hadith.translation?.let { translation -> Text(translation.text, fontSize = 16.sp, lineHeight = 22.sp, color = colors.textPrimary, maxLines = if (expanded || !collapse) Int.MAX_VALUE else 7) }
                         ?: Text(nativeText("No %1\$s translation is available yet.", preferences.translationLocale), fontSize = 12.sp, color = colors.textSecondary)
                 }
-                if (collapse) TextButton(onClick = { expanded = !expanded }) { Text(if (expanded) "Show less" else "Read more", color = colors.accent) }
+                if (collapse) TextButton(onClick = { expanded = !expanded }, modifier = Modifier.testTag("today.expand")) { Text(if (expanded) "Show less" else "Read more", color = colors.accent) }
             }
         }
-        Box(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(colors.surface).combinedClickable(onClick = { open() }, onLongClick = { menu = true }).semantics { customActions = actions }.testTag("today.dailyCard")) {
+        val motionAllowed = com.hadithly.app.core.theme.rememberMotionAllowed()
+        Box(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(colors.surface)
+            .animateContentSize(if (motionAllowed) tween(com.hadithly.app.core.theme.InterfaceMotion.STEP) else snap())
+            .combinedClickable(onClick = { open() }, onLongClick = { menu = true }).semantics { customActions = actions }.testTag("today.dailyCard")) {
             if (expanded && collapse) Box(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) { inner() } else inner()
         }
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
@@ -279,3 +322,22 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
 }
 
 @Composable private fun CardShell(colors: HadithlyColors, content: @Composable () -> Unit) = Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(colors.surface).padding(16.dp)) { content() }
+
+private sealed interface DailyPresentation {
+    data class Ready(val hadith: DailyHadith) : DailyPresentation
+    data object Loading : DailyPresentation
+    data object Failed : DailyPresentation
+    data object Empty : DailyPresentation
+}
+
+/** Only reached by explicitly requested Debug previews; never provider content. */
+private fun dailyInterfaceExample(): DailyHadith = DailyHadith(
+    _id = "visual-preview", provider = "fixture", canonicalId = "fixture:preview:1", providerHadithId = "1",
+    collectionSlug = "fixture", collectionName = "Prepared interface preview",
+    arabicText = com.hadithly.app.features.onboarding.PreparedTranslationExample.arabic,
+    translation = com.hadithly.app.core.data.DailyTranslation(
+        text = List(12) { com.hadithly.app.features.onboarding.PreparedTranslationExample.translations["en"].orEmpty() }.joinToString(" "),
+        language = "en", source = "fixture", sourceLabel = "Prepared example", isAI = false),
+    referenceDisplay = "Prepared interface preview",
+    authenticity = com.hadithly.app.core.data.AuthenticityClaim("unknown", claimScope = "unknown", sourceLabel = "Prepared example", sourceName = "Interface preview", sourceUrl = "", verificationMethod = "unverified"),
+)

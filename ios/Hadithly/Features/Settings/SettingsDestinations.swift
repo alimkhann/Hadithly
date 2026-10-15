@@ -100,11 +100,11 @@ struct SettingsList<Content: View>: View {
     var body: some View {
         List {
             content
+                .listRowBackground(palette.surface)
+                .listRowSeparatorTint(palette.divider)
         }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
-        .listRowBackground(palette.surface)
-        .listRowSeparatorTint(palette.divider)
         .background(palette.background)
         .appNavigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
@@ -965,13 +965,22 @@ struct SubscriptionView: View {
     @Environment(Clerk.self) private var clerk
 
     @State private var status: SubscriptionStatus?
+    @State private var isLoading = true
+    @State private var loadFailed = false
     @State private var isRestoring = false
 
     var body: some View {
         SettingsList("Subscription") {
             if clerk.session != nil {
                 Section {
-                    LabeledContent("Plan", value: SettingsSubscription.displayName(tier: status?.subscriptionTier))
+                    if isLoading && status == nil {
+                        ContentSkeleton(kind: .compact, label: "Loading subscription")
+                    } else if loadFailed && status == nil {
+                        Text("Subscription details could not load").foregroundStyle(Theme.textSecondary)
+                        Button("Try again") { Task { await loadStatus() } }
+                    } else {
+                        LabeledContent("Plan", value: SettingsSubscription.displayName(tier: status?.subscriptionTier))
+                    }
                     if let expires = status?.entitlementExpiresAt, expires > 0 {
                         LabeledContent(
                             status?.phase == "grace" ? "Grace ends" : "Access until",
@@ -1012,7 +1021,7 @@ struct SubscriptionView: View {
                 }
             }
         }
-        .task(id: clerk.user?.id) { status = nil; await observeStatus() }
+        .task(id: clerk.user?.id) { status = nil; isLoading = true; loadFailed = false; await observeStatus() }
     }
 
     private func observeStatus() async {
@@ -1021,16 +1030,24 @@ struct SubscriptionView: View {
             for try await value in environment.convex.subscribe(to: "subscriptions:getStatus", yielding: SubscriptionStatus.self).values {
                 guard !Task.isCancelled, clerk.user?.id == accountID else { return }
                 status = value
+                isLoading = false
+                loadFailed = false
             }
-        } catch { if !Task.isCancelled, clerk.user?.id == accountID { status = nil } }
+        } catch { if !Task.isCancelled, clerk.user?.id == accountID { isLoading = false; loadFailed = true } }
     }
 
     private func loadStatus() async {
         guard clerk.session != nil else { return }
-        status = try? await environment.convex
+        isLoading = status == nil
+        defer { isLoading = false }
+        do {
+        let fetched = try await environment.convex
             .subscribe(to: "subscriptions:getStatus", yielding: SubscriptionStatus.self)
             .values
             .first(where: { _ in true })
+        if let fetched { status = fetched; loadFailed = false }
+        else { loadFailed = true }
+        } catch { loadFailed = true }
     }
 }
 

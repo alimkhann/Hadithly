@@ -20,6 +20,7 @@ struct SettingsView: View {
 
     var body: some View {
         List {
+            Group {
             if clerk.session != nil {
                 Section {
                     NavigationLink(value: SettingsDestination.profile) {
@@ -55,8 +56,8 @@ struct SettingsView: View {
                                 .font(.subheadline.weight(.semibold))
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 10)
-                                .background(Color.white)
-                                .foregroundStyle(.black)
+                                .background(palette.interactive)
+                                .foregroundStyle(palette.onInteractive)
                                 .clipShape(RoundedRectangle(cornerRadius: 10))
                         }
                         .buttonStyle(.plain)
@@ -113,11 +114,12 @@ struct SettingsView: View {
                 }
             }
 
+            }
+            .listRowBackground(palette.surface)
+            .listRowSeparatorTint(palette.divider)
         }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
-        .listRowBackground(palette.surface)
-        .listRowSeparatorTint(palette.divider)
         .background(palette.background)
         .appNavigationTitle("Settings")
         .toolbarBackground(palette.background, for: .navigationBar)

@@ -100,6 +100,7 @@ struct SharedSavedItemRow: View {
     let onSuggestTranslation: (HadithRef) -> Void
 
     @State private var expanded = false
+    @Environment(\.accessibilityReduceMotion) private var reducedMotion
 
     var body: some View {
         if let ref = item.hadith {
@@ -122,7 +123,9 @@ struct SharedSavedItemRow: View {
                     if item.favoriteCreatedAt != nil { facetButton("heart.fill", color: Theme.favorite, label: "Remove favorite") { onRemove(.favorite(item, ref)) } }
                     if item.noteContent != nil { facetButton("square.and.pencil", color: Theme.accent, label: "Delete note") { onRemove(.note(item, ref)) } }
 
-                    Button { expanded.toggle() } label: {
+                    Button {
+                        withAnimation(reducedMotion ? nil : .easeInOut(duration: InterfaceMotion.step)) { expanded.toggle() }
+                    } label: {
                         Image(systemName: expanded ? "chevron.up" : "chevron.down").frame(width: 30, height: 30)
                     }
                     .buttonStyle(.plain)

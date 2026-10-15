@@ -12,6 +12,8 @@ import kotlinx.coroutines.launch
 /** One compact progress stream; no chapter-rich outline subscriptions. */
 class LibraryViewModel : ViewModel() {
 
+    private val _loading = MutableStateFlow(true)
+    val loading: StateFlow<Boolean> = _loading
     private val _summaries = MutableStateFlow<Map<String, CollectionProgressSummary>>(emptyMap())
     val summaries: StateFlow<Map<String, CollectionProgressSummary>> = _summaries
 
@@ -22,8 +24,17 @@ class LibraryViewModel : ViewModel() {
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            app.repository.subscribe<List<CollectionProgressSummary>>("library:listCollectionProgressSummaries")
-                .collect { summaries -> _summaries.value = summaries.associateBy { it.collectionSlug } }
+            try {
+                app.repository.subscribe<List<CollectionProgressSummary>>("library:listCollectionProgressSummaries")
+                    .collect { summaries ->
+                        _summaries.value = summaries.associateBy { it.collectionSlug }
+                        _loading.value = false
+                    }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                _loading.value = false
+            }
         }
 
     }

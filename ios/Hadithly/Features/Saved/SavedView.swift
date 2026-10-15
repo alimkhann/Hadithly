@@ -4,6 +4,7 @@ import SwiftUI
 struct SavedView: View {
     private enum Filter: String, CaseIterable, Identifiable { case all, bookmarks, favorites, notes; var id: Self { self }; var title: LocalizedStringKey { switch self { case .all: "All"; case .bookmarks: "Bookmarks"; case .favorites: "Favorites"; case .notes: "Notes" } } }
     @Environment(UserLibraryModel.self) private var library
+    @Environment(\.accessibilityReduceMotion) private var reducedMotion
     @Environment(AppEnvironment.self) private var environment
     @State private var filter: Filter = .all
     @State private var folderId: String?
@@ -13,8 +14,23 @@ struct SavedView: View {
     @State private var pendingRemoval: SavedFacetRemoval?
     @State private var undoNotice: SavedUndoNotice?
 
+#if DEBUG
+    private var previewState: UserLibraryModel.LoadState?
+    init(previewState: UserLibraryModel.LoadState? = nil) { self.previewState = previewState }
+#endif
+
+    private var currentLoadState: UserLibraryModel.LoadState {
+#if DEBUG
+        if let previewState { return previewState }
+#endif
+        return library.loadState
+    }
+
     private var items: [SavedItemEntry] {
-        library.savedItems.filter { item in
+#if DEBUG
+        if previewState != nil { return [] }
+#endif
+        return library.savedItems.filter { item in
             let facet = switch filter { case .all: true; case .bookmarks: item.bookmarkCreatedAt != nil; case .favorites: item.favoriteCreatedAt != nil; case .notes: item.noteContent != nil }
             return facet && (folderId == nil || item.folderId == folderId)
         }.sorted { $0.sortDate > $1.sortDate }
@@ -25,7 +41,17 @@ struct SavedView: View {
             Picker("Saved filter", selection: $filter) { ForEach(Filter.allCases) { Text($0.title).tag($0) } }
                 .pickerStyle(.segmented).accessibilityLabel("Saved filter")
             folders
-            if items.isEmpty {
+            if items.isEmpty && currentLoadState == .loading {
+                ContentSkeleton(kind: .rows, label: "Loading saved items")
+                    .padding(.top, 20)
+                Spacer()
+            } else if items.isEmpty && currentLoadState == .failed {
+                ContentUnavailableView {
+                    Label("Saved items could not load", systemImage: "wifi.exclamationmark")
+                } actions: {
+                    Button("Try again") { library.refresh() }
+                }
+            } else if items.isEmpty {
                 ContentUnavailableView("Nothing saved yet", systemImage: "bookmark", description: Text("Bookmark, favorite, or add a note while reading to keep a hadith here."))
             } else {
                 List(items) { item in
@@ -46,6 +72,15 @@ struct SavedView: View {
                     }
                 }.listStyle(.plain)
             }
+        }
+        .animation(reducedMotion ? nil : .easeInOut(duration: InterfaceMotion.reveal), value: currentLoadState)
+        .animation(reducedMotion ? nil : .easeInOut(duration: InterfaceMotion.quick), value: filter)
+        .animation(reducedMotion ? nil : .easeInOut(duration: InterfaceMotion.quick), value: folderId)
+        .task {
+#if DEBUG
+            if previewState != nil { return }
+#endif
+            library.refresh()
         }
         .padding(.horizontal).appNavigationTitle("Saved")
         .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("New folder", systemImage: "folder.badge.plus") { showNewFolder = true }.accessibilityLabel("Create saved folder") } }

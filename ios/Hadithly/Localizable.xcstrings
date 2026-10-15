@@ -3516,6 +3516,956 @@
         }
       }
     },
+    "Preview" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "معاينة"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Предпросмотр"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Алдын ала қарау"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Алдын ала көрүү"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Oldindan ko‘rish"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Önizleme"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Pratinjau"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "پیش نظارہ"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Aperçu"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Vista previa"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Prévia"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hakiki"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "पूर्वावलोकन"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "প্রিভিউ"
+          }
+        }
+      }
+    },
+    "Text size" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text size"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "حجم النص"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Размер текста"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Мәтін өлшемі"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Тексттин өлчөмү"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Matn o‘lchami"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Metin boyutu"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ukuran teks"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "متن کا سائز"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Taille du texte"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tamaño del texto"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tamanho do texto"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ukubwa wa maandishi"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "टेक्स्ट का आकार"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "লেখার আকার"
+          }
+        }
+      }
+    },
+    "Reader appearance" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reader appearance"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "مظهر القارئ"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Оформление читалки"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Оқу көрінісі"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Окуу көрүнүшү"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "O‘qish ko‘rinishi"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Okuyucu görünümü"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tampilan pembaca"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "مطالعے کی ظاہری شکل"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Apparence du lecteur"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Apariencia del lector"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Aparência do leitor"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mwonekano wa kisomaji"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "रीडर का रूप"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "রিডারের চেহারা"
+          }
+        }
+      }
+    },
+    "Subscription details could not load" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subscription details could not load"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "تعذّر تحميل تفاصيل الاشتراك"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Не удалось загрузить сведения о подписке"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жазылым мәліметтерін жүктеу мүмкін болмады"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жазылуу маалыматын жүктөө мүмкүн болгон жок"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Obuna ma’lumotlarini yuklab bo‘lmadi"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Abonelik ayrıntıları yüklenemedi"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Detail langganan tidak dapat dimuat"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "سبسکرپشن کی تفصیلات لوڈ نہیں ہو سکیں"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Impossible de charger les détails de l’abonnement"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No se pudieron cargar los detalles de la suscripción"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Não foi possível carregar os detalhes da assinatura"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Maelezo ya usajili hayakuweza kupakiwa"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "सदस्यता का विवरण लोड नहीं हो सका"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "সাবস্ক্রিপশনের বিবরণ লোড করা যায়নি"
+          }
+        }
+      }
+    },
+    "Loading subscription" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading subscription"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "جارٍ تحميل الاشتراك"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Загрузка подписки"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жазылым жүктелуде"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жазылуу жүктөлүүдө"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Obuna yuklanmoqda"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Abonelik yükleniyor"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Memuat langganan"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "سبسکرپشن لوڈ ہو رہی ہے"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Chargement de l’abonnement"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cargando suscripción"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Carregando assinatura"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Inapakia usajili"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "सदस्यता लोड हो रही है"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "সাবস্ক্রিপশন লোড হচ্ছে"
+          }
+        }
+      }
+    },
+    "Saved items could not load" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved items could not load"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "تعذّر تحميل العناصر المحفوظة"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Не удалось загрузить сохранённые материалы"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Сақталғандарды жүктеу мүмкін болмады"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Сакталгандарды жүктөө мүмкүн болгон жок"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Saqlanganlarni yuklab bo‘lmadi"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Kaydedilenler yüklenemedi"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Item tersimpan tidak dapat dimuat"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "محفوظ مواد لوڈ نہیں ہو سکا"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Impossible de charger les éléments enregistrés"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No se pudieron cargar los elementos guardados"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Não foi possível carregar os itens salvos"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Vilivyohifadhiwa havikuweza kupakiwa"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "सहेजी गई सामग्री लोड नहीं हो सकी"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "সংরক্ষিত বিষয়বস্তু লোড করা যায়নি"
+          }
+        }
+      }
+    },
+    "Loading saved items" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading saved items"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "جارٍ تحميل العناصر المحفوظة"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Загрузка сохранённых материалов"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Сақталғандар жүктелуде"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Сакталгандар жүктөлүүдө"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Saqlanganlar yuklanmoqda"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Kaydedilenler yükleniyor"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Memuat item tersimpan"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "محفوظ مواد لوڈ ہو رہا ہے"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Chargement des éléments enregistrés"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cargando elementos guardados"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Carregando itens salvos"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Inapakia vilivyohifadhiwa"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "सहेजी गई सामग्री लोड हो रही है"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "সংরক্ষিত বিষয়বস্তু লোড হচ্ছে"
+          }
+        }
+      }
+    },
+    "Loading reading progress" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading reading progress"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "جارٍ تحميل تقدّم القراءة"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Загрузка прогресса чтения"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Оқу барысы жүктелуде"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Окуу жүрүшү жүктөлүүдө"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "O‘qish jarayoni yuklanmoqda"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Okuma ilerlemesi yükleniyor"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Memuat progres membaca"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "مطالعے کی پیش رفت لوڈ ہو رہی ہے"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Chargement de la progression de lecture"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cargando progreso de lectura"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Carregando progresso de leitura"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Inapakia maendeleo ya usomaji"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "पढ़ने की प्रगति लोड हो रही है"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "পড়ার অগ্রগতি লোড হচ্ছে"
+          }
+        }
+      }
+    },
+    "Loading page" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading page"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "جارٍ تحميل الصفحة"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Загрузка страницы"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бет жүктелуде"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Барак жүктөлүүдө"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sahifa yuklanmoqda"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sayfa yükleniyor"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Memuat halaman"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "صفحہ لوڈ ہو رہا ہے"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Chargement de la page"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cargando página"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Carregando página"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Inapakia ukurasa"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "पृष्ठ लोड हो रहा है"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "পৃষ্ঠা লোড হচ্ছে"
+          }
+        }
+      }
+    },
+    "Loading…" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading…"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "جارٍ التحميل…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Загрузка…"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жүктелуде…"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жүктөлүүдө…"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Yuklanmoqda…"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Yükleniyor…"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Memuat…"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "لوڈ ہو رہا ہے…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Chargement…"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cargando…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Carregando…"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Inapakia…"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "लोड हो रहा है…"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "লোড হচ্ছে…"
+          }
+        }
+      }
+    },
     "Send crash reports": {
       "extractionState": "manual",
       "localizations": {
