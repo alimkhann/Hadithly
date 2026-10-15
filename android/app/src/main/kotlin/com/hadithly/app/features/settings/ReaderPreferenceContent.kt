@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -93,7 +94,7 @@ internal fun ReaderPreferenceContent(
                     PreferenceSize(preferences.translationFontSize, preferences.translationFontSize > 14f, preferences.translationFontSize < 22f, "$prefix.translationSize", { onTranslationFontSize(preferences.translationFontSize - 2f) }, { onTranslationFontSize(preferences.translationFontSize + 2f) })
                 }
                 PreferenceSection("Language") {
-                    SupportedLanguages.all.forEach { (code, name) -> PreferenceChoice(name, preferences.translationLocale == code, "$prefix.language.$code") { onLanguage(code) } }
+                    SupportedLanguages.all.forEach { (code, name) -> PreferenceChoice(name, preferences.translationLocale == code, "$prefix.language.$code", flag = SupportedLanguages.flag(code)) { onLanguage(code) } }
                 }
                 Text(nativeText("AI translations are labeled and grounded in cited sources."), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary, modifier = Modifier.padding(top = 6.dp, start = 16.dp))
             }
@@ -129,9 +130,9 @@ private fun PreferenceLink(title: String, value: String, tag: String, onClick: (
 }
 
 @Composable
-private fun PreferenceChoice(title: String, selected: Boolean, tag: String, onClick: () -> Unit) {
+private fun PreferenceChoice(title: String, selected: Boolean, tag: String, flag: String? = null, onClick: () -> Unit) {
     val colors = LocalHadithlyColors.current
-    ListItem(headlineContent = { Text(nativeText(title), color = colors.textPrimary) }, trailingContent = { RadioButton(selected, onClick = null, colors = RadioButtonDefaults.colors(selectedColor = colors.interactive, unselectedColor = colors.textSecondary)) }, colors = ListItemDefaults.colors(containerColor = colors.surface), modifier = Modifier.selectable(selected, role = Role.RadioButton, onClick = onClick).testTag(tag))
+    ListItem(leadingContent = if (flag != null) ({ Text(flag, fontSize = 24.sp, modifier = Modifier.clearAndSetSemantics {}) }) else null, headlineContent = { Text(nativeText(title), color = colors.textPrimary) }, trailingContent = { RadioButton(selected, onClick = null, colors = RadioButtonDefaults.colors(selectedColor = colors.interactive, unselectedColor = colors.textSecondary)) }, colors = ListItemDefaults.colors(containerColor = colors.surface), modifier = Modifier.selectable(selected, role = Role.RadioButton, onClick = onClick).testTag(tag))
 }
 
 @Composable

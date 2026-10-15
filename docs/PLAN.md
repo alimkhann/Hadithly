@@ -1857,6 +1857,11 @@ substantive: they own bounded implementation outcomes, not just inventories.
   Previews, fonts, size bounds, languages, themes and all-hidden rejection remain.
 - Choosing a reader appearance enables the existing separate-reader preference,
   so that the chosen theme actually applies when app appearance was linked.
+- Follow-up: added flags to language choices on both clients. Corrected the
+  screenshot fixture to use the reader palette after a reader-only Paper change;
+  the production reader wrapper already supplied that palette. A failing rendered
+  background-color regression reproduced the misleading dark preview. Both clients
+  now check rendered Paper pixels in their native UI tests.
 - Verification and repeat commands: `docs/READER_SETTINGS_UI_VERIFICATION.md`.
   Existing physical-device, sync, offline-pack, widget, quota/store, operational
   and release gates remain open in `docs/OPEN_GATES.md`. L1 has not started.

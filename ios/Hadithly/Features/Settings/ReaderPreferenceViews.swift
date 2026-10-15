@@ -84,7 +84,7 @@ struct ReaderPreferenceDetail: View {
         SettingsList(panel.rawValue) {
             switch panel {
             case .appearance:
-                Section {
+                Section("Reader appearance") {
                     ForEach(ReaderTheme.allCases, id: \.self) { theme in
                         choice(theme.rawValue.capitalized, selected: preferences.theme == theme,
                                identifier: "\(prefix).theme.\(theme.rawValue)") {
@@ -138,7 +138,7 @@ struct ReaderPreferenceDetail: View {
                 .listRowBackground(palette.surface)
                 Section {
                     ForEach(SupportedLanguages.all) { language in
-                        choice(language.name, selected: preferences.translationLocale == language.code,
+                        choice(language.name, flag: language.flag, selected: preferences.translationLocale == language.code,
                                identifier: "\(prefix).language.\(language.code)") {
                             store.setTranslationLocale(language.code)
                             onLanguage(language.code)
@@ -163,9 +163,12 @@ struct ReaderPreferenceDetail: View {
         }
     }
 
-    private func choice(_ title: String, selected: Bool, identifier: String, action: @escaping () -> Void) -> some View {
+    private func choice(_ title: String, flag: String? = nil, selected: Bool, identifier: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            HStack {
+            HStack(spacing: 12) {
+                if let flag {
+                    Text(flag).accessibilityHidden(true)
+                }
                 Text(LocalizedStringKey(title)).foregroundStyle(palette.textPrimary)
                 Spacer()
                 if selected {
@@ -184,6 +187,7 @@ struct ReaderPreferenceDetail: View {
 #if DEBUG
 struct ReaderSettingsFixtureView: View {
     @Environment(AppEnvironment.self) private var environment
+    @Environment(\.colorScheme) private var systemScheme
     @State private var showingSettings = false
 
     var body: some View {
@@ -198,7 +202,13 @@ struct ReaderSettingsFixtureView: View {
             }
         }
         .sheet(isPresented: $showingSettings) {
+            let theme = environment.preferences.preferences.theme
+            let palette = ReaderPalette.resolved(theme, systemDark: systemScheme == .dark)
             ReaderSettingsSheet(onLanguage: { _ in })
+                .environment(\.readerTheme, theme)
+                .environment(\.readerPalette, palette)
+                .preferredColorScheme(ReaderPalette.preferredColorScheme(for: theme))
+                .presentationBackground(palette.background)
         }
         .task {
             let values = ProcessInfo.processInfo.environment

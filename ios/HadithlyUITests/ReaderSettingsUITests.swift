@@ -1,4 +1,5 @@
 import XCTest
+import UIKit
 
 final class ReaderSettingsUITests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
@@ -50,6 +51,28 @@ final class ReaderSettingsUITests: XCTestCase {
             }
             app.terminate()
         }
+    }
+
+    func testSelectingPaperChangesRenderedSheetBackground() {
+        let app = launch(context: "reader")
+        app.buttons["reader.settings.appearance"].tap()
+        app.buttons["reader.theme.paper"].tap()
+        assertPaperBackground(app)
+        screenshot("reader-paper-selected")
+    }
+
+    private func assertPaperBackground(_ app: XCUIApplication) {
+        let image = app.screenshot().image.cgImage!
+        let sample = image.cropping(to: CGRect(x: 20, y: image.height / 2, width: 1, height: 1))!
+        var rgba = [UInt8](repeating: 0, count: 4)
+        let context = CGContext(data: &rgba, width: 1, height: 1, bitsPerComponent: 8,
+                                bytesPerRow: 4, space: CGColorSpaceCreateDeviceRGB(),
+                                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
+        context.draw(sample, in: CGRect(x: 0, y: 0, width: 1, height: 1))
+        XCTAssertGreaterThan(rgba[0], 220, "Paper must render a light background, not merely a selected checkmark")
+        XCTAssertGreaterThan(rgba[1], 210)
+        XCTAssertGreaterThan(rgba[2], 190)
+        XCTAssertGreaterThan(Int(rgba[0]) - Int(rgba[2]), 10, "Paper must retain its warm tint")
     }
 
     func testThemesAndLargeTextRemainScrollable() {

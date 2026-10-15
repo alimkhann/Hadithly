@@ -75,3 +75,29 @@ assertions failed on the Arabic emulator. The focused settings tests above are
 rerun independently.
 
 All prior gates remain in [OPEN_GATES.md](OPEN_GATES.md). Stop before L1.
+
+
+## Language flags and Paper preview follow-up
+
+The owner spotted that the displayed Paper selection still had a dark background.
+The screenshot fixture supplied the app palette instead of the reader palette.
+It now supplies the effective reader theme, palette, color scheme and presentation
+background, matching the existing `ReaderView.readerSheet` wrapper. The production
+reader wrapper already supplied these values. The global Settings tab retains its
+own app appearance when a separate reader appearance is selected.
+
+`testSelectingPaperChangesRenderedSheetBackground` reproduced the old screenshot:
+the sampled background red channel was 13/255 with Paper selected. The regression
+now checks a warm, light rendered background rather than only the checkmark.
+Android's reader control tests also check the rendered Paper pixels.
+
+Language choices now show the existing iOS flag mapping in both reader settings
+entry points. Android uses the same mapping in reader, App language and Hadith
+translation choices. Names and locale identifiers remain unchanged; the added
+flags are decorative to screen readers.
+
+Follow-up evidence: `/tmp/hadithly-paper-red.xcresult` records the failing color
+check; `/tmp/hadithly-flags-paper-green.xcresult` records the corrected preview and
+both entry-point journeys. Android debug build, 202 unit tests and three focused
+emulator tests pass, including 200% text scaling and native radio semantics.
+The prior device, localization, signed-in sync and release gates remain open.

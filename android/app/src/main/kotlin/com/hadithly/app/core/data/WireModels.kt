@@ -262,6 +262,25 @@ object Collections {
 
 /** Languages the app actively supports for translations. Mirrors iOS SupportedLanguages. */
 object SupportedLanguages {
+    fun flag(code: String): String = when (code) {
+        "en" -> "🇬🇧"
+        "ar" -> "🇸🇦"
+        "ru" -> "🇷🇺"
+        "kk" -> "🇰🇿"
+        "ky" -> "🇰🇬"
+        "uz" -> "🇺🇿"
+        "tr" -> "🇹🇷"
+        "id" -> "🇮🇩"
+        "ur" -> "🇵🇰"
+        "fr" -> "🇫🇷"
+        "es-419" -> "🌎"
+        "pt-BR" -> "🇧🇷"
+        "sw" -> "🇰🇪"
+        "hi" -> "🇮🇳"
+        "bn" -> "🇧🇩"
+        else -> "🌐"
+    }
+
     val all: List<Pair<String, String>> = listOf(
         "en" to "English",
         "ar" to "العربية",

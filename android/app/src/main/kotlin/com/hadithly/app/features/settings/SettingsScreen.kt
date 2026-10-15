@@ -69,6 +69,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -456,6 +457,7 @@ private fun LanguageList(title: String, selection: String, prefix: String, onSel
             SupportedLanguages.all.forEach { (code, name) ->
                 SettingsSingleChoiceRow(
                     label = name,
+                    flag = SupportedLanguages.flag(code),
                     selected = code == selection,
                     onClick = { onSelect(code) },
                     modifier = Modifier.testTag("$prefix.$code"),
@@ -1250,6 +1252,7 @@ internal fun SettingsSingleChoiceRow(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    flag: String? = null,
 ) {
     val colors = LocalHadithlyColors.current
     Row(
@@ -1268,6 +1271,9 @@ internal fun SettingsSingleChoiceRow(
                 unselectedColor = colors.textSecondary,
             ),
         )
+        if (flag != null) {
+            Text(flag, fontSize = 24.sp, modifier = Modifier.padding(start = 8.dp).clearAndSetSemantics {})
+        }
         Text(label, fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f).padding(start = 8.dp))
     }
 }

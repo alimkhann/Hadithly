@@ -74,6 +74,7 @@ class ReaderPreferenceContentTest {
         compose.onNodeWithTag("$prefix.settings.back").performClick()
         compose.onNodeWithText("Amiri · 30 pt").assertIsDisplayed()
         compose.onNodeWithTag("$prefix.settings.translation").performClick()
+        capture("$prefix-languages")
         compose.onNodeWithTag("$prefix.translationSize.larger").performClick()
         compose.onNodeWithText("18", substring = true).assertIsDisplayed()
         compose.onNodeWithTag("$prefix.language.ru").performScrollTo().performClick().assertIsSelected()
@@ -82,5 +83,9 @@ class ReaderPreferenceContentTest {
         compose.onNodeWithTag("$prefix.settings.appearance").performClick()
         compose.onNodeWithTag("$prefix.theme.paper").performClick().assertIsSelected()
         capture("$prefix-paper")
+        val rendered = compose.onRoot().captureToImage().asAndroidBitmap()
+        val pixel = rendered.getPixel(10, rendered.height / 2)
+        org.junit.Assert.assertTrue("Paper must render a light background", android.graphics.Color.red(pixel) > 220)
+        org.junit.Assert.assertTrue("Paper must retain its warm tint", android.graphics.Color.red(pixel) - android.graphics.Color.blue(pixel) > 10)
     }
 }
