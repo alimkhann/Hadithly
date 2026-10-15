@@ -34,7 +34,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.NavigateNext
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.Info
@@ -46,7 +45,6 @@ import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.TextFields
-import androidx.compose.material.icons.outlined.RadioButtonUnchecked
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -55,8 +53,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -100,9 +96,6 @@ import com.hadithly.app.core.data.SupportedLanguages
 import com.hadithly.app.core.offline.OfflineCollectionStatus
 import com.hadithly.app.core.offline.OfflineEnqueueResult
 import com.hadithly.app.core.offline.OfflineModels
-import com.hadithly.app.core.preferences.ArabicFont
-import com.hadithly.app.core.preferences.PreferencesStore
-import com.hadithly.app.core.preferences.ReaderPreferences
 import com.hadithly.app.core.preferences.ReaderTheme
 import com.hadithly.app.core.preferences.ReadingDirection
 import com.hadithly.app.core.push.DevicePushProfile
@@ -477,161 +470,34 @@ private fun LanguageList(title: String, selection: String, prefix: String, onSel
     }
 }
 
-private fun fontLabel(font: ArabicFont): String = when (font) {
-    ArabicFont.SYSTEM -> "System"
-    ArabicFont.AMIRI -> "Amiri"
-    ArabicFont.SCHEHERAZADE_NEW -> "Scheherazade New"
-    ArabicFont.NOTO_NASKH_ARABIC -> "Noto Naskh Arabic"
-}
-
 @Composable
 private fun ReadingTypeDestination() {
     val app = rememberApp()
-    val colors = LocalHadithlyColors.current
     val preferences by app.preferences.preferences.collectAsStateWithLifecycle()
-    val store: PreferencesStore = app.preferences
-    var showingDetail by remember { mutableStateOf(false) }
-    ScrollColumn {
-        if (!showingDetail) {
-            SettingsDestinationLabel("DISPLAY")
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                SettingsDisplayPill("Arabic", preferences.arabicVisible, Modifier.weight(1f).testTag("settings.visibility.arabic")) { store.setVisibility(arabic = !preferences.arabicVisible) }
-                SettingsDisplayPill("Translation", preferences.translationVisible, Modifier.weight(1f).testTag("settings.visibility.translation")) { store.setVisibility(translation = !preferences.translationVisible) }
-            }
-            Text(nativeText("At least one layer stays visible."), fontSize = 12.sp, color = colors.textSecondary)
-
-            SettingsDestinationLabel("READER SETTINGS")
-            SettingsDestinationNavigationRow("Arabic font", "${fontLabel(preferences.arabicFont)} · ${preferences.arabicFontSize.toInt()} pt") { showingDetail = true }
-            SettingsDestinationNavigationRow("Translation", preferences.translationLocale.uppercase()) { showingDetail = true }
-            SettingsDestinationNavigationRow("Color themes", themeLabel(preferences.readerTheme)) { showingDetail = true }
-
-            SettingsDestinationLabel("READING DIRECTION")
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                ReadingDirection.entries.forEach { direction ->
-                    val selected = direction == preferences.readingDirection
-                    TextButton(
-                        onClick = { store.setReadingDirection(direction) },
-                        modifier = Modifier.weight(1f).background(if (selected) colors.surfaceElevated else colors.surface, RoundedCornerShape(50)).testTag("settings.readingDirection.${direction.wire}"),
-                    ) { Text(directionLabel(direction), color = if (selected) colors.textPrimary else colors.textSecondary, maxLines = 1) }
-                }
-            }
-
-            SettingsDestinationLabel("SAVED")
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().background(colors.surfaceElevated, RoundedCornerShape(18.dp)).padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Text(stringResource(R.string.saved_confirm_removal), fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
-                Switch(checked = app.savedSafety.confirmsRemoval, onCheckedChange = { app.savedSafety.confirmsRemoval = it }, colors = SwitchDefaults.colors(checkedTrackColor = colors.interactive), modifier = Modifier.testTag("settings.confirmSavedRemoval"))
-            }
-        } else {
-            TextButton(onClick = { showingDetail = false }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = colors.textSecondary)
-                Text(stringResource(R.string.settings_reading_type), color = colors.textSecondary)
-            }
-        CardColumn {
-            Text(nativeText("Arabic type"), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
-            ArabicFont.entries.forEach { font ->
-                SettingsSingleChoiceRow(
-                    label = fontLabel(font),
-                    selected = font == preferences.arabicFont,
-                    onClick = { store.setArabicFont(font) },
-                    modifier = Modifier.testTag("settings.arabicFont.${font.wire}"),
-                )
-            }
-            Text(stringResource(R.string.settings_arabic_type_size), fontSize = 14.sp, color = colors.textPrimary)
-            Slider(
-                value = preferences.arabicFontSize,
-                onValueChange = store::setArabicFontSize,
-                valueRange = 18f..40f,
-                steps = 21,
-                colors = SliderDefaults.colors(thumbColor = colors.accent, activeTrackColor = colors.accent, inactiveTrackColor = colors.surfaceElevated),
-                modifier = Modifier.testTag("settings.arabicSize"),
-            )
-            Text(nativeText("%1\$s pt", preferences.arabicFontSize.toInt()), fontSize = 11.sp, color = colors.textSecondary)
-            Text("نَعْبُدُكَ وَإِيَّاكَ نَسْتَعِينُ", fontSize = preferences.arabicFontSize.sp, color = colors.textPrimary, modifier = Modifier.fillMaxWidth())
-        }
-        CardColumn {
-            Text(stringResource(R.string.settings_reading_direction), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+    val store = app.preferences
+    ReaderPreferenceContent(
+        preferences = preferences,
+        prefix = "settings",
+        onLanguage = store::setTranslationLocale,
+        onArabicFontSize = store::setArabicFontSize,
+        onTranslationFontSize = store::setTranslationFontSize,
+        onTheme = { store.setSeparateReaderTheme(true); store.setReaderTheme(it) },
+        onArabicFont = store::setArabicFont,
+        onVisibility = { arabic, translation -> store.setVisibility(arabic = arabic, translation = translation) },
+    ) {
+        PreferenceSection("Reading direction") {
             ReadingDirection.entries.forEach { direction ->
                 SettingsSingleChoiceRow(
                     label = directionLabel(direction),
                     selected = direction == preferences.readingDirection,
                     onClick = { store.setReadingDirection(direction) },
-                    modifier = Modifier.testTag("settings.readingDirection.${direction.wire}"),
+                    modifier = Modifier.padding(horizontal = 16.dp).testTag("settings.readingDirection.${direction.wire}"),
                 )
             }
         }
-        CardColumn {
-            Text(nativeText("Text layers"), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
-            LayerSwitch(
-                label = stringResource(R.string.settings_visibility_arabic),
-                checked = preferences.arabicVisible,
-                onCheckedChange = { store.setVisibility(arabic = it) },
-                modifier = Modifier.testTag("settings.visibility.arabic"),
-            )
-            LayerSwitch(
-                label = stringResource(R.string.settings_visibility_translation),
-                checked = preferences.translationVisible,
-                onCheckedChange = { store.setVisibility(translation = it) },
-                modifier = Modifier.testTag("settings.visibility.translation"),
-            )
-            Text(nativeText("At least one layer stays visible."), fontSize = 12.sp, color = colors.textSecondary)
+        PreferenceSection("Saved") {
+            PreferenceSwitch(stringResource(R.string.saved_confirm_removal), app.savedSafety.confirmsRemoval, "settings.confirmSavedRemoval") { app.savedSafety.confirmsRemoval = it }
         }
-        CardColumn {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.saved_confirm_removal), fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
-                Switch(
-                    checked = app.savedSafety.confirmsRemoval,
-                    onCheckedChange = { app.savedSafety.confirmsRemoval = it },
-                    colors = SwitchDefaults.colors(checkedTrackColor = colors.accent),
-                    modifier = Modifier.testTag("settings.confirmSavedRemoval"),
-                )
-            }
-        }
-        }
-    }
-}
-
-@Composable
-private fun SettingsDestinationLabel(text: String) {
-    val colors = LocalHadithlyColors.current
-    Text(text, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.textSecondary, modifier = Modifier.padding(top = 12.dp))
-}
-
-@Composable
-private fun SettingsDisplayPill(title: String, isOn: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    val colors = LocalHadithlyColors.current
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center,
-        modifier = modifier.heightIn(min = 52.dp).background(if (isOn) colors.surfaceElevated else colors.surface, RoundedCornerShape(50)).toggleable(value = isOn, role = androidx.compose.ui.semantics.Role.Switch, onValueChange = { onClick() }).padding(horizontal = 12.dp),
-    ) {
-        Icon(if (isOn) Icons.Filled.Check else Icons.Outlined.RadioButtonUnchecked, contentDescription = null, tint = if (isOn) colors.interactive else colors.textSecondary, modifier = Modifier.size(18.dp))
-        Text(title, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = if (isOn) colors.textPrimary else colors.textSecondary, modifier = Modifier.padding(start = 6.dp))
-    }
-}
-
-@Composable
-private fun SettingsDestinationNavigationRow(title: String, subtitle: String, onClick: () -> Unit) {
-    val colors = LocalHadithlyColors.current
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp).clickable(onClick = onClick)) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(title, fontSize = 21.sp, fontWeight = FontWeight.Medium, color = colors.textPrimary)
-            Text(subtitle, fontSize = 16.sp, color = colors.textSecondary, modifier = Modifier.padding(top = 4.dp))
-        }
-        Icon(Icons.AutoMirrored.Filled.NavigateNext, contentDescription = null, tint = colors.textSecondary, modifier = Modifier.size(24.dp))
-    }
-}
-
-@Composable
-private fun LayerSwitch(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit, modifier: Modifier = Modifier) {
-    val colors = LocalHadithlyColors.current
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-        Text(label, fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            colors = SwitchDefaults.colors(checkedTrackColor = colors.accent),
-            modifier = modifier,
-        )
     }
 }
 

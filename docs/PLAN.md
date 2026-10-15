@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-10-14. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-10-15. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
 D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its
 simulator/emulator and unit gates; its physical-device gate is open. R4's
@@ -1845,6 +1845,21 @@ substantive: they own bounded implementation outcomes, not just inventories.
   be labeled as such and never presented as authoritative grades or rulings
   (product rule 3). No code in any current session; a future post-L1 session
   owns the evaluation.
+
+### Reader settings UI repair (2026-10-15)
+
+- Owner-authorized follow-up to the five reader-settings screenshots. Both native
+  entry points now use shared, compact settings controls. iOS uses grouped lists,
+  navigation links, switches, checkmark choices and size steppers; Android uses
+  Material list items, switches, radio choices and size controls.
+- Reading & type retains direction and Saved removal confirmation. The reader
+  opens a compact, expandable sheet with native navigation and dismissal.
+  Previews, fonts, size bounds, languages, themes and all-hidden rejection remain.
+- Choosing a reader appearance enables the existing separate-reader preference,
+  so that the chosen theme actually applies when app appearance was linked.
+- Verification and repeat commands: `docs/READER_SETTINGS_UI_VERIFICATION.md`.
+  Existing physical-device, sync, offline-pack, widget, quota/store, operational
+  and release gates remain open in `docs/OPEN_GATES.md`. L1 has not started.
 
 ## Delegation policy
 

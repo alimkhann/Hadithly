@@ -89,7 +89,7 @@ private struct ExportDocument: Codable {
 }
 
 /// Native grouped-list container shared by every destination.
-private struct SettingsList<Content: View>: View {
+struct SettingsList<Content: View>: View {
     @Environment(\.readerPalette) private var palette
     let title: String
     let content: Content
@@ -497,258 +497,37 @@ struct TranslationLanguageView: View {
 struct ReadingTypeView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(\.readerPalette) private var palette
-    @State private var panel: Panel?
-
-    private enum Panel: String, Identifiable { case appearance = "Appearance", arabic = "Arabic type", translation = "Translation"; var id: String { rawValue } }
-
-    private var store: PreferencesStore { environment.preferences }
 
     var body: some View {
-        let preferences = store.preferences
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                sectionLabel("READER SETTINGS")
-                settingRow(.arabic, subtitle: "\(preferences.arabicFont.displayName) · \(Int(preferences.arabicFontSize)) pt")
-                settingRow(.translation, subtitle: "\(preferences.translationLocale.uppercased()) · \(Int(preferences.translationFontSize)) pt")
-                settingRow(.appearance, subtitle: preferences.theme.rawValue.capitalized)
-
-                sectionLabel("DISPLAY")
-                HStack(spacing: 10) {
-                    displayPill(
-                        "Arabic",
-                        isOn: preferences.arabicVisible,
-                        identifier: "settings.visibility.arabic"
-                    ) { store.setVisibility(arabic: !preferences.arabicVisible) }
-                    displayPill(
-                        "Translation",
-                        isOn: preferences.translationVisible,
-                        identifier: "settings.visibility.translation"
-                    ) { store.setVisibility(translation: !preferences.translationVisible) }
+        SettingsList("Reading & type") {
+            ReaderPreferenceSections(prefix: "settings")
+            Section("Reading direction") {
+                Picker("Reading direction", selection: Binding(
+                    get: { environment.preferences.preferences.readingDirection },
+                    set: { environment.preferences.setReadingDirection($0) }
+                )) {
+                    Text("Automatic").tag(ReadingDirection.auto)
+                    Text("Right to left").tag(ReadingDirection.rtl)
+                    Text("Left to right").tag(ReadingDirection.ltr)
                 }
-                Text("At least one text layer stays visible.")
-                    .font(.caption)
-                    .foregroundStyle(palette.textSecondary)
-
-                sectionLabel("READING DIRECTION")
-                HStack(spacing: 8) {
-                    ForEach(ReadingDirection.allCases, id: \.self) { direction in
-                        directionPill(direction, selected: preferences.readingDirection == direction)
-                    }
-                }
-
-                sectionLabel("SAVED")
-                SettingsToggleRow(
-                    title: "Confirm before removing",
-                    footnote: "Ask before removing saved items",
-                    isOn: Binding(
+                .pickerStyle(.inline)
+                .labelsHidden()
+            }
+            Section("Saved") {
+                Toggle(isOn: Binding(
                         get: { environment.savedSafety.confirmsRemoval },
                         set: { environment.savedSafety.confirmsRemoval = $0 }
-                    ),
-                    accessibilityID: "settings.confirmSavedRemoval"
-                )
-                .padding(16)
-                .background(palette.surfaceElevated)
-                .clipShape(RoundedRectangle(cornerRadius: 18))
-            }
-            .padding(20)
-            .padding(.bottom, 28)
-        }
-        .background(palette.background)
-        .navigationTitle("Reading & type")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(palette.background, for: .navigationBar)
-        .toolbarBackground(.visible, for: .navigationBar)
-        .sheet(item: $panel) { panel in
-            ReaderSheetChrome(
-                title: panel.rawValue,
-                subtitle: nil,
-                palette: palette,
-                grabberIdentifier: "settings.reading.grabber",
-                closeIdentifier: "settings.reading.close",
-                titleIdentifier: "settings.reading.title",
-                onClose: { self.panel = nil }
-            ) {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 16) { panelView(panel) }
-                        .padding(20)
-                        .padding(.bottom, 24)
+                    )) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Confirm before removing")
+                        Text("Ask before removing saved items")
+                            .font(.caption)
+                            .foregroundStyle(palette.textSecondary)
+                    }
                 }
+                .tint(palette.textSecondary)
+                .accessibilityIdentifier("settings.confirmSavedRemoval")
             }
-        }
-    }
-
-    private func settingRow(_ panel: Panel, subtitle: String) -> some View {
-        Button { self.panel = panel } label: {
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(panel.rawValue).font(.title3.weight(.medium)).foregroundStyle(palette.textPrimary)
-                    Text(subtitle).font(.body).foregroundStyle(palette.textSecondary)
-                }
-                Spacer(minLength: 12)
-                Image(systemName: "chevron.right").font(.title3.weight(.medium)).foregroundStyle(palette.textSecondary.opacity(0.7))
-            }
-            .frame(minHeight: 70)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-    }
-
-    @ViewBuilder private func panelView(_ panel: Panel) -> some View {
-        switch panel {
-        case .appearance:
-            ForEach(ReaderTheme.allCases, id: \.self) { theme in
-                themeRow(theme, selected: store.preferences.readerTheme == theme)
-            }
-        case .arabic:
-            previewCard(Text("إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ").font(Theme.arabic(store.preferences.arabicFontSize, store.preferences.arabicFont)))
-            typeStepper
-            ForEach(ArabicFont.allCases, id: \.self) { font in fontRow(font) }
-        case .translation:
-            previewCard(Text("Actions are judged by intentions.").font(.system(size: store.preferences.translationFontSize)))
-            translationStepper
-            sectionLabel("LANGUAGE")
-            ForEach(SupportedLanguages.all) { language in languageRow(language) }
-        }
-    }
-
-    private func sectionLabel(_ title: String) -> some View {
-        Text(title)
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(palette.textSecondary)
-            .padding(.top, 8)
-    }
-
-    private func displayPill(_ title: String, isOn: Bool, identifier: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Label(title, systemImage: isOn ? "checkmark.circle.fill" : "circle")
-                .font(.body.weight(.medium))
-                .foregroundStyle(isOn ? palette.textPrimary : palette.textSecondary)
-                .frame(maxWidth: .infinity, minHeight: 54)
-                .background(isOn ? palette.surfaceElevated : Color.clear)
-                .clipShape(Capsule())
-                .overlay(Capsule().strokeBorder(isOn ? Color.clear : palette.divider, lineWidth: 1))
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier(identifier)
-    }
-
-    private func directionPill(_ direction: ReadingDirection, selected: Bool) -> some View {
-        Button { store.setReadingDirection(direction) } label: {
-            Text(Self.directionLabel(direction))
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(selected ? palette.textPrimary : palette.textSecondary)
-                .frame(maxWidth: .infinity, minHeight: 48)
-                .background(selected ? palette.surfaceElevated : Color.clear)
-                .clipShape(Capsule())
-                .overlay(Capsule().strokeBorder(selected ? Color.clear : palette.divider, lineWidth: 1))
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(selected ? .isSelected : [])
-        .accessibilityIdentifier("settings.readingDirection.\(direction.rawValue)")
-    }
-
-    private func themeRow(_ theme: ReaderTheme, selected: Bool) -> some View {
-        let swatch = ReaderPalette.resolved(theme, systemDark: true)
-        return Button { store.setReaderTheme(theme) } label: {
-            HStack(spacing: 12) {
-                RoundedRectangle(cornerRadius: 7).fill(swatch.background).frame(width: 34, height: 34).overlay(RoundedRectangle(cornerRadius: 7).strokeBorder(palette.divider, lineWidth: 1))
-                Text(theme.rawValue.capitalized).font(.title3.weight(.medium))
-                Spacer()
-                if selected { Image(systemName: "checkmark").font(.title3.weight(.semibold)) }
-            }
-            .foregroundStyle(palette.textPrimary)
-            .padding(.horizontal, 18)
-            .frame(maxWidth: .infinity, minHeight: 62)
-            .background(palette.surfaceElevated)
-            .clipShape(Capsule())
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(selected ? .isSelected : [])
-        .accessibilityIdentifier("settings.appearance.\(theme.rawValue)")
-    }
-
-    private func previewCard<Content: View>(_ content: Content) -> some View {
-        content
-            .foregroundStyle(palette.textPrimary)
-            .frame(maxWidth: .infinity, alignment: .center)
-            .padding(20)
-            .background(palette.surfaceElevated)
-            .clipShape(RoundedRectangle(cornerRadius: 18))
-    }
-
-    private var typeStepper: some View {
-        HStack(spacing: 0) {
-            Button { store.setArabicFontSize(ArabicTypeSize.stepDown(from: store.preferences.arabicFontSize)) } label: { Text("A").font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 60) }
-                .disabled(store.preferences.arabicFontSize <= ReaderPreferences.minArabicFontSize)
-                .accessibilityIdentifier("settings.arabicSize.smaller")
-            Divider().overlay(palette.divider)
-            Button { store.setArabicFontSize(ArabicTypeSize.stepUp(from: store.preferences.arabicFontSize)) } label: { Text("A").font(.title3.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 60) }
-                .disabled(store.preferences.arabicFontSize >= ReaderPreferences.maxArabicFontSize)
-                .accessibilityIdentifier("settings.arabicSize.larger")
-        }
-        .buttonStyle(.plain)
-        .foregroundStyle(palette.textPrimary)
-        .background(palette.surfaceElevated)
-        .clipShape(RoundedRectangle(cornerRadius: 18))
-        .accessibilityIdentifier("settings.arabicSize")
-    }
-
-    private var translationStepper: some View {
-        HStack(spacing: 0) {
-            Button { store.setTranslationFontSize(max(14, store.preferences.translationFontSize - 2)) } label: { Text("A").font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 60) }
-            Divider().overlay(palette.divider)
-            Button { store.setTranslationFontSize(min(22, store.preferences.translationFontSize + 2)) } label: { Text("A").font(.title3.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 60) }
-        }
-        .buttonStyle(.plain)
-        .foregroundStyle(palette.textPrimary)
-        .background(palette.surfaceElevated)
-        .clipShape(RoundedRectangle(cornerRadius: 18))
-    }
-
-    private func fontRow(_ font: ArabicFont) -> some View {
-        let selected = store.preferences.arabicFont == font
-        return Button { store.setArabicFont(font) } label: {
-            HStack {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("إِنَّمَا الْأَعْمَالُ").font(Theme.arabic(24, font))
-                    Text(font.displayName).font(.body).foregroundStyle(palette.textSecondary)
-                }
-                Spacer()
-                if selected { Image(systemName: "checkmark").font(.title3.weight(.semibold)) }
-            }
-            .foregroundStyle(palette.textPrimary)
-            .frame(minHeight: 68)
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(selected ? .isSelected : [])
-        .accessibilityIdentifier("settings.arabicFont.\(font.rawValue)")
-    }
-
-    private func languageRow(_ language: ReadingLanguage) -> some View {
-        let selected = store.preferences.translationLocale == language.code
-        return Button { store.setTranslationLocale(language.code) } label: {
-            HStack(spacing: 12) {
-                Text(language.flag).font(.title2)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(language.name).font(.title3.weight(.medium))
-                    Text(language.code.uppercased()).font(.caption).foregroundStyle(palette.textSecondary)
-                }
-                Spacer()
-                if selected { Image(systemName: "checkmark").font(.title3.weight(.semibold)) }
-            }
-            .foregroundStyle(palette.textPrimary)
-            .frame(minHeight: 64)
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(selected ? .isSelected : [])
-        .accessibilityIdentifier("settings.language.\(language.code)")
-    }
-
-    private static func directionLabel(_ direction: ReadingDirection) -> String {
-        switch direction {
-        case .auto: "Automatic"
-        case .rtl: "Right to left"
-        case .ltr: "Left to right"
         }
     }
 }

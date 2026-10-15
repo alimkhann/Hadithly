@@ -43,8 +43,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerScope
@@ -70,7 +68,6 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FormatSize
 import androidx.compose.material.icons.filled.Note
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.RadioButtonUnchecked
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
@@ -111,7 +108,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
@@ -136,9 +132,7 @@ import com.hadithly.app.core.data.ReaderTranslation
 import com.hadithly.app.core.data.ReadingPosition
 import com.hadithly.app.core.data.ReaderTargetSource
 import com.hadithly.app.core.data.ReadingWidthClass
-import com.hadithly.app.core.data.SupportedLanguages
 import com.hadithly.app.core.data.TranslationFailure
-import com.hadithly.app.core.preferences.ArabicTypeSize
 import com.hadithly.app.core.preferences.LocaleFallback
 import com.hadithly.app.core.preferences.ReaderPageTurn
 import com.hadithly.app.core.preferences.ReaderPagingPolicy
@@ -296,14 +290,15 @@ fun ReaderScreen(
         ModalBottomSheet(
             onDismissRequest = { showSettings = false },
             sheetState = settingsSheetState,
-            containerColor = colors.surface,
+            containerColor = colors.background,
         ) {
             SettingsSheet(
                 preferences = preferences,
                 language = state.language,
                 onLanguage = { viewModel.setLanguage(it) },
                 onArabicFontSize = app.preferences::setArabicFontSize,
-                onTheme = app.preferences::setReaderTheme,
+                onTranslationFontSize = app.preferences::setTranslationFontSize,
+                onTheme = { app.preferences.setSeparateReaderTheme(true); app.preferences.setReaderTheme(it) },
                 onArabicFont = app.preferences::setArabicFont,
                 onVisibility = { arabic: Boolean?, translation: Boolean? ->
                     app.preferences.setVisibility(arabic = arabic, translation = translation)
@@ -3104,14 +3099,7 @@ internal fun ContentsSheet(
 
 // Reader settings sheet
 
-/**
- * Reader settings (R4; Sajda plain-row restyle in the R6 fix round):
- * visibility chips, theme, Arabic face and size with a live preview, and
- * the translation language. Plain caps section labels, simple
- * title+subtitle+chevron rows, minimal dividers — no heavy cards. Direct
- * controls, close to the text; account and global settings stay in the
- * Settings tab. No Quran-only modes or tabs.
- */
+/** Reader controls shared with Reading & type in the Settings tab. */
 @Composable
 internal fun SettingsSheet(
     preferences: ReaderPreferences,
@@ -3122,315 +3110,22 @@ internal fun SettingsSheet(
     onArabicFont: (com.hadithly.app.core.preferences.ArabicFont) -> Unit,
     onVisibility: (arabic: Boolean?, translation: Boolean?) -> Boolean,
     onDismiss: () -> Unit = {},
+    onTranslationFontSize: (Float) -> Unit,
 ) {
-    val colors = LocalHadithlyColors.current
     val view = LocalView.current
-    var detail by remember { mutableStateOf<ReaderSettingsDetail?>(null) }
-
-    // The all-hidden state is rejected by the store (returns false): answer
-    // with the native reject haptic so the refusal is felt.
-    fun attemptVisibility(arabic: Boolean?, translation: Boolean?) {
-        if (!onVisibility(arabic, translation)) {
-            ReaderHaptics.perform(view, ReaderHapticKind.REJECT_BOTH_HIDDEN)
-        }
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
-            .padding(start = 20.dp, top = 8.dp, end = 20.dp, bottom = 32.dp)
-            .testTag("reader.settings.sheet"),
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(
-                detail?.title ?: "Settings",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = colors.textPrimary,
-                modifier = Modifier.weight(1f),
-            )
-            IconButton(
-                onClick = onDismiss,
-                modifier = Modifier.size(48.dp).background(colors.surfaceElevated, RoundedCornerShape(50)).testTag("reader.settings.close"),
-            ) {
-                Icon(
-                    Icons.Filled.Close,
-                    contentDescription = nativeText("Close settings"),
-                    tint = colors.textSecondary,
-                    modifier = Modifier.size(20.dp),
-                )
-            }
-        }
-
-        if (detail == null) {
-            SettingsSectionLabel("DISPLAY")
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                VisibilityPill("Arabic", preferences.arabicVisible, "reader.visibility.arabic") { attemptVisibility(!preferences.arabicVisible, null) }
-                VisibilityPill("Translation", preferences.translationVisible, "reader.visibility.translation") { attemptVisibility(null, !preferences.translationVisible) }
-            }
-            Text(nativeText("At least one text layer stays visible."), fontSize = 12.sp, color = colors.textSecondary, modifier = Modifier.padding(top = 6.dp))
-            SettingsSectionLabel("SETTINGS")
-            ReaderSettingsNavigationRow("Arabic font", "${preferences.arabicFont.wire} · ${preferences.arabicFontSize.roundToInt()} pt", "reader.settings.arabic") { detail = ReaderSettingsDetail.ARABIC }
-            ReaderSettingsNavigationRow("Translation", language.uppercase(), "reader.settings.translation") { detail = ReaderSettingsDetail.TRANSLATION }
-            ReaderSettingsNavigationRow("Color themes", preferences.readerTheme.wire.replaceFirstChar { it.uppercase() }, "reader.settings.appearance") { detail = ReaderSettingsDetail.APPEARANCE }
-        } else {
-            TextButton(onClick = { detail = null }, modifier = Modifier.height(44.dp)) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = colors.textSecondary)
-                Text(nativeText("Settings"), color = colors.textSecondary)
-            }
-        if (detail == ReaderSettingsDetail.APPEARANCE) {
-        SettingsSectionLabel("COLOR THEME")
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.padding(top = 4.dp),
-        ) {
-            for (theme in com.hadithly.app.core.preferences.ReaderTheme.entries) {
-                val selected = (if (preferences.usesSeparateReaderTheme) preferences.readerTheme else preferences.appTheme) == theme
-                val swatch = com.hadithly.app.core.theme.ReaderPalettes.resolved(theme, systemDark = true)
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .background(
-                            if (selected) colors.interactiveSoft else androidx.compose.ui.graphics.Color.Transparent,
-                            RoundedCornerShape(10.dp),
-                        )
-                        .selectable(
-                            selected = selected,
-                            role = Role.RadioButton,
-                            onClick = { onTheme(theme) },
-                        )
-                        .padding(6.dp)
-                        .testTag("reader.theme.${theme.wire}"),
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(34.dp)
-                            .background(swatch.background, RoundedCornerShape(8.dp)),
-                    )
-                    Text(
-                        text = theme.wire.replaceFirstChar { it.uppercase() },
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = if (selected) colors.interactive else colors.textSecondary,
-                        modifier = Modifier.padding(top = 4.dp),
-                    )
-                }
-            }
-        }
-        }
-
-        if (detail == ReaderSettingsDetail.ARABIC) {
-        SettingsSectionLabel("ARABIC TYPE")
-        Text(
-            text = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
-            fontSize = preferences.arabicFontSize.sp,
-            fontFamily = com.hadithly.app.core.theme.ArabicTypefaces.forFont(preferences.arabicFont),
-            lineHeight = (preferences.arabicFontSize * 1.75).sp,
-            color = colors.textPrimary,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 10.dp)
-                .testTag("reader.typePreview"),
-        )
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(bottom = 4.dp),
-        ) {
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(48.dp)
-                    .background(colors.surfaceElevated, RoundedCornerShape(50))
-                    .clickable(
-                        enabled = preferences.arabicFontSize > ReaderPreferences.MIN_ARABIC_FONT_SIZE,
-                    ) { onArabicFontSize(ArabicTypeSize.stepDown(preferences.arabicFontSize)) }
-                    .semantics { contentDescription = "Smaller Arabic type" }
-                    .testTag("reader.sizeSmaller"),
-                contentAlignment = Alignment.Center,
-            ) { Text("A", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary) }
-            Text(
-                text = nativeText("%1\$s pt", preferences.arabicFontSize.roundToInt()),
-                fontSize = 12.sp,
-                color = colors.textSecondary,
-            )
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(48.dp)
-                    .background(colors.surfaceElevated, RoundedCornerShape(50))
-                    .clickable(
-                        enabled = preferences.arabicFontSize < ReaderPreferences.MAX_ARABIC_FONT_SIZE,
-                    ) { onArabicFontSize(ArabicTypeSize.stepUp(preferences.arabicFontSize)) }
-                    .semantics { contentDescription = "Larger Arabic type" }
-                    .testTag("reader.sizeLarger"),
-                contentAlignment = Alignment.Center,
-            ) { Text("A", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary) }
-        }
-
-        val fontEntries = com.hadithly.app.core.preferences.ArabicFont.entries
-        for ((fontIndex, font) in fontEntries.withIndex()) {
-            val selected = preferences.arabicFont == font
-            if (fontIndex > 0) {
-                HorizontalDivider(color = colors.divider.copy(alpha = 0.5f))
-            }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .selectable(
-                        selected = selected,
-                        role = Role.RadioButton,
-                        onClick = { onArabicFont(font) },
-                    )
-                    .padding(vertical = 10.dp)
-                    .testTag("reader.font.${font.wire}"),
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "بِسْمِ اللَّهِ",
-                        fontSize = 18.sp,
-                        fontFamily = com.hadithly.app.core.theme.ArabicTypefaces.forFont(font),
-                        color = colors.textPrimary,
-                    )
-                    Text(
-                        text = font.wire,
-                        fontSize = 11.sp,
-                        color = colors.textSecondary,
-                    )
-                }
-                if (selected) {
-                    Icon(
-                        Icons.Filled.CheckCircle,
-                        contentDescription = null,
-                        tint = colors.interactive,
-                        modifier = Modifier.size(18.dp),
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.NavigateNext,
-                        contentDescription = null,
-                        tint = colors.textSecondary,
-                        modifier = Modifier.size(18.dp),
-                    )
-                }
-            }
-        }
-        }
-
-        if (detail == ReaderSettingsDetail.TRANSLATION) {
-        SettingsSectionLabel("TRANSLATION LANGUAGE")
-        Column {
-            val languages = SupportedLanguages.all
-            for ((languageIndex, languageEntry) in languages.withIndex()) {
-                val (code, name) = languageEntry
-                val selected = code == language
-                if (languageIndex > 0) {
-                    HorizontalDivider(color = colors.divider.copy(alpha = 0.5f))
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .selectable(
-                            selected = selected,
-                            role = Role.RadioButton,
-                            onClick = { onLanguage(code) },
-                        )
-                        .padding(vertical = 12.dp)
-                        .testTag("reader.language.$code"),
-                ) {
-                    Text(name, fontSize = 15.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
-                    if (selected) {
-                        Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = colors.interactive, modifier = Modifier.size(18.dp))
-                    } else {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.NavigateNext,
-                            contentDescription = null,
-                            tint = colors.textSecondary,
-                            modifier = Modifier.size(18.dp),
-                        )
-                    }
-                }
-            }
-        }
-        }
-        }
-    }
-}
-
-private enum class ReaderSettingsDetail(val title: String) {
-    APPEARANCE("Color themes"), ARABIC("Arabic font"), TRANSLATION("Translation"),
-}
-
-@Composable
-private fun ReaderSettingsNavigationRow(title: String, subtitle: String, testTag: String, onClick: () -> Unit) {
-    val colors = LocalHadithlyColors.current
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp).clickable(onClick = onClick).testTag(testTag),
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(title, fontSize = 21.sp, fontWeight = FontWeight.Medium, color = colors.textPrimary)
-            Text(subtitle, fontSize = 16.sp, color = colors.textSecondary, modifier = Modifier.padding(top = 4.dp))
-        }
-        Icon(Icons.AutoMirrored.Filled.NavigateNext, contentDescription = null, tint = colors.textSecondary, modifier = Modifier.size(24.dp))
-    }
-}
-
-/** Plain caps section label shared by the Sajda-style reader sheets. */
-@Composable
-private fun SettingsSectionLabel(text: String) {
-    val colors = LocalHadithlyColors.current
-    Text(
-        text = text,
-        fontSize = 12.sp,
-        fontWeight = FontWeight.SemiBold,
-        color = colors.textSecondary,
-        modifier = Modifier.padding(top = 20.dp, bottom = 4.dp),
+    com.hadithly.app.features.settings.ReaderPreferenceContent(
+        preferences = preferences.copy(translationLocale = language),
+        prefix = "reader",
+        onLanguage = onLanguage,
+        onArabicFontSize = onArabicFontSize,
+        onTranslationFontSize = onTranslationFontSize,
+        onTheme = onTheme,
+        onArabicFont = onArabicFont,
+        onVisibility = { arabic, translation ->
+            if (!onVisibility(arabic, translation)) ReaderHaptics.perform(view, ReaderHapticKind.REJECT_BOTH_HIDDEN)
+        },
+        onDismiss = onDismiss,
     )
-}
-
-@Composable
-private fun VisibilityPill(
-    title: String,
-    isOn: Boolean,
-    testTag: String,
-    onToggle: () -> Unit,
-) {
-    val colors = LocalHadithlyColors.current
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .background(if (isOn) colors.interactiveSoft else colors.surfaceElevated, RoundedCornerShape(50))
-            .toggleable(
-                value = isOn,
-                role = Role.Switch,
-                onValueChange = { onToggle() },
-            )
-            .padding(horizontal = 14.dp, vertical = 10.dp)
-            .testTag(testTag),
-    ) {
-        Icon(
-            imageVector = if (isOn) Icons.Filled.CheckCircle else Icons.Outlined.RadioButtonUnchecked,
-            contentDescription = null,
-            tint = if (isOn) colors.interactive else colors.textSecondary,
-            modifier = Modifier.size(18.dp),
-        )
-        Text(
-            title,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium,
-            color = if (isOn) colors.interactive else colors.textSecondary,
-        )
-    }
 }
 
 // Citations sheet

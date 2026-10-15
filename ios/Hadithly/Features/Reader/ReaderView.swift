@@ -143,9 +143,7 @@ struct ReaderView: View {
         .sheet(isPresented: $showSettings) {
             readerSheet {
                 if let model {
-                    ReaderSettingsSheet(model: model)
-                        .presentationDetents([.medium, .large])
-                        .presentationDragIndicator(.hidden)
+                    ReaderSettingsSheet(onLanguage: model.setLanguage)
                 }
             }
         }

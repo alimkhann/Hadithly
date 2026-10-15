@@ -31,7 +31,11 @@ struct RootView: View {
 
     @ViewBuilder
     var body: some View {
-        if AutomationContext.allows("-E2ProcessingFixture") {
+        if AutomationContext.allows("-ReaderSettingsFixture") {
+#if DEBUG
+            ReaderSettingsFixtureView()
+#endif
+        } else if AutomationContext.allows("-E2ProcessingFixture") {
 #if DEBUG
             EvidenceProcessingFixture()
 #endif

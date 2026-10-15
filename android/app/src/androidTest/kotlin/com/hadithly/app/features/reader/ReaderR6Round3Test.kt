@@ -512,6 +512,7 @@ class ReaderR6Round3Test {
                     language = "en",
                     onLanguage = {},
                     onArabicFontSize = {},
+                    onTranslationFontSize = {},
                     onTheme = {},
                     onArabicFont = {},
                     onVisibility = { _, _ -> true },
@@ -520,8 +521,8 @@ class ReaderR6Round3Test {
         }
 
         compose.onNodeWithTag("reader.settings.sheet").assertIsDisplayed()
-        compose.onNodeWithText("Settings").assertIsDisplayed()
-        compose.onNodeWithText("Reader settings").assertDoesNotExist()
+        compose.onNodeWithTag("reader.settings.title").assertIsDisplayed()
+        compose.onNodeWithText("Reader settings").assertIsDisplayed()
         compose.onNodeWithText("Mushaf", substring = true).assertDoesNotExist()
         compose.onNodeWithText("Reciter", substring = true).assertDoesNotExist()
     }
