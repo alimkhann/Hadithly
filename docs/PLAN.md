@@ -86,6 +86,17 @@ a monthly-equivalent-only paywall prototype; it is not store-review-ready.
 Existing release/device/account/copy and store gates remain open. This does not
 start L1 or authorize new deployments.
 
+## Product readiness review, October 17
+
+The owner reported RTL-to-LTR switching defects and incomplete localization,
+asked about grounding for both account tiers, and requested a review of the
+linked retention case study through the local Pi video tools. Findings and the
+ordered reading-and-return milestones are in `docs/PRODUCT_READINESS_REVIEW.md`.
+Ordinary generation is ungrounded for both tiers in the current checkout; source
+count must not be presented as evidence of retrieval. The existing Settings
+round-trip test passes but does not cover the reported visual defect or onboarding.
+No release, localization, deployment, or physical-device gate closes here.
+
 ## Read the plan in layers
 
 - `docs/PLAN.md` holds product rules, current state, session order, contracts,
