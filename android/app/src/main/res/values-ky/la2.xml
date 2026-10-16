@@ -11,8 +11,8 @@
     <string name="la2_sample_label">Даярдалган AI мисалы</string>
     <string name="la2_sample_notice">Hadithly жазган мисал текст, хадис эмес. AI котормолорунда каталар болушу мүмкүн.</string>
     <string name="la2_source_details">Бул мисал түпкү араб текстин сактайт. Булак: Hadithly. CC0 1.0.</string>
-    <string name="la2_account_title">Hadithly’ди өзүңүздүкү кылыңыз</string>
-    <string name="la2_account_body">Өз тилиңизде котормолорду түзүңүз. Окуган жериңизди бардык түзмөктөрдө сактаңыз.</string>
+    <string name="la2_account_title">Окугандарыңыз дайыма жаныңызда</string>
+    <string name="la2_account_body">Сакталган хадистер менен жазууларыңыз жаныңызда болушу үчүн кириңиз.</string>
     <string name="la2_create_account">Аккаунт түзүү</string>
     <string name="la2_sign_in">Кирүү</string>
     <string name="la2_guest">Конок катары улантуу</string>
@@ -34,7 +34,7 @@
     <string name="la2_close">Жабуу</string>
     <string name="la2_privacy">Купуялуулук</string>
     <string name="la2_terms">Шарттар</string>
-    <string name="la2_renewal">Тандалган эсептешүү мезгили үчүн көрсөтүлгөн баада автоматтык түрдө жаңыланат. Дүкөн аккаунтуңуздан башкарыңыз же токтотуңуз.</string>
+    <string name="la2_renewal">Жазылуу автоматтык түрдө узартылат. Аны дүкөндөгү аккаунтуңуздан башкарып же токтото аласыз.</string>
     <string name="la2_checking">Pro мүмкүнчүлүгү текшерилүүдө…</string>
     <string name="la2_cancelled">Сатып алуу жокко чыгарылды. Окууну уланта аласыз.</string>
     <string name="la2_pending">Төлөм күтүлүүдө. Дүкөн ырастагандан кийин Pro ачылат.</string>

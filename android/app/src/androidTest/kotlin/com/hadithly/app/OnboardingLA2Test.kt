@@ -13,7 +13,7 @@ import java.io.File
 
 class OnboardingLA2Test {
     @get:Rule val compose = createAndroidComposeRule<MainActivity>()
-    @Test fun realFlowRevealsExampleOffersGuestAndRecoversCancelledSignup() {
+    @Test fun realFlowLoadsDailyHadithAndOffersGuestAfterSignInEntry() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val prefs = context.getSharedPreferences("onboarding", 0)
         val old = prefs.all
@@ -23,27 +23,40 @@ class OnboardingLA2Test {
             prefs.edit().clear().commit()
             app.settings.setOnboardingCompleted(false)
             compose.waitForIdle()
+            val welcomeCtaTop = compose.onNodeWithTag("onboarding.getStarted").fetchSemanticsNode().boundsInRoot.top
             compose.onNodeWithTag("onboarding.getStarted").assertIsDisplayed().performClick()
+            val languageCtaTop = compose.onNodeWithTag("onboarding.continue").fetchSemanticsNode().boundsInRoot.top
+            assertEquals(welcomeCtaTop, languageCtaTop, 1f)
             compose.onNodeWithTag("onboarding.continue").performClick()
-            compose.onNodeWithTag("onboarding.reveal").assertIsDisplayed().performClick()
-            compose.onNodeWithTag("onboarding.example").assertIsDisplayed()
+            compose.waitUntil(timeoutMillis = 30_000) {
+                compose.onAllNodesWithTag("onboarding.dailyText").fetchSemanticsNodes().isNotEmpty() ||
+                    compose.onAllNodesWithTag("onboarding.dailyRetry").fetchSemanticsNodes().isNotEmpty()
+            }
+            val dailyText = compose.onAllNodesWithTag("onboarding.dailyText").fetchSemanticsNodes().isNotEmpty()
+            val demoCtaTop = compose.onNodeWithTag("onboarding.continue").fetchSemanticsNode().boundsInRoot.top
+            assertEquals(languageCtaTop, demoCtaTop, 1f)
+            if (dailyText) {
+                compose.onNodeWithTag("onboarding.dailyText").assertIsDisplayed()
+                if (compose.onAllNodesWithTag("hadith.text.translation").fetchSemanticsNodes().isNotEmpty()) {
+                    compose.onNodeWithTag("hadith.text.translation").assertIsDisplayed()
+                }
+            }
+            else compose.onNodeWithTag("onboarding.dailyRetry").assertIsDisplayed()
             val directory = File(context.getExternalFilesDir(null), "LA2").apply { mkdirs() }
-            compose.onRoot().captureToImage().asAndroidBitmap().let { bitmap -> File(directory, "demo.png").outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) } }
+            compose.onRoot().captureToImage().asAndroidBitmap().let { bitmap ->
+                val name = if (dailyText) "demo-daily-hadith.png" else "demo-unavailable-retry.png"
+                File(directory, name).outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+            }
             compose.onNodeWithTag("onboarding.continue").performClick()
-            compose.onNodeWithTag("onboarding.createAccount").performScrollTo().assertIsDisplayed().performClick()
-            compose.onNodeWithText("Close").performClick()
-            compose.onNodeWithTag("onboarding.guest").performScrollTo().assertIsDisplayed()
+            compose.onNodeWithTag("onboarding.signIn").assertIsDisplayed().performClick()
+            compose.onNodeWithTag("signin.close").performClick()
+            compose.onNodeWithTag("onboarding.guest").assertIsDisplayed()
             compose.onRoot().captureToImage().asAndroidBitmap().let { bitmap -> File(directory, "account.png").outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) } }
             compose.onNodeWithTag("onboarding.guest").performClick()
             compose.runOnIdle { assertTrue(app.settings.onboardingCompleted.value) }
             compose.waitUntil(timeoutMillis = 10_000) { compose.onAllNodesWithTag("tabs.library").fetchSemanticsNodes().isNotEmpty() }
             compose.onNodeWithTag("tabs.library").performClick()
-            compose.onNodeWithTag("library.collection.bukhari").performClick()
-            compose.waitUntil(timeoutMillis = 30_000) { compose.onAllNodesWithTag("reader.hadithLabel").fetchSemanticsNodes().isNotEmpty() }
-            compose.onAllNodesWithTag("reader.hadithLabel")[0].assertIsDisplayed()
-            compose.onRoot().performTouchInput { swipeUp() }
-            compose.waitForIdle(); Thread.sleep(1000)
-            app.analytics.flush(); Thread.sleep(3500)
+            compose.onNodeWithTag("library.collection.bukhari").assertIsDisplayed()
         } finally {
             app.settings.setOnboardingCompleted(previouslyComplete)
             val edit = prefs.edit().clear()

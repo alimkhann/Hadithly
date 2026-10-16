@@ -11,8 +11,8 @@
     <string name="la2_sample_label">تیار کردہ AI مثال</string>
     <string name="la2_sample_notice">Hadithly کا مثالی متن، حدیث نہیں۔ AI ترجمے میں غلطیاں ہو سکتی ہیں۔</string>
     <string name="la2_source_details">یہ مثال عربی اصل متن محفوظ رکھتی ہے۔ ماخذ: Hadithly۔ CC0 1.0۔</string>
-    <string name="la2_account_title">Hadithly کو اپنا بنائیں</string>
-    <string name="la2_account_body">اپنی زبان میں ترجمے بنائیں۔ اپنے آلات میں پڑھنے کی جگہ محفوظ رکھیں۔</string>
+    <string name="la2_account_title">آپ کی پڑھائی، جہاں بھی آپ ہوں</string>
+    <string name="la2_account_body">اپنی محفوظ احادیث اور نوٹس ساتھ رکھنے کے لیے سائن ان کریں۔</string>
     <string name="la2_create_account">اکاؤنٹ بنائیں</string>
     <string name="la2_sign_in">سائن ان کریں</string>
     <string name="la2_guest">مہمان کے طور پر جاری رکھیں</string>
@@ -34,7 +34,7 @@
     <string name="la2_close">بند کریں</string>
     <string name="la2_privacy">رازداری</string>
     <string name="la2_terms">شرائط</string>
-    <string name="la2_renewal">منتخب مدت کے لیے دکھائی گئی قیمت پر خودکار تجدید ہوتی ہے۔ اسٹور اکاؤنٹ میں انتظام یا منسوخی کریں۔</string>
+    <string name="la2_renewal">سبسکرپشن خود بخود تجدید ہوتی ہے۔ اپنے اسٹور اکاؤنٹ میں اس کا نظم کریں یا منسوخ کریں۔</string>
     <string name="la2_checking">Pro رسائی کی جانچ…</string>
     <string name="la2_cancelled">خریداری منسوخ۔ آپ پڑھنا جاری رکھ سکتے ہیں۔</string>
     <string name="la2_pending">ادائیگی زیر التوا ہے۔ اسٹور کی تصدیق پر Pro کھلے گا۔</string>

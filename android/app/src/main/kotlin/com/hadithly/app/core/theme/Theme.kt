@@ -130,20 +130,26 @@ object Spacing {
     val xxl = 32.dp
 }
 
-private fun appScheme(colors: HadithlyColors, dark: Boolean) = if (dark) {
-    darkColorScheme(
+/** Native controls share every surface role with the app/reader palette. */
+internal fun nativeColorScheme(colors: HadithlyColors, dark: Boolean): androidx.compose.material3.ColorScheme {
+    val base = if (dark) darkColorScheme() else lightColorScheme()
+    return base.copy(
         primary = colors.interactive, onPrimary = colors.onInteractive,
+        primaryContainer = colors.interactiveSoft, onPrimaryContainer = colors.textPrimary,
+        secondary = colors.interactive, onSecondary = colors.onInteractive,
+        secondaryContainer = colors.surfaceElevated, onSecondaryContainer = colors.textPrimary,
+        tertiary = colors.interactive, onTertiary = colors.onInteractive,
+        tertiaryContainer = colors.surfaceElevated, onTertiaryContainer = colors.textPrimary,
         background = colors.background, onBackground = colors.textPrimary,
         surface = colors.surface, onSurface = colors.textPrimary,
         surfaceVariant = colors.surfaceElevated, onSurfaceVariant = colors.textSecondary,
-        error = colors.destructive,
-    )
-} else {
-    lightColorScheme(
-        primary = colors.interactive, onPrimary = colors.onInteractive,
-        background = colors.background, onBackground = colors.textPrimary,
-        surface = colors.surface, onSurface = colors.textPrimary,
-        surfaceVariant = colors.surfaceElevated, onSurfaceVariant = colors.textSecondary,
+        surfaceDim = colors.surfaceElevated, surfaceBright = colors.background,
+        surfaceContainerLowest = colors.background,
+        surfaceContainerLow = colors.surface, surfaceContainer = colors.surface,
+        surfaceContainerHigh = colors.surfaceElevated, surfaceContainerHighest = colors.surfaceElevated,
+        surfaceTint = Color.Transparent,
+        inverseSurface = colors.textPrimary, inverseOnSurface = colors.background, inversePrimary = colors.onInteractive,
+        outline = colors.divider, outlineVariant = colors.divider,
         error = colors.destructive,
     )
 }
@@ -175,7 +181,7 @@ fun HadithlyTheme(
     }
     androidx.compose.runtime.CompositionLocalProvider(LocalHadithlyColors provides colors) {
         MaterialTheme(
-            colorScheme = appScheme(colors, dark),
+            colorScheme = nativeColorScheme(colors, dark),
             content = content,
         )
     }

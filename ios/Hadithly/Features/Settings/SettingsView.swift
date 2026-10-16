@@ -108,7 +108,7 @@ struct SettingsView: View {
 
             }
             .listRowBackground(palette.surface)
-            .listRowSeparatorTint(palette.divider)
+
         }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)

@@ -5,6 +5,7 @@ struct NativeFinishingFixtureView: View {
     @Environment(AppEnvironment.self) private var environment
     @State private var configured = false
     @State private var finished = false
+    @State private var showingSignIn = false
     private let values = ProcessInfo.processInfo.environment
     private var screen: String { values["FINISH_SCREEN"] ?? "install" }
     @Environment(\.colorScheme) private var colorScheme
@@ -22,6 +23,8 @@ struct NativeFinishingFixtureView: View {
                     case "fresh-install", "install", "welcome", "language", "demo", "account":
                         if finished { Text("Reading is ready").accessibilityIdentifier("finishing.complete") }
                         else { OnboardingFlowView { finished = true } }
+                    case "paywall": FinishingPaywallOptions()
+                    case "settings-auth": MainTabsView(showSignIn: $showingSignIn)
                     case "contents":
                         FinishingSheet { ReaderContentsTestFixtureView() }
                     case "search", "saved":
@@ -79,4 +82,20 @@ private struct FinishingSavedTabs: View {
         }.tint(palette.interactive).toolbarBackground(palette.surface, for: .tabBar).toolbarBackground(.visible, for: .tabBar)
     }
 }
+private struct FinishingPaywallOptions: View {
+    @State private var annual = true
+    @Environment(\.readerPalette) private var palette
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("la2.more_translations").font(.largeTitle.bold()).multilineTextAlignment(.center)
+            Text("la2.allowance").font(.subheadline).foregroundStyle(palette.textSecondary).multilineTextAlignment(.center)
+            PaywallPlanOption(annual: true, isSelected: annual, price: "$2.08", savingsPercent: 30) { annual = true }
+            PaywallPlanOption(annual: false, isSelected: !annual, price: "$2.99", savingsPercent: nil) { annual = false }
+            OnboardingPrimaryButton(annual ? "la2.subscribe_annual" : "la2.subscribe_monthly") {}.disabled(true)
+            Text("la2.renewal").font(.footnote).foregroundStyle(palette.textSecondary).multilineTextAlignment(.center)
+        }.padding(24).foregroundStyle(palette.textPrimary)
+            .frame(maxWidth: .infinity, maxHeight: .infinity).background(palette.background.ignoresSafeArea())
+    }
+}
+
 #endif

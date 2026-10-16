@@ -11,8 +11,8 @@
     <string name="la2_sample_label">Ejemplo de IA preparado</string>
     <string name="la2_sample_notice">Texto ilustrativo de Hadithly, no es un hadiz. Las traducciones de IA pueden contener errores.</string>
     <string name="la2_source_details">Este ejemplo conserva el árabe original. Fuente: Hadithly. CC0 1.0.</string>
-    <string name="la2_account_title">Haz tuyo Hadithly</string>
-    <string name="la2_account_body">Crea traducciones en tu idioma. Conserva tu posición entre dispositivos.</string>
+    <string name="la2_account_title">Tus lecturas, donde estés</string>
+    <string name="la2_account_body">Inicia sesión para llevar contigo tus hadices guardados y notas.</string>
     <string name="la2_create_account">Crear cuenta</string>
     <string name="la2_sign_in">Iniciar sesión</string>
     <string name="la2_guest">Continuar como invitado</string>
@@ -34,7 +34,7 @@
     <string name="la2_close">Cerrar</string>
     <string name="la2_privacy">Privacidad</string>
     <string name="la2_terms">Condiciones</string>
-    <string name="la2_renewal">Se renueva automáticamente al precio mostrado para el periodo elegido. Administra o cancela desde tu cuenta de la tienda.</string>
+    <string name="la2_renewal">La suscripción se renueva automáticamente. Adminístrala o cancélala en tu cuenta de la tienda.</string>
     <string name="la2_checking">Comprobando el acceso a Pro…</string>
     <string name="la2_cancelled">Compra cancelada. Puedes seguir leyendo.</string>
     <string name="la2_pending">El pago está pendiente. Pro se desbloqueará cuando la tienda lo confirme.</string>

@@ -101,7 +101,6 @@ struct SettingsList<Content: View>: View {
         List {
             content
                 .listRowBackground(palette.surface)
-                .listRowSeparatorTint(palette.divider)
         }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
@@ -388,38 +387,25 @@ struct AppearanceView: View {
 
     var body: some View {
         SettingsList("Appearance") {
-            Section {
-                Picker("", selection: Binding(
-                    get: { environment.preferences.preferences.appTheme },
-                    set: { environment.preferences.setTheme($0) }
-                )) {
+            Section("App appearance") {
+                Picker("App appearance", selection: Binding(get: { environment.preferences.preferences.appTheme }, set: { environment.preferences.setTheme($0) })) {
                     ForEach(ReaderTheme.allCases, id: \.self) { theme in
-                        Text(Self.label(theme))
-                            .tag(theme)
-                            .accessibilityIdentifier("settings.appearance.\(theme.rawValue)")
+                        Text(Self.label(theme)).tag(theme).accessibilityIdentifier("settings.appearance.\(theme.rawValue)")
                     }
-                }
-                .labelsHidden()
-                .pickerStyle(.inline)
-                Toggle("Use a separate reader appearance", isOn: Binding(
-                    get: { environment.preferences.preferences.usesSeparateReaderTheme },
-                    set: { environment.preferences.setSeparateReaderTheme($0) }
-                ))
-                if environment.preferences.preferences.usesSeparateReaderTheme {
-                    Picker("Reader appearance", selection: Binding(
-                        get: { environment.preferences.preferences.readerTheme },
-                        set: { environment.preferences.setReaderTheme($0) }
-                    )) {
+                }.pickerStyle(.inline).labelsHidden()
+            }
+            Section {
+                Toggle("Use a separate reader appearance", isOn: Binding(get: { environment.preferences.preferences.usesSeparateReaderTheme }, set: { environment.preferences.setSeparateReaderTheme($0) }))
+                    .accessibilityIdentifier("settings.appearance.separateReader")
+            }
+            if environment.preferences.preferences.usesSeparateReaderTheme {
+                Section("Reader appearance") {
+                    Picker("Reader appearance", selection: Binding(get: { environment.preferences.preferences.readerTheme }, set: { environment.preferences.setReaderTheme($0) })) {
                         ForEach(ReaderTheme.allCases, id: \.self) { theme in
-                            Text(Self.label(theme)).tag(theme)
+                            Text(Self.label(theme)).tag(theme).accessibilityIdentifier("settings.readerAppearance.\(theme.rawValue)")
                         }
-                    }
-                    .pickerStyle(.inline)
+                    }.pickerStyle(.inline).labelsHidden()
                 }
-            } header: {
-                Text("App appearance")
-            } footer: {
-                Text("Applies across the app. The reader previews each theme live.")
             }
         }
     }
@@ -1074,13 +1060,13 @@ struct PrivacyDataView: View {
                 Toggle("la2.usage", isOn: Binding(get: { environment.analytics.sharing },
                     set: { environment.analytics.setSharing($0) }))
                     .accessibilityIdentifier("settings.usageStatistics")
-            } footer: { Text("la2.usage_explanation") }
+            } footer: { Text("Share basic app statistics to help improve Hadithly. Your reading text, notes and account details are never included. Turning this off clears pending statistics.") }
             Section {
                 Toggle("Send crash reports", isOn: $crashConsent)
                     .accessibilityIdentifier("settings.crashReports")
                     .onChange(of: crashConsent) { _, enabled in CrashReporting.shared.setConsent(enabled) }
             } footer: {
-                Text("Optional. Sends redacted failures and build information to Sentry. No reading text or account details. Reports expire after 30 days. Turning off clears pending reports on this device.")
+                Text("Crash reports help us fix problems. They never include your reading text, notes or account details. You can turn them off at any time.")
             }
             Section {
                 if clerk.session != nil {
@@ -1109,7 +1095,7 @@ struct PrivacyDataView: View {
             } header: {
                 Text("Your data")
             } footer: {
-                Text("Export your profile, preferences, Saved items, folders, reading progress, and your own contributions as JSON. Guest data never leaves this device.")
+                Text("Download your profile, settings, saved items, folders, reading progress and contributions. Guest data stays on this device.")
             }
 
             Section("Policies") {
@@ -1290,7 +1276,6 @@ struct HelpSupportView: View {
 
 struct AboutLegalView: View {
     @Environment(AppEnvironment.self) private var environment
-    @State private var showLicenses = false
 
     var body: some View {
         SettingsList("About & legal") {
@@ -1304,8 +1289,6 @@ struct AboutLegalView: View {
             }
 
             Section("Legal") {
-                Button("Font licenses") { showLicenses = true }
-                    .accessibilityIdentifier("settings.about.licenses")
                 if let privacyURL = environment.config.privacyPolicyURL {
                     Link("Privacy Policy", destination: privacyURL)
                 } else {
@@ -1318,21 +1301,6 @@ struct AboutLegalView: View {
                 }
             }
         }
-        .sheet(isPresented: $showLicenses) {
-            NavigationStack {
-                List {
-                    Section {
-                        Text("Arabic reading faces — Amiri, Scheherazade New, and Noto Naskh Arabic — are licensed under the SIL Open Font License 1.1 (https://openfontlicense.org). Full license records live in docs/FONT_LICENSES.md.")
-                        Text("Hadith source identity, authenticity scope, and license records travel with every text. A technically accessible source is not automatically reusable.")
-                            .foregroundStyle(Theme.textSecondary)
-                    }
-                }
-                .listStyle(.insetGrouped)
-                .scrollContentBackground(.hidden)
-                .background(Theme.background)
-                .navigationTitle("Licenses")
-                .navigationBarTitleDisplayMode(.inline)
-            }
-        }
+
     }
 }

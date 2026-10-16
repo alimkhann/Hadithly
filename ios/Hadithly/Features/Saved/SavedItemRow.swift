@@ -1,6 +1,16 @@
 import SwiftUI
 import UIKit
 
+private struct SavedUndoPresenterKey: EnvironmentKey {
+    static let defaultValue: ((SavedUndoNotice) -> Void)? = nil
+}
+extension EnvironmentValues {
+    var presentSavedUndo: ((SavedUndoNotice) -> Void)? {
+        get { self[SavedUndoPresenterKey.self] }
+        set { self[SavedUndoPresenterKey.self] = newValue }
+    }
+}
+
 enum SavedFacetRemoval: Identifiable {
     case bookmark(SavedItemEntry, HadithRef)
     case favorite(SavedItemEntry, HadithRef)
@@ -16,14 +26,10 @@ enum SavedFacetRemoval: Identifiable {
 }
 
 struct SavedUndoNotice: Identifiable {
-    let id = UUID()
+    var id = UUID()
     let message: String
     let undo: () -> Void
-    let deadline = Date.now.addingTimeInterval(5)
-}
-
-enum SavedUndoDeadline {
-    static let duration: TimeInterval = 5
+    var deadline = Date.now.addingTimeInterval(SavedUndoDeadline.duration)
 }
 
 /// Bottom-placed undo toast with a five-second countdown ring. The host
@@ -32,24 +38,27 @@ struct SavedUndoBanner: View {
     let notice: SavedUndoNotice
     var onExpire: (() -> Void)? = nil
 
-    @State private var startedAt = Date.now
+    @Environment(\.readerPalette) private var palette
+    @Environment(\.accessibilityReduceMotion) private var reducedMotion
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: "arrow.uturn.backward.circle.fill").foregroundStyle(Theme.accent)
+            Image(systemName: "arrow.uturn.backward.circle.fill").foregroundStyle(palette.textSecondary)
             Text(notice.message).font(.subheadline.weight(.medium))
             Spacer()
             Button {
                 notice.undo()
+                withAnimation(reducedMotion ? nil : .easeOut(duration: InterfaceMotion.quick)) { onExpire?() }
             } label: {
                 HStack(spacing: 6) {
                     Text("Undo").fontWeight(.semibold)
-                    CountdownRing(deadline: startedAt.addingTimeInterval(SavedUndoDeadline.duration))
+                    CountdownRing(deadline: notice.deadline)
                 }
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier("saved.undoButton")
         }
+        .foregroundStyle(palette.textPrimary)
         .padding(.horizontal, 14).padding(.vertical, 12)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
         .shadow(color: .black.opacity(0.14), radius: 10, y: 4)
@@ -57,10 +66,12 @@ struct SavedUndoBanner: View {
         .padding(.bottom, 12)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("saved.undoBanner")
+        .transition(reducedMotion ? .opacity : .asymmetric(
+            insertion: .move(edge: .bottom).combined(with: .opacity), removal: .opacity))
         .task(id: notice.id) {
-            startedAt = Date.now
-            try? await Task.sleep(for: .seconds(SavedUndoDeadline.duration))
-            onExpire?()
+            do { try await Task.sleep(for: .seconds(max(0, notice.deadline.timeIntervalSinceNow))) }
+            catch { return }
+            withAnimation(reducedMotion ? nil : .easeOut(duration: InterfaceMotion.quick)) { onExpire?() }
         }
     }
 }
@@ -68,24 +79,23 @@ struct SavedUndoBanner: View {
 /// Small ring that empties over five seconds, matching the banner deadline.
 struct CountdownRing: View {
     let deadline: Date
+    @Environment(\.readerPalette) private var palette
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reducedMotion
 
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 0.05)) { context in
-            let remaining = max(0, deadline.timeIntervalSince(context.date))
-            let progress = SavedUndoDeadline.duration <= 0 ? 0 : remaining / SavedUndoDeadline.duration
-            ZStack {
-                Circle().stroke(Theme.textSecondary.opacity(0.25), lineWidth: 2)
-                Circle()
-                    .trim(from: 0, to: progress)
-                    .stroke(
-                        progress > 0.2 ? Theme.textSecondary : Theme.accent,
-                        style: StrokeStyle(lineWidth: 2, lineCap: .round)
-                    )
-                    .rotationEffect(.degrees(-90))
+        TimelineView(.animation(paused: scenePhase != .active || reducedMotion)) { context in
+            Canvas { graphics, size in
+                let rect = CGRect(origin: .zero, size: size).insetBy(dx: 1, dy: 1)
+                graphics.stroke(Path(ellipseIn: rect), with: .color(palette.textSecondary.opacity(0.25)), lineWidth: 2)
+                guard !reducedMotion else { return }
+                let progress = min(1, max(0, deadline.timeIntervalSince(context.date) / SavedUndoDeadline.duration))
+                var arc = Path()
+                arc.addArc(center: CGPoint(x: size.width / 2, y: size.height / 2), radius: (min(size.width, size.height) - 2) / 2,
+                    startAngle: .degrees(-90), endAngle: .degrees(-90 + 360 * progress), clockwise: false)
+                graphics.stroke(arc, with: .color(palette.textSecondary), style: StrokeStyle(lineWidth: 2, lineCap: .round))
             }
-            .frame(width: 16, height: 16)
-            .accessibilityHidden(true)
-        }
+        }.frame(width: 16, height: 16).accessibilityHidden(true)
     }
 }
 
@@ -99,6 +109,7 @@ struct SharedSavedItemRow: View {
     let onMove: (String?) -> Void
     let onSuggestTranslation: (HadithRef) -> Void
 
+    @Environment(\.readerPalette) private var palette
     @State private var expanded = false
     @Environment(\.accessibilityReduceMotion) private var reducedMotion
 
@@ -109,13 +120,13 @@ struct SharedSavedItemRow: View {
                     Button { onOpen(ref) } label: {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(ref.referenceDisplay.isEmpty ? ref.collectionName : ref.referenceDisplay)
-                                .font(.subheadline.weight(.semibold)).foregroundStyle(Theme.textPrimary).lineLimit(2)
+                                .font(.subheadline.weight(.semibold)).foregroundStyle(palette.textPrimary).lineLimit(2)
                             HStack(spacing: 6) {
-                                if item.bookmarkCreatedAt != nil { Image(systemName: "bookmark.fill").accessibilityLabel("Bookmarked") }
-                                if item.favoriteCreatedAt != nil { Image(systemName: "heart.fill").accessibilityLabel("Favorite") }
-                                if item.noteContent != nil { Image(systemName: "note.text").accessibilityLabel("Has note") }
+                                if item.bookmarkCreatedAt != nil { Image(systemName: "bookmark.fill").foregroundStyle(Theme.bookmark).accessibilityLabel("Bookmarked") }
+                                if item.favoriteCreatedAt != nil { Image(systemName: "heart.fill").foregroundStyle(Theme.favorite).accessibilityLabel("Favorite") }
+                                if item.noteContent != nil { Image(systemName: "note.text").foregroundStyle(palette.textPrimary).accessibilityLabel("Has note") }
                                 Text(SavedRelativeTime.string(since: item.sortDate))
-                            }.font(.caption).foregroundStyle(Theme.textSecondary)
+                            }.font(.caption).foregroundStyle(palette.textSecondary)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .contentShape(Rectangle())
@@ -138,18 +149,18 @@ struct SharedSavedItemRow: View {
                 }
 
                 if showsFolder, let folderName {
-                    Label(folderName, systemImage: "folder").font(.caption).foregroundStyle(Theme.textSecondary)
+                    Label(folderName, systemImage: "folder").font(.caption).foregroundStyle(palette.textSecondary)
                 }
                 if let note = item.noteContent, !note.isEmpty {
-                    Text(note).font(.caption).foregroundStyle(Theme.textSecondary).lineLimit(expanded ? nil : 2)
+                    Text(note).font(.caption).foregroundStyle(palette.textSecondary).lineLimit(expanded ? nil : 2)
                 }
                 if expanded {
                     if !ref.arabicText.isEmpty { Text(ref.arabicText).font(Theme.arabic(19)).frame(maxWidth: .infinity, alignment: .trailing).environment(\.layoutDirection, .rightToLeft) }
-                    if let english = ref.englishText, !english.isEmpty { Text(english).font(.subheadline).foregroundStyle(Theme.textSecondary) }
+                    if let english = ref.englishText, !english.isEmpty { Text(english).font(.subheadline).foregroundStyle(palette.textSecondary) }
                 }
             }
             .padding(14)
-            .background(Theme.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .background(palette.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             .contextMenu { rowActions(ref) }
         }
     }

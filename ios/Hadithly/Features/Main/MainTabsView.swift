@@ -52,6 +52,12 @@ struct MainTabsView: View {
 
             NavigationStack {
                 SettingsView(showSignIn: $showSignIn)
+                    .navigationDestination(isPresented: $showSignIn) {
+                        SignInView(onAuthenticated: {
+                            await environment.completeSignIn()
+                            showSignIn = false
+                        }, onDismiss: { showSignIn = false }, embeddedInNavigation: true)
+                    }
             }
             .tabItem { Label("Settings", systemImage: "gearshape") }
             .tag(3)

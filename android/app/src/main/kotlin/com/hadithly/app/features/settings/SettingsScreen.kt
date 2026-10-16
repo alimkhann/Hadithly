@@ -403,19 +403,70 @@ private fun ProfileDestination() {
 @Composable
 private fun AppearanceDestination() {
     val app = rememberApp()
-    val colors = LocalHadithlyColors.current
     val preferences by app.preferences.preferences.collectAsStateWithLifecycle()
+    val store = app.preferences
+    AppearanceOptions(
+        preferences = preferences,
+        onAppTheme = store::setTheme,
+        onSeparateReaderTheme = store::setSeparateReaderTheme,
+        onReaderTheme = store::setReaderTheme,
+    )
+}
+
+@Composable
+internal fun AppearanceOptions(
+    preferences: com.hadithly.app.core.preferences.ReaderPreferences,
+    onAppTheme: (ReaderTheme) -> Unit,
+    onSeparateReaderTheme: (Boolean) -> Unit,
+    onReaderTheme: (ReaderTheme) -> Unit,
+) {
+    val colors = LocalHadithlyColors.current
     ScrollColumn {
         CardColumn {
-            Text(stringResource(R.string.settings_appearance), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
-            Text(nativeText("Applies across the app. The reader previews each theme live."), fontSize = 12.sp, color = colors.textSecondary)
+            Text(nativeText("App appearance"), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+            Text(nativeText("Choose the appearance used throughout the app."), fontSize = 12.sp, color = colors.textSecondary)
             ReaderTheme.entries.forEach { theme ->
                 SettingsSingleChoiceRow(
                     label = themeLabel(theme),
                     selected = theme == preferences.appTheme,
-                    onClick = { app.preferences.setTheme(theme) },
+                    onClick = { onAppTheme(theme) },
                     modifier = Modifier.testTag("settings.appearance.${theme.wire}"),
                 )
+            }
+        }
+        CardColumn {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)
+                    .toggleable(
+                        value = preferences.usesSeparateReaderTheme,
+                        role = androidx.compose.ui.semantics.Role.Switch,
+                        onValueChange = onSeparateReaderTheme,
+                    )
+                    .testTag("settings.appearance.separateReader"),
+            ) {
+                Column(Modifier.weight(1f).padding(end = 12.dp)) {
+                    Text(nativeText("Separate reader appearance"), color = colors.textPrimary)
+                    Text(nativeText("When off, the reader follows app appearance."), fontSize = 12.sp, color = colors.textSecondary)
+                }
+                Switch(
+                    checked = preferences.usesSeparateReaderTheme,
+                    onCheckedChange = null,
+                    colors = SwitchDefaults.colors(checkedTrackColor = colors.interactive),
+                )
+            }
+        }
+        if (preferences.usesSeparateReaderTheme) {
+            CardColumn {
+                Text(nativeText("Reader appearance"), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+                ReaderTheme.entries.forEach { theme ->
+                    SettingsSingleChoiceRow(
+                        label = themeLabel(theme),
+                        selected = theme == preferences.readerTheme,
+                        onClick = { onReaderTheme(theme) },
+                        modifier = Modifier.testTag("settings.appearance.reader.${theme.wire}"),
+                    )
+                }
             }
         }
     }
@@ -1005,11 +1056,11 @@ private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
                     .toggleable(value = usageSharing, role = androidx.compose.ui.semantics.Role.Switch,
                         onValueChange = { app.analytics.setSharing(it) }).testTag("settings.usageStatistics")) {
-                Text(stringResource(R.string.la2_usage), modifier = Modifier.weight(1f), color = colors.textPrimary)
+                Text(nativeText("Share anonymous usage details"), modifier = Modifier.weight(1f), color = colors.textPrimary)
                 Switch(checked = usageSharing, onCheckedChange = null,
                     colors = SwitchDefaults.colors(checkedTrackColor = colors.interactive))
             }
-            Text(stringResource(R.string.la2_usage_explanation), color = colors.textSecondary)
+            Text(nativeText("This helps us understand how the app is used. It does not include what you read or your account details. You can turn it off at any time."), color = colors.textSecondary)
         }
         CardColumn {
             Row(verticalAlignment = Alignment.CenterVertically,
@@ -1023,12 +1074,12 @@ private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
                 Switch(checked = crashConsent, onCheckedChange = null,
                     colors = SwitchDefaults.colors(checkedTrackColor = colors.interactive))
             }
-            Text(stringResource(R.string.diagnostics_privacy), fontSize = 14.sp, color = colors.textSecondary)
+            Text(nativeText("Optional. Sends redacted crash details and app version so we can fix problems. Reports do not include reading text or account details. Turning this off clears reports waiting to send."), fontSize = 14.sp, color = colors.textSecondary)
         }
         CardColumn {
             Text(nativeText("Your data"), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
             if (signedIn) {
-                Text(nativeText("Export your profile, preferences, Saved items, folders, reading progress, and your own contributions as JSON."), fontSize = 14.sp, color = colors.textSecondary)
+                Text(nativeText("Export your profile, preferences, Saved items, folders, reading progress, and your own contributions as a file."), fontSize = 14.sp, color = colors.textSecondary)
                 Button(
                     enabled = !exporting,
                     onClick = { showExportConfirm = true },
@@ -1197,7 +1248,6 @@ private fun HelpSupportDestination() {
 private fun AboutLegalDestination() {
     val colors = LocalHadithlyColors.current
     val uriHandler = LocalUriHandler.current
-    var showLicenses by remember { mutableStateOf(false) }
     ScrollColumn {
         CardColumn {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1211,21 +1261,9 @@ private fun AboutLegalDestination() {
             )
         }
         CardColumn {
-            PolicyRow(title = "Font licenses", onClick = { showLicenses = true }, modifier = Modifier.testTag("settings.about.licenses"))
             PolicyRow(title = "Privacy Policy", onClick = { uriHandler.openUri(SettingsLinks.PRIVACY) })
             PolicyRow(title = "Terms of Use", onClick = { uriHandler.openUri(SettingsLinks.TERMS) })
         }
-    }
-    if (showLicenses) {
-        AlertDialog(
-            onDismissRequest = { showLicenses = false },
-            title = { Text(nativeText("Licenses")) },
-            text = {
-                Text("Arabic reading faces — Amiri, Scheherazade New, and Noto Naskh Arabic — are licensed under the SIL Open Font License 1.1 (https://openfontlicense.org). Full license records live in docs/FONT_LICENSES.md. Hadith source identity, authenticity scope, and license records travel with every text.")
-            },
-            confirmButton = { TextButton(onClick = { showLicenses = false }) { Text(nativeText("Done")) } },
-            containerColor = colors.surface,
-        )
     }
 }
 

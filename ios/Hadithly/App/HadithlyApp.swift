@@ -68,6 +68,7 @@ private struct AppPaletteRoot<Content: View>: View {
 
     var body: some View {
         themedContent
+            .nativeAppearanceBoundary()
             .environment(\.readerPalette, palette)
             .environment(\.readerTheme, theme)
             .tint(palette.interactive)

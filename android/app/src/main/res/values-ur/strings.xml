@@ -40,8 +40,8 @@
     <string name="action_continue">Continue</string>
     <string name="settings_reading">Reading</string>
     <string name="settings_arabic_type_size">Arabic type size</string>
-    <string name="settings_app_language">App language</string>
-    <string name="settings_hadith_translation">Hadith translation</string>
+    <string name="settings_app_language">ایپ کی زبان</string>
+    <string name="settings_hadith_translation">حدیث کا ترجمہ</string>
     <string name="settings_reading_direction">Reading direction</string>
     <string name="settings_visibility_arabic">Arabic text</string>
     <string name="settings_visibility_translation">Translation</string>
@@ -87,10 +87,10 @@
     <string name="q1_remaining">Seven-day allowance: %1$d of %2$d left</string>
     <string name="q1_retry_at">Available again %1$s</string>
     <string name="q1_quota_exhausted">আপনার সাত দিনের সীমা শেষ হয়েছে। পড়া এবং বিদ্যমান অনুবাদ বিনামূল্যে থাকবে।</string>
-    <string name="app_today">Today</string>
-    <string name="app_library">Library</string>
-    <string name="app_saved">Saved</string>
-    <string name="app_settings">Settings</string>
+    <string name="app_today">آج</string>
+    <string name="app_library">کتب خانہ</string>
+    <string name="app_saved">محفوظ کردہ</string>
+    <string name="app_settings">ترتیبات</string>
     <string name="app_daily_hadith">Daily hadith</string>
     <string name="settings_profile">Profile</string>
     <string name="settings_appearance">Appearance</string>
@@ -108,4 +108,9 @@
     <string name="diagnostics_consent">Send crash reports</string>
     <string name="diagnostics_privacy">Optional. Sends redacted failures and build information to Sentry. No reading text or account details. Reports expire after 30 days. Turning off clears pending reports on this device.</string>
     <string name="app_name">Hadithly</string>
+<string name="q2_recommended">تجویز کردہ</string>
+    <string name="q2_billed_yearly">سالانہ ادائیگی</string>
+    <string name="q2_savings_percent">%1$d%% بچت</string>
+    <string name="q2_per_month">ماہانہ</string>
+    <string name="q2_more">مزید</string>
 </resources>

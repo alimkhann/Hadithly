@@ -283,10 +283,20 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit, previewState: String? 
                     Spacer(Modifier.weight(1f))
                     if (offline) Text(nativeText("Offline"), fontSize = 11.sp, color = colors.textSecondary)
                 }
-                if (preferences.arabicVisible) Text(hadith.arabicText, fontSize = preferences.arabicFontSize.sp, lineHeight = (preferences.arabicFontSize * 1.75f).sp, color = colors.textPrimary, maxLines = if (expanded || !collapse) Int.MAX_VALUE else 7)
-                if (preferences.translationVisible) {
-                    hadith.translation?.let { translation -> Text(translation.text, fontSize = 16.sp, lineHeight = 22.sp, color = colors.textPrimary, maxLines = if (expanded || !collapse) Int.MAX_VALUE else 7) }
-                        ?: Text(nativeText("No %1\$s translation is available yet.", preferences.translationLocale), fontSize = 12.sp, color = colors.textSecondary)
+                com.hadithly.app.core.theme.HadithReadingText(
+                    arabicText = hadith.arabicText,
+                    translation = hadith.translation?.text,
+                    translationLanguage = hadith.translation?.language,
+                    textColor = colors.textPrimary,
+                    arabicVisible = preferences.arabicVisible,
+                    translationVisible = preferences.translationVisible,
+                    arabicFontSize = preferences.arabicFontSize.sp,
+                    arabicFontFamily = com.hadithly.app.core.theme.ArabicTypefaces.forFont(preferences.arabicFont),
+                    arabicLineHeight = (preferences.arabicFontSize * 1.75f).sp,
+                    translationLineLimit = if (expanded || !collapse) Int.MAX_VALUE else 7,
+                )
+                if (preferences.translationVisible && hadith.translation == null) {
+                    Text(nativeText("No %1\$s translation is available yet.", preferences.translationLocale), fontSize = 12.sp, color = colors.textSecondary)
                 }
                 if (collapse) TextButton(onClick = { expanded = !expanded }, modifier = Modifier.testTag("today.expand")) { Text(if (expanded) "Show less" else "Read more", color = colors.accent) }
             }

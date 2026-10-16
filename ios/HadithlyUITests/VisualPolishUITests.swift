@@ -107,7 +107,7 @@ final class VisualPolishUITests: XCTestCase {
         }
     }
 
-    func testTodayRefreshAndOnboardingPreparedReveal() {
+    func testTodayRefreshAndOnboardingLoadsDailyHadith() {
         let today = launchPolish("today-loading", theme: "light")
         XCTAssertTrue(element("today.dailyLoading", today).waitForExistence(timeout: 10))
         let scroll = today.scrollViews.firstMatch
@@ -122,11 +122,8 @@ final class VisualPolishUITests: XCTestCase {
         today.terminate()
 
         let demo = launchPolish("demo", theme: "paper")
-        XCTAssertTrue(element("onboarding.preparedPlaceholder", demo).waitForExistence(timeout: 10))
-        demo.buttons["onboarding.reveal"].tap()
-        XCTAssertTrue(element("onboarding.example", demo).waitForExistence(timeout: 5))
-        XCTAssertFalse(element("onboarding.preparedPlaceholder", demo).exists)
-        capture("onboarding-prepared-revealed", demo)
+        XCTAssertTrue(waitForOnboardingDailyResult(demo))
+        capture("onboarding-daily-hadith", demo)
         demo.terminate()
 
         for screen in ["today-failure", "saved-failure"] {
@@ -174,9 +171,7 @@ final class VisualPolishUITests: XCTestCase {
         let original = setReducedMotion(true)
         defer { _ = setReducedMotion(original) }
         let demo = launchPolish("demo", theme: "dark", reduced: true, large: true)
-        XCTAssertTrue(demo.buttons["onboarding.reveal"].waitForExistence(timeout: 10))
-        demo.buttons["onboarding.reveal"].tap()
-        XCTAssertTrue(element("onboarding.example", demo).waitForExistence(timeout: 5))
+        XCTAssertTrue(waitForOnboardingDailyResult(demo))
         capture("onboarding-large-reduced", demo)
     }
 
@@ -187,15 +182,13 @@ final class VisualPolishUITests: XCTestCase {
         XCTAssertTrue(app.buttons["onboarding.continue"].waitForExistence(timeout: 5))
         capture("onboarding-language-step", app)
         app.buttons["onboarding.continue"].tap()
-        XCTAssertTrue(app.buttons["onboarding.reveal"].waitForExistence(timeout: 5))
-        app.buttons["onboarding.reveal"].tap()
-        XCTAssertTrue(element("onboarding.example", app).waitForExistence(timeout: 5))
+        XCTAssertTrue(waitForOnboardingDailyResult(app))
         capture("onboarding-demo-step", app)
         app.buttons["onboarding.continue"].tap()
         XCTAssertTrue(app.buttons["onboarding.guest"].waitForExistence(timeout: 5))
         app.buttons["onboarding.back"].tap()
-        XCTAssertTrue(app.buttons["onboarding.reveal"].waitForExistence(timeout: 5))
-        app.buttons["onboarding.skip"].tap()
+        XCTAssertTrue(waitForOnboardingDailyResult(app))
+        app.buttons["onboarding.continue"].tap()
         app.buttons["onboarding.guest"].tap()
         XCTAssertTrue(element("polish.onboardingDone", app).waitForExistence(timeout: 5))
     }
@@ -238,6 +231,15 @@ final class VisualPolishUITests: XCTestCase {
 
     private func element(_ id: String, _ app: XCUIApplication) -> XCUIElement {
         app.descendants(matching: .any).matching(identifier: id).firstMatch
+    }
+
+    @discardableResult
+    private func waitForOnboardingDailyResult(_ app: XCUIApplication) -> Bool {
+        let text = element("onboarding.dailyText", app)
+        let retry = app.buttons["onboarding.dailyRetry"]
+        let result = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in text.exists || retry.exists }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [result], timeout: 20), .completed)
+        return text.exists
     }
 
     private func cropped(_ app: XCUIApplication, _ rect: CGRect) -> Data? {

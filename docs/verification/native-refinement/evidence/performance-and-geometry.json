@@ -1,0 +1,26 @@
+{
+  "iosVerticalDrag": {
+    "beforeRootEvaluations": 17,
+    "afterRootEvaluations": 2,
+    "frameRateMeasured": false
+  },
+  "readerBodyPixels": {
+    "rectPixels": [
+      90,
+      300,
+      1116,
+      1882
+    ],
+    "visibleVsFocusedMeanError": [
+      0.00017928301579908472,
+      0.00017928301579908472,
+      0.00018729222269045278
+    ],
+    "visibleVsRestoredMeanError": [
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "androidHud": "Native pixel test proves fill changes while host composition count stays unchanged."
+}

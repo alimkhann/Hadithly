@@ -19,7 +19,7 @@ enum class DiagnosticFailure(val code: String) { OfflineManifest("offline_manife
 object CrashReporting {
     private var context: Context? = null
     private var running = false
-    val hasConsent: Boolean get() = preferences()?.getBoolean("consent", false) == true
+    val hasConsent: Boolean get() = preferences()?.getBoolean("consent", true) == true
     private fun preferences() = context?.getSharedPreferences("diagnostics", Context.MODE_PRIVATE)
     private fun cache() = context?.let { File(it.cacheDir, "HadithlyDiagnostics") }
 

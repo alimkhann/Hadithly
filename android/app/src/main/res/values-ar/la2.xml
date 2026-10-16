@@ -11,8 +11,8 @@
     <string name="la2_sample_label">مثال مُعدّ بالذكاء الاصطناعي</string>
     <string name="la2_sample_notice">نص توضيحي من Hadithly، وليس حديثًا. قد تحتوي ترجمات الذكاء الاصطناعي على أخطاء.</string>
     <string name="la2_source_details">يحافظ هذا المثال على النص العربي الأصلي. المصدر: Hadithly. CC0 1.0.</string>
-    <string name="la2_account_title">اجعل Hadithly لك</string>
-    <string name="la2_account_body">أنشئ ترجمات بلغتك. احتفظ بموضع قراءتك عبر أجهزتك.</string>
+    <string name="la2_account_title">قراءاتك أينما كنت</string>
+    <string name="la2_account_body">سجّل الدخول لتبقى أحاديثك المحفوظة وملاحظاتك معك.</string>
     <string name="la2_create_account">أنشئ حسابًا</string>
     <string name="la2_sign_in">تسجيل الدخول</string>
     <string name="la2_guest">تابع كضيف</string>
@@ -34,7 +34,7 @@
     <string name="la2_close">إغلاق</string>
     <string name="la2_privacy">الخصوصية</string>
     <string name="la2_terms">الشروط</string>
-    <string name="la2_renewal">يتجدد تلقائيًا بالسعر المعروض للفترة المختارة. يمكنك الإدارة أو الإلغاء في حساب المتجر.</string>
+    <string name="la2_renewal">تتجدد الاشتراكات تلقائيًا. يمكنك إدارتها أو إلغاؤها من حسابك في المتجر.</string>
     <string name="la2_checking">جارٍ التحقق من Pro…</string>
     <string name="la2_cancelled">تم إلغاء الشراء. يمكنك متابعة القراءة.</string>
     <string name="la2_pending">الدفع معلّق. يُفعّل Pro بعد تأكيد المتجر.</string>

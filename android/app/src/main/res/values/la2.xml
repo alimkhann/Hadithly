@@ -11,8 +11,8 @@
     <string name="la2_sample_label">Prepared AI example</string>
     <string name="la2_sample_notice">Illustrative text by Hadithly, not a hadith. AI translations may contain errors.</string>
     <string name="la2_source_details">This example preserves the original Arabic. Source: Hadithly. CC0 1.0.</string>
-    <string name="la2_account_title">Make Hadithly yours</string>
-    <string name="la2_account_body">Create translations in your language. Keep your place across devices.</string>
+    <string name="la2_account_title">Your reading, wherever you are</string>
+    <string name="la2_account_body">Sign in to keep your saved hadiths and notes with you.</string>
     <string name="la2_create_account">Create account</string>
     <string name="la2_sign_in">Sign in</string>
     <string name="la2_guest">Continue as guest</string>
@@ -34,7 +34,7 @@
     <string name="la2_close">Close</string>
     <string name="la2_privacy">Privacy</string>
     <string name="la2_terms">Terms</string>
-    <string name="la2_renewal">Renews automatically at the displayed price for the selected billing period. Manage or cancel in your store account.</string>
+    <string name="la2_renewal">Subscriptions renew automatically. Manage or cancel in your store account.</string>
     <string name="la2_checking">Checking Pro access…</string>
     <string name="la2_cancelled">Purchase cancelled. You can keep reading.</string>
     <string name="la2_pending">Payment is pending. Pro unlocks after the store confirms it.</string>

@@ -55,10 +55,17 @@ struct SavedFolder: Identifiable, Equatable, Sendable {
     let createdAt: Date
 }
 
+enum SavedUndoDeadline {
+    static let duration: TimeInterval = 5
+}
+
 struct SavedFolderDeletion: Decodable, Equatable, Sendable {
     let name: String
     let hadithIds: [String]
     let deletedAt: Double
+    let undoID = UUID()
+    let undoDeadline = Date.now.addingTimeInterval(SavedUndoDeadline.duration)
+    private enum CodingKeys: String, CodingKey { case name, hadithIds, deletedAt }
 }
 
 private struct SavedFolderRestore: Decodable, Sendable {

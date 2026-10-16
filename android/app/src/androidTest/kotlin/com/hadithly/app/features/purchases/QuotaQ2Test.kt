@@ -3,6 +3,7 @@ package com.hadithly.app.features.purchases
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performScrollTo
@@ -54,8 +55,18 @@ class QuotaQ2Test {
         compose.onNodeWithText(context.getString(R.string.la2_allowance)).assertIsDisplayed()
         compose.onNodeWithText(context.getString(R.string.q2_devices)).assertIsDisplayed()
         compose.onNodeWithText("Weekly").assertDoesNotExist()
-        compose.onNodeWithTag("paywall.restore").performScrollTo().performClick()
-        compose.onNodeWithText("Sign in to your original Hadithly account before restoring.").assertIsDisplayed()
-        compose.runOnIdle { assertFalse(purchases.state.value.purchasing); assertFalse(purchases.state.value.hasProEntitlement) }
+        assertFalse(purchases.state.value.configured)
+        compose.onNodeWithTag("paywall.more").performClick()
+        compose.onNodeWithTag("paywall.restore").assertIsDisplayed().performClick()
+        compose.waitUntil(5_000) {
+            compose.onAllNodesWithText("Sign in to your original Hadithly account before restoring.").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithText("Sign in to your original Hadithly account before restoring.").assertExists()
+        compose.onNodeWithTag("paywall.keepReading").assertExists()
+        compose.runOnIdle {
+            assertEquals("Sign in to your original Hadithly account before restoring.", purchases.state.value.errorMessage)
+            assertFalse(purchases.state.value.purchasing)
+            assertFalse(purchases.state.value.hasProEntitlement)
+        }
     }
 }

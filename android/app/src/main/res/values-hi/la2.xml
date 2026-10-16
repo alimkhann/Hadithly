@@ -11,8 +11,8 @@
     <string name="la2_sample_label">तैयार किया गया AI उदाहरण</string>
     <string name="la2_sample_notice">Hadithly का उदाहरणात्मक पाठ, हदीस नहीं। AI अनुवादों में गलतियाँ हो सकती हैं।</string>
     <string name="la2_source_details">यह उदाहरण मूल अरबी को सुरक्षित रखता है। स्रोत: Hadithly। CC0 1.0.</string>
-    <string name="la2_account_title">Hadithly को अपना बनाएँ</string>
-    <string name="la2_account_body">अपनी भाषा में अनुवाद बनाएँ। अपने सभी उपकरणों पर पढ़ने की जगह बनाए रखें।</string>
+    <string name="la2_account_title">आपकी पढ़ाई, जहाँ भी आप हों</string>
+    <string name="la2_account_body">अपनी सहेजी गई हदीसें और नोट्स साथ रखने के लिए साइन इन करें।</string>
     <string name="la2_create_account">खाता बनाएँ</string>
     <string name="la2_sign_in">साइन इन करें</string>
     <string name="la2_guest">अतिथि के रूप में जारी रखें</string>
@@ -34,7 +34,7 @@
     <string name="la2_close">बंद करें</string>
     <string name="la2_privacy">गोपनीयता</string>
     <string name="la2_terms">शर्तें</string>
-    <string name="la2_renewal">चुनी गई बिलिंग अवधि के लिए दिखाई गई कीमत पर अपने आप नवीनीकृत होता है। अपने स्टोर खाते में प्रबंधित या रद्द करें।</string>
+    <string name="la2_renewal">सदस्यता अपने आप नवीनीकृत होती है। अपने स्टोर खाते में इसे प्रबंधित या रद्द करें।</string>
     <string name="la2_checking">Pro पहुँच जाँची जा रही है…</string>
     <string name="la2_cancelled">खरीद रद्द हो गई। आप पढ़ना जारी रख सकते हैं।</string>
     <string name="la2_pending">भुगतान लंबित है। स्टोर की पुष्टि के बाद Pro खुलेगा।</string>

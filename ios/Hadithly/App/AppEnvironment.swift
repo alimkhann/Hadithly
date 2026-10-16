@@ -77,12 +77,17 @@ final class AppEnvironment {
     private var authStateCancellable: AnyCancellable?
 
     init(config: AppConfig = AppConfig(), guestData: GuestDataStore? = nil) {
+        #if DEBUG
+        if AutomationContext.allows("-FreshInstallForUITest"), let bundleID = Bundle.main.bundleIdentifier {
+            UserDefaults.standard.removePersistentDomain(forName: bundleID)
+        }
+        #endif
         #if DEBUG || DIAGNOSTICS_VERIFICATION
         if AutomationContext.allows("-LA1DisableCrashReports") { CrashReporting.shared.setConsent(false) }
         if AutomationContext.allows("-LA1SyntheticCrash") { CrashReporting.shared.setConsent(true) }
         #endif
         #if DEBUG
-        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil {
+        if !AutomationContext.isActive || AutomationContext.allows("-LA1SyntheticCrash") {
             CrashReporting.shared.startIfConsented()
         }
         #else

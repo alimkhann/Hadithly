@@ -6,8 +6,8 @@
     <string name="action_continue">Continue</string>
     <string name="settings_reading">Reading</string>
     <string name="settings_arabic_type_size">Arabic type size</string>
-    <string name="settings_app_language">App language</string>
-    <string name="settings_hadith_translation">Hadith translation</string>
+    <string name="settings_app_language">ऐप की भाषा</string>
+    <string name="settings_hadith_translation">हदीस अनुवाद</string>
     <string name="settings_reading_direction">Reading direction</string>
     <string name="settings_visibility_arabic">Arabic text</string>
     <string name="settings_visibility_translation">Translation</string>
@@ -80,10 +80,10 @@
     <string name="q1_remaining">Seven-day allowance: %1$d of %2$d left</string>
     <string name="q1_retry_at">Available again %1$s</string>
     <string name="q1_quota_exhausted">आपकी सात-दिन की सीमा पूरी हो गई है। पढ़ना और मौजूदा अनुवाद मुफ़्त रहेंगे।</string>
-    <string name="app_today">Today</string>
-    <string name="app_library">Library</string>
-    <string name="app_saved">Saved</string>
-    <string name="app_settings">Settings</string>
+    <string name="app_today">आज</string>
+    <string name="app_library">पुस्तकालय</string>
+    <string name="app_saved">सहेजे गए</string>
+    <string name="app_settings">सेटिंग्स</string>
     <string name="app_daily_hadith">Daily hadith</string>
     <string name="settings_profile">Profile</string>
     <string name="settings_appearance">Appearance</string>
@@ -108,4 +108,9 @@
         <item quantity="one">%d hadith</item>
         <item quantity="other">%d hadiths</item>
     </plurals>
+<string name="q2_recommended">सुझाया गया</string>
+    <string name="q2_billed_yearly">सालाना बिल</string>
+    <string name="q2_savings_percent">%1$d%% बचत</string>
+    <string name="q2_per_month">प्रति माह</string>
+    <string name="q2_more">और</string>
 </resources>

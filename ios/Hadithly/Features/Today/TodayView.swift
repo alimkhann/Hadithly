@@ -83,6 +83,7 @@ struct TodayView: View {
     @Environment(UserLibraryModel.self) private var library
     @Environment(\.colorScheme) private var systemColorScheme
     @Environment(\.accessibilityReduceMotion) private var reducedMotion
+    @State private var undoNotice: SavedUndoNotice?
     @State private var dailyHadith: DailyHadith?
     @State private var isLoadingDaily = true
     @State private var loadFailed = false
@@ -111,6 +112,14 @@ struct TodayView: View {
                 libraryShelf
             }
             .padding(16)
+        }
+        .safeAreaInset(edge: .bottom) {
+            if let notice = undoNotice {
+                SavedUndoBanner(notice: notice, onExpire: { if undoNotice?.id == notice.id { undoNotice = nil } })
+            }
+        }
+        .environment(\.presentSavedUndo) { notice in
+            withAnimation(reducedMotion ? nil : .easeOut(duration: InterfaceMotion.step)) { undoNotice = notice }
         }
         .background(Theme.background)
         .appNavigationTitle("Today")
@@ -361,8 +370,12 @@ private struct DailyHadithCard: View {
     @State private var expanded = false
     @Environment(AppEnvironment.self) private var environment
     @Environment(UserLibraryModel.self) private var library
+    @Environment(\.presentSavedUndo) private var presentSavedUndo
     @State private var pendingRemoval: String?
     @State private var undoNotice: SavedUndoNotice?
+    private func showUndo(_ notice: SavedUndoNotice) {
+        if let presentSavedUndo { presentSavedUndo(notice) } else { undoNotice = notice }
+    }
     private var shouldCollapse: Bool { TodayContentPolicy.needsCollapsedPreview(arabic: hadith.arabicText, translation: hadith.translation?.text) }
 
     var body: some View {
@@ -370,7 +383,7 @@ private struct DailyHadithCard: View {
             .animation(reducedMotion ? nil : .easeInOut(duration: InterfaceMotion.step), value: expanded)
             .padding(18).background(palette.surface).clipShape(RoundedRectangle(cornerRadius: 18))
             .contentShape(RoundedRectangle(cornerRadius: 18)).onTapGesture { onOpen() }.contextMenu { menuContents }
-            .overlay(alignment: .bottom) { if let undoNotice { SavedUndoBanner(notice: undoNotice, onExpire: { self.undoNotice = nil }) } }
+            .overlay(alignment: .bottom) { if presentSavedUndo == nil, let undoNotice { SavedUndoBanner(notice: undoNotice, onExpire: { self.undoNotice = nil }) } }
             .confirmationDialog("Remove saved item?", isPresented: Binding(get: { pendingRemoval != nil }, set: { if !$0 { pendingRemoval = nil } })) {
                 Button("Remove", role: .destructive) { performPendingRemoval(false) }
                 Button("Remove and don't ask again", role: .destructive) { performPendingRemoval(true) }
@@ -394,11 +407,19 @@ private struct DailyHadithCard: View {
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier("today.authenticity")
-            if preferences.arabicVisible { Text(hadith.arabicText).font(Theme.arabic(preferences.arabicFontSize, preferences.arabicFont)).lineSpacing(preferences.arabicFontSize * 0.75).foregroundStyle(palette.textPrimary).frame(maxWidth: .infinity, alignment: .leading).environment(\.layoutDirection, .rightToLeft).lineLimit(expanded || !shouldCollapse ? nil : 7) }
-            if preferences.translationVisible {
-                if let translation = hadith.translation {
-                    Text(translation.text).font(.body).lineSpacing(5).foregroundStyle(palette.textPrimary).environment(\.layoutDirection, LocaleFallback.isRTL(translation.language) ? .rightToLeft : .leftToRight).lineLimit(expanded || !shouldCollapse ? nil : 7)
-                } else { Text("No \(preferences.translationLocale) translation is available yet.").font(.caption).foregroundStyle(palette.textSecondary) }
+            HadithReadingText(
+                arabicText: hadith.arabicText,
+                translation: hadith.translation?.text,
+                translationLanguage: hadith.translation?.language,
+                arabicVisible: preferences.arabicVisible,
+                translationVisible: preferences.translationVisible,
+                arabicFontSize: preferences.arabicFontSize,
+                arabicFont: preferences.arabicFont,
+                translationLineLimit: expanded || !shouldCollapse ? nil : 7,
+                textColor: palette.textPrimary
+            )
+            if preferences.translationVisible && hadith.translation == nil {
+                Text("No \(preferences.translationLocale) translation is available yet.").font(.caption).foregroundStyle(palette.textSecondary)
             }
             if shouldCollapse { Button(expanded ? "Show less" : "Read more") { expanded.toggle() }.font(.caption.weight(.semibold)).foregroundStyle(Theme.accent).accessibilityIdentifier("today.expand") }
         }.frame(maxWidth: .infinity, alignment: .leading)
@@ -416,8 +437,8 @@ private struct DailyHadithCard: View {
     private func requestBookmark() { if isBookmarked && environment.savedSafety.confirmsRemoval { pendingRemoval = "bookmark" } else { toggleBookmark() } }
     private func requestFavorite() { if isFavorited && environment.savedSafety.confirmsRemoval { pendingRemoval = "favorite" } else { toggleFavorite() } }
     private func performPendingRemoval(_ disable: Bool) { if disable { environment.savedSafety.confirmsRemoval = false }; if pendingRemoval == "bookmark" { toggleBookmark() } else { toggleFavorite() }; pendingRemoval = nil }
-    private func toggleBookmark() { let date = library.savedItems.first(where: { $0.hadithId == hadith._id })?.bookmarkCreatedAt; onBookmark(); if isBookmarked, let date { undoNotice = SavedUndoNotice(message: "Bookmark removed") { library.restoreBookmark(hadith.ref, createdAt: date); undoNotice = nil } } }
-    private func toggleFavorite() { let date = library.savedItems.first(where: { $0.hadithId == hadith._id })?.favoriteCreatedAt; onFavorite(); if isFavorited, let date { undoNotice = SavedUndoNotice(message: "Favorite removed") { library.restoreFavorite(hadith.ref, createdAt: date); undoNotice = nil } } }
+    private func toggleBookmark() { let date = library.savedItems.first(where: { $0.hadithId == hadith._id })?.bookmarkCreatedAt; onBookmark(); if isBookmarked, let date { showUndo(SavedUndoNotice(message: "Bookmark removed") { library.restoreBookmark(hadith.ref, createdAt: date); undoNotice = nil }) } }
+    private func toggleFavorite() { let date = library.savedItems.first(where: { $0.hadithId == hadith._id })?.favoriteCreatedAt; onFavorite(); if isFavorited, let date { showUndo(SavedUndoNotice(message: "Favorite removed") { library.restoreFavorite(hadith.ref, createdAt: date); undoNotice = nil }) } }
 }
 
 private struct TodayNoteEditor: View {

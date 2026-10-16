@@ -1,0 +1,1 @@
+Live dark -> light -> dark passed without relaunch. Canvas samples: {'dark': (29, 28, 27), 'light': (242, 234, 227)}

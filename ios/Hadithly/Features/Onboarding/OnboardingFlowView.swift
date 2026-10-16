@@ -12,80 +12,127 @@ struct OnboardingFlowView: View {
     @AppStorage("onboarding.la2.step") private var storedStep = 0
     @AppStorage("onboarding.la2.visited") private var visited = 0
     @State private var completedCreation: Bool?
-    @State private var auth: AuthEntry?
-    private enum AuthEntry: String, Identifiable { case create, signIn; var id: String { rawValue } }
+    @State private var showingSignIn = false
     private var step: OnboardingStep { OnboardingStep(rawValue: storedStep) ?? .welcome }
 
     var body: some View {
-        VStack(spacing: 0) {
-            if step != .welcome {
-                HStack {
-                    Button { storedStep = max(0, storedStep - 1) } label: { Label("la2.back", systemImage: "chevron.backward").frame(minHeight: 44).contentShape(Rectangle()) }
-                        .buttonStyle(.plain).accessibilityIdentifier("onboarding.back")
-                    Spacer()
-                    if step == .demonstration {
-                        Button { environment.analytics.record(.onboardingStepDemoSkipped); storedStep = 3 } label: {
-                            Text("la2.skip").frame(minHeight: 44).contentShape(Rectangle())
-                        }.buttonStyle(.plain).accessibilityIdentifier("onboarding.skip")
+        NavigationStack {
+            VStack(spacing: 0) {
+                if step != .welcome {
+                    HStack {
+                        Button { storedStep = max(0, storedStep - 1) } label: {
+                            Label("la2.back", systemImage: "chevron.backward").frame(minHeight: 44).contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("onboarding.back")
+                        Spacer()
                     }
-                }.font(.subheadline).padding(.horizontal, 24).foregroundStyle(palette.textSecondary)
-            }
-            Group {
-            switch step {
-            case .welcome:
-                WelcomeView(showsBackground: false) { environment.analytics.startOnboarding(); storedStep = 1 }
-            case .language:
-                LanguagePickerView(selection: Binding(get: { environment.preferences.preferences.uiLocale },
-                    set: { environment.preferences.applyOnboardingLanguage($0) })) { storedStep = 2 }
-            case .demonstration:
-                OnboardingTranslationView(locale: environment.preferences.preferences.translationLocale,
-                    onReveal: { environment.analytics.record(.onboardingStepDemoUsed) }, onContinue: { storedStep = 3 })
-            case .account:
-                GeometryReader { geometry in
-                    ScrollView {
-                        VStack(spacing: 24) {
-                            Text("la2.account_title").font(.largeTitle.bold()).multilineTextAlignment(.center).padding(.top, 28)
-                            Text("la2.account_body").font(.body).foregroundStyle(palette.textSecondary).multilineTextAlignment(.center)
-                            Spacer(minLength: 160)
-                            VStack(spacing: 12) {
-                                OnboardingPrimaryButton("la2.create_account") { present(.create) }.accessibilityIdentifier("onboarding.createAccount")
-                                Button { present(.signIn) } label: { Text("la2.sign_in").frame(maxWidth: .infinity, minHeight: 44) }
-                                    .buttonStyle(.bordered).accessibilityIdentifier("onboarding.signIn")
-                                Button { finish(.onboardingCompletedGuest) } label: {
-                                    Text("la2.guest").frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
-                                }.buttonStyle(.plain).foregroundStyle(palette.textSecondary).accessibilityIdentifier("onboarding.guest")
-                                Text("la2.reading_free").font(.footnote).foregroundStyle(palette.textSecondary)
-                            }
-                        }.padding(.horizontal, 24).padding(.bottom, 24).frame(minHeight: geometry.size.height)
+                    .font(.subheadline)
+                    .padding(.horizontal, 24)
+                    .foregroundStyle(palette.textSecondary)
+                }
+
+                Group {
+                    switch step {
+                    case .welcome:
+                        WelcomeView(showsBackground: false)
+                    case .language:
+                        LanguagePickerView(selection: Binding(
+                            get: { environment.preferences.preferences.uiLocale },
+                            set: { environment.preferences.applyOnboardingLanguage($0) }
+                        ))
+                    case .demonstration:
+                        OnboardingTranslationView(locale: environment.preferences.preferences.translationLocale)
+                    case .account:
+                        VStack(spacing: 16) {
+                            Spacer(minLength: 24)
+                            Text("la2.account_title")
+                                .font(.largeTitle.bold())
+                                .multilineTextAlignment(.center)
+                            Text("la2.account_body")
+                                .font(.body)
+                                .foregroundStyle(palette.textSecondary)
+                                .multilineTextAlignment(.center)
+                            Spacer(minLength: 24)
+                        }
+                        .padding(.horizontal, 24)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .id(step)
+                .transition(.opacity.combined(with: .offset(x: reducedMotion ? 0 : (layoutDirection == .rightToLeft ? -InterfaceMotion.travel : InterfaceMotion.travel))))
+
+                footer
             }
+            .animation(reducedMotion ? nil : .timingCurve(0.22, 1, 0.36, 1, duration: InterfaceMotion.step), value: storedStep)
+            .background {
+                if step == .welcome || step == .account { EntryArtworkBackdrop() }
+                else { palette.background.ignoresSafeArea() }
             }
-            .id(step)
-            .transition(.opacity.combined(with: .offset(x: reducedMotion ? 0 : (layoutDirection == .rightToLeft ? -InterfaceMotion.travel : InterfaceMotion.travel))))
-        }
-        .animation(reducedMotion ? nil : .timingCurve(0.22, 1, 0.36, 1, duration: InterfaceMotion.step), value: storedStep)
-        .background { if step == .welcome { EntryArtworkBackdrop() } else { palette.background.ignoresSafeArea() } }
-        .foregroundStyle(palette.textPrimary)
-        .onAppear { recordStep() }.onChange(of: storedStep) { _, _ in recordStep() }
-        .sheet(item: $auth) { entry in
-            SignInView(onAuthenticated: {
-                await environment.completeSignIn(); auth = nil
-                guard Clerk.shared.session != nil else { environment.analytics.record(.onboardingStepAuthFailed); return }
-                finish(completedCreation == true ? .onboardingCompletedAccountNew : completedCreation == false ? .onboardingCompletedAccountExisting : .onboardingCompletedAccountUnknown)
-            }, onDismiss: { environment.analytics.record(.onboardingStepAuthCancelled); auth = nil }, initialSignUp: entry == .create,
-                onCreationResult: { completedCreation = $0 }, onAuthenticationFailure: { environment.analytics.record(.onboardingStepAuthFailed) })
+            .foregroundStyle(palette.textPrimary)
+            .onAppear { recordStep() }
+            .onChange(of: storedStep) { _, _ in recordStep() }
+            .navigationDestination(isPresented: $showingSignIn) {
+                SignInView(onAuthenticated: {
+                    await environment.completeSignIn()
+                    showingSignIn = false
+                    guard Clerk.shared.session != nil else {
+                        environment.analytics.record(.onboardingStepAuthFailed)
+                        return
+                    }
+                    finish(completedCreation == true ? .onboardingCompletedAccountNew : completedCreation == false ? .onboardingCompletedAccountExisting : .onboardingCompletedAccountUnknown)
+                }, onDismiss: {
+                    environment.analytics.record(.onboardingStepAuthCancelled)
+                    showingSignIn = false
+                }, onCreationResult: { completedCreation = $0 }, onAuthenticationFailure: {
+                    environment.analytics.record(.onboardingStepAuthFailed)
+                }, embeddedInNavigation: true)
+            }
         }
     }
-    private func present(_ entry: AuthEntry) { completedCreation = nil; environment.analytics.record(.onboardingStepAuthStarted); auth = entry }
+
+    @ViewBuilder private var footer: some View {
+        if step == .account {
+            VStack(spacing: 12) {
+                OnboardingPrimaryButton("la2.sign_in") {
+                    completedCreation = nil
+                    environment.analytics.record(.onboardingStepAuthStarted)
+                    showingSignIn = true
+                }
+                .accessibilityIdentifier("onboarding.signIn")
+                Button { finish(.onboardingCompletedGuest) } label: {
+                    Text("la2.guest").frame(maxWidth: .infinity, minHeight: 52).contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(palette.textSecondary)
+                .accessibilityIdentifier("onboarding.guest")
+            }
+            .padding(24)
+        } else {
+            let title: LocalizedStringKey = step == .welcome ? "la2.get_started" : "la2.continue"
+            OnboardingPrimaryButton(title) {
+                if step == .welcome { environment.analytics.startOnboarding() }
+                storedStep += 1
+            }
+                .padding(24)
+                .accessibilityIdentifier(step == .welcome ? "onboarding.getStarted" : "onboarding.continue")
+        }
+    }
+
     private func recordStep() {
         let bit = 1 << step.rawValue
-        guard visited & bit == 0 else { return }; visited |= bit
+        guard visited & bit == 0 else { return }
+        visited |= bit
         environment.analytics.record([.onboardingStepWelcomeViewed, .onboardingStepLanguageViewed, .onboardingStepDemoViewed, .onboardingStepEntryViewed][step.rawValue])
         if step != .welcome { environment.analytics.startOnboarding() }
     }
+
     private func finish(_ metric: AnalyticsMetric) {
-        environment.analytics.completeOnboarding(metric); storedStep = 0; visited = 0; onComplete()
+        environment.analytics.completeOnboarding(metric)
+        storedStep = 0
+        visited = 0
+        onComplete()
     }
 }
 
@@ -104,47 +151,67 @@ struct OnboardingPrimaryButton: View {
 
 struct OnboardingTranslationView: View {
     let locale: String
-    let onReveal: () -> Void
-    let onContinue: () -> Void
     @Environment(\.readerPalette) private var palette
-    @State private var phase: TranslationPresentationPhase = .idle
-    @State private var preparedShimmerActive = true
+    @Environment(AppEnvironment.self) private var environment
+    @State private var hadith: DailyHadith?
+    @State private var loading = true
+    @State private var retry = 0
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 Text("la2.demo_title").font(.largeTitle.bold()).padding(.top, 28)
-                Text("la2.source").font(.caption).foregroundStyle(palette.textSecondary)
-                Text(PreparedTranslationExample.arabic).font(Theme.arabic(30, .amiri))
-                    .frame(maxWidth: .infinity, alignment: .trailing).environment(\.layoutDirection, .rightToLeft)
-                TranslationReveal(phase: phase) {
-                    if phase == .idle {
-                        ContentSkeleton(animated: preparedShimmerActive, label: "la2.sample_label")
-                            .padding(18)
-                            .background(palette.surface, in: RoundedRectangle(cornerRadius: 14))
-                            .accessibilityIdentifier("onboarding.preparedPlaceholder")
-                            .task {
-                                do {
-                                    try await Task.sleep(for: .seconds(InterfaceMotion.shimmerPeriod))
-                                    preparedShimmerActive = false
-                                } catch {}
-                            }
-                    } else if phase == .available {
-                        if locale == "ar" { Text("la2.source_details").foregroundStyle(palette.textSecondary) }
-                        else if let text = PreparedTranslationExample.translations[locale] {
-                            Text(text).font(.title3).lineSpacing(5).accessibilityIdentifier("onboarding.example")
+                if loading {
+                    ContentSkeleton(kind: .daily, label: "Bringing today's hadith…")
+                        .accessibilityIdentifier("onboarding.dailyLoading")
+                } else if let hadith {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(hadith.referenceDisplay).font(.caption.weight(.semibold))
+                        Text(hadith.authenticity.displayLabel).font(.caption)
+                    }.foregroundStyle(palette.textSecondary)
+                    HadithReadingText(arabicText: hadith.arabicText,
+                                      translation: hadith.translation?.text,
+                                      translationLanguage: hadith.translation?.language,
+                                      translationLineLimit: 3,
+                                      textColor: palette.textPrimary)
+                        .accessibilityIdentifier("onboarding.dailyText")
+                    if let translation = hadith.translation {
+                        HStack(spacing: 6) {
+                            Text(translation.sourceLabel)
+                            if translation.isAI && !translation.sourceLabel.localizedCaseInsensitiveContains("AI") { Text("AI") }
                         }
+                        .font(.caption)
+                        .foregroundStyle(palette.textSecondary)
+                        .accessibilityIdentifier("onboarding.translationSource")
+                    } else {
+                        Button("Retry") { retry += 1 }
+                            .accessibilityIdentifier("onboarding.dailyRetry")
                     }
+                } else {
+                    Text("Today's reading is not available yet.")
+                        .font(.body)
+                        .foregroundStyle(palette.textSecondary)
+                    Button("Retry") { retry += 1 }
+                        .accessibilityIdentifier("onboarding.dailyRetry")
                 }
-                if phase == .idle {
-                    Button { phase = .available; onReveal()
-                        UIAccessibility.post(notification: .announcement, argument: PreparedTranslationExample.translations[locale])
-                    } label: { Text("la2.see_example").frame(minHeight: 44).contentShape(Rectangle()) }
-                        .buttonStyle(.plain).accessibilityIdentifier("onboarding.reveal")
-                }
-                Text("la2.sample_label").font(.caption).foregroundStyle(palette.textSecondary)
-                Text("la2.sample_notice").font(.footnote).foregroundStyle(palette.textSecondary)
-            }.padding(.horizontal, 28).padding(.bottom, 24)
+            }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 24)
         }
-        OnboardingPrimaryButton("la2.continue", action: onContinue).padding(24).accessibilityIdentifier("onboarding.continue")
+        .task(id: retry) { await loadDailyHadith() }
+    }
+
+    @MainActor private func loadDailyHadith() async {
+        loading = true
+        defer { loading = false }
+        do {
+            let daily: DailyHadith? = try await environment.convex.action("actions/daily:getDailyHadith", with: [
+                "timezone": TimeZone.current.identifier,
+                "translationLocale": locale,
+            ])
+            hadith = daily
+        } catch {
+            hadith = nil
+        }
     }
 }

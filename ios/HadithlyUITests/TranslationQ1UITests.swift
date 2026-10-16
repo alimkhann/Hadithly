@@ -54,9 +54,10 @@ final class TranslationQ1UITests: XCTestCase {
         plans.tap()
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label == %@", "5 free or 100 Pro new translations in a rolling 7 days. Approved and cached translations stay free.")).firstMatch.waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label == %@", "Use Pro on your own iOS and Android devices with the same Hadithly account. Family Sharing is off.")).firstMatch.exists)
-        XCTAssertTrue(app.buttons["Restore purchases"].exists)
+        app.buttons["paywall.more"].tap()
+        XCTAssertTrue(app.buttons["paywall.restore"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["Weekly"].exists)
-        let restore = app.buttons["Restore purchases"]
+        let restore = app.buttons["paywall.restore"]
         if !restore.isHittable { app.swipeUp() }
         restore.tap()
         XCTAssertTrue(app.staticTexts["Sign in to your original Hadithly account before restoring."].waitForExistence(timeout: 5))

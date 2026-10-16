@@ -72,6 +72,20 @@ as `3854778`; the final handoff record accompanies this plan.
 Existing device, account, store, native-copy review and release gates stay open.
 This repair does not start L1 or certify translated drafts.
 
+## Native reader refinement, October 16
+
+The owner requested a further thirteen-item refinement after reviewing the
+finishing pass. All requirements and evidence are tracked in
+`docs/NATIVE_READER_REFINEMENT.md`. Theme leakage, native Contents, focus chrome,
+status/undo motion, normal RTL, performance, Saved interaction, Settings privacy,
+and onboarding/auth/paywall changes are implemented on both native apps, with
+native verification and the final evidence audit recorded in that document.
+Luna CUA reproduced/rechecked iOS defects; Android CUA was unavailable, so Android
+uses native instrumentation and rendered captures. The owner explicitly selected
+a monthly-equivalent-only paywall prototype; it is not store-review-ready.
+Existing release/device/account/copy and store gates remain open. This does not
+start L1 or authorize new deployments.
+
 ## Read the plan in layers
 
 - `docs/PLAN.md` holds product rules, current state, session order, contracts,
@@ -193,8 +207,8 @@ D4 requires direct production and physical-device evidence.
 
 ### Languages and reading direction
 
-LA2 onboarding contains welcome, `Choose your language`, a prepared demonstration
-and optional account entry. Language is the only preference question. The answer initializes both
+LA2 onboarding contains welcome, `Choose your language`, the automatically loaded
+real daily hadith and optional account entry. Language is the only preference question. The answer initializes both
 `uiLocale` and `translationLocale`. Settings later edits `App language` and
 `Hadith translation` separately.
 

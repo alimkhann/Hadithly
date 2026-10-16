@@ -17,12 +17,14 @@ extension Error {
 /// generated from the email address and can be changed later in Settings.
 /// Email verification codes confirm the address. Every method ends in the
 /// same place: onAuthenticated runs the post-sign-in sync (Convex user
-/// record + guest merge) and dismisses the sheet.
+/// record + guest merge) and returns to the caller's reading flow.
 struct SignInView: View {
     /// Runs the post-sign-in sync and dismisses. Called directly on flow
     /// completion — ClerkKit's independent auth events do not fire for
     /// custom service-level flows.
     @Environment(\.readerPalette) private var palette
+    @Environment(\.readerTheme) private var readerTheme
+    @Environment(\.colorScheme) private var colorScheme
     var onAuthenticated: () async -> Void
 
     var onDismiss: () -> Void = {}
@@ -42,6 +44,7 @@ struct SignInView: View {
         case resetPassword
     }
 
+    private let embeddedInNavigation: Bool
     @State private var mode: Mode = .methods
     @State private var email = ""
     @State private var password = ""
@@ -52,7 +55,8 @@ struct SignInView: View {
     @State private var errorMessage: String?
 
     init(onAuthenticated: @escaping () async -> Void, onDismiss: @escaping () -> Void = {}, initialSignUp: Bool = false,
-         onCreationResult: ((Bool?) -> Void)? = nil, onAuthenticationFailure: (() -> Void)? = nil) {
+         onCreationResult: ((Bool?) -> Void)? = nil, onAuthenticationFailure: (() -> Void)? = nil, embeddedInNavigation: Bool = false) {
+        self.embeddedInNavigation = embeddedInNavigation
         self.onAuthenticated = onAuthenticated
         self.onDismiss = onDismiss
         self.onCreationResult = onCreationResult
@@ -60,8 +64,13 @@ struct SignInView: View {
         _mode = State(initialValue: initialSignUp ? .signUp : .methods)
     }
 
+    @ViewBuilder
     var body: some View {
-        NavigationStack {
+        if embeddedInNavigation { form }
+        else { NavigationStack { form } }
+    }
+
+    private var form: some View {
             GeometryReader { geometry in
                 ScrollView {
                     Group {
@@ -85,6 +94,8 @@ struct SignInView: View {
             .animation(reducedMotion ? nil : .easeInOut(duration: InterfaceMotion.step), value: mode)
             .navigationTitle(mode == .signUp ? Text("Create account") : mode == .forgotPasswordEntry || mode == .resetPassword ? Text("Reset password") : Text("Sign in"))
             .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden(true)
+            .toolbar(.hidden, for: .tabBar)
             .toolbar {
                 if mode != .methods {
                     ToolbarItem(placement: .topBarLeading) {
@@ -96,7 +107,6 @@ struct SignInView: View {
                     Button("Close", action: onDismiss).accessibilityIdentifier("signin.close")
                 }
             }
-        }
     }
 
     private func goBack() {
@@ -155,12 +165,17 @@ struct SignInView: View {
                 ) {
                     try await Clerk.shared.auth.signInWithApple()
                 }
+                .overlay {
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(appleOutline, lineWidth: ReaderPalette.isDark(readerTheme, systemScheme: colorScheme) ? 0 : 1)
+                }
                 .accessibilityIdentifier("signin.apple")
 
                 hostedAuthButton(
                     title: "Continue with Google",
                     background: palette.surfaceElevated,
-                    foreground: palette.textPrimary
+                    foreground: palette.textPrimary,
+                    showsGoogleMark: true
                 )
                 .accessibilityIdentifier("signin.google")
 
@@ -690,7 +705,8 @@ struct SignInView: View {
     private func hostedAuthButton(
         title: String,
         background: Color,
-        foreground: Color
+        foreground: Color,
+        showsGoogleMark: Bool = false
     ) -> some View {
         Button {
             Task {
@@ -712,6 +728,7 @@ struct SignInView: View {
                     ProgressView()
                         .tint(foreground)
                 } else {
+                    if showsGoogleMark { GoogleBrandMark().frame(width: 20, height: 20) }
                     Text(title)
                         .font(.headline)
                         .foregroundStyle(foreground)
@@ -724,6 +741,10 @@ struct SignInView: View {
         }
         .buttonStyle(.plain)
         .disabled(isBusy)
+    }
+
+    private var appleOutline: Color {
+        ReaderPalette.isDark(readerTheme, systemScheme: colorScheme) ? .clear : palette.divider
     }
 
     private func providerButton(
@@ -1049,4 +1070,30 @@ private struct LegalText: View {
         onAuthenticated: {},
         onDismiss: {}
     )
+}
+
+private struct GoogleBrandMark: View {
+    var body: some View {
+        Canvas { context, size in
+            let stroke = size.width * 0.2
+            let radius = (size.width - stroke) / 2
+            let center = CGPoint(x: size.width / 2, y: size.height / 2)
+            let segments: [(Color, Double, Double)] = [
+                (Color(red: 0.26, green: 0.52, blue: 0.96), -45, 60),
+                (Color(red: 0.20, green: 0.66, blue: 0.33), 60, 155),
+                (Color(red: 0.98, green: 0.74, blue: 0.02), 155, 250),
+                (Color(red: 0.92, green: 0.26, blue: 0.21), 250, 315),
+            ]
+            for (color, start, end) in segments {
+                var path = Path()
+                path.addArc(center: center, radius: radius, startAngle: .degrees(start), endAngle: .degrees(end), clockwise: false)
+                context.stroke(path, with: .color(color), lineWidth: stroke)
+            }
+            var crossbar = Path()
+            crossbar.move(to: CGPoint(x: center.x, y: center.y))
+            crossbar.addLine(to: CGPoint(x: size.width - stroke / 2, y: center.y))
+            context.stroke(crossbar, with: .color(Color(red: 0.26, green: 0.52, blue: 0.96)), style: StrokeStyle(lineWidth: stroke, lineCap: .round))
+        }
+        .accessibilityHidden(true)
+    }
 }

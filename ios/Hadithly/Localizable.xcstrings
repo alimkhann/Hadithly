@@ -957,91 +957,91 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Make Hadithly yours"
+            "value": "Your reading, wherever you are"
           }
         },
         "ar": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "اجعل Hadithly لك"
+            "value": "قراءاتك أينما كنت"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Ваш Hadithly"
+            "value": "Ваше чтение — где бы вы ни были"
           }
         },
         "kk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hadithly-ді өзіңізге бейімдеңіз"
+            "value": "Оқығандарыңыз әрдайым өзіңізбен"
           }
         },
         "uz": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hadithly’ni o‘zingizniki qiling"
+            "value": "Mutolaangiz doim siz bilan"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hadithly sizin olsun"
+            "value": "Okuduklarınız her yerde sizinle"
           }
         },
         "id": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Jadikan Hadithly milik Anda"
+            "value": "Bacaan Anda, di mana pun"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hadithly کو اپنا بنائیں"
+            "value": "آپ کی پڑھائی، جہاں بھی آپ ہوں"
           }
         },
         "ky": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hadithly’ди өзүңүздүкү кылыңыз"
+            "value": "Окугандарыңыз дайыма жаныңызда"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Faites de Hadithly votre application"
+            "value": "Vos lectures, où que vous soyez"
           }
         },
         "es-419": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Haz tuyo Hadithly"
+            "value": "Tus lecturas, donde estés"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Faça da Hadithly a sua biblioteca"
+            "value": "Suas leituras, onde você estiver"
           }
         },
         "sw": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Ifanye Hadithly iwe yako"
+            "value": "Usomaji wako, popote ulipo"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hadithly को अपना बनाएँ"
+            "value": "आपकी पढ़ाई, जहाँ भी आप हों"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hadithly-কে নিজের করে নিন"
+            "value": "আপনার পড়া, আপনি যেখানেই থাকুন"
           }
         }
       }
@@ -1052,91 +1052,91 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Create translations in your language. Keep your place across devices."
+            "value": "Sign in to keep your saved hadiths and notes with you."
           }
         },
         "ar": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "أنشئ ترجمات بلغتك. احتفظ بموضع قراءتك عبر أجهزتك."
+            "value": "سجّل الدخول لتبقى أحاديثك المحفوظة وملاحظاتك معك."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Создавайте переводы на своём языке. Сохраняйте место чтения между устройствами."
+            "value": "Войдите, чтобы сохранённые хадисы и заметки были с вами."
           }
         },
         "kk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Өз тіліңізде аударма жасаңыз. Оқу орныңызды құрылғылар арасында сақтаңыз."
+            "value": "Сақталған хадистер мен жазбалар өзіңізбен бірге болуы үшін кіріңіз."
           }
         },
         "uz": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "O‘z tilingizda tarjima yarating. O‘qish joyingizni qurilmalar orasida saqlang."
+            "value": "Saqlangan hadislar va qaydlaringiz siz bilan bo‘lishi uchun kiring."
           }
         },
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Kendi dilinizde çeviri oluşturun. Okuduğunuz yeri cihazlar arasında koruyun."
+            "value": "Kaydettiğiniz hadisler ve notlarınız yanınızda olsun diye giriş yapın."
           }
         },
         "id": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Buat terjemahan dalam bahasa Anda. Simpan posisi baca antarperangkat."
+            "value": "Masuk agar hadis tersimpan dan catatan Anda selalu bersama Anda."
           }
         },
         "ur": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "اپنی زبان میں ترجمے بنائیں۔ اپنے آلات میں پڑھنے کی جگہ محفوظ رکھیں۔"
+            "value": "اپنی محفوظ احادیث اور نوٹس ساتھ رکھنے کے لیے سائن ان کریں۔"
           }
         },
         "ky": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Өз тилиңизде котормолорду түзүңүз. Окуган жериңизди бардык түзмөктөрдө сактаңыз."
+            "value": "Сакталган хадистер менен жазууларыңыз жаныңызда болушу үчүн кириңиз."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Créez des traductions dans votre langue. Retrouvez votre position sur tous vos appareils."
+            "value": "Connectez-vous pour retrouver vos hadiths enregistrés et vos notes."
           }
         },
         "es-419": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Crea traducciones en tu idioma. Conserva tu posición entre dispositivos."
+            "value": "Inicia sesión para llevar contigo tus hadices guardados y notas."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Crie traduções no seu idioma. Mantenha sua posição entre os dispositivos."
+            "value": "Entre para ter seus hadiths salvos e suas notas sempre com você."
           }
         },
         "sw": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Unda tafsiri katika lugha yako. Hifadhi nafasi yako kwenye vifaa vyako."
+            "value": "Ingia ili uwe na hadithi ulizohifadhi na madokezo yako popote."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "अपनी भाषा में अनुवाद बनाएँ। अपने सभी उपकरणों पर पढ़ने की जगह बनाए रखें।"
+            "value": "अपनी सहेजी गई हदीसें और नोट्स साथ रखने के लिए साइन इन करें।"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "আপনার ভাষায় অনুবাদ তৈরি করুন। সব ডিভাইসে পড়ার অবস্থান ধরে রাখুন।"
+            "value": "সংরক্ষিত হাদিস ও নোট সঙ্গে রাখতে সাইন ইন করুন।"
           }
         }
       }
@@ -3142,91 +3142,91 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Renews automatically at the displayed price for the selected billing period. Manage or cancel in your store account."
+            "value": "Subscriptions renew automatically. Manage or cancel in your store account."
           }
         },
         "ar": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "يتجدد تلقائيًا بالسعر المعروض للفترة المختارة. يمكنك الإدارة أو الإلغاء في حساب المتجر."
+            "value": "تتجدد الاشتراكات تلقائيًا. يمكنك إدارتها أو إلغاؤها من حسابك في المتجر."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Автоматическое продление по указанной цене за выбранный период. Управление и отмена в аккаунте магазина."
+            "value": "Подписка продлевается автоматически. Управлять ей и отменить её можно в аккаунте магазина."
           }
         },
         "kk": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Таңдалған кезең үшін көрсетілген бағамен автоматты түрде жаңарады. Дүкен тіркелгісінде басқарыңыз не тоқтатыңыз."
+            "value": "Жазылым автоматты түрде жаңартылады. Оны дүкендегі аккаунтыңыздан басқаруға немесе тоқтатуға болады."
           }
         },
         "uz": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Tanlangan davr uchun ko‘rsatilgan narxda avtomatik yangilanadi. Do‘kon hisobida boshqaring yoki bekor qiling."
+            "value": "Obuna avtomatik yangilanadi. Uni do‘kondagi hisobingizdan boshqarishingiz yoki bekor qilishingiz mumkin."
           }
         },
         "tr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Seçilen dönem için gösterilen fiyattan otomatik yenilenir. Mağaza hesabınızdan yönetin veya iptal edin."
+            "value": "Abonelikler otomatik yenilenir. Mağaza hesabınızdan yönetebilir veya iptal edebilirsiniz."
           }
         },
         "id": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Diperpanjang otomatis dengan harga yang ditampilkan untuk periode terpilih. Kelola atau batalkan di akun toko Anda."
+            "value": "Langganan diperpanjang otomatis. Kelola atau batalkan di akun toko Anda."
           }
         },
         "ur": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "منتخب مدت کے لیے دکھائی گئی قیمت پر خودکار تجدید ہوتی ہے۔ اسٹور اکاؤنٹ میں انتظام یا منسوخی کریں۔"
+            "value": "سبسکرپشن خود بخود تجدید ہوتی ہے۔ اپنے اسٹور اکاؤنٹ میں اس کا نظم کریں یا منسوخ کریں۔"
           }
         },
         "ky": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Тандалган эсептешүү мезгили үчүн көрсөтүлгөн баада автоматтык түрдө жаңыланат. Дүкөн аккаунтуңуздан башкарыңыз же токтотуңуз."
+            "value": "Жазылуу автоматтык түрдө узартылат. Аны дүкөндөгү аккаунтуңуздан башкарып же токтото аласыз."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Se renouvelle automatiquement au prix affiché pour la période choisie. Gérez ou annulez dans votre compte de boutique."
+            "value": "Les abonnements se renouvellent automatiquement. Gérez ou annulez votre abonnement dans votre compte de boutique."
           }
         },
         "es-419": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Se renueva automáticamente al precio mostrado para el periodo elegido. Administra o cancela desde tu cuenta de la tienda."
+            "value": "La suscripción se renueva automáticamente. Adminístrala o cancélala en tu cuenta de la tienda."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Renova automaticamente pelo preço exibido para o período escolhido. Gerencie ou cancele na conta da loja."
+            "value": "As assinaturas são renovadas automaticamente. Gerencie ou cancele na sua conta da loja."
           }
         },
         "sw": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Hujisasisha kiotomatiki kwa bei iliyoonyeshwa kwa kipindi ulichochagua. Dhibiti au ghairi katika akaunti ya duka."
+            "value": "Usajili hujisasisha kiotomatiki. Dhibiti au ughairi katika akaunti yako ya duka."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "चुनी गई बिलिंग अवधि के लिए दिखाई गई कीमत पर अपने आप नवीनीकृत होता है। अपने स्टोर खाते में प्रबंधित या रद्द करें।"
+            "value": "सदस्यता अपने आप नवीनीकृत होती है। अपने स्टोर खाते में इसे प्रबंधित या रद्द करें।"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "নির্বাচিত বিলিং সময়ের প্রদর্শিত মূল্যে স্বয়ংক্রিয়ভাবে নবায়ন হয়। স্টোর অ্যাকাউন্টে পরিচালনা বা বাতিল করুন।"
+            "value": "সাবস্ক্রিপশন স্বয়ংক্রিয়ভাবে নবায়ন হয়। আপনার স্টোর অ্যাকাউন্ট থেকে পরিচালনা বা বাতিল করুন।"
           }
         }
       }
@@ -25318,13 +25318,1146 @@
         }
       }
     },
-    "%@ pt": {},
-    "Ask before removing saved items": {},
-    "Confirm before removing": {},
-    "Language": {},
-    "Reset password": {},
-    "Show on page": {},
-    "Sunnah.now English (%@)": {}
+    "%@ pt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ pt"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ نقطة"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ пт"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ пт"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ пт"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ pt"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ nk"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ pt"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ پوائنٹ"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ pt"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ pt"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ pt"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ pt"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ पॉइंट"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ পয়েন্ট"
+          }
+        }
+      }
+    },
+    "Ask before removing saved items": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask before removing saved items"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "السؤال قبل إزالة العناصر المحفوظة"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Спрашивать перед удалением сохранённых элементов"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Сақталғандарды өшірмес бұрын сұрау"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Сакталгандарды өчүрүүдөн мурун суроо"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Saqlanganlarni o‘chirishdan oldin so‘rash"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Kaydedilenleri kaldırmadan önce sor"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tanya sebelum menghapus item tersimpan"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "محفوظ اشیا ہٹانے سے پہلے پوچھیں"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Demander avant de retirer les éléments enregistrés"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Preguntar antes de quitar elementos guardados"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Perguntar antes de remover itens salvos"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Uliza kabla ya kuondoa vilivyohifadhiwa"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "सहेजे गए आइटम हटाने से पहले पूछें"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "সংরক্ষিত আইটেম সরানোর আগে জিজ্ঞাসা করুন"
+          }
+        }
+      }
+    },
+    "Confirm before removing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm before removing"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "التأكيد قبل الإزالة"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Подтверждать удаление"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Өшірмес бұрын растау"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Өчүрүүдөн мурун ырастоо"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "O‘chirishdan oldin tasdiqlash"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Kaldırmadan önce onayla"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Konfirmasi sebelum menghapus"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ہٹانے سے پہلے تصدیق کریں"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Confirmer avant de retirer"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Confirmar antes de quitar"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Confirmar antes de remover"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Thibitisha kabla ya kuondoa"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "हटाने से पहले पुष्टि करें"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "সরানোর আগে নিশ্চিত করুন"
+          }
+        }
+      }
+    },
+    "Language": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "اللغة"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Язык"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Тіл"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Тил"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Til"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Dil"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bahasa"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "زبان"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Langue"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Idioma"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Idioma"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Lugha"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "भाषा"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ভাষা"
+          }
+        }
+      }
+    },
+    "Reset password": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset password"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "إعادة تعيين كلمة المرور"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Сбросить пароль"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Құпиясөзді қалпына келтіру"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Сырсөздү калыбына келтирүү"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Parolni tiklash"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Parolayı sıfırla"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Atur ulang kata sandi"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "پاس ورڈ دوبارہ ترتیب دیں"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Réinitialiser le mot de passe"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Restablecer contraseña"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Redefinir senha"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Weka upya nenosiri"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "पासवर्ड रीसेट करें"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "পাসওয়ার্ড রিসেট করুন"
+          }
+        }
+      }
+    },
+    "Show on page": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show on page"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "إظهار في الصفحة"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Показывать на странице"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бетте көрсету"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Баракта көрсөтүү"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sahifada ko‘rsatish"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sayfada göster"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tampilkan di halaman"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "صفحے پر دکھائیں"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Afficher sur la page"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mostrar en la página"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mostrar na página"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Onyesha kwenye ukurasa"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "पेज पर दिखाएँ"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "পাতায় দেখান"
+          }
+        }
+      }
+    },
+    "Sunnah.now English (%@)": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunnah.now English (%@)"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "الإنجليزية من Sunnah.now (%@)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Английский текст Sunnah.now (%@)"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sunnah.now ағылшынша мәтіні (%@)"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sunnah.now англисче тексти (%@)"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sunnah.now inglizcha matni (%@)"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sunnah.now İngilizce metin (%@)"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Teks Inggris Sunnah.now (%@)"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sunnah.now انگریزی متن (%@)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Texte anglais Sunnah.now (%@)"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Texto en inglés de Sunnah.now (%@)"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Texto em inglês do Sunnah.now (%@)"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Maandishi ya Kiingereza ya Sunnah.now (%@)"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sunnah.now का अंग्रेज़ी पाठ (%@)"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sunnah.now ইংরেজি লেখা (%@)"
+          }
+        }
+      }
+    },
+    "q2.recommended": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recommended"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "موصى به"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Рекомендуем"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ұсынылады"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Сунушталат"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tavsiya etiladi"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Önerilen"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Direkomendasikan"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "تجویز کردہ"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Recommandé"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Recomendado"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Recomendado"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Inapendekezwa"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "सुझाया गया"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "প্রস্তাবিত"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "q2.billed_yearly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Billed yearly"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "تُدفع سنويًا"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Оплата раз в год"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жыл сайын төленеді"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жыл сайын төлөнөт"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Yiliga bir marta to‘lanadi"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Yıllık faturalandırılır"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ditagih tahunan"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "سالانہ ادائیگی"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Facturation annuelle"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cobro anual"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cobrança anual"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Malipo ya kila mwaka"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "सालाना बिल"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "বার্ষিক বিল"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "q2.savings_percent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save %1$d%%"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "وفّر %1$d%%"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Экономия %1$d%%"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%1$d%% үнемдеу"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%1$d%% үнөмдөө"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%1$d%% tejang"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%1$d%% tasarruf"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hemat %1$d%%"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%1$d%% بچت"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Économisez %1$d%%"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ahorra %1$d%%"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Economize %1$d%%"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Okoa %1$d%%"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%1$d%% बचत"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%1$d%% সাশ্রয়"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "q2.per_month": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "per month"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "شهريًا"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "в месяц"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "айына"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "айына"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "oyiga"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "aylık"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "per bulan"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ماہانہ"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "par mois"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "al mes"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "por mês"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "kwa mwezi"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "प्रति माह"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "প্রতি মাসে"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "q2.more": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "المزيد"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ещё"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Тағы"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Дагы"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Yana"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Diğer"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Lainnya"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "مزید"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Plus"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Más"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mais"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Zaidi"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "और"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "আরও"
+          }
+        }
+      },
+      "extractionState": "manual"
+    }
   },
   "version": "1.1"
 }

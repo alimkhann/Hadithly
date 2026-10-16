@@ -11,8 +11,8 @@
     <string name="la2_sample_label">Tayyor SI misoli</string>
     <string name="la2_sample_notice">Hadithly misol matni, hadis emas. SI tarjimalarida xatolar bo‘lishi mumkin.</string>
     <string name="la2_source_details">Misolda arabcha asl matn saqlanadi. Manba: Hadithly. CC0 1.0.</string>
-    <string name="la2_account_title">Hadithly’ni o‘zingizniki qiling</string>
-    <string name="la2_account_body">O‘z tilingizda tarjima yarating. O‘qish joyingizni qurilmalar orasida saqlang.</string>
+    <string name="la2_account_title">Mutolaangiz doim siz bilan</string>
+    <string name="la2_account_body">Saqlangan hadislar va qaydlaringiz siz bilan bo‘lishi uchun kiring.</string>
     <string name="la2_create_account">Hisob yaratish</string>
     <string name="la2_sign_in">Kirish</string>
     <string name="la2_guest">Mehmon sifatida davom etish</string>
@@ -34,7 +34,7 @@
     <string name="la2_close">Yopish</string>
     <string name="la2_privacy">Maxfiylik</string>
     <string name="la2_terms">Shartlar</string>
-    <string name="la2_renewal">Tanlangan davr uchun ko‘rsatilgan narxda avtomatik yangilanadi. Do‘kon hisobida boshqaring yoki bekor qiling.</string>
+    <string name="la2_renewal">Obuna avtomatik yangilanadi. Uni do‘kondagi hisobingizdan boshqarishingiz yoki bekor qilishingiz mumkin.</string>
     <string name="la2_checking">Pro huquqi tekshirilmoqda…</string>
     <string name="la2_cancelled">Xarid bekor qilindi. O‘qishni davom ettirishingiz mumkin.</string>
     <string name="la2_pending">To‘lov kutilmoqda. Do‘kon tasdiqlagach Pro ochiladi.</string>

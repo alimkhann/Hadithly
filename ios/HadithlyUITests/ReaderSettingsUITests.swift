@@ -53,12 +53,63 @@ final class ReaderSettingsUITests: XCTestCase {
         }
     }
 
+    func testMainAppearanceKeepsAppToggleAndReaderInSeparateGroups() {
+        let app = launch(context: "global", theme: "light")
+        app.buttons["settings.row.appearance"].tap()
+        let toggle = app.switches["settings.appearance.separateReader"]
+        XCTAssertTrue(toggle.waitForExistence(timeout: 5))
+        let appDark = app.descendants(matching: .any).matching(identifier: "settings.appearance.dark").firstMatch
+        XCTAssertTrue(appDark.exists)
+        XCTAssertGreaterThan(toggle.frame.minY - appDark.frame.maxY, 16)
+        let reader = app.descendants(matching: .any).matching(identifier: "settings.readerAppearance.system").firstMatch
+        XCTAssertFalse(reader.exists)
+        screenshot("appearance-two-groups")
+        toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
+        XCTAssertEqual(toggle.value as? String, "1")
+        XCTAssertTrue(reader.waitForExistence(timeout: 5))
+        XCTAssertGreaterThan(reader.frame.minY - toggle.frame.maxY, 16)
+        screenshot("appearance-three-groups")
+        toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
+        XCTAssertFalse(reader.exists)
+    }
+
     func testSelectingPaperChangesRenderedSheetBackground() {
         let app = launch(context: "reader")
         app.buttons["reader.settings.appearance"].tap()
         app.buttons["reader.theme.paper"].tap()
         assertPaperBackground(app)
         screenshot("reader-paper-selected")
+    }
+
+    func testThemeCycleDoesNotRetainPaperDividers() {
+        let app = launch(context: "reader", theme: "paper")
+        app.buttons["reader.settings.appearance"].tap()
+        for theme in ["light", "dark"] {
+            app.buttons["reader.theme.\(theme)"].tap()
+            let row = app.buttons["reader.theme.system"]
+            XCTAssertTrue(row.exists)
+            screenshot("theme-cycle-\(theme)-before-reentry")
+            XCTAssertLessThan(warmPixelsNearDivider(app, row: row), 0.02,
+                              "Paper's tan separator must not survive a theme change")
+            app.navigationBars["Appearance"].buttons.element(boundBy: 0).tap()
+            app.buttons["reader.settings.appearance"].tap()
+            screenshot("theme-cycle-\(theme)-after-reentry")
+            XCTAssertLessThan(warmPixelsNearDivider(app, row: app.buttons["reader.theme.system"]), 0.02)
+        }
+    }
+
+    private func warmPixelsNearDivider(_ app: XCUIApplication, row: XCUIElement) -> Double {
+        let image = app.screenshot().image.cgImage!
+        let scale = CGFloat(image.width) / app.frame.width
+        let rect = CGRect(x: row.frame.midX, y: row.frame.maxY - 2, width: row.frame.width * 0.2, height: 5)
+        let crop = image.cropping(to: CGRect(x: rect.minX * scale, y: rect.minY * scale, width: rect.width * scale, height: rect.height * scale))!
+        let width = crop.width, height = crop.height
+        var rgba = [UInt8](repeating: 0, count: width * height * 4)
+        let context = CGContext(data: &rgba, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4,
+                                space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
+        context.draw(crop, in: CGRect(x: 0, y: 0, width: width, height: height))
+        let warm = stride(from: 0, to: rgba.count, by: 4).filter { Int(rgba[$0]) - Int(rgba[$0 + 2]) > 20 && Int(rgba[$0 + 1]) - Int(rgba[$0 + 2]) > 10 }.count
+        return Double(warm) / Double(width * height)
     }
 
     private func assertPaperBackground(_ app: XCUIApplication) {

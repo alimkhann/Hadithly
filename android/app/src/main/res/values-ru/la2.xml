@@ -11,8 +11,8 @@
     <string name="la2_sample_label">Подготовленный пример ИИ</string>
     <string name="la2_sample_notice">Пример текста Hadithly, не хадис. Переводы ИИ могут содержать ошибки.</string>
     <string name="la2_source_details">Пример сохраняет арабский оригинал. Источник: Hadithly. CC0 1.0.</string>
-    <string name="la2_account_title">Ваш Hadithly</string>
-    <string name="la2_account_body">Создавайте переводы на своём языке. Сохраняйте место чтения между устройствами.</string>
+    <string name="la2_account_title">Ваше чтение — где бы вы ни были</string>
+    <string name="la2_account_body">Войдите, чтобы сохранённые хадисы и заметки были с вами.</string>
     <string name="la2_create_account">Создать аккаунт</string>
     <string name="la2_sign_in">Войти</string>
     <string name="la2_guest">Продолжить без аккаунта</string>
@@ -34,7 +34,7 @@
     <string name="la2_close">Закрыть</string>
     <string name="la2_privacy">Конфиденциальность</string>
     <string name="la2_terms">Условия</string>
-    <string name="la2_renewal">Автоматическое продление по указанной цене за выбранный период. Управление и отмена в аккаунте магазина.</string>
+    <string name="la2_renewal">Подписка продлевается автоматически. Управлять ей и отменить её можно в аккаунте магазина.</string>
     <string name="la2_checking">Проверяем доступ Pro…</string>
     <string name="la2_cancelled">Покупка отменена. Можно продолжить чтение.</string>
     <string name="la2_pending">Платёж ожидает подтверждения. Pro появится после подтверждения магазина.</string>

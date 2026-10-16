@@ -86,22 +86,24 @@ struct SavedView: View {
         .padding(.horizontal).appNavigationTitle("Saved")
         .background(Theme.background.ignoresSafeArea())
         .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("New folder", systemImage: "folder.badge.plus") { showNewFolder = true }.accessibilityLabel("Create saved folder") } }
-        .overlay(alignment: .bottom) {
+        .safeAreaInset(edge: .bottom, spacing: 0) {
             if let notice = undoNotice {
                 SavedUndoBanner(notice: notice, onExpire: { undoNotice = nil })
-                    .padding(.bottom, 62)
+
             } else if let deletion = library.lastFolderDeletion {
-                SavedUndoBanner(notice: SavedUndoNotice(message: "Folder \(deletion.name) deleted", undo: library.undoDeleteFolder), onExpire: { library.clearFolderDeletion() })
-                    .padding(.bottom, 62)
+                SavedUndoBanner(notice: SavedUndoNotice(id: deletion.undoID, message: "Folder \(deletion.name) deleted", undo: library.undoDeleteFolder, deadline: deletion.undoDeadline), onExpire: { library.clearFolderDeletion() })
+
             }
         }
+        .animation(reducedMotion ? nil : .timingCurve(0.22, 1, 0.36, 1, duration: InterfaceMotion.reveal), value: undoNotice?.id)
+        .animation(reducedMotion ? nil : .timingCurve(0.22, 1, 0.36, 1, duration: InterfaceMotion.reveal), value: library.lastFolderDeletion?.undoID)
         .confirmationDialog("Remove saved item?", isPresented: Binding(get: { pendingRemoval != nil }, set: { if !$0 { pendingRemoval = nil } })) {
             if let removal = pendingRemoval {
             Button("Remove", role: .destructive) { performRemoval(removal); pendingRemoval = nil }
             Button("Remove and don't ask again", role: .destructive) { environment.savedSafety.confirmsRemoval = false; performRemoval(removal); pendingRemoval = nil }
             }
             Button("Cancel", role: .cancel) {}
-        } message: { Text("You can undo this action from the message at the top.") }
+        } message: { Text("You can undo this action from the message below.") }
         .alert("New folder", isPresented: $showNewFolder) {
             TextField("Folder name", text: $newFolderName)
             Button("Cancel", role: .cancel) { newFolderName = "" }

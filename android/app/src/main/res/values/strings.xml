@@ -108,4 +108,9 @@
     <string name="q2_wait">Your Pro allowance returns as earlier translations leave the 7-day window. Cached translations and reading stay available.</string>
     <string name="diagnostics_consent">Send crash reports</string>
     <string name="diagnostics_privacy">Optional. Sends redacted failures and build information to Sentry. No reading text or account details. Reports expire after 30 days. Turning off clears pending reports on this device.</string>
+    <string name="q2_recommended">Recommended</string>
+    <string name="q2_billed_yearly">Billed yearly</string>
+    <string name="q2_savings_percent">Save %1$d%%</string>
+    <string name="q2_per_month">per month</string>
+    <string name="q2_more">More</string>
 </resources>

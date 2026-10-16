@@ -2,6 +2,10 @@ package com.hadithly.app
 
 import android.content.res.Configuration
 import android.os.Bundle
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -160,14 +164,14 @@ fun RootApp(
     var showSignIn by remember { mutableStateOf(false) }
 
     if (onboardingCompleted) {
+        Box(Modifier.fillMaxSize().then(if (showSignIn) Modifier.clearAndSetSemantics {} else Modifier)) {
         MainTabs(
-            showSignIn = showSignIn,
             onShowSignIn = { showSignIn = true },
-            onDismissSignIn = { showSignIn = false },
             pendingLink = pendingLink,
             notificationTarget = notificationTarget,
             continueWidgetRequest = continueWidgetRequest,
         )
+        }
     } else {
         OnboardingFlow(
             selectedLanguage = preferences.uiLocale,

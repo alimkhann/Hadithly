@@ -1,0 +1,1 @@
+Reader root evaluations during one vertical drag: 2

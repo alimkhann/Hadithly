@@ -15,6 +15,7 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.test.platform.app.InstrumentationRegistry
 import com.hadithly.app.core.preferences.ReaderTheme
+import com.hadithly.app.core.preferences.LocaleFallback
 import com.hadithly.app.features.auth.SignInMode
 import com.hadithly.app.features.auth.SignInScreen
 import com.hadithly.app.features.main.HadithlyBottomNavigation
@@ -57,12 +58,13 @@ class NativeFinishingTest {
     @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
     @Test fun nativeReaderSheetsAndEmptyStates() {
         var scene by mutableStateOf("contents")
+        var previewLocale by mutableStateOf("en")
         val app = com.hadithly.app.HadithlyApplication.instance()
         val hadith = com.hadithly.app.core.data.ReaderHadith(_id = "finishing-57", provider = "sunnah_now", canonicalId = "sunnah_now:bukhari:57", providerHadithId = "57", collectionSlug = "bukhari",
             arabicText = "إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ", englishText = "Actions are judged by intentions.", referenceDisplay = "Sahih al-Bukhari · Hadith 57", collectionName = "Sahih al-Bukhari",
             authenticity = com.hadithly.app.core.data.AuthenticityClaim(kind = "collection_scope", normalizedGrade = "sahih", claimScope = "collection", sourceLabel = "Documented Sahih collection", sourceName = "Sunnah.now", sourceUrl = "https://sunnah.now", verificationMethod = "manual_collection_mapping"))
         val ref = com.hadithly.app.core.data.HadithRef(hadithId = hadith._id, collectionSlug = "bukhari", collectionName = hadith.collectionName, volumeId = "1", hadithNumber = "57", referenceDisplay = hadith.referenceDisplay, arabicText = hadith.arabicText, englishText = hadith.englishText)
-        compose.setContent { LocalizedPreview(ReaderTheme.PAPER) {
+        compose.setContent { LocalizedPreview(ReaderTheme.PAPER, previewLocale) {
             Surface(Modifier.fillMaxSize(), color = LocalHadithlyColors.current.background) {
                 key(scene) {
                     if (scene == "saved-main") androidx.compose.material3.Scaffold(bottomBar = { HadithlyBottomNavigation(2) {} }, containerColor = LocalHadithlyColors.current.background) { padding -> Box(Modifier.padding(padding)) { com.hadithly.app.features.saved.SavedScreen {} } }
@@ -100,6 +102,14 @@ class NativeFinishingTest {
                 capture("reader-saved-notes-empty")
             }
         }
+        for (locale in listOf("ar", "ur")) {
+            compose.runOnIdle { previewLocale = locale; scene = "contents" }
+            compose.waitForIdle()
+            capture("normal-$locale-reader-contents")
+            compose.runOnIdle { scene = "saved" }
+            compose.waitForIdle()
+            capture("normal-$locale-reader-saved")
+        }
     }
 
     @Test fun firstInstallAndAccountRoutes() {
@@ -115,21 +125,30 @@ class NativeFinishingTest {
             compose.onNodeWithTag("onboarding.continue").assertIsDisplayed()
             capture("02-language")
             compose.onNodeWithTag("onboarding.continue").performClick()
-            compose.onNodeWithTag("onboarding.reveal").assertIsDisplayed()
-            capture("03-example-ready")
-            compose.onNodeWithTag("onboarding.reveal").performClick()
-            compose.onNodeWithTag("onboarding.example").assertIsDisplayed()
-            capture("04-example-revealed")
+            compose.waitUntil(30_000) {
+                compose.onAllNodesWithTag("onboarding.dailyText").fetchSemanticsNodes().isNotEmpty() ||
+                    compose.onAllNodesWithTag("onboarding.dailyRetry").fetchSemanticsNodes().isNotEmpty()
+            }
+            val dailyText = compose.onAllNodesWithTag("onboarding.dailyText").fetchSemanticsNodes().isNotEmpty()
+            if (dailyText) {
+                compose.onNodeWithTag("onboarding.dailyText").assertIsDisplayed()
+                capture("03-daily-hadith")
+            } else {
+                compose.onNodeWithTag("onboarding.dailyRetry").assertIsDisplayed()
+                capture("03-daily-unavailable-retry")
+            }
             compose.onNodeWithTag("onboarding.continue").performClick()
-            compose.onNodeWithTag("onboarding.guest").performScrollTo().assertIsDisplayed()
+            compose.onNodeWithTag("onboarding.guest").assertIsDisplayed()
             capture("05-account")
-            compose.onNodeWithTag("onboarding.createAccount").performScrollTo().performClick()
-            compose.onNodeWithTag("signin.screen.sign_up").assertExists()
-            capture("06-sign-up")
-            compose.onNodeWithTag("signin.close").performClick()
-            compose.onNodeWithTag("onboarding.signIn").performScrollTo().performClick()
+            compose.onNodeWithTag("onboarding.signIn").performClick()
             compose.onNodeWithTag("signin.screen.methods").assertExists()
-            capture("07-auth-methods")
+            capture("06-auth-methods")
+            compose.onNodeWithTag("signin.createAccount").performScrollTo().performClick()
+            compose.onNodeWithTag("signin.screen.sign_up").assertExists()
+            capture("07-sign-up")
+            compose.onNodeWithTag("signin.close").performClick()
+            compose.onNodeWithTag("onboarding.signIn").performClick()
+            compose.onNodeWithTag("signin.screen.methods").assertExists()
             compose.onNodeWithText("Continue with email").performScrollTo().performClick()
             compose.onNodeWithTag("signin.screen.password_sign_in").assertExists()
             capture("08-password")
@@ -194,6 +213,53 @@ class NativeFinishingTest {
         capture("bottom-navigation-large-rtl")
     }
 
+    @Test fun settingsSignInHidesTheUnderlyingAccessibilityTreeAndCancelRestoresTheTab() {
+        val app = InstrumentationRegistry.getInstrumentation().targetContext.applicationContext as com.hadithly.app.HadithlyApplication
+        val previous = app.settings.onboardingCompleted.value
+        try {
+            app.settings.setOnboardingCompleted(true)
+            compose.setContent { LocalizedPreview(ReaderTheme.LIGHT) { com.hadithly.app.RootApp() } }
+            compose.waitUntil(10_000) { compose.onAllNodesWithTag("tabs.settings").fetchSemanticsNodes().isNotEmpty() }
+            compose.onNodeWithTag("tabs.settings").performClick()
+            compose.onNodeWithTag("settings.signin").performClick()
+            compose.onNodeWithText("Continue with email").performScrollTo().performClick()
+            compose.onNodeWithTag("signin.screen.password_sign_in").assertIsDisplayed()
+            compose.onNodeWithTag("tabs.settings").assertDoesNotExist()
+            capture("settings-inline-sign-in")
+            compose.onNodeWithTag("signin.close").performClick()
+            compose.onNodeWithTag("tabs.settings").assertIsSelected()
+            compose.onNodeWithTag("settings.signin").assertIsDisplayed()
+        } finally { app.settings.setOnboardingCompleted(previous) }
+    }
+
+    @Test fun annualPricingPrototypeShowsMonthlyEquivalentAndNativeSelection() {
+        var theme by mutableStateOf(ReaderTheme.LIGHT)
+        compose.setContent { LocalizedPreview(theme) {
+            var annual by remember { mutableStateOf(true) }
+            Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                androidx.compose.material3.Text(androidx.compose.ui.res.stringResource(com.hadithly.app.R.string.la2_more_translations),
+                    style = androidx.compose.material3.MaterialTheme.typography.headlineLarge, color = LocalHadithlyColors.current.textPrimary)
+                androidx.compose.material3.Text(androidx.compose.ui.res.stringResource(com.hadithly.app.R.string.la2_allowance),
+                    style = androidx.compose.material3.MaterialTheme.typography.bodyMedium, color = LocalHadithlyColors.current.textSecondary)
+                com.hadithly.app.features.purchases.PaywallPlanOption(true, annual, "$2.08", 30) { annual = true }
+                com.hadithly.app.features.purchases.PaywallPlanOption(false, !annual, "$2.99", null) { annual = false }
+                androidx.compose.material3.Button(onClick = {}, enabled = false, modifier = Modifier.fillMaxWidth()) {
+                    androidx.compose.material3.Text(androidx.compose.ui.res.stringResource(if (annual) com.hadithly.app.R.string.la2_subscribe_annual else com.hadithly.app.R.string.la2_subscribe_monthly))
+                }
+                androidx.compose.material3.Text(androidx.compose.ui.res.stringResource(com.hadithly.app.R.string.la2_renewal),
+                    style = androidx.compose.material3.MaterialTheme.typography.bodySmall, color = LocalHadithlyColors.current.textSecondary)
+            }
+        } }
+        compose.onNodeWithTag("paywall.annual").assertIsSelected()
+        compose.onNodeWithText("$2.08").assertIsDisplayed()
+        compose.onNodeWithText("$24.99").assertDoesNotExist()
+        compose.onNodeWithTag("paywall.monthly").performClick().assertIsSelected()
+        compose.onNodeWithTag("paywall.annual").performClick()
+        capture("paywall-prototype-light")
+        compose.runOnIdle { theme = ReaderTheme.DARK }
+        capture("paywall-prototype-dark")
+    }
+
     @Test fun smallLargeTextAuthRemainsScrollable() {
         compose.setContent { LocalizedPreview(ReaderTheme.LIGHT) {
             CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, 2f), LocalLayoutDirection provides LayoutDirection.Rtl) {
@@ -215,6 +281,40 @@ class NativeFinishingTest {
         }
         instrumentation.uiAutomation.executeShellCommand("cp ${file.absolutePath} /sdcard/Pictures/finishing-$name.png").close()
     }
+
+    @Test fun normalArabicAndUrduWelcomeAndAccountScreens() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val prefs = context.getSharedPreferences("onboarding", 0)
+        val previous = prefs.all
+        var route by mutableStateOf("ar-welcome")
+        try {
+            prefs.edit().clear().putInt("step", 0).commit()
+            compose.setContent {
+                key(route) {
+                    val locale = route.substringBefore('-')
+                    LocalizedPreview(ReaderTheme.LIGHT, locale) { OnboardingFlow(locale, {}, {}) }
+                }
+            }
+            for (next in listOf("ar-welcome", "ar-account", "ur-welcome", "ur-account")) {
+                if (next != route) compose.runOnIdle {
+                    prefs.edit().putInt("step", if (next.endsWith("account")) 3 else 0).commit()
+                    route = next
+                }
+                compose.waitForIdle()
+                if (next.endsWith("welcome")) {
+                    compose.onNodeWithTag("onboarding.getStarted").assertIsDisplayed()
+                } else {
+                    compose.onNodeWithTag("onboarding.signIn").assertIsDisplayed()
+                    compose.onNodeWithTag("onboarding.guest").assertIsDisplayed()
+                }
+                capture("normal-$next")
+            }
+        } finally {
+            val edit = prefs.edit().clear()
+            previous.forEach { (key, value) -> when (value) { is Int -> edit.putInt(key, value); is Boolean -> edit.putBoolean(key, value); is String -> edit.putString(key, value) } }
+            edit.commit()
+        }
+    }
 }
 
 @Composable
@@ -225,5 +325,5 @@ private fun LocalizedPreview(theme: ReaderTheme, locale: String = "en", content:
     CompositionLocalProvider(androidx.compose.ui.platform.LocalContext provides localized,
         androidx.compose.ui.platform.LocalConfiguration provides configuration,
         androidx.compose.ui.platform.LocalResources provides localized.resources,
-        LocalLayoutDirection provides if (locale == "ar") LayoutDirection.Rtl else LayoutDirection.Ltr) { HadithlyTheme(theme, content) }
+        LocalLayoutDirection provides if (LocaleFallback.isRTL(locale)) LayoutDirection.Rtl else LayoutDirection.Ltr) { HadithlyTheme(theme, content) }
 }

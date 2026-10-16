@@ -11,8 +11,8 @@
     <string name="la2_sample_label">Hazırlanmış yapay zekâ örneği</string>
     <string name="la2_sample_notice">Hadithly örnek metnidir, hadis değildir. Yapay zekâ çevirileri hata içerebilir.</string>
     <string name="la2_source_details">Bu örnek Arapça kaynağı korur. Kaynak: Hadithly. CC0 1.0.</string>
-    <string name="la2_account_title">Hadithly sizin olsun</string>
-    <string name="la2_account_body">Kendi dilinizde çeviri oluşturun. Okuduğunuz yeri cihazlar arasında koruyun.</string>
+    <string name="la2_account_title">Okuduklarınız her yerde sizinle</string>
+    <string name="la2_account_body">Kaydettiğiniz hadisler ve notlarınız yanınızda olsun diye giriş yapın.</string>
     <string name="la2_create_account">Hesap oluşturun</string>
     <string name="la2_sign_in">Giriş yapın</string>
     <string name="la2_guest">Misafir olarak devam edin</string>
@@ -34,7 +34,7 @@
     <string name="la2_close">Kapat</string>
     <string name="la2_privacy">Gizlilik</string>
     <string name="la2_terms">Koşullar</string>
-    <string name="la2_renewal">Seçilen dönem için gösterilen fiyattan otomatik yenilenir. Mağaza hesabınızdan yönetin veya iptal edin.</string>
+    <string name="la2_renewal">Abonelikler otomatik yenilenir. Mağaza hesabınızdan yönetebilir veya iptal edebilirsiniz.</string>
     <string name="la2_checking">Pro erişimi kontrol ediliyor…</string>
     <string name="la2_cancelled">Satın alma iptal edildi. Okumaya devam edebilirsiniz.</string>
     <string name="la2_pending">Ödeme bekliyor. Mağaza onayından sonra Pro açılır.</string>

@@ -11,8 +11,8 @@
     <string name="la2_sample_label">Mfano wa AI uliotayarishwa</string>
     <string name="la2_sample_notice">Maandishi ya mfano kutoka Hadithly, si hadithi. Tafsiri za AI zinaweza kuwa na makosa.</string>
     <string name="la2_source_details">Mfano huu unahifadhi Kiarabu cha asili. Chanzo: Hadithly. CC0 1.0.</string>
-    <string name="la2_account_title">Ifanye Hadithly iwe yako</string>
-    <string name="la2_account_body">Unda tafsiri katika lugha yako. Hifadhi nafasi yako kwenye vifaa vyako.</string>
+    <string name="la2_account_title">Usomaji wako, popote ulipo</string>
+    <string name="la2_account_body">Ingia ili uwe na hadithi ulizohifadhi na madokezo yako popote.</string>
     <string name="la2_create_account">Unda akaunti</string>
     <string name="la2_sign_in">Ingia</string>
     <string name="la2_guest">Endelea kama mgeni</string>
@@ -34,7 +34,7 @@
     <string name="la2_close">Funga</string>
     <string name="la2_privacy">Faragha</string>
     <string name="la2_terms">Masharti</string>
-    <string name="la2_renewal">Hujisasisha kiotomatiki kwa bei iliyoonyeshwa kwa kipindi ulichochagua. Dhibiti au ghairi katika akaunti ya duka.</string>
+    <string name="la2_renewal">Usajili hujisasisha kiotomatiki. Dhibiti au ughairi katika akaunti yako ya duka.</string>
     <string name="la2_checking">Inakagua ufikiaji wa Pro…</string>
     <string name="la2_cancelled">Ununuzi umeghairiwa. Unaweza kuendelea kusoma.</string>
     <string name="la2_pending">Malipo yanasubiri. Pro itafunguliwa baada ya duka kuthibitisha.</string>

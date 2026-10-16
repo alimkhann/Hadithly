@@ -23,6 +23,8 @@ class LanguageSwitchTest {
             compose.onNode(hasText("Settings") and hasClickAction()).performClick()
             compose.onNodeWithTag("settings.row.appLanguage").performClick()
             compose.onNodeWithTag("settings.uiLanguage.ar").performClick()
+            compose.waitForIdle()
+            assertTrue("selected locale: ${app.preferences.preferences.value.uiLocale}", app.preferences.preferences.value.uiLocale == "ar")
             compose.onNodeWithText("اليوم").assertExists()
             val today = compose.onNodeWithText("اليوم").fetchSemanticsNode().boundsInRoot
             val settings = compose.onNode(hasText("الإعدادات") and hasClickAction()).fetchSemanticsNode().boundsInRoot

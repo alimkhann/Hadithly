@@ -85,9 +85,9 @@ fun SharedSavedItemRow(
             Column(Modifier.weight(1f).combinedClickable(onClick = { onOpen(ref) }, onLongClick = { menuOpen = true }).padding(vertical = 8.dp)) {
                 Text(ref.referenceDisplay.ifBlank { ref.collectionName }, fontWeight = FontWeight.SemiBold, color = colors.textPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    if (item.bookmarkCreatedAt != null) Icon(Icons.Filled.Bookmark, null, Modifier.size(12.dp), tint = colors.textSecondary)
-                    if (item.favoriteCreatedAt != null) Icon(Icons.Filled.Favorite, null, Modifier.size(12.dp), tint = colors.textSecondary)
-                    if (item.noteContent != null) Icon(Icons.Filled.EditNote, null, Modifier.size(12.dp), tint = colors.textSecondary)
+                    if (item.bookmarkCreatedAt != null) Icon(Icons.Filled.Bookmark, null, Modifier.size(12.dp), tint = colors.bookmark)
+                    if (item.favoriteCreatedAt != null) Icon(Icons.Filled.Favorite, null, Modifier.size(12.dp), tint = colors.favorite)
+                    if (item.noteContent != null) Icon(Icons.Filled.EditNote, null, Modifier.size(12.dp), tint = colors.interactive)
                     Text(relativeSavedTime(item.sortDate), fontSize = 12.sp, color = colors.textSecondary)
                 }
             }

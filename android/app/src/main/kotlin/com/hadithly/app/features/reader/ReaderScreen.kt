@@ -16,6 +16,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
@@ -72,6 +73,9 @@ import androidx.compose.material.icons.filled.Note
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -84,6 +88,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.State
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -98,6 +103,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.PointerEventPass
@@ -122,6 +128,9 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.activity.ComponentActivity
 import android.content.ClipData
 import android.content.Intent
 import com.hadithly.app.R
@@ -237,6 +246,7 @@ fun ReaderScreen(
     // reader (contents, settings, bookmark, search, saved, paywall) — in
     // all four palettes, never the global app theme.
     CompositionLocalProvider(LocalHadithlyColors provides colors) {
+        MaterialTheme(colorScheme = com.hadithly.app.core.theme.nativeColorScheme(colors, colors.background.luminance() < 0.5f)) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -323,6 +333,7 @@ fun ReaderScreen(
             },
         )
     }
+        }
     }
 }
 
@@ -439,15 +450,33 @@ private fun ReadingView(
     val context = androidx.compose.ui.platform.LocalContext.current
     val reduceMotion = !com.hadithly.app.core.theme.rememberMotionAllowed()
 
-    // Round 6: the status bar stays ALWAYS visible (no programmatic
-    // hiding). The page is full-bleed edge-to-edge into the system-bar
-    // zones (pre-round-4 behavior); the bottom chrome sits above the
-    // navigation bar — toggling chrome never moves the page.
-    // Round 7: toggling focused↔unfocused animates ONLY the chrome
-    // elements (corner label, progress pills/bar, back/menu buttons) with
-    // a fade + scale (~200ms, snapped when animator-duration-scale is 0).
+    // The page remains full-bleed while native window insets animate the
+    // status bar with focused mode. Reader controls animate independently.
     // Page content never moves or re-composes layout.
     val focused = !state.chromeVisible
+    val activity = remember(androidView) {
+        generateSequence(androidView.context) { context ->
+            (context as? android.content.ContextWrapper)?.baseContext
+        }.filterIsInstance<ComponentActivity>().firstOrNull()
+    }
+    DisposableEffect(activity) {
+        onDispose {
+            activity?.window?.let { window ->
+                WindowInsetsControllerCompat(window, androidView)
+                    .show(WindowInsetsCompat.Type.statusBars())
+            }
+        }
+    }
+    LaunchedEffect(activity, focused, colors.background) {
+        activity?.window?.let { window ->
+            val controller = WindowInsetsControllerCompat(window, androidView)
+            controller.isAppearanceLightStatusBars = colors.background.luminance() > 0.5f
+            controller.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            if (focused) controller.hide(WindowInsetsCompat.Type.statusBars())
+            else controller.show(WindowInsetsCompat.Type.statusBars())
+        }
+    }
     val chromeAnim: FiniteAnimationSpec<Float> =
         if (reduceMotion) snap() else tween(200)
     // Unfocused chrome (pills row, bottom chrome, corner label): visible in
@@ -508,18 +537,12 @@ private fun ReadingView(
     // Intra-page scroll fraction drives the dynamic page bars (item 6).
     // Reset on every page turn; ReaderPage reports (page, fraction) pairs
     // so a stale late emission cannot move another page's bar.
-    var pageScroll by remember { mutableStateOf(0 to 0f) }
+    val pageScroll = remember { mutableStateOf(0 to 0f) }
     LaunchedEffect(pagerState.currentPage) {
-        pageScroll = pagerState.currentPage to 0f
+        pageScroll.value = pagerState.currentPage to 0f
     }
 
     val totalPages = viewModel.totalPages()
-    val intraPageFraction = if (pageScroll.first == state.pageIndex) pageScroll.second else 0f
-    val dynamicPageFraction = focusedProgressFraction(
-        pageIndex = state.pageIndex,
-        totalPages = totalPages,
-        intraPageFraction = intraPageFraction,
-    )
     val volumeFraction = volumeProgressFraction(
         volumeCount = state.volumes.size,
         selectedIndex = state.volumes.indexOfFirst { it.volumeId == state.selectedVolumeId },
@@ -528,11 +551,6 @@ private fun ReadingView(
     // fills with the intra-page scroll fraction; the Volume pill fills with
     // the current page fraction within the volume (static outline fraction
     // only until the backend reports a page total).
-    val unfocusedPageFill = pagePillFillFraction(intraPageFraction)
-    val unfocusedVolumeFill = (
-        volumePillFillFraction(state.pageIndex, totalPages, intraPageFraction)
-            ?: volumeFraction ?: 0.0
-        )
     val unfocusedVolumeNumber = state.volumes
         .firstOrNull { it.volumeId == state.selectedVolumeId }
         ?.let(::volumeHeaderNumber)
@@ -611,7 +629,7 @@ private fun ReadingView(
                         },
                         onUserScroll = ::collapseToFocusedAndCloseMenu,
                         onPageScrollFraction = { page, fraction ->
-                            pageScroll = page to fraction
+                            pageScroll.value = page to fraction
                         },
                         onShowPaywall = onShowPaywall,
                     )
@@ -619,71 +637,23 @@ private fun ReadingView(
         }
 
         if (!showReaderSaved) {
-            com.hadithly.app.features.saved.SavedUndoBanner(
-                Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(horizontal = 20.dp, vertical = 80.dp),
-                testTag = "reader.undoBanner",
-            )
-        }
-
-        // Round 7, focused: ONE 4dp narrow dynamic PAGE bar, ~1/4 width,
-        // centered below the (always visible) status bar. ALWAYS rendered
-        // in focused mode in every palette — the null-total fallback keeps
-        // the track visible instead of hiding the capsule. Fades + grows in
-        // with the toggle; the page underneath never moves.
-        AnimatedVisibility(
-            visible = focused,
-            enter = fadeIn(chromeAnim) + scaleIn(chromeAnim, initialScale = 0.96f),
-            exit = fadeOut(chromeAnim) + scaleOut(chromeAnim, targetScale = 0.96f),
-            modifier = Modifier.align(Alignment.TopCenter),
-        ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.fillMaxWidth().statusBarsPadding(),
+            Column(
+                modifier = Modifier.align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = if (state.chromeVisible) 96.dp else 20.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                ReaderProgressCapsule(
-                    fraction = dynamicPageFraction ?: 0.0,
-                    thickness = 4.dp,
-                    testTag = "reader.focusedPageBar",
-                    reduceMotion = reduceMotion,
-                    modifier = Modifier.fillMaxWidth(0.25f).padding(top = 8.dp),
+                if (!readerMenuExpanded) ReaderActionHint(experience, Modifier.fillMaxWidth())
+                com.hadithly.app.features.saved.SavedUndoBanner(
+                    testTag = "reader.undoBanner",
                 )
             }
         }
 
-        // Item 6, unfocused: TWO pills side by side (Sajda style: bold
-        // number + lighter suffix) — Page pill filled by intra-page scroll,
-        // Volume pill filled by the page fraction within the volume. The
-        // status bar is visible here, so the row sits below it. Fades +
-        // scales with the toggle; the page underneath never moves.
-        AnimatedVisibility(
-            visible = state.chromeVisible,
-            enter = fadeIn(chromeAnim) + scaleIn(chromeAnim, initialScale = 0.96f),
-            exit = fadeOut(chromeAnim) + scaleOut(chromeAnim, targetScale = 0.96f),
-            modifier = Modifier.align(Alignment.TopCenter),
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.statusBarsPadding().padding(top = 6.dp),
-            ) {
-                ReaderProgressPill(
-                    number = "${state.pageIndex + 1}",
-                    suffix = "page",
-                    fraction = unfocusedPageFill.toDouble(),
-                    testTag = "reader.unfocusedPageBar",
-                    reduceMotion = reduceMotion,
-                )
-                if (unfocusedVolumeNumber != null) {
-                    ReaderProgressPill(
-                        number = "$unfocusedVolumeNumber",
-                        suffix = stringResource(R.string.reader_volume_pill_suffix),
-                        fraction = unfocusedVolumeFill,
-                        testTag = "reader.unfocusedVolumeBar",
-                        reduceMotion = reduceMotion,
-                    )
-                }
-            }
-        }
+        ReaderProgressHUD(pageScroll, state.pageIndex, totalPages, unfocusedVolumeNumber, volumeFraction,
+            state.chromeVisible, reduceMotion)
 
         AnimatedVisibility(
             visible = state.chromeVisible,
@@ -806,7 +776,6 @@ private fun ReadingView(
             }
         }
 
-        ReaderActionHint(experience, Modifier.align(Alignment.BottomCenter).padding(horizontal = 24.dp).padding(bottom = 96.dp))
     }
 }
 
@@ -821,11 +790,24 @@ internal fun ReaderActionHint(experience: com.hadithly.app.core.preferences.Read
             finally { experience.dismissActionHint() }
         }
     }
-    if (visible) {
-        Row(modifier.background(colors.surfaceElevated, RoundedCornerShape(16.dp))
-            .padding(start = 16.dp, end = 6.dp, top = 8.dp, bottom = 8.dp).testTag("reader.actionHint"), verticalAlignment = Alignment.CenterVertically) {
-            Text(nativeText("Touch and hold a hadith to bookmark, add a note or share."), color = colors.textPrimary, fontSize = 12.sp, modifier = Modifier.weight(1f))
-            IconButton(onClick = experience::dismissActionHint) { Icon(Icons.Filled.Close, nativeText("Dismiss hint"), tint = colors.textSecondary) }
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(tween(180)) + androidx.compose.animation.slideInVertically(tween(180)) { it / 3 },
+        exit = fadeOut(tween(150)) + androidx.compose.animation.slideOutVertically(tween(150)) { it / 3 },
+    ) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = colors.surface.copy(alpha = 0.92f),
+            contentColor = colors.textPrimary,
+            tonalElevation = 2.dp,
+            shadowElevation = 3.dp,
+            border = androidx.compose.foundation.BorderStroke(0.5.dp, colors.divider.copy(alpha = 0.65f)),
+            modifier = modifier.testTag("reader.actionHint"),
+        ) {
+            Row(Modifier.padding(start = 16.dp, end = 6.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(nativeText("Touch and hold a hadith to bookmark, add a note or share."), color = colors.textPrimary, fontSize = 12.sp, modifier = Modifier.weight(1f))
+                IconButton(onClick = experience::dismissActionHint) { Icon(Icons.Filled.Close, nativeText("Dismiss hint"), tint = colors.textSecondary) }
+            }
         }
     }
 }
@@ -847,6 +829,94 @@ private fun ReaderChromeCircle(icon: androidx.compose.ui.graphics.vector.ImageVe
     }
 }
 
+/** Observe per-frame scroll only in the HUD, outside the pager's composition scope. */
+@Composable
+internal fun ReaderProgressHUD(
+    pageScroll: State<Pair<Int, Float>>,
+    pageIndex: Int,
+    totalPages: Int?,
+    unfocusedVolumeNumber: Int?,
+    volumeFraction: Double?,
+    chromeVisible: Boolean,
+    reduceMotion: Boolean,
+) {
+    val focused = !chromeVisible
+    val chromeAnim: FiniteAnimationSpec<Float> = if (reduceMotion) snap() else tween(200)
+    val intraPageFraction = if (pageScroll.value.first == pageIndex) pageScroll.value.second else 0f
+    val dynamicPageFraction = focusedProgressFraction(
+        pageIndex = pageIndex,
+        totalPages = totalPages,
+        intraPageFraction = intraPageFraction,
+    )
+    val unfocusedPageFill = pagePillFillFraction(intraPageFraction)
+    val unfocusedVolumeFill = (
+        volumePillFillFraction(pageIndex, totalPages, intraPageFraction)
+            ?: volumeFraction ?: 0.0
+        )
+    Box(Modifier.fillMaxSize()) {
+        // Round 7, focused: ONE 4dp narrow dynamic PAGE bar, ~1/4 width,
+        // centered near the top safe area. ALWAYS rendered
+        // in focused mode in every palette — the null-total fallback keeps
+        // the track visible instead of hiding the capsule. Fades + grows in
+        // with the toggle; the page underneath never moves.
+        AnimatedVisibility(
+            visible = focused,
+            enter = fadeIn(chromeAnim) + scaleIn(chromeAnim, initialScale = 0.96f),
+            exit = fadeOut(chromeAnim) + scaleOut(chromeAnim, targetScale = 0.96f),
+            modifier = Modifier.align(Alignment.TopCenter),
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxWidth().statusBarsPadding(),
+            ) {
+                ReaderProgressCapsule(
+                    fraction = dynamicPageFraction ?: 0.0,
+                    thickness = 4.dp,
+                    testTag = "reader.focusedPageBar",
+                    reduceMotion = reduceMotion,
+                    modifier = Modifier.fillMaxWidth(0.25f).padding(top = 8.dp),
+                )
+            }
+        }
+
+        // Item 6, unfocused: TWO pills side by side (Sajda style: bold
+        // number + lighter suffix) — Page pill filled by intra-page scroll,
+        // Volume pill filled by the page fraction within the volume. The
+        // status bar is visible here, so the row sits below it. Fades +
+        // scales with the toggle; the page underneath never moves.
+        AnimatedVisibility(
+            visible = chromeVisible,
+            enter = fadeIn(chromeAnim) + scaleIn(chromeAnim, initialScale = 0.96f),
+            exit = fadeOut(chromeAnim) + scaleOut(chromeAnim, targetScale = 0.96f),
+            modifier = Modifier.align(Alignment.TopCenter),
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.statusBarsPadding().padding(top = 6.dp),
+            ) {
+                ReaderProgressPill(
+                    number = "${pageIndex + 1}",
+                    suffix = "page",
+                    fraction = unfocusedPageFill.toDouble(),
+                    testTag = "reader.unfocusedPageBar",
+                    reduceMotion = reduceMotion,
+                )
+                if (unfocusedVolumeNumber != null) {
+                    ReaderProgressPill(
+                        number = "$unfocusedVolumeNumber",
+                        suffix = stringResource(R.string.reader_volume_pill_suffix),
+                        fraction = unfocusedVolumeFill,
+                        testTag = "reader.unfocusedVolumeBar",
+                        reduceMotion = reduceMotion,
+                    )
+                }
+            }
+        }
+
+    }
+}
+
 @Composable
 internal fun ReaderMenuStack(
     positionedReference: String?,
@@ -859,61 +929,66 @@ internal fun ReaderMenuStack(
 ) {
     // Sajda `menu open` anchoring: inset from the leading edge, roughly the
     // trailing two-thirds, tighter rhythm than the old full-width cards.
+    val colors = LocalHadithlyColors.current
     val view = LocalView.current
     fun tapped(item: () -> Unit) {
         ReaderHaptics.perform(view, ReaderHapticKind.MENU_ITEM)
         item()
     }
-    Column(
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-        // The parent chrome column aligns End: this 2/3-width stack docks
-        // to the trailing edge like the Sajda menu.
+    Surface(
+        shape = RoundedCornerShape(24.dp),
+        color = colors.surface.copy(alpha = 0.36f),
+        contentColor = colors.textPrimary,
+        tonalElevation = 2.dp,
+        shadowElevation = 4.dp,
+        border = androidx.compose.foundation.BorderStroke(0.5.dp, colors.divider.copy(alpha = 0.62f)),
         modifier = Modifier.fillMaxWidth(0.66f).testTag("reader.menu"),
     ) {
-        ReaderMenuCard(
-            title = "Contents",
-            subtitle = "Volumes and chapters",
-            icon = Icons.AutoMirrored.Filled.List,
-            onClick = { tapped(onContents) },
-            testTag = "reader.menu.contents",
-        )
-        ReaderMenuCard(
-            title = "Bookmarks & Notes",
-            subtitle = "Your private saved reading",
-            icon = Icons.Filled.Bookmark,
-            onClick = { tapped(onSaved) },
-            testTag = "reader.menu.saved",
-        )
-        ReaderMenuCard(
-            title = "Settings",
-            subtitle = "Type, appearance, and text",
-            icon = Icons.Filled.FormatSize,
-            onClick = { tapped(onSettings) },
-            testTag = "reader.menu.settings",
-        )
-        // Bottom row: icon-only, equal size — no text. Active bookmark:
-        // ONLY the icon turns amber; the background keeps default contrast
-        // (never full-yellow).
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            ReaderMenuIconButton(
-                icon = if (isPositionedBookmarked) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder,
-                contentDescription = if (positionedReference != null) {
-                    "Bookmark $positionedReference"
-                } else {
-                    "Bookmark current hadith"
-                },
-                iconTint = if (isPositionedBookmarked) LocalHadithlyColors.current.bookmark else null,
-                onClick = { tapped(onBookmark) },
-                modifier = Modifier.weight(1f).height(56.dp),
-                testTag = "reader.menu.bookmark",
+        Column(Modifier.padding(4.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            ReaderMenuCard(
+                title = "Contents",
+                subtitle = "Volumes and chapters",
+                icon = Icons.AutoMirrored.Filled.List,
+                onClick = { tapped(onContents) },
+                testTag = "reader.menu.contents",
             )
-            ReaderMenuIconButton(
-                icon = Icons.Filled.Search,
-                contentDescription = nativeText("Search"),
-                onClick = { tapped(onSearch) },
-                modifier = Modifier.weight(1f).height(56.dp),
-                testTag = "reader.menu.search",
+            ReaderMenuCard(
+                title = "Bookmarks & Notes",
+                subtitle = "Your private saved reading",
+                icon = Icons.Filled.Bookmark,
+                onClick = { tapped(onSaved) },
+                testTag = "reader.menu.saved",
             )
+            ReaderMenuCard(
+                title = "Settings",
+                subtitle = "Type, appearance, and text",
+                icon = Icons.Filled.FormatSize,
+                onClick = { tapped(onSettings) },
+                testTag = "reader.menu.settings",
+            )
+            // Bottom row: icon-only, equal size. Active bookmark colors only
+            // the icon, keeping the background neutral in every palette.
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                ReaderMenuIconButton(
+                    icon = if (isPositionedBookmarked) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder,
+                    contentDescription = if (positionedReference != null) {
+                        "Bookmark $positionedReference"
+                    } else {
+                        "Bookmark current hadith"
+                    },
+                    iconTint = if (isPositionedBookmarked) colors.bookmark else null,
+                    onClick = { tapped(onBookmark) },
+                    modifier = Modifier.weight(1f).height(56.dp),
+                    testTag = "reader.menu.bookmark",
+                )
+                ReaderMenuIconButton(
+                    icon = Icons.Filled.Search,
+                    contentDescription = nativeText("Search"),
+                    onClick = { tapped(onSearch) },
+                    modifier = Modifier.weight(1f).height(56.dp),
+                    testTag = "reader.menu.search",
+                )
+            }
         }
     }
 }
@@ -928,15 +1003,20 @@ private fun ReaderMenuIconButton(
     testTag: String? = null,
 ) {
     val colors = LocalHadithlyColors.current
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = modifier
-            .background(colors.surface.copy(alpha = 0.98f), RoundedCornerShape(18.dp))
-            .clickable(onClick = onClick)
-            .semantics { this.contentDescription = contentDescription }
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(18.dp),
+        color = colors.surface.copy(alpha = 0.88f),
+        contentColor = colors.textPrimary,
+        tonalElevation = 2.dp,
+        shadowElevation = 3.dp,
+        border = androidx.compose.foundation.BorderStroke(0.5.dp, colors.divider.copy(alpha = 0.6f)),
+        modifier = modifier.semantics { this.contentDescription = contentDescription }
             .then(if (testTag != null) Modifier.testTag(testTag) else Modifier),
     ) {
-        Icon(icon, null, tint = iconTint ?: colors.textSecondary, modifier = Modifier.size(22.dp))
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Icon(icon, null, tint = iconTint ?: colors.textSecondary, modifier = Modifier.size(22.dp))
+        }
     }
 }
 
@@ -951,33 +1031,27 @@ private fun ReaderMenuCard(
     testTag: String? = null,
 ) {
     val colors = LocalHadithlyColors.current
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-            .fillMaxWidth()
-            .background(colors.surface.copy(alpha = 0.98f), RoundedCornerShape(18.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 12.dp)
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(18.dp),
+        color = colors.surface.copy(alpha = 0.88f),
+        contentColor = colors.textPrimary,
+        tonalElevation = 2.dp,
+        shadowElevation = 3.dp,
+        border = androidx.compose.foundation.BorderStroke(0.5.dp, colors.divider.copy(alpha = 0.6f)),
+        modifier = modifier.fillMaxWidth()
             .then(if (testTag != null) Modifier.testTag(testTag) else Modifier),
     ) {
-        Column(Modifier.weight(1f)) {
-            Text(
-                title,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = colors.textPrimary,
-                maxLines = 1,
-                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-            )
-            Text(
-                subtitle,
-                fontSize = 12.sp,
-                color = colors.textSecondary,
-                maxLines = 1,
-                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-            )
+        Row(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold,
+                    color = colors.textPrimary, maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                Text(subtitle, fontSize = 12.sp, color = colors.textSecondary,
+                    maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            }
+            Icon(icon, null, tint = iconTint ?: colors.textSecondary, modifier = Modifier.size(22.dp))
         }
-        Icon(icon, null, tint = iconTint ?: colors.textSecondary, modifier = Modifier.size(22.dp))
     }
 }
 
@@ -1773,7 +1847,11 @@ private fun ReaderProgressPill(
         modifier = modifier
             .height(32.dp)
             .clip(RoundedCornerShape(50))
-            .background(colors.surface.copy(alpha = 0.92f))
+            .background(colors.surface.copy(alpha = 0.84f))
+            .border(
+                androidx.compose.foundation.BorderStroke(0.5.dp, colors.divider.copy(alpha = 0.62f)),
+                RoundedCornerShape(50),
+            )
             .testTag(testTag),
     ) {
         // Round 8: the fill occupies the FULL pill height — no top/bottom
@@ -1835,7 +1913,7 @@ private fun ReaderProgressCapsule(
         modifier = modifier
             .height(thickness)
             .clip(RoundedCornerShape(50))
-            .background(colors.divider.copy(alpha = 0.6f))
+            .background(colors.surfaceElevated.copy(alpha = 0.76f))
             .testTag(testTag),
     ) {
         Box(
@@ -2934,124 +3012,76 @@ internal fun ContentsSheet(
             val selected = volume.volumeId == selectedVolumeId
             val expanded = expandedVolumeId == volume.volumeId
             Column(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable { onSelect(volume.volumeId) }
-                            .padding(vertical = 12.dp),
-                    ) {
+                val subtitle = volume.firstChapterTitle?.trim()
+                    ?.takeIf { it.isNotEmpty() && it != volume.title }
+                    ?: "${volume.hadithCount.toInt()} hadiths"
+                ListItem(
+                    headlineContent = {
                         Text(
                             text = volume.title,
-                            fontSize = 16.sp,
                             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
                             color = if (selected) colors.interactive else colors.textPrimary,
                             maxLines = 1,
                             overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                         )
-                        // Plain-row subtitle: the source-provided first
-                        // chapter title only (the expanded chapter list
-                        // already names every chapter, so the first chapter
-                        // is never repeated here); otherwise the count line.
-                        val subtitle = volume.firstChapterTitle?.trim()
-                            ?.takeIf { it.isNotEmpty() && it != volume.title }
-                        Text(
-                            text = subtitle ?: "${volume.hadithCount.toInt()} hadiths",
-                            fontSize = 12.sp,
-                            color = colors.textSecondary,
-                            maxLines = 1,
-                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(top = 2.dp),
-                        )
-                    }
-                    Text(
-                        text = volume.hadithCount.toInt().toString(),
-                        fontSize = 14.sp,
-                        color = colors.textSecondary,
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    // Chapters render only when the source provides them;
-                    // pre-R5 cached outlines show volumes exactly as before.
-                    if (volume.chapters.isNotEmpty()) {
-                        IconButton(
-                            onClick = {
-                                expandedVolumeId = if (expanded) null else volume.volumeId
-                            },
-                            modifier = Modifier.size(48.dp),
-                        ) {
-                            Icon(
-                                imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                                contentDescription = if (expanded) {
-                                    "Collapse chapters in ${volume.title}"
-                                } else {
-                                    "Expand chapters in ${volume.title}"
-                                },
-                                tint = colors.textSecondary,
-                                modifier = Modifier.size(20.dp),
-                            )
-                        }
-                    } else {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.NavigateNext,
-                            contentDescription = null,
-                            tint = colors.textSecondary,
-                            modifier = Modifier.size(18.dp),
-                        )
-                    }
-                }
-                if (expanded) {
-                    for ((chapterIndex, chapter) in volume.chapters.withIndex()) {
-                        if (chapterIndex > 0) {
-                            HorizontalDivider(
-                                color = colors.divider.copy(alpha = 0.5f),
-                                modifier = Modifier.padding(start = 12.dp),
-                            )
-                        }
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onSelectChapter(volume.volumeId, chapter) }
-                                .padding(start = 12.dp, top = 10.dp, bottom = 10.dp, end = 4.dp)
-                                .testTag("reader.contents.chapter.${volume.volumeId}.${chapter.firstProviderHadithId}"),
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = chapter.title,
-                                    fontSize = 15.sp,
-                                    color = colors.textPrimary,
-                                    maxLines = 2,
-                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                                )
-                                val arabic = visibleArabicChapterTitle(
-                                    arabicVisible = arabicVisible,
-                                    title = chapter.title,
-                                    arabicTitle = chapter.arabicTitle,
-                                )
-                                if (arabic != null) {
-                                    Text(
-                                        text = arabic,
-                                        fontSize = 12.sp,
-                                        color = colors.textSecondary,
+                    },
+                    supportingContent = {
+                        Text(subtitle, color = colors.textSecondary, maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                    },
+                    trailingContent = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(volume.hadithCount.toInt().toString(), color = colors.textSecondary)
+                            if (volume.chapters.isNotEmpty()) {
+                                IconButton(
+                                    onClick = { expandedVolumeId = if (expanded) null else volume.volumeId },
+                                    modifier = Modifier.size(48.dp),
+                                ) {
+                                    Icon(
+                                        imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                                        contentDescription = if (expanded) "Collapse chapters in ${volume.title}" else "Expand chapters in ${volume.title}",
+                                        tint = colors.textSecondary,
                                     )
                                 }
+                            } else {
+                                Icon(Icons.AutoMirrored.Filled.NavigateNext, null, tint = colors.textSecondary)
                             }
-                            Text(
-                                text = chapter.firstProviderHadithId,
-                                fontSize = 13.sp,
-                                color = colors.textSecondary,
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.NavigateNext,
-                                contentDescription = null,
-                                tint = colors.textSecondary,
-                                modifier = Modifier.size(18.dp),
-                            )
                         }
+                    },
+                    colors = ListItemDefaults.colors(
+                        containerColor = if (selected) colors.interactiveSoft else Color.Transparent,
+                    ),
+                    modifier = Modifier.fillMaxWidth().clickable { onSelect(volume.volumeId) },
+                )
+                if (expanded) {
+                    for (chapter in volume.chapters) {
+                        HorizontalDivider(color = colors.divider.copy(alpha = 0.5f), modifier = Modifier.padding(start = 16.dp))
+                        val arabic = visibleArabicChapterTitle(
+                            arabicVisible = arabicVisible,
+                            title = chapter.title,
+                            arabicTitle = chapter.arabicTitle,
+                        )
+                        ListItem(
+                            headlineContent = {
+                                Text(chapter.title, color = colors.textPrimary, maxLines = 2,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                            },
+                            supportingContent = arabic?.let { title ->
+                                { Text(title, color = colors.textSecondary, maxLines = 1,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }
+                            },
+                            trailingContent = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(chapter.firstProviderHadithId, color = colors.textSecondary)
+                                    Icon(Icons.AutoMirrored.Filled.NavigateNext, null, tint = colors.textSecondary)
+                                }
+                            },
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            modifier = Modifier.fillMaxWidth()
+                                .padding(start = 16.dp)
+                                .clickable { onSelectChapter(volume.volumeId, chapter) }
+                                .testTag("reader.contents.chapter.${volume.volumeId}.${chapter.firstProviderHadithId}"),
+                        )
                     }
                 }
             }

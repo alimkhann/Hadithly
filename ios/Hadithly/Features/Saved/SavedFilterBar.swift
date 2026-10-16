@@ -17,6 +17,8 @@ enum SavedContentFilter: String, CaseIterable, Identifiable {
 struct SavedFilterBar: View {
     @Binding var selection: SavedContentFilter
     var identifier = "saved.filter"
+    @Namespace private var highlight
+    @Environment(\.layoutDirection) private var direction
     @Environment(\.readerPalette) private var palette
     @Environment(\.dynamicTypeSize) private var size
     @Environment(\.accessibilityReduceMotion) private var reducedMotion
@@ -33,6 +35,7 @@ struct SavedFilterBar: View {
                         .font(.body.weight(.medium)).frame(maxWidth: .infinity, minHeight: 48)
                 }.buttonStyle(.plain).accessibilityIdentifier(identifier)
             } else {
+                GeometryReader { geometry in
                 HStack(spacing: 2) {
                     ForEach(SavedContentFilter.allCases) { filter in
                         Button { selection = filter } label: {
@@ -43,7 +46,12 @@ struct SavedFilterBar: View {
                             }
                             .foregroundStyle(selection == filter ? palette.textPrimary : palette.textSecondary)
                             .frame(maxWidth: .infinity, minHeight: 48)
-                            .background(selection == filter ? palette.interactiveSoft : .clear, in: Capsule())
+                            .background {
+                                if selection == filter {
+                                    Capsule().fill(palette.interactiveSoft)
+                                        .matchedGeometryEffect(id: "selection", in: highlight)
+                                }
+                            }
                             .contentShape(Capsule())
                         }
                         .buttonStyle(.plain)
@@ -52,9 +60,16 @@ struct SavedFilterBar: View {
                         .accessibilityIdentifier("\(identifier).\(filter.rawValue)")
                     }
                 }.padding(4)
+                .simultaneousGesture(DragGesture(minimumDistance: 6).onChanged { gesture in
+                    guard abs(gesture.translation.width) > abs(gesture.translation.height) else { return }
+                    let filters = SavedContentFilter.allCases
+                    let physical = min(filters.count - 1, max(0, Int((gesture.location.x - 4) / max(1, (geometry.size.width - 8) / CGFloat(filters.count)))))
+                    selection = filters[direction == .rightToLeft ? filters.count - 1 - physical : physical]
+                })
+                }.frame(height: 56)
             }
         }
         .readerControlSurface(in: Capsule())
-        .animation(reducedMotion ? nil : .easeInOut(duration: InterfaceMotion.quick), value: selection)
+        .animation(reducedMotion ? nil : .easeInOut(duration: InterfaceMotion.step), value: selection)
     }
 }

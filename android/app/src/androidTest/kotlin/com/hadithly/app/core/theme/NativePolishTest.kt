@@ -24,7 +24,6 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.hadithly.app.core.preferences.ReaderPreferences
 import com.hadithly.app.core.preferences.ReaderTheme
 import com.hadithly.app.features.library.CollectionTitle
-import com.hadithly.app.features.onboarding.TranslationDemonstration
 import com.hadithly.app.features.settings.ReaderPreferenceContent
 import org.junit.Assert.*
 import org.junit.Rule
@@ -115,14 +114,26 @@ class NativePolishTest {
         }
     }
 
-    @Test fun preparedOnboardingExampleRevealsWithoutARequest() {
-        compose.setContent { HadithlyTheme(ReaderTheme.PAPER) { TranslationDemonstration("en", {}, {}) } }
-        compose.onNodeWithTag("onboarding.preparedPlaceholder").assertIsDisplayed()
-        capture("onboarding-placeholder", compose.onRoot().captureToImage().asAndroidBitmap())
-        compose.onNodeWithTag("onboarding.reveal").performClick()
-        compose.onNodeWithTag("onboarding.example").assertIsDisplayed()
-        compose.onNodeWithTag("onboarding.preparedPlaceholder").assertDoesNotExist()
-        capture("onboarding-revealed", compose.onRoot().captureToImage().asAndroidBitmap())
+    @Test fun onboardingUsesSharedArabicAndTranslationText() {
+        compose.setContent {
+            HadithlyTheme(ReaderTheme.PAPER) {
+                Column(Modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("Sahih al-Bukhari · Hadith 1", modifier = Modifier.testTag("onboarding.reference"))
+                    HadithReadingText(
+                        arabicText = "إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ",
+                        translation = "Actions are judged by intentions.",
+                        translationLanguage = "en",
+                        textColor = LocalHadithlyColors.current.textPrimary,
+                    )
+                    Text("Sunnah.now", modifier = Modifier.testTag("onboarding.translationSource"))
+                }
+            }
+        }
+        compose.onNodeWithTag("onboarding.reference").assertIsDisplayed()
+        compose.onNodeWithText("إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ", substring = true).assertIsDisplayed()
+        compose.onNodeWithText("Actions are judged by intentions.").assertIsDisplayed()
+        compose.onNodeWithTag("onboarding.translationSource").assertIsDisplayed()
+        capture("onboarding-real-hadith-text", compose.onRoot().captureToImage().asAndroidBitmap())
     }
 
     @Test fun todaySkeletonRevealsContentAndHandlesFailure() {

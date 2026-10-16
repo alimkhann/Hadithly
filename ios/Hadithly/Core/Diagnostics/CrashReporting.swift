@@ -17,7 +17,7 @@ final class CrashReporting {
         self.defaults = defaults
         self.cache = cache ?? FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0].appendingPathComponent("HadithlyDiagnostics")
     }
-    var hasConsent: Bool { defaults.bool(forKey: "diagnostics.consent") }
+    var hasConsent: Bool { defaults.object(forKey: "diagnostics.consent") == nil || defaults.bool(forKey: "diagnostics.consent") }
 
     func startIfConsented(dsnOverride: String? = nil, session: URLSession? = nil) {
         guard hasConsent else { purge(); return }

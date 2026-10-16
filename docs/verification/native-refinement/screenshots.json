@@ -1,0 +1,882 @@
+[
+  {
+    "platform": "ios",
+    "file": "ios/finishing-01-welcome.png",
+    "name": "01-welcome",
+    "section": "Onboarding",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 2398173,
+    "sha256": "580705574976c59d934f049deae0537fd0348324bb16043e1487f2f29ae3a8c4"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-02-language.png",
+    "name": "02-language",
+    "section": "Onboarding",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 185426,
+    "sha256": "6ecf647ee51161ac3e1469f633178b51997c354e42812d68e5fa5f201dc28def"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-03-daily-hadith.png",
+    "name": "03-daily-hadith",
+    "section": "Onboarding",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 204347,
+    "sha256": "df1a36a2ba043d61a84ecb7d4dad6ab7fa7909da73209bf0d5c6b170c5dad3fa"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-05-account.png",
+    "name": "05-account",
+    "section": "Onboarding",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 2409783,
+    "sha256": "1d53d77cbfd8e5845307756d237793d141f2a245a693abe860e86a7daa464f21"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-06-auth-methods.png",
+    "name": "06-auth-methods",
+    "section": "Auth",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 160203,
+    "sha256": "e25798ea3f115f5f2b949af7c02acc8f59f8c4846217fb8ebb6b6f0e29132d7c"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-07-sign-up.png",
+    "name": "07-sign-up",
+    "section": "Auth",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 142279,
+    "sha256": "9b28dc8d97b91e8d4b04fa65d809fa51599a7d11fe4b70fc22f577f71768a380"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-08-password.png",
+    "name": "08-password",
+    "section": "Auth",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 125558,
+    "sha256": "787b6c66575a23e860af2510dfcbc0ccf1e0726655abb3680c30e717593bc0f4"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-09-recovery.png",
+    "name": "09-recovery",
+    "section": "Auth",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 136692,
+    "sha256": "5db44b418ecc4aeb64790318ca03872b5365bca91b746b7c94f2105419c486e2"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-10-email-code-entry.png",
+    "name": "10-email-code-entry",
+    "section": "Auth",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 110522,
+    "sha256": "d7aabe93c200a7c8a4187b21b50ce29951aeb93a65ff284425cbf9c43bd4b2f4"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-account-large-rtl.png",
+    "name": "account-large-rtl",
+    "section": "Accessibility",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 1351024,
+    "sha256": "752c36d311b53eec00408820b852451c89262679c13bbdcf3f8f4da0b21fd4f3"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-auth-code.png",
+    "name": "auth-code",
+    "section": "Auth",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 120299,
+    "sha256": "6ca597e930b2389f8a8da271a69c0a4c64034eda4355e235d54663cf3c100103"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-auth-reset.png",
+    "name": "auth-reset",
+    "section": "Auth",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 138699,
+    "sha256": "570cfa1f372f04efc3669777b5335d55cda6755ba2ff59900ff3656692619b4a"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-auth-signup-large-rtl.png",
+    "name": "auth-signup-large-rtl",
+    "section": "Accessibility",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 243454,
+    "sha256": "fe33a69b4ba3f9f883e3f58cbf811332409a9b0d6f91e6be6da916586ed7d4b2"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-auth-signup.png",
+    "name": "auth-signup",
+    "section": "Auth",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 153481,
+    "sha256": "9e9ad6a2b1342a8bf80d9f6f2db10263d9b2a77e339f3f99a619ed7a1af84b4c"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-fresh-welcome-system-russian.png",
+    "name": "fresh-welcome-system-russian",
+    "section": "Onboarding",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 2395611,
+    "sha256": "44b52d7325f5543973cc025ba1cc9185282208101d46ad2b849923953d50d192"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-normal-ar-account.png",
+    "name": "normal-ar-account",
+    "section": "Normal RTL",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 2317664,
+    "sha256": "cbee0c3c0c990eef3da3ac26da2a649e0b88b89045cba1969184d2a3f07255f5"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-normal-ar-contents.png",
+    "name": "normal-ar-contents",
+    "section": "Normal RTL",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 180642,
+    "sha256": "45a829074478a5ac1c184ee60847d99973208cd10e761bef4798cd452a9a7b67"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-normal-ar-reader.png",
+    "name": "normal-ar-reader",
+    "section": "Normal RTL",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 212695,
+    "sha256": "00de57a63f32f7550ee24d3896351a14a8a16f4cba7afa50cfae799472199b44"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-normal-ar-saved.png",
+    "name": "normal-ar-saved",
+    "section": "Normal RTL",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 171433,
+    "sha256": "61d617969211e775a5f34e9cbc2a231ee9e4147ac42cdb18247960e479b96d57"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-normal-ar-welcome.png",
+    "name": "normal-ar-welcome",
+    "section": "Normal RTL",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 2313993,
+    "sha256": "a2af729221e97da14d5ace2f2fc5b8cd434670e6ee302b651c9d84de3237e14e"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-normal-ur-account.png",
+    "name": "normal-ur-account",
+    "section": "Normal RTL",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 2338249,
+    "sha256": "85a1aba68736f92b8d1e4c98bf4533b239aaa54c58d35e2ca96bc49558325f85"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-normal-ur-contents.png",
+    "name": "normal-ur-contents",
+    "section": "Normal RTL",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 180642,
+    "sha256": "45a829074478a5ac1c184ee60847d99973208cd10e761bef4798cd452a9a7b67"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-normal-ur-reader.png",
+    "name": "normal-ur-reader",
+    "section": "Normal RTL",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 213324,
+    "sha256": "43b6f754f5e3c7e912e22a1212687e8525ae21e3f6128c3aa38c74cc8acd4eb5"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-normal-ur-saved.png",
+    "name": "normal-ur-saved",
+    "section": "Normal RTL",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 171433,
+    "sha256": "61d617969211e775a5f34e9cbc2a231ee9e4147ac42cdb18247960e479b96d57"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-normal-ur-welcome.png",
+    "name": "normal-ur-welcome",
+    "section": "Normal RTL",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 2327690,
+    "sha256": "eb1826e6e29e1490ff03d4eeeb86d4561ca785b0053c28c4588fb2fb3070ee67"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-paywall-prototype-dark.png",
+    "name": "paywall-prototype-dark",
+    "section": "Paywall",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 168522,
+    "sha256": "775ab7549003ec0475360cde1e9fd898aeb9c9069d367c38b5b4587c1de63d27"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-paywall-prototype-light.png",
+    "name": "paywall-prototype-light",
+    "section": "Paywall",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 173764,
+    "sha256": "e84eb3e425111c530b84e4ef9c63871cf9e001267dbf50e166821c79055637ab"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-reader-bookmark.png",
+    "name": "reader-bookmark",
+    "section": "Reader",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 157681,
+    "sha256": "4c654698d321822ff55d89e3dcf30aa4d9fd840745324a07e6d25a6121b2575c"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-reader-chrome-restored.png",
+    "name": "reader-chrome-restored",
+    "section": "Reader",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 239005,
+    "sha256": "bb450ac7ca8e9d64d36b4b1785ebc986d197bf8ec4ca9ba85e2023731ba66600"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-reader-chrome-visible.png",
+    "name": "reader-chrome-visible",
+    "section": "Reader",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 239005,
+    "sha256": "bb450ac7ca8e9d64d36b4b1785ebc986d197bf8ec4ca9ba85e2023731ba66600"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-reader-contents.png",
+    "name": "reader-contents",
+    "section": "Reader",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 252052,
+    "sha256": "6f5df59a4773671cd44022cd7b5767599c0a61364fa6d926afbb45f1e4de5a30"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-reader-dark-context-menu.png",
+    "name": "reader-dark-context-menu",
+    "section": "Reader",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 855223,
+    "sha256": "47a30a3eb4a20f622ded8f594976bbaef3c672958f050b0414b251765787b033"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-reader-focused.png",
+    "name": "reader-focused",
+    "section": "Reader",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 142278,
+    "sha256": "e6ffe8a5ec9909ca252844e627f8d87cadd139022c0822d1c7a88354df7c77ca"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-reader-reader.png",
+    "name": "reader-reader",
+    "section": "Reader",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 293879,
+    "sha256": "bc4d09f27d423a6a6e20c2c8bd14062afdefdae44c602153bba97542a6152a30"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-reader-reduced-transparency.png",
+    "name": "reader-reduced-transparency",
+    "section": "Reader",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 192494,
+    "sha256": "be55b6ac7816659d1835713cd752ed079144f3c3c9124f3790704aa3e4aa59ec"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-reader-saved-large-rtl.png",
+    "name": "reader-saved-large-rtl",
+    "section": "Accessibility",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 394301,
+    "sha256": "7e758b8f05a8c4b30e63ea8f05e6a7aa0c4cb708d42a04694ea008b504804cd2"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-reader-saved-main.png",
+    "name": "reader-saved-main",
+    "section": "Reader",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 178779,
+    "sha256": "a7c83ff6d86fe1f1f1920a7de69b8ea40a370371c62cb3c6995c60196e43269f"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-reader-saved.png",
+    "name": "reader-saved",
+    "section": "Reader",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 248982,
+    "sha256": "11ba2a83c7c708fc57eb24eb725d14c5f7e17c0bf1c51c74029f5903df83ae29"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-reader-search-ready.png",
+    "name": "reader-search-ready",
+    "section": "Reader",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 218504,
+    "sha256": "5ff338cd7dc1992d139abacaf8dd06c20dcb072ecf55914039de6208ebde2f97"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-reader-search.png",
+    "name": "reader-search",
+    "section": "Reader",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 275344,
+    "sha256": "487d530633d43db2dae972e497f440b87e92c959ba835a84a38d6748d8c1a143"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-reader-undo-safe-area.png",
+    "name": "reader-undo-safe-area",
+    "section": "Reader",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 282296,
+    "sha256": "3c0a187c3dbcc9418064d0209fc6ef0f68e96f4b13d9b50cfe67da796d365b45"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-saved-drag-ar.png",
+    "name": "saved-drag-ar",
+    "section": "Onboarding",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 137817,
+    "sha256": "63b37be8f1d12ae337b49f93e795dd9930f2fba0e35aab1028b95a5959592b46"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-saved-drag-en.png",
+    "name": "saved-drag-en",
+    "section": "Onboarding",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 137817,
+    "sha256": "63b37be8f1d12ae337b49f93e795dd9930f2fba0e35aab1028b95a5959592b46"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-settings-appearance-three-groups.png",
+    "name": "settings-appearance-three-groups",
+    "section": "Settings",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 136537,
+    "sha256": "3588447785492ff9f426441c1acf8e3dbb29afcf64146309891c81c2f87bc286"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-settings-appearance-two-groups.png",
+    "name": "settings-appearance-two-groups",
+    "section": "Settings",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 111179,
+    "sha256": "395f7459ca628aab710ec4703d545ddddb45ba0dba622a51474f722978fb2018"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-settings-inline-sign-in.png",
+    "name": "settings-inline-sign-in",
+    "section": "Settings",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 134843,
+    "sha256": "056db12ab44bd68d9457631faea70b114ed3ccac95ae1667168570abcd665a32"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-settings-reader-dark-appearance.png",
+    "name": "settings-reader-dark-appearance",
+    "section": "Settings",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 303347,
+    "sha256": "9267fba658003b12569c68ac6e4e0344b6b12547abb0901a6311f5eebbc21c23"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-settings-reader-light-appearance.png",
+    "name": "settings-reader-light-appearance",
+    "section": "Settings",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 338277,
+    "sha256": "7588f29b4ddf1f14d23b7d3f02f28e29ac955440d54e7e9e65214c8228822411"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-settings-system-dark.png",
+    "name": "settings-system-dark",
+    "section": "Settings",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 2911454,
+    "sha256": "edcbe5391f218c42e59b416c65c16729839c1d210d343bff7d5c0089a9819751"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-settings-system-light.png",
+    "name": "settings-system-light",
+    "section": "Settings",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 2792966,
+    "sha256": "1994d81969e88a4b383ded854e2d6dbd2480fc38d257debf05187e8b1c5a5440"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-sign-up-keyboard.png",
+    "name": "sign-up-keyboard",
+    "section": "Auth",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 155926,
+    "sha256": "b8ffc0442f4c81eb15a7de2de71d04cf7c09c08e685517267f996c7d16f1d7e3"
+  },
+  {
+    "platform": "ios",
+    "file": "ios/finishing-welcome-large-rtl.png",
+    "name": "welcome-large-rtl",
+    "section": "Accessibility",
+    "width": 1206,
+    "height": 2622,
+    "bytes": 1305502,
+    "sha256": "8d6fb7fa4bb78cf18adfcd10ec6432dcafd2a0f473fc7d56d86432a432397615"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-01-welcome.png",
+    "name": "01-welcome",
+    "section": "Onboarding",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 1214257,
+    "sha256": "8c85c8208add71f0ca05cb761dbfcfa632198a79275ea83626b3afa93e79eddb"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-02-language.png",
+    "name": "02-language",
+    "section": "Onboarding",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 122647,
+    "sha256": "08a6aba4862a129d3bee1e464a8c240be40f1d33d0013d87a02f53e95033fc03"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-03-daily-hadith.png",
+    "name": "03-daily-hadith",
+    "section": "Onboarding",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 142880,
+    "sha256": "96ccad9824d4f9ca2f1909a918cc8d64a571285d0d146bb17933c9a63606ce58"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-05-account.png",
+    "name": "05-account",
+    "section": "Onboarding",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 1195055,
+    "sha256": "e8528a68fe2e9d422dadc3caf09ec0286391f83b4a636dad003a6ceebc9ed32e"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-06-auth-methods.png",
+    "name": "06-auth-methods",
+    "section": "Auth",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 79083,
+    "sha256": "17ded12f7f26b6f65e09b54181c55672ff4e12104247a08046ace46e14c80fe3"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-07-sign-up.png",
+    "name": "07-sign-up",
+    "section": "Auth",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 82189,
+    "sha256": "5c6b33c3de65412c7aa9428f4cb16449e3bb7bd3641fc14d04cbe04040f90038"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-08-password.png",
+    "name": "08-password",
+    "section": "Auth",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 69111,
+    "sha256": "9a57a87c25e89cda156e0bd03e8ae95f14aaeb4d02bbeba4799f5652cfb3dfce"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-09-recovery.png",
+    "name": "09-recovery",
+    "section": "Auth",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 55357,
+    "sha256": "af9d7f2322dfed6f3b394a3e9f34965e7a0bb7a68d964528b8000654da4a8379"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-10-email-code-entry.png",
+    "name": "10-email-code-entry",
+    "section": "Auth",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 55515,
+    "sha256": "40c67170899666b3822ad9de5e5bd4f9cd10b762deb39624bb3df08f236dca93"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-auth-code_entry.png",
+    "name": "auth-code_entry",
+    "section": "Auth",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 58957,
+    "sha256": "26021dbbc1f9b90ef5c8c629ca643b21980ea1a96c78fb7249c12aad621e577c"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-auth-reset_password.png",
+    "name": "auth-reset_password",
+    "section": "Auth",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 66913,
+    "sha256": "b7c9cfe56a6124c8a1e9aacf407de928bdb3716fe045b56e532be8cf1586e905"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-auth-sign_up.png",
+    "name": "auth-sign_up",
+    "section": "Auth",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 82980,
+    "sha256": "72c4dc75bbabef887afd1ea40605e2fb084faf64a126e62c44d417a06f2cf1cf"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-bottom-navigation-large-rtl.png",
+    "name": "bottom-navigation-large-rtl",
+    "section": "Accessibility",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 159373,
+    "sha256": "e591f6aa12cbe114f5b9addd5a63a3f7531f7ac0ecfd27ca89baafe4c335307e"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-bottom-navigation.png",
+    "name": "bottom-navigation",
+    "section": "Navigation",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 145556,
+    "sha256": "8a7302a75f6290acd7b03ecb40f640ca9acc2ab282ce6523840c65c9d0e80349"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-normal-ar-account.png",
+    "name": "normal-ar-account",
+    "section": "Normal RTL",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 1170013,
+    "sha256": "928d0e5cdcd21de4bffef8a4cd2ef8a5f0abb6aec28c43e0846ecda29c8dbfcf"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-normal-ar-reader-contents.png",
+    "name": "normal-ar-reader-contents",
+    "section": "Normal RTL",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 70628,
+    "sha256": "3893487daf3f77478226efeee5abcae379d443f7a16522b1d3a177d06f3fd384"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-normal-ar-reader-saved.png",
+    "name": "normal-ar-reader-saved",
+    "section": "Normal RTL",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 71884,
+    "sha256": "d004e5ef23dc963c9fff4a75f21c0f6cc5208a66c6acc8e0b3e6f0468fdab5cc"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-normal-ar-welcome.png",
+    "name": "normal-ar-welcome",
+    "section": "Normal RTL",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 1172063,
+    "sha256": "34db9ad2d748e4e8f05469d8427f27a3883f7fc4c47031a74e267930a995c9d4"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-normal-ur-account.png",
+    "name": "normal-ur-account",
+    "section": "Normal RTL",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 1187786,
+    "sha256": "ae48bcf585581d14ebc105039f8bb2785fdb3581281c4f2fb889b634b6f03395"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-normal-ur-reader-contents.png",
+    "name": "normal-ur-reader-contents",
+    "section": "Normal RTL",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 71910,
+    "sha256": "71c5383162eb725d1f54cd7f6cbe01bb60b3f78f2b5d02ff0e54a1ea5b5f2ec1"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-normal-ur-reader-saved.png",
+    "name": "normal-ur-reader-saved",
+    "section": "Normal RTL",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 68704,
+    "sha256": "0ee2e524012aa4db4036caa1fcdb85bd3649c1ce2badbd9270fad34bc65dfd59"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-normal-ur-welcome.png",
+    "name": "normal-ur-welcome",
+    "section": "Normal RTL",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 1177664,
+    "sha256": "8ad267f580cb60a751ab804c1f243400847b4518ca0400afa954b9428a96240c"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-paywall-prototype-dark.png",
+    "name": "paywall-prototype-dark",
+    "section": "Paywall",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 90908,
+    "sha256": "f34cee5576a6b32915686a576e55c69f15f7af2338bd25b8e957e0fc4aa350b5"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-paywall-prototype-light.png",
+    "name": "paywall-prototype-light",
+    "section": "Paywall",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 97297,
+    "sha256": "7c9c3a0f5eea730d0ecd5078322a8bfd480cbc12cac6f5a1326f80c635a62a6f"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-reader-bookmark.png",
+    "name": "reader-bookmark",
+    "section": "Reader",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 56199,
+    "sha256": "48f63f732c44c7fbc1f394d613670cde84561476f0f2756298b9e8b12d9e1706"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-reader-contents.png",
+    "name": "reader-contents",
+    "section": "Reader",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 70316,
+    "sha256": "f38ec4dbf6e97c8fb3be14bfe299bc5cc754b935acfab5ca826fc1ad81353e98"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-reader-saved-main-notes.png",
+    "name": "reader-saved-main-notes",
+    "section": "Reader",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 84880,
+    "sha256": "c718c164cad7ef32b95d8cbc00773b85de48c315aad3ef3335f92a3cc966723e"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-reader-saved-main.png",
+    "name": "reader-saved-main",
+    "section": "Reader",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 86567,
+    "sha256": "2e35cfecd522e0ba3bfaf10fec0037f3832b6ee66efae7364250c1d2a616f62b"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-reader-saved-notes-empty.png",
+    "name": "reader-saved-notes-empty",
+    "section": "Reader",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 74428,
+    "sha256": "aa6e21d0f861497caf3cafcda181a5c29c93aad3b9bc03f5c49959a69f10ea3f"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-reader-saved.png",
+    "name": "reader-saved",
+    "section": "Reader",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 67314,
+    "sha256": "38f2b385635106342733f4b6e096d221b35a468c5ea2b7d6e5fb430d6d10ba4a"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-reader-search-empty.png",
+    "name": "reader-search-empty",
+    "section": "Reader",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 130780,
+    "sha256": "c8e6cfd44f58f45e4fb3207315aea63628b2cf36a3ea009cbdcd0f156f9646c8"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-reader-search.png",
+    "name": "reader-search",
+    "section": "Reader",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 62489,
+    "sha256": "952d210f0929b67ae3cd51299247d8549c96b7f6b1825fe60a3b034767be53e3"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-settings-inline-sign-in.png",
+    "name": "settings-inline-sign-in",
+    "section": "Settings",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 69399,
+    "sha256": "2297f00d41d22d72e0e0b2bf749a5d1f6d97930d384933c109962e2896debe8e"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-sign-up-keyboard.png",
+    "name": "sign-up-keyboard",
+    "section": "Auth",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 161017,
+    "sha256": "ee87ab48bfa84455dadcffb41be623cb9a7dda79b85e224c6f485178b0a3e341"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-sign-up-small-large-rtl.png",
+    "name": "sign-up-small-large-rtl",
+    "section": "Accessibility",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 96247,
+    "sha256": "c1ce3babff99f8f0e39e5db900df2111696334503647aa4d9ea061de3dd87e29"
+  },
+  {
+    "platform": "android",
+    "file": "android/finishing-welcome-light-russian.png",
+    "name": "welcome-light-russian",
+    "section": "Onboarding",
+    "width": 1080,
+    "height": 2400,
+    "bytes": 1184221,
+    "sha256": "b42705f5f2e569c4b0be143b4629c9bd9a32b6d448db641b74eb5950809d78ac"
+  }
+]

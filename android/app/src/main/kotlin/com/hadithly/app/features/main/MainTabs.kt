@@ -66,9 +66,7 @@ data class ReaderOpenTarget(
  */
 @Composable
 fun MainTabs(
-    showSignIn: Boolean,
     onShowSignIn: () -> Unit,
-    onDismissSignIn: () -> Unit,
     pendingLink: CanonicalHadithLink? = null,
     notificationTarget: ReaderOpenTarget? = null,
     continueWidgetRequest: Long? = null,

@@ -43,7 +43,8 @@ struct ReaderView: View {
     @State private var pageDragOffset: CGFloat = 0
     @State private var pageSettling = false
     @State private var horizontalDragging = false
-    @State private var pageScrollFraction: Double = 1
+    @State private var readerUndoNotice: SavedUndoNotice?
+    @State private var scrollProgress = ReaderScrollProgress()
     /// Latest viewport width, for the drag-settle target. Written from the
     /// GeometryReader; the gesture may outlive any single body evaluation.
     @State private var dragViewportWidth: CGFloat = 0
@@ -88,6 +89,9 @@ struct ReaderView: View {
     }
 
     var body: some View {
+#if DEBUG
+        let _ = ReaderRenderProbe.recordRoot()
+#endif
         Group {
             if let model {
                 readerContent(model)
@@ -96,6 +100,17 @@ struct ReaderView: View {
             }
         }
         .background(palette.background.ignoresSafeArea())
+#if DEBUG
+        .overlay(alignment: .topLeading) {
+            if ProcessInfo.processInfo.environment["READER_PERFORMANCE_PROBE"] == "1" {
+                ReaderPerformanceProbe(progress: scrollProgress)
+            }
+        }
+#endif
+        .nativeAppearanceBoundary(statusHidden: model.map { !$0.chromeVisible })
+        .environment(\.presentSavedUndo) { notice in
+            withAnimation(chromeAnimation) { readerUndoNotice = notice }
+        }
         .environment(\.readerTheme, readerTheme)
         .environment(\.readerPalette, palette)
         .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
@@ -257,32 +272,24 @@ struct ReaderView: View {
 
                 pageStrip(model, viewportWidth: viewport.size.width)
 
-                // Chrome fade+scale (round 7): both chrome layers stay in
-                // the hierarchy and crossfade in place — fade + slight
-                // scale, ~200ms ease-out, snap under Reduce Motion. The
-                // page underneath never moves, fades, or re-lays-out.
-                ReaderFocusedProgressBar(
-                    fraction: pageScrollFraction,
-                    palette: palette,
-                    topInset: windowSafeAreaInsets.top
-                )
-                .opacity(model.chromeVisible ? 0 : 1)
-                .scaleEffect(model.chromeVisible ? 0.92 : 1)
+                Group {
+                    if !model.chromeVisible {
+                        ReaderFocusedProgressObserver(progress: scrollProgress, palette: palette, topInset: windowSafeAreaInsets.top)
+                            .transition(.opacity.combined(with: .scale(scale: reduceMotion ? 1 : 0.92)))
+                    }
+                }
                 .animation(chromeAnimation, value: model.chromeVisible)
                 .allowsHitTesting(false)
 
-                ReaderGlassGroup {
-                chromeOverlay(
-                    model,
-                    topInset: windowSafeAreaInsets.top,
-                    bottomInset: windowSafeAreaInsets.bottom
-                )
-                    .opacity(model.chromeVisible ? 1 : 0)
-                    .scaleEffect(model.chromeVisible ? 1 : 0.96)
-                    .animation(chromeAnimation, value: model.chromeVisible)
-                    .allowsHitTesting(model.chromeVisible)
-                    .accessibilityHidden(!model.chromeVisible)
+                Group {
+                    if model.chromeVisible {
+                        ReaderGlassGroup {
+                            chromeOverlay(model, topInset: windowSafeAreaInsets.top, bottomInset: windowSafeAreaInsets.bottom)
+                        }
+                        .transition(.opacity.combined(with: .scale(scale: reduceMotion ? 1 : 0.98)))
+                    }
                 }
+                .animation(chromeAnimation, value: model.chromeVisible)
 
                 // Bookmark placement (round 7): a centered modal dialog
                 // over a dimmed backdrop, not a bottom sheet. Same options
@@ -301,23 +308,34 @@ struct ReaderView: View {
             }
         }
         .overlay(alignment: .bottom) {
-            if environment.readerExperience.showsActionHint {
-                HStack(spacing: 12) {
-                    Text("Touch and hold a hadith to bookmark, add a note or share.").font(.caption)
-                    Button { environment.readerExperience.dismissActionHint() } label: { Image(systemName: "xmark").frame(width: 32, height: 32) }
-                        .accessibilityLabel("Dismiss hint")
+            VStack(spacing: 8) {
+                if let notice = readerUndoNotice {
+                    SavedUndoBanner(notice: notice, onExpire: {
+                        if readerUndoNotice?.id == notice.id { readerUndoNotice = nil }
+                    })
+                } else if environment.readerExperience.showsActionHint {
+                    HStack(spacing: 12) {
+                        Text("Touch and hold a hadith to bookmark, add a note or share.").font(.caption)
+                        Button { environment.readerExperience.dismissActionHint() } label: {
+                            Image(systemName: "xmark").frame(width: 32, height: 32)
+                        }.accessibilityLabel("Dismiss hint")
+                    }
+                    .foregroundStyle(palette.textPrimary)
+                    .padding(.leading, 16).padding(.trailing, 6).padding(.vertical, 8)
+                    .readerControlSurface(in: RoundedRectangle(cornerRadius: 16))
+                    .padding(.horizontal, 24)
+                    .transition(reduceMotion ? .opacity : .opacity.combined(with: .offset(y: InterfaceMotion.travel)))
+                    .accessibilityIdentifier("reader.actionHint")
                 }
-                .foregroundStyle(palette.textPrimary)
-                .padding(.leading, 16).padding(.trailing, 6).padding(.vertical, 8)
-                .background(palette.surfaceElevated, in: RoundedRectangle(cornerRadius: 16))
-                .padding(.horizontal, 24).padding(.bottom, 96)
-                .accessibilityIdentifier("reader.actionHint")
             }
+            .padding(.bottom, windowSafeAreaInsets.bottom + (model.chromeVisible ? 88 : 16))
+            .animation(chromeAnimation, value: environment.readerExperience.showsActionHint)
+            .animation(chromeAnimation, value: readerUndoNotice?.id)
         }
         .task {
             environment.readerExperience.offerActionHint()
-            try? await Task.sleep(for: .seconds(7))
-            environment.readerExperience.dismissActionHint()
+            do { try await Task.sleep(for: .seconds(7)) } catch { return }
+            withAnimation(chromeAnimation) { environment.readerExperience.dismissActionHint() }
         }
         .overlay {
             WindowSwipeRecognizer(
@@ -367,6 +385,7 @@ struct ReaderView: View {
         // full-bleed in both states, so this system-chrome change never
         // resizes or repositions reading content.
         .statusBarHidden(!model.chromeVisible)
+        .animation(chromeAnimation, value: model.chromeVisible)
     }
 
     /// A sheet is presented in a new hosting hierarchy, so it must receive
@@ -376,6 +395,7 @@ struct ReaderView: View {
     @ViewBuilder
     private func readerSheet<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         content()
+            .nativeAppearanceBoundary()
             .environment(\.readerTheme, readerTheme)
             .environment(\.readerPalette, palette)
             .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
@@ -423,7 +443,7 @@ struct ReaderView: View {
                             onTurn: { turnPage(model, turn: $0) },
                             onTap: { toggleChrome(model) },
                             onShowPaywall: { showQuotaPaywall = true },
-                            onScrollFraction: page == index ? { pageScrollFraction = $0 } : nil
+                            onScrollFraction: page == index ? { scrollProgress.fraction = $0 } : nil
                         )
                         .scrollDisabled(page != index || horizontalDragging || pageSettling)
                         .allowsHitTesting(page == index && !pageSettling)
@@ -548,19 +568,12 @@ struct ReaderView: View {
             // by side, bold number + lighter suffix. The Page pill fills by
             // intra-page scroll; the Volume pill fills by page fraction
             // within the volume. Neutral, never green, never mid-screen.
-            ReaderUnfocusedProgressPills(
-                pageNumber: model.pageIndex + 1,
-                pageFill: ReaderProgressBars.pagePillFillFraction(pageScrollFraction),
-                volumeNumber: ReaderProgressBars.volumePosition(
-                    selectedVolumeId: model.selectedVolumeId,
-                    volumes: model.volumes
-                ),
+            ReaderProgressPillsObserver(
+                progress: scrollProgress,
+                pageIndex: model.pageIndex,
+                totalPages: model.totalPages,
+                volumeNumber: ReaderProgressBars.volumePosition(selectedVolumeId: model.selectedVolumeId, volumes: model.volumes),
                 volumeCount: model.volumes.count,
-                volumeFill: ReaderProgressBars.volumePillFillFraction(
-                    pageIndex: model.pageIndex,
-                    totalPages: model.totalPages,
-                    intraPageFraction: pageScrollFraction
-                ),
                 palette: palette
             )
             .padding(.top, topInset + 8)
@@ -633,6 +646,53 @@ struct ReaderView: View {
         model.positionedHadith()
     }
 }
+
+@Observable
+private final class ReaderScrollProgress {
+    var fraction: Double = 1
+}
+
+private struct ReaderFocusedProgressObserver: View {
+    let progress: ReaderScrollProgress
+    let palette: ReaderPalette
+    let topInset: CGFloat
+    var body: some View {
+        ReaderFocusedProgressBar(fraction: progress.fraction, palette: palette, topInset: topInset)
+    }
+}
+
+private struct ReaderProgressPillsObserver: View {
+    let progress: ReaderScrollProgress
+    let pageIndex: Int
+    let totalPages: Int?
+    let volumeNumber: Int?
+    let volumeCount: Int
+    let palette: ReaderPalette
+    var body: some View {
+        ReaderUnfocusedProgressPills(pageNumber: pageIndex + 1,
+            pageFill: ReaderProgressBars.pagePillFillFraction(progress.fraction),
+            volumeNumber: volumeNumber, volumeCount: volumeCount,
+            volumeFill: ReaderProgressBars.volumePillFillFraction(pageIndex: pageIndex, totalPages: totalPages, intraPageFraction: progress.fraction),
+            palette: palette)
+    }
+}
+
+#if DEBUG
+private struct ReaderPerformanceProbe: View {
+    let progress: ReaderScrollProgress
+    var body: some View {
+        Text("\(ReaderRenderProbe.rootEvaluations):\(progress.fraction)")
+            .font(.caption2).accessibilityIdentifier("reader.performance.root").allowsHitTesting(false)
+    }
+}
+#endif
+
+#if DEBUG
+private enum ReaderRenderProbe {
+    static var rootEvaluations = 0
+    static func recordRoot() { if AutomationContext.isActive { rootEvaluations += 1 } }
+}
+#endif
 
 private struct ReaderChromeCircle: View {
     let image: String
@@ -754,8 +814,7 @@ private struct ReaderMenuStack: View {
                 .font(.title3)
                 .foregroundStyle(tint)
                 .frame(maxWidth: .infinity, minHeight: 56)
-                .background(palette.surface.opacity(0.98))
-                .clipShape(RoundedRectangle(cornerRadius: 18))
+                .readerControlSurface(in: RoundedRectangle(cornerRadius: 18))
         }
         .buttonStyle(.plain)
         .frame(maxWidth: .infinity)
@@ -776,8 +835,7 @@ private struct ReaderMenuStack: View {
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
             .frame(maxWidth: .infinity, minHeight: 52)
-            .background(palette.surface.opacity(0.98))
-            .clipShape(RoundedRectangle(cornerRadius: 18))
+            .readerControlSurface(in: RoundedRectangle(cornerRadius: 18))
         }
         .buttonStyle(.plain)
     }
@@ -870,10 +928,6 @@ private struct ReaderUnfocusedProgressPills: View {
         // Motion) instead of jumping instantly.
         let clamped = min(1, max(0, fill))
         return ZStack {
-            // Opaque track: the pills float over full-bleed page content,
-            // so the track must fully occlude text scrolling beneath.
-            Capsule()
-                .fill(palette.surface)
             GeometryReader { proxy in
                 Capsule()
                     .fill(palette.textSecondary.opacity(0.35))
@@ -894,7 +948,7 @@ private struct ReaderUnfocusedProgressPills: View {
         }
         .frame(width: 104, height: 30)
         .clipShape(Capsule())
-        .overlay(Capsule().strokeBorder(palette.divider, lineWidth: 1))
+        .readerControlSurface(in: Capsule())
         .accessibilityHidden(true)
     }
 
@@ -1487,6 +1541,7 @@ private struct HadithBlock: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(\.locale) private var locale
     @State private var pendingSavedRemoval: String?
+    @Environment(\.presentSavedUndo) private var presentSavedUndo
     @State private var undoNotice: SavedUndoNotice?
 
     /// Round-2 narrator placement for these preferences: above the Arabic
@@ -1597,7 +1652,7 @@ private struct HadithBlock: View {
             environment.readerExperience.dismissActionHint()
             ReaderHapticDispatcher.trigger(.contextMenuOpen)
         }
-        .overlay(alignment: .bottom) { if let undoNotice { SavedUndoBanner(notice: undoNotice, onExpire: { self.undoNotice = nil }) } }
+        .overlay(alignment: .bottom) { if presentSavedUndo == nil, let undoNotice { SavedUndoBanner(notice: undoNotice, onExpire: { self.undoNotice = nil }) } }
         .confirmationDialog("Remove saved item?", isPresented: Binding(get: { pendingSavedRemoval != nil }, set: { if !$0 { pendingSavedRemoval = nil } })) {
             Button("Remove", role: .destructive) { performPendingRemoval(disableFutureConfirmation: false) }
             Button("Remove and don't ask again", role: .destructive) { performPendingRemoval(disableFutureConfirmation: true) }
@@ -1843,18 +1898,22 @@ private struct HadithBlock: View {
         pendingSavedRemoval = nil
     }
 
+    private func showUndo(_ notice: SavedUndoNotice) {
+        if let presentSavedUndo { presentSavedUndo(notice) } else { undoNotice = notice }
+    }
+
     private func removeOrAddBookmark() {
         let wasSaved = model.isBookmarked(hadith)
         let createdAt = model.savedItem(for: hadith)?.bookmarkCreatedAt
         model.toggleBookmark(hadith)
-        if wasSaved, let createdAt { undoNotice = SavedUndoNotice(message: "Bookmark removed") { model.restoreBookmark(hadith, createdAt: createdAt); undoNotice = nil } }
+        if wasSaved, let createdAt { showUndo(SavedUndoNotice(message: "Bookmark removed") { model.restoreBookmark(hadith, createdAt: createdAt); undoNotice = nil }) }
     }
 
     private func removeOrAddFavorite() {
         let wasSaved = model.isFavorite(hadith)
         let createdAt = model.savedItem(for: hadith)?.favoriteCreatedAt
         model.toggleFavorite(hadith)
-        if wasSaved, let createdAt { undoNotice = SavedUndoNotice(message: "Favorite removed") { model.restoreFavorite(hadith, createdAt: createdAt); undoNotice = nil } }
+        if wasSaved, let createdAt { showUndo(SavedUndoNotice(message: "Favorite removed") { model.restoreFavorite(hadith, createdAt: createdAt); undoNotice = nil }) }
     }
 
     @ViewBuilder
@@ -2682,18 +2741,26 @@ struct ReaderR6ATestFixtureView: View {
             deploymentUrl: "https://example.invalid",
             authProvider: provider
         )
+        let fixtureLibrary: UserLibraryModel?
+        if environment["READER_UNDO_PROBE"] == "1" {
+            let library = UserLibraryModel(convex: convex, guestData: GuestDataStore(inMemory: true), isSignedIn: { false })
+            library.restoreBookmark(HadithRef(hadithId: "fixture-57", collectionSlug: "bukhari", collectionName: "Sahih al-Bukhari", volumeId: "2", hadithNumber: "57", arabicText: "نَصّ الحديث الأول", englishText: "Deeds are judged by intentions.", referenceDisplay: "Bukhari – 57"), createdAt: .now)
+            fixtureLibrary = library
+        } else { fixtureLibrary = nil }
         let seeded = ReaderModel(
             convex: convex,
             collectionSlug: "bukhari",
             collectionName: "Sahih al-Bukhari",
             language: environment["Q1_LANGUAGE"] ?? "en",
-            isSignedIn: { false }
+            isSignedIn: { false }, library: fixtureLibrary
         )
+        if fixtureLibrary == nil {
         seeded.seedSavedStateForUITest(
             bookmarkedIds: ["fixture-57"],
             favoritedIds: ["fixture-59"]
         )
         seeded.seedNotesForUITest(notedIds: ["fixture-59"])
+        }
         switch environment["Q1_STATE"] {
         case "loading":
             seeded.seedQ1TranslationForUITest(id: "sunnah_now:bukhari:57", state: .loading, allowance: nil)
@@ -2745,7 +2812,7 @@ struct ReaderR6ATestFixtureView: View {
             collectionSlug: "bukhari",
             volumeId: "2",
             chapterId: nil,
-            arabicText: "نَصّ الحديث الأول",
+            arabicText: ProcessInfo.processInfo.environment["READER_PERFORMANCE_PROBE"] == "1" ? String(repeating: "نَصّ الحديث الأول ", count: 180) : "نَصّ الحديث الأول",
             englishText: "Deeds are judged by intentions.",
             narrator: "Narrated by Umar ibn al-Khattab",
             narratorAr: "عن عمر بن الخطاب رضي الله عنه",

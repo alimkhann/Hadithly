@@ -26,7 +26,7 @@ struct NativePolishFixtureView: View {
                         if onboardingDone { Text("Reading is ready").accessibilityIdentifier("polish.onboardingDone") }
                         else { OnboardingFlowView { onboardingDone = true } }
                     case "reader", "reader-loading": ReaderR6ATestFixtureView()
-                    default: OnboardingTranslationView(locale: "en", onReveal: {}, onContinue: {})
+                    default: OnboardingTranslationView(locale: "en")
                     }
                 }
             } else { Color.clear }

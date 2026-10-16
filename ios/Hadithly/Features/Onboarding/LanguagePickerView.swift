@@ -52,43 +52,28 @@ enum SupportedLanguages {
 struct LanguagePickerView: View {
     @Environment(\.readerPalette) private var palette
     @Binding var selection: String
-    let onContinue: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
             Text("la2.language")
                 .font(.title2.bold())
-                .foregroundStyle(Theme.textPrimary)
+                .foregroundStyle(palette.textPrimary)
                 .padding(.top, Theme.Spacing.xl)
 
             Text("la2.suggested")
                 .font(.subheadline)
-                .foregroundStyle(Theme.textSecondary)
+                .foregroundStyle(palette.textSecondary)
                 .padding(.top, Theme.Spacing.xs)
 
-            ScrollView {
-                VStack(spacing: Theme.Spacing.sm) {
-                    ForEach(SupportedLanguages.all) { language in
-                        languageRow(language)
-                    }
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, Theme.Spacing.xl)
+            List(SupportedLanguages.all) { language in
+                languageRow(language)
+                    .listRowInsets(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 24))
+                    .listRowBackground(Color.clear)
             }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .padding(.top, 16)
 
-            Button(action: onContinue) {
-                    Text("la2.continue")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(Theme.accent)
-                        .foregroundStyle(palette.onInteractive)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-            }
-            .buttonStyle(.plain)
-            .accessibilityIdentifier("onboarding.continue")
-            .padding(.horizontal, 20)
-            .padding(.bottom, Theme.Spacing.xxl)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.clear)
@@ -102,25 +87,23 @@ struct LanguagePickerView: View {
                 Text(language.flag).font(.title2).accessibilityHidden(true)
                 Text(language.name)
                     .font(.body)
-                    .foregroundStyle(Theme.textPrimary)
+                    .foregroundStyle(palette.textPrimary)
                 Spacer()
                 if selection == language.code {
                     Image(systemName: "checkmark")
                         .font(.body.weight(.semibold))
-                        .foregroundStyle(Theme.accent)
+                        .foregroundStyle(palette.interactive)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
-            .background(
-                selection == language.code ? Theme.accentSoft : Theme.surface
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .frame(minHeight: 52)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityAddTraits(selection == language.code ? .isSelected : [])
+        .accessibilityIdentifier("onboarding.language.\(language.code)")
     }
 }
 
 #Preview {
-    LanguagePickerView(selection: .constant("en"), onContinue: {})
+    LanguagePickerView(selection: .constant("en"))
 }

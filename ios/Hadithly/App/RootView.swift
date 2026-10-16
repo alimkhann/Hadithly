@@ -78,16 +78,6 @@ struct RootView: View {
                 }
             }
         }
-        .sheet(isPresented: $showSignIn) {
-            SignInView(
-                onAuthenticated: {
-                    await environment.completeSignIn()
-                    showSignIn = false
-                },
-                onDismiss: { showSignIn = false }
-            )
-            .presentationDetents([.large])
-        }
         .task {
             await observeAuthEvents()
         }

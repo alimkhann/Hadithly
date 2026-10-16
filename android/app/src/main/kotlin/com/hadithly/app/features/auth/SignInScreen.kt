@@ -3,6 +3,7 @@ package com.hadithly.app.features.auth
 import com.hadithly.app.core.preferences.nativeText
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.heightIn
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -35,6 +37,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.tween
 import androidx.activity.compose.BackHandler
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -44,6 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -101,7 +105,10 @@ fun SignInScreen(
     }
 
     BackHandler { if (state.mode == SignInMode.METHODS || state.isBusy) onDismiss() else viewModel.goBack() }
-    Box(Modifier.fillMaxSize()) {
+    Box(Modifier.fillMaxSize().pointerInput(Unit) {
+        // Own the full screen's hit path, including blank form space.
+        awaitPointerEventScope { while (true) awaitPointerEvent() }
+    }) {
         Box(Modifier.fillMaxSize().background(colors.background))
         Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
             Row(Modifier.fillMaxWidth().padding(horizontal = Spacing.sm), verticalAlignment = Alignment.CenterVertically) {
@@ -231,6 +238,7 @@ private fun MethodsScreen(
                 container = colors.surfaceElevated,
                 content = colors.textPrimary,
                 busy = state.isBusy,
+                googleMark = true,
                 onClick = onGoogle,
             )
             Row(
@@ -247,7 +255,7 @@ private fun MethodsScreen(
                 onClick = onPasswordSignIn,
                 enabled = !state.isBusy,
             )
-            TextButton(onClick = onSignUp, enabled = !state.isBusy) {
+            TextButton(onClick = onSignUp, enabled = !state.isBusy, modifier = Modifier.testTag("signin.createAccount")) {
                 Text(nativeText("Create account"), color = colors.textSecondary, fontSize = 15.sp)
             }
 
@@ -674,6 +682,7 @@ private fun ProviderButton(
     container: Color,
     content: Color,
     busy: Boolean,
+    googleMark: Boolean = false,
     onClick: () -> Unit,
 ) {
     Button(
@@ -686,8 +695,27 @@ private fun ProviderButton(
         if (busy) {
             CircularProgressIndicator(color = content, strokeWidth = 2.dp)
         } else {
-            Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                if (googleMark) GoogleMark()
+                Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            }
         }
+    }
+}
+
+@Composable
+private fun GoogleMark() {
+    Canvas(Modifier.size(20.dp)) {
+        val stroke = size.minDimension * .19f
+        val inset = stroke / 2
+        val arcSize = androidx.compose.ui.geometry.Size(size.width - stroke, size.height - stroke)
+        val topLeft = androidx.compose.ui.geometry.Offset(inset, inset)
+        drawArc(Color(0xFF4285F4), -45f, 105f, false, topLeft, arcSize, style = Stroke(stroke))
+        drawArc(Color(0xFF34A853), 60f, 95f, false, topLeft, arcSize, style = Stroke(stroke))
+        drawArc(Color(0xFFFBBC05), 155f, 95f, false, topLeft, arcSize, style = Stroke(stroke))
+        drawArc(Color(0xFFEA4335), 250f, 65f, false, topLeft, arcSize, style = Stroke(stroke))
+        drawLine(Color(0xFF4285F4), androidx.compose.ui.geometry.Offset(size.width * .50f, size.height * .50f),
+            androidx.compose.ui.geometry.Offset(size.width * .94f, size.height * .50f), stroke, cap = androidx.compose.ui.graphics.StrokeCap.Round)
     }
 }
 

@@ -4,6 +4,17 @@ import zlib
 @testable import Hadithly
 
 final class DiagnosticsTests: XCTestCase {
+    func testDefaultReportsAreOnAndExplicitOptOutPersists() throws {
+        let suite = "diagnostics-default-" + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        XCTAssertTrue(CrashReporting(defaults: defaults).hasConsent)
+        defaults.set(false, forKey: "diagnostics.consent")
+        XCTAssertFalse(CrashReporting(defaults: defaults).hasConsent)
+        defaults.set(true, forKey: "diagnostics.consent")
+        XCTAssertTrue(CrashReporting(defaults: defaults).hasConsent)
+    }
+
     func testActualTransportEnvelopeIsRedactedAndOptOutPurgesCache() throws {
         let suite = "hadithly-la1-test-" + UUID().uuidString
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))

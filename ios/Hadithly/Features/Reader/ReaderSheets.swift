@@ -108,17 +108,22 @@ struct CollectionOutlineSheet: View {
                         .padding(20)
                 } else {
                     List {
-                        Section { jumpField.listRowBackground(Color.clear) }
+                        Section {
+                            jumpField.listRowBackground(palette.surface)
+                        } footer: {
+                            Text(jumpError ?? "Jump to a hadith number, e.g. 57.")
+                                .accessibilityIdentifier(jumpError == nil ? "reader.contents.jumpHint" : "reader.contents.jumpError")
+                        }
                         Section("Volumes") {
                             ForEach(model.volumes) { volume in
                                 Group {
                                     if let chapters = volume.chapters, !chapters.isEmpty { volumeDisclosure(volume, chapters: chapters) }
                                     else { volumeRow(volume) }
-                                }.listRowBackground(Color.clear).listRowSeparatorTint(palette.divider)
+                                }.listRowBackground(palette.surface)
                             }
                         }
                     }
-                    .listStyle(.plain)
+                    .listStyle(.insetGrouped)
                     .scrollContentBackground(.hidden)
                 }
             }
@@ -136,35 +141,17 @@ struct CollectionOutlineSheet: View {
     /// land on the first volume's start); malformed input shows a quiet
     /// inline error and keeps the sheet open. Plain row, no card.
     private var jumpField: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 8) {
-                TextField("Hadith number", text: $jumpText)
-                    .keyboardType(.numbersAndPunctuation)
-                    .textFieldStyle(.plain)
-                    .frame(minHeight: 44)
-                    .foregroundStyle(palette.textPrimary)
-                    .accessibilityIdentifier("reader.contents.jump")
-                    .accessibilityLabel("Jump to hadith number")
-                    .onSubmit { submitJump() }
-                    .onChange(of: jumpText) { _, _ in jumpError = nil }
-                Button("Go") { submitJump() }
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(palette.interactive)
-                    .frame(minWidth: 44, minHeight: 44)
-                    .accessibilityIdentifier("reader.contents.jumpGo")
-            }
-            if let jumpError {
-                Text(jumpError)
-                    .font(.caption)
-                    .foregroundStyle(palette.textSecondary)
-                    .accessibilityIdentifier("reader.contents.jumpError")
-            } else {
-                Text("Jump to a hadith number, e.g. 57.")
-                    .font(.caption2)
-                    .foregroundStyle(palette.textSecondary)
-            }
+        HStack {
+            TextField("Hadith number", text: $jumpText)
+                .keyboardType(.numbersAndPunctuation)
+                .accessibilityIdentifier("reader.contents.jump")
+                .accessibilityLabel("Jump to hadith number")
+                .onSubmit { submitJump() }
+                .onChange(of: jumpText) { _, _ in jumpError = nil }
+            Button("Go", action: submitJump)
+                .buttonStyle(.borderless).disabled(jumpText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .frame(minWidth: 44, minHeight: 44).accessibilityIdentifier("reader.contents.jumpGo")
         }
-        .padding(.vertical, 4)
     }
 
     private func submitJump() {
@@ -197,85 +184,39 @@ struct CollectionOutlineSheet: View {
     /// with hadith counts and minimal dividers. Chapters render only when
     /// the source provided them — Hadithly never synthesizes one.
     private func volumeDisclosure(_ volume: OutlineVolume, chapters: [OutlineChapter]) -> some View {
-        let isSelected = volume.volumeId == model.selectedVolumeId
-        return DisclosureGroup(isExpanded: expansionBinding(for: volume.volumeId)) {
-            VStack(spacing: 0) {
-                Button {
-                    model.selectVolume(volume.volumeId)
-                    dismiss()
-                } label: {
-                    HStack {
-                        Text("Open \(localizedVolumeTitle(volume.title, preferences: prefs)) from the start")
-                            .font(.caption.weight(.medium))
-                            .foregroundStyle(palette.textSecondary)
-                        Spacer()
-                    }
-                    .padding(.vertical, 4)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("reader.volume.\(volume.volumeId)")
-                ForEach(chapters) { chapter in
-                    chapterRow(volume: volume, chapter: chapter)
-                }
+        DisclosureGroup(isExpanded: expansionBinding(for: volume.volumeId)) {
+            Button {
+                model.selectVolume(volume.volumeId); dismiss()
+            } label: {
+                Label("Open from the start", systemImage: "book")
             }
-            .padding(.top, 2)
+            .accessibilityIdentifier("reader.volume.\(volume.volumeId)")
+            ForEach(chapters) { chapter in chapterRow(volume: volume, chapter: chapter) }
         } label: {
-            // The identifier sits on the label subtree only: an identifier
-            // on the DisclosureGroup itself propagates into the expanded
-            // content and stomps the chapter rows' own identifiers. The
-            // DisclosureGroup renders its own rotating chevron; the plain
-            // row below adds one explicitly.
-            volumeLabel(volume, isSelected: isSelected)
-                .contentShape(Rectangle())
+            volumeLabel(volume, isSelected: volume.volumeId == model.selectedVolumeId)
                 .accessibilityIdentifier("reader.contents.volume.\(volume.volumeId)")
         }
-        .tint(palette.textSecondary)
-        .padding(.vertical, 4)
+        .tint(palette.interactive)
     }
 
     private func chapterRow(volume: OutlineVolume, chapter: OutlineChapter) -> some View {
-        let display = ReaderChapterLine.displayTitle(
-            title: chapter.title,
-            arabicTitle: chapter.arabicTitle,
-            arabicVisible: arabicVisible,
-            translationVisible: translationVisible
-        )
+        let display = ReaderChapterLine.displayTitle(title: chapter.title, arabicTitle: chapter.arabicTitle,
+            arabicVisible: arabicVisible, translationVisible: translationVisible)
         return Button {
-            model.selectChapter(volumeId: volume.volumeId, chapter: chapter)
-            dismiss()
+            model.selectChapter(volumeId: volume.volumeId, chapter: chapter); dismiss()
         } label: {
-            VStack(spacing: 0) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(display)
-                            .font(.subheadline)
-                            .foregroundStyle(palette.textPrimary)
-                            .multilineTextAlignment(.leading)
-                        if let subtitle = ReaderChapterLine.arabicSubtitle(
-                            title: display,
-                            arabicTitle: chapter.arabicTitle,
-                            arabicVisible: arabicVisible
-                        ) {
-                            Text(subtitle)
-                                .font(.caption)
-                                .foregroundStyle(palette.textSecondary)
-                                .lineLimit(1)
-                        }
+            HStack {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(display).foregroundStyle(palette.textPrimary)
+                    if let subtitle = ReaderChapterLine.arabicSubtitle(title: display, arabicTitle: chapter.arabicTitle, arabicVisible: arabicVisible) {
+                        Text(subtitle).font(.caption).foregroundStyle(palette.textSecondary)
                     }
-                    Spacer()
-                    Text("\(chapter.hadithCount)")
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(palette.textSecondary)
                 }
-                .padding(.vertical, 4)
-                }
-            // Plain rows have no background fill: the explicit content
-            // shape keeps the whole row (including spacer gaps) tappable.
-            .contentShape(Rectangle())
+                Spacer()
+                Text("\(chapter.hadithCount)").font(.subheadline.monospacedDigit()).foregroundStyle(palette.textSecondary)
+            }
+            .frame(minHeight: 44).contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel("\(display), \(chapter.hadithCount) hadiths")
         .accessibilityIdentifier("reader.contents.chapter.\(volume.volumeId).\(chapter.firstProviderHadithId)")
     }
 
@@ -642,7 +583,7 @@ struct ReaderSearchSheet: View {
                         }.padding(.vertical, 4).frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .listRowBackground(Color.clear).listRowSeparatorTint(palette.divider)
+                    .listRowBackground(Color.clear)
                     .accessibilityLabel("\(result.referenceDisplay), Sunnah.now English text")
                     .accessibilityIdentifier("reader.search.result.\(index)")
                 }
@@ -779,15 +720,17 @@ struct ReaderSavedShortcutSheet: View {
         }
         .safeAreaInset(edge: .bottom) {
             SavedFilterBar(selection: $tab, identifier: "reader.savedShortcut.filter")
-                .padding(.horizontal, 20).padding(.vertical, 8)
+                .frame(maxWidth: 340).padding(.horizontal, 20).padding(.vertical, 8)
         }
-        .overlay(alignment: .bottom) {
+        .safeAreaInset(edge: .bottom, spacing: 0) {
             if let notice = undoNotice {
                 SavedUndoBanner(notice: notice, onExpire: { undoNotice = nil })
             } else if let deletion = library.lastFolderDeletion {
-                SavedUndoBanner(notice: SavedUndoNotice(message: "Folder \(deletion.name) deleted", undo: library.undoDeleteFolder), onExpire: { library.clearFolderDeletion() })
+                SavedUndoBanner(notice: SavedUndoNotice(id: deletion.undoID, message: "Folder \(deletion.name) deleted", undo: library.undoDeleteFolder, deadline: deletion.undoDeadline), onExpire: { library.clearFolderDeletion() })
             }
         }
+        .animation(reducedMotion ? nil : .timingCurve(0.22, 1, 0.36, 1, duration: InterfaceMotion.reveal), value: undoNotice?.id)
+        .animation(reducedMotion ? nil : .timingCurve(0.22, 1, 0.36, 1, duration: InterfaceMotion.reveal), value: library.lastFolderDeletion?.undoID)
         .confirmationDialog("Remove saved item?", isPresented: Binding(get: { pendingRemoval != nil }, set: { if !$0 { pendingRemoval = nil } })) {
             if let removal = pendingRemoval {
             Button("Remove", role: .destructive) { performRemoval(removal); pendingRemoval = nil }

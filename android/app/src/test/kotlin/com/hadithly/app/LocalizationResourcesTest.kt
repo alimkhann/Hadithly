@@ -74,6 +74,14 @@ class LocalizationResourcesTest {
     }
 
     @Test
+    fun `Arabic and Urdu navigation uses translated app labels`() {
+        assertEquals("لغة التطبيق", strings("values-ar")["settings_app_language"])
+        assertEquals("اليوم", strings("values-ar")["app_today"])
+        assertEquals("الإعدادات", strings("values-ar")["app_settings"])
+        assertEquals("ترتیبات", strings("values-ur")["app_settings"])
+    }
+
+    @Test
     fun `English foundations exist with the plural fixture`() {
         val strings = strings("values")
         assertEquals("Choose your language", strings["onboarding_choose_language_title"])

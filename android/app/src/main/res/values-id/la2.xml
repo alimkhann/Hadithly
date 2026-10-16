@@ -11,8 +11,8 @@
     <string name="la2_sample_label">Contoh AI yang disiapkan</string>
     <string name="la2_sample_notice">Teks contoh oleh Hadithly, bukan hadis. Terjemahan AI dapat mengandung kesalahan.</string>
     <string name="la2_source_details">Contoh ini mempertahankan sumber Arab. Sumber: Hadithly. CC0 1.0.</string>
-    <string name="la2_account_title">Jadikan Hadithly milik Anda</string>
-    <string name="la2_account_body">Buat terjemahan dalam bahasa Anda. Simpan posisi baca antarperangkat.</string>
+    <string name="la2_account_title">Bacaan Anda, di mana pun</string>
+    <string name="la2_account_body">Masuk agar hadis tersimpan dan catatan Anda selalu bersama Anda.</string>
     <string name="la2_create_account">Buat akun</string>
     <string name="la2_sign_in">Masuk</string>
     <string name="la2_guest">Lanjutkan sebagai tamu</string>
@@ -34,7 +34,7 @@
     <string name="la2_close">Tutup</string>
     <string name="la2_privacy">Privasi</string>
     <string name="la2_terms">Ketentuan</string>
-    <string name="la2_renewal">Diperpanjang otomatis dengan harga yang ditampilkan untuk periode terpilih. Kelola atau batalkan di akun toko Anda.</string>
+    <string name="la2_renewal">Langganan diperpanjang otomatis. Kelola atau batalkan di akun toko Anda.</string>
     <string name="la2_checking">Memeriksa akses Pro…</string>
     <string name="la2_cancelled">Pembelian dibatalkan. Anda dapat terus membaca.</string>
     <string name="la2_pending">Pembayaran tertunda. Pro terbuka setelah toko mengonfirmasi.</string>
