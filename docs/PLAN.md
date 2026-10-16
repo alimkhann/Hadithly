@@ -67,7 +67,8 @@ first-launch system theme/language detection and fifteen-locale onboarding parit
 See `docs/NATIVE_FINISHING_PASS.md`. Native verification passes: iOS has 251 unit
 and 23 UI passes, eight explicit opt-in skips, plus the two-case Paper follow-up;
 Android has 204 unit and 71 unique UI passes. The clean Xcode build has zero
-warning/error diagnostics. Final commit and push are in progress.
+warning/error diagnostics. Verified implementation and native evidence were committed and pushed normally
+as `3854778`; the final handoff record accompanies this plan.
 Existing device, account, store, native-copy review and release gates stay open.
 This repair does not start L1 or certify translated drafts.
 

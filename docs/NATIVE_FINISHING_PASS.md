@@ -20,7 +20,7 @@ automatic/manual translation, source details and paging fixes already verified.
   keyboard, small screen, large text, RTL and reduced motion are checked.
 - [x] Xcode build/test diagnostics have no warnings or errors. Required native
   tests pass, final screenshots are inspected, decisions/gates are recorded.
-- [ ] Finished work is committed and pushed to the existing repository upstream,
+- [x] Finished work is committed and pushed to the existing repository upstream,
   without force or unrelated external-service changes.
 
 The official Transitions.dev patterns inform timing and state continuity; existing
@@ -131,3 +131,12 @@ first-launch rerun repeat earlier checks to refresh evidence after their fixture
 inset/copy corrections. The R5 malformed-jump test checks that the sheet remains
 open rather than requiring a scrolling header to remain visible above the IME.
 No production validation was relaxed.
+
+## Source handoff
+
+Implementation and original evidence were committed as `38547783775e98f63eaccc6b38c01d6e46d3087a` and pushed
+normally to `origin/main`. The upstream readback matched that commit. The final
+record includes the later Paper canvas check. GPT-6 Luna found no remaining
+source or evidence-integrity flags; all screenshot hashes and gallery links were
+checked. Existing device, account, store, production and native-copy review gates
+remain separate. No force push, deployment or account/service changes were made.

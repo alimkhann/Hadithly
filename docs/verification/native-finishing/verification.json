@@ -65,5 +65,13 @@
     "catalogParity": "passed",
     "nativeReview": "pending"
   },
-  "releaseGates": "Existing physical-device, account, store, production and native-copy review gates remain open."
+  "releaseGates": "Existing physical-device, account, store, production and native-copy review gates remain open.",
+  "sourceHandoff": {
+    "implementationCommit": "38547783775e98f63eaccc6b38c01d6e46d3087a",
+    "upstream": "origin/main",
+    "push": "normal push confirmed",
+    "upstreamReadback": "38547783775e98f63eaccc6b38c01d6e46d3087a",
+    "reviewer": "GPT-6 Luna",
+    "review": "No remaining source or evidence-integrity flags; existing release/device/copy gates remain open."
+  }
 }
