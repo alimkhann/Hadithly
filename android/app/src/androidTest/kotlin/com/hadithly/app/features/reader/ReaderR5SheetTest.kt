@@ -114,7 +114,7 @@ class ReaderR5SheetTest {
         compose.onNodeWithText("Enter a hadith number like 57 or 4.5.").assertIsDisplayed()
         assertEquals(1, jumps)
         assertTrue(!dismissed)
-        compose.onNodeWithText("Contents").assertIsDisplayed()
+        compose.onNodeWithTag("reader.contents.sheet").assertIsDisplayed()
     }
 
     @Test

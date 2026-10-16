@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-10-15. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-10-16. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
 D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its
 simulator/emulator and unit gates; its physical-device gate is open. R4's
@@ -56,6 +56,20 @@ Do not
 start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
+
+## Native finishing pass, October 16
+
+Owner-authorized work continues from `4c24b08`, including the October 16 screenshot
+revision. Scope: native glass reader controls without changing their size; compact
+Material navigation; Contents/Search/Bookmark/Saved sheets; shared bottom Saved
+filters; clearer empty states; plain auth forms and theme-specific welcome artwork;
+first-launch system theme/language detection and fifteen-locale onboarding parity.
+See `docs/NATIVE_FINISHING_PASS.md`. Native verification passes: iOS has 251 unit
+and 23 UI passes, eight explicit opt-in skips, plus the two-case Paper follow-up;
+Android has 204 unit and 71 unique UI passes. The clean Xcode build has zero
+warning/error diagnostics. Final commit and push are in progress.
+Existing device, account, store, native-copy review and release gates stay open.
+This repair does not start L1 or certify translated drafts.
 
 ## Read the plan in layers
 

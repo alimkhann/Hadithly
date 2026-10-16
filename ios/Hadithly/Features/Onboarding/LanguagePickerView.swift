@@ -91,14 +91,15 @@ struct LanguagePickerView: View {
             .padding(.bottom, Theme.Spacing.xxl)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Theme.background)
+        .background(Color.clear)
     }
 
     private func languageRow(_ language: ReadingLanguage) -> some View {
         Button {
             selection = language.code
         } label: {
-            HStack {
+            HStack(spacing: 12) {
+                Text(language.flag).font(.title2).accessibilityHidden(true)
                 Text(language.name)
                     .font(.body)
                     .foregroundStyle(Theme.textPrimary)

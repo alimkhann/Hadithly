@@ -93,6 +93,13 @@ class SignInViewModel : ViewModel() {
     fun setCode(code: String) =
         _state.update { it.copy(code = code.filter(Char::isDigit).take(6), errorMessage = null) }
 
+    internal fun seedPreview(mode: SignInMode) {
+        check(com.hadithly.app.BuildConfig.DEBUG)
+        _state.value = SignInUiState(mode = mode,
+            email = if (mode == SignInMode.CODE_ENTRY || mode == SignInMode.RESET_PASSWORD) "reader@example.org" else "",
+            isSignUp = mode == SignInMode.CODE_ENTRY || mode == SignInMode.SIGN_UP)
+    }
+
     fun showPasswordSignIn() =
         _state.update {
             it.copy(
@@ -118,6 +125,18 @@ class SignInViewModel : ViewModel() {
 
     fun showForgotPassword() =
         _state.update { it.copy(mode = SignInMode.FORGOT_PASSWORD_ENTRY, errorMessage = null) }
+
+    fun goBack() {
+        _state.update { state ->
+            val destination = when (state.mode) {
+                SignInMode.CODE_ENTRY -> if (state.isSignUp) SignInMode.SIGN_UP else SignInMode.EMAIL_ENTRY
+                SignInMode.FORGOT_PASSWORD_ENTRY -> SignInMode.PASSWORD_SIGN_IN
+                SignInMode.RESET_PASSWORD -> SignInMode.FORGOT_PASSWORD_ENTRY
+                else -> SignInMode.METHODS
+            }
+            state.copy(mode = destination, errorMessage = null)
+        }
+    }
 
     fun backToMethods() =
         _state.update {

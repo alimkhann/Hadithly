@@ -1,7 +1,7 @@
 package com.hadithly.app.features.saved
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -62,7 +62,7 @@ class SavedItemRowTest {
         assertEquals("folder", moved)
     }
 
-    @Test fun previewAndFacetIconsDoNotNavigate() {
+    @Test fun previewAndActionMenuDoNotNavigate() {
         val ref = HadithRef("hadith", "bukhari", "Bukhari", "1", "57", "Arabic preview", "English preview", "Bukhari 57")
         val item = SavedItemEntry("hadith", 1.0, 2.0, bookmarkCreatedAt = 1.0, hadith = ref)
         var opens = 0
@@ -77,7 +77,8 @@ class SavedItemRowTest {
         compose.onNodeWithTag("saved.preview.hadith").performClick()
         compose.onNodeWithText("Arabic preview").assertIsDisplayed()
         assertEquals(0, opens)
-        compose.onNodeWithContentDescription(removeBookmarkLabel).performClick()
+        compose.onNodeWithTag("saved.actions.hadith").performClick()
+        compose.onNodeWithText(removeBookmarkLabel).performClick()
         assertEquals(1, removals)
         assertEquals(0, opens)
         compose.onNodeWithText("Bukhari 57").performClick()

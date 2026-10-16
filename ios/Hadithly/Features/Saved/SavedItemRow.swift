@@ -109,9 +109,13 @@ struct SharedSavedItemRow: View {
                     Button { onOpen(ref) } label: {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(ref.referenceDisplay.isEmpty ? ref.collectionName : ref.referenceDisplay)
-                                .font(.subheadline.weight(.semibold)).foregroundStyle(Theme.textPrimary)
-                            Text(SavedRelativeTime.string(since: item.sortDate))
-                                .font(.caption).foregroundStyle(Theme.textSecondary)
+                                .font(.subheadline.weight(.semibold)).foregroundStyle(Theme.textPrimary).lineLimit(2)
+                            HStack(spacing: 6) {
+                                if item.bookmarkCreatedAt != nil { Image(systemName: "bookmark.fill").accessibilityLabel("Bookmarked") }
+                                if item.favoriteCreatedAt != nil { Image(systemName: "heart.fill").accessibilityLabel("Favorite") }
+                                if item.noteContent != nil { Image(systemName: "note.text").accessibilityLabel("Has note") }
+                                Text(SavedRelativeTime.string(since: item.sortDate))
+                            }.font(.caption).foregroundStyle(Theme.textSecondary)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .contentShape(Rectangle())
@@ -119,14 +123,14 @@ struct SharedSavedItemRow: View {
                     .buttonStyle(.plain).accessibilityHint("Opens this hadith in the reader")
                     .accessibilityIdentifier("saved.open.\(item.hadithId)")
 
-                    if item.bookmarkCreatedAt != nil { facetButton("bookmark.fill", color: Theme.bookmark, label: "Remove bookmark") { onRemove(.bookmark(item, ref)) } }
-                    if item.favoriteCreatedAt != nil { facetButton("heart.fill", color: Theme.favorite, label: "Remove favorite") { onRemove(.favorite(item, ref)) } }
-                    if item.noteContent != nil { facetButton("square.and.pencil", color: Theme.accent, label: "Delete note") { onRemove(.note(item, ref)) } }
+                    Menu { rowActions(ref) } label: {
+                        Image(systemName: "ellipsis").font(.body).frame(width: 44, height: 44).contentShape(Rectangle())
+                    }.buttonStyle(.plain).accessibilityLabel("Saved item actions")
 
                     Button {
                         withAnimation(reducedMotion ? nil : .easeInOut(duration: InterfaceMotion.step)) { expanded.toggle() }
                     } label: {
-                        Image(systemName: expanded ? "chevron.up" : "chevron.down").frame(width: 30, height: 30)
+                        Image(systemName: expanded ? "chevron.up" : "chevron.down").frame(width: 44, height: 44)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(expanded ? "Hide hadith preview" : "Show hadith preview")
@@ -137,7 +141,7 @@ struct SharedSavedItemRow: View {
                     Label(folderName, systemImage: "folder").font(.caption).foregroundStyle(Theme.textSecondary)
                 }
                 if let note = item.noteContent, !note.isEmpty {
-                    Text(note).font(.caption).foregroundStyle(Theme.textSecondary).lineLimit(expanded ? nil : 1)
+                    Text(note).font(.caption).foregroundStyle(Theme.textSecondary).lineLimit(expanded ? nil : 2)
                 }
                 if expanded {
                     if !ref.arabicText.isEmpty { Text(ref.arabicText).font(Theme.arabic(19)).frame(maxWidth: .infinity, alignment: .trailing).environment(\.layoutDirection, .rightToLeft) }
@@ -146,7 +150,12 @@ struct SharedSavedItemRow: View {
             }
             .padding(14)
             .background(Theme.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .contextMenu {
+            .contextMenu { rowActions(ref) }
+        }
+    }
+
+    @ViewBuilder
+    private func rowActions(_ ref: HadithRef) -> some View {
                 Menu("Move to folder") { Button("No folder") { onMove(nil) }; ForEach(folders) { folder in Button(folder.name) { onMove(folder.id) } } }
                 if item.bookmarkCreatedAt != nil { Button("Remove bookmark", role: .destructive) { onRemove(.bookmark(item, ref)) } }
                 if item.favoriteCreatedAt != nil { Button("Remove favorite", role: .destructive) { onRemove(.favorite(item, ref)) } }
@@ -154,12 +163,5 @@ struct SharedSavedItemRow: View {
                 Button("Copy") { UIPasteboard.general.string = [ref.arabicText, ref.englishText, ref.referenceDisplay].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: "\n\n") }
                 if let url = URL(string: "https://hadithly.app/hadith/\(ref.collectionSlug)/\(ref.hadithNumber ?? "")") { ShareLink(item: url) { Text("Share") } }
                 Button("Suggest Translation") { onSuggestTranslation(ref) }
-            }
-        }
-    }
-
-    private func facetButton(_ image: String, color: Color, label: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) { Image(systemName: image).foregroundStyle(color).frame(width: 26, height: 30) }
-            .buttonStyle(.plain).accessibilityLabel(label)
     }
 }

@@ -21,6 +21,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
@@ -69,7 +70,9 @@ fun OnboardingFlow(selectedLanguage: String, onSelectLanguage: (String) -> Unit,
             onAuthenticationFailure = { app.analytics.record(AnalyticsMetric.onboardingStepAuthFailed) })
         return
     }
-    Column(Modifier.fillMaxSize().background(colors.background).statusBarsPadding().navigationBarsPadding()) {
+    Box(Modifier.fillMaxSize()) {
+    if (step == 0) com.hadithly.app.core.theme.EntryArtworkBackdrop() else Box(Modifier.matchParentSize().background(colors.background))
+    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
         if (step > 0) Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
             TextButton(onClick = { advance(step - 1) }, modifier = Modifier.testTag("onboarding.back")) { Text(stringResource(R.string.la2_back)) }
             Spacer(Modifier.weight(1f))
@@ -84,14 +87,14 @@ fun OnboardingFlow(selectedLanguage: String, onSelectLanguage: (String) -> Unit,
             (fadeIn(tween(if (motionAllowed) com.hadithly.app.core.theme.InterfaceMotion.STEP else 0)) + slideInHorizontally(tween(if (motionAllowed) com.hadithly.app.core.theme.InterfaceMotion.STEP else 0)) { distance }) togetherWith fadeOut(tween(if (motionAllowed) com.hadithly.app.core.theme.InterfaceMotion.QUICK else 0))
         }) { currentStep ->
         when (currentStep) {
-            0 -> WelcomeScreen { app.analytics.startOnboarding(); advance(1) }
+            0 -> WelcomeScreen(showsBackground = false) { app.analytics.startOnboarding(); advance(1) }
             1 -> LanguagePickerScreen(selectedLanguage, onSelectLanguage) { advance(2) }
             2 -> TranslationDemonstration(selectedLanguage, { app.analytics.record(AnalyticsMetric.onboardingStepDemoUsed) }) { advance(3) }
             3 -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                BookArtwork(Modifier.fillMaxWidth().height(240.dp))
                 Text(stringResource(R.string.la2_account_title), style = MaterialTheme.typography.headlineLarge, color = colors.textPrimary, textAlign = TextAlign.Center)
                 Text(stringResource(R.string.la2_account_body), style = MaterialTheme.typography.bodyLarge, color = colors.textSecondary, textAlign = TextAlign.Center)
+                Spacer(Modifier.weight(1f, fill = false).heightIn(min = 140.dp))
                 AccentButton(stringResource(R.string.la2_create_account), { app.analytics.record(AnalyticsMetric.onboardingStepAuthStarted); auth = true }, "onboarding.createAccount")
                 OutlinedButton(onClick = { app.analytics.record(AnalyticsMetric.onboardingStepAuthStarted); auth = false }, modifier = Modifier.fillMaxWidth().testTag("onboarding.signIn")) {
                     Text(stringResource(R.string.la2_sign_in), color = colors.textPrimary)
@@ -105,25 +108,22 @@ fun OnboardingFlow(selectedLanguage: String, onSelectLanguage: (String) -> Unit,
         }
     }
 }
-
-@Composable
-fun BookArtwork(modifier: Modifier = Modifier) {
-    Image(painterResource(R.drawable.onboarding_book), contentDescription = null, modifier = modifier,
-        contentScale = androidx.compose.ui.layout.ContentScale.Crop)
 }
 
 @Composable
-fun WelcomeScreen(onContinue: () -> Unit) {
+fun WelcomeScreen(showsBackground: Boolean = true, onContinue: () -> Unit) {
     val colors = LocalHadithlyColors.current
-    Column(Modifier.fillMaxSize().animateContentSize(animationSpec = androidx.compose.animation.core.tween(com.hadithly.app.core.theme.InterfaceMotion.REVEAL))) {
-        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp)) {
-            Text("Hadithly", style = MaterialTheme.typography.titleLarge, color = colors.textPrimary, modifier = Modifier.padding(top = 36.dp))
-            Text(stringResource(R.string.la2_welcome), style = MaterialTheme.typography.headlineLarge, color = colors.textPrimary,
-                textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 28.dp))
-            BookArtwork(Modifier.fillMaxWidth().height(400.dp))
+    Box(Modifier.fillMaxSize()) {
+        if (showsBackground) com.hadithly.app.core.theme.EntryArtworkBackdrop()
+        Column(Modifier.fillMaxSize()) {
+            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(24.dp)) {
+                Text("Hadithly", style = MaterialTheme.typography.titleLarge, color = colors.textPrimary, modifier = Modifier.padding(top = 36.dp))
+                Text(stringResource(R.string.la2_welcome), style = MaterialTheme.typography.headlineLarge, color = colors.textPrimary,
+                    textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 28.dp))
+            }
+            Box(Modifier.padding(24.dp)) { AccentButton(stringResource(R.string.la2_get_started), onContinue, "onboarding.getStarted") }
         }
-        Box(Modifier.padding(24.dp)) { AccentButton(stringResource(R.string.la2_get_started), onContinue, "onboarding.getStarted") }
     }
 }
 
@@ -138,6 +138,7 @@ fun LanguagePickerScreen(selection: String, onSelect: (String) -> Unit, onContin
                 Row(Modifier.fillMaxWidth().background(if (selection == code) colors.accentSoft else colors.surface, RoundedCornerShape(12.dp))
                     .selectable(selected = selection == code, role = Role.RadioButton, onClick = { onSelect(code) }).heightIn(min = 56.dp).padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically) {
+                    Text(SupportedLanguages.flag(code), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(end = 12.dp).clearAndSetSemantics {})
                     Text(name, style = MaterialTheme.typography.bodyLarge, color = colors.textPrimary, modifier = Modifier.weight(1f))
                     RadioButton(selected = selection == code, onClick = null)
                 }

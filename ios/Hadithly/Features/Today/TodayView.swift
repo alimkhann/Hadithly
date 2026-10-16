@@ -204,7 +204,7 @@ struct TodayView: View {
             } else if loadFailed {
                 homeShell { VStack(alignment: .leading, spacing: 8) { Text("Today's hadith could not load").font(.subheadline.weight(.medium)); Text("Pull down to try again.").font(.caption).foregroundStyle(Theme.textSecondary) } }
             } else {
-                homeShell { VStack(alignment: .leading, spacing: 8) { Text("No eligible hadith is cached yet").font(.subheadline.weight(.medium)); Text("Open a collection in the Library and Today will prepare one from verified content.").font(.caption).foregroundStyle(Theme.textSecondary) } }
+                homeShell { QuietEmptyState(title: "Your daily reading", message: "Today’s hadith is not available yet. Choose a collection below to keep reading.", symbol: "book") }
             }
         }
         .animation(reducedMotion ? nil : .easeInOut(duration: InterfaceMotion.reveal), value: dailyHadith?.id)

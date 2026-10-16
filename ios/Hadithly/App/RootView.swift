@@ -31,7 +31,11 @@ struct RootView: View {
 
     @ViewBuilder
     var body: some View {
-        if AutomationContext.allows("-NativePolishFixture") {
+        if AutomationContext.allows("-NativeFinishingFixture") {
+#if DEBUG
+            NativeFinishingFixtureView()
+#endif
+        } else if AutomationContext.allows("-NativePolishFixture") {
 #if DEBUG
             NativePolishFixtureView()
 #endif

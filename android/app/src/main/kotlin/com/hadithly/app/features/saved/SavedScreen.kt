@@ -10,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -117,9 +118,7 @@ fun SavedScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
             Text(stringResource(R.string.saved_title), fontSize = 30.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary, modifier = Modifier.weight(1f))
             IconButton(onClick = { showCreateFolder = true }, modifier = Modifier.testTag("saved.createFolder")) { Icon(Icons.Filled.Folder, stringResource(R.string.saved_create_folder), tint = colors.accent) }
         }
-        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            SavedFilter.entries.forEach { option -> TextButton(onClick = { filter = option }, modifier = Modifier.testTag("saved.filter.${option.name.lowercase()}")) { Text(stringResource(filterTitle(option)), color = if (filter == option) colors.accent else colors.textSecondary) } }
-        }
+        if (folders.isNotEmpty()) {
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             TextButton(onClick = { folderId = null }) { Icon(Icons.Filled.FolderOff, null, tint = if (folderId == null) colors.accent else colors.textSecondary); Spacer(Modifier.width(4.dp)); Text(stringResource(R.string.saved_all_folders), color = if (folderId == null) colors.accent else colors.textSecondary) }
             folders.forEach { folder ->
@@ -130,25 +129,29 @@ fun SavedScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
                 }
             }
         }
-        if (visible.isEmpty() && loadState == com.hadithly.app.core.data.UserLibraryModel.LoadState.Loading) {
+        }
+        Box(Modifier.weight(1f).fillMaxWidth()) {
+        if (saved.isEmpty() && loadState == com.hadithly.app.core.data.UserLibraryModel.LoadState.Loading) {
             com.hadithly.app.core.theme.ContentSkeleton(com.hadithly.app.core.theme.SkeletonKind.Rows, label = "Loading saved items", modifier = Modifier.padding(top = 20.dp))
-        } else if (visible.isEmpty() && loadState == com.hadithly.app.core.data.UserLibraryModel.LoadState.Failed) {
+        } else if (saved.isEmpty() && loadState == com.hadithly.app.core.data.UserLibraryModel.LoadState.Failed) {
             Column(Modifier.padding(top = 32.dp)) {
                 Text(nativeText("Saved items could not load"), color = colors.textPrimary)
                 TextButton(onClick = app.library::refresh) { Text(nativeText("Try again"), color = colors.interactive) }
             }
         } else if (visible.isEmpty()) {
-            Column(Modifier.fillMaxWidth().padding(top = 64.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Icon(Icons.Filled.Bookmark, null, tint = colors.textSecondary)
-                Text(stringResource(R.string.saved_empty_title), fontWeight = FontWeight.Medium, color = colors.textPrimary)
-                Text(stringResource(R.string.saved_empty_message), color = colors.textSecondary, fontSize = 13.sp)
-            }
+            com.hadithly.app.core.theme.QuietEmptyState(
+                title = if (folderId != null) "This folder is empty" else when (filter) { SavedFilter.All -> "Nothing saved yet"; SavedFilter.Bookmarks -> "No bookmarks yet"; SavedFilter.Favorites -> "No favorites yet"; SavedFilter.Notes -> "No notes yet" },
+                message = "Hold a hadith while reading to bookmark it, favorite it, or add a note.", icon = Icons.Filled.Bookmark,
+                modifier = Modifier.fillMaxSize())
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxSize().testTag("saved.list")) {
                 items(visible, key = { it.hadithId }) { item -> androidx.compose.foundation.layout.Box(Modifier.animateItem()) { SharedSavedItemRow(item, folders, folderId == null, { ref -> onOpenTarget(ReaderOpenTarget(ref.collectionSlug, ref.collectionName, ref.volumeId, ref.hadithNumber, ReaderTargetSource.SAVED)) }, ::requestRemoval, { app.library.assignFolder(item.hadithId, it) }, { ref -> (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText(ref.referenceDisplay, listOfNotNull(ref.arabicText, ref.englishText, ref.referenceDisplay).joinToString("\n\n"))) }, { ref -> context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "https://hadithly.app/hadith/${ref.collectionSlug}/${ref.hadithNumber}"), null)) }, { ref -> onOpenTarget(ReaderOpenTarget(ref.collectionSlug, ref.collectionName, ref.volumeId, ref.hadithNumber, ReaderTargetSource.SAVED)) }, { ref -> withContext(Dispatchers.IO) { app.repository.loadSavedPreview(ref) } }) } }
             }
         }
+        }
+        SavedFilterBar(filter.ordinal, { filter = SavedFilter.entries[it] }, "saved.filter", Modifier.padding(top = 8.dp))
     }
+
     if (showCreateFolder) AlertDialog(
         onDismissRequest = { showCreateFolder = false },
         title = { Text(stringResource(R.string.saved_new_folder)) },

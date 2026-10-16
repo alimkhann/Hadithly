@@ -433,7 +433,7 @@ final class OfflineStore {
         let generation = runGenerations[slug, default: 0]
         runTasks[slug] = Task { [weak self] in
             await self?.runLoop(slug: slug, generation: generation)
-            await self?.finishRun(slug: slug, generation: generation)
+            self?.finishRun(slug: slug, generation: generation)
         }
     }
 

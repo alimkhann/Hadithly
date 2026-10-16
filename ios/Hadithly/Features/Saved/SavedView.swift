@@ -2,7 +2,7 @@ import SwiftUI
 
 /// One private Saved list. A row may carry every saved meaning without being repeated.
 struct SavedView: View {
-    private enum Filter: String, CaseIterable, Identifiable { case all, bookmarks, favorites, notes; var id: Self { self }; var title: LocalizedStringKey { switch self { case .all: "All"; case .bookmarks: "Bookmarks"; case .favorites: "Favorites"; case .notes: "Notes" } } }
+    private typealias Filter = SavedContentFilter
     @Environment(UserLibraryModel.self) private var library
     @Environment(\.accessibilityReduceMotion) private var reducedMotion
     @Environment(AppEnvironment.self) private var environment
@@ -38,21 +38,19 @@ struct SavedView: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            Picker("Saved filter", selection: $filter) { ForEach(Filter.allCases) { Text($0.title).tag($0) } }
-                .pickerStyle(.segmented).accessibilityLabel("Saved filter")
-            folders
-            if items.isEmpty && currentLoadState == .loading {
+            if !library.folders.isEmpty { folders }
+            if library.savedItems.isEmpty && currentLoadState == .loading {
                 ContentSkeleton(kind: .rows, label: "Loading saved items")
                     .padding(.top, 20)
                 Spacer()
-            } else if items.isEmpty && currentLoadState == .failed {
+            } else if library.savedItems.isEmpty && currentLoadState == .failed {
                 ContentUnavailableView {
                     Label("Saved items could not load", systemImage: "wifi.exclamationmark")
                 } actions: {
                     Button("Try again") { library.refresh() }
                 }
             } else if items.isEmpty {
-                ContentUnavailableView("Nothing saved yet", systemImage: "bookmark", description: Text("Bookmark, favorite, or add a note while reading to keep a hadith here."))
+                QuietEmptyState(title: folderId == nil ? filter.emptyTitle : "This folder is empty", message: folderId == nil ? filter.emptyMessage : "Move saved hadiths into this folder from their menu.", symbol: folderId == nil ? filter.symbol : "folder")
             } else {
                 List(items) { item in
                     if item.hadith != nil {
@@ -70,8 +68,11 @@ struct SavedView: View {
                         .listRowBackground(Color.clear)
                         .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
                     }
-                }.listStyle(.plain)
+                }.listStyle(.plain).scrollContentBackground(.hidden)
             }
+        }
+        .safeAreaInset(edge: .bottom) {
+            SavedFilterBar(selection: $filter).padding(.vertical, 8)
         }
         .animation(reducedMotion ? nil : .easeInOut(duration: InterfaceMotion.reveal), value: currentLoadState)
         .animation(reducedMotion ? nil : .easeInOut(duration: InterfaceMotion.quick), value: filter)
@@ -83,6 +84,7 @@ struct SavedView: View {
             library.refresh()
         }
         .padding(.horizontal).appNavigationTitle("Saved")
+        .background(Theme.background.ignoresSafeArea())
         .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("New folder", systemImage: "folder.badge.plus") { showNewFolder = true }.accessibilityLabel("Create saved folder") } }
         .overlay(alignment: .bottom) {
             if let notice = undoNotice {

@@ -275,6 +275,7 @@ def audit_ios(allow_drafts: bool) -> tuple[int, int, list[str], Counter[str]]:
 
 def audit_android(allow_drafts: bool) -> tuple[int, int, list[str], Counter[str]]:
     missing: list[str] = []
+    catalog = json.loads(IOS_CATALOG.read_text())["strings"]
     generated = 0
     category_counts: Counter[str] = Counter()
     total = 0
@@ -297,6 +298,12 @@ def audit_android(allow_drafts: bool) -> tuple[int, int, list[str], Counter[str]
                         missing.append(f"android-untranslated-draft:{locale}:{name}")
                 elif placeholders(target.text or "") != placeholders(source.text or ""):
                     missing.append(f"android-placeholder:{locale}:{name}")
+                if filename == "la2.xml" and target is not None:
+                    key = "la2." + name.removeprefix("la2_")
+                    expected = catalog.get(key, {}).get("localizations", {}).get(locale, {}).get("stringUnit", {}).get("value")
+                    actual = (target.text or "").replace("\\'", "'").replace('\\"', '"')
+                    if expected is not None and actual != expected:
+                        missing.append(f"android-onboarding-locale-parity:{locale}:{name}")
                 category_counts[category_for(name)] += 1
             for name, source in base_plurals.items():
                 target = plurals.get(name)

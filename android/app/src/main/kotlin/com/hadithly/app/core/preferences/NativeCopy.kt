@@ -8,12 +8,14 @@ import com.hadithly.app.R
 
 @Composable
 fun nativeText(source: String, vararg arguments: Any): String =
-    LocalContext.current.nativeText(source, *arguments)
+    androidx.compose.ui.platform.LocalResources.current.nativeText(source, *arguments)
 
-fun Context.nativeText(source: String, vararg arguments: Any): String {
+fun Context.nativeText(source: String, vararg arguments: Any): String = resources.nativeText(source, *arguments)
+
+private fun android.content.res.Resources.nativeText(source: String, vararg arguments: Any): String {
     val resource = nativeCopyResource(source) ?: return source
     if (arguments.isEmpty()) return getString(resource)
-    val locale = resources.configuration.locales[0]
+    val locale = configuration.locales[0]
     val bidi = BidiFormatter.getInstance(locale)
     return getString(resource, *arguments.map { bidi.unicodeWrap(it.toString()) }.toTypedArray())
 }

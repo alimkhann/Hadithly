@@ -69,11 +69,9 @@ final class ReaderR6Round3UITests: XCTestCase {
 
     func testSearchResultsNavigateExact() {
         let app = launchRound3(environment: ["R6_SCREEN": "search", "R6_SEARCH_STUB": "results"])
-        XCTAssertTrue(element("reader.search.title", in: app).waitForExistence(timeout: timeout))
-        XCTAssertTrue(element("reader.search.grabber", in: app).exists)
-        XCTAssertTrue(element("reader.search.close", in: app).exists)
+        XCTAssertTrue(app.searchFields.firstMatch.waitForExistence(timeout: timeout))
 
-        let field = app.textFields["reader.search.field"]
+        let field = app.searchFields.firstMatch
         XCTAssertTrue(field.waitForExistence(timeout: timeout))
         field.tap()
         field.typeText("mercy")
@@ -95,10 +93,10 @@ final class ReaderR6Round3UITests: XCTestCase {
 
     func testSearchEmptyStateWithoutStub() {
         let app = launchRound3(environment: ["R6_SCREEN": "search"])
-        XCTAssertTrue(element("reader.search.title", in: app).waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.searchFields.firstMatch.waitForExistence(timeout: timeout))
         // Blank query renders the quiet hint, not an error.
         XCTAssertTrue(element("reader.search.hint", in: app).exists)
-        let field = app.textFields["reader.search.field"]
+        let field = app.searchFields.firstMatch
         field.tap()
         field.typeText("zzz-no-match")
         XCTAssertTrue(element("reader.search.empty", in: app).waitForExistence(timeout: timeout))
@@ -108,13 +106,11 @@ final class ReaderR6Round3UITests: XCTestCase {
 
     func testPlacementChoiceNavigates() {
         let app = launchRound3(environment: ["R6_SCREEN": "placement"])
-        XCTAssertTrue(element("reader.bookmarkPlacement.title", in: app).waitForExistence(timeout: timeout))
-        XCTAssertTrue(element("reader.bookmarkPlacement.grabber", in: app).exists)
-        XCTAssertTrue(element("reader.bookmarkPlacement.pageStart", in: app).exists)
-        XCTAssertTrue(element("reader.bookmarkPlacement.currentHadith", in: app).exists)
-        XCTAssertTrue(element("reader.bookmarkPlacement.cancel", in: app).exists)
+        XCTAssertTrue(app.buttons["Start of page"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.buttons["Start of page"].exists)
+        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Current hadith")).firstMatch.exists)
 
-        element("reader.bookmarkPlacement.pageStart", in: app).tap()
+        app.buttons["Start of page"].tap()
         let opened = element("r6.opened", in: app)
         XCTAssertTrue(opened.waitForExistence(timeout: timeout))
         XCTAssertEqual(opened.label, "Sahih al-Bukhari · Hadith 57")
@@ -125,13 +121,13 @@ final class ReaderR6Round3UITests: XCTestCase {
     func testSavedShortcutTabsRowsAndEdit() {
         let app = launchRound3(environment: ["R6_SCREEN": "saved"])
         XCTAssertTrue(element("reader.savedShortcut.title", in: app).waitForExistence(timeout: timeout))
-        XCTAssertTrue(element("reader.savedShortcut.grabber", in: app).exists)
         XCTAssertTrue(element("reader.savedShortcut.close", in: app).exists)
 
         // Bookmarks tab: reference + relative-time row.
-        XCTAssertTrue(element("reader.savedShortcut.tab.bookmarks", in: app).exists)
-        XCTAssertTrue(element("reader.savedShortcut.tab.favorites", in: app).exists)
-        XCTAssertTrue(element("reader.savedShortcut.tab.notes", in: app).exists)
+        let bookmarks = app.buttons["reader.savedShortcut.filter.bookmarks"]
+        XCTAssertTrue(bookmarks.exists)
+        XCTAssertTrue(bookmarks.isHittable)
+        XCTAssertGreaterThan(bookmarks.frame.minY, app.staticTexts["Sahih al-Bukhari · Hadith 57"].frame.maxY)
         XCTAssertTrue(app.staticTexts["Sahih al-Bukhari · Hadith 57"].exists)
         XCTAssertTrue(app.staticTexts["2 months ago"].exists)
 
@@ -150,7 +146,7 @@ final class ReaderR6Round3UITests: XCTestCase {
         app.terminate()
         let notes = launchRound3(environment: ["R6_SCREEN": "saved"])
         XCTAssertTrue(element("reader.savedShortcut.title", in: notes).waitForExistence(timeout: timeout))
-        element("reader.savedShortcut.tab.notes", in: notes).tap()
+        notes.buttons["reader.savedShortcut.filter.notes"].tap()
         XCTAssertTrue(notes.staticTexts["Fixture note"].exists)
         XCTAssertTrue(notes.staticTexts["just now"].exists)
 
@@ -164,9 +160,9 @@ final class ReaderR6Round3UITests: XCTestCase {
     func testContentsSheetAesthetic() {
         let app = XCUIApplication()
         app.launchArguments = ["-R5ContentsFixture"]
+        app.launchEnvironment["HADITHLY_UI_TESTING"] = "1"
         app.launch()
-        XCTAssertTrue(element("r5.sheetOpen", in: app).waitForExistence(timeout: timeout))
-        XCTAssertTrue(element("reader.contents.grabber", in: app).exists)
+        XCTAssertTrue(element("reader.contents.title", in: app).waitForExistence(timeout: timeout))
         XCTAssertTrue(element("reader.contents.close", in: app).exists)
         XCTAssertTrue(element("reader.contents.title", in: app).exists)
     }
@@ -177,11 +173,13 @@ final class ReaderR6Round3UITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["-R6Round3Fixture"]
         app.launchEnvironment["HADITHLY_UI_TESTING"] = "1"
+        app.launchEnvironment["R6_LOCALE"] = "en"
         for (key, value) in environment {
             app.launchEnvironment[key] = value
         }
         app.launch()
-        XCTAssertTrue(element("r6.screen", in: app).waitForExistence(timeout: timeout))
+        let ready = environment["R6_SCREEN"] == "placement" ? app.buttons["Start of page"] : element("r6.screen", in: app)
+        XCTAssertTrue(ready.waitForExistence(timeout: timeout))
         return app
     }
 

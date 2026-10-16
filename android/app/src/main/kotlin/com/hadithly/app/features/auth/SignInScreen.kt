@@ -4,6 +4,11 @@ import com.hadithly.app.core.preferences.nativeText
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,7 +20,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -25,6 +29,13 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.tween
+import androidx.activity.compose.BackHandler
+import androidx.compose.ui.platform.testTag
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,15 +44,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withAnnotation
-import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -65,14 +74,19 @@ fun SignInScreen(
     initialSignUp: Boolean = false,
     onCreationResult: ((Boolean?) -> Unit)? = null,
     onAuthenticationFailure: (() -> Unit)? = null,
+    previewMode: SignInMode? = null,
 ) {
     val viewModel: SignInViewModel = viewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val colors = LocalHadithlyColors.current
+    val motionAllowed = com.hadithly.app.core.theme.rememberMotionAllowed()
+    var ready by remember { mutableStateOf(false) }
 
-    androidx.compose.runtime.LaunchedEffect(initialSignUp) {
+    androidx.compose.runtime.LaunchedEffect(initialSignUp, previewMode) {
         viewModel.resetForPresentation()
-        if (initialSignUp) viewModel.showSignUp()
+        if (BuildConfig.DEBUG && previewMode != null) viewModel.seedPreview(previewMode)
+        else if (initialSignUp) viewModel.showSignUp()
+        ready = true
     }
 
     androidx.compose.runtime.LaunchedEffect(state.errorMessage) {
@@ -86,68 +100,80 @@ fun SignInScreen(
         onAuthenticated()
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colors.background),
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = Spacing.sm, vertical = Spacing.sm),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                TextButton(onClick = onDismiss) {
-                    Text(nativeText("Close"), color = colors.textSecondary)
+    BackHandler { if (state.mode == SignInMode.METHODS || state.isBusy) onDismiss() else viewModel.goBack() }
+    Box(Modifier.fillMaxSize()) {
+        Box(Modifier.fillMaxSize().background(colors.background))
+        Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = Spacing.sm), verticalAlignment = Alignment.CenterVertically) {
+                if (state.mode != SignInMode.METHODS) {
+                    TextButton(onClick = viewModel::goBack, enabled = !state.isBusy, modifier = Modifier.testTag("signin.back")) { Text(nativeText("Back"), color = colors.textSecondary) }
                 }
+                Spacer(Modifier.weight(1f))
+                TextButton(onClick = onDismiss, modifier = Modifier.testTag("signin.close")) { Text(nativeText("Close"), color = colors.textSecondary) }
             }
-
-            when (state.mode) {
-                SignInMode.METHODS -> MethodsScreen(
-                    state = state,
-                    onGoogle = { viewModel.signInWithGoogle() },
-                    onPasswordSignIn = { viewModel.showPasswordSignIn() },
-                    onSignUp = { viewModel.showSignUp() },
-                )
-                SignInMode.PASSWORD_SIGN_IN -> PasswordSignInScreen(
-                    state = state,
-                    onIdentifierChanged = { viewModel.setIdentifier(it) },
-                    onPasswordChanged = { viewModel.setPassword(it) },
-                    onSignIn = { viewModel.signInWithPassword() },
-                    onForgotPassword = { viewModel.showForgotPassword() },
-                    onUseCode = { viewModel.showEmailEntry() },
-                )
-                SignInMode.SIGN_UP -> SignUpScreen(
-                    state = state,
-                    onEmailChanged = { viewModel.setEmail(it) },
-                    onPasswordChanged = { viewModel.setPassword(it) },
-                    onConfirmPasswordChanged = { viewModel.setConfirmPassword(it) },
-                    onSubmit = { viewModel.submitSignUp() },
-                )
-                SignInMode.EMAIL_ENTRY -> EmailEntryScreen(
-                    state = state,
-                    onEmailChanged = { viewModel.setEmail(it) },
-                    onSendCode = { viewModel.startEmailFlow() },
-                )
-                SignInMode.CODE_ENTRY -> CodeEntryScreen(
-                    state = state,
-                    onCodeChanged = { viewModel.setCode(it) },
-                    onVerify = { viewModel.submitCode() },
-                    onResend = { viewModel.resendCode() },
-                    onBack = { viewModel.backToMethods() },
-                )
-                SignInMode.FORGOT_PASSWORD_ENTRY -> ForgotPasswordScreen(
-                    state = state,
-                    onEmailChanged = { viewModel.setEmail(it) },
-                    onSendCode = { viewModel.startPasswordReset() },
-                )
-                SignInMode.RESET_PASSWORD -> ResetPasswordScreen(
-                    state = state,
-                    onCodeChanged = { viewModel.setCode(it) },
-                    onNewPasswordChanged = { viewModel.setNewPassword(it) },
-                    onSubmit = { viewModel.submitPasswordReset() },
-                )
+            if (ready) AnimatedContent(targetState = state, contentKey = { it.mode }, label = "authentication step",
+                modifier = Modifier.weight(1f), transitionSpec = {
+                    fadeIn(tween(if (motionAllowed) com.hadithly.app.core.theme.InterfaceMotion.STEP else 0)) togetherWith
+                        fadeOut(tween(if (motionAllowed) com.hadithly.app.core.theme.InterfaceMotion.QUICK else 0))
+                }) { ui ->
+                BoxWithConstraints(Modifier.fillMaxSize().testTag("signin.screen.${ui.mode.name.lowercase()}")) {
+                    val viewport = maxHeight
+                    Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
+                        when (ui.mode) {
+                            SignInMode.METHODS -> MethodsScreen(
+                                state = ui,
+                                modifier = Modifier.heightIn(min = viewport),
+                                onGoogle = { viewModel.signInWithGoogle() },
+                                onPasswordSignIn = { viewModel.showPasswordSignIn() },
+                                onSignUp = { viewModel.showSignUp() },
+                            )
+                            SignInMode.PASSWORD_SIGN_IN -> PasswordSignInScreen(
+                                state = ui,
+                                modifier = Modifier.heightIn(min = viewport),
+                                onIdentifierChanged = { viewModel.setIdentifier(it) },
+                                onPasswordChanged = { viewModel.setPassword(it) },
+                                onSignIn = { viewModel.signInWithPassword() },
+                                onForgotPassword = { viewModel.showForgotPassword() },
+                                onUseCode = { viewModel.showEmailEntry() },
+                            )
+                            SignInMode.SIGN_UP -> SignUpScreen(
+                                state = ui,
+                                modifier = Modifier.heightIn(min = viewport),
+                                onEmailChanged = { viewModel.setEmail(it) },
+                                onPasswordChanged = { viewModel.setPassword(it) },
+                                onConfirmPasswordChanged = { viewModel.setConfirmPassword(it) },
+                                onSubmit = { viewModel.submitSignUp() },
+                            )
+                            SignInMode.EMAIL_ENTRY -> EmailEntryScreen(
+                                state = ui,
+                                modifier = Modifier.heightIn(min = viewport),
+                                onEmailChanged = { viewModel.setEmail(it) },
+                                onSendCode = { viewModel.startEmailFlow() },
+                            )
+                            SignInMode.CODE_ENTRY -> CodeEntryScreen(
+                                state = ui,
+                                modifier = Modifier.heightIn(min = viewport),
+                                onCodeChanged = { viewModel.setCode(it) },
+                                onVerify = { viewModel.submitCode() },
+                                onResend = { viewModel.resendCode() },
+                                onBack = { viewModel.backToMethods() },
+                            )
+                            SignInMode.FORGOT_PASSWORD_ENTRY -> ForgotPasswordScreen(
+                                state = ui,
+                                modifier = Modifier.heightIn(min = viewport),
+                                onEmailChanged = { viewModel.setEmail(it) },
+                                onSendCode = { viewModel.startPasswordReset() },
+                            )
+                            SignInMode.RESET_PASSWORD -> ResetPasswordScreen(
+                                state = ui,
+                                modifier = Modifier.heightIn(min = viewport),
+                                onCodeChanged = { viewModel.setCode(it) },
+                                onNewPasswordChanged = { viewModel.setNewPassword(it) },
+                                onSubmit = { viewModel.submitPasswordReset() },
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -178,13 +204,14 @@ private fun AuthHeader(title: String, subtitle: String) {
 @Composable
 private fun MethodsScreen(
     state: SignInUiState,
+    modifier: Modifier = Modifier,
     onGoogle: () -> Unit,
     onPasswordSignIn: () -> Unit,
     onSignUp: () -> Unit,
 ) {
     val colors = LocalHadithlyColors.current
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -238,6 +265,7 @@ private fun MethodsScreen(
 @Composable
 private fun PasswordSignInScreen(
     state: SignInUiState,
+    modifier: Modifier = Modifier,
     onIdentifierChanged: (String) -> Unit,
     onPasswordChanged: (String) -> Unit,
     onSignIn: () -> Unit,
@@ -246,7 +274,7 @@ private fun PasswordSignInScreen(
 ) {
     val colors = LocalHadithlyColors.current
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -284,10 +312,10 @@ private fun PasswordSignInScreen(
             busy = state.isBusy,
         )
 
-        TextButton(onClick = onForgotPassword, enabled = !state.isBusy) {
+        TextButton(onClick = onForgotPassword, enabled = !state.isBusy, modifier = Modifier.testTag("signin.forgot")) {
             Text(nativeText("Forgot password?"), color = colors.textSecondary, fontSize = 15.sp)
         }
-        TextButton(onClick = onUseCode, enabled = !state.isBusy) {
+        TextButton(onClick = onUseCode, enabled = !state.isBusy, modifier = Modifier.testTag("signin.useCode")) {
             Text(nativeText("Sign in with a code instead"), color = colors.accent, fontSize = 13.sp)
         }
 
@@ -302,6 +330,7 @@ private fun PasswordSignInScreen(
 @Composable
 private fun SignUpScreen(
     state: SignInUiState,
+    modifier: Modifier = Modifier,
     onEmailChanged: (String) -> Unit,
     onPasswordChanged: (String) -> Unit,
     onConfirmPasswordChanged: (String) -> Unit,
@@ -312,9 +341,8 @@ private fun SignUpScreen(
         state.password.length >= 8 &&
         state.confirmPassword == state.password
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -384,12 +412,13 @@ private fun SignUpScreen(
 @Composable
 private fun EmailEntryScreen(
     state: SignInUiState,
+    modifier: Modifier = Modifier,
     onEmailChanged: (String) -> Unit,
     onSendCode: () -> Unit,
 ) {
     val colors = LocalHadithlyColors.current
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -427,6 +456,7 @@ private fun EmailEntryScreen(
 @Composable
 private fun CodeEntryScreen(
     state: SignInUiState,
+    modifier: Modifier = Modifier,
     onCodeChanged: (String) -> Unit,
     onVerify: () -> Unit,
     onResend: () -> Unit,
@@ -434,7 +464,7 @@ private fun CodeEntryScreen(
 ) {
     val colors = LocalHadithlyColors.current
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -479,12 +509,13 @@ private fun CodeEntryScreen(
 @Composable
 private fun ForgotPasswordScreen(
     state: SignInUiState,
+    modifier: Modifier = Modifier,
     onEmailChanged: (String) -> Unit,
     onSendCode: () -> Unit,
 ) {
     val colors = LocalHadithlyColors.current
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -522,13 +553,14 @@ private fun ForgotPasswordScreen(
 @Composable
 private fun ResetPasswordScreen(
     state: SignInUiState,
+    modifier: Modifier = Modifier,
     onCodeChanged: (String) -> Unit,
     onNewPasswordChanged: (String) -> Unit,
     onSubmit: () -> Unit,
 ) {
     val colors = LocalHadithlyColors.current
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -585,40 +617,23 @@ private fun ResetPasswordScreen(
 @Composable
 private fun LegalLine(modifier: Modifier = Modifier) {
     val colors = LocalHadithlyColors.current
-    val uriHandler = LocalUriHandler.current
     val termsUrl = BuildConfig.TERMS_OF_USE_URL
     val privacyUrl = BuildConfig.PRIVACY_POLICY_URL
 
-    val annotated = remember(termsUrl, privacyUrl) {
+    val annotated = remember(termsUrl, privacyUrl, colors) {
         buildAnnotatedString {
-            withStyle(SpanStyle(color = colors.textSecondary)) {
-                append("By continuing, you agree to our ")
-            }
-            withAnnotation("URL", termsUrl) {
-                withStyle(SpanStyle(color = colors.accent)) { append("Terms of Use") }
-            }
-            withStyle(SpanStyle(color = colors.textSecondary)) { append(" and ") }
-            withAnnotation("URL", privacyUrl) {
-                withStyle(SpanStyle(color = colors.accent)) { append("Privacy Policy") }
-            }
-            withStyle(SpanStyle(color = colors.textSecondary)) { append(".") }
+            append("By continuing, you agree to our ")
+            withLink(androidx.compose.ui.text.LinkAnnotation.Url(termsUrl,
+                androidx.compose.ui.text.TextLinkStyles(style = SpanStyle(color = colors.interactive)))) { append("Terms of Use") }
+            append(" and ")
+            withLink(androidx.compose.ui.text.LinkAnnotation.Url(privacyUrl,
+                androidx.compose.ui.text.TextLinkStyles(style = SpanStyle(color = colors.interactive)))) { append("Privacy Policy") }
+            append(".")
         }
     }
-
-    ClickableText(
-        text = annotated,
-        style = androidx.compose.ui.text.TextStyle(
-            fontSize = 12.sp,
-            textAlign = TextAlign.Center,
-            lineHeight = 16.sp,
-        ),
-        modifier = modifier.padding(horizontal = Spacing.sm),
-        onClick = { offset ->
-            annotated.getStringAnnotations("URL", offset, offset)
-                .firstOrNull()
-                ?.let { uriHandler.openUri(it.item) }
-        },
-    )
+    Text(annotated, color = colors.textSecondary,
+        style = androidx.compose.ui.text.TextStyle(fontSize = 12.sp, textAlign = TextAlign.Center, lineHeight = 16.sp),
+        modifier = modifier.padding(horizontal = Spacing.sm))
 }
 
 @Composable

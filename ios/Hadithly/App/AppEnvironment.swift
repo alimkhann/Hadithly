@@ -179,7 +179,7 @@ final class AppEnvironment {
             guard let self else { return }
             WidgetSnapshotStore.saveUILocale(updated.uiLocale)
 #if DEBUG
-            if AutomationContext.allows("-NativePolishFixture") { return }
+            if AutomationContext.allows("-NativePolishFixture") || AutomationContext.allows("-NativeFinishingFixture") { return }
 #endif
             self.syncPreferences(updated)
             Task { await self.refreshDailyWidget(updated) }

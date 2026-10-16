@@ -26,12 +26,13 @@ final class CrashReporting {
               dsn.hasPrefix("https://"), !dsn.contains("PLACEHOLDER") else { return }
         purgeExpired()
         running = true
-        SentrySDK.start { options in
+        let cachePath = cache.path
+        SentrySDK.start { [weak self] options in
             options.dsn = dsn
             options.urlSession = session
             options.releaseName = DiagnosticsRelease.value
             options.environment = Self.environment
-            options.cacheDirectoryPath = self.cache.path
+            options.cacheDirectoryPath = cachePath
             options.maxCacheItems = 10
             options.shutdownTimeInterval = 0
             options.sendDefaultPii = false
@@ -55,7 +56,7 @@ final class CrashReporting {
             options.sessionReplay.onErrorSampleRate = 0
             options.maxBreadcrumbs = 0
             options.beforeBreadcrumb = { _ in nil }
-            options.beforeSendWithHint = { [weak self] event, hint in
+            installSentryPrivacyFilter(options: options) { [weak self] event, hint in
                 hint.attachments = []
                 guard let self, self.hasConsent, self.admit() else { return nil }
                 let safe = Self.redactedPreservingCapture(event)

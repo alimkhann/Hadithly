@@ -700,7 +700,7 @@ struct OfflineCollectionRow: View {
             VStack(alignment: .leading, spacing: 6) {
             Text(name).foregroundStyle(Theme.textPrimary)
             Text(statusLine(for: status, store: store)).font(.caption).foregroundStyle(Theme.textSecondary)
-            if case .downloading(let fraction) = status {
+            if case .downloading = status {
                 ProgressView(value: displayedProgress)
                     .accessibilityIdentifier("settings.offline.\(slug).progress")
             } else if case .queued(let fraction) = status, fraction > 0 {

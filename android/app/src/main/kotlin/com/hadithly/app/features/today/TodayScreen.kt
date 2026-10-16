@@ -29,6 +29,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.automirrored.filled.NavigateNext
@@ -206,10 +207,7 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit, previewState: String? 
                     }
                 }
                 DailyPresentation.Empty -> CardShell(homeColors) {
-                    Column {
-                        Text(nativeText("No eligible hadith is cached yet"), fontWeight = FontWeight.Medium, color = homeColors.textPrimary)
-                        Text(nativeText("Open a collection in the Library and Today will prepare one from verified content."), fontSize = 12.sp, color = homeColors.textSecondary)
-                    }
+                    com.hadithly.app.core.theme.QuietEmptyState("Your daily reading", "Today’s hadith is not available yet. Choose a collection below to keep reading.", Icons.Filled.MenuBook)
                 }
             }
         }

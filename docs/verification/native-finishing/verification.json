@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-16",
+  "ios": {
+    "cleanBuildLog": "/tmp/hadithly-finishing-clean-final.log",
+    "status": "passed",
+    "compilerWarnings": 0,
+    "compilerErrors": 0,
+    "resultBundle": "/tmp/hadithly-finishing-verified.xcresult",
+    "cleanBuildLogSha256": "f31c1382476818c91e803da95355bd3a7988724d0c2f1712780e447286c5745c",
+    "sdkDiagnosticException": "One documented local exception for Sentry 9.30.1\u2019s public transitional hint setter; no global diagnostic suppression.",
+    "totalTests": 282,
+    "passedTests": 274,
+    "failedTests": 0,
+    "skippedTests": 8,
+    "unitPassed": 251,
+    "uiPassed": 23,
+    "runtimeLog": "/tmp/hadithly-finishing-verified.log",
+    "runtimeLogSha256": "3e716435d4f1662b5146fcd7f696ef398de6ee983747fd67d09dd645b4cf9e4b",
+    "manualSystemAppearanceProof": {
+      "file": "ios/finishing-fresh-welcome-system-russian-dark.png",
+      "method": "Simulator OS appearance set to dark; native fresh-entry fixture launched with Russian preferred languages; inspected original capture; OS restored to light."
+    },
+    "paperCanvasFollowup": {
+      "resultBundle": "/tmp/hadithly-finishing-paper-saved.xcresult",
+      "passed": 2,
+      "failed": 0,
+      "log": "/tmp/hadithly-finishing-paper-saved.log",
+      "compilerWarnings": 0,
+      "compilerErrors": 0,
+      "sha256": "4c8f1b3e71eace89a40f0df52523b972a59221da52fe4950b4837a9a98957a88"
+    }
+  },
+  "android": {
+    "unitTests": 204,
+    "unitFailures": 0,
+    "uniqueUiTests": 71,
+    "uiFailures": 0,
+    "runs": [
+      {
+        "log": "/tmp/hadithly-rethink-android-final2.log",
+        "tests": 23,
+        "sha256": "3934df999bf9b3aab6843ac9106461aa0890c0e089292a5b70eb075d4b266b98"
+      },
+      {
+        "log": "/tmp/hadithly-rethink-android-regression2.log",
+        "tests": 48,
+        "sha256": "e4c621b97bc3f67b2ea2a8d8ed0b49235510658baea3a328cbe75ed4e79ad664"
+      },
+      {
+        "log": "/tmp/hadithly-finishing-android-gallery.log",
+        "tests": 6,
+        "repeatsEarlierTests": true,
+        "sha256": "2ce34b1e7323119323c93ee4faececb227f456d25574cb984bc2b2f8b00b643b"
+      },
+      {
+        "log": "/tmp/hadithly-finishing-android-first-launch.log",
+        "tests": 1,
+        "repeatsEarlierTests": true,
+        "sha256": "899f99b714b7a047007b8c08c1ab862a3d3349753018098cc53e179b2fe52706"
+      }
+    ]
+  },
+  "copy": {
+    "onboardingLocales": 15,
+    "catalogParity": "passed",
+    "nativeReview": "pending"
+  },
+  "releaseGates": "Existing physical-device, account, store, production and native-copy review gates remain open."
+}

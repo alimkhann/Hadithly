@@ -18,7 +18,7 @@ private val storeJson = Json { ignoreUnknownKeys = true; encodeDefaults = true }
  * "reader.arabicFontSize") stay readable for the migration and keep being
  * written for backend compatibility. Mirrors the iOS PreferencesStore.
  */
-class PreferencesStore(sharedPrefs: SharedPreferences) {
+class PreferencesStore(sharedPrefs: SharedPreferences, private val preferredLanguages: List<String> = systemLanguages()) {
 
     data class MigrationResult(
         val preferences: ReaderPreferences,
@@ -35,10 +35,19 @@ class PreferencesStore(sharedPrefs: SharedPreferences) {
     var onPreferencesChanged: ((ReaderPreferences) -> Unit)? = null
 
     companion object {
+        private fun systemLanguages(): List<String> {
+            val locales = android.content.res.Resources.getSystem().configuration.locales
+            return (0 until locales.size()).map { locales[it].toLanguageTag() }
+        }
         fun suggestedLanguage(preferred: List<String>): String {
-            val supported = com.hadithly.app.core.data.SupportedLanguages.all.map { it.first }.toSet()
-            return preferred.asSequence().map { it.replace('_', '-').lowercase().substringBefore('-') }
-                .firstOrNull { it in supported } ?: "en"
+            val supported = com.hadithly.app.core.data.SupportedLanguages.all.map { it.first }
+            for (tag in preferred) {
+                val canonical = LocaleFallback.canonicalizeLocaleTag(tag) ?: continue
+                if (canonical in supported) return canonical
+                val base = canonical.substringBefore('-')
+                supported.firstOrNull { it.substringBefore('-') == base }?.let { return it }
+            }
+            return "en"
         }
         const val STORE_KEY = "reader.preferences.v1"
         const val LEGACY_LANGUAGE_KEY = "user.preferredLanguage"
@@ -174,8 +183,7 @@ class PreferencesStore(sharedPrefs: SharedPreferences) {
         }
         val result = migrate(storedJson, legacyLanguage, legacySize)
         val initial = if (storedJson == null && legacyLanguage == null) {
-            val languages = android.content.res.Resources.getSystem().configuration.locales
-            val suggested = suggestedLanguage((0 until languages.size()).map { languages[it].toLanguageTag() })
+            val suggested = suggestedLanguage(preferredLanguages)
             result.preferences.copy(uiLocale = suggested, translationLocale = suggested)
         } else result.preferences
         target.edit().putString(STORE_KEY, storeJson.encodeToString(initial)).apply()

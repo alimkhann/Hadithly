@@ -2,6 +2,7 @@ package com.hadithly.app.features.main
 
 import com.hadithly.app.R
 import androidx.compose.ui.res.stringResource
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.unit.dp
 import com.hadithly.app.features.saved.SavedUndoBanner
@@ -13,12 +14,7 @@ import androidx.compose.material.icons.filled.CollectionsBookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -30,7 +26,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.hadithly.app.HadithlyApplication
 import com.hadithly.app.core.data.HadithRef
@@ -123,37 +118,7 @@ fun MainTabs(
             if (readerTarget == null) {
                 Column {
                     SavedUndoBanner(Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
-                NavigationBar(containerColor = colors.surface) {
-                    NavigationBarItem(
-                        selected = tab == 0,
-                        onClick = { tab = 0 },
-                        icon = { Icon(Icons.Filled.WbSunny, contentDescription = null) },
-                        label = { Text(stringResource(R.string.app_today)) },
-                        colors = navigationColors(colors),
-                    )
-                    NavigationBarItem(
-                        modifier = Modifier.testTag("tabs.library"),
-                        selected = tab == 1,
-                        onClick = { tab = 1 },
-                        icon = { Icon(Icons.Filled.CollectionsBookmark, contentDescription = null) },
-                        label = { Text(stringResource(R.string.app_library)) },
-                        colors = navigationColors(colors),
-                    )
-                    NavigationBarItem(
-                        selected = tab == 2,
-                        onClick = { tab = 2 },
-                        icon = { Icon(Icons.Filled.BookmarkBorder, contentDescription = null) },
-                        label = { Text(stringResource(R.string.app_saved)) },
-                        colors = navigationColors(colors),
-                    )
-                    NavigationBarItem(
-                        selected = tab == 3,
-                        onClick = { tab = 3 },
-                        icon = { Icon(Icons.Filled.Settings, contentDescription = null) },
-                        label = { Text(stringResource(R.string.app_settings)) },
-                        colors = navigationColors(colors),
-                    )
-                }
+                    HadithlyBottomNavigation(tab) { tab = it }
                 }
             }
         },
@@ -205,11 +170,10 @@ fun MainTabs(
 }
 
 @Composable
-private fun navigationColors(colors: com.hadithly.app.core.theme.HadithlyColors) =
-    NavigationBarItemDefaults.colors(
-        selectedIconColor = colors.interactive,
-        selectedTextColor = colors.interactive,
-        indicatorColor = colors.interactiveSoft,
-        unselectedIconColor = colors.textSecondary,
-        unselectedTextColor = colors.textSecondary,
-    )
+internal fun HadithlyBottomNavigation(selected: Int, onSelect: (Int) -> Unit) {
+    val labels = listOf(stringResource(R.string.app_today), stringResource(R.string.app_library), stringResource(R.string.app_saved), stringResource(R.string.app_settings))
+    val icons = listOf(Icons.Filled.WbSunny, Icons.Filled.CollectionsBookmark, Icons.Filled.BookmarkBorder, Icons.Filled.Settings)
+    com.hadithly.app.core.theme.QuietNavigationBar(labels.mapIndexed { index, label ->
+        com.hadithly.app.core.theme.QuietDestination(label, icons[index], tag = listOf("tabs.today", "tabs.library", "tabs.saved", "tabs.settings")[index])
+    }, selected, onSelect, Modifier.navigationBarsPadding().padding(horizontal = 20.dp, vertical = 8.dp).testTag("tabs.bar"))
+}

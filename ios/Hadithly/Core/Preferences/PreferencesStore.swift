@@ -26,7 +26,7 @@ final class PreferencesStore {
 
     private let userDefaults: UserDefaults
 
-    init(userDefaults: UserDefaults = .standard) {
+    init(userDefaults: UserDefaults = .standard, preferredLanguages: [String] = Locale.preferredLanguages) {
         self.userDefaults = userDefaults
         let legacyLanguage = userDefaults.string(forKey: Self.legacyLanguageKey)
         let legacySize = userDefaults.object(forKey: Self.legacyArabicFontSizeKey) as? Double
@@ -37,7 +37,7 @@ final class PreferencesStore {
         )
         self.preferences = result.preferences
         if userDefaults.string(forKey: Self.storeKey) == nil, legacyLanguage == nil {
-            let suggested = Self.suggestedLanguage(Locale.preferredLanguages)
+            let suggested = Self.suggestedLanguage(preferredLanguages)
             self.preferences.uiLocale = suggested
             self.preferences.translationLocale = suggested
         }
@@ -78,10 +78,12 @@ final class PreferencesStore {
 
     // MARK: - Mutations
     nonisolated static func suggestedLanguage(_ preferred: [String]) -> String {
-        let supported = ["en", "ar", "ru", "kk", "uz", "tr", "id", "ur"]
+        let supported = ["en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn"]
         for tag in preferred {
-            let base = tag.replacingOccurrences(of: "_", with: "-").lowercased().split(separator: "-").first.map(String.init) ?? ""
-            if supported.contains(base) { return base }
+            guard let canonical = LocaleFallback.canonicalizeLocaleTag(tag) else { continue }
+            if supported.contains(canonical) { return canonical }
+            let base = LocaleFallback.baseLanguage(of: canonical)
+            if let match = supported.first(where: { LocaleFallback.baseLanguage(of: $0) == base }) { return match }
         }
         return "en"
     }

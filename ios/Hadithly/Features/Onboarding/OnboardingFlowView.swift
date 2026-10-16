@@ -33,7 +33,7 @@ struct OnboardingFlowView: View {
             Group {
             switch step {
             case .welcome:
-                WelcomeView { environment.analytics.startOnboarding(); storedStep = 1 }
+                WelcomeView(showsBackground: false) { environment.analytics.startOnboarding(); storedStep = 1 }
             case .language:
                 LanguagePickerView(selection: Binding(get: { environment.preferences.preferences.uiLocale },
                     set: { environment.preferences.applyOnboardingLanguage($0) })) { storedStep = 2 }
@@ -41,23 +41,23 @@ struct OnboardingFlowView: View {
                 OnboardingTranslationView(locale: environment.preferences.preferences.translationLocale,
                     onReveal: { environment.analytics.record(.onboardingStepDemoUsed) }, onContinue: { storedStep = 3 })
             case .account:
-                ScrollView {
-                    VStack(spacing: 24) {
-                        Image("OnboardingBook").resizable().scaledToFill().frame(height: 260).clipped().accessibilityHidden(true)
-                            .mask(LinearGradient(colors: [.clear, .black, .black, .clear], startPoint: .top, endPoint: .bottom))
-                        Text("la2.account_title").font(.largeTitle.bold()).multilineTextAlignment(.center)
-                        Text("la2.account_body").font(.body).foregroundStyle(palette.textSecondary).multilineTextAlignment(.center)
-                        VStack(spacing: 12) {
-                            OnboardingPrimaryButton("la2.create_account") { present(.create) }.accessibilityIdentifier("onboarding.createAccount")
-                            Button { present(.signIn) } label: { Text("la2.sign_in").frame(maxWidth: .infinity, minHeight: 44) }
-                                .buttonStyle(.bordered).accessibilityIdentifier("onboarding.signIn")
-                            Button { finish(.onboardingCompletedGuest) } label: {
-                                Text("la2.guest").frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
-                            }.buttonStyle(.plain)
-                                .foregroundStyle(palette.textSecondary).accessibilityIdentifier("onboarding.guest")
-                            Text("la2.reading_free").font(.footnote).foregroundStyle(palette.textSecondary)
-                        }
-                    }.padding(.horizontal, 24).padding(.bottom, 24)
+                GeometryReader { geometry in
+                    ScrollView {
+                        VStack(spacing: 24) {
+                            Text("la2.account_title").font(.largeTitle.bold()).multilineTextAlignment(.center).padding(.top, 28)
+                            Text("la2.account_body").font(.body).foregroundStyle(palette.textSecondary).multilineTextAlignment(.center)
+                            Spacer(minLength: 160)
+                            VStack(spacing: 12) {
+                                OnboardingPrimaryButton("la2.create_account") { present(.create) }.accessibilityIdentifier("onboarding.createAccount")
+                                Button { present(.signIn) } label: { Text("la2.sign_in").frame(maxWidth: .infinity, minHeight: 44) }
+                                    .buttonStyle(.bordered).accessibilityIdentifier("onboarding.signIn")
+                                Button { finish(.onboardingCompletedGuest) } label: {
+                                    Text("la2.guest").frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
+                                }.buttonStyle(.plain).foregroundStyle(palette.textSecondary).accessibilityIdentifier("onboarding.guest")
+                                Text("la2.reading_free").font(.footnote).foregroundStyle(palette.textSecondary)
+                            }
+                        }.padding(.horizontal, 24).padding(.bottom, 24).frame(minHeight: geometry.size.height)
+                    }
                 }
             }
             }
@@ -65,7 +65,8 @@ struct OnboardingFlowView: View {
             .transition(.opacity.combined(with: .offset(x: reducedMotion ? 0 : (layoutDirection == .rightToLeft ? -InterfaceMotion.travel : InterfaceMotion.travel))))
         }
         .animation(reducedMotion ? nil : .timingCurve(0.22, 1, 0.36, 1, duration: InterfaceMotion.step), value: storedStep)
-        .background(palette.background.ignoresSafeArea()).foregroundStyle(palette.textPrimary)
+        .background { if step == .welcome { EntryArtworkBackdrop() } else { palette.background.ignoresSafeArea() } }
+        .foregroundStyle(palette.textPrimary)
         .onAppear { recordStep() }.onChange(of: storedStep) { _, _ in recordStep() }
         .sheet(item: $auth) { entry in
             SignInView(onAuthenticated: {

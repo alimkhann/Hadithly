@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Catalog parity; existing drafts still require native review. -->
     <string name="la2_welcome">Read hadith in your language</string>
     <string name="la2_get_started">Get started</string>
     <string name="la2_language">Choose your language</string>

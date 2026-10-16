@@ -16,6 +16,8 @@ import androidx.compose.ui.semantics.stateDescription
 import kotlinx.coroutines.CancellationException
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import com.hadithly.app.core.preferences.nativeText
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -81,16 +83,19 @@ fun SharedSavedItemRow(
         .padding(12.dp).testTag("saved.row.${item.hadithId}")) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f).combinedClickable(onClick = { onOpen(ref) }, onLongClick = { menuOpen = true }).padding(vertical = 8.dp)) {
-                Text(ref.referenceDisplay.ifBlank { ref.collectionName }, fontWeight = FontWeight.SemiBold, color = colors.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(relativeSavedTime(item.sortDate), fontSize = 12.sp, color = colors.textSecondary)
+                Text(ref.referenceDisplay.ifBlank { ref.collectionName }, fontWeight = FontWeight.SemiBold, color = colors.textPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    if (item.bookmarkCreatedAt != null) Icon(Icons.Filled.Bookmark, null, Modifier.size(12.dp), tint = colors.textSecondary)
+                    if (item.favoriteCreatedAt != null) Icon(Icons.Filled.Favorite, null, Modifier.size(12.dp), tint = colors.textSecondary)
+                    if (item.noteContent != null) Icon(Icons.Filled.EditNote, null, Modifier.size(12.dp), tint = colors.textSecondary)
+                    Text(relativeSavedTime(item.sortDate), fontSize = 12.sp, color = colors.textSecondary)
+                }
             }
-            if (item.bookmarkCreatedAt != null) IconButton(onClick = { onRemove(SavedFacet.BOOKMARK, item, ref) }) { Icon(Icons.Filled.Bookmark, stringResource(R.string.saved_remove_bookmark), tint = colors.bookmark) }
-            if (item.favoriteCreatedAt != null) IconButton(onClick = { onRemove(SavedFacet.FAVORITE, item, ref) }) { Icon(Icons.Filled.Favorite, stringResource(R.string.saved_remove_favorite), tint = colors.favorite) }
-            if (item.noteContent != null) IconButton(onClick = { onRemove(SavedFacet.NOTE, item, ref) }) { Icon(Icons.Filled.EditNote, stringResource(R.string.saved_delete_note), tint = colors.accent) }
+            IconButton(onClick = { menuOpen = true }, modifier = Modifier.testTag("saved.actions.${item.hadithId}")) { Icon(Icons.Filled.MoreHoriz, nativeText("Saved item actions"), tint = colors.textSecondary) }
             IconButton(onClick = { expanded = !expanded }, modifier = Modifier.testTag("saved.preview.${item.hadithId}")) { Icon(if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown, stringResource(if (expanded) R.string.saved_hide_preview else R.string.saved_show_preview), tint = colors.textSecondary) }
         }
         if (showFolder) folders.firstOrNull { it.id == item.folderId }?.let { Text(it.name, fontSize = 12.sp, color = colors.textSecondary) }
-        item.noteContent?.takeIf { it.isNotBlank() }?.let { Text(it, fontSize = 13.sp, color = colors.textSecondary, maxLines = if (expanded) Int.MAX_VALUE else 1) }
+        item.noteContent?.takeIf { it.isNotBlank() }?.let { Text(it, fontSize = 13.sp, color = colors.textSecondary, maxLines = if (expanded) Int.MAX_VALUE else 2) }
         if (expanded) {
             preview.arabicText.takeIf { it.isNotBlank() }?.let { Text(it, fontSize = 19.sp, lineHeight = 31.sp, color = colors.textPrimary, modifier = Modifier.fillMaxWidth()) }
             preview.englishText?.takeIf { it.isNotBlank() }?.let { Text(it, fontSize = 14.sp, color = colors.textSecondary) }

@@ -26,13 +26,13 @@ struct SignInView: View {
     var onAuthenticated: () async -> Void
 
     var onDismiss: () -> Void = {}
-    var initialSignUp = false
     var onCreationResult: ((Bool?) -> Void)? = nil
     var onAuthenticationFailure: (() -> Void)? = nil
 
     @Environment(AppEnvironment.self) private var environment
+    @Environment(\.accessibilityReduceMotion) private var reducedMotion
 
-    private enum Mode {
+    private enum Mode: Hashable {
         case methods
         case passwordSignIn
         case signUp
@@ -43,7 +43,6 @@ struct SignInView: View {
     }
 
     @State private var mode: Mode = .methods
-    @State private var appliedInitialMode = false
     @State private var email = ""
     @State private var password = ""
     @State private var confirmPassword = ""
@@ -52,38 +51,82 @@ struct SignInView: View {
     @State private var isBusy = false
     @State private var errorMessage: String?
 
+    init(onAuthenticated: @escaping () async -> Void, onDismiss: @escaping () -> Void = {}, initialSignUp: Bool = false,
+         onCreationResult: ((Bool?) -> Void)? = nil, onAuthenticationFailure: (() -> Void)? = nil) {
+        self.onAuthenticated = onAuthenticated
+        self.onDismiss = onDismiss
+        self.onCreationResult = onCreationResult
+        self.onAuthenticationFailure = onAuthenticationFailure
+        _mode = State(initialValue: initialSignUp ? .signUp : .methods)
+    }
+
     var body: some View {
         NavigationStack {
-            Group {
-                switch mode {
-                case .methods:
-                    methodsScreen
-                case .passwordSignIn:
-                    passwordSignInScreen
-                case .signUp:
-                    signUpScreen
-                case .emailEntry:
-                    emailEntryScreen
-                case .codeEntry(let isSignUp):
-                    codeEntryScreen(isSignUp: isSignUp)
-                case .forgotPasswordEntry:
-                    forgotPasswordEntryScreen
-                case .resetPassword:
-                    resetPasswordScreen
+            GeometryReader { geometry in
+                ScrollView {
+                    Group {
+                        switch mode {
+                        case .methods: methodsScreen
+                        case .passwordSignIn: passwordSignInScreen
+                        case .signUp: signUpScreen
+                        case .emailEntry: emailEntryScreen
+                        case .codeEntry(let isSignUp): codeEntryScreen(isSignUp: isSignUp)
+                        case .forgotPasswordEntry: forgotPasswordEntryScreen
+                        case .resetPassword: resetPasswordScreen
+                        }
+                    }
+                    .frame(minHeight: geometry.size.height, alignment: .top)
+                    .id(mode).transition(.opacity)
                 }
+                .scrollBounceBehavior(.basedOnSize)
+                .scrollDismissesKeyboard(.interactively)
             }
-            .navigationTitle("Sign in")
+            .background { palette.background.ignoresSafeArea() }
+            .animation(reducedMotion ? nil : .easeInOut(duration: InterfaceMotion.step), value: mode)
+            .navigationTitle(mode == .signUp ? Text("Create account") : mode == .forgotPasswordEntry || mode == .resetPassword ? Text("Reset password") : Text("Sign in"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { onDismiss() }
+                if mode != .methods {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("Back", systemImage: "chevron.backward", action: goBack).labelStyle(.iconOnly)
+                            .accessibilityIdentifier("signin.back").disabled(isBusy)
+                    }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Close", action: onDismiss).accessibilityIdentifier("signin.close")
                 }
             }
         }
-        .onAppear {
-            if !appliedInitialMode { appliedInitialMode = true; if initialSignUp { mode = .signUp } }
+    }
+
+    private func goBack() {
+        errorMessage = nil
+        switch mode {
+        case .methods: onDismiss()
+        case .passwordSignIn, .signUp, .emailEntry: mode = .methods
+        case .codeEntry(let signUp): mode = signUp ? .signUp : .emailEntry
+        case .forgotPasswordEntry: mode = .passwordSignIn
+        case .resetPassword: mode = .forgotPasswordEntry
         }
     }
+
+#if DEBUG
+    static func preview(_ step: String) -> SignInView {
+        var view = SignInView(onAuthenticated: {})
+        let mode: Mode = switch step {
+        case "password": .passwordSignIn
+        case "signup": .signUp
+        case "email": .emailEntry
+        case "code": .codeEntry(isSignUp: true)
+        case "forgot": .forgotPasswordEntry
+        case "reset": .resetPassword
+        default: .methods
+        }
+        view._mode = State(initialValue: mode)
+        if step == "code" || step == "reset" { view._email = State(initialValue: "reader@example.org") }
+        return view
+    }
+#endif
 
     // MARK: - Method selection
 
@@ -180,7 +223,7 @@ struct SignInView: View {
             .padding(.bottom, 24)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(palette.background)
+        .background(Color.clear)
     }
 
     // MARK: - Password sign-in
@@ -269,7 +312,7 @@ struct SignInView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(palette.background)
+        .background(Color.clear)
     }
 
     // MARK: - Sign-up
@@ -286,8 +329,7 @@ struct SignInView: View {
             }
             .padding(.top, 24)
 
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 12) {
+            VStack(spacing: 12) {
                     TextField("you@example.com", text: $email)
                         .textContentType(.emailAddress)
                         .keyboardType(.emailAddress)
@@ -358,12 +400,11 @@ struct SignInView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 24)
-            }
 
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(palette.background)
+        .background(Color.clear)
     }
 
     private var signUpInputIsValid: Bool {
@@ -431,7 +472,7 @@ struct SignInView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(palette.background)
+        .background(Color.clear)
     }
 
     // MARK: - Code entry
@@ -505,7 +546,7 @@ struct SignInView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(palette.background)
+        .background(Color.clear)
     }
 
     // MARK: - Forgot password
@@ -565,7 +606,7 @@ struct SignInView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(palette.background)
+        .background(Color.clear)
     }
 
     private var resetPasswordScreen: some View {
@@ -637,7 +678,7 @@ struct SignInView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(palette.background)
+        .background(Color.clear)
     }
 
     // MARK: - Actions

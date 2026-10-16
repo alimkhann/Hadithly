@@ -148,6 +148,7 @@ final class ReaderR5UITests: XCTestCase {
     private func launchContentsFixture() -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["-R5ContentsFixture"]
+        app.launchEnvironment["HADITHLY_UI_TESTING"] = "1"
         app.launch()
         return app
     }

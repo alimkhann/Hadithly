@@ -432,7 +432,7 @@ class ReaderR6Round3Test {
         // Every result is labeled as Sunnah.now English text (the card is
         // clickable, so child semantics merge into the card node: assert
         // the merged text, one label per result card).
-        compose.onAllNodesWithText("Sunnah.now English text").assertCountEquals(2)
+        compose.onAllNodesWithTag("reader.search.sourceLabel", useUnmergedTree = true).assertCountEquals(2)
 
         compose.onNodeWithTag("reader.search.result.sunnah_now:bukhari:58").performClick()
         compose.runOnIdle { assertEquals("58", navigated?.providerHadithId) }
@@ -548,10 +548,12 @@ class ReaderR6Round3Test {
         compose.setContent {
             HadithlyTheme {
                 ReaderSavedSheet(
-                    bookmarks = listOf(savedEntry("b1", "Sahih al-Bukhari · Hadith 57", 1000.0)),
-                    favorites = emptyList(),
-                    notes = emptyList(),
-                    nowMillis = 1000L + 5 * 60_000,
+                    items = listOf(com.hadithly.app.core.data.SavedItemEntry("h-b1", System.currentTimeMillis().toDouble() - 300_000, System.currentTimeMillis().toDouble() - 300_000,
+                        bookmarkCreatedAt = System.currentTimeMillis().toDouble() - 300_000,
+                        hadith = savedEntry("b1", "Sahih al-Bukhari · Hadith 57", 1000.0).hadith)),
+                    folders = emptyList(),
+                    library = com.hadithly.app.HadithlyApplication.instance().library,
+                    onDismiss = {},
                     onOpen = { opened = it },
                     onEdit = { edited = true },
                 )
@@ -562,15 +564,15 @@ class ReaderR6Round3Test {
         compose.onNodeWithTag("reader.saved.tab.bookmarks").assertIsDisplayed()
         compose.onNodeWithTag("reader.saved.tab.favorites").assertIsDisplayed()
         compose.onNodeWithTag("reader.saved.tab.notes").assertIsDisplayed()
-        compose.onNodeWithTag("reader.saved.row.b1").assertIsDisplayed()
+        compose.onNodeWithTag("saved.row.h-b1").assertIsDisplayed()
         compose.onNodeWithText("Sahih al-Bukhari · Hadith 57").assertIsDisplayed()
-        compose.onNodeWithText("5m ago").assertIsDisplayed()
+        compose.onNodeWithText("Added 5m ago").assertIsDisplayed()
 
         compose.onNodeWithTag("reader.saved.tab.favorites").performClick()
-        compose.onNodeWithText("Nothing saved here yet.").assertIsDisplayed()
+        compose.onNodeWithTag("reader.saved.empty").assertIsDisplayed()
 
         compose.onNodeWithTag("reader.saved.tab.bookmarks").performClick()
-        compose.onNodeWithTag("reader.saved.row.b1").performClick()
+        compose.onNodeWithText("Sahih al-Bukhari · Hadith 57").performClick()
         compose.runOnIdle { assertEquals("57", opened?.hadithNumber) }
 
         compose.onNodeWithTag("reader.saved.edit").performClick()

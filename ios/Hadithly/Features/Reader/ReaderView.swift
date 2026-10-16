@@ -271,6 +271,7 @@ struct ReaderView: View {
                 .animation(chromeAnimation, value: model.chromeVisible)
                 .allowsHitTesting(false)
 
+                ReaderGlassGroup {
                 chromeOverlay(
                     model,
                     topInset: windowSafeAreaInsets.top,
@@ -281,14 +282,12 @@ struct ReaderView: View {
                     .animation(chromeAnimation, value: model.chromeVisible)
                     .allowsHitTesting(model.chromeVisible)
                     .accessibilityHidden(!model.chromeVisible)
+                }
 
                 // Bookmark placement (round 7): a centered modal dialog
                 // over a dimmed backdrop, not a bottom sheet. Same options
                 // and actions; backdrop tap cancels.
                 if showBookmarkPlacement, let hadith = positionedHadith(model) {
-                    Color.black.opacity(0.4).ignoresSafeArea()
-                        .onTapGesture { showBookmarkPlacement = false }
-                        .accessibilityIdentifier("reader.bookmarkPlacement.backdrop")
                     ReaderBookmarkPlacementDialog(
                         pageFirst: model.currentPageHadiths.first,
                         positioned: hadith,
@@ -654,8 +653,7 @@ private struct ReaderChromeCircle: View {
                 .font(.title3.weight(.medium))
                 .foregroundStyle(palette.textPrimary)
                 .frame(width: 52, height: 52)
-                .background(palette.surface.opacity(0.98))
-                .clipShape(Circle())
+                .readerControlSurface(in: Circle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(label)
@@ -2149,6 +2147,7 @@ extension ReaderTranslation: Identifiable {
 /// jumps and chapter taps dismiss the sheet (the landing itself travels the
 /// backend-backed R2 target path, proven live elsewhere).
 struct ReaderContentsTestFixtureView: View {
+    @Environment(\.readerPalette) private var palette
     @State private var model: ReaderModel
     @State private var showSheet = true
 
@@ -2201,18 +2200,18 @@ struct ReaderContentsTestFixtureView: View {
 
     var body: some View {
         ZStack {
-            ReaderPalette.dark.background.ignoresSafeArea()
+            palette.background.ignoresSafeArea()
             if showSheet {
                 Text("Sheet open")
-                    .foregroundStyle(ReaderPalette.dark.textSecondary)
+                    .foregroundStyle(palette.textSecondary)
                     .accessibilityIdentifier("r5.sheetOpen")
             } else {
                 Text("Sheet dismissed")
-                    .foregroundStyle(ReaderPalette.dark.textSecondary)
+                    .foregroundStyle(palette.textSecondary)
                     .accessibilityIdentifier("r5.dismissed")
             }
         }
-        .environment(\.readerPalette, ReaderPalette.dark)
+        .environment(\.readerPalette, palette)
         .environment(\.readerTheme, ReaderTheme.dark)
         .sheet(isPresented: $showSheet) {
             CollectionOutlineSheet(model: model, arabicVisible: true)
@@ -2397,15 +2396,17 @@ struct ReaderPagingTestFixtureView: View {
 /// Tapping a search result or shortcut row records the navigation target
 /// in `r6.opened` instead of opening a network reader.
 struct ReaderR6Round3FixtureView: View {
+    @Environment(\.readerPalette) private var palette
+    @Environment(\.locale) private var locale
     @State private var openedReference: String?
     private let screen: String
     private let searchStub: String
     private let menuBookmarked: Bool
     private let library: UserLibraryModel
 
-    init() {
+    init(screen: String? = nil) {
         let environment = ProcessInfo.processInfo.environment
-        screen = environment["R6_SCREEN"] ?? "menu"
+        self.screen = screen ?? environment["R6_SCREEN"] ?? "menu"
         searchStub = environment["R6_SEARCH_STUB"] ?? "empty"
         menuBookmarked = environment["R6_MENU_BOOKMARKED"] == "true"
         let provider = ClerkConvexAuthProvider()
@@ -2438,7 +2439,7 @@ struct ReaderR6Round3FixtureView: View {
 
     var body: some View {
         ZStack {
-            ReaderPalette.dark.background.ignoresSafeArea()
+            palette.background.ignoresSafeArea()
             VStack {
                 switch screen {
                 case "search":
@@ -2460,15 +2461,14 @@ struct ReaderR6Round3FixtureView: View {
                 }
                 if let openedReference {
                     Text(openedReference)
-                        .foregroundStyle(ReaderPalette.dark.textSecondary)
+                        .foregroundStyle(palette.textSecondary)
                         .accessibilityIdentifier("r6.opened")
                 }
             }
         }
-        .environment(\.readerPalette, ReaderPalette.dark)
-        .environment(\.readerTheme, ReaderTheme.dark)
+        .environment(\.readerPalette, palette)
         .environment(library)
-        .preferredColorScheme(.dark)
+        .environment(\.locale, ProcessInfo.processInfo.environment["R6_LOCALE"].map { Locale(identifier: $0) } ?? locale)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("r6.screen")
     }
@@ -2478,7 +2478,7 @@ struct ReaderR6Round3FixtureView: View {
             ReaderMenuStack(
                 bookmarked: menuBookmarked,
                 positionedReference: "Sahih al-Bukhari · Hadith 57",
-                palette: ReaderPalette.dark,
+                palette: palette,
                 onContents: { openedReference = "CONTENTS" },
                 onSaved: { openedReference = "SAVED" },
                 onSettings: { openedReference = "SETTINGS" },
@@ -2488,7 +2488,7 @@ struct ReaderR6Round3FixtureView: View {
             .padding(.horizontal, 20)
             ReaderBottomCircles(
                 menuOpen: true,
-                palette: ReaderPalette.dark,
+                palette: palette,
                 onClose: { openedReference = "CLOSE" },
                 onMenu: { openedReference = "MENU" }
             )
@@ -2497,7 +2497,7 @@ struct ReaderR6Round3FixtureView: View {
     }
 
     private var placementScreen: some View {
-        ReaderBookmarkPlacementSheet(
+        ReaderBookmarkPlacementDialog(
             pageFirst: nil,
             positioned: ReaderR6Round3FixtureHadith.hadith57,
             onChoose: { openedReference = $0.referenceDisplay },

@@ -81,7 +81,7 @@ class HadithlyApplication : Application() {
         val sharedPreferences = getSharedPreferences("hadithly", MODE_PRIVATE)
         analytics = com.hadithly.app.core.analytics.UsageStatistics(getSharedPreferences("usageStatistics", MODE_PRIVATE), BuildConfig.CONVEX_URL, appScope)
         purchases.analytics = analytics
-        preferences = PreferencesStore(sharedPreferences)
+        preferences = PreferencesStore(sharedPreferences, resources.configuration.locales.let { locales -> (0 until locales.size()).map { locales[it].toLanguageTag() } })
         savedSafety = SavedSafetyPreferences(sharedPreferences)
         readerExperience = com.hadithly.app.core.preferences.ReaderExperiencePreferences(sharedPreferences)
         repository = ConvexRepository(this)

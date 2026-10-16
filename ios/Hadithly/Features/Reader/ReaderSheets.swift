@@ -6,60 +6,51 @@ extension Notification.Name {
     static let hadithlyOpenSavedTab = Notification.Name("hadithlyOpenSavedTab")
 }
 
-/// Shared Sajda sheet chrome (R6 round 3): grabber, title row with an X
-/// close circle, grouped card rows, uppercase section labels. Theme-aware
-/// through the reader palette; every sheet passes its own identifiers.
+/// Native sheet navigation shared by the reader's Contents, Search and Saved.
 struct ReaderSheetChrome<Content: View>: View {
     let title: String
     let subtitle: String?
     let palette: ReaderPalette
-    let grabberIdentifier: String
     let closeIdentifier: String
     let titleIdentifier: String?
     let onClose: () -> Void
+    var leadingActionTitle: String? = nil
+    var leadingActionIdentifier: String? = nil
+    var leadingAction: (() -> Void)? = nil
     @ViewBuilder let content: () -> Content
+    @Environment(\.locale) private var locale
 
     var body: some View {
-        VStack(spacing: 0) {
-            Capsule()
-                .fill(palette.textSecondary.opacity(0.45))
-                .frame(width: 40, height: 5)
-                .padding(.top, 10)
-                .accessibilityIdentifier(grabberIdentifier)
-                .accessibilityLabel("Sheet handle")
-            HStack(alignment: .top, spacing: 12) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
-                        .font(.title2.weight(.semibold))
-                        .foregroundStyle(palette.textPrimary)
-                        .accessibilityIdentifier(titleIdentifier ?? "")
-                    if let subtitle, !subtitle.isEmpty {
-                        Text(subtitle)
-                            .font(.caption)
-                            .foregroundStyle(palette.textSecondary)
+        NavigationStack {
+            VStack(spacing: 0) {
+                if let subtitle, !subtitle.isEmpty {
+                    Text(subtitle).font(.caption).foregroundStyle(palette.textSecondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 20).padding(.vertical, 6)
+                }
+                content().frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            .background(palette.background)
+            .navigationTitle(AppLocalization.string(title, locale: locale))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text(AppLocalization.string(title, locale: locale)).font(.headline)
+                        .foregroundStyle(palette.textPrimary).accessibilityIdentifier(titleIdentifier ?? "")
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done", action: onClose).foregroundStyle(palette.interactive)
+                        .accessibilityIdentifier(closeIdentifier)
+                }
+                if let leadingAction, let leadingActionTitle {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button(LocalizedStringKey(leadingActionTitle), action: leadingAction)
+                            .foregroundStyle(palette.interactive).accessibilityIdentifier(leadingActionIdentifier ?? "")
                     }
                 }
-                Spacer()
-                Button(action: onClose) {
-                    Image(systemName: "xmark")
-                        .font(.callout.weight(.semibold))
-                        .foregroundStyle(palette.textSecondary)
-                        .frame(width: 44, height: 44)
-                        .background(palette.surfaceElevated)
-                        .clipShape(Circle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Close")
-                .accessibilityIdentifier(closeIdentifier)
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 10)
-            .padding(.bottom, 12)
-            content()
         }
-        // Reader palette to the sheet edges, so Light/Paper readers never
-        // get system-background margins around the sheet content.
-        .background(palette.background.ignoresSafeArea())
+        .presentationDragIndicator(.visible)
     }
 }
 
@@ -89,6 +80,7 @@ struct CollectionOutlineSheet: View {
     let arabicVisible: Bool
     var translationVisible: Bool = true
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceMotion) private var reducedMotion
     @State private var expandedVolumes: Set<String> = []
     @State private var jumpText = ""
     @State private var jumpError: String?
@@ -105,7 +97,7 @@ struct CollectionOutlineSheet: View {
             title: "Contents",
             subtitle: model.collectionName,
             palette: palette,
-            grabberIdentifier: "reader.contents.grabber",
+
             closeIdentifier: "reader.contents.close",
             titleIdentifier: "reader.contents.title",
             onClose: { dismiss() }
@@ -115,23 +107,19 @@ struct CollectionOutlineSheet: View {
                     ContentSkeleton(kind: .rows, label: "Building the index…")
                         .padding(20)
                 } else {
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 4) {
-                            jumpField
-                            ReaderSheetSectionLabel(text: "VOLUMES", palette: palette)
-                                .padding(.top, 8)
+                    List {
+                        Section { jumpField.listRowBackground(Color.clear) }
+                        Section("Volumes") {
                             ForEach(model.volumes) { volume in
-                                if let chapters = volume.chapters, !chapters.isEmpty {
-                                    volumeDisclosure(volume, chapters: chapters)
-                                } else {
-                                    volumeRow(volume)
-                                }
+                                Group {
+                                    if let chapters = volume.chapters, !chapters.isEmpty { volumeDisclosure(volume, chapters: chapters) }
+                                    else { volumeRow(volume) }
+                                }.listRowBackground(Color.clear).listRowSeparatorTint(palette.divider)
                             }
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 4)
-                        .padding(.bottom, 16)
                     }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
                 }
             }
         }
@@ -152,7 +140,9 @@ struct CollectionOutlineSheet: View {
             HStack(spacing: 8) {
                 TextField("Hadith number", text: $jumpText)
                     .keyboardType(.numbersAndPunctuation)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(.plain)
+                    .frame(minHeight: 44)
+                    .foregroundStyle(palette.textPrimary)
                     .accessibilityIdentifier("reader.contents.jump")
                     .accessibilityLabel("Jump to hadith number")
                     .onSubmit { submitJump() }
@@ -171,9 +161,8 @@ struct CollectionOutlineSheet: View {
             } else {
                 Text("Jump to a hadith number, e.g. 57.")
                     .font(.caption2)
-                    .foregroundStyle(palette.textSecondary.opacity(0.7))
+                    .foregroundStyle(palette.textSecondary)
             }
-            Divider().overlay(palette.divider.opacity(0.6))
         }
         .padding(.vertical, 4)
     }
@@ -193,8 +182,11 @@ struct CollectionOutlineSheet: View {
         Binding(
             get: { expandedVolumes.contains(volumeId) },
             set: {
-                if $0 { expandedVolumes.insert(volumeId) }
-                else { expandedVolumes.remove(volumeId) }
+                let expanded = $0
+                withAnimation(reducedMotion ? nil : .easeInOut(duration: InterfaceMotion.step)) {
+                    if expanded { expandedVolumes.insert(volumeId) }
+                    else { expandedVolumes.remove(volumeId) }
+                }
             }
         )
     }
@@ -218,7 +210,7 @@ struct CollectionOutlineSheet: View {
                             .foregroundStyle(palette.textSecondary)
                         Spacer()
                     }
-                    .padding(.vertical, 10)
+                    .padding(.vertical, 4)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -239,7 +231,7 @@ struct CollectionOutlineSheet: View {
                 .accessibilityIdentifier("reader.contents.volume.\(volume.volumeId)")
         }
         .tint(palette.textSecondary)
-        .padding(.vertical, 10)
+        .padding(.vertical, 4)
     }
 
     private func chapterRow(volume: OutlineVolume, chapter: OutlineChapter) -> some View {
@@ -276,9 +268,8 @@ struct CollectionOutlineSheet: View {
                         .font(.caption.monospacedDigit())
                         .foregroundStyle(palette.textSecondary)
                 }
-                .padding(.vertical, 10)
-                Divider().overlay(palette.divider.opacity(0.6))
-            }
+                .padding(.vertical, 4)
+                }
             // Plain rows have no background fill: the explicit content
             // shape keeps the whole row (including spacer gaps) tappable.
             .contentShape(Rectangle())
@@ -295,7 +286,7 @@ struct CollectionOutlineSheet: View {
             dismiss()
         } label: {
             volumeLabel(volume, isSelected: isSelected, showsChevron: true)
-                .padding(.vertical, 10)
+                .padding(.vertical, 4)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -600,20 +591,20 @@ struct ReaderSearchSheet: View {
     @State private var isLoading = false
     @State private var didFail = false
     @State private var generation = 0
-    @FocusState private var isFocused: Bool
+    @State private var searchPresented = true
+    @State private var searchTask: Task<Void, Never>?
 
     var body: some View {
         ReaderSheetChrome(
             title: "Search",
             subtitle: collectionName,
             palette: palette,
-            grabberIdentifier: "reader.search.grabber",
+
             closeIdentifier: "reader.search.close",
             titleIdentifier: "reader.search.title",
             onClose: { dismiss() }
         ) {
             VStack(alignment: .leading, spacing: 10) {
-                searchField
                 if isLoading {
                     loadingState
                 } else if didFail {
@@ -635,83 +626,28 @@ struct ReaderSearchSheet: View {
         }
         .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
         .onChange(of: query) { _, _ in scheduleSearch() }
-        .onAppear { isFocused = true }
-    }
-
-    private var searchField: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .font(.callout)
-                .foregroundStyle(palette.textSecondary)
-            TextField("Search English text", text: $query)
-                .font(.body)
-                .foregroundStyle(palette.textPrimary)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-                .accessibilityIdentifier("reader.search.field")
-                .accessibilityLabel("Search cached English text")
-            if !query.isEmpty {
-                Button {
-                    query = ""
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.callout)
-                        .foregroundStyle(palette.textSecondary)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Clear search")
-                .accessibilityIdentifier("reader.search.clear")
-            }
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 11)
-        .background(palette.surfaceElevated)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .searchable(text: $query, isPresented: $searchPresented, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search English text")
+        .onSubmit(of: .search) { scheduleSearch() }
+        .onDisappear { searchTask?.cancel() }
     }
 
     private var resultsList: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 8) {                ReaderSheetSectionLabel(
-                    text: "SUNNAH.NOW ENGLISH (\(results.count))",
-                    palette: palette
-                )
-                .accessibilityIdentifier("reader.search.section")
+        List {
+            Section {
                 ForEach(Array(results.enumerated()), id: \.element.id) { index, result in
-                    Button {
-                        onOpen(result)
-                    } label: {
-                        VStack(spacing: 0) {
-                            HStack(alignment: .top, spacing: 12) {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(result.snippet.isEmpty ? result.referenceDisplay : result.snippet)
-                                        .font(.subheadline)
-                                        .foregroundStyle(palette.textPrimary)
-                                        .multilineTextAlignment(.leading)
-                                        .lineLimit(4)
-                                    Text("\(result.referenceDisplay) · Sunnah.now English")
-                                        .font(.caption)
-                                        .foregroundStyle(palette.textSecondary)
-                                        .lineLimit(1)
-                                }
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .font(.caption)
-                                    .foregroundStyle(palette.textSecondary)
-                                    .padding(.top, 4)
-                            }
-                            .padding(.vertical, 12)
-                            Divider().overlay(palette.divider.opacity(0.6))
-                        }
-                        .contentShape(Rectangle())
+                    Button { onOpen(result) } label: {
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(result.referenceDisplay).font(.subheadline.weight(.semibold)).foregroundStyle(palette.textPrimary)
+                            Text(result.snippet).font(.subheadline).foregroundStyle(palette.textSecondary).lineLimit(3)
+                        }.padding(.vertical, 4).frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
+                    .listRowBackground(Color.clear).listRowSeparatorTint(palette.divider)
                     .accessibilityLabel("\(result.referenceDisplay), Sunnah.now English text")
                     .accessibilityIdentifier("reader.search.result.\(index)")
                 }
-            }
-            .padding(.vertical, 4)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            } header: { Text("Sunnah.now English (\(results.count))").accessibilityIdentifier("reader.search.section") }
+        }.listStyle(.plain).scrollContentBackground(.hidden)
     }
 
     private var loadingState: some View {
@@ -721,38 +657,22 @@ struct ReaderSearchSheet: View {
     }
 
     private var hintState: some View {
-        Text("Search the cached Sunnah.now English text of this collection.")
-            .font(.caption)
-            .foregroundStyle(palette.textSecondary)
-            .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.vertical, 8)
+        QuietEmptyState(title: "Search this collection", message: "Find a word or phrase in the available English text.", symbol: "magnifyingglass")
             .accessibilityIdentifier("reader.search.hint")
     }
-
     private var emptyState: some View {
-        Text("No matches in the cached English text.")
-            .font(.caption)
-            .foregroundStyle(palette.textSecondary)
-            .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.vertical, 8)
+        QuietEmptyState(title: "No results", message: "Try another word or a shorter phrase.", symbol: "magnifyingglass")
             .accessibilityIdentifier("reader.search.empty")
     }
-
     private var failureState: some View {
-        Text("Search is unavailable right now. Reading continues as usual.")
-            .font(.caption)
-            .foregroundStyle(palette.textSecondary)
-            .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.vertical, 8)
-            .accessibilityIdentifier("reader.search.error")
+        VStack {
+            QuietEmptyState(title: "Search is unavailable", message: "Try again when you are connected. You can keep reading.", symbol: "wifi.exclamationmark")
+            Button("Try again") { scheduleSearch() }.buttonStyle(.bordered).padding(.bottom, 24)
+        }.accessibilityIdentifier("reader.search.error")
     }
 
-    /// Debounced search: waits 0.4 s after the last keystroke, then runs
-    /// one query per generation. Blank text clears without a backend call.
     private func scheduleSearch() {
+        searchTask?.cancel()
         generation += 1
         let current = generation
         let text = query
@@ -764,11 +684,11 @@ struct ReaderSearchSheet: View {
         }
         isLoading = true
         didFail = false
-        Task { @MainActor in
-            try? await Task.sleep(for: .seconds(0.4))
-            guard current == generation else { return }
+        searchTask = Task { @MainActor in
+            do { try await Task.sleep(for: .seconds(0.4)) } catch { return }
+            guard !Task.isCancelled, current == generation else { return }
             let rows = await search(text)
-            guard current == generation else { return }
+            guard !Task.isCancelled, current == generation else { return }
             // An empty page from a non-blank query is a genuine no-match;
             // the query call itself degrades to [] on failure, and the
             // sheet cannot tell them apart — both render the quiet empty
@@ -787,24 +707,7 @@ struct ReaderSearchSheet: View {
 /// destination. Full folders and filters stay H3 in the Saved tab — this
 /// sheet never duplicates them.
 struct ReaderSavedShortcutSheet: View {
-    enum Tab: String, CaseIterable {
-        case all
-        case bookmarks
-        case favorites
-        case notes
-
-        var title: String {
-            switch self {
-            case .all: "All"
-            case .bookmarks: "Bookmarks"
-            case .favorites: "Favorites"
-            case .notes: "Notes"
-            }
-        }
-
-        var identifier: String { "reader.savedShortcut.tab.\(rawValue)" }
-    }
-
+    typealias Tab = SavedContentFilter
     let onOpen: (HadithRef) -> Void
     let onEdit: () -> Void
 
@@ -813,6 +716,8 @@ struct ReaderSavedShortcutSheet: View {
     @Environment(\.readerTheme) private var readerTheme
     @Environment(UserLibraryModel.self) private var library
     @Environment(AppEnvironment.self) private var environment
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceMotion) private var reducedMotion
     @State private var tab: Tab = .bookmarks
     @State private var folderId: String?
     @State private var pendingRemoval: SavedFacetRemoval?
@@ -835,15 +740,24 @@ struct ReaderSavedShortcutSheet: View {
             title: "Bookmarks & Notes",
             subtitle: "Your private saved reading",
             palette: palette,
-            grabberIdentifier: "reader.savedShortcut.grabber",
+
             closeIdentifier: "reader.savedShortcut.close",
             titleIdentifier: "reader.savedShortcut.title",
-            onClose: { dismiss() }
+            onClose: { dismiss() },
+            leadingActionTitle: "Edit",
+            leadingActionIdentifier: "reader.savedShortcut.edit",
+            leadingAction: onEdit
         ) {
             VStack(alignment: .leading, spacing: 10) {
-                segmentedControl
-                folderControl
-                if entries.isEmpty {
+                if !library.folders.isEmpty { folderControl }
+                if library.savedItems.isEmpty && library.loadState == .loading {
+                    ContentSkeleton(kind: .rows, label: "Loading saved items").padding(.top, 16)
+                } else if library.savedItems.isEmpty && library.loadState == .failed {
+                    VStack(spacing: 12) {
+                        Text("Saved items could not load").font(.subheadline).foregroundStyle(palette.textSecondary)
+                        Button("Retry") { library.refresh() }.buttonStyle(.bordered)
+                    }.frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if entries.isEmpty {
                     emptyState
                 } else {
                     ScrollView {
@@ -855,7 +769,6 @@ struct ReaderSavedShortcutSheet: View {
                         .padding(.vertical, 4)
                     }
                 }
-                editButton
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 16)
@@ -863,6 +776,10 @@ struct ReaderSavedShortcutSheet: View {
             // state centers within the full detent height — no dead blank
             // region below short content.
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        }
+        .safeAreaInset(edge: .bottom) {
+            SavedFilterBar(selection: $tab, identifier: "reader.savedShortcut.filter")
+                .padding(.horizontal, 20).padding(.vertical, 8)
         }
         .overlay(alignment: .bottom) {
             if let notice = undoNotice {
@@ -881,54 +798,27 @@ struct ReaderSavedShortcutSheet: View {
         .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
     }
 
-    private var segmentedControl: some View {
-        HStack(spacing: 4) {
-            ForEach(Tab.allCases, id: \.self) { candidate in
-                Button {
-                    tab = candidate
-                } label: {
-                    Text(candidate.title)
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(
-                            tab == candidate ? palette.textPrimary : palette.textSecondary
-                        )
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 9)
-                        .background(
-                            tab == candidate
-                                ? palette.surfaceElevated : Color.clear
-                        )
-                        .clipShape(Capsule())
-                }
-                .buttonStyle(.plain)
-                .accessibilityAddTraits(tab == candidate ? .isSelected : [])
-                .accessibilityIdentifier(candidate.identifier)
-            }
-        }
-        .padding(4)
-        .background(palette.surface)
-        .clipShape(Capsule())
-    }
-
     private var folderControl: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 6) {
-                Button { folderId = nil } label: {
-                    Text("All folders")
-                        .font(.subheadline.weight(folderId == nil ? .semibold : .regular))
-                        .foregroundStyle(folderId == nil ? palette.interactive : palette.textSecondary)
-                }
-                .buttonStyle(.bordered)
-                .tint(folderId == nil ? palette.interactive : palette.textSecondary)
-                ForEach(library.folders) { folder in
-                    Button(folder.name) { folderId = folder.id }
-                        .buttonStyle(.bordered)
-                        .tint(folderId == folder.id ? palette.interactive : palette.textSecondary)
-                        .contextMenu { Button("Delete folder", role: .destructive) { if folderId == folder.id { folderId = nil }; library.deleteFolder(folder) } }
-                        .accessibilityAction(named: "Delete folder") { if folderId == folder.id { folderId = nil }; library.deleteFolder(folder) }
+        Menu {
+            Picker("Folder", selection: $folderId) {
+                Text("All folders").tag(String?.none)
+                ForEach(library.folders) { folder in Text(folder.name).tag(Optional(folder.id)) }
+            }
+            if !library.folders.isEmpty {
+                Menu("Delete folder") {
+                    ForEach(library.folders) { folder in
+                        Button(folder.name, role: .destructive) {
+                            if folderId == folder.id { folderId = nil }
+                            library.deleteFolder(folder)
+                        }
+                    }
                 }
             }
+        } label: {
+            Label(library.folders.first(where: { $0.id == folderId })?.name ?? String(localized: "All folders"), systemImage: "folder")
+                .font(.subheadline).frame(minHeight: 44)
         }
+        .tint(palette.textSecondary)
     }
 
     /// Sajda bookmarks-tab rows: a tinted icon, the reference title with
@@ -945,185 +835,45 @@ struct ReaderSavedShortcutSheet: View {
     }
 
     private var emptyState: some View {
-        Text("Nothing here yet. While reading, use the menu bookmark or a hadith note.")
-            .font(.caption)
-            .foregroundStyle(palette.textSecondary)
-            .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.vertical, 16)
+        QuietEmptyState(title: folderId == nil ? tab.emptyTitle : "This folder is empty",
+            message: folderId == nil ? tab.emptyMessage : "Move saved hadiths into this folder from their menu.", symbol: folderId == nil ? tab.symbol : "folder")
             .accessibilityIdentifier("reader.savedShortcut.empty")
     }
 
-    private var editButton: some View {
-        HStack {
-            Spacer()
-            Button(action: onEdit) {
-                Text("EDIT")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(palette.textSecondary)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(palette.surfaceElevated)
-                    .clipShape(Capsule())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Edit saved items in the Saved tab")
-            .accessibilityIdentifier("reader.savedShortcut.edit")
-        }
-        .padding(.top, 4)
-    }
 }
 
-// MARK: - Bookmark placement (R6 round 3)
+// MARK: - Native bookmark placement
 
-/// Shared bookmark-placement rows (round 7): the legacy bottom sheet
-/// (fixture) and the centered modal dialog (production) render the same
-/// title, options, identifiers, and actions.
-struct ReaderBookmarkPlacementOptions: View {
-    let pageFirst: ReaderHadith?
-    let positioned: ReaderHadith
-    let palette: ReaderPalette
-    let onChoose: (ReaderHadith) -> Void
-    let onCancel: () -> Void
-
-    var body: some View {
-        // NOTE: the rows must live in an explicit VStack. Without one the
-        // TupleView overlays title + rows and only the last row (Cancel)
-        // is visible — the round-7 dialog shipped exactly that bug.
-        VStack(alignment: .leading, spacing: 0) {
-        Text("Add bookmark")
-            .font(.headline)
-            .foregroundStyle(palette.textPrimary)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.top, 12)
-            .padding(.bottom, 4)
-            .accessibilityIdentifier("reader.bookmarkPlacement.title")
-        placementOption(
-            title: "Start of page",
-            identifier: "reader.bookmarkPlacement.pageStart"
-        ) {
-            if let target = ReaderBookmarkTarget.resolve(
-                placement: .pageStart,
-                pageFirst: pageFirst,
-                positioned: positioned
-            ) {
-                onChoose(target)
-            }
-        }
-        placementOption(
-            title: "Current hadith \(positioned.referenceDisplay)",
-            identifier: "reader.bookmarkPlacement.currentHadith"
-        ) {
-            if let target = ReaderBookmarkTarget.resolve(
-                placement: .currentHadith,
-                pageFirst: pageFirst,
-                positioned: positioned
-            ) {
-                onChoose(target)
-            }
-        }
-        placementOption(title: "Cancel", identifier: "reader.bookmarkPlacement.cancel", onCancel)
-        }
-    }
-
-    private func placementOption(
-        title: String,
-        identifier: String,
-        _ action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            VStack(spacing: 0) {
-                HStack {
-                    Text(title)
-                        .font(.subheadline)
-                        .foregroundStyle(palette.textPrimary)
-                        .multilineTextAlignment(.leading)
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(palette.textSecondary.opacity(0.6))
-                }
-                .padding(.vertical, 13)
-                Divider().overlay(palette.divider.opacity(0.6))
-            }
-            // No background fill on the plain row: the explicit content
-            // shape keeps spacer gaps tappable (XCUITest taps row centers).
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier(identifier)
-    }
-}
-
-/// Centered modal dialog for bookmark placement (round 7): the same
-/// options as the legacy sheet, rendered as a floating card over a dimmed
-/// backdrop instead of a bottom sheet. Reader palette throughout.
 struct ReaderBookmarkPlacementDialog: View {
     let pageFirst: ReaderHadith?
     let positioned: ReaderHadith
     let onChoose: (ReaderHadith) -> Void
     let onCancel: () -> Void
-
-    @Environment(\.readerPalette) private var palette
-    @Environment(\.readerTheme) private var readerTheme
-
-    var body: some View {
-        ReaderBookmarkPlacementOptions(
-            pageFirst: pageFirst,
-            positioned: positioned,
-            palette: palette,
-            onChoose: onChoose,
-            onCancel: onCancel
-        )
-        .padding(20)
-        .background(palette.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-        .shadow(color: .black.opacity(0.3), radius: 24, y: 8)
-        .frame(maxWidth: 340)
-        .padding(.horizontal, 32)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .accessibilityIdentifier("reader.bookmarkPlacement.dialog")
-        .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
-    }
-}
-
-/// Sajda `Add bookmark` style: stacked pill options for where the menu
-/// bookmark lands — the start of the page or the current (positioned)
-/// hadith — plus Cancel. Kept for the round-3 fixture; production renders
-/// the centered ReaderBookmarkPlacementDialog instead.
-struct ReaderBookmarkPlacementSheet: View {
-    let pageFirst: ReaderHadith?
-    let positioned: ReaderHadith
-    let onChoose: (ReaderHadith) -> Void
-    let onCancel: () -> Void
-
-    @Environment(\.readerPalette) private var palette
-    @Environment(\.readerTheme) private var readerTheme
+    @State private var presented = false
+    @State private var completed = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            Capsule()
-                .fill(palette.textSecondary.opacity(0.45))
-                .frame(width: 40, height: 5)
-                .padding(.top, 10)
-                .accessibilityIdentifier("reader.bookmarkPlacement.grabber")
-            ReaderBookmarkPlacementOptions(
-                pageFirst: pageFirst,
-                positioned: positioned,
-                palette: palette,
-                onChoose: onChoose,
-                onCancel: onCancel
-            )
-        }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 16)
-        .background(palette.background)
-        // The content fills all allocated vertical space so the short
-        // option list sits in the full detent height with no dead blank
-        // region below it.
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
+        Color.clear.frame(width: 0, height: 0)
+            .confirmationDialog("Add bookmark", isPresented: $presented, titleVisibility: .visible) {
+                if let target = ReaderBookmarkTarget.resolve(placement: .pageStart, pageFirst: pageFirst, positioned: positioned) {
+                    Button("Start of page") { finish { onChoose(target) } }
+                }
+                Button("Current hadith \(positioned.referenceDisplay)") { finish { onChoose(positioned) } }
+                Button("Cancel", role: .cancel) { finish(onCancel) }
+            }
+            .onAppear { presented = true }
+            // SwiftUI dismisses its presentation binding before a chosen action.
+            // Defer outside-tap cancellation until that action has completed.
+            .onChange(of: presented) { _, shown in
+                if !shown { Task { @MainActor in await Task.yield(); finish(onCancel) } }
+            }
     }
+    private func finish(_ action: () -> Void) {
+        guard !completed else { return }
+        completed = true
+        action()
+    }
+
 }
 
 struct ReaderStoredTranslationView: View {
