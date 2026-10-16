@@ -3516,7 +3516,7 @@
         }
       }
     },
-    "Translation sources" : {
+    "Translation sources": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -3611,7 +3611,7 @@
         }
       }
     },
-    "Sync bookmarks and notes across devices." : {
+    "Sync bookmarks and notes across devices.": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -3706,7 +3706,7 @@
         }
       }
     },
-    "Dismiss hint" : {
+    "Dismiss hint": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -3801,7 +3801,7 @@
         }
       }
     },
-    "Touch and hold a hadith to bookmark, add a note or share." : {
+    "Touch and hold a hadith to bookmark, add a note or share.": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -3896,7 +3896,7 @@
         }
       }
     },
-    "Translate missing text automatically, within your allowance. Turn off to translate on request." : {
+    "Translate missing text automatically, within your allowance. Turn off to translate on request.": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -3991,7 +3991,7 @@
         }
       }
     },
-    "Automatic translation" : {
+    "Automatic translation": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -4086,7 +4086,7 @@
         }
       }
     },
-    "Preview" : {
+    "Preview": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -4181,7 +4181,7 @@
         }
       }
     },
-    "Text size" : {
+    "Text size": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -4276,7 +4276,7 @@
         }
       }
     },
-    "Reader appearance" : {
+    "Reader appearance": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -4371,7 +4371,7 @@
         }
       }
     },
-    "Subscription details could not load" : {
+    "Subscription details could not load": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -4466,7 +4466,7 @@
         }
       }
     },
-    "Loading subscription" : {
+    "Loading subscription": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -4561,7 +4561,7 @@
         }
       }
     },
-    "Saved items could not load" : {
+    "Saved items could not load": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -4656,7 +4656,7 @@
         }
       }
     },
-    "Loading saved items" : {
+    "Loading saved items": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -4751,7 +4751,7 @@
         }
       }
     },
-    "Loading reading progress" : {
+    "Loading reading progress": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -4846,7 +4846,7 @@
         }
       }
     },
-    "Loading page" : {
+    "Loading page": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -4941,7 +4941,7 @@
         }
       }
     },
-    "Loading…" : {
+    "Loading…": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -5318,7 +5318,8 @@
             "value": "সহায়তা"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "As-salamu alaykum": {
       "localizations": {
@@ -5600,7 +5601,8 @@
             "value": "আজ"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Library": {
       "localizations": {
@@ -5694,7 +5696,8 @@
             "value": "লাইব্রেরি"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Saved": {
       "localizations": {
@@ -5788,7 +5791,8 @@
             "value": "সংরক্ষিত"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Settings": {
       "localizations": {
@@ -5882,7 +5886,8 @@
             "value": "সেটিংস"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Profile": {
       "localizations": {
@@ -5976,7 +5981,8 @@
             "value": "প্রোফাইল"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Appearance": {
       "localizations": {
@@ -6070,7 +6076,8 @@
             "value": "চেহারা"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Reading & type": {
       "localizations": {
@@ -6164,7 +6171,8 @@
             "value": "পড়া ও টাইপ"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Offline storage": {
       "localizations": {
@@ -6258,7 +6266,8 @@
             "value": "অফলাইন স্টোরেজ"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Notifications": {
       "localizations": {
@@ -6352,7 +6361,8 @@
             "value": "বিজ্ঞপ্তি"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Subscription": {
       "localizations": {
@@ -6446,7 +6456,8 @@
             "value": "সাবস্ক্রিপশন"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Privacy & data": {
       "localizations": {
@@ -6540,7 +6551,8 @@
             "value": "গোপনীয়তা ও ডেটা"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Help & support": {
       "localizations": {
@@ -6634,7 +6646,8 @@
             "value": "সহায়তা ও সমর্থন"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "About & legal": {
       "localizations": {
@@ -6728,7 +6741,8 @@
             "value": "পরিচিতি ও আইনি তথ্য"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "q1.generate": {
       "localizations": {
@@ -6916,7 +6930,8 @@
             "value": "সাত দিনের সীমা: %2$dটির মধ্যে %1$dটি বাকি"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "q1.retry_at": {
       "localizations": {
@@ -7010,7 +7025,8 @@
             "value": "আবার পাওয়া যাবে %1$@"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "q1.quota_exhausted": {
       "localizations": {
@@ -7292,7 +7308,8 @@
             "value": "কী আবার পরীক্ষা করা উচিত তা ব্যাখ্যা করুন"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "e4.appeal_window": {
       "localizations": {
@@ -7480,7 +7497,8 @@
             "value": "আপনার আপিল স্বয়ংক্রিয়ভাবে পরীক্ষা করা হচ্ছে।"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "e4.appeal_resolved": {
       "localizations": {
@@ -7574,7 +7592,8 @@
             "value": "আপনার আপিল শেষ হয়েছে। ফলাফল প্রস্তাবের অবস্থায় দেখা যায়।"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "e4.appeal_error": {
       "localizations": {
@@ -7668,7 +7687,8 @@
             "value": "আপিলের অনুরোধ করা যায়নি। সময়সীমা পরীক্ষা করে সংযোগ থাকলে আবার চেষ্টা করুন।"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "e4.revoked": {
       "localizations": {
@@ -7762,7 +7782,8 @@
             "value": "প্রকাশনা প্রত্যাহার করা হয়েছে"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "e4.revoked_message": {
       "localizations": {
@@ -7856,7 +7877,8 @@
             "value": "প্রকাশনা পুনর্মূল্যায়ন চলাকালীন এই প্রস্তাব ব্যক্তিগত থাকে।"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "e3.report_saved_detail": {
       "localizations": {
@@ -9662,7 +9684,8 @@
             "value": "· উৎস"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "%@": {
       "comment": "A circular badge showing the position of a collection in the library.",
@@ -9948,7 +9971,8 @@
             "value": "%@ · Sunnah.now ইংরেজি"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "%@ %@": {
       "comment": "A message that appears in an alert when a user confirms that they want to delete their account.",
@@ -10811,7 +10835,8 @@
             "value": "• %@"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "A": {
       "comment": "A button that decreases the Arabic text size.",
@@ -10907,7 +10932,8 @@
             "value": "A"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "A quiet reader for the seven major hadith collections. Arabic text is licensed from its sources; AI translations are always labeled.": {
       "comment": "A description of the app, highlighting its focus on hadith reading and the dual licensing of Arabic text and AI-generated translations.",
@@ -11193,7 +11219,8 @@
             "value": "বুকমার্ক যোগ করুন"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "AI": {
       "comment": "A label for an \"AI\" badge.",
@@ -11289,7 +11316,8 @@
             "value": "AI"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "AI translation unavailable · retry": {
       "comment": "A button label that appears when an AI translation request fails. It prompts the user to retry the request.",
@@ -12337,7 +12365,6 @@
       }
     },
     "Automatic": {
-      "extractionState": "stale",
       "localizations": {
         "ar": {
           "stringUnit": {
@@ -12812,7 +12839,8 @@
             "value": "পড়ার সময় বুকমার্ক, পছন্দের বা নোট যোগ করে হাদিসটি এখানে রাখুন।"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Bringing today's hadith…": {
       "comment": "A text that appears while loading today's hadith.",
@@ -12908,7 +12936,8 @@
             "value": "আজকের হাদিস আনা হচ্ছে…"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Building the index…": {
       "localizations": {
@@ -13002,7 +13031,8 @@
             "value": "ইনডেক্স তৈরি হচ্ছে…"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Carry your bookmarks and notes across devices.": {
       "localizations": {
@@ -13474,7 +13504,8 @@
             "value": "আপনার ভাষা বেছে নিন"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Clearing never deletes bookmarks, favorites, notes, reading progress, or downloaded collections.": {
       "comment": "A footer for the \"Temporary cache\" section of the offline storage settings.",
@@ -13666,7 +13697,8 @@
             "value": "কমিউনিটি"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Confirm before removing saved items": {
       "extractionState": "stale",
@@ -13855,7 +13887,8 @@
             "value": "চালিয়ে যান"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Continue reading": {
       "comment": "A button label that allows a user to continue reading a hadith they left off.",
@@ -15092,7 +15125,8 @@
             "value": "সম্পাদনা করুন"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Enter the code sent to %@ and your new password.": {
       "comment": "A description below the title that",
@@ -15378,7 +15412,8 @@
             "value": "অ্যাকাউন্ট ছাড়াই পড়ার সব সুবিধা চলে। ডিভাইসগুলোর মধ্যে বুকমার্ক, পছন্দের ও নোট নিতে সাইন ইন করুন।"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Export your profile, preferences, Saved items, folders, reading progress, and your own contributions as JSON. Guest data never leaves this device.": {
       "comment": "A footer text in the \"Privacy & data\" section of the settings view, explaining that user data is not shared with third parties.",
@@ -15759,7 +15794,8 @@
             "value": "অতিথিরা সব পড়তে পারেন। অ্যাকাউন্ট শুধু আপনার বুকমার্ক ও নোট ডিভাইসগুলোর মধ্যে বহন করে।"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Hadith source identity, authenticity scope, and license records travel with every text. A technically accessible source is not automatically reusable.": {
       "comment": "A description of the licensing model used for the hadith sources in the app.",
@@ -16428,7 +16464,6 @@
       }
     },
     "Left to right": {
-      "extractionState": "stale",
       "localizations": {
         "ar": {
           "stringUnit": {
@@ -16616,7 +16651,8 @@
             "value": "আরও AI অনুবাদ"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Move to folder": {
       "extractionState": "stale",
@@ -16903,7 +16939,8 @@
             "value": "এখনও যোগ্য কোনো হাদিস ক্যাশে নেই"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "No English translation available yet.": {
       "comment": "A message shown when there is no English translation available for a hadith.",
@@ -16999,7 +17036,8 @@
             "value": "এখনও ইংরেজি অনুবাদ পাওয়া যায়নি।"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "No external sources were cited for this translation.": {
       "comment": "A message displayed when a translation has no external",
@@ -17284,7 +17322,8 @@
             "value": "ক্যাশ করা ইংরেজি লেখায় কোনো মিল নেই।"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Note deleted": {
       "extractionState": "stale",
@@ -17473,7 +17512,8 @@
             "value": "এখানে এখনও কিছু নেই। পড়ার সময় হাদিস বুকমার্ক করতে বা নোট যোগ করতে মেনু ব্যবহার করুন।"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Offline": {
       "comment": "A label indicating that a reading is available offline.",
@@ -17951,7 +17991,8 @@
             "value": "লাইব্রেরিতে একটি সংগ্রহ খুললে আজ যাচাই করা বিষয় থেকে একটি প্রস্তুত করবে।"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Opening %@…": {
       "comment": "A loading message indicating that the reader is fetching content.",
@@ -18047,7 +18088,8 @@
             "value": "%@ খোলা হচ্ছে…"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "or": {
       "comment": "A conjunction used to join two independent clauses. In this context, it joins \"or\" and \"Google\".",
@@ -18333,7 +18375,8 @@
             "value": "Pro প্রতি চলমান সপ্তাহে ১০০টি AI অনুবাদ চালু করে। পড়া, সংরক্ষিত জিনিস ও বিদ্যমান অনুবাদ বিনামূল্যে থাকে।"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Pull down to try again.": {
       "localizations": {
@@ -18523,7 +18566,8 @@
             "value": "আপনার ভাষায় হাদিসের সংগ্রহ পড়ুন — পরিষ্কার, শান্ত এবং উৎসের প্রতি বিশ্বস্ত।"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Reading": {
       "extractionState": "stale",
@@ -18712,7 +18756,8 @@
             "value": "অতিথি হিসেবে পড়া"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Reading direction": {
       "extractionState": "stale",
@@ -19376,10 +19421,10 @@
             "value": "পর্যালোচনা নোট"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Right to left": {
-      "extractionState": "stale",
       "localizations": {
         "ar": {
           "stringUnit": {
@@ -19757,7 +19802,8 @@
             "value": "এখন অনুসন্ধান উপলব্ধ নয়। পড়া স্বাভাবিকভাবে চলবে।"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Search the cached Sunnah.now English text of this collection.": {
       "localizations": {
@@ -19851,7 +19897,8 @@
             "value": "এই সংগ্রহের ক্যাশ করা Sunnah.now ইংরেজি লেখায় অনুসন্ধান করুন।"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Searching cached English…": {
       "localizations": {
@@ -19945,7 +19992,8 @@
             "value": "ক্যাশ করা ইংরেজি লেখায় অনুসন্ধান হচ্ছে…"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "See Hadithly's total device storage from the system settings page.": {
       "comment": "A description of how to access Hadithly's storage settings on iOS.",
@@ -20706,7 +20754,8 @@
             "value": "অনুবাদ প্রস্তাব করতে সাইন ইন করুন।"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Sign in to receive the daily hadith on this device.": {
       "comment": "A message explaining that users need to sign in to enable the daily hadith notification.",
@@ -21376,7 +21425,8 @@
             "value": "বর্তমান সময় শেষ হওয়ার অন্তত ২৪ ঘণ্টা আগে বাতিল না করলে সাবস্ক্রিপশন স্বয়ংক্রিয়ভাবে নবায়ন হয়। স্টোর অ্যাকাউন্টে পরিচালনা বা বাতিল করুন।"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Suggest Translation": {
       "extractionState": "stale",
@@ -21565,7 +21615,8 @@
             "value": "আপনার পড়া সিঙ্ক করুন"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Temporary cache": {
       "comment": "A label for the temporary cache setting in the offline storage view.",
@@ -21853,7 +21904,8 @@
             "value": "পর্যালোচনায় অর্থ বা পরিভাষার কোনো নির্দিষ্ট সমস্যা পাওয়া যায়নি।"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "This translation was generated by AI (%@). It is not an authoritative rendering; verify important meanings against a qualified source.": {
       "comment": "A note at the bottom of the sheet explaining that the translation was generated by AI and that it should be verified against a qualified source.",
@@ -22992,7 +23044,8 @@
             "value": "সেটিংসে এটি যেকোনো সময় বদলাতে পারেন।"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "You can create an account later — everything you need to start reading works without one.": {
       "comment": "A footer message below the \"Continue\" button in the welcome view, explaining that an account is not required to use the app.",
@@ -23088,7 +23141,8 @@
             "value": "পরে অ্যাকাউন্ট তৈরি করতে পারেন — পড়া শুরু করার জন্য দরকারি সবকিছু অ্যাকাউন্ট ছাড়াই চলে।"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "You can sign in from Settings, then return to this hadith.": {
       "localizations": {
@@ -23182,7 +23236,8 @@
             "value": "সেটিংস থেকে সাইন ইন করে এই হাদিসে ফিরে আসুন।"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "You can undo this action from the message at the top.": {
       "localizations": {
@@ -23372,7 +23427,8 @@
             "value": "এই মাসের বিনামূল্যের AI সীমা শেষ হয়েছে। পড়া, সংরক্ষিত জিনিস ও বিদ্যমান অনুবাদ বিনামূল্যেই থাকবে।"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Your data": {
       "comment": "A label displayed above the section of the privacy and data settings related to user data.",
@@ -23562,7 +23618,8 @@
             "value": "إِنَّمَا الْأَعْمَالُ"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ": {
       "localizations": {
@@ -24412,7 +24469,8 @@
             "value": "AI sources"
           }
         }
-      }
+      },
+      "extractionState": "stale"
     },
     "Evidence checks complete": {
       "localizations": {
@@ -25259,7 +25317,14 @@
           }
         }
       }
-    }
+    },
+    "%@ pt": {},
+    "Ask before removing saved items": {},
+    "Confirm before removing": {},
+    "Language": {},
+    "Reset password": {},
+    "Show on page": {},
+    "Sunnah.now English (%@)": {}
   },
   "version": "1.1"
 }
