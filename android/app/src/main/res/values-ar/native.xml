@@ -11,7 +11,7 @@
     <string name="native_bfd402b2f6f3">تسجيل الدخول</string>
     <string name="native_c3812fc4acb8">إزالة</string>
     <string name="native_caf85b0888d7">المصادر</string>
-    <string name="native_d8b8392e2c54">حاول مجددًا</string>
+    <string name="native_d8b8392e2c54" formatted="false">إعادة المحاولة</string>
     <string name="native_dddd7b14feda">إزالة العنصر المحفوظ؟</string>
     <string name="native_e21f935f11d7">نسخ</string>
     <string name="native_004e9ce2b80f">صف مشكلة تتعلق بالمعنى أو الصياغة أو نسبة النص. البلاغات خاصة وليست تصويتات أو تقييمات.</string>
@@ -153,4 +153,15 @@
     <string name="native_279166910494" formatted="false">إخفاء التلميح</string>
     <string name="native_9ad22124e012" formatted="false">زامن العلامات والملاحظات بين أجهزتك.</string>
     <string name="native_43b0446666d2" formatted="false">مصادر الترجمة</string>
+    <string name="native_4a4cd514fe4b" formatted="false">لا توجد ترجمة بعد</string>
+    <string name="native_2f5022ad8edc" formatted="false">تعذّر إكمال الترجمة</string>
+    <string name="native_ca64b6451ae0" formatted="false">الترجمة غير متاحة مؤقتًا</string>
+    <string name="native_a42c1535d011" formatted="false">استُنفد حدّ الترجمات</string>
+    <string name="native_243fba2c148c" formatted="false">لا تزال الترجمات الموجودة متاحة.</string>
+    <string name="native_32735d17694d" formatted="false">سجّل الدخول من الإعدادات لترجمة هذا الحديث.</string>
+    <string name="native_8fe147696fbf" formatted="false">ترجمة</string>
+    <string name="native_d989893356ee" formatted="false">عرض الخطط</string>
+    <string name="native_2d8e5d8cbd80" formatted="false">جارٍ إعداد الترجمة…</string>
+    <string name="native_0dce590c7d31" formatted="false">متبقٍ %1$s من %2$s ترجمة</string>
+    <string name="native_7dcb57998fb9" formatted="false">أعد المحاولة %s</string>
 </resources>

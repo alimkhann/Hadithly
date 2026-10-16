@@ -11,7 +11,7 @@
     <string name="native_bfd402b2f6f3">Кіру</string>
     <string name="native_c3812fc4acb8">Жою</string>
     <string name="native_caf85b0888d7">Дереккөздер</string>
-    <string name="native_d8b8392e2c54">Қайталау</string>
+    <string name="native_d8b8392e2c54" formatted="false">Қайталау</string>
     <string name="native_dddd7b14feda">Сақталған элемент жойылсын ба?</string>
     <string name="native_e21f935f11d7">Көшіру</string>
     <string name="native_004e9ce2b80f">Мағынаға, сөз қолданысына немесе атрибуцияға қатысты алаңдаушылықты сипаттаңыз. Есептер жеке және дауыс немесе рейтинг емес.</string>
@@ -153,4 +153,15 @@
     <string name="native_279166910494" formatted="false">Кеңесті жабу</string>
     <string name="native_9ad22124e012" formatted="false">Бетбелгілер мен жазбаларды құрылғылар арасында синхрондаңыз.</string>
     <string name="native_43b0446666d2" formatted="false">Аударма дереккөздері</string>
+    <string name="native_4a4cd514fe4b" formatted="false">Әзірге аударма жоқ</string>
+    <string name="native_2f5022ad8edc" formatted="false">Аударма аяқталмады</string>
+    <string name="native_ca64b6451ae0" formatted="false">Аударма уақытша қолжетімсіз</string>
+    <string name="native_a42c1535d011" formatted="false">Аударма лимиті таусылды</string>
+    <string name="native_243fba2c148c" formatted="false">Дайын аудармалар әлі де қолжетімді.</string>
+    <string name="native_32735d17694d" formatted="false">Бұл хадисті аудару үшін Баптаулар арқылы кіріңіз.</string>
+    <string name="native_8fe147696fbf" formatted="false">Аудару</string>
+    <string name="native_d989893356ee" formatted="false">Жоспарларды көру</string>
+    <string name="native_2d8e5d8cbd80" formatted="false">Аударма дайындалып жатыр…</string>
+    <string name="native_0dce590c7d31" formatted="false">%2$s аударманың %1$s қалды</string>
+    <string name="native_7dcb57998fb9" formatted="false">Қайталау уақыты: %s</string>
 </resources>

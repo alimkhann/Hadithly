@@ -3,13 +3,17 @@
 import hashlib
 import json
 import re
-import sys
+import argparse
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from xml.sax.saxutils import escape
 ROOT=Path(__file__).resolve().parents[1]
-check='--check' in sys.argv
-source=json.loads((ROOT/'docs/ui-polish-copy.json').read_text())
+parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--check',action='store_true')
+parser.add_argument('--source',default='docs/ui-polish-copy.json')
+args=parser.parse_args()
+check=args.check
+source=json.loads((ROOT/args.source).read_text())
 keys=source['keys']; locales=source['locales']
 assert len(locales)==15 and all(len(values)==len(keys) and all(values) for values in locales.values())
 ids={key:'native_'+hashlib.sha256(key.encode()).hexdigest()[:12] for key in keys}
@@ -56,7 +60,8 @@ for locale,values in locales.items():
     text=path.read_text() if path.exists() else '<resources>\n</resources>\n'
     for i,key in enumerate(keys):
         name=ids[key]
-        raw=escape(values[i]).replace("'",r"\'").replace('"',r'\"')
+        android_value=re.sub(r'%(\d+\$)?@',lambda m:'%'+(m.group(1) or '')+'s',values[i])
+        raw=escape(android_value).replace("'",r"\'").replace('"',r'\"')
         row=f'    <string name="{name}" formatted="false">{raw}</string>'
         pattern=re.compile(r'^[ \t]*<string\b[^>]*name="'+name+r'"[^>]*>.*?</string>',re.M)
         if pattern.search(text): text=pattern.sub(lambda _:row,text)

@@ -1,5 +1,21 @@
 # Live language-switch repair
 
+## October 17 follow-up: native row direction
+
+The owner reported a separate RTL → LTR defect during onboarding and in Settings.
+A new real-root iOS test reproduces English row text remaining at x=285 instead of
+x=62 after Arabic → English. Recreating only the language list when direction
+changes repairs native cell layout without replacing navigation or onboarding.
+Arabic and Urdu onboarding round trips pass. The Settings Arabic round trip passes,
+with before/restored picker captures visually compared. Android's real-root
+onboarding Arabic/Urdu and Settings Arabic checks pass without a product change.
+
+See [the focused verification record](READER_STATUS_VERIFICATION.md) for red and
+green runs, captures, and remaining device/copy gates. The older physical evidence
+below does not prove this newer regression on devices.
+
+## October 12 record
+
 2026-10-12. Owner-requested follow-up while finishing Q1/E2. No Q2 or full
 LA1 localization session started.
 

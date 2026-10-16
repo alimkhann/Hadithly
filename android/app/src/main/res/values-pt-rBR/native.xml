@@ -11,7 +11,7 @@
     <string name="native_bfd402b2f6f3">Entrar</string>
     <string name="native_c3812fc4acb8">Remover</string>
     <string name="native_caf85b0888d7">Fontes</string>
-    <string name="native_d8b8392e2c54">Tentar novamente</string>
+    <string name="native_d8b8392e2c54" formatted="false">Tentar novamente</string>
     <string name="native_dddd7b14feda">Remover item salvo?</string>
     <string name="native_e21f935f11d7">Copiar</string>
     <string name="native_004e9ce2b80f">Descreva uma preocupação de significado, redação ou atribuição. Os relatórios são privados e não são votos ou avaliações.</string>
@@ -153,4 +153,15 @@
     <string name="native_279166910494" formatted="false">Fechar dica</string>
     <string name="native_9ad22124e012" formatted="false">Sincronize marcadores e notas entre dispositivos.</string>
     <string name="native_43b0446666d2" formatted="false">Fontes da tradução</string>
+    <string name="native_4a4cd514fe4b" formatted="false">Ainda não há tradução</string>
+    <string name="native_2f5022ad8edc" formatted="false">Não foi possível concluir a tradução</string>
+    <string name="native_ca64b6451ae0" formatted="false">Tradução temporariamente indisponível</string>
+    <string name="native_a42c1535d011" formatted="false">Limite de traduções atingido</string>
+    <string name="native_243fba2c148c" formatted="false">As traduções existentes continuam disponíveis.</string>
+    <string name="native_32735d17694d" formatted="false">Entre pela tela de Configurações para traduzir este hadith.</string>
+    <string name="native_8fe147696fbf" formatted="false">Traduzir</string>
+    <string name="native_d989893356ee" formatted="false">Ver planos</string>
+    <string name="native_2d8e5d8cbd80" formatted="false">Preparando a tradução…</string>
+    <string name="native_0dce590c7d31" formatted="false">Restam %1$s de %2$s traduções</string>
+    <string name="native_7dcb57998fb9" formatted="false">Tente novamente %s</string>
 </resources>

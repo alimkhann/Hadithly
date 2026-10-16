@@ -11,7 +11,7 @@
     <string name="native_bfd402b2f6f3">Giriş yapın</string>
     <string name="native_c3812fc4acb8">Kaldır</string>
     <string name="native_caf85b0888d7">Kaynaklar</string>
-    <string name="native_d8b8392e2c54">Tekrar deneyin</string>
+    <string name="native_d8b8392e2c54" formatted="false">Yeniden dene</string>
     <string name="native_dddd7b14feda">Kayıtlı öğe kaldırılsın mı?</string>
     <string name="native_e21f935f11d7">Kopyala</string>
     <string name="native_004e9ce2b80f">Anlam, ifade veya atıfla ilgili endişenizi açıklayın. Raporlar özeldir; oy veya puan değildir.</string>
@@ -153,4 +153,15 @@
     <string name="native_279166910494" formatted="false">İpucunu kapat</string>
     <string name="native_9ad22124e012" formatted="false">Yer imlerini ve notları cihazlar arasında eşitleyin.</string>
     <string name="native_43b0446666d2" formatted="false">Çeviri kaynakları</string>
+    <string name="native_4a4cd514fe4b" formatted="false">Henüz çeviri yok</string>
+    <string name="native_2f5022ad8edc" formatted="false">Çeviri tamamlanamadı</string>
+    <string name="native_ca64b6451ae0" formatted="false">Çeviri geçici olarak kullanılamıyor</string>
+    <string name="native_a42c1535d011" formatted="false">Çeviri hakkı tükendi</string>
+    <string name="native_243fba2c148c" formatted="false">Mevcut çeviriler hâlâ kullanılabilir.</string>
+    <string name="native_32735d17694d" formatted="false">Bu hadisi çevirmek için Ayarlar’dan giriş yapın.</string>
+    <string name="native_8fe147696fbf" formatted="false">Çevir</string>
+    <string name="native_d989893356ee" formatted="false">Planları gör</string>
+    <string name="native_2d8e5d8cbd80" formatted="false">Çeviri hazırlanıyor…</string>
+    <string name="native_0dce590c7d31" formatted="false">%2$s çeviri hakkından %1$s kaldı</string>
+    <string name="native_7dcb57998fb9" formatted="false">Yeniden deneme zamanı: %s</string>
 </resources>

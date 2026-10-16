@@ -51,6 +51,7 @@ enum SupportedLanguages {
 
 struct LanguagePickerView: View {
     @Environment(\.readerPalette) private var palette
+    @Environment(\.layoutDirection) private var layoutDirection
     @Binding var selection: String
 
     var body: some View {
@@ -72,6 +73,7 @@ struct LanguagePickerView: View {
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
+            .id(layoutDirection)
             .padding(.top, 16)
 
         }

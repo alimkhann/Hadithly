@@ -142,42 +142,16 @@ struct ArticleLoadingView: View {
 
 struct TranslationThinkingView: View {
     @Environment(\.readerPalette) private var palette
-    @Environment(\.accessibilityReduceMotion) private var reducedMotion
-    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 8) {
-                Image(systemName: "sparkles").font(.caption)
-                Text("AI translation…")
-                    .font(.caption.weight(.medium))
-                    .modifier(ShimmerSweep(intensity: 0.65))
-                if reducedMotion || scenePhase != .active {
-                    dots(progress: 0)
-                } else {
-                    TimelineView(.animation(minimumInterval: 1 / 20)) { time in
-                        dots(progress: time.date.timeIntervalSinceReferenceDate)
-                    }
-                }
-            }
-            .foregroundStyle(palette.textSecondary)
-            ContentSkeleton(animated: !reducedMotion, label: "AI translation…")
-                .accessibilityHidden(true)
+        HStack(spacing: 10) {
+            ProgressView().controlSize(.small).tint(palette.textSecondary)
+            Text("Preparing translation…").font(.subheadline)
         }
-        .padding(.vertical, 8)
+        .foregroundStyle(palette.textSecondary)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("AI translation…")
+        .accessibilityLabel("Preparing translation…")
         .accessibilityIdentifier("reader.translationLoading")
-    }
-
-    private func dots(progress: Double) -> some View {
-        HStack(spacing: 3) {
-            ForEach(0..<3) { index in
-                Circle().frame(width: 3, height: 3)
-                    .opacity(reducedMotion ? 0.6 : 0.35 + 0.65 * (sin(progress * 2 * .pi / InterfaceMotion.thinkingPulsePeriod - Double(index) * 0.9) + 1) / 2)
-            }
-        }
-        .accessibilityHidden(true)
     }
 }
 

@@ -172,5 +172,16 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "Dismiss hint" -> R.string.native_279166910494
     "Sync bookmarks and notes across devices." -> R.string.native_9ad22124e012
     "Translation sources" -> R.string.native_43b0446666d2
+    "No translation yet" -> R.string.native_4a4cd514fe4b
+    "Translation couldn’t finish" -> R.string.native_2f5022ad8edc
+    "Translation temporarily unavailable" -> R.string.native_ca64b6451ae0
+    "Translation allowance used" -> R.string.native_a42c1535d011
+    "Existing translations are still available." -> R.string.native_243fba2c148c
+    "Sign in from Settings to translate this hadith." -> R.string.native_32735d17694d
+    "Translate" -> R.string.native_8fe147696fbf
+    "See plans" -> R.string.native_d989893356ee
+    "Preparing translation…" -> R.string.native_2d8e5d8cbd80
+    "%1$@ of %2$@ translations left" -> R.string.native_0dce590c7d31
+    "Try again %@" -> R.string.native_7dcb57998fb9
     else -> null
 }

@@ -13,6 +13,43 @@ import java.io.File
 
 class OnboardingLA2Test {
     @get:Rule val compose = createAndroidComposeRule<MainActivity>()
+    @Test fun languageRoundTripRestoresEnglishRowAndBackAlignment() {
+        val app = compose.activity.application as HadithlyApplication
+        val prefs = compose.activity.getSharedPreferences("onboarding", 0)
+        val old = prefs.all
+        val original = app.preferences.preferences.value
+        val completed = app.settings.onboardingCompleted.value
+        try {
+            compose.runOnIdle {
+                prefs.edit().clear().commit()
+                app.preferences.applyOnboardingLanguage("en")
+                app.settings.setOnboardingCompleted(false)
+            }
+            compose.onNodeWithTag("onboarding.getStarted").performClick()
+            val englishX = compose.onNodeWithText("English", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot.left
+            val backX = compose.onNodeWithTag("onboarding.back").fetchSemanticsNode().boundsInRoot.center.x
+            val center = compose.onRoot().fetchSemanticsNode().boundsInRoot.center.x
+            for (name in listOf("العربية", "اردو")) {
+                compose.onNode(hasScrollToNodeAction()).performScrollToNode(hasText(name))
+                compose.onNodeWithText(name).performClick()
+                assertTrue(compose.onNodeWithTag("onboarding.back").fetchSemanticsNode().boundsInRoot.center.x > center)
+                compose.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("English"))
+                compose.onNodeWithText("English").performClick()
+                assertEquals(englishX, compose.onNodeWithText("English", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot.left, 1f)
+                assertEquals(backX, compose.onNodeWithTag("onboarding.back").fetchSemanticsNode().boundsInRoot.center.x, 1f)
+            }
+        } finally {
+            compose.runOnIdle {
+                app.preferences.setUILocale(original.uiLocale)
+                app.preferences.setTranslationLocale(original.translationLocale)
+                app.settings.setOnboardingCompleted(completed)
+                val edit = prefs.edit().clear()
+                old.forEach { (key, value) -> when (value) { is Int -> edit.putInt(key, value); is String -> edit.putString(key, value); is Boolean -> edit.putBoolean(key, value) } }
+                edit.commit()
+            }
+        }
+    }
+
     @Test fun realFlowLoadsDailyHadithAndOffersGuestAfterSignInEntry() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val prefs = context.getSharedPreferences("onboarding", 0)

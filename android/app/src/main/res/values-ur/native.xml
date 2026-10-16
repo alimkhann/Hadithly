@@ -11,7 +11,7 @@
     <string name="native_bfd402b2f6f3">سائن ان کریں</string>
     <string name="native_c3812fc4acb8">ہٹائیں</string>
     <string name="native_caf85b0888d7">ذرائع</string>
-    <string name="native_d8b8392e2c54">دوبارہ کوشش کریں</string>
+    <string name="native_d8b8392e2c54" formatted="false">دوبارہ کوشش کریں</string>
     <string name="native_dddd7b14feda">محفوظہ آئٹم ہٹائیں؟</string>
     <string name="native_e21f935f11d7">کاپی کریں</string>
     <string name="native_004e9ce2b80f">معنی، الفاظ یا نسبت سے متعلق تشویش بیان کریں۔ رپورٹس نجی ہیں، ووٹ یا درجہ بندی نہیں۔</string>
@@ -153,4 +153,15 @@
     <string name="native_279166910494" formatted="false">اشارہ بند کریں</string>
     <string name="native_9ad22124e012" formatted="false">اپنے آلات پر نشانیاں اور نوٹس ہم آہنگ کریں۔</string>
     <string name="native_43b0446666d2" formatted="false">ترجمے کے مصادر</string>
+    <string name="native_4a4cd514fe4b" formatted="false">ابھی ترجمہ موجود نہیں</string>
+    <string name="native_2f5022ad8edc" formatted="false">ترجمہ مکمل نہیں ہو سکا</string>
+    <string name="native_ca64b6451ae0" formatted="false">ترجمہ عارضی طور پر دستیاب نہیں</string>
+    <string name="native_a42c1535d011" formatted="false">ترجمے کی حد پوری ہو گئی</string>
+    <string name="native_243fba2c148c" formatted="false">موجودہ تراجم اب بھی دستیاب ہیں۔</string>
+    <string name="native_32735d17694d" formatted="false">اس حدیث کا ترجمہ کرنے کے لیے ترتیبات سے سائن ان کریں۔</string>
+    <string name="native_8fe147696fbf" formatted="false">ترجمہ کریں</string>
+    <string name="native_d989893356ee" formatted="false">منصوبے دیکھیں</string>
+    <string name="native_2d8e5d8cbd80" formatted="false">ترجمہ تیار ہو رہا ہے…</string>
+    <string name="native_0dce590c7d31" formatted="false">%2$s میں سے %1$s تراجم باقی ہیں</string>
+    <string name="native_7dcb57998fb9" formatted="false">دوبارہ کوشش کریں: %s</string>
 </resources>

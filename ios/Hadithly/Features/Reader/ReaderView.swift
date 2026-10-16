@@ -1619,18 +1619,7 @@ private struct HadithBlock: View {
             if preferences.translationVisible {
                 VStack(alignment: .leading, spacing: 8) {
                     translationSection
-                    if let allowance = model.translationAllowances[hadith.internalId] {
-                        Text(String(format: String(localized: "q1.remaining", locale: locale), Int(allowance.remaining), Int(allowance.limit)))
-                            .font(.caption)
-                            .foregroundStyle(palette.textSecondary)
-                            .accessibilityIdentifier("reader.translationAllowance")
-                        if let retryAt = allowance.retryAt {
-                            Text(String(format: String(localized: "q1.retry_at", locale: locale), Date(timeIntervalSince1970: retryAt / 1000).formatted(Date.FormatStyle(date: .abbreviated, time: .shortened).locale(locale))))
-                                .font(.caption)
-                                .foregroundStyle(palette.textSecondary)
-                                .accessibilityIdentifier("reader.translationRetryAt")
-                        }
-                    }
+
                 }
                 .environment(
                     \.layoutDirection,
@@ -1934,59 +1923,98 @@ private struct HadithBlock: View {
     @ViewBuilder
     private var aiTranslationSection: some View {
         TranslationReveal(phase: translationState?.presentationPhase ?? .idle) {
+            if case .loaded(let translation) = translationState {
+                translationText(translation.translation, storedTranslation: translation)
+                if !translation.glossaryNotes.isEmpty { glossaryNotes(translation.glossaryNotes) }
+            } else {
+                let now = Date()
+                let deadline = translationRetryAt.map { Date(timeIntervalSince1970: $0 / 1000) }
+                let updates = [now] + (deadline.map { $0 > now ? [$0] : [] } ?? [])
+                TimelineView(.explicit(updates)) { context in
+                    translationStatus(at: context.date)
+                }
+                .environment(\.layoutDirection, LocaleFallback.isRTL(preferences.uiLocale) ? .rightToLeft : .leftToRight)
+            }
+        }
+    }
+
+    private var translationAllowance: TranslationAllowance? { model.translationAllowances[hadith.internalId] }
+
+    private var translationRetryAt: Double? {
         switch translationState {
-        case .none:
-            Button(action: onRetry) {
-                Text("q1.generate")
-                    .font(.caption)
-                    .foregroundStyle(palette.interactive)
-                    .frame(minHeight: 44)
-                    .contentShape(Rectangle())
-            }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("reader.generateTranslation")
-
-        case .loading:
-            TranslationThinkingView()
-
-        case .loaded(let translation):
-            translationText(translation.translation, storedTranslation: translation)
-            if !translation.glossaryNotes.isEmpty {
-                glossaryNotes(translation.glossaryNotes)
-            }
-
-        case .failed(.requiresSignIn):
-            quietNotice(
-                icon: "person.crop.circle.badge.questionmark",
-                text: "Sign in to get AI translations in your language.",
-                actionTitle: "Sign in"
-            )
-
-        case .failed(.quotaExceeded):
-            quietNotice(
-                icon: "sparkles",
-                text: String(localized: "q1.quota_exhausted", locale: locale),
-                actionTitle: "See plans",
-                action: onShowPaywall
-            )
-
-        case .failed(let failure):
-            if let retryAt = failure.retryAt {
-                Text(String(format: String(localized: "q1.retry_at", locale: locale), Date(timeIntervalSince1970: retryAt / 1000).formatted(Date.FormatStyle(date: .abbreviated, time: .shortened).locale(locale))))
-                    .font(.caption)
-                    .foregroundStyle(palette.textSecondary)
-            }
-            Button(action: onRetry) {
-                Text("AI translation unavailable · retry")
-                    .font(.caption)
-                    .foregroundStyle(palette.textSecondary)
-                    .frame(minHeight: 44)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityIdentifier("reader.retryTranslation")
+        case .failed(.quotaExceeded): translationAllowance?.retryAt
+        case .failed(let failure): failure.retryAt
+        default: nil
         }
+    }
+
+    private func translationStatus(at now: Date) -> some View {
+        let waiting = translationRetryAt.map { $0 > now.timeIntervalSince1970 * 1000 } ?? false
+        return VStack(alignment: .leading, spacing: 8) {
+            switch translationState {
+            case .none:
+                Text("No translation yet").font(.subheadline.weight(.medium))
+            case .loading:
+                TranslationThinkingView()
+            case .failed(.requiresSignIn):
+                Text("No translation yet").font(.subheadline.weight(.medium))
+                Text("Sign in from Settings to translate this hadith.")
+                    .font(.footnote).foregroundStyle(palette.textSecondary)
+            case .failed(.quotaExceeded):
+                Text("Translation allowance used").font(.subheadline.weight(.medium))
+                Text("Existing translations are still available.")
+                    .font(.footnote).foregroundStyle(palette.textSecondary)
+            case .failed:
+                Text(LocalizedStringKey(waiting ? "Translation temporarily unavailable" : "Translation couldn’t finish"))
+                    .font(.subheadline.weight(.medium))
+            case .loaded: EmptyView()
+            }
+
+            if let allowance = translationAllowance {
+                Text(String(format: AppLocalization.string("%1$@ of %2$@ translations left", locale: locale), Int(allowance.remaining).formatted(.number.locale(locale)), Int(allowance.limit).formatted(.number.locale(locale))))
+                    .font(.caption).foregroundStyle(palette.textSecondary)
+                    .accessibilityIdentifier("reader.translationAllowance")
+            }
+            if waiting, let retryAt = translationRetryAt {
+                Text(String(format: AppLocalization.string("Try again %@", locale: locale), Date(timeIntervalSince1970: retryAt / 1000).formatted(Date.FormatStyle(date: .abbreviated, time: .shortened).locale(locale))))
+                    .font(.caption).foregroundStyle(palette.textSecondary)
+                    .accessibilityIdentifier("reader.translationRetryAt")
+            }
+
+            switch translationState {
+            case .none:
+                translationAction("Translate", id: "reader.generateTranslation", action: onRetry)
+            case .failed(.quotaExceeded):
+                if !waiting, translationRetryAt != nil {
+                    translationAction("Try again", id: "reader.retryTranslation", action: onRetry)
+                } else if translationAllowance?.limit == 5 {
+                    translationAction("See plans", id: "reader.quotaPaywall", action: onShowPaywall)
+                } else if translationRetryAt == nil {
+                    translationAction("Try again", id: "reader.retryTranslation", action: onRetry)
+                }
+            case .failed(.failed):
+                translationAction("Try again", id: "reader.retryTranslation", enabled: !waiting, action: onRetry)
+            default: EmptyView()
+            }
         }
+        .foregroundStyle(palette.textPrimary)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background(palette.surface, in: RoundedRectangle(cornerRadius: 12))
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("reader.translationStatus")
+    }
+
+    private func translationAction(_ title: LocalizedStringKey, id: String, enabled: Bool = true, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title).font(.subheadline.weight(.medium))
+        }
+        .buttonStyle(.bordered)
+        .frame(minHeight: 44)
+        .contentShape(Rectangle())
+        .tint(palette.interactive)
+        .disabled(!enabled)
+        .accessibilityIdentifier(id)
     }
 
     private func translationText(_ text: String, storedTranslation: ReaderTranslation? = nil) -> some View {
@@ -2002,35 +2030,6 @@ private struct HadithBlock: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private func quietNotice(
-        icon: String,
-        text: String,
-        actionTitle: String?,
-        action: (() -> Void)? = nil
-    ) -> some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.body)
-                .foregroundStyle(palette.textSecondary)
-            Text(text)
-                .font(.caption)
-                .foregroundStyle(palette.textSecondary)
-                .multilineTextAlignment(.center)
-            if let actionTitle, let action {
-                Button(actionTitle, action: action)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(palette.interactive)
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("reader.quotaPaywall")
-            } else if actionTitle != nil {
-                Text("Sign-in lives on the Settings tab.")
-                    .font(.caption2)
-                    .foregroundStyle(palette.textSecondary.opacity(0.7))
-            }
-        }
-        .padding(.vertical, 8)
     }
 
     private var activeTranslation: ReaderTranslation? {
@@ -2723,6 +2722,7 @@ struct ReaderR6ATestFixtureView: View {
         self.palette = ReaderPalette.resolved(theme, systemDark: true)
         preferences.arabicVisible = environment["R6A_ARABIC_VISIBLE"] != "false"
         preferences.translationVisible = environment["R6A_TRANSLATION_VISIBLE"] != "false"
+        preferences.uiLocale = environment["Q1_UI_LOCALE"] ?? environment["FINISH_LOCALE"] ?? "en"
         self.preferences = preferences
         fullyCached = environment["R6A_FULL_CACHE"] != "false"
         volumeDelay = Double(environment["R6A_VOLUME_DELAY"] ?? "") ?? 0.6
@@ -2769,6 +2769,16 @@ struct ReaderR6ATestFixtureView: View {
                 allowance: TranslationAllowance(limit: 5, remaining: 0, retryAt: Date().timeIntervalSince1970 * 1000 + 60_000))
         case "rate":
             seeded.seedQ1TranslationForUITest(id: "sunnah_now:bukhari:57", state: .failed(.failed("AI_RATE_LIMITED")), allowance: nil)
+        case "cooldown":
+            let retryAt = Int(Date().timeIntervalSince1970 * 1000 + 60_000)
+            seeded.seedQ1TranslationForUITest(id: "sunnah_now:bukhari:57", state: .failed(.failed("AI_GENERATION_BUSY retryAt: \(retryAt)")),
+                allowance: TranslationAllowance(limit: 5, remaining: 3, retryAt: nil))
+        case "paid-quota":
+            seeded.seedQ1TranslationForUITest(id: "sunnah_now:bukhari:57", state: .failed(.quotaExceeded),
+                allowance: TranslationAllowance(limit: 100, remaining: 0, retryAt: Date().timeIntervalSince1970 * 1000 + 60_000))
+        case "quota-ready":
+            seeded.seedQ1TranslationForUITest(id: "sunnah_now:bukhari:57", state: .failed(.quotaExceeded),
+                allowance: TranslationAllowance(limit: 5, remaining: 0, retryAt: Date().timeIntervalSince1970 * 1000 - 60_000))
         case "sources":
             seeded.seedQ1TranslationForUITest(id: "sunnah_now:bukhari:57", state: .loaded(ReaderTranslation(
                 translationId: "fixture-sources", translation: "Prepared sourced translation", confidence: nil, riskFlags: [], glossaryNotes: [],
@@ -2777,7 +2787,7 @@ struct ReaderR6ATestFixtureView: View {
         case "cached":
             seeded.seedQ1TranslationForUITest(id: "sunnah_now:bukhari:57", state: .loaded(ReaderTranslation(
                 translationId: "fixture-cache", translation: "Cached exact-locale text", confidence: nil, riskFlags: [], glossaryNotes: [],
-                source: "official", sourceLabel: "Official", aiModel: nil, groundingUsed: false, citations: [], sourceReferenceUrl: nil, cached: true)), allowance: nil)
+                source: "official", sourceLabel: "Official", aiModel: nil, groundingUsed: false, citations: [], sourceReferenceUrl: nil, cached: true)), allowance: TranslationAllowance(limit: 5, remaining: 3, retryAt: nil))
         default: break
         }
 
@@ -3085,6 +3095,9 @@ struct ReaderR6ATestFixtureView: View {
             .accessibilityHidden(true)
         }
         .sheet(isPresented: $showQuotaPaywallFixture) { QuotaPaywallView {} }
+        .transformEnvironment(\.locale) { locale in
+            if let code = ProcessInfo.processInfo.environment["Q1_UI_LOCALE"] { locale = Locale(identifier: code) }
+        }
         .accessibilityAction(named: "Previous page") { turnPage(.previous) }
         .accessibilityAction(named: "Next page") { turnPage(.next) }
     }

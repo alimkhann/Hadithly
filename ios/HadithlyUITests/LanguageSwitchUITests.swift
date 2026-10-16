@@ -23,6 +23,8 @@ final class LanguageSwitchUITests: XCTestCase {
     func testLiveLanguageSwitchKeepsEnglishLTRAndArabicLabels() throws {
         continueAfterFailure = false
         let app = XCUIApplication()
+        app.launchEnvironment["HADITHLY_UI_TESTING"] = "1"
+        app.launchArguments = ["-onboarding.completed", "YES"]
         app.launch()
         let settings = app.tabBars.buttons.element(boundBy: 3)
         XCTAssertTrue(settings.waitForExistence(timeout: 10))
@@ -50,6 +52,7 @@ final class LanguageSwitchUITests: XCTestCase {
         }
         app.buttons["settings.row.appLanguage"].tap()
         app.buttons["settings.uiLanguage.en"].tap()
+        capture("language-english-picker-restored")
         app.navigationBars.buttons.element(boundBy: 0).tap()
         app.tabBars.buttons["Today"].tap()
         capture("language-english-restored")

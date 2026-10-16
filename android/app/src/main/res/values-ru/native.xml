@@ -11,7 +11,7 @@
     <string name="native_bfd402b2f6f3">Войти</string>
     <string name="native_c3812fc4acb8">Удалить</string>
     <string name="native_caf85b0888d7">Источники</string>
-    <string name="native_d8b8392e2c54">Повторить</string>
+    <string name="native_d8b8392e2c54" formatted="false">Повторить</string>
     <string name="native_dddd7b14feda">Удалить сохранённый материал?</string>
     <string name="native_e21f935f11d7">Копировать</string>
     <string name="native_004e9ce2b80f">Опишите проблему со смыслом, формулировкой или атрибуцией. Жалобы приватны и не являются голосами или оценками.</string>
@@ -153,4 +153,15 @@
     <string name="native_279166910494" formatted="false">Скрыть подсказку</string>
     <string name="native_9ad22124e012" formatted="false">Синхронизируйте закладки и заметки между устройствами.</string>
     <string name="native_43b0446666d2" formatted="false">Источники перевода</string>
+    <string name="native_4a4cd514fe4b" formatted="false">Перевода пока нет</string>
+    <string name="native_2f5022ad8edc" formatted="false">Не удалось завершить перевод</string>
+    <string name="native_ca64b6451ae0" formatted="false">Перевод временно недоступен</string>
+    <string name="native_a42c1535d011" formatted="false">Лимит переводов исчерпан</string>
+    <string name="native_243fba2c148c" formatted="false">Готовые переводы по-прежнему доступны.</string>
+    <string name="native_32735d17694d" formatted="false">Войдите через настройки, чтобы перевести этот хадис.</string>
+    <string name="native_8fe147696fbf" formatted="false">Перевести</string>
+    <string name="native_d989893356ee" formatted="false">Посмотреть планы</string>
+    <string name="native_2d8e5d8cbd80" formatted="false">Подготовка перевода…</string>
+    <string name="native_0dce590c7d31" formatted="false">Осталось переводов: %1$s из %2$s</string>
+    <string name="native_7dcb57998fb9" formatted="false">Повторите %s</string>
 </resources>

@@ -11,7 +11,7 @@
     <string name="native_bfd402b2f6f3">साइन इन करें</string>
     <string name="native_c3812fc4acb8">हटाएँ</string>
     <string name="native_caf85b0888d7">स्रोत</string>
-    <string name="native_d8b8392e2c54">फिर कोशिश करें</string>
+    <string name="native_d8b8392e2c54" formatted="false">फिर कोशिश करें</string>
     <string name="native_dddd7b14feda">सहेजी गई चीज़ हटाएँ?</string>
     <string name="native_e21f935f11d7">कॉपी करें</string>
     <string name="native_004e9ce2b80f">अर्थ, शब्दों या श्रेय से जुड़ी चिंता बताएँ। रिपोर्ट निजी हैं और वोट या रेटिंग नहीं हैं।</string>
@@ -153,4 +153,15 @@
     <string name="native_279166910494" formatted="false">सुझाव बंद करें</string>
     <string name="native_9ad22124e012" formatted="false">डिवाइसों के बीच बुकमार्क और नोट सिंक करें।</string>
     <string name="native_43b0446666d2" formatted="false">अनुवाद के स्रोत</string>
+    <string name="native_4a4cd514fe4b" formatted="false">अभी अनुवाद नहीं है</string>
+    <string name="native_2f5022ad8edc" formatted="false">अनुवाद पूरा नहीं हो सका</string>
+    <string name="native_ca64b6451ae0" formatted="false">अनुवाद फ़िलहाल उपलब्ध नहीं है</string>
+    <string name="native_a42c1535d011" formatted="false">अनुवाद की सीमा पूरी हो गई</string>
+    <string name="native_243fba2c148c" formatted="false">मौजूदा अनुवाद अब भी उपलब्ध हैं।</string>
+    <string name="native_32735d17694d" formatted="false">इस हदीस का अनुवाद करने के लिए सेटिंग्स से साइन इन करें।</string>
+    <string name="native_8fe147696fbf" formatted="false">अनुवाद करें</string>
+    <string name="native_d989893356ee" formatted="false">प्लान देखें</string>
+    <string name="native_2d8e5d8cbd80" formatted="false">अनुवाद तैयार हो रहा है…</string>
+    <string name="native_0dce590c7d31" formatted="false">%2$s में से %1$s अनुवाद बाकी हैं</string>
+    <string name="native_7dcb57998fb9" formatted="false">%s को फिर कोशिश करें</string>
 </resources>

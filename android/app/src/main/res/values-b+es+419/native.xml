@@ -11,7 +11,7 @@
     <string name="native_bfd402b2f6f3">Iniciar sesión</string>
     <string name="native_c3812fc4acb8">Eliminar</string>
     <string name="native_caf85b0888d7">Fuentes</string>
-    <string name="native_d8b8392e2c54">Intentar de nuevo</string>
+    <string name="native_d8b8392e2c54" formatted="false">Reintentar</string>
     <string name="native_dddd7b14feda">¿Eliminar elemento guardado?</string>
     <string name="native_e21f935f11d7">Copiar</string>
     <string name="native_004e9ce2b80f">Describe una preocupación sobre el significado, la redacción o la atribución. Los informes son privados y no son votos ni calificaciones.</string>
@@ -153,4 +153,15 @@
     <string name="native_279166910494" formatted="false">Cerrar sugerencia</string>
     <string name="native_9ad22124e012" formatted="false">Sincroniza marcadores y notas entre dispositivos.</string>
     <string name="native_43b0446666d2" formatted="false">Fuentes de traducción</string>
+    <string name="native_4a4cd514fe4b" formatted="false">Aún no hay traducción</string>
+    <string name="native_2f5022ad8edc" formatted="false">No se pudo completar la traducción</string>
+    <string name="native_ca64b6451ae0" formatted="false">Traducción temporalmente no disponible</string>
+    <string name="native_a42c1535d011" formatted="false">Se agotó el cupo de traducciones</string>
+    <string name="native_243fba2c148c" formatted="false">Las traducciones existentes siguen disponibles.</string>
+    <string name="native_32735d17694d" formatted="false">Inicia sesión desde Ajustes para traducir este hadiz.</string>
+    <string name="native_8fe147696fbf" formatted="false">Traducir</string>
+    <string name="native_d989893356ee" formatted="false">Ver planes</string>
+    <string name="native_2d8e5d8cbd80" formatted="false">Preparando la traducción…</string>
+    <string name="native_0dce590c7d31" formatted="false">Quedan %1$s de %2$s traducciones</string>
+    <string name="native_7dcb57998fb9" formatted="false">Vuelve a intentar %s</string>
 </resources>

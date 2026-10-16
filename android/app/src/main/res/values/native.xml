@@ -151,4 +151,15 @@
     <string name="native_279166910494" formatted="false">Dismiss hint</string>
     <string name="native_9ad22124e012" formatted="false">Sync bookmarks and notes across devices.</string>
     <string name="native_43b0446666d2" formatted="false">Translation sources</string>
+    <string name="native_4a4cd514fe4b" formatted="false">No translation yet</string>
+    <string name="native_2f5022ad8edc" formatted="false">Translation couldn’t finish</string>
+    <string name="native_ca64b6451ae0" formatted="false">Translation temporarily unavailable</string>
+    <string name="native_a42c1535d011" formatted="false">Translation allowance used</string>
+    <string name="native_243fba2c148c" formatted="false">Existing translations are still available.</string>
+    <string name="native_32735d17694d" formatted="false">Sign in from Settings to translate this hadith.</string>
+    <string name="native_8fe147696fbf" formatted="false">Translate</string>
+    <string name="native_d989893356ee" formatted="false">See plans</string>
+    <string name="native_2d8e5d8cbd80" formatted="false">Preparing translation…</string>
+    <string name="native_0dce590c7d31" formatted="false">%1$s of %2$s translations left</string>
+    <string name="native_7dcb57998fb9" formatted="false">Try again %s</string>
 </resources>

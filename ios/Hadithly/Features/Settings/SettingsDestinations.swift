@@ -424,6 +424,7 @@ struct AppearanceView: View {
 
 private struct LanguageListView: View {
     @Environment(AppEnvironment.self) private var environment
+    @Environment(\.layoutDirection) private var layoutDirection
     let title: String
     let selection: String
     let accessibilityPrefix: String
@@ -449,6 +450,7 @@ private struct LanguageListView: View {
                 Text(footer)
             }
         }
+        .id(layoutDirection)
     }
 }
 

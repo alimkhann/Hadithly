@@ -11,7 +11,7 @@
     <string name="native_bfd402b2f6f3">Kirish</string>
     <string name="native_c3812fc4acb8">Olib tashlash</string>
     <string name="native_caf85b0888d7">Manbalar</string>
-    <string name="native_d8b8392e2c54">Qayta urinish</string>
+    <string name="native_d8b8392e2c54" formatted="false">Qayta urinish</string>
     <string name="native_dddd7b14feda">Saqlangan element olib tashlansinmi?</string>
     <string name="native_e21f935f11d7">Nusxalash</string>
     <string name="native_004e9ce2b80f">Ma’no, so‘z tanlovi yoki nisbat berish bo‘yicha xavotirni tasvirlang. Hisobotlar maxfiy va ovoz yoki reyting emas.</string>
@@ -153,4 +153,15 @@
     <string name="native_279166910494" formatted="false">Maslahatni yopish</string>
     <string name="native_9ad22124e012" formatted="false">Xatcho‘plar va qaydlarni qurilmalar o‘rtasida sinxronlang.</string>
     <string name="native_43b0446666d2" formatted="false">Tarjima manbalari</string>
+    <string name="native_4a4cd514fe4b" formatted="false">Hali tarjima yo‘q</string>
+    <string name="native_2f5022ad8edc" formatted="false">Tarjimani yakunlab bo‘lmadi</string>
+    <string name="native_ca64b6451ae0" formatted="false">Tarjima vaqtincha mavjud emas</string>
+    <string name="native_a42c1535d011" formatted="false">Tarjima limiti tugadi</string>
+    <string name="native_243fba2c148c" formatted="false">Mavjud tarjimalardan hali ham foydalanish mumkin.</string>
+    <string name="native_32735d17694d" formatted="false">Bu hadisni tarjima qilish uchun Sozlamalar orqali kiring.</string>
+    <string name="native_8fe147696fbf" formatted="false">Tarjima qilish</string>
+    <string name="native_d989893356ee" formatted="false">Rejalarni ko‘rish</string>
+    <string name="native_2d8e5d8cbd80" formatted="false">Tarjima tayyorlanmoqda…</string>
+    <string name="native_0dce590c7d31" formatted="false">%2$s ta tarjimadan %1$s tasi qoldi</string>
+    <string name="native_7dcb57998fb9" formatted="false">Qayta urinish vaqti: %s</string>
 </resources>

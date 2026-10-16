@@ -2,12 +2,14 @@ import XCTest
 
 final class TranslationQ1UITests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
-    private func launch(_ state: String? = nil) -> XCUIApplication {
+    private func launch(_ state: String? = nil, theme: String = "dark", locale: String = "en") -> XCUIApplication {
         let app = XCUIApplication()
         app.launchEnvironment["HADITHLY_UI_TESTING"] = "1"
         app.launchArguments = ["-R6AReaderFixture"]
         app.launchEnvironment["Q1_LANGUAGE"] = "ru"
         app.launchEnvironment["Q1_STATE"] = state
+        app.launchEnvironment["Q1_UI_LOCALE"] = locale
+        app.launchEnvironment["POLISH_THEME"] = theme
         app.launchEnvironment["R6A_ARABIC_VISIBLE"] = "false"
         app.launch()
         return app
@@ -24,8 +26,57 @@ final class TranslationQ1UITests: XCTestCase {
         XCTAssertTrue(generate.waitForExistence(timeout: 10))
         XCTAssertFalse(app.buttons["reader.quotaPaywall"].exists)
         generate.tap()
-        XCTAssertTrue(app.staticTexts["Sign in to get AI translations in your language."].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Sign in from Settings to translate this hadith."].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["reader.quotaPaywall"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["reader.translationAllowance"].exists)
+    }
+
+    func testCooldownHasOneDateAndDisablesPrematureRetry() {
+        let app = launch("cooldown")
+        let retry = app.buttons["reader.retryTranslation"].firstMatch
+        XCTAssertTrue(retry.waitForExistence(timeout: 10))
+        XCTAssertFalse(retry.isEnabled)
+        XCTAssertEqual(app.staticTexts.matching(identifier: "reader.translationRetryAt").count, 1)
+        XCTAssertTrue(app.staticTexts["Translation temporarily unavailable"].exists)
+        XCTAssertFalse(app.buttons["reader.quotaPaywall"].exists)
+        capture("cooldown", app)
+    }
+
+    func testProLimitHasAvailabilityWithoutAnotherUpgradeOffer() {
+        let app = launch("paid-quota")
+        XCTAssertTrue(app.staticTexts["Translation allowance used"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["reader.translationRetryAt"].exists)
+        XCTAssertFalse(app.buttons["reader.quotaPaywall"].exists)
+        capture("pro-limit", app)
+    }
+
+    func testElapsedQuotaAvailabilityOffersRetry() {
+        let app = launch("quota-ready")
+        let retry = app.buttons["reader.retryTranslation"].firstMatch
+        XCTAssertTrue(retry.waitForExistence(timeout: 10))
+        XCTAssertTrue(retry.isEnabled)
+        XCTAssertFalse(app.buttons["reader.quotaPaywall"].exists)
+        XCTAssertFalse(app.staticTexts["reader.translationRetryAt"].exists)
+    }
+
+    func testReaderStatusGalleryAcrossThemesAndArabic() {
+        for (state, theme, locale) in [("", "light", "en"), ("loading", "paper", "en"), ("rate", "dark", "en"), ("quota", "light", "en"), ("quota", "paper", "ar")] {
+            let app = launch(state, theme: theme, locale: locale)
+            XCTAssertTrue(app.descendants(matching: .any)["reader.translationStatus"].firstMatch.waitForExistence(timeout: 10))
+            if locale == "ar" {
+                XCTAssertTrue(app.staticTexts["reader.translationAllowance"].label.contains("ترجمة"))
+                XCTAssertTrue(app.staticTexts["reader.translationRetryAt"].label.contains("المحاولة"))
+            }
+            capture("\(state.isEmpty ? "missing" : state)-\(theme)-\(locale)", app)
+            app.terminate()
+        }
+    }
+
+    private func capture(_ name: String, _ app: XCUIApplication) {
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = "reader-status-" + name
+        attachment.lifetime = .keepAlways
+        add(attachment)
     }
 
     func testQuotaShowsAllowanceRetryAndPlansOnlyForRejectedHadith() {
@@ -45,6 +96,7 @@ final class TranslationQ1UITests: XCTestCase {
         let app = launch("cached")
         XCTAssertTrue(app.staticTexts["Cached exact-locale text"].waitForExistence(timeout: 10))
         XCTAssertFalse(app.buttons["reader.quotaPaywall"].exists)
+        XCTAssertFalse(app.staticTexts["reader.translationAllowance"].exists)
     }
 
     func testQ2QuotaPaywallShowsFiniteAllowanceOwnAccountAndNoWeeklyProduct() {

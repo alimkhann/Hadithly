@@ -2395,14 +2395,9 @@ internal fun HadithBlock(
                     language = language,
                     onRetry = onRetry,
                     onShowPaywall = onShowPaywall,
+                    allowance = allowance,
                 )
-                allowance?.let {
-                    Text(stringResource(R.string.q1_remaining, it.remaining.toInt(), it.limit.toInt()), fontSize = 12.sp, color = colors.textSecondary, modifier = Modifier.testTag("reader.translationAllowance"))
-                    it.retryAt?.let { retry ->
-                        val date = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT, java.text.DateFormat.SHORT).format(java.util.Date(retry.toLong()))
-                        Text(stringResource(R.string.q1_retry_at, date), fontSize = 12.sp, color = colors.textSecondary, modifier = Modifier.testTag("reader.translationRetryAt"))
-                    }
-                }
+
             }
         }
 
@@ -2729,53 +2724,75 @@ internal fun TranslationSection(
     language: String,
     onRetry: () -> Unit,
     onShowPaywall: () -> Unit,
+    allowance: com.hadithly.app.core.data.TranslationAllowance? = null,
 ) {
     val colors = LocalHadithlyColors.current
-
-    if (language == "en") {
-        val stored = (translationState as? TranslationUiState.Loaded)?.translation
-        val english = hadith.englishText
-        if (stored != null) {
+    val stored = (translationState as? TranslationUiState.Loaded)?.translation
+    if (stored != null) {
+        com.hadithly.app.core.theme.TranslationReveal(com.hadithly.app.core.theme.TranslationPresentationPhase.Available) {
             TranslationText(text = stored.translation, storedTranslation = stored)
-        } else if (!english.isNullOrEmpty()) {
-            TranslationText(text = english, storedTranslation = null)
         }
-        if (stored != null || !english.isNullOrEmpty()) return
+        GlossaryNotes(stored.glossaryNotes)
+        return
+    }
+    if (language == "en" && !hadith.englishText.isNullOrEmpty()) {
+        TranslationText(text = hadith.englishText, storedTranslation = null)
+        return
     }
 
-    when (translationState) {
-        null -> TextButton(onClick = onRetry, modifier = Modifier.heightIn(min = 48.dp).testTag("reader.generateTranslation")) {
-            Text(stringResource(R.string.q1_generate), fontSize = 12.sp, color = colors.interactive)
+    val failure = (translationState as? TranslationUiState.Failed)?.failure
+    val retryAt = if (failure == TranslationFailure.QuotaExceeded) allowance?.retryAt else failure?.retryAt
+    var now by remember(retryAt) { mutableStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(retryAt) {
+        if (retryAt != null && retryAt > now) {
+            kotlinx.coroutines.delay((retryAt - System.currentTimeMillis()).toLong().coerceAtLeast(0))
+            now = System.currentTimeMillis()
         }
-        is TranslationUiState.Loading -> com.hadithly.app.core.theme.TranslationThinkingView()
-
-        is TranslationUiState.Loaded -> {
-            com.hadithly.app.core.theme.TranslationReveal(com.hadithly.app.core.theme.TranslationPresentationPhase.Available) { TranslationText(
-                text = translationState.translation.translation,
-                storedTranslation = translationState.translation,
-            ) }
-            GlossaryNotes(translationState.translation.glossaryNotes)
-        }
-
-        is TranslationUiState.Failed -> when (translationState.failure) {
-            TranslationFailure.RequiresSignIn -> QuietNotice(
-                text = "Sign in to get AI translations in your language. Sign-in lives on the Settings tab.",
-            )
-            TranslationFailure.QuotaExceeded -> QuietNotice(
-                text = stringResource(R.string.q1_quota_exhausted),
-                actionTitle = "See plans",
-                onAction = onShowPaywall,
-            )
-            is TranslationFailure.Failed -> Column {
-                translationState.failure.retryAt?.let { retry ->
-                    val date = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT, java.text.DateFormat.SHORT).format(java.util.Date(retry.toLong()))
-                    Text(stringResource(R.string.q1_retry_at, date), fontSize = 12.sp, color = colors.textSecondary)
+    }
+    val waiting = retryAt != null && retryAt > now
+    val uiDirection = if (LocalConfiguration.current.layoutDirection == android.view.View.LAYOUT_DIRECTION_RTL) LayoutDirection.Rtl else LayoutDirection.Ltr
+    CompositionLocalProvider(LocalLayoutDirection provides uiDirection) {
+        Surface(color = colors.surface, shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth().testTag("reader.translationStatus")) {
+            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                when {
+                    translationState == TranslationUiState.Loading -> com.hadithly.app.core.theme.TranslationThinkingView()
+                    failure == TranslationFailure.RequiresSignIn -> {
+                        Text(nativeText("No translation yet"), style = MaterialTheme.typography.titleSmall, color = colors.textPrimary)
+                        Text(nativeText("Sign in from Settings to translate this hadith."), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+                    }
+                    failure == TranslationFailure.QuotaExceeded -> {
+                        Text(nativeText("Translation allowance used"), style = MaterialTheme.typography.titleSmall, color = colors.textPrimary)
+                        Text(nativeText("Existing translations are still available."), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+                    }
+                    failure != null -> Text(nativeText(if (waiting) "Translation temporarily unavailable" else "Translation couldn’t finish"), style = MaterialTheme.typography.titleSmall, color = colors.textPrimary)
+                    else -> Text(nativeText("No translation yet"), style = MaterialTheme.typography.titleSmall, color = colors.textPrimary)
                 }
-                TextButton(onClick = onRetry) {
-                    Text(nativeText("AI translation unavailable · retry"), fontSize = 12.sp, color = colors.textSecondary)
+                allowance?.let {
+                    Text(nativeText("%1$@ of %2$@ translations left", java.text.NumberFormat.getIntegerInstance(LocalConfiguration.current.locales[0]).format(it.remaining.toInt()), java.text.NumberFormat.getIntegerInstance(LocalConfiguration.current.locales[0]).format(it.limit.toInt())), style = MaterialTheme.typography.labelSmall, color = colors.textSecondary, modifier = Modifier.testTag("reader.translationAllowance"))
+                }
+                if (waiting) {
+                    val date = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT, java.text.DateFormat.SHORT, LocalConfiguration.current.locales[0]).format(java.util.Date(retryAt.toLong()))
+                    Text(nativeText("Try again %@", date), style = MaterialTheme.typography.labelSmall, color = colors.textSecondary, modifier = Modifier.testTag("reader.translationRetryAt"))
+                }
+                when {
+                    translationState == null -> TranslationAction("Translate", "reader.generateTranslation", onClick = onRetry)
+                    failure == TranslationFailure.QuotaExceeded -> {
+                        if (!waiting && retryAt != null) TranslationAction("Try again", "reader.retryTranslation", onClick = onRetry)
+                        else if (allowance?.limit == 5.0) TranslationAction("See plans", "reader.quotaPaywall", onClick = onShowPaywall)
+                        else if (retryAt == null) TranslationAction("Try again", "reader.retryTranslation", onClick = onRetry)
+                    }
+                    failure is TranslationFailure.Failed -> TranslationAction("Try again", "reader.retryTranslation", enabled = !waiting, onClick = onRetry)
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun TranslationAction(title: String, tag: String, enabled: Boolean = true, onClick: () -> Unit) {
+    val colors = LocalHadithlyColors.current
+    androidx.compose.material3.OutlinedButton(onClick = onClick, enabled = enabled, modifier = Modifier.heightIn(min = 48.dp).testTag(tag)) {
+        Text(nativeText(title), color = if (enabled) colors.interactive else colors.textSecondary)
     }
 }
 
@@ -2801,32 +2818,6 @@ private fun GlossaryNotes(notes: List<String>) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         for (note in notes) {
             Text("· $note", fontSize = 11.sp, color = colors.textSecondary)
-        }
-    }
-}
-
-@Composable
-private fun QuietNotice(
-    text: String,
-    actionTitle: String? = null,
-    onAction: (() -> Unit)? = null,
-) {
-    val colors = LocalHadithlyColors.current
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.padding(vertical = 8.dp),
-    ) {
-        Text(
-            text = text,
-            fontSize = 12.sp,
-            color = colors.textSecondary,
-            textAlign = TextAlign.Center,
-        )
-        if (actionTitle != null && onAction != null) {
-            TextButton(onClick = onAction) {
-                Text(actionTitle, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.interactive)
-            }
         }
     }
 }

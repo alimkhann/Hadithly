@@ -2,6 +2,35 @@ import XCTest
 
 final class OnboardingLA2UITests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
+    func testLanguageRoundTripRestoresEnglishRowAndBackAlignment() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-FreshInstallForUITest", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        app.launchEnvironment["HADITHLY_UI_TESTING"] = "1"
+        app.launch()
+        XCTAssertTrue(app.buttons["onboarding.getStarted"].waitForExistence(timeout: 10))
+        app.buttons["onboarding.getStarted"].tap()
+        app.buttons["onboarding.language.en"].tap()
+        let english = app.staticTexts["English"].firstMatch
+        XCTAssertTrue(english.exists)
+        let nameX = english.frame.minX
+        let backX = app.buttons["onboarding.back"].frame.midX
+        for code in ["ar", "ur"] {
+            let choice = app.buttons["onboarding.language.\(code)"]
+            if !choice.isHittable { app.swipeUp() }
+            choice.tap()
+            XCTAssertGreaterThan(app.buttons["onboarding.back"].frame.midX, app.frame.midX)
+            let first = app.buttons["onboarding.language.en"]
+            if !first.isHittable { app.swipeDown() }
+            first.tap()
+            XCTAssertEqual(english.frame.minX, nameX, accuracy: 1)
+            XCTAssertEqual(app.buttons["onboarding.back"].frame.midX, backX, accuracy: 1)
+            let attachment = XCTAttachment(screenshot: app.screenshot())
+            attachment.name = "onboarding-\(code)-to-en"
+            attachment.lifetime = .keepAlways
+            add(attachment)
+        }
+    }
+
     func testGuestFlowLoadsDailyHadithAndCancelledSignInRemainsUsable() {
         let app = XCUIApplication()
         app.launchArguments = ["-FreshInstallForUITest"]

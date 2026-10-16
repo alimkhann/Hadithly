@@ -134,25 +134,10 @@ private fun SkeletonLines(widths: List<Float>, height: Dp, gap: Dp, progress: Fl
 @Composable
 fun TranslationThinkingView(modifier: Modifier = Modifier) {
     val colors = LocalHadithlyColors.current
-    val progress = shimmerProgress(true)
-    val pulse = shimmerProgress(true, InterfaceMotion.THINKING_PULSE)
-    val label = nativeText("AI translation…")
-    Column(modifier.padding(vertical = 8.dp).testTag("reader.translationLoading").clearAndSetSemantics { contentDescription = label }, verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Icon(Icons.Filled.AutoAwesome, null, tint = colors.textSecondary, modifier = Modifier.size(14.dp))
-            val brush = if (progress != null) Brush.linearGradient(
-                listOf(colors.textSecondary, colors.textPrimary, colors.textSecondary),
-                start = Offset(-100f + progress * 600f, 0f), end = Offset(progress * 600f, 0f),
-            ) else null
-            Text(label, style = MaterialTheme.typography.labelMedium.copy(brush = brush), color = if (brush == null) colors.textSecondary else Color.Unspecified)
-            Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                repeat(3) { index ->
-                    val opacity = if (pulse == null) .6f else .35f + .65f * ((sin(pulse * 6.283185f - index * .9f) + 1) / 2)
-                    Box(Modifier.size(3.dp).background(colors.textSecondary.copy(alpha = opacity), RoundedCornerShape(50)))
-                }
-            }
-        }
-        ContentSkeleton(label = label)
+    val label = nativeText("Preparing translation…")
+    Row(modifier.testTag("reader.translationLoading").clearAndSetSemantics { contentDescription = label }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        androidx.compose.material3.CircularProgressIndicator(Modifier.size(16.dp), color = colors.textSecondary, strokeWidth = 2.dp)
+        Text(label, style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary)
     }
 }
 

@@ -93,9 +93,15 @@ asked about grounding for both account tiers, and requested a review of the
 linked retention case study through the local Pi video tools. Findings and the
 ordered reading-and-return milestones are in `docs/PRODUCT_READINESS_REVIEW.md`.
 Ordinary generation is ungrounded for both tiers in the current checkout; source
-count must not be presented as evidence of retrieval. The existing Settings
-round-trip test passes but does not cover the reported visual defect or onboarding.
-No release, localization, deployment, or physical-device gate closes here.
+count must not be presented as evidence of retrieval. The existing Settings test
+missed native row geometry. The defect is now reproduced and repaired on iOS by
+recreating only native language lists when direction changes. Reader missing,
+error, cooldown and allowance states are refined on both apps, with selected-locale
+count/time copy and no repeated Pro upgrade offer. See
+`docs/READER_STATUS_VERIFICATION.md` for eleven distinct iOS and thirteen Android
+focused UI passes, native captures, and verification limits. A chosen language's
+missing first-reading translation remains a separate product risk.
+No release, full-localization, deployment, or physical-device gate closes here.
 
 ## Read the plan in layers
 

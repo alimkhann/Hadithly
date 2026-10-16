@@ -11,7 +11,7 @@
     <string name="native_bfd402b2f6f3">সাইন ইন করুন</string>
     <string name="native_c3812fc4acb8">সরান</string>
     <string name="native_caf85b0888d7">উৎস</string>
-    <string name="native_d8b8392e2c54">আবার চেষ্টা করুন</string>
+    <string name="native_d8b8392e2c54" formatted="false">আবার চেষ্টা করুন</string>
     <string name="native_dddd7b14feda">সংরক্ষিত জিনিস সরাবেন?</string>
     <string name="native_e21f935f11d7">কপি করুন</string>
     <string name="native_004e9ce2b80f">অর্থ, শব্দচয়ন বা উৎস উল্লেখ নিয়ে উদ্বেগ বর্ণনা করুন। রিপোর্ট ব্যক্তিগত, ভোট বা রেটিং নয়।</string>
@@ -153,4 +153,15 @@
     <string name="native_279166910494" formatted="false">ইঙ্গিত বন্ধ করুন</string>
     <string name="native_9ad22124e012" formatted="false">ডিভাইসগুলোর মধ্যে বুকমার্ক ও নোট সিঙ্ক করুন।</string>
     <string name="native_43b0446666d2" formatted="false">অনুবাদের উৎস</string>
+    <string name="native_4a4cd514fe4b" formatted="false">এখনও অনুবাদ নেই</string>
+    <string name="native_2f5022ad8edc" formatted="false">অনুবাদ সম্পূর্ণ করা যায়নি</string>
+    <string name="native_ca64b6451ae0" formatted="false">অনুবাদ সাময়িকভাবে উপলব্ধ নয়</string>
+    <string name="native_a42c1535d011" formatted="false">অনুবাদের সীমা শেষ হয়েছে</string>
+    <string name="native_243fba2c148c" formatted="false">আগের অনুবাদগুলো এখনও উপলব্ধ।</string>
+    <string name="native_32735d17694d" formatted="false">এই হাদিস অনুবাদ করতে সেটিংস থেকে সাইন ইন করুন।</string>
+    <string name="native_8fe147696fbf" formatted="false">অনুবাদ করুন</string>
+    <string name="native_d989893356ee" formatted="false">প্ল্যান দেখুন</string>
+    <string name="native_2d8e5d8cbd80" formatted="false">অনুবাদ প্রস্তুত হচ্ছে…</string>
+    <string name="native_0dce590c7d31" formatted="false">%2$sটির মধ্যে %1$sটি অনুবাদ বাকি</string>
+    <string name="native_7dcb57998fb9" formatted="false">%s থেকে আবার চেষ্টা করুন</string>
 </resources>
