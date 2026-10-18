@@ -6,7 +6,7 @@ import Observation
 /// A hadith reference shared by the Saved tab, the Today tab, and the reader
 /// deep-link. `arabicText` is empty for guest entries saved before the hadith
 /// text was captured — callers render a fallback.
-struct HadithRef: Identifiable, Equatable, Sendable {
+struct HadithRef: Codable, Identifiable, Equatable, Sendable {
     let hadithId: String
     let collectionSlug: String
     let collectionName: String

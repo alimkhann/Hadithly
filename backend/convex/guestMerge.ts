@@ -10,7 +10,8 @@ import {
   readingPositionValidator,
 } from "./lib/readingPositions";
 import { applyReadingPosition, resolveReadingPositionWrite } from "./library";
-import { materializeLegacySavedItem, normalizedFolderName } from "./library";
+import { materializeLegacySavedItem } from "./library";
+import { normalizedFolderName } from "./lib/savedFolderPolicy";
 
 /**
  * Merges guest-mode items collected on-device (SwiftData) into the signed-in

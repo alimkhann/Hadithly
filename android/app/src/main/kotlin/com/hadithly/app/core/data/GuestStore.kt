@@ -1,6 +1,7 @@
 package com.hadithly.app.core.data
 
 import android.content.Context
+import android.util.AtomicFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -99,6 +100,7 @@ data class GuestSavedFolderDraft(
 data class GuestSavedMembership(
     val hadithId: String,
     val folderLocalId: String,
+    val updatedAt: Double? = null,
 )
 
 data class GuestFolderDeletion(
@@ -127,6 +129,7 @@ data class GuestStoreFile(
     // Defaults make V1 JSON files decode as an empty-folder V2 store.
     val savedFolders: List<GuestSavedFolderDraft> = emptyList(),
     val savedMemberships: List<GuestSavedMembership> = emptyList(),
+    val syncPartitions: List<LibrarySyncPartition> = emptyList(),
 )
 
 /** The merge request sent to `guestMerge:mergeGuestData`. Timestamps are milliseconds. */
@@ -163,23 +166,28 @@ class GuestDataStore(context: Context) {
     }
     private val file: File = File(context.filesDir, "guest_store.json")
     private val mutex = Mutex()
+    private val atomicFile = AtomicFile(file)
+    var onGuestChanged: (() -> Unit)? = null
 
     private suspend fun read(): GuestStoreFile = mutex.withLock { readLocked() }
 
-    private fun readLocked(): GuestStoreFile =
-        if (file.exists()) {
-            runCatching { json.decodeFromString<GuestStoreFile>(file.readText()) }
-                .getOrDefault(GuestStoreFile())
-        } else {
-            GuestStoreFile()
-        }
+    private fun readLocked(): GuestStoreFile {
+        if (!file.exists() && !File(file.path + ".bak").exists()) return GuestStoreFile()
+        return try { atomicFile.openRead().bufferedReader().use { json.decodeFromString<GuestStoreFile>(it.readText()) } }
+        catch (_: Exception) { throw LibrarySyncFailure.StoreUnavailable }
+    }
 
-    private suspend fun writeLocked(transform: (GuestStoreFile) -> GuestStoreFile) {
+    private suspend fun writeLocked(notify: Boolean = true, transform: (GuestStoreFile) -> GuestStoreFile) {
         mutex.withLock {
             val next = transform(readLocked())
             withContext(Dispatchers.IO) {
                 file.parentFile?.mkdirs()
-                file.writeText(json.encodeToString(next))
+                val stream = atomicFile.startWrite()
+                try {
+                    stream.write(json.encodeToString(next).toByteArray(Charsets.UTF_8))
+                    atomicFile.finishWrite(stream)
+                    if (notify) onGuestChanged?.invoke()
+                } catch (error: Exception) { atomicFile.failWrite(stream); throw error }
             }
         }
     }
@@ -257,7 +265,7 @@ class GuestDataStore(context: Context) {
         if (!hasSavedFacet) return@writeLocked store
         val memberships = store.savedMemberships.filterNot { it.hadithId == hadithId }
         val nextMemberships = if (folderLocalId != null && store.savedFolders.any { it.localId == folderLocalId }) {
-            memberships + GuestSavedMembership(hadithId, folderLocalId)
+            memberships + GuestSavedMembership(hadithId, folderLocalId, nowMillis())
         } else memberships
         store.copy(savedMemberships = nextMemberships)
     }
@@ -279,7 +287,7 @@ class GuestDataStore(context: Context) {
             savedFolders = store.savedFolders + deletion.folder,
             savedMemberships = store.savedMemberships + deletion.hadithIds
                 .filter { it in savedHadithIds && store.savedMemberships.none { membership -> membership.hadithId == it } }
-                .map { GuestSavedMembership(it, deletion.folder.localId) },
+                .map { GuestSavedMembership(it, deletion.folder.localId, nowMillis()) },
         )
     }
 
@@ -295,6 +303,66 @@ class GuestDataStore(context: Context) {
                 )
             }
         }
+
+    suspend fun syncPartition(owner: LibrarySyncOwner): LibraryPartitionState? = mutex.withLock {
+        readLocked().syncPartitions.firstOrNull { it.ownerKey == owner.storageKey }?.also {
+            if (it.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
+        }?.state
+    }
+
+    suspend fun claimGuestForSync(owner: LibrarySyncOwner) = writeLocked(notify = false) { store ->
+        val existing = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey }
+        if (existing != null && existing.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
+        val state = existing?.state ?: LibraryPartitionState()
+        for (draft in store.savedFolders) {
+            val name = draft.name.trim()
+            state.append(LibraryLocalSource.Folder(draft), if (name.isNotEmpty() && name.codePointCount(0, name.length) <= LibrarySyncLimits.folderLength && name.none { Character.isISOControl(it) })
+                SyncCommand.FolderCreate(draft.localId, draft.name, SyncCommandFolderCreatePurpose.GUEST_CLAIM) else null, draft.createdAt)
+        }
+        for (draft in store.bookmarks) state.append(LibraryLocalSource.Bookmark(draft), SyncCommand.BookmarkAdd(draft.hadithId, draft.createdAt), draft.createdAt)
+        for (draft in store.favorites) state.append(LibraryLocalSource.Favorite(draft), SyncCommand.FavoriteAdd(draft.hadithId, draft.createdAt), draft.createdAt)
+        for (draft in store.notes) state.append(LibraryLocalSource.Note(draft), if (draft.content.isNotEmpty() && draft.content.toByteArray(Charsets.UTF_8).size <= LibrarySyncLimits.noteBytes)
+            SyncCommand.NotePut(draft.hadithId, draft.content, draft.createdAt, draft.updatedAt) else null, draft.updatedAt)
+        for (draft in store.savedMemberships) {
+            val known = store.savedFolders.firstOrNull { it.localId == draft.folderLocalId }?.createdAt ?: 0.0
+            state.append(LibraryLocalSource.Membership(draft), SyncCommand.MembershipPut(draft.hadithId, SyncFolderReference.Local(draft.folderLocalId)), draft.updatedAt ?: known)
+        }
+        for (draft in store.progress) state.append(LibraryLocalSource.Position(draft), draft.readingPosition?.let { SyncCommand.PositionPut(it) }
+            ?: SyncCommand.LegacyPositionPut(draft.hadithId, draft.updatedAt), draft.effectiveUpdatedAt)
+        store.copy(bookmarks = emptyList(), notes = emptyList(), favorites = emptyList(), progress = emptyList(), savedFolders = emptyList(), savedMemberships = emptyList(),
+            syncPartitions = store.syncPartitions.filterNot { it.ownerKey == owner.storageKey } + LibrarySyncPartition(owner.storageKey, owner.subject, state))
+    }
+
+    suspend fun freezeSyncBatch(owner: LibrarySyncOwner): SyncBatch? {
+        var batch: SyncBatch? = null
+        writeLocked(notify = false) { store ->
+            val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey } ?: return@writeLocked store
+            if (partition.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
+            batch = partition.state.freeze()
+            store
+        }
+        return batch
+    }
+
+    suspend fun enqueueSyncChange(change: LibraryLocalChange, owner: LibrarySyncOwner) = writeLocked(notify = false) { store ->
+        val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey } ?: throw LibrarySyncFailure.SessionChanged
+        if (partition.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
+        val state = partition.state
+        state.pending = state.pending + change
+        store.copy(syncPartitions = store.syncPartitions.filterNot { it.ownerKey == owner.storageKey } + LibrarySyncPartition(owner.storageKey, owner.subject, state))
+    }
+
+    suspend fun settleSyncBatch(reply: SyncReply, owner: LibrarySyncOwner, now: Double = nowMillis()) = writeLocked(notify = false) { store ->
+        if (reply.ownerKey != owner.key) throw LibrarySyncFailure.OwnerMismatch
+        val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey } ?: return@writeLocked store
+        if (partition.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
+        partition.state.settle(reply, now)
+        store
+    }
+
+    suspend fun eraseSyncPartition(owner: LibrarySyncOwner) = writeLocked(notify = false) { store ->
+        store.copy(syncPartitions = store.syncPartitions.filterNot { it.ownerKey == owner.storageKey && it.subject == owner.subject })
+    }
 
     suspend fun clearAll() = writeLocked { GuestStoreFile() }
 

@@ -1,3 +1,4 @@
+import { syncReceipt } from "./lib/librarySyncPolicy";
 import { purchaseAccess } from "./lib/revenueCat";
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
@@ -505,18 +506,31 @@ export default defineSchema({
   evidenceAbuseEvents: defineTable({ submissionId: v.id("communitySubmissions"), ownerUserId: v.id("users"), status: v.union(v.literal("none"), v.literal("blocked")), createdAt: v.number() }).index("by_owner", ["ownerUserId"]).index("by_submission", ["submissionId"]),
   evidenceDeletionStates: defineTable({ submissionId: v.id("communitySubmissions"), status: v.union(v.literal("active"), v.literal("deleted")), createdAt: v.number() }).index("by_submission", ["submissionId"]),
 
+  librarySyncBindings: defineTable({ userId: v.id("users"), digest: v.string(), expiresAt: v.number(), createdAt: v.number() })
+    .index("by_digest", ["digest"]).index("by_user", ["userId"]),
+  librarySyncBatches: defineTable({ userId: v.id("users"), batchId: v.string(), digest: v.string(), receipts: v.array(syncReceipt), createdAt: v.number() })
+    .index("by_user_batch", ["userId", "batchId"]).index("by_user", ["userId"]),
+  librarySyncOperations: defineTable({ userId: v.id("users"), operationId: v.string(), digest: v.string(), receipt: syncReceipt,
+    commandKind: v.string(), entityKeys: v.array(v.string()), createdAt: v.number() })
+    .index("by_user_operation", ["userId", "operationId"]).index("by_user", ["userId"]),
+  librarySyncMarks: defineTable({ userId: v.id("users"), key: v.string(), operationId: v.string(), at: v.number() })
+    .index("by_user_key", ["userId", "key"]).index("by_user_operation", ["userId", "operationId"]).index("by_user", ["userId"]),
+  librarySyncFolderKeys: defineTable({ userId: v.id("users"), key: v.string(), folderId: v.id("savedFolders") })
+    .index("by_user_key", ["userId", "key"]).index("by_user", ["userId"]),
+  librarySyncAccounts: defineTable({ userId: v.id("users"), batches: v.number() }).index("by_user", ["userId"]),
+
   bookmarks: defineTable({
     userId: v.id("users"),
     hadithId: v.id("hadiths"),
     scrollOffset: v.optional(v.number()),
     createdAt: v.number(),
-  }).index("by_user", ["userId"]),
+  }).index("by_user", ["userId"]).index("by_user_hadith", ["userId", "hadithId"]),
 
   favorites: defineTable({
     userId: v.id("users"),
     hadithId: v.id("hadiths"),
     createdAt: v.number(),
-  }).index("by_user", ["userId"]),
+  }).index("by_user", ["userId"]).index("by_user_hadith", ["userId", "hadithId"]),
 
   notes: defineTable({
     userId: v.id("users"),

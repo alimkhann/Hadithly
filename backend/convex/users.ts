@@ -197,6 +197,7 @@ export const exportCurrentUserData = query({
         legacy: { bookmarks: [], favorites: [], notes: [] },
         submissions: [],
         evidenceItems: [],
+        sync: { batches: [] },
       };
     }
 
@@ -211,6 +212,8 @@ export const exportCurrentUserData = query({
         ctx.db.query("communitySubmissions").withIndex("by_submitted_by", (q) => q.eq("submittedBy", user._id)).collect(),
         ctx.db.query("evidenceItems").withIndex("by_owner", (q) => q.eq("ownerUserId", user._id)).collect(),
       ]);
+
+    const syncBatches = await ctx.db.query("librarySyncBatches").withIndex("by_user", q => q.eq("userId", user._id)).collect();
 
     const hadithIds = new Set<string>();
     for (const row of [...items, ...bookmarks, ...favorites, ...notes]) {
@@ -253,6 +256,7 @@ export const exportCurrentUserData = query({
         subscriptionTier: user.subscriptionTier,
         createdAt: user.createdAt,
       },
+      sync: { batches: syncBatches.map(batch => ({ batchId: batch.batchId, createdAt: batch.createdAt, receipts: batch.receipts })) },
       readerPreferences:
         (user.readerPreferences as ReaderPreferences | undefined) ?? null,
       savedFolders: folders.map((folder) => ({
@@ -356,6 +360,11 @@ export const deleteCurrentUser = mutation({
       ctx.db.query("translationReports").withIndex("by_reporter", (q) => q.eq("reporterUserId", user._id)).collect(),
       ctx.db.query("adminAuditLog").withIndex("by_actor", (q) => q.eq("actorUserId", user._id)).collect(),
     ]);
+
+    for (const table of ["librarySyncBindings", "librarySyncBatches", "librarySyncOperations", "librarySyncMarks", "librarySyncFolderKeys", "librarySyncAccounts"] as const) {
+      const rows = await ctx.db.query(table).withIndex("by_user", q => q.eq("userId", user._id)).collect();
+      for (const row of rows) await ctx.db.delete(row._id);
+    }
 
     for (const translation of contributedTranslations) await deleteContribution(ctx, translation);
     for (const submission of submissions) {

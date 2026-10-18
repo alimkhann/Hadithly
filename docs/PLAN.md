@@ -107,7 +107,8 @@ No release, full-localization, deployment, or physical-device gate closes here.
 
 The owner requested the readiness gaps first, then the full research set, further
 native refinements, website redesign and Linear setup. `docs/PRODUCT_PROGRAM.md`
-preserves that complete scope and order. First-reading A1 is active. The owner
+preserves that complete scope and order. A2 sync implementation is active while
+A1 content dependencies remain open. The owner
 approved its development-only backend deployment and preparation of existing
 content references, with no permission changes, production or paid generation.
 The cache-only exact-language boundary is deployed to development. English,
@@ -117,6 +118,16 @@ See `docs/FIRST_READING_VERIFICATION.md` for native evidence and limits. A known
 Kazakh meaning reversal is blocked by exact text in both first-reading paths; its older
 ordinary-reader row still needs the A3 quality repair. This unit closes no
 localization, physical-device, store, production, grounding or release gate.
+
+A2 reproduced a sign-in cleanup race on both real native stores. A local sync core
+now claims guest data atomically, freezes durable batches, verifies account ownership
+and settles exact operation receipts. Older folder deletes preserve newer cloud
+placements, and partial folder restores retain recovery details. Android damaged
+local storage now reaches the existing Saved error state without overwriting its
+file. See `docs/LIBRARY_SYNC_CORE_VERIFICATION.md`. This is an engineering
+checkpoint: the old production sign-in/clearAll paths and signed-in write paths
+remain, receipt compaction and large-account behavior need implementation, and
+actual cross-device/account delivery is unverified. A2 has no deployment approval.
 
 ## Read the plan in layers
 

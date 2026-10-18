@@ -6,6 +6,135 @@ final class GuestMergePlannerTests: XCTestCase {
         Date(timeIntervalSince1970: seconds)
     }
 
+    @MainActor func testSignInCleanupPreservesChangesMadeAfterTheSentSnapshot() async throws {
+        let store = GuestDataStore(inMemory: true)
+        let id = "jn7fxd3z54153q9j13kmhgzkv18df2zd"
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        let session = LibrarySyncSession(id: "session-a", subject: owner.subject)
+        store.addNote(hadithId: id, content: "Sent note", createdAt: date(1), updatedAt: date(1))
+        store.saveProgress(draft: .init(collectionSlug: "bukhari", collectionName: "Bukhari", hadithId: id, volumeId: "1", hadithNumber: "1", updatedAt: date(1)))
+        var batches: [SyncBatch] = []
+        let transport = LibrarySyncTransport(namespace: "fixture", open: {
+            SyncBinding(ownerKey: owner.key, subject: owner.subject, capability: "local-fixture", validUntil: .greatestFiniteMagnitude)
+        }, send: { _, batch in
+            batches.append(batch)
+            if batches.count == 1 {
+                XCTAssertTrue(store.noteDrafts().isEmpty, "The old snapshot is durably owned before network work")
+                store.saveNote(hadithId: id, content: "New local edit during merge", collectionName: nil, referenceDisplay: nil, volumeId: nil, hadithNumber: nil)
+                store.saveProgress(draft: .init(collectionSlug: "bukhari", collectionName: "Bukhari", hadithId: id, volumeId: "1", hadithNumber: "2", updatedAt: self.date(2)))
+            }
+            return SyncReply(ownerKey: owner.key, batchId: batch.id, receipts: batch.operations.map { .init(id: $0.id, revision: $0.revision, outcome: .preserved) })
+        })
+        let sync = LibrarySync(store: store, transport: transport, currentSession: { session })
+        defer { sync.deactivate() }
+        await sync.activate(session)
+        let notes = batches.flatMap(\.operations).compactMap { operation -> String? in
+            if case .notePut(let value) = operation.command { return value.content }; return nil
+        }
+        XCTAssertEqual(notes, ["Sent note", "New local edit during merge"])
+        let positions = batches.flatMap(\.operations).compactMap { operation -> String? in
+            if case .positionPut(let value) = operation.command { return value.position.anchor.providerHadithId }; return nil
+        }
+        XCTAssertEqual(positions, ["1", "2"])
+        XCTAssertTrue(try store.syncPartition(owner)?.pending.isEmpty == true)
+        XCTAssertNil(try store.syncPartition(owner)?.frozen)
+    }
+
+    @MainActor func testFrozenClaimSurvivesReopenAndCannotSettleAnotherOwnerOrNewEdits() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("guest.store")
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        let id = "jn7fxd3z54153q9j13kmhgzkv18df2zd"
+        let batch: SyncBatch
+        do {
+            let store = GuestDataStore(storeURL: url)
+            store.addNote(hadithId: id, content: "Durable claimed note", createdAt: date(1), updatedAt: date(1))
+            try store.claimGuestForSync(owner)
+            batch = try XCTUnwrap(store.freezeSyncBatch(owner))
+            store.addNote(hadithId: id, content: "Unclaimed later guest note", createdAt: date(2), updatedAt: date(2))
+        }
+        let reopened = GuestDataStore(storeURL: url)
+        XCTAssertEqual(try reopened.freezeSyncBatch(owner), batch)
+        XCTAssertEqual(reopened.noteDrafts().map(\.content), ["Unclaimed later guest note"])
+        let receipt = SyncReply(ownerKey: owner.key, batchId: batch.id, receipts: batch.operations.map { .init(id: $0.id, revision: $0.revision, outcome: .preserved) })
+        XCTAssertThrowsError(try reopened.settleSyncBatch(receipt, owner: .init(key: "owner-b", subject: "subject-b")))
+        try reopened.settleSyncBatch(receipt, owner: owner)
+        XCTAssertEqual(reopened.noteDrafts().map(\.content), ["Unclaimed later guest note"])
+        XCTAssertNil(try reopened.syncPartition(owner)?.frozen)
+    }
+
+    @MainActor func testInvalidReceiptsKeepFrozenDataAndConflictsKeepRecoverableContent() throws {
+        let store = GuestDataStore(inMemory: true)
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        store.addNote(hadithId: "jn7fxd3z54153q9j13kmhgzkv18df2zd", content: "Recoverable fixture", createdAt: date(1), updatedAt: date(1))
+        try store.claimGuestForSync(owner)
+        let batch = try XCTUnwrap(store.freezeSyncBatch(owner))
+        let operation = try XCTUnwrap(batch.operations.first)
+        XCTAssertThrowsError(try store.settleSyncBatch(.init(ownerKey: owner.key, batchId: batch.id, receipts: []), owner: owner))
+        XCTAssertEqual(try store.freezeSyncBatch(owner), batch)
+        try store.settleSyncBatch(.init(ownerKey: owner.key, batchId: batch.id, receipts: [.init(id: operation.id, revision: operation.revision, outcome: .superseded(.init(reason: .newerCloud)))]), owner: owner)
+        let recovery = try XCTUnwrap(store.syncPartition(owner)?.recovery)
+        XCTAssertEqual(recovery.count, 1)
+        guard case .server(let change, _) = recovery[0], case .note(let note) = change.source else { return XCTFail("Lost original recovery data") }
+        XCTAssertEqual(note.content, "Recoverable fixture")
+    }
+
+    @MainActor func testPartialFolderReceiptRetainsOriginalRestoreIntent() throws {
+        let store = GuestDataStore(inMemory: true)
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        try store.claimGuestForSync(owner)
+        let command = SyncCommand.folderRestore(.init(deletionId: "deleted-folder", name: "Fixture", hadithIds: ["restored", "changed", "missing"]))
+        let change = LibraryLocalChange(command: command, at: 1_000, source: .account(nil))
+        try store.enqueueSyncChange(change, owner: owner)
+        let batch = try XCTUnwrap(store.freezeSyncBatch(owner))
+        let outcome = SyncOutcome.folderRestored(.init(folderId: "folder", restored: ["restored"], superseded: ["changed"], missing: ["missing"]))
+        try store.settleSyncBatch(.init(ownerKey: owner.key, batchId: batch.id, receipts: [.init(id: change.operation.id, revision: change.operation.revision, outcome: outcome)]), owner: owner)
+        let recovery = try XCTUnwrap(store.syncPartition(owner)?.recovery)
+        XCTAssertEqual(recovery, [.server(change, outcome)])
+        XCTAssertNil(try store.syncPartition(owner)?.frozen)
+    }
+
+    @MainActor func testVerifiedSubjectMismatchLeavesGuestDataUnclaimed() async throws {
+        let store = GuestDataStore(inMemory: true)
+        store.addNote(hadithId: "target", content: "Guest fixture", createdAt: date(1), updatedAt: date(1))
+        let session = LibrarySyncSession(id: "session-a", subject: "subject-a")
+        let transport = LibrarySyncTransport(namespace: "fixture", open: {
+            SyncBinding(ownerKey: "owner-b", subject: "subject-b", capability: "fixture", validUntil: .greatestFiniteMagnitude)
+        }, send: { _, _ in XCTFail("Mismatched account must never send"); throw LibrarySyncFailure.ownerMismatch })
+        let sync = LibrarySync(store: store, transport: transport, currentSession: { session })
+        defer { sync.deactivate() }
+        await sync.activate(session)
+        XCTAssertEqual(sync.status, .failed)
+        XCTAssertNil(sync.owner)
+        XCTAssertEqual(store.noteDrafts().map(\.content), ["Guest fixture"])
+        XCTAssertNil(try store.syncPartition(.init(key: "owner-b", subject: "subject-b")))
+    }
+
+    @MainActor func testCapturedWritesCannotFollowAccountSwitchOrRecreateErasedPartition() async throws {
+        let store = GuestDataStore(inMemory: true)
+        var current = LibrarySyncSession(id: "session-a", subject: "subject-a")
+        let transport = LibrarySyncTransport(namespace: "fixture", open: {
+            SyncBinding(ownerKey: current.subject, subject: current.subject, capability: "fixture", validUntil: .greatestFiniteMagnitude)
+        }, send: { _, _ in XCTFail("Rejected write must never send"); throw LibrarySyncFailure.sessionChanged })
+        let sync = LibrarySync(store: store, transport: transport, currentSession: { current })
+        defer { sync.deactivate() }
+        await sync.activate(current)
+        let oldContext = try sync.captureWriteContext()
+        sync.deactivate()
+        current = .init(id: "session-b", subject: "subject-b")
+        await sync.activate(current)
+        let change = LibraryLocalChange(command: .notePut(.init(hadithId: "target", content: "Account A fixture", createdAt: 1_000, updatedAt: 1_000)), at: 1_000, source: .account(nil))
+        XCTAssertThrowsError(try sync.enqueue(change, context: oldContext))
+        let ownerB = try XCTUnwrap(sync.owner)
+        XCTAssertTrue(try store.syncPartition(ownerB)?.pending.isEmpty == true)
+        let currentContext = try sync.captureWriteContext()
+        try store.eraseSyncPartition(ownerB)
+        XCTAssertThrowsError(try sync.enqueue(change, context: currentContext))
+        XCTAssertNil(try store.syncPartition(ownerB))
+    }
+
     // MARK: - Valid hadith id filtering
 
     func testValidHadithIdsPass() {

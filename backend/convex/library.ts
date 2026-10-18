@@ -1,3 +1,5 @@
+import { recordLegacyLibraryWrite } from "./lib/librarySyncMarks";
+import { normalizedFolderName } from "./lib/savedFolderPolicy";
 import {
   internalMutation,
   internalQuery,
@@ -36,6 +38,7 @@ export const toggleBookmark = mutation({
     const identity = await requireIdentity(ctx);
     const user = await userByClerkId(ctx, identity.clerkId);
     if (!user) throw new Error("User not found. Call users:ensureCurrentUser first.");
+    await recordLegacyLibraryWrite(ctx, user._id, `bookmark:${args.hadithId}`);
 
     const existing = await ctx.db
       .query("bookmarks")
@@ -104,6 +107,7 @@ export const toggleFavorite = mutation({
     const identity = await requireIdentity(ctx);
     const user = await userByClerkId(ctx, identity.clerkId);
     if (!user) throw new Error("User not found. Call users:ensureCurrentUser first.");
+    await recordLegacyLibraryWrite(ctx, user._id, `favorite:${args.hadithId}`);
 
     const existing = await ctx.db
       .query("favorites")
@@ -170,6 +174,7 @@ export const upsertNote = mutation({
     const identity = await requireIdentity(ctx);
     const user = await userByClerkId(ctx, identity.clerkId);
     if (!user) throw new Error("User not found. Call users:ensureCurrentUser first.");
+    await recordLegacyLibraryWrite(ctx, user._id, `note:${args.hadithId}`);
 
     const existing = await ctx.db
       .query("notes")
@@ -201,6 +206,7 @@ export const deleteNote = mutation({
     const identity = await requireIdentity(ctx);
     const user = await userByClerkId(ctx, identity.clerkId);
     if (!user) return;
+    await recordLegacyLibraryWrite(ctx, user._id, `note:${args.hadithId}`);
     const existing = await ctx.db
       .query("notes")
       .withIndex("by_user_hadith", (q) =>
@@ -529,17 +535,6 @@ export const listNotesDetailed = query({
 
 // ── H3 unified Saved and private folders ─────────────────────────────────
 
-const FOLDER_NAME_LIMIT = 64;
-
-export function normalizedFolderName(name: string): { name: string; normalizedName: string } {
-  const displayName = name.trim().normalize("NFC");
-  if (!displayName) throw new Error("FOLDER_NAME_EMPTY");
-  if (/\p{Cc}/u.test(displayName)) throw new Error("FOLDER_NAME_CONTROL_CHARACTER");
-  if (Array.from(displayName).length > FOLDER_NAME_LIMIT) {
-    throw new Error("FOLDER_NAME_TOO_LONG");
-  }
-  return { name: displayName, normalizedName: displayName.toLocaleLowerCase() };
-}
 
 async function savedItemByHadith(
   ctx: QueryCtx | MutationCtx,
@@ -557,8 +552,7 @@ async function legacyBookmarksByHadith(
   userId: Id<"users">,
   hadithId: Id<"hadiths">,
 ) {
-  return (await ctx.db.query("bookmarks").withIndex("by_user", (q) => q.eq("userId", userId)).collect())
-    .filter((row) => row.hadithId === hadithId);
+  return ctx.db.query("bookmarks").withIndex("by_user_hadith", q => q.eq("userId", userId).eq("hadithId", hadithId)).collect();
 }
 
 async function legacyFavoritesByHadith(
@@ -566,8 +560,7 @@ async function legacyFavoritesByHadith(
   userId: Id<"users">,
   hadithId: Id<"hadiths">,
 ) {
-  return (await ctx.db.query("favorites").withIndex("by_user", (q) => q.eq("userId", userId)).collect())
-    .filter((row) => row.hadithId === hadithId);
+  return ctx.db.query("favorites").withIndex("by_user_hadith", q => q.eq("userId", userId).eq("hadithId", hadithId)).collect();
 }
 
 async function ensureSavedItem(
@@ -645,6 +638,7 @@ export const toggleSavedBookmark = mutation({
     const identity = await requireIdentity(ctx);
     const user = await userByClerkId(ctx, identity.clerkId);
     if (!user) throw new Error("User not found. Call users:ensureCurrentUser first.");
+    await recordLegacyLibraryWrite(ctx, user._id, `bookmark:${args.hadithId}`);
     const item = await materializeLegacySavedItem(ctx, user._id, args.hadithId);
     const legacy = await legacyBookmarksByHadith(ctx, user._id, args.hadithId);
     if (item.bookmarkCreatedAt !== undefined) {
@@ -667,6 +661,7 @@ export const toggleSavedFavorite = mutation({
     const identity = await requireIdentity(ctx);
     const user = await userByClerkId(ctx, identity.clerkId);
     if (!user) throw new Error("User not found. Call users:ensureCurrentUser first.");
+    await recordLegacyLibraryWrite(ctx, user._id, `favorite:${args.hadithId}`);
     const item = await materializeLegacySavedItem(ctx, user._id, args.hadithId);
     const legacy = await legacyFavoritesByHadith(ctx, user._id, args.hadithId);
     if (item.favoriteCreatedAt !== undefined) {
@@ -688,6 +683,7 @@ export const upsertSavedNote = mutation({
     const identity = await requireIdentity(ctx);
     const user = await userByClerkId(ctx, identity.clerkId);
     if (!user) throw new Error("User not found. Call users:ensureCurrentUser first.");
+    await recordLegacyLibraryWrite(ctx, user._id, `note:${args.hadithId}`);
     const item = await ensureSavedItem(ctx, user._id, args.hadithId);
     const now = Date.now();
     const createdAt = item.noteCreatedAt ?? now;
@@ -704,6 +700,7 @@ export const deleteSavedNote = mutation({
     const identity = await requireIdentity(ctx);
     const user = await userByClerkId(ctx, identity.clerkId);
     if (!user) return;
+    await recordLegacyLibraryWrite(ctx, user._id, `note:${args.hadithId}`);
     const item = await savedItemByHadith(ctx, user._id, args.hadithId);
     if (item) {
       await ctx.db.patch(item._id, { noteContent: undefined, noteCreatedAt: undefined, noteUpdatedAt: undefined, updatedAt: Date.now() });
@@ -727,6 +724,7 @@ export const restoreSavedFacet = mutation({
     const identity = await requireIdentity(ctx);
     const user = await userByClerkId(ctx, identity.clerkId);
     if (!user) throw new Error("User not found. Call users:ensureCurrentUser first.");
+    await recordLegacyLibraryWrite(ctx, user._id, `${args.facet}:${args.hadithId}`);
     const item = await materializeLegacySavedItem(ctx, user._id, args.hadithId);
     if (args.facet === "bookmark") {
       await ctx.db.patch(item._id, { bookmarkCreatedAt: item.bookmarkCreatedAt ?? args.createdAt, updatedAt: Date.now() });
@@ -767,6 +765,7 @@ export const assignSavedFolder = mutation({
     const identity = await requireIdentity(ctx);
     const user = await userByClerkId(ctx, identity.clerkId);
     if (!user) throw new Error("User not found. Call users:ensureCurrentUser first.");
+    await recordLegacyLibraryWrite(ctx, user._id, `membership:${args.hadithId}`);
     if (args.folderId !== undefined) {
       const folder = await ctx.db.get(args.folderId);
       if (!folder || folder.userId !== user._id) throw new Error("SAVED_FOLDER_NOT_FOUND");
@@ -792,11 +791,10 @@ export const deleteSavedFolder = mutation({
     if (!folder || folder.userId !== user._id) throw new Error("SAVED_FOLDER_NOT_FOUND");
     const items = await ctx.db.query("savedItems").withIndex("by_folder", (q) => q.eq("folderId", folder._id)).collect();
     const deletedAt = Date.now();
-    for (const item of items) await ctx.db.patch(item._id, {
-      folderId: undefined,
-      folderUpdatedAt: deletedAt,
-      updatedAt: deletedAt,
-    });
+    for (const item of items) {
+      await recordLegacyLibraryWrite(ctx, user._id, `membership:${item.hadithId}`, deletedAt);
+      await ctx.db.patch(item._id, { folderId: undefined, folderUpdatedAt: deletedAt, updatedAt: deletedAt });
+    }
     await ctx.db.delete(folder._id);
     return { name: folder.name, hadithIds: items.map((item) => item.hadithId), deletedAt };
   },
@@ -827,6 +825,7 @@ export const restoreSavedFolder = mutation({
     for (const hadithId of args.hadithIds) {
       const item = await savedItemByHadith(ctx, user._id, hadithId);
       if (!item || item.folderId !== undefined || item.folderUpdatedAt !== args.deletedAt) continue;
+      await recordLegacyLibraryWrite(ctx, user._id, `membership:${hadithId}`);
       await ctx.db.patch(item._id, { folderId: folder._id, folderUpdatedAt: Date.now(), updatedAt: Date.now() });
       restoredHadithIds.push(hadithId);
     }

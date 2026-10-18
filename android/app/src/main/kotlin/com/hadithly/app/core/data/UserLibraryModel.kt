@@ -16,6 +16,7 @@ import kotlinx.serialization.Serializable
  * A hadith reference shared by the Library continue-reading card and the
  * reader deep-link. Mirrors the iOS HadithRef.
  */
+@Serializable
 data class HadithRef(
     val hadithId: String,
     val collectionSlug: String,
@@ -172,7 +173,7 @@ class UserLibraryModel(
             subscribeAll()
         } else {
             unsubscribe()
-            scope.launch { loadGuestData() }
+            launchGuestOperation { loadGuestData() }
         }
     }
 
@@ -192,7 +193,7 @@ class UserLibraryModel(
         if (isSignedIn()) {
             scope.launch { runCatching { repository.toggleBookmark(ref.hadithId) } }
         } else {
-            scope.launch {
+            launchGuestOperation {
                 if (guestData.isBookmarked(ref.hadithId)) {
                     guestData.removeBookmark(ref.hadithId)
                 } else {
@@ -219,7 +220,7 @@ class UserLibraryModel(
         if (isSignedIn()) {
             scope.launch { runCatching { repository.toggleFavorite(ref.hadithId) } }
         } else {
-            scope.launch {
+            launchGuestOperation {
                 if (guestData.isFavorite(ref.hadithId)) {
                     guestData.removeFavorite(ref.hadithId)
                 } else {
@@ -246,7 +247,7 @@ class UserLibraryModel(
         if (isSignedIn()) {
             scope.launch { runCatching { repository.upsertNote(ref.hadithId, content) } }
         } else {
-            scope.launch {
+            launchGuestOperation {
                 guestData.saveNote(
                     hadithId = ref.hadithId,
                     content = content,
@@ -267,7 +268,7 @@ class UserLibraryModel(
         if (isSignedIn()) {
             scope.launch { runCatching { repository.deleteNote(ref.hadithId) } }
         } else {
-            scope.launch {
+            launchGuestOperation {
                 guestData.deleteNote(ref.hadithId)
                 loadGuestData()
             }
@@ -278,7 +279,7 @@ class UserLibraryModel(
         if (isSignedIn()) {
             scope.launch { runCatching { repository.createSavedFolder(name) } }
         } else {
-            scope.launch {
+            launchGuestOperation {
                 if (GuestMergePlanner.isValidFolderName(name)) guestData.createSavedFolder(name.trim())
                 loadGuestData()
             }
@@ -289,7 +290,7 @@ class UserLibraryModel(
         if (isSignedIn()) {
             scope.launch { runCatching { repository.assignSavedFolder(hadithId, folderId) } }
         } else {
-            scope.launch { guestData.assignSavedFolder(hadithId, folderId); loadGuestData() }
+            launchGuestOperation { guestData.assignSavedFolder(hadithId, folderId); loadGuestData() }
         }
     }
 
@@ -303,11 +304,11 @@ class UserLibraryModel(
                 }
             }
         } else {
-            scope.launch {
+            launchGuestOperation {
                 val deletion = guestData.deleteSavedFolder(folder.id)
                 loadGuestData()
                 if (deletion != null) undo.show(message) {
-                    scope.launch { guestData.restoreSavedFolder(deletion); loadGuestData() }
+                    launchGuestOperation { guestData.restoreSavedFolder(deletion); loadGuestData() }
                 }
             }
         }
@@ -315,17 +316,17 @@ class UserLibraryModel(
 
     fun restoreBookmark(ref: HadithRef, createdAt: Double) {
         if (isSignedIn()) scope.launch { runCatching { repository.restoreSavedFacet(ref.hadithId, "bookmark", createdAt) } }
-        else scope.launch { guestData.addBookmark(GuestBookmarkDraft(ref.hadithId, createdAt, ref.collectionName, ref.referenceDisplay, ref.volumeId, ref.hadithNumber, ref.collectionSlug, ref.arabicText, ref.englishText)); loadGuestData() }
+        else launchGuestOperation { guestData.addBookmark(GuestBookmarkDraft(ref.hadithId, createdAt, ref.collectionName, ref.referenceDisplay, ref.volumeId, ref.hadithNumber, ref.collectionSlug, ref.arabicText, ref.englishText)); loadGuestData() }
     }
 
     fun restoreFavorite(ref: HadithRef, createdAt: Double) {
         if (isSignedIn()) scope.launch { runCatching { repository.restoreSavedFacet(ref.hadithId, "favorite", createdAt) } }
-        else scope.launch { guestData.addFavorite(GuestFavoriteDraft(ref.hadithId, createdAt, ref.collectionName, ref.referenceDisplay, ref.volumeId, ref.hadithNumber, ref.collectionSlug, ref.arabicText, ref.englishText)); loadGuestData() }
+        else launchGuestOperation { guestData.addFavorite(GuestFavoriteDraft(ref.hadithId, createdAt, ref.collectionName, ref.referenceDisplay, ref.volumeId, ref.hadithNumber, ref.collectionSlug, ref.arabicText, ref.englishText)); loadGuestData() }
     }
 
     fun restoreNote(ref: HadithRef, content: String, createdAt: Double, updatedAt: Double) {
         if (isSignedIn()) scope.launch { runCatching { repository.restoreSavedFacet(ref.hadithId, "note", createdAt, content, updatedAt) } }
-        else scope.launch { guestData.restoreNote(GuestNoteDraft(ref.hadithId, content, createdAt, updatedAt, ref.collectionName, ref.referenceDisplay, ref.volumeId, ref.hadithNumber, ref.collectionSlug, ref.arabicText, ref.englishText)); loadGuestData() }
+        else launchGuestOperation { guestData.restoreNote(GuestNoteDraft(ref.hadithId, content, createdAt, updatedAt, ref.collectionName, ref.referenceDisplay, ref.volumeId, ref.hadithNumber, ref.collectionSlug, ref.arabicText, ref.englishText)); loadGuestData() }
     }
 
     fun noteContentFor(hadithId: String): String? =
@@ -338,7 +339,7 @@ class UserLibraryModel(
                 runCatching { repository.saveReadingProgress(position) }
             }
         } else {
-            scope.launch {
+            launchGuestOperation {
                 guestData.saveProgress(
                     GuestReadingProgressDraft(
                         collectionSlug = ref.collectionSlug,
@@ -435,6 +436,14 @@ class UserLibraryModel(
     }
 
     // Guest data
+
+    private fun launchGuestOperation(block: suspend () -> Unit) {
+        scope.launch {
+            try { block() }
+            catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: Exception) { _loadState.value = LoadState.Failed }
+        }
+    }
 
     private suspend fun loadGuestData() {
         if (isSignedIn()) return

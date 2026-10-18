@@ -11,11 +11,12 @@ import SwiftData
 final class GuestDataStore {
     /// Observable so views can react to local insertions without re-fetching.
     private(set) var itemCount = 0
+    var onGuestChanged: (() -> Void)?
 
     private let container: ModelContainer
     private let context: ModelContext
 
-    init(inMemory: Bool = false) {
+    init(inMemory: Bool = false, storeURL: URL? = nil) {
         let schema = Schema([
             GuestBookmark.self,
             GuestNote.self,
@@ -23,8 +24,10 @@ final class GuestDataStore {
             GuestSavedFolder.self,
             GuestSavedMembership.self,
             GuestReadingProgress.self,
+            GuestLibraryPartition.self,
         ])
-        let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
+        let configuration = storeURL.map { ModelConfiguration(schema: schema, url: $0) }
+            ?? ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
         self.container = try! ModelContainer(for: schema, configurations: [configuration])
         self.context = ModelContext(container)
         context.autosaveEnabled = false
@@ -35,7 +38,7 @@ final class GuestDataStore {
 
     func addBookmark(hadithId: String, createdAt: Date = .now) {
         context.insert(GuestBookmark(hadithId: hadithId, createdAt: createdAt))
-        try? context.save()
+        saveGuestChanges()
         refreshCount()
     }
 
@@ -49,7 +52,7 @@ final class GuestDataStore {
             hadithNumber: draft.hadithNumber
         )
         context.insert(model)
-        try? context.save()
+        saveGuestChanges()
         refreshCount()
     }
 
@@ -57,7 +60,7 @@ final class GuestDataStore {
         for model in fetchBookmarks().filter({ $0.hadithId == hadithId }) {
             context.delete(model)
         }
-        try? context.save()
+        saveGuestChanges()
         removeMembershipIfUnsaved(hadithId: hadithId)
         refreshCount()
     }
@@ -92,7 +95,7 @@ final class GuestDataStore {
                 hadithNumber: draft.hadithNumber
             )
         )
-        try? context.save()
+        saveGuestChanges()
         refreshCount()
     }
 
@@ -100,7 +103,7 @@ final class GuestDataStore {
         for model in fetchFavorites().filter({ $0.hadithId == hadithId }) {
             context.delete(model)
         }
-        try? context.save()
+        saveGuestChanges()
         removeMembershipIfUnsaved(hadithId: hadithId)
         refreshCount()
     }
@@ -126,7 +129,7 @@ final class GuestDataStore {
 
     func addNote(hadithId: String, content: String, createdAt: Date = .now, updatedAt: Date = .now) {
         context.insert(GuestNote(hadithId: hadithId, content: content, createdAt: createdAt, updatedAt: updatedAt))
-        try? context.save()
+        saveGuestChanges()
         refreshCount()
     }
 
@@ -161,7 +164,7 @@ final class GuestDataStore {
                 )
             )
         }
-        try? context.save()
+        saveGuestChanges()
         refreshCount()
     }
 
@@ -169,7 +172,7 @@ final class GuestDataStore {
         for model in fetchNotes().filter({ $0.hadithId == hadithId }) {
             context.delete(model)
         }
-        try? context.save()
+        saveGuestChanges()
         removeMembershipIfUnsaved(hadithId: hadithId)
         refreshCount()
     }
@@ -180,7 +183,7 @@ final class GuestDataStore {
         guard Self.validFolderName(name) else { return nil }
         let folder = GuestSavedFolder(name: name.trimmingCharacters(in: .whitespacesAndNewlines).precomposedStringWithCanonicalMapping)
         context.insert(folder)
-        try? context.save()
+        saveGuestChanges()
         return GuestSavedFolderDraft(localId: folder.localId, name: folder.name, createdAt: folder.createdAt)
     }
 
@@ -191,7 +194,7 @@ final class GuestDataStore {
         if let folderLocalId, fetchFolders().contains(where: { $0.localId == folderLocalId }) {
             context.insert(GuestSavedMembership(hadithId: hadithId, folderLocalId: folderLocalId))
         }
-        try? context.save()
+        saveGuestChanges()
     }
 
     func deleteSavedFolder(localId: String) -> GuestFolderDeletion? {
@@ -199,7 +202,7 @@ final class GuestDataStore {
         let hadithIds = fetchMemberships().filter({ $0.folderLocalId == localId }).map(\.hadithId)
         for membership in fetchMemberships().filter({ $0.folderLocalId == localId }) { context.delete(membership) }
         context.delete(folder)
-        try? context.save()
+        saveGuestChanges()
         return GuestFolderDeletion(folder: .init(localId: folder.localId, name: folder.name, createdAt: folder.createdAt), hadithIds: hadithIds)
     }
 
@@ -210,7 +213,7 @@ final class GuestDataStore {
         for hadithId in deletion.hadithIds where savedHadithIds.contains(hadithId) && !fetchMemberships().contains(where: { $0.hadithId == hadithId }) {
             context.insert(GuestSavedMembership(hadithId: hadithId, folderLocalId: deletion.folder.localId))
         }
-        try? context.save()
+        saveGuestChanges()
     }
 
     func folderDrafts() -> [GuestSavedFolderDraft] {
@@ -218,7 +221,7 @@ final class GuestDataStore {
     }
 
     func savedMembershipDrafts() -> [GuestSavedMembershipDraft] {
-        fetchMemberships().map { GuestSavedMembershipDraft(hadithId: $0.hadithId, folderLocalId: $0.folderLocalId) }
+        fetchMemberships().map { GuestSavedMembershipDraft(hadithId: $0.hadithId, folderLocalId: $0.folderLocalId, updatedAt: $0.updatedAt) }
     }
 
     func noteDrafts() -> [GuestNoteDraft] {
@@ -269,7 +272,7 @@ final class GuestDataStore {
                 )
             )
         }
-        try? context.save()
+        saveGuestChanges()
     }
 
     func progressDrafts() -> [GuestReadingProgressDraft] {
@@ -287,6 +290,112 @@ final class GuestDataStore {
         }
     }
 
+    // MARK: - Durable account partitions
+
+    private func partitionRow(_ owner: LibrarySyncOwner) throws -> GuestLibraryPartition? {
+        let key = owner.storageKey
+        var descriptor = FetchDescriptor<GuestLibraryPartition>(predicate: #Predicate { $0.ownerKey == key })
+        descriptor.fetchLimit = 1
+        let row = try context.fetch(descriptor).first
+        guard row == nil || row?.subject == owner.subject else { throw LibrarySyncFailure.ownerMismatch }
+        return row
+    }
+
+    func syncPartition(_ owner: LibrarySyncOwner) throws -> LibraryPartitionState? {
+        guard let row = try partitionRow(owner) else { return nil }
+        do { return try JSONDecoder().decode(LibraryPartitionState.self, from: row.stateData) }
+        catch { throw LibrarySyncFailure.storeUnavailable }
+    }
+
+    private func saveSyncPartition(_ state: LibraryPartitionState, owner: LibrarySyncOwner) throws {
+        let data = try JSONEncoder().encode(state)
+        if let row = try partitionRow(owner) { row.stateData = data }
+        else { context.insert(GuestLibraryPartition(ownerKey: owner.storageKey, subject: owner.subject, stateData: data)) }
+        do { try context.save() }
+        catch { context.rollback(); throw LibrarySyncFailure.storeUnavailable }
+    }
+
+    /// The claim and guest removal share one SwiftData commit, with no network await.
+    func claimGuestForSync(_ owner: LibrarySyncOwner) throws {
+        let bookmarks = try context.fetch(FetchDescriptor<GuestBookmark>())
+        let favorites = try context.fetch(FetchDescriptor<GuestFavorite>())
+        let notes = try context.fetch(FetchDescriptor<GuestNote>())
+        let folders = try context.fetch(FetchDescriptor<GuestSavedFolder>())
+        let memberships = try context.fetch(FetchDescriptor<GuestSavedMembership>())
+        let positions = try context.fetch(FetchDescriptor<GuestReadingProgress>())
+        var state = try syncPartition(owner) ?? LibraryPartitionState()
+        for row in folders {
+            let draft = GuestSavedFolderDraft(localId: row.localId, name: row.name, createdAt: row.createdAt)
+            let name = row.name.trimmingCharacters(in: .whitespacesAndNewlines)
+            let command: SyncCommand? = Self.validFolderName(name)
+                ? .folderCreate(.init(key: row.localId, name: row.name, purpose: .guestClaim)) : nil
+            state.append(.folder(draft), command: command, at: row.createdAt.millisecondsSinceEpoch)
+        }
+        for row in bookmarks {
+            let draft = GuestBookmarkDraft(hadithId: row.hadithId, createdAt: row.createdAt, collectionName: row.collectionName, referenceDisplay: row.referenceDisplay, volumeId: row.volumeId, hadithNumber: row.hadithNumber)
+            state.append(.bookmark(draft), command: .bookmarkAdd(.init(hadithId: row.hadithId, createdAt: row.createdAt.millisecondsSinceEpoch)), at: row.createdAt.millisecondsSinceEpoch)
+        }
+        for row in favorites {
+            let draft = GuestFavoriteDraft(hadithId: row.hadithId, createdAt: row.createdAt, collectionName: row.collectionName, referenceDisplay: row.referenceDisplay, volumeId: row.volumeId, hadithNumber: row.hadithNumber)
+            state.append(.favorite(draft), command: .favoriteAdd(.init(hadithId: row.hadithId, createdAt: row.createdAt.millisecondsSinceEpoch)), at: row.createdAt.millisecondsSinceEpoch)
+        }
+        for row in notes {
+            let draft = GuestNoteDraft(hadithId: row.hadithId, content: row.content, createdAt: row.createdAt, updatedAt: row.updatedAt, collectionName: row.collectionName, referenceDisplay: row.referenceDisplay, volumeId: row.volumeId, hadithNumber: row.hadithNumber)
+            let command: SyncCommand? = !row.content.isEmpty && row.content.utf8.count <= LibrarySyncLimits.noteBytes
+                ? .notePut(.init(hadithId: row.hadithId, content: row.content, createdAt: row.createdAt.millisecondsSinceEpoch, updatedAt: row.updatedAt.millisecondsSinceEpoch)) : nil
+            state.append(.note(draft), command: command, at: row.updatedAt.millisecondsSinceEpoch)
+        }
+        for row in memberships {
+            let draft = GuestSavedMembershipDraft(hadithId: row.hadithId, folderLocalId: row.folderLocalId, updatedAt: row.updatedAt)
+            let known = folders.first { $0.localId == row.folderLocalId }?.createdAt.millisecondsSinceEpoch ?? 0
+            state.append(.membership(draft), command: .membershipPut(.init(hadithId: row.hadithId, folder: .local(.init(key: row.folderLocalId)))), at: row.updatedAt?.millisecondsSinceEpoch ?? known)
+        }
+        for row in positions {
+            let draft = GuestReadingProgressDraft(collectionSlug: row.collectionSlug, collectionName: row.collectionName, hadithId: row.hadithId, volumeId: row.volumeId, hadithNumber: row.hadithNumber, referenceDisplay: row.referenceDisplay, updatedAt: row.updatedAt, position: row.positionData.flatMap { try? JSONDecoder().decode(ReadingPosition.self, from: $0) })
+            let command: SyncCommand = draft.readingPosition.map { .positionPut(.init(position: $0)) }
+                ?? .legacyPositionPut(.init(hadithId: row.hadithId, updatedAt: row.updatedAt.millisecondsSinceEpoch))
+            state.append(.position(draft), command: command, at: draft.effectiveUpdatedAt.millisecondsSinceEpoch)
+        }
+        let data = try JSONEncoder().encode(state)
+        if let row = try partitionRow(owner) { row.stateData = data }
+        else { context.insert(GuestLibraryPartition(ownerKey: owner.storageKey, subject: owner.subject, stateData: data)) }
+        bookmarks.forEach { context.delete($0) }
+        favorites.forEach { context.delete($0) }
+        notes.forEach { context.delete($0) }
+        folders.forEach { context.delete($0) }
+        memberships.forEach { context.delete($0) }
+        positions.forEach { context.delete($0) }
+        do { try context.save() }
+        catch { context.rollback(); throw LibrarySyncFailure.storeUnavailable }
+        refreshCount()
+    }
+
+    func freezeSyncBatch(_ owner: LibrarySyncOwner) throws -> SyncBatch? {
+        guard var state = try syncPartition(owner) else { return nil }
+        let batch = try state.freeze()
+        try saveSyncPartition(state, owner: owner)
+        return batch
+    }
+
+    func enqueueSyncChange(_ change: LibraryLocalChange, owner: LibrarySyncOwner) throws {
+        guard var state = try syncPartition(owner) else { throw LibrarySyncFailure.sessionChanged }
+        state.pending.append(change)
+        try saveSyncPartition(state, owner: owner)
+    }
+
+    func settleSyncBatch(_ reply: SyncReply, owner: LibrarySyncOwner, now: Double = Date.now.millisecondsSinceEpoch) throws {
+        guard reply.ownerKey == owner.key else { throw LibrarySyncFailure.ownerMismatch }
+        guard var state = try syncPartition(owner) else { return }
+        try state.settle(reply, now: now)
+        try saveSyncPartition(state, owner: owner)
+    }
+
+    func eraseSyncPartition(_ owner: LibrarySyncOwner) throws {
+        if let row = try partitionRow(owner) { context.delete(row) }
+        do { try context.save() }
+        catch { context.rollback(); throw LibrarySyncFailure.storeUnavailable }
+    }
+
     // MARK: - Lifecycle
 
     /// Called only after the merge mutation reports success — the Convex copy
@@ -298,8 +407,13 @@ final class GuestDataStore {
         try? context.delete(model: GuestSavedFolder.self)
         try? context.delete(model: GuestSavedMembership.self)
         try? context.delete(model: GuestReadingProgress.self)
-        try? context.save()
+        saveGuestChanges()
         refreshCount()
+    }
+
+    private func saveGuestChanges() {
+        guard (try? context.save()) != nil else { return }
+        onGuestChanged?()
     }
 
     private func refreshCount() {
@@ -340,7 +454,7 @@ final class GuestDataStore {
     private func removeMembershipIfUnsaved(hadithId: String) {
         guard !isBookmarked(hadithId: hadithId), !isFavorite(hadithId: hadithId), !fetchNotes().contains(where: { $0.hadithId == hadithId }) else { return }
         for membership in fetchMemberships().filter({ $0.hadithId == hadithId }) { context.delete(membership) }
-        try? context.save()
+        saveGuestChanges()
     }
 
     nonisolated static func validFolderName(_ input: String) -> Bool {

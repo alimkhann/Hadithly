@@ -77,7 +77,8 @@ activation, or user-study participant cannot be silently represented as verified
 
 ## Active unit
 
-A1 remains active. Its cache-only boundary is implemented and deployed to the
+A2 sync implementation is active, with A1 content and maintenance dependencies
+still open. A1's cache-only boundary is implemented and deployed to the
 approved development deployment. Exact public readback is available in English,
 Arabic, Russian and Kazakh, with three prepared references each. Eleven locales,
 automatic reference maintenance, semantic-quality safeguards and the complete
@@ -86,9 +87,14 @@ content gate remain open. Native verification and limits are in
 reversal; the exact-text block protects both first-reading paths, while the ordinary
 reader's old row remains an A3 repair.
 
-Finish verifiable A1 engineering work, then continue the independent A2 sync audit
-while retaining A1's content dependencies. No paid generation or production change
-has been approved. Research, later native redesign, website and Linear remain
+The A2 store diagnostic reproduced unconditional sign-in cleanup deleting newer
+unsent notes and positions. A local typed sync core now preserves frozen batches,
+requires a verified account binding, and retains per-operation conflicts. Its native
+coordinator tests pass against real stores, but the production sign-in callers,
+signed-in writes and subscription projections have not migrated. See
+`LIBRARY_SYNC_CORE_VERIFICATION.md` for the bounded evidence and integration gates.
+Continue A2 integration while retaining A1's content dependencies. No paid
+generation or production change has been approved. Research, later native redesign, website and Linear remain
 pending in the owner's requested order.
 
 The principles shaping this sequence are Experience First (actual readable text),

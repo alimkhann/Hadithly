@@ -15,6 +15,8 @@ import com.hadithly.app.core.preferences.PreferencesStore
 import com.hadithly.app.core.preferences.toWireMap
 import com.hadithly.app.core.push.PushNotificationManager
 import com.hadithly.app.core.purchases.PurchaseManager
+import kotlinx.coroutines.CancellationException
+import com.hadithly.app.core.preferences.nativeText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -121,7 +123,13 @@ class SessionManager(
             Clerk.user?.id?.let(purchases::logIn)
             push.syncToken()
 
-            val snapshot = guestData.snapshots()
+            val snapshot = try { guestData.snapshots() }
+            catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: Exception) {
+                _syncSummary.value = context.nativeText("Saved items could not load")
+                library.refresh()
+                return
+            }
             val payload = GuestMergePlanner.makePayload(
                 bookmarks = snapshot.bookmarks,
                 notes = snapshot.notes,
