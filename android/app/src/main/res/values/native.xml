@@ -162,4 +162,12 @@
     <string name="native_2d8e5d8cbd80" formatted="false">Preparing translation…</string>
     <string name="native_0dce590c7d31" formatted="false">%1$s of %2$s translations left</string>
     <string name="native_7dcb57998fb9" formatted="false">Try again %s</string>
+    <string name="native_7e8170072c4e" formatted="false">No reading in this language is available yet.</string>
+    <string name="native_1c746ab84cb5" formatted="false">Choose another language</string>
+    <string name="native_4843ce39f2af" formatted="false">Reading could not load</string>
+    <string name="native_fdf375c74f9a" formatted="false">Original source</string>
+    <string name="native_0664919185ad" formatted="false">AI translation</string>
+    <string name="native_4ba5c6645965" formatted="false">Translation source</string>
+    <string name="native_b36c60cec0e0" formatted="false">A first reading</string>
+    <string name="native_cb3d1f6647e3" formatted="false">Today\'s hadith</string>
 </resources>

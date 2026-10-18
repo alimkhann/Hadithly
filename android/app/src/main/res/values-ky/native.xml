@@ -10,7 +10,7 @@
     <string name="native_7d9eb7acb13e">Жабуу</string>
     <string name="native_bfd402b2f6f3">Кирүү</string>
     <string name="native_c3812fc4acb8">Өчүрүү</string>
-    <string name="native_caf85b0888d7">Булактар</string>
+    <string name="native_caf85b0888d7" formatted="false">Булактар</string>
     <string name="native_d8b8392e2c54" formatted="false">Кайра аракет кылуу</string>
     <string name="native_dddd7b14feda">Сакталган элемент өчүрүлсүнбү?</string>
     <string name="native_e21f935f11d7">Көчүрүү</string>
@@ -164,4 +164,12 @@
     <string name="native_2d8e5d8cbd80" formatted="false">Котормо даярдалууда…</string>
     <string name="native_0dce590c7d31" formatted="false">%2$s котормонун %1$s калды</string>
     <string name="native_7dcb57998fb9" formatted="false">Кайра аракет кылуу убактысы: %s</string>
+    <string name="native_7e8170072c4e" formatted="false">Бул тилде окуу үчүн текст азырынча жок.</string>
+    <string name="native_1c746ab84cb5" formatted="false">Башка тилди тандоо</string>
+    <string name="native_4843ce39f2af" formatted="false">Текст жүктөлгөн жок</string>
+    <string name="native_fdf375c74f9a" formatted="false">Түпкү булак</string>
+    <string name="native_0664919185ad" formatted="false">ЖИ котормосу</string>
+    <string name="native_4ba5c6645965" formatted="false">Котормонун булагы</string>
+    <string name="native_b36c60cec0e0" formatted="false">Алгачкы окуу</string>
+    <string name="native_cb3d1f6647e3" formatted="false">Бүгүнкү хадис</string>
 </resources>

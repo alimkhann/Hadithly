@@ -10,7 +10,7 @@
     <string name="native_7d9eb7acb13e">إغلاق</string>
     <string name="native_bfd402b2f6f3">تسجيل الدخول</string>
     <string name="native_c3812fc4acb8">إزالة</string>
-    <string name="native_caf85b0888d7">المصادر</string>
+    <string name="native_caf85b0888d7" formatted="false">المصادر</string>
     <string name="native_d8b8392e2c54" formatted="false">إعادة المحاولة</string>
     <string name="native_dddd7b14feda">إزالة العنصر المحفوظ؟</string>
     <string name="native_e21f935f11d7">نسخ</string>
@@ -164,4 +164,12 @@
     <string name="native_2d8e5d8cbd80" formatted="false">جارٍ إعداد الترجمة…</string>
     <string name="native_0dce590c7d31" formatted="false">متبقٍ %1$s من %2$s ترجمة</string>
     <string name="native_7dcb57998fb9" formatted="false">أعد المحاولة %s</string>
+    <string name="native_7e8170072c4e" formatted="false">لا تتوفر قراءة بهذه اللغة بعد.</string>
+    <string name="native_1c746ab84cb5" formatted="false">اختيار لغة أخرى</string>
+    <string name="native_4843ce39f2af" formatted="false">تعذّر تحميل القراءة</string>
+    <string name="native_fdf375c74f9a" formatted="false">المصدر الأصلي</string>
+    <string name="native_0664919185ad" formatted="false">ترجمة بالذكاء الاصطناعي</string>
+    <string name="native_4ba5c6645965" formatted="false">مصدر الترجمة</string>
+    <string name="native_b36c60cec0e0" formatted="false">قراءة أولى</string>
+    <string name="native_cb3d1f6647e3" formatted="false">حديث اليوم</string>
 </resources>

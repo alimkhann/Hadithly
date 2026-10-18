@@ -10,7 +10,7 @@
     <string name="native_7d9eb7acb13e">बंद करें</string>
     <string name="native_bfd402b2f6f3">साइन इन करें</string>
     <string name="native_c3812fc4acb8">हटाएँ</string>
-    <string name="native_caf85b0888d7">स्रोत</string>
+    <string name="native_caf85b0888d7" formatted="false">स्रोत</string>
     <string name="native_d8b8392e2c54" formatted="false">फिर कोशिश करें</string>
     <string name="native_dddd7b14feda">सहेजी गई चीज़ हटाएँ?</string>
     <string name="native_e21f935f11d7">कॉपी करें</string>
@@ -164,4 +164,12 @@
     <string name="native_2d8e5d8cbd80" formatted="false">अनुवाद तैयार हो रहा है…</string>
     <string name="native_0dce590c7d31" formatted="false">%2$s में से %1$s अनुवाद बाकी हैं</string>
     <string name="native_7dcb57998fb9" formatted="false">%s को फिर कोशिश करें</string>
+    <string name="native_7e8170072c4e" formatted="false">इस भाषा में पढ़ने के लिए अभी कोई पाठ उपलब्ध नहीं है।</string>
+    <string name="native_1c746ab84cb5" formatted="false">दूसरी भाषा चुनें</string>
+    <string name="native_4843ce39f2af" formatted="false">पाठ लोड नहीं हो सका</string>
+    <string name="native_fdf375c74f9a" formatted="false">मूल स्रोत</string>
+    <string name="native_0664919185ad" formatted="false">एआई अनुवाद</string>
+    <string name="native_4ba5c6645965" formatted="false">अनुवाद का स्रोत</string>
+    <string name="native_b36c60cec0e0" formatted="false">पहला पाठ</string>
+    <string name="native_cb3d1f6647e3" formatted="false">आज की हदीस</string>
 </resources>

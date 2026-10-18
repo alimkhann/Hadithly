@@ -1,0 +1,50 @@
+{
+  "environment": "development",
+  "scope": "read-only candidate inventory, not a publication/rights approval",
+  "truncation_limit_per_table": 10000,
+  "tables": {
+    "translations": {
+      "count": 46,
+      "possibly_truncated": false
+    },
+    "hadiths": {
+      "count": 10000,
+      "possibly_truncated": true
+    },
+    "licenseRecords": {
+      "count": 1,
+      "possibly_truncated": false
+    }
+  },
+  "translation_candidates_by_locale": {
+    "kk": {
+      "total": 11,
+      "live_nonblank_defaults": 11,
+      "source_gemini_ai": 11
+    },
+    "ru": {
+      "total": 31,
+      "live_nonblank_defaults": 27,
+      "source_gemini_ai": 27
+    },
+    "tr": {
+      "total": 2,
+      "live_nonblank_defaults": 2,
+      "source_gemini_ai": 2
+    },
+    "uz": {
+      "total": 2,
+      "live_nonblank_defaults": 2,
+      "source_gemini_ai": 2
+    }
+  },
+  "warning": "Counts do not validate translation-specific rights, publication dependencies, generation identity, synthetic data, or suitability.",
+  "license_terms_summary": [
+    {
+      "kind": "verified",
+      "permitsDisplay": true,
+      "permitsRedistribution": false
+    }
+  ],
+  "limits": "Hadith rows reached the 10,000-row cap, so per-translation base-license joins are incomplete. Display permission is distinct from offline redistribution. This is development data, not production readiness."
+}

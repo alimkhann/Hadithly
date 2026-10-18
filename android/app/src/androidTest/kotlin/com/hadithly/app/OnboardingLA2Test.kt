@@ -67,7 +67,8 @@ class OnboardingLA2Test {
             compose.onNodeWithTag("onboarding.continue").performClick()
             compose.waitUntil(timeoutMillis = 30_000) {
                 compose.onAllNodesWithTag("onboarding.dailyText").fetchSemanticsNodes().isNotEmpty() ||
-                    compose.onAllNodesWithTag("onboarding.dailyRetry").fetchSemanticsNodes().isNotEmpty()
+                    compose.onAllNodesWithTag("onboarding.dailyRetry").fetchSemanticsNodes().isNotEmpty() ||
+                    compose.onAllNodesWithTag("onboarding.readingUnavailable").fetchSemanticsNodes().isNotEmpty()
             }
             val dailyText = compose.onAllNodesWithTag("onboarding.dailyText").fetchSemanticsNodes().isNotEmpty()
             val demoCtaTop = compose.onNodeWithTag("onboarding.continue").fetchSemanticsNode().boundsInRoot.top
@@ -78,6 +79,7 @@ class OnboardingLA2Test {
                     compose.onNodeWithTag("hadith.text.translation").assertIsDisplayed()
                 }
             }
+            else if (compose.onAllNodesWithTag("onboarding.readingUnavailable").fetchSemanticsNodes().isNotEmpty()) compose.onNodeWithTag("onboarding.chooseReadingLanguage").assertIsDisplayed()
             else compose.onNodeWithTag("onboarding.dailyRetry").assertIsDisplayed()
             val directory = File(context.getExternalFilesDir(null), "LA2").apply { mkdirs() }
             compose.onRoot().captureToImage().asAndroidBitmap().let { bitmap ->

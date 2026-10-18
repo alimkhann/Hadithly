@@ -183,5 +183,13 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "Preparing translation…" -> R.string.native_2d8e5d8cbd80
     "%1$@ of %2$@ translations left" -> R.string.native_0dce590c7d31
     "Try again %@" -> R.string.native_7dcb57998fb9
+    "No reading in this language is available yet." -> R.string.native_7e8170072c4e
+    "Choose another language" -> R.string.native_1c746ab84cb5
+    "Reading could not load" -> R.string.native_4843ce39f2af
+    "Original source" -> R.string.native_fdf375c74f9a
+    "AI translation" -> R.string.native_0664919185ad
+    "Translation source" -> R.string.native_4ba5c6645965
+    "A first reading" -> R.string.native_b36c60cec0e0
+    "Today's hadith" -> R.string.native_cb3d1f6647e3
     else -> null
 }

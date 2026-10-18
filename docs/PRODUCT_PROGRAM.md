@@ -1,0 +1,99 @@
+# Product completion program
+
+Owner objective received October 17, 2026. This program preserves the complete
+objective in the attached `goal-objective.md` and referenced `pasted-text-1.txt`.
+Their checksums and every research URL are recorded in
+`product-program/research-manifest.json`. No later phase replaces unfinished work.
+
+## Sequence and definition of done
+
+The requested end state is a reliable first reading and return experience on both
+native apps, followed by evidence-led native refinements, the supplied website
+redesign across its pages, and a configured Linear hub covering the entire program.
+Completion requires running the real journeys, reviewing rendered results, and
+recording evidence for every requirement below. A build, a draft translation, a
+manifest entry, or a proposed external change is not completion.
+
+The owner explicitly requests the previously found gaps first. Research and the
+later redesigns remain pending while that work proceeds. External dependencies
+stay visible. A missing account, legal approval, physical device, paid-provider
+activation, or user-study participant cannot be silently represented as verified.
+
+## Checklist
+
+- [x] Read the objective, pasted resources, PLAN, and workflow principles.
+- [ ] Frame and verify the readiness gaps before later redesign work.
+  - [ ] A1. Guest first reading delivers actual exact-locale text and provenance,
+    including when today's exact-locale translation is absent. Daily identity stays
+    canonical. No hidden provider call or quota bypass on opening onboarding.
+  - [ ] A2. Reproduce and repair Saved, notes, folders, and reading-position sync;
+    prove iOS → Android and Android → iOS, including sign-out/account changes.
+  - [ ] A3. Improve real grounding and citation provenance for both free and paid
+    generation; verify exact identity, relevance, failures, shared caching, rights,
+    and bounded cost. Do not fill citation counts with unrelated URLs.
+  - [ ] A4. Audit all runtime copy and Android XML files, repair localization gaps
+    across the fifteen supported locales, and verify fallback, placeholders,
+    pluralization, RTL, accessibility, and critical-copy review status.
+  - [ ] A5. Resolve reproduced architecture, system, behavior, and UI defects that
+    prevent the core reading/saving/return journeys. Retain the RTL regressions.
+  - [ ] A6. Execute or explicitly retain every existing content, store, purchase,
+    physical-device, disclosure, production, backup/recovery, and integration gate.
+    Real receipt/readback evidence is required to close an external gate.
+  - [ ] A7. Establish honest activation/return/conversion evidence through a
+    privacy-preserving measurement plan and consented reader sessions. Current
+    clipped analytics totals are not cohort retention.
+- [ ] Review the complete research set after the gaps.
+  - [ ] B1. All 34 videos have full available transcripts, relevant visual frames,
+    timestamped findings, evidence-quality notes, and an application/rejection
+    decision. Missing media is explicit, never counted as watched.
+  - [ ] B2. Review substantive resources, named case studies, channels, practitioner
+    accounts and discussions from the pasted text. Separate verified findings from
+    self-reported results, paywalled material, and opinion.
+- [ ] Apply the research to the requested native experience.
+  - [ ] C1. Simplified paywall with background imagery, hero/subtext, two options,
+    clear actual annual billing total plus monthly equivalent, and recommended /
+    savings badges extending from the option's top-right edge.
+  - [ ] C2. Custom, restrained translation reveal that feels rewarding and remains
+    interruptible, accessible, and fast. Centered missing/retry/failure/limit states
+    use simple colored icons and no cards. Verify both platforms visually.
+  - [ ] C3. Smooth focus entry and exit; thin progress bars remain in focus mode.
+  - [ ] C4. Liquid glass menu elements remain visually separate without fusing.
+  - [ ] C5. Daily hadith cards follow app appearance, independently of reader theme.
+  - [ ] C6. Contents uses real volume names preceded by their numbers and removes
+    Open from start. Preserve jump and navigation behavior.
+  - [ ] C7. Native glass page-switching controls on supported systems, with fitting
+    accessible fallbacks elsewhere.
+  - [ ] C8. Coherent onboarding/auth with the official Google brand asset. Use
+    Clerk's native flows where supported and a minimal, explained hosted handoff
+    where required. Preserve actual sign-in, cancellation, recovery and account state.
+- [ ] D1. Inspect the Hadithly redesign package in Downloads; use website assets
+  only. Redesign the website and its other pages; verify responsive rendering,
+  routes, forms, accessibility, legal links, and content/source claims.
+- [ ] E1. Configure Linear as the hub for agents, plans, issues, bugs and docs.
+  Link implementation and verification evidence. Confirm actual workspace readback;
+  a local proposal does not count as a configured hub.
+- [ ] Audit the full objective requirement by requirement, review the decision
+  trail independently, commit finished units, and report remaining gates honestly.
+
+## Active unit
+
+A1 remains active. Its cache-only boundary is implemented and deployed to the
+approved development deployment. Exact public readback is available in English,
+Arabic, Russian and Kazakh, with three prepared references each. Eleven locales,
+automatic reference maintenance, semantic-quality safeguards and the complete
+content gate remain open. Native verification and limits are in
+`FIRST_READING_VERIFICATION.md`. Actual content review found a Kazakh meaning
+reversal; the exact-text block protects both first-reading paths, while the ordinary
+reader's old row remains an A3 repair.
+
+Finish verifiable A1 engineering work, then continue the independent A2 sync audit
+while retaining A1's content dependencies. No paid generation or production change
+has been approved. Research, later native redesign, website and Linear remain
+pending in the owner's requested order.
+
+The principles shaping this sequence are Experience First (actual readable text),
+Model the Domain (separate a first reading from a canonical Daily selection),
+Prove It Works (native/runtime evidence), and Sequence Work into Verifiable Units
+(finish each readiness unit before research-driven redesign).
+
+The canonical decision trail is `product-program/decisions.tsv`.

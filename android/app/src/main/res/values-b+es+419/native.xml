@@ -10,7 +10,7 @@
     <string name="native_7d9eb7acb13e">Cerrar</string>
     <string name="native_bfd402b2f6f3">Iniciar sesión</string>
     <string name="native_c3812fc4acb8">Eliminar</string>
-    <string name="native_caf85b0888d7">Fuentes</string>
+    <string name="native_caf85b0888d7" formatted="false">Fuentes</string>
     <string name="native_d8b8392e2c54" formatted="false">Reintentar</string>
     <string name="native_dddd7b14feda">¿Eliminar elemento guardado?</string>
     <string name="native_e21f935f11d7">Copiar</string>
@@ -164,4 +164,12 @@
     <string name="native_2d8e5d8cbd80" formatted="false">Preparando la traducción…</string>
     <string name="native_0dce590c7d31" formatted="false">Quedan %1$s de %2$s traducciones</string>
     <string name="native_7dcb57998fb9" formatted="false">Vuelve a intentar %s</string>
+    <string name="native_7e8170072c4e" formatted="false">Aún no hay una lectura disponible en este idioma.</string>
+    <string name="native_1c746ab84cb5" formatted="false">Elegir otro idioma</string>
+    <string name="native_4843ce39f2af" formatted="false">No se pudo cargar la lectura</string>
+    <string name="native_fdf375c74f9a" formatted="false">Fuente original</string>
+    <string name="native_0664919185ad" formatted="false">Traducción con IA</string>
+    <string name="native_4ba5c6645965" formatted="false">Fuente de la traducción</string>
+    <string name="native_b36c60cec0e0" formatted="false">Una primera lectura</string>
+    <string name="native_cb3d1f6647e3" formatted="false">El hadiz de hoy</string>
 </resources>

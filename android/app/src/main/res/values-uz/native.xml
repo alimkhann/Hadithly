@@ -10,7 +10,7 @@
     <string name="native_7d9eb7acb13e">Yopish</string>
     <string name="native_bfd402b2f6f3">Kirish</string>
     <string name="native_c3812fc4acb8">Olib tashlash</string>
-    <string name="native_caf85b0888d7">Manbalar</string>
+    <string name="native_caf85b0888d7" formatted="false">Manbalar</string>
     <string name="native_d8b8392e2c54" formatted="false">Qayta urinish</string>
     <string name="native_dddd7b14feda">Saqlangan element olib tashlansinmi?</string>
     <string name="native_e21f935f11d7">Nusxalash</string>
@@ -164,4 +164,12 @@
     <string name="native_2d8e5d8cbd80" formatted="false">Tarjima tayyorlanmoqda…</string>
     <string name="native_0dce590c7d31" formatted="false">%2$s ta tarjimadan %1$s tasi qoldi</string>
     <string name="native_7dcb57998fb9" formatted="false">Qayta urinish vaqti: %s</string>
+    <string name="native_7e8170072c4e" formatted="false">Bu tilda o‘qish uchun matn hali mavjud emas.</string>
+    <string name="native_1c746ab84cb5" formatted="false">Boshqa tilni tanlash</string>
+    <string name="native_4843ce39f2af" formatted="false">Matnni yuklab bo‘lmadi</string>
+    <string name="native_fdf375c74f9a" formatted="false">Asl manba</string>
+    <string name="native_0664919185ad" formatted="false">Sun’iy intellekt tarjimasi</string>
+    <string name="native_4ba5c6645965" formatted="false">Tarjima manbasi</string>
+    <string name="native_b36c60cec0e0" formatted="false">Ilk mutolaa</string>
+    <string name="native_cb3d1f6647e3" formatted="false">Bugungi hadis</string>
 </resources>

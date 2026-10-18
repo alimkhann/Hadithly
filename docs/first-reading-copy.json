@@ -1,0 +1,181 @@
+{
+  "native_review": "pending",
+  "keys": [
+    "No reading in this language is available yet.",
+    "Choose another language",
+    "Reading could not load",
+    "Original source",
+    "AI translation",
+    "Translation source",
+    "Sources",
+    "A first reading",
+    "Today's hadith"
+  ],
+  "locales": {
+    "en": [
+      "No reading in this language is available yet.",
+      "Choose another language",
+      "Reading could not load",
+      "Original source",
+      "AI translation",
+      "Translation source",
+      "Sources",
+      "A first reading",
+      "Today's hadith"
+    ],
+    "ar": [
+      "لا تتوفر قراءة بهذه اللغة بعد.",
+      "اختيار لغة أخرى",
+      "تعذّر تحميل القراءة",
+      "المصدر الأصلي",
+      "ترجمة بالذكاء الاصطناعي",
+      "مصدر الترجمة",
+      "المصادر",
+      "قراءة أولى",
+      "حديث اليوم"
+    ],
+    "ru": [
+      "Чтение на этом языке пока недоступно.",
+      "Выбрать другой язык",
+      "Не удалось загрузить чтение",
+      "Исходный источник",
+      "Перевод ИИ",
+      "Источник перевода",
+      "Источники",
+      "Первое чтение",
+      "Хадис дня"
+    ],
+    "kk": [
+      "Бұл тілде оқуға арналған мәтін әзірге жоқ.",
+      "Басқа тілді таңдау",
+      "Мәтін жүктелмеді",
+      "Бастапқы дереккөз",
+      "ЖИ аудармасы",
+      "Аударма дереккөзі",
+      "Дереккөздер",
+      "Алғашқы оқу",
+      "Бүгінгі хадис"
+    ],
+    "ky": [
+      "Бул тилде окуу үчүн текст азырынча жок.",
+      "Башка тилди тандоо",
+      "Текст жүктөлгөн жок",
+      "Түпкү булак",
+      "ЖИ котормосу",
+      "Котормонун булагы",
+      "Булактар",
+      "Алгачкы окуу",
+      "Бүгүнкү хадис"
+    ],
+    "uz": [
+      "Bu tilda o‘qish uchun matn hali mavjud emas.",
+      "Boshqa tilni tanlash",
+      "Matnni yuklab bo‘lmadi",
+      "Asl manba",
+      "Sun’iy intellekt tarjimasi",
+      "Tarjima manbasi",
+      "Manbalar",
+      "Ilk mutolaa",
+      "Bugungi hadis"
+    ],
+    "tr": [
+      "Bu dilde okunacak metin henüz mevcut değil.",
+      "Başka bir dil seç",
+      "Okuma yüklenemedi",
+      "Asıl kaynak",
+      "Yapay zekâ çevirisi",
+      "Çeviri kaynağı",
+      "Kaynaklar",
+      "İlk okuma",
+      "Günün hadisi"
+    ],
+    "id": [
+      "Bacaan dalam bahasa ini belum tersedia.",
+      "Pilih bahasa lain",
+      "Bacaan tidak dapat dimuat",
+      "Sumber asli",
+      "Terjemahan AI",
+      "Sumber terjemahan",
+      "Sumber",
+      "Bacaan pertama",
+      "Hadis hari ini"
+    ],
+    "ur": [
+      "اس زبان میں پڑھنے کے لیے متن ابھی دستیاب نہیں۔",
+      "دوسری زبان منتخب کریں",
+      "متن لوڈ نہیں ہو سکا",
+      "اصل ماخذ",
+      "مصنوعی ذہانت کا ترجمہ",
+      "ترجمے کا ماخذ",
+      "ماخذ",
+      "پہلا مطالعہ",
+      "آج کی حدیث"
+    ],
+    "fr": [
+      "Aucune lecture dans cette langue n’est encore disponible.",
+      "Choisir une autre langue",
+      "La lecture n’a pas pu être chargée",
+      "Source originale",
+      "Traduction par IA",
+      "Source de la traduction",
+      "Sources",
+      "Une première lecture",
+      "Le hadith du jour"
+    ],
+    "es-419": [
+      "Aún no hay una lectura disponible en este idioma.",
+      "Elegir otro idioma",
+      "No se pudo cargar la lectura",
+      "Fuente original",
+      "Traducción con IA",
+      "Fuente de la traducción",
+      "Fuentes",
+      "Una primera lectura",
+      "El hadiz de hoy"
+    ],
+    "pt-BR": [
+      "Ainda não há leitura disponível neste idioma.",
+      "Escolher outro idioma",
+      "Não foi possível carregar a leitura",
+      "Fonte original",
+      "Tradução por IA",
+      "Fonte da tradução",
+      "Fontes",
+      "Uma primeira leitura",
+      "O hadith de hoje"
+    ],
+    "sw": [
+      "Bado hakuna maandishi ya kusoma katika lugha hii.",
+      "Chagua lugha nyingine",
+      "Maandishi hayakuweza kupakiwa",
+      "Chanzo asili",
+      "Tafsiri ya AI",
+      "Chanzo cha tafsiri",
+      "Vyanzo",
+      "Usomaji wa kwanza",
+      "Hadithi ya leo"
+    ],
+    "hi": [
+      "इस भाषा में पढ़ने के लिए अभी कोई पाठ उपलब्ध नहीं है।",
+      "दूसरी भाषा चुनें",
+      "पाठ लोड नहीं हो सका",
+      "मूल स्रोत",
+      "एआई अनुवाद",
+      "अनुवाद का स्रोत",
+      "स्रोत",
+      "पहला पाठ",
+      "आज की हदीस"
+    ],
+    "bn": [
+      "এই ভাষায় পড়ার মতো লেখা এখনও উপলব্ধ নেই।",
+      "অন্য ভাষা বেছে নিন",
+      "লেখা লোড করা যায়নি",
+      "মূল উৎস",
+      "এআই অনুবাদ",
+      "অনুবাদের উৎস",
+      "উৎস",
+      "প্রথম পাঠ",
+      "আজকের হাদিস"
+    ]
+  }
+}

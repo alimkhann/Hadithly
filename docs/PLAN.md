@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-10-16. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-10-18. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
 D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its
 simulator/emulator and unit gates; its physical-device gate is open. R4's
@@ -102,6 +102,21 @@ count/time copy and no repeated Pro upgrade offer. See
 focused UI passes, native captures, and verification limits. A chosen language's
 missing first-reading translation remains a separate product risk.
 No release, full-localization, deployment, or physical-device gate closes here.
+
+## Product completion program, October 18
+
+The owner requested the readiness gaps first, then the full research set, further
+native refinements, website redesign and Linear setup. `docs/PRODUCT_PROGRAM.md`
+preserves that complete scope and order. First-reading A1 is active. The owner
+approved its development-only backend deployment and preparation of existing
+content references, with no permission changes, production or paid generation.
+The cache-only exact-language boundary is deployed to development. English,
+Arabic, Russian and Kazakh have current readable results and three prepared
+references each. Eleven locales and automatic reference maintenance remain open.
+See `docs/FIRST_READING_VERIFICATION.md` for native evidence and limits. A known
+Kazakh meaning reversal is blocked by exact text in both first-reading paths; its older
+ordinary-reader row still needs the A3 quality repair. This unit closes no
+localization, physical-device, store, production, grounding or release gate.
 
 ## Read the plan in layers
 

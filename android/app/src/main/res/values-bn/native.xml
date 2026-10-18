@@ -10,7 +10,7 @@
     <string name="native_7d9eb7acb13e">বন্ধ করুন</string>
     <string name="native_bfd402b2f6f3">সাইন ইন করুন</string>
     <string name="native_c3812fc4acb8">সরান</string>
-    <string name="native_caf85b0888d7">উৎস</string>
+    <string name="native_caf85b0888d7" formatted="false">উৎস</string>
     <string name="native_d8b8392e2c54" formatted="false">আবার চেষ্টা করুন</string>
     <string name="native_dddd7b14feda">সংরক্ষিত জিনিস সরাবেন?</string>
     <string name="native_e21f935f11d7">কপি করুন</string>
@@ -164,4 +164,12 @@
     <string name="native_2d8e5d8cbd80" formatted="false">অনুবাদ প্রস্তুত হচ্ছে…</string>
     <string name="native_0dce590c7d31" formatted="false">%2$sটির মধ্যে %1$sটি অনুবাদ বাকি</string>
     <string name="native_7dcb57998fb9" formatted="false">%s থেকে আবার চেষ্টা করুন</string>
+    <string name="native_7e8170072c4e" formatted="false">এই ভাষায় পড়ার মতো লেখা এখনও উপলব্ধ নেই।</string>
+    <string name="native_1c746ab84cb5" formatted="false">অন্য ভাষা বেছে নিন</string>
+    <string name="native_4843ce39f2af" formatted="false">লেখা লোড করা যায়নি</string>
+    <string name="native_fdf375c74f9a" formatted="false">মূল উৎস</string>
+    <string name="native_0664919185ad" formatted="false">এআই অনুবাদ</string>
+    <string name="native_4ba5c6645965" formatted="false">অনুবাদের উৎস</string>
+    <string name="native_b36c60cec0e0" formatted="false">প্রথম পাঠ</string>
+    <string name="native_cb3d1f6647e3" formatted="false">আজকের হাদিস</string>
 </resources>

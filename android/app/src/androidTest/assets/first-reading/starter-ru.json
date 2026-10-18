@@ -1,0 +1,47 @@
+{
+  "daily": {
+    "canonicalId": "sunnah_now:bukhari:2",
+    "hasExactText": false,
+    "referenceDisplay": "Bukhari 2"
+  },
+  "kind": "ready",
+  "locale": "ru",
+  "origin": "starter",
+  "reading": {
+    "arabicText": "نص 1",
+    "authenticity": {
+      "claimScope": "collection",
+      "kind": "collection_scope",
+      "normalizedGrade": "sahih",
+      "sourceLabel": "Documented collection",
+      "sourceName": "Fixture source",
+      "sourceUrl": "https://example.org/reference",
+      "verificationMethod": "manual_collection_mapping"
+    },
+    "canonicalId": "sunnah_now:bukhari:1",
+    "collectionName": "Sahih al-Bukhari",
+    "collectionSlug": "bukhari",
+    "provider": "sunnah_now",
+    "providerHadithId": "1",
+    "referenceDisplay": "Bukhari 1",
+    "referenceUrl": "https://example.org/reference",
+    "text": {
+      "credits": [
+        {
+          "attribution": "Fixture source",
+          "licenseName": "Fixture display permission",
+          "scope": "original",
+          "url": "https://example.org/permission"
+        }
+      ],
+      "isAI": true,
+      "kind": "translation",
+      "language": "ru",
+      "sourceLabel": "AI translation",
+      "sourceUrl": null,
+      "text": "Exact ru translation"
+    },
+    "volumeId": "1"
+  },
+  "validUntil": null
+}

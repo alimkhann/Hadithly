@@ -10,7 +10,7 @@
     <string name="native_7d9eb7acb13e">Kapat</string>
     <string name="native_bfd402b2f6f3">Giriş yapın</string>
     <string name="native_c3812fc4acb8">Kaldır</string>
-    <string name="native_caf85b0888d7">Kaynaklar</string>
+    <string name="native_caf85b0888d7" formatted="false">Kaynaklar</string>
     <string name="native_d8b8392e2c54" formatted="false">Yeniden dene</string>
     <string name="native_dddd7b14feda">Kayıtlı öğe kaldırılsın mı?</string>
     <string name="native_e21f935f11d7">Kopyala</string>
@@ -164,4 +164,12 @@
     <string name="native_2d8e5d8cbd80" formatted="false">Çeviri hazırlanıyor…</string>
     <string name="native_0dce590c7d31" formatted="false">%2$s çeviri hakkından %1$s kaldı</string>
     <string name="native_7dcb57998fb9" formatted="false">Yeniden deneme zamanı: %s</string>
+    <string name="native_7e8170072c4e" formatted="false">Bu dilde okunacak metin henüz mevcut değil.</string>
+    <string name="native_1c746ab84cb5" formatted="false">Başka bir dil seç</string>
+    <string name="native_4843ce39f2af" formatted="false">Okuma yüklenemedi</string>
+    <string name="native_fdf375c74f9a" formatted="false">Asıl kaynak</string>
+    <string name="native_0664919185ad" formatted="false">Yapay zekâ çevirisi</string>
+    <string name="native_4ba5c6645965" formatted="false">Çeviri kaynağı</string>
+    <string name="native_b36c60cec0e0" formatted="false">İlk okuma</string>
+    <string name="native_cb3d1f6647e3" formatted="false">Günün hadisi</string>
 </resources>

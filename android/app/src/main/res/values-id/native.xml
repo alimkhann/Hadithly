@@ -10,7 +10,7 @@
     <string name="native_7d9eb7acb13e">Tutup</string>
     <string name="native_bfd402b2f6f3">Masuk</string>
     <string name="native_c3812fc4acb8">Hapus</string>
-    <string name="native_caf85b0888d7">Sumber</string>
+    <string name="native_caf85b0888d7" formatted="false">Sumber</string>
     <string name="native_d8b8392e2c54" formatted="false">Coba lagi</string>
     <string name="native_dddd7b14feda">Hapus item tersimpan?</string>
     <string name="native_e21f935f11d7">Salin</string>
@@ -164,4 +164,12 @@
     <string name="native_2d8e5d8cbd80" formatted="false">Menyiapkan terjemahan…</string>
     <string name="native_0dce590c7d31" formatted="false">Tersisa %1$s dari %2$s terjemahan</string>
     <string name="native_7dcb57998fb9" formatted="false">Coba lagi %s</string>
+    <string name="native_7e8170072c4e" formatted="false">Bacaan dalam bahasa ini belum tersedia.</string>
+    <string name="native_1c746ab84cb5" formatted="false">Pilih bahasa lain</string>
+    <string name="native_4843ce39f2af" formatted="false">Bacaan tidak dapat dimuat</string>
+    <string name="native_fdf375c74f9a" formatted="false">Sumber asli</string>
+    <string name="native_0664919185ad" formatted="false">Terjemahan AI</string>
+    <string name="native_4ba5c6645965" formatted="false">Sumber terjemahan</string>
+    <string name="native_b36c60cec0e0" formatted="false">Bacaan pertama</string>
+    <string name="native_cb3d1f6647e3" formatted="false">Hadis hari ini</string>
 </resources>

@@ -6,6 +6,114 @@ final class NativeFinishingUITests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
     override func tearDownWithError() throws { XCUIApplication().terminate(); XCUIApplication(bundleIdentifier: "com.apple.Preferences").terminate() }
 
+    func testFirstReadingAbsenceOffersLanguageChoiceWithoutFalseContent() {
+        let app = launch("first-reading-unavailable-ru", theme: "light", locale: "ru")
+        let choose = app.buttons["onboarding.chooseReadingLanguage"]
+        XCTAssertTrue(choose.waitForExistence(timeout: 10))
+        XCTAssertFalse(app.buttons["onboarding.dailyRetry"].exists)
+        XCTAssertFalse(element("onboarding.dailyText", app).exists)
+        capture("first-reading-unavailable-ru", app)
+        choose.tap()
+        XCTAssertTrue(element("firstReading.fixture.language", app).exists)
+    }
+
+    func testFirstReadingRecoveryShowsExactTextAndTarget() {
+        let app = launch("first-reading-failed", theme: "paper")
+        let retry = app.buttons["onboarding.dailyRetry"]
+        XCTAssertTrue(retry.waitForExistence(timeout: 10))
+        capture("first-reading-failed", app)
+        retry.tap()
+        XCTAssertTrue(app.staticTexts["Exact ru translation"].waitForExistence(timeout: 5))
+        XCTAssertFalse(retry.exists)
+        XCTAssertEqual(app.staticTexts["onboarding.readingOrigin"].label, "A first reading")
+        XCTAssertFalse(element("hadith.text.arabic", app).exists)
+        app.buttons["onboarding.readingArabic"].tap()
+        XCTAssertTrue(element("hadith.text.arabic", app).waitForExistence(timeout: 5))
+        app.buttons["onboarding.readingArabic"].tap()
+        app.buttons["onboarding.readingCredits"].tap()
+        XCTAssertTrue(app.links["Fixture display permission"].waitForExistence(timeout: 5))
+        capture("first-reading-ready", app)
+        app.buttons["onboarding.openReading"].tap()
+        XCTAssertEqual(app.staticTexts["firstReading.fixture.target"].label, "sunnah_now:bukhari:1")
+    }
+
+    func testFirstReadingDailyOriginIsVisible() {
+        let app = launch("first-reading-daily-ru", theme: "light")
+        let origin = app.staticTexts["onboarding.readingOrigin"]
+        XCTAssertTrue(origin.waitForExistence(timeout: 10))
+        XCTAssertEqual(origin.label, "Today's hadith")
+        capture("first-reading-daily", app)
+    }
+
+    func testFirstReadingArabicOriginalIsNotDuplicatedAsTranslation() {
+        let app = launch("first-reading-original-ar", theme: "paper", locale: "ar")
+        XCTAssertTrue(element("hadith.text.arabic", app).waitForExistence(timeout: 10))
+        XCTAssertFalse(element("hadith.text.translation", app).exists)
+        XCTAssertFalse(app.buttons["onboarding.dailyRetry"].exists)
+        capture("first-reading-original-ar", app)
+    }
+
+    func testFirstReadingSubscriptionWithdrawalClearsText() {
+        let app = launch("first-reading-stream-withdrawal", theme: "light")
+        XCTAssertTrue(app.staticTexts["Exact ru translation"].waitForExistence(timeout: 10))
+        app.buttons["firstReading.fixture.withdraw"].tap()
+        XCTAssertTrue(element("onboarding.readingUnavailable", app).waitForExistence(timeout: 5))
+        XCTAssertFalse(element("onboarding.dailyText", app).exists)
+    }
+
+    func testFirstReadingExpiresWithoutAnotherServerEmission() {
+        let app = launch("first-reading-stream-expiry", theme: "light")
+        XCTAssertTrue(app.staticTexts["Exact ru translation"].waitForExistence(timeout: 10))
+        XCTAssertTrue(element("onboarding.readingUnavailable", app).waitForExistence(timeout: 10))
+        XCTAssertFalse(element("onboarding.dailyText", app).exists)
+    }
+
+    func testFirstReadingLanguageChangeCancelsOldSubscription() {
+        let app = launch("first-reading-stream-language", theme: "light")
+        XCTAssertTrue(app.staticTexts["Exact ru translation"].waitForExistence(timeout: 10))
+        app.buttons["firstReading.fixture.switch"].tap()
+        XCTAssertTrue(app.staticTexts["Existing English 1"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.staticTexts["firstReading.fixture.stopped"].label, "ru")
+        app.buttons["firstReading.fixture.withdraw"].tap()
+        XCTAssertTrue(app.staticTexts["Existing English 1"].exists)
+        XCTAssertFalse(app.staticTexts["Exact ru translation"].exists)
+    }
+
+    @MainActor func testLiveFirstReadingsOpenTheirActualCanonicalTargets() async throws {
+        for locale in ["en", "ar", "ru", "kk"] {
+            var request = URLRequest(url: URL(string: "https://festive-cobra-664.eu-west-1.convex.cloud/api/query")!)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = try JSONSerialization.data(withJSONObject: ["path": "firstReading:get", "args": ["translationLocale": locale, "timezone": TimeZone.current.identifier], "format": "json"])
+            let (data, _) = try await URLSession.shared.data(for: request)
+            let envelope = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+            let ready = try XCTUnwrap(envelope["value"] as? [String: Any])
+            XCTAssertEqual(ready["kind"] as? String, "ready")
+            let reading = try XCTUnwrap(ready["reading"] as? [String: Any])
+            let text = try XCTUnwrap(reading["text"] as? [String: Any])
+            let number = try XCTUnwrap(reading["providerHadithId"] as? String)
+            let slug = try XCTUnwrap(reading["collectionSlug"] as? String)
+            let app = XCUIApplication()
+            app.launchArguments = ["-NativeFinishingFixture"]
+            app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "FINISH_SCREEN": "demo", "FINISH_THEME": "light", "FINISH_LOCALE": "en", "FINISH_TRANSLATION_LOCALE": locale, "FIRST_READING_NO_GENERATION": "1"]
+            app.launch()
+            let open = app.buttons["onboarding.openReading"]
+            XCTAssertTrue(open.waitForExistence(timeout: 20), "Live first reading for \(locale)")
+            if locale != "ar" {
+                XCTAssertEqual(element("hadith.text.translation", app).label, text["text"] as? String)
+                XCTAssertTrue(element("hadith.text.translation", app).isHittable)
+            }
+            capture("live-first-reading-\(locale)", app)
+            open.tap()
+            let name = slug == "bukhari" ? "Bukhari" : "Muslim"
+            let target = app.buttons.matching(identifier: "reader.hadithLabel").matching(NSPredicate(format: "label CONTAINS %@", "\(name) – \(number)")).firstMatch
+            XCTAssertTrue(target.waitForExistence(timeout: 30), "Reader opened exact target \(slug):\(number)")
+            XCTAssertTrue(target.isHittable)
+            capture("live-first-reading-target-\(locale)", app)
+            app.terminate()
+        }
+    }
+
     func testWelcomeDetectsSystemLanguageBeforeAnySelection() {
         let app = XCUIApplication()
         app.launchArguments = ["-NativeFinishingFixture", "-AppleLanguages", "(ru-RU)", "-AppleLocale", "ru_RU"]
@@ -293,9 +401,10 @@ final class NativeFinishingUITests: XCTestCase {
     private func waitForOnboardingDailyResult(_ app: XCUIApplication) -> Bool {
         let text = element("onboarding.dailyText", app)
         let retry = app.buttons["onboarding.dailyRetry"]
-        let result = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in text.exists || retry.exists }, object: nil)
+        let unavailable = element("onboarding.readingUnavailable", app)
+        let result = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in text.exists || retry.exists || unavailable.exists }, object: nil)
         XCTAssertEqual(XCTWaiter.wait(for: [result], timeout: 20), .completed)
-        return text.exists || retry.exists
+        return text.exists || retry.exists || unavailable.exists
     }
     private func statusBarWhiteFraction(_ app: XCUIApplication) -> Double {
         let original = app.screenshot().image.cgImage!

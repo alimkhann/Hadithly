@@ -1,6 +1,10 @@
 import { v } from "convex/values";
 import type { Infer } from "convex/values";
 
+export const READER_COLLECTIONS = [
+  "bukhari", "muslim", "sunan-nasai", "abu-dawood", "tirmidhi", "ibn-majah", "mishkat-al-masabih",
+] as const;
+
 export const providerValidator = v.union(
   v.literal("sunnah_now"),
   v.literal("sunnah_com"),

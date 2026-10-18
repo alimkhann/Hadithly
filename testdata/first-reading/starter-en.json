@@ -1,0 +1,43 @@
+{
+  "daily": null,
+  "kind": "ready",
+  "locale": "en",
+  "origin": "starter",
+  "reading": {
+    "arabicText": "نص 1",
+    "authenticity": {
+      "claimScope": "collection",
+      "kind": "collection_scope",
+      "normalizedGrade": "sahih",
+      "sourceLabel": "Documented collection",
+      "sourceName": "Fixture source",
+      "sourceUrl": "https://example.org/reference",
+      "verificationMethod": "manual_collection_mapping"
+    },
+    "canonicalId": "sunnah_now:bukhari:1",
+    "collectionName": "Sahih al-Bukhari",
+    "collectionSlug": "bukhari",
+    "provider": "sunnah_now",
+    "providerHadithId": "1",
+    "referenceDisplay": "Bukhari 1",
+    "referenceUrl": "https://example.org/reference",
+    "text": {
+      "credits": [
+        {
+          "attribution": "Fixture source",
+          "licenseName": "Fixture display permission",
+          "scope": "original",
+          "url": "https://example.org/permission"
+        }
+      ],
+      "isAI": false,
+      "kind": "translation",
+      "language": "en",
+      "sourceLabel": "Fixture source",
+      "sourceUrl": "https://example.org/reference",
+      "text": "Existing English 1"
+    },
+    "volumeId": "1"
+  },
+  "validUntil": null
+}

@@ -1,0 +1,34 @@
+{
+  "scope": "Exact-text first-reading exclusion for Daily and prepared references only; does not alter ordinary-reader translations or permissions",
+  "reviewStatus": "Engineering comparison, not native-speaker approval",
+  "entries": [
+    {
+      "locale": "kk",
+      "canonicalId": "sunnah_now:bukhari:18",
+      "reason": "Existing translation reverses prohibitions and duplicates one clause; do not promote as a starter.",
+      "contentSha256": "c9f437a4864bc31da7f85ae2a2f8c52be452e09ef57c5da1b7cab4634128f5f3",
+      "reasonCode": "meaning_reversal"
+    },
+    {
+      "locale": "kk",
+      "canonicalId": "sunnah_now:muslim:260",
+      "reason": "Existing translation drops the introductory context identifying this as a list of major sins; unsuitable standalone first reading.",
+      "contentSha256": "cffced3e1fa93ba92ddcf449e56744e2a00eb47c49b0a12e5789e6ec524dcb50",
+      "reasonCode": "unsuitable_standalone"
+    },
+    {
+      "locale": "kk",
+      "canonicalId": "sunnah_now:muslim:262",
+      "reason": "Existing wording for without just cause does not preserve the source meaning; do not promote as a starter.",
+      "contentSha256": "f17404e2665aefddeb182fa22daf88f28719cf1df7776c6e591f7d3c2c7b1f91",
+      "reasonCode": "unsuitable_standalone"
+    },
+    {
+      "locale": "kk",
+      "canonicalId": "sunnah_now:muslim:264",
+      "reason": "Chain-only cross-reference is unsuitable as a first standalone reading.",
+      "contentSha256": "c600239ff2b41538802c5aa6a693da78034ae4b3e7e8b8ff0332035c7bf99ba9",
+      "reasonCode": "unsuitable_standalone"
+    }
+  ]
+}

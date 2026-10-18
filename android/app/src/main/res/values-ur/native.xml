@@ -10,7 +10,7 @@
     <string name="native_7d9eb7acb13e">بند کریں</string>
     <string name="native_bfd402b2f6f3">سائن ان کریں</string>
     <string name="native_c3812fc4acb8">ہٹائیں</string>
-    <string name="native_caf85b0888d7">ذرائع</string>
+    <string name="native_caf85b0888d7" formatted="false">ماخذ</string>
     <string name="native_d8b8392e2c54" formatted="false">دوبارہ کوشش کریں</string>
     <string name="native_dddd7b14feda">محفوظہ آئٹم ہٹائیں؟</string>
     <string name="native_e21f935f11d7">کاپی کریں</string>
@@ -164,4 +164,12 @@
     <string name="native_2d8e5d8cbd80" formatted="false">ترجمہ تیار ہو رہا ہے…</string>
     <string name="native_0dce590c7d31" formatted="false">%2$s میں سے %1$s تراجم باقی ہیں</string>
     <string name="native_7dcb57998fb9" formatted="false">دوبارہ کوشش کریں: %s</string>
+    <string name="native_7e8170072c4e" formatted="false">اس زبان میں پڑھنے کے لیے متن ابھی دستیاب نہیں۔</string>
+    <string name="native_1c746ab84cb5" formatted="false">دوسری زبان منتخب کریں</string>
+    <string name="native_4843ce39f2af" formatted="false">متن لوڈ نہیں ہو سکا</string>
+    <string name="native_fdf375c74f9a" formatted="false">اصل ماخذ</string>
+    <string name="native_0664919185ad" formatted="false">مصنوعی ذہانت کا ترجمہ</string>
+    <string name="native_4ba5c6645965" formatted="false">ترجمے کا ماخذ</string>
+    <string name="native_b36c60cec0e0" formatted="false">پہلا مطالعہ</string>
+    <string name="native_cb3d1f6647e3" formatted="false">آج کی حدیث</string>
 </resources>

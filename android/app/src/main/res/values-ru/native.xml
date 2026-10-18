@@ -10,7 +10,7 @@
     <string name="native_7d9eb7acb13e">Закрыть</string>
     <string name="native_bfd402b2f6f3">Войти</string>
     <string name="native_c3812fc4acb8">Удалить</string>
-    <string name="native_caf85b0888d7">Источники</string>
+    <string name="native_caf85b0888d7" formatted="false">Источники</string>
     <string name="native_d8b8392e2c54" formatted="false">Повторить</string>
     <string name="native_dddd7b14feda">Удалить сохранённый материал?</string>
     <string name="native_e21f935f11d7">Копировать</string>
@@ -164,4 +164,12 @@
     <string name="native_2d8e5d8cbd80" formatted="false">Подготовка перевода…</string>
     <string name="native_0dce590c7d31" formatted="false">Осталось переводов: %1$s из %2$s</string>
     <string name="native_7dcb57998fb9" formatted="false">Повторите %s</string>
+    <string name="native_7e8170072c4e" formatted="false">Чтение на этом языке пока недоступно.</string>
+    <string name="native_1c746ab84cb5" formatted="false">Выбрать другой язык</string>
+    <string name="native_4843ce39f2af" formatted="false">Не удалось загрузить чтение</string>
+    <string name="native_fdf375c74f9a" formatted="false">Исходный источник</string>
+    <string name="native_0664919185ad" formatted="false">Перевод ИИ</string>
+    <string name="native_4ba5c6645965" formatted="false">Источник перевода</string>
+    <string name="native_b36c60cec0e0" formatted="false">Первое чтение</string>
+    <string name="native_cb3d1f6647e3" formatted="false">Хадис дня</string>
 </resources>

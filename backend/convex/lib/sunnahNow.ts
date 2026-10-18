@@ -8,6 +8,7 @@
  */
 
 import {
+  READER_COLLECTIONS,
   SUNNAH_NOW_LICENSE_RECORD,
   authenticityForProviderHadith,
   canonicalHadithIdentity,
@@ -71,15 +72,7 @@ const COLLECTION_NAMES: Record<string, string> = {
   tirmidhi: "Jami` at-Tirmidhi",
 };
 
-export const DEFAULT_COLLECTION_ORDER = [
-  "bukhari",
-  "muslim",
-  "sunan-nasai",
-  "abu-dawood",
-  "tirmidhi",
-  "ibn-majah",
-  "mishkat-al-masabih",
-] as const;
+export const DEFAULT_COLLECTION_ORDER = READER_COLLECTIONS;
 
 export function createInternalHadithId(
   provider: HadithProviderName,

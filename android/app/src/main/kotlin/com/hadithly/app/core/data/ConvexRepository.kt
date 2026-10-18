@@ -136,6 +136,9 @@ class ConvexRepository(context: Context) {
             ))
         }
 
+    fun observeFirstReading(translationLocale: String): Flow<FirstReadingResult> =
+        subscribe("firstReading:get", mapOf("timezone" to ZoneId.systemDefault().id, "translationLocale" to translationLocale))
+
     suspend fun getDailyHadith(translationLocale: String): DailyHadith? =
         withContext(Dispatchers.IO) {
             convex.action<DailyHadith?>(

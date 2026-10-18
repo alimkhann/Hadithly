@@ -78,8 +78,9 @@ final class OnboardingLA2UITests: XCTestCase {
     private func waitForOnboardingDailyResult(_ app: XCUIApplication) -> Bool {
         let text = app.descendants(matching: .any).matching(identifier: "onboarding.dailyText").firstMatch
         let retry = app.buttons["onboarding.dailyRetry"]
-        let result = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in text.exists || retry.exists }, object: nil)
+        let unavailable = app.descendants(matching: .any).matching(identifier: "onboarding.readingUnavailable").firstMatch
+        let result = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in text.exists || retry.exists || unavailable.exists }, object: nil)
         XCTAssertEqual(XCTWaiter.wait(for: [result], timeout: 20), .completed)
-        return text.exists || retry.exists
+        return text.exists || retry.exists || unavailable.exists
     }
 }

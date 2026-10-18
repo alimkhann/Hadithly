@@ -11,6 +11,7 @@ import { readingPositionValidator } from "./lib/readingPositions";
 import { permissionGrant, publicCitation, reviewPass, sourcePolicy } from "./lib/evidenceReviewPolicy";
 import { caseReason, caseState } from "./lib/evidenceCasePolicy";
 import { supportFields, noticeKind } from "./lib/supportPolicy";
+import { firstReadingSource } from "./lib/firstReadingPolicy";
 
 const authenticityGrade = v.union(
   v.literal("sahih"),
@@ -226,6 +227,20 @@ export default defineSchema({
     hadithId: v.id("hadiths"),
     createdAt: v.number(),
   }).index("by_local_date_timezone", ["localDate", "timezone"]),
+
+  firstReadingBlockedTexts: defineTable({
+    locale: v.string(), canonicalId: v.string(), contentSha256: v.string(),
+    reason: v.union(v.literal("meaning_reversal"), v.literal("unsuitable_standalone")), createdAt: v.number(),
+  }).index("by_exact_text", ["locale", "canonicalId", "contentSha256"]),
+
+  firstReadingSlots: defineTable({
+    locale: v.string(),
+    rank: v.union(v.literal(0), v.literal(1), v.literal(2)),
+    hadithId: v.id("hadiths"),
+    source: firstReadingSource,
+    contentDigest: v.string(),
+    updatedAt: v.number(),
+  }).index("by_locale_rank", ["locale", "rank"]),
 
   translations: defineTable({
     hadithId: v.id("hadiths"),

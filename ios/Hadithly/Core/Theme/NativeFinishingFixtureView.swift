@@ -18,6 +18,8 @@ struct NativeFinishingFixtureView: View {
             if configured {
                 if screen.hasPrefix("auth-") {
                     SignInView.preview(String(screen.dropFirst(5)))
+                } else if screen.hasPrefix("first-reading-") {
+                    FirstReadingFixtureView(name: String(screen.dropFirst("first-reading-".count)))
                 } else {
                     switch screen {
                     case "fresh-install", "install", "welcome", "language", "demo", "account":
@@ -45,12 +47,74 @@ struct NativeFinishingFixtureView: View {
             environment.preferences.setTheme(theme)
             environment.preferences.setSeparateReaderTheme(false)
             environment.preferences.setUILocale(locale)
-            environment.preferences.setTranslationLocale("en")
+            environment.preferences.setTranslationLocale(ProcessInfo.processInfo.environment["FINISH_TRANSLATION_LOCALE"] ?? "en")
+            if ProcessInfo.processInfo.environment["FIRST_READING_NO_GENERATION"] == "1" { environment.readerExperience.automaticallyTranslates = false }
             environment.preferences.setReadingDirection(.ltr)
             UserDefaults.standard.set(["language": 1, "demo": 2, "account": 3][screen] ?? 0, forKey: "onboarding.la2.step")
             configured = true
         }
     }
+}
+
+private struct FirstReadingFixtureView: View {
+    let name: String
+    @State private var feed = FirstReadingFixtureFeed()
+    @State private var observedLocale = "ru"
+    @State private var phase: FirstReadingPhase
+    @State private var chosenLanguage = false
+    @State private var openedTarget: String?
+    init(name: String) {
+        self.name = name
+        _phase = State(initialValue: name == "failed" ? .failed : Self.load(name))
+    }
+    fileprivate static func load(_ name: String) -> FirstReadingPhase {
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        do {
+            let data = try Data(contentsOf: root.appendingPathComponent("testdata/first-reading/\(name).json"))
+            return .result(try JSONDecoder().decode(FirstReadingResult.self, from: data))
+        } catch { return .failed }
+    }
+    var body: some View {
+        if name.hasPrefix("stream-") {
+            VStack {
+                OnboardingTranslationView(locale: observedLocale, source: { feed.stream($0, expiring: name == "stream-expiry") })
+                Button("Withdraw fixture") { feed.withdraw("ru") }.accessibilityIdentifier("firstReading.fixture.withdraw")
+                Button("Change fixture language") { observedLocale = "en" }.accessibilityIdentifier("firstReading.fixture.switch")
+                Text(feed.stopped ?? "active").accessibilityIdentifier("firstReading.fixture.stopped")
+            }
+        }
+        else if chosenLanguage { Text("Choose language").accessibilityIdentifier("firstReading.fixture.language") }
+        else if let openedTarget { Text(openedTarget).accessibilityIdentifier("firstReading.fixture.target") }
+        else {
+            FirstReadingContent(phase: phase, onRetry: { phase = Self.load("starter-ru") },
+                onChooseLanguage: { chosenLanguage = true }, onOpen: { openedTarget = $0.canonicalId })
+        }
+    }
+}
+
+@MainActor @Observable private final class FirstReadingFixtureFeed {
+    var stopped: String?
+    private var continuations: [String: AsyncThrowingStream<FirstReadingResult, Error>.Continuation] = [:]
+    func stream(_ locale: String, expiring: Bool) -> AsyncThrowingStream<FirstReadingResult, Error> {
+        AsyncThrowingStream { continuation in
+            continuations[locale] = continuation
+            continuation.onTermination = { [weak self] _ in Task { @MainActor in self?.stopped = locale } }
+            if expiring {
+                let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+                    .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+                do {
+                    let data = try Data(contentsOf: root.appendingPathComponent("testdata/first-reading/starter-ru.json"))
+                    var object = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
+                    object["validUntil"] = Date().timeIntervalSince1970 * 1000 + 5_000
+                    continuation.yield(try JSONDecoder().decode(FirstReadingResult.self, from: JSONSerialization.data(withJSONObject: object)))
+                } catch { continuation.finish(throwing: error) }
+            } else if case .result(let result) = FirstReadingFixtureView.load(locale == "en" ? "starter-en" : "starter-ru") {
+                continuation.yield(result)
+            }
+        }
+    }
+    func withdraw(_ locale: String) { continuations[locale]?.yield(.unavailable) }
 }
 
 private struct FinishingSheet<Content: View>: View {

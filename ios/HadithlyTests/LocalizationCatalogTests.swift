@@ -5,6 +5,37 @@ import XCTest
 /// exist with English, Arabic, and Urdu localizations, and the plural fixture
 /// carries the Arabic plural categories.
 final class LocalizationCatalogTests: XCTestCase {
+    func testFirstReadingDecodesTheActualBackendFixtures() throws {
+        for name in ["starter-en", "starter-ru", "daily-ru", "original-ar"] {
+            let outcome = try JSONDecoder().decode(FirstReadingResult.self, from: firstReadingFixture(name))
+            guard case .ready(let ready) = outcome else { return XCTFail("Expected ready fixture") }
+            XCTAssertEqual(ready.locale, ready.reading.text.language)
+            XCTAssertFalse(ready.reading.text.text.isEmpty)
+            XCTAssertEqual(ready.reading.canonicalId, "\(ready.reading.provider):\(ready.reading.collectionSlug):\(ready.reading.providerHadithId)")
+        }
+        XCTAssertEqual(try JSONDecoder().decode(FirstReadingResult.self, from: firstReadingFixture("unavailable-ru")), .unavailable)
+    }
+
+    func testFirstReadingRejectsWrongLanguageAndFalseDailyIdentity() throws {
+        let data = try firstReadingFixture("starter-ru")
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        object["locale"] = "fr"
+        XCTAssertThrowsError(try JSONDecoder().decode(FirstReadingResult.self, from: JSONSerialization.data(withJSONObject: object)))
+        object["locale"] = "ru"
+        object["origin"] = "daily"
+        XCTAssertThrowsError(try JSONDecoder().decode(FirstReadingResult.self, from: JSONSerialization.data(withJSONObject: object)))
+    }
+
+    func testFirstReadingRejectsAnUnsupportedReaderProvider() throws {
+        let source = try String(decoding: firstReadingFixture("starter-en"), as: UTF8.self)
+        XCTAssertThrowsError(try JSONDecoder().decode(FirstReadingResult.self, from: Data(source.replacingOccurrences(of: "sunnah_now", with: "sunnah_com").utf8)))
+    }
+
+    private func firstReadingFixture(_ name: String) throws -> Data {
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        return try Data(contentsOf: root.appendingPathComponent("testdata/first-reading/\(name).json"))
+    }
+
     func testSelectedLocaleResolvesShellAndDynamicNavigationTitles() {
         XCTAssertEqual(AppLocalization.string("Today", locale: Locale(identifier: "ar")), "اليوم")
         XCTAssertEqual(AppLocalization.string("Settings", locale: Locale(identifier: "ur")), "ترتیبات")

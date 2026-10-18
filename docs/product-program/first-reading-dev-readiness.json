@@ -1,0 +1,152 @@
+{
+  "deployment": "festive-cobra-664",
+  "applied": true,
+  "locales": {
+    "en": {
+      "candidateCount": 30,
+      "scanTruncated": true,
+      "excluded": 0,
+      "prepared": 3,
+      "rejected": 7,
+      "outcome": "ready",
+      "origin": "daily",
+      "canonicalId": "sunnah_now:bukhari:142",
+      "exactLanguage": "en",
+      "textKind": "translation",
+      "textCharacters": 238,
+      "isAI": false
+    },
+    "ar": {
+      "candidateCount": 30,
+      "scanTruncated": true,
+      "excluded": 0,
+      "prepared": 3,
+      "rejected": 7,
+      "outcome": "ready",
+      "origin": "daily",
+      "canonicalId": "sunnah_now:bukhari:142",
+      "exactLanguage": "ar",
+      "textKind": "original",
+      "textCharacters": 487,
+      "isAI": false
+    },
+    "ru": {
+      "candidateCount": 19,
+      "scanTruncated": false,
+      "excluded": 0,
+      "prepared": 3,
+      "rejected": 0,
+      "outcome": "ready",
+      "origin": "daily",
+      "canonicalId": "sunnah_now:bukhari:142",
+      "exactLanguage": "ru",
+      "textKind": "translation",
+      "textCharacters": 114,
+      "isAI": true
+    },
+    "kk": {
+      "candidateCount": 8,
+      "scanTruncated": false,
+      "excluded": 4,
+      "prepared": 3,
+      "rejected": 0,
+      "outcome": "ready",
+      "origin": "starter",
+      "canonicalId": "sunnah_now:muslim:258",
+      "exactLanguage": "kk",
+      "textKind": "translation",
+      "textCharacters": 554,
+      "isAI": true
+    },
+    "ky": {
+      "candidateCount": 0,
+      "scanTruncated": false,
+      "excluded": 0,
+      "prepared": 0,
+      "rejected": 0,
+      "outcome": "unavailable"
+    },
+    "uz": {
+      "candidateCount": 0,
+      "scanTruncated": false,
+      "excluded": 0,
+      "prepared": 0,
+      "rejected": 0,
+      "outcome": "unavailable"
+    },
+    "tr": {
+      "candidateCount": 0,
+      "scanTruncated": false,
+      "excluded": 0,
+      "prepared": 0,
+      "rejected": 0,
+      "outcome": "unavailable"
+    },
+    "id": {
+      "candidateCount": 0,
+      "scanTruncated": false,
+      "excluded": 0,
+      "prepared": 0,
+      "rejected": 0,
+      "outcome": "unavailable"
+    },
+    "ur": {
+      "candidateCount": 0,
+      "scanTruncated": false,
+      "excluded": 0,
+      "prepared": 0,
+      "rejected": 0,
+      "outcome": "unavailable"
+    },
+    "fr": {
+      "candidateCount": 0,
+      "scanTruncated": false,
+      "excluded": 0,
+      "prepared": 0,
+      "rejected": 0,
+      "outcome": "unavailable"
+    },
+    "es-419": {
+      "candidateCount": 0,
+      "scanTruncated": false,
+      "excluded": 0,
+      "prepared": 0,
+      "rejected": 0,
+      "outcome": "unavailable"
+    },
+    "pt-BR": {
+      "candidateCount": 0,
+      "scanTruncated": false,
+      "excluded": 0,
+      "prepared": 0,
+      "rejected": 0,
+      "outcome": "unavailable"
+    },
+    "sw": {
+      "candidateCount": 0,
+      "scanTruncated": false,
+      "excluded": 0,
+      "prepared": 0,
+      "rejected": 0,
+      "outcome": "unavailable"
+    },
+    "hi": {
+      "candidateCount": 0,
+      "scanTruncated": false,
+      "excluded": 0,
+      "prepared": 0,
+      "rejected": 0,
+      "outcome": "unavailable"
+    },
+    "bn": {
+      "candidateCount": 0,
+      "scanTruncated": false,
+      "excluded": 0,
+      "prepared": 0,
+      "rejected": 0,
+      "outcome": "unavailable"
+    }
+  },
+  "verificationDate": "2026-10-18",
+  "exactTextExclusionsApplied": 4
+}
