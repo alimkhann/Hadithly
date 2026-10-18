@@ -2,6 +2,9 @@
 
 Owner objective received October 17, 2026. This program preserves the complete
 objective in the attached `goal-objective.md` and referenced `pasted-text-1.txt`.
+The A1/A2 and other letter-number labels below are internal tracking IDs created
+for this program, not session names supplied by the owner.
+
 Their checksums and every research URL are recorded in
 `product-program/research-manifest.json`. No later phase replaces unfinished work.
 
@@ -92,7 +95,9 @@ unsent notes and positions. A local typed sync core now preserves frozen batches
 requires a verified account binding, and retains per-operation conflicts. Its native
 coordinator tests pass against real stores, but the production sign-in callers,
 signed-in writes and subscription projections have not migrated. See
-`LIBRARY_SYNC_CORE_VERIFICATION.md` for the bounded evidence and integration gates.
+`LIBRARY_SYNC_CORE_VERIFICATION.md` and `LIBRARY_SYNC_PROTOCOL_VERIFICATION.md`
+for bounded evidence and integration gates. The lifetime receipt cap is now
+replaced by a compact acknowledged sequence; independent review remains pending.
 Continue A2 integration while retaining A1's content dependencies. No paid
 generation or production change has been approved. Research, later native redesign, website and Linear remain
 pending in the owner's requested order.

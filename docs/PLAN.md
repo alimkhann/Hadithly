@@ -108,8 +108,8 @@ No release, full-localization, deployment, or physical-device gate closes here.
 The owner requested the readiness gaps first, then the full research set, further
 native refinements, website redesign and Linear setup. `docs/PRODUCT_PROGRAM.md`
 preserves that complete scope and order. A2 sync implementation is active while
-A1 content dependencies remain open. The owner
-approved its development-only backend deployment and preparation of existing
+A1 content dependencies remain open. For A1, the owner
+approved the development-only backend deployment and preparation of existing
 content references, with no permission changes, production or paid generation.
 The cache-only exact-language boundary is deployed to development. English,
 Arabic, Russian and Kazakh have current readable results and three prepared
@@ -126,8 +126,12 @@ placements, and partial folder restores retain recovery details. Android damaged
 local storage now reaches the existing Saved error state without overwriting its
 file. See `docs/LIBRARY_SYNC_CORE_VERIFICATION.md`. This is an engineering
 checkpoint: the old production sign-in/clearAll paths and signed-in write paths
-remain, receipt compaction and large-account behavior need implementation, and
-actual cross-device/account delivery is unverified. A2 has no deployment approval.
+remain, and actual cross-device/account delivery is unverified. The receipt
+lifecycle now has local Convex/native evidence, with one current receipt set per
+installation and safe old-backup reconciliation. See
+`docs/LIBRARY_SYNC_PROTOCOL_VERIFICATION.md`. Independent review of that protocol,
+production caller integration and large-account behavior remain open. A2 has no
+deployment approval.
 
 ## Read the plan in layers
 

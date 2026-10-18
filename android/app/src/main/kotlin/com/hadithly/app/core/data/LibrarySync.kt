@@ -61,29 +61,35 @@ data class LibraryPartitionState(
     var recovery: List<LibraryRecovery> = emptyList(),
     var recent: List<LibraryRecentReceipt> = emptyList(),
     val clientKey: String = UUID.randomUUID().toString(),
-    var nextSequence: Int = 1,
+    var nextSequence: Double = 1.0,
+    var acknowledgement: SyncAcknowledgement? = null,
 ) {
     fun append(source: LibraryLocalSource, command: SyncCommand?, at: Double) {
         if (command == null || !at.isFinite() || at < 0) recovery = recovery + LibraryRecovery.Invalid(source)
         else pending = pending + LibraryLocalChange(command, at, source)
     }
-    fun freeze(): SyncBatch? {
-        frozen?.let { return it.batch }
+    fun freeze(): SyncFrame? {
+        if (acknowledgement != null) throw LibrarySyncFailure.InvalidReceipt
+        frozen?.let { return SyncFrame(clientKey, nextSequence, it.batch) }
         if (pending.isEmpty()) return null
         val id = UUID.randomUUID().toString()
         val selected = mutableListOf<LibraryLocalChange>()
+        var fanout = 0
         for (change in pending.take(LibrarySyncLimits.operations)) {
+            val extra = when (change.operation.command) { is SyncCommand.FolderDelete, is SyncCommand.FolderRestore -> 1; else -> 0 }
+            if (fanout + extra > LibrarySyncLimits.fanoutOperations) break
             val candidate = SyncBatch(id, (selected + change).map { it.operation })
             if (Json.encodeToString(candidate).toByteArray(Charsets.UTF_8).size > LibrarySyncLimits.bytes) break
             selected.add(change)
+            fanout += extra
         }
         if (selected.isEmpty()) throw LibrarySyncFailure.OversizedChange
         val batch = SyncBatch(id, selected.map { it.operation })
         frozen = LibraryFrozenBatch(batch, selected)
         pending = pending.drop(selected.size)
-        return batch
+        return SyncFrame(clientKey, nextSequence, batch)
     }
-    fun settle(reply: SyncReply, now: Double) {
+    private fun settleReceipts(reply: SyncReply, now: Double) {
         val captured = frozen ?: throw LibrarySyncFailure.InvalidReceipt
         if (captured.batch.id != reply.batchId || reply.receipts.size != captured.changes.size) throw LibrarySyncFailure.InvalidReceipt
         val byId = captured.changes.associateBy { it.operation.id }.toMutableMap()
@@ -111,6 +117,39 @@ data class LibraryPartitionState(
         frozen = null
         nextSequence++
     }
+    private fun checkCursor(cursor: SyncCursor) {
+        if (!cursor.closedThrough.isFinite() || cursor.closedThrough < 0 || kotlin.math.floor(cursor.closedThrough) != cursor.closedThrough || cursor.closedThrough >= 9_007_199_254_740_991.0) throw LibrarySyncFailure.InvalidReceipt
+        cursor.active?.let {
+            if (it.clientKey != clientKey || it.sequence != cursor.closedThrough + 1 || it.reply.batchId.isEmpty() || it.digest.isEmpty()) throw LibrarySyncFailure.InvalidReceipt
+        }
+    }
+    private fun adopt(cursor: SyncCursor) {
+        checkCursor(cursor)
+        frozen?.let { recovery = recovery + it.changes.map(LibraryRecovery::Historical) }
+        frozen = null
+        nextSequence = cursor.closedThrough + 1
+        acknowledgement = cursor.active?.let { SyncAcknowledgement(clientKey, it.sequence, it.reply.batchId, it.digest) }
+    }
+    fun settle(exchange: SyncExchange, requested: SyncFrame, now: Double) {
+        if (requested.clientKey != clientKey || requested.sequence != nextSequence || frozen?.batch != requested.batch || acknowledgement != null) throw LibrarySyncFailure.InvalidReceipt
+        when (exchange) {
+            is SyncExchange.Accepted -> {
+                val committed = exchange.committed
+                if (committed.clientKey != clientKey || committed.sequence != requested.sequence || committed.digest.isEmpty()) throw LibrarySyncFailure.InvalidReceipt
+                settleReceipts(committed.reply, now)
+                acknowledgement = SyncAcknowledgement(clientKey, committed.sequence, committed.reply.batchId, committed.digest)
+            }
+            is SyncExchange.Reconcile -> {
+                if (exchange.clientKey != clientKey || exchange.requestedSequence != requested.sequence || exchange.requestedBatchId != requested.batch.id) throw LibrarySyncFailure.InvalidReceipt
+                adopt(exchange.cursor)
+            }
+        }
+    }
+    fun settleAcknowledgement(reply: SyncAckReply, requested: SyncAcknowledgement) {
+        if (acknowledgement != requested || reply.clientKey != clientKey) throw LibrarySyncFailure.InvalidReceipt
+        adopt(reply.cursor)
+    }
+
 }
 
 sealed class LibrarySyncFailure : Exception() {
@@ -132,7 +171,8 @@ class LibraryWriteContext internal constructor(
 interface LibrarySyncTransport {
     val namespace: String
     suspend fun open(): SyncBinding
-    suspend fun send(capability: String, batch: SyncBatch): SyncReply
+    suspend fun acknowledge(capability: String, acknowledgement: SyncAcknowledgement): SyncAckReply
+    suspend fun send(capability: String, frame: SyncFrame): SyncExchange
 }
 
 class LibrarySync(
@@ -237,18 +277,25 @@ class LibrarySync(
             }
             val binding = binding ?: throw LibrarySyncFailure.OwnerMismatch
             val owner = mutableOwner.value ?: throw LibrarySyncFailure.OwnerMismatch
-            repeat(4) {
+            repeat(8) {
                 checkSession(session, epoch)
                 store.claimGuestForSync(owner)
                 checkSession(session, epoch)
-                val batch = store.freezeSyncBatch(owner)
-                if (batch == null) {
+                val acknowledgement = store.syncPartition(owner)?.acknowledgement
+                if (acknowledgement != null) {
+                    val reply = transport.acknowledge(binding.capability, acknowledgement)
+                    store.settleSyncAcknowledgement(reply, acknowledgement, owner)
+                    checkSession(session, epoch)
+                    return@repeat
+                }
+                val frame = store.freezeSyncFrame(owner)
+                if (frame == null) {
                     mutableStatus.value = Status.Ready(store.syncPartition(owner)?.recovery?.size ?: 0)
                     retryDelay = 1_000
                     return
                 }
-                val reply = transport.send(binding.capability, batch)
-                store.settleSyncBatch(reply, owner, now())
+                val reply = transport.send(binding.capability, frame)
+                store.settleSyncExchange(reply, frame, owner, now())
                 checkSession(session, epoch)
             }
             schedule(session, epoch, 250)

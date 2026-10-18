@@ -36,6 +36,10 @@ test("nested data clocks cannot bypass the operation clock bound", () => {
   }
 });
 
+test("one batch cannot multiply the bounded folder membership fanout", () => {
+  expect(() => validateSyncBatch({ id: "fanout-batch", operations: [1, 2].map(index => ({ id: `delete-${index}`, revision: "r1", at: 1_000, command: { kind: "folder_delete", folder: { kind: "local", key: `folder-${index}` } } })) }, 2_000)).toThrow("SYNC_INVALID_BATCH");
+});
+
 test("semantic equality differs from a different cloud winner or a missing clock", () => {
   expect(syncWriteDecision({ at: 1, cloudAt: 2, same: true })).toBe("preserved");
   expect(syncWriteDecision({ at: 1, cloudAt: 2, same: false })).toBe("newer_cloud");
@@ -62,6 +66,9 @@ afterAll(async () => {
   const validators = { SyncFolderReference: syncValidatorContract(policy.syncFolderReference), SyncCommand: syncValidatorContract(policy.syncCommand),
     SyncOperation: syncValidatorContract(policy.syncOperation), SyncBatch: syncValidatorContract(policy.syncBatch), SyncOutcome: syncValidatorContract(policy.syncOutcome),
     SyncReceipt: syncValidatorContract(policy.syncReceipt), SyncBinding: syncValidatorContract(policy.syncBinding), SyncReply: syncValidatorContract(policy.syncReply),
+    SyncFrame: syncValidatorContract(policy.syncFrame), SyncCommitted: syncValidatorContract(policy.syncCommitted),
+    SyncCursor: syncValidatorContract(policy.syncCursor), SyncAcknowledgement: syncValidatorContract(policy.syncAcknowledgement),
+    SyncExchange: syncValidatorContract(policy.syncExchange), SyncAckReply: syncValidatorContract(policy.syncAckReply),
     ReadingPosition: syncValidatorContract(readingPositionValidator) };
-  writeFileSync(resolve(directory, "contract.json"), JSON.stringify({ ...validators, limits: { operations: policy.SYNC_BATCH_LIMIT, bytes: policy.SYNC_BATCH_BYTES, noteBytes: policy.SYNC_NOTE_BYTES, folderLength: policy.SYNC_FOLDER_LENGTH } }, null, 2) + "\n");
+  writeFileSync(resolve(directory, "contract.json"), JSON.stringify({ ...validators, limits: { operations: policy.SYNC_BATCH_LIMIT, fanoutOperations: policy.SYNC_FANOUT_LIMIT, bytes: policy.SYNC_BATCH_BYTES, noteBytes: policy.SYNC_NOTE_BYTES, folderLength: policy.SYNC_FOLDER_LENGTH } }, null, 2) + "\n");
 });

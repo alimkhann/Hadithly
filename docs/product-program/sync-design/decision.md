@@ -37,11 +37,10 @@ the same owner and carry explicit dependency/mapping facts.
 
 A committed batch and its digest/receipts are atomic. Retrying that exact batch
 returns its recorded facts, without reapplying an old add after a later remove.
-The local core currently keeps content-free receipt/digest records until account
-deletion with a provisional 10,000-batch admission cap. This cap cannot be used
-for routine production reading-position writes. Before integration, implement
-monotonic per-installation sequence acknowledgement and safe receipt compaction,
-including recovery from older backups. No time-only expiry makes an old batch
+The baseline a21300c used a provisional 10,000-batch lifetime cap. The subsequent
+receipt-lifecycle implementation replaces it with monotonic per-installation
+acknowledgement and one current receipt set. See `receipt-lifecycle/decision.md`
+and `../../LIBRARY_SYNC_PROTOCOL_VERIFICATION.md`; its independent review is open. No time-only expiry makes an old batch
 new. Delete/export must cover bindings, ledger, pending and recovery. Never log
 capabilities, identifiers, notes or positions in evidence/analytics.
 

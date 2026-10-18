@@ -320,6 +320,7 @@ final class GuestLibraryPartition {
 
 enum LibrarySyncLimits {
     static let operations = 50
+    static let fanoutOperations = 1
     static let bytes = 131072
     static let noteBytes = 24000
     static let folderLength = 64
@@ -514,6 +515,62 @@ struct SyncReply: Codable, Equatable, Sendable {
     let receipts: [SyncReceipt]
 }
 
+struct SyncFrame: Codable, Equatable, Sendable {
+    let clientKey: String
+    let sequence: Double
+    let batch: SyncBatch
+}
+
+struct SyncCommitted: Codable, Equatable, Sendable {
+    let clientKey: String
+    let sequence: Double
+    let digest: String
+    let reply: SyncReply
+}
+
+struct SyncCursor: Codable, Equatable, Sendable {
+    let closedThrough: Double
+    let active: SyncCommitted?
+}
+
+struct SyncAcknowledgement: Codable, Equatable, Sendable {
+    let clientKey: String
+    let sequence: Double
+    let batchId: String
+    let digest: String
+}
+
+enum SyncExchange: Codable, Equatable, Sendable {
+    case accepted(SyncExchangeAccepted)
+    case reconcile(SyncExchangeReconcile)
+    private enum KindKey: String, CodingKey { case kind }
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: KindKey.self)
+        switch try values.decode(String.self, forKey: .kind) {
+        case "accepted": self = .accepted(try SyncExchangeAccepted(from: decoder))
+        case "reconcile": self = .reconcile(try SyncExchangeReconcile(from: decoder))
+        default: throw DecodingError.dataCorruptedError(forKey: .kind, in: values, debugDescription: "Unsupported sync kind")
+        }
+    }
+    func encode(to encoder: Encoder) throws {
+        var values = encoder.container(keyedBy: KindKey.self)
+        switch self {
+        case .accepted(let value):
+            try values.encode("accepted", forKey: .kind)
+            try value.encode(to: encoder)
+        case .reconcile(let value):
+            try values.encode("reconcile", forKey: .kind)
+            try value.encode(to: encoder)
+        }
+    }
+}
+
+struct SyncAckReply: Codable, Equatable, Sendable {
+    let ownerKey: String
+    let clientKey: String
+    let cursor: SyncCursor
+}
+
 struct SyncFolderReferenceServer: Codable, Equatable, Sendable {
     let id: String
 }
@@ -613,6 +670,18 @@ struct SyncOutcomeSuperseded: Codable, Equatable, Sendable {
 
 struct SyncOutcomeUnresolved: Codable, Equatable, Sendable {
     let reason: SyncOutcomeUnresolvedReason
+}
+
+struct SyncExchangeAccepted: Codable, Equatable, Sendable {
+    let committed: SyncCommitted
+}
+
+struct SyncExchangeReconcile: Codable, Equatable, Sendable {
+    let ownerKey: String
+    let clientKey: String
+    let requestedSequence: Double
+    let requestedBatchId: String
+    let cursor: SyncCursor
 }
 
 enum SyncCommandFolderCreatePurpose: String, Codable, Sendable {

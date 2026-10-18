@@ -333,8 +333,8 @@ class GuestDataStore(context: Context) {
             syncPartitions = store.syncPartitions.filterNot { it.ownerKey == owner.storageKey } + LibrarySyncPartition(owner.storageKey, owner.subject, state))
     }
 
-    suspend fun freezeSyncBatch(owner: LibrarySyncOwner): SyncBatch? {
-        var batch: SyncBatch? = null
+    suspend fun freezeSyncFrame(owner: LibrarySyncOwner): SyncFrame? {
+        var batch: SyncFrame? = null
         writeLocked(notify = false) { store ->
             val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey } ?: return@writeLocked store
             if (partition.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
@@ -352,11 +352,26 @@ class GuestDataStore(context: Context) {
         store.copy(syncPartitions = store.syncPartitions.filterNot { it.ownerKey == owner.storageKey } + LibrarySyncPartition(owner.storageKey, owner.subject, state))
     }
 
-    suspend fun settleSyncBatch(reply: SyncReply, owner: LibrarySyncOwner, now: Double = nowMillis()) = writeLocked(notify = false) { store ->
-        if (reply.ownerKey != owner.key) throw LibrarySyncFailure.OwnerMismatch
+    private fun validateSyncOwner(owner: LibrarySyncOwner, replyOwner: String, cursor: SyncCursor? = null) {
+        if (replyOwner != owner.key || cursor?.active?.reply?.ownerKey?.let { it != owner.key } == true) throw LibrarySyncFailure.OwnerMismatch
+    }
+
+    suspend fun settleSyncExchange(exchange: SyncExchange, requested: SyncFrame, owner: LibrarySyncOwner, now: Double = nowMillis()) = writeLocked(notify = false) { store ->
+        when (exchange) {
+            is SyncExchange.Accepted -> validateSyncOwner(owner, exchange.committed.reply.ownerKey)
+            is SyncExchange.Reconcile -> validateSyncOwner(owner, exchange.ownerKey, exchange.cursor)
+        }
         val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey } ?: return@writeLocked store
         if (partition.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
-        partition.state.settle(reply, now)
+        partition.state.settle(exchange, requested, now)
+        store
+    }
+
+    suspend fun settleSyncAcknowledgement(reply: SyncAckReply, requested: SyncAcknowledgement, owner: LibrarySyncOwner) = writeLocked(notify = false) { store ->
+        validateSyncOwner(owner, reply.ownerKey, reply.cursor)
+        val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey } ?: return@writeLocked store
+        if (partition.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
+        partition.state.settleAcknowledgement(reply, requested)
         store
     }
 

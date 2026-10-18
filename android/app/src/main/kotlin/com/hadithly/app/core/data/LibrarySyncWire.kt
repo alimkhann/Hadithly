@@ -9,6 +9,7 @@ import kotlinx.serialization.json.JsonClassDiscriminator
 
 object LibrarySyncLimits {
     const val operations = 50
+    const val fanoutOperations = 1
     const val bytes = 131072
     const val noteBytes = 24000
     const val folderLength = 64
@@ -191,6 +192,61 @@ data class SyncReply(
     val ownerKey: String,
     val batchId: String,
     val receipts: List<SyncReceipt>,
+)
+
+@Serializable
+data class SyncFrame(
+    val clientKey: String,
+    val sequence: Double,
+    val batch: SyncBatch,
+)
+
+@Serializable
+data class SyncCommitted(
+    val clientKey: String,
+    val sequence: Double,
+    val digest: String,
+    val reply: SyncReply,
+)
+
+@Serializable
+data class SyncCursor(
+    val closedThrough: Double,
+    val active: SyncCommitted? = null,
+)
+
+@Serializable
+data class SyncAcknowledgement(
+    val clientKey: String,
+    val sequence: Double,
+    val batchId: String,
+    val digest: String,
+)
+
+@Serializable
+@JsonClassDiscriminator("kind")
+sealed interface SyncExchange {
+    @Serializable
+    @SerialName("accepted")
+    data class Accepted(
+        val committed: SyncCommitted,
+    ) : SyncExchange
+    @Serializable
+    @SerialName("reconcile")
+    data class Reconcile(
+        val ownerKey: String,
+        val clientKey: String,
+        val requestedSequence: Double,
+        val requestedBatchId: String,
+        val cursor: SyncCursor,
+    ) : SyncExchange
+}
+
+@Serializable
+data class SyncAckReply(
+    val ownerKey: String,
+    val clientKey: String,
+    val cursor: SyncCursor,
 )
 
 @Serializable

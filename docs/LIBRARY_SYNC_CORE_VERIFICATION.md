@@ -1,6 +1,8 @@
 # Library sync core, local verification
 
-October 18, 2026. A2 engineering checkpoint. The complete A2 gate remains open.
+October 18, 2026. Baseline A2 engineering checkpoint at `a21300c`. The complete A2
+gate remains open. The receipt lifetime, table and API details below describe that
+baseline; `LIBRARY_SYNC_PROTOCOL_VERIFICATION.md` records their subsequent replacement.
 The production sign-in callers still use `guestMerge:mergeGuestData` followed by
 `clearAll`. Signed-in writes and subscriptions have not migrated to this core.
 This document must not be read as proof that the reported sign-in race is fixed

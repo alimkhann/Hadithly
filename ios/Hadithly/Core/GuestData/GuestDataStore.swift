@@ -370,7 +370,7 @@ final class GuestDataStore {
         refreshCount()
     }
 
-    func freezeSyncBatch(_ owner: LibrarySyncOwner) throws -> SyncBatch? {
+    func freezeSyncFrame(_ owner: LibrarySyncOwner) throws -> SyncFrame? {
         guard var state = try syncPartition(owner) else { return nil }
         let batch = try state.freeze()
         try saveSyncPartition(state, owner: owner)
@@ -383,10 +383,24 @@ final class GuestDataStore {
         try saveSyncPartition(state, owner: owner)
     }
 
-    func settleSyncBatch(_ reply: SyncReply, owner: LibrarySyncOwner, now: Double = Date.now.millisecondsSinceEpoch) throws {
-        guard reply.ownerKey == owner.key else { throw LibrarySyncFailure.ownerMismatch }
+    private func validateSyncOwner(_ owner: LibrarySyncOwner, replyOwner: String, cursor: SyncCursor? = nil) throws {
+        guard replyOwner == owner.key, cursor?.active?.reply.ownerKey == nil || cursor?.active?.reply.ownerKey == owner.key else { throw LibrarySyncFailure.ownerMismatch }
+    }
+
+    func settleSyncExchange(_ exchange: SyncExchange, requested: SyncFrame, owner: LibrarySyncOwner, now: Double = Date.now.millisecondsSinceEpoch) throws {
+        switch exchange {
+        case .accepted(let value): try validateSyncOwner(owner, replyOwner: value.committed.reply.ownerKey)
+        case .reconcile(let value): try validateSyncOwner(owner, replyOwner: value.ownerKey, cursor: value.cursor)
+        }
         guard var state = try syncPartition(owner) else { return }
-        try state.settle(reply, now: now)
+        try state.settle(exchange, requested: requested, now: now)
+        try saveSyncPartition(state, owner: owner)
+    }
+
+    func settleSyncAcknowledgement(_ reply: SyncAckReply, requested: SyncAcknowledgement, owner: LibrarySyncOwner) throws {
+        try validateSyncOwner(owner, replyOwner: reply.ownerKey, cursor: reply.cursor)
+        guard var state = try syncPartition(owner) else { return }
+        try state.settleAcknowledgement(reply, requested: requested)
         try saveSyncPartition(state, owner: owner)
     }
 

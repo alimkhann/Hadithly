@@ -4,12 +4,12 @@ import { readingPositionValidator, parseReadingPosition } from "./readingPositio
 import { textDigest } from "./evidenceReviewPolicy";
 
 export const SYNC_BATCH_LIMIT = 50;
+export const SYNC_FANOUT_LIMIT = 1;
 export const SYNC_BATCH_BYTES = 128 * 1024;
 export const SYNC_NOTE_BYTES = 24_000;
 export const SYNC_FOLDER_LENGTH = FOLDER_NAME_LIMIT;
 export const SYNC_BINDING_LIFETIME = 15 * 60_000;
 export const SYNC_BINDING_LIMIT = 20;
-export const SYNC_RECEIPT_LIMIT = 10_000;
 
 export const syncFolderReference = v.union(
   v.object({ kind: v.literal("server"), id: v.string() }),
@@ -59,6 +59,25 @@ export const syncBinding = v.object({ ownerKey: v.string(), subject: v.string(),
 export const syncReply = v.object({ ownerKey: v.string(), batchId: v.string(), receipts: v.array(syncReceipt) });
 export type SyncBinding = Infer<typeof syncBinding>;
 export type SyncReply = Infer<typeof syncReply>;
+export const syncFrame = v.object({ clientKey: v.string(), sequence: v.number(), batch: syncBatch });
+export const syncCommitted = v.object({ clientKey: v.string(), sequence: v.number(), digest: v.string(), reply: syncReply });
+export const syncCursor = v.object({ closedThrough: v.number(), active: v.optional(syncCommitted) });
+export const syncAcknowledgement = v.object({ clientKey: v.string(), sequence: v.number(), batchId: v.string(), digest: v.string() });
+export const syncExchange = v.union(
+  v.object({ kind: v.literal("accepted"), committed: syncCommitted }),
+  v.object({ kind: v.literal("reconcile"), ownerKey: v.string(), clientKey: v.string(), requestedSequence: v.number(), requestedBatchId: v.string(), cursor: syncCursor }),
+);
+export const syncAckReply = v.object({ ownerKey: v.string(), clientKey: v.string(), cursor: syncCursor });
+export type SyncFrame = Infer<typeof syncFrame>;
+export type SyncCommitted = Infer<typeof syncCommitted>;
+export type SyncCursor = Infer<typeof syncCursor>;
+export type SyncAcknowledgement = Infer<typeof syncAcknowledgement>;
+export type SyncExchange = Infer<typeof syncExchange>;
+export type SyncAckReply = Infer<typeof syncAckReply>;
+
+export function validateSyncStream(clientKey: string, sequence: number): void {
+  if (!identifier(clientKey) || !Number.isSafeInteger(sequence) || sequence < 1 || sequence >= Number.MAX_SAFE_INTEGER) throw new Error("SYNC_INVALID_STREAM");
+}
 
 function identifier(value: string): boolean { return /^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$/.test(value); }
 function timestamp(value: number): boolean { return Number.isFinite(value) && value >= 0; }
@@ -75,6 +94,7 @@ function reference(value: SyncFolderReference): boolean {
 export function validateSyncBatch(batch: SyncBatch, now: number): void {
   const validTime = (value: number) => timestamp(value) && value <= now + 5 * 60_000;
   if (!identifier(batch.id) || batch.operations.length === 0 || batch.operations.length > SYNC_BATCH_LIMIT ||
+    batch.operations.filter(value => value.command.kind === "folder_delete" || value.command.kind === "folder_restore").length > SYNC_FANOUT_LIMIT ||
     new TextEncoder().encode(JSON.stringify(batch)).byteLength > SYNC_BATCH_BYTES) throw new Error("SYNC_INVALID_BATCH");
   const ids = new Set<string>();
   for (const operation of batch.operations) {

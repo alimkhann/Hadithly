@@ -287,28 +287,35 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
     var recent: [LibraryRecentReceipt] = []
     var clientKey = UUID().uuidString
     var nextSequence = 1
+    var acknowledgement: SyncAcknowledgement?
 
     mutating func append(_ source: LibraryLocalSource, command: SyncCommand?, at: Double) {
         guard let command, at.isFinite, at >= 0 else { recovery.append(.invalid(source)); return }
         pending.append(.init(command: command, at: at, source: source))
     }
-    mutating func freeze() throws -> SyncBatch? {
-        if let frozen { return frozen.batch }
+    mutating func freeze() throws -> SyncFrame? {
+        guard acknowledgement == nil else { throw LibrarySyncFailure.invalidReceipt }
+        if let frozen { return SyncFrame(clientKey: clientKey, sequence: Double(nextSequence), batch: frozen.batch) }
         guard !pending.isEmpty else { return nil }
         let id = UUID().uuidString
         var selected: [LibraryLocalChange] = []
+        var fanout = 0
         for change in pending.prefix(LibrarySyncLimits.operations) {
+            let extra: Int
+            switch change.operation.command { case .folderDelete, .folderRestore: extra = 1; default: extra = 0 }
+            if fanout + extra > LibrarySyncLimits.fanoutOperations { break }
             let candidate = SyncBatch(id: id, operations: (selected + [change]).map(\.operation))
             if try JSONEncoder().encode(candidate).count > LibrarySyncLimits.bytes { break }
             selected.append(change)
+            fanout += extra
         }
         guard !selected.isEmpty else { throw LibrarySyncFailure.oversizedChange }
         let batch = SyncBatch(id: id, operations: selected.map(\.operation))
         frozen = .init(batch: batch, changes: selected)
         pending.removeFirst(selected.count)
-        return batch
+        return SyncFrame(clientKey: clientKey, sequence: Double(nextSequence), batch: batch)
     }
-    mutating func settle(_ reply: SyncReply, now: Double) throws {
+    private mutating func settleReceipts(_ reply: SyncReply, now: Double) throws {
         guard let frozen, frozen.batch.id == reply.batchId, reply.receipts.count == frozen.changes.count else { throw LibrarySyncFailure.invalidReceipt }
         var byID = Dictionary(uniqueKeysWithValues: frozen.changes.map { ($0.operation.id, $0) })
         var stagedRecovery: [LibraryRecovery] = []
@@ -334,6 +341,45 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
         self.frozen = nil
         nextSequence += 1
     }
+
+    private func checkCursor(_ cursor: SyncCursor) throws {
+        guard cursor.closedThrough.isFinite, cursor.closedThrough >= 0,
+              cursor.closedThrough.rounded(.down) == cursor.closedThrough,
+              cursor.closedThrough < 9_007_199_254_740_991 else { throw LibrarySyncFailure.invalidReceipt }
+        if let active = cursor.active {
+            guard active.clientKey == clientKey, active.sequence == cursor.closedThrough + 1,
+                  !active.reply.batchId.isEmpty, !active.digest.isEmpty else { throw LibrarySyncFailure.invalidReceipt }
+        }
+    }
+
+    private mutating func adopt(_ cursor: SyncCursor) throws {
+        try checkCursor(cursor)
+        if let frozen { recovery.append(contentsOf: frozen.changes.map(LibraryRecovery.historical)) }
+        frozen = nil
+        nextSequence = Int(cursor.closedThrough) + 1
+        acknowledgement = cursor.active.map { .init(clientKey: clientKey, sequence: $0.sequence, batchId: $0.reply.batchId, digest: $0.digest) }
+    }
+
+    mutating func settle(_ exchange: SyncExchange, requested: SyncFrame, now: Double) throws {
+        guard requested.clientKey == clientKey, requested.sequence == Double(nextSequence), frozen?.batch == requested.batch,
+              acknowledgement == nil else { throw LibrarySyncFailure.invalidReceipt }
+        switch exchange {
+        case .accepted(let value):
+            let committed = value.committed
+            guard committed.clientKey == clientKey, committed.sequence == requested.sequence, !committed.digest.isEmpty else { throw LibrarySyncFailure.invalidReceipt }
+            try settleReceipts(committed.reply, now: now)
+            acknowledgement = .init(clientKey: clientKey, sequence: committed.sequence, batchId: committed.reply.batchId, digest: committed.digest)
+        case .reconcile(let value):
+            guard value.clientKey == clientKey, value.requestedSequence == requested.sequence, value.requestedBatchId == requested.batch.id else { throw LibrarySyncFailure.invalidReceipt }
+            try adopt(value.cursor)
+        }
+    }
+
+    mutating func settleAcknowledgement(_ reply: SyncAckReply, requested: SyncAcknowledgement) throws {
+        guard acknowledgement == requested, reply.clientKey == clientKey else { throw LibrarySyncFailure.invalidReceipt }
+        try adopt(reply.cursor)
+    }
+
 }
 
 enum LibrarySyncFailure: Error {
@@ -355,7 +401,8 @@ struct LibraryWriteContext: Sendable {
 struct LibrarySyncTransport {
     let namespace: String
     let open: () async throws -> SyncBinding
-    let send: (String, SyncBatch) async throws -> SyncReply
+    let acknowledge: (String, SyncAcknowledgement) async throws -> SyncAckReply
+    let send: (String, SyncFrame) async throws -> SyncExchange
 }
 
 @MainActor
@@ -457,17 +504,23 @@ final class LibrarySync {
                 onOwnerChange(nextOwner)
             }
             guard let binding, let owner else { throw LibrarySyncFailure.ownerMismatch }
-            for _ in 0..<4 {
+            for _ in 0..<8 {
                 try check(session, epoch: epoch)
                 try store.claimGuestForSync(owner)
-                guard let batch = try store.freezeSyncBatch(owner) else {
+                if let acknowledgement = try store.syncPartition(owner)?.acknowledgement {
+                    let reply = try await transport.acknowledge(binding.capability, acknowledgement)
+                    try store.settleSyncAcknowledgement(reply, requested: acknowledgement, owner: owner)
+                    try check(session, epoch: epoch)
+                    continue
+                }
+                guard let frame = try store.freezeSyncFrame(owner) else {
                     status = .ready(recovered: try store.syncPartition(owner)?.recovery.count ?? 0)
                     retryDelay = 1
                     return
                 }
-                let reply = try await transport.send(binding.capability, batch)
+                let reply = try await transport.send(binding.capability, frame)
                 // A late A receipt can settle only A's still-existing partition.
-                try store.settleSyncBatch(reply, owner: owner, now: now())
+                try store.settleSyncExchange(reply, requested: frame, owner: owner, now: now())
                 try check(session, epoch: epoch)
             }
             schedule(session, epoch: epoch, after: 0.25)
