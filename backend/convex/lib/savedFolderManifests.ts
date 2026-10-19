@@ -1,8 +1,10 @@
 import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
-import { savedFolderScanGuard } from "./savedMembership";
+import { savedFolderScanGuard, assertSavedFolderStable } from "./savedMembership";
 import { failHeldFolderFrame } from "./librarySyncFrames";
+import { expireFolderTransition } from "./savedFolderTransitions";
+import { librarySyncMark } from "./librarySyncMarks";
 
 export const FOLDER_MANIFEST_PAGE = 50;
 export const FOLDER_MANIFEST_READ_BYTES = 2 * 1024 * 1024;
@@ -23,6 +25,7 @@ export async function prepareFolderManifest(ctx: MutationCtx, userId: Id<"users"
   if (existing) {
     if (existing.folderId !== operation.folderId || existing.requestedAt !== operation.at) throw new Error("FOLDER_MANIFEST_OPERATION_CONFLICT");
     if (existing.state.kind === "abandoned" || existing.state.kind === "purging") return { kind: "conflict", reason: existing.state.reason };
+    if (existing.state.kind !== "scanning" && existing.state.kind !== "prepared") return { kind: "conflict", reason: "changed" };
     const current = await ctx.db.get(existing.folderId);
     const reason = existing.expiresAt <= Date.now() ? "expired"
       : current?.userId !== userId ? "missing_folder"
@@ -35,6 +38,7 @@ export async function prepareFolderManifest(ctx: MutationCtx, userId: Id<"users"
   }
   const folder = await ctx.db.get(operation.folderId);
   if (folder?.userId !== userId) return { kind: "conflict", reason: "missing_folder" };
+  await assertSavedFolderStable(ctx, folder);
   const guard = await savedFolderScanGuard(ctx, folder);
   if (folder.updatedAt > operation.at || (guard.latestAt ?? 0) > operation.at) return { kind: "conflict", reason: "newer_cloud" };
   for (const phase of ["scanning", "prepared"] as const) {
@@ -101,6 +105,10 @@ export async function purgeFolderManifestMembers(ctx: MutationCtx, request: { id
   if (header && header.generation !== request.generation) return { deleted: 0 };
   const ownerExists = header ? await ctx.db.get(header.userId) !== null : false;
   const expired = header ? header.expiresAt <= Date.now() : true;
+  if (header && ownerExists && (header.state.kind === "deleted" || header.state.kind === "restoring" || header.state.kind === "restored" || header.state.kind === "expiring")) {
+    await expireFolderTransition(ctx, header);
+    return { deleted: 0 };
+  }
   if (header && ownerExists && !expired && header.state.kind !== "abandoned" && header.state.kind !== "purging") return { deleted: 0 };
   const eraseHeader = expired || !ownerExists || header?.state.kind === "purging";
   if (header && eraseHeader) await failHeldFolderFrame(ctx, header, header.state.kind === "abandoned" || header.state.kind === "purging" ? header.state.reason : "expired");
@@ -111,6 +119,10 @@ export async function purgeFolderManifestMembers(ctx: MutationCtx, request: { id
   const rows = await ctx.db.query("savedFolderManifestMembers").withIndex("by_manifest", q => q.eq("manifestId", request.id)).take(FOLDER_MANIFEST_PAGE);
   for (const row of rows) await ctx.db.delete(row._id);
   if (rows.length === FOLDER_MANIFEST_PAGE) await ctx.scheduler.runAfter(0, internal.librarySync.purgeFolderManifestMembers, request);
-  else if (header && eraseHeader) await ctx.db.delete(header._id);
+  else if (header && eraseHeader) {
+    const deletion = await librarySyncMark(ctx, header.userId, `folder:${header.folderId}`);
+    if (deletion?.detail.kind === "folder_manifest" && deletion.detail.manifestId === header._id) await ctx.db.delete(deletion._id);
+    await ctx.db.delete(header._id);
+  }
   return { deleted: rows.length };
 }

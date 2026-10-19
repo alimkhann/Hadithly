@@ -47,10 +47,12 @@ export const syncOutcome = v.union(
   v.object({ kind: v.literal("preserved") }),
   v.object({ kind: v.literal("folder"), folderId: v.id("savedFolders") }),
   v.object({ kind: v.literal("folder_deleted"), hadithIds: v.array(v.id("hadiths")), deletedAt: v.number() }),
+  v.object({ kind: v.literal("folder_deleted_manifest"), manifestId: v.id("savedFolderManifests"), generation: v.string(), count: v.number(), deletedAt: v.number() }),
   v.object({ kind: v.literal("folder_restored"), folderId: v.id("savedFolders"), restored: v.array(v.string()), superseded: v.array(v.string()), missing: v.array(v.string()) }),
+  v.object({ kind: v.literal("folder_restored_manifest"), manifestId: v.id("savedFolderManifests"), generation: v.string(), folderId: v.id("savedFolders"), restored: v.number(), superseded: v.number(), missing: v.number() }),
   v.object({ kind: v.literal("resolved_position"), position: readingPositionValidator }),
   v.object({ kind: v.literal("superseded"), reason: v.union(v.literal("newer_cloud"), v.literal("tie_cloud"), v.literal("changed_since_delete"), v.literal("unversioned_cloud")) }),
-  v.object({ kind: v.literal("unresolved"), reason: v.union(v.literal("missing_target"), v.literal("missing_folder"), v.literal("missing_saved_item"), v.literal("folder_name_taken"), v.literal("position_unavailable"), v.literal("folder_too_large"), v.literal("preparation_expired")) }),
+  v.object({ kind: v.literal("unresolved"), reason: v.union(v.literal("missing_target"), v.literal("missing_folder"), v.literal("missing_saved_item"), v.literal("folder_name_taken"), v.literal("position_unavailable"), v.literal("folder_too_large"), v.literal("preparation_expired"), v.literal("folder_restore_unavailable")) }),
 );
 export const syncReceipt = v.object({ id: v.string(), revision: v.string(), outcome: syncOutcome });
 export type SyncOutcome = Infer<typeof syncOutcome>;

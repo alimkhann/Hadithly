@@ -470,6 +470,7 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
         for receipt in reply.receipts {
             guard let change = byID.removeValue(forKey: receipt.id), change.operation.revision == receipt.revision else { throw LibrarySyncFailure.invalidReceipt }
             switch receipt.outcome {
+            case .folderDeletedManifest, .folderRestoredManifest: throw LibrarySyncFailure.invalidReceipt
             case .preserved, .folder, .folderDeleted: break
             case .folderRestored(let value):
                 if !value.superseded.isEmpty || !value.missing.isEmpty { stagedRecovery.append(.server(change, receipt.outcome)) }
@@ -531,6 +532,7 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
             for change in submitted {
                 guard let receipt = committed.reply.receipts.first(where: { $0.id == change.operation.id }) else { throw LibrarySyncFailure.invalidReceipt }
                 switch receipt.outcome {
+                case .folderDeletedManifest, .folderRestoredManifest: throw LibrarySyncFailure.invalidReceipt
                 case .preserved, .folder, .folderDeleted, .folderRestored, .resolvedPosition:
                     let version = change.operation.command.isPositionChange ? committed.revision.position : committed.revision.saved
                     confirmed.append(.init(change: change, outcome: receipt.outcome, version: version))

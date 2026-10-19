@@ -1,6 +1,7 @@
 import { requireAccountNotDeleting, prepareAccountDeletion as prepareDeletion, authorizeAccountDeletion } from "./lib/accountDeletion";
 import { syncDeletionAuthorization, syncDeletionResult, type SyncDeletionResult } from "./lib/librarySyncPolicy";
 import { requireLibraryBinding } from "./lib/librarySyncIdentity";
+import { effectiveSavedMembership } from "./lib/savedMembership";
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
@@ -276,7 +277,9 @@ export const exportCurrentUserData = query({
         createdAt: folder.createdAt,
         updatedAt: folder.updatedAt,
       })),
-      savedItems: items.map((item) => ({
+      savedItems: await Promise.all(items.map(async (item) => {
+        const effective = await effectiveSavedMembership(ctx, item);
+        return {
         hadith: hadithRef(item.hadithId),
         bookmarkCreatedAt: item.bookmarkCreatedAt ?? null,
         favoriteCreatedAt: item.favoriteCreatedAt ?? null,
@@ -284,10 +287,10 @@ export const exportCurrentUserData = query({
         noteUpdatedAt: item.noteUpdatedAt ?? null,
         folderName: folders.find(
           (folder) =>
-            item.folderId !== undefined && folder._id.toString() === item.folderId.toString(),
+            effective.folderId !== undefined && folder._id.toString() === effective.folderId.toString(),
         )?.name,
-        updatedAt: item.updatedAt,
-      })),
+        updatedAt: Math.max(item.updatedAt, effective.at ?? 0),
+      }; })),
       readingProgress: progress.map((row) => ({
         collectionSlug: row.collectionSlug,
         hadith: hadithRef(row.hadithId),

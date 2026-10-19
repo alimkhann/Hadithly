@@ -4,6 +4,16 @@ import SwiftData
 @testable import Hadithly
 
 final class GuestMergePlannerTests: XCTestCase {
+    func testManifestReceiptCannotAckBeforeOutcomeCollectionExists() throws {
+        var state = LibraryPartitionState()
+        state.append(.account(nil), command: .folderDelete(.init(folder: .server(.init(id: "folder")))), at: 1_000)
+        let frame = try XCTUnwrap(state.freeze()), operation = frame.batch.operations[0]
+        let reply = SyncReply(ownerKey: "owner-a", batchId: frame.batch.id, receipts: [.init(id: operation.id, revision: operation.revision,
+            outcome: .folderDeletedManifest(.init(manifestId: "manifest", generation: "generation", count: 501, deletedAt: 1_000)))])
+        XCTAssertThrowsError(try state.settle(accepted(frame, reply: reply), requested: frame, now: 2_000))
+        XCTAssertEqual(state.frozen?.batch, frame.batch); XCTAssertEqual(state.nextSequence, 1); XCTAssertNil(state.acknowledgement)
+    }
+
     @MainActor func testHeldOriginalSurvivesStoreReopenRetirementAndTerminalFailure() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)

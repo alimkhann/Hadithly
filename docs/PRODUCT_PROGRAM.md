@@ -119,7 +119,7 @@ Ordinary membership writes now share a causal clock rule, and both native apps
 preserve independent folder timestamps. Unknown-time guest claims cannot replace
 existing cloud choices. The focused repair passes 413 backend, 51 iOS and 30 Android
 checks; see `LIBRARY_SYNC_MEMBERSHIP_VERIFICATION.md`. This is a prerequisite to
-the still-unimplemented folder state/page/job contract, not large-folder support.
+the remaining full folder/page/job cutover, not app-level large-folder support.
 Membership epochs and an owner-scoped indexed maximum now track accepted moves,
 restores and last-facet removal. The 2,001-member fixture and complete 421-test
 backend suite pass locally; see `LIBRARY_FOLDER_SCAN_VERIFICATION.md`. No paged
@@ -137,7 +137,14 @@ waiting/polling consumers now pass 439 backend, 55 iOS and 34 Android checks. An
 independent review's same-ID restored-copy flaw was reproduced and fixed using a
 cross-native content fingerprint. See `LIBRARY_SYNC_HELD_FRAME_VERIFICATION.md`.
 Successful logical effects, Undo, producer/read/export cutover and old installed
-schema/client migration remain open; no large-folder success is claimed.
+schema/client migration remain open; no public large-folder success is claimed.
+Internal logical deletion, staged Undo, clock resolution, materialization and
+retention now pass full 501-/2,001-member sequences, with 453 backend tests overall.
+Older facet endpoints also share the canonical writers after a reproduced ghost
+membership defect. See `LIBRARY_FOLDER_EFFECTS_VERIFICATION.md`. Native 56 iOS/35
+Android checks include retaining frozen originals when outcome collection is absent.
+The public producer, paged outcomes/reads/export and final legacy/installed migration
+remain gated; the public 501-member product probe is still red.
 Continue A2 integration while retaining A1's content dependencies. No paid
 generation or production change has been approved. Research, later native redesign, website and Linear remain
 pending in the owner's requested order.

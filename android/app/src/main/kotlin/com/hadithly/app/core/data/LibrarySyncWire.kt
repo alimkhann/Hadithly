@@ -149,12 +149,30 @@ sealed interface SyncOutcome {
         val deletedAt: Double,
     ) : SyncOutcome
     @Serializable
+    @SerialName("folder_deleted_manifest")
+    data class FolderDeletedManifest(
+        val manifestId: String,
+        val generation: String,
+        val count: Double,
+        val deletedAt: Double,
+    ) : SyncOutcome
+    @Serializable
     @SerialName("folder_restored")
     data class FolderRestored(
         val folderId: String,
         val restored: List<String>,
         val superseded: List<String>,
         val missing: List<String>,
+    ) : SyncOutcome
+    @Serializable
+    @SerialName("folder_restored_manifest")
+    data class FolderRestoredManifest(
+        val manifestId: String,
+        val generation: String,
+        val folderId: String,
+        val restored: Double,
+        val superseded: Double,
+        val missing: Double,
     ) : SyncOutcome
     @Serializable
     @SerialName("resolved_position")
@@ -405,6 +423,7 @@ enum class SyncOutcomeUnresolvedReason {
     @SerialName("position_unavailable") POSITION_UNAVAILABLE,
     @SerialName("folder_too_large") FOLDER_TOO_LARGE,
     @SerialName("preparation_expired") PREPARATION_EXPIRED,
+    @SerialName("folder_restore_unavailable") FOLDER_RESTORE_UNAVAILABLE,
 }
 
 object LibrarySyncIntentVectors {

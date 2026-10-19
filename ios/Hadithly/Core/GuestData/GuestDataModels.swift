@@ -512,7 +512,9 @@ enum SyncOutcome: Codable, Equatable, Sendable {
     case preserved
     case folder(SyncOutcomeFolder)
     case folderDeleted(SyncOutcomeFolderDeleted)
+    case folderDeletedManifest(SyncOutcomeFolderDeletedManifest)
     case folderRestored(SyncOutcomeFolderRestored)
+    case folderRestoredManifest(SyncOutcomeFolderRestoredManifest)
     case resolvedPosition(SyncOutcomeResolvedPosition)
     case superseded(SyncOutcomeSuperseded)
     case unresolved(SyncOutcomeUnresolved)
@@ -523,7 +525,9 @@ enum SyncOutcome: Codable, Equatable, Sendable {
         case "preserved": self = .preserved
         case "folder": self = .folder(try SyncOutcomeFolder(from: decoder))
         case "folder_deleted": self = .folderDeleted(try SyncOutcomeFolderDeleted(from: decoder))
+        case "folder_deleted_manifest": self = .folderDeletedManifest(try SyncOutcomeFolderDeletedManifest(from: decoder))
         case "folder_restored": self = .folderRestored(try SyncOutcomeFolderRestored(from: decoder))
+        case "folder_restored_manifest": self = .folderRestoredManifest(try SyncOutcomeFolderRestoredManifest(from: decoder))
         case "resolved_position": self = .resolvedPosition(try SyncOutcomeResolvedPosition(from: decoder))
         case "superseded": self = .superseded(try SyncOutcomeSuperseded(from: decoder))
         case "unresolved": self = .unresolved(try SyncOutcomeUnresolved(from: decoder))
@@ -541,8 +545,14 @@ enum SyncOutcome: Codable, Equatable, Sendable {
         case .folderDeleted(let value):
             try values.encode("folder_deleted", forKey: .kind)
             try value.encode(to: encoder)
+        case .folderDeletedManifest(let value):
+            try values.encode("folder_deleted_manifest", forKey: .kind)
+            try value.encode(to: encoder)
         case .folderRestored(let value):
             try values.encode("folder_restored", forKey: .kind)
+            try value.encode(to: encoder)
+        case .folderRestoredManifest(let value):
+            try values.encode("folder_restored_manifest", forKey: .kind)
             try value.encode(to: encoder)
         case .resolvedPosition(let value):
             try values.encode("resolved_position", forKey: .kind)
@@ -824,11 +834,27 @@ struct SyncOutcomeFolderDeleted: Codable, Equatable, Sendable {
     let deletedAt: Double
 }
 
+struct SyncOutcomeFolderDeletedManifest: Codable, Equatable, Sendable {
+    let manifestId: String
+    let generation: String
+    let count: Double
+    let deletedAt: Double
+}
+
 struct SyncOutcomeFolderRestored: Codable, Equatable, Sendable {
     let folderId: String
     let restored: [String]
     let superseded: [String]
     let missing: [String]
+}
+
+struct SyncOutcomeFolderRestoredManifest: Codable, Equatable, Sendable {
+    let manifestId: String
+    let generation: String
+    let folderId: String
+    let restored: Double
+    let superseded: Double
+    let missing: Double
 }
 
 struct SyncOutcomeResolvedPosition: Codable, Equatable, Sendable {
@@ -918,6 +944,7 @@ enum SyncOutcomeUnresolvedReason: String, Codable, Sendable {
     case positionUnavailable = "position_unavailable"
     case folderTooLarge = "folder_too_large"
     case preparationExpired = "preparation_expired"
+    case folderRestoreUnavailable = "folder_restore_unavailable"
 }
 
 struct SyncCommandFacetRestoreValueBookmark: Codable, Equatable, Sendable {

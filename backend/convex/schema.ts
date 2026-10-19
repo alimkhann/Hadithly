@@ -23,6 +23,8 @@ const authenticityGrade = v.union(
   v.literal("unknown"),
 );
 
+const folderMaterialization = v.union(v.object({ kind: v.literal("pending"), cursor: v.union(v.string(), v.null()), step: v.number() }), v.object({ kind: v.literal("done") }));
+const folderRestoreCounts = { restored: v.number(), superseded: v.number(), missing: v.number() };
 export default defineSchema({
   accountDeletionMarkers: defineTable({ subjectDigest: v.string(), requestedAt: v.number() }).index("by_subject", ["subjectDigest"]),
   accountDeletionAuthorizations: defineTable({ subjectDigest: v.string(), digest: v.string(), validUntil: v.number() })
@@ -517,7 +519,7 @@ export default defineSchema({
     .index("by_user_client_sequence", ["userId", "clientKey", "sequence"]).index("by_user_client", ["userId", "clientKey"]).index("by_user", ["userId"]),
   librarySyncVersions: defineTable({ userId: v.id("users"), kind: v.union(v.literal("saved"), v.literal("position")), version: v.number() })
     .index("by_user_kind", ["userId", "kind"]).index("by_user", ["userId"]),
-  librarySyncMarks: defineTable({ userId: v.id("users"), key: v.string(), operationId: v.string(), commandKind: v.string(), at: v.number(), detail: v.union(v.object({ kind: v.literal("write") }), v.object({ kind: v.literal("folder_deletion"), hadithIds: v.array(v.id("hadiths")) })) })
+  librarySyncMarks: defineTable({ userId: v.id("users"), key: v.string(), operationId: v.string(), commandKind: v.string(), at: v.number(), detail: v.union(v.object({ kind: v.literal("write") }), v.object({ kind: v.literal("folder_deletion"), hadithIds: v.array(v.id("hadiths")) }), v.object({ kind: v.literal("folder_manifest"), manifestId: v.id("savedFolderManifests") })) })
     .index("by_user_key", ["userId", "key"]).index("by_user_operation", ["userId", "operationId"]).index("by_user", ["userId"]),
   librarySyncFolderKeys: defineTable({ userId: v.id("users"), key: v.string(), folderId: v.id("savedFolders") })
     .index("by_user_key", ["userId", "key"]).index("by_user", ["userId"]),
@@ -550,10 +552,16 @@ export default defineSchema({
     userId: v.id("users"), folderId: v.id("savedFolders"), operationId: v.string(), requestedAt: v.number(),
     generation: v.string(), createdAt: v.number(), updatedAt: v.number(), expiresAt: v.number(),
     heldBy: v.optional(v.object({ streamId: v.id("librarySyncStreams"), sequence: v.number(), digest: v.string() })),
+    restoreHeldBy: v.optional(v.object({ streamId: v.id("librarySyncStreams"), sequence: v.number(), digest: v.string() })),
     captured: v.object({ epoch: v.number(), updatedAt: v.number(), name: v.string(), createdAt: v.number() }),
     state: v.union(
       v.object({ kind: v.literal("scanning"), cursor: v.union(v.string(), v.null()), count: v.number(), step: v.number() }),
       v.object({ kind: v.literal("prepared"), count: v.number() }),
+      v.object({ kind: v.literal("deleted"), count: v.number() }),
+      v.object({ kind: v.literal("restoring"), count: v.number(), operationId: v.string(), at: v.number(), cursor: v.union(v.string(), v.null()), step: v.number(),
+        destination: v.union(v.object({ kind: v.literal("new") }), v.object({ kind: v.literal("existing"), id: v.id("savedFolders") })), ...folderRestoreCounts }),
+      v.object({ kind: v.literal("restored"), count: v.number(), operationId: v.string(), at: v.number(), destinationId: v.id("savedFolders"), normalization: folderMaterialization, ...folderRestoreCounts }),
+      v.object({ kind: v.literal("expiring"), count: v.number(), cursor: v.union(v.string(), v.null()), step: v.number(), releaseFolderId: v.union(v.id("savedFolders"), v.null()) }),
       v.object({ kind: v.literal("abandoned"), count: v.number(), reason: v.union(v.literal("changed"), v.literal("missing_folder"), v.literal("expired")) }),
       v.object({ kind: v.literal("purging"), count: v.number(), reason: v.union(v.literal("changed"), v.literal("missing_folder"), v.literal("expired")) }),
     ),
@@ -561,10 +569,12 @@ export default defineSchema({
     .index("by_user_folder_state", ["userId", "folderId", "state.kind"])
     .index("by_user_state", ["userId", "state.kind"])
     .index("by_state_updated", ["state.kind", "updatedAt"])
+    .index("by_normalization_updated", ["state.normalization.kind", "updatedAt"])
     .index("by_expiry", ["expiresAt"]).index("by_user", ["userId"]),
   savedFolderManifestMembers: defineTable({
     userId: v.id("users"), manifestId: v.id("savedFolderManifests"), ordinal: v.number(),
     itemId: v.id("savedItems"), hadithId: v.id("hadiths"), membershipAt: v.optional(v.number()),
+    disposition: v.optional(v.union(v.literal("restored"), v.literal("superseded"), v.literal("missing"))),
   }).index("by_user_manifest_ordinal", ["userId", "manifestId", "ordinal"])
     .index("by_manifest", ["manifestId"]).index("by_user", ["userId"]),
 
@@ -577,6 +587,7 @@ export default defineSchema({
     // Optional for existing rows. Zero is the pre-tracking baseline; a folder
     // scan may commit only against the same epoch it captured before paging.
     membershipEpoch: v.optional(v.number()),
+    transition: v.optional(v.id("savedFolderManifests")),
   })
     .index("by_user", ["userId"])
     .index("by_user_normalized_name", ["userId", "normalizedName"]),
@@ -594,6 +605,7 @@ export default defineSchema({
     // only the memberships removed by that delete, without overwriting a
     // later move from another device.
     folderUpdatedAt: v.optional(v.number()),
+    folderStage: v.optional(v.object({ manifestId: v.id("savedFolderManifests"), memberId: v.id("savedFolderManifestMembers"), generation: v.string(), restoreId: v.string() })),
     createdAt: v.number(),
     updatedAt: v.number(),
   })

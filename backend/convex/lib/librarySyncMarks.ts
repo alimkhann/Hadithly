@@ -1,9 +1,9 @@
 import { advanceLibraryVersion } from "./librarySyncVersions";
-import type { MutationCtx } from "../_generated/server";
+import type { MutationCtx, QueryCtx } from "../_generated/server";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { SyncOperation } from "./librarySyncPolicy";
 
-export async function librarySyncMark(ctx: MutationCtx, userId: Id<"users">, key: string) {
+export async function librarySyncMark(ctx: MutationCtx | QueryCtx, userId: Id<"users">, key: string) {
   return ctx.db.query("librarySyncMarks").withIndex("by_user_key", q => q.eq("userId", userId).eq("key", key)).unique();
 }
 export async function stampLibrarySyncMark(ctx: MutationCtx, userId: Id<"users">, key: string, operation: Pick<SyncOperation, "id" | "at"> & { command: { kind: string } }, at = operation.at, detail: Doc<"librarySyncMarks">["detail"] = { kind: "write" }) {

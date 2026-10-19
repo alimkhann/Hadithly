@@ -172,6 +172,7 @@ data class LibraryPartitionState(
             val change = byId.remove(receipt.id) ?: throw LibrarySyncFailure.InvalidReceipt
             if (change.operation.revision != receipt.revision) throw LibrarySyncFailure.InvalidReceipt
             when (receipt.outcome) {
+                is SyncOutcome.FolderDeletedManifest, is SyncOutcome.FolderRestoredManifest -> throw LibrarySyncFailure.InvalidReceipt
                 SyncOutcome.Preserved, is SyncOutcome.Folder, is SyncOutcome.FolderDeleted -> Unit
                 is SyncOutcome.FolderRestored -> if (receipt.outcome.superseded.isNotEmpty() || receipt.outcome.missing.isNotEmpty()) stagedRecovery.add(LibraryRecovery.Server(change, receipt.outcome))
                 is SyncOutcome.Superseded, is SyncOutcome.Unresolved, is SyncOutcome.ResolvedPosition -> stagedRecovery.add(LibraryRecovery.Server(change, receipt.outcome))
@@ -228,6 +229,7 @@ data class LibraryPartitionState(
                 for (change in submitted) {
                     val receipt = committed.reply.receipts.first { it.id == change.operation.id }
                     when (receipt.outcome) {
+                        is SyncOutcome.FolderDeletedManifest, is SyncOutcome.FolderRestoredManifest -> throw LibrarySyncFailure.InvalidReceipt
                         SyncOutcome.Preserved, is SyncOutcome.Folder, is SyncOutcome.FolderDeleted, is SyncOutcome.FolderRestored, is SyncOutcome.ResolvedPosition -> {
                             val version = if (change.operation.command.isPositionChange) committed.revision.position else committed.revision.saved
                             confirmed = confirmed + LibraryConfirmedChange(change, receipt.outcome, version)

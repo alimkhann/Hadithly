@@ -13,6 +13,16 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class GuestMergeRaceTest {
+    @Test fun manifestReceiptCannotAckBeforeOutcomeCollectionExists() {
+        val state = LibraryPartitionState()
+        state.append(LibraryLocalSource.Account(null), SyncCommand.FolderDelete(SyncFolderReference.Server("folder")), 1_000.0)
+        val frame = state.freeze()!!; val operation = frame.batch.operations[0]
+        val reply = SyncReply("owner-a", frame.batch.id, listOf(SyncReceipt(operation.id, operation.revision,
+            SyncOutcome.FolderDeletedManifest("manifest", "generation", 501.0, 1_000.0))))
+        try { state.settle(accepted(frame, reply), frame, 2_000.0); fail("Manifest ACK without collection") } catch (_: LibrarySyncFailure.InvalidReceipt) { }
+        assertEquals(frame.batch, state.frozen!!.batch); assertEquals(1.0, state.nextSequence, 0.0); assertNull(state.acknowledgement)
+    }
+
     @Test fun heldOriginalSurvivesStoreReopenRetirementAndTerminalFailure() = runBlocking {
         isolated { store, reopen, _ ->
             val owner = LibrarySyncOwner("owner-a", "subject-a")

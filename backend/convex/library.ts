@@ -1,4 +1,4 @@
-import { writeSavedMembership, removeEmptySavedMembership, touchSavedFolderMemberships } from "./lib/savedMembership";
+import { writeSavedMembership, removeEmptySavedMembership, touchSavedFolderMemberships, assertSavedFolderStable, effectiveSavedMembership } from "./lib/savedMembership";
 import { advanceLibraryVersion } from "./lib/librarySyncVersions";
 import { recordLegacyLibraryWrite } from "./lib/librarySyncMarks";
 import { normalizedFolderName } from "./lib/savedFolderPolicy";
@@ -40,25 +40,7 @@ export const toggleBookmark = mutation({
     const identity = await requireIdentity(ctx);
     const user = await userByClerkId(ctx, identity.clerkId);
     if (!user) throw new Error("User not found. Call users:ensureCurrentUser first.");
-    await recordLegacyLibraryWrite(ctx, user._id, `bookmark:${args.hadithId}`);
-
-    const existing = await ctx.db
-      .query("bookmarks")
-      .withIndex("by_user", (q) => q.eq("userId", user._id))
-      .collect()
-      .then((rows) => rows.find((row) => row.hadithId === args.hadithId));
-
-    if (existing) {
-      await ctx.db.delete(existing._id);
-      return { bookmarked: false };
-    }
-    await ctx.db.insert("bookmarks", {
-      userId: user._id,
-      hadithId: args.hadithId,
-      scrollOffset: args.scrollOffset,
-      createdAt: Date.now(),
-    });
-    return { bookmarked: true };
+    return toggleCanonicalBookmark(ctx, user._id, args.hadithId, args.scrollOffset);
   },
 });
 
@@ -109,24 +91,7 @@ export const toggleFavorite = mutation({
     const identity = await requireIdentity(ctx);
     const user = await userByClerkId(ctx, identity.clerkId);
     if (!user) throw new Error("User not found. Call users:ensureCurrentUser first.");
-    await recordLegacyLibraryWrite(ctx, user._id, `favorite:${args.hadithId}`);
-
-    const existing = await ctx.db
-      .query("favorites")
-      .withIndex("by_user", (q) => q.eq("userId", user._id))
-      .collect()
-      .then((rows) => rows.find((row) => row.hadithId === args.hadithId));
-
-    if (existing) {
-      await ctx.db.delete(existing._id);
-      return { favorited: false };
-    }
-    await ctx.db.insert("favorites", {
-      userId: user._id,
-      hadithId: args.hadithId,
-      createdAt: Date.now(),
-    });
-    return { favorited: true };
+    return toggleCanonicalFavorite(ctx, user._id, args.hadithId);
   },
 });
 
@@ -176,29 +141,7 @@ export const upsertNote = mutation({
     const identity = await requireIdentity(ctx);
     const user = await userByClerkId(ctx, identity.clerkId);
     if (!user) throw new Error("User not found. Call users:ensureCurrentUser first.");
-    await recordLegacyLibraryWrite(ctx, user._id, `note:${args.hadithId}`);
-
-    const existing = await ctx.db
-      .query("notes")
-      .withIndex("by_user_hadith", (q) =>
-        q.eq("userId", user._id).eq("hadithId", args.hadithId),
-      )
-      .unique();
-    const now = Date.now();
-    if (existing) {
-      await ctx.db.patch(existing._id, {
-        content: args.content,
-        updatedAt: now,
-      });
-      return existing._id;
-    }
-    return await ctx.db.insert("notes", {
-      userId: user._id,
-      hadithId: args.hadithId,
-      content: args.content,
-      createdAt: now,
-      updatedAt: now,
-    });
+    return upsertCanonicalNote(ctx, user._id, args.hadithId, args.content);
   },
 });
 
@@ -208,14 +151,7 @@ export const deleteNote = mutation({
     const identity = await requireIdentity(ctx);
     const user = await userByClerkId(ctx, identity.clerkId);
     if (!user) return;
-    await recordLegacyLibraryWrite(ctx, user._id, `note:${args.hadithId}`);
-    const existing = await ctx.db
-      .query("notes")
-      .withIndex("by_user_hadith", (q) =>
-        q.eq("userId", user._id).eq("hadithId", args.hadithId),
-      )
-      .unique();
-    if (existing) await ctx.db.delete(existing._id);
+    await deleteCanonicalNote(ctx, user._id, args.hadithId);
   },
 });
 
@@ -623,6 +559,60 @@ export async function materializeLegacySavedItem(
   return item;
 }
 
+async function toggleCanonicalBookmark(ctx: MutationCtx, userId: Id<"users">, hadithId: Id<"hadiths">, scrollOffset?: number) {
+  await recordLegacyLibraryWrite(ctx, userId, `bookmark:${hadithId}`);
+  const item = await materializeLegacySavedItem(ctx, userId, hadithId);
+  const legacy = await legacyBookmarksByHadith(ctx, userId, hadithId);
+  if (item.bookmarkCreatedAt !== undefined) {
+    await ctx.db.patch(item._id, { bookmarkCreatedAt: undefined, updatedAt: Date.now() });
+    await Promise.all(legacy.map((row) => ctx.db.delete(row._id)));
+    await removeEmptySavedMembership(ctx, { ...item, bookmarkCreatedAt: undefined });
+    return { bookmarked: false };
+  }
+  const createdAt = Date.now();
+  await ctx.db.patch(item._id, { bookmarkCreatedAt: createdAt, updatedAt: createdAt });
+  if (legacy.length === 0) await ctx.db.insert("bookmarks", { userId, hadithId, createdAt, ...(scrollOffset === undefined ? {} : { scrollOffset }) });
+  return { bookmarked: true };
+}
+
+async function toggleCanonicalFavorite(ctx: MutationCtx, userId: Id<"users">, hadithId: Id<"hadiths">) {
+  await recordLegacyLibraryWrite(ctx, userId, `favorite:${hadithId}`);
+  const item = await materializeLegacySavedItem(ctx, userId, hadithId);
+  const legacy = await legacyFavoritesByHadith(ctx, userId, hadithId);
+  if (item.favoriteCreatedAt !== undefined) {
+    await ctx.db.patch(item._id, { favoriteCreatedAt: undefined, updatedAt: Date.now() });
+    await Promise.all(legacy.map((row) => ctx.db.delete(row._id)));
+    await removeEmptySavedMembership(ctx, { ...item, favoriteCreatedAt: undefined });
+    return { favorited: false };
+  }
+  const createdAt = Date.now();
+  await ctx.db.patch(item._id, { favoriteCreatedAt: createdAt, updatedAt: createdAt });
+  if (legacy.length === 0) await ctx.db.insert("favorites", { userId, hadithId, createdAt });
+  return { favorited: true };
+}
+
+async function upsertCanonicalNote(ctx: MutationCtx, userId: Id<"users">, hadithId: Id<"hadiths">, content: string): Promise<Id<"notes">> {
+  await recordLegacyLibraryWrite(ctx, userId, `note:${hadithId}`);
+  const item = await ensureSavedItem(ctx, userId, hadithId);
+  const now = Date.now();
+  const legacy = await ctx.db.query("notes").withIndex("by_user_hadith", (q) => q.eq("userId", userId).eq("hadithId", hadithId)).unique();
+  const createdAt = item.noteCreatedAt ?? legacy?.createdAt ?? now;
+  await ctx.db.patch(item._id, { noteContent: content, noteCreatedAt: createdAt, noteUpdatedAt: now, updatedAt: now });
+  if (legacy) { await ctx.db.patch(legacy._id, { content, updatedAt: now }); return legacy._id; }
+  return ctx.db.insert("notes", { userId, hadithId, content, createdAt, updatedAt: now });
+}
+
+async function deleteCanonicalNote(ctx: MutationCtx, userId: Id<"users">, hadithId: Id<"hadiths">) {
+  await recordLegacyLibraryWrite(ctx, userId, `note:${hadithId}`);
+  const item = await savedItemByHadith(ctx, userId, hadithId);
+  if (item) {
+    await ctx.db.patch(item._id, { noteContent: undefined, noteCreatedAt: undefined, noteUpdatedAt: undefined, updatedAt: Date.now() });
+    await removeEmptySavedMembership(ctx, { ...item, noteContent: undefined, noteCreatedAt: undefined, noteUpdatedAt: undefined });
+  }
+  const legacy = await ctx.db.query("notes").withIndex("by_user_hadith", (q) => q.eq("userId", userId).eq("hadithId", hadithId)).unique();
+  if (legacy) await ctx.db.delete(legacy._id);
+}
+
 /** New-client bookmark mutation. It dual-writes the legacy projection until the rollout closes. */
 export const toggleSavedBookmark = mutation({
   args: { hadithId: v.id("hadiths") },
@@ -630,19 +620,7 @@ export const toggleSavedBookmark = mutation({
     const identity = await requireIdentity(ctx);
     const user = await userByClerkId(ctx, identity.clerkId);
     if (!user) throw new Error("User not found. Call users:ensureCurrentUser first.");
-    await recordLegacyLibraryWrite(ctx, user._id, `bookmark:${args.hadithId}`);
-    const item = await materializeLegacySavedItem(ctx, user._id, args.hadithId);
-    const legacy = await legacyBookmarksByHadith(ctx, user._id, args.hadithId);
-    if (item.bookmarkCreatedAt !== undefined) {
-      await ctx.db.patch(item._id, { bookmarkCreatedAt: undefined, updatedAt: Date.now() });
-      await Promise.all(legacy.map((row) => ctx.db.delete(row._id)));
-      await removeEmptySavedMembership(ctx, { ...item, bookmarkCreatedAt: undefined });
-      return { bookmarked: false };
-    }
-    const createdAt = Date.now();
-    await ctx.db.patch(item._id, { bookmarkCreatedAt: createdAt, updatedAt: createdAt });
-    if (legacy.length === 0) await ctx.db.insert("bookmarks", { userId: user._id, hadithId: args.hadithId, createdAt });
-    return { bookmarked: true };
+    return toggleCanonicalBookmark(ctx, user._id, args.hadithId);
   },
 });
 
@@ -653,19 +631,7 @@ export const toggleSavedFavorite = mutation({
     const identity = await requireIdentity(ctx);
     const user = await userByClerkId(ctx, identity.clerkId);
     if (!user) throw new Error("User not found. Call users:ensureCurrentUser first.");
-    await recordLegacyLibraryWrite(ctx, user._id, `favorite:${args.hadithId}`);
-    const item = await materializeLegacySavedItem(ctx, user._id, args.hadithId);
-    const legacy = await legacyFavoritesByHadith(ctx, user._id, args.hadithId);
-    if (item.favoriteCreatedAt !== undefined) {
-      await ctx.db.patch(item._id, { favoriteCreatedAt: undefined, updatedAt: Date.now() });
-      await Promise.all(legacy.map((row) => ctx.db.delete(row._id)));
-      await removeEmptySavedMembership(ctx, { ...item, favoriteCreatedAt: undefined });
-      return { favorited: false };
-    }
-    const createdAt = Date.now();
-    await ctx.db.patch(item._id, { favoriteCreatedAt: createdAt, updatedAt: createdAt });
-    if (legacy.length === 0) await ctx.db.insert("favorites", { userId: user._id, hadithId: args.hadithId, createdAt });
-    return { favorited: true };
+    return toggleCanonicalFavorite(ctx, user._id, args.hadithId);
   },
 });
 
@@ -675,14 +641,7 @@ export const upsertSavedNote = mutation({
     const identity = await requireIdentity(ctx);
     const user = await userByClerkId(ctx, identity.clerkId);
     if (!user) throw new Error("User not found. Call users:ensureCurrentUser first.");
-    await recordLegacyLibraryWrite(ctx, user._id, `note:${args.hadithId}`);
-    const item = await ensureSavedItem(ctx, user._id, args.hadithId);
-    const now = Date.now();
-    const createdAt = item.noteCreatedAt ?? now;
-    await ctx.db.patch(item._id, { noteContent: args.content, noteCreatedAt: createdAt, noteUpdatedAt: now, updatedAt: now });
-    const legacy = await ctx.db.query("notes").withIndex("by_user_hadith", (q) => q.eq("userId", user._id).eq("hadithId", args.hadithId)).unique();
-    if (legacy) await ctx.db.patch(legacy._id, { content: args.content, updatedAt: now });
-    else await ctx.db.insert("notes", { userId: user._id, hadithId: args.hadithId, content: args.content, createdAt, updatedAt: now });
+    await upsertCanonicalNote(ctx, user._id, args.hadithId, args.content);
   },
 });
 
@@ -692,14 +651,7 @@ export const deleteSavedNote = mutation({
     const identity = await requireIdentity(ctx);
     const user = await userByClerkId(ctx, identity.clerkId);
     if (!user) return;
-    await recordLegacyLibraryWrite(ctx, user._id, `note:${args.hadithId}`);
-    const item = await savedItemByHadith(ctx, user._id, args.hadithId);
-    if (item) {
-      await ctx.db.patch(item._id, { noteContent: undefined, noteCreatedAt: undefined, noteUpdatedAt: undefined, updatedAt: Date.now() });
-      await removeEmptySavedMembership(ctx, { ...item, noteContent: undefined, noteCreatedAt: undefined, noteUpdatedAt: undefined });
-    }
-    const legacy = await ctx.db.query("notes").withIndex("by_user_hadith", (q) => q.eq("userId", user._id).eq("hadithId", args.hadithId)).unique();
-    if (legacy) await ctx.db.delete(legacy._id);
+    await deleteCanonicalNote(ctx, user._id, args.hadithId);
   },
 });
 
@@ -782,6 +734,7 @@ export const deleteSavedFolder = mutation({
     await advanceLibraryVersion(ctx, user._id, "saved");
     const folder = await ctx.db.get(args.folderId);
     if (!folder || folder.userId !== user._id) throw new Error("SAVED_FOLDER_NOT_FOUND");
+    await assertSavedFolderStable(ctx, folder);
     const items = await ctx.db.query("savedItems").withIndex("by_user_folder_updated", (q) => q.eq("userId", user._id).eq("folderId", folder._id)).collect();
     const deletedAt = Date.now();
     for (const item of items) {
@@ -815,6 +768,7 @@ export const restoreSavedFolder = mutation({
       folder = await ctx.db.get(folderId);
       if (!folder) throw new Error("SAVED_FOLDER_CREATE_FAILED");
     }
+    await assertSavedFolderStable(ctx, folder);
     const restoredHadithIds: Id<"hadiths">[] = [];
     for (const hadithId of args.hadithIds) {
       const item = await savedItemByHadith(ctx, user._id, hadithId);
@@ -846,9 +800,13 @@ export async function readSavedSnapshot(ctx: QueryCtx, userId: Id<"users">) {
       ctx.db.query("notes").withIndex("by_user_hadith", (q) => q.eq("userId", userId)).collect(),
     ]);
     const merged = new Map<string, {
-      hadithId: Id<"hadiths">; bookmarkCreatedAt?: number; favoriteCreatedAt?: number; noteContent?: string; noteCreatedAt?: number; noteUpdatedAt?: number; folderId?: Id<"savedFolders">; createdAt: number; updatedAt: number;
+      hadithId: Id<"hadiths">; bookmarkCreatedAt?: number; favoriteCreatedAt?: number; noteContent?: string; noteCreatedAt?: number; noteUpdatedAt?: number; folderId?: Id<"savedFolders">; folderUpdatedAt?: number; createdAt: number; updatedAt: number;
     }>();
-    for (const item of items) merged.set(item.hadithId, { ...item });
+    for (const item of items) {
+      const effective = await effectiveSavedMembership(ctx, item);
+      const { folderStage: _stage, ...visible } = item;
+      merged.set(item.hadithId, { ...visible, folderId: effective.folderId, folderUpdatedAt: effective.at ?? undefined, updatedAt: Math.max(item.updatedAt, effective.at ?? 0) });
+    }
     for (const row of bookmarks) {
       const item = merged.get(row.hadithId) ?? { hadithId: row.hadithId, createdAt: row.createdAt, updatedAt: row.createdAt };
       item.bookmarkCreatedAt = Math.min(item.bookmarkCreatedAt ?? row.createdAt, row.createdAt);

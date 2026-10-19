@@ -1,8 +1,9 @@
 # Large-folder architecture checkpoint
 
 October 19, 2026. Candidates and independent judge are read-only design work.
-Resumable manifest preparation is now implemented and locally verified. Logical
-folder commit and staged restore are not enabled. The current
+Resumable preparation and internal logical deletion/staged restoration are now
+implemented and locally verified. Public producer/native collection cutover is not
+enabled. The current
 500-member product limit remains open and has a repeatable actual-function probe.
 
 ## Decision
@@ -96,6 +97,10 @@ Local synthetic fixtures do not prove Convex hosted quotas or real two-device sy
   This supplies a scan guard; it does not implement manifest preparation or a
   logical visibility commit.
 - [ ] Correct and verify the state/retention/page contract.
+- [x] Implement internal logical deletion, staged Undo, exclusive reservation,
+  phase-aware clocks, bounded materialization and retention against full 501/2,001
+  fixtures. See `../../../LIBRARY_FOLDER_EFFECTS_VERIFICATION.md`. Outcome/read/export
+  pages, native collection, public producer and final compatibility remain open.
 - [x] Implement bounded manifest preparation, generation/step replay fences,
   stalled delivery recovery and temporary-fact cleanup. See
   `../../../LIBRARY_FOLDER_MANIFEST_VERIFICATION.md`. Prepared is not a terminal

@@ -1,4 +1,5 @@
-import { writeSavedMembership, removeEmptySavedMembership, touchSavedFolderMemberships, savedFolderScanGuard } from "./lib/savedMembership";
+import { writeSavedMembership, removeEmptySavedMembership, touchSavedFolderMemberships, savedFolderScanGuard, assertSavedFolderStable } from "./lib/savedMembership";
+import { advanceFolderRestoration as advanceRestoration, materializeFolderEffect as materializeEffect, expireFolderTransition, type FolderEffectStep } from "./lib/savedFolderTransitions";
 import { advanceFolderManifest as advanceManifest, purgeFolderManifestMembers as purgeManifest,
   FOLDER_MANIFEST_LEASE_MS, type FolderManifestStep } from "./lib/savedFolderManifests";
 import { internal } from "./_generated/api";
@@ -74,6 +75,7 @@ async function applyOperation(ctx: MutationCtx, userId: Id<"users">, operation: 
   if (command.kind === "folder_delete") {
     const current = await folder(ctx, userId, command.folder);
     if (!current) return { outcome: unresolved("missing_folder") };
+    await assertSavedFolderStable(ctx, current);
     const members = await ctx.db.query("savedItems").withIndex("by_user_folder_updated", q => q.eq("userId", userId).eq("folderId", current._id)).take(501);
     if (members.length > 500) return { outcome: unresolved("folder_too_large") };
     const guard = await savedFolderScanGuard(ctx, current);
@@ -103,6 +105,7 @@ async function applyOperation(ctx: MutationCtx, userId: Id<"users">, operation: 
     if (alias && previous?.userId !== userId) return { outcome: superseded("changed_since_delete") };
     const existing = previous ?? await ctx.db.query("savedFolders").withIndex("by_user_normalized_name", q => q.eq("userId", userId).eq("normalizedName", name.normalizedName)).unique();
     const folderId = existing?._id ?? await ctx.db.insert("savedFolders", { userId, ...name, createdAt: operation.at, updatedAt: operation.at });
+    if (existing) await assertSavedFolderStable(ctx, existing);
     await folderAlias(ctx, userId, `restore:${command.deletionId}`, folderId);
 
     const restored: string[] = [], supersededIds: string[] = [], missing: string[] = [];
@@ -378,15 +381,25 @@ export const recoverFolderManifests = internalMutation({
   args: {},
   handler: async (ctx): Promise<{ scheduled: number }> => {
     const now = Date.now();
-    const rows = await ctx.db.query("savedFolderManifests").withIndex("by_state_updated", q => q.eq("state.kind", "scanning").lte("updatedAt", now - 5 * 60_000)).take(25);
-    for (const header of rows) {
-      if (header.state.kind !== "scanning") continue;
-      await ctx.scheduler.runAfter(0, internal.librarySync.advanceFolderManifest, { id: header._id, generation: header.generation, step: header.state.step });
-      // Dispatch does not renew the inactivity lease. Only committed progress can.
-      await ctx.db.patch(header._id, { updatedAt: now });
+    let scheduled = 0;
+    for (const phase of ["scanning", "restoring", "expiring", "normalization"] as const) {
+      if (scheduled === 25) break;
+      const rows = phase === "normalization"
+        ? await ctx.db.query("savedFolderManifests").withIndex("by_normalization_updated", q => q.eq("state.normalization.kind", "pending").lte("updatedAt", now - 5 * 60_000)).take(25 - scheduled)
+        : await ctx.db.query("savedFolderManifests").withIndex("by_state_updated", q => q.eq("state.kind", phase).lte("updatedAt", now - 5 * 60_000)).take(25 - scheduled);
+      for (const header of rows) {
+        const state = header.state, base = { id: header._id, generation: header.generation };
+        if (state.kind === "scanning") await ctx.scheduler.runAfter(0, internal.librarySync.advanceFolderManifest, { ...base, step: state.step });
+        else if (state.kind === "restoring") await ctx.scheduler.runAfter(0, internal.librarySync.advanceFolderRestoration, { ...base, operationId: state.operationId, step: state.step });
+        else if (state.kind === "expiring") await ctx.scheduler.runAfter(0, internal.librarySync.materializeFolderEffect, { ...base, operationId: header.operationId, step: state.step });
+        else if (state.kind === "restored" && state.normalization.kind === "pending") await ctx.scheduler.runAfter(0, internal.librarySync.materializeFolderEffect, { ...base, operationId: state.operationId, step: state.normalization.step });
+        else throw new Error("SAVED_FOLDER_RECOVERY_INVARIANT");
+        await ctx.db.patch(header._id, { updatedAt: now });
+        scheduled++;
+      }
     }
-    if (rows.length === 25) await ctx.scheduler.runAfter(0, internal.librarySync.recoverFolderManifests, {});
-    return { scheduled: rows.length };
+    if (scheduled === 25) await ctx.scheduler.runAfter(0, internal.librarySync.recoverFolderManifests, {});
+    return { scheduled };
   },
 });
 
@@ -396,6 +409,7 @@ export const pruneFolderManifests = internalMutation({
     const cutoff = request.cutoff ?? Date.now();
     const rows = await ctx.db.query("savedFolderManifests").withIndex("by_expiry", q => q.lte("expiresAt", cutoff)).take(25);
     for (const header of rows) {
+      if (header.state.kind === "deleted" || header.state.kind === "restoring" || header.state.kind === "restored" || header.state.kind === "expiring") { await expireFolderTransition(ctx, header); continue; }
       const reason = header.state.kind === "abandoned" || header.state.kind === "purging" ? header.state.reason : "expired";
       await ctx.db.patch(header._id, { state: { kind: "purging", reason, count: header.state.count }, expiresAt: Date.now() + FOLDER_MANIFEST_LEASE_MS });
       await ctx.scheduler.runAfter(0, internal.librarySync.purgeFolderManifestMembers, { id: header._id, generation: header.generation });
@@ -403,6 +417,16 @@ export const pruneFolderManifests = internalMutation({
     if (rows.length === 25) await ctx.scheduler.runAfter(0, internal.librarySync.pruneFolderManifests, { cutoff });
     return { scheduled: rows.length };
   },
+});
+
+export const advanceFolderRestoration = internalMutation({
+  args: { id: v.id("savedFolderManifests"), generation: v.string(), operationId: v.string(), step: v.number() },
+  handler: async (ctx, request): Promise<FolderEffectStep> => advanceRestoration(ctx, request),
+});
+
+export const materializeFolderEffect = internalMutation({
+  args: { id: v.id("savedFolderManifests"), generation: v.string(), operationId: v.string(), step: v.number() },
+  handler: async (ctx, request): Promise<FolderEffectStep> => materializeEffect(ctx, request),
 });
 
 /** Erasure keeps discoverable headers until their facts are gone. Never touches a live owner. */

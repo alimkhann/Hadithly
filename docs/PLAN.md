@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-10-18. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-10-20. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
 D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its
 simulator/emulator and unit gates; its physical-device gate is open. R4's
@@ -156,7 +156,7 @@ preserves independent folder clocks on both apps. Older/tied observations retain
 Undo authority; timestamp-less claims cannot overwrite existing cloud membership.
 See `docs/LIBRARY_SYNC_MEMBERSHIP_VERIFICATION.md` for 413 backend, 51 iOS and 30
 Android passes, reproduced failures and the corrected independent review finding.
-Bulk folder transitions and read/export pagination are still unimplemented.
+The public folder transition and bounded read/export cutovers are still open.
 Folder membership epochs and an indexed current maximum now provide the next
 manifest scan's change guard. Local 2,001-member and writer-path checks pass, with
 421 backend passes overall; see `docs/LIBRARY_FOLDER_SCAN_VERIFICATION.md`.
@@ -173,9 +173,17 @@ The held-frame pending/failure protocol and both native pollers are now implemen
 and locally verified with 439 backend, 55 iOS and 34 Android passes. See
 `docs/LIBRARY_SYNC_HELD_FRAME_VERIFICATION.md`. A real same-ID/different-intent clone
 failure on both native hosts was repaired with an exact cross-native fingerprint.
-Logical delete/Undo success, bounded read/export and public producer cutover remain
-open. The new stream union also needs actual old-schema/client migration evidence
+At that checkpoint, logical delete/Undo success and the read/export/producer cutovers
+remained open. The new stream union still needs actual old-schema/client migration evidence
 before an approved deployment. The 501-member product support probe remains red.
+Internal logical delete/staged Undo now passes full 501-/2,001-member fixtures with
+453 backend tests. Source contracts include effective membership clocks, exclusive
+Undo reservation, atomic visibility, bounded normalization and retention. Older
+facet writers were unified after reproducing ghost membership. See
+`docs/LIBRARY_FOLDER_EFFECTS_VERIFICATION.md`. Native receipt guards pass with
+56 iOS/35 Android checks; they retain originals until the missing outcome collector
+exists. Public producer, paged outcome/read/export and legacy/installed cutover
+remain open. This is local code and closes no app-level, deployment or release gate.
 
 ## Read the plan in layers
 
