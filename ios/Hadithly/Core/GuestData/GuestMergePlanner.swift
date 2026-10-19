@@ -37,6 +37,7 @@ struct GuestMergePayload: Equatable, Sendable {
         let folderLocalId: String?
         let createdAt: Double
         let updatedAt: Double
+        var folderUpdatedAt: Double? = nil
     }
 
     enum Progress: Equatable, Sendable {
@@ -127,7 +128,7 @@ enum GuestMergePlanner {
         let folderIds = Set(validFolders.map(\.localId))
         let membershipByHadith = Dictionary(uniqueKeysWithValues: memberships
             .filter { isValidHadithId($0.hadithId) && folderIds.contains($0.folderLocalId) }
-            .map { ($0.hadithId, $0.folderLocalId) })
+            .map { ($0.hadithId, $0) })
         var savedByHadith: [String: GuestMergePayload.SavedItem] = [:]
         for bookmark in validBookmarks {
             savedByHadith[bookmark.hadithId] = .init(hadithId: bookmark.hadithId, bookmarkCreatedAt: bookmark.createdAt.millisecondsSinceEpoch, favoriteCreatedAt: nil, noteContent: nil, noteCreatedAt: nil, noteUpdatedAt: nil, folderLocalId: nil, createdAt: bookmark.createdAt.millisecondsSinceEpoch, updatedAt: bookmark.createdAt.millisecondsSinceEpoch)
@@ -176,7 +177,7 @@ enum GuestMergePlanner {
             ,
             savedFolders: validFolders.sorted { $0.localId < $1.localId }.map { .init(localId: $0.localId, name: $0.name, createdAt: $0.createdAt.millisecondsSinceEpoch) },
             savedItems: savedByHadith.values.map { item in
-                .init(hadithId: item.hadithId, bookmarkCreatedAt: item.bookmarkCreatedAt, favoriteCreatedAt: item.favoriteCreatedAt, noteContent: item.noteContent, noteCreatedAt: item.noteCreatedAt, noteUpdatedAt: item.noteUpdatedAt, folderLocalId: membershipByHadith[item.hadithId], createdAt: item.createdAt, updatedAt: item.updatedAt)
+                .init(hadithId: item.hadithId, bookmarkCreatedAt: item.bookmarkCreatedAt, favoriteCreatedAt: item.favoriteCreatedAt, noteContent: item.noteContent, noteCreatedAt: item.noteCreatedAt, noteUpdatedAt: item.noteUpdatedAt, folderLocalId: membershipByHadith[item.hadithId]?.folderLocalId, createdAt: item.createdAt, updatedAt: item.updatedAt, folderUpdatedAt: membershipByHadith[item.hadithId]?.updatedAt?.millisecondsSinceEpoch)
             }.sorted { $0.hadithId < $1.hadithId }
         )
     }
@@ -282,6 +283,17 @@ struct LibraryRecentReceipt: Codable, Equatable, Sendable {
 }
 
 enum LibrarySyncAdmission {
+    static func accepts(_ frozen: LibraryFrozenBatch, now: Double = Date.now.millisecondsSinceEpoch) -> Bool {
+        guard accepts(frozen.batch, now: now), frozen.changes.map(\.operation) == frozen.batch.operations else { return false }
+        return frozen.changes.allSatisfy { change in
+            if case .membership(let draft) = change.source, draft.updatedAt == nil,
+               case .membershipPut(let command) = change.operation.command {
+                return command.mode == "claim_if_unset"
+            }
+            return true
+        }
+    }
+
     static func accepts(_ batch: SyncBatch, now: Double = Date.now.millisecondsSinceEpoch) -> Bool {
         func identifier(_ value: String) -> Bool { value.range(of: "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$", options: .regularExpression) != nil }
         guard identifier(batch.id), !batch.operations.isEmpty, batch.operations.count <= LibrarySyncLimits.operations,
@@ -313,7 +325,10 @@ enum LibrarySyncAdmission {
         case .noteRemove(let value): return target(value.hadithId)
         case .folderCreate(let value): return key(value.key) && GuestDataStore.validFolderName(value.name)
         case .folderDelete(let value): if case .none = value.folder { return false }; return folder(value.folder)
-        case .membershipPut(let value): return target(value.hadithId) && folder(value.folder)
+        case .membershipPut(let value):
+            guard target(value.hadithId), folder(value.folder), value.mode == nil || value.mode == "claim_if_unset" else { return false }
+            if value.mode != nil, case .none = value.folder { return false }
+            return true
         case .positionPut(let value):
             guard time(value.position.updatedAt), let data = try? JSONEncoder().encode(value.position), (try? JSONDecoder().decode(ReadingPosition.self, from: data)) != nil else { return false }
             return true
@@ -381,7 +396,10 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
     }
     mutating func freeze() throws -> SyncFrame? {
         guard acknowledgement == nil else { throw LibrarySyncFailure.invalidReceipt }
-        if let frozen { return SyncFrame(clientKey: clientKey, sequence: Double(nextSequence), batch: frozen.batch) }
+        if let frozen {
+            guard frozen.changes.map(\.operation) == frozen.batch.operations else { throw LibrarySyncFailure.invalidReceipt }
+            return SyncFrame(clientKey: clientKey, sequence: Double(nextSequence), batch: frozen.batch)
+        }
         guard !pending.isEmpty else { return nil }
         let id = UUID().uuidString
         var selected: [LibraryLocalChange] = []
@@ -655,7 +673,8 @@ final class LibrarySync {
                     retryDelay = 1
                     return
                 }
-                if !LibrarySyncAdmission.accepts(frame.batch, now: now()) {
+                guard let frozen = try store.syncPartition(owner)?.frozen else { throw LibrarySyncFailure.sessionChanged }
+                if !LibrarySyncAdmission.accepts(frozen, now: now()) {
                     let reply = try await transport.retireInvalid(binding.capability, frame)
                     try store.settleSyncRetirement(reply, requested: frame, owner: owner)
                     onPartitionChange(owner)

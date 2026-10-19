@@ -350,8 +350,7 @@ final class GuestDataStore {
         }
         for row in memberships {
             let draft = GuestSavedMembershipDraft(hadithId: row.hadithId, folderLocalId: row.folderLocalId, updatedAt: row.updatedAt)
-            let known = folders.first { $0.localId == row.folderLocalId }?.createdAt.millisecondsSinceEpoch ?? 0
-            state.append(.membership(draft), command: .membershipPut(.init(hadithId: row.hadithId, folder: .local(.init(key: row.folderLocalId)))), at: row.updatedAt?.millisecondsSinceEpoch ?? known)
+            state.append(.membership(draft), command: .membershipPut(.init(hadithId: row.hadithId, folder: .local(.init(key: row.folderLocalId)), mode: row.updatedAt == nil ? "claim_if_unset" : nil)), at: row.updatedAt?.millisecondsSinceEpoch ?? 0)
         }
         for row in positions {
             let draft = GuestReadingProgressDraft(collectionSlug: row.collectionSlug, collectionName: row.collectionName, hadithId: row.hadithId, volumeId: row.volumeId, hadithNumber: row.hadithNumber, referenceDisplay: row.referenceDisplay, updatedAt: row.updatedAt, position: row.positionData.flatMap { try? JSONDecoder().decode(ReadingPosition.self, from: $0) })

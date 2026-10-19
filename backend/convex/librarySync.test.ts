@@ -411,3 +411,169 @@ test("future retirement capacity is bounded, ordinary next retirement still work
   await f.t.finishAllScheduledFunctions(vi.runAllTimers);
   expect(await f.t.run(ctx => ctx.db.query("librarySyncRetirements").collect())).toHaveLength(0);
 });
+
+test.each([{ at: 1_500, restorable: true }, { at: 2_000, restorable: true }, { at: 2_500, restorable: false }])("no-folder observation at $at preserves the correct Undo authority", async ({ at, restorable }) => {
+  const f = await fixture(), binding = await f.a.mutation(open, {});
+  await f.send(binding.capability, { id: "membership-tie-seed", operations: [
+    { id: "membership-tie-create", revision: "r1", at: 1_000, command: { kind: "folder_create", key: "tie-folder", name: "Tie fixture", purpose: "create" } },
+    { id: "membership-tie-bookmark", revision: "r1", at: 1_000, command: { kind: "bookmark_add", hadithId: f.hadithId, createdAt: 1_000 } },
+    { id: "membership-tie-place", revision: "r1", at: 1_000, command: { kind: "membership_put", hadithId: f.hadithId, folder: { kind: "local", key: "tie-folder" } } },
+    { id: "membership-tie-delete", revision: "r1", at: 2_000, command: { kind: "folder_delete", folder: { kind: "local", key: "tie-folder" } } },
+  ] });
+  const observation = await f.send(binding.capability, { id: "membership-tie-observation", operations: [
+    { id: "membership-tie-none", revision: "r1", at, command: { kind: "membership_put", hadithId: f.hadithId, folder: { kind: "none" } } },
+  ] });
+  expect(observation.receipts[0].outcome).toEqual({ kind: "preserved" });
+  const restored = await f.send(binding.capability, { id: "membership-tie-undo", operations: [
+    { id: "membership-tie-restore", revision: "r1", at: 3_000, command: { kind: "folder_restore", deletionId: "membership-tie-delete", name: "Tie fixture", hadithIds: [f.hadithId] } },
+  ] });
+  expect(restored.receipts[0].outcome).toMatchObject({ kind: "folder_restored", restored: restorable ? [f.hadithId] : [], superseded: restorable ? [] : [f.hadithId], missing: [] });
+});
+
+test.each([false, true])("an older guest merge preserves a newer cloud membership and its clock, same-folder=%s", async sameFolder => {
+  const f = await fixture(), binding = await f.a.mutation(open, {});
+  const initial = await f.send(binding.capability, { id: "guest-clock-seed", operations: [
+    { id: "guest-clock-create", revision: "r1", at: 1_000, command: { kind: "folder_create", key: "cloud-folder", name: "Cloud folder", purpose: "create" } },
+    { id: "guest-clock-bookmark", revision: "r1", at: 1_000, command: { kind: "bookmark_add", hadithId: f.hadithId, createdAt: 1_000 } },
+    { id: "guest-clock-place", revision: "r1", at: 3_000, command: { kind: "membership_put", hadithId: f.hadithId, folder: { kind: "local", key: "cloud-folder" } } },
+  ] });
+  const folder = initial.receipts[0].outcome;
+  if (folder.kind !== "folder") throw new Error("Missing cloud folder fixture");
+  await f.a.mutation(api.guestMerge.mergeGuestData, { bookmarks: [], notes: [],
+    savedFolders: [{ localId: "guest-local-folder", name: sameFolder ? "Cloud folder" : "Older guest folder", createdAt: 1_000 }],
+    savedItems: [{ hadithId: f.hadithId, bookmarkCreatedAt: 500, folderLocalId: "guest-local-folder", createdAt: 500, updatedAt: 1_500 }],
+  });
+  const saved = await f.a.query(ownedSaved, {});
+  expect(saved.items[0].folderId).toBe(folder.folderId);
+  expect(saved.items[0].bookmarkCreatedAt).toBe(500);
+  const olderDeletion = await f.send(binding.capability, { id: "guest-clock-old-delete", operations: [
+    { id: "guest-clock-delete", revision: "r1", at: 2_000, command: { kind: "folder_delete", folder: { kind: "server", id: folder.folderId } } },
+  ] });
+  expect(olderDeletion.receipts[0].outcome).toEqual({ kind: "superseded", reason: "newer_cloud" });
+  expect((await f.a.query(ownedSaved, {})).items[0].folderId).toBe(folder.folderId);
+});
+
+
+test("a newer guest placement still applies through the shared membership boundary", async () => {
+  const f = await fixture(), binding = await f.a.mutation(open, {});
+  await f.send(binding.capability, { id: "newer-guest-seed", operations: [
+    { id: "newer-guest-add", revision: "r1", at: 1_000, command: { kind: "bookmark_add", hadithId: f.hadithId, createdAt: 1_000 } },
+  ] });
+  await f.a.mutation(api.guestMerge.mergeGuestData, { bookmarks: [], notes: [],
+    savedFolders: [{ localId: "guest-folder", name: "New guest folder", createdAt: 1_000 }],
+    savedItems: [{ hadithId: f.hadithId, bookmarkCreatedAt: 1_000, folderLocalId: "guest-folder", folderUpdatedAt: 3_000, createdAt: 1_000, updatedAt: 3_000 }],
+  });
+  const saved = await f.a.query(ownedSaved, {});
+  expect(saved.folders).toHaveLength(1);
+  expect(saved.items[0].folderId).toBe(saved.folders[0]._id);
+  const old = await f.send(binding.capability, { id: "newer-guest-old", operations: [
+    { id: "newer-guest-none", revision: "r1", at: 2_000, command: { kind: "membership_put", hadithId: f.hadithId, folder: { kind: "none" } } },
+  ] });
+  expect(old.receipts[0].outcome).toEqual({ kind: "superseded", reason: "newer_cloud" });
+});
+
+test("legacy same-clock no-folder selection preserves Undo but a newer explicit selection supersedes it", async () => {
+  vi.useFakeTimers(); vi.setSystemTime(1_000);
+  const f = await fixture(), binding = await f.a.mutation(open, {});
+  await f.send(binding.capability, { id: "legacy-tie-seed", operations: [
+    { id: "legacy-tie-create", revision: "r1", at: 1_000, command: { kind: "folder_create", key: "legacy-tie-folder", name: "Legacy tie", purpose: "create" } },
+    { id: "legacy-tie-add", revision: "r1", at: 1_000, command: { kind: "bookmark_add", hadithId: f.hadithId, createdAt: 1_000 } },
+    { id: "legacy-tie-place", revision: "r1", at: 1_000, command: { kind: "membership_put", hadithId: f.hadithId, folder: { kind: "local", key: "legacy-tie-folder" } } },
+    { id: "legacy-tie-delete", revision: "r1", at: 2_000, command: { kind: "folder_delete", folder: { kind: "local", key: "legacy-tie-folder" } } },
+  ] });
+  vi.setSystemTime(2_000);
+  await f.a.mutation(api.library.assignSavedFolder, { hadithId: f.hadithId });
+  const restored = await f.send(binding.capability, { id: "legacy-tie-undo", operations: [
+    { id: "legacy-tie-restore", revision: "r1", at: 3_000, command: { kind: "folder_restore", deletionId: "legacy-tie-delete", name: "Legacy tie", hadithIds: [f.hadithId] } },
+  ] });
+  expect(restored.receipts[0].outcome).toMatchObject({ kind: "folder_restored", restored: [f.hadithId] });
+  vi.setSystemTime(4_000);
+  await f.a.mutation(api.library.assignSavedFolder, { hadithId: f.hadithId });
+  expect((await f.a.query(ownedSaved, {})).items[0].folderId).toBeUndefined();
+  const staleUndo = await f.send(binding.capability, { id: "legacy-tie-stale-undo", operations: [
+    { id: "legacy-tie-repeat-restore", revision: "r1", at: 5_000, command: { kind: "folder_restore", deletionId: "legacy-tie-delete", name: "Legacy tie", hadithIds: [f.hadithId] } },
+  ] });
+  expect(staleUndo.receipts[0].outcome).toMatchObject({ kind: "folder_restored", restored: [], superseded: [f.hadithId] });
+  expect((await f.a.query(ownedSaved, {})).items[0].folderId).toBeUndefined();
+
+});
+
+
+test.each([Number.NaN, Number.POSITIVE_INFINITY, -1])("an invalid guest membership clock rolls back the entire merge: %s", async updatedAt => {
+  const f = await fixture();
+  await expect(f.a.mutation(api.guestMerge.mergeGuestData, { bookmarks: [], notes: [],
+    savedFolders: [{ localId: "invalid-clock-folder", name: "Invalid clock fixture", createdAt: 1_000 }],
+    savedItems: [{ hadithId: f.hadithId, bookmarkCreatedAt: 1_000, folderLocalId: "invalid-clock-folder", folderUpdatedAt: updatedAt, createdAt: 1_000, updatedAt: 1_000 }],
+  })).rejects.toThrow("INVALID_GUEST_MERGE_CLOCK");
+  expect(await f.a.query(ownedSaved, {})).toMatchObject({ version: 0, folders: [], items: [] });
+});
+
+test.each([true, false])("note edit time never masquerades as a folder move, explicit-clock=%s", async explicitClock => {
+  const f = await fixture(), binding = await f.a.mutation(open, {});
+  const initial = await f.send(binding.capability, { id: "independent-clock-seed", operations: [
+    { id: "independent-clock-folder", revision: "r1", at: 1_000, command: { kind: "folder_create", key: "independent-cloud", name: "Independent cloud", purpose: "create" } },
+    { id: "independent-clock-add", revision: "r1", at: 1_000, command: { kind: "bookmark_add", hadithId: f.hadithId, createdAt: 1_000 } },
+    { id: "independent-clock-place", revision: "r1", at: 3_000, command: { kind: "membership_put", hadithId: f.hadithId, folder: { kind: "local", key: "independent-cloud" } } },
+  ] });
+  const original = initial.receipts[0].outcome;
+  if (original.kind !== "folder") throw new Error("Missing independent cloud folder");
+  await f.a.mutation(api.guestMerge.mergeGuestData, { bookmarks: [], notes: [],
+    savedFolders: [{ localId: "old-guest-folder", name: "Old guest placement", createdAt: 1_000 }],
+    savedItems: [{ hadithId: f.hadithId, bookmarkCreatedAt: 1_000, noteContent: "A newer independent note", noteCreatedAt: 1_000, noteUpdatedAt: 5_000,
+      folderLocalId: "old-guest-folder", ...(explicitClock ? { folderUpdatedAt: 1_500 } : {}), createdAt: 1_000, updatedAt: 5_000 }],
+  });
+  expect((await f.a.query(ownedSaved, {})).items[0]).toMatchObject({ folderId: original.folderId, noteContent: "A newer independent note", noteUpdatedAt: 5_000 });
+});
+
+test("an unversioned guest claim seeds only unset membership without inventing ordering authority", async () => {
+  const f = await fixture(), binding = await f.a.mutation(open, {});
+  const seeded = await f.send(binding.capability, { id: "unversioned-seed", operations: [
+    { id: "unversioned-create", revision: "r1", at: 1_000, command: { kind: "folder_create", key: "unversioned-folder", name: "Unversioned fixture", purpose: "guest_claim" } },
+    { id: "unversioned-bookmark", revision: "r1", at: 1_000, command: { kind: "bookmark_add", hadithId: f.hadithId, createdAt: 1_000 } },
+    { id: "unversioned-placement", revision: "r1", at: 9_000, command: { kind: "membership_put", hadithId: f.hadithId, folder: { kind: "local", key: "unversioned-folder" }, mode: "claim_if_unset" } },
+  ] });
+  expect(seeded.receipts[2].outcome).toEqual({ kind: "preserved" });
+  expect((await f.a.query(ownedSaved, {})).items[0].folderId).toBeDefined();
+  const explicit = await f.send(binding.capability, { id: "unversioned-explicit", operations: [
+    { id: "explicit-placement-none", revision: "r1", at: 2_000, command: { kind: "membership_put", hadithId: f.hadithId, folder: { kind: "none" } } },
+  ] });
+  expect(explicit.receipts[0].outcome).toEqual({ kind: "preserved" });
+  const staleClaim = await f.send(binding.capability, { id: "unversioned-repeat", operations: [
+    { id: "unversioned-old-placement", revision: "r1", at: 10_000, command: { kind: "membership_put", hadithId: f.hadithId, folder: { kind: "local", key: "unversioned-folder" }, mode: "claim_if_unset" } },
+  ] });
+  expect(staleClaim.receipts[0].outcome).toEqual({ kind: "superseded", reason: "unversioned_cloud" });
+  expect((await f.a.query(ownedSaved, {})).items[0].folderId).toBeUndefined();
+});
+
+
+test("unversioned guest metadata still validates its own clocks before any merge effects", async () => {
+  const f = await fixture();
+  await expect(f.a.mutation(api.guestMerge.mergeGuestData, { bookmarks: [], notes: [],
+    savedFolders: [{ localId: "bad-metadata-folder", name: "Bad metadata fixture", createdAt: 1_000 }],
+    savedItems: [{ hadithId: f.hadithId, bookmarkCreatedAt: 1_000, folderLocalId: "bad-metadata-folder", createdAt: 1_000, updatedAt: Number.NaN }],
+  })).rejects.toThrow("INVALID_GUEST_MERGE_CLOCK");
+  expect(await f.a.query(ownedSaved, {})).toMatchObject({ version: 0, folders: [], items: [] });
+});
+
+test("an independent membership time keeps the Saved item update time monotonic", async () => {
+  vi.useFakeTimers(); vi.setSystemTime(1_000);
+  const f = await fixture(), binding = await f.a.mutation(open, {});
+  await f.send(binding.capability, { id: "aggregate-monotonic-seed", operations: [
+    { id: "aggregate-monotonic-bookmark", revision: "r1", at: 1_000, command: { kind: "bookmark_add", hadithId: f.hadithId, createdAt: 1_000 } },
+  ] });
+  await f.a.mutation(api.guestMerge.mergeGuestData, { bookmarks: [], notes: [],
+    savedFolders: [{ localId: "aggregate-monotonic-folder", name: "Monotonic fixture", createdAt: 1_000 }],
+    savedItems: [{ hadithId: f.hadithId, bookmarkCreatedAt: 1_000, folderLocalId: "aggregate-monotonic-folder", folderUpdatedAt: 3_000, createdAt: 1_000, updatedAt: 1_000 }],
+  });
+  const saved = await f.a.query(ownedSaved, {});
+  expect(saved.items[0].folderId).toBe(saved.folders[0]._id);
+  expect(saved.items[0].updatedAt).toBe(3_000);
+});
+
+test("invalid membership clocks reject even when the referenced folder is absent", async () => {
+  const f = await fixture();
+  await expect(f.a.mutation(api.guestMerge.mergeGuestData, { bookmarks: [], notes: [],
+    savedItems: [{ hadithId: f.hadithId, bookmarkCreatedAt: 1_000, folderLocalId: "absent-folder", folderUpdatedAt: Number.NaN, createdAt: 1_000, updatedAt: 1_000 }],
+  })).rejects.toThrow("INVALID_GUEST_MERGE_CLOCK");
+  expect(await f.a.query(ownedSaved, {})).toMatchObject({ version: 0, folders: [], items: [] });
+});

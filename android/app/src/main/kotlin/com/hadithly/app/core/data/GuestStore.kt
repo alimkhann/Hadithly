@@ -118,6 +118,7 @@ data class GuestSavedItemPayload(
     val folderLocalId: String? = null,
     val createdAt: Double,
     val updatedAt: Double,
+    val folderUpdatedAt: Double? = null,
 )
 
 @Serializable
@@ -330,8 +331,7 @@ class GuestDataStore(context: Context) {
         for (draft in store.notes) state.append(LibraryLocalSource.Note(draft), if (draft.content.isNotEmpty() && draft.content.toByteArray(Charsets.UTF_8).size <= LibrarySyncLimits.noteBytes)
             SyncCommand.NotePut(draft.hadithId, draft.content, draft.createdAt, draft.updatedAt) else null, draft.updatedAt)
         for (draft in store.savedMemberships) {
-            val known = store.savedFolders.firstOrNull { it.localId == draft.folderLocalId }?.createdAt ?: 0.0
-            state.append(LibraryLocalSource.Membership(draft), SyncCommand.MembershipPut(draft.hadithId, SyncFolderReference.Local(draft.folderLocalId)), draft.updatedAt ?: known)
+            state.append(LibraryLocalSource.Membership(draft), SyncCommand.MembershipPut(draft.hadithId, SyncFolderReference.Local(draft.folderLocalId), if (draft.updatedAt == null) "claim_if_unset" else null), draft.updatedAt ?: 0.0)
         }
         for (draft in store.progress) state.append(LibraryLocalSource.Position(draft), draft.readingPosition?.let { SyncCommand.PositionPut(it) }
             ?: SyncCommand.LegacyPositionPut(draft.hadithId, draft.updatedAt), draft.effectiveUpdatedAt)
@@ -476,7 +476,7 @@ object GuestMergePlanner {
             val previous = byHadith[note.hadithId]
             byHadith[note.hadithId] = GuestSavedItemPayload(note.hadithId, previous?.bookmarkCreatedAt, previous?.favoriteCreatedAt, note.content, note.createdAt, note.updatedAt, createdAt = minOf(previous?.createdAt ?: note.createdAt, note.createdAt), updatedAt = maxOf(previous?.updatedAt ?: note.updatedAt, note.updatedAt))
         }
-        val savedItems = byHadith.values.map { item -> item.copy(folderLocalId = membershipByHadith[item.hadithId]?.folderLocalId) }.sortedBy { it.hadithId }
+        val savedItems = byHadith.values.map { item -> item.copy(folderLocalId = membershipByHadith[item.hadithId]?.folderLocalId, folderUpdatedAt = membershipByHadith[item.hadithId]?.updatedAt) }.sortedBy { it.hadithId }
         return GuestMergePayload(
         bookmarks = validBookmarks
             .sortedBy { it.createdAt },

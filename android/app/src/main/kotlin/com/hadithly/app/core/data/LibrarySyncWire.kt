@@ -88,6 +88,7 @@ sealed interface SyncCommand {
     data class MembershipPut(
         val hadithId: String,
         val folder: SyncFolderReference,
+        val mode: String? = null,
     ) : SyncCommand
     @Serializable
     @SerialName("position_put")
@@ -359,6 +360,7 @@ enum class SyncOutcomeSupersededReason {
     @SerialName("newer_cloud") NEWER_CLOUD,
     @SerialName("tie_cloud") TIE_CLOUD,
     @SerialName("changed_since_delete") CHANGED_SINCE_DELETE,
+    @SerialName("unversioned_cloud") UNVERSIONED_CLOUD,
 }
 
 @Serializable

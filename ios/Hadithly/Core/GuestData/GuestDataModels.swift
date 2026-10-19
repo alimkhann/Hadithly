@@ -750,6 +750,7 @@ struct SyncCommandFolderDelete: Codable, Equatable, Sendable {
 struct SyncCommandMembershipPut: Codable, Equatable, Sendable {
     let hadithId: String
     let folder: SyncFolderReference
+    let mode: String?
 }
 
 struct SyncCommandPositionPut: Codable, Equatable, Sendable {
@@ -852,6 +853,7 @@ enum SyncOutcomeSupersededReason: String, Codable, Sendable {
     case newerCloud = "newer_cloud"
     case tieCloud = "tie_cloud"
     case changedSinceDelete = "changed_since_delete"
+    case unversionedCloud = "unversioned_cloud"
 }
 
 enum SyncOutcomeUnresolvedReason: String, Codable, Sendable {

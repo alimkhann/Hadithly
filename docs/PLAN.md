@@ -151,6 +151,12 @@ deployment approval. Large-folder design candidates and the independent cross-ju
 are recorded in `docs/product-program/sync-design/scale/decision.md`. The required
 501-member support probe is still red; default safety checks pass without partial
 unlinking. These designs have no implementation or support gate closure.
+The first scale prerequisite now centralizes ordinary membership writes and
+preserves independent folder clocks on both apps. Older/tied observations retain
+Undo authority; timestamp-less claims cannot overwrite existing cloud membership.
+See `docs/LIBRARY_SYNC_MEMBERSHIP_VERIFICATION.md` for 413 backend, 51 iOS and 30
+Android passes, reproduced failures and the corrected independent review finding.
+Bulk folder transitions and read/export pagination are still unimplemented.
 
 ## Read the plan in layers
 

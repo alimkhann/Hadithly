@@ -26,7 +26,7 @@ export const syncCommand = v.union(
   v.object({ kind: v.literal("note_remove"), ...target }),
   v.object({ kind: v.literal("folder_create"), key: v.string(), name: v.string(), purpose: v.union(v.literal("guest_claim"), v.literal("create")) }),
   v.object({ kind: v.literal("folder_delete"), folder: syncFolderReference }),
-  v.object({ kind: v.literal("membership_put"), ...target, folder: syncFolderReference }),
+  v.object({ kind: v.literal("membership_put"), ...target, folder: syncFolderReference, mode: v.optional(v.literal("claim_if_unset")) }),
   v.object({ kind: v.literal("position_put"), position: readingPositionValidator }),
   v.object({ kind: v.literal("legacy_position_put"), hadithId: v.string(), updatedAt: v.number() }),
   v.object({ kind: v.literal("facet_restore"), ...target, deletionId: v.string(), value: v.union(
@@ -49,7 +49,7 @@ export const syncOutcome = v.union(
   v.object({ kind: v.literal("folder_deleted"), hadithIds: v.array(v.id("hadiths")), deletedAt: v.number() }),
   v.object({ kind: v.literal("folder_restored"), folderId: v.id("savedFolders"), restored: v.array(v.string()), superseded: v.array(v.string()), missing: v.array(v.string()) }),
   v.object({ kind: v.literal("resolved_position"), position: readingPositionValidator }),
-  v.object({ kind: v.literal("superseded"), reason: v.union(v.literal("newer_cloud"), v.literal("tie_cloud"), v.literal("changed_since_delete")) }),
+  v.object({ kind: v.literal("superseded"), reason: v.union(v.literal("newer_cloud"), v.literal("tie_cloud"), v.literal("changed_since_delete"), v.literal("unversioned_cloud")) }),
   v.object({ kind: v.literal("unresolved"), reason: v.union(v.literal("missing_target"), v.literal("missing_folder"), v.literal("missing_saved_item"), v.literal("folder_name_taken"), v.literal("position_unavailable"), v.literal("folder_too_large")) }),
 );
 export const syncReceipt = v.object({ id: v.string(), revision: v.string(), outcome: syncOutcome });
@@ -113,7 +113,7 @@ export function validateSyncBatch(batch: SyncBatch, now: number): void {
         break;
       case "folder_delete":
       case "membership_put":
-        if (!reference(command.folder) || command.kind === "folder_delete" && command.folder.kind === "none") throw new Error("SYNC_INVALID_FOLDER");
+        if (!reference(command.folder) || command.kind === "folder_delete" && command.folder.kind === "none" || command.kind === "membership_put" && command.mode === "claim_if_unset" && command.folder.kind === "none") throw new Error("SYNC_INVALID_FOLDER");
         break;
       case "position_put":
         parseReadingPosition(command.position);

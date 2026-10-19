@@ -1,3 +1,4 @@
+import { writeSavedMembership } from "./lib/savedMembership";
 import { advanceLibraryVersion } from "./lib/librarySyncVersions";
 import { mutation } from "./_generated/server";
 import { v } from "convex/values";
@@ -76,6 +77,7 @@ export const mergeGuestData = mutation({
       noteCreatedAt: v.optional(v.number()),
       noteUpdatedAt: v.optional(v.number()),
       folderLocalId: v.optional(v.string()),
+      folderUpdatedAt: v.optional(v.number()),
       createdAt: v.number(),
       updatedAt: v.number(),
     }))),
@@ -91,6 +93,16 @@ export const mergeGuestData = mutation({
         "User not found: call users:ensureCurrentUser before merging guest data",
       );
     }
+
+    const latestClock = Date.now() + 300_000;
+    const checkClocks = (...values: (number | undefined)[]) => {
+      if (values.some(value => value !== undefined && (!Number.isFinite(value) || value < 0 || value > latestClock))) throw new Error("INVALID_GUEST_MERGE_CLOCK");
+    };
+    for (const item of args.bookmarks) checkClocks(item.createdAt);
+    for (const item of args.favorites ?? []) checkClocks(item.createdAt);
+    for (const item of args.notes) checkClocks(item.createdAt, item.updatedAt);
+    for (const item of args.savedFolders ?? []) checkClocks(item.createdAt);
+    for (const item of args.savedItems ?? []) checkClocks(item.createdAt, item.updatedAt, item.bookmarkCreatedAt, item.favoriteCreatedAt, item.noteCreatedAt, item.noteUpdatedAt, item.folderUpdatedAt);
 
     await advanceLibraryVersion(ctx, user._id, "saved");
 
@@ -225,18 +237,22 @@ export const mergeGuestData = mutation({
         : Math.min(item.favoriteCreatedAt ?? incoming.favoriteCreatedAt, incoming.favoriteCreatedAt);
       const incomingNoteWins = incoming.noteContent !== undefined && incoming.noteUpdatedAt !== undefined
         && (item.noteUpdatedAt === undefined || incoming.noteUpdatedAt > item.noteUpdatedAt);
-      const folderId = incoming.folderLocalId === undefined
-        ? item.folderId
-        : folderIds.get(incoming.folderLocalId) ?? item.folderId;
+      const requestedFolder = incoming.folderLocalId === undefined ? undefined : folderIds.get(incoming.folderLocalId);
+      const destination = requestedFolder === undefined ? null : await ctx.db.get(requestedFolder);
+      const membership = destination ? await writeSavedMembership(ctx, item, incoming.folderUpdatedAt === undefined
+        ? { kind: "claim_if_unset", folder: destination }
+        : { kind: "dated", folder: destination, at: incoming.folderUpdatedAt, operation: { id: `legacy:${crypto.randomUUID()}`, kind: "legacy" } })
+        : { kind: "unchanged" };
       const changed = bookmarkCreatedAt !== item.bookmarkCreatedAt
         || favoriteCreatedAt !== item.favoriteCreatedAt
         || incomingNoteWins
-        || folderId !== item.folderId;
+        || membership.kind === "write";
       if (!changed) {
         savedItemsSkipped += 1;
         continue;
       }
-      const updatedAt = Math.max(item.updatedAt, incoming.updatedAt, incoming.noteUpdatedAt ?? -Infinity);
+      const updatedAt = Math.max(item.updatedAt, incoming.updatedAt, incoming.noteUpdatedAt ?? -Infinity,
+        membership.kind === "write" ? incoming.folderUpdatedAt ?? -Infinity : -Infinity);
       await ctx.db.patch(item._id, {
         ...(bookmarkCreatedAt === undefined ? {} : { bookmarkCreatedAt }),
         ...(favoriteCreatedAt === undefined ? {} : { favoriteCreatedAt }),
@@ -245,7 +261,6 @@ export const mergeGuestData = mutation({
           noteCreatedAt: incoming.noteCreatedAt ?? incoming.createdAt,
           noteUpdatedAt: incoming.noteUpdatedAt,
         } : {}),
-        ...(folderId === undefined ? {} : { folderId, folderUpdatedAt: incoming.updatedAt }),
         updatedAt,
       });
       // New V2 payloads also maintain the legacy projection for shipped apps.

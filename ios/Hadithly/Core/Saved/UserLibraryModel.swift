@@ -352,7 +352,7 @@ final class UserLibraryModel {
         guard isActionCurrent(scope) else { return }
         if isSignedIn() {
             let ref = savedItems.first { $0.hadithId == hadithId }?.hadith
-            submit({ _ in .membershipPut(.init(hadithId: hadithId, folder: folderReference(folderId))) }, ref: ref)
+            submit({ _ in .membershipPut(.init(hadithId: hadithId, folder: folderReference(folderId), mode: nil)) }, ref: ref)
         } else {
             guestData.assignSavedFolder(hadithId: hadithId, folderLocalId: folderId)
             loadGuestData()
@@ -663,6 +663,7 @@ struct LibraryProjection {
             case .noteRemove(let value):
                 if var item = byID[value.hadithId] { item.noteContent = nil; item.noteCreatedAt = nil; item.noteUpdatedAt = nil; item.updatedAt = max(item.updatedAt, at); byID[value.hadithId] = item }
             case .membershipPut(let value):
+                if value.mode == "claim_if_unset" && outcome == nil { break }
                 if var item = byID[value.hadithId] { item.folderId = folderID(value.folder); item.updatedAt = max(item.updatedAt, at); byID[value.hadithId] = item }
             case .folderCreate(let value):
                 let id = state.folderMappings[value.key] ?? "local:" + value.key

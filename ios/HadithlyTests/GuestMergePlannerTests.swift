@@ -138,6 +138,80 @@ final class GuestMergePlannerTests: XCTestCase {
         XCTAssertFalse(otherJSON.contains("Recovery fixture"))
     }
 
+    func testInconsistentFrozenPayloadIsRetainedBeforeDispatchOrRetirement() throws {
+        let original = LibraryLocalChange(command: .notePut(.init(hadithId: "target", content: "Original source fixture", createdAt: 1_000, updatedAt: 1_000)), at: 1_000, source: .account(nil))
+        let different = SyncOperation(id: original.operation.id, revision: original.operation.revision, at: original.operation.at, command: .notePut(.init(hadithId: "target", content: "Different wire fixture", createdAt: 1_000, updatedAt: 1_000)))
+        var state = LibraryPartitionState()
+        let frozen = LibraryFrozenBatch(batch: .init(id: "inconsistent-payload", operations: [different]), changes: [original])
+        state.frozen = frozen
+        XCTAssertThrowsError(try state.freeze())
+        XCTAssertEqual(state.frozen, frozen)
+        let json = String(decoding: try JSONEncoder().encode(state), as: UTF8.self)
+        XCTAssertTrue(json.contains("Original source fixture")); XCTAssertTrue(json.contains("Different wire fixture"))
+    }
+
+    func testPreviouslyGuessedFrozenGuestMembershipClockRequiresFencedRecovery() {
+        let draft = GuestSavedMembershipDraft(hadithId: "target", folderLocalId: "old-folder", updatedAt: nil)
+        let guessed = LibraryLocalChange(command: .membershipPut(.init(hadithId: "target", folder: .local(.init(key: "old-folder")), mode: nil)), at: 9_000, source: .membership(draft))
+        let old = LibraryFrozenBatch(batch: .init(id: "old-guessed", operations: [guessed.operation]), changes: [guessed])
+        XCTAssertTrue(LibrarySyncAdmission.accepts(old.batch))
+        XCTAssertFalse(LibrarySyncAdmission.accepts(old))
+        let claim = LibraryLocalChange(command: .membershipPut(.init(hadithId: "target", folder: .local(.init(key: "old-folder")), mode: "claim_if_unset")), at: 0, source: .membership(draft))
+        XCTAssertTrue(LibrarySyncAdmission.accepts(LibraryFrozenBatch(batch: .init(id: "new-claim", operations: [claim.operation]), changes: [claim])))
+    }
+
+    func testLegacyPayloadKeepsFolderClockSeparateFromLaterNoteEdits() {
+        let id = "jn7fxd3z54153q9j13kmhgzkv18df2zd"
+        let payload = GuestMergePlanner.makePayload(bookmarks: [], notes: [.init(hadithId: id, content: "Later note", createdAt: date(1), updatedAt: date(9))],
+            folders: [.init(localId: "guest-folder", name: "Guest fixture", createdAt: date(1))],
+            memberships: [.init(hadithId: id, folderLocalId: "guest-folder", updatedAt: date(2))])
+        XCTAssertEqual(payload.savedItems.first?.updatedAt, 9_000)
+        XCTAssertEqual(payload.savedItems.first?.folderUpdatedAt, 2_000)
+    }
+
+    @MainActor func testUndatedGuestMembershipUsesClaimOnlyAndDoesNotOptimisticallyReplaceCloudFolder() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("undated-membership.store")
+        let id = "jn7fxd3z54153q9j13kmhgzkv18df2zd"
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        do {
+            let schema = Schema([GuestBookmark.self, GuestNote.self, GuestFavorite.self, GuestSavedFolder.self, GuestSavedMembership.self, GuestReadingProgress.self, GuestLibraryPartition.self, GuestAccountDeletion.self])
+            let container = try ModelContainer(for: schema, configurations: [ModelConfiguration(schema: schema, url: url)])
+            let context = ModelContext(container)
+            context.insert(GuestBookmark(hadithId: id, createdAt: date(1)))
+            context.insert(GuestSavedFolder(localId: "old-guest-folder", name: "Old guest folder", createdAt: date(9)))
+            context.insert(GuestSavedMembership(hadithId: id, folderLocalId: "old-guest-folder", updatedAt: nil))
+            try context.save()
+        }
+        let store = GuestDataStore(storeURL: url)
+        try store.claimGuestForSync(owner)
+        var state = try XCTUnwrap(store.syncPartition(owner))
+        let change = try XCTUnwrap(state.pending.first { if case .membershipPut = $0.operation.command { true } else { false } })
+        guard case .membershipPut(let value) = change.operation.command else { return XCTFail("Missing membership claim") }
+        XCTAssertEqual(value.mode, "claim_if_unset")
+        XCTAssertEqual(change.operation.at, 0)
+        let hadith = SyncHadithSummary(_id: id, providerHadithId: "1", collectionSlug: "bukhari", collectionName: "Bukhari", volumeId: "1", arabicText: "نص", englishText: nil, referenceDisplay: "Bukhari 1")
+        state.savedSnapshot = .init(ownerKey: owner.key, version: 1, folders: [.init(_id: "cloud-folder", name: "Cloud folder", createdAt: 1_000)], items: [.init(hadithId: id, createdAt: 1_000, updatedAt: 3_000, bookmarkCreatedAt: 1_000, favoriteCreatedAt: nil, noteContent: nil, noteCreatedAt: nil, noteUpdatedAt: nil, folderId: "cloud-folder", hadith: hadith)])
+        XCTAssertEqual(LibraryProjection(state).items.first?.folderId, "cloud-folder")
+        state.pending = []
+        state.confirmed = [.init(change: change, outcome: .preserved, version: 2)]
+        state.folderMappings["old-guest-folder"] = "accepted-guest-folder"
+        XCTAssertEqual(LibraryProjection(state).items.first?.folderId, "accepted-guest-folder")
+        state.confirmed = []
+        XCTAssertEqual(LibraryProjection(state).items.first?.folderId, "cloud-folder")
+        let batch = SyncBatch(id: "unversioned-rejected", operations: [change.operation])
+        state.frozen = .init(batch: batch, changes: [change])
+        let frame = SyncFrame(clientKey: state.clientKey, sequence: Double(state.nextSequence), batch: batch)
+        let outcome = SyncOutcome.superseded(.init(reason: .unversionedCloud))
+        try state.settle(accepted(frame, reply: .init(ownerKey: owner.key, batchId: batch.id, receipts: [.init(id: change.operation.id, revision: change.operation.revision, outcome: outcome)])), requested: frame, now: Date.now.millisecondsSinceEpoch)
+        XCTAssertEqual(state.recovery, [.server(change, outcome)])
+        XCTAssertEqual(LibraryProjection(state).items.first?.folderId, "cloud-folder")
+        let reopened = try JSONDecoder().decode(LibraryPartitionState.self, from: JSONEncoder().encode(state))
+        XCTAssertEqual(reopened.recovery, state.recovery)
+    }
+
     @MainActor private func seedPartitionFixture(_ state: LibraryPartitionState, owner: LibrarySyncOwner, url: URL) throws {
         let schema = Schema([GuestBookmark.self, GuestNote.self, GuestFavorite.self, GuestSavedFolder.self, GuestSavedMembership.self, GuestReadingProgress.self, GuestLibraryPartition.self, GuestAccountDeletion.self])
         let container = try ModelContainer(for: schema, configurations: [ModelConfiguration(schema: schema, url: url)])

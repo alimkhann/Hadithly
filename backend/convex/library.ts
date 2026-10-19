@@ -1,3 +1,4 @@
+import { writeSavedMembership } from "./lib/savedMembership";
 import { advanceLibraryVersion } from "./lib/librarySyncVersions";
 import { recordLegacyLibraryWrite } from "./lib/librarySyncMarks";
 import { normalizedFolderName } from "./lib/savedFolderPolicy";
@@ -767,19 +768,18 @@ export const assignSavedFolder = mutation({
     const identity = await requireIdentity(ctx);
     const user = await userByClerkId(ctx, identity.clerkId);
     if (!user) throw new Error("User not found. Call users:ensureCurrentUser first.");
-    await recordLegacyLibraryWrite(ctx, user._id, `membership:${args.hadithId}`);
-    if (args.folderId !== undefined) {
-      const folder = await ctx.db.get(args.folderId);
-      if (!folder || folder.userId !== user._id) throw new Error("SAVED_FOLDER_NOT_FOUND");
-    }
+    const folder = args.folderId === undefined ? null : await ctx.db.get(args.folderId);
+    if (args.folderId !== undefined && (!folder || folder.userId !== user._id)) throw new Error("SAVED_FOLDER_NOT_FOUND");
     const item = await materializeLegacySavedItem(ctx, user._id, args.hadithId);
     if (
       item.bookmarkCreatedAt === undefined &&
       item.favoriteCreatedAt === undefined &&
       item.noteContent === undefined
     ) throw new Error("SAVED_ITEM_NOT_FOUND");
-    const now = Date.now();
-    await ctx.db.patch(item._id, { folderId: args.folderId, folderUpdatedAt: now, updatedAt: now });
+    const decision = await writeSavedMembership(ctx, item, { kind: "dated", folder, at: Date.now(), operation: { id: `legacy:${crypto.randomUUID()}`, kind: "legacy" } });
+    if (decision.kind === "newer_cloud" || decision.kind === "tie_cloud") throw new Error("SAVED_MEMBERSHIP_NEWER_CLOUD");
+    if (decision.kind === "missing_folder") throw new Error("SAVED_FOLDER_NOT_FOUND");
+    if (decision.kind === "write") await advanceLibraryVersion(ctx, user._id, "saved");
   },
 });
 

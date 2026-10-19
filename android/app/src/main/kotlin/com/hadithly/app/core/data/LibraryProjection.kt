@@ -36,7 +36,7 @@ class LibraryProjection(state: LibraryPartitionState) {
                 is SyncCommand.FavoriteRemove -> byId[command.hadithId]?.let { byId[command.hadithId] = it.copy(favoriteCreatedAt = null, updatedAt = maxOf(it.updatedAt, at)) }
                 is SyncCommand.NotePut -> initial(command.hadithId, change).let { byId[command.hadithId] = it.copy(noteContent = command.content, noteCreatedAt = it.noteCreatedAt ?: command.createdAt, noteUpdatedAt = command.updatedAt, updatedAt = maxOf(it.updatedAt, command.updatedAt)) }
                 is SyncCommand.NoteRemove -> byId[command.hadithId]?.let { byId[command.hadithId] = it.copy(noteContent = null, noteCreatedAt = null, noteUpdatedAt = null, updatedAt = maxOf(it.updatedAt, at)) }
-                is SyncCommand.MembershipPut -> byId[command.hadithId]?.let { byId[command.hadithId] = it.copy(folderId = folderId(command.folder), updatedAt = maxOf(it.updatedAt, at)) }
+                is SyncCommand.MembershipPut -> if (command.mode != "claim_if_unset" || outcome != null) byId[command.hadithId]?.let { byId[command.hadithId] = it.copy(folderId = folderId(command.folder), updatedAt = maxOf(it.updatedAt, at)) }
                 is SyncCommand.FolderCreate -> {
                     val id = state.folderMappings[command.key] ?: "local:${command.key}"
                     byFolder.putIfAbsent(id, SavedFolder(id, command.name, at))

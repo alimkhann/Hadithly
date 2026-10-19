@@ -1,3 +1,4 @@
+import { writeSavedMembership } from "./lib/savedMembership";
 import { requireLibraryUser as owner, requireLibraryBinding as boundOwner } from "./lib/librarySyncIdentity";
 import { libraryVersion, advanceLibraryVersion } from "./lib/librarySyncVersions";
 import { librarySyncMark as mark, stampLibrarySyncMark as stamp } from "./lib/librarySyncMarks";
@@ -49,7 +50,7 @@ async function folderAlias(ctx: MutationCtx, userId: Id<"users">, key: string, f
 async function removeEmpty(ctx: MutationCtx, item: Doc<"savedItems">) {
   if (item.bookmarkCreatedAt === undefined && item.favoriteCreatedAt === undefined && item.noteContent === undefined) await ctx.db.delete(item._id);
 }
-function superseded(reason: "newer_cloud" | "tie_cloud" | "changed_since_delete"): SyncOutcome { return { kind: "superseded", reason }; }
+function superseded(reason: Extract<SyncOutcome, { kind: "superseded" }>["reason"]): SyncOutcome { return { kind: "superseded", reason }; }
 function unresolved(reason: "missing_target" | "missing_folder" | "missing_saved_item" | "folder_name_taken" | "position_unavailable" | "folder_too_large"): SyncOutcome { return { kind: "unresolved", reason }; }
 type Applied = { outcome: SyncOutcome };
 
@@ -147,19 +148,17 @@ async function applyOperation(ctx: MutationCtx, userId: Id<"users">, operation: 
   if (!hadith || !hadithId) return { outcome: unresolved("missing_target") };
   const item = await materializeLegacySavedItem(ctx, userId, hadithId);
   if (command.kind === "membership_put") {
-    const key = `membership:${hadithId}`;
     if (item.bookmarkCreatedAt === undefined && item.favoriteCreatedAt === undefined && item.noteContent === undefined) {
       await removeEmpty(ctx, item);
       return { outcome: unresolved("missing_saved_item") };
     }
     const destination = command.folder.kind === "none" ? null : await folder(ctx, userId, command.folder);
     if (command.folder.kind !== "none" && !destination) return { outcome: unresolved("missing_folder") };
-    const previous = await mark(ctx, userId, key);
-    const cloudAt = Math.max(item.folderUpdatedAt ?? -Infinity, previous?.at ?? -Infinity);
-    const decision = syncWriteDecision({ at: operation.at, cloudAt: Number.isFinite(cloudAt) ? cloudAt : null, same: item.folderId === destination?._id });
-    if (decision === "newer_cloud" || decision === "tie_cloud") return { outcome: superseded(decision) };
-    await ctx.db.patch(item._id, { folderId: destination?._id, folderUpdatedAt: Math.max(operation.at, cloudAt), updatedAt: Math.max(item.updatedAt, operation.at) });
-    await stamp(ctx, userId, key, operation);
+    const decision = command.mode === "claim_if_unset" && destination
+      ? await writeSavedMembership(ctx, item, { kind: "claim_if_unset", folder: destination })
+      : await writeSavedMembership(ctx, item, { kind: "dated", folder: destination, at: operation.at, operation: { id: operation.id, kind: "membership_put" } });
+    if (decision.kind === "newer_cloud" || decision.kind === "tie_cloud" || decision.kind === "unversioned_cloud") return { outcome: superseded(decision.kind) };
+    if (decision.kind === "missing_folder") return { outcome: unresolved("missing_folder") };
     return { outcome: { kind: "preserved" } };
   }
   if (command.kind === "facet_restore") {

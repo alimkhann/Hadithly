@@ -414,6 +414,7 @@ class ConvexRepository(context: Context) : LibraryReadTransport, LibrarySyncTran
                     "noteCreatedAt" to it.noteCreatedAt,
                     "noteUpdatedAt" to it.noteUpdatedAt,
                     "folderLocalId" to it.folderLocalId,
+                    "folderUpdatedAt" to it.folderUpdatedAt,
                     "createdAt" to it.createdAt,
                     "updatedAt" to it.updatedAt,
                 ).filterValues { value -> value != null }

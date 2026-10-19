@@ -146,6 +146,69 @@ class GuestMergeRaceTest {
         }
     }
 
+    @Test fun inconsistentFrozenPayloadIsRetainedBeforeDispatchOrRetirement() {
+        val original = LibraryLocalChange(SyncCommand.NotePut("target", "Original source fixture", 1_000.0, 1_000.0), 1_000.0, LibraryLocalSource.Account(null))
+        val different = original.operation.copy(command = SyncCommand.NotePut("target", "Different wire fixture", 1_000.0, 1_000.0))
+        val frozen = LibraryFrozenBatch(SyncBatch("inconsistent-payload", listOf(different)), listOf(original))
+        val state = LibraryPartitionState(frozen = frozen)
+        try { state.freeze(); fail("Inconsistent frozen payload admitted") } catch (_: LibrarySyncFailure.InvalidReceipt) { }
+        assertEquals(frozen, state.frozen)
+        val json = Json.encodeToString(state)
+        assertTrue(json.contains("Original source fixture")); assertTrue(json.contains("Different wire fixture"))
+    }
+
+    @Test fun previouslyGuessedFrozenGuestMembershipClockRequiresFencedRecovery() {
+        val draft = GuestSavedMembership("target", "old-folder")
+        val guessed = LibraryLocalChange(SyncCommand.MembershipPut("target", SyncFolderReference.Local("old-folder")), 9_000.0, LibraryLocalSource.Membership(draft))
+        val old = LibraryFrozenBatch(SyncBatch("old-guessed", listOf(guessed.operation)), listOf(guessed))
+        assertTrue(LibrarySyncAdmission.accepts(old.batch))
+        assertFalse(LibrarySyncAdmission.accepts(old))
+        val claim = LibraryLocalChange(SyncCommand.MembershipPut("target", SyncFolderReference.Local("old-folder"), "claim_if_unset"), 0.0, LibraryLocalSource.Membership(draft))
+        assertTrue(LibrarySyncAdmission.accepts(LibraryFrozenBatch(SyncBatch("new-claim", listOf(claim.operation)), listOf(claim))))
+    }
+
+    @Test fun legacyPayloadKeepsFolderClockSeparateFromLaterNoteEdits() {
+        val id = "jn7fxd3z54153q9j13kmhgzkv18df2zd"
+        val payload = GuestMergePlanner.makePayload(bookmarks = emptyList(), notes = listOf(GuestNoteDraft(id, "Later note", 1_000.0, 9_000.0)),
+            folders = listOf(GuestSavedFolderDraft("guest-folder", "Guest fixture", 1_000.0)), memberships = listOf(GuestSavedMembership(id, "guest-folder", 2_000.0)))
+        assertEquals(9_000.0, payload.savedItems.single().updatedAt, 0.0)
+        assertEquals(2_000.0, payload.savedItems.single().folderUpdatedAt!!, 0.0)
+    }
+
+    @Test fun undatedGuestMembershipUsesClaimOnlyAndDoesNotOptimisticallyReplaceCloudFolder() = runBlocking {
+        isolated { store, _, directory ->
+            val id = "jn7fxd3z54153q9j13kmhgzkv18df2zd"
+            val owner = LibrarySyncOwner("owner-a", "subject-a")
+            File(directory, "guest_store.json").writeText(Json.encodeToString(GuestStoreFile(bookmarks = listOf(GuestBookmarkDraft(id, 1_000.0)),
+                savedFolders = listOf(GuestSavedFolderDraft("old-guest-folder", "Old guest folder", 9_000.0)), savedMemberships = listOf(GuestSavedMembership(id, "old-guest-folder")))))
+            store.claimGuestForSync(owner)
+            val state = store.syncPartition(owner)!!
+            val change = state.pending.first { it.operation.command is SyncCommand.MembershipPut }
+            val command = change.operation.command
+            assertTrue(command is SyncCommand.MembershipPut)
+            if (command !is SyncCommand.MembershipPut) return@isolated
+            assertEquals("claim_if_unset", command.mode); assertEquals(0.0, change.operation.at, 0.0)
+            val hadith = SyncHadithSummary(id, "1", "bukhari", "Bukhari", "1", "نص", null, "Bukhari 1")
+            state.savedSnapshot = SyncSavedSnapshot(owner.key, 1.0, listOf(SyncFolderRow("cloud-folder", "Cloud folder", 1_000.0)), listOf(SyncSavedItem(id, 1_000.0, 3_000.0, bookmarkCreatedAt = 1_000.0, folderId = "cloud-folder", hadith = hadith)))
+            assertEquals("cloud-folder", LibraryProjection(state).items.single().folderId)
+            state.pending = emptyList()
+            state.confirmed = listOf(LibraryConfirmedChange(change, SyncOutcome.Preserved, 2.0))
+            state.folderMappings = mapOf("old-guest-folder" to "accepted-guest-folder")
+            assertEquals("accepted-guest-folder", LibraryProjection(state).items.single().folderId)
+            state.confirmed = emptyList()
+            assertEquals("cloud-folder", LibraryProjection(state).items.single().folderId)
+            val batch = SyncBatch("unversioned-rejected", listOf(change.operation))
+            state.frozen = LibraryFrozenBatch(batch, listOf(change))
+            val frame = SyncFrame(state.clientKey, state.nextSequence, batch)
+            val outcome = SyncOutcome.Superseded(SyncOutcomeSupersededReason.UNVERSIONED_CLOUD)
+            state.settle(accepted(frame, SyncReply(owner.key, batch.id, listOf(SyncReceipt(change.operation.id, change.operation.revision, outcome)))), frame, System.currentTimeMillis().toDouble())
+            assertEquals(listOf(LibraryRecovery.Server(change, outcome)), state.recovery)
+            assertEquals("cloud-folder", LibraryProjection(state).items.single().folderId)
+            val reopened = Json.decodeFromString(LibraryPartitionState.serializer(), Json.encodeToString(state))
+            assertEquals(state.recovery, reopened.recovery)
+        }
+    }
+
     @Test fun coordinatorContinuesAfterItsQuarantinePassBudgetWithoutSendingInvalidIntent() = runBlocking {
         isolated { store, _, directory ->
             val owner = LibrarySyncOwner("owner-a", "subject-a"); val session = LibrarySyncSession("session-a", owner.subject)

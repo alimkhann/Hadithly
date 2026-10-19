@@ -114,6 +114,11 @@ readback is still required. See `ACCOUNT_DELETION_MAINTENANCE_VERIFICATION.md`.
 The 501-member support probe remains red. Bounded folder-job candidates, independent
 review and remaining contract corrections are recorded in
 `product-program/sync-design/scale/decision.md`; none is implemented yet.
+Ordinary membership writes now share a causal clock rule, and both native apps
+preserve independent folder timestamps. Unknown-time guest claims cannot replace
+existing cloud choices. The focused repair passes 413 backend, 51 iOS and 30 Android
+checks; see `LIBRARY_SYNC_MEMBERSHIP_VERIFICATION.md`. This is a prerequisite to
+the still-unimplemented folder state/page/job contract, not large-folder support.
 Continue A2 integration while retaining A1's content dependencies. No paid
 generation or production change has been approved. Research, later native redesign, website and Linear remain
 pending in the owner's requested order.

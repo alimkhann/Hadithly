@@ -56,6 +56,15 @@ data class LibraryRecentReceipt(val receipt: SyncReceipt, val expiresAt: Double)
 data class LibrarySyncPartition(val ownerKey: String, val subject: String, val state: LibraryPartitionState)
 
 object LibrarySyncAdmission {
+    fun accepts(frozen: LibraryFrozenBatch, now: Double = System.currentTimeMillis().toDouble()): Boolean {
+        if (!accepts(frozen.batch, now) || frozen.changes.map { it.operation } != frozen.batch.operations) return false
+        return frozen.changes.all { change ->
+            val source = change.source
+            val command = change.operation.command
+            source !is LibraryLocalSource.Membership || source.value.updatedAt != null || command !is SyncCommand.MembershipPut || command.mode == "claim_if_unset"
+        }
+    }
+
     fun accepts(batch: SyncBatch, now: Double = System.currentTimeMillis().toDouble()): Boolean {
         fun identifier(value: String) = value.matches(Regex("^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"))
         if (!identifier(batch.id) || batch.operations.isEmpty() || batch.operations.size > LibrarySyncLimits.operations ||
@@ -80,7 +89,8 @@ object LibrarySyncAdmission {
             is SyncCommand.NoteRemove -> target(command.hadithId)
             is SyncCommand.FolderCreate -> key(command.key) && GuestMergePlanner.isValidFolderName(command.name)
             is SyncCommand.FolderDelete -> command.folder != SyncFolderReference.None && folder(command.folder)
-            is SyncCommand.MembershipPut -> target(command.hadithId) && folder(command.folder)
+            is SyncCommand.MembershipPut -> target(command.hadithId) && folder(command.folder) &&
+                (command.mode == null || command.mode == "claim_if_unset" && command.folder != SyncFolderReference.None)
             is SyncCommand.PositionPut -> time(command.position.updatedAt)
             is SyncCommand.LegacyPositionPut -> target(command.hadithId) && time(command.updatedAt)
             is SyncCommand.FacetRestore -> target(command.hadithId) && key(command.deletionId) && when (val value = command.value) {
@@ -118,7 +128,10 @@ data class LibraryPartitionState(
     }
     fun freeze(): SyncFrame? {
         if (acknowledgement != null) throw LibrarySyncFailure.InvalidReceipt
-        frozen?.let { return SyncFrame(clientKey, nextSequence, it.batch) }
+        frozen?.let {
+            if (it.changes.map { change -> change.operation } != it.batch.operations) throw LibrarySyncFailure.InvalidReceipt
+            return SyncFrame(clientKey, nextSequence, it.batch)
+        }
         if (pending.isEmpty()) return null
         val id = UUID.randomUUID().toString()
         val selected = mutableListOf<LibraryLocalChange>()
@@ -388,6 +401,7 @@ class LibrarySync(
                 onPartitionChange(owner)
                 checkSession(session, epoch)
                 val acknowledgement = store.syncPartition(owner)?.acknowledgement
+                checkSession(session, epoch)
                 if (acknowledgement != null) {
                     val reply = transport.acknowledge(binding.capability, acknowledgement)
                     store.settleSyncAcknowledgement(reply, acknowledgement, owner)
@@ -405,7 +419,9 @@ class LibrarySync(
                     retryDelay = 1_000
                     return
                 }
-                if (!LibrarySyncAdmission.accepts(frame.batch, now())) {
+                val frozen = store.syncPartition(owner)?.frozen ?: throw LibrarySyncFailure.SessionChanged
+                checkSession(session, epoch)
+                if (!LibrarySyncAdmission.accepts(frozen, now())) {
                     val reply = transport.retireInvalid(binding.capability, frame)
                     store.settleSyncRetirement(reply, frame, owner)
                     onPartitionChange(owner)

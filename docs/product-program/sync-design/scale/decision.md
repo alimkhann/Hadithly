@@ -86,6 +86,10 @@ Local synthetic fixtures do not prove Convex hosted quotas or real two-device sy
 - [x] Pick conservative reference, document grafts and rejected assumptions.
 - [x] Independently falsify the parent's smaller alternative.
 - [x] Execute current-limit support probe and retain its red result honestly.
+- [x] Reproduce and fix ordinary membership causal clocks and independent native
+  guest timestamps. Unknown-time claims preserve cloud choices; see
+  `../../../LIBRARY_SYNC_MEMBERSHIP_VERIFICATION.md`. This does not implement
+  effective membership during logical folder transitions.
 - [ ] Correct and verify the state/retention/page contract.
 - [ ] Implement bounded server core and both native integrations.
 - [ ] Verify migrations, interruption, privacy and actual approved device delivery.
