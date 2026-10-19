@@ -1,4 +1,4 @@
-import { writeSavedMembership } from "./lib/savedMembership";
+import { writeSavedMembership, removeEmptySavedMembership, touchSavedFolderMemberships } from "./lib/savedMembership";
 import { advanceLibraryVersion } from "./lib/librarySyncVersions";
 import { recordLegacyLibraryWrite } from "./lib/librarySyncMarks";
 import { normalizedFolderName } from "./lib/savedFolderPolicy";
@@ -623,16 +623,6 @@ export async function materializeLegacySavedItem(
   return item;
 }
 
-async function removeEmptySavedItem(ctx: MutationCtx, item: Doc<"savedItems">) {
-  if (
-    item.bookmarkCreatedAt === undefined &&
-    item.favoriteCreatedAt === undefined &&
-    item.noteContent === undefined
-  ) {
-    await ctx.db.delete(item._id);
-  }
-}
-
 /** New-client bookmark mutation. It dual-writes the legacy projection until the rollout closes. */
 export const toggleSavedBookmark = mutation({
   args: { hadithId: v.id("hadiths") },
@@ -646,7 +636,7 @@ export const toggleSavedBookmark = mutation({
     if (item.bookmarkCreatedAt !== undefined) {
       await ctx.db.patch(item._id, { bookmarkCreatedAt: undefined, updatedAt: Date.now() });
       await Promise.all(legacy.map((row) => ctx.db.delete(row._id)));
-      await removeEmptySavedItem(ctx, { ...item, bookmarkCreatedAt: undefined });
+      await removeEmptySavedMembership(ctx, { ...item, bookmarkCreatedAt: undefined });
       return { bookmarked: false };
     }
     const createdAt = Date.now();
@@ -669,7 +659,7 @@ export const toggleSavedFavorite = mutation({
     if (item.favoriteCreatedAt !== undefined) {
       await ctx.db.patch(item._id, { favoriteCreatedAt: undefined, updatedAt: Date.now() });
       await Promise.all(legacy.map((row) => ctx.db.delete(row._id)));
-      await removeEmptySavedItem(ctx, { ...item, favoriteCreatedAt: undefined });
+      await removeEmptySavedMembership(ctx, { ...item, favoriteCreatedAt: undefined });
       return { favorited: false };
     }
     const createdAt = Date.now();
@@ -706,7 +696,7 @@ export const deleteSavedNote = mutation({
     const item = await savedItemByHadith(ctx, user._id, args.hadithId);
     if (item) {
       await ctx.db.patch(item._id, { noteContent: undefined, noteCreatedAt: undefined, noteUpdatedAt: undefined, updatedAt: Date.now() });
-      await removeEmptySavedItem(ctx, { ...item, noteContent: undefined, noteCreatedAt: undefined, noteUpdatedAt: undefined });
+      await removeEmptySavedMembership(ctx, { ...item, noteContent: undefined, noteCreatedAt: undefined, noteUpdatedAt: undefined });
     }
     const legacy = await ctx.db.query("notes").withIndex("by_user_hadith", (q) => q.eq("userId", user._id).eq("hadithId", args.hadithId)).unique();
     if (legacy) await ctx.db.delete(legacy._id);
@@ -792,7 +782,7 @@ export const deleteSavedFolder = mutation({
     await advanceLibraryVersion(ctx, user._id, "saved");
     const folder = await ctx.db.get(args.folderId);
     if (!folder || folder.userId !== user._id) throw new Error("SAVED_FOLDER_NOT_FOUND");
-    const items = await ctx.db.query("savedItems").withIndex("by_folder", (q) => q.eq("folderId", folder._id)).collect();
+    const items = await ctx.db.query("savedItems").withIndex("by_user_folder_updated", (q) => q.eq("userId", user._id).eq("folderId", folder._id)).collect();
     const deletedAt = Date.now();
     for (const item of items) {
       await recordLegacyLibraryWrite(ctx, user._id, `membership:${item.hadithId}`, deletedAt);
@@ -831,6 +821,7 @@ export const restoreSavedFolder = mutation({
       if (!item || item.folderId !== undefined || item.folderUpdatedAt !== args.deletedAt) continue;
       await recordLegacyLibraryWrite(ctx, user._id, `membership:${hadithId}`);
       await ctx.db.patch(item._id, { folderId: folder._id, folderUpdatedAt: Date.now(), updatedAt: Date.now() });
+      await touchSavedFolderMemberships(ctx, user._id, [folder._id]);
       restoredHadithIds.push(hadithId);
     }
     return { folderId: folder._id, restoredHadithIds };

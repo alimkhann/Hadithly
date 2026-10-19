@@ -552,6 +552,9 @@ export default defineSchema({
     normalizedName: v.string(),
     createdAt: v.number(),
     updatedAt: v.number(),
+    // Optional for existing rows. Zero is the pre-tracking baseline; a folder
+    // scan may commit only against the same epoch it captured before paging.
+    membershipEpoch: v.optional(v.number()),
   })
     .index("by_user", ["userId"])
     .index("by_user_normalized_name", ["userId", "normalizedName"]),
@@ -574,7 +577,8 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_user_hadith", ["userId", "hadithId"])
-    .index("by_folder", ["folderId"]),
+    .index("by_folder", ["folderId"])
+    .index("by_user_folder_updated", ["userId", "folderId", "folderUpdatedAt"]),
 
   readingProgress: defineTable({
     userId: v.id("users"),

@@ -157,6 +157,13 @@ Undo authority; timestamp-less claims cannot overwrite existing cloud membership
 See `docs/LIBRARY_SYNC_MEMBERSHIP_VERIFICATION.md` for 413 backend, 51 iOS and 30
 Android passes, reproduced failures and the corrected independent review finding.
 Bulk folder transitions and read/export pagination are still unimplemented.
+Folder membership epochs and an indexed current maximum now provide the next
+manifest scan's change guard. Local 2,001-member and writer-path checks pass, with
+421 backend passes overall; see `docs/LIBRARY_FOLDER_SCAN_VERIFICATION.md`.
+Both existing delete queries now exclude foreign malformed pointers before their
+member reads and writes, with actual red/green cases and independent recheck.
+No worker or large-folder cutover is enabled. The new optional field/index have
+not been deployed and require the existing development approval gate.
 
 ## Read the plan in layers
 

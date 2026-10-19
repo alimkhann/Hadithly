@@ -119,6 +119,13 @@ preserve independent folder timestamps. Unknown-time guest claims cannot replace
 existing cloud choices. The focused repair passes 413 backend, 51 iOS and 30 Android
 checks; see `LIBRARY_SYNC_MEMBERSHIP_VERIFICATION.md`. This is a prerequisite to
 the still-unimplemented folder state/page/job contract, not large-folder support.
+Membership epochs and an owner-scoped indexed maximum now track accepted moves,
+restores and last-facet removal. The 2,001-member fixture and complete 421-test
+backend suite pass locally; see `LIBRARY_FOLDER_SCAN_VERIFICATION.md`. No paged
+folder preparation or logical deletion is enabled yet.
+Independent review also exposed foreign malformed pointers affecting existing
+delete queries. Both queries now restrict owner before member reads and writes;
+actual red/green fixtures and the final source recheck are in that record.
 Continue A2 integration while retaining A1's content dependencies. No paid
 generation or production change has been approved. Research, later native redesign, website and Linear remain
 pending in the owner's requested order.

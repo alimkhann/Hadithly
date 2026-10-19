@@ -90,6 +90,10 @@ Local synthetic fixtures do not prove Convex hosted quotas or real two-device sy
   guest timestamps. Unknown-time claims preserve cloud choices; see
   `../../../LIBRARY_SYNC_MEMBERSHIP_VERIFICATION.md`. This does not implement
   effective membership during logical folder transitions.
+- [x] Implement membership epochs and owner-indexed maximum against actual writer
+  paths and 2,001 members. See `../../../LIBRARY_FOLDER_SCAN_VERIFICATION.md`.
+  This supplies a scan guard; it does not implement manifest preparation or a
+  logical visibility commit.
 - [ ] Correct and verify the state/retention/page contract.
 - [ ] Implement bounded server core and both native integrations.
 - [ ] Verify migrations, interruption, privacy and actual approved device delivery.

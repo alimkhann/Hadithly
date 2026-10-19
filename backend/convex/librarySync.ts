@@ -1,4 +1,4 @@
-import { writeSavedMembership } from "./lib/savedMembership";
+import { writeSavedMembership, removeEmptySavedMembership, touchSavedFolderMemberships, savedFolderScanGuard } from "./lib/savedMembership";
 import { requireLibraryUser as owner, requireLibraryBinding as boundOwner } from "./lib/librarySyncIdentity";
 import { libraryVersion, advanceLibraryVersion } from "./lib/librarySyncVersions";
 import { librarySyncMark as mark, stampLibrarySyncMark as stamp } from "./lib/librarySyncMarks";
@@ -47,9 +47,6 @@ async function folderAlias(ctx: MutationCtx, userId: Id<"users">, key: string, f
   if (!existing) await ctx.db.insert("librarySyncFolderKeys", { userId, key, folderId });
   else if (existing.folderId !== folderId) throw new Error("SYNC_FOLDER_KEY_REUSED");
 }
-async function removeEmpty(ctx: MutationCtx, item: Doc<"savedItems">) {
-  if (item.bookmarkCreatedAt === undefined && item.favoriteCreatedAt === undefined && item.noteContent === undefined) await ctx.db.delete(item._id);
-}
 function superseded(reason: Extract<SyncOutcome, { kind: "superseded" }>["reason"]): SyncOutcome { return { kind: "superseded", reason }; }
 function unresolved(reason: "missing_target" | "missing_folder" | "missing_saved_item" | "folder_name_taken" | "position_unavailable" | "folder_too_large"): SyncOutcome { return { kind: "unresolved", reason }; }
 type Applied = { outcome: SyncOutcome };
@@ -73,9 +70,10 @@ async function applyOperation(ctx: MutationCtx, userId: Id<"users">, operation: 
   if (command.kind === "folder_delete") {
     const current = await folder(ctx, userId, command.folder);
     if (!current) return { outcome: unresolved("missing_folder") };
-    const members = await ctx.db.query("savedItems").withIndex("by_folder", q => q.eq("folderId", current._id)).take(501);
+    const members = await ctx.db.query("savedItems").withIndex("by_user_folder_updated", q => q.eq("userId", userId).eq("folderId", current._id)).take(501);
     if (members.length > 500) return { outcome: unresolved("folder_too_large") };
-    if (current.updatedAt > operation.at || members.some(member => member.userId === userId && (member.folderUpdatedAt ?? 0) > operation.at)) {
+    const guard = await savedFolderScanGuard(ctx, current);
+    if (current.updatedAt > operation.at || (guard.latestAt ?? 0) > operation.at) {
       return { outcome: superseded("newer_cloud") };
     }
     const ids: Id<"hadiths">[] = [];
@@ -114,6 +112,7 @@ async function applyOperation(ctx: MutationCtx, userId: Id<"users">, operation: 
       if (item.folderId !== undefined || version?.operationId !== command.deletionId || version.commandKind !== "folder_delete" || (item.folderUpdatedAt ?? 0) > version.at || operation.at < version.at) { supersededIds.push(raw); continue; }
       await ctx.db.patch(item._id, { folderId, folderUpdatedAt: operation.at, updatedAt: Math.max(item.updatedAt, operation.at) });
       await stamp(ctx, userId, `membership:${hadithId}`, operation);
+      await touchSavedFolderMemberships(ctx, userId, [folderId]);
       restored.push(raw);
     }
     return { outcome: { kind: "folder_restored", folderId, restored, superseded: supersededIds, missing } };
@@ -149,7 +148,7 @@ async function applyOperation(ctx: MutationCtx, userId: Id<"users">, operation: 
   const item = await materializeLegacySavedItem(ctx, userId, hadithId);
   if (command.kind === "membership_put") {
     if (item.bookmarkCreatedAt === undefined && item.favoriteCreatedAt === undefined && item.noteContent === undefined) {
-      await removeEmpty(ctx, item);
+      await removeEmptySavedMembership(ctx, item);
       return { outcome: unresolved("missing_saved_item") };
     }
     const destination = command.folder.kind === "none" ? null : await folder(ctx, userId, command.folder);
@@ -171,7 +170,7 @@ async function applyOperation(ctx: MutationCtx, userId: Id<"users">, operation: 
     }
     const previous = await mark(ctx, userId, key);
     if (previous?.operationId !== command.deletionId || previous.commandKind !== `${command.value.kind}_remove`) {
-      await removeEmpty(ctx, item);
+      await removeEmptySavedMembership(ctx, item);
       return { outcome: superseded("changed_since_delete") };
     }
     const restored: SyncOperation = { ...operation, command: command.value.kind === "note"
@@ -191,11 +190,11 @@ async function applyOperation(ctx: MutationCtx, userId: Id<"users">, operation: 
   const at = command.kind === "note_put" ? command.updatedAt : operation.at;
   const decision = syncWriteDecision({ at, cloudAt: Number.isFinite(cloudAt) ? cloudAt : null, same });
   if (decision === "newer_cloud" || decision === "tie_cloud") {
-    await removeEmpty(ctx, item);
+    await removeEmptySavedMembership(ctx, item);
     return { outcome: superseded(decision) };
   }
   if (!present && same) {
-    await removeEmpty(ctx, item);
+    await removeEmptySavedMembership(ctx, item);
     return { outcome: { kind: "preserved" } };
   }
   let next = item;
@@ -229,7 +228,7 @@ async function applyOperation(ctx: MutationCtx, userId: Id<"users">, operation: 
     }
   } else { const exhaustive: never = command; return exhaustive; }
   await stamp(ctx, userId, key, operation, at);
-  await removeEmpty(ctx, next);
+  await removeEmptySavedMembership(ctx, next);
   return { outcome: { kind: "preserved" } };
 }
 
