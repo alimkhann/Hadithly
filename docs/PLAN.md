@@ -125,12 +125,16 @@ and settles exact operation receipts. Older folder deletes preserve newer cloud
 placements, and partial folder restores retain recovery details. Android damaged
 local storage now reaches the existing Saved error state without overwriting its
 file. See `docs/LIBRARY_SYNC_CORE_VERIFICATION.md`. This is an engineering
-checkpoint: the old production sign-in/clearAll paths and signed-in write paths
-remain, and actual cross-device/account delivery is unverified. The receipt
-lifecycle now has local Convex/native evidence, with one current receipt set per
-installation and safe old-backup reconciliation. See
-`docs/LIBRARY_SYNC_PROTOCOL_VERIFICATION.md`. Independent review of that protocol,
-production caller integration and large-account behavior remain open. A2 has no
+checkpoint. Production sign-in now uses the durable coordinator, and signed-in
+Saved, folder, undo and position writes use its queue on both platforms. Owned
+read streams retain local accepted edits until their matching server revision is
+observed. Scope-captured dialogs and note-save feedback are connected. See
+`docs/LIBRARY_SYNC_INTEGRATION_VERIFICATION.md` for 32 iOS, 18 Android and 388
+backend passes and their limits. The prior receipt protocol received an independent
+source review; the integration review's folder-undo finding is repaired and locally
+proved, with final independent re-review still open. Local recovery export,
+delete/restart/retry and anti-recreation, large folders/vanished anchors, installed
+schema, actual account/device delivery and deployment remain open. A2 has no
 deployment approval.
 
 ## Read the plan in layers

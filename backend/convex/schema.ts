@@ -510,7 +510,9 @@ export default defineSchema({
     .index("by_digest", ["digest"]).index("by_user", ["userId"]),
   librarySyncStreams: defineTable({ userId: v.id("users"), clientKey: v.string(), closedThrough: v.number(), active: v.optional(syncCommitted) })
     .index("by_user_client", ["userId", "clientKey"]).index("by_user", ["userId"]),
-  librarySyncMarks: defineTable({ userId: v.id("users"), key: v.string(), operationId: v.string(), commandKind: v.string(), at: v.number() })
+  librarySyncVersions: defineTable({ userId: v.id("users"), kind: v.union(v.literal("saved"), v.literal("position")), version: v.number() })
+    .index("by_user_kind", ["userId", "kind"]).index("by_user", ["userId"]),
+  librarySyncMarks: defineTable({ userId: v.id("users"), key: v.string(), operationId: v.string(), commandKind: v.string(), at: v.number(), detail: v.union(v.object({ kind: v.literal("write") }), v.object({ kind: v.literal("folder_deletion"), hadithIds: v.array(v.id("hadiths")) })) })
     .index("by_user_key", ["userId", "key"]).index("by_user_operation", ["userId", "operationId"]).index("by_user", ["userId"]),
   librarySyncFolderKeys: defineTable({ userId: v.id("users"), key: v.string(), folderId: v.id("savedFolders") })
     .index("by_user_key", ["userId", "key"]).index("by_user", ["userId"]),

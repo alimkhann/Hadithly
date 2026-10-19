@@ -194,8 +194,8 @@ fun ReaderScreen(
         )
     }
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val sessions by com.clerk.api.Clerk.sessionsFlow.collectAsStateWithLifecycle()
-    LaunchedEffect(sessions.map { it.id }) { viewModel.resetTranslationRequestsForAccount() }
+    val activeSession by com.clerk.api.Clerk.sessionFlow.collectAsStateWithLifecycle()
+    LaunchedEffect(activeSession?.id) { viewModel.resetTranslationRequestsForAccount() }
     DisposableEffect(viewModel) {
         viewModel.beginMeasurement()
         onDispose { viewModel.endMeasurement(); viewModel.saveCurrentProgress() }
@@ -1363,8 +1363,8 @@ private fun ReaderPage(
 
     val experience = com.hadithly.app.HadithlyApplication.instance().readerExperience
     val automatic by experience.automaticallyTranslates.collectAsStateWithLifecycle()
-    val sessions by com.clerk.api.Clerk.sessionsFlow.collectAsStateWithLifecycle()
-    LaunchedEffect(listState, state.pageIndex == pageIndex, automatic, preferences.translationVisible, state.language, sessions.map { it.id }) {
+    val activeSession by com.clerk.api.Clerk.sessionFlow.collectAsStateWithLifecycle()
+    LaunchedEffect(listState, state.pageIndex == pageIndex, automatic, preferences.translationVisible, state.language, activeSession?.id) {
         if (state.pageIndex != pageIndex || !automatic || !preferences.translationVisible) return@LaunchedEffect
         snapshotFlow {
             val info = listState.layoutInfo
@@ -1528,9 +1528,12 @@ private fun ReaderPage(
             ) {
                 NoteEditorSheet(
                     initialContent = viewModel.noteContent(hadith),
+                    initialScope = viewModel.libraryActionScope,
+                    isScopeCurrent = viewModel::isLibraryActionCurrent,
                     onSave = { content ->
-                        viewModel.saveNote(hadith, content)
-                        noteTarget = null
+                        val saved = viewModel.saveNote(hadith, content).await()
+                        if (saved) noteTarget = null
+                        saved
                     },
                     onCancel = { noteTarget = null },
                 )
@@ -3159,11 +3162,18 @@ internal fun TranslationSourceDetails(translation: ReaderTranslation, showsTrans
 @Composable
 private fun NoteEditorSheet(
     initialContent: String?,
-    onSave: (String) -> Unit,
+    initialScope: String,
+    isScopeCurrent: (String?) -> Boolean,
+    onSave: suspend (String) -> Boolean,
     onCancel: () -> Unit,
 ) {
     val colors = LocalHadithlyColors.current
     var content by remember { mutableStateOf(initialContent ?: "") }
+    val editingScope = remember { initialScope }
+    val saveScope = rememberCoroutineScope()
+    var saving by remember { mutableStateOf(false) }
+    var failed by remember { mutableStateOf(false) }
+    LaunchedEffect(initialScope) { if (initialScope != editingScope) onCancel() }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -3189,13 +3199,19 @@ private fun NoteEditorSheet(
                 .fillMaxWidth()
                 .height(160.dp),
         )
+        if (failed) Text(nativeText("Try again"), color = colors.destructive)
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            TextButton(onClick = onCancel) { Text(nativeText("Cancel"), color = colors.textSecondary) }
+            TextButton(enabled = !saving, onClick = onCancel) { Text(nativeText("Cancel"), color = colors.textSecondary) }
             TextButton(
                 onClick = {
                     val trimmed = content.trim()
-                    if (trimmed.isNotEmpty()) onSave(trimmed)
+                    if (!isScopeCurrent(editingScope)) { onCancel(); return@TextButton }
+                    if (trimmed.isNotEmpty() && !saving) saveScope.launch {
+                        saving = true
+                        try { failed = !onSave(trimmed) } finally { saving = false }
+                    }
                 },
+                enabled = !saving && content.isNotBlank(),
             ) { Text(nativeText("Save"), color = colors.interactive, fontWeight = FontWeight.Bold) }
         }
     }
@@ -3470,6 +3486,8 @@ internal fun ReaderSavedSheet(
     val context = LocalContext.current
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
+    val actionScope = library.actionScope
+    var removalScope by remember { mutableStateOf<String?>(null) }
     var tab by remember { mutableStateOf(ReaderSavedTab.BOOKMARKS) }
     var folderId by remember { mutableStateOf<String?>(null) }
     var folderMenuOpen by remember { mutableStateOf(false) }
@@ -3479,6 +3497,7 @@ internal fun ReaderSavedSheet(
     val favoriteRemovedLabel = stringResource(R.string.saved_favorite_removed)
     val noteDeletedLabel = stringResource(R.string.saved_note_deleted)
     val folderDeletedTemplate = stringResource(R.string.saved_folder_deleted, "%1\$s")
+    LaunchedEffect(actionScope) { removal = null; removalScope = null; folderId = null; folderMenuOpen = false }
     val visible = items.filter { item ->
         val matches = when (tab) {
             ReaderSavedTab.ALL -> true
@@ -3489,11 +3508,14 @@ internal fun ReaderSavedSheet(
         matches && (folderId == null || item.folderId == folderId)
     }.sortedByDescending { it.sortDate }
     fun remove(value: Triple<com.hadithly.app.features.saved.SavedFacet, com.hadithly.app.core.data.SavedItemEntry, HadithRef>) {
+        if (!library.isActionCurrent(removalScope ?: actionScope)) return
         val (facet, item, ref) = value
+        scope.launch {
         when (facet) {
-            com.hadithly.app.features.saved.SavedFacet.BOOKMARK -> item.bookmarkCreatedAt?.let { at -> library.toggleBookmark(ref); library.undo.show(bookmarkRemovedLabel) { library.restoreBookmark(ref, at) } }
-            com.hadithly.app.features.saved.SavedFacet.FAVORITE -> item.favoriteCreatedAt?.let { at -> library.toggleFavorite(ref); library.undo.show(favoriteRemovedLabel) { library.restoreFavorite(ref, at) } }
-            com.hadithly.app.features.saved.SavedFacet.NOTE -> item.noteContent?.let { note -> library.deleteNote(ref); library.undo.show(noteDeletedLabel) { library.restoreNote(ref, note, item.createdAt, item.updatedAt) } }
+            com.hadithly.app.features.saved.SavedFacet.BOOKMARK -> item.bookmarkCreatedAt?.let { at -> if (library.removeBookmark(ref, removalScope ?: actionScope).await()) library.undo.show(bookmarkRemovedLabel) { library.restoreBookmark(ref, at) } }
+            com.hadithly.app.features.saved.SavedFacet.FAVORITE -> item.favoriteCreatedAt?.let { at -> if (library.removeFavorite(ref, removalScope ?: actionScope).await()) library.undo.show(favoriteRemovedLabel) { library.restoreFavorite(ref, at) } }
+            com.hadithly.app.features.saved.SavedFacet.NOTE -> item.noteContent?.let { note -> if (library.deleteNote(ref, removalScope ?: actionScope).await()) library.undo.show(noteDeletedLabel) { library.restoreNote(ref, note, item.createdAt, item.updatedAt) } }
+        }
         }
     }
     Column(Modifier.fillMaxWidth().fillMaxHeight().padding(20.dp).testTag("reader.saved.sheet")) {
@@ -3506,7 +3528,7 @@ internal fun ReaderSavedSheet(
                     DropdownMenuItem(text = { Text(folder.name) }, onClick = { folderId = folder.id; folderMenuOpen = false })
                     DropdownMenuItem(text = { Text(stringResource(R.string.saved_delete_folder) + ": " + folder.name, color = colors.destructive) }, onClick = {
                         if (folderId == folder.id) folderId = null
-                        library.deleteFolder(folder, folderDeletedTemplate.format(folder.name)); folderMenuOpen = false
+                        library.deleteFolder(folder, folderDeletedTemplate.format(folder.name), actionScope); folderMenuOpen = false
                     })
                 }
             }
@@ -3522,7 +3544,7 @@ internal fun ReaderSavedSheet(
             title = if (folderId != null) "This folder is empty" else when (tab) { ReaderSavedTab.ALL -> "Nothing saved yet"; ReaderSavedTab.BOOKMARKS -> "No bookmarks yet"; ReaderSavedTab.FAVORITES -> "No favorites yet"; ReaderSavedTab.NOTES -> "No notes yet" },
             message = "Hold a hadith while reading to bookmark it, favorite it, or add a note.", icon = Icons.Filled.BookmarkBorder,
             modifier = Modifier.weight(1f).testTag("reader.saved.empty"))
-        else LazyColumn(Modifier.weight(1f).testTag("reader.saved.rows"), verticalArrangement = Arrangement.spacedBy(10.dp)) { items(visible, key = { it.hadithId }) { item -> com.hadithly.app.features.saved.SharedSavedItemRow(item, folders, folderId == null, onOpen, { facet, saved, ref -> val request = Triple(facet, saved, ref); if (app.savedSafety.confirmsRemoval) removal = request else remove(request) }, { library.assignFolder(item.hadithId, it) }, { ref -> scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(ref.referenceDisplay, listOfNotNull(ref.arabicText, ref.englishText, ref.referenceDisplay).joinToString("\n\n")))) } }, { ref -> context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "https://hadithly.app/hadith/${ref.collectionSlug}/${ref.hadithNumber}"), null)) }, onOpen, { ref -> withContext(Dispatchers.IO) { app.repository.loadSavedPreview(ref) } }) } }
+        else LazyColumn(Modifier.weight(1f).testTag("reader.saved.rows"), verticalArrangement = Arrangement.spacedBy(10.dp)) { items(visible, key = { it.hadithId }) { item -> com.hadithly.app.features.saved.SharedSavedItemRow(item, folders, folderId == null, onOpen, { facet, saved, ref -> val request = Triple(facet, saved, ref); removalScope = actionScope; if (app.savedSafety.confirmsRemoval) removal = request else remove(request) }, { library.assignFolder(item.hadithId, it, actionScope) }, { ref -> scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(ref.referenceDisplay, listOfNotNull(ref.arabicText, ref.englishText, ref.referenceDisplay).joinToString("\n\n")))) } }, { ref -> context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "https://hadithly.app/hadith/${ref.collectionSlug}/${ref.hadithNumber}"), null)) }, onOpen, { ref -> withContext(Dispatchers.IO) { app.repository.loadSavedPreview(ref) } }) } }
         com.hadithly.app.features.saved.SavedUndoBanner(testTag = "reader.saved.undoBanner")
         com.hadithly.app.features.saved.SavedFilterBar(tab.ordinal, { tab = ReaderSavedTab.entries[it] }, "reader.saved.tab", Modifier.padding(top = 8.dp))
     }

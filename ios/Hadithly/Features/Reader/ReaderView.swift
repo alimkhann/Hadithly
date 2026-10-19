@@ -1656,9 +1656,12 @@ private struct HadithBlock: View {
         .sheet(isPresented: $isEditingNote) {
             NoteEditorSheet(
                 initialContent: model.noteContent(for: hadith),
+                initialScope: model.libraryActionScope,
+                isScopeCurrent: model.isLibraryActionCurrent,
                 onSave: { content in
-                    model.saveNote(hadith, content: content)
-                    isEditingNote = false
+                    let saved = model.saveNote(hadith, content: content)
+                    if saved { isEditingNote = false }
+                    return saved
                 }
             )
             .presentationDetents([.medium])
@@ -2141,12 +2144,16 @@ struct HadithSourceSheet: View {
 
 private struct NoteEditorSheet: View {
     let initialContent: String?
-    let onSave: (String) -> Void
+    let initialScope: UUID?
+    let isScopeCurrent: (UUID?) -> Bool
+    let onSave: (String) -> Bool
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.readerPalette) private var palette
     @Environment(\.readerTheme) private var readerTheme
     @State private var content: String = ""
+    @State private var saveFailed = false
+    @State private var editingScope: UUID?
     @FocusState private var isFocused: Bool
 
     var body: some View {
@@ -2163,6 +2170,7 @@ private struct NoteEditorSheet: View {
                     .padding(1)
                     .background(palette.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
+                if saveFailed { Text("Try again").font(.footnote).foregroundStyle(Theme.destructive) }
             }
             .padding(16)
             .background(palette.background.ignoresSafeArea())
@@ -2177,8 +2185,8 @@ private struct NoteEditorSheet: View {
                     Button("Save") {
                         let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
                         guard !trimmed.isEmpty else { return }
-                        onSave(trimmed)
-                        dismiss()
+                        guard isScopeCurrent(editingScope) else { dismiss(); return }
+                        if onSave(trimmed) { dismiss() } else { saveFailed = true }
                     }
                     .foregroundStyle(palette.interactive)
                     .accessibilityIdentifier("note.save")
@@ -2186,8 +2194,10 @@ private struct NoteEditorSheet: View {
             }
             .onAppear {
                 content = initialContent ?? ""
+                editingScope = initialScope
                 isFocused = true
             }
+            .onChange(of: initialScope) { _, value in if editingScope != value { dismiss() } }
         }
         .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
     }
@@ -2467,11 +2477,6 @@ struct ReaderR6Round3FixtureView: View {
         self.screen = screen ?? environment["R6_SCREEN"] ?? "menu"
         searchStub = environment["R6_SEARCH_STUB"] ?? "empty"
         menuBookmarked = environment["R6_MENU_BOOKMARKED"] == "true"
-        let provider = ClerkConvexAuthProvider()
-        let convex = ConvexClientWithAuth(
-            deploymentUrl: "https://example.invalid",
-            authProvider: provider
-        )
         let store = GuestDataStore(inMemory: true)
         let twoMonthsAgo = Calendar.current.date(byAdding: .month, value: -2, to: .now) ?? .now
         store.addBookmark(draft: GuestBookmarkDraft(
@@ -2490,7 +2495,7 @@ struct ReaderR6Round3FixtureView: View {
             volumeId: "2",
             hadithNumber: "59"
         )
-        let library = UserLibraryModel(convex: convex, guestData: store, isSignedIn: { false })
+        let library = UserLibraryModel(guestData: store)
         library.refresh()
         self.library = library
     }
@@ -2743,8 +2748,10 @@ struct ReaderR6ATestFixtureView: View {
         )
         let fixtureLibrary: UserLibraryModel?
         if environment["READER_UNDO_PROBE"] == "1" {
-            let library = UserLibraryModel(convex: convex, guestData: GuestDataStore(inMemory: true), isSignedIn: { false })
-            library.restoreBookmark(HadithRef(hadithId: "fixture-57", collectionSlug: "bukhari", collectionName: "Sahih al-Bukhari", volumeId: "2", hadithNumber: "57", arabicText: "نَصّ الحديث الأول", englishText: "Deeds are judged by intentions.", referenceDisplay: "Bukhari – 57"), createdAt: .now)
+            let fixtureStore = GuestDataStore(inMemory: true)
+            fixtureStore.addBookmark(draft: .init(hadithId: "fixture-57", createdAt: .now, collectionName: "Sahih al-Bukhari", referenceDisplay: "Bukhari – 57", volumeId: "2", hadithNumber: "57"))
+            let library = UserLibraryModel(guestData: fixtureStore)
+            library.refresh()
             fixtureLibrary = library
         } else { fixtureLibrary = nil }
         let seeded = ReaderModel(

@@ -68,7 +68,7 @@ class ContinueWidgetRuntimeTest {
             output.outputStream().use { screenshot.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
 
             val staleAt = now - 37 * 60 * 60 * 1_000
-            app.guestData.clearAll()
+            app.guestData.snapshots().progress.firstOrNull { it.hadithId == "fixture-only" && it.collectionSlug == "bukhari" }?.let { app.guestData.removeProgress(it) }
             app.library.refresh()
             app.guestData.saveProgress(GuestReadingProgressDraft(
                 collectionSlug = "bukhari", collectionName = "Sahih al-Bukhari",
@@ -85,7 +85,7 @@ class ContinueWidgetRuntimeTest {
             val staleOutput = File(app.getExternalFilesDir(null), "w2-continue-stale.png")
             staleOutput.outputStream().use { staleScreenshot.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
         } finally {
-            app.guestData.clearAll()
+            app.guestData.snapshots().progress.firstOrNull { it.hadithId == "fixture-only" && it.collectionSlug == "bukhari" }?.let { app.guestData.removeProgress(it) }
             app.library.refresh()
             WidgetSnapshotStore(app).saveContinue(null, "ar")
             refreshContinueWidgets(app)

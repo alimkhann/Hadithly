@@ -515,6 +515,62 @@ struct SyncReply: Codable, Equatable, Sendable {
     let receipts: [SyncReceipt]
 }
 
+struct SyncRevision: Codable, Equatable, Sendable {
+    let saved: Double
+    let position: Double
+}
+
+struct SyncHadithSummary: Codable, Equatable, Sendable {
+    let _id: String
+    let providerHadithId: String
+    let collectionSlug: String
+    let collectionName: String
+    let volumeId: String?
+    let arabicText: String
+    let englishText: String?
+    let referenceDisplay: String
+}
+
+struct SyncSavedItem: Codable, Equatable, Sendable {
+    let hadithId: String
+    let createdAt: Double
+    let updatedAt: Double
+    let bookmarkCreatedAt: Double?
+    let favoriteCreatedAt: Double?
+    let noteContent: String?
+    let noteCreatedAt: Double?
+    let noteUpdatedAt: Double?
+    let folderId: String?
+    let hadith: SyncHadithSummary
+}
+
+struct SyncFolderRow: Codable, Equatable, Sendable {
+    let _id: String
+    let name: String
+    let createdAt: Double
+}
+
+struct SyncPositionRow: Codable, Equatable, Sendable {
+    let collectionSlug: String
+    let hadithId: String
+    let updatedAt: Double
+    let position: ReadingPosition?
+    let hadith: SyncHadithSummary
+}
+
+struct SyncSavedSnapshot: Codable, Equatable, Sendable {
+    let ownerKey: String
+    let version: Double
+    let folders: [SyncFolderRow]
+    let items: [SyncSavedItem]
+}
+
+struct SyncPositionsSnapshot: Codable, Equatable, Sendable {
+    let ownerKey: String
+    let version: Double
+    let rows: [SyncPositionRow]
+}
+
 struct SyncFrame: Codable, Equatable, Sendable {
     let clientKey: String
     let sequence: Double
@@ -525,6 +581,7 @@ struct SyncCommitted: Codable, Equatable, Sendable {
     let clientKey: String
     let sequence: Double
     let digest: String
+    let revision: SyncRevision
     let reply: SyncReply
 }
 

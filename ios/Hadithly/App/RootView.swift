@@ -87,6 +87,9 @@ struct RootView: View {
     }
 
     private func observeAuthEvents() async {
+        // Local fixture/unit hosts do not start account writes automatically.
+        // Explicit live tests call completeSignIn after their own authorization.
+        if AutomationContext.isActive { return }
         // Clerk restores its client asynchronously; wait for it before
         // reading the session or a restored sign-in is missed.
         for _ in 0..<100 {
@@ -97,15 +100,25 @@ struct RootView: View {
         // A session restored from a previous launch still needs its sync.
         if clerk.session != nil, !hasSyncedLaunchSession {
             hasSyncedLaunchSession = true
-            await environment.completeSignIn()
+            Task { await environment.completeSignIn() }
         }
 
-        // Custom flows report completion directly to onAuthenticated; this
-        // loop only reacts to sign-out, which has no in-flow hook.
         for await event in clerk.auth.events {
-            if case .signedOut = event {
+            switch event {
+            case .sessionChanged(let old, let new):
+                guard old?.id != new?.id || old?.user?.id != new?.user?.id || old?.status != new?.status else { continue }
+                environment.accountSessionChanged()
+                if new != nil { Task { await environment.completeSignIn() } }
+                else { showSignIn = false; environment.handleSignOut() }
+            case .signedOut(let ended):
+                if let current = currentLibrarySession(), current.id != ended.id { continue }
                 showSignIn = false
                 environment.handleSignOut()
+            case .accountDeleted:
+                showSignIn = false
+                if currentLibrarySession() != nil { environment.accountSessionChanged(); Task { await environment.completeSignIn() } }
+                else { environment.handleSignOut() }
+            default: break
             }
         }
     }

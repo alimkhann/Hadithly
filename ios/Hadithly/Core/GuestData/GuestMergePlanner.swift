@@ -273,11 +273,56 @@ enum LibraryRecovery: Codable, Equatable, Sendable {
     case invalid(LibraryLocalSource)
     case server(LibraryLocalChange, SyncOutcome)
     case historical(LibraryLocalChange)
+    case rejected(LibraryLocalChange)
 }
 
 struct LibraryRecentReceipt: Codable, Equatable, Sendable {
     let receipt: SyncReceipt
     let expiresAt: Double
+}
+
+enum LibrarySyncAdmission {
+    static func accepts(_ command: SyncCommand, at: Double, now: Double = Date.now.millisecondsSinceEpoch) -> Bool {
+        func time(_ value: Double) -> Bool { value.isFinite && value >= 0 && value <= now + 300_000 }
+        func target(_ value: String) -> Bool { !value.isEmpty && value.utf16.count <= 128 }
+        func key(_ value: String) -> Bool { value.range(of: "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$", options: .regularExpression) != nil }
+        func note(_ value: String) -> Bool { !value.isEmpty && value.utf8.count <= LibrarySyncLimits.noteBytes }
+        func folder(_ value: SyncFolderReference) -> Bool {
+            switch value { case .none: true; case .server(let value): target(value.id); case .local(let value): key(value.key) }
+        }
+        guard time(at) else { return false }
+        switch command {
+        case .bookmarkAdd(let value): return target(value.hadithId) && time(value.createdAt)
+        case .favoriteAdd(let value): return target(value.hadithId) && time(value.createdAt)
+        case .bookmarkRemove(let value): return target(value.hadithId)
+        case .favoriteRemove(let value): return target(value.hadithId)
+        case .notePut(let value): return target(value.hadithId) && note(value.content) && time(value.createdAt) && time(value.updatedAt)
+        case .noteRemove(let value): return target(value.hadithId)
+        case .folderCreate(let value): return key(value.key) && GuestDataStore.validFolderName(value.name)
+        case .folderDelete(let value): if case .none = value.folder { return false }; return folder(value.folder)
+        case .membershipPut(let value): return target(value.hadithId) && folder(value.folder)
+        case .positionPut(let value):
+            guard time(value.position.updatedAt), let data = try? JSONEncoder().encode(value.position), (try? JSONDecoder().decode(ReadingPosition.self, from: data)) != nil else { return false }
+            return true
+        case .legacyPositionPut(let value): return target(value.hadithId) && time(value.updatedAt)
+        case .facetRestore(let value):
+            guard target(value.hadithId), key(value.deletionId) else { return false }
+            switch value.value { case .bookmark(let value): return time(value.createdAt); case .favorite(let value): return time(value.createdAt); case .note(let value): return note(value.content) && time(value.createdAt) && time(value.updatedAt) }
+        case .folderRestore(let value): return key(value.deletionId) && GuestDataStore.validFolderName(value.name) && value.hadithIds.count <= 500 && Set(value.hadithIds).count == value.hadithIds.count && value.hadithIds.allSatisfy(target)
+        }
+    }
+}
+
+struct LibraryConfirmedChange: Codable, Equatable, Sendable {
+    let change: LibraryLocalChange
+    let outcome: SyncOutcome
+    let version: Double
+}
+
+extension SyncCommand {
+    var isPositionChange: Bool {
+        switch self { case .positionPut, .legacyPositionPut: true; default: false }
+    }
 }
 
 struct LibraryPartitionState: Codable, Equatable, Sendable {
@@ -288,9 +333,37 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
     var clientKey = UUID().uuidString
     var nextSequence = 1
     var acknowledgement: SyncAcknowledgement?
+    var confirmed: [LibraryConfirmedChange] = []
+    var folderMappings: [String: String] = [:]
+    var savedSnapshot: SyncSavedSnapshot?
+    var positionsSnapshot: SyncPositionsSnapshot?
+
+    private enum CodingKeys: String, CodingKey { case pending, frozen, recovery, recent, clientKey, nextSequence, acknowledgement, confirmed, folderMappings, savedSnapshot, positionsSnapshot }
+    init() { }
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        pending = try values.decodeIfPresent([LibraryLocalChange].self, forKey: .pending) ?? []
+        frozen = try values.decodeIfPresent(LibraryFrozenBatch.self, forKey: .frozen)
+        recovery = try values.decodeIfPresent([LibraryRecovery].self, forKey: .recovery) ?? []
+        recent = try values.decodeIfPresent([LibraryRecentReceipt].self, forKey: .recent) ?? []
+        clientKey = try values.decodeIfPresent(String.self, forKey: .clientKey) ?? UUID().uuidString
+        nextSequence = try values.decodeIfPresent(Int.self, forKey: .nextSequence) ?? 1
+        acknowledgement = try values.decodeIfPresent(SyncAcknowledgement.self, forKey: .acknowledgement)
+        confirmed = try values.decodeIfPresent([LibraryConfirmedChange].self, forKey: .confirmed) ?? []
+        folderMappings = try values.decodeIfPresent([String: String].self, forKey: .folderMappings) ?? [:]
+        savedSnapshot = try values.decodeIfPresent(SyncSavedSnapshot.self, forKey: .savedSnapshot)
+        positionsSnapshot = try values.decodeIfPresent(SyncPositionsSnapshot.self, forKey: .positionsSnapshot)
+    }
+
+    mutating func pruneConfirmed() {
+        confirmed.removeAll { value in
+            let observed = value.change.operation.command.isPositionChange ? positionsSnapshot?.version : savedSnapshot?.version
+            return (observed ?? -1) >= value.version
+        }
+    }
 
     mutating func append(_ source: LibraryLocalSource, command: SyncCommand?, at: Double) {
-        guard let command, at.isFinite, at >= 0 else { recovery.append(.invalid(source)); return }
+        guard let command, LibrarySyncAdmission.accepts(command, at: at) else { recovery.append(.invalid(source)); return }
         pending.append(.init(command: command, at: at, source: source))
     }
     mutating func freeze() throws -> SyncFrame? {
@@ -300,19 +373,23 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
         let id = UUID().uuidString
         var selected: [LibraryLocalChange] = []
         var fanout = 0
-        for change in pending.prefix(LibrarySyncLimits.operations) {
+        while let change = pending.first, selected.count < LibrarySyncLimits.operations {
+            guard LibrarySyncAdmission.accepts(change.operation.command, at: change.operation.at) else {
+                recovery.append(.rejected(change)); pending.removeFirst(); continue
+            }
             let extra: Int
             switch change.operation.command { case .folderDelete, .folderRestore: extra = 1; default: extra = 0 }
             if fanout + extra > LibrarySyncLimits.fanoutOperations { break }
             let candidate = SyncBatch(id: id, operations: (selected + [change]).map(\.operation))
-            if try JSONEncoder().encode(candidate).count > LibrarySyncLimits.bytes { break }
-            selected.append(change)
-            fanout += extra
+            if try JSONEncoder().encode(candidate).count > LibrarySyncLimits.bytes {
+                if selected.isEmpty { recovery.append(.rejected(change)); pending.removeFirst(); continue }
+                break
+            }
+            selected.append(change); pending.removeFirst(); fanout += extra
         }
-        guard !selected.isEmpty else { throw LibrarySyncFailure.oversizedChange }
+        if selected.isEmpty { return nil }
         let batch = SyncBatch(id: id, operations: selected.map(\.operation))
         frozen = .init(batch: batch, changes: selected)
-        pending.removeFirst(selected.count)
         return SyncFrame(clientKey: clientKey, sequence: Double(nextSequence), batch: batch)
     }
     private mutating func settleReceipts(_ reply: SyncReply, now: Double) throws {
@@ -367,7 +444,20 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
         case .accepted(let value):
             let committed = value.committed
             guard committed.clientKey == clientKey, committed.sequence == requested.sequence, !committed.digest.isEmpty else { throw LibrarySyncFailure.invalidReceipt }
+            let submitted = frozen?.changes ?? []
             try settleReceipts(committed.reply, now: now)
+            for change in submitted {
+                guard let receipt = committed.reply.receipts.first(where: { $0.id == change.operation.id }) else { throw LibrarySyncFailure.invalidReceipt }
+                switch receipt.outcome {
+                case .preserved, .folder, .folderDeleted, .folderRestored, .resolvedPosition:
+                    let version = change.operation.command.isPositionChange ? committed.revision.position : committed.revision.saved
+                    confirmed.append(.init(change: change, outcome: receipt.outcome, version: version))
+                case .superseded, .unresolved: break
+                }
+                if case .folderCreate(let created) = change.operation.command, case .folder(let value) = receipt.outcome { folderMappings[created.key] = value.folderId }
+                if case .folderRestore(let restored) = change.operation.command, case .folderRestored(let value) = receipt.outcome { folderMappings["restore:" + restored.deletionId] = value.folderId }
+            }
+            pruneConfirmed()
             acknowledgement = .init(clientKey: clientKey, sequence: committed.sequence, batchId: committed.reply.batchId, digest: committed.digest)
         case .reconcile(let value):
             guard value.clientKey == clientKey, value.requestedSequence == requested.sequence, value.requestedBatchId == requested.batch.id else { throw LibrarySyncFailure.invalidReceipt }
@@ -383,7 +473,7 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
 }
 
 enum LibrarySyncFailure: Error {
-    case storeUnavailable, ownerMismatch, invalidReceipt, oversizedChange, sessionChanged
+    case storeUnavailable, ownerMismatch, invalidReceipt, oversizedChange, invalidChange, sessionChanged
 }
 
 struct LibrarySyncSession: Equatable, Sendable {
@@ -412,6 +502,7 @@ final class LibrarySync {
     private(set) var owner: LibrarySyncOwner?
     private(set) var status = Status.idle
     var onOwnerChange: (LibrarySyncOwner?) -> Void = { _ in }
+    var onPartitionChange: (LibrarySyncOwner) -> Void = { _ in }
     private let store: GuestDataStore
     private let transport: LibrarySyncTransport
     private let currentSession: () -> LibrarySyncSession?
@@ -483,8 +574,17 @@ final class LibrarySync {
     func enqueue(_ change: LibraryLocalChange, context: LibraryWriteContext) throws {
         guard generation == context.generation, session == context.session,
               currentSession() == context.session, owner == context.owner else { throw LibrarySyncFailure.sessionChanged }
+        guard LibrarySyncAdmission.accepts(change.operation.command, at: change.operation.at),
+              try JSONEncoder().encode(SyncBatch(id: "admission", operations: [change.operation])).count <= LibrarySyncLimits.bytes else { throw LibrarySyncFailure.invalidChange }
         try store.enqueueSyncChange(change, owner: context.owner)
+        onPartitionChange(context.owner)
         wake()
+    }
+
+    func capability(for context: LibraryWriteContext) throws -> String {
+        guard generation == context.generation, session == context.session, currentSession() == context.session,
+              owner == context.owner, let binding, binding.validUntil > now() else { throw LibrarySyncFailure.sessionChanged }
+        return binding.capability
     }
 
     private func check(_ session: LibrarySyncSession, epoch: UUID) throws {
@@ -500,6 +600,8 @@ final class LibrarySync {
                 guard opened.subject == session.subject, opened.validUntil.isFinite, opened.validUntil > now() else { throw LibrarySyncFailure.ownerMismatch }
                 binding = opened
                 let nextOwner = LibrarySyncOwner(key: opened.ownerKey, subject: opened.subject, namespace: transport.namespace)
+                try store.claimGuestForSync(nextOwner)
+                try check(session, epoch: epoch)
                 owner = nextOwner
                 onOwnerChange(nextOwner)
             }
@@ -507,9 +609,11 @@ final class LibrarySync {
             for _ in 0..<8 {
                 try check(session, epoch: epoch)
                 try store.claimGuestForSync(owner)
+                onPartitionChange(owner)
                 if let acknowledgement = try store.syncPartition(owner)?.acknowledgement {
                     let reply = try await transport.acknowledge(binding.capability, acknowledgement)
                     try store.settleSyncAcknowledgement(reply, requested: acknowledgement, owner: owner)
+                    onPartitionChange(owner)
                     try check(session, epoch: epoch)
                     continue
                 }
@@ -521,6 +625,7 @@ final class LibrarySync {
                 let reply = try await transport.send(binding.capability, frame)
                 // A late A receipt can settle only A's still-existing partition.
                 try store.settleSyncExchange(reply, requested: frame, owner: owner, now: now())
+                onPartitionChange(owner)
                 try check(session, epoch: epoch)
             }
             schedule(session, epoch: epoch, after: 0.25)

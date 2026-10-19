@@ -1,3 +1,4 @@
+import { advanceLibraryVersion } from "./lib/librarySyncVersions";
 import { mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { requireIdentity } from "./lib/identity";
@@ -90,6 +91,8 @@ export const mergeGuestData = mutation({
         "User not found: call users:ensureCurrentUser before merging guest data",
       );
     }
+
+    await advanceLibraryVersion(ctx, user._id, "saved");
 
     // Resolve guest folders before applying items. Retrying the same payload
     // reuses the owner's normalized name, so it never creates a duplicate.

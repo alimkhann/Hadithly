@@ -11,7 +11,7 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class GuestMergeRaceTest {
-    private fun accepted(frame: SyncFrame, reply: SyncReply) = SyncExchange.Accepted(SyncCommitted(frame.clientKey, frame.sequence, "fixture-digest", reply))
+    private fun accepted(frame: SyncFrame, reply: SyncReply) = SyncExchange.Accepted(SyncCommitted(frame.clientKey, frame.sequence, "fixture-digest", SyncRevision(frame.sequence, frame.sequence), reply))
     private suspend fun GuestDataStore.settleFixture(reply: SyncReply, frame: SyncFrame, owner: LibrarySyncOwner) = settleSyncExchange(accepted(frame, reply), frame, owner)
 
     private suspend fun isolated(block: suspend (GuestDataStore, () -> GuestDataStore, File) -> Unit) {
@@ -22,6 +22,39 @@ class GuestMergeRaceTest {
         finally { directory.deleteRecursively() }
     }
     private suspend fun note(store: GuestDataStore, content: String) = store.saveNote("jn7fxd3z54153q9j13kmhgzkv18df2zd", content, null, null, null, null, null, "", null)
+
+    @Test fun invalidPendingNoteRetainsItsOriginalWithoutBlockingTheNextChange() {
+        val invalid = LibraryLocalChange(SyncCommand.NotePut("target", "界".repeat(8_001), 1_000.0, 1_000.0), 1_000.0, LibraryLocalSource.Account(null))
+        val next = LibraryLocalChange(SyncCommand.BookmarkAdd("target", 1_000.0), 1_000.0, LibraryLocalSource.Account(null))
+        val state = LibraryPartitionState(pending = listOf(invalid, next))
+        val frame = requireNotNull(state.freeze())
+        assertEquals(listOf(next.operation), frame.batch.operations)
+        assertEquals(listOf(LibraryRecovery.Rejected(invalid)), state.recovery)
+        assertTrue(state.pending.isEmpty())
+    }
+
+    @Test fun actualFacadeRejectsOversizedNoteAndExplicitRemoveNeverAddsAnAbsentBookmark() = runBlocking {
+        isolated { store, _, _ ->
+            val fixture = AndroidLibraryFacadeFixture(store)
+            try {
+                fixture.start()
+                val captured = withContext(Dispatchers.Main) { fixture.model.actionScope }
+                val saved = withContext(Dispatchers.Main) { fixture.model.saveNote(fixture.reference, "界".repeat(8_001)) }.await()
+                assertFalse(saved)
+                withContext(Dispatchers.Main) {
+                    assertTrue(fixture.model.lastWriteFailed.value)
+                    assertTrue(fixture.model.notes.value.isEmpty())
+                }
+                withContext(Dispatchers.Main) { fixture.model.removeBookmark(fixture.reference, captured) }.await()
+                withContext(Dispatchers.Main) {
+                    assertFalse(fixture.model.isBookmarked(fixture.reference.hadithId))
+                    fixture.session.value = null; fixture.sync.deactivate(); fixture.model.refresh()
+                }
+                assertFalse(withContext(Dispatchers.Main) { fixture.model.removeBookmark(fixture.reference, captured) }.await())
+                assertTrue(store.snapshots().bookmarks.isEmpty())
+            } finally { fixture.stop() }
+        }
+    }
 
     @Test fun signInCleanupPreservesChangesMadeAfterTheSentSnapshot() = runBlocking {
         isolated { store, _, _ ->
@@ -151,14 +184,13 @@ class GuestMergeRaceTest {
             try { note(store, "Must not replace damaged data"); fail("Corrupt file overwritten") }
             catch (_: LibrarySyncFailure.StoreUnavailable) { }
             assertEquals(damaged, file.readText())
-            val app = InstrumentationRegistry.getInstrumentation().targetContext.applicationContext as HadithlyApplication
             val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-            val library = UserLibraryModel(app.repository, store, scope) { false }
+            val library = UserLibraryModel(store, scope)
             try {
                 withContext(Dispatchers.Main) { library.refresh() }
                 withTimeout(2_000) { library.loadState.first { it == UserLibraryModel.LoadState.Failed } }
                 assertEquals(damaged, file.readText())
-                val writeLibrary = UserLibraryModel(app.repository, store, scope) { false }
+                val writeLibrary = UserLibraryModel(store, scope)
                 withContext(Dispatchers.Main) {
                     writeLibrary.saveNote(HadithRef("target", "bukhari", "Bukhari", "1", "1", "", null, "Fixture"), "Must not overwrite")
                 }
@@ -229,7 +261,7 @@ class GuestMergeRaceTest {
             store.claimGuestForSync(owner)
             val frame = store.freezeSyncFrame(owner)!!
             fun exchange(replyOwner: String) = SyncExchange.Reconcile(owner.key, frame.clientKey, frame.sequence, frame.batch.id,
-                SyncCursor(0.0, SyncCommitted(frame.clientKey, 1.0, "server-proof", SyncReply(replyOwner, "other-batch", listOf(SyncReceipt("other-intent", "r1", SyncOutcome.Preserved))))))
+                SyncCursor(0.0, SyncCommitted(frame.clientKey, 1.0, "server-proof", SyncRevision(1.0, 1.0), SyncReply(replyOwner, "other-batch", listOf(SyncReceipt("other-intent", "r1", SyncOutcome.Preserved))))))
             try { store.settleSyncExchange(exchange("owner-b"), frame, owner); fail("Nested wrong owner accepted") } catch (_: LibrarySyncFailure.OwnerMismatch) { }
             assertEquals(frame, store.freezeSyncFrame(owner))
             store.settleSyncExchange(exchange(owner.key), frame, owner)
@@ -253,6 +285,169 @@ class GuestMergeRaceTest {
         }
     }
 
+    @Test fun actualLibraryFacadePersistsOfflineIntentsAndRestoresProjectionAfterReopen() = runBlocking {
+        isolated { store, reopen, _ ->
+            val fixture = AndroidLibraryFacadeFixture(store)
+            try {
+                fixture.start()
+                fixture.saved.emit(SyncSavedSnapshot("owner-a", 0.0, emptyList(), emptyList()))
+                waitForLibrary { fixture.model.loadState.value == UserLibraryModel.LoadState.Ready }
+                val ref = fixture.reference
+                withContext(Dispatchers.Main) {
+                    assertTrue(fixture.model.toggleBookmark(ref).await())
+                    assertTrue(fixture.model.toggleFavorite(ref).await())
+                    assertTrue(fixture.model.saveNote(ref, "Offline private fixture").await())
+                    fixture.model.createFolder("Private folder", fixture.model.actionScope)
+                }
+                waitForLibrary { fixture.model.folders.value.isNotEmpty() }
+                val folder = fixture.model.folders.value.first()
+                val position = ReadingPosition.legacy("bukhari", "1", "1", System.currentTimeMillis().toDouble())!!
+                withContext(Dispatchers.Main) { fixture.model.assignFolder(ref.hadithId, folder.id, fixture.model.actionScope); fixture.model.saveProgress(position, ref) }
+                waitForLibrary { fixture.model.savedItems.value.firstOrNull()?.folderId == folder.id && fixture.model.continueReading?.position != null }
+                withContext(Dispatchers.Main) {
+                    assertTrue(fixture.model.toggleBookmark(ref).await())
+                    fixture.model.restoreBookmark(ref, System.currentTimeMillis().toDouble())
+                }
+                waitForLibrary { fixture.model.isBookmarked(ref.hadithId) }
+                val note = fixture.model.notes.value.first()
+                withContext(Dispatchers.Main) {
+                    assertTrue(fixture.model.deleteNote(ref, fixture.model.actionScope).await())
+                    fixture.model.restoreNote(ref, "Offline private fixture", note.createdAt, note.sortDate)
+                }
+                waitForLibrary { fixture.model.notes.value.firstOrNull()?.noteContent == "Offline private fixture" }
+                withContext(Dispatchers.Main) { fixture.model.deleteFolder(folder, "Removed fixture", fixture.model.actionScope) }
+                waitForLibrary { fixture.model.undo.notice.value != null }
+                withContext(Dispatchers.Main) { fixture.model.undo.undo() }
+                waitForLibrary { fixture.model.folders.value.firstOrNull()?.name == "Private folder" && fixture.model.savedItems.value.firstOrNull()?.folderId == fixture.model.folders.value.firstOrNull()?.id }
+                assertTrue(fixture.model.isFavorite(ref.hadithId))
+                assertEquals("1", fixture.model.continueReading?.position?.anchor?.providerHadithId)
+                waitForLibrary { fixture.server.frames.isNotEmpty() }
+                val owner = fixture.sync.owner.value!!
+                assertTrue(store.syncPartition(owner)!!.pending.isNotEmpty())
+                assertNotNull(store.syncPartition(owner)!!.frozen)
+                fixture.stop()
+                val reopened = AndroidLibraryFacadeFixture(reopen())
+                try {
+                    reopened.start()
+                    waitForLibrary { reopened.model.notes.value.firstOrNull()?.noteContent == "Offline private fixture" }
+                    assertTrue(reopened.model.isBookmarked(ref.hadithId))
+                    assertTrue(reopened.model.isFavorite(ref.hadithId))
+                    assertEquals(reopened.model.folders.value.first().id, reopened.model.savedItems.value.first().folderId)
+                    assertEquals("1", reopened.model.continueReading?.position?.anchor?.providerHadithId)
+                } finally { reopened.stop() }
+            } finally { fixture.stop() }
+        }
+    }
+
+    @Test fun actualLibraryFacadeKeepsAcceptedNoteUntilOwnedQueryRevisionCatchesUp() = runBlocking {
+        isolated { store, _, _ ->
+            val fixture = AndroidLibraryFacadeFixture(store)
+            try {
+                fixture.start()
+                fixture.saved.emit(SyncSavedSnapshot("owner-a", 0.0, emptyList(), emptyList()))
+                waitForLibrary { fixture.model.loadState.value == UserLibraryModel.LoadState.Ready }
+                withContext(Dispatchers.Main) { assertTrue(fixture.model.saveNote(fixture.reference, "Accepted private fixture").await()) }
+                waitForLibrary { fixture.server.frames.isNotEmpty() }
+                withContext(Dispatchers.Main) { fixture.server.failSends = false }
+                fixture.sync.activate(fixture.session.value!!)
+                val owner = fixture.sync.owner.value!!
+                assertTrue(store.syncPartition(owner)!!.pending.isEmpty())
+                assertNull(store.syncPartition(owner)!!.frozen)
+                assertNull(store.syncPartition(owner)!!.acknowledgement)
+                assertEquals("Accepted private fixture", fixture.model.notes.value.first().noteContent)
+                assertEquals(1, store.syncPartition(owner)!!.confirmed.size)
+                fixture.saved.emit(SyncSavedSnapshot("owner-a", 0.0, emptyList(), emptyList()))
+                fixture.positions.emit(SyncPositionsSnapshot("owner-a", 50.0, emptyList()))
+                withTimeout(3_000) { while (store.syncPartition(owner)!!.positionsSnapshot?.version != 50.0) delay(10) }
+                assertEquals("Accepted private fixture", fixture.model.notes.value.first().noteContent)
+                assertEquals(1, store.syncPartition(owner)!!.confirmed.size)
+                fixture.saved.emit(fixture.snapshot(2.0, "Later cloud fixture"))
+                waitForLibrary { fixture.model.notes.value.firstOrNull()?.noteContent == "Later cloud fixture" }
+                assertTrue(store.syncPartition(owner)!!.confirmed.isEmpty())
+                fixture.saved.emit(fixture.snapshot(1.0, "Older delayed fixture"))
+                fixture.positions.emit(SyncPositionsSnapshot("owner-a", 99.0, emptyList()))
+                withTimeout(3_000) { while (store.syncPartition(owner)!!.positionsSnapshot?.version != 99.0) delay(10) }
+                assertEquals("Later cloud fixture", fixture.model.notes.value.first().noteContent)
+            } finally { fixture.stop() }
+        }
+    }
+
+    @Test fun actualLibraryFacadeRejectsLateAccountReadsAndUndoAfterSwitchAndSignOut() = runBlocking {
+        isolated { store, _, _ ->
+            val fixture = AndroidLibraryFacadeFixture(store)
+            try {
+                fixture.start()
+                fixture.saved.emit(fixture.snapshot(0.0, "Account A fixture"))
+                waitForLibrary { fixture.model.notes.value.firstOrNull()?.noteContent == "Account A fixture" }
+                val scopeA = fixture.model.actionScope
+                withContext(Dispatchers.Main) {
+                    assertTrue(fixture.model.toggleBookmark(fixture.reference).await())
+                    assertTrue(fixture.model.toggleBookmark(fixture.reference).await())
+                    assertTrue(fixture.model.deleteNote(fixture.reference, fixture.model.actionScope).await())
+                    fixture.saved.tryEmit(fixture.snapshot(1.0, "Queued late A fixture"))
+                    fixture.session.value = LibrarySyncSession("session-b", "subject-b")
+                    fixture.sync.deactivate(); fixture.model.refresh()
+                }
+                fixture.sync.activate(fixture.session.value!!)
+                fixture.saved.emit(fixture.snapshot(20.0, "Wrong owner fixture"))
+                fixture.saved.emit(SyncSavedSnapshot("owner-b", 0.0, emptyList(), emptyList()))
+                waitForLibrary { fixture.model.loadState.value == UserLibraryModel.LoadState.Ready }
+                withContext(Dispatchers.Main) {
+                    assertFalse(fixture.model.isActionCurrent(scopeA))
+                    fixture.model.restoreBookmark(fixture.reference, System.currentTimeMillis().toDouble())
+                    fixture.model.restoreNote(fixture.reference, "A undo fixture", 1_000.0, 2_000.0)
+                }
+                val ownerB = fixture.sync.owner.value!!
+                assertTrue(fixture.model.savedItems.value.isEmpty())
+                assertTrue(store.syncPartition(ownerB)!!.pending.isEmpty())
+                assertNull(store.syncPartition(ownerB)!!.frozen)
+                assertEquals("owner-b", store.syncPartition(ownerB)!!.savedSnapshot!!.ownerKey)
+                withContext(Dispatchers.Main) {
+                    fixture.session.value = null; fixture.sync.deactivate(); fixture.model.refresh()
+                    fixture.model.restoreBookmark(fixture.reference, 1_000.0)
+                    fixture.model.restoreNote(fixture.reference, "A undo fixture", 1_000.0, 2_000.0)
+                }
+                assertTrue(store.snapshots().bookmarks.isEmpty())
+                assertTrue(store.snapshots().notes.isEmpty())
+            } finally { fixture.stop() }
+        }
+    }
+
+    @Test fun productionWireAdapterUsesDoubleNumbersAndPreservesPrivateFixtureText() {
+        val position = ReadingPosition.legacy("bukhari", "1", "1", 1_000.0)!!
+        val frame = SyncFrame("client-fixture", 1.0, SyncBatch("wire-fixture", listOf(SyncOperation("position", "r1", 1_000.0, SyncCommand.PositionPut(position)))))
+        val text = "Private fixture: қазақша \"quoted\"\nالعربية"
+        val noteFrame = frame.copy(batch = SyncBatch("note-wire-fixture", listOf(SyncOperation("note", "r1", 1_000.0, SyncCommand.NotePut("target", text, 1_000.0, 1_000.0)))))
+        val noteArgument = noteFrame.toConvexArgument()
+        assertTrue(noteArgument.toString().contains(text))
+        val argument = frame.toConvexArgument()
+        assertTrue(argument is Map<*, *>)
+        if (argument !is Map<*, *>) return
+        assertTrue(argument["sequence"] is Double)
+        val batch = argument["batch"]
+        assertTrue(batch is Map<*, *>)
+        if (batch !is Map<*, *>) return
+        val operations = batch["operations"]
+        assertTrue(operations is List<*>)
+        if (operations !is List<*>) return
+        val operation = operations.first()
+        assertTrue(operation is Map<*, *>)
+        if (operation !is Map<*, *>) return
+        val command = operation["command"]
+        assertTrue(command is Map<*, *>)
+        if (command !is Map<*, *>) return
+        assertEquals("position_put", command["kind"])
+        val encoded = command["position"]
+        assertTrue(encoded is Map<*, *>)
+        if (encoded !is Map<*, *>) return
+        assertTrue(encoded["schemaVersion"] is Double)
+        assertFalse(encoded.containsKey("chapterId"))
+    }
+
+    private suspend fun waitForLibrary(condition: () -> Boolean) {
+        withTimeout(3_000) { while (!withContext(Dispatchers.Main) { condition() }) delay(10) }
+    }
+
     @Test fun invalidReceiptsKeepFrozenDataAndConflictsKeepRecoverableContent() = runBlocking {
         isolated { store, _, _ ->
             val owner = LibrarySyncOwner("owner-a", "subject-a")
@@ -268,4 +463,57 @@ class GuestMergeRaceTest {
             assertEquals("Recoverable fixture", (recovered.change.source as LibraryLocalSource.Note).value.content)
         }
     }
+}
+
+private class AndroidLibraryFixtureServer {
+    val frames = mutableListOf<SyncFrame>()
+    var failSends = true
+    val revisions = mutableMapOf<String, SyncRevision>()
+    fun send(capability: String, frame: SyncFrame): SyncExchange {
+        frames.add(frame)
+        if (failSends) throw java.io.IOException("Fixture offline")
+        val owner = capability.removePrefix("fixture:")
+        val old = revisions[owner] ?: SyncRevision(0.0, 0.0)
+        val saved = frame.batch.operations.any { !it.command.isPositionChange }
+        val position = frame.batch.operations.any { it.command.isPositionChange }
+        val revision = SyncRevision(old.saved + if (saved) 1 else 0, old.position + if (position) 1 else 0)
+        revisions[owner] = revision
+        return SyncExchange.Accepted(SyncCommitted(frame.clientKey, frame.sequence, "fixture-proof", revision,
+            SyncReply(owner, frame.batch.id, frame.batch.operations.map { SyncReceipt(it.id, it.revision, SyncOutcome.Preserved) })))
+    }
+}
+
+private class AndroidLibraryFacadeFixture(val store: GuestDataStore) {
+    val session = MutableStateFlow<LibrarySyncSession?>(LibrarySyncSession("session-a", "subject-a"))
+    val server = AndroidLibraryFixtureServer()
+    val saved = kotlinx.coroutines.flow.MutableSharedFlow<SyncSavedSnapshot>(replay = 1)
+    val positions = kotlinx.coroutines.flow.MutableSharedFlow<SyncPositionsSnapshot>(replay = 1)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    val sync: LibrarySync
+    val model: UserLibraryModel
+    val reference = HadithRef("jn7fxd3z54153q9j13kmhgzkv18df2zd", "bukhari", "Bukhari", "1", "1", "نص", "Fixture", "Bukhari 1")
+    init {
+        val transport = object : LibrarySyncTransport {
+            override val namespace = "fixture"
+            override suspend fun open(): SyncBinding {
+                val current = session.value ?: throw LibrarySyncFailure.SessionChanged
+                val owner = if (current.subject == "subject-a") "owner-a" else "owner-b"
+                return SyncBinding(owner, current.subject, "fixture:$owner", System.currentTimeMillis() + 900_000.0)
+            }
+            override suspend fun send(capability: String, frame: SyncFrame) = server.send(capability, frame)
+            override suspend fun acknowledge(capability: String, acknowledgement: SyncAcknowledgement) = SyncAckReply(capability.removePrefix("fixture:"), acknowledgement.clientKey, SyncCursor(acknowledgement.sequence))
+        }
+        sync = LibrarySync(store, transport, scope, { session.value })
+        val reads = object : LibraryReadTransport {
+            override fun savedSnapshot() = saved
+            override fun positionsSnapshot() = positions
+        }
+        model = UserLibraryModel(reads, store, scope, sync) { session.value }
+        sync.onOwnerChange = { model.refresh() }
+        sync.onPartitionChange = model::partitionChanged
+    }
+    suspend fun start() = withContext(Dispatchers.Main) { session.value?.let { sync.activate(it) }; model.refresh() }
+    suspend fun stop() = withContext(Dispatchers.Main) { sync.deactivate(); session.value = null; model.refresh(); scope.cancel() }
+    fun snapshot(version: Double, note: String) = SyncSavedSnapshot("owner-a", version, emptyList(), listOf(SyncSavedItem(reference.hadithId, 1_000.0, 2_000.0,
+        noteContent = note, noteCreatedAt = 1_000.0, noteUpdatedAt = 2_000.0, hadith = SyncHadithSummary(reference.hadithId, "1", "bukhari", "Bukhari", "1", "نص", "Fixture", "Bukhari 1"))))
 }

@@ -3,6 +3,9 @@ package com.hadithly.app.core.data
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -10,6 +13,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 
 /**
@@ -35,6 +39,8 @@ data class SavedEntry(
     val updatedAt: Double? = null,
     val noteContent: String? = null,
     val hadith: HadithRef?,
+    val noteCreatedAt: Double? = null,
+    val noteUpdatedAt: Double? = null,
 ) {
     val sortDate: Double get() = updatedAt ?: createdAt
 }
@@ -48,6 +54,8 @@ data class SavedItemEntry(
     val noteContent: String? = null,
     val folderId: String? = null,
     val hadith: HadithRef?,
+    val noteCreatedAt: Double? = null,
+    val noteUpdatedAt: Double? = null,
 ) {
     val sortDate: Double get() = updatedAt
 }
@@ -62,60 +70,15 @@ data class ProgressEntry(
     val updatedAt: Double,
 )
 
-@Serializable
-private data class HadithSummary(
-    val _id: String,
-    val providerHadithId: String,
-    val collectionSlug: String,
-    val collectionName: String,
-    val volumeId: String? = null,
-    val arabicText: String,
-    val englishText: String? = null,
-    val referenceDisplay: String,
-)
+interface LibraryReadTransport {
+    fun savedSnapshot(): kotlinx.coroutines.flow.Flow<SyncSavedSnapshot>
+    fun positionsSnapshot(): kotlinx.coroutines.flow.Flow<SyncPositionsSnapshot>
+}
 
-@Serializable
-private data class DetailedRow(
-    val _id: String,
-    val createdAt: Double,
-    val hadith: HadithSummary? = null,
-)
-
-@Serializable
-private data class DetailedNoteRow(
-    val _id: String,
-    val content: String,
-    val createdAt: Double,
-    val updatedAt: Double,
-    val hadith: HadithSummary? = null,
-)
-
-@Serializable
-private data class ProgressRow(
-    val collectionSlug: String,
-    val hadithId: String,
-    val updatedAt: Double,
-    val position: ReadingPosition? = null,
-    val hadith: HadithSummary? = null,
-)
-
-@Serializable
-private data class SavedFolderRow(val _id: String, val name: String, val createdAt: Double)
-
-@Serializable
-private data class SavedItemRow(
-    val hadithId: String,
-    val createdAt: Double,
-    val updatedAt: Double,
-    val bookmarkCreatedAt: Double? = null,
-    val favoriteCreatedAt: Double? = null,
-    val noteContent: String? = null,
-    val folderId: String? = null,
-    val hadith: HadithSummary? = null,
-)
-
-@Serializable
-private data class SavedSnapshotRow(val folders: List<SavedFolderRow>, val items: List<SavedItemRow>)
+private sealed interface LibraryAccess {
+    data object Guest : LibraryAccess
+    class Account(val reads: LibraryReadTransport, val sync: LibrarySync, val currentSession: () -> LibrarySyncSession?) : LibraryAccess
+}
 
 /**
  * Single facade over the user's personal data — bookmarks, favorites, notes,
@@ -123,12 +86,32 @@ private data class SavedSnapshotRow(val folders: List<SavedFolderRow>, val items
  * through Convex subscriptions; guests read and write the local guest store,
  * which merges into Convex on sign-in.
  */
-class UserLibraryModel(
-    private val repository: ConvexRepository,
+class UserLibraryModel private constructor(
     private val guestData: GuestDataStore,
-    private val scope: CoroutineScope,
-    private val isSignedIn: () -> Boolean,
+    scope: CoroutineScope,
+    private val access: LibraryAccess,
 ) {
+    constructor(guestData: GuestDataStore, scope: CoroutineScope) : this(guestData, scope, LibraryAccess.Guest)
+    constructor(reads: LibraryReadTransport, guestData: GuestDataStore, scope: CoroutineScope, sync: LibrarySync, currentSession: () -> LibrarySyncSession?) : this(guestData, scope, LibraryAccess.Account(reads, sync, currentSession))
+    private val scope = CoroutineScope(scope.coroutineContext + Dispatchers.Main.immediate)
+    private val account: LibraryAccess.Account? get() = when (val value = access) { LibraryAccess.Guest -> null; is LibraryAccess.Account -> value }
+    private fun currentSession() = account?.currentSession?.invoke()
+    val actionScope: String get() = epoch
+    fun isActionCurrent(captured: String?) = captured == epoch && currentSession() == scopedSession && (scopedOwner == account?.sync?.owner?.value || scopedOwner == null && currentSession() == null)
+    private fun isSignedIn() = currentSession() != null
+    private var scopedOwner: LibrarySyncOwner? = null
+    private var scopedSession: LibrarySyncSession? = null
+    private var epoch = java.util.UUID.randomUUID().toString()
+    private var lastIntentAt = 0.0
+    private val writeMutex = kotlinx.coroutines.sync.Mutex()
+    private sealed interface UndoScope {
+        data class Guest(val epoch: String) : UndoScope
+        data class Account(val context: LibraryWriteContext) : UndoScope
+    }
+    private data class UndoAction(val deletionId: String, val scope: UndoScope, val deadline: Long)
+    private val undoActions = mutableMapOf<String, UndoAction>()
+    private val _lastWriteFailed = MutableStateFlow(false)
+    val lastWriteFailed: StateFlow<Boolean> = _lastWriteFailed
 
     enum class LoadState { Loading, Ready, Failed }
     private val _loadState = MutableStateFlow(LoadState.Loading)
@@ -158,22 +141,78 @@ class UserLibraryModel(
     private var subscriptionsActive = false
     private var retriesLeft = 5
 
-    /**
-     * Idempotent. Signed in → (re)subscribe to the four Convex queries.
-     * Guest → pull local drafts. Call on every auth-state transition — a
-     * subscription opened before the Convex session activated fails with
-     * Unauthenticated and must be re-opened.
-     */
     fun refresh() {
-        if (isSignedIn()) {
-            if (subscriptionsActive) return
-            subscriptionsActive = true
-            if (_loadState.value != LoadState.Ready) _loadState.value = LoadState.Loading
-            retriesLeft = 5
-            subscribeAll()
-        } else {
-            unsubscribe()
-            launchGuestOperation { loadGuestData() }
+        val session = currentSession()
+        val owner = account?.sync?.owner?.value?.takeIf { it.subject == session?.subject }
+        if (session != scopedSession || owner != scopedOwner) {
+            unsubscribe(); scopedSession = session; scopedOwner = owner; retriesLeft = 5
+        }
+        if (session == null) { launchGuestOperation { loadGuestData() }; return }
+        if (owner == null) { _loadState.value = LoadState.Loading; return }
+        scope.launch { reloadAccount(owner) }
+        if (subscriptionsActive) return
+        subscriptionsActive = true
+        subscribeAll(owner, session, epoch)
+    }
+
+    fun partitionChanged(owner: LibrarySyncOwner) { scope.launch { reloadAccount(owner) } }
+
+    private suspend fun reloadAccount(owner: LibrarySyncOwner) {
+        val capturedEpoch = epoch
+        if (scopedOwner != owner || currentSession() != scopedSession) return
+        try {
+            val state = guestData.syncPartition(owner) ?: return
+            if (epoch != capturedEpoch || scopedOwner != owner || currentSession() != scopedSession) return
+            val value = LibraryProjection(state)
+            _savedItems.value = value.items; _folders.value = value.folders; _progress.value = value.progress
+            _bookmarks.value = value.items.mapNotNull { item -> item.bookmarkCreatedAt?.let { SavedEntry(item.hadithId, it, hadith = item.hadith) } }
+            _favorites.value = value.items.mapNotNull { item -> item.favoriteCreatedAt?.let { SavedEntry(item.hadithId, it, hadith = item.hadith) } }
+            _notes.value = value.items.mapNotNull { item -> item.noteContent?.let { SavedEntry(item.hadithId, item.noteCreatedAt ?: item.createdAt, item.noteUpdatedAt ?: item.updatedAt, it, item.hadith) } }
+            _loadState.value = if (state.savedSnapshot != null || value.items.isNotEmpty()) LoadState.Ready else LoadState.Loading
+        } catch (cancelled: CancellationException) { throw cancelled }
+        catch (_: Exception) { if (epoch == capturedEpoch) _loadState.value = LoadState.Failed }
+    }
+
+    private fun folderReference(id: String?): SyncFolderReference = when {
+        id == null -> SyncFolderReference.None
+        id.startsWith("local:") -> SyncFolderReference.Local(id.removePrefix("local:"))
+        else -> SyncFolderReference.Server(id)
+    }
+
+    private fun ownedWrite(ref: HadithRef? = null, captured: LibraryWriteContext? = null, command: (Double) -> SyncCommand, queued: (LibraryLocalChange, LibraryWriteContext) -> Unit = { _, _ -> }): Deferred<Boolean> {
+        val active = account ?: return CompletableDeferred(false)
+        val context = try { captured ?: active.sync.captureWriteContext() } catch (_: Exception) { _lastWriteFailed.value = true; return CompletableDeferred(false) }
+        lastIntentAt = maxOf(nowMillis(), lastIntentAt + 1)
+        val at = lastIntentAt
+        return scope.async {
+            try {
+                writeMutex.withLock {
+                    if (currentSession() != context.session) throw LibrarySyncFailure.SessionChanged
+                    val change = LibraryLocalChange(command(at), at, LibraryLocalSource.Account(ref))
+                    active.sync.enqueue(change, context)
+                    if (currentSession() != context.session) return@withLock false
+                    active.sync.owner.value?.let { reloadAccount(it) }
+                    queued(change, context)
+                    _lastWriteFailed.value = false
+                    true
+                }
+            } catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: Exception) { if (currentSession() == context.session) { _lastWriteFailed.value = true; _loadState.value = LoadState.Failed }; false }
+        }
+    }
+
+    private fun recordGuestUndo(key: String) {
+        undoActions[key] = UndoAction("guest", UndoScope.Guest(epoch), android.os.SystemClock.elapsedRealtime() + UNDO_NOTICE_MILLIS)
+    }
+    private fun recordAccountUndo(key: String, change: LibraryLocalChange, context: LibraryWriteContext) {
+        undoActions[key] = UndoAction(change.operation.id, UndoScope.Account(context), android.os.SystemClock.elapsedRealtime() + UNDO_NOTICE_MILLIS)
+    }
+    private fun restoreFacet(ref: HadithRef, key: String, value: SyncCommandFacetRestoreValue, guestRestore: suspend () -> Unit) {
+        val action = undoActions.remove(key) ?: return
+        if (action.deadline <= android.os.SystemClock.elapsedRealtime()) return
+        when (val target = action.scope) {
+            is UndoScope.Account -> ownedWrite(ref, target.context, { SyncCommand.FacetRestore(ref.hadithId, action.deletionId, value) })
+            is UndoScope.Guest -> if (!isSignedIn() && target.epoch == epoch) launchGuestOperation { guestRestore(); loadGuestData() }
         }
     }
 
@@ -189,265 +228,148 @@ class UserLibraryModel(
     fun isFavorite(hadithId: String): Boolean =
         favorites.value.any { it.hadith?.hadithId == hadithId }
 
-    fun toggleBookmark(ref: HadithRef) {
-        if (isSignedIn()) {
-            scope.launch { runCatching { repository.toggleBookmark(ref.hadithId) } }
-        } else {
-            launchGuestOperation {
-                if (guestData.isBookmarked(ref.hadithId)) {
-                    guestData.removeBookmark(ref.hadithId)
-                } else {
-                    guestData.addBookmark(
-                        GuestBookmarkDraft(
-                            hadithId = ref.hadithId,
-                            createdAt = nowMillis(),
-                            collectionName = ref.collectionName,
-                            referenceDisplay = ref.referenceDisplay,
-                            volumeId = ref.volumeId,
-                            hadithNumber = ref.hadithNumber,
-                            collectionSlug = ref.collectionSlug,
-                            arabicText = ref.arabicText,
-                            englishText = ref.englishText,
-                        )
-                    )
-                }
-                loadGuestData()
-            }
+    fun toggleBookmark(ref: HadithRef): Deferred<Boolean> {
+        val key = "bookmark:${ref.hadithId}"
+        return if (isSignedIn()) ownedWrite(ref, command = { at -> if (isBookmarked(ref.hadithId)) SyncCommand.BookmarkRemove(ref.hadithId) else SyncCommand.BookmarkAdd(ref.hadithId, at) }, queued = { change, context ->
+            if (change.operation.command is SyncCommand.BookmarkRemove) recordAccountUndo(key, change, context) else undoActions.remove(key)
+        }) else launchGuestOperation {
+            if (guestData.isBookmarked(ref.hadithId)) { guestData.removeBookmark(ref.hadithId); recordGuestUndo(key) }
+            else { guestData.addBookmark(GuestBookmarkDraft(ref.hadithId, nowMillis(), ref.collectionName, ref.referenceDisplay, ref.volumeId, ref.hadithNumber, ref.collectionSlug, ref.arabicText, ref.englishText)); undoActions.remove(key) }
+            loadGuestData()
         }
     }
 
-    fun toggleFavorite(ref: HadithRef) {
-        if (isSignedIn()) {
-            scope.launch { runCatching { repository.toggleFavorite(ref.hadithId) } }
-        } else {
-            launchGuestOperation {
-                if (guestData.isFavorite(ref.hadithId)) {
-                    guestData.removeFavorite(ref.hadithId)
-                } else {
-                    guestData.addFavorite(
-                        GuestFavoriteDraft(
-                            hadithId = ref.hadithId,
-                            createdAt = nowMillis(),
-                            collectionName = ref.collectionName,
-                            referenceDisplay = ref.referenceDisplay,
-                            volumeId = ref.volumeId,
-                            hadithNumber = ref.hadithNumber,
-                            collectionSlug = ref.collectionSlug,
-                            arabicText = ref.arabicText,
-                            englishText = ref.englishText,
-                        )
-                    )
-                }
-                loadGuestData()
-            }
+    fun toggleFavorite(ref: HadithRef): Deferred<Boolean> {
+        val key = "favorite:${ref.hadithId}"
+        return if (isSignedIn()) ownedWrite(ref, command = { at -> if (isFavorite(ref.hadithId)) SyncCommand.FavoriteRemove(ref.hadithId) else SyncCommand.FavoriteAdd(ref.hadithId, at) }, queued = { change, context ->
+            if (change.operation.command is SyncCommand.FavoriteRemove) recordAccountUndo(key, change, context) else undoActions.remove(key)
+        }) else launchGuestOperation {
+            if (guestData.isFavorite(ref.hadithId)) { guestData.removeFavorite(ref.hadithId); recordGuestUndo(key) }
+            else { guestData.addFavorite(GuestFavoriteDraft(ref.hadithId, nowMillis(), ref.collectionName, ref.referenceDisplay, ref.volumeId, ref.hadithNumber, ref.collectionSlug, ref.arabicText, ref.englishText)); undoActions.remove(key) }
+            loadGuestData()
         }
     }
 
-    fun saveNote(ref: HadithRef, content: String) {
+    fun removeBookmark(ref: HadithRef, capturedScope: String): Deferred<Boolean> {
+        if (!isActionCurrent(capturedScope) || !isBookmarked(ref.hadithId)) return CompletableDeferred(false)
+        val key = "bookmark:${ref.hadithId}"
+        return if (isSignedIn()) ownedWrite(ref, command = { SyncCommand.BookmarkRemove(ref.hadithId) }, queued = { change, context -> recordAccountUndo(key, change, context) })
+        else launchGuestOperation { guestData.removeBookmark(ref.hadithId); recordGuestUndo(key); loadGuestData() }
+    }
+    fun removeFavorite(ref: HadithRef, capturedScope: String): Deferred<Boolean> {
+        if (!isActionCurrent(capturedScope) || !isFavorite(ref.hadithId)) return CompletableDeferred(false)
+        val key = "favorite:${ref.hadithId}"
+        return if (isSignedIn()) ownedWrite(ref, command = { SyncCommand.FavoriteRemove(ref.hadithId) }, queued = { change, context -> recordAccountUndo(key, change, context) })
+        else launchGuestOperation { guestData.removeFavorite(ref.hadithId); recordGuestUndo(key); loadGuestData() }
+    }
+
+    fun saveNote(ref: HadithRef, content: String): Deferred<Boolean> {
+        return if (isSignedIn()) ownedWrite(ref, command = { at -> SyncCommand.NotePut(ref.hadithId, content, _notes.value.firstOrNull { it.hadith?.hadithId == ref.hadithId }?.createdAt ?: at, at) })
+        else launchGuestOperation { guestData.saveNote(ref.hadithId, content, ref.collectionName, ref.referenceDisplay, ref.volumeId, ref.hadithNumber, ref.collectionSlug, ref.arabicText, ref.englishText); loadGuestData() }
+    }
+    fun deleteNote(ref: HadithRef, capturedScope: String): Deferred<Boolean> {
+        if (!isActionCurrent(capturedScope) || _notes.value.none { it.hadith?.hadithId == ref.hadithId }) return CompletableDeferred(false)
+        val key = "note:${ref.hadithId}"
+        return if (isSignedIn()) ownedWrite(ref, command = { SyncCommand.NoteRemove(ref.hadithId) }, queued = { change, context -> recordAccountUndo(key, change, context) })
+        else launchGuestOperation { guestData.deleteNote(ref.hadithId); recordGuestUndo(key); loadGuestData() }
+    }
+    fun createFolder(name: String, capturedScope: String) {
+        if (!isActionCurrent(capturedScope)) return
+        if (!GuestMergePlanner.isValidFolderName(name)) { _lastWriteFailed.value = true; return }
+        if (isSignedIn()) { val key = java.util.UUID.randomUUID().toString(); ownedWrite(command = { SyncCommand.FolderCreate(key, name.trim(), SyncCommandFolderCreatePurpose.CREATE) }) }
+        else launchGuestOperation { guestData.createSavedFolder(name.trim()); loadGuestData() }
+    }
+    fun assignFolder(hadithId: String, folderId: String?, capturedScope: String) {
+        if (!isActionCurrent(capturedScope)) return
+        if (isSignedIn()) ownedWrite(_savedItems.value.firstOrNull { it.hadithId == hadithId }?.hadith, command = { SyncCommand.MembershipPut(hadithId, folderReference(folderId)) })
+        else launchGuestOperation { guestData.assignSavedFolder(hadithId, folderId); loadGuestData() }
+    }
+    fun deleteFolder(folder: SavedFolder, message: String, capturedScope: String) {
+        if (!isActionCurrent(capturedScope)) return
         if (isSignedIn()) {
-            scope.launch { runCatching { repository.upsertNote(ref.hadithId, content) } }
-        } else {
-            launchGuestOperation {
-                guestData.saveNote(
-                    hadithId = ref.hadithId,
-                    content = content,
-                    collectionName = ref.collectionName,
-                    referenceDisplay = ref.referenceDisplay,
-                    volumeId = ref.volumeId,
-                    hadithNumber = ref.hadithNumber,
-                    collectionSlug = ref.collectionSlug,
-                    arabicText = ref.arabicText,
-                    englishText = ref.englishText,
-                )
-                loadGuestData()
+            var ids = emptyList<String>()
+            ownedWrite(command = { ids = _savedItems.value.filter { it.folderId == folder.id }.map { it.hadithId }; SyncCommand.FolderDelete(folderReference(folder.id)) }, queued = { change, context ->
+                undo.show(message) { ownedWrite(captured = context, command = { SyncCommand.FolderRestore(change.operation.id, folder.name, ids) }) }
+            })
+        } else launchGuestOperation {
+            val deletion = guestData.deleteSavedFolder(folder.id)
+            val capturedEpoch = epoch
+            loadGuestData()
+            if (deletion != null) undo.show(message) {
+                if (!isSignedIn() && capturedEpoch == epoch) launchGuestOperation { guestData.restoreSavedFolder(deletion); loadGuestData() }
             }
         }
     }
-
-    fun deleteNote(ref: HadithRef) {
-        if (isSignedIn()) {
-            scope.launch { runCatching { repository.deleteNote(ref.hadithId) } }
-        } else {
-            launchGuestOperation {
-                guestData.deleteNote(ref.hadithId)
-                loadGuestData()
-            }
-        }
+    fun restoreBookmark(ref: HadithRef, createdAt: Double) = restoreFacet(ref, "bookmark:${ref.hadithId}", SyncCommandFacetRestoreValue.Bookmark(createdAt)) {
+        guestData.addBookmark(GuestBookmarkDraft(ref.hadithId, createdAt, ref.collectionName, ref.referenceDisplay, ref.volumeId, ref.hadithNumber, ref.collectionSlug, ref.arabicText, ref.englishText))
     }
-
-    fun createFolder(name: String) {
-        if (isSignedIn()) {
-            scope.launch { runCatching { repository.createSavedFolder(name) } }
-        } else {
-            launchGuestOperation {
-                if (GuestMergePlanner.isValidFolderName(name)) guestData.createSavedFolder(name.trim())
-                loadGuestData()
-            }
-        }
+    fun restoreFavorite(ref: HadithRef, createdAt: Double) = restoreFacet(ref, "favorite:${ref.hadithId}", SyncCommandFacetRestoreValue.Favorite(createdAt)) {
+        guestData.addFavorite(GuestFavoriteDraft(ref.hadithId, createdAt, ref.collectionName, ref.referenceDisplay, ref.volumeId, ref.hadithNumber, ref.collectionSlug, ref.arabicText, ref.englishText))
     }
-
-    fun assignFolder(hadithId: String, folderId: String?) {
-        if (isSignedIn()) {
-            scope.launch { runCatching { repository.assignSavedFolder(hadithId, folderId) } }
-        } else {
-            launchGuestOperation { guestData.assignSavedFolder(hadithId, folderId); loadGuestData() }
-        }
+    fun restoreNote(ref: HadithRef, content: String, createdAt: Double, updatedAt: Double) = restoreFacet(ref, "note:${ref.hadithId}", SyncCommandFacetRestoreValue.Note(content, createdAt, updatedAt)) {
+        guestData.restoreNote(GuestNoteDraft(ref.hadithId, content, createdAt, updatedAt, ref.collectionName, ref.referenceDisplay, ref.volumeId, ref.hadithNumber, ref.collectionSlug, ref.arabicText, ref.englishText))
     }
-
-    fun deleteFolder(folder: SavedFolder, message: String) {
-        if (isSignedIn()) {
-            scope.launch {
-                runCatching { repository.deleteSavedFolder(folder.id) }.onSuccess { deletion ->
-                    undo.show(message) {
-                        scope.launch { runCatching { repository.restoreSavedFolder(deletion.name, deletion.hadithIds, deletion.deletedAt) } }
-                    }
-                }
-            }
-        } else {
-            launchGuestOperation {
-                val deletion = guestData.deleteSavedFolder(folder.id)
-                loadGuestData()
-                if (deletion != null) undo.show(message) {
-                    launchGuestOperation { guestData.restoreSavedFolder(deletion); loadGuestData() }
-                }
-            }
-        }
-    }
-
-    fun restoreBookmark(ref: HadithRef, createdAt: Double) {
-        if (isSignedIn()) scope.launch { runCatching { repository.restoreSavedFacet(ref.hadithId, "bookmark", createdAt) } }
-        else launchGuestOperation { guestData.addBookmark(GuestBookmarkDraft(ref.hadithId, createdAt, ref.collectionName, ref.referenceDisplay, ref.volumeId, ref.hadithNumber, ref.collectionSlug, ref.arabicText, ref.englishText)); loadGuestData() }
-    }
-
-    fun restoreFavorite(ref: HadithRef, createdAt: Double) {
-        if (isSignedIn()) scope.launch { runCatching { repository.restoreSavedFacet(ref.hadithId, "favorite", createdAt) } }
-        else launchGuestOperation { guestData.addFavorite(GuestFavoriteDraft(ref.hadithId, createdAt, ref.collectionName, ref.referenceDisplay, ref.volumeId, ref.hadithNumber, ref.collectionSlug, ref.arabicText, ref.englishText)); loadGuestData() }
-    }
-
-    fun restoreNote(ref: HadithRef, content: String, createdAt: Double, updatedAt: Double) {
-        if (isSignedIn()) scope.launch { runCatching { repository.restoreSavedFacet(ref.hadithId, "note", createdAt, content, updatedAt) } }
-        else launchGuestOperation { guestData.restoreNote(GuestNoteDraft(ref.hadithId, content, createdAt, updatedAt, ref.collectionName, ref.referenceDisplay, ref.volumeId, ref.hadithNumber, ref.collectionSlug, ref.arabicText, ref.englishText)); loadGuestData() }
-    }
-
-    fun noteContentFor(hadithId: String): String? =
-        notes.value.firstOrNull { it.hadith?.hadithId == hadithId }?.noteContent
-
-    /** Saves the reader position; per-collection upsert keeps repeats cheap. */
+    fun noteContentFor(hadithId: String): String? = _notes.value.firstOrNull { it.hadith?.hadithId == hadithId }?.noteContent
     fun saveProgress(position: ReadingPosition, ref: HadithRef) {
-        if (isSignedIn()) {
-            scope.launch {
-                runCatching { repository.saveReadingProgress(position) }
-            }
-        } else {
-            launchGuestOperation {
-                guestData.saveProgress(
-                    GuestReadingProgressDraft(
-                        collectionSlug = ref.collectionSlug,
-                        collectionName = ref.collectionName,
-                        hadithId = ref.hadithId,
-                        volumeId = ref.volumeId,
-                        hadithNumber = ref.hadithNumber,
-                        referenceDisplay = ref.referenceDisplay,
-                        updatedAt = nowMillis(),
-                        arabicText = ref.arabicText,
-                        englishText = ref.englishText,
-                        position = position,
-                    )
-                )
-                loadGuestData()
-            }
-        }
+        if (isSignedIn()) ownedWrite(ref, command = { SyncCommand.PositionPut(position) })
+        else launchGuestOperation { guestData.saveProgress(GuestReadingProgressDraft(ref.collectionSlug, ref.collectionName, ref.hadithId, ref.volumeId, ref.hadithNumber, ref.referenceDisplay, position.updatedAt, ref.arabicText, ref.englishText, position)); loadGuestData() }
     }
 
-    // Convex subscriptions (signed in)
+    // Owned subscriptions
+    private fun matches(owner: LibrarySyncOwner, session: LibrarySyncSession, capturedEpoch: String) = epoch == capturedEpoch && scopedOwner == owner && scopedSession == session && currentSession() == session && account?.sync?.owner?.value == owner
 
-    private fun subscribeAll() {
+    private fun subscribeAll(owner: LibrarySyncOwner, session: LibrarySyncSession, capturedEpoch: String) {
+        val reads = account?.reads ?: return
         unsubscribeJobs()
-        subscriptions.add(
-            scope.launch(Dispatchers.IO) {
-                try {
-                    repository.subscribe<SavedSnapshotRow>("library:listSavedSnapshot")
-                        .collect { snapshot -> apply(snapshot) }
-                } catch (cancelled: CancellationException) {
-                    throw cancelled
-                } catch (_: Exception) {
-                    scope.launch { subscriptionFailed(savedSnapshot = true) }
-                }
-            }
-        )
-        subscriptions.add(
-            scope.launch(Dispatchers.IO) {
-                try {
-                    repository.subscribe<List<ProgressRow>>("library:listReadingProgressDetailed")
-                        .collect { rows ->
-                            _progress.value = rows.map {
-                                ProgressEntry(
-                                    collectionSlug = it.collectionSlug,
-                                    hadith = it.hadith?.let { h -> h.toRef() },
-                                    position = it.position,
-                                    updatedAt = it.updatedAt,
-                                )
-                            }
-                        }
-                } catch (cancelled: CancellationException) {
-                    throw cancelled
-                } catch (_: Exception) {
-                    scope.launch { subscriptionFailed(savedSnapshot = false) }
-                }
-            }
-        )
+        subscriptions.add(scope.launch {
+            try { reads.savedSnapshot().collect { value ->
+                if (!matches(owner, session, capturedEpoch) || value.ownerKey != owner.key) return@collect
+                guestData.cacheSavedSnapshot(value, owner)
+                if (matches(owner, session, capturedEpoch)) reloadAccount(owner)
+            } } catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: Exception) { subscriptionFailed(owner, session, capturedEpoch) }
+        })
+        subscriptions.add(scope.launch {
+            try { reads.positionsSnapshot().collect { value ->
+                if (!matches(owner, session, capturedEpoch) || value.ownerKey != owner.key) return@collect
+                guestData.cachePositionsSnapshot(value, owner)
+                if (matches(owner, session, capturedEpoch)) reloadAccount(owner)
+            } } catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: Exception) { subscriptionFailed(owner, session, capturedEpoch) }
+        })
     }
-
-    /**
-     * A subscription that raced the Convex session errors without data.
-     * Re-open everything, bounded.
-     */
-    private fun subscriptionFailed(savedSnapshot: Boolean) {
-        if (!subscriptionsActive) return
-        if (savedSnapshot && _savedItems.value.isEmpty()) _loadState.value = LoadState.Failed
+    private fun subscriptionFailed(owner: LibrarySyncOwner, session: LibrarySyncSession, capturedEpoch: String) {
+        if (!matches(owner, session, capturedEpoch)) return
+        if (_savedItems.value.isEmpty()) _loadState.value = LoadState.Failed
         subscriptionsActive = false
-        unsubscribeJobs()
-        if (retriesLeft > 0 && isSignedIn()) {
-            retriesLeft -= 1
-            scope.launch {
-                delay(1500)
-                if (!subscriptionsActive && isSignedIn()) {
-                    subscriptionsActive = true
-                    subscribeAll()
-                }
-            }
-        }
+        if (retriesLeft-- <= 0) return
+        scope.launch { delay(1_500); if (matches(owner, session, capturedEpoch)) refresh() }
     }
-
-    private fun unsubscribeJobs() {
-        subscriptions.forEach { it.cancel() }
-        subscriptions = mutableListOf()
-    }
-
+    private fun unsubscribeJobs() { subscriptions.forEach { it.cancel() }; subscriptions.clear() }
     private fun unsubscribe() {
-        unsubscribeJobs()
-        subscriptionsActive = false
-        _savedItems.value = emptyList()
-        _folders.value = emptyList()
-        _bookmarks.value = emptyList()
-        _favorites.value = emptyList()
-        _notes.value = emptyList()
-        _progress.value = emptyList()
+        epoch = java.util.UUID.randomUUID().toString()
+        unsubscribeJobs(); subscriptionsActive = false
+        _savedItems.value = emptyList(); _folders.value = emptyList(); _bookmarks.value = emptyList(); _favorites.value = emptyList(); _notes.value = emptyList(); _progress.value = emptyList()
+        undoActions.clear(); undo.clear()
     }
 
     // Guest data
 
-    private fun launchGuestOperation(block: suspend () -> Unit) {
-        scope.launch {
-            try { block() }
+    private fun launchGuestOperation(block: suspend () -> Unit): Deferred<Boolean> {
+        val capturedEpoch = epoch
+        return scope.async {
+            if (isSignedIn() || epoch != capturedEpoch) return@async false
+            try { block(); true }
             catch (cancelled: CancellationException) { throw cancelled }
-            catch (_: Exception) { _loadState.value = LoadState.Failed }
+            catch (_: Exception) { _lastWriteFailed.value = true; _loadState.value = LoadState.Failed; false }
         }
     }
 
     private suspend fun loadGuestData() {
         if (isSignedIn()) return
+        val capturedEpoch = epoch
         val snapshot = guestData.snapshots()
+        if (isSignedIn() || epoch != capturedEpoch) return
         _bookmarks.value = snapshot.bookmarks.map {
             SavedEntry(
                 rowId = "guest-bookmark-${it.hadithId}",
@@ -484,17 +406,6 @@ class UserLibraryModel(
         _loadState.value = LoadState.Ready
     }
 
-    private fun apply(snapshot: SavedSnapshotRow) {
-        _folders.value = snapshot.folders.map { SavedFolder(it._id, it.name, it.createdAt) }
-        _savedItems.value = snapshot.items.map {
-            SavedItemEntry(it.hadithId, it.createdAt, it.updatedAt, it.bookmarkCreatedAt, it.favoriteCreatedAt, it.noteContent, it.folderId, it.hadith?.toRef())
-        }
-        _bookmarks.value = _savedItems.value.mapNotNull { item -> item.bookmarkCreatedAt?.let { SavedEntry(item.hadithId, it, hadith = item.hadith) } }
-        _favorites.value = _savedItems.value.mapNotNull { item -> item.favoriteCreatedAt?.let { SavedEntry(item.hadithId, it, hadith = item.hadith) } }
-        _notes.value = _savedItems.value.mapNotNull { item -> item.noteContent?.let { SavedEntry(item.hadithId, item.createdAt, item.updatedAt, it, item.hadith) } }
-        _loadState.value = LoadState.Ready
-    }
-
     private fun rebuildGuestSavedItems(memberships: List<GuestSavedMembership> = emptyList()) {
         val folderByHadith = memberships.associate { it.hadithId to it.folderLocalId }
         val entries = linkedMapOf<String, SavedItemEntry>()
@@ -509,23 +420,6 @@ class UserLibraryModel(
         } }
         _savedItems.value = entries.values.sortedByDescending { it.sortDate }
     }
-
-    private fun DetailedRow.toEntry() = SavedEntry(
-        rowId = _id,
-        createdAt = createdAt,
-        hadith = hadith?.let { h -> h.toRef() },
-    )
-
-    private fun HadithSummary.toRef() = HadithRef(
-        hadithId = _id,
-        collectionSlug = collectionSlug,
-        collectionName = collectionName,
-        volumeId = volumeId,
-        hadithNumber = providerHadithId,
-        arabicText = arabicText,
-        englishText = englishText,
-        referenceDisplay = referenceDisplay,
-    )
 
     private fun GuestBookmarkDraft.toRef() = HadithRef(
         hadithId = hadithId,

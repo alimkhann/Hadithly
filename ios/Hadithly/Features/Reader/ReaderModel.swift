@@ -1155,8 +1155,11 @@ final class ReaderModel {
         ReaderHapticDispatcher.trigger(adding ? .favoriteAdd : .favoriteRemove)
     }
 
-    func saveNote(_ hadith: ReaderHadith, content: String) {
-        library?.saveNote(ref(for: hadith), content: content)
+    var libraryActionScope: UUID? { library?.actionScope }
+    func isLibraryActionCurrent(_ captured: UUID?) -> Bool { library?.isActionCurrent(captured) ?? false }
+
+    @discardableResult func saveNote(_ hadith: ReaderHadith, content: String) -> Bool {
+        library?.saveNote(ref(for: hadith), content: content) ?? false
     }
 
     func noteContent(for hadith: ReaderHadith) -> String? {

@@ -11,7 +11,9 @@ struct SavedView: View {
     @State private var openTarget: ReaderOpenTarget?
     @State private var newFolderName = ""
     @State private var showNewFolder = false
+    @State private var newFolderScope: UUID?
     @State private var pendingRemoval: SavedFacetRemoval?
+    @State private var pendingRemovalScope: UUID?
     @State private var undoNotice: SavedUndoNotice?
 
 #if DEBUG
@@ -60,8 +62,8 @@ struct SavedView: View {
                             folderName: library.folders.first(where: { $0.id == item.folderId })?.name,
                             showsFolder: folderId == nil,
                             onOpen: open,
-                            onRemove: requestRemoval,
-                            onMove: { library.assignFolder(hadithId: item.hadithId, folderId: $0) },
+                            onRemove: { [scope = library.actionScope] in requestRemoval($0, scope: scope) },
+                            onMove: { [scope = library.actionScope] in if library.isActionCurrent(scope) { library.assignFolder(hadithId: item.hadithId, folderId: $0, scope: scope) } },
                             onSuggestTranslation: open
                         )
                         .listRowSeparator(.hidden)
@@ -85,7 +87,11 @@ struct SavedView: View {
         }
         .padding(.horizontal).appNavigationTitle("Saved")
         .background(Theme.background.ignoresSafeArea())
-        .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("New folder", systemImage: "folder.badge.plus") { showNewFolder = true }.accessibilityLabel("Create saved folder") } }
+        .onChange(of: library.actionScope) { _, _ in
+            pendingRemoval = nil; pendingRemovalScope = nil; undoNotice = nil
+            showNewFolder = false; newFolderName = ""; newFolderScope = nil; folderId = nil
+        }
+        .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("New folder", systemImage: "folder.badge.plus") { newFolderScope = library.actionScope; showNewFolder = true }.accessibilityLabel("Create saved folder") } }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if let notice = undoNotice {
                 SavedUndoBanner(notice: notice, onExpire: { undoNotice = nil })
@@ -107,7 +113,7 @@ struct SavedView: View {
         .alert("New folder", isPresented: $showNewFolder) {
             TextField("Folder name", text: $newFolderName)
             Button("Cancel", role: .cancel) { newFolderName = "" }
-            Button("Create") { library.createFolder(name: newFolderName); newFolderName = "" }
+            Button("Create") { if let scope = newFolderScope { library.createFolder(name: newFolderName, scope: scope) }; newFolderName = "" }
         } message: { Text("Folders are private and can contain saved hadiths.") }
         .fullScreenCover(item: $openTarget) { target in ReaderView(collectionSlug: target.slug, collectionName: target.name, openVolumeId: target.volumeId, openHadithNumber: target.hadithNumber, targetSource: target.source) }
     }
@@ -124,15 +130,15 @@ struct SavedView: View {
                     }
                     .buttonStyle(.bordered)
                     .tint(folderId == folder.id ? Theme.accent : Theme.textSecondary)
-                    .contextMenu {
+                    .contextMenu { [scope = library.actionScope] in
                         Button("Delete folder", role: .destructive) {
                             if folderId == folder.id { folderId = nil }
-                            library.deleteFolder(folder)
+                            library.deleteFolder(folder, scope: scope)
                         }
                     }
-                    .accessibilityAction(named: "Delete folder") {
+                    .accessibilityAction(named: "Delete folder") { [scope = library.actionScope] in
                         if folderId == folder.id { folderId = nil }
-                        library.deleteFolder(folder)
+                        library.deleteFolder(folder, scope: scope)
                     }
                     .accessibilityHint("Opens this folder. Long press for folder actions.")
                 }
@@ -144,23 +150,24 @@ struct SavedView: View {
         openTarget = ReaderOpenTarget(slug: ref.collectionSlug, name: ref.collectionName, volumeId: ref.volumeId, hadithNumber: ref.hadithNumber, source: .saved)
     }
 
-    private func requestRemoval(_ removal: SavedFacetRemoval) {
-        if environment.savedSafety.confirmsRemoval { pendingRemoval = removal } else { performRemoval(removal) }
+    private func requestRemoval(_ removal: SavedFacetRemoval, scope: UUID) {
+        if environment.savedSafety.confirmsRemoval { pendingRemovalScope = scope; pendingRemoval = removal } else { performRemoval(removal, scope: scope) }
     }
 
-    private func performRemoval(_ removal: SavedFacetRemoval) {
+    private func performRemoval(_ removal: SavedFacetRemoval, scope: UUID? = nil) {
+        guard library.isActionCurrent(scope ?? pendingRemovalScope) else { return }
         switch removal {
         case .bookmark(let item, let ref):
             guard let createdAt = item.bookmarkCreatedAt else { return }
-            library.toggleBookmark(ref)
+            guard library.removeBookmark(ref, scope: scope ?? pendingRemovalScope ?? library.actionScope) else { return }
             undoNotice = SavedUndoNotice(message: "Bookmark removed") { library.restoreBookmark(ref, createdAt: createdAt); undoNotice = nil }
         case .favorite(let item, let ref):
             guard let createdAt = item.favoriteCreatedAt else { return }
-            library.toggleFavorite(ref)
+            guard library.removeFavorite(ref, scope: scope ?? pendingRemovalScope ?? library.actionScope) else { return }
             undoNotice = SavedUndoNotice(message: "Favorite removed") { library.restoreFavorite(ref, createdAt: createdAt); undoNotice = nil }
         case .note(let item, let ref):
             guard let content = item.noteContent else { return }
-            library.deleteNote(ref)
+            guard library.deleteNote(ref, scope: scope ?? pendingRemovalScope ?? library.actionScope) else { return }
             undoNotice = SavedUndoNotice(message: "Note deleted") { library.restoreNote(ref, content: content, createdAt: item.createdAt, updatedAt: item.updatedAt); undoNotice = nil }
         }
     }

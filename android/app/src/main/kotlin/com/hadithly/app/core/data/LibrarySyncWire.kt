@@ -195,6 +195,69 @@ data class SyncReply(
 )
 
 @Serializable
+data class SyncRevision(
+    val saved: Double,
+    val position: Double,
+)
+
+@Serializable
+data class SyncHadithSummary(
+    val _id: String,
+    val providerHadithId: String,
+    val collectionSlug: String,
+    val collectionName: String,
+    val volumeId: String? = null,
+    val arabicText: String,
+    val englishText: String? = null,
+    val referenceDisplay: String,
+)
+
+@Serializable
+data class SyncSavedItem(
+    val hadithId: String,
+    val createdAt: Double,
+    val updatedAt: Double,
+    val bookmarkCreatedAt: Double? = null,
+    val favoriteCreatedAt: Double? = null,
+    val noteContent: String? = null,
+    val noteCreatedAt: Double? = null,
+    val noteUpdatedAt: Double? = null,
+    val folderId: String? = null,
+    val hadith: SyncHadithSummary,
+)
+
+@Serializable
+data class SyncFolderRow(
+    val _id: String,
+    val name: String,
+    val createdAt: Double,
+)
+
+@Serializable
+data class SyncPositionRow(
+    val collectionSlug: String,
+    val hadithId: String,
+    val updatedAt: Double,
+    val position: ReadingPosition? = null,
+    val hadith: SyncHadithSummary,
+)
+
+@Serializable
+data class SyncSavedSnapshot(
+    val ownerKey: String,
+    val version: Double,
+    val folders: List<SyncFolderRow>,
+    val items: List<SyncSavedItem>,
+)
+
+@Serializable
+data class SyncPositionsSnapshot(
+    val ownerKey: String,
+    val version: Double,
+    val rows: List<SyncPositionRow>,
+)
+
+@Serializable
 data class SyncFrame(
     val clientKey: String,
     val sequence: Double,
@@ -206,6 +269,7 @@ data class SyncCommitted(
     val clientKey: String,
     val sequence: Double,
     val digest: String,
+    val revision: SyncRevision,
     val reply: SyncReply,
 )
 

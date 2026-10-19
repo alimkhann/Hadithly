@@ -168,8 +168,8 @@ private fun SettingsRoot(onOpen: (SettingsDestination) -> Unit, onShowSignIn: ()
     val colors = LocalHadithlyColors.current
     val preferences by app.preferences.preferences.collectAsStateWithLifecycle()
     val syncSummary by app.session.syncSummary.collectAsStateWithLifecycle()
-    val sessions by Clerk.sessionsFlow.collectAsStateWithLifecycle()
-    val signedIn = sessions.isNotEmpty()
+    val activeSession by Clerk.sessionFlow.collectAsStateWithLifecycle()
+    val signedIn = activeSession?.status == com.clerk.api.session.Session.SessionStatus.ACTIVE
     val scope = rememberCoroutineScope()
     var subscriptionTier by remember(signedIn) { mutableStateOf<String?>(null) }
     val notificationsOn by app.settings.dailyNotificationEnabled.collectAsStateWithLifecycle()
@@ -826,7 +826,7 @@ private fun NotificationDestination() {
     val colors = LocalHadithlyColors.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val signedIn = Clerk.sessionsFlow.collectAsStateWithLifecycle().value.isNotEmpty()
+    val signedIn = (Clerk.sessionFlow.collectAsStateWithLifecycle().value?.status == com.clerk.api.session.Session.SessionStatus.ACTIVE)
     val enabled by app.settings.dailyNotificationEnabled.collectAsStateWithLifecycle()
     val time by app.settings.dailyNotificationTime.collectAsStateWithLifecycle()
     val pushState by app.push.state.collectAsStateWithLifecycle()
@@ -1014,7 +1014,7 @@ private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val signedIn = Clerk.sessionsFlow.collectAsStateWithLifecycle().value.isNotEmpty()
+    val signedIn = (Clerk.sessionFlow.collectAsStateWithLifecycle().value?.status == com.clerk.api.session.Session.SessionStatus.ACTIVE)
     var showExportConfirm by remember { mutableStateOf(false) }
     var exporting by remember { mutableStateOf(false) }
     var exportNotice by remember { mutableStateOf<String?>(null) }

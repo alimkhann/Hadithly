@@ -1,25 +1,20 @@
+import { requireLibraryUser as owner, requireLibraryBinding as boundOwner } from "./lib/librarySyncIdentity";
+import { libraryVersion, advanceLibraryVersion } from "./lib/librarySyncVersions";
 import { librarySyncMark as mark, stampLibrarySyncMark as stamp } from "./lib/librarySyncMarks";
 import { v } from "convex/values";
-import { mutation, type MutationCtx } from "./_generated/server";
+import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
-import { requireIdentity } from "./lib/identity";
-import { materializeLegacySavedItem, applyReadingPosition } from "./library";
+import { materializeLegacySavedItem, applyReadingPosition, readSavedSnapshot, readReadingProgressDetailed } from "./library";
 import { normalizedFolderName } from "./lib/savedFolderPolicy";
 import { legacyReadingPosition } from "./lib/readingPositions";
 import { textDigest } from "./lib/evidenceReviewPolicy";
 import {
   syncBatchDigest, syncReceiptSetMatches, syncWriteDecision, validateSyncBatch,
   SYNC_BINDING_LIMIT, SYNC_BINDING_LIFETIME,
-  syncFrame, syncAcknowledgement, validateSyncStream,
+  syncFrame, syncAcknowledgement, validateSyncStream, syncSavedSnapshot, syncPositionsSnapshot,
+  type SyncHadithSummary, type SyncSavedSnapshot, type SyncPositionsSnapshot,
   type SyncBinding, type SyncOperation, type SyncOutcome, type SyncReceipt, type SyncFolderReference, type SyncExchange, type SyncAckReply,
 } from "./lib/librarySyncPolicy";
-
-async function owner(ctx: MutationCtx): Promise<Doc<"users">> {
-  const identity = await requireIdentity(ctx);
-  const user = await ctx.db.query("users").withIndex("by_clerk_id", q => q.eq("clerkId", identity.clerkId)).unique();
-  if (!user) throw new Error("SYNC_ACCOUNT_MISSING");
-  return user;
-}
 
 export const openBinding = mutation({
   args: {},
@@ -91,22 +86,27 @@ async function applyOperation(ctx: MutationCtx, userId: Id<"users">, operation: 
       ids.push(member.hadithId);
     }
     await ctx.db.delete(current._id);
-    await stamp(ctx, userId, `folder:${current._id}`, operation);
+    await stamp(ctx, userId, `folder:${current._id}`, operation, operation.at, { kind: "folder_deletion", hadithIds: ids });
     return { outcome: { kind: "folder_deleted", hadithIds: ids, deletedAt: operation.at } };
   }
   if (command.kind === "folder_restore") {
     const deletionMarks = await ctx.db.query("librarySyncMarks").withIndex("by_user_operation", q => q.eq("userId", userId).eq("operationId", command.deletionId)).take(501);
     const deletion = deletionMarks.find(value => value.key.startsWith("folder:") && value.commandKind === "folder_delete");
-    if (!deletion) return { outcome: unresolved("missing_folder") };
+    if (!deletion || deletion.detail.kind !== "folder_deletion") return { outcome: unresolved("missing_folder") };
     if (operation.at < deletion.at) return { outcome: superseded("newer_cloud") };
     const name = normalizedFolderName(command.name);
-    const existing = await ctx.db.query("savedFolders").withIndex("by_user_normalized_name", q => q.eq("userId", userId).eq("normalizedName", name.normalizedName)).unique();
+    const alias = await ctx.db.query("librarySyncFolderKeys").withIndex("by_user_key", q => q.eq("userId", userId).eq("key", `restore:${command.deletionId}`)).unique();
+    const previous = alias ? await ctx.db.get(alias.folderId) : null;
+    if (alias && previous?.userId !== userId) return { outcome: superseded("changed_since_delete") };
+    const existing = previous ?? await ctx.db.query("savedFolders").withIndex("by_user_normalized_name", q => q.eq("userId", userId).eq("normalizedName", name.normalizedName)).unique();
     const folderId = existing?._id ?? await ctx.db.insert("savedFolders", { userId, ...name, createdAt: operation.at, updatedAt: operation.at });
+    await folderAlias(ctx, userId, `restore:${command.deletionId}`, folderId);
 
     const restored: string[] = [], supersededIds: string[] = [], missing: string[] = [];
-    for (const raw of command.hadithIds) {
+    const removed = new Set(deletion.detail.hadithIds);
+    for (const raw of new Set([...deletion.detail.hadithIds, ...command.hadithIds])) {
       const hadithId = ctx.db.normalizeId("hadiths", raw);
-      if (!hadithId) { missing.push(raw); continue; }
+      if (!hadithId || !removed.has(hadithId)) { missing.push(raw); continue; }
       const item = await ctx.db.query("savedItems").withIndex("by_user_hadith", q => q.eq("userId", userId).eq("hadithId", hadithId)).unique();
       const version = await mark(ctx, userId, `membership:${hadithId}`);
       if (!item) { missing.push(raw); continue; }
@@ -171,7 +171,10 @@ async function applyOperation(ctx: MutationCtx, userId: Id<"users">, operation: 
       return { outcome: same ? { kind: "preserved" } : superseded("changed_since_delete") };
     }
     const previous = await mark(ctx, userId, key);
-    if (previous?.operationId !== command.deletionId || previous.commandKind !== `${command.value.kind}_remove`) return { outcome: superseded("changed_since_delete") };
+    if (previous?.operationId !== command.deletionId || previous.commandKind !== `${command.value.kind}_remove`) {
+      await removeEmpty(ctx, item);
+      return { outcome: superseded("changed_since_delete") };
+    }
     const restored: SyncOperation = { ...operation, command: command.value.kind === "note"
       ? { kind: "note_put", hadithId, content: command.value.content, createdAt: command.value.createdAt, updatedAt: operation.at }
       : command.value.kind === "bookmark" ? { kind: "bookmark_add", hadithId, createdAt: command.value.createdAt }
@@ -188,7 +191,14 @@ async function applyOperation(ctx: MutationCtx, userId: Id<"users">, operation: 
     : (facet === "bookmark" ? item.bookmarkCreatedAt !== undefined : item.favoriteCreatedAt !== undefined) === present;
   const at = command.kind === "note_put" ? command.updatedAt : operation.at;
   const decision = syncWriteDecision({ at, cloudAt: Number.isFinite(cloudAt) ? cloudAt : null, same });
-  if (decision === "newer_cloud" || decision === "tie_cloud") return { outcome: superseded(decision) };
+  if (decision === "newer_cloud" || decision === "tie_cloud") {
+    await removeEmpty(ctx, item);
+    return { outcome: superseded(decision) };
+  }
+  if (!present && same) {
+    await removeEmpty(ctx, item);
+    return { outcome: { kind: "preserved" } };
+  }
   let next = item;
   const updatedAt = Math.max(item.updatedAt, at);
   if (command.kind === "bookmark_add" || command.kind === "bookmark_remove") {
@@ -224,15 +234,6 @@ async function applyOperation(ctx: MutationCtx, userId: Id<"users">, operation: 
   return { outcome: { kind: "preserved" } };
 }
 
-async function boundOwner(ctx: MutationCtx, capability: string) {
-  const user = await owner(ctx);
-  const digest = await textDigest(capability);
-  const binding = await ctx.db.query("librarySyncBindings").withIndex("by_digest", q => q.eq("digest", digest)).unique();
-  if (!binding || binding.userId !== user._id) throw new Error("SYNC_OWNER_MISMATCH");
-  if (binding.expiresAt <= Date.now()) throw new Error("SYNC_BINDING_EXPIRED");
-  return user;
-}
-
 export const applyBatch = mutation({
   args: { capability: v.string(), frame: syncFrame },
   handler: async (ctx, { capability, frame }): Promise<SyncExchange> => {
@@ -256,7 +257,9 @@ export const applyBatch = mutation({
       const result = await applyOperation(ctx, user._id, operation);
       receipts.push({ id: operation.id, revision: operation.revision, outcome: result.outcome });
     }
-    const committed = { clientKey: frame.clientKey, sequence: frame.sequence, digest,
+    const saved = frame.batch.operations.some(value => value.command.kind !== "position_put" && value.command.kind !== "legacy_position_put");
+    const revision = { saved: saved ? await advanceLibraryVersion(ctx, user._id, "saved") : await libraryVersion(ctx, user._id, "saved"), position: await libraryVersion(ctx, user._id, "position") };
+    const committed = { clientKey: frame.clientKey, sequence: frame.sequence, digest, revision,
       reply: { ownerKey: user._id, batchId: frame.batch.id, receipts } };
     if (stream) await ctx.db.patch(stream._id, { active: committed });
     else await ctx.db.insert("librarySyncStreams", { userId: user._id, clientKey: frame.clientKey, closedThrough: 0, active: committed });
@@ -277,5 +280,36 @@ export const acknowledge = mutation({
       return { ownerKey: user._id, clientKey: acknowledgement.clientKey, cursor: { closedThrough: active.sequence } };
     }
     return { ownerKey: user._id, clientKey: acknowledgement.clientKey, cursor: { closedThrough: stream.closedThrough, ...(active ? { active } : {}) } };
+  },
+});
+
+function cleanSummary(value: { _id: string; providerHadithId: string; collectionSlug: string; collectionName: string; volumeId: string | null; arabicText: string; englishText: string | null; referenceDisplay: string }): SyncHadithSummary {
+  return { _id: value._id, providerHadithId: value.providerHadithId, collectionSlug: value.collectionSlug, collectionName: value.collectionName,
+    ...(value.volumeId === null ? {} : { volumeId: value.volumeId }), arabicText: value.arabicText,
+    ...(value.englishText === null ? {} : { englishText: value.englishText }), referenceDisplay: value.referenceDisplay };
+}
+export const savedSnapshot = query({
+  args: {}, returns: syncSavedSnapshot,
+  handler: async (ctx): Promise<SyncSavedSnapshot> => {
+    const user = await owner(ctx), data = await readSavedSnapshot(ctx, user._id);
+    const version = await libraryVersion(ctx, user._id, "saved");
+    return { ownerKey: user._id, version, folders: data.folders, items: data.items.flatMap(item => item.hadith ? [{
+      hadithId: item.hadithId, createdAt: item.createdAt, updatedAt: item.updatedAt,
+      ...(item.bookmarkCreatedAt === undefined ? {} : { bookmarkCreatedAt: item.bookmarkCreatedAt }),
+      ...(item.favoriteCreatedAt === undefined ? {} : { favoriteCreatedAt: item.favoriteCreatedAt }),
+      ...(item.noteContent === undefined ? {} : { noteContent: item.noteContent }),
+      ...(item.noteCreatedAt === undefined ? {} : { noteCreatedAt: item.noteCreatedAt }),
+      ...(item.noteUpdatedAt === undefined ? {} : { noteUpdatedAt: item.noteUpdatedAt }),
+      ...(item.folderId === undefined ? {} : { folderId: item.folderId }), hadith: cleanSummary(item.hadith),
+    }] : []) };
+  },
+});
+export const positionsSnapshot = query({
+  args: {}, returns: syncPositionsSnapshot,
+  handler: async (ctx): Promise<SyncPositionsSnapshot> => {
+    const user = await owner(ctx), rows = await readReadingProgressDetailed(ctx, user._id);
+    const version = await libraryVersion(ctx, user._id, "position");
+    return { ownerKey: user._id, version, rows: rows.flatMap(row => row.hadith ? [{ collectionSlug: row.collectionSlug, hadithId: row.hadithId,
+      updatedAt: row.updatedAt, ...(row.position === undefined ? {} : { position: row.position }), hadith: cleanSummary(row.hadith) }] : []) };
   },
 });

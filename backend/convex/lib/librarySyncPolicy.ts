@@ -60,7 +60,8 @@ export const syncReply = v.object({ ownerKey: v.string(), batchId: v.string(), r
 export type SyncBinding = Infer<typeof syncBinding>;
 export type SyncReply = Infer<typeof syncReply>;
 export const syncFrame = v.object({ clientKey: v.string(), sequence: v.number(), batch: syncBatch });
-export const syncCommitted = v.object({ clientKey: v.string(), sequence: v.number(), digest: v.string(), reply: syncReply });
+export const syncRevision = v.object({ saved: v.number(), position: v.number() });
+export const syncCommitted = v.object({ clientKey: v.string(), sequence: v.number(), digest: v.string(), revision: syncRevision, reply: syncReply });
 export const syncCursor = v.object({ closedThrough: v.number(), active: v.optional(syncCommitted) });
 export const syncAcknowledgement = v.object({ clientKey: v.string(), sequence: v.number(), batchId: v.string(), digest: v.string() });
 export const syncExchange = v.union(
@@ -159,3 +160,20 @@ export function syncWriteDecision(input: { at: number; cloudAt: number | null; s
   if (input.cloudAt === null || input.at > input.cloudAt) return "apply";
   return input.at === input.cloudAt ? "tie_cloud" : "newer_cloud";
 }
+
+export const syncHadithSummary = v.object({
+  _id: v.string(), providerHadithId: v.string(), collectionSlug: v.string(), collectionName: v.string(),
+  volumeId: v.optional(v.string()), arabicText: v.string(), englishText: v.optional(v.string()), referenceDisplay: v.string(),
+});
+export const syncSavedItem = v.object({
+  hadithId: v.string(), createdAt: v.number(), updatedAt: v.number(), bookmarkCreatedAt: v.optional(v.number()), favoriteCreatedAt: v.optional(v.number()),
+  noteContent: v.optional(v.string()), noteCreatedAt: v.optional(v.number()), noteUpdatedAt: v.optional(v.number()), folderId: v.optional(v.string()), hadith: syncHadithSummary,
+});
+export const syncFolderRow = v.object({ _id: v.string(), name: v.string(), createdAt: v.number() });
+export const syncPositionRow = v.object({ collectionSlug: v.string(), hadithId: v.string(), updatedAt: v.number(), position: v.optional(readingPositionValidator), hadith: syncHadithSummary });
+export const syncSavedSnapshot = v.object({ ownerKey: v.string(), version: v.number(), folders: v.array(syncFolderRow), items: v.array(syncSavedItem) });
+export const syncPositionsSnapshot = v.object({ ownerKey: v.string(), version: v.number(), rows: v.array(syncPositionRow) });
+export type SyncRevision = Infer<typeof syncRevision>;
+export type SyncHadithSummary = Infer<typeof syncHadithSummary>;
+export type SyncSavedSnapshot = Infer<typeof syncSavedSnapshot>;
+export type SyncPositionsSnapshot = Infer<typeof syncPositionsSnapshot>;

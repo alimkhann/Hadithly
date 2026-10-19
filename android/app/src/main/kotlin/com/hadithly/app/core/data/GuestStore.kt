@@ -304,6 +304,10 @@ class GuestDataStore(context: Context) {
             }
         }
 
+    suspend fun removeProgress(expected: GuestReadingProgressDraft) = writeLocked { store ->
+        store.copy(progress = store.progress.filterNot { it == expected })
+    }
+
     suspend fun syncPartition(owner: LibrarySyncOwner): LibraryPartitionState? = mutex.withLock {
         readLocked().syncPartitions.firstOrNull { it.ownerKey == owner.storageKey }?.also {
             if (it.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
@@ -375,11 +379,34 @@ class GuestDataStore(context: Context) {
         store
     }
 
+    suspend fun cacheSavedSnapshot(snapshot: SyncSavedSnapshot, owner: LibrarySyncOwner) = writeLocked(notify = false) { store ->
+        if (snapshot.ownerKey != owner.key) throw LibrarySyncFailure.OwnerMismatch
+        val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey } ?: throw LibrarySyncFailure.SessionChanged
+        if (partition.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
+        if (!snapshot.version.isFinite() || snapshot.version < 0 || kotlin.math.floor(snapshot.version) != snapshot.version) throw LibrarySyncFailure.InvalidReceipt
+        if (snapshot.version >= (partition.state.savedSnapshot?.version ?: -1.0)) {
+            partition.state.savedSnapshot = snapshot
+            partition.state.pruneConfirmed()
+        }
+        store
+    }
+
+    suspend fun cachePositionsSnapshot(snapshot: SyncPositionsSnapshot, owner: LibrarySyncOwner) = writeLocked(notify = false) { store ->
+        if (snapshot.ownerKey != owner.key) throw LibrarySyncFailure.OwnerMismatch
+        val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey } ?: throw LibrarySyncFailure.SessionChanged
+        if (partition.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
+        if (!snapshot.version.isFinite() || snapshot.version < 0 || kotlin.math.floor(snapshot.version) != snapshot.version) throw LibrarySyncFailure.InvalidReceipt
+        if (snapshot.version >= (partition.state.positionsSnapshot?.version ?: -1.0)) {
+            partition.state.positionsSnapshot = snapshot
+            partition.state.pruneConfirmed()
+        }
+        store
+    }
+
     suspend fun eraseSyncPartition(owner: LibrarySyncOwner) = writeLocked(notify = false) { store ->
         store.copy(syncPartitions = store.syncPartitions.filterNot { it.ownerKey == owner.storageKey && it.subject == owner.subject })
     }
 
-    suspend fun clearAll() = writeLocked { GuestStoreFile() }
 
     private fun nowMillis(): Double = System.currentTimeMillis().toDouble()
 }

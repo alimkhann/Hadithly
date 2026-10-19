@@ -157,9 +157,9 @@ fun TranslationSubmissionSheet(
     val context = LocalContext.current
     val colors = LocalHadithlyColors.current
     val scope = rememberCoroutineScope()
-    val sessions by Clerk.sessionsFlow.collectAsState()
+    val activeSession by Clerk.sessionFlow.collectAsState()
     val readerState by viewModel.state.collectAsState()
-    val accountId = if (sessions.isNotEmpty()) Clerk.user?.id else null
+    val accountId = if (activeSession?.status == com.clerk.api.session.Session.SessionStatus.ACTIVE) activeSession?.user?.id else null
     val localKey = "evidence.draft.${accountId ?: "guest"}.${hadith.internalId}.${readerState.language}"
     val localPrefs = remember { context.getSharedPreferences(EvidenceLocalDrafts.PREFERENCES_NAME, 0) }
     var content by remember(localKey) { mutableStateOf(initialContent) }

@@ -1,3 +1,4 @@
+import { advanceLibraryVersion } from "./lib/librarySyncVersions";
 import { recordLegacyLibraryWrite } from "./lib/librarySyncMarks";
 import { normalizedFolderName } from "./lib/savedFolderPolicy";
 import {
@@ -751,6 +752,7 @@ export const createSavedFolder = mutation({
     const identity = await requireIdentity(ctx);
     const user = await userByClerkId(ctx, identity.clerkId);
     if (!user) throw new Error("User not found. Call users:ensureCurrentUser first.");
+    await advanceLibraryVersion(ctx, user._id, "saved");
     const name = normalizedFolderName(args.name);
     const existing = await ctx.db.query("savedFolders").withIndex("by_user_normalized_name", (q) => q.eq("userId", user._id).eq("normalizedName", name.normalizedName)).unique();
     if (existing) throw new Error("FOLDER_NAME_TAKEN");
@@ -787,6 +789,7 @@ export const deleteSavedFolder = mutation({
     const identity = await requireIdentity(ctx);
     const user = await userByClerkId(ctx, identity.clerkId);
     if (!user) return null;
+    await advanceLibraryVersion(ctx, user._id, "saved");
     const folder = await ctx.db.get(args.folderId);
     if (!folder || folder.userId !== user._id) throw new Error("SAVED_FOLDER_NOT_FOUND");
     const items = await ctx.db.query("savedItems").withIndex("by_folder", (q) => q.eq("folderId", folder._id)).collect();
@@ -811,6 +814,7 @@ export const restoreSavedFolder = mutation({
     const identity = await requireIdentity(ctx);
     const user = await userByClerkId(ctx, identity.clerkId);
     if (!user) throw new Error("User not found. Call users:ensureCurrentUser first.");
+    await advanceLibraryVersion(ctx, user._id, "saved");
     const name = normalizedFolderName(args.name);
     let folder = await ctx.db.query("savedFolders")
       .withIndex("by_user_normalized_name", (q) => q.eq("userId", user._id).eq("normalizedName", name.normalizedName))
@@ -838,13 +842,17 @@ export const listSavedSnapshot = query({
   handler: async (ctx) => {
     const identity = await requireIdentity(ctx);
     const user = await userByClerkId(ctx, identity.clerkId);
-    if (!user) return { folders: [], items: [] };
+    return user ? readSavedSnapshot(ctx, user._id) : { folders: [], items: [] };
+  },
+});
+
+export async function readSavedSnapshot(ctx: QueryCtx, userId: Id<"users">) {
     const [items, folders, bookmarks, favorites, notes] = await Promise.all([
-      ctx.db.query("savedItems").withIndex("by_user", (q) => q.eq("userId", user._id)).collect(),
-      ctx.db.query("savedFolders").withIndex("by_user", (q) => q.eq("userId", user._id)).collect(),
-      ctx.db.query("bookmarks").withIndex("by_user", (q) => q.eq("userId", user._id)).collect(),
-      ctx.db.query("favorites").withIndex("by_user", (q) => q.eq("userId", user._id)).collect(),
-      ctx.db.query("notes").withIndex("by_user_hadith", (q) => q.eq("userId", user._id)).collect(),
+      ctx.db.query("savedItems").withIndex("by_user", (q) => q.eq("userId", userId)).collect(),
+      ctx.db.query("savedFolders").withIndex("by_user", (q) => q.eq("userId", userId)).collect(),
+      ctx.db.query("bookmarks").withIndex("by_user", (q) => q.eq("userId", userId)).collect(),
+      ctx.db.query("favorites").withIndex("by_user", (q) => q.eq("userId", userId)).collect(),
+      ctx.db.query("notes").withIndex("by_user_hadith", (q) => q.eq("userId", userId)).collect(),
     ]);
     const merged = new Map<string, {
       hadithId: Id<"hadiths">; bookmarkCreatedAt?: number; favoriteCreatedAt?: number; noteContent?: string; noteCreatedAt?: number; noteUpdatedAt?: number; folderId?: Id<"savedFolders">; createdAt: number; updatedAt: number;
@@ -881,8 +889,7 @@ export const listSavedSnapshot = query({
       folders: folders.sort((a, b) => a.createdAt - b.createdAt).map((folder) => ({ _id: folder._id, name: folder.name, createdAt: folder.createdAt })),
       items: detailed.filter((item) => item.hadith !== null).sort((a, b) => b.updatedAt - a.updatedAt),
     };
-  },
-});
+}
 
 /** Reading progress joined with the hadith, for the continue-reading card. */
 export const listReadingProgressDetailed = query({
@@ -890,10 +897,14 @@ export const listReadingProgressDetailed = query({
   handler: async (ctx) => {
     const identity = await requireIdentity(ctx);
     const user = await userByClerkId(ctx, identity.clerkId);
-    if (!user) return [];
+    return user ? readReadingProgressDetailed(ctx, user._id) : [];
+  },
+});
+
+export async function readReadingProgressDetailed(ctx: QueryCtx, userId: Id<"users">) {
     const rows = await ctx.db
       .query("readingProgress")
-      .withIndex("by_user_collection", (q) => q.eq("userId", user._id))
+      .withIndex("by_user_collection", (q) => q.eq("userId", userId))
       .collect();
     const detailed = await Promise.all(
       rows.map(async (row) => {
@@ -931,8 +942,7 @@ export const listReadingProgressDetailed = query({
       }),
     );
     return detailed.filter((row) => row.hadith !== null);
-  },
-});
+}
 
 /**
  * Private per-collection progress for Library. The outline is the authority
@@ -1115,6 +1125,7 @@ export async function applyReadingPosition(
   if (existing && existing.updatedAt >= position.updatedAt) {
     return { status: "unchanged", rowId: existing._id };
   }
+  await advanceLibraryVersion(ctx, userId, "position");
   const projection = {
     collectionSlug: position.anchor.collectionSlug,
     position,

@@ -22,3 +22,6 @@ extension ReadingPosition {
         return result
     }
 }
+
+extension SyncFrame: ConvexEncodable { }
+extension SyncAcknowledgement: ConvexEncodable { }

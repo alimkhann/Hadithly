@@ -4,201 +4,132 @@ import android.content.Context
 import com.clerk.api.Clerk
 import com.clerk.api.network.serialization.ClerkResult
 import com.clerk.api.network.serialization.errorMessage
+import com.clerk.api.session.Session
 import com.clerk.api.user.delete
-import com.hadithly.app.core.data.ConvexRepository
-import com.hadithly.app.core.data.EvidenceLocalDrafts
-import com.hadithly.app.core.data.GuestDataStore
-import com.hadithly.app.core.data.GuestMergePlanner
-import com.hadithly.app.core.data.UserLibraryModel
-import com.hadithly.app.core.settings.AppSettings
+import com.hadithly.app.core.data.*
 import com.hadithly.app.core.preferences.PreferencesStore
+import com.hadithly.app.core.preferences.nativeText
 import com.hadithly.app.core.preferences.toWireMap
 import com.hadithly.app.core.push.PushNotificationManager
 import com.hadithly.app.core.purchases.PurchaseManager
-import kotlinx.coroutines.CancellationException
-import com.hadithly.app.core.preferences.nativeText
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
+import dev.convex.android.AuthState
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
-import dev.convex.android.AuthState
+import kotlinx.coroutines.flow.combine
 
-/**
- * Owns the sign-in lifecycle: after a Clerk session becomes active it makes
- * sure the Convex user row exists, merges whatever the guest collected
- * on-device into Convex, and clears the local store. Idempotent — safe to
- * run again. Mirrors iOS AppEnvironment.completeSignIn.
- */
+fun currentLibrarySession(): LibrarySyncSession? {
+    if (!Clerk.isInitialized.value) return null
+    val session = Clerk.session ?: return null
+    if (session.status != Session.SessionStatus.ACTIVE) return null
+    val subject = session.user?.id ?: return null
+    return LibrarySyncSession(session.id, subject)
+}
+
+/** Owns activation for the captured active Clerk session. LibrarySync owns data. */
 class SessionManager(
     private val context: Context,
-    private val scope: CoroutineScope,
-    private val settings: AppSettings,
+    scope: CoroutineScope,
     private val preferences: PreferencesStore,
     private val repository: ConvexRepository,
     private val guestData: GuestDataStore,
     private val library: UserLibraryModel,
+    private val sync: LibrarySync,
     private val push: PushNotificationManager,
     private val purchases: PurchaseManager,
 ) {
-
+    private val scope = CoroutineScope(scope.coroutineContext + Dispatchers.Main.immediate)
     private val _syncSummary = MutableStateFlow<String?>(null)
     val syncSummary: StateFlow<String?> = _syncSummary
-
-    private var launchSessionSynced = false
-    private var syncInFlight = false
+    private var observedSession: LibrarySyncSession? = null
+    private var initializedSession: LibrarySyncSession? = null
+    private var completingSession: LibrarySyncSession? = null
+    private var completing: Deferred<Unit>? = null
 
     fun start() {
-        // Clerk restores its client asynchronously; gate on isInitialized
-        // before reading the session or a restored sign-in is missed.
+        if (com.hadithly.app.BuildConfig.DEBUG && System.getProperty("hadithly.disableAutomaticLibrarySync") == "true") return
         scope.launch {
-            Clerk.isInitialized.collect { initialized ->
-                if (!initialized) return@collect
-                if (!launchSessionSynced && isSignedIn()) {
-                    launchSessionSynced = true
-                    completeSignIn()
-                }
+            combine(Clerk.sessionFlow, Clerk.isInitialized) { _, _ -> currentLibrarySession() }.collect { current ->
+                if (current == observedSession) return@collect
+                completing?.cancel(); completing = null
+                sync.deactivate(); initializedSession = null; observedSession = current
+                library.refresh()
+                if (current != null) scope.launch { completeSignIn() } else handleSignOut()
             }
         }
-        // Personal-data subscriptions follow the Convex session, not Clerk's.
-        repository.authState
-            .onEach { state ->
-                when (state) {
-                    is AuthState.Authenticated -> {
-                        if (!launchSessionSynced && isSignedIn()) {
-                            launchSessionSynced = true
-                            completeSignIn()
-                        }
-                        library.refresh()
-                    }
-                    else -> if (!isSignedIn()) {
-                        library.refresh()
-                    }
-                }
-            }
-            .launchIn(scope)
-        // Signed-out detection: the session list empties.
         scope.launch {
-            var hadSession = false
-            Clerk.sessionsFlow.collect { sessions ->
-                if (sessions.isNotEmpty()) {
-                    hadSession = true
-                } else if (hadSession) {
-                    hadSession = false
-                    handleSignOut()
-                }
+            repository.authState.collect { state ->
+                library.refresh()
+                if (state is AuthState.Authenticated && currentLibrarySession() != null) scope.launch { completeSignIn() }
             }
         }
     }
 
-    private fun isSignedIn(): Boolean = Clerk.sessionsFlow.value.isNotEmpty()
+    suspend fun completeSignIn() = withContext(Dispatchers.Main.immediate) {
+        val session = currentLibrarySession() ?: return@withContext
+        if (completingSession == session) completing?.let { it.await(); return@withContext }
+        completing?.cancel()
+        val task = scope.async(start = CoroutineStart.LAZY) { complete(session) }
+        completingSession = session; completing = task
+        task.start(); task.await()
+        if (completing === task) completing = null
+    }
 
-    suspend fun completeSignIn() {
-        if (syncInFlight) return
-        syncInFlight = true
+    private suspend fun complete(session: LibrarySyncSession) {
+        if (!waitForConvexAuthentication(session) || currentLibrarySession() != session) return
+        sync.activate(session)
+        if (currentLibrarySession() != session || sync.owner.value?.subject != session.subject) return
+        if (initializedSession == session) { library.refresh(); return }
         try {
-            if (!waitForConvexAuthentication()) {
-                _syncSummary.value = "Sign-in sync failed: Convex session never activated."
-                library.refresh()
-                return
+            val captured = sync.captureWriteContext()
+            val capability = sync.capability(captured)
+            repository.ensureCurrentUser(preferences.preferences.value.translationLocale, preferences.preferences.value.toWireMap(), capability)
+            if (currentLibrarySession() != session) return
+            repository.getCurrentUserPreferences(capability)?.readerPreferences?.let {
+                if (currentLibrarySession() == session) preferences.adoptServer(it)
             }
-
-            try {
-                repository.ensureCurrentUser(
-                    preferences.preferences.value.translationLocale,
-                    preferences.preferences.value.toWireMap(),
-                )
-                // Adopt the authoritative stored preferences when another
-                // device made the latest explicit change.
-                runCatching { repository.getCurrentUserPreferences() }.getOrNull()
-                    ?.readerPreferences
-                    ?.let { preferences.adoptServer(it) }
-            } catch (error: Exception) {
-                _syncSummary.value = "Account sync failed: ${error.message}"
-                library.refresh()
-                return
-            }
-            Clerk.user?.id?.let(purchases::logIn)
-            push.syncToken()
-
-            val snapshot = try { guestData.snapshots() }
-            catch (cancelled: CancellationException) { throw cancelled }
-            catch (_: Exception) {
-                _syncSummary.value = context.nativeText("Saved items could not load")
-                library.refresh()
-                return
-            }
-            val payload = GuestMergePlanner.makePayload(
-                bookmarks = snapshot.bookmarks,
-                notes = snapshot.notes,
-                favorites = snapshot.favorites,
-                progress = snapshot.progress,
-                folders = snapshot.savedFolders,
-                memberships = snapshot.savedMemberships,
-            )
-
-            if (payload.isEmpty) {
-                _syncSummary.value = "Signed in."
-                library.refresh()
-                return
-            }
-
-            try {
-                val result = repository.mergeGuestData(payload)
-                guestData.clearAll()
-                _syncSummary.value = syncSummaryFor(result)
-            } catch (error: Exception) {
-                // Local data is deliberately kept so a later sign-in retries.
-                _syncSummary.value = "Guest data merge failed: ${error.message}"
-            }
+            if (currentLibrarySession() != session) return
+            purchases.logIn(session.subject)
+            initializedSession = session
+            _syncSummary.value = null
             library.refresh()
-        } finally {
-            syncInFlight = false
-        }
+            push.syncToken()
+        } catch (cancelled: CancellationException) { throw cancelled }
+        catch (_: Exception) { if (currentLibrarySession() == session) _syncSummary.value = context.nativeText("Saved items could not load") }
     }
 
-    /** Called when the Clerk session ends; the guest store was already cleared. */
     fun handleSignOut() {
+        sync.deactivate()
         (context.applicationContext as com.hadithly.app.HadithlyApplication).analytics.clearPending()
-        library.refresh()
-        _syncSummary.value = null
-        purchases.logOut()
+        library.refresh(); _syncSummary.value = null; initializedSession = null
+        if (currentLibrarySession() == null) purchases.logOut()
     }
 
-    /** Delete backend data while authenticated, then delete the Clerk user. */
     suspend fun deleteAccount(): Result<Unit> = runCatching {
+        val session = currentLibrarySession() ?: throw LibrarySyncFailure.SessionChanged
+        val user = Clerk.session?.user ?: throw LibrarySyncFailure.SessionChanged
+        if (user.id != session.subject) throw LibrarySyncFailure.SessionChanged
+        val owner = sync.owner.value ?: throw LibrarySyncFailure.SessionChanged
+        val capability = sync.capability(sync.captureWriteContext())
         (context.applicationContext as com.hadithly.app.HadithlyApplication).analytics.setSharing(false)
-        val accountId = Clerk.user?.id
-        repository.deleteCurrentUser()
-        if (accountId != null) EvidenceLocalDrafts.clearForAccount(context, accountId)
-        val user = Clerk.user ?: return@runCatching
+        sync.deactivate(); library.refresh()
+        repository.deleteCurrentUser(capability)
+        guestData.eraseSyncPartition(owner)
+        EvidenceLocalDrafts.clearForAccount(context, session.subject)
+        if (currentLibrarySession() != session) throw LibrarySyncFailure.SessionChanged
         when (val result = user.delete()) {
-            is ClerkResult.Success -> purchases.logOut()
+            is ClerkResult.Success -> handleSignOut()
             is ClerkResult.Failure -> error(result.errorMessage)
         }
     }
 
-    private fun syncSummaryFor(result: com.hadithly.app.core.data.GuestMergeResult): String {
-        var summary =
-            "Signed in. Merged ${result.bookmarksMerged.toInt()} bookmarks, " +
-                "${result.favoritesMerged.toInt()} favorites, and ${result.notesMerged.toInt()} notes."
-        if (result.progressMerged > 0) {
-            summary += " Restored ${result.progressMerged} reading positions."
-        }
-        return summary
-    }
-
-    private suspend fun waitForConvexAuthentication(timeoutMs: Long = 15_000): Boolean {
-        val deadline = System.currentTimeMillis() + timeoutMs
-        while (System.currentTimeMillis() < deadline) {
+    private suspend fun waitForConvexAuthentication(session: LibrarySyncSession, timeoutMs: Long = 15_000): Boolean {
+        val deadline = android.os.SystemClock.elapsedRealtime() + timeoutMs
+        while (android.os.SystemClock.elapsedRealtime() < deadline && currentLibrarySession() == session) {
             if (repository.isAuthenticated) return true
-            // Clerk may restore a session after the Convex client starts.
-            // Re-attempt its cached login until the verified session is active.
             repository.convex.loginFromCache()
             delay(250)
         }
-        return repository.isAuthenticated
+        return repository.isAuthenticated && currentLibrarySession() == session
     }
 }

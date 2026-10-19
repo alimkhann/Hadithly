@@ -91,13 +91,16 @@ reversal; the exact-text block protects both first-reading paths, while the ordi
 reader's old row remains an A3 repair.
 
 The A2 store diagnostic reproduced unconditional sign-in cleanup deleting newer
-unsent notes and positions. A local typed sync core now preserves frozen batches,
-requires a verified account binding, and retains per-operation conflicts. Its native
-coordinator tests pass against real stores, but the production sign-in callers,
-signed-in writes and subscription projections have not migrated. See
-`LIBRARY_SYNC_CORE_VERIFICATION.md` and `LIBRARY_SYNC_PROTOCOL_VERIFICATION.md`
-for bounded evidence and integration gates. The lifetime receipt cap is now
-replaced by a compact acknowledged sequence; independent review remains pending.
+unsent notes and positions. Both production sign-in callers now use the durable
+coordinator, and account Saved, folder, undo and reading-position writes use its
+persisted queue. Owned read streams preserve accepted local edits until the same
+server revision is observed. Actual-facade offline/reopen, account-switch, late
+read, undo and invalid-write checks pass locally on both platforms. See
+`LIBRARY_SYNC_INTEGRATION_VERIFICATION.md`. The compact receipt protocol passed
+independent source review; the integration review's stale folder-undo finding is
+repaired with an authoritative server member manifest. Final integration re-review,
+local recovery export, deletion restart/retry and anti-recreation, scale/migration
+and real cross-device account delivery remain open.
 Continue A2 integration while retaining A1's content dependencies. No paid
 generation or production change has been approved. Research, later native redesign, website and Linear remain
 pending in the owner's requested order.

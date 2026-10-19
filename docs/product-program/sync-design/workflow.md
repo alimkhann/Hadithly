@@ -8,10 +8,11 @@
   eventual sync, bounded operation, interface depth and actual proof.
 - [x] Pick and graft: record one coherent design and rejected alternatives.
 - [x] Implement and verify the local server/native sync core as a bounded
-  checkpoint. See `../../LIBRARY_SYNC_CORE_VERIFICATION.md`; it is not connected
-  to production sign-in or signed-in writes yet.
-- [ ] Implement: route both callers through the chosen production boundary;
-  repair the red diagnostic through that boundary, not a lookalike helper.
+  checkpoint. See `../../LIBRARY_SYNC_CORE_VERIFICATION.md`.
+- [x] Implement: route production sign-in and account library writes through the
+  chosen boundary on both apps. Actual-facade local evidence is recorded in
+  `../../LIBRARY_SYNC_INTEGRATION_VERIFICATION.md`.
+- [ ] Finish account deletion/retry and local recovery export before A2 acceptance.
 - [ ] Verify: failure, newer edits, retries, missing/invalid targets, duplicate
   sign-in, account change, restart, folders, all facets and semantic positions.
 - [ ] Scrap/redesign if repeated workarounds contradict the chosen ownership.

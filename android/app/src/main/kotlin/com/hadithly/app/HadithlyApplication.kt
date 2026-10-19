@@ -10,6 +10,8 @@ import com.hadithly.app.core.data.CollectionProgressSummary
 import com.hadithly.app.core.offline.OfflineStore
 import com.hadithly.app.core.data.SavedSafetyPreferences
 import com.hadithly.app.core.session.SessionManager
+import com.hadithly.app.core.session.currentLibrarySession
+import com.hadithly.app.core.data.LibrarySync
 import com.hadithly.app.core.preferences.PreferencesStore
 import com.hadithly.app.core.settings.AppSettings
 import com.hadithly.app.core.push.DevicePushProfile
@@ -47,6 +49,8 @@ class HadithlyApplication : Application() {
     lateinit var guestData: GuestDataStore
         private set
     lateinit var library: UserLibraryModel
+        private set
+    lateinit var librarySync: LibrarySync
         private set
     lateinit var readerExperience: com.hadithly.app.core.preferences.ReaderExperiencePreferences
         private set
@@ -87,12 +91,10 @@ class HadithlyApplication : Application() {
         repository = ConvexRepository(this)
         purchases.verifyBackendAccess = { repository.refreshSubscriptionAccess() }
         guestData = GuestDataStore(this)
-        library = UserLibraryModel(
-            repository = repository,
-            guestData = guestData,
-            scope = appScope,
-            isSignedIn = { Clerk.sessionsFlow.value.isNotEmpty() },
-        )
+        librarySync = LibrarySync(guestData, repository, appScope, ::currentLibrarySession)
+        library = UserLibraryModel(repository, guestData, appScope, librarySync, ::currentLibrarySession)
+        librarySync.onOwnerChange = { library.refresh() }
+        librarySync.onPartitionChange = library::partitionChanged
         // W2: widgets receive a bounded display snapshot only. The private
         // R1 position stays in the library and is resolved after a generic tap.
         appScope.launch {
@@ -138,7 +140,7 @@ class HadithlyApplication : Application() {
             context = this,
             repository = repository,
             scope = appScope,
-            isSignedIn = { Clerk.sessionsFlow.value.isNotEmpty() },
+            isSignedIn = { currentLibrarySession() != null },
             deviceProfile = {
                 val current = preferences.preferences.value
                 DevicePushProfile(
@@ -161,11 +163,11 @@ class HadithlyApplication : Application() {
         session = SessionManager(
             context = this,
             scope = appScope,
-            settings = settings,
             preferences = preferences,
             repository = repository,
             guestData = guestData,
             library = library,
+            sync = librarySync,
             push = push,
             purchases = purchases,
         )
@@ -197,9 +199,13 @@ class HadithlyApplication : Application() {
                 WidgetSnapshotStore(this@HadithlyApplication).saveDaily(payload)
                 refreshDailyWidgets(this@HadithlyApplication)
             }
-            if (isSignedIn()) {
+            val capturedSession = currentLibrarySession()
+            val context = runCatching { librarySync.captureWriteContext() }.getOrNull()
+            if (capturedSession != null && context != null) {
                 appScope.launch {
-                    runCatching { repository.updateReaderPreferences(updated.toWireMap()) }
+                    if (currentLibrarySession() != capturedSession) return@launch
+                    runCatching { repository.updateReaderPreferences(updated.toWireMap(), librarySync.capability(context)) }
+                    if (currentLibrarySession() != capturedSession) return@launch
                     // N1: a locale change must also reach this device's push
                     // row so the next notification uses the new translation.
                     runCatching { push.syncToken() }
@@ -208,7 +214,7 @@ class HadithlyApplication : Application() {
         }
     }
 
-    fun isSignedIn(): Boolean = Clerk.sessionsFlow.value.isNotEmpty()
+    fun isSignedIn(): Boolean = currentLibrarySession() != null
 
     /**
      * Canonical ids the O2 activation gate must find in a replacement dump

@@ -1,4 +1,5 @@
 import XCTest
+import Combine
 @testable import Hadithly
 
 final class GuestMergePlannerTests: XCTestCase {
@@ -7,7 +8,7 @@ final class GuestMergePlannerTests: XCTestCase {
     }
 
     private func accepted(_ frame: SyncFrame, reply: SyncReply) -> SyncExchange {
-        .accepted(.init(committed: .init(clientKey: frame.clientKey, sequence: frame.sequence, digest: "fixture-digest", reply: reply)))
+        .accepted(.init(committed: .init(clientKey: frame.clientKey, sequence: frame.sequence, digest: "fixture-digest", revision: .init(saved: frame.sequence, position: frame.sequence), reply: reply)))
     }
 
     private func acknowledged(_ value: SyncAcknowledgement) -> SyncAckReply {
@@ -16,6 +17,33 @@ final class GuestMergePlannerTests: XCTestCase {
 
     @MainActor private func settleFixture(_ reply: SyncReply, frame: SyncFrame, store: GuestDataStore, owner: LibrarySyncOwner) throws {
         try store.settleSyncExchange(accepted(frame, reply: reply), requested: frame, owner: owner)
+    }
+
+    @MainActor func testInvalidPendingNoteRetainsItsOriginalWithoutBlockingTheNextChange() throws {
+        let invalid = LibraryLocalChange(command: .notePut(.init(hadithId: "target", content: String(repeating: "界", count: 8_001), createdAt: 1_000, updatedAt: 1_000)), at: 1_000, source: .account(nil))
+        let next = LibraryLocalChange(command: .bookmarkAdd(.init(hadithId: "target", createdAt: 1_000)), at: 1_000, source: .account(nil))
+        var state = LibraryPartitionState()
+        state.pending = [invalid, next]
+        let frame = try XCTUnwrap(state.freeze())
+        XCTAssertEqual(frame.batch.operations, [next.operation])
+        XCTAssertEqual(state.recovery, [.rejected(invalid)])
+        XCTAssertTrue(state.pending.isEmpty)
+    }
+
+    @MainActor func testActualFacadeRejectsOversizedNoteAndExplicitRemoveNeverAddsAnAbsentBookmark() async throws {
+        let fixture = LibraryFacadeFixture(store: GuestDataStore(inMemory: true))
+        defer { fixture.stop() }
+        await fixture.start()
+        let scope = fixture.model.actionScope
+        XCTAssertFalse(fixture.model.saveNote(fixture.reference, content: String(repeating: "界", count: 8_001)))
+        XCTAssertTrue(fixture.model.lastWriteFailed)
+        XCTAssertTrue(fixture.model.notes.isEmpty)
+        _ = fixture.model.removeBookmark(fixture.reference, scope: scope)
+        XCTAssertFalse(fixture.model.isBookmarked(hadithId: fixture.reference.hadithId))
+        fixture.session.value = nil
+        fixture.sync.deactivate(); fixture.model.refresh()
+        XCTAssertFalse(fixture.model.removeBookmark(fixture.reference, scope: scope))
+        XCTAssertTrue(fixture.store.bookmarkDrafts().isEmpty)
     }
 
     @MainActor func testSignInCleanupPreservesChangesMadeAfterTheSentSnapshot() async throws {
@@ -200,7 +228,7 @@ final class GuestMergePlannerTests: XCTestCase {
         let frame = try XCTUnwrap(store.freezeSyncFrame(owner))
         func exchange(_ replyOwner: String) -> SyncExchange {
             .reconcile(.init(ownerKey: owner.key, clientKey: frame.clientKey, requestedSequence: frame.sequence, requestedBatchId: frame.batch.id,
-                cursor: .init(closedThrough: 0, active: .init(clientKey: frame.clientKey, sequence: 1, digest: "server-proof", reply: .init(ownerKey: replyOwner, batchId: "other-batch", receipts: [.init(id: "other-intent", revision: "r1", outcome: .preserved)])))))
+                cursor: .init(closedThrough: 0, active: .init(clientKey: frame.clientKey, sequence: 1, digest: "server-proof", revision: .init(saved: 1, position: 1), reply: .init(ownerKey: replyOwner, batchId: "other-batch", receipts: [.init(id: "other-intent", revision: "r1", outcome: .preserved)])))))
         }
         XCTAssertThrowsError(try store.settleSyncExchange(exchange("owner-b"), requested: frame, owner: owner))
         XCTAssertEqual(try store.freezeSyncFrame(owner), frame)
@@ -223,6 +251,124 @@ final class GuestMergePlannerTests: XCTestCase {
         let frame = try XCTUnwrap(store.freezeSyncFrame(owner))
         XCTAssertEqual(frame.batch.operations.count, 1)
         XCTAssertEqual(try store.syncPartition(owner)?.pending.count, 1)
+    }
+
+    @MainActor func testActualLibraryFacadePersistsOfflineIntentsAndRestoresProjectionAfterReopen() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("facade.store")
+        let first = LibraryFacadeFixture(store: GuestDataStore(storeURL: url))
+        await first.start()
+        first.saved.send(.init(ownerKey: "owner-a", version: 0, folders: [], items: []))
+        try await waitForLibrary { first.model.loadState == .ready }
+        let ref = first.reference
+        first.model.toggleBookmark(ref)
+        first.model.toggleFavorite(ref)
+        first.model.saveNote(ref, content: "Offline private fixture")
+        first.model.createFolder(name: "Private folder", scope: first.model.actionScope)
+        let folder = try XCTUnwrap(first.model.folders.first)
+        first.model.assignFolder(hadithId: ref.hadithId, folderId: folder.id, scope: first.model.actionScope)
+        let position = try XCTUnwrap(ReadingPosition.legacy(collectionSlug: "bukhari", providerHadithId: "1", volumeId: "1", updatedAt: Date.now.millisecondsSinceEpoch))
+        first.model.saveProgress(position, ref: ref)
+        first.model.toggleBookmark(ref)
+        first.model.restoreBookmark(ref, createdAt: .now)
+        let note = try XCTUnwrap(first.model.notes.first)
+        first.model.deleteNote(ref, scope: first.model.actionScope)
+        first.model.restoreNote(ref, content: "Offline private fixture", createdAt: note.createdAt, updatedAt: note.sortDate)
+        first.model.deleteFolder(folder, scope: first.model.actionScope)
+        first.model.undoDeleteFolder()
+        XCTAssertTrue(first.model.isBookmarked(hadithId: ref.hadithId))
+        XCTAssertTrue(first.model.isFavorite(hadithId: ref.hadithId))
+        XCTAssertEqual(first.model.notes.first?.noteContent, "Offline private fixture")
+        XCTAssertEqual(first.model.folders.first?.name, "Private folder")
+        XCTAssertEqual(first.model.savedItems.first?.folderId, first.model.folders.first?.id)
+        XCTAssertEqual(first.model.continueReading?.position?.anchor.providerHadithId, "1")
+        try await waitForLibrary { !first.server.frames.isEmpty }
+        let owner = try XCTUnwrap(first.sync.owner)
+        let state = try XCTUnwrap(first.store.syncPartition(owner))
+        XCTAssertFalse(state.pending.isEmpty)
+        XCTAssertNotNil(state.frozen)
+        first.stop()
+        let reopened = LibraryFacadeFixture(store: GuestDataStore(storeURL: url))
+        defer { reopened.stop() }
+        await reopened.start()
+        XCTAssertTrue(reopened.model.isBookmarked(hadithId: ref.hadithId))
+        XCTAssertTrue(reopened.model.isFavorite(hadithId: ref.hadithId))
+        XCTAssertEqual(reopened.model.notes.first?.noteContent, "Offline private fixture")
+        XCTAssertEqual(reopened.model.savedItems.first?.folderId, reopened.model.folders.first?.id)
+        XCTAssertEqual(reopened.model.continueReading?.position?.anchor.providerHadithId, "1")
+    }
+
+    @MainActor func testActualLibraryFacadeKeepsAcceptedNoteUntilOwnedQueryRevisionCatchesUp() async throws {
+        let fixture = LibraryFacadeFixture(store: GuestDataStore(inMemory: true))
+        defer { fixture.stop() }
+        await fixture.start()
+        fixture.saved.send(.init(ownerKey: "owner-a", version: 0, folders: [], items: []))
+        try await waitForLibrary { fixture.model.loadState == .ready }
+        fixture.model.saveNote(fixture.reference, content: "Accepted private fixture")
+        try await waitForLibrary { !fixture.server.frames.isEmpty }
+        fixture.server.failSends = false
+        await fixture.sync.activate(try XCTUnwrap(fixture.session.value))
+        let owner = try XCTUnwrap(fixture.sync.owner)
+        try await waitForLibrary {
+            guard let state = try? fixture.store.syncPartition(owner) else { return false }
+            return state.frozen == nil && state.acknowledgement == nil && state.confirmed.count == 1
+        }
+        XCTAssertTrue(try fixture.store.syncPartition(owner)?.pending.isEmpty == true)
+        XCTAssertNil(try fixture.store.syncPartition(owner)?.frozen)
+        XCTAssertNil(try fixture.store.syncPartition(owner)?.acknowledgement)
+        XCTAssertEqual(fixture.model.notes.first?.noteContent, "Accepted private fixture")
+        XCTAssertEqual(try fixture.store.syncPartition(owner)?.confirmed.count, 1)
+        fixture.saved.send(.init(ownerKey: "owner-a", version: 0, folders: [], items: []))
+        fixture.positions.send(.init(ownerKey: "owner-a", version: 50, rows: []))
+        try await waitForLibrary { (try? fixture.store.syncPartition(owner)?.positionsSnapshot?.version) == 50 }
+        XCTAssertEqual(fixture.model.notes.first?.noteContent, "Accepted private fixture")
+        XCTAssertEqual(try fixture.store.syncPartition(owner)?.confirmed.count, 1)
+        fixture.saved.send(fixture.snapshot(version: 2, note: "Later cloud fixture"))
+        try await waitForLibrary { fixture.model.notes.first?.noteContent == "Later cloud fixture" }
+        XCTAssertTrue(try fixture.store.syncPartition(owner)?.confirmed.isEmpty == true)
+        fixture.saved.send(fixture.snapshot(version: 1, note: "Older delayed fixture"))
+        fixture.positions.send(.init(ownerKey: "owner-a", version: 99, rows: []))
+        try await waitForLibrary { (try? fixture.store.syncPartition(owner)?.positionsSnapshot?.version) == 99 }
+        XCTAssertEqual(fixture.model.notes.first?.noteContent, "Later cloud fixture")
+    }
+
+    @MainActor func testActualLibraryFacadeRejectsLateAccountReadsAndUndoAfterSwitchAndSignOut() async throws {
+        let fixture = LibraryFacadeFixture(store: GuestDataStore(inMemory: true))
+        defer { fixture.stop() }
+        await fixture.start()
+        fixture.saved.send(fixture.snapshot(version: 0, note: "Account A fixture"))
+        try await waitForLibrary { fixture.model.notes.first?.noteContent == "Account A fixture" }
+        fixture.model.toggleBookmark(fixture.reference)
+        fixture.model.toggleBookmark(fixture.reference)
+        fixture.model.deleteNote(fixture.reference, scope: fixture.model.actionScope)
+        fixture.saved.send(fixture.snapshot(version: 1, note: "Queued late A fixture"))
+        fixture.session.value = .init(id: "session-b", subject: "subject-b")
+        fixture.sync.deactivate(); fixture.model.refresh()
+        await fixture.sync.activate(try XCTUnwrap(fixture.session.value))
+        fixture.saved.send(fixture.snapshot(version: 20, note: "Wrong owner fixture"))
+        fixture.saved.send(.init(ownerKey: "owner-b", version: 0, folders: [], items: []))
+        try await waitForLibrary { fixture.model.loadState == .ready }
+        fixture.model.restoreBookmark(fixture.reference, createdAt: .now)
+        fixture.model.restoreNote(fixture.reference, content: "A undo fixture", createdAt: .now, updatedAt: .now)
+        let ownerB = try XCTUnwrap(fixture.sync.owner)
+        XCTAssertTrue(fixture.model.savedItems.isEmpty)
+        XCTAssertTrue(try fixture.store.syncPartition(ownerB)?.pending.isEmpty == true)
+        XCTAssertNil(try fixture.store.syncPartition(ownerB)?.frozen)
+        XCTAssertEqual(try fixture.store.syncPartition(ownerB)?.savedSnapshot?.ownerKey, "owner-b")
+        fixture.session.value = nil; fixture.sync.deactivate(); fixture.model.refresh()
+        fixture.model.restoreBookmark(fixture.reference, createdAt: .now)
+        fixture.model.restoreNote(fixture.reference, content: "A undo fixture", createdAt: .now, updatedAt: .now)
+        XCTAssertTrue(fixture.store.bookmarkDrafts().isEmpty)
+        XCTAssertTrue(fixture.store.noteDrafts().isEmpty)
+        XCTAssertTrue(fixture.model.savedItems.isEmpty)
+    }
+
+    @MainActor private func waitForLibrary(_ condition: () -> Bool) async throws {
+        let deadline = ContinuousClock.now.advanced(by: .seconds(3))
+        while !condition(), ContinuousClock.now < deadline { try await Task.sleep(for: .milliseconds(10)) }
+        XCTAssertTrue(condition(), "Library state did not converge")
     }
 
     // MARK: - Valid hadith id filtering
@@ -368,5 +514,62 @@ final class GuestMergePlannerTests: XCTestCase {
             ]
         )
         XCTAssertFalse(withFavorite.isEmpty)
+    }
+}
+
+@MainActor private final class LibraryFixtureSession {
+    var value: LibrarySyncSession? = .init(id: "session-a", subject: "subject-a")
+}
+
+@MainActor private final class LibraryFixtureServer {
+    enum Failure: Error { case offline }
+    var frames: [SyncFrame] = []
+    var failSends = true
+    var revisions: [String: SyncRevision] = [:]
+    func send(_ capability: String, _ frame: SyncFrame) throws -> SyncExchange {
+        frames.append(frame)
+        if failSends { throw Failure.offline }
+        let owner = String(capability.dropFirst("fixture:".count))
+        let old = revisions[owner] ?? .init(saved: 0, position: 0)
+        let saved = frame.batch.operations.contains { !$0.command.isPositionChange }
+        let position = frame.batch.operations.contains { $0.command.isPositionChange }
+        let revision = SyncRevision(saved: old.saved + (saved ? 1 : 0), position: old.position + (position ? 1 : 0))
+        revisions[owner] = revision
+        let receipts = frame.batch.operations.map { SyncReceipt(id: $0.id, revision: $0.revision, outcome: .preserved) }
+        return .accepted(.init(committed: .init(clientKey: frame.clientKey, sequence: frame.sequence, digest: "fixture-proof", revision: revision,
+            reply: .init(ownerKey: owner, batchId: frame.batch.id, receipts: receipts))))
+    }
+}
+
+@MainActor private final class LibraryFacadeFixture {
+    let store: GuestDataStore
+    let session = LibraryFixtureSession()
+    let server = LibraryFixtureServer()
+    let saved = PassthroughSubject<SyncSavedSnapshot, Error>()
+    let positions = PassthroughSubject<SyncPositionsSnapshot, Error>()
+    let sync: LibrarySync
+    let model: UserLibraryModel
+    let reference = HadithRef(hadithId: "jn7fxd3z54153q9j13kmhgzkv18df2zd", collectionSlug: "bukhari", collectionName: "Bukhari", volumeId: "1", hadithNumber: "1", arabicText: "نص", englishText: "Fixture", referenceDisplay: "Bukhari 1")
+    init(store: GuestDataStore) {
+        self.store = store
+        let session = self.session, server = self.server, saved = self.saved, positions = self.positions
+        sync = LibrarySync(store: store, transport: .init(namespace: "fixture", open: {
+            guard let current = session.value else { throw LibrarySyncFailure.sessionChanged }
+            let owner = current.subject == "subject-a" ? "owner-a" : "owner-b"
+            return .init(ownerKey: owner, subject: current.subject, capability: "fixture:" + owner, validUntil: Date.now.millisecondsSinceEpoch + 900_000)
+        }, acknowledge: { capability, value in
+            .init(ownerKey: String(capability.dropFirst("fixture:".count)), clientKey: value.clientKey, cursor: .init(closedThrough: value.sequence, active: nil))
+        }, send: { capability, frame in try server.send(capability, frame) }), currentSession: { session.value })
+        model = UserLibraryModel(reads: .init(saved: { saved.eraseToAnyPublisher() }, positions: { positions.eraseToAnyPublisher() }), guestData: store, sync: sync, currentSession: { session.value })
+        let model = self.model
+        sync.onOwnerChange = { [weak model] _ in model?.refresh() }
+        sync.onPartitionChange = { [weak model] owner in model?.partitionChanged(owner) }
+    }
+    func start() async { if let current = session.value { await sync.activate(current) }; model.refresh() }
+    func stop() { sync.deactivate(); session.value = nil; model.refresh() }
+    func snapshot(version: Double, note: String) -> SyncSavedSnapshot {
+        .init(ownerKey: "owner-a", version: version, folders: [], items: [.init(hadithId: reference.hadithId, createdAt: 1_000, updatedAt: 2_000,
+            bookmarkCreatedAt: nil, favoriteCreatedAt: nil, noteContent: note, noteCreatedAt: 1_000, noteUpdatedAt: 2_000, folderId: nil,
+            hadith: .init(_id: reference.hadithId, providerHadithId: "1", collectionSlug: "bukhari", collectionName: "Bukhari", volumeId: "1", arabicText: "نص", englishText: "Fixture", referenceDisplay: "Bukhari 1"))])
     }
 }

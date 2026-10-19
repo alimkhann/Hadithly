@@ -17,7 +17,7 @@ describe("identity boundary", () => {
     await expect(t.query(api.users.getCurrentUser)).rejects.toThrow(
       "Unauthenticated",
     );
-    await expect(t.mutation(api.users.deleteCurrentUser)).rejects.toThrow(
+    await expect(t.mutation(api.users.deleteCurrentUser, {})).rejects.toThrow(
       "Unauthenticated",
     );
     await expect(t.query(api.library.listBookmarks)).rejects.toThrow(
@@ -160,10 +160,10 @@ describe("deletion boundary", () => {
     });
     const authenticated = t.withIdentity({ subject: clerkId });
 
-    await expect(authenticated.mutation(api.users.deleteCurrentUser)).resolves.toBe(
+    await expect(authenticated.mutation(api.users.deleteCurrentUser, {})).resolves.toBe(
       true,
     );
-    await expect(authenticated.mutation(api.users.deleteCurrentUser)).resolves.toBe(
+    await expect(authenticated.mutation(api.users.deleteCurrentUser, {})).resolves.toBe(
       false,
     );
 

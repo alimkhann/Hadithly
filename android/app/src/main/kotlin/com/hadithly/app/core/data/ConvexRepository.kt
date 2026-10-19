@@ -35,7 +35,7 @@ data class FolderDeletionResult(val name: String, val hadithIds: List<String>, v
  * wrapper, which `v.number()` validators reject (same trap as on iOS).
  * Numeric arguments travel as Double.
  */
-class ConvexRepository(context: Context) {
+class ConvexRepository(context: Context) : LibraryReadTransport, LibrarySyncTransport {
     private val appContext = context.applicationContext
     private val generationRequest = GenerationRequest(appContext)
 
@@ -55,6 +55,20 @@ class ConvexRepository(context: Context) {
 
     suspend fun mutation(name: String, args: Map<String, Any?> = emptyMap()) {
         withContext(Dispatchers.IO) { convex.mutation(name, args) }
+    }
+
+    override val namespace: String get() = BuildConfig.CONVEX_URL
+    override fun savedSnapshot(): Flow<SyncSavedSnapshot> = subscribe<SyncSavedSnapshot>("librarySync:savedSnapshot").flowOn(Dispatchers.IO)
+    override fun positionsSnapshot(): Flow<SyncPositionsSnapshot> = subscribe<SyncPositionsSnapshot>("librarySync:positionsSnapshot").flowOn(Dispatchers.IO)
+    override suspend fun open(): SyncBinding = withContext(Dispatchers.IO) {
+        ensureCurrentUser()
+        convex.mutation<SyncBinding>("librarySync:openBinding", emptyMap())
+    }
+    override suspend fun send(capability: String, frame: SyncFrame): SyncExchange = withContext(Dispatchers.IO) {
+        convex.mutation<SyncExchange>("librarySync:applyBatch", mapOf("capability" to capability, "frame" to frame.toConvexArgument()))
+    }
+    override suspend fun acknowledge(capability: String, acknowledgement: SyncAcknowledgement): SyncAckReply = withContext(Dispatchers.IO) {
+        convex.mutation<SyncAckReply>("librarySync:acknowledge", mapOf("capability" to capability, "acknowledgement" to acknowledgement.toConvexArgument()))
     }
 
     // Reading
@@ -309,26 +323,28 @@ class ConvexRepository(context: Context) {
 
     // Account + guest merge
 
-    suspend fun ensureCurrentUser(preferredLanguage: String, readerPreferences: Map<String, Any?>? = null) {
-        val args = mutableMapOf<String, Any?>("preferredLanguage" to preferredLanguage)
+    suspend fun ensureCurrentUser(preferredLanguage: String? = null, readerPreferences: Map<String, Any?>? = null, capability: String? = null) {
+        val args = mutableMapOf<String, Any?>()
+        if (preferredLanguage != null) args["preferredLanguage"] = preferredLanguage
+        if (capability != null) args["capability"] = capability
         if (readerPreferences != null) args["readerPreferences"] = readerPreferences
         withContext(Dispatchers.IO) {
             convex.mutation<String>("users:ensureCurrentUser", args)
         }
     }
 
-    suspend fun updateReaderPreferences(prefs: Map<String, Any?>) =
-        mutation("users:updateReaderPreferences", mapOf("readerPreferences" to prefs))
+    suspend fun updateReaderPreferences(prefs: Map<String, Any?>, capability: String) =
+        mutation("users:updateReaderPreferences", mapOf("readerPreferences" to prefs, "capability" to capability))
 
     /** One-shot read so the device can adopt the authoritative stored state. */
-    suspend fun getCurrentUserPreferences(): UserPreferencesResult? =
+    suspend fun getCurrentUserPreferences(capability: String): UserPreferencesResult? =
         withContext(Dispatchers.IO) {
-            subscribe<UserPreferencesResult>("users:getCurrentUserPreferences").firstOrNull()
+            subscribe<UserPreferencesResult>("users:getCurrentUserPreferences", mapOf("capability" to capability)).firstOrNull()
         }
 
-    suspend fun deleteCurrentUser() {
+    suspend fun deleteCurrentUser(capability: String) {
         withContext(Dispatchers.IO) {
-            convex.mutation<Boolean>("users:deleteCurrentUser", emptyMap())
+            convex.mutation<Boolean>("users:deleteCurrentUser", mapOf("capability" to capability))
         }
     }
 

@@ -62,8 +62,7 @@ final class NativePresentationTests: XCTestCase {
 
     func testGuestSavedLoadingEndsWithTheActualLocalSnapshot() {
         let guest = GuestDataStore(inMemory: true)
-        let client = ConvexClientWithAuth(deploymentUrl: "https://example.invalid", authProvider: ClerkConvexAuthProvider())
-        let model = UserLibraryModel(convex: client, guestData: guest, isSignedIn: { false })
+        let model = UserLibraryModel(guestData: guest)
         XCTAssertEqual(model.loadState, .loading)
         model.refresh()
         XCTAssertEqual(model.loadState, .ready)

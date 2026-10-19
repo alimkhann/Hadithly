@@ -11,6 +11,7 @@ import SwiftData
 final class GuestDataStore {
     /// Observable so views can react to local insertions without re-fetching.
     private(set) var itemCount = 0
+    private(set) var lastWriteFailed = false
     var onGuestChanged: (() -> Void)?
 
     private let container: ModelContainer
@@ -60,8 +61,8 @@ final class GuestDataStore {
         for model in fetchBookmarks().filter({ $0.hadithId == hadithId }) {
             context.delete(model)
         }
-        saveGuestChanges()
         removeMembershipIfUnsaved(hadithId: hadithId)
+        saveGuestChanges()
         refreshCount()
     }
 
@@ -103,8 +104,8 @@ final class GuestDataStore {
         for model in fetchFavorites().filter({ $0.hadithId == hadithId }) {
             context.delete(model)
         }
-        saveGuestChanges()
         removeMembershipIfUnsaved(hadithId: hadithId)
+        saveGuestChanges()
         refreshCount()
     }
 
@@ -172,8 +173,8 @@ final class GuestDataStore {
         for model in fetchNotes().filter({ $0.hadithId == hadithId }) {
             context.delete(model)
         }
-        saveGuestChanges()
         removeMembershipIfUnsaved(hadithId: hadithId)
+        saveGuestChanges()
         refreshCount()
     }
 
@@ -404,6 +405,26 @@ final class GuestDataStore {
         try saveSyncPartition(state, owner: owner)
     }
 
+    func cacheSavedSnapshot(_ snapshot: SyncSavedSnapshot, owner: LibrarySyncOwner) throws {
+        guard snapshot.ownerKey == owner.key else { throw LibrarySyncFailure.ownerMismatch }
+        guard var state = try syncPartition(owner) else { throw LibrarySyncFailure.sessionChanged }
+        guard snapshot.version.isFinite, snapshot.version >= 0, snapshot.version.rounded(.down) == snapshot.version else { throw LibrarySyncFailure.invalidReceipt }
+        if snapshot.version < (state.savedSnapshot?.version ?? -1) { return }
+        state.savedSnapshot = snapshot
+        state.pruneConfirmed()
+        try saveSyncPartition(state, owner: owner)
+    }
+
+    func cachePositionsSnapshot(_ snapshot: SyncPositionsSnapshot, owner: LibrarySyncOwner) throws {
+        guard snapshot.ownerKey == owner.key else { throw LibrarySyncFailure.ownerMismatch }
+        guard var state = try syncPartition(owner) else { throw LibrarySyncFailure.sessionChanged }
+        guard snapshot.version.isFinite, snapshot.version >= 0, snapshot.version.rounded(.down) == snapshot.version else { throw LibrarySyncFailure.invalidReceipt }
+        if snapshot.version < (state.positionsSnapshot?.version ?? -1) { return }
+        state.positionsSnapshot = snapshot
+        state.pruneConfirmed()
+        try saveSyncPartition(state, owner: owner)
+    }
+
     func eraseSyncPartition(_ owner: LibrarySyncOwner) throws {
         if let row = try partitionRow(owner) { context.delete(row) }
         do { try context.save() }
@@ -414,20 +435,11 @@ final class GuestDataStore {
 
     /// Called only after the merge mutation reports success — the Convex copy
     /// is authoritative from that point on.
-    func clearAll() {
-        try? context.delete(model: GuestBookmark.self)
-        try? context.delete(model: GuestNote.self)
-        try? context.delete(model: GuestFavorite.self)
-        try? context.delete(model: GuestSavedFolder.self)
-        try? context.delete(model: GuestSavedMembership.self)
-        try? context.delete(model: GuestReadingProgress.self)
-        saveGuestChanges()
-        refreshCount()
-    }
+
 
     private func saveGuestChanges() {
-        guard (try? context.save()) != nil else { return }
-        onGuestChanged?()
+        do { try context.save(); lastWriteFailed = false; onGuestChanged?() }
+        catch { context.rollback(); lastWriteFailed = true }
     }
 
     private func refreshCount() {
@@ -468,7 +480,6 @@ final class GuestDataStore {
     private func removeMembershipIfUnsaved(hadithId: String) {
         guard !isBookmarked(hadithId: hadithId), !isFavorite(hadithId: hadithId), !fetchNotes().contains(where: { $0.hadithId == hadithId }) else { return }
         for membership in fetchMemberships().filter({ $0.hadithId == hadithId }) { context.delete(membership) }
-        saveGuestChanges()
     }
 
     nonisolated static func validFolderName(_ input: String) -> Bool {

@@ -1,3 +1,4 @@
+import { requireLibraryBinding } from "./lib/librarySyncIdentity";
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
@@ -30,10 +31,12 @@ import {
  */
 export const ensureCurrentUser = mutation({
   args: {
+    capability: v.optional(v.string()),
     preferredLanguage: v.optional(v.string()),
     readerPreferences: v.optional(v.union(readerPreferencesValidator, legacyReaderPreferencesValidator)),
   },
   handler: async (ctx, args) => {
+    if (args.capability !== undefined) await requireLibraryBinding(ctx, args.capability);
     const identity = await requireIdentity(ctx);
     const now = Date.now();
     const existing = await ctx.db
@@ -110,8 +113,10 @@ export const ensureCurrentUser = mutation({
  * all-hidden visibility state in shared domain logic.
  */
 export const updateReaderPreferences = mutation({
-  args: { readerPreferences: v.union(readerPreferencesValidator, legacyReaderPreferencesValidator) },
+  args: {
+    capability: v.optional(v.string()), readerPreferences: v.union(readerPreferencesValidator, legacyReaderPreferencesValidator) },
   handler: async (ctx, args) => {
+    if (args.capability !== undefined) await requireLibraryBinding(ctx, args.capability);
     const identity = await requireIdentity(ctx);
     const now = Date.now();
     const existing = await ctx.db
@@ -142,8 +147,9 @@ export const updateReaderPreferences = mutation({
 
 /** One-shot read so clients can adopt the authoritative stored preferences. */
 export const getCurrentUserPreferences = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { capability: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    if (args.capability !== undefined) await requireLibraryBinding(ctx, args.capability);
     const identity = await requireIdentity(ctx);
     const user = await ctx.db
       .query("users")
@@ -178,8 +184,9 @@ export const getCurrentUser = query({
  * reauthentication (biometric/passcode) before sharing the file.
  */
 export const exportCurrentUserData = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { capability: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    if (args.capability !== undefined) await requireLibraryBinding(ctx, args.capability);
     const identity = await requireIdentity(ctx);
     const generatedAt = Date.now();
     const user = await ctx.db
@@ -323,8 +330,9 @@ export const exportCurrentUserData = query({
  * can still finish deleting the Clerk account.
  */
 export const deleteCurrentUser = mutation({
-  args: {},
-  handler: async (ctx) => {
+  args: { capability: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    if (args.capability !== undefined) await requireLibraryBinding(ctx, args.capability);
     const identity = await requireIdentity(ctx);
     const user = await ctx.db
       .query("users")
@@ -361,7 +369,7 @@ export const deleteCurrentUser = mutation({
       ctx.db.query("adminAuditLog").withIndex("by_actor", (q) => q.eq("actorUserId", user._id)).collect(),
     ]);
 
-    for (const table of ["librarySyncBindings", "librarySyncStreams", "librarySyncMarks", "librarySyncFolderKeys"] as const) {
+    for (const table of ["librarySyncBindings", "librarySyncStreams", "librarySyncMarks", "librarySyncFolderKeys", "librarySyncVersions"] as const) {
       const rows = await ctx.db.query(table).withIndex("by_user", q => q.eq("userId", user._id)).collect();
       for (const row of rows) await ctx.db.delete(row._id);
     }

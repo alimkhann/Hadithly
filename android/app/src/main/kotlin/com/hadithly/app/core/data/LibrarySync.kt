@@ -46,6 +46,7 @@ sealed interface LibraryRecovery {
     @Serializable data class Invalid(val source: LibraryLocalSource) : LibraryRecovery
     @Serializable data class Server(val change: LibraryLocalChange, val outcome: SyncOutcome) : LibraryRecovery
     @Serializable data class Historical(val change: LibraryLocalChange) : LibraryRecovery
+    @Serializable data class Rejected(val change: LibraryLocalChange) : LibraryRecovery
 }
 
 @Serializable
@@ -53,6 +54,41 @@ data class LibraryRecentReceipt(val receipt: SyncReceipt, val expiresAt: Double)
 
 @Serializable
 data class LibrarySyncPartition(val ownerKey: String, val subject: String, val state: LibraryPartitionState)
+
+object LibrarySyncAdmission {
+    fun accepts(command: SyncCommand, at: Double, now: Double = System.currentTimeMillis().toDouble()): Boolean {
+        fun time(value: Double) = value.isFinite() && value >= 0 && value <= now + 300_000
+        fun target(value: String) = value.isNotEmpty() && value.length <= 128
+        fun key(value: String) = value.matches(Regex("^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"))
+        fun note(value: String) = value.isNotEmpty() && value.toByteArray(Charsets.UTF_8).size <= LibrarySyncLimits.noteBytes
+        fun folder(value: SyncFolderReference) = when (value) { SyncFolderReference.None -> true; is SyncFolderReference.Server -> target(value.id); is SyncFolderReference.Local -> key(value.key) }
+        if (!time(at)) return false
+        return when (command) {
+            is SyncCommand.BookmarkAdd -> target(command.hadithId) && time(command.createdAt)
+            is SyncCommand.FavoriteAdd -> target(command.hadithId) && time(command.createdAt)
+            is SyncCommand.BookmarkRemove -> target(command.hadithId)
+            is SyncCommand.FavoriteRemove -> target(command.hadithId)
+            is SyncCommand.NotePut -> target(command.hadithId) && note(command.content) && time(command.createdAt) && time(command.updatedAt)
+            is SyncCommand.NoteRemove -> target(command.hadithId)
+            is SyncCommand.FolderCreate -> key(command.key) && GuestMergePlanner.isValidFolderName(command.name)
+            is SyncCommand.FolderDelete -> command.folder != SyncFolderReference.None && folder(command.folder)
+            is SyncCommand.MembershipPut -> target(command.hadithId) && folder(command.folder)
+            is SyncCommand.PositionPut -> time(command.position.updatedAt)
+            is SyncCommand.LegacyPositionPut -> target(command.hadithId) && time(command.updatedAt)
+            is SyncCommand.FacetRestore -> target(command.hadithId) && key(command.deletionId) && when (val value = command.value) {
+                is SyncCommandFacetRestoreValue.Bookmark -> time(value.createdAt)
+                is SyncCommandFacetRestoreValue.Favorite -> time(value.createdAt)
+                is SyncCommandFacetRestoreValue.Note -> note(value.content) && time(value.createdAt) && time(value.updatedAt)
+            }
+            is SyncCommand.FolderRestore -> key(command.deletionId) && GuestMergePlanner.isValidFolderName(command.name) && command.hadithIds.size <= 500 && command.hadithIds.distinct().size == command.hadithIds.size && command.hadithIds.all(::target)
+        }
+    }
+}
+
+@Serializable
+data class LibraryConfirmedChange(val change: LibraryLocalChange, val outcome: SyncOutcome, val version: Double)
+
+val SyncCommand.isPositionChange: Boolean get() = this is SyncCommand.PositionPut || this is SyncCommand.LegacyPositionPut
 
 @Serializable
 data class LibraryPartitionState(
@@ -63,9 +99,13 @@ data class LibraryPartitionState(
     val clientKey: String = UUID.randomUUID().toString(),
     var nextSequence: Double = 1.0,
     var acknowledgement: SyncAcknowledgement? = null,
+    var confirmed: List<LibraryConfirmedChange> = emptyList(),
+    var folderMappings: Map<String, String> = emptyMap(),
+    var savedSnapshot: SyncSavedSnapshot? = null,
+    var positionsSnapshot: SyncPositionsSnapshot? = null,
 ) {
     fun append(source: LibraryLocalSource, command: SyncCommand?, at: Double) {
-        if (command == null || !at.isFinite() || at < 0) recovery = recovery + LibraryRecovery.Invalid(source)
+        if (command == null || !LibrarySyncAdmission.accepts(command, at)) recovery = recovery + LibraryRecovery.Invalid(source)
         else pending = pending + LibraryLocalChange(command, at, source)
     }
     fun freeze(): SyncFrame? {
@@ -75,18 +115,23 @@ data class LibraryPartitionState(
         val id = UUID.randomUUID().toString()
         val selected = mutableListOf<LibraryLocalChange>()
         var fanout = 0
-        for (change in pending.take(LibrarySyncLimits.operations)) {
+        while (pending.isNotEmpty() && selected.size < LibrarySyncLimits.operations) {
+            val change = pending.first()
+            if (!LibrarySyncAdmission.accepts(change.operation.command, change.operation.at)) {
+                recovery = recovery + LibraryRecovery.Rejected(change); pending = pending.drop(1); continue
+            }
             val extra = when (change.operation.command) { is SyncCommand.FolderDelete, is SyncCommand.FolderRestore -> 1; else -> 0 }
             if (fanout + extra > LibrarySyncLimits.fanoutOperations) break
             val candidate = SyncBatch(id, (selected + change).map { it.operation })
-            if (Json.encodeToString(candidate).toByteArray(Charsets.UTF_8).size > LibrarySyncLimits.bytes) break
-            selected.add(change)
-            fanout += extra
+            if (Json.encodeToString(candidate).toByteArray(Charsets.UTF_8).size > LibrarySyncLimits.bytes) {
+                if (selected.isEmpty()) { recovery = recovery + LibraryRecovery.Rejected(change); pending = pending.drop(1); continue }
+                break
+            }
+            selected.add(change); pending = pending.drop(1); fanout += extra
         }
-        if (selected.isEmpty()) throw LibrarySyncFailure.OversizedChange
+        if (selected.isEmpty()) return null
         val batch = SyncBatch(id, selected.map { it.operation })
         frozen = LibraryFrozenBatch(batch, selected)
-        pending = pending.drop(selected.size)
         return SyncFrame(clientKey, nextSequence, batch)
     }
     private fun settleReceipts(reply: SyncReply, now: Double) {
@@ -117,6 +162,12 @@ data class LibraryPartitionState(
         frozen = null
         nextSequence++
     }
+    fun pruneConfirmed() {
+        confirmed = confirmed.filter { value ->
+            val observed = if (value.change.operation.command.isPositionChange) positionsSnapshot?.version else savedSnapshot?.version
+            (observed ?: -1.0) < value.version
+        }
+    }
     private fun checkCursor(cursor: SyncCursor) {
         if (!cursor.closedThrough.isFinite() || cursor.closedThrough < 0 || kotlin.math.floor(cursor.closedThrough) != cursor.closedThrough || cursor.closedThrough >= 9_007_199_254_740_991.0) throw LibrarySyncFailure.InvalidReceipt
         cursor.active?.let {
@@ -136,7 +187,23 @@ data class LibraryPartitionState(
             is SyncExchange.Accepted -> {
                 val committed = exchange.committed
                 if (committed.clientKey != clientKey || committed.sequence != requested.sequence || committed.digest.isEmpty()) throw LibrarySyncFailure.InvalidReceipt
+                val submitted = frozen?.changes.orEmpty()
                 settleReceipts(committed.reply, now)
+                for (change in submitted) {
+                    val receipt = committed.reply.receipts.first { it.id == change.operation.id }
+                    when (receipt.outcome) {
+                        SyncOutcome.Preserved, is SyncOutcome.Folder, is SyncOutcome.FolderDeleted, is SyncOutcome.FolderRestored, is SyncOutcome.ResolvedPosition -> {
+                            val version = if (change.operation.command.isPositionChange) committed.revision.position else committed.revision.saved
+                            confirmed = confirmed + LibraryConfirmedChange(change, receipt.outcome, version)
+                        }
+                        is SyncOutcome.Superseded, is SyncOutcome.Unresolved -> Unit
+                    }
+                    val command = change.operation.command
+                    val outcome = receipt.outcome
+                    if (command is SyncCommand.FolderCreate && outcome is SyncOutcome.Folder) folderMappings = folderMappings + (command.key to outcome.folderId)
+                    if (command is SyncCommand.FolderRestore && outcome is SyncOutcome.FolderRestored) folderMappings = folderMappings + ("restore:${command.deletionId}" to outcome.folderId)
+                }
+                pruneConfirmed()
                 acknowledgement = SyncAcknowledgement(clientKey, committed.sequence, committed.reply.batchId, committed.digest)
             }
             is SyncExchange.Reconcile -> {
@@ -157,6 +224,7 @@ sealed class LibrarySyncFailure : Exception() {
     data object OwnerMismatch : LibrarySyncFailure()
     data object InvalidReceipt : LibrarySyncFailure()
     data object OversizedChange : LibrarySyncFailure()
+    data object InvalidChange : LibrarySyncFailure()
     data object SessionChanged : LibrarySyncFailure()
 }
 
@@ -194,6 +262,7 @@ class LibrarySync(
     private val mutableStatus = MutableStateFlow<Status>(Status.Idle)
     val status = mutableStatus.asStateFlow()
     var onOwnerChange: (LibrarySyncOwner?) -> Unit = {}
+    var onPartitionChange: (LibrarySyncOwner) -> Unit = {}
     private var session: LibrarySyncSession? = null
     private var binding: SyncBinding? = null
     private var generation = UUID.randomUUID().toString()
@@ -257,8 +326,15 @@ class LibrarySync(
 
     private suspend fun enqueueOnMain(change: LibraryLocalChange, context: LibraryWriteContext) {
         if (generation != context.generation || session != context.session || currentSession() != context.session || mutableOwner.value != context.owner) throw LibrarySyncFailure.SessionChanged
+        if (!LibrarySyncAdmission.accepts(change.operation.command, change.operation.at) || Json.encodeToString(SyncBatch("admission", listOf(change.operation))).toByteArray(Charsets.UTF_8).size > LibrarySyncLimits.bytes) throw LibrarySyncFailure.InvalidChange
         store.enqueueSyncChange(change, context.owner)
+        onPartitionChange(context.owner)
         wake()
+    }
+    @androidx.annotation.MainThread
+    fun capability(context: LibraryWriteContext): String {
+        if (generation != context.generation || session != context.session || currentSession() != context.session || mutableOwner.value != context.owner || (binding?.validUntil ?: 0.0) <= now()) throw LibrarySyncFailure.SessionChanged
+        return binding?.capability ?: throw LibrarySyncFailure.SessionChanged
     }
     private fun checkSession(session: LibrarySyncSession, epoch: String) {
         if (generation != epoch || currentSession() != session) throw LibrarySyncFailure.SessionChanged
@@ -272,6 +348,8 @@ class LibrarySync(
                 if (opened.subject != session.subject || !opened.validUntil.isFinite() || opened.validUntil <= now()) throw LibrarySyncFailure.OwnerMismatch
                 binding = opened
                 val owner = LibrarySyncOwner(opened.ownerKey, opened.subject, transport.namespace)
+                store.claimGuestForSync(owner)
+                checkSession(session, epoch)
                 mutableOwner.value = owner
                 onOwnerChange(owner)
             }
@@ -280,11 +358,13 @@ class LibrarySync(
             repeat(8) {
                 checkSession(session, epoch)
                 store.claimGuestForSync(owner)
+                onPartitionChange(owner)
                 checkSession(session, epoch)
                 val acknowledgement = store.syncPartition(owner)?.acknowledgement
                 if (acknowledgement != null) {
                     val reply = transport.acknowledge(binding.capability, acknowledgement)
                     store.settleSyncAcknowledgement(reply, acknowledgement, owner)
+                    onPartitionChange(owner)
                     checkSession(session, epoch)
                     return@repeat
                 }
@@ -296,6 +376,7 @@ class LibrarySync(
                 }
                 val reply = transport.send(binding.capability, frame)
                 store.settleSyncExchange(reply, frame, owner, now())
+                onPartitionChange(owner)
                 checkSession(session, epoch)
             }
             schedule(session, epoch, 250)

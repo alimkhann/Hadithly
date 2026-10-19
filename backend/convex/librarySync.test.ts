@@ -4,11 +4,13 @@ import { makeFunctionReference } from "convex/server";
 import { expect, test, vi, afterEach } from "vitest";
 import schema from "./schema";
 import { api } from "./_generated/api";
-import type { SyncBatch, SyncBinding, SyncReply, SyncExchange, SyncFrame, SyncAckReply, SyncAcknowledgement } from "./lib/librarySyncPolicy";
+import type { SyncBatch, SyncBinding, SyncReply, SyncExchange, SyncFrame, SyncAckReply, SyncAcknowledgement, SyncSavedSnapshot, SyncPositionsSnapshot } from "./lib/librarySyncPolicy";
 const modules = import.meta.glob("./**/*.ts");
 const open = makeFunctionReference<"mutation", Record<string, never>, SyncBinding>("librarySync:openBinding");
 const apply = makeFunctionReference<"mutation", { capability: string; frame: SyncFrame }, SyncExchange>("librarySync:applyBatch");
 const ack = makeFunctionReference<"mutation", { capability: string; acknowledgement: SyncAcknowledgement }, SyncAckReply>("librarySync:acknowledge");
+const ownedSaved = makeFunctionReference<"query", Record<string, never>, SyncSavedSnapshot>("librarySync:savedSnapshot");
+const ownedPositions = makeFunctionReference<"query", Record<string, never>, SyncPositionsSnapshot>("librarySync:positionsSnapshot");
 afterEach(() => vi.useRealTimers());
 async function fixture() {
   const t = convexTest(schema, modules);
@@ -83,7 +85,7 @@ test("expiry and account erasure revoke batch admission without recreating priva
   await f.a.mutation(api.users.deleteCurrentUser, {});
   await expect(f.send(current.capability, batch)).rejects.toThrow("SYNC_ACCOUNT_MISSING");
   await f.t.run(async ctx => {
-    for (const table of ["librarySyncBindings", "librarySyncStreams", "librarySyncMarks", "librarySyncFolderKeys"] as const) {
+    for (const table of ["librarySyncBindings", "librarySyncStreams", "librarySyncMarks", "librarySyncFolderKeys", "librarySyncVersions"] as const) {
       expect(await ctx.db.query(table).collect()).toHaveLength(0);
     }
   });
@@ -174,7 +176,7 @@ test("folder restore reports unchanged and changed memberships separately", asyn
   const destination = await f.a.mutation(api.library.createSavedFolder, { name: "New device folder" });
   await f.a.mutation(api.library.assignSavedFolder, { hadithId: secondId, folderId: destination });
   const result = await f.send(binding.capability, { id: "restore-folder-undo", operations: [
-    { id: "restore-folder-action", revision: "r3", at: 3_000, command: { kind: "folder_restore", deletionId: "restore-folder-deletion", name: "Folder fixture", hadithIds: [f.hadithId, secondId] } },
+    { id: "restore-folder-action", revision: "r3", at: 3_000, command: { kind: "folder_restore", deletionId: "restore-folder-deletion", name: "Folder fixture", hadithIds: [f.hadithId] } },
   ] } );
   expect(result.receipts[0].outcome).toMatchObject({ kind: "folder_restored", restored: [f.hadithId], superseded: [secondId], missing: [] });
   const snapshot = await f.a.query(api.library.listSavedSnapshot, {});
@@ -244,4 +246,88 @@ test("compacted remove receipts still allow only a matching current facet undo",
   ] });
   expect(restored.receipts[0].outcome).toEqual({ kind: "preserved" });
   expect((await f.a.query(api.library.listSavedSnapshot, {})).items[0].noteContent).toBe("Restored fixture");
+});
+
+test("folder undo restores actual deleted members even when the native snapshot omitted one", async () => {
+  const f = await fixture(), binding = await f.a.mutation(open, {});
+  const secondId = await f.t.run(ctx => ctx.db.insert("hadiths", { provider: "sunnah_now", collectionSlug: "bukhari", providerHadithId: "2", arabicText: "نص", collectionName: "Bukhari", referenceDisplay: "Bukhari 2", createdAt: 1 }));
+  const operations: SyncBatch["operations"] = [{ id: "actual-folder", revision: "r1", at: 1_000, command: { kind: "folder_create", key: "actual-key", name: "Actual members", purpose: "create" } }];
+  for (const [index, hadithId] of [f.hadithId, secondId].entries()) operations.push(
+    { id: `actual-add-${index}`, revision: "r1", at: 1_000, command: { kind: "bookmark_add", hadithId, createdAt: 1_000 } },
+    { id: `actual-place-${index}`, revision: "r1", at: 1_000, command: { kind: "membership_put", hadithId, folder: { kind: "local", key: "actual-key" } } },
+  );
+  await f.send(binding.capability, { id: "actual-seed", operations });
+  const deleted = await f.send(binding.capability, { id: "actual-delete", operations: [{ id: "actual-deletion", revision: "r1", at: 2_000, command: { kind: "folder_delete", folder: { kind: "local", key: "actual-key" } } }] });
+  expect(deleted.receipts[0].outcome).toMatchObject({ kind: "folder_deleted", hadithIds: expect.arrayContaining([f.hadithId, secondId]) });
+  const restored = await f.send(binding.capability, { id: "actual-undo", operations: [{ id: "actual-restoration", revision: "r1", at: 3_000,
+    command: { kind: "folder_restore", deletionId: "actual-deletion", name: "Actual members", hadithIds: [f.hadithId] } }] });
+  const outcome = restored.receipts[0].outcome;
+  expect(outcome).toMatchObject({ kind: "folder_restored", restored: expect.arrayContaining([f.hadithId, secondId]), superseded: [], missing: [] });
+  if (outcome.kind !== "folder_restored") throw new Error("Missing restored fixture");
+  const saved = await f.a.query(api.library.listSavedSnapshot, {});
+  expect(saved.items.map(item => item.folderId)).toEqual([outcome.folderId, outcome.folderId]);
+});
+
+test("owned library snapshots keep exact targets and independent domain revisions", async () => {
+  const f = await fixture(), binding = await f.a.mutation(open, {});
+  const empty = await f.a.query(ownedSaved, {});
+  const other = await f.b.query(ownedSaved, {});
+  expect(empty.ownerKey).not.toBe(other.ownerKey);
+  expect(empty).toMatchObject({ version: 0, folders: [], items: [] });
+  await f.send(binding.capability, { id: "owned-note", operations: [{ id: "owned-note-intent", revision: "r1", at: 1_000,
+    command: { kind: "note_put", hadithId: f.hadithId, content: "Owned private fixture", createdAt: 1_000, updatedAt: 1_000 } }] });
+  const saved = await f.a.query(ownedSaved, {});
+  expect(saved).toMatchObject({ ownerKey: empty.ownerKey, version: 1, items: [{ hadithId: f.hadithId, noteContent: "Owned private fixture", hadith: { _id: f.hadithId, providerHadithId: "1" } }] });
+  expect((await f.b.query(ownedSaved, {})).items).toEqual([]);
+  expect(await f.a.query(ownedPositions, {})).toMatchObject({ ownerKey: empty.ownerKey, version: 0, rows: [] });
+  await f.send(binding.capability, { id: "owned-position", operations: [{ id: "owned-position-intent", revision: "r1", at: 2_000,
+    command: { kind: "legacy_position_put", hadithId: f.hadithId, updatedAt: 2_000 } }] });
+  expect(await f.a.query(ownedSaved, {})).toEqual(saved);
+  expect(await f.a.query(ownedPositions, {})).toMatchObject({ ownerKey: empty.ownerKey, version: 1, rows: [{ hadithId: f.hadithId, position: { anchor: { providerHadithId: "1" } } }] });
+  await f.a.mutation(api.library.upsertSavedNote, { hadithId: f.hadithId, content: "Later legacy fixture" });
+  expect(await f.a.query(ownedSaved, {})).toMatchObject({ version: 2, items: [{ noteContent: "Later legacy fixture" }] });
+});
+
+test("bound existing account operations reject another JWT before private effects", async () => {
+  const f = await fixture(), binding = await f.a.mutation(open, {});
+  await expect(f.b.mutation(api.users.ensureCurrentUser, { capability: binding.capability, preferredLanguage: "ru" })).rejects.toThrow("SYNC_OWNER_MISMATCH");
+  await expect(f.b.query(api.users.getCurrentUserPreferences, { capability: binding.capability })).rejects.toThrow("SYNC_OWNER_MISMATCH");
+  await expect(f.b.query(api.users.exportCurrentUserData, { capability: binding.capability })).rejects.toThrow("SYNC_OWNER_MISMATCH");
+  await expect(f.b.mutation(api.users.deleteCurrentUser, { capability: binding.capability })).rejects.toThrow("SYNC_OWNER_MISMATCH");
+  expect((await f.b.query(api.users.getCurrentUserPreferences, {}))?.readerPreferences?.translationLocale).toBe("en");
+  expect(await f.b.query(api.users.getCurrentUser, {})).not.toBeNull();
+});
+
+test("owned Saved adds only bounded metadata while keeping the separate progress payload", async () => {
+  const f = await fixture(), binding = await f.a.mutation(open, {});
+  await f.send(binding.capability, { id: "payload-fixture", operations: [{ id: "payload-note", revision: "r1", at: 1_000,
+    command: { kind: "note_put", hadithId: f.hadithId, content: "Payload fixture", createdAt: 1_000, updatedAt: 1_000 } }] });
+  const legacy = await f.a.query(api.library.listSavedSnapshot, {});
+  const owned = await f.a.query(ownedSaved, {});
+  expect(owned.items.map(item => item.hadithId)).toEqual(legacy.items.map(item => item.hadithId));
+  const bytes = (value: unknown) => new TextEncoder().encode(JSON.stringify(value)).byteLength;
+  expect(bytes(owned)).toBeLessThanOrEqual(bytes(legacy) + 200);
+  expect(Object.hasOwn(owned, "rows")).toBe(false);
+  expect((await f.a.query(ownedPositions, {})).rows).toEqual([]);
+});
+
+
+test("removing an already absent facet cannot acquire another deletion's undo authority", async () => {
+  const f = await fixture(), binding = await f.a.mutation(open, {});
+  await f.send(binding.capability, { id: "original-removal", operations: [
+    { id: "original-bookmark", revision: "r1", at: 1_000, command: { kind: "bookmark_add", hadithId: f.hadithId, createdAt: 1_000 } },
+    { id: "actual-deletion", revision: "r1", at: 2_000, command: { kind: "bookmark_remove", hadithId: f.hadithId } },
+  ] });
+  await f.send(binding.capability, { id: "stale-removal", operations: [
+    { id: "absent-deletion", revision: "r1", at: 3_000, command: { kind: "bookmark_remove", hadithId: f.hadithId } },
+  ] });
+  const denied = await f.send(binding.capability, { id: "stale-undo", operations: [
+    { id: "absent-undo", revision: "r1", at: 4_000, command: { kind: "facet_restore", hadithId: f.hadithId, deletionId: "absent-deletion", value: { kind: "bookmark", createdAt: 1_000 } } },
+  ] });
+  expect(denied.receipts[0].outcome).toEqual({ kind: "superseded", reason: "changed_since_delete" });
+  expect((await f.a.query(ownedSaved, {})).items).toEqual([]);
+  const allowed = await f.send(binding.capability, { id: "actual-undo", operations: [
+    { id: "real-undo", revision: "r1", at: 5_000, command: { kind: "facet_restore", hadithId: f.hadithId, deletionId: "actual-deletion", value: { kind: "bookmark", createdAt: 1_000 } } },
+  ] });
+  expect(allowed.receipts[0].outcome).toEqual({ kind: "preserved" });
 });

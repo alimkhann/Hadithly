@@ -1,7 +1,8 @@
 # Library sync receipt lifecycle, local verification
 
 October 18, 2026. Continuation of the A2 core in `a21300c`. Full A2 integration,
-independent review, deployment and real account/device delivery remain open.
+deployment and real account/device delivery remain open. The receipt protocol
+received an independent source review on October 19; see below.
 
 ## Change and reason
 
@@ -89,17 +90,17 @@ changes are excluded from this unit.
 
 ## Review and remaining work
 
-The two requested design workers, gpt-6.1-sol and gpt-6-sol, failed at the account
-usage limit before writing a candidate. The parent wrote two structural alternatives
-and a scored decision in `product-program/sync-design/receipt-lifecycle/`.
-There is no independent cross-judge or implementation review for this new protocol
-yet. The earlier core review covers `a21300c`, not these changes. Do not treat green
-local tests as a replacement for that review.
+The initial design workers failed at the account usage limit, so the parent
+recorded two alternatives and a decision. A fresh independent gpt-6-sol source
+review later completed against committed `0609bf2` and found no concrete blocking
+defect in its receipt lifecycle. The exact report is
+`product-program/sync-design/receipt-lifecycle/implementation-review.md`. That
+review excludes the later uncommitted production integration.
 
-Next is production caller integration: both sign-in paths, all signed-in private
-writes, owner-tagged subscription projections and local recovery/export/erasure.
-Invalid legacy draft admission, large-folder continuation, vanished anchors,
-suspended storage-commit cancellation, installed-schema migration and broader
-transport/process interruption proof remain open. The current running product still
-uses the old sign-in merge/clear path. No A2 cloud deployment, private account write,
-paid generation, permission or production change was performed or newly approved.
+The production sign-in and signed-in write callers are now migrated in the next
+checkpoint. See `LIBRARY_SYNC_INTEGRATION_VERIFICATION.md` for actual-facade proof
+and remaining boundaries. Local recovery export, account-deletion restart/retry,
+large-folder continuation, vanished anchors, suspended storage-commit cancellation,
+installed-schema migration and broader transport/process interruption proof remain
+open. No A2 cloud deployment, private account write, paid generation, permission or
+production change was performed or newly approved.

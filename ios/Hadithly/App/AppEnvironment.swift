@@ -33,17 +33,6 @@ struct AppConfig {
     }
 }
 
-struct GuestMergeResult: Decodable {
-    let bookmarksMerged: Int
-    let bookmarksSkipped: Int
-    let notesMerged: Int
-    let notesSkipped: Int
-    let favoritesMerged: Int
-    let favoritesSkipped: Int
-    let progressMerged: Int
-    let progressSkipped: Int
-}
-
 struct CurrentPreferencesRow: Decodable {
     let readerPreferences: ReaderPreferences?
 }
@@ -60,6 +49,7 @@ final class AppEnvironment {
     let convex: ConvexClientWithAuth<String>
     let guestData: GuestDataStore
     let library: UserLibraryModel
+    let librarySync: LibrarySync
     let push: PushNotificationManager
     let purchases: PurchaseManager
     let preferences: PreferencesStore
@@ -127,11 +117,19 @@ final class AppEnvironment {
         provider.bind(client: convex)
         let purchaseClient = self.convex
         purchases.verifyBackendAccess = { try await purchaseClient.action("actions/subscriptions:refresh", with: [:]) }
-        self.library = UserLibraryModel(
-            convex: convex,
-            guestData: self.guestData,
-            isSignedIn: { Clerk.shared.session != nil }
-        )
+        let libraryClient = self.convex
+        self.librarySync = LibrarySync(store: self.guestData, transport: .init(namespace: config.convexURL, open: {
+            let _: String? = try await libraryClient.mutation("users:ensureCurrentUser", with: [:])
+            return try await libraryClient.mutation("librarySync:openBinding", with: [:])
+        }, acknowledge: { capability, acknowledgement in
+            try await libraryClient.mutation("librarySync:acknowledge", with: ["capability": capability, "acknowledgement": acknowledgement])
+        }, send: { capability, frame in
+            try await libraryClient.mutation("librarySync:applyBatch", with: ["capability": capability, "frame": frame])
+        }), currentSession: currentLibrarySession)
+        self.library = UserLibraryModel(convex: convex, guestData: self.guestData, sync: self.librarySync, currentSession: currentLibrarySession)
+        let privateLibrary = self.library
+        self.librarySync.onOwnerChange = { [weak privateLibrary] _ in privateLibrary?.refresh() }
+        self.librarySync.onPartitionChange = { [weak privateLibrary] owner in privateLibrary?.partitionChanged(owner) }
         let client = convex
         let probeURL = URL(string: config.convexURL)
         self.offline = OfflineStore(manifestProvider: { locale in
@@ -202,126 +200,38 @@ final class AppEnvironment {
         #endif
     }
 
-    /// Runs after a Clerk session becomes active: makes sure the user row
-    /// exists, then merges whatever the guest collected on-device into
-    /// Convex and clears the local store. Idempotent — safe to call again.
+    /// Guest data is claimed and settled by the captured account's LibrarySync.
+    /// Completion never clears the guest store.
     func completeSignIn() async {
-        guard await waitForConvexAuthentication() else {
-            lastSyncSummary = "Sign-in sync failed: Convex session never activated."
-            return
-        }
-
+        guard let session = currentLibrarySession() else { return }
+        guard await waitForConvexAuthentication(), currentLibrarySession() == session else { return }
+        await librarySync.activate(session)
+        guard currentLibrarySession() == session, librarySync.owner?.subject == session.subject else { return }
         do {
-            let _: String? = try await convex.mutation(
-                "users:ensureCurrentUser",
-                with: [
-                    "preferredLanguage": preferences.preferences.translationLocale as ConvexEncodable?,
-                    "readerPreferences": Self.wireDict(for: preferences.preferences) as ConvexEncodable?,
-                ]
-            )
-            await adoptServerPreferences()
-            if let clerkUserID = Clerk.shared.user?.id {
-                await purchases.logIn(appUserID: clerkUserID)
-            }
-        } catch {
-            lastSyncSummary = "Account sync failed: \(error.localizedDescription)"
-            library.refresh()
-            return
-        }
-
-        let payload = GuestMergePlanner.makePayload(
-            bookmarks: guestData.bookmarkDrafts(),
-            notes: guestData.noteDrafts(),
-            favorites: guestData.favoriteDrafts(),
-            progress: guestData.progressDrafts(),
-            folders: guestData.folderDrafts(),
-            memberships: guestData.savedMembershipDrafts()
-        )
-
-        if payload.isEmpty {
-            lastSyncSummary = "Signed in."
+            let context = try librarySync.captureWriteContext()
+            let capability = try librarySync.capability(for: context)
+            let _: String? = try await convex.mutation("users:ensureCurrentUser", with: ["capability": capability,
+                "preferredLanguage": preferences.preferences.translationLocale,
+                "readerPreferences": Self.wireDict(for: preferences.preferences)])
+            guard currentLibrarySession() == session else { return }
+            await adoptServerPreferences(capability: capability, session: session)
+            guard currentLibrarySession() == session else { return }
+            await purchases.logIn(appUserID: session.subject)
+            guard currentLibrarySession() == session else { return }
+            lastSyncSummary = nil
             library.refresh()
             await push.uploadTokenIfNeeded()
-            return
-        }
-
-        do {
-            let result: GuestMergeResult = try await convex.mutation(
-                "guestMerge:mergeGuestData",
-                with: [
-                    "bookmarks": payload.bookmarks.map { item in
-                        [
-                            "hadithId": item.hadithId,
-                            "createdAt": item.createdAt,
-                        ] as [String: ConvexEncodable?]
-                    },
-                    "notes": payload.notes.map { item in
-                        [
-                            "hadithId": item.hadithId,
-                            "content": item.content,
-                            "createdAt": item.createdAt,
-                            "updatedAt": item.updatedAt,
-                        ] as [String: ConvexEncodable?]
-                    },
-                    "favorites": payload.favorites.map { item in
-                        [
-                            "hadithId": item.hadithId,
-                            "createdAt": item.createdAt,
-                        ] as [String: ConvexEncodable?]
-                    },
-                    "readingProgress": payload.readingProgress.map { item in
-                        switch item {
-                        case .current(let position):
-                            return [
-                                "position": position.convexWireValue,
-                            ] as [String: ConvexEncodable?]
-                        case .legacy(let collectionSlug, let hadithId, let updatedAt):
-                            return [
-                                "collectionSlug": collectionSlug,
-                                "hadithId": hadithId,
-                                "updatedAt": updatedAt,
-                            ] as [String: ConvexEncodable?]
-                        }
-                    },
-                    "savedFolders": payload.savedFolders.map { item in
-                        [
-                            "localId": item.localId,
-                            "name": item.name,
-                            "createdAt": item.createdAt,
-                        ] as [String: ConvexEncodable?]
-                    },
-                    "savedItems": payload.savedItems.map { item in
-                        // Convex optional validators require an absent key,
-                        // not a JSON null. Sending the latter was the guest
-                        // merge failure shown in Settings.
-                        var wire: [String: ConvexEncodable?] = [
-                            "hadithId": item.hadithId,
-                            "createdAt": item.createdAt,
-                            "updatedAt": item.updatedAt,
-                        ]
-                        if let value = item.bookmarkCreatedAt { wire["bookmarkCreatedAt"] = value }
-                        if let value = item.favoriteCreatedAt { wire["favoriteCreatedAt"] = value }
-                        if let value = item.noteContent { wire["noteContent"] = value }
-                        if let value = item.noteCreatedAt { wire["noteCreatedAt"] = value }
-                        if let value = item.noteUpdatedAt { wire["noteUpdatedAt"] = value }
-                        if let value = item.folderLocalId { wire["folderLocalId"] = value }
-                        return wire
-                    },
-                ]
-            )
-            guestData.clearAll()
-            lastSyncSummary = Self.syncSummary(for: result)
-        } catch {
-            // Local data is deliberately kept so a later sign-in can retry.
-            lastSyncSummary = "Guest data merge failed: \(error.localizedDescription)"
-        }
-        library.refresh()
-        await push.uploadTokenIfNeeded()
+        } catch { if currentLibrarySession() == session { lastSyncSummary = String(localized: "Saved items could not load") } }
     }
 
-    /// Called when the Clerk session ends. The SwiftData store is empty (the
-    /// merge cleared it), so the library flips back to guest mode cleanly.
+    func accountSessionChanged() {
+        librarySync.deactivate()
+        library.refresh()
+    }
+
+    /// Rendering is invalidated before account-specific background work stops.
     func handleSignOut() {
+        librarySync.deactivate()
         analytics.clearPending()
         library.refresh()
         purchases.clearAccount()
@@ -332,26 +242,30 @@ final class AppEnvironment {
     /// then removes the Clerk identity and its sessions. Safe to retry if the
     /// second step fails because the backend mutation is idempotent.
     func deleteAccount() async throws {
+        guard let session = currentLibrarySession(), let user = Clerk.shared.session?.user, user.id == session.subject,
+              let owner = librarySync.owner else { throw LibrarySyncFailure.sessionChanged }
+        let context = try librarySync.captureWriteContext()
+        let capability = try librarySync.capability(for: context)
         analytics.setSharing(false)
-        let accountId = Clerk.shared.user?.id
-        let _: Bool? = try await convex.mutation("users:deleteCurrentUser")
-        if let accountId {
-            EvidenceLocalDrafts.clear(for: accountId)
-            UserDefaults.standard.removeObject(forKey: "q1.appAttest.\(accountId)")
-        }
-        guard let user = Clerk.shared.user else { return }
+        librarySync.deactivate(); library.refresh()
+        let _: Bool? = try await convex.mutation("users:deleteCurrentUser", with: ["capability": capability])
+        try guestData.eraseSyncPartition(owner)
+        EvidenceLocalDrafts.clear(for: session.subject)
+        UserDefaults.standard.removeObject(forKey: "q1.appAttest.\(session.subject)")
+        guard currentLibrarySession() == session else { throw LibrarySyncFailure.sessionChanged }
         try await user.delete()
-        handleSignOut()
+        if currentLibrarySession() == nil { handleSignOut() }
     }
 
     private func syncPreferences(_ updated: ReaderPreferences) {
-        guard Clerk.shared.session != nil else { return }
+        guard let session = currentLibrarySession(), let context = try? librarySync.captureWriteContext() else { return }
         Task { [weak self] in
-            guard let self else { return }
+            guard let self, currentLibrarySession() == session, let capability = try? librarySync.capability(for: context) else { return }
             try? await self.convex.mutation(
                 "users:updateReaderPreferences",
-                with: ["readerPreferences": Self.wireDict(for: updated) as ConvexEncodable?]
+                with: ["capability": capability, "readerPreferences": Self.wireDict(for: updated)]
             )
+            guard currentLibrarySession() == session else { return }
             // N1: a locale change must also reach this device's push row so
             // the next notification is materialized in the new translation.
             // No-ops when no APNs token is registered yet.
@@ -374,12 +288,13 @@ final class AppEnvironment {
 
     /// Adopts the authoritative stored preferences when the server row is
     /// newer than the device (another device made the latest explicit change).
-    private func adoptServerPreferences() async {
+    private func adoptServerPreferences(capability: String, session: LibrarySyncSession) async {
         guard
             let row = try? await convex
-                .subscribe(to: "users:getCurrentUserPreferences", yielding: CurrentPreferencesRow.self)
+                .subscribe(to: "users:getCurrentUserPreferences", with: ["capability": capability], yielding: CurrentPreferencesRow.self)
                 .values
                 .first(where: { _ in true }),
+            currentLibrarySession() == session,
             let server = row.readerPreferences,
             server.updatedAt > preferences.preferences.updatedAt
         else { return }
@@ -440,15 +355,7 @@ final class AppEnvironment {
         return anchors
     }
 
-    private static func syncSummary(for result: GuestMergeResult) -> String {
-        var summary =
-            "Signed in. Merged \(result.bookmarksMerged) bookmarks, "
-            + "\(result.favoritesMerged) favorites, and \(result.notesMerged) notes."
-        if result.progressMerged > 0 {
-            summary += " Restored \(result.progressMerged) reading positions."
-        }
-        return summary
-    }
+
 
     private func waitForConvexAuthentication(timeout: TimeInterval = 15) async -> Bool {
         for _ in 0..<Int(timeout * 4) {
@@ -468,4 +375,11 @@ final class AppEnvironment {
         // this returns without waiting for a state change.
         await convex.authState.values.first(where: { _ in true }) ?? .unauthenticated
     }
+}
+
+
+@MainActor
+func currentLibrarySession() -> LibrarySyncSession? {
+    guard let session = Clerk.shared.session, session.status == .active, let subject = session.user?.id else { return nil }
+    return .init(id: session.id, subject: subject)
 }

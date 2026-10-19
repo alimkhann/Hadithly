@@ -943,12 +943,14 @@ class ReaderViewModel(
 
     fun isFavorite(hadith: ReaderHadith) = library.isFavorite(hadith._id)
 
-    fun toggleBookmark(hadith: ReaderHadith) = library.toggleBookmark(refFor(hadith))
+    fun toggleBookmark(hadith: ReaderHadith) { library.toggleBookmark(refFor(hadith)) }
 
-    fun toggleFavorite(hadith: ReaderHadith) = library.toggleFavorite(refFor(hadith))
+    fun toggleFavorite(hadith: ReaderHadith) { library.toggleFavorite(refFor(hadith)) }
 
     fun noteContent(hadith: ReaderHadith): String? = library.noteContentFor(hadith._id)
 
+    val libraryActionScope: String get() = library.actionScope
+    fun isLibraryActionCurrent(scope: String?) = library.isActionCurrent(scope)
     fun saveNote(hadith: ReaderHadith, content: String) = library.saveNote(refFor(hadith), content)
 
     /** Persists the position of the first hadith on the current page. */

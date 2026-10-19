@@ -662,6 +662,7 @@ struct ReaderSavedShortcutSheet: View {
     @State private var tab: Tab = .bookmarks
     @State private var folderId: String?
     @State private var pendingRemoval: SavedFacetRemoval?
+    @State private var pendingRemovalScope: UUID?
     @State private var undoNotice: SavedUndoNotice?
 
     private var entries: [SavedItemEntry] {
@@ -704,7 +705,7 @@ struct ReaderSavedShortcutSheet: View {
                     ScrollView {
                         LazyVStack(spacing: 12) {
                             ForEach(entries) { entry in
-                                SharedSavedItemRow(item: entry, folders: library.folders, folderName: library.folders.first(where: { $0.id == entry.folderId })?.name, showsFolder: folderId == nil, onOpen: onOpen, onRemove: requestRemoval, onMove: { library.assignFolder(hadithId: entry.hadithId, folderId: $0) }, onSuggestTranslation: onOpen)
+                                SharedSavedItemRow(item: entry, folders: library.folders, folderName: library.folders.first(where: { $0.id == entry.folderId })?.name, showsFolder: folderId == nil, onOpen: onOpen, onRemove: { [scope = library.actionScope] in requestRemoval($0, scope: scope) }, onMove: { [scope = library.actionScope] in if library.isActionCurrent(scope) { library.assignFolder(hadithId: entry.hadithId, folderId: $0, scope: scope) } }, onSuggestTranslation: onOpen)
                             }
                         }
                         .padding(.vertical, 4)
@@ -731,6 +732,7 @@ struct ReaderSavedShortcutSheet: View {
         }
         .animation(reducedMotion ? nil : .timingCurve(0.22, 1, 0.36, 1, duration: InterfaceMotion.reveal), value: undoNotice?.id)
         .animation(reducedMotion ? nil : .timingCurve(0.22, 1, 0.36, 1, duration: InterfaceMotion.reveal), value: library.lastFolderDeletion?.undoID)
+        .onChange(of: library.actionScope) { _, _ in pendingRemoval = nil; pendingRemovalScope = nil; folderId = nil; undoNotice = nil }
         .confirmationDialog("Remove saved item?", isPresented: Binding(get: { pendingRemoval != nil }, set: { if !$0 { pendingRemoval = nil } })) {
             if let removal = pendingRemoval {
             Button("Remove", role: .destructive) { performRemoval(removal); pendingRemoval = nil }
@@ -748,11 +750,11 @@ struct ReaderSavedShortcutSheet: View {
                 ForEach(library.folders) { folder in Text(folder.name).tag(Optional(folder.id)) }
             }
             if !library.folders.isEmpty {
-                Menu("Delete folder") {
+                Menu("Delete folder") { [scope = library.actionScope] in
                     ForEach(library.folders) { folder in
                         Button(folder.name, role: .destructive) {
                             if folderId == folder.id { folderId = nil }
-                            library.deleteFolder(folder)
+                            library.deleteFolder(folder, scope: scope)
                         }
                     }
                 }
@@ -767,13 +769,14 @@ struct ReaderSavedShortcutSheet: View {
     /// Sajda bookmarks-tab rows: a tinted icon, the reference title with
     /// its relative stamp, a chevron, and minimal dividers. Notes keep one
     /// content line so they stay distinguishable.
-    private func requestRemoval(_ removal: SavedFacetRemoval) { if environment.savedSafety.confirmsRemoval { pendingRemoval = removal } else { performRemoval(removal) } }
+    private func requestRemoval(_ removal: SavedFacetRemoval, scope: UUID) { if environment.savedSafety.confirmsRemoval { pendingRemovalScope = scope; pendingRemoval = removal } else { performRemoval(removal, scope: scope) } }
 
-    private func performRemoval(_ removal: SavedFacetRemoval) {
+    private func performRemoval(_ removal: SavedFacetRemoval, scope: UUID? = nil) {
+        guard library.isActionCurrent(scope ?? pendingRemovalScope) else { return }
         switch removal {
-        case .bookmark(let item, let ref): if let date = item.bookmarkCreatedAt { library.toggleBookmark(ref); undoNotice = SavedUndoNotice(message: "Bookmark removed") { library.restoreBookmark(ref, createdAt: date); undoNotice = nil } }
-        case .favorite(let item, let ref): if let date = item.favoriteCreatedAt { library.toggleFavorite(ref); undoNotice = SavedUndoNotice(message: "Favorite removed") { library.restoreFavorite(ref, createdAt: date); undoNotice = nil } }
-        case .note(let item, let ref): if let content = item.noteContent { library.deleteNote(ref); undoNotice = SavedUndoNotice(message: "Note deleted") { library.restoreNote(ref, content: content, createdAt: item.createdAt, updatedAt: item.updatedAt); undoNotice = nil } }
+        case .bookmark(let item, let ref): if let date = item.bookmarkCreatedAt { if library.removeBookmark(ref, scope: scope ?? pendingRemovalScope ?? library.actionScope) { undoNotice = SavedUndoNotice(message: "Bookmark removed") { library.restoreBookmark(ref, createdAt: date); undoNotice = nil } } }
+        case .favorite(let item, let ref): if let date = item.favoriteCreatedAt { if library.removeFavorite(ref, scope: scope ?? pendingRemovalScope ?? library.actionScope) { undoNotice = SavedUndoNotice(message: "Favorite removed") { library.restoreFavorite(ref, createdAt: date); undoNotice = nil } } }
+        case .note(let item, let ref): if let content = item.noteContent { if library.deleteNote(ref, scope: scope ?? pendingRemovalScope ?? library.actionScope) { undoNotice = SavedUndoNotice(message: "Note deleted") { library.restoreNote(ref, content: content, createdAt: item.createdAt, updatedAt: item.updatedAt); undoNotice = nil } } }
         }
     }
 
