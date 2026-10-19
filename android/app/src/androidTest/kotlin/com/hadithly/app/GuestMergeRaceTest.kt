@@ -23,6 +23,94 @@ class GuestMergeRaceTest {
     }
     private suspend fun note(store: GuestDataStore, content: String) = store.saveNote("jn7fxd3z54153q9j13kmhgzkv18df2zd", content, null, null, null, null, null, "", null)
 
+    @Test fun deletionDoesNotContactCloudOrReplaceDamagedLocalState() = runBlocking {
+        isolated { store, _, directory ->
+            val file = File(directory, "guest_store.json")
+            val damaged = "{interrupted-private-deletion-fixture"
+            file.writeText(damaged)
+            val session = LibrarySyncSession("session-a", "subject-a")
+            var cloudCalls = 0; var identityCalls = 0
+            val flow = LibraryAccountDeletion(store, "fixture", { session }, {},
+                prepare = { cloudCalls++; SyncDeletionAuthorization(session.subject, "fixture", System.currentTimeMillis() + 60_000.0) },
+                erase = { cloudCalls++; SyncDeletionResult(session.subject, true) }, cleanup = {}, deleteIdentity = { identityCalls++ })
+            try { flow.run(session); fail("Damaged local state admitted deletion") } catch (_: LibrarySyncFailure.StoreUnavailable) { }
+            assertEquals(0, cloudCalls); assertEquals(0, identityCalls); assertEquals(damaged, file.readText())
+        }
+    }
+
+    @Test fun deletionSurvivesResponseLossRestartAndIdentityFailureWithoutBootstrappingOrErasingOtherScopes() = runBlocking {
+        isolated { store, reopen, _ ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a")
+            val other = LibrarySyncOwner("owner-b", "subject-b")
+            val otherDeployment = LibrarySyncOwner("owner-a", "subject-a", "other-deployment")
+            val session = LibrarySyncSession("session-a", owner.subject)
+            var serverCalls = 0; var identityCalls = 0
+            note(store, "A original"); store.claimGuestForSync(owner)
+            note(store, "B original"); store.claimGuestForSync(other); store.claimGuestForSync(otherDeployment)
+            fun flow(target: GuestDataStore, loseResponse: Boolean, failIdentity: Boolean) = LibraryAccountDeletion(target, "fixture", { session }, {},
+                prepare = { SyncDeletionAuthorization(session.subject, "fixture", System.currentTimeMillis() + 60_000.0) },
+                erase = { serverCalls++; if (loseResponse) throw java.io.IOException("Lost response fixture"); SyncDeletionResult(session.subject, false) },
+                cleanup = {}, deleteIdentity = { identityCalls++; if (failIdentity) throw java.io.IOException("Identity offline fixture") })
+            try { flow(store, true, false).run(session); fail("Lost response accepted") } catch (_: java.io.IOException) { }
+            assertEquals(1, serverCalls); assertEquals(0, identityCalls)
+            assertEquals(LibraryDeletionPhase.SERVER_PENDING, store.deletionPhase(session.subject, "fixture"))
+            assertNotNull(store.syncPartition(owner))
+            assertDeletionBlocksBootstrap(store, session)
+            val reopened = reopen()
+            try { flow(reopened, false, true).run(session); fail("Identity failure accepted") } catch (_: java.io.IOException) { }
+            assertEquals(2, serverCalls); assertEquals(1, identityCalls)
+            assertEquals(LibraryDeletionPhase.IDENTITY_PENDING, reopened.deletionPhase(session.subject, "fixture"))
+            assertNull(reopened.syncPartition(owner)); assertNotNull(reopened.syncPartition(other)); assertNotNull(reopened.syncPartition(otherDeployment))
+            assertDeletionBlocksBootstrap(reopened, session)
+            val final = reopen()
+            flow(final, false, false).run(session)
+            assertEquals(2, serverCalls); assertEquals(2, identityCalls)
+            assertNull(final.deletionPhase(session.subject, "fixture")); assertNotNull(final.syncPartition(other))
+        }
+    }
+
+    private suspend fun assertDeletionBlocksBootstrap(store: GuestDataStore, session: LibrarySyncSession) {
+        var opens = 0
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+        val transport = object : LibrarySyncTransport {
+            override val namespace = "fixture"
+            override suspend fun open(): SyncBinding { opens++; throw java.io.IOException("Must not bootstrap fixture") }
+            override suspend fun acknowledge(capability: String, acknowledgement: SyncAcknowledgement): SyncAckReply = throw LibrarySyncFailure.InvalidReceipt
+            override suspend fun send(capability: String, frame: SyncFrame): SyncExchange = throw LibrarySyncFailure.InvalidReceipt
+        }
+        val sync = LibrarySync(store, transport, scope, { session })
+        try {
+            sync.activate(session)
+            assertEquals(0, opens); assertEquals(LibrarySync.Status.Failed, sync.status.value); assertNull(sync.owner.value)
+        } finally { withContext(Dispatchers.Main) { sync.deactivate() }; scope.cancel() }
+    }
+
+    @Test fun deletionRejectsWrongPreparationAndFinishesOnlyCapturedLocalErasureAfterSwitch() = runBlocking {
+        isolated { store, _, _ ->
+            val a = LibrarySyncSession("session-a", "subject-a"); val b = LibrarySyncSession("session-b", "subject-b")
+            val current = MutableStateFlow(a)
+            val ownerA = LibrarySyncOwner("owner-a", a.subject); val ownerB = LibrarySyncOwner("owner-b", b.subject)
+            note(store, "A original"); store.claimGuestForSync(ownerA)
+            note(store, "B original"); store.claimGuestForSync(ownerB)
+            var erases = 0; var identities = 0
+            val cleanups = mutableListOf<String>()
+            val wrong = LibraryAccountDeletion(store, "fixture", { current.value }, {},
+                prepare = { SyncDeletionAuthorization(b.subject, "wrong-owner-fixture", System.currentTimeMillis() + 60_000.0) },
+                erase = { erases++; SyncDeletionResult(b.subject, true) }, cleanup = { cleanups.add(it) }, deleteIdentity = { identities++ })
+            try { wrong.run(a); fail("Wrong preparation accepted") } catch (_: LibrarySyncFailure.OwnerMismatch) { }
+            assertEquals(0, erases); assertNotNull(store.syncPartition(ownerA))
+            val switched = LibraryAccountDeletion(store, "fixture", { current.value }, {},
+                prepare = { SyncDeletionAuthorization(a.subject, "owner-a-fixture", System.currentTimeMillis() + 60_000.0) },
+                erase = { erases++; current.value = b; SyncDeletionResult(a.subject, true) }, cleanup = { cleanups.add(it) }, deleteIdentity = { identities++ })
+            try { switched.run(a); fail("Switched identity deletion accepted") } catch (_: LibrarySyncFailure.SessionChanged) { }
+            assertEquals(1, erases); assertEquals(0, identities); assertEquals(listOf(a.subject), cleanups)
+            assertNull(store.syncPartition(ownerA)); assertNotNull(store.syncPartition(ownerB))
+            assertEquals(LibraryDeletionPhase.IDENTITY_PENDING, store.deletionPhase(a.subject, "fixture"))
+            try { switched.run(a); fail("Stale confirmation accepted") } catch (_: LibrarySyncFailure.SessionChanged) { }
+            assertEquals(1, erases); assertEquals(0, identities)
+        }
+    }
+
     @Test fun portableExportIncludesOfflineAndRecoveryTextWithoutProviderPassagesAndRejectsSwitchedOwner() = runBlocking {
         isolated { store, _, _ ->
             note(store, "Recovery fixture " + "界".repeat(8_001))

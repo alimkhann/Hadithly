@@ -130,6 +130,7 @@ data class GuestStoreFile(
     val savedFolders: List<GuestSavedFolderDraft> = emptyList(),
     val savedMemberships: List<GuestSavedMembership> = emptyList(),
     val syncPartitions: List<LibrarySyncPartition> = emptyList(),
+    val deletions: List<LibraryDeletionIntent> = emptyList(),
 )
 
 /** The merge request sent to `guestMerge:mergeGuestData`. Timestamps are milliseconds. */
@@ -315,6 +316,7 @@ class GuestDataStore(context: Context) {
     }
 
     suspend fun claimGuestForSync(owner: LibrarySyncOwner) = writeLocked(notify = false) { store ->
+        if (store.deletions.any { it.subject == owner.subject && it.namespace == owner.namespace }) throw LibrarySyncFailure.AccountDeleting
         val existing = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey }
         if (existing != null && existing.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
         val state = existing?.state ?: LibraryPartitionState()
@@ -401,6 +403,22 @@ class GuestDataStore(context: Context) {
             partition.state.pruneConfirmed()
         }
         store
+    }
+
+    suspend fun deletionPhase(subject: String, namespace: String): LibraryDeletionPhase? = mutex.withLock {
+        readLocked().deletions.firstOrNull { it.subject == subject && it.namespace == namespace }?.phase
+    }
+    suspend fun beginDeletion(subject: String, namespace: String) = writeLocked(notify = false) { store ->
+        if (store.deletions.any { it.subject == subject && it.namespace == namespace }) store
+        else store.copy(deletions = store.deletions + LibraryDeletionIntent(subject, namespace, LibraryDeletionPhase.SERVER_PENDING))
+    }
+    suspend fun markDeletionBackendComplete(subject: String, namespace: String) = writeLocked(notify = false) { store ->
+        if (store.deletions.none { it.subject == subject && it.namespace == namespace }) throw LibrarySyncFailure.SessionChanged
+        store.copy(deletions = store.deletions.map { if (it.subject == subject && it.namespace == namespace) it.copy(phase = LibraryDeletionPhase.IDENTITY_PENDING) else it },
+            syncPartitions = store.syncPartitions.filterNot { it.subject == subject && it.ownerKey.startsWith("$namespace|") })
+    }
+    suspend fun clearDeletion(subject: String, namespace: String) = writeLocked(notify = false) { store ->
+        store.copy(deletions = store.deletions.filterNot { it.subject == subject && it.namespace == namespace })
     }
 
     suspend fun eraseSyncPartition(owner: LibrarySyncOwner) = writeLocked(notify = false) { store ->

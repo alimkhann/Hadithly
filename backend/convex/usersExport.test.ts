@@ -59,7 +59,7 @@ describe("users:exportCurrentUserData", () => {
     await user.mutation(api.users.ensureCurrentUser, { preferredLanguage: "en" });
     const before = await user.query(api.users.exportCurrentUserData, {});
     expect(before.account).not.toBeNull();
-    await user.mutation(api.users.deleteCurrentUser, {});
+    await user.mutation(api.users.deleteCurrentUser, { authorization: (await user.mutation(api.users.prepareAccountDeletion, {})).authorization });
     const after = await user.query(api.users.exportCurrentUserData, {});
     expect(after.account).toBeNull();
     expect(after.savedItems).toEqual([]);

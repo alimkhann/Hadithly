@@ -1,3 +1,5 @@
+import { requireAccountNotDeleting, prepareAccountDeletion as prepareDeletion, authorizeAccountDeletion } from "./lib/accountDeletion";
+import { syncDeletionAuthorization, syncDeletionResult, type SyncDeletionResult } from "./lib/librarySyncPolicy";
 import { requireLibraryBinding } from "./lib/librarySyncIdentity";
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
@@ -38,6 +40,7 @@ export const ensureCurrentUser = mutation({
   handler: async (ctx, args) => {
     if (args.capability !== undefined) await requireLibraryBinding(ctx, args.capability);
     const identity = await requireIdentity(ctx);
+    await requireAccountNotDeleting(ctx, identity.clerkId);
     const now = Date.now();
     const existing = await ctx.db
       .query("users")
@@ -323,23 +326,24 @@ export const exportCurrentUserData = query({
   },
 });
 
+/** Returns a JWT-derived subject and opaque authorization without starting erasure. */
+export const prepareAccountDeletion = mutation({ args: {}, returns: syncDeletionAuthorization, handler: prepareDeletion });
+
 /**
- * Permanently removes the authenticated user's Hadithly data. The client calls
- * this before deleting the Clerk identity so the Convex JWT is still valid.
- * It is deliberately idempotent: a retry after a partial client-side failure
- * can still finish deleting the Clerk account.
+ * Atomically marks the verified subject against recreation and erases its data.
+ * A lost-response retry prepares a fresh authorization without bootstrapping a user.
  */
 export const deleteCurrentUser = mutation({
-  args: { capability: v.optional(v.string()) },
-  handler: async (ctx, args) => {
-    if (args.capability !== undefined) await requireLibraryBinding(ctx, args.capability);
-    const identity = await requireIdentity(ctx);
+  args: { authorization: v.string() },
+  returns: syncDeletionResult,
+  handler: async (ctx, args): Promise<SyncDeletionResult> => {
+    const identity = await authorizeAccountDeletion(ctx, args.authorization);
     const user = await ctx.db
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.clerkId))
       .unique();
 
-    if (!user) return false;
+    if (!user) return { subject: identity.clerkId, deleted: false };
 
     const [
       bookmarks,
@@ -422,7 +426,7 @@ export const deleteCurrentUser = mutation({
     }
 
     await ctx.db.delete(user._id);
-    return true;
+    return { subject: identity.clerkId, deleted: true };
   },
 });
 

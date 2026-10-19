@@ -195,6 +195,19 @@ data class SyncReply(
 )
 
 @Serializable
+data class SyncDeletionAuthorization(
+    val subject: String,
+    val authorization: String,
+    val validUntil: Double,
+)
+
+@Serializable
+data class SyncDeletionResult(
+    val subject: String,
+    val deleted: Boolean,
+)
+
+@Serializable
 data class SyncRevision(
     val saved: Double,
     val position: Double,

@@ -177,3 +177,8 @@ export type SyncRevision = Infer<typeof syncRevision>;
 export type SyncHadithSummary = Infer<typeof syncHadithSummary>;
 export type SyncSavedSnapshot = Infer<typeof syncSavedSnapshot>;
 export type SyncPositionsSnapshot = Infer<typeof syncPositionsSnapshot>;
+
+export const syncDeletionAuthorization = v.object({ subject: v.string(), authorization: v.string(), validUntil: v.number() });
+export const syncDeletionResult = v.object({ subject: v.string(), deleted: v.boolean() });
+export type SyncDeletionAuthorization = Infer<typeof syncDeletionAuthorization>;
+export type SyncDeletionResult = Infer<typeof syncDeletionResult>;

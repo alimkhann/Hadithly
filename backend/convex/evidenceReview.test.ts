@@ -31,7 +31,7 @@ describe("E3 actual Convex publication boundary", () => {
     for (const privateField of ["confidence", "score", "requestId", "sha256", "storageId", "modelVersion"]) expect(JSON.stringify(own)).not.toContain(privateField);
     await expect(outsider.query(api.evidence.getOwnEvidenceDraft, { submissionId: draft.submissionId })).rejects.toThrow();
     expect(await t.query(internal.offlineDumps.listLiveDefaultsForLanguage, { language: "en" })).toHaveLength(0);
-    await owner.mutation(api.users.deleteCurrentUser, {});
+    await owner.mutation(api.users.deleteCurrentUser, { authorization: (await owner.mutation(api.users.prepareAccountDeletion, {})).authorization });
     for (const table of ["evidenceReviewJobs", "evidenceReviewPasses", "evidenceProvenance", "evidencePublicationRevisions"] as const) expect(await t.run(ctx => ctx.db.query(table).collect())).toHaveLength(0);
     expect(await t.query(internal.translations.getDefaultForHadithLanguage, { hadithId, language: "en" })).toBeNull();
   });
@@ -171,7 +171,7 @@ describe("E3 cached policies and all source adapters", () => {
     const f = await fixture();
     const previousId = await f.t.run(ctx => ctx.db.insert("translations", { hadithId: f.hadithId, language: "en", content: "Previous official", source: "official", sourceLabel: "Official", status: "live", isDefault: true, groundingUsed: false, createdAt: 1, updatedAt: 1 }));
     const claim = await reviewClaim(f); await f.t.mutation(internal.evidenceReview.finish, { submissionId: f.draft.submissionId, token: claim.token, passes: passes(claim.packet) });
-    await f.owner.mutation(api.users.deleteCurrentUser, {});
+    await f.owner.mutation(api.users.deleteCurrentUser, { authorization: (await f.owner.mutation(api.users.prepareAccountDeletion, {})).authorization });
     expect((await f.t.query(internal.translations.getDefaultForHadithLanguage, { hadithId: f.hadithId, language: "en" }))?._id).toBe(previousId);
     expect(await f.t.run(ctx => ctx.db.query("evidencePermissionGrants").withIndex("by_submission", q => q.eq("submissionId", f.draft.submissionId)).collect())).toHaveLength(0);
   });
@@ -247,14 +247,14 @@ test("deleting an intermediate contributor preserves a surviving default's ances
   });
   const second=await f.t.mutation(internal.evidenceReview.claim,{submissionId:secondId,reviewEnabled:true});if(!second)throw new Error("Missing second claim");
   expect(await f.t.mutation(internal.evidenceReview.finish,{submissionId:secondId,token:second.token,passes:passes(second.packet)})).toBe(true);
-  await f.owner.mutation(api.users.deleteCurrentUser,{});
+  await f.owner.mutation(api.users.deleteCurrentUser, { authorization: (await f.owner.mutation(api.users.prepareAccountDeletion, {})).authorization });
   expect(await f.t.query(internal.translations.getDefaultForHadithLanguage,{hadithId:f.hadithId,language:"en"})).toBeNull();
   await f.t.finishAllScheduledFunctions(vi.runAllTimers);
   const recheck = await f.t.mutation(internal.evidenceReview.claim, { submissionId: secondId, reviewEnabled: true });
   if (!recheck) throw new Error("Missing dependency recheck");
   expect(await f.t.mutation(internal.evidenceReview.finish, { submissionId: secondId, token: recheck.token, passes: passes(recheck.packet) })).toBe(true);
   expect((await f.t.query(internal.translations.getDefaultForHadithLanguage,{hadithId:f.hadithId,language:"en"}))?.content).toBe(text);
-  await f.outsider.mutation(api.users.deleteCurrentUser,{});
+  await f.outsider.mutation(api.users.deleteCurrentUser, { authorization: (await f.outsider.mutation(api.users.prepareAccountDeletion, {})).authorization });
   expect((await f.t.query(internal.translations.getDefaultForHadithLanguage,{hadithId:f.hadithId,language:"en"}))?._id).toBe(originalId);
 });
 

@@ -1022,6 +1022,7 @@ private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
     var exporting by remember { mutableStateOf(false) }
     var exportNotice by remember { mutableStateOf<String?>(null) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var deletionSession by remember { mutableStateOf<com.hadithly.app.core.data.LibrarySyncSession?>(null) }
     var deletingAccount by remember { mutableStateOf(false) }
     var deletionError by remember { mutableStateOf<String?>(null) }
     var crashConsent by remember { mutableStateOf(com.hadithly.app.core.diagnostics.CrashReporting.hasConsent) }
@@ -1029,6 +1030,7 @@ private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
 
     LaunchedEffect(activeSession?.id, activeSession?.user?.id) {
         exportScope = null; exportNotice = null; showExportConfirm = false
+        deletionSession = null; showDeleteConfirmation = false; deletionError = null
     }
 
     val saveDocument = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
@@ -1132,7 +1134,10 @@ private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
                 Text(SettingsDeletionCopy.SUBSCRIPTION_WARNING, fontSize = 12.sp, color = colors.textSecondary)
                 TextButton(
                     enabled = !deletingAccount,
-                    onClick = { showDeleteConfirmation = true },
+                    onClick = {
+                        deletionSession = com.hadithly.app.core.session.currentLibrarySession()
+                        showDeleteConfirmation = deletionSession != null
+                    },
                     modifier = Modifier.testTag("settings.deleteAccount"),
                 ) { Text(if (deletingAccount) "Deleting…" else "Delete account", color = Color(0xFFFF6B6B)) }
             }
@@ -1174,9 +1179,11 @@ private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
                 TextButton(
                     enabled = !deletingAccount,
                     onClick = {
+                        val captured = deletionSession ?: return@TextButton
+                        deletionSession = null
                         deletingAccount = true
                         scope.launch {
-                            app.session.deleteAccount()
+                            app.session.deleteAccount(captured)
                                 .onSuccess { showDeleteConfirmation = false }
                                 .onFailure {
                                     showDeleteConfirmation = false

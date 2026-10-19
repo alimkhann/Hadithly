@@ -19,6 +19,93 @@ final class GuestMergePlannerTests: XCTestCase {
         try store.settleSyncExchange(accepted(frame, reply: reply), requested: frame, owner: owner)
     }
 
+    @MainActor func testDeletionSurvivesResponseLossRestartAndIdentityFailureWithoutBootstrappingOrErasingOtherScopes() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("deletion.store")
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        let other = LibrarySyncOwner(key: "owner-b", subject: "subject-b")
+        let otherDeployment = LibrarySyncOwner(key: "owner-a", subject: "subject-a", namespace: "other-deployment")
+        let session = LibrarySyncSession(id: "session-a", subject: owner.subject)
+        var serverCalls = 0, identityCalls = 0
+        let store = GuestDataStore(storeURL: url)
+        store.addNote(hadithId: "target-a", content: "A original")
+        try store.claimGuestForSync(owner)
+        store.addNote(hadithId: "target-b", content: "B original")
+        try store.claimGuestForSync(other); try store.claimGuestForSync(otherDeployment)
+        func flow(_ store: GuestDataStore, loseResponse: Bool, failIdentity: Bool) -> LibraryAccountDeletion {
+            .init(store: store, namespace: "fixture", currentSession: { session }, invalidate: {},
+                prepare: { .init(subject: session.subject, authorization: "fixture", validUntil: Date.now.millisecondsSinceEpoch + 60_000) },
+                erase: { _ in
+                    serverCalls += 1
+                    if loseResponse { throw NSError(domain: "response-loss-fixture", code: 1) }
+                    return .init(subject: session.subject, deleted: false)
+                }, cleanup: { _ in }, deleteIdentity: { _ in
+                    identityCalls += 1
+                    if failIdentity { throw NSError(domain: "identity-offline-fixture", code: 2) }
+                })
+        }
+        do { try await flow(store, loseResponse: true, failIdentity: false).run(session); XCTFail("Lost response must retain pending phase") } catch { }
+        XCTAssertEqual(serverCalls, 1); XCTAssertEqual(identityCalls, 0)
+        XCTAssertEqual(try store.deletionPhase(subject: session.subject, namespace: "fixture"), .serverPending)
+        XCTAssertNotNil(try store.syncPartition(owner))
+        try await assertDeletionBlocksBootstrap(store, session: session)
+        let reopened = GuestDataStore(storeURL: url)
+        do { try await flow(reopened, loseResponse: false, failIdentity: true).run(session); XCTFail("Identity failure must remain retryable") } catch { }
+        XCTAssertEqual(serverCalls, 2); XCTAssertEqual(identityCalls, 1)
+        XCTAssertEqual(try reopened.deletionPhase(subject: session.subject, namespace: "fixture"), .identityPending)
+        XCTAssertNil(try reopened.syncPartition(owner))
+        XCTAssertNotNil(try reopened.syncPartition(other))
+        XCTAssertNotNil(try reopened.syncPartition(otherDeployment))
+        try await assertDeletionBlocksBootstrap(reopened, session: session)
+        let final = GuestDataStore(storeURL: url)
+        try await flow(final, loseResponse: false, failIdentity: false).run(session)
+        XCTAssertEqual(serverCalls, 2, "Identity-only retry must not bootstrap or erase the server again")
+        XCTAssertEqual(identityCalls, 2)
+        XCTAssertNil(try final.deletionPhase(subject: session.subject, namespace: "fixture"))
+        XCTAssertNotNil(try final.syncPartition(other))
+    }
+
+    @MainActor private func assertDeletionBlocksBootstrap(_ store: GuestDataStore, session: LibrarySyncSession) async throws {
+        var opens = 0
+        let transport = LibrarySyncTransport(namespace: "fixture", open: {
+            opens += 1; throw NSError(domain: "must-not-bootstrap-fixture", code: 1)
+        }, acknowledge: { _, _ in throw LibrarySyncFailure.invalidReceipt }, send: { _, _ in throw LibrarySyncFailure.invalidReceipt })
+        let sync = LibrarySync(store: store, transport: transport, currentSession: { session })
+        defer { sync.deactivate() }
+        await sync.activate(session)
+        XCTAssertEqual(opens, 0)
+        XCTAssertEqual(sync.status, .failed)
+        XCTAssertNil(sync.owner)
+    }
+
+    @MainActor func testDeletionRejectsWrongPreparationAndFinishesOnlyCapturedLocalErasureAfterSwitch() async throws {
+        let store = GuestDataStore(inMemory: true)
+        let a = LibrarySyncSession(id: "session-a", subject: "subject-a")
+        let b = LibrarySyncSession(id: "session-b", subject: "subject-b")
+        var current = a
+        let ownerA = LibrarySyncOwner(key: "owner-a", subject: a.subject), ownerB = LibrarySyncOwner(key: "owner-b", subject: b.subject)
+        store.addNote(hadithId: "target-a", content: "A original"); try store.claimGuestForSync(ownerA)
+        store.addNote(hadithId: "target-b", content: "B original"); try store.claimGuestForSync(ownerB)
+        var erases = 0, identities = 0
+        var cleanups: [String] = []
+        let wrong = LibraryAccountDeletion(store: store, namespace: "fixture", currentSession: { current }, invalidate: {},
+            prepare: { .init(subject: b.subject, authorization: "wrong-owner-fixture", validUntil: Date.now.millisecondsSinceEpoch + 60_000) },
+            erase: { _ in erases += 1; return .init(subject: b.subject, deleted: true) }, cleanup: { cleanups.append($0) }, deleteIdentity: { _ in identities += 1 })
+        do { try await wrong.run(a); XCTFail("Wrong preparation subject accepted") } catch { }
+        XCTAssertEqual(erases, 0); XCTAssertNotNil(try store.syncPartition(ownerA))
+        let switched = LibraryAccountDeletion(store: store, namespace: "fixture", currentSession: { current }, invalidate: {},
+            prepare: { .init(subject: a.subject, authorization: "owner-a-fixture", validUntil: Date.now.millisecondsSinceEpoch + 60_000) },
+            erase: { _ in erases += 1; current = b; return .init(subject: a.subject, deleted: true) }, cleanup: { cleanups.append($0) }, deleteIdentity: { _ in identities += 1 })
+        do { try await switched.run(a); XCTFail("Switched session must not delete an identity") } catch { }
+        XCTAssertEqual(erases, 1); XCTAssertEqual(identities, 0); XCTAssertEqual(cleanups, [a.subject])
+        XCTAssertNil(try store.syncPartition(ownerA)); XCTAssertNotNil(try store.syncPartition(ownerB))
+        XCTAssertEqual(try store.deletionPhase(subject: a.subject, namespace: "fixture"), .identityPending)
+        do { try await switched.run(a); XCTFail("Stale confirmation accepted") } catch { }
+        XCTAssertEqual(erases, 1); XCTAssertEqual(identities, 0)
+    }
+
     @MainActor func testPortableExportIncludesOfflineAndRecoveryTextWithoutProviderPassagesAndRejectsSwitchedOwner() async throws {
         let store = GuestDataStore(inMemory: true)
         let recovered = "Recovery fixture " + String(repeating: "界", count: 8_001)

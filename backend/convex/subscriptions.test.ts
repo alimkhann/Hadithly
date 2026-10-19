@@ -98,7 +98,7 @@ describe("Q2 authoritative access", () => {
     const data = parseRevenueCatSnapshot(snapshot(), "user_owner", revenueCatPolicy());
     expect(await f.t.mutation(internal.subscriptions.applySnapshot, { ...first, ...data })).toBe(false);
     expect(await f.t.mutation(internal.subscriptions.applySnapshot, { ...second, ...data })).toMatchObject({ pro: true });
-    await f.owner.mutation(api.users.deleteCurrentUser, {});
+    await f.owner.mutation(api.users.deleteCurrentUser, { authorization: (await f.owner.mutation(api.users.prepareAccountDeletion, {})).authorization });
     expect(await f.t.mutation(internal.subscriptions.applySnapshot, { ...second, ...data })).toBe(false);
     provider.mockClear(); expect(await f.owner.action(api.actions.subscriptions.refresh, {})).toBe(false);
     expect(provider).not.toHaveBeenCalled();
@@ -174,7 +174,7 @@ describe("Q2 HTTP to reconciliation to quota", () => {
     expect(await f.t.run(ctx => ctx.db.query("subscriptionWebhookTargets").collect())).toHaveLength(0);
     provider.mockRejectedValue(new Error("long outage"));
     await post(f.t, event("RENEWAL", "deleted")); await drain(f.t);
-    await f.owner.mutation(api.users.deleteCurrentUser, {});
+    await f.owner.mutation(api.users.deleteCurrentUser, { authorization: (await f.owner.mutation(api.users.prepareAccountDeletion, {})).authorization });
     expect(await f.t.run(ctx => ctx.db.query("subscriptionWebhookTargets").collect())).toHaveLength(0);
     provider.mockClear(); await f.t.mutation(internal.subscriptions.recoverDeliveries, {}); await drain(f.t);
     expect(provider).not.toHaveBeenCalled();

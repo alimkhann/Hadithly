@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 import { convexTest } from "convex-test";
-import { describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "./_generated/api";
 import schema from "./schema";
 import {
@@ -9,6 +9,7 @@ import {
 } from "./lib/revenueCat";
 
 const modules = import.meta.glob("./**/*.ts");
+afterEach(() => vi.useRealTimers());
 
 describe("identity boundary", () => {
   test("protected user functions reject missing identity", async () => {
@@ -17,7 +18,7 @@ describe("identity boundary", () => {
     await expect(t.query(api.users.getCurrentUser)).rejects.toThrow(
       "Unauthenticated",
     );
-    await expect(t.mutation(api.users.deleteCurrentUser, {})).rejects.toThrow(
+    await expect(t.mutation(api.users.deleteCurrentUser, { authorization: "unauthenticated-fixture" })).rejects.toThrow(
       "Unauthenticated",
     );
     await expect(t.query(api.library.listBookmarks)).rejects.toThrow(
@@ -52,6 +53,7 @@ describe("RevenueCat boundary", () => {
 
 describe("deletion boundary", () => {
   test("removes private rows and anonymizes retained records idempotently", async () => {
+    vi.useFakeTimers();
     const t = convexTest(schema, modules);
     const clerkId = "user_delete_me";
     const seeded = await t.run(async (ctx) => {
@@ -160,13 +162,10 @@ describe("deletion boundary", () => {
     });
     const authenticated = t.withIdentity({ subject: clerkId });
 
-    await expect(authenticated.mutation(api.users.deleteCurrentUser, {})).resolves.toBe(
-      true,
-    );
-    await expect(authenticated.mutation(api.users.deleteCurrentUser, {})).resolves.toBe(
-      false,
-    );
+    await expect(authenticated.mutation(api.users.deleteCurrentUser, { authorization: (await authenticated.mutation(api.users.prepareAccountDeletion, {})).authorization })).resolves.toMatchObject({ deleted: true });
+    await expect(authenticated.mutation(api.users.deleteCurrentUser, { authorization: (await authenticated.mutation(api.users.prepareAccountDeletion, {})).authorization })).resolves.toMatchObject({ deleted: false });
 
+    await t.finishAllScheduledFunctions(vi.runAllTimers);
     const state = await t.run(async (ctx) => ({
       users: await ctx.db.query("users").collect(),
       bookmarks: await ctx.db.query("bookmarks").collect(),
@@ -193,4 +192,57 @@ describe("deletion boundary", () => {
     expect(state.generated?.generatedByUserId).toBeUndefined();
     expect(state.audit?.actorUserId).toBeUndefined();
   });
+});
+
+test("an erasure request cannot be undone by automatic account bootstrap", async () => {
+  vi.useFakeTimers();
+  try {
+    const t = convexTest(schema, modules);
+    const a = t.withIdentity({ subject: "deletion-retry-fixture", tokenIdentifier: "https://clerk.example|deletion-retry-fixture" });
+    await a.mutation(api.users.ensureCurrentUser, {});
+    const grant = await a.mutation(api.users.prepareAccountDeletion, {});
+    await a.mutation(api.users.deleteCurrentUser, { authorization: grant.authorization });
+    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await expect(a.mutation(api.users.ensureCurrentUser, {})).rejects.toThrow("ACCOUNT_DELETION_PENDING");
+  } finally { vi.useRealTimers(); }
+});
+
+
+test("deletion authorization cannot start another account's erasure and retries need no recreated user", async () => {
+  vi.useFakeTimers();
+  const t = convexTest(schema, modules);
+  const a = t.withIdentity({ subject: "delete-owner-a", tokenIdentifier: "fixture:delete-owner-a" });
+  const b = t.withIdentity({ subject: "delete-owner-b", tokenIdentifier: "fixture:delete-owner-b" });
+  await a.mutation(api.users.ensureCurrentUser, {});
+  const bId = await b.mutation(api.users.ensureCurrentUser, {});
+  const grant = await a.mutation(api.users.prepareAccountDeletion, {});
+  expect(grant.subject).toBe("delete-owner-a");
+  expect(await t.run(ctx => ctx.db.query("accountDeletionMarkers").collect())).toHaveLength(0);
+  await expect(b.mutation(api.users.deleteCurrentUser, { authorization: grant.authorization })).rejects.toThrow("ACCOUNT_DELETION_OWNER_MISMATCH");
+  expect(await t.run(ctx => ctx.db.get(bId))).not.toBeNull();
+  expect(await t.run(ctx => ctx.db.query("accountDeletionMarkers").collect())).toHaveLength(0);
+  expect(await a.mutation(api.users.deleteCurrentUser, { authorization: grant.authorization })).toEqual({ subject: "delete-owner-a", deleted: true });
+  await t.finishAllScheduledFunctions(vi.runAllTimers);
+  const retry = await a.mutation(api.users.prepareAccountDeletion, {});
+  expect(await a.mutation(api.users.deleteCurrentUser, { authorization: retry.authorization })).toEqual({ subject: "delete-owner-a", deleted: false });
+  await expect(a.mutation(api.users.ensureCurrentUser, {})).rejects.toThrow("ACCOUNT_DELETION_PENDING");
+  expect(await b.mutation(api.users.ensureCurrentUser, {})).toBe(bId);
+  const markers = await t.run(ctx => ctx.db.query("accountDeletionMarkers").collect());
+  expect(markers).toHaveLength(1);
+  expect(JSON.stringify(markers)).not.toContain("delete-owner-a");
+  expect(await t.run(ctx => ctx.db.query("accountDeletionAuthorizations").collect())).toHaveLength(0);
+});
+
+test("expired deletion authorization has no effects and an account never bootstrapped can be erased", async () => {
+  vi.useFakeTimers();
+  const t = convexTest(schema, modules);
+  const a = t.withIdentity({ subject: "never-bootstrapped", tokenIdentifier: "fixture:never-bootstrapped" });
+  const first = await a.mutation(api.users.prepareAccountDeletion, {});
+  vi.setSystemTime(first.validUntil + 1);
+  await expect(a.mutation(api.users.deleteCurrentUser, { authorization: first.authorization })).rejects.toThrow("ACCOUNT_DELETION_AUTHORIZATION_EXPIRED");
+  expect(await t.run(ctx => ctx.db.query("accountDeletionMarkers").collect())).toHaveLength(0);
+  const retry = await a.mutation(api.users.prepareAccountDeletion, {});
+  expect(await a.mutation(api.users.deleteCurrentUser, { authorization: retry.authorization })).toEqual({ subject: "never-bootstrapped", deleted: false });
+  await expect(a.mutation(api.users.ensureCurrentUser, {})).rejects.toThrow("ACCOUNT_DELETION_PENDING");
+  expect(await t.run(ctx => ctx.db.query("users").collect())).toHaveLength(0);
 });

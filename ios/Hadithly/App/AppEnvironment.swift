@@ -241,23 +241,28 @@ final class AppEnvironment {
         Task { await purchases.logOut() }
     }
 
-    /// Deletes synced Hadithly data first, while the Convex token is valid,
-    /// then removes the Clerk identity and its sessions. Safe to retry if the
-    /// second step fails because the backend mutation is idempotent.
-    func deleteAccount() async throws {
-        guard let session = currentLibrarySession(), let user = Clerk.shared.session?.user, user.id == session.subject,
-              let owner = librarySync.owner else { throw LibrarySyncFailure.sessionChanged }
-        let context = try librarySync.captureWriteContext()
-        let capability = try librarySync.capability(for: context)
-        analytics.setSharing(false)
-        SettingsExport.clearTemporaryFiles()
-        librarySync.deactivate(); library.refresh()
-        let _: Bool? = try await convex.mutation("users:deleteCurrentUser", with: ["capability": capability])
-        try guestData.eraseSyncPartition(owner)
-        EvidenceLocalDrafts.clear(for: session.subject)
-        UserDefaults.standard.removeObject(forKey: "q1.appAttest.\(session.subject)")
-        guard currentLibrarySession() == session else { throw LibrarySyncFailure.sessionChanged }
-        try await user.delete()
+    /// Durable phases allow a retry even after the backend account is gone.
+    func deleteAccount(_ captured: LibrarySyncSession) async throws {
+        guard currentLibrarySession() == captured, let user = Clerk.shared.session?.user,
+              user.id == captured.subject else { throw LibrarySyncFailure.sessionChanged }
+        let client = convex
+        let flow = LibraryAccountDeletion(store: guestData, namespace: config.convexURL,
+            currentSession: currentLibrarySession,
+            invalidate: { [self] in
+                analytics.setSharing(false); SettingsExport.clearTemporaryFiles()
+                librarySync.deactivate(); library.refresh()
+            }, prepare: {
+                try await client.mutation("users:prepareAccountDeletion", with: [:])
+            }, erase: { authorization in
+                try await client.mutation("users:deleteCurrentUser", with: ["authorization": authorization])
+            }, cleanup: { subject in
+                EvidenceLocalDrafts.clear(for: subject)
+                UserDefaults.standard.removeObject(forKey: "q1.appAttest.\(subject)")
+            }, deleteIdentity: { expected in
+                guard currentLibrarySession() == expected else { throw LibrarySyncFailure.sessionChanged }
+                try await user.delete()
+            })
+        try await flow.run(captured)
         if currentLibrarySession() == nil { handleSignOut() }
     }
 

@@ -24,6 +24,9 @@ const authenticityGrade = v.union(
 );
 
 export default defineSchema({
+  accountDeletionMarkers: defineTable({ subjectDigest: v.string(), requestedAt: v.number() }).index("by_subject", ["subjectDigest"]),
+  accountDeletionAuthorizations: defineTable({ subjectDigest: v.string(), digest: v.string(), validUntil: v.number() })
+    .index("by_subject", ["subjectDigest"]).index("by_digest", ["digest"]),
   supportRequests: defineTable({ ...supportFields, expiresAt: v.number() })
     .index("by_reference", ["requestId"]).index("by_expiry", ["expiresAt"]),
   supportRates: defineTable({ emailHash: v.string(), count: v.number(), expiresAt: v.number() })

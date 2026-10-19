@@ -342,10 +342,11 @@ class ConvexRepository(context: Context) : LibraryReadTransport, LibrarySyncTran
             subscribe<UserPreferencesResult>("users:getCurrentUserPreferences", mapOf("capability" to capability)).firstOrNull()
         }
 
-    suspend fun deleteCurrentUser(capability: String) {
-        withContext(Dispatchers.IO) {
-            convex.mutation<Boolean>("users:deleteCurrentUser", mapOf("capability" to capability))
-        }
+    suspend fun prepareAccountDeletion(): SyncDeletionAuthorization = withContext(Dispatchers.IO) {
+        convex.mutation<SyncDeletionAuthorization>("users:prepareAccountDeletion", emptyMap())
+    }
+    suspend fun deleteCurrentUser(authorization: String): SyncDeletionResult = withContext(Dispatchers.IO) {
+        convex.mutation<SyncDeletionResult>("users:deleteCurrentUser", mapOf("authorization" to authorization))
     }
 
     fun observeSubscriptionStatus() = subscribe<SubscriptionStatusResult>("subscriptions:getStatus")

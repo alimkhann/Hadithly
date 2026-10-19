@@ -82,7 +82,7 @@ test("expiry and account erasure revoke batch admission without recreating priva
   await expect(f.send(binding.capability, batch)).rejects.toThrow("SYNC_BINDING_EXPIRED");
   const current = await f.a.mutation(open, {});
   await f.send(current.capability, batch);
-  await f.a.mutation(api.users.deleteCurrentUser, {});
+  await f.a.mutation(api.users.deleteCurrentUser, { authorization: (await f.a.mutation(api.users.prepareAccountDeletion, {})).authorization });
   await expect(f.send(current.capability, batch)).rejects.toThrow("SYNC_ACCOUNT_MISSING");
   await f.t.run(async ctx => {
     for (const table of ["librarySyncBindings", "librarySyncStreams", "librarySyncMarks", "librarySyncFolderKeys", "librarySyncVersions"] as const) {
@@ -293,7 +293,8 @@ test("bound existing account operations reject another JWT before private effect
   await expect(f.b.mutation(api.users.ensureCurrentUser, { capability: binding.capability, preferredLanguage: "ru" })).rejects.toThrow("SYNC_OWNER_MISMATCH");
   await expect(f.b.query(api.users.getCurrentUserPreferences, { capability: binding.capability })).rejects.toThrow("SYNC_OWNER_MISMATCH");
   await expect(f.b.query(api.users.exportCurrentUserData, { capability: binding.capability })).rejects.toThrow("SYNC_OWNER_MISMATCH");
-  await expect(f.b.mutation(api.users.deleteCurrentUser, { capability: binding.capability })).rejects.toThrow("SYNC_OWNER_MISMATCH");
+  const deletion = await f.a.mutation(api.users.prepareAccountDeletion, {});
+  await expect(f.b.mutation(api.users.deleteCurrentUser, { authorization: deletion.authorization })).rejects.toThrow("ACCOUNT_DELETION_OWNER_MISMATCH");
   expect((await f.b.query(api.users.getCurrentUserPreferences, {}))?.readerPreferences?.translationLocale).toBe("en");
   expect(await f.b.query(api.users.getCurrentUser, {})).not.toBeNull();
 });

@@ -99,7 +99,7 @@ describe("E2 processing state and privacy", () => {
       text: "quoted source", spans: [{ start: 0, end: 13, source: { kind: "html_chars", start: 3, end: 16 } }],
     } });
     expect(await t.run(ctx => ctx.db.query("evidenceExtractions").collect())).toHaveLength(1);
-    await owner.mutation(api.users.deleteCurrentUser, {});
+    await owner.mutation(api.users.deleteCurrentUser, { authorization: (await owner.mutation(api.users.prepareAccountDeletion, {})).authorization });
     expect(await t.run(ctx => ctx.db.query("evidenceExtractions").collect())).toHaveLength(0);
   });
 

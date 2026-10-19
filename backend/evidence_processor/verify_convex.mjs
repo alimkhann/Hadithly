@@ -72,9 +72,11 @@ async function verify() {
     await run('evidence:deleteEvidenceDraft', { submissionId: unavailable.submissionId });
     console.log('Real manual retry exhaustion passed');
   } finally {
-    await run('users:deleteCurrentUser');
+    const grant = await run('users:prepareAccountDeletion');
+    assert.equal(grant.subject, JSON.parse(identity).subject);
+    await run('users:deleteCurrentUser', { authorization: grant.authorization });
   }
   for (const table of tables) assert.deepEqual((await rows(table)).map(row => row._id).sort(), before[table]);
-  console.log('Disposable rows removed; existing submissions, translations and users preserved');
+  console.log('Disposable content removed; existing rows preserved; minimal deletion marker retained');
 }
 verify().catch(error => { console.error('Convex verification failed:', error?.name === 'AssertionError' ? error.message : 'fixture or transport failure'); process.exitCode = 1; });

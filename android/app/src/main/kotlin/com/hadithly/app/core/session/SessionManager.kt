@@ -105,22 +105,29 @@ class SessionManager(
         if (currentLibrarySession() == null) purchases.logOut()
     }
 
-    suspend fun deleteAccount(): Result<Unit> = runCatching {
-        val session = currentLibrarySession() ?: throw LibrarySyncFailure.SessionChanged
-        val user = Clerk.session?.user ?: throw LibrarySyncFailure.SessionChanged
-        if (user.id != session.subject) throw LibrarySyncFailure.SessionChanged
-        val owner = sync.owner.value ?: throw LibrarySyncFailure.SessionChanged
-        val capability = sync.capability(sync.captureWriteContext())
-        (context.applicationContext as com.hadithly.app.HadithlyApplication).analytics.setSharing(false)
-        sync.deactivate(); library.refresh()
-        repository.deleteCurrentUser(capability)
-        guestData.eraseSyncPartition(owner)
-        EvidenceLocalDrafts.clearForAccount(context, session.subject)
-        if (currentLibrarySession() != session) throw LibrarySyncFailure.SessionChanged
-        when (val result = user.delete()) {
-            is ClerkResult.Success -> handleSignOut()
-            is ClerkResult.Failure -> error(result.errorMessage)
-        }
+    suspend fun deleteAccount(captured: LibrarySyncSession): Result<Unit> = withContext(Dispatchers.Main.immediate) {
+        try {
+            if (currentLibrarySession() != captured) throw LibrarySyncFailure.SessionChanged
+            val user = Clerk.session?.user ?: throw LibrarySyncFailure.SessionChanged
+            if (user.id != captured.subject) throw LibrarySyncFailure.SessionChanged
+            val flow = LibraryAccountDeletion(guestData, repository.namespace, ::currentLibrarySession,
+                invalidate = {
+                    (context.applicationContext as com.hadithly.app.HadithlyApplication).analytics.setSharing(false)
+                    sync.deactivate(); library.refresh()
+                }, prepare = repository::prepareAccountDeletion, erase = repository::deleteCurrentUser,
+                cleanup = { subject -> EvidenceLocalDrafts.clearForAccount(context, subject) },
+                deleteIdentity = { expected ->
+                    if (currentLibrarySession() != expected) throw LibrarySyncFailure.SessionChanged
+                    when (val result = user.delete()) {
+                        is ClerkResult.Success -> Unit
+                        is ClerkResult.Failure -> error(result.errorMessage)
+                    }
+                })
+            flow.run(captured)
+            if (currentLibrarySession() == null) handleSignOut()
+            Result.success(Unit)
+        } catch (cancelled: CancellationException) { throw cancelled }
+        catch (error: Exception) { Result.failure(error) }
     }
 
     private suspend fun waitForConvexAuthentication(session: LibrarySyncSession, timeoutMs: Long = 15_000): Boolean {

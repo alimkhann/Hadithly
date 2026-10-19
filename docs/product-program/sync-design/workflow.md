@@ -14,7 +14,10 @@
   `../../LIBRARY_SYNC_INTEGRATION_VERIFICATION.md`.
 - [x] Include current-owner local pending/recovery in portable export; local
   scope/content proof is in `../../LIBRARY_SYNC_EXPORT_VERIFICATION.md`.
-- [ ] Finish account deletion/retry before A2 acceptance.
+- [x] Implement persistent deletion retry and server recreation guard with local
+  native/Convex proof in `../../LIBRARY_SYNC_DELETION_VERIFICATION.md`.
+- [ ] Verify actual SDK deletion/propagation, retained marker/authorization lifecycle
+  and account-scale erasure before A2 acceptance.
 - [ ] Verify: failure, newer edits, retries, missing/invalid targets, duplicate
   sign-in, account change, restart, folders, all facets and semantic positions.
 - [ ] Scrap/redesign if repeated workarounds contradict the chosen ownership.

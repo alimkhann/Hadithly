@@ -26,6 +26,7 @@ final class GuestDataStore {
             GuestSavedMembership.self,
             GuestReadingProgress.self,
             GuestLibraryPartition.self,
+            GuestAccountDeletion.self,
         ])
         let configuration = storeURL.map { ModelConfiguration(schema: schema, url: $0) }
             ?? ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
@@ -318,6 +319,7 @@ final class GuestDataStore {
 
     /// The claim and guest removal share one SwiftData commit, with no network await.
     func claimGuestForSync(_ owner: LibrarySyncOwner) throws {
+        guard try deletionPhase(subject: owner.subject, namespace: owner.namespace) == nil else { throw LibrarySyncFailure.accountDeleting }
         let bookmarks = try context.fetch(FetchDescriptor<GuestBookmark>())
         let favorites = try context.fetch(FetchDescriptor<GuestFavorite>())
         let notes = try context.fetch(FetchDescriptor<GuestNote>())
@@ -423,6 +425,33 @@ final class GuestDataStore {
         state.positionsSnapshot = snapshot
         state.pruneConfirmed()
         try saveSyncPartition(state, owner: owner)
+    }
+
+    private func deletionRow(subject: String, namespace: String) throws -> GuestAccountDeletion? {
+        try context.fetch(FetchDescriptor<GuestAccountDeletion>()).first { $0.subject == subject && $0.namespace == namespace }
+    }
+    func deletionPhase(subject: String, namespace: String) throws -> LibraryDeletionPhase? {
+        guard let row = try deletionRow(subject: subject, namespace: namespace) else { return nil }
+        guard let phase = LibraryDeletionPhase(rawValue: row.phase) else { throw LibrarySyncFailure.storeUnavailable }
+        return phase
+    }
+    func beginDeletion(subject: String, namespace: String) throws {
+        if try deletionRow(subject: subject, namespace: namespace) == nil {
+            context.insert(GuestAccountDeletion(subject: subject, namespace: namespace))
+        }
+        do { try context.save() } catch { context.rollback(); throw LibrarySyncFailure.storeUnavailable }
+    }
+    func markDeletionBackendComplete(subject: String, namespace: String) throws {
+        guard let row = try deletionRow(subject: subject, namespace: namespace) else { throw LibrarySyncFailure.sessionChanged }
+        row.phase = LibraryDeletionPhase.identityPending.rawValue
+        for partition in try context.fetch(FetchDescriptor<GuestLibraryPartition>()) where partition.subject == subject && partition.ownerKey.hasPrefix(namespace + "|") {
+            context.delete(partition)
+        }
+        do { try context.save() } catch { context.rollback(); throw LibrarySyncFailure.storeUnavailable }
+    }
+    func clearDeletion(subject: String, namespace: String) throws {
+        if let row = try deletionRow(subject: subject, namespace: namespace) { context.delete(row) }
+        do { try context.save() } catch { context.rollback(); throw LibrarySyncFailure.storeUnavailable }
     }
 
     func eraseSyncPartition(_ owner: LibrarySyncOwner) throws {

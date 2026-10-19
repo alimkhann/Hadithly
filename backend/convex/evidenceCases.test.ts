@@ -155,7 +155,7 @@ describe("E4 actual automatic case lifecycle", () => {
   });
   test("anonymous global spend survives account deletion and enforces its independent ceiling", async () => {
     const f = await fixture(); await publish(f);
-    await f.owner.mutation(api.users.deleteCurrentUser, {});
+    await f.owner.mutation(api.users.deleteCurrentUser, { authorization: (await f.owner.mutation(api.users.prepareAccountDeletion, {})).authorization });
     const global = await f.t.run(ctx => ctx.db.query("evidenceReviewGlobalSpendEvents").collect());
     expect(global).toHaveLength(1);
     expect(JSON.stringify(global)).not.toContain("submissionId"); expect(JSON.stringify(global)).not.toContain("userId");
@@ -255,7 +255,7 @@ describe("E4 actual automatic case lifecycle", () => {
     const facts = await f.t.run(ctx => ctx.db.query("evidenceAuditFacts").collect());
     expect(facts.some(row => row.actor.kind === "operator" && row.actor.verified && row.after === "deleted")).toBe(true);
     for (const secret of [f.draft.submissionId, f.itemId, "e3_other", "Actions follow", "https://", "storageId", "submittedBy"]) expect(JSON.stringify(facts)).not.toContain(secret);
-    await f.outsider.mutation(api.users.deleteCurrentUser, {});
+    await f.outsider.mutation(api.users.deleteCurrentUser, { authorization: (await f.outsider.mutation(api.users.prepareAccountDeletion, {})).authorization });
     expect(await f.t.run(ctx => ctx.db.query("evidenceAuditFacts").collect())).toEqual(facts);
     expect(await f.t.run(ctx => ctx.db.query("evidenceAuditActors").collect())).toHaveLength(0);
   });

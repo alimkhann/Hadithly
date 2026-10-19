@@ -134,9 +134,12 @@ backend passes and their limits. The prior receipt protocol received an independ
 source review; the integration review's folder-undo finding is repaired and locally
 proved, with final independent re-review still open. Local pending/recovery export
 is implemented on both apps; its local ownership/content checks pass. See
-`docs/LIBRARY_SYNC_EXPORT_VERIFICATION.md`. Delete/restart/retry and anti-recreation,
-large folders/vanished anchors, installed
-schema, actual account/device delivery and deployment remain open. A2 has no
+`docs/LIBRARY_SYNC_EXPORT_VERIFICATION.md`. Deletion retry phases and the server
+recreation guard are now implemented and locally verified with 391 backend,
+43 iOS and 22 Android passes. See `docs/LIBRARY_SYNC_DELETION_VERIFICATION.md`.
+Actual SDK deletion/cross-device propagation, retention and authorization cleanup,
+large folders/vanished anchors, installed schema, final independent review,
+account/device delivery and deployment remain open. A2 has no
 deployment approval.
 
 ## Read the plan in layers

@@ -473,7 +473,7 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
 }
 
 enum LibrarySyncFailure: Error {
-    case storeUnavailable, ownerMismatch, invalidReceipt, oversizedChange, invalidChange, sessionChanged
+    case storeUnavailable, ownerMismatch, invalidReceipt, oversizedChange, invalidChange, sessionChanged, accountDeleting
 }
 
 struct LibrarySyncSession: Equatable, Sendable {
@@ -601,6 +601,7 @@ final class LibrarySync {
     private func run(_ session: LibrarySyncSession, epoch: UUID) async {
         do {
             try check(session, epoch: epoch)
+            guard try store.deletionPhase(subject: session.subject, namespace: transport.namespace) == nil else { throw LibrarySyncFailure.accountDeleting }
             if binding == nil || (binding?.validUntil ?? 0) <= now() + 1_000 {
                 let opened = try await transport.open()
                 try check(session, epoch: epoch)
@@ -638,6 +639,7 @@ final class LibrarySync {
             schedule(session, epoch: epoch, after: 0.25)
         } catch is CancellationError { }
         catch LibrarySyncFailure.sessionChanged { }
+        catch LibrarySyncFailure.accountDeleting { status = .failed }
         catch LibrarySyncFailure.ownerMismatch {
             guard generation == epoch else { return }
             binding = nil
@@ -661,5 +663,38 @@ final class LibrarySync {
             retryTask = nil
             await activate(session)
         }
+    }
+}
+
+
+/// The same durable deletion state machine drives production and controlled tests.
+@MainActor
+struct LibraryAccountDeletion {
+    let store: GuestDataStore
+    let namespace: String
+    let currentSession: () -> LibrarySyncSession?
+    let invalidate: () -> Void
+    let prepare: () async throws -> SyncDeletionAuthorization
+    let erase: (String) async throws -> SyncDeletionResult
+    let cleanup: (String) -> Void
+    let deleteIdentity: (LibrarySyncSession) async throws -> Void
+
+    func run(_ captured: LibrarySyncSession) async throws {
+        guard currentSession() == captured else { throw LibrarySyncFailure.sessionChanged }
+        invalidate()
+        try store.beginDeletion(subject: captured.subject, namespace: namespace)
+        if try store.deletionPhase(subject: captured.subject, namespace: namespace) == .serverPending {
+            guard currentSession() == captured else { throw LibrarySyncFailure.sessionChanged }
+            let grant = try await prepare()
+            guard currentSession() == captured, grant.subject == captured.subject,
+                  grant.validUntil.isFinite, grant.validUntil > Date.now.millisecondsSinceEpoch else { throw LibrarySyncFailure.ownerMismatch }
+            let result = try await erase(grant.authorization)
+            guard result.subject == captured.subject else { throw LibrarySyncFailure.ownerMismatch }
+            try store.markDeletionBackendComplete(subject: captured.subject, namespace: namespace)
+        }
+        cleanup(captured.subject)
+        guard currentSession() == captured else { throw LibrarySyncFailure.sessionChanged }
+        try await deleteIdentity(captured)
+        try store.clearDeletion(subject: captured.subject, namespace: namespace)
     }
 }

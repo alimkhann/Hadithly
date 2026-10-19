@@ -147,13 +147,15 @@ describe("Q1 global success invariant", () => {
   });
   test("deletion keeps global flight/cache/event; erases private charges/credentials", async () => {
     const f = await fixture(); const claim = await f.admit(); if (claim.kind !== "claimed") throw new Error("No claim");
-    await f.owner.mutation(api.users.deleteCurrentUser, {});
-    await f.owner.mutation(api.users.ensureCurrentUser, {});
-    expect(await f.admit()).toMatchObject({ kind: "busy" });
+    await f.owner.mutation(api.users.deleteCurrentUser, { authorization: (await f.owner.mutation(api.users.prepareAccountDeletion, {})).authorization });
+    await expect(f.owner.mutation(api.users.ensureCurrentUser, {})).rejects.toThrow("ACCOUNT_DELETION_PENDING");
+    const other = f.t.withIdentity({ subject: "q1-new-account", tokenIdentifier: "fixture:q1-new-account" });
+    await other.mutation(api.users.ensureCurrentUser, {});
+    expect(await f.admit(0, "q1-new-account")).toMatchObject({ kind: "busy" });
     await f.t.mutation(internal.quotas.finish, { jobId: claim.jobId, attempt: claim.attempt, telemetry, output });
     expect(await f.t.run(ctx => ctx.db.query("aiUsageEvents").collect())).toHaveLength(1);
     expect(await f.t.run(ctx => ctx.db.query("aiUsageCharges").collect())).toHaveLength(0);
-    expect(await f.admit()).toMatchObject({ kind: "cached" });
+    expect(await f.admit(0, "q1-new-account")).toMatchObject({ kind: "cached" });
     await f.t.finishInProgressScheduledFunctions();
   });
   test("deterministic generated schedules preserve success/event/charge correspondence", async () => {

@@ -226,6 +226,7 @@ sealed class LibrarySyncFailure : Exception() {
     data object OversizedChange : LibrarySyncFailure()
     data object InvalidChange : LibrarySyncFailure()
     data object SessionChanged : LibrarySyncFailure()
+    data object AccountDeleting : LibrarySyncFailure()
 }
 
 data class LibrarySyncSession(val id: String, val subject: String)
@@ -349,6 +350,9 @@ class LibrarySync(
     private suspend fun run(session: LibrarySyncSession, epoch: String) {
         try {
             checkSession(session, epoch)
+            val deletion = store.deletionPhase(session.subject, transport.namespace)
+            checkSession(session, epoch)
+            if (deletion != null) throw LibrarySyncFailure.AccountDeleting
             if (binding == null || (binding?.validUntil ?: 0.0) <= now() + 1_000) {
                 val opened = transport.open()
                 checkSession(session, epoch)
@@ -389,6 +393,9 @@ class LibrarySync(
             schedule(session, epoch, 250)
         } catch (cancelled: CancellationException) { throw cancelled }
         catch (_: LibrarySyncFailure.SessionChanged) { }
+        catch (_: LibrarySyncFailure.AccountDeleting) {
+            if (generation == epoch && currentSession() == session) mutableStatus.value = Status.Failed
+        }
         catch (_: LibrarySyncFailure.OwnerMismatch) {
             if (generation == epoch) {
                 binding = null
@@ -409,5 +416,40 @@ class LibrarySync(
             delay(after)
             if (generation == epoch && currentSession() == session) { retryTask = null; activateOnMain(session) }
         }
+    }
+}
+
+
+@Serializable
+enum class LibraryDeletionPhase { SERVER_PENDING, IDENTITY_PENDING }
+@Serializable
+data class LibraryDeletionIntent(val subject: String, val namespace: String, val phase: LibraryDeletionPhase)
+
+class LibraryAccountDeletion(
+    private val store: GuestDataStore,
+    private val namespace: String,
+    private val currentSession: () -> LibrarySyncSession?,
+    private val invalidate: () -> Unit,
+    private val prepare: suspend () -> SyncDeletionAuthorization,
+    private val erase: suspend (String) -> SyncDeletionResult,
+    private val cleanup: (String) -> Unit,
+    private val deleteIdentity: suspend (LibrarySyncSession) -> Unit,
+) {
+    suspend fun run(captured: LibrarySyncSession) = withContext(Dispatchers.Main.immediate) {
+        if (currentSession() != captured) throw LibrarySyncFailure.SessionChanged
+        invalidate()
+        store.beginDeletion(captured.subject, namespace)
+        if (store.deletionPhase(captured.subject, namespace) == LibraryDeletionPhase.SERVER_PENDING) {
+            if (currentSession() != captured) throw LibrarySyncFailure.SessionChanged
+            val grant = prepare()
+            if (currentSession() != captured || grant.subject != captured.subject || !grant.validUntil.isFinite() || grant.validUntil <= System.currentTimeMillis()) throw LibrarySyncFailure.OwnerMismatch
+            val result = erase(grant.authorization)
+            if (result.subject != captured.subject) throw LibrarySyncFailure.OwnerMismatch
+            store.markDeletionBackendComplete(captured.subject, namespace)
+        }
+        cleanup(captured.subject)
+        if (currentSession() != captured) throw LibrarySyncFailure.SessionChanged
+        deleteIdentity(captured)
+        store.clearDeletion(captured.subject, namespace)
     }
 }

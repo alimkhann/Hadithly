@@ -54,6 +54,23 @@ must be replaced by evidence-pipeline checks, not used to revive that workflow.
   gates still open. LA4 has a pre-launch defer record; its post-launch acceptance
   gate has not passed. L1 has not started. Stop before L1.
 
+## Product program local checkpoints, October 19
+
+This addition does not refresh the external dashboard facts above. A1's approved
+development first-reading boundary has four readable locales; eleven locales,
+maintenance and semantic/native-copy review remain open. A2 production caller
+integration, local pending/recovery export, persistent deletion retry and a server
+recreation guard have local evidence. See `LIBRARY_SYNC_INTEGRATION_VERIFICATION.md`,
+`LIBRARY_SYNC_EXPORT_VERIFICATION.md` and `LIBRARY_SYNC_DELETION_VERIFICATION.md`.
+
+A2 still requires final independent review, real SDK and two-device delivery,
+other-device local erasure propagation, marker/authorization retention and cleanup,
+scale/large folders/vanished anchors, installed-schema/process/cancellation proof,
+and deployment/private test-write approval. No A2 deployment was authorized or
+performed. A3 grounding/quality and later program units remain pending in
+`PRODUCT_PROGRAM.md`. These checkpoints close no physical-device, store,
+localization, production or release gate listed above.
+
 ## App-wide operation rule
 
 The sole operator must not be required to approve routine content or clear a

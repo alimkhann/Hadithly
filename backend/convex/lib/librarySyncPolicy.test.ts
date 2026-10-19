@@ -66,6 +66,7 @@ afterAll(async () => {
   const validators = { SyncFolderReference: syncValidatorContract(policy.syncFolderReference), SyncCommand: syncValidatorContract(policy.syncCommand),
     SyncOperation: syncValidatorContract(policy.syncOperation), SyncBatch: syncValidatorContract(policy.syncBatch), SyncOutcome: syncValidatorContract(policy.syncOutcome),
     SyncReceipt: syncValidatorContract(policy.syncReceipt), SyncBinding: syncValidatorContract(policy.syncBinding), SyncReply: syncValidatorContract(policy.syncReply),
+    SyncDeletionAuthorization: syncValidatorContract(policy.syncDeletionAuthorization), SyncDeletionResult: syncValidatorContract(policy.syncDeletionResult),
     SyncRevision: syncValidatorContract(policy.syncRevision), SyncHadithSummary: syncValidatorContract(policy.syncHadithSummary),
     SyncSavedItem: syncValidatorContract(policy.syncSavedItem), SyncFolderRow: syncValidatorContract(policy.syncFolderRow), SyncPositionRow: syncValidatorContract(policy.syncPositionRow),
     SyncSavedSnapshot: syncValidatorContract(policy.syncSavedSnapshot), SyncPositionsSnapshot: syncValidatorContract(policy.syncPositionsSnapshot),

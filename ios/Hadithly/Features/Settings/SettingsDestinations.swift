@@ -986,6 +986,7 @@ struct PrivacyDataView: View {
     @State private var exportURL: URL?
     @State private var exportError: String?
     @State private var showDeleteConfirmation = false
+    @State private var pendingDeletionSession: LibrarySyncSession?
     @State private var isDeletingAccount = false
     @State private var deletionError: String?
     @State private var crashConsent = CrashReporting.shared.hasConsent
@@ -1062,7 +1063,8 @@ struct PrivacyDataView: View {
             if clerk.session?.status == .active {
                 Section {
                     Button(role: .destructive) {
-                        showDeleteConfirmation = true
+                        pendingDeletionSession = currentLibrarySession()
+                        showDeleteConfirmation = pendingDeletionSession != nil
                     } label: {
                         if isDeletingAccount {
                             ProgressView().frame(maxWidth: .infinity)
@@ -1100,7 +1102,9 @@ struct PrivacyDataView: View {
             titleVisibility: .visible
         ) {
             Button("Delete account and data", role: .destructive) {
-                Task { await deleteAccount() }
+                guard let captured = pendingDeletionSession else { return }
+                pendingDeletionSession = nil
+                Task { await deleteAccount(captured) }
             }
             Button("Cancel", role: .cancel) {}
         } message: {
@@ -1123,6 +1127,7 @@ struct PrivacyDataView: View {
         exportTask?.cancel(); exportTask = nil
         if let exportURL { try? FileManager.default.removeItem(at: exportURL) }
         exportURL = nil; exportError = nil; showExportConfirm = false; pendingExportContext = nil
+        showDeleteConfirmation = false; pendingDeletionSession = nil; deletionError = nil
     }
 
     /// Device reauthentication precedes the export whenever the device can
@@ -1171,11 +1176,11 @@ struct PrivacyDataView: View {
         }
     }
 
-    private func deleteAccount() async {
+    private func deleteAccount(_ captured: LibrarySyncSession) async {
         isDeletingAccount = true
         defer { isDeletingAccount = false }
         do {
-            try await environment.deleteAccount()
+            try await environment.deleteAccount(captured)
         } catch {
             deletionError = error.localizedDescription
         }

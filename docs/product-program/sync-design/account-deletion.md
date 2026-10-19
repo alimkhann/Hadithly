@@ -1,7 +1,9 @@
-# Account deletion integration work still required
+# Account deletion design and verification limits
 
 October 19. Parent-identified lifecycle gap during actual A2 integration. This is
-an implementation contract, not evidence the lifecycle is repaired.
+the original implementation contract. The local repair is now recorded in
+`../../LIBRARY_SYNC_DELETION_VERIFICATION.md`; its SDK/device, scale and retention
+gates remain open. The findings below explain the design, not a release verdict.
 
 Current native deletion invalidates the sync owner, deletes the bound backend
 account, erases its local partition, then deletes the captured Clerk user. If the
@@ -88,3 +90,20 @@ persistent local phase plus server erasure authorization/deny marker, or a durab
 server deletion job using Clerk management credentials. Prefer the former within
 the existing authorized product/credential scope; the latter introduces unapproved
 cloud credentials and service effects.
+
+
+## Implemented checkpoint
+
+The selected native-phase/server-authorization design is implemented on both apps.
+Preparation grants also cover an absent or never-bootstrapped user, avoiding a
+special missing-account identity bypass. The server atomically records its deny
+marker and existing erasure; native stores atomically advance to identity-pending
+and erase only the matching subject/deployment partitions. The old library-binding
+prerequisite is removed from deletion. All current native and backend test callers,
+plus the E2 disposable verifier source, use the new authorization contract.
+
+Actual local evidence, exact tests and still-open gates are in
+`../../LIBRARY_SYNC_DELETION_VERIFICATION.md`. This parent-reviewed implementation
+has not received an independent final review or a deployment. Unused preparation
+grant cleanup, marker lifecycle, other-device local erasure and account-scale
+transactions remain explicit follow-ups.

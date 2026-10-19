@@ -185,7 +185,7 @@ describe("E1 private evidence intake", () => {
       return item?.source.kind === "file" ? item.source.storageId : undefined;
     });
     expect(storageId).toBeDefined();
-    await owner.mutation(api.users.deleteCurrentUser, {});
+    await owner.mutation(api.users.deleteCurrentUser, { authorization: (await owner.mutation(api.users.prepareAccountDeletion, {})).authorization });
     expect(await t.run(ctx => ctx.storage.get(storageId!))).toBeNull();
     expect(await t.run(ctx => ctx.db.query("evidenceItems").collect())).toHaveLength(0);
   });

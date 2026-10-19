@@ -315,6 +315,21 @@ final class GuestLibraryPartition {
     }
 }
 
+enum LibraryDeletionPhase: String, Codable, Sendable { case serverPending, identityPending }
+
+@Model
+final class GuestAccountDeletion {
+    @Attribute(.unique) var scope: String
+    var subject: String
+    var namespace: String
+    var phase: String
+    init(subject: String, namespace: String) {
+        self.scope = namespace + "|" + subject
+        self.subject = subject; self.namespace = namespace
+        self.phase = LibraryDeletionPhase.serverPending.rawValue
+    }
+}
+
 /// JSON at the portable-export boundary. User text is preserved verbatim;
 /// provider passages are removed by their structural field names only.
 enum LibraryExportValue: Codable, Equatable, Sendable {
@@ -559,6 +574,17 @@ struct SyncReply: Codable, Equatable, Sendable {
     let ownerKey: String
     let batchId: String
     let receipts: [SyncReceipt]
+}
+
+struct SyncDeletionAuthorization: Codable, Equatable, Sendable {
+    let subject: String
+    let authorization: String
+    let validUntil: Double
+}
+
+struct SyncDeletionResult: Codable, Equatable, Sendable {
+    let subject: String
+    let deleted: Bool
 }
 
 struct SyncRevision: Codable, Equatable, Sendable {
