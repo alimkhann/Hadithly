@@ -147,7 +147,10 @@ pages and source cron registration; 396 backend tests pass. See
 SDK deletion/cross-device propagation, retained-marker privacy/retention treatment,
 large folders/vanished anchors, installed schema, final independent review,
 account/device delivery and deployment remain open. A2 has no
-deployment approval.
+deployment approval. Large-folder design candidates and the independent cross-judge
+are recorded in `docs/product-program/sync-design/scale/decision.md`. The required
+501-member support probe is still red; default safety checks pass without partial
+unlinking. These designs have no implementation or support gate closure.
 
 ## Read the plan in layers
 

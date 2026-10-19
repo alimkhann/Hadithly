@@ -111,6 +111,9 @@ scale/migration
 and real cross-device account delivery remain open. Expired deletion authorization
 maintenance now has a bounded internal pager and local scheduler proof; cloud cron
 readback is still required. See `ACCOUNT_DELETION_MAINTENANCE_VERIFICATION.md`.
+The 501-member support probe remains red. Bounded folder-job candidates, independent
+review and remaining contract corrections are recorded in
+`product-program/sync-design/scale/decision.md`; none is implemented yet.
 Continue A2 integration while retaining A1's content dependencies. No paid
 generation or production change has been approved. Research, later native redesign, website and Linear remain
 pending in the owner's requested order.
