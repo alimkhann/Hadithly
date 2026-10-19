@@ -23,6 +23,39 @@ class GuestMergeRaceTest {
     }
     private suspend fun note(store: GuestDataStore, content: String) = store.saveNote("jn7fxd3z54153q9j13kmhgzkv18df2zd", content, null, null, null, null, null, "", null)
 
+    @Test fun portableExportIncludesOfflineAndRecoveryTextWithoutProviderPassagesAndRejectsSwitchedOwner() = runBlocking {
+        isolated { store, _, _ ->
+            note(store, "Recovery fixture " + "界".repeat(8_001))
+            val fixture = AndroidLibraryFacadeFixture(store)
+            try {
+                fixture.start()
+                val text = "Private draft mentions arabicText and pushTokens"
+                assertTrue(withContext(Dispatchers.Main) { fixture.model.saveNote(fixture.reference, text) }.await())
+                val captured = withContext(Dispatchers.Main) { fixture.sync.captureWriteContext() }
+                val local = withContext(Dispatchers.Main) { fixture.sync.portableState(captured) }
+                assertFalse(local.containsExportKey(setOf("arabicText", "englishText", "capability")))
+                assertTrue(local.toString().contains(text))
+                assertTrue(local.toString().contains("Recovery fixture"))
+                val server = kotlinx.serialization.json.JsonObject(mapOf("sync" to kotlinx.serialization.json.JsonObject(mapOf("streams" to kotlinx.serialization.json.JsonArray(emptyList()))), "evidenceItems" to kotlinx.serialization.json.JsonArray(emptyList())))
+                val document = kotlinx.serialization.json.JsonObject(server + ("localLibrary" to local))
+                assertFalse(document.containsExportKey(setOf("pushTokens", "adminAuditLog", "revenueCatAppUserId")))
+                assertTrue(document.containsKey("sync"))
+                assertTrue(document.containsKey("evidenceItems"))
+                assertEquals(document, kotlinx.serialization.json.Json.parseToJsonElement(document.toString()))
+                withContext(Dispatchers.Main) {
+                    fixture.session.value = LibrarySyncSession("session-b", "subject-b")
+                    fixture.sync.deactivate(); fixture.model.refresh()
+                    fixture.sync.activate(fixture.session.value!!)
+                    try { fixture.sync.portableState(captured); fail("Switched owner exported") }
+                    catch (_: LibrarySyncFailure.SessionChanged) { }
+                    val other = fixture.sync.portableState(fixture.sync.captureWriteContext()).toString()
+                    assertFalse(other.contains("Private draft"))
+                    assertFalse(other.contains("Recovery fixture"))
+                }
+            } finally { fixture.stop() }
+        }
+    }
+
     @Test fun invalidPendingNoteRetainsItsOriginalWithoutBlockingTheNextChange() {
         val invalid = LibraryLocalChange(SyncCommand.NotePut("target", "界".repeat(8_001), 1_000.0, 1_000.0), 1_000.0, LibraryLocalSource.Account(null))
         val next = LibraryLocalChange(SyncCommand.BookmarkAdd("target", 1_000.0), 1_000.0, LibraryLocalSource.Account(null))

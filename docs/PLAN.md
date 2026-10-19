@@ -132,8 +132,10 @@ observed. Scope-captured dialogs and note-save feedback are connected. See
 `docs/LIBRARY_SYNC_INTEGRATION_VERIFICATION.md` for 32 iOS, 18 Android and 388
 backend passes and their limits. The prior receipt protocol received an independent
 source review; the integration review's folder-undo finding is repaired and locally
-proved, with final independent re-review still open. Local recovery export,
-delete/restart/retry and anti-recreation, large folders/vanished anchors, installed
+proved, with final independent re-review still open. Local pending/recovery export
+is implemented on both apps; its local ownership/content checks pass. See
+`docs/LIBRARY_SYNC_EXPORT_VERIFICATION.md`. Delete/restart/retry and anti-recreation,
+large folders/vanished anchors, installed
 schema, actual account/device delivery and deployment remain open. A2 has no
 deployment approval.
 

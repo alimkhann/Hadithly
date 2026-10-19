@@ -91,7 +91,8 @@ import com.clerk.api.user.update
 import com.hadithly.app.BuildConfig
 import com.hadithly.app.R
 import com.hadithly.app.core.data.Collections
-import com.hadithly.app.core.data.ExportPayload
+import com.hadithly.app.core.data.LibraryWriteContext
+import com.hadithly.app.core.data.containsExportKey
 import com.hadithly.app.core.data.SubscriptionStatusResult
 import com.hadithly.app.core.data.SupportedLanguages
 import com.hadithly.app.core.offline.OfflineCollectionStatus
@@ -1014,8 +1015,10 @@ private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val signedIn = (Clerk.sessionFlow.collectAsStateWithLifecycle().value?.status == com.clerk.api.session.Session.SessionStatus.ACTIVE)
+    val activeSession = Clerk.sessionFlow.collectAsStateWithLifecycle().value
+    val signedIn = activeSession?.status == com.clerk.api.session.Session.SessionStatus.ACTIVE
     var showExportConfirm by remember { mutableStateOf(false) }
+    var exportScope by remember { mutableStateOf<LibraryWriteContext?>(null) }
     var exporting by remember { mutableStateOf(false) }
     var exportNotice by remember { mutableStateOf<String?>(null) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
@@ -1024,26 +1027,38 @@ private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
     var crashConsent by remember { mutableStateOf(com.hadithly.app.core.diagnostics.CrashReporting.hasConsent) }
     val usageSharing by app.analytics.sharing.collectAsStateWithLifecycle()
 
+    LaunchedEffect(activeSession?.id, activeSession?.user?.id) {
+        exportScope = null; exportNotice = null; showExportConfirm = false
+    }
+
     val saveDocument = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
-        if (uri == null) {
+        val captured = exportScope
+        exportScope = null
+        if (uri == null || captured == null) {
             exporting = false
             return@rememberLauncherForActivityResult
         }
         scope.launch {
             try {
-                val payload = app.repository.exportUserData()
+                val capability = app.librarySync.capability(captured)
+                val local = app.librarySync.portableState(captured)
+                val payload = app.repository.exportUserData(capability)
                 if (payload == null) {
                     exportNotice = "Export is unavailable right now."
                     return@launch
                 }
-                val json = Json { prettyPrint = true }.encodeToString<ExportPayload>(payload)
-                for (fragment in SettingsExport.forbiddenFragments) {
-                    check(!json.contains(fragment)) { "Export leaked $fragment" }
-                }
-                context.contentResolver.openOutputStream(uri)?.use { it.write(json.toByteArray()) }
-                exportNotice = "Export saved: ${payload.savedItems.size} saved items, ${payload.readingProgress.size} reading positions."
-            } catch (error: Exception) {
-                exportNotice = error.message ?: "Export failed. Please try again."
+                app.librarySync.capability(captured)
+                val document = kotlinx.serialization.json.JsonObject(payload + ("localLibrary" to local))
+                check(!document.containsExportKey(SettingsExport.forbiddenFragments.toSet())) { "Invalid export fields" }
+                val json = Json { prettyPrint = true }.encodeToString(kotlinx.serialization.json.JsonObject.serializer(), document)
+                val output = context.contentResolver.openOutputStream(uri) ?: error("Export is unavailable right now.")
+                output.use { it.write(json.toByteArray(Charsets.UTF_8)) }
+                val savedCount = (payload["savedItems"] as? kotlinx.serialization.json.JsonArray)?.size ?: 0
+                val progressCount = (payload["readingProgress"] as? kotlinx.serialization.json.JsonArray)?.size ?: 0
+                exportNotice = "Export saved: $savedCount saved items, $progressCount reading positions."
+            } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+            catch (_: Exception) {
+                exportNotice = "Export failed. Please try again."
             } finally {
                 exporting = false
             }
@@ -1082,7 +1097,12 @@ private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
                 Text(nativeText("Export your profile, preferences, Saved items, folders, reading progress, and your own contributions as a file."), fontSize = 14.sp, color = colors.textSecondary)
                 Button(
                     enabled = !exporting,
-                    onClick = { showExportConfirm = true },
+                    onClick = {
+                        try {
+                            exportScope = app.librarySync.captureWriteContext()
+                            showExportConfirm = true
+                        } catch (_: Exception) { exportNotice = "Export failed. Please try again." }
+                    },
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = colors.surfaceElevated, contentColor = colors.textPrimary),
                     modifier = Modifier.fillMaxWidth().testTag("settings.export"),
@@ -1128,8 +1148,14 @@ private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
                 TextButton(
                     onClick = {
                         showExportConfirm = false
-                        exporting = true
-                        saveDocument.launch(SettingsExport.fileName())
+                        try {
+                            val captured = exportScope ?: throw com.hadithly.app.core.data.LibrarySyncFailure.SessionChanged
+                            app.librarySync.capability(captured)
+                            exporting = true
+                            saveDocument.launch(SettingsExport.fileName())
+                        } catch (_: Exception) {
+                            exportNotice = "Export failed. Please try again."
+                        }
                     },
                 ) { Text(nativeText("Choose location")) }
             },

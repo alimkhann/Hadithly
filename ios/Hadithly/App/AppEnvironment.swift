@@ -130,6 +130,7 @@ final class AppEnvironment {
         let privateLibrary = self.library
         self.librarySync.onOwnerChange = { [weak privateLibrary] _ in privateLibrary?.refresh() }
         self.librarySync.onPartitionChange = { [weak privateLibrary] owner in privateLibrary?.partitionChanged(owner) }
+        SettingsExport.clearTemporaryFiles()
         let client = convex
         let probeURL = URL(string: config.convexURL)
         self.offline = OfflineStore(manifestProvider: { locale in
@@ -225,12 +226,14 @@ final class AppEnvironment {
     }
 
     func accountSessionChanged() {
+        SettingsExport.clearTemporaryFiles()
         librarySync.deactivate()
         library.refresh()
     }
 
     /// Rendering is invalidated before account-specific background work stops.
     func handleSignOut() {
+        SettingsExport.clearTemporaryFiles()
         librarySync.deactivate()
         analytics.clearPending()
         library.refresh()
@@ -247,6 +250,7 @@ final class AppEnvironment {
         let context = try librarySync.captureWriteContext()
         let capability = try librarySync.capability(for: context)
         analytics.setSharing(false)
+        SettingsExport.clearTemporaryFiles()
         librarySync.deactivate(); library.refresh()
         let _: Bool? = try await convex.mutation("users:deleteCurrentUser", with: ["capability": capability])
         try guestData.eraseSyncPartition(owner)

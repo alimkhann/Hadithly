@@ -98,8 +98,10 @@ server revision is observed. Actual-facade offline/reopen, account-switch, late
 read, undo and invalid-write checks pass locally on both platforms. See
 `LIBRARY_SYNC_INTEGRATION_VERIFICATION.md`. The compact receipt protocol passed
 independent source review; the integration review's stale folder-undo finding is
-repaired with an authoritative server member manifest. Final integration re-review,
-local recovery export, deletion restart/retry and anti-recreation, scale/migration
+repaired with an authoritative server member manifest. Local pending/recovery export now retains offline originals and all server export
+fields, with local scope/content checks on both apps. See
+`LIBRARY_SYNC_EXPORT_VERIFICATION.md`. Final integration re-review, deletion
+restart/retry and anti-recreation, scale/migration
 and real cross-device account delivery remain open.
 Continue A2 integration while retaining A1's content dependencies. No paid
 generation or production change has been approved. Research, later native redesign, website and Linear remain

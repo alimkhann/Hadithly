@@ -113,8 +113,15 @@ enum SettingsExport {
         return "hadithly-export-\(formatter.string(from: date)).json"
     }
 
-    /// Redaction check for tests: these key fragments must never appear in
-    /// an export payload.
+    static func clearTemporaryFiles(in directory: URL = FileManager.default.temporaryDirectory) {
+        for url in (try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)) ?? [] {
+            if url.lastPathComponent.range(of: "^hadithly-export-[0-9]{4}-[0-9]{2}-[0-9]{2}\\.json$", options: .regularExpression) != nil {
+                try? FileManager.default.removeItem(at: url)
+            }
+        }
+    }
+
+    /// Structural keys excluded from the portable export.
     static let forbiddenFragments = ["pushTokens", "adminAuditLog", "revenueCatAppUserId"]
 }
 

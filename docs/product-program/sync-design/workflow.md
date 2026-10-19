@@ -12,7 +12,9 @@
 - [x] Implement: route production sign-in and account library writes through the
   chosen boundary on both apps. Actual-facade local evidence is recorded in
   `../../LIBRARY_SYNC_INTEGRATION_VERIFICATION.md`.
-- [ ] Finish account deletion/retry and local recovery export before A2 acceptance.
+- [x] Include current-owner local pending/recovery in portable export; local
+  scope/content proof is in `../../LIBRARY_SYNC_EXPORT_VERIFICATION.md`.
+- [ ] Finish account deletion/retry before A2 acceptance.
 - [ ] Verify: failure, newer edits, retries, missing/invalid targets, duplicate
   sign-in, account change, restart, folders, all facets and semantic positions.
 - [ ] Scrap/redesign if repeated workarounds contradict the chosen ownership.

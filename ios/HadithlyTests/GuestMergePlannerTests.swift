@@ -19,6 +19,37 @@ final class GuestMergePlannerTests: XCTestCase {
         try store.settleSyncExchange(accepted(frame, reply: reply), requested: frame, owner: owner)
     }
 
+    @MainActor func testPortableExportIncludesOfflineAndRecoveryTextWithoutProviderPassagesAndRejectsSwitchedOwner() async throws {
+        let store = GuestDataStore(inMemory: true)
+        let recovered = "Recovery fixture " + String(repeating: "界", count: 8_001)
+        store.addNote(hadithId: "target-recovery", content: recovered)
+        let fixture = LibraryFacadeFixture(store: store)
+        defer { fixture.stop() }
+        await fixture.start()
+        XCTAssertTrue(fixture.model.saveNote(fixture.reference, content: "Private draft mentions arabicText and pushTokens"))
+        let captured = try fixture.sync.captureWriteContext()
+        let local = try fixture.sync.portableState(for: captured)
+        XCTAssertFalse(local.containsAnyKey(["arabicText", "englishText", "capability"]))
+        let json = String(decoding: try JSONEncoder().encode(local), as: UTF8.self)
+        XCTAssertTrue(json.contains("Private draft mentions arabicText and pushTokens"))
+        XCTAssertTrue(json.contains("Recovery fixture"))
+        let server = LibraryExportValue.object(["sync": .object(["streams": .array([])]), "evidenceItems": .array([])])
+        let document = try server.includingLocalLibrary(local)
+        XCTAssertFalse(document.containsAnyKey(Set(SettingsExport.forbiddenFragments)))
+        guard case .object(let fields) = document else { return XCTFail("Export root must be an object") }
+        XCTAssertNotNil(fields["sync"])
+        XCTAssertNotNil(fields["evidenceItems"])
+        XCTAssertEqual(try JSONDecoder().decode(LibraryExportValue.self, from: JSONEncoder().encode(document)), document)
+        fixture.session.value = .init(id: "session-b", subject: "subject-b")
+        fixture.sync.deactivate(); fixture.model.refresh()
+        await fixture.sync.activate(try XCTUnwrap(fixture.session.value))
+        XCTAssertThrowsError(try fixture.sync.portableState(for: captured))
+        let other = try fixture.sync.portableState(for: fixture.sync.captureWriteContext())
+        let otherJSON = String(decoding: try JSONEncoder().encode(other), as: UTF8.self)
+        XCTAssertFalse(otherJSON.contains("Private draft"))
+        XCTAssertFalse(otherJSON.contains("Recovery fixture"))
+    }
+
     @MainActor func testInvalidPendingNoteRetainsItsOriginalWithoutBlockingTheNextChange() throws {
         let invalid = LibraryLocalChange(command: .notePut(.init(hadithId: "target", content: String(repeating: "界", count: 8_001), createdAt: 1_000, updatedAt: 1_000)), at: 1_000, source: .account(nil))
         let next = LibraryLocalChange(command: .bookmarkAdd(.init(hadithId: "target", createdAt: 1_000)), at: 1_000, source: .account(nil))

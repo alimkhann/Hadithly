@@ -587,6 +587,13 @@ final class LibrarySync {
         return binding.capability
     }
 
+    func portableState(for context: LibraryWriteContext) throws -> LibraryExportValue {
+        _ = try capability(for: context)
+        guard let state = try store.syncPartition(context.owner) else { throw LibrarySyncFailure.sessionChanged }
+        let encoded = try JSONEncoder().encode(state)
+        return try JSONDecoder().decode(LibraryExportValue.self, from: encoded).withoutProviderPassages
+    }
+
     private func check(_ session: LibrarySyncSession, epoch: UUID) throws {
         guard !Task.isCancelled, generation == epoch, currentSession() == session else { throw LibrarySyncFailure.sessionChanged }
     }

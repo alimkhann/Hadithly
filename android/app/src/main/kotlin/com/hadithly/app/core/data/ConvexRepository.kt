@@ -365,9 +365,9 @@ class ConvexRepository(context: Context) : LibraryReadTransport, LibrarySyncTran
      * caller's own data. Callers show an explicit confirm dialog first; a
      * signed-out or expired session must sign in again (reauthentication).
      */
-    suspend fun exportUserData(): ExportPayload? =
+    suspend fun exportUserData(capability: String): kotlinx.serialization.json.JsonObject? =
         withContext(Dispatchers.IO) {
-            subscribe<ExportPayload>("users:exportCurrentUserData").firstOrNull()
+            subscribe<kotlinx.serialization.json.JsonObject>("users:exportCurrentUserData", mapOf("capability" to capability)).firstOrNull()
         }
 
     suspend fun mergeGuestData(payload: GuestMergePayload): GuestMergeResult {

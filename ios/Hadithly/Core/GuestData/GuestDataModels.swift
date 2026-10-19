@@ -315,6 +315,52 @@ final class GuestLibraryPartition {
     }
 }
 
+/// JSON at the portable-export boundary. User text is preserved verbatim;
+/// provider passages are removed by their structural field names only.
+enum LibraryExportValue: Codable, Equatable, Sendable {
+    case object([String: LibraryExportValue]), array([LibraryExportValue]), string(String), number(Double), bool(Bool), null
+
+    init(from decoder: Decoder) throws {
+        let value = try decoder.singleValueContainer()
+        if value.decodeNil() { self = .null }
+        else if let object = try? value.decode([String: LibraryExportValue].self) { self = .object(object) }
+        else if let array = try? value.decode([LibraryExportValue].self) { self = .array(array) }
+        else if let string = try? value.decode(String.self) { self = .string(string) }
+        else if let bool = try? value.decode(Bool.self) { self = .bool(bool) }
+        else { self = .number(try value.decode(Double.self)) }
+    }
+    func encode(to encoder: Encoder) throws {
+        var value = encoder.singleValueContainer()
+        switch self {
+        case .object(let object): try value.encode(object)
+        case .array(let array): try value.encode(array)
+        case .string(let string): try value.encode(string)
+        case .number(let number): try value.encode(number)
+        case .bool(let bool): try value.encode(bool)
+        case .null: try value.encodeNil()
+        }
+    }
+    var withoutProviderPassages: LibraryExportValue {
+        switch self {
+        case .object(let fields): return .object(fields.filter { !["arabicText", "englishText", "capability"].contains($0.key) }.mapValues(\.withoutProviderPassages))
+        case .array(let values): return .array(values.map(\.withoutProviderPassages))
+        default: return self
+        }
+    }
+    func containsAnyKey(_ keys: Set<String>) -> Bool {
+        switch self {
+        case .object(let fields): return !keys.isDisjoint(with: fields.keys) || fields.values.contains { $0.containsAnyKey(keys) }
+        case .array(let values): return values.contains { $0.containsAnyKey(keys) }
+        default: return false
+        }
+    }
+    func includingLocalLibrary(_ local: LibraryExportValue) throws -> LibraryExportValue {
+        guard case .object(var fields) = self else { throw LibrarySyncFailure.invalidReceipt }
+        fields["localLibrary"] = local
+        return .object(fields)
+    }
+}
+
 // MARK: - Generated library sync wire values
 // Source: scripts/generate-library-sync-wire.py
 

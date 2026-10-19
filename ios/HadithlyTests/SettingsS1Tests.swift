@@ -44,6 +44,20 @@ final class SettingsS1Tests: XCTestCase {
         XCTAssertEqual(SettingsExport.fileName(date: date), "hadithly-export-2026-09-17.json")
     }
 
+    func testExportCleanupRemovesOnlyManagedTemporaryFiles() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let managed = directory.appendingPathComponent("hadithly-export-2026-10-19.json")
+        let unrelated = directory.appendingPathComponent("personal-notes.json")
+        let almost = directory.appendingPathComponent("hadithly-export-2026-10-19.json.backup")
+        for url in [managed, unrelated, almost] { try Data("Private fixture".utf8).write(to: url) }
+        SettingsExport.clearTemporaryFiles(in: directory)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: managed.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: unrelated.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: almost.path))
+    }
+
     func testExportForbiddenFragmentsCoverDeviceAndForeignData() {
         XCTAssertTrue(SettingsExport.forbiddenFragments.contains("pushTokens"))
         XCTAssertTrue(SettingsExport.forbiddenFragments.contains("adminAuditLog"))

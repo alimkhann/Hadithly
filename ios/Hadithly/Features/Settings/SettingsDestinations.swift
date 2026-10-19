@@ -20,74 +20,6 @@ private struct SubscriptionStatus: Decodable {
     var store: String?
 }
 
-/// Portable export document from `users:exportCurrentUserData`. Mirrors the
-/// backend shape loosely: every collection defaults empty so a future field
-/// addition cannot break decoding.
-private struct ExportDocument: Codable {
-    var generatedAt: Double = 0
-    var account: ExportAccount?
-    var readerPreferences: ReaderPreferences?
-    var savedFolders: [ExportFolder] = []
-    var savedItems: [ExportItem] = []
-    var readingProgress: [ExportProgress] = []
-    var legacy: ExportLegacy?
-    var submissions: [ExportSubmission] = []
-
-    struct ExportAccount: Codable {
-        var email: String?
-        var displayName: String?
-        var subscriptionTier: String?
-        var createdAt: Double?
-    }
-    struct ExportFolder: Codable {
-        var name: String?
-        var createdAt: Double?
-        var updatedAt: Double?
-    }
-    struct ExportHadithRef: Codable {
-        var hadithId: String?
-        var canonicalId: String?
-        var collectionSlug: String?
-        var providerHadithId: String?
-        var referenceDisplay: String?
-        var missing: Bool?
-    }
-    struct ExportItem: Codable {
-        var hadith: ExportHadithRef?
-        var bookmarkCreatedAt: Double?
-        var favoriteCreatedAt: Double?
-        var noteContent: String?
-        var noteUpdatedAt: Double?
-        var folderName: String?
-        var updatedAt: Double?
-    }
-    struct ExportProgress: Codable {
-        var collectionSlug: String?
-        var hadith: ExportHadithRef?
-        var updatedAt: Double?
-    }
-    struct ExportLegacyNote: Codable {
-        var hadith: ExportHadithRef?
-        var content: String?
-        var updatedAt: Double?
-    }
-    struct ExportLegacyRef: Codable {
-        var hadith: ExportHadithRef?
-        var createdAt: Double?
-    }
-    struct ExportLegacy: Codable {
-        var bookmarks: [ExportLegacyRef] = []
-        var favorites: [ExportLegacyRef] = []
-        var notes: [ExportLegacyNote] = []
-    }
-    struct ExportSubmission: Codable {
-        var language: String?
-        var proposedContent: String?
-        var status: String?
-        var createdAt: Double?
-    }
-}
-
 /// Native grouped-list container shared by every destination.
 struct SettingsList<Content: View>: View {
     @Environment(\.readerPalette) private var palette
@@ -1048,7 +980,9 @@ struct PrivacyDataView: View {
     @Binding var showSignIn: Bool
 
     @State private var showExportConfirm = false
+    @State private var pendingExportContext: LibraryWriteContext?
     @State private var isExporting = false
+    @State private var exportTask: Task<Void, Never>?
     @State private var exportURL: URL?
     @State private var exportError: String?
     @State private var showDeleteConfirmation = false
@@ -1071,9 +1005,12 @@ struct PrivacyDataView: View {
                 Text("Crash reports help us fix problems. They never include your reading text, notes or account details. You can turn them off at any time.")
             }
             Section {
-                if clerk.session != nil {
+                if clerk.session?.status == .active {
                     Button {
-                        showExportConfirm = true
+                        do {
+                            pendingExportContext = try environment.librarySync.captureWriteContext()
+                            showExportConfirm = true
+                        } catch { exportError = "Export failed. Please try again." }
                     } label: {
                         Text(isExporting ? "Preparing…" : "Export my data")
                     }
@@ -1122,7 +1059,7 @@ struct PrivacyDataView: View {
                 .accessibilityIdentifier("settings.deletionInfo")
             }
 
-            if clerk.session != nil {
+            if clerk.session?.status == .active {
                 Section {
                     Button(role: .destructive) {
                         showDeleteConfirmation = true
@@ -1141,13 +1078,17 @@ struct PrivacyDataView: View {
                 }
             }
         }
+        .onChange(of: clerk.session?.id) { _, _ in clearExportPresentation() }
+        .onDisappear { exportTask?.cancel() }
         .confirmationDialog(
             "Export your data?",
             isPresented: $showExportConfirm,
             titleVisibility: .visible
         ) {
             Button("Export after device check") {
-                Task { await exportWithReauth() }
+                guard let captured = pendingExportContext else { return }
+                pendingExportContext = nil
+                exportTask = Task { await exportWithReauth(captured) }
             }
             Button("Cancel", role: .cancel) {}
         } message: {
@@ -1178,45 +1119,54 @@ struct PrivacyDataView: View {
         }
     }
 
+    private func clearExportPresentation() {
+        exportTask?.cancel(); exportTask = nil
+        if let exportURL { try? FileManager.default.removeItem(at: exportURL) }
+        exportURL = nil; exportError = nil; showExportConfirm = false; pendingExportContext = nil
+    }
+
     /// Device reauthentication precedes the export whenever the device can
     /// enforce it; the query itself additionally requires a valid Clerk
     /// session, so an expired sign-in forces a fresh sign-in first.
-    private func exportWithReauth() async {
+    private func exportWithReauth(_ captured: LibraryWriteContext) async {
         isExporting = true
         defer { isExporting = false }
-        let context = LAContext()
-        var authError: NSError?
-        if context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &authError) {
-            do {
-                _ = try await context.evaluatePolicy(
-                    .deviceOwnerAuthentication,
-                    localizedReason: "Confirm it is you before exporting your data."
-                )
-            } catch {
-                exportError = "Export cancelled: device check did not pass."
-                return
-            }
-        }
         do {
-            guard let document = try await environment.convex
-                .subscribe(to: "users:exportCurrentUserData", yielding: ExportDocument.self)
-                .values
-                .first(where: { _ in true })
-            else {
+            try Task.checkCancellation()
+            if let exportURL { try? FileManager.default.removeItem(at: exportURL) }
+            exportURL = nil
+            let local = try environment.librarySync.portableState(for: captured)
+            let context = LAContext()
+            var authError: NSError?
+            if context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &authError) {
+                do {
+                    _ = try await context.evaluatePolicy(
+                        .deviceOwnerAuthentication,
+                        localizedReason: "Confirm it is you before exporting your data."
+                    )
+                } catch {
+                    exportError = "Export cancelled: device check did not pass."
+                    return
+                }
+            }
+            let capability = try environment.librarySync.capability(for: captured)
+            guard let server = try await environment.convex
+                .subscribe(to: "users:exportCurrentUserData", with: ["capability": capability], yielding: LibraryExportValue.self)
+                .values.first(where: { _ in true }) else {
                 exportError = "Export is unavailable right now."
                 return
             }
-            for fragment in SettingsExport.forbiddenFragments {
-                let json = String(data: (try? JSONEncoder().encode(document)) ?? Data(), encoding: .utf8) ?? ""
-                assert(!json.contains(fragment), "Export leaked \(fragment)")
-            }
+            try Task.checkCancellation()
+            _ = try environment.librarySync.capability(for: captured)
+            let document = try server.includingLocalLibrary(local)
+            guard !document.containsAnyKey(Set(SettingsExport.forbiddenFragments)) else { throw LibrarySyncFailure.invalidReceipt }
             let data = try JSONEncoder().encode(document)
-            let url = FileManager.default.temporaryDirectory
-                .appendingPathComponent(SettingsExport.fileName())
-            try data.write(to: url, options: .atomic)
+            let url = FileManager.default.temporaryDirectory.appendingPathComponent(SettingsExport.fileName())
+            try data.write(to: url, options: [.atomic, .completeFileProtection])
             exportURL = url
             exportError = nil
-        } catch {
+        } catch is CancellationError { }
+        catch {
             exportError = "Export failed. Please try again."
         }
     }

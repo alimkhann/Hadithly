@@ -336,6 +336,13 @@ class LibrarySync(
         if (generation != context.generation || session != context.session || currentSession() != context.session || mutableOwner.value != context.owner || (binding?.validUntil ?: 0.0) <= now()) throw LibrarySyncFailure.SessionChanged
         return binding?.capability ?: throw LibrarySyncFailure.SessionChanged
     }
+    suspend fun portableState(context: LibraryWriteContext): kotlinx.serialization.json.JsonElement = withContext(Dispatchers.Main.immediate) {
+        capability(context)
+        val state = store.syncPartition(context.owner) ?: throw LibrarySyncFailure.SessionChanged
+        capability(context)
+        Json.encodeToJsonElement(LibraryPartitionState.serializer(), state).withoutProviderPassages()
+    }
+
     private fun checkSession(session: LibrarySyncSession, epoch: String) {
         if (generation != epoch || currentSession() != session) throw LibrarySyncFailure.SessionChanged
     }
