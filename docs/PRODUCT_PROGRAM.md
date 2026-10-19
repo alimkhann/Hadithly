@@ -102,7 +102,10 @@ repaired with an authoritative server member manifest. Local pending/recovery
 export now retains offline originals and all server export fields, with local scope/content checks on both apps. See
 `LIBRARY_SYNC_EXPORT_VERIFICATION.md`. Persistent deletion phases and a server
 recreation guard now pass local checks on both platforms and actual Convex
-functions; see `LIBRARY_SYNC_DELETION_VERIFICATION.md`. Final independent review,
+functions; see `LIBRARY_SYNC_DELETION_VERIFICATION.md`. Bounded quarantine and
+known invalid frozen-frame retirement now pass real-store and Convex checks, with
+an independently reviewed sparse fence that preserves valid earlier work. See
+`LIBRARY_SYNC_RECOVERY_VERIFICATION.md`. Final broad integration review,
 actual SDK deletion and propagation, retention/authorization cleanup, scale/migration
 and real cross-device account delivery remain open.
 Continue A2 integration while retaining A1's content dependencies. No paid

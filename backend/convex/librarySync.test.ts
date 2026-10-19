@@ -85,7 +85,7 @@ test("expiry and account erasure revoke batch admission without recreating priva
   await f.a.mutation(api.users.deleteCurrentUser, { authorization: (await f.a.mutation(api.users.prepareAccountDeletion, {})).authorization });
   await expect(f.send(current.capability, batch)).rejects.toThrow("SYNC_ACCOUNT_MISSING");
   await f.t.run(async ctx => {
-    for (const table of ["librarySyncBindings", "librarySyncStreams", "librarySyncMarks", "librarySyncFolderKeys", "librarySyncVersions"] as const) {
+    for (const table of ["librarySyncBindings", "librarySyncStreams", "librarySyncRetirements", "librarySyncMarks", "librarySyncFolderKeys", "librarySyncVersions"] as const) {
       expect(await ctx.db.query(table).collect()).toHaveLength(0);
     }
   });
@@ -331,4 +331,83 @@ test("removing an already absent facet cannot acquire another deletion's undo au
     { id: "real-undo", revision: "r1", at: 5_000, command: { kind: "facet_restore", hadithId: f.hadithId, deletionId: "actual-deletion", value: { kind: "bookmark", createdAt: 1_000 } } },
   ] });
   expect(allowed.receipts[0].outcome).toEqual({ kind: "preserved" });
+});
+
+test("retiring an unsendable frozen sequence fences late application without receiving private content", async () => {
+  const f = await fixture(), binding = await f.a.mutation(open, {});
+  const retire = makeFunctionReference<"mutation", { capability: string; clientKey: string; sequence: number }, SyncAckReply>("librarySync:retireInvalidFrame");
+  const request = { capability: binding.capability, clientKey: "retired-device", sequence: 1 };
+  await expect(f.b.mutation(retire, request)).rejects.toThrow("SYNC_OWNER_MISMATCH");
+  const closed = await f.a.mutation(retire, request);
+  expect(closed).toMatchObject({ ownerKey: binding.ownerKey, cursor: { closedThrough: 1 } });
+  expect(await f.a.mutation(retire, request)).toEqual(closed);
+  const late: SyncFrame = { clientKey: request.clientKey, sequence: 1, batch: { id: "late-retired", operations: [
+    { id: "late-private-note", revision: "r1", at: 1_000, command: { kind: "note_put", hadithId: f.hadithId, content: "Must not resurrect", createdAt: 1_000, updatedAt: 1_000 } },
+  ] } };
+  expect(await f.a.mutation(apply, { capability: binding.capability, frame: late })).toMatchObject({ kind: "reconcile", cursor: { closedThrough: 1 } });
+  expect((await f.a.query(ownedSaved, {})).items).toEqual([]);
+  const next = { ...late, sequence: 2, batch: { ...late.batch, id: "new-valid-intent" } };
+  expect(await f.a.mutation(apply, { capability: binding.capability, frame: next })).toMatchObject({ kind: "accepted" });
+});
+
+test("retirement keeps an already committed receipt exact until ACK then fences a future invalid sequence", async () => {
+  const f = await fixture(), binding = await f.a.mutation(open, {});
+  const retire = makeFunctionReference<"mutation", { capability: string; clientKey: string; sequence: number }, SyncAckReply>("librarySync:retireInvalidFrame");
+  const frame: SyncFrame = { clientKey: "occupied-retirement", sequence: 1, batch: { id: "accepted-before-retire", operations: [
+    { id: "committed-note", revision: "r1", at: 1_000, command: { kind: "note_put", hadithId: f.hadithId, content: "Committed original", createdAt: 1_000, updatedAt: 1_000 } },
+  ] } };
+  const first = await f.a.mutation(apply, { capability: binding.capability, frame });
+  if (first.kind !== "accepted") throw new Error("Missing accepted fixture");
+  const request = { capability: binding.capability, clientKey: frame.clientKey, sequence: 7 };
+  const retired = await f.a.mutation(retire, request);
+  expect(retired.cursor).toEqual({ closedThrough: 0, active: first.committed });
+  expect(await f.a.mutation(retire, request)).toEqual(retired);
+  expect(await f.a.mutation(apply, { capability: binding.capability, frame })).toEqual(first);
+  const proof = { clientKey: frame.clientKey, sequence: 1, batchId: frame.batch.id, digest: first.committed.digest };
+  expect(await f.a.mutation(ack, { capability: binding.capability, acknowledgement: { ...proof, digest: "wrong-proof" } })).toMatchObject({ cursor: { closedThrough: 0, active: first.committed } });
+  expect(await f.a.mutation(ack, { capability: binding.capability, acknowledgement: proof })).toMatchObject({ cursor: { closedThrough: 1 } });
+  for (let sequence = 2; sequence <= 6; sequence++) {
+    const healthy = await f.a.mutation(apply, { capability: binding.capability, frame: { ...frame, sequence, batch: { id: `healthy-${sequence}`, operations: [{ id: `healthy-note-${sequence}`, revision: "r1", at: 1_000 + sequence, command: { kind: "note_put", hadithId: f.hadithId, content: "Committed original", createdAt: 1_000, updatedAt: 1_000 + sequence } }] } } });
+    expect(healthy.kind).toBe("accepted");
+    if (healthy.kind !== "accepted") throw new Error("Healthy restored fork was blocked");
+    const closed = await f.a.mutation(ack, { capability: binding.capability, acknowledgement: { clientKey: frame.clientKey, sequence, batchId: healthy.committed.reply.batchId, digest: healthy.committed.digest } });
+    expect(closed.cursor.closedThrough).toBe(sequence === 6 ? 7 : sequence);
+  }
+  expect(await f.t.run(ctx => ctx.db.query("librarySyncRetirements").collect())).toHaveLength(0);
+  expect(await f.a.mutation(apply, { capability: binding.capability, frame: { ...frame, sequence: 7, batch: { id: "late-invalid-now-valid", operations: [
+    { id: "late-remove", revision: "r2", at: 2_000, command: { kind: "note_remove", hadithId: f.hadithId } },
+  ] } } })).toMatchObject({ kind: "reconcile", cursor: { closedThrough: 7 } });
+  expect((await f.a.query(ownedSaved, {})).items[0].noteContent).toBe("Committed original");
+  const streams = await f.t.run(ctx => ctx.db.query("librarySyncStreams").collect());
+  expect(streams).toHaveLength(1);
+  expect(streams[0].closedThrough).toBe(7);
+  expect(streams[0].active).toBeUndefined();
+  expect(await f.t.run(ctx => ctx.db.query("librarySyncRetirements").collect())).toHaveLength(0);
+});
+
+test("retirement fences only the requested future sequence and rejects invalid stream bounds without effects", async () => {
+  const f = await fixture(), binding = await f.a.mutation(open, {});
+  const retire = makeFunctionReference<"mutation", { capability: string; clientKey: string; sequence: number }, SyncAckReply>("librarySync:retireInvalidFrame");
+  for (const sequence of [0, 1.5, Number.MAX_SAFE_INTEGER]) await expect(f.a.mutation(retire, { capability: binding.capability, clientKey: "bounded-retirement", sequence })).rejects.toThrow("SYNC_INVALID_STREAM");
+  expect(await f.t.run(ctx => ctx.db.query("librarySyncStreams").collect())).toHaveLength(0);
+  expect(await f.a.mutation(retire, { capability: binding.capability, clientKey: "bounded-retirement", sequence: 7 })).toMatchObject({ cursor: { closedThrough: 0 } });
+  expect(await f.t.run(ctx => ctx.db.query("librarySyncRetirements").collect())).toMatchObject([{ clientKey: "bounded-retirement", sequence: 7 }]);
+  expect((await f.a.query(ownedSaved, {})).items).toEqual([]);
+});
+
+test("future retirement capacity is bounded, ordinary next retirement still works, and erasure removes fences", async () => {
+  vi.useFakeTimers();
+  const f = await fixture(), binding = await f.a.mutation(open, {});
+  const retire = makeFunctionReference<"mutation", { capability: string; clientKey: string; sequence: number }, SyncAckReply>("librarySync:retireInvalidFrame");
+  for (let sequence = 1_000; sequence < 1_100; sequence++) await f.a.mutation(retire, { capability: binding.capability, clientKey: "capacity-device", sequence });
+  await expect(f.a.mutation(retire, { capability: binding.capability, clientKey: "capacity-device", sequence: 1_100 })).rejects.toThrow("SYNC_RETIREMENT_CAPACITY");
+  expect(await f.a.mutation(retire, { capability: binding.capability, clientKey: "capacity-device", sequence: 1_000 })).toMatchObject({ cursor: { closedThrough: 0 } });
+  expect(await f.a.mutation(retire, { capability: binding.capability, clientKey: "capacity-device", sequence: 1 })).toMatchObject({ cursor: { closedThrough: 1 } });
+  expect(await f.t.run(ctx => ctx.db.query("librarySyncRetirements").collect())).toHaveLength(100);
+  const exported = await f.a.query(api.users.exportCurrentUserData, { capability: binding.capability });
+  expect(exported.sync.retirements).toHaveLength(100);
+  const authorization = await f.a.mutation(api.users.prepareAccountDeletion, {});
+  await f.a.mutation(api.users.deleteCurrentUser, { authorization: authorization.authorization });
+  await f.t.finishAllScheduledFunctions(vi.runAllTimers);
+  expect(await f.t.run(ctx => ctx.db.query("librarySyncRetirements").collect())).toHaveLength(0);
 });

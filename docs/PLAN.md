@@ -137,6 +137,10 @@ is implemented on both apps; its local ownership/content checks pass. See
 `docs/LIBRARY_SYNC_EXPORT_VERIFICATION.md`. Deletion retry phases and the server
 recreation guard are now implemented and locally verified with 391 backend,
 43 iOS and 22 Android passes. See `docs/LIBRARY_SYNC_DELETION_VERIFICATION.md`.
+Known invalid frozen frames and quarantine continuation now have native and actual
+Convex proof; sparse sequence fences preserve original recovery data and valid
+intervening work from restored copies. See `docs/LIBRARY_SYNC_RECOVERY_VERIFICATION.md`
+for 395 backend, 47 iOS and 26 Android passes plus the corrected independent review.
 Actual SDK deletion/cross-device propagation, retention and authorization cleanup,
 large folders/vanished anchors, installed schema, final independent review,
 account/device delivery and deployment remain open. A2 has no

@@ -1,5 +1,6 @@
 import XCTest
 import Combine
+import SwiftData
 @testable import Hadithly
 
 final class GuestMergePlannerTests: XCTestCase {
@@ -135,6 +136,119 @@ final class GuestMergePlannerTests: XCTestCase {
         let otherJSON = String(decoding: try JSONEncoder().encode(other), as: UTF8.self)
         XCTAssertFalse(otherJSON.contains("Private draft"))
         XCTAssertFalse(otherJSON.contains("Recovery fixture"))
+    }
+
+    @MainActor private func seedPartitionFixture(_ state: LibraryPartitionState, owner: LibrarySyncOwner, url: URL) throws {
+        let schema = Schema([GuestBookmark.self, GuestNote.self, GuestFavorite.self, GuestSavedFolder.self, GuestSavedMembership.self, GuestReadingProgress.self, GuestLibraryPartition.self, GuestAccountDeletion.self])
+        let container = try ModelContainer(for: schema, configurations: [ModelConfiguration(schema: schema, url: url)])
+        let context = ModelContext(container)
+        context.insert(GuestLibraryPartition(ownerKey: owner.storageKey, subject: owner.subject, stateData: try JSONEncoder().encode(state)))
+        try context.save()
+    }
+
+    @MainActor func testCoordinatorContinuesAfterItsQuarantinePassBudgetWithoutSendingInvalidIntent() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("quarantine.store")
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        let session = LibrarySyncSession(id: "session-a", subject: owner.subject)
+        let rejected = (0..<401).map { _ in LibraryLocalChange(command: .notePut(.init(hadithId: "target", content: "", createdAt: 1_000, updatedAt: 1_000)), at: 1_000, source: .account(nil)) }
+        let valid = LibraryLocalChange(command: .bookmarkAdd(.init(hadithId: "target", createdAt: 1_000)), at: 1_000, source: .account(nil))
+        var state = LibraryPartitionState(); state.pending = rejected + [valid]
+        try seedPartitionFixture(state, owner: owner, url: url)
+        let store = GuestDataStore(storeURL: url)
+        var sent: [SyncFrame] = []
+        let transport = LibrarySyncTransport(namespace: "fixture", open: {
+            .init(ownerKey: owner.key, subject: owner.subject, capability: "fixture", validUntil: Date.now.millisecondsSinceEpoch + 60_000)
+        }, acknowledge: { _, proof in self.acknowledged(proof) }, send: { _, frame in
+            sent.append(frame); XCTAssertEqual(frame.batch.operations, [valid.operation])
+            return self.accepted(frame, reply: .init(ownerKey: owner.key, batchId: frame.batch.id, receipts: [.init(id: valid.operation.id, revision: valid.operation.revision, outcome: .preserved)]))
+        })
+        let sync = LibrarySync(store: store, transport: transport, currentSession: { session })
+        defer { sync.deactivate() }
+        await sync.activate(session)
+        try await waitForLibrary { sync.status == .ready(recovered: 401) }
+        XCTAssertEqual(sent.count, 1)
+        XCTAssertEqual(try store.syncPartition(owner)?.recovery, rejected.map { .rejected($0) })
+        XCTAssertTrue(try store.syncPartition(owner)?.pending.isEmpty == true)
+        XCTAssertNil(try store.syncPartition(owner)?.acknowledgement)
+    }
+
+    @MainActor func testLegacyFrozenInvalidFrameSurvivesLostRetirementResponseAndAllowsLaterIntent() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("old-frozen.store")
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        let session = LibrarySyncSession(id: "session-a", subject: owner.subject)
+        let invalid = LibraryLocalChange(command: .notePut(.init(hadithId: "target", content: String(repeating: "界", count: 8_001), createdAt: 1_000, updatedAt: 1_000)), at: 1_000, source: .account(nil))
+        let valid = LibraryLocalChange(command: .bookmarkAdd(.init(hadithId: "target", createdAt: 1_000)), at: 1_000, source: .account(nil))
+        var state = LibraryPartitionState()
+        state.frozen = .init(batch: .init(id: "legacy-frozen", operations: [invalid.operation]), changes: [invalid])
+        state.pending = [valid]
+        try seedPartitionFixture(state, owner: owner, url: url)
+        let store = GuestDataStore(storeURL: url)
+        var retirements = 0
+        var sent: [SyncFrame] = []
+        let transport = LibrarySyncTransport(namespace: "fixture", open: {
+            .init(ownerKey: owner.key, subject: owner.subject, capability: "fixture", validUntil: Date.now.millisecondsSinceEpoch + 60_000)
+        }, acknowledge: { _, proof in self.acknowledged(proof) }, send: { _, frame in
+            sent.append(frame)
+            XCTAssertEqual(frame.batch.operations, [valid.operation])
+            return self.accepted(frame, reply: .init(ownerKey: owner.key, batchId: frame.batch.id, receipts: frame.batch.operations.map { .init(id: $0.id, revision: $0.revision, outcome: .preserved) }))
+        }, retireInvalid: { _, frame in
+            retirements += 1
+            XCTAssertEqual(frame.batch.id, "legacy-frozen")
+            if retirements == 1 { throw NSError(domain: "lost-retirement-response-fixture", code: 1) }
+            return .init(ownerKey: owner.key, clientKey: frame.clientKey, cursor: .init(closedThrough: frame.sequence, active: nil))
+        })
+        let sync = LibrarySync(store: store, transport: transport, currentSession: { session })
+        defer { sync.deactivate() }
+        await sync.activate(session)
+        XCTAssertEqual(retirements, 1); XCTAssertTrue(sent.isEmpty)
+        XCTAssertEqual(try store.syncPartition(owner)?.frozen?.batch.id, "legacy-frozen")
+        await sync.activate(session)
+        try await waitForLibrary { (try? store.syncPartition(owner)?.frozen) == nil && sent.count == 1 }
+        XCTAssertEqual(retirements, 2); XCTAssertEqual(sent.first?.sequence, 2)
+        XCTAssertEqual(try store.syncPartition(owner)?.recovery, [.historical(invalid)])
+        XCTAssertTrue(try store.syncPartition(owner)?.pending.isEmpty == true)
+        XCTAssertNil(try store.syncPartition(owner)?.acknowledgement)
+        let reopened = GuestDataStore(storeURL: url)
+        XCTAssertEqual(try reopened.syncPartition(owner)?.recovery, [.historical(invalid)])
+    }
+
+    @MainActor func testRetirementCannotClearANewerFrozenFrameOrLoseAnOccupiedReceipt() throws {
+        let invalid = LibraryLocalChange(command: .notePut(.init(hadithId: "target", content: "", createdAt: 1_000, updatedAt: 1_000)), at: 1_000, source: .account(nil))
+        var state = LibraryPartitionState()
+        state.frozen = .init(batch: .init(id: "invalid-frozen", operations: [invalid.operation]), changes: [invalid])
+        let requested = try XCTUnwrap(state.freeze())
+        let wrong = SyncAckReply(ownerKey: "owner-a", clientKey: "other-installation", cursor: .init(closedThrough: 1, active: nil))
+        XCTAssertThrowsError(try state.settleRetirement(wrong, requested: requested))
+        let active = SyncCommitted(clientKey: state.clientKey, sequence: 1, digest: "committed-proof", revision: .init(saved: 1, position: 0), reply: .init(ownerKey: "owner-a", batchId: "other-committed-batch", receipts: []))
+        try state.settleRetirement(.init(ownerKey: "owner-a", clientKey: state.clientKey, cursor: .init(closedThrough: 0, active: active)), requested: requested)
+        XCTAssertEqual(state.recovery, [.historical(invalid)])
+        XCTAssertEqual(state.acknowledgement?.digest, "committed-proof")
+        let proof = try XCTUnwrap(state.acknowledgement)
+        try state.settleAcknowledgement(.init(ownerKey: "owner-a", clientKey: state.clientKey, cursor: .init(closedThrough: 1, active: nil)), requested: proof)
+        state.pending = [.init(command: .bookmarkAdd(.init(hadithId: "target", createdAt: 1_000)), at: 1_000, source: .account(nil))]
+        let next = try XCTUnwrap(state.freeze())
+        XCTAssertEqual(next.sequence, 2)
+        XCTAssertThrowsError(try state.settleRetirement(.init(ownerKey: "owner-a", clientKey: state.clientKey, cursor: .init(closedThrough: 1, active: nil)), requested: requested))
+        XCTAssertEqual(try state.freeze(), next)
+    }
+
+    @MainActor func testOneFreezeBoundsQuarantineWorkBeforeAValidLaterChange() throws {
+        let rejected = (0..<101).map { _ in LibraryLocalChange(command: .notePut(.init(hadithId: "target", content: "", createdAt: 1_000, updatedAt: 1_000)), at: 1_000, source: .account(nil)) }
+        let valid = LibraryLocalChange(command: .bookmarkAdd(.init(hadithId: "target", createdAt: 1_000)), at: 1_000, source: .account(nil))
+        var state = LibraryPartitionState(); state.pending = rejected + [valid]
+        XCTAssertNil(try state.freeze())
+        XCTAssertEqual(state.recovery.count, LibrarySyncLimits.operations)
+        XCTAssertEqual(state.pending.count, 52)
+        XCTAssertNil(try state.freeze())
+        let frame = try XCTUnwrap(state.freeze())
+        XCTAssertEqual(frame.batch.operations, [valid.operation])
+        XCTAssertEqual(state.recovery, rejected.map { .rejected($0) })
     }
 
     @MainActor func testInvalidPendingNoteRetainsItsOriginalWithoutBlockingTheNextChange() throws {

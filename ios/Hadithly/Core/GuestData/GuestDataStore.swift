@@ -400,6 +400,13 @@ final class GuestDataStore {
         try saveSyncPartition(state, owner: owner)
     }
 
+    func settleSyncRetirement(_ reply: SyncAckReply, requested: SyncFrame, owner: LibrarySyncOwner) throws {
+        try validateSyncOwner(owner, replyOwner: reply.ownerKey, cursor: reply.cursor)
+        guard var state = try syncPartition(owner) else { return }
+        try state.settleRetirement(reply, requested: requested)
+        try saveSyncPartition(state, owner: owner)
+    }
+
     func settleSyncAcknowledgement(_ reply: SyncAckReply, requested: SyncAcknowledgement, owner: LibrarySyncOwner) throws {
         try validateSyncOwner(owner, replyOwner: reply.ownerKey, cursor: reply.cursor)
         guard var state = try syncPartition(owner) else { return }

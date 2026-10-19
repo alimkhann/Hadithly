@@ -125,6 +125,8 @@ final class AppEnvironment {
             try await libraryClient.mutation("librarySync:acknowledge", with: ["capability": capability, "acknowledgement": acknowledgement])
         }, send: { capability, frame in
             try await libraryClient.mutation("librarySync:applyBatch", with: ["capability": capability, "frame": frame])
+        }, retireInvalid: { capability, frame in
+            try await libraryClient.mutation("librarySync:retireInvalidFrame", with: ["capability": capability, "clientKey": frame.clientKey, "sequence": frame.sequence])
         }), currentSession: currentLibrarySession)
         self.library = UserLibraryModel(convex: convex, guestData: self.guestData, sync: self.librarySync, currentSession: currentLibrarySession)
         let privateLibrary = self.library

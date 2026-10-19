@@ -373,6 +373,14 @@ class GuestDataStore(context: Context) {
         store
     }
 
+    suspend fun settleSyncRetirement(reply: SyncAckReply, requested: SyncFrame, owner: LibrarySyncOwner) = writeLocked(notify = false) { store ->
+        validateSyncOwner(owner, reply.ownerKey, reply.cursor)
+        val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey } ?: return@writeLocked store
+        if (partition.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
+        partition.state.settleRetirement(reply, requested)
+        store
+    }
+
     suspend fun settleSyncAcknowledgement(reply: SyncAckReply, requested: SyncAcknowledgement, owner: LibrarySyncOwner) = writeLocked(notify = false) { store ->
         validateSyncOwner(owner, reply.ownerKey, reply.cursor)
         val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey } ?: return@writeLocked store

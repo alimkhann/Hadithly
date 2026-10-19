@@ -1,0 +1,15 @@
+# Invalid-frame retirement review
+
+Read-only review of the uncommitted recovery-fence diff from `e1e75d5`, October 19. Tests were still running. This excludes the separate large-folder design and newer integration outcomes.
+
+## Finding
+
+**P1 — Retiring a server-behind high sequence can strand another fork's valid work.** `retireInvalidFrame` accepts any authenticated, bounded `sequence` and, with no active receipt, sets `closedThrough = max(current, sequence)` (`backend/convex/librarySync.ts:271-285`). With active sequence 1, it stores an arbitrary `retiredThrough`, which acknowledgement later promotes to `closedThrough` (`:297-300`). A restored/corrupt same-installation copy with invalid frozen sequence 7 can therefore retire through 7 while a healthy copy has valid never-sent frames 1–6 (or an active 1 and pending 2–6). Those frames will then receive `reconcile` from `applyBatch` (`:228-236`), be archived as historical on the healthy client (`ios/Hadithly/Core/GuestData/GuestMergePlanner.swift:446-451`; Android `LibrarySync.kt:135-147`), and never drain automatically. The focused test explicitly accepts a server-behind retirement at sequence 7 with no prior stream (`backend/convex/librarySync.test.ts:376-382`); it does not test a healthy fork's pending work afterward. This is conservative against duplicate replay but violates automatic continuation for a same-key fork. A safe design needs a sequence-specific retirement tombstone or a server-anchored proof before advancing across unknown lower sequences; if the product accepts quarantining another fork's valid work, make that explicit and prove its recoverable path.
+
+## Confirmed boundaries
+
+- The endpoint receives only capability, installation key and sequence, validates safe integer bounds, and derives owner through the verified JWT; another account cannot retire this stream (`backend/convex/librarySync.ts:271-276`; `librarySync.test.ts:336-350`). A retirement is not evidence of whether the original operation was committed.
+- If an active receipt exists, retirement retains that exact active proof; only its matching ACK clears it and applies the retirement watermark (`librarySync.ts:278-300`; `librarySync.test.ts:354-373`). A late old apply after closure gets a no-write cursor. The backend and native owner checks prevent a response from settling a different account's partition (`ios/Hadithly/Core/GuestData/GuestDataStore.swift:403-410`; Android `GuestStore.kt:375-383`).
+- Both native stores require the same frozen frame and sequence before settlement; a lost retirement response leaves that frozen frame for idempotent retry, while a successful response archives its original content and preserves pending changes (`GuestMergePlanner.swift:479-484`; Android `LibrarySync.kt:222-227`). New freeze inspection is capped at 50 pending entries per pass and keeps rejected originals in recovery (`GuestMergePlanner.swift:385-415`; Android `LibrarySync.kt:125-145`).
+
+The report does not infer green status from the in-progress suites. It does not close the existing installed-schema, suspended-commit, real-auth/device or account-deletion gates.

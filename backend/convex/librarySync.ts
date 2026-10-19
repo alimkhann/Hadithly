@@ -267,6 +267,45 @@ export const applyBatch = mutation({
   },
 });
 
+const FUTURE_RETIREMENT_LIMIT = 100;
+
+async function consumeRetirements(ctx: MutationCtx, userId: Id<"users">, clientKey: string, closedThrough: number): Promise<number> {
+  for (let inspected = 0; inspected < FUTURE_RETIREMENT_LIMIT; inspected++) {
+    const next = await ctx.db.query("librarySyncRetirements").withIndex("by_user_client_sequence", q => q.eq("userId", userId).eq("clientKey", clientKey).eq("sequence", closedThrough + 1)).unique();
+    if (!next) break;
+    await ctx.db.delete(next._id);
+    closedThrough++;
+  }
+  return closedThrough;
+}
+
+/** Fences one unsendable sequence, without skipping valid earlier work from a restored copy. */
+export const retireInvalidFrame = mutation({
+  args: { capability: v.string(), clientKey: v.string(), sequence: v.number() },
+  handler: async (ctx, { capability, clientKey, sequence }): Promise<SyncAckReply> => {
+    const user = await boundOwner(ctx, capability);
+    validateSyncStream(clientKey, sequence);
+    const stream = await ctx.db.query("librarySyncStreams").withIndex("by_user_client", q => q.eq("userId", user._id).eq("clientKey", clientKey)).unique();
+    const closedThrough = stream?.closedThrough ?? 0;
+    const cursor = { closedThrough, ...(stream?.active ? { active: stream.active } : {}) };
+    if (sequence <= closedThrough || stream?.active?.sequence === sequence) return { ownerKey: user._id, clientKey, cursor };
+    if (!stream?.active && sequence === closedThrough + 1) {
+      const closed = await consumeRetirements(ctx, user._id, clientKey, sequence);
+      if (stream) await ctx.db.patch(stream._id, { closedThrough: closed });
+      else await ctx.db.insert("librarySyncStreams", { userId: user._id, clientKey, closedThrough: closed });
+      return { ownerKey: user._id, clientKey, cursor: { closedThrough: closed } };
+    }
+    const existing = await ctx.db.query("librarySyncRetirements").withIndex("by_user_client_sequence", q => q.eq("userId", user._id).eq("clientKey", clientKey).eq("sequence", sequence)).unique();
+    if (!existing) {
+      const pending = await ctx.db.query("librarySyncRetirements").withIndex("by_user_client", q => q.eq("userId", user._id).eq("clientKey", clientKey)).take(FUTURE_RETIREMENT_LIMIT);
+      if (pending.length >= FUTURE_RETIREMENT_LIMIT) throw new Error("SYNC_RETIREMENT_CAPACITY");
+      await ctx.db.insert("librarySyncRetirements", { userId: user._id, clientKey, sequence });
+    }
+    if (!stream) await ctx.db.insert("librarySyncStreams", { userId: user._id, clientKey, closedThrough });
+    return { ownerKey: user._id, clientKey, cursor };
+  },
+});
+
 export const acknowledge = mutation({
   args: { capability: v.string(), acknowledgement: syncAcknowledgement },
   handler: async (ctx, { capability, acknowledgement }): Promise<SyncAckReply> => {
@@ -276,8 +315,9 @@ export const acknowledge = mutation({
     if (!stream) return { ownerKey: user._id, clientKey: acknowledgement.clientKey, cursor: { closedThrough: 0 } };
     const active = stream.active;
     if (active && active.sequence === acknowledgement.sequence && active.reply.batchId === acknowledgement.batchId && active.digest === acknowledgement.digest) {
-      await ctx.db.patch(stream._id, { closedThrough: active.sequence, active: undefined });
-      return { ownerKey: user._id, clientKey: acknowledgement.clientKey, cursor: { closedThrough: active.sequence } };
+      const closedThrough = await consumeRetirements(ctx, user._id, acknowledgement.clientKey, active.sequence);
+      await ctx.db.patch(stream._id, { closedThrough, active: undefined });
+      return { ownerKey: user._id, clientKey: acknowledgement.clientKey, cursor: { closedThrough } };
     }
     return { ownerKey: user._id, clientKey: acknowledgement.clientKey, cursor: { closedThrough: stream.closedThrough, ...(active ? { active } : {}) } };
   },

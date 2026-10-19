@@ -282,6 +282,19 @@ struct LibraryRecentReceipt: Codable, Equatable, Sendable {
 }
 
 enum LibrarySyncAdmission {
+    static func accepts(_ batch: SyncBatch, now: Double = Date.now.millisecondsSinceEpoch) -> Bool {
+        func identifier(_ value: String) -> Bool { value.range(of: "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$", options: .regularExpression) != nil }
+        guard identifier(batch.id), !batch.operations.isEmpty, batch.operations.count <= LibrarySyncLimits.operations,
+              Set(batch.operations.map(\.id)).count == batch.operations.count,
+              let data = try? JSONEncoder().encode(batch), data.count <= LibrarySyncLimits.bytes else { return false }
+        var fanout = 0
+        for operation in batch.operations {
+            guard identifier(operation.id), identifier(operation.revision), accepts(operation.command, at: operation.at, now: now) else { return false }
+            switch operation.command { case .folderDelete, .folderRestore: fanout += 1; default: break }
+        }
+        return fanout <= LibrarySyncLimits.fanoutOperations
+    }
+
     static func accepts(_ command: SyncCommand, at: Double, now: Double = Date.now.millisecondsSinceEpoch) -> Bool {
         func time(_ value: Double) -> Bool { value.isFinite && value >= 0 && value <= now + 300_000 }
         func target(_ value: String) -> Bool { !value.isEmpty && value.utf16.count <= 128 }
@@ -372,8 +385,9 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
         guard !pending.isEmpty else { return nil }
         let id = UUID().uuidString
         var selected: [LibraryLocalChange] = []
-        var fanout = 0
-        while let change = pending.first, selected.count < LibrarySyncLimits.operations {
+        var fanout = 0, inspected = 0
+        while let change = pending.first, inspected < LibrarySyncLimits.operations {
+            inspected += 1
             guard LibrarySyncAdmission.accepts(change.operation.command, at: change.operation.at) else {
                 recovery.append(.rejected(change)); pending.removeFirst(); continue
             }
@@ -465,6 +479,13 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
         }
     }
 
+    mutating func settleRetirement(_ reply: SyncAckReply, requested: SyncFrame) throws {
+        guard reply.clientKey == clientKey, requested.clientKey == clientKey,
+              requested.sequence == Double(nextSequence), frozen?.batch == requested.batch,
+              acknowledgement == nil else { throw LibrarySyncFailure.invalidReceipt }
+        try adopt(reply.cursor)
+    }
+
     mutating func settleAcknowledgement(_ reply: SyncAckReply, requested: SyncAcknowledgement) throws {
         guard acknowledgement == requested, reply.clientKey == clientKey else { throw LibrarySyncFailure.invalidReceipt }
         try adopt(reply.cursor)
@@ -493,6 +514,7 @@ struct LibrarySyncTransport {
     let open: () async throws -> SyncBinding
     let acknowledge: (String, SyncAcknowledgement) async throws -> SyncAckReply
     let send: (String, SyncFrame) async throws -> SyncExchange
+    var retireInvalid: (String, SyncFrame) async throws -> SyncAckReply = { _, _ in throw LibrarySyncFailure.invalidChange }
 }
 
 @MainActor
@@ -626,9 +648,19 @@ final class LibrarySync {
                     continue
                 }
                 guard let frame = try store.freezeSyncFrame(owner) else {
-                    status = .ready(recovered: try store.syncPartition(owner)?.recovery.count ?? 0)
+                    let state = try store.syncPartition(owner)
+                    onPartitionChange(owner)
+                    if state?.pending.isEmpty == false { continue }
+                    status = .ready(recovered: state?.recovery.count ?? 0)
                     retryDelay = 1
                     return
+                }
+                if !LibrarySyncAdmission.accepts(frame.batch, now: now()) {
+                    let reply = try await transport.retireInvalid(binding.capability, frame)
+                    try store.settleSyncRetirement(reply, requested: frame, owner: owner)
+                    onPartitionChange(owner)
+                    try check(session, epoch: epoch)
+                    continue
                 }
                 let reply = try await transport.send(binding.capability, frame)
                 // A late A receipt can settle only A's still-existing partition.

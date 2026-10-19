@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import org.junit.Assert.*
 import org.junit.Test
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 class GuestMergeRaceTest {
     private fun accepted(frame: SyncFrame, reply: SyncReply) = SyncExchange.Accepted(SyncCommitted(frame.clientKey, frame.sequence, "fixture-digest", SyncRevision(frame.sequence, frame.sequence), reply))
@@ -142,6 +144,104 @@ class GuestMergeRaceTest {
                 }
             } finally { fixture.stop() }
         }
+    }
+
+    @Test fun coordinatorContinuesAfterItsQuarantinePassBudgetWithoutSendingInvalidIntent() = runBlocking {
+        isolated { store, _, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); val session = LibrarySyncSession("session-a", owner.subject)
+            val rejected = (0 until 401).map { LibraryLocalChange(SyncCommand.NotePut("target", "", 1_000.0, 1_000.0), 1_000.0, LibraryLocalSource.Account(null)) }
+            val valid = LibraryLocalChange(SyncCommand.BookmarkAdd("target", 1_000.0), 1_000.0, LibraryLocalSource.Account(null))
+            val state = LibraryPartitionState(pending = rejected + valid)
+            File(directory, "guest_store.json").writeText(Json.encodeToString(GuestStoreFile(syncPartitions = listOf(LibrarySyncPartition(owner.storageKey, owner.subject, state)))))
+            val sent = mutableListOf<SyncFrame>()
+            val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+            val transport = object : LibrarySyncTransport {
+                override val namespace = "fixture"
+                override suspend fun open() = SyncBinding(owner.key, owner.subject, "fixture", System.currentTimeMillis() + 60_000.0)
+                override suspend fun acknowledge(capability: String, acknowledgement: SyncAcknowledgement) = SyncAckReply(owner.key, acknowledgement.clientKey, SyncCursor(acknowledgement.sequence))
+                override suspend fun send(capability: String, frame: SyncFrame): SyncExchange {
+                    sent.add(frame); assertEquals(listOf(valid.operation), frame.batch.operations)
+                    return accepted(frame, SyncReply(owner.key, frame.batch.id, listOf(SyncReceipt(valid.operation.id, valid.operation.revision, SyncOutcome.Preserved))))
+                }
+            }
+            val sync = LibrarySync(store, transport, scope, { session })
+            try {
+                sync.activate(session)
+                withTimeout(3_000) { sync.status.first { it == LibrarySync.Status.Ready(401) } }
+                assertEquals(1, sent.size)
+                assertEquals(rejected.map { LibraryRecovery.Rejected(it) }, store.syncPartition(owner)!!.recovery)
+                assertTrue(store.syncPartition(owner)!!.pending.isEmpty()); assertNull(store.syncPartition(owner)!!.acknowledgement)
+            } finally { withContext(Dispatchers.Main) { sync.deactivate() }; scope.cancel() }
+        }
+    }
+
+    @Test fun legacyFrozenInvalidFrameSurvivesLostRetirementResponseAndAllowsLaterIntent() = runBlocking {
+        isolated { store, reopen, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a")
+            val session = LibrarySyncSession("session-a", owner.subject)
+            val invalid = LibraryLocalChange(SyncCommand.NotePut("target", "界".repeat(8_001), 1_000.0, 1_000.0), 1_000.0, LibraryLocalSource.Account(null))
+            val valid = LibraryLocalChange(SyncCommand.BookmarkAdd("target", 1_000.0), 1_000.0, LibraryLocalSource.Account(null))
+            val state = LibraryPartitionState(pending = listOf(valid), frozen = LibraryFrozenBatch(SyncBatch("legacy-frozen", listOf(invalid.operation)), listOf(invalid)))
+            File(directory, "guest_store.json").writeText(Json.encodeToString(GuestStoreFile(syncPartitions = listOf(LibrarySyncPartition(owner.storageKey, owner.subject, state)))))
+            var retirements = 0
+            val sent = mutableListOf<SyncFrame>()
+            val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+            val transport = object : LibrarySyncTransport {
+                override val namespace = "fixture"
+                override suspend fun open() = SyncBinding(owner.key, owner.subject, "fixture", System.currentTimeMillis() + 60_000.0)
+                override suspend fun acknowledge(capability: String, acknowledgement: SyncAcknowledgement) = SyncAckReply(owner.key, acknowledgement.clientKey, SyncCursor(acknowledgement.sequence))
+                override suspend fun send(capability: String, frame: SyncFrame): SyncExchange {
+                    sent.add(frame); assertEquals(listOf(valid.operation), frame.batch.operations)
+                    return accepted(frame, SyncReply(owner.key, frame.batch.id, frame.batch.operations.map { SyncReceipt(it.id, it.revision, SyncOutcome.Preserved) }))
+                }
+                override suspend fun retireInvalid(capability: String, frame: SyncFrame): SyncAckReply {
+                    retirements++; assertEquals("legacy-frozen", frame.batch.id)
+                    if (retirements == 1) throw java.io.IOException("Lost retirement response fixture")
+                    return SyncAckReply(owner.key, frame.clientKey, SyncCursor(frame.sequence))
+                }
+            }
+            val sync = LibrarySync(store, transport, scope, { session })
+            try {
+                sync.activate(session)
+                assertEquals(1, retirements); assertTrue(sent.isEmpty())
+                assertEquals("legacy-frozen", store.syncPartition(owner)!!.frozen!!.batch.id)
+                sync.activate(session)
+                withTimeout(3_000) { while (store.syncPartition(owner)?.frozen != null || sent.isEmpty()) delay(10) }
+                assertEquals(2, retirements); assertEquals(2.0, sent.single().sequence, 0.0)
+                assertEquals(listOf(LibraryRecovery.Historical(invalid)), store.syncPartition(owner)!!.recovery)
+                assertTrue(store.syncPartition(owner)!!.pending.isEmpty()); assertNull(store.syncPartition(owner)!!.acknowledgement)
+                assertEquals(listOf(LibraryRecovery.Historical(invalid)), reopen().syncPartition(owner)!!.recovery)
+            } finally { withContext(Dispatchers.Main) { sync.deactivate() }; scope.cancel() }
+        }
+    }
+
+    @Test fun retirementCannotClearANewerFrozenFrameOrLoseAnOccupiedReceipt() {
+        val invalid = LibraryLocalChange(SyncCommand.NotePut("target", "", 1_000.0, 1_000.0), 1_000.0, LibraryLocalSource.Account(null))
+        val state = LibraryPartitionState(frozen = LibraryFrozenBatch(SyncBatch("invalid-frozen", listOf(invalid.operation)), listOf(invalid)))
+        val requested = requireNotNull(state.freeze())
+        try { state.settleRetirement(SyncAckReply("owner-a", "other-installation", SyncCursor(1.0)), requested); fail("Wrong installation accepted") } catch (_: LibrarySyncFailure.InvalidReceipt) { }
+        val active = SyncCommitted(state.clientKey, 1.0, "committed-proof", SyncRevision(1.0, 0.0), SyncReply("owner-a", "other-committed-batch", emptyList()))
+        state.settleRetirement(SyncAckReply("owner-a", state.clientKey, SyncCursor(0.0, active)), requested)
+        assertEquals(listOf(LibraryRecovery.Historical(invalid)), state.recovery)
+        val proof = requireNotNull(state.acknowledgement)
+        assertEquals("committed-proof", proof.digest)
+        state.settleAcknowledgement(SyncAckReply("owner-a", state.clientKey, SyncCursor(1.0)), proof)
+        state.pending = listOf(LibraryLocalChange(SyncCommand.BookmarkAdd("target", 1_000.0), 1_000.0, LibraryLocalSource.Account(null)))
+        val next = requireNotNull(state.freeze()); assertEquals(2.0, next.sequence, 0.0)
+        try { state.settleRetirement(SyncAckReply("owner-a", state.clientKey, SyncCursor(1.0)), requested); fail("Stale retirement accepted") } catch (_: LibrarySyncFailure.InvalidReceipt) { }
+        assertEquals(next, state.freeze())
+    }
+
+    @Test fun oneFreezeBoundsQuarantineWorkBeforeAValidLaterChange() {
+        val rejected = (0 until 101).map { LibraryLocalChange(SyncCommand.NotePut("target", "", 1_000.0, 1_000.0), 1_000.0, LibraryLocalSource.Account(null)) }
+        val valid = LibraryLocalChange(SyncCommand.BookmarkAdd("target", 1_000.0), 1_000.0, LibraryLocalSource.Account(null))
+        val state = LibraryPartitionState(pending = rejected + valid)
+        assertNull(state.freeze())
+        assertEquals(LibrarySyncLimits.operations, state.recovery.size)
+        assertEquals(52, state.pending.size)
+        assertNull(state.freeze())
+        assertEquals(listOf(valid.operation), requireNotNull(state.freeze()).batch.operations)
+        assertEquals(rejected.map { LibraryRecovery.Rejected(it) }, state.recovery)
     }
 
     @Test fun invalidPendingNoteRetainsItsOriginalWithoutBlockingTheNextChange() {

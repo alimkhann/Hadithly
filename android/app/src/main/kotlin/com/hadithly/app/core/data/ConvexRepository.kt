@@ -67,6 +67,9 @@ class ConvexRepository(context: Context) : LibraryReadTransport, LibrarySyncTran
     override suspend fun send(capability: String, frame: SyncFrame): SyncExchange = withContext(Dispatchers.IO) {
         convex.mutation<SyncExchange>("librarySync:applyBatch", mapOf("capability" to capability, "frame" to frame.toConvexArgument()))
     }
+    override suspend fun retireInvalid(capability: String, frame: SyncFrame): SyncAckReply = withContext(Dispatchers.IO) {
+        convex.mutation<SyncAckReply>("librarySync:retireInvalidFrame", mapOf("capability" to capability, "clientKey" to frame.clientKey, "sequence" to frame.sequence))
+    }
     override suspend fun acknowledge(capability: String, acknowledgement: SyncAcknowledgement): SyncAckReply = withContext(Dispatchers.IO) {
         convex.mutation<SyncAckReply>("librarySync:acknowledge", mapOf("capability" to capability, "acknowledgement" to acknowledgement.toConvexArgument()))
     }

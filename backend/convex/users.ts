@@ -207,7 +207,7 @@ export const exportCurrentUserData = query({
         legacy: { bookmarks: [], favorites: [], notes: [] },
         submissions: [],
         evidenceItems: [],
-        sync: { streams: [] },
+        sync: { streams: [], retirements: [] },
       };
     }
 
@@ -224,6 +224,7 @@ export const exportCurrentUserData = query({
       ]);
 
     const syncStreams = await ctx.db.query("librarySyncStreams").withIndex("by_user", q => q.eq("userId", user._id)).collect();
+    const syncRetirements = await ctx.db.query("librarySyncRetirements").withIndex("by_user", q => q.eq("userId", user._id)).collect();
 
     const hadithIds = new Set<string>();
     for (const row of [...items, ...bookmarks, ...favorites, ...notes]) {
@@ -266,7 +267,8 @@ export const exportCurrentUserData = query({
         subscriptionTier: user.subscriptionTier,
         createdAt: user.createdAt,
       },
-      sync: { streams: syncStreams.map(stream => ({ clientKey: stream.clientKey, closedThrough: stream.closedThrough, ...(stream.active ? { active: stream.active } : {}) })) },
+      sync: { streams: syncStreams.map(stream => ({ clientKey: stream.clientKey, closedThrough: stream.closedThrough, ...(stream.active ? { active: stream.active } : {}) })),
+        retirements: syncRetirements.map(row => ({ clientKey: row.clientKey, sequence: row.sequence })) },
       readerPreferences:
         (user.readerPreferences as ReaderPreferences | undefined) ?? null,
       savedFolders: folders.map((folder) => ({
@@ -373,7 +375,7 @@ export const deleteCurrentUser = mutation({
       ctx.db.query("adminAuditLog").withIndex("by_actor", (q) => q.eq("actorUserId", user._id)).collect(),
     ]);
 
-    for (const table of ["librarySyncBindings", "librarySyncStreams", "librarySyncMarks", "librarySyncFolderKeys", "librarySyncVersions"] as const) {
+    for (const table of ["librarySyncBindings", "librarySyncStreams", "librarySyncRetirements", "librarySyncMarks", "librarySyncFolderKeys", "librarySyncVersions"] as const) {
       const rows = await ctx.db.query(table).withIndex("by_user", q => q.eq("userId", user._id)).collect();
       for (const row of rows) await ctx.db.delete(row._id);
     }

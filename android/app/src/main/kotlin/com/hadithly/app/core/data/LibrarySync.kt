@@ -56,6 +56,14 @@ data class LibraryRecentReceipt(val receipt: SyncReceipt, val expiresAt: Double)
 data class LibrarySyncPartition(val ownerKey: String, val subject: String, val state: LibraryPartitionState)
 
 object LibrarySyncAdmission {
+    fun accepts(batch: SyncBatch, now: Double = System.currentTimeMillis().toDouble()): Boolean {
+        fun identifier(value: String) = value.matches(Regex("^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"))
+        if (!identifier(batch.id) || batch.operations.isEmpty() || batch.operations.size > LibrarySyncLimits.operations ||
+            batch.operations.map { it.id }.distinct().size != batch.operations.size || Json.encodeToString(batch).toByteArray(Charsets.UTF_8).size > LibrarySyncLimits.bytes) return false
+        if (batch.operations.count { it.command is SyncCommand.FolderDelete || it.command is SyncCommand.FolderRestore } > LibrarySyncLimits.fanoutOperations) return false
+        return batch.operations.all { identifier(it.id) && identifier(it.revision) && accepts(it.command, it.at, now) }
+    }
+
     fun accepts(command: SyncCommand, at: Double, now: Double = System.currentTimeMillis().toDouble()): Boolean {
         fun time(value: Double) = value.isFinite() && value >= 0 && value <= now + 300_000
         fun target(value: String) = value.isNotEmpty() && value.length <= 128
@@ -115,7 +123,9 @@ data class LibraryPartitionState(
         val id = UUID.randomUUID().toString()
         val selected = mutableListOf<LibraryLocalChange>()
         var fanout = 0
-        while (pending.isNotEmpty() && selected.size < LibrarySyncLimits.operations) {
+        var inspected = 0
+        while (pending.isNotEmpty() && inspected < LibrarySyncLimits.operations) {
+            inspected++
             val change = pending.first()
             if (!LibrarySyncAdmission.accepts(change.operation.command, change.operation.at)) {
                 recovery = recovery + LibraryRecovery.Rejected(change); pending = pending.drop(1); continue
@@ -212,6 +222,11 @@ data class LibraryPartitionState(
             }
         }
     }
+    fun settleRetirement(reply: SyncAckReply, requested: SyncFrame) {
+        if (reply.clientKey != clientKey || requested.clientKey != clientKey || requested.sequence != nextSequence || frozen?.batch != requested.batch || acknowledgement != null) throw LibrarySyncFailure.InvalidReceipt
+        adopt(reply.cursor)
+    }
+
     fun settleAcknowledgement(reply: SyncAckReply, requested: SyncAcknowledgement) {
         if (acknowledgement != requested || reply.clientKey != clientKey) throw LibrarySyncFailure.InvalidReceipt
         adopt(reply.cursor)
@@ -242,6 +257,7 @@ interface LibrarySyncTransport {
     suspend fun open(): SyncBinding
     suspend fun acknowledge(capability: String, acknowledgement: SyncAcknowledgement): SyncAckReply
     suspend fun send(capability: String, frame: SyncFrame): SyncExchange
+    suspend fun retireInvalid(capability: String, frame: SyncFrame): SyncAckReply = throw LibrarySyncFailure.InvalidChange
 }
 
 class LibrarySync(
@@ -381,9 +397,20 @@ class LibrarySync(
                 }
                 val frame = store.freezeSyncFrame(owner)
                 if (frame == null) {
-                    mutableStatus.value = Status.Ready(store.syncPartition(owner)?.recovery?.size ?: 0)
+                    val state = store.syncPartition(owner)
+                    onPartitionChange(owner)
+                    checkSession(session, epoch)
+                    if (state?.pending?.isNotEmpty() == true) return@repeat
+                    mutableStatus.value = Status.Ready(state?.recovery?.size ?: 0)
                     retryDelay = 1_000
                     return
+                }
+                if (!LibrarySyncAdmission.accepts(frame.batch, now())) {
+                    val reply = transport.retireInvalid(binding.capability, frame)
+                    store.settleSyncRetirement(reply, frame, owner)
+                    onPartitionChange(owner)
+                    checkSession(session, epoch)
+                    return@repeat
                 }
                 val reply = transport.send(binding.capability, frame)
                 store.settleSyncExchange(reply, frame, owner, now())
