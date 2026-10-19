@@ -100,5 +100,11 @@ Local synthetic fixtures do not prove Convex hosted quotas or real two-device sy
   stalled delivery recovery and temporary-fact cleanup. See
   `../../../LIBRARY_FOLDER_MANIFEST_VERIFICATION.md`. Prepared is not a terminal
   receipt; native cutover and the full retained-handle contract remain open.
+- [x] Implement held-frame pending proofs, protected ACK/retirement, exact failure
+  publication and both native waiting/poll consumers. Reproduce and fix same-ID
+  restored-copy confirmation with cross-native content fingerprints. See
+  `../../../LIBRARY_SYNC_HELD_FRAME_VERIFICATION.md`. Successful logical effects,
+  complete native producer/read/export cutover and retained Undo authority remain
+  open.
 - [ ] Implement bounded server core and both native integrations.
 - [ ] Verify migrations, interruption, privacy and actual approved device delivery.

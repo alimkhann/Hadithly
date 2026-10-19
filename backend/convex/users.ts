@@ -267,7 +267,7 @@ export const exportCurrentUserData = query({
         subscriptionTier: user.subscriptionTier,
         createdAt: user.createdAt,
       },
-      sync: { streams: syncStreams.map(stream => ({ clientKey: stream.clientKey, closedThrough: stream.closedThrough, ...(stream.active ? { active: stream.active } : {}) })),
+      sync: { streams: syncStreams.map(stream => ({ clientKey: stream.clientKey, closedThrough: stream.closedThrough, ...(stream.slot ? { slot: stream.slot } : {}) })),
         retirements: syncRetirements.map(row => ({ clientKey: row.clientKey, sequence: row.sequence })) },
       readerPreferences:
         (user.readerPreferences as ReaderPreferences | undefined) ?? null,

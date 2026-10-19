@@ -1,8 +1,17 @@
 import { syncValidatorContract } from "../../test/librarySyncContract";
 import { afterAll, expect, test } from "vitest";
-import { syncBatchDigest, syncReceiptSetMatches, syncWriteDecision, validateSyncBatch, type SyncBatch } from "./librarySyncPolicy";
+import { syncBatchDigest, syncIntentDigest, syncReceiptSetMatches, syncWriteDecision, validateSyncBatch, type SyncBatch } from "./librarySyncPolicy";
 const operation = { id: "note-1", revision: "revision-1", at: 1_000, command: { kind: "note_put", hadithId: "target", content: "private fixture", createdAt: 1_000, updatedAt: 1_000 } } satisfies SyncBatch["operations"][number];
 const batch = { id: "batch-1", operations: [operation] } satisfies SyncBatch;
+const intentVectors: SyncBatch[] = [batch,
+  { id: "unicode", operations: [{ id: "note", revision: "r1", at: 1e-7, command: { kind: "note_put", hadithId: "target", content: "العربية 🙂 é \n \\ / \"", createdAt: 0, updatedAt: 1e20 } }] },
+  { id: "folders", operations: [{ id: "delete", revision: "r2", at: 1_000, command: { kind: "folder_delete", folder: { kind: "server", id: "folder-a" } } }] },
+];
+
+test("cross-native intent fingerprint ignores property order but distinguishes commands with reused IDs", async () => {
+  expect(await syncIntentDigest(batch)).toBe(await syncIntentDigest({ operations: batch.operations, id: batch.id }));
+  expect(await syncIntentDigest(batch)).not.toBe(await syncIntentDigest({ ...batch, operations: [{ ...operation, command: { ...operation.command, content: "different" } }] }));
+});
 
 test("receipt matching requires every exact operation and revision once", () => {
   expect(syncReceiptSetMatches(batch, [{ id: operation.id, revision: operation.revision, outcome: { kind: "preserved" } }])).toBe(true);
@@ -71,8 +80,10 @@ afterAll(async () => {
     SyncSavedItem: syncValidatorContract(policy.syncSavedItem), SyncFolderRow: syncValidatorContract(policy.syncFolderRow), SyncPositionRow: syncValidatorContract(policy.syncPositionRow),
     SyncSavedSnapshot: syncValidatorContract(policy.syncSavedSnapshot), SyncPositionsSnapshot: syncValidatorContract(policy.syncPositionsSnapshot),
     SyncFrame: syncValidatorContract(policy.syncFrame), SyncCommitted: syncValidatorContract(policy.syncCommitted),
+    SyncPending: syncValidatorContract(policy.syncPending), SyncOutstanding: syncValidatorContract(policy.syncOutstanding),
     SyncCursor: syncValidatorContract(policy.syncCursor), SyncAcknowledgement: syncValidatorContract(policy.syncAcknowledgement),
     SyncExchange: syncValidatorContract(policy.syncExchange), SyncAckReply: syncValidatorContract(policy.syncAckReply),
     ReadingPosition: syncValidatorContract(readingPositionValidator) };
-  writeFileSync(resolve(directory, "contract.json"), JSON.stringify({ ...validators, limits: { operations: policy.SYNC_BATCH_LIMIT, fanoutOperations: policy.SYNC_FANOUT_LIMIT, bytes: policy.SYNC_BATCH_BYTES, noteBytes: policy.SYNC_NOTE_BYTES, folderLength: policy.SYNC_FOLDER_LENGTH } }, null, 2) + "\n");
+  const intentDigests = await Promise.all(intentVectors.map(async value => ({ json: JSON.stringify(value), digest: await syncIntentDigest(value) })));
+  writeFileSync(resolve(directory, "contract.json"), JSON.stringify({ ...validators, intentDigests, limits: { operations: policy.SYNC_BATCH_LIMIT, fanoutOperations: policy.SYNC_FANOUT_LIMIT, bytes: policy.SYNC_BATCH_BYTES, noteBytes: policy.SYNC_NOTE_BYTES, folderLength: policy.SYNC_FOLDER_LENGTH } }, null, 2) + "\n");
 });

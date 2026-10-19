@@ -25,3 +25,4 @@ extension ReadingPosition {
 
 extension SyncFrame: ConvexEncodable { }
 extension SyncAcknowledgement: ConvexEncodable { }
+extension SyncPending: ConvexEncodable { }

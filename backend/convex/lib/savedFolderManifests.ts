@@ -2,6 +2,7 @@ import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { savedFolderScanGuard } from "./savedMembership";
+import { failHeldFolderFrame } from "./librarySyncFrames";
 
 export const FOLDER_MANIFEST_PAGE = 50;
 export const FOLDER_MANIFEST_READ_BYTES = 2 * 1024 * 1024;
@@ -52,6 +53,7 @@ export async function prepareFolderManifest(ctx: MutationCtx, userId: Id<"users"
 }
 
 async function abandon(ctx: MutationCtx, header: Header, reason: Reason): Promise<FolderManifestStep> {
+  await failHeldFolderFrame(ctx, header, reason);
   await ctx.db.patch(header._id, { state: { kind: "abandoned", reason, count: header.state.count }, updatedAt: Date.now() });
   await ctx.scheduler.runAfter(0, internal.librarySync.purgeFolderManifestMembers, { id: header._id, generation: header.generation });
   return { kind: "abandoned", reason };
@@ -101,6 +103,7 @@ export async function purgeFolderManifestMembers(ctx: MutationCtx, request: { id
   const expired = header ? header.expiresAt <= Date.now() : true;
   if (header && ownerExists && !expired && header.state.kind !== "abandoned" && header.state.kind !== "purging") return { deleted: 0 };
   const eraseHeader = expired || !ownerExists || header?.state.kind === "purging";
+  if (header && eraseHeader) await failHeldFolderFrame(ctx, header, header.state.kind === "abandoned" || header.state.kind === "purging" ? header.state.reason : "expired");
   if (header && eraseHeader && header.state.kind !== "purging") await ctx.db.patch(header._id, {
     state: { kind: "purging", reason: header.state.kind === "abandoned" ? header.state.reason : "expired", count: header.state.count },
     expiresAt: Date.now() + FOLDER_MANIFEST_LEASE_MS,

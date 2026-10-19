@@ -13,6 +13,85 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class GuestMergeRaceTest {
+    @Test fun heldOriginalSurvivesStoreReopenRetirementAndTerminalFailure() = runBlocking {
+        isolated { store, reopen, _ ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a")
+            store.claimGuestForSync(owner)
+            store.enqueueSyncChange(LibraryLocalChange(SyncCommand.FolderDelete(SyncFolderReference.Server("folder-a")), 1_000.0, LibraryLocalSource.Account(null)), owner)
+            val later = LibraryLocalChange(SyncCommand.NotePut("target", "Later original", 2_000.0, 2_000.0), 2_000.0, LibraryLocalSource.Account(null))
+            store.enqueueSyncChange(later, owner)
+            val frame = store.freezeSyncFrame(owner)!!
+            assertEquals(1, frame.batch.operations.size)
+            val pending = SyncPending(frame.clientKey, frame.sequence, frame.batch.id, "fixture-digest", frame.batch.intentDigest(), "manifest", "generation", 1_000.0)
+            store.settleSyncExchange(SyncExchange.Pending(owner.key, pending), frame, owner)
+            val reopened = reopen(); val before = reopened.syncPartition(owner)!!
+            assertEquals(pending, before.waiting); assertEquals(frame.batch, before.frozen!!.batch)
+            assertEquals(listOf(later), before.pending); assertEquals(1.0, before.nextSequence, 0.0); assertNull(before.acknowledgement)
+            try { reopened.freezeSyncFrame(owner); fail("Froze while pending") } catch (_: LibrarySyncFailure.InvalidReceipt) { }
+            reopened.settleSyncRetirement(SyncAckReply(owner.key, frame.clientKey, SyncCursor(0.0, SyncOutstanding.Pending(pending))), frame, owner)
+            assertEquals(frame.batch, reopened.syncPartition(owner)!!.frozen!!.batch)
+            try { reopened.settleSyncPending(SyncExchange.Pending("other-owner", pending), pending, owner); fail("Wrong owner accepted") } catch (_: LibrarySyncFailure.OwnerMismatch) { }
+            val operation = frame.batch.operations[0]
+            reopened.settleSyncPending(accepted(frame, SyncReply(owner.key, frame.batch.id, listOf(SyncReceipt(operation.id, operation.revision, SyncOutcome.Unresolved(SyncOutcomeUnresolvedReason.PREPARATION_EXPIRED))))), pending, owner)
+            val terminal = reopened.syncPartition(owner)!!
+            assertNull(terminal.waiting); assertNull(terminal.frozen); assertEquals(1, terminal.recovery.size)
+            val proof = terminal.acknowledgement!!
+            reopened.settleSyncAcknowledgement(SyncAckReply(owner.key, proof.clientKey, SyncCursor(proof.sequence)), proof, owner)
+            assertEquals(listOf(later.operation), reopened.freezeSyncFrame(owner)!!.batch.operations)
+        }
+    }
+
+    @Test fun coordinatorDelaysPendingPollingAndSendsLaterIntentOnlyAfterTerminalAck() = runBlocking {
+        isolated { store, _, _ ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); val session = LibrarySyncSession("session-a", "subject-a")
+            store.claimGuestForSync(owner)
+            store.enqueueSyncChange(LibraryLocalChange(SyncCommand.FolderDelete(SyncFolderReference.Server("folder-a")), 1_000.0, LibraryLocalSource.Account(null)), owner)
+            store.enqueueSyncChange(LibraryLocalChange(SyncCommand.BookmarkAdd("target", 2_000.0), 2_000.0, LibraryLocalSource.Account(null)), owner)
+            val sends = mutableListOf<SyncFrame>(); var polls = 0; var acknowledgements = 0
+            val transport = object : LibrarySyncTransport {
+                override val namespace = "fixture"
+                override suspend fun open() = SyncBinding(owner.key, owner.subject, "fixture", System.currentTimeMillis() + 60_000.0)
+                override suspend fun acknowledge(capability: String, acknowledgement: SyncAcknowledgement): SyncAckReply { acknowledgements++; return SyncAckReply(owner.key, acknowledgement.clientKey, SyncCursor(acknowledgement.sequence)) }
+                override suspend fun send(capability: String, frame: SyncFrame): SyncExchange {
+                    sends.add(frame)
+                    if (sends.size == 1) return SyncExchange.Pending(owner.key, SyncPending(frame.clientKey, frame.sequence, frame.batch.id, "fixture-digest", frame.batch.intentDigest(), "manifest", "generation", 1_000.0))
+                    return accepted(frame, SyncReply(owner.key, frame.batch.id, frame.batch.operations.map { SyncReceipt(it.id, it.revision, SyncOutcome.Preserved) }))
+                }
+                override suspend fun poll(capability: String, pending: SyncPending): SyncExchange {
+                    polls++; val frame = sends[0]; val operation = frame.batch.operations[0]
+                    return accepted(frame, SyncReply(owner.key, frame.batch.id, listOf(SyncReceipt(operation.id, operation.revision, SyncOutcome.Unresolved(SyncOutcomeUnresolvedReason.PREPARATION_EXPIRED)))))
+                }
+            }
+            val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+            val sync = LibrarySync(store, transport, scope, { session })
+            try {
+                sync.activate(session)
+                assertEquals(1, sends.size); assertEquals(0, polls); assertEquals(0, acknowledgements)
+                withTimeout(4_000) { sync.status.first { it == LibrarySync.Status.Ready(1) } }
+                assertEquals(1, polls); assertEquals(2, sends.size); assertEquals(2, acknowledgements)
+            } finally { sync.deactivate(); scope.cancel() }
+        }
+    }
+
+    @Test fun intentFingerprintMatchesBackendUnicodeAndNumberVectors() {
+        for ((encoded, digest) in LibrarySyncIntentVectors.values) assertEquals(digest, Json.decodeFromString<SyncBatch>(encoded).intentDigest())
+    }
+
+    @Test fun pendingCloneWithReusedIDsArchivesItsDifferentIntent() {
+        val state = LibraryPartitionState()
+        state.append(LibraryLocalSource.Account(null), SyncCommand.FolderDelete(SyncFolderReference.Server("folder-a")), 1_000.0)
+        val frame = state.freeze()!!
+        val original = frame.batch.operations[0]
+        val serverBatch = frame.batch.copy(operations = listOf(original.copy(command = SyncCommand.FolderDelete(SyncFolderReference.Server("folder-b")))))
+        val pending = SyncPending(frame.clientKey, frame.sequence, frame.batch.id, "fixture-digest", serverBatch.intentDigest(), "manifest", "generation", 1_000.0)
+        state.settle(SyncExchange.Reconcile("owner-a", frame.clientKey, frame.sequence, frame.batch.id, SyncCursor(0.0, SyncOutstanding.Pending(pending))), frame, 2_000.0)
+        assertNull(state.frozen)
+        assertEquals(1, state.recovery.size)
+        state.settlePending(accepted(frame, SyncReply("owner-a", frame.batch.id, listOf(SyncReceipt(original.id, original.revision, SyncOutcome.Preserved)))), pending, 2_000.0)
+        assertTrue(state.confirmed.isEmpty())
+        assertEquals(pending.digest, state.acknowledgement!!.digest)
+    }
+
     private fun accepted(frame: SyncFrame, reply: SyncReply) = SyncExchange.Accepted(SyncCommitted(frame.clientKey, frame.sequence, "fixture-digest", SyncRevision(frame.sequence, frame.sequence), reply))
     private suspend fun GuestDataStore.settleFixture(reply: SyncReply, frame: SyncFrame, owner: LibrarySyncOwner) = settleSyncExchange(accepted(frame, reply), frame, owner)
 
@@ -284,7 +363,7 @@ class GuestMergeRaceTest {
         val requested = requireNotNull(state.freeze())
         try { state.settleRetirement(SyncAckReply("owner-a", "other-installation", SyncCursor(1.0)), requested); fail("Wrong installation accepted") } catch (_: LibrarySyncFailure.InvalidReceipt) { }
         val active = SyncCommitted(state.clientKey, 1.0, "committed-proof", SyncRevision(1.0, 0.0), SyncReply("owner-a", "other-committed-batch", emptyList()))
-        state.settleRetirement(SyncAckReply("owner-a", state.clientKey, SyncCursor(0.0, active)), requested)
+        state.settleRetirement(SyncAckReply("owner-a", state.clientKey, SyncCursor(0.0, SyncOutstanding.Committed(active))), requested)
         assertEquals(listOf(LibraryRecovery.Historical(invalid)), state.recovery)
         val proof = requireNotNull(state.acknowledgement)
         assertEquals("committed-proof", proof.digest)
@@ -545,7 +624,7 @@ class GuestMergeRaceTest {
             store.claimGuestForSync(owner)
             val frame = store.freezeSyncFrame(owner)!!
             fun exchange(replyOwner: String) = SyncExchange.Reconcile(owner.key, frame.clientKey, frame.sequence, frame.batch.id,
-                SyncCursor(0.0, SyncCommitted(frame.clientKey, 1.0, "server-proof", SyncRevision(1.0, 1.0), SyncReply(replyOwner, "other-batch", listOf(SyncReceipt("other-intent", "r1", SyncOutcome.Preserved))))))
+                SyncCursor(0.0, SyncOutstanding.Committed(SyncCommitted(frame.clientKey, 1.0, "server-proof", SyncRevision(1.0, 1.0), SyncReply(replyOwner, "other-batch", listOf(SyncReceipt("other-intent", "r1", SyncOutcome.Preserved)))))))
             try { store.settleSyncExchange(exchange("owner-b"), frame, owner); fail("Nested wrong owner accepted") } catch (_: LibrarySyncFailure.OwnerMismatch) { }
             assertEquals(frame, store.freezeSyncFrame(owner))
             store.settleSyncExchange(exchange(owner.key), frame, owner)

@@ -50,7 +50,7 @@ export const syncOutcome = v.union(
   v.object({ kind: v.literal("folder_restored"), folderId: v.id("savedFolders"), restored: v.array(v.string()), superseded: v.array(v.string()), missing: v.array(v.string()) }),
   v.object({ kind: v.literal("resolved_position"), position: readingPositionValidator }),
   v.object({ kind: v.literal("superseded"), reason: v.union(v.literal("newer_cloud"), v.literal("tie_cloud"), v.literal("changed_since_delete"), v.literal("unversioned_cloud")) }),
-  v.object({ kind: v.literal("unresolved"), reason: v.union(v.literal("missing_target"), v.literal("missing_folder"), v.literal("missing_saved_item"), v.literal("folder_name_taken"), v.literal("position_unavailable"), v.literal("folder_too_large")) }),
+  v.object({ kind: v.literal("unresolved"), reason: v.union(v.literal("missing_target"), v.literal("missing_folder"), v.literal("missing_saved_item"), v.literal("folder_name_taken"), v.literal("position_unavailable"), v.literal("folder_too_large"), v.literal("preparation_expired")) }),
 );
 export const syncReceipt = v.object({ id: v.string(), revision: v.string(), outcome: syncOutcome });
 export type SyncOutcome = Infer<typeof syncOutcome>;
@@ -62,14 +62,20 @@ export type SyncReply = Infer<typeof syncReply>;
 export const syncFrame = v.object({ clientKey: v.string(), sequence: v.number(), batch: syncBatch });
 export const syncRevision = v.object({ saved: v.number(), position: v.number() });
 export const syncCommitted = v.object({ clientKey: v.string(), sequence: v.number(), digest: v.string(), revision: syncRevision, reply: syncReply });
-export const syncCursor = v.object({ closedThrough: v.number(), active: v.optional(syncCommitted) });
+export const syncPending = v.object({ clientKey: v.string(), sequence: v.number(), batchId: v.string(), digest: v.string(), intentDigest: v.string(),
+  manifestId: v.id("savedFolderManifests"), generation: v.string(), retryAfterMs: v.number() });
+export const syncOutstanding = v.union(v.object({ kind: v.literal("committed"), committed: syncCommitted }), v.object({ kind: v.literal("pending"), pending: syncPending }));
+export const syncStreamSlot = v.union(v.object({ kind: v.literal("committed"), committed: syncCommitted }), v.object({ kind: v.literal("pending"), pending: syncPending, batch: syncBatch }));
+export const syncCursor = v.object({ closedThrough: v.number(), outstanding: v.optional(syncOutstanding) });
 export const syncAcknowledgement = v.object({ clientKey: v.string(), sequence: v.number(), batchId: v.string(), digest: v.string() });
 export const syncExchange = v.union(
   v.object({ kind: v.literal("accepted"), committed: syncCommitted }),
+  v.object({ kind: v.literal("pending"), ownerKey: v.string(), pending: syncPending }),
   v.object({ kind: v.literal("reconcile"), ownerKey: v.string(), clientKey: v.string(), requestedSequence: v.number(), requestedBatchId: v.string(), cursor: syncCursor }),
 );
 export const syncAckReply = v.object({ ownerKey: v.string(), clientKey: v.string(), cursor: syncCursor });
 export type SyncFrame = Infer<typeof syncFrame>;
+export type SyncPending = Infer<typeof syncPending>;
 export type SyncCommitted = Infer<typeof syncCommitted>;
 export type SyncCursor = Infer<typeof syncCursor>;
 export type SyncAcknowledgement = Infer<typeof syncAcknowledgement>;
@@ -135,6 +141,27 @@ export function validateSyncBatch(batch: SyncBatch, now: number): void {
 export async function syncBatchDigest(batch: SyncBatch): Promise<string> {
   // Explicit field order keeps request-object property order out of identity.
   return textDigest(JSON.stringify([batch.id, batch.operations.map(op => [op.id, op.revision, op.at, canonicalSyncValue(op.command)])]));
+}
+
+/** Cross-native content identity. Numbers use IEEE-754 bits, strings length-prefixed UTF-8. */
+export async function syncIntentDigest(batch: SyncBatch): Promise<string> {
+  function encode(value: unknown): string {
+    if (value === null) return "z";
+    if (typeof value === "string") return `s${new TextEncoder().encode(value).length}:${value}`;
+    if (typeof value === "boolean") return value ? "t" : "f";
+    if (typeof value === "number") {
+      if (!Number.isFinite(value)) throw new Error("SYNC_INVALID_NUMBER");
+      const bytes = new Uint8Array(8); new DataView(bytes.buffer).setFloat64(0, value === 0 ? 0 : value);
+      return `n${Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("")}`;
+    }
+    if (Array.isArray(value)) return `a${value.length}:${value.map(encode).join("")}`;
+    if (typeof value === "object" && value !== null) {
+      const entries = Object.entries(value).filter(([, child]) => child !== undefined).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
+      return `o${entries.length}:${entries.map(([key, child]) => encode(key) + encode(child)).join("")}`;
+    }
+    throw new Error("SYNC_INVALID_VALUE");
+  }
+  return textDigest("library-intent-v1:" + encode(batch));
 }
 function canonicalSyncValue(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(canonicalSyncValue);

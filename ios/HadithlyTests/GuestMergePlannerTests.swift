@@ -4,6 +4,85 @@ import SwiftData
 @testable import Hadithly
 
 final class GuestMergePlannerTests: XCTestCase {
+    @MainActor func testHeldOriginalSurvivesStoreReopenRetirementAndTerminalFailure() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("held.store"), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        let store = GuestDataStore(storeURL: url)
+        try store.claimGuestForSync(owner)
+        try store.enqueueSyncChange(.init(command: .folderDelete(.init(folder: .server(.init(id: "folder-a")))), at: 1_000, source: .account(nil)), owner: owner)
+        let later = LibraryLocalChange(command: .notePut(.init(hadithId: "target", content: "Later original", createdAt: 2_000, updatedAt: 2_000)), at: 2_000, source: .account(nil))
+        try store.enqueueSyncChange(later, owner: owner)
+        let frame = try XCTUnwrap(store.freezeSyncFrame(owner))
+        XCTAssertEqual(frame.batch.operations.count, 1)
+        let pending = SyncPending(clientKey: frame.clientKey, sequence: frame.sequence, batchId: frame.batch.id, digest: "fixture-digest", intentDigest: try frame.batch.intentDigest(), manifestId: "manifest", generation: "generation", retryAfterMs: 1_000)
+        try store.settleSyncExchange(.pending(.init(ownerKey: owner.key, pending: pending)), requested: frame, owner: owner)
+        let reopened = GuestDataStore(storeURL: url)
+        let before = try XCTUnwrap(reopened.syncPartition(owner))
+        XCTAssertEqual(before.waiting, pending); XCTAssertEqual(before.frozen?.batch, frame.batch)
+        XCTAssertEqual(before.pending, [later]); XCTAssertEqual(before.nextSequence, 1); XCTAssertNil(before.acknowledgement)
+        XCTAssertThrowsError(try reopened.freezeSyncFrame(owner))
+        try reopened.settleSyncRetirement(.init(ownerKey: owner.key, clientKey: frame.clientKey, cursor: .init(closedThrough: 0, outstanding: .pending(.init(pending: pending)))), requested: frame, owner: owner)
+        XCTAssertEqual(try reopened.syncPartition(owner)?.frozen?.batch, frame.batch)
+        XCTAssertThrowsError(try reopened.settleSyncPending(.pending(.init(ownerKey: "other-owner", pending: pending)), requested: pending, owner: owner))
+        let operation = frame.batch.operations[0]
+        try reopened.settleSyncPending(accepted(frame, reply: .init(ownerKey: owner.key, batchId: frame.batch.id, receipts: [.init(id: operation.id, revision: operation.revision, outcome: .unresolved(.init(reason: .preparationExpired)))])), requested: pending, owner: owner)
+        let terminal = try XCTUnwrap(reopened.syncPartition(owner))
+        XCTAssertNil(terminal.waiting); XCTAssertNil(terminal.frozen); XCTAssertEqual(terminal.recovery.count, 1)
+        try reopened.settleSyncAcknowledgement(acknowledged(try XCTUnwrap(terminal.acknowledgement)), requested: try XCTUnwrap(terminal.acknowledgement), owner: owner)
+        XCTAssertEqual(try reopened.freezeSyncFrame(owner)?.batch.operations, [later.operation])
+    }
+
+    @MainActor func testCoordinatorDelaysPendingPollingAndSendsLaterIntentOnlyAfterTerminalAck() async throws {
+        let store = GuestDataStore(inMemory: true), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        let session = LibrarySyncSession(id: "session-a", subject: owner.subject)
+        try store.claimGuestForSync(owner)
+        try store.enqueueSyncChange(.init(command: .folderDelete(.init(folder: .server(.init(id: "folder-a")))), at: 1_000, source: .account(nil)), owner: owner)
+        try store.enqueueSyncChange(.init(command: .bookmarkAdd(.init(hadithId: "target", createdAt: 2_000)), at: 2_000, source: .account(nil)), owner: owner)
+        var sends: [SyncFrame] = [], polls = 0, acknowledgements = 0
+        let sync = LibrarySync(store: store, transport: .init(namespace: "fixture", open: {
+            .init(ownerKey: owner.key, subject: owner.subject, capability: "fixture", validUntil: Date.now.millisecondsSinceEpoch + 60_000)
+        }, acknowledge: { _, value in acknowledgements += 1; return self.acknowledged(value) }, send: { _, frame in
+            sends.append(frame)
+            if sends.count == 1 {
+                return .pending(.init(ownerKey: owner.key, pending: .init(clientKey: frame.clientKey, sequence: frame.sequence, batchId: frame.batch.id, digest: "fixture-digest", intentDigest: try frame.batch.intentDigest(), manifestId: "manifest", generation: "generation", retryAfterMs: 1_000)))
+            }
+            return self.accepted(frame, reply: .init(ownerKey: owner.key, batchId: frame.batch.id, receipts: frame.batch.operations.map { .init(id: $0.id, revision: $0.revision, outcome: .preserved) }))
+        }, poll: { _, _ in
+            polls += 1; let frame = sends[0], operation = frame.batch.operations[0]
+            return self.accepted(frame, reply: .init(ownerKey: owner.key, batchId: frame.batch.id, receipts: [.init(id: operation.id, revision: operation.revision, outcome: .unresolved(.init(reason: .preparationExpired)))]))
+        }), currentSession: { session })
+        defer { sync.deactivate() }
+        await sync.activate(session)
+        XCTAssertEqual(sends.count, 1); XCTAssertEqual(polls, 0); XCTAssertEqual(acknowledgements, 0)
+        try await waitForLibrary { sync.status == .ready(recovered: 1) }
+        XCTAssertEqual(polls, 1); XCTAssertEqual(sends.count, 2); XCTAssertEqual(acknowledgements, 2)
+    }
+
+    func testIntentFingerprintMatchesBackendUnicodeAndNumberVectors() throws {
+        for vector in LibrarySyncIntentVectors.values {
+            let batch = try JSONDecoder().decode(SyncBatch.self, from: Data(vector.json.utf8))
+            XCTAssertEqual(try batch.intentDigest(), vector.digest)
+        }
+    }
+
+    func testPendingCloneWithReusedIDsArchivesItsDifferentIntent() throws {
+        var state = LibraryPartitionState()
+        state.append(.account(nil), command: .folderDelete(.init(folder: .server(.init(id: "folder-a")))), at: 1_000)
+        let frame = try XCTUnwrap(state.freeze())
+        let original = frame.batch.operations[0]
+        let serverBatch = SyncBatch(id: frame.batch.id, operations: [.init(id: original.id, revision: original.revision, at: original.at, command: .folderDelete(.init(folder: .server(.init(id: "folder-b")))))])
+        let pending = SyncPending(clientKey: frame.clientKey, sequence: frame.sequence, batchId: frame.batch.id, digest: "fixture-digest", intentDigest: try serverBatch.intentDigest(), manifestId: "manifest", generation: "generation", retryAfterMs: 1_000)
+        try state.settle(.reconcile(.init(ownerKey: "owner-a", clientKey: frame.clientKey, requestedSequence: frame.sequence, requestedBatchId: frame.batch.id, cursor: .init(closedThrough: 0, outstanding: .pending(.init(pending: pending))))), requested: frame, now: 2_000)
+        XCTAssertNil(state.frozen)
+        XCTAssertEqual(state.recovery.count, 1)
+        let reply = SyncReply(ownerKey: "owner-a", batchId: frame.batch.id, receipts: [.init(id: original.id, revision: original.revision, outcome: .preserved)])
+        try state.settlePending(accepted(frame, reply: reply), requested: pending, now: 2_000)
+        XCTAssertTrue(state.confirmed.isEmpty)
+        XCTAssertEqual(state.acknowledgement?.digest, pending.digest)
+    }
+
     private func date(_ seconds: Double) -> Date {
         Date(timeIntervalSince1970: seconds)
     }
@@ -13,7 +92,7 @@ final class GuestMergePlannerTests: XCTestCase {
     }
 
     private func acknowledged(_ value: SyncAcknowledgement) -> SyncAckReply {
-        .init(ownerKey: "owner-a", clientKey: value.clientKey, cursor: .init(closedThrough: value.sequence, active: nil))
+        .init(ownerKey: "owner-a", clientKey: value.clientKey, cursor: .init(closedThrough: value.sequence, outstanding: nil))
     }
 
     @MainActor private func settleFixture(_ reply: SyncReply, frame: SyncFrame, store: GuestDataStore, owner: LibrarySyncOwner) throws {
@@ -275,7 +354,7 @@ final class GuestMergePlannerTests: XCTestCase {
             retirements += 1
             XCTAssertEqual(frame.batch.id, "legacy-frozen")
             if retirements == 1 { throw NSError(domain: "lost-retirement-response-fixture", code: 1) }
-            return .init(ownerKey: owner.key, clientKey: frame.clientKey, cursor: .init(closedThrough: frame.sequence, active: nil))
+            return .init(ownerKey: owner.key, clientKey: frame.clientKey, cursor: .init(closedThrough: frame.sequence, outstanding: nil))
         })
         let sync = LibrarySync(store: store, transport: transport, currentSession: { session })
         defer { sync.deactivate() }
@@ -297,18 +376,18 @@ final class GuestMergePlannerTests: XCTestCase {
         var state = LibraryPartitionState()
         state.frozen = .init(batch: .init(id: "invalid-frozen", operations: [invalid.operation]), changes: [invalid])
         let requested = try XCTUnwrap(state.freeze())
-        let wrong = SyncAckReply(ownerKey: "owner-a", clientKey: "other-installation", cursor: .init(closedThrough: 1, active: nil))
+        let wrong = SyncAckReply(ownerKey: "owner-a", clientKey: "other-installation", cursor: .init(closedThrough: 1, outstanding: nil))
         XCTAssertThrowsError(try state.settleRetirement(wrong, requested: requested))
         let active = SyncCommitted(clientKey: state.clientKey, sequence: 1, digest: "committed-proof", revision: .init(saved: 1, position: 0), reply: .init(ownerKey: "owner-a", batchId: "other-committed-batch", receipts: []))
-        try state.settleRetirement(.init(ownerKey: "owner-a", clientKey: state.clientKey, cursor: .init(closedThrough: 0, active: active)), requested: requested)
+        try state.settleRetirement(.init(ownerKey: "owner-a", clientKey: state.clientKey, cursor: .init(closedThrough: 0, outstanding: .committed(.init(committed: active)))), requested: requested)
         XCTAssertEqual(state.recovery, [.historical(invalid)])
         XCTAssertEqual(state.acknowledgement?.digest, "committed-proof")
         let proof = try XCTUnwrap(state.acknowledgement)
-        try state.settleAcknowledgement(.init(ownerKey: "owner-a", clientKey: state.clientKey, cursor: .init(closedThrough: 1, active: nil)), requested: proof)
+        try state.settleAcknowledgement(.init(ownerKey: "owner-a", clientKey: state.clientKey, cursor: .init(closedThrough: 1, outstanding: nil)), requested: proof)
         state.pending = [.init(command: .bookmarkAdd(.init(hadithId: "target", createdAt: 1_000)), at: 1_000, source: .account(nil))]
         let next = try XCTUnwrap(state.freeze())
         XCTAssertEqual(next.sequence, 2)
-        XCTAssertThrowsError(try state.settleRetirement(.init(ownerKey: "owner-a", clientKey: state.clientKey, cursor: .init(closedThrough: 1, active: nil)), requested: requested))
+        XCTAssertThrowsError(try state.settleRetirement(.init(ownerKey: "owner-a", clientKey: state.clientKey, cursor: .init(closedThrough: 1, outstanding: nil)), requested: requested))
         XCTAssertEqual(try state.freeze(), next)
     }
 
@@ -515,7 +594,7 @@ final class GuestMergePlannerTests: XCTestCase {
         let frame = try XCTUnwrap(store.freezeSyncFrame(owner))
         let pending = LibraryLocalChange(command: .notePut(.init(hadithId: "target", content: "Never sent fixture", createdAt: 2_000, updatedAt: 2_000)), at: 2_000, source: .account(nil))
         try store.enqueueSyncChange(pending, owner: owner)
-        let exchange = SyncExchange.reconcile(.init(ownerKey: owner.key, clientKey: frame.clientKey, requestedSequence: frame.sequence, requestedBatchId: frame.batch.id, cursor: .init(closedThrough: 5, active: nil)))
+        let exchange = SyncExchange.reconcile(.init(ownerKey: owner.key, clientKey: frame.clientKey, requestedSequence: frame.sequence, requestedBatchId: frame.batch.id, cursor: .init(closedThrough: 5, outstanding: nil)))
         try store.settleSyncExchange(exchange, requested: frame, owner: owner)
         let state = try XCTUnwrap(store.syncPartition(owner))
         guard case .historical(let original) = state.recovery.first, case .note(let note) = original.source else { return XCTFail("Original intent disappeared") }
@@ -534,7 +613,7 @@ final class GuestMergePlannerTests: XCTestCase {
         let frame = try XCTUnwrap(store.freezeSyncFrame(owner))
         func exchange(_ replyOwner: String) -> SyncExchange {
             .reconcile(.init(ownerKey: owner.key, clientKey: frame.clientKey, requestedSequence: frame.sequence, requestedBatchId: frame.batch.id,
-                cursor: .init(closedThrough: 0, active: .init(clientKey: frame.clientKey, sequence: 1, digest: "server-proof", revision: .init(saved: 1, position: 1), reply: .init(ownerKey: replyOwner, batchId: "other-batch", receipts: [.init(id: "other-intent", revision: "r1", outcome: .preserved)])))))
+                cursor: .init(closedThrough: 0, outstanding: .committed(.init(committed: .init(clientKey: frame.clientKey, sequence: 1, digest: "server-proof", revision: .init(saved: 1, position: 1), reply: .init(ownerKey: replyOwner, batchId: "other-batch", receipts: [.init(id: "other-intent", revision: "r1", outcome: .preserved)])))))))
         }
         XCTAssertThrowsError(try store.settleSyncExchange(exchange("owner-b"), requested: frame, owner: owner))
         XCTAssertEqual(try store.freezeSyncFrame(owner), frame)
@@ -864,7 +943,7 @@ final class GuestMergePlannerTests: XCTestCase {
             let owner = current.subject == "subject-a" ? "owner-a" : "owner-b"
             return .init(ownerKey: owner, subject: current.subject, capability: "fixture:" + owner, validUntil: Date.now.millisecondsSinceEpoch + 900_000)
         }, acknowledge: { capability, value in
-            .init(ownerKey: String(capability.dropFirst("fixture:".count)), clientKey: value.clientKey, cursor: .init(closedThrough: value.sequence, active: nil))
+            .init(ownerKey: String(capability.dropFirst("fixture:".count)), clientKey: value.clientKey, cursor: .init(closedThrough: value.sequence, outstanding: nil))
         }, send: { capability, frame in try server.send(capability, frame) }), currentSession: { session.value })
         model = UserLibraryModel(reads: .init(saved: { saved.eraseToAnyPublisher() }, positions: { positions.eraseToAnyPublisher() }), guestData: store, sync: sync, currentSession: { session.value })
         let model = self.model

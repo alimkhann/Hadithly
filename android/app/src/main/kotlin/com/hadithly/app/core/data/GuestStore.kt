@@ -359,17 +359,30 @@ class GuestDataStore(context: Context) {
     }
 
     private fun validateSyncOwner(owner: LibrarySyncOwner, replyOwner: String, cursor: SyncCursor? = null) {
-        if (replyOwner != owner.key || cursor?.active?.reply?.ownerKey?.let { it != owner.key } == true) throw LibrarySyncFailure.OwnerMismatch
+        if (replyOwner != owner.key || cursor?.outstanding?.committedValue?.reply?.ownerKey?.let { it != owner.key } == true) throw LibrarySyncFailure.OwnerMismatch
     }
 
     suspend fun settleSyncExchange(exchange: SyncExchange, requested: SyncFrame, owner: LibrarySyncOwner, now: Double = nowMillis()) = writeLocked(notify = false) { store ->
         when (exchange) {
             is SyncExchange.Accepted -> validateSyncOwner(owner, exchange.committed.reply.ownerKey)
+            is SyncExchange.Pending -> validateSyncOwner(owner, exchange.ownerKey)
             is SyncExchange.Reconcile -> validateSyncOwner(owner, exchange.ownerKey, exchange.cursor)
         }
         val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey } ?: return@writeLocked store
         if (partition.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
         partition.state.settle(exchange, requested, now)
+        store
+    }
+
+    suspend fun settleSyncPending(exchange: SyncExchange, requested: SyncPending, owner: LibrarySyncOwner, now: Double = nowMillis()) = writeLocked(notify = false) { store ->
+        when (exchange) {
+            is SyncExchange.Accepted -> validateSyncOwner(owner, exchange.committed.reply.ownerKey)
+            is SyncExchange.Pending -> validateSyncOwner(owner, exchange.ownerKey)
+            is SyncExchange.Reconcile -> validateSyncOwner(owner, exchange.ownerKey, exchange.cursor)
+        }
+        val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey } ?: return@writeLocked store
+        if (partition.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
+        partition.state.settlePending(exchange, requested, now)
         store
     }
 

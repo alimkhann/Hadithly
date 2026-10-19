@@ -288,9 +288,36 @@ data class SyncCommitted(
 )
 
 @Serializable
+data class SyncPending(
+    val clientKey: String,
+    val sequence: Double,
+    val batchId: String,
+    val digest: String,
+    val intentDigest: String,
+    val manifestId: String,
+    val generation: String,
+    val retryAfterMs: Double,
+)
+
+@Serializable
+@JsonClassDiscriminator("kind")
+sealed interface SyncOutstanding {
+    @Serializable
+    @SerialName("committed")
+    data class Committed(
+        val committed: SyncCommitted,
+    ) : SyncOutstanding
+    @Serializable
+    @SerialName("pending")
+    data class Pending(
+        val pending: SyncPending,
+    ) : SyncOutstanding
+}
+
+@Serializable
 data class SyncCursor(
     val closedThrough: Double,
-    val active: SyncCommitted? = null,
+    val outstanding: SyncOutstanding? = null,
 )
 
 @Serializable
@@ -308,6 +335,12 @@ sealed interface SyncExchange {
     @SerialName("accepted")
     data class Accepted(
         val committed: SyncCommitted,
+    ) : SyncExchange
+    @Serializable
+    @SerialName("pending")
+    data class Pending(
+        val ownerKey: String,
+        val pending: SyncPending,
     ) : SyncExchange
     @Serializable
     @SerialName("reconcile")
@@ -371,4 +404,13 @@ enum class SyncOutcomeUnresolvedReason {
     @SerialName("folder_name_taken") FOLDER_NAME_TAKEN,
     @SerialName("position_unavailable") POSITION_UNAVAILABLE,
     @SerialName("folder_too_large") FOLDER_TOO_LARGE,
+    @SerialName("preparation_expired") PREPARATION_EXPIRED,
+}
+
+object LibrarySyncIntentVectors {
+    val values = listOf(
+        "{\"id\":\"batch-1\",\"operations\":[{\"id\":\"note-1\",\"revision\":\"revision-1\",\"at\":1000,\"command\":{\"kind\":\"note_put\",\"hadithId\":\"target\",\"content\":\"private fixture\",\"createdAt\":1000,\"updatedAt\":1000}}]}" to "7d639efa344ce9fa8bf9666d0d45904448dd9c7143ad06e757a97c94865d24ac",
+        "{\"id\":\"unicode\",\"operations\":[{\"id\":\"note\",\"revision\":\"r1\",\"at\":1e-7,\"command\":{\"kind\":\"note_put\",\"hadithId\":\"target\",\"content\":\"العربية 🙂 é \\n \\\\ / \\\"\",\"createdAt\":0,\"updatedAt\":100000000000000000000}}]}" to "db0c85275f1948a4b5ba1d240d3ff8155d02885f901d1ef3a80b0920fd534375",
+        "{\"id\":\"folders\",\"operations\":[{\"id\":\"delete\",\"revision\":\"r2\",\"at\":1000,\"command\":{\"kind\":\"folder_delete\",\"folder\":{\"kind\":\"server\",\"id\":\"folder-a\"}}}]}" to "6a049b18f66f123f134768983693195696440b0429c7a2b42c5f09ae13a82980",
+    )
 }

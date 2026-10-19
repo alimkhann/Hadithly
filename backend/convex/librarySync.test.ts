@@ -203,7 +203,7 @@ test("routine position sync continues beyond old lifetime limits with one compac
     const streams = await ctx.db.query("librarySyncStreams").collect();
     expect(streams).toHaveLength(1);
     expect(streams[0]).toMatchObject({ closedThrough: 10_100 });
-    expect(streams[0].active).toBeUndefined();
+    expect(streams[0].slot).toBeUndefined();
     expect(await ctx.db.query("readingProgress").collect()).toHaveLength(1);
     expect(await ctx.db.query("librarySyncMarks").collect()).toHaveLength(1);
   });
@@ -217,9 +217,9 @@ test("a different backup batch at an occupied sequence returns receipt proof wit
   const first = await f.a.mutation(apply, { capability: binding.capability, frame });
   if (first.kind !== "accepted") throw new Error("Missing fixture receipt");
   const other = { ...frame, batch: { id: "other-fork", operations: [{ ...frame.batch.operations[0], id: "different-intent", command: { kind: "note_remove", hadithId: f.hadithId } }] } } satisfies SyncFrame;
-  expect(await f.a.mutation(apply, { capability: binding.capability, frame: other })).toMatchObject({ kind: "reconcile", cursor: { closedThrough: 0, active: first.committed } });
+  expect(await f.a.mutation(apply, { capability: binding.capability, frame: other })).toMatchObject({ kind: "reconcile", cursor: { closedThrough: 0, outstanding: { kind: "committed", committed: first.committed } } });
   const acknowledgement = { clientKey: frame.clientKey, sequence: 1, batchId: frame.batch.id, digest: "wrong-digest" };
-  expect(await f.a.mutation(ack, { capability: binding.capability, acknowledgement })).toMatchObject({ cursor: { closedThrough: 0, active: first.committed } });
+  expect(await f.a.mutation(ack, { capability: binding.capability, acknowledgement })).toMatchObject({ cursor: { closedThrough: 0, outstanding: { kind: "committed", committed: first.committed } } });
   await expect(f.b.mutation(ack, { capability: binding.capability, acknowledgement })).rejects.toThrow("SYNC_OWNER_MISMATCH");
   await f.a.mutation(ack, { capability: binding.capability, acknowledgement: { ...acknowledgement, digest: first.committed.digest } });
   expect(await f.a.mutation(apply, { capability: binding.capability, frame: other })).toMatchObject({ kind: "reconcile", cursor: { closedThrough: 1 } });
@@ -360,11 +360,11 @@ test("retirement keeps an already committed receipt exact until ACK then fences 
   if (first.kind !== "accepted") throw new Error("Missing accepted fixture");
   const request = { capability: binding.capability, clientKey: frame.clientKey, sequence: 7 };
   const retired = await f.a.mutation(retire, request);
-  expect(retired.cursor).toEqual({ closedThrough: 0, active: first.committed });
+  expect(retired.cursor).toEqual({ closedThrough: 0, outstanding: { kind: "committed", committed: first.committed } });
   expect(await f.a.mutation(retire, request)).toEqual(retired);
   expect(await f.a.mutation(apply, { capability: binding.capability, frame })).toEqual(first);
   const proof = { clientKey: frame.clientKey, sequence: 1, batchId: frame.batch.id, digest: first.committed.digest };
-  expect(await f.a.mutation(ack, { capability: binding.capability, acknowledgement: { ...proof, digest: "wrong-proof" } })).toMatchObject({ cursor: { closedThrough: 0, active: first.committed } });
+  expect(await f.a.mutation(ack, { capability: binding.capability, acknowledgement: { ...proof, digest: "wrong-proof" } })).toMatchObject({ cursor: { closedThrough: 0, outstanding: { kind: "committed", committed: first.committed } } });
   expect(await f.a.mutation(ack, { capability: binding.capability, acknowledgement: proof })).toMatchObject({ cursor: { closedThrough: 1 } });
   for (let sequence = 2; sequence <= 6; sequence++) {
     const healthy = await f.a.mutation(apply, { capability: binding.capability, frame: { ...frame, sequence, batch: { id: `healthy-${sequence}`, operations: [{ id: `healthy-note-${sequence}`, revision: "r1", at: 1_000 + sequence, command: { kind: "note_put", hadithId: f.hadithId, content: "Committed original", createdAt: 1_000, updatedAt: 1_000 + sequence } }] } } });
@@ -381,7 +381,7 @@ test("retirement keeps an already committed receipt exact until ACK then fences 
   const streams = await f.t.run(ctx => ctx.db.query("librarySyncStreams").collect());
   expect(streams).toHaveLength(1);
   expect(streams[0].closedThrough).toBe(7);
-  expect(streams[0].active).toBeUndefined();
+  expect(streams[0].slot).toBeUndefined();
   expect(await f.t.run(ctx => ctx.db.query("librarySyncRetirements").collect())).toHaveLength(0);
 });
 

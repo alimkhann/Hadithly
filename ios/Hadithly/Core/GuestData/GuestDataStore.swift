@@ -386,16 +386,28 @@ final class GuestDataStore {
     }
 
     private func validateSyncOwner(_ owner: LibrarySyncOwner, replyOwner: String, cursor: SyncCursor? = nil) throws {
-        guard replyOwner == owner.key, cursor?.active?.reply.ownerKey == nil || cursor?.active?.reply.ownerKey == owner.key else { throw LibrarySyncFailure.ownerMismatch }
+        guard replyOwner == owner.key, cursor?.outstanding?.committedValue?.reply.ownerKey == nil || cursor?.outstanding?.committedValue?.reply.ownerKey == owner.key else { throw LibrarySyncFailure.ownerMismatch }
     }
 
     func settleSyncExchange(_ exchange: SyncExchange, requested: SyncFrame, owner: LibrarySyncOwner, now: Double = Date.now.millisecondsSinceEpoch) throws {
         switch exchange {
         case .accepted(let value): try validateSyncOwner(owner, replyOwner: value.committed.reply.ownerKey)
+        case .pending(let value): try validateSyncOwner(owner, replyOwner: value.ownerKey)
         case .reconcile(let value): try validateSyncOwner(owner, replyOwner: value.ownerKey, cursor: value.cursor)
         }
         guard var state = try syncPartition(owner) else { return }
         try state.settle(exchange, requested: requested, now: now)
+        try saveSyncPartition(state, owner: owner)
+    }
+
+    func settleSyncPending(_ exchange: SyncExchange, requested: SyncPending, owner: LibrarySyncOwner, now: Double = Date.now.millisecondsSinceEpoch) throws {
+        switch exchange {
+        case .accepted(let value): try validateSyncOwner(owner, replyOwner: value.committed.reply.ownerKey)
+        case .pending(let value): try validateSyncOwner(owner, replyOwner: value.ownerKey)
+        case .reconcile(let value): try validateSyncOwner(owner, replyOwner: value.ownerKey, cursor: value.cursor)
+        }
+        guard var state = try syncPartition(owner) else { return }
+        try state.settlePending(exchange, requested: requested, now: now)
         try saveSyncPartition(state, owner: owner)
     }
 

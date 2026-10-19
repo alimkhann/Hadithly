@@ -657,9 +657,45 @@ struct SyncCommitted: Codable, Equatable, Sendable {
     let reply: SyncReply
 }
 
+struct SyncPending: Codable, Equatable, Sendable {
+    let clientKey: String
+    let sequence: Double
+    let batchId: String
+    let digest: String
+    let intentDigest: String
+    let manifestId: String
+    let generation: String
+    let retryAfterMs: Double
+}
+
+enum SyncOutstanding: Codable, Equatable, Sendable {
+    case committed(SyncOutstandingCommitted)
+    case pending(SyncOutstandingPending)
+    private enum KindKey: String, CodingKey { case kind }
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: KindKey.self)
+        switch try values.decode(String.self, forKey: .kind) {
+        case "committed": self = .committed(try SyncOutstandingCommitted(from: decoder))
+        case "pending": self = .pending(try SyncOutstandingPending(from: decoder))
+        default: throw DecodingError.dataCorruptedError(forKey: .kind, in: values, debugDescription: "Unsupported sync kind")
+        }
+    }
+    func encode(to encoder: Encoder) throws {
+        var values = encoder.container(keyedBy: KindKey.self)
+        switch self {
+        case .committed(let value):
+            try values.encode("committed", forKey: .kind)
+            try value.encode(to: encoder)
+        case .pending(let value):
+            try values.encode("pending", forKey: .kind)
+            try value.encode(to: encoder)
+        }
+    }
+}
+
 struct SyncCursor: Codable, Equatable, Sendable {
     let closedThrough: Double
-    let active: SyncCommitted?
+    let outstanding: SyncOutstanding?
 }
 
 struct SyncAcknowledgement: Codable, Equatable, Sendable {
@@ -671,12 +707,14 @@ struct SyncAcknowledgement: Codable, Equatable, Sendable {
 
 enum SyncExchange: Codable, Equatable, Sendable {
     case accepted(SyncExchangeAccepted)
+    case pending(SyncExchangePending)
     case reconcile(SyncExchangeReconcile)
     private enum KindKey: String, CodingKey { case kind }
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: KindKey.self)
         switch try values.decode(String.self, forKey: .kind) {
         case "accepted": self = .accepted(try SyncExchangeAccepted(from: decoder))
+        case "pending": self = .pending(try SyncExchangePending(from: decoder))
         case "reconcile": self = .reconcile(try SyncExchangeReconcile(from: decoder))
         default: throw DecodingError.dataCorruptedError(forKey: .kind, in: values, debugDescription: "Unsupported sync kind")
         }
@@ -686,6 +724,9 @@ enum SyncExchange: Codable, Equatable, Sendable {
         switch self {
         case .accepted(let value):
             try values.encode("accepted", forKey: .kind)
+            try value.encode(to: encoder)
+        case .pending(let value):
+            try values.encode("pending", forKey: .kind)
             try value.encode(to: encoder)
         case .reconcile(let value):
             try values.encode("reconcile", forKey: .kind)
@@ -802,8 +843,21 @@ struct SyncOutcomeUnresolved: Codable, Equatable, Sendable {
     let reason: SyncOutcomeUnresolvedReason
 }
 
+struct SyncOutstandingCommitted: Codable, Equatable, Sendable {
+    let committed: SyncCommitted
+}
+
+struct SyncOutstandingPending: Codable, Equatable, Sendable {
+    let pending: SyncPending
+}
+
 struct SyncExchangeAccepted: Codable, Equatable, Sendable {
     let committed: SyncCommitted
+}
+
+struct SyncExchangePending: Codable, Equatable, Sendable {
+    let ownerKey: String
+    let pending: SyncPending
 }
 
 struct SyncExchangeReconcile: Codable, Equatable, Sendable {
@@ -863,6 +917,7 @@ enum SyncOutcomeUnresolvedReason: String, Codable, Sendable {
     case folderNameTaken = "folder_name_taken"
     case positionUnavailable = "position_unavailable"
     case folderTooLarge = "folder_too_large"
+    case preparationExpired = "preparation_expired"
 }
 
 struct SyncCommandFacetRestoreValueBookmark: Codable, Equatable, Sendable {
@@ -877,4 +932,12 @@ struct SyncCommandFacetRestoreValueNote: Codable, Equatable, Sendable {
     let content: String
     let createdAt: Double
     let updatedAt: Double
+}
+
+enum LibrarySyncIntentVectors {
+    static let values: [(json: String, digest: String)] = [
+        ("{\"id\":\"batch-1\",\"operations\":[{\"id\":\"note-1\",\"revision\":\"revision-1\",\"at\":1000,\"command\":{\"kind\":\"note_put\",\"hadithId\":\"target\",\"content\":\"private fixture\",\"createdAt\":1000,\"updatedAt\":1000}}]}", "7d639efa344ce9fa8bf9666d0d45904448dd9c7143ad06e757a97c94865d24ac"),
+        ("{\"id\":\"unicode\",\"operations\":[{\"id\":\"note\",\"revision\":\"r1\",\"at\":1e-7,\"command\":{\"kind\":\"note_put\",\"hadithId\":\"target\",\"content\":\"العربية 🙂 é \\n \\\\ / \\\"\",\"createdAt\":0,\"updatedAt\":100000000000000000000}}]}", "db0c85275f1948a4b5ba1d240d3ff8155d02885f901d1ef3a80b0920fd534375"),
+        ("{\"id\":\"folders\",\"operations\":[{\"id\":\"delete\",\"revision\":\"r2\",\"at\":1000,\"command\":{\"kind\":\"folder_delete\",\"folder\":{\"kind\":\"server\",\"id\":\"folder-a\"}}}]}", "6a049b18f66f123f134768983693195696440b0429c7a2b42c5f09ae13a82980"),
+    ]
 }

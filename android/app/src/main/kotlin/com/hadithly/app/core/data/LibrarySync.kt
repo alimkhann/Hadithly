@@ -108,6 +108,10 @@ data class LibraryConfirmedChange(val change: LibraryLocalChange, val outcome: S
 
 val SyncCommand.isPositionChange: Boolean get() = this is SyncCommand.PositionPut || this is SyncCommand.LegacyPositionPut
 
+val SyncOutstanding.committedValue: SyncCommitted? get() = when (this) { is SyncOutstanding.Committed -> committed; is SyncOutstanding.Pending -> null }
+val SyncOutstanding.pendingValue: SyncPending? get() = when (this) { is SyncOutstanding.Pending -> pending; is SyncOutstanding.Committed -> null }
+fun SyncPending.matches(other: SyncPending) = clientKey == other.clientKey && sequence == other.sequence && batchId == other.batchId && digest == other.digest && intentDigest == other.intentDigest && manifestId == other.manifestId && generation == other.generation
+
 @Serializable
 data class LibraryPartitionState(
     var pending: List<LibraryLocalChange> = emptyList(),
@@ -117,6 +121,7 @@ data class LibraryPartitionState(
     val clientKey: String = UUID.randomUUID().toString(),
     var nextSequence: Double = 1.0,
     var acknowledgement: SyncAcknowledgement? = null,
+    var waiting: SyncPending? = null,
     var confirmed: List<LibraryConfirmedChange> = emptyList(),
     var folderMappings: Map<String, String> = emptyMap(),
     var savedSnapshot: SyncSavedSnapshot? = null,
@@ -127,7 +132,7 @@ data class LibraryPartitionState(
         else pending = pending + LibraryLocalChange(command, at, source)
     }
     fun freeze(): SyncFrame? {
-        if (acknowledgement != null) throw LibrarySyncFailure.InvalidReceipt
+        if (acknowledgement != null || waiting != null) throw LibrarySyncFailure.InvalidReceipt
         frozen?.let {
             if (it.changes.map { change -> change.operation } != it.batch.operations) throw LibrarySyncFailure.InvalidReceipt
             return SyncFrame(clientKey, nextSequence, it.batch)
@@ -135,7 +140,6 @@ data class LibraryPartitionState(
         if (pending.isEmpty()) return null
         val id = UUID.randomUUID().toString()
         val selected = mutableListOf<LibraryLocalChange>()
-        var fanout = 0
         var inspected = 0
         while (pending.isNotEmpty() && inspected < LibrarySyncLimits.operations) {
             inspected++
@@ -144,13 +148,14 @@ data class LibraryPartitionState(
                 recovery = recovery + LibraryRecovery.Rejected(change); pending = pending.drop(1); continue
             }
             val extra = when (change.operation.command) { is SyncCommand.FolderDelete, is SyncCommand.FolderRestore -> 1; else -> 0 }
-            if (fanout + extra > LibrarySyncLimits.fanoutOperations) break
+            if (extra > 0 && selected.isNotEmpty()) break
             val candidate = SyncBatch(id, (selected + change).map { it.operation })
             if (Json.encodeToString(candidate).toByteArray(Charsets.UTF_8).size > LibrarySyncLimits.bytes) {
                 if (selected.isEmpty()) { recovery = recovery + LibraryRecovery.Rejected(change); pending = pending.drop(1); continue }
                 break
             }
-            selected.add(change); pending = pending.drop(1); fanout += extra
+            selected.add(change); pending = pending.drop(1)
+            if (extra > 0) break
         }
         if (selected.isEmpty()) return null
         val batch = SyncBatch(id, selected.map { it.operation })
@@ -193,16 +198,24 @@ data class LibraryPartitionState(
     }
     private fun checkCursor(cursor: SyncCursor) {
         if (!cursor.closedThrough.isFinite() || cursor.closedThrough < 0 || kotlin.math.floor(cursor.closedThrough) != cursor.closedThrough || cursor.closedThrough >= 9_007_199_254_740_991.0) throw LibrarySyncFailure.InvalidReceipt
-        cursor.active?.let {
+        cursor.outstanding?.committedValue?.let {
             if (it.clientKey != clientKey || it.sequence != cursor.closedThrough + 1 || it.reply.batchId.isEmpty() || it.digest.isEmpty()) throw LibrarySyncFailure.InvalidReceipt
+        }
+        cursor.outstanding?.pendingValue?.let {
+            if (it.clientKey != clientKey || it.sequence != cursor.closedThrough + 1 || !it.intentDigest.matches(Regex("^[a-f0-9]{64}$")) || listOf(it.batchId, it.digest, it.manifestId, it.generation).any { value -> value.isEmpty() || value.toByteArray(Charsets.UTF_8).size > 128 } || !it.retryAfterMs.isFinite() || it.retryAfterMs < 250 || it.retryAfterMs > 30_000) throw LibrarySyncFailure.InvalidReceipt
         }
     }
     private fun adopt(cursor: SyncCursor) {
         checkCursor(cursor)
-        frozen?.let { recovery = recovery + it.changes.map(LibraryRecovery::Historical) }
-        frozen = null
+        val pending = cursor.outstanding?.pendingValue
+        val keepOriginal = pending != null && pending.sequence == nextSequence && pending.batchId == frozen?.batch?.id && pending.intentDigest == runCatching { frozen?.batch?.intentDigest() }.getOrNull()
+        if (!keepOriginal) {
+            frozen?.let { recovery = recovery + it.changes.map(LibraryRecovery::Historical) }
+            frozen = null
+        }
         nextSequence = cursor.closedThrough + 1
-        acknowledgement = cursor.active?.let { SyncAcknowledgement(clientKey, it.sequence, it.reply.batchId, it.digest) }
+        waiting = pending
+        acknowledgement = cursor.outstanding?.committedValue?.let { SyncAcknowledgement(clientKey, it.sequence, it.reply.batchId, it.digest) }
     }
     fun settle(exchange: SyncExchange, requested: SyncFrame, now: Double) {
         if (requested.clientKey != clientKey || requested.sequence != nextSequence || frozen?.batch != requested.batch || acknowledgement != null) throw LibrarySyncFailure.InvalidReceipt
@@ -228,12 +241,45 @@ data class LibraryPartitionState(
                 }
                 pruneConfirmed()
                 acknowledgement = SyncAcknowledgement(clientKey, committed.sequence, committed.reply.batchId, committed.digest)
+                waiting = null
+            }
+            is SyncExchange.Pending -> {
+                if (exchange.pending.clientKey != clientKey || exchange.pending.sequence != requested.sequence || exchange.pending.batchId != requested.batch.id) throw LibrarySyncFailure.InvalidReceipt
+                if (waiting?.matches(exchange.pending) == false) throw LibrarySyncFailure.InvalidReceipt
+                adopt(SyncCursor(requested.sequence - 1, SyncOutstanding.Pending(exchange.pending)))
             }
             is SyncExchange.Reconcile -> {
                 if (exchange.clientKey != clientKey || exchange.requestedSequence != requested.sequence || exchange.requestedBatchId != requested.batch.id) throw LibrarySyncFailure.InvalidReceipt
                 adopt(exchange.cursor)
             }
         }
+    }
+    fun settlePending(exchange: SyncExchange, requested: SyncPending, now: Double) {
+        if (waiting != requested || acknowledgement != null) throw LibrarySyncFailure.InvalidReceipt
+        when (exchange) {
+            is SyncExchange.Pending -> {
+                if (!requested.matches(exchange.pending)) throw LibrarySyncFailure.InvalidReceipt
+                adopt(SyncCursor(requested.sequence - 1, SyncOutstanding.Pending(exchange.pending)))
+            }
+            is SyncExchange.Accepted -> {
+                val proof = exchange.committed
+                if (proof.clientKey != requested.clientKey || proof.sequence != requested.sequence || proof.reply.batchId != requested.batchId || proof.digest != requested.digest) throw LibrarySyncFailure.InvalidReceipt
+                val original = frozen
+                if (original != null && original.batch.id == requested.batchId && runCatching { original.batch.intentDigest() }.getOrNull() == requested.intentDigest) settle(exchange, SyncFrame(clientKey, requested.sequence, original.batch), now)
+                else adopt(SyncCursor(requested.sequence - 1, SyncOutstanding.Committed(proof)))
+            }
+            is SyncExchange.Reconcile -> {
+                if (exchange.clientKey != requested.clientKey || exchange.requestedSequence != requested.sequence || exchange.requestedBatchId != requested.batchId) throw LibrarySyncFailure.InvalidReceipt
+                adopt(exchange.cursor)
+            }
+        }
+    }
+
+    fun pollRequest(): SyncPending? {
+        val value = waiting ?: return null
+        if (acknowledgement != null || value.sequence != nextSequence) throw LibrarySyncFailure.InvalidReceipt
+        checkCursor(SyncCursor(nextSequence - 1, SyncOutstanding.Pending(value)))
+        return value
     }
     fun settleRetirement(reply: SyncAckReply, requested: SyncFrame) {
         if (reply.clientKey != clientKey || requested.clientKey != clientKey || requested.sequence != nextSequence || frozen?.batch != requested.batch || acknowledgement != null) throw LibrarySyncFailure.InvalidReceipt
@@ -271,6 +317,7 @@ interface LibrarySyncTransport {
     suspend fun acknowledge(capability: String, acknowledgement: SyncAcknowledgement): SyncAckReply
     suspend fun send(capability: String, frame: SyncFrame): SyncExchange
     suspend fun retireInvalid(capability: String, frame: SyncFrame): SyncAckReply = throw LibrarySyncFailure.InvalidChange
+    suspend fun poll(capability: String, pending: SyncPending): SyncExchange = throw LibrarySyncFailure.InvalidChange
 }
 
 class LibrarySync(
@@ -400,6 +447,18 @@ class LibrarySync(
                 store.claimGuestForSync(owner)
                 onPartitionChange(owner)
                 checkSession(session, epoch)
+                val waiting = store.syncPartition(owner)?.pollRequest()
+                checkSession(session, epoch)
+                if (waiting != null) {
+                    val reply = transport.poll(binding.capability, waiting)
+                    store.settleSyncPending(reply, waiting, owner, now())
+                    onPartitionChange(owner)
+                    checkSession(session, epoch)
+                    val pending = store.syncPartition(owner)?.pollRequest()
+                    checkSession(session, epoch)
+                    if (pending != null) { schedule(session, epoch, pending.retryAfterMs.toLong()); return }
+                    return@repeat
+                }
                 val acknowledgement = store.syncPartition(owner)?.acknowledgement
                 checkSession(session, epoch)
                 if (acknowledgement != null) {
@@ -432,6 +491,9 @@ class LibrarySync(
                 store.settleSyncExchange(reply, frame, owner, now())
                 onPartitionChange(owner)
                 checkSession(session, epoch)
+                val pending = store.syncPartition(owner)?.pollRequest()
+                checkSession(session, epoch)
+                if (pending != null) { schedule(session, epoch, pending.retryAfterMs.toLong()); return }
             }
             schedule(session, epoch, 250)
         } catch (cancelled: CancellationException) { throw cancelled }

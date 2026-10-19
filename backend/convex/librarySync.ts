@@ -2,6 +2,7 @@ import { writeSavedMembership, removeEmptySavedMembership, touchSavedFolderMembe
 import { advanceFolderManifest as advanceManifest, purgeFolderManifestMembers as purgeManifest,
   FOLDER_MANIFEST_LEASE_MS, type FolderManifestStep } from "./lib/savedFolderManifests";
 import { internal } from "./_generated/api";
+import { existingFrameExchange, librarySyncCursor } from "./lib/librarySyncFrames";
 import { requireLibraryUser as owner, requireLibraryBinding as boundOwner } from "./lib/librarySyncIdentity";
 import { libraryVersion, advanceLibraryVersion } from "./lib/librarySyncVersions";
 import { librarySyncMark as mark, stampLibrarySyncMark as stamp } from "./lib/librarySyncMarks";
@@ -13,9 +14,9 @@ import { normalizedFolderName } from "./lib/savedFolderPolicy";
 import { legacyReadingPosition } from "./lib/readingPositions";
 import { textDigest } from "./lib/evidenceReviewPolicy";
 import {
-  syncBatchDigest, syncReceiptSetMatches, syncWriteDecision, validateSyncBatch,
+  syncBatchDigest, syncWriteDecision, validateSyncBatch,
   SYNC_BINDING_LIMIT, SYNC_BINDING_LIFETIME,
-  syncFrame, syncAcknowledgement, validateSyncStream, syncSavedSnapshot, syncPositionsSnapshot,
+  syncFrame, syncPending, syncAcknowledgement, validateSyncStream, syncSavedSnapshot, syncPositionsSnapshot,
   type SyncHadithSummary, type SyncSavedSnapshot, type SyncPositionsSnapshot,
   type SyncBinding, type SyncOperation, type SyncOutcome, type SyncReceipt, type SyncFolderReference, type SyncExchange, type SyncAckReply,
 } from "./lib/librarySyncPolicy";
@@ -242,17 +243,9 @@ export const applyBatch = mutation({
     validateSyncStream(frame.clientKey, frame.sequence);
     validateSyncBatch(frame.batch, Date.now());
     const stream = await ctx.db.query("librarySyncStreams").withIndex("by_user_client", q => q.eq("userId", user._id).eq("clientKey", frame.clientKey)).unique();
-    const closedThrough = stream?.closedThrough ?? 0;
     const digest = await syncBatchDigest(frame.batch);
-    const active = stream?.active;
-    if (frame.sequence !== closedThrough + 1 || active && (active.sequence !== frame.sequence || active.reply.batchId !== frame.batch.id || active.digest !== digest)) {
-      return { kind: "reconcile", ownerKey: user._id, clientKey: frame.clientKey, requestedSequence: frame.sequence, requestedBatchId: frame.batch.id,
-        cursor: { closedThrough, ...(active ? { active } : {}) } };
-    }
-    if (active) {
-      if (!syncReceiptSetMatches(frame.batch, active.reply.receipts)) throw new Error("SYNC_INVALID_RECEIPT");
-      return { kind: "accepted", committed: active };
-    }
+    const existing = existingFrameExchange(user._id, frame, digest, stream);
+    if (existing) return existing;
     const receipts: SyncReceipt[] = [];
     for (const operation of frame.batch.operations) {
       const result = await applyOperation(ctx, user._id, operation);
@@ -262,9 +255,24 @@ export const applyBatch = mutation({
     const revision = { saved: saved ? await advanceLibraryVersion(ctx, user._id, "saved") : await libraryVersion(ctx, user._id, "saved"), position: await libraryVersion(ctx, user._id, "position") };
     const committed = { clientKey: frame.clientKey, sequence: frame.sequence, digest, revision,
       reply: { ownerKey: user._id, batchId: frame.batch.id, receipts } };
-    if (stream) await ctx.db.patch(stream._id, { active: committed });
-    else await ctx.db.insert("librarySyncStreams", { userId: user._id, clientKey: frame.clientKey, closedThrough: 0, active: committed });
+    if (stream) await ctx.db.patch(stream._id, { slot: { kind: "committed", committed } });
+    else await ctx.db.insert("librarySyncStreams", { userId: user._id, clientKey: frame.clientKey, closedThrough: 0, slot: { kind: "committed", committed } });
     return { kind: "accepted", committed };
+  },
+});
+
+export const pollPending = query({
+  args: { capability: v.string(), pending: syncPending },
+  handler: async (ctx, { capability, pending }): Promise<SyncExchange> => {
+    const user = await boundOwner(ctx, capability);
+    validateSyncStream(pending.clientKey, pending.sequence);
+    if (!/^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$/.test(pending.batchId) || !pending.digest || pending.digest.length > 128) throw new Error("SYNC_INVALID_PENDING");
+    const stream = await ctx.db.query("librarySyncStreams").withIndex("by_user_client", q => q.eq("userId", user._id).eq("clientKey", pending.clientKey)).unique();
+    const slot = stream?.slot;
+    if (slot?.kind === "pending" && slot.pending.sequence === pending.sequence && slot.pending.batchId === pending.batchId && slot.pending.digest === pending.digest
+      && slot.pending.intentDigest === pending.intentDigest && slot.pending.manifestId === pending.manifestId && slot.pending.generation === pending.generation) return { kind: "pending", ownerKey: user._id, pending: slot.pending };
+    if (slot?.kind === "committed" && slot.committed.sequence === pending.sequence && slot.committed.reply.batchId === pending.batchId && slot.committed.digest === pending.digest) return { kind: "accepted", committed: slot.committed };
+    return { kind: "reconcile", ownerKey: user._id, clientKey: pending.clientKey, requestedSequence: pending.sequence, requestedBatchId: pending.batchId, cursor: librarySyncCursor(stream) };
   },
 });
 
@@ -288,9 +296,10 @@ export const retireInvalidFrame = mutation({
     validateSyncStream(clientKey, sequence);
     const stream = await ctx.db.query("librarySyncStreams").withIndex("by_user_client", q => q.eq("userId", user._id).eq("clientKey", clientKey)).unique();
     const closedThrough = stream?.closedThrough ?? 0;
-    const cursor = { closedThrough, ...(stream?.active ? { active: stream.active } : {}) };
-    if (sequence <= closedThrough || stream?.active?.sequence === sequence) return { ownerKey: user._id, clientKey, cursor };
-    if (!stream?.active && sequence === closedThrough + 1) {
+    const cursor = librarySyncCursor(stream), slot = stream?.slot;
+    const outstandingSequence = slot?.kind === "pending" ? slot.pending.sequence : slot?.committed.sequence;
+    if (sequence <= closedThrough || outstandingSequence === sequence) return { ownerKey: user._id, clientKey, cursor };
+    if (!slot && sequence === closedThrough + 1) {
       const closed = await consumeRetirements(ctx, user._id, clientKey, sequence);
       if (stream) await ctx.db.patch(stream._id, { closedThrough: closed });
       else await ctx.db.insert("librarySyncStreams", { userId: user._id, clientKey, closedThrough: closed });
@@ -314,13 +323,13 @@ export const acknowledge = mutation({
     validateSyncStream(acknowledgement.clientKey, acknowledgement.sequence);
     const stream = await ctx.db.query("librarySyncStreams").withIndex("by_user_client", q => q.eq("userId", user._id).eq("clientKey", acknowledgement.clientKey)).unique();
     if (!stream) return { ownerKey: user._id, clientKey: acknowledgement.clientKey, cursor: { closedThrough: 0 } };
-    const active = stream.active;
+    const active = stream.slot?.kind === "committed" ? stream.slot.committed : undefined;
     if (active && active.sequence === acknowledgement.sequence && active.reply.batchId === acknowledgement.batchId && active.digest === acknowledgement.digest) {
       const closedThrough = await consumeRetirements(ctx, user._id, acknowledgement.clientKey, active.sequence);
-      await ctx.db.patch(stream._id, { closedThrough, active: undefined });
+      await ctx.db.patch(stream._id, { closedThrough, slot: undefined });
       return { ownerKey: user._id, clientKey: acknowledgement.clientKey, cursor: { closedThrough } };
     }
-    return { ownerKey: user._id, clientKey: acknowledgement.clientKey, cursor: { closedThrough: stream.closedThrough, ...(active ? { active } : {}) } };
+    return { ownerKey: user._id, clientKey: acknowledgement.clientKey, cursor: librarySyncCursor(stream) };
   },
 });
 

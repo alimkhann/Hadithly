@@ -169,6 +169,13 @@ and has no mobile start/read entry point yet. Exact pending/terminal receipts,
 logical delete/Undo, bounded read/export and both native migrations remain open;
 the 501-member product probe is freshly red. New schema/index/cron changes are
 local and require the existing development approval gate before deployment.
+The held-frame pending/failure protocol and both native pollers are now implemented
+and locally verified with 439 backend, 55 iOS and 34 Android passes. See
+`docs/LIBRARY_SYNC_HELD_FRAME_VERIFICATION.md`. A real same-ID/different-intent clone
+failure on both native hosts was repaired with an exact cross-native fingerprint.
+Logical delete/Undo success, bounded read/export and public producer cutover remain
+open. The new stream union also needs actual old-schema/client migration evidence
+before an approved deployment. The 501-member product support probe remains red.
 
 ## Read the plan in layers
 

@@ -132,6 +132,12 @@ actual Convex fixtures and a complete 433-test backend suite. See
 `LIBRARY_FOLDER_MANIFEST_VERIFICATION.md`. This prepares identities only; the
 held-frame/terminal-receipt, logical membership, Undo, page/export and native
 migrations remain open. The current 501-member product support probe is still red.
+Held-frame proofs, protected ACK/retirement, exact failure receipts and both native
+waiting/polling consumers now pass 439 backend, 55 iOS and 34 Android checks. An
+independent review's same-ID restored-copy flaw was reproduced and fixed using a
+cross-native content fingerprint. See `LIBRARY_SYNC_HELD_FRAME_VERIFICATION.md`.
+Successful logical effects, Undo, producer/read/export cutover and old installed
+schema/client migration remain open; no large-folder success is claimed.
 Continue A2 integration while retaining A1's content dependencies. No paid
 generation or production change has been approved. Research, later native redesign, website and Linear remain
 pending in the owner's requested order.

@@ -1,4 +1,4 @@
-import { syncCommitted } from "./lib/librarySyncPolicy";
+import { syncStreamSlot } from "./lib/librarySyncPolicy";
 import { purchaseAccess } from "./lib/revenueCat";
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
@@ -511,7 +511,7 @@ export default defineSchema({
 
   librarySyncBindings: defineTable({ userId: v.id("users"), digest: v.string(), expiresAt: v.number(), createdAt: v.number() })
     .index("by_digest", ["digest"]).index("by_user", ["userId"]),
-  librarySyncStreams: defineTable({ userId: v.id("users"), clientKey: v.string(), closedThrough: v.number(), active: v.optional(syncCommitted) })
+  librarySyncStreams: defineTable({ userId: v.id("users"), clientKey: v.string(), closedThrough: v.number(), slot: v.optional(syncStreamSlot) })
     .index("by_user_client", ["userId", "clientKey"]).index("by_user", ["userId"]),
   librarySyncRetirements: defineTable({ userId: v.id("users"), clientKey: v.string(), sequence: v.number() })
     .index("by_user_client_sequence", ["userId", "clientKey", "sequence"]).index("by_user_client", ["userId", "clientKey"]).index("by_user", ["userId"]),
@@ -549,6 +549,7 @@ export default defineSchema({
   savedFolderManifests: defineTable({
     userId: v.id("users"), folderId: v.id("savedFolders"), operationId: v.string(), requestedAt: v.number(),
     generation: v.string(), createdAt: v.number(), updatedAt: v.number(), expiresAt: v.number(),
+    heldBy: v.optional(v.object({ streamId: v.id("librarySyncStreams"), sequence: v.number(), digest: v.string() })),
     captured: v.object({ epoch: v.number(), updatedAt: v.number(), name: v.string(), createdAt: v.number() }),
     state: v.union(
       v.object({ kind: v.literal("scanning"), cursor: v.union(v.string(), v.null()), count: v.number(), step: v.number() }),
