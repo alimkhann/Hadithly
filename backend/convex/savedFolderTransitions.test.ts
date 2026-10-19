@@ -4,7 +4,7 @@ import { afterEach, expect, test, vi } from "vitest";
 import { api, internal } from "./_generated/api";
 import schema from "./schema";
 import type { Id } from "./_generated/dataModel";
-import type { SyncCommand, SyncFrame } from "./lib/librarySyncPolicy";
+import { SYNC_OUTCOME_BYTES, SYNC_OUTCOME_PAGE, type SyncBinding, type SyncCommand, type SyncFrame, type SyncOutcomePageRequest } from "./lib/librarySyncPolicy";
 import { prepareFolderManifest } from "./lib/savedFolderManifests";
 import { holdFolderFrame } from "./lib/librarySyncFrames";
 import { beginFolderRestoration, commitPreparedFolderDeletion } from "./lib/savedFolderTransitions";
@@ -72,7 +72,12 @@ async function fixture(count = 9) {
     }
     throw new Error("Restoration did not finish within its bounded fixture work");
   }
-  return { t, a, b, userId, folderId, ids, work, frame, commit, begin, send, header, finishRestoration };
+  let outcomeBinding: SyncBinding | undefined;
+  async function outcomeCapability() {
+    if (!outcomeBinding || outcomeBinding.validUntil <= Date.now()) outcomeBinding = await a.mutation(api.librarySync.openBinding, {});
+    return outcomeBinding.capability;
+  }
+  return { t, a, b, userId, folderId, ids, work, frame, commit, begin, send, header, finishRestoration, outcomeCapability };
 }
 
 test.each([501, 2_001])("logical deletion and staged restore cover the full %s-member set with bounded receipts", async count => {
@@ -81,7 +86,7 @@ test.each([501, 2_001])("logical deletion and staged restore cover the full %s-m
   const deleted = await f.a.query(api.library.listSavedSnapshot, {});
   expect(deleted.folders).toEqual([]); expect(deleted.items).toHaveLength(count);
   expect(deleted.items.every(item => item.folderId === undefined && item.updatedAt === 100_000)).toBe(true);
-  const capability = (await f.a.mutation(api.librarySync.openBinding, {})).capability;
+  const capability = await f.outcomeCapability();
   const deletionProof = await f.a.query(api.librarySync.pollPending, { capability, pending: f.work.pending });
   expect(deletionProof).toMatchObject({ kind: "accepted", committed: { reply: { receipts: [{ outcome: { kind: "folder_deleted_manifest", count } }] } } });
   expect(JSON.stringify(deletionProof).length).toBeLessThan(2_000);
@@ -255,4 +260,142 @@ test("older note updates retain the existing note ID and original creation time"
   });
   expect(await f.a.mutation(api.library.upsertNote, { hadithId: f.ids[0], content: "Updated old note" })).toBe(original);
   expect((await f.a.query(api.library.listSavedSnapshot, {})).items[0]).toMatchObject({ noteContent: "Updated old note", noteCreatedAt: 10_000 });
+});
+
+async function outcomeRequest(f: Awaited<ReturnType<typeof fixture>>, pending = f.work.pending): Promise<SyncOutcomePageRequest> {
+  const capability = (await f.a.mutation(api.librarySync.openBinding, {})).capability;
+  const exchange = await f.a.query(api.librarySync.pollPending, { capability, pending });
+  if (exchange.kind !== "accepted") throw new Error("Missing terminal proof");
+  const receipt = exchange.committed.reply.receipts[0], outcome = receipt.outcome;
+  if (outcome.kind !== "folder_deleted_manifest" && outcome.kind !== "folder_restored_manifest") throw new Error("Missing manifest receipt");
+  return { proof: { clientKey: exchange.committed.clientKey, sequence: exchange.committed.sequence, batchId: exchange.committed.reply.batchId, digest: exchange.committed.digest },
+    receiptId: receipt.id, manifestId: outcome.manifestId, generation: outcome.generation, phase: outcome.kind === "folder_deleted_manifest" ? "delete" : "restore", start: 0 };
+}
+async function outcomePage(f: Awaited<ReturnType<typeof fixture>>, request: SyncOutcomePageRequest) {
+  const capability = await f.outcomeCapability();
+  return f.a.query(api.librarySync.outcomePage, { capability, request });
+}
+
+test.each([1, 50, 51, 501])("%s-member outcome pages are bounded, exact, private identity facts and replay identically", async count => {
+  const f = await fixture(count); await f.commit();
+  const original = await outcomeRequest(f), hadithIds: Id<"hadiths">[] = [], memberIds = new Set<string>();
+  let request = original, pages = 0;
+  while (pages++ < 12) {
+    const page = await outcomePage(f, request);
+    if (page.kind !== "page") throw new Error("Missing detail");
+    expect(page).toEqual(await outcomePage(f, request));
+    expect(page.ownerKey).toBe(f.userId); expect(page.request).toEqual(request);
+    expect(page.rows.length).toBeLessThanOrEqual(SYNC_OUTCOME_PAGE);
+    expect(new TextEncoder().encode(JSON.stringify(page)).byteLength).toBeLessThan(SYNC_OUTCOME_BYTES);
+    expect(page.rows.map(row => row.ordinal)).toEqual(Array.from({ length: page.rows.length }, (_, i) => request.start + i));
+    for (const row of page.rows) {
+      expect(Object.keys(row).sort()).toEqual(["disposition", "hadithId", "memberId", "ordinal"]);
+      expect(row.disposition).toBe("deleted"); expect(memberIds.has(row.memberId)).toBe(false);
+      memberIds.add(row.memberId); hadithIds.push(row.hadithId);
+    }
+    expect(page.next).toBe(request.start + page.rows.length);
+    if (page.done) break;
+    expect(page.rows).toHaveLength(SYNC_OUTCOME_PAGE);
+    request = { ...request, start: page.next };
+  }
+  expect(pages).toBe(Math.ceil(count / SYNC_OUTCOME_PAGE)); expect(hadithIds).toHaveLength(count);
+  expect(new Set(hadithIds)).toEqual(new Set(f.ids));
+  expect(await outcomePage(f, { ...original, start: count })).toMatchObject({ kind: "page", rows: [], next: count, done: true });
+});
+
+test("delete outcome pages stay historical while Undo changes the same manifest dispositions", async () => {
+  const f = await fixture(); await f.commit();
+  const request = await outcomeRequest(f), deleted = await outcomePage(f, request);
+  const restore = await f.begin();
+  await f.t.mutation(internal.librarySync.advanceFolderRestoration, { id: restore.id, generation: restore.generation, operationId: restore.operationId, step: 0 });
+  expect(await outcomePage(f, request)).toEqual(deleted);
+  await f.send({ kind: "bookmark_remove", hadithId: f.ids[1] }, 150_000);
+  await f.send({ kind: "membership_put", hadithId: f.ids[2], folder: { kind: "none" } }, 150_000);
+  await f.finishRestoration();
+  expect(await outcomePage(f, request)).toEqual(deleted);
+  const restoredRequest = await outcomeRequest(f, restore.pending), result = await outcomePage(f, restoredRequest);
+  if (result.kind !== "page") throw new Error("Missing restored details");
+  expect(result.done).toBe(true); expect(result.rows).toHaveLength(9);
+  expect(result.rows.filter(row => row.disposition === "restored")).toHaveLength(7);
+  expect(result.rows.filter(row => row.disposition === "missing").map(row => row.hadithId)).toEqual([f.ids[1]]);
+  expect(result.rows.filter(row => row.disposition === "superseded").map(row => row.hadithId)).toEqual([f.ids[2]]);
+  await f.send({ kind: "membership_put", hadithId: f.ids[4], folder: { kind: "none" } }, 250_000);
+  expect(await outcomePage(f, restoredRequest)).toEqual(result);
+});
+
+test("outcome details require the JWT owner and its exact committed receipt proof", async () => {
+  const f = await fixture(1); await f.commit();
+  const request = await outcomeRequest(f), aBinding = await f.a.mutation(api.librarySync.openBinding, {}), bBinding = await f.b.mutation(api.librarySync.openBinding, {});
+  await expect(f.b.query(api.librarySync.outcomePage, { capability: aBinding.capability, request })).rejects.toThrow("SYNC_OWNER_MISMATCH");
+  expect(await f.b.query(api.librarySync.outcomePage, { capability: bBinding.capability, request })).toEqual({ kind: "unavailable", ownerKey: bBinding.ownerKey, request, reason: "proof_unavailable" });
+  const changed: SyncOutcomePageRequest[] = [
+    { ...request, proof: { ...request.proof, clientKey: "wrong-device" } },
+    { ...request, proof: { ...request.proof, sequence: 2 } },
+    { ...request, proof: { ...request.proof, batchId: "wrong-batch" } },
+    { ...request, proof: { ...request.proof, digest: "wrong-digest" } },
+    { ...request, receiptId: "wrong-operation" }, { ...request, generation: "wrong-generation" }, { ...request, phase: "restore" },
+  ];
+  const { _id, _creationTime, ...otherHeader } = await f.header();
+  const otherId = await f.t.run(ctx => ctx.db.insert("savedFolderManifests", otherHeader));
+  changed.push({ ...request, manifestId: otherId });
+  for (const bad of changed) expect(await outcomePage(f, bad)).toEqual({ kind: "unavailable", ownerKey: f.userId, request: bad, reason: "proof_unavailable" });
+});
+
+test.each([-1, 0.5, Number.MAX_SAFE_INTEGER, NaN, Infinity])("outcome continuation rejects invalid ordinal %s", async start => {
+  const f = await fixture(1); await f.commit();
+  await expect(outcomePage(f, { ...await outcomeRequest(f), start })).rejects.toThrow("SYNC_INVALID_OUTCOME_PAGE");
+});
+
+test("pending work and acknowledged proof cannot expose manifest details", async () => {
+  const f = await fixture(1);
+  const pending = f.work.pending;
+  const request: SyncOutcomePageRequest = { proof: { clientKey: pending.clientKey, sequence: pending.sequence, batchId: pending.batchId, digest: pending.digest },
+    receiptId: "logical-delete", manifestId: pending.manifestId, generation: pending.generation, phase: "delete", start: 0 };
+  expect(await outcomePage(f, request)).toMatchObject({ kind: "unavailable", reason: "proof_unavailable" });
+  await f.commit(); expect(await outcomePage(f, request)).toMatchObject({ kind: "page" });
+  const capability = (await f.a.mutation(api.librarySync.openBinding, {})).capability;
+  await f.a.mutation(api.librarySync.acknowledge, { capability, acknowledgement: request.proof });
+  expect(await outcomePage(f, request)).toMatchObject({ kind: "unavailable", reason: "proof_unavailable" });
+});
+
+test("expired or purging detail is explicitly unavailable without claiming a complete empty result", async () => {
+  const f = await fixture(1); await f.commit(); const request = await outcomeRequest(f);
+  vi.setSystemTime((await f.header()).expiresAt);
+  expect(await outcomePage(f, request)).toMatchObject({ kind: "unavailable", reason: "detail_unavailable" });
+  await f.t.mutation(internal.librarySync.pruneFolderManifests, {});
+  expect(await outcomePage(f, request)).toMatchObject({ kind: "unavailable", reason: "detail_unavailable" });
+  await f.t.finishAllScheduledFunctions(vi.runAllTimers);
+  expect(await outcomePage(f, request)).toMatchObject({ kind: "unavailable", reason: "detail_unavailable" });
+});
+
+test("missing ordinal cannot be reported as a short complete page", async () => {
+  const f = await fixture(3); await f.commit(); const request = await outcomeRequest(f);
+  await f.t.run(async ctx => {
+    const member = await ctx.db.query("savedFolderManifestMembers").withIndex("by_user_manifest_ordinal", q => q.eq("userId", f.userId).eq("manifestId", f.work.id).eq("ordinal", 1)).unique();
+    if (!member) throw new Error("Missing fixture fact"); await ctx.db.delete(member._id);
+  });
+  await expect(outcomePage(f, request)).rejects.toThrow("SYNC_OUTCOME_MANIFEST_INVARIANT");
+});
+
+test("corrupt negative restore counters cannot cancel into an apparently valid page count", async () => {
+  const f = await fixture(1); await f.commit(); const restore = await f.begin(); await f.finishRestoration();
+  const request = await outcomeRequest(f, restore.pending);
+  await f.t.run(async ctx => {
+    const header = await ctx.db.get(f.work.id);
+    if (header?.state.kind !== "restored") throw new Error("Missing restored fixture");
+    await ctx.db.patch(header._id, { state: { ...header.state, restored: 2, missing: -1 } });
+    const stream = await ctx.db.query("librarySyncStreams").withIndex("by_user_client", q => q.eq("userId", f.userId).eq("clientKey", request.proof.clientKey)).unique();
+    if (stream?.slot?.kind !== "committed") throw new Error("Missing committed fixture");
+    const committed = stream.slot.committed;
+    await ctx.db.patch(stream._id, { slot: { kind: "committed", committed: { ...committed, reply: { ...committed.reply,
+      receipts: committed.reply.receipts.map(receipt => receipt.outcome.kind === "folder_restored_manifest" ? { ...receipt, outcome: { ...receipt.outcome, restored: 2, missing: -1 } } : receipt) } } } });
+  });
+  await expect(outcomePage(f, request)).rejects.toThrow("SYNC_OUTCOME_MANIFEST_INVARIANT");
+});
+
+test("zero-member outcomes require and return explicit terminal proof for both phases", async () => {
+  const f = await fixture(0); await f.commit();
+  expect(await outcomePage(f, await outcomeRequest(f))).toMatchObject({ kind: "page", rows: [], next: 0, done: true });
+  const restore = await f.begin(); await f.finishRestoration();
+  expect(await outcomePage(f, await outcomeRequest(f, restore.pending))).toMatchObject({ kind: "page", rows: [], next: 0, done: true });
 });

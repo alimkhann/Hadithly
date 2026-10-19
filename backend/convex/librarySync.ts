@@ -4,6 +4,7 @@ import { advanceFolderManifest as advanceManifest, purgeFolderManifestMembers as
   FOLDER_MANIFEST_LEASE_MS, type FolderManifestStep } from "./lib/savedFolderManifests";
 import { internal } from "./_generated/api";
 import { existingFrameExchange, librarySyncCursor } from "./lib/librarySyncFrames";
+import { readLibraryOutcomePage } from "./lib/libraryOutcomePages";
 import { requireLibraryUser as owner, requireLibraryBinding as boundOwner } from "./lib/librarySyncIdentity";
 import { libraryVersion, advanceLibraryVersion } from "./lib/librarySyncVersions";
 import { librarySyncMark as mark, stampLibrarySyncMark as stamp } from "./lib/librarySyncMarks";
@@ -17,7 +18,7 @@ import { textDigest } from "./lib/evidenceReviewPolicy";
 import {
   syncBatchDigest, syncWriteDecision, validateSyncBatch,
   SYNC_BINDING_LIMIT, SYNC_BINDING_LIFETIME,
-  syncFrame, syncPending, syncAcknowledgement, validateSyncStream, syncSavedSnapshot, syncPositionsSnapshot,
+  syncFrame, syncPending, syncAcknowledgement, syncOutcomePageRequest, syncOutcomePage, type SyncOutcomePage, validateSyncStream, syncSavedSnapshot, syncPositionsSnapshot,
   type SyncHadithSummary, type SyncSavedSnapshot, type SyncPositionsSnapshot,
   type SyncBinding, type SyncOperation, type SyncOutcome, type SyncReceipt, type SyncFolderReference, type SyncExchange, type SyncAckReply,
 } from "./lib/librarySyncPolicy";
@@ -276,6 +277,16 @@ export const pollPending = query({
       && slot.pending.intentDigest === pending.intentDigest && slot.pending.manifestId === pending.manifestId && slot.pending.generation === pending.generation) return { kind: "pending", ownerKey: user._id, pending: slot.pending };
     if (slot?.kind === "committed" && slot.committed.sequence === pending.sequence && slot.committed.reply.batchId === pending.batchId && slot.committed.digest === pending.digest) return { kind: "accepted", committed: slot.committed };
     return { kind: "reconcile", ownerKey: user._id, clientKey: pending.clientKey, requestedSequence: pending.sequence, requestedBatchId: pending.batchId, cursor: librarySyncCursor(stream) };
+  },
+});
+
+export const outcomePage = query({
+  args: { capability: v.string(), request: syncOutcomePageRequest }, returns: syncOutcomePage,
+  handler: async (ctx, { capability, request }): Promise<SyncOutcomePage> => {
+    const user = await boundOwner(ctx, capability);
+    validateSyncStream(request.proof.clientKey, request.proof.sequence);
+    if (!request.proof.digest || request.proof.digest.length > 128 || !request.proof.batchId || request.proof.batchId.length > 128 || !request.receiptId || request.receiptId.length > 128 || !request.generation || request.generation.length > 128) throw new Error("SYNC_INVALID_OUTCOME_PAGE");
+    return readLibraryOutcomePage(ctx, user._id, request);
   },
 });
 

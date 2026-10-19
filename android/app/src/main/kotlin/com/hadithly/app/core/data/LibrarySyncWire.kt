@@ -13,6 +13,8 @@ object LibrarySyncLimits {
     const val bytes = 131072
     const val noteBytes = 24000
     const val folderLength = 64
+    const val outcomePage = 50
+    const val outcomeBytes = 65536
 }
 
 @Serializable
@@ -333,6 +335,45 @@ sealed interface SyncOutstanding {
 }
 
 @Serializable
+data class SyncOutcomePageRequest(
+    val proof: SyncAcknowledgement,
+    val receiptId: String,
+    val manifestId: String,
+    val generation: String,
+    val phase: SyncOutcomePageRequestPhase,
+    val start: Double,
+)
+
+@Serializable
+data class SyncOutcomeMember(
+    val ordinal: Double,
+    val memberId: String,
+    val hadithId: String,
+    val disposition: SyncOutcomeMemberDisposition,
+)
+
+@Serializable
+@JsonClassDiscriminator("kind")
+sealed interface SyncOutcomePage {
+    @Serializable
+    @SerialName("page")
+    data class Page(
+        val ownerKey: String,
+        val request: SyncOutcomePageRequest,
+        val rows: List<SyncOutcomeMember>,
+        val next: Double,
+        val done: Boolean,
+    ) : SyncOutcomePage
+    @Serializable
+    @SerialName("unavailable")
+    data class Unavailable(
+        val ownerKey: String,
+        val request: SyncOutcomePageRequest,
+        val reason: SyncOutcomePageUnavailableReason,
+    ) : SyncOutcomePage
+}
+
+@Serializable
 data class SyncCursor(
     val closedThrough: Double,
     val outstanding: SyncOutstanding? = null,
@@ -377,6 +418,20 @@ data class SyncAckReply(
     val clientKey: String,
     val cursor: SyncCursor,
 )
+
+@Serializable
+enum class SyncOutcomePageRequestPhase {
+    @SerialName("delete") DELETE,
+    @SerialName("restore") RESTORE,
+}
+
+@Serializable
+enum class SyncOutcomeMemberDisposition {
+    @SerialName("deleted") DELETED,
+    @SerialName("restored") RESTORED,
+    @SerialName("superseded") SUPERSEDED,
+    @SerialName("missing") MISSING,
+}
 
 @Serializable
 enum class SyncCommandFolderCreatePurpose {
@@ -424,6 +479,12 @@ enum class SyncOutcomeUnresolvedReason {
     @SerialName("folder_too_large") FOLDER_TOO_LARGE,
     @SerialName("preparation_expired") PREPARATION_EXPIRED,
     @SerialName("folder_restore_unavailable") FOLDER_RESTORE_UNAVAILABLE,
+}
+
+@Serializable
+enum class SyncOutcomePageUnavailableReason {
+    @SerialName("proof_unavailable") PROOF_UNAVAILABLE,
+    @SerialName("detail_unavailable") DETAIL_UNAVAILABLE,
 }
 
 object LibrarySyncIntentVectors {

@@ -145,6 +145,13 @@ membership defect. See `LIBRARY_FOLDER_EFFECTS_VERIFICATION.md`. Native 56 iOS/3
 Android checks include retaining frozen originals when outcome collection is absent.
 The public producer, paged outcomes/reads/export and final legacy/installed migration
 remain gated; the public 501-member product probe is still red.
+The outcome page boundary now passes 0/1/50/51/501-member, ownership, exact-proof,
+retention and immutable-history fixtures, with 469 backend tests overall. Native
+cursor adoption now rejects acknowledging uncollected manifest results;
+the chosen SwiftData/SQLite collection design still needs implementation and proof.
+See `LIBRARY_OUTCOME_PAGE_VERIFICATION.md`. This advances the server page contract;
+public producer, durable native collection, bounded Saved read/export and installed
+migration remain open. No deployment was performed.
 Continue A2 integration while retaining A1's content dependencies. No paid
 generation or production change has been approved. Research, later native redesign, website and Linear remain
 pending in the owner's requested order.

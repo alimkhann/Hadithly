@@ -81,9 +81,10 @@ afterAll(async () => {
     SyncSavedSnapshot: syncValidatorContract(policy.syncSavedSnapshot), SyncPositionsSnapshot: syncValidatorContract(policy.syncPositionsSnapshot),
     SyncFrame: syncValidatorContract(policy.syncFrame), SyncCommitted: syncValidatorContract(policy.syncCommitted),
     SyncPending: syncValidatorContract(policy.syncPending), SyncOutstanding: syncValidatorContract(policy.syncOutstanding),
+    SyncOutcomePageRequest: syncValidatorContract(policy.syncOutcomePageRequest), SyncOutcomeMember: syncValidatorContract(policy.syncOutcomeMember), SyncOutcomePage: syncValidatorContract(policy.syncOutcomePage),
     SyncCursor: syncValidatorContract(policy.syncCursor), SyncAcknowledgement: syncValidatorContract(policy.syncAcknowledgement),
     SyncExchange: syncValidatorContract(policy.syncExchange), SyncAckReply: syncValidatorContract(policy.syncAckReply),
     ReadingPosition: syncValidatorContract(readingPositionValidator) };
   const intentDigests = await Promise.all(intentVectors.map(async value => ({ json: JSON.stringify(value), digest: await syncIntentDigest(value) })));
-  writeFileSync(resolve(directory, "contract.json"), JSON.stringify({ ...validators, intentDigests, limits: { operations: policy.SYNC_BATCH_LIMIT, fanoutOperations: policy.SYNC_FANOUT_LIMIT, bytes: policy.SYNC_BATCH_BYTES, noteBytes: policy.SYNC_NOTE_BYTES, folderLength: policy.SYNC_FOLDER_LENGTH } }, null, 2) + "\n");
+  writeFileSync(resolve(directory, "contract.json"), JSON.stringify({ ...validators, intentDigests, limits: { operations: policy.SYNC_BATCH_LIMIT, fanoutOperations: policy.SYNC_FANOUT_LIMIT, bytes: policy.SYNC_BATCH_BYTES, noteBytes: policy.SYNC_NOTE_BYTES, folderLength: policy.SYNC_FOLDER_LENGTH, outcomePage: policy.SYNC_OUTCOME_PAGE, outcomeBytes: policy.SYNC_OUTCOME_BYTES } }, null, 2) + "\n");
 });

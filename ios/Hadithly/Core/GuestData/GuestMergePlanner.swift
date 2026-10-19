@@ -497,6 +497,12 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
         if let active = cursor.outstanding?.committedValue {
             guard active.clientKey == clientKey, active.sequence == cursor.closedThrough + 1,
                   !active.reply.batchId.isEmpty, !active.digest.isEmpty else { throw LibrarySyncFailure.invalidReceipt }
+            for receipt in active.reply.receipts {
+                switch receipt.outcome {
+                case .folderDeletedManifest, .folderRestoredManifest: throw LibrarySyncFailure.invalidReceipt
+                default: break
+                }
+            }
         }
         if let pending = cursor.outstanding?.pendingValue {
             guard pending.clientKey == clientKey, pending.sequence == cursor.closedThrough + 1,

@@ -13,6 +13,44 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class GuestMergeRaceTest {
+    @Test fun reconciledManifestCannotBypassOutcomeCollection() {
+        val outcomes = listOf(
+            SyncOutcome.FolderDeletedManifest("manifest", "generation", 501.0, 1_000.0),
+            SyncOutcome.FolderRestoredManifest("manifest", "generation", "folder", 499.0, 1.0, 1.0),
+        )
+        fun copied(state: LibraryPartitionState) = Json.decodeFromString<LibraryPartitionState>(Json.encodeToString(state))
+        fun rejects(state: LibraryPartitionState, action: () -> Unit) {
+            val before = Json.encodeToString(state)
+            try { action(); fail("Manifest adopted without collection") } catch (_: LibrarySyncFailure.InvalidReceipt) { }
+            assertEquals(before, Json.encodeToString(state))
+        }
+        for (outcome in outcomes) {
+            val original = LibraryPartitionState()
+            original.append(LibraryLocalSource.Account(null), SyncCommand.FolderDelete(SyncFolderReference.Server("folder-a")), 1_000.0)
+            val frame = original.freeze()!!; val operation = frame.batch.operations[0]
+            val committed = SyncCommitted(frame.clientKey, frame.sequence, "fixture-digest", SyncRevision(1.0, 0.0),
+                SyncReply("owner-a", frame.batch.id, listOf(SyncReceipt(operation.id, operation.revision, outcome))))
+            val cursor = SyncCursor(0.0, SyncOutstanding.Committed(committed))
+            val reconciled = copied(original)
+            rejects(reconciled) { reconciled.settle(SyncExchange.Reconcile("owner-a", frame.clientKey, frame.sequence, frame.batch.id, cursor), frame, 2_000.0) }
+            val retired = copied(original)
+            rejects(retired) { retired.settleRetirement(SyncAckReply("owner-a", frame.clientKey, cursor), frame) }
+
+            val different = frame.batch.copy(operations = listOf(operation.copy(command = SyncCommand.FolderDelete(SyncFolderReference.Server("folder-b")))))
+            val pending = SyncPending(frame.clientKey, frame.sequence, frame.batch.id, committed.digest, different.intentDigest(), "manifest", "generation", 1_000.0)
+            val polled = copied(original)
+            polled.settle(SyncExchange.Pending("owner-a", pending), frame, 2_000.0)
+            assertEquals(1, polled.recovery.size)
+            rejects(polled) { polled.settlePending(SyncExchange.Accepted(committed), pending, 2_000.0) }
+
+            val acknowledged = copied(original)
+            acknowledged.settle(accepted(frame, SyncReply("owner-a", frame.batch.id, listOf(SyncReceipt(operation.id, operation.revision, SyncOutcome.Preserved)))), frame, 2_000.0)
+            val ack = acknowledged.acknowledgement!!
+            val next = committed.copy(sequence = 2.0, digest = "next-digest", reply = committed.reply.copy(batchId = "next-batch"))
+            rejects(acknowledged) { acknowledged.settleAcknowledgement(SyncAckReply("owner-a", frame.clientKey, SyncCursor(1.0, SyncOutstanding.Committed(next))), ack) }
+        }
+    }
+
     @Test fun manifestReceiptCannotAckBeforeOutcomeCollectionExists() {
         val state = LibraryPartitionState()
         state.append(LibraryLocalSource.Account(null), SyncCommand.FolderDelete(SyncFolderReference.Server("folder")), 1_000.0)

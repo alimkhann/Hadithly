@@ -10,6 +10,8 @@ export const SYNC_NOTE_BYTES = 24_000;
 export const SYNC_FOLDER_LENGTH = FOLDER_NAME_LIMIT;
 export const SYNC_BINDING_LIFETIME = 15 * 60_000;
 export const SYNC_BINDING_LIMIT = 20;
+export const SYNC_OUTCOME_PAGE = 50;
+export const SYNC_OUTCOME_BYTES = 64 * 1024;
 
 export const syncFolderReference = v.union(
   v.object({ kind: v.literal("server"), id: v.string() }),
@@ -70,6 +72,16 @@ export const syncOutstanding = v.union(v.object({ kind: v.literal("committed"), 
 export const syncStreamSlot = v.union(v.object({ kind: v.literal("committed"), committed: syncCommitted }), v.object({ kind: v.literal("pending"), pending: syncPending, batch: syncBatch }));
 export const syncCursor = v.object({ closedThrough: v.number(), outstanding: v.optional(syncOutstanding) });
 export const syncAcknowledgement = v.object({ clientKey: v.string(), sequence: v.number(), batchId: v.string(), digest: v.string() });
+export const syncOutcomePageRequest = v.object({ proof: syncAcknowledgement, receiptId: v.string(), manifestId: v.id("savedFolderManifests"), generation: v.string(),
+  phase: v.union(v.literal("delete"), v.literal("restore")), start: v.number() });
+export const syncOutcomeMember = v.object({ ordinal: v.number(), memberId: v.id("savedFolderManifestMembers"), hadithId: v.id("hadiths"),
+  disposition: v.union(v.literal("deleted"), v.literal("restored"), v.literal("superseded"), v.literal("missing")) });
+export const syncOutcomePage = v.union(
+  v.object({ kind: v.literal("page"), ownerKey: v.string(), request: syncOutcomePageRequest, rows: v.array(syncOutcomeMember), next: v.number(), done: v.boolean() }),
+  v.object({ kind: v.literal("unavailable"), ownerKey: v.string(), request: syncOutcomePageRequest, reason: v.union(v.literal("proof_unavailable"), v.literal("detail_unavailable")) }),
+);
+export type SyncOutcomePageRequest = Infer<typeof syncOutcomePageRequest>;
+export type SyncOutcomePage = Infer<typeof syncOutcomePage>;
 export const syncExchange = v.union(
   v.object({ kind: v.literal("accepted"), committed: syncCommitted }),
   v.object({ kind: v.literal("pending"), ownerKey: v.string(), pending: syncPending }),

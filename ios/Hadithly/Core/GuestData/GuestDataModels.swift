@@ -385,6 +385,8 @@ enum LibrarySyncLimits {
     static let bytes = 131072
     static let noteBytes = 24000
     static let folderLength = 64
+    static let outcomePage = 50
+    static let outcomeBytes = 65536
 }
 
 enum SyncFolderReference: Codable, Equatable, Sendable {
@@ -703,6 +705,47 @@ enum SyncOutstanding: Codable, Equatable, Sendable {
     }
 }
 
+struct SyncOutcomePageRequest: Codable, Equatable, Sendable {
+    let proof: SyncAcknowledgement
+    let receiptId: String
+    let manifestId: String
+    let generation: String
+    let phase: SyncOutcomePageRequestPhase
+    let start: Double
+}
+
+struct SyncOutcomeMember: Codable, Equatable, Sendable {
+    let ordinal: Double
+    let memberId: String
+    let hadithId: String
+    let disposition: SyncOutcomeMemberDisposition
+}
+
+enum SyncOutcomePage: Codable, Equatable, Sendable {
+    case page(SyncOutcomePagePage)
+    case unavailable(SyncOutcomePageUnavailable)
+    private enum KindKey: String, CodingKey { case kind }
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: KindKey.self)
+        switch try values.decode(String.self, forKey: .kind) {
+        case "page": self = .page(try SyncOutcomePagePage(from: decoder))
+        case "unavailable": self = .unavailable(try SyncOutcomePageUnavailable(from: decoder))
+        default: throw DecodingError.dataCorruptedError(forKey: .kind, in: values, debugDescription: "Unsupported sync kind")
+        }
+    }
+    func encode(to encoder: Encoder) throws {
+        var values = encoder.container(keyedBy: KindKey.self)
+        switch self {
+        case .page(let value):
+            try values.encode("page", forKey: .kind)
+            try value.encode(to: encoder)
+        case .unavailable(let value):
+            try values.encode("unavailable", forKey: .kind)
+            try value.encode(to: encoder)
+        }
+    }
+}
+
 struct SyncCursor: Codable, Equatable, Sendable {
     let closedThrough: Double
     let outstanding: SyncOutstanding?
@@ -877,6 +920,32 @@ struct SyncOutstandingPending: Codable, Equatable, Sendable {
     let pending: SyncPending
 }
 
+enum SyncOutcomePageRequestPhase: String, Codable, Sendable {
+    case delete = "delete"
+    case restore = "restore"
+}
+
+enum SyncOutcomeMemberDisposition: String, Codable, Sendable {
+    case deleted = "deleted"
+    case restored = "restored"
+    case superseded = "superseded"
+    case missing = "missing"
+}
+
+struct SyncOutcomePagePage: Codable, Equatable, Sendable {
+    let ownerKey: String
+    let request: SyncOutcomePageRequest
+    let rows: [SyncOutcomeMember]
+    let next: Double
+    let done: Bool
+}
+
+struct SyncOutcomePageUnavailable: Codable, Equatable, Sendable {
+    let ownerKey: String
+    let request: SyncOutcomePageRequest
+    let reason: SyncOutcomePageUnavailableReason
+}
+
 struct SyncExchangeAccepted: Codable, Equatable, Sendable {
     let committed: SyncCommitted
 }
@@ -945,6 +1014,11 @@ enum SyncOutcomeUnresolvedReason: String, Codable, Sendable {
     case folderTooLarge = "folder_too_large"
     case preparationExpired = "preparation_expired"
     case folderRestoreUnavailable = "folder_restore_unavailable"
+}
+
+enum SyncOutcomePageUnavailableReason: String, Codable, Sendable {
+    case proofUnavailable = "proof_unavailable"
+    case detailUnavailable = "detail_unavailable"
 }
 
 struct SyncCommandFacetRestoreValueBookmark: Codable, Equatable, Sendable {

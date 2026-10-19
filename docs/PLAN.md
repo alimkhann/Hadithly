@@ -184,6 +184,13 @@ facet writers were unified after reproducing ghost membership. See
 56 iOS/35 Android checks; they retain originals until the missing outcome collector
 exists. Public producer, paged outcome/read/export and legacy/installed cutover
 remain open. This is local code and closes no app-level, deployment or release gate.
+The exact-receipt outcome query now serves at most 50 identity facts and 64 KiB per
+page, with explicit unavailable details and immutable delete/restore history. Its
+full backend suite passes 469 tests; see `docs/LIBRARY_OUTCOME_PAGE_VERIFICATION.md`.
+A restored-copy cursor could bypass the earlier native manifest guard; actual
+iOS/Android failure cases led to a central pre-adoption guard. The chosen native
+row-journal design is recorded, but durable collection, public producer and bounded
+Saved read/export remain open. This query has not been deployed.
 
 ## Read the plan in layers
 

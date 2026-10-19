@@ -201,6 +201,7 @@ data class LibraryPartitionState(
         if (!cursor.closedThrough.isFinite() || cursor.closedThrough < 0 || kotlin.math.floor(cursor.closedThrough) != cursor.closedThrough || cursor.closedThrough >= 9_007_199_254_740_991.0) throw LibrarySyncFailure.InvalidReceipt
         cursor.outstanding?.committedValue?.let {
             if (it.clientKey != clientKey || it.sequence != cursor.closedThrough + 1 || it.reply.batchId.isEmpty() || it.digest.isEmpty()) throw LibrarySyncFailure.InvalidReceipt
+            if (it.reply.receipts.any { receipt -> receipt.outcome is SyncOutcome.FolderDeletedManifest || receipt.outcome is SyncOutcome.FolderRestoredManifest }) throw LibrarySyncFailure.InvalidReceipt
         }
         cursor.outstanding?.pendingValue?.let {
             if (it.clientKey != clientKey || it.sequence != cursor.closedThrough + 1 || !it.intentDigest.matches(Regex("^[a-f0-9]{64}$")) || listOf(it.batchId, it.digest, it.manifestId, it.generation).any { value -> value.isEmpty() || value.toByteArray(Charsets.UTF_8).size > 128 } || !it.retryAfterMs.isFinite() || it.retryAfterMs < 250 || it.retryAfterMs > 30_000) throw LibrarySyncFailure.InvalidReceipt
