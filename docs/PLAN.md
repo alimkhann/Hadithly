@@ -141,7 +141,10 @@ Known invalid frozen frames and quarantine continuation now have native and actu
 Convex proof; sparse sequence fences preserve original recovery data and valid
 intervening work from restored copies. See `docs/LIBRARY_SYNC_RECOVERY_VERIFICATION.md`
 for 395 backend, 47 iOS and 26 Android passes plus the corrected independent review.
-Actual SDK deletion/cross-device propagation, retention and authorization cleanup,
+Expired deletion authorization maintenance is implemented with indexed 100-row
+pages and source cron registration; 396 backend tests pass. See
+`docs/ACCOUNT_DELETION_MAINTENANCE_VERIFICATION.md`. Actual scheduled cloud readback,
+SDK deletion/cross-device propagation, retained-marker privacy/retention treatment,
 large folders/vanished anchors, installed schema, final independent review,
 account/device delivery and deployment remain open. A2 has no
 deployment approval.

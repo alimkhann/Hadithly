@@ -432,6 +432,17 @@ export const deleteCurrentUser = mutation({
   },
 });
 
+/** Bounded retention for unused preparation grants; erasure deny markers are retained. */
+export const pruneExpiredDeletionAuthorizations = internalMutation({
+  args: {},
+  handler: async (ctx): Promise<{ deleted: number }> => {
+    const rows = await ctx.db.query("accountDeletionAuthorizations").withIndex("by_expiry", q => q.lte("validUntil", Date.now())).take(100);
+    for (const row of rows) await ctx.db.delete(row._id);
+    if (rows.length === 100) await ctx.scheduler.runAfter(0, internal.users.pruneExpiredDeletionAuthorizations, {});
+    return { deleted: rows.length };
+  },
+});
+
 /** Internal: resolve a user row by Clerk id. Safe to call from actions
  * (no auth context needed) — used by AI/webhook flows. */
 export const getByClerkId = internalQuery({

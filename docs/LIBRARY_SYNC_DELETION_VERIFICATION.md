@@ -106,3 +106,8 @@ verifier source now obtains and verifies deletion authorization for future appro
 runs and reports the retained minimal marker honestly; no such run occurred here.
 All broader A1/A3-A7, research, native refinement, website, Linear and release gates
 remain in `PRODUCT_PROGRAM.md` and the existing session records.
+
+
+Follow-up: indexed expired preparation-grant maintenance is now implemented and
+locally verified in `ACCOUNT_DELETION_MAINTENANCE_VERIFICATION.md`. Its actual cloud
+cron and retention-policy gates stay open; the checkpoint above is historical.

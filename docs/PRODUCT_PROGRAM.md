@@ -106,8 +106,11 @@ functions; see `LIBRARY_SYNC_DELETION_VERIFICATION.md`. Bounded quarantine and
 known invalid frozen-frame retirement now pass real-store and Convex checks, with
 an independently reviewed sparse fence that preserves valid earlier work. See
 `LIBRARY_SYNC_RECOVERY_VERIFICATION.md`. Final broad integration review,
-actual SDK deletion and propagation, retention/authorization cleanup, scale/migration
-and real cross-device account delivery remain open.
+actual SDK deletion and propagation, retained-marker privacy/retention treatment,
+scale/migration
+and real cross-device account delivery remain open. Expired deletion authorization
+maintenance now has a bounded internal pager and local scheduler proof; cloud cron
+readback is still required. See `ACCOUNT_DELETION_MAINTENANCE_VERIFICATION.md`.
 Continue A2 integration while retaining A1's content dependencies. No paid
 generation or production change has been approved. Research, later native redesign, website and Linear remain
 pending in the owner's requested order.

@@ -49,4 +49,6 @@ crons.interval("support retention", { hours: 1 }, internal.support.retain, {});
 crons.interval("operational budget warnings", { hours: 1 }, internal.support.budgetWarnings, {});
 crons.interval("dispatch operational notices", { hours: 1 }, internal.support.dispatch, {});
 
+crons.interval("expired deletion authorization retention", { hours: 1 }, internal.users.pruneExpiredDeletionAuthorizations, {});
+
 export default crons;
