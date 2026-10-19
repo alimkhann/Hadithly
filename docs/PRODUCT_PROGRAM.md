@@ -113,7 +113,8 @@ maintenance now has a bounded internal pager and local scheduler proof; cloud cr
 readback is still required. See `ACCOUNT_DELETION_MAINTENANCE_VERIFICATION.md`.
 The 501-member support probe remains red. Bounded folder-job candidates, independent
 review and remaining contract corrections are recorded in
-`product-program/sync-design/scale/decision.md`; none is implemented yet.
+`product-program/sync-design/scale/decision.md`; logical delete/restore cutover is
+not enabled.
 Ordinary membership writes now share a causal clock rule, and both native apps
 preserve independent folder timestamps. Unknown-time guest claims cannot replace
 existing cloud choices. The focused repair passes 413 backend, 51 iOS and 30 Android
@@ -126,6 +127,11 @@ folder preparation or logical deletion is enabled yet.
 Independent review also exposed foreign malformed pointers affecting existing
 delete queries. Both queries now restrict owner before member reads and writes;
 actual red/green fixtures and the final source recheck are in that record.
+Resumable manifest preparation, recovery and cleanup now pass 501-/2,001-member
+actual Convex fixtures and a complete 433-test backend suite. See
+`LIBRARY_FOLDER_MANIFEST_VERIFICATION.md`. This prepares identities only; the
+held-frame/terminal-receipt, logical membership, Undo, page/export and native
+migrations remain open. The current 501-member product support probe is still red.
 Continue A2 integration while retaining A1's content dependencies. No paid
 generation or production change has been approved. Research, later native redesign, website and Linear remain
 pending in the owner's requested order.

@@ -546,6 +546,27 @@ export default defineSchema({
   // H3's canonical private Saved representation. Legacy bookmark, favorite,
   // and note tables remain during the dual-read rollout for already-shipped
   // clients; this table is the single record new clients mutate and render.
+  savedFolderManifests: defineTable({
+    userId: v.id("users"), folderId: v.id("savedFolders"), operationId: v.string(), requestedAt: v.number(),
+    generation: v.string(), createdAt: v.number(), updatedAt: v.number(), expiresAt: v.number(),
+    captured: v.object({ epoch: v.number(), updatedAt: v.number(), name: v.string(), createdAt: v.number() }),
+    state: v.union(
+      v.object({ kind: v.literal("scanning"), cursor: v.union(v.string(), v.null()), count: v.number(), step: v.number() }),
+      v.object({ kind: v.literal("prepared"), count: v.number() }),
+      v.object({ kind: v.literal("abandoned"), count: v.number(), reason: v.union(v.literal("changed"), v.literal("missing_folder"), v.literal("expired")) }),
+      v.object({ kind: v.literal("purging"), count: v.number(), reason: v.union(v.literal("changed"), v.literal("missing_folder"), v.literal("expired")) }),
+    ),
+  }).index("by_user_operation", ["userId", "operationId"])
+    .index("by_user_folder_state", ["userId", "folderId", "state.kind"])
+    .index("by_user_state", ["userId", "state.kind"])
+    .index("by_state_updated", ["state.kind", "updatedAt"])
+    .index("by_expiry", ["expiresAt"]).index("by_user", ["userId"]),
+  savedFolderManifestMembers: defineTable({
+    userId: v.id("users"), manifestId: v.id("savedFolderManifests"), ordinal: v.number(),
+    itemId: v.id("savedItems"), hadithId: v.id("hadiths"), membershipAt: v.optional(v.number()),
+  }).index("by_user_manifest_ordinal", ["userId", "manifestId", "ordinal"])
+    .index("by_manifest", ["manifestId"]).index("by_user", ["userId"]),
+
   savedFolders: defineTable({
     userId: v.id("users"),
     name: v.string(),

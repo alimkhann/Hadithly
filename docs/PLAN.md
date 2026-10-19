@@ -162,8 +162,13 @@ manifest scan's change guard. Local 2,001-member and writer-path checks pass, wi
 421 backend passes overall; see `docs/LIBRARY_FOLDER_SCAN_VERIFICATION.md`.
 Both existing delete queries now exclude foreign malformed pointers before their
 member reads and writes, with actual red/green cases and independent recheck.
-No worker or large-folder cutover is enabled. The new optional field/index have
-not been deployed and require the existing development approval gate.
+The next manifest preparation worker, recovery and cleanup are now implemented,
+with 433 backend passes including actual scheduled 501-/2,001-member cases. See
+`docs/LIBRARY_FOLDER_MANIFEST_VERIFICATION.md`. It changes no visible membership
+and has no mobile start/read entry point yet. Exact pending/terminal receipts,
+logical delete/Undo, bounded read/export and both native migrations remain open;
+the 501-member product probe is freshly red. New schema/index/cron changes are
+local and require the existing development approval gate before deployment.
 
 ## Read the plan in layers
 

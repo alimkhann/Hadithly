@@ -1,9 +1,12 @@
 import { writeSavedMembership, removeEmptySavedMembership, touchSavedFolderMemberships, savedFolderScanGuard } from "./lib/savedMembership";
+import { advanceFolderManifest as advanceManifest, purgeFolderManifestMembers as purgeManifest,
+  FOLDER_MANIFEST_LEASE_MS, type FolderManifestStep } from "./lib/savedFolderManifests";
+import { internal } from "./_generated/api";
 import { requireLibraryUser as owner, requireLibraryBinding as boundOwner } from "./lib/librarySyncIdentity";
 import { libraryVersion, advanceLibraryVersion } from "./lib/librarySyncVersions";
 import { librarySyncMark as mark, stampLibrarySyncMark as stamp } from "./lib/librarySyncMarks";
 import { v } from "convex/values";
-import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
+import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import { materializeLegacySavedItem, applyReadingPosition, readSavedSnapshot, readReadingProgressDetailed } from "./library";
 import { normalizedFolderName } from "./lib/savedFolderPolicy";
@@ -349,5 +352,65 @@ export const positionsSnapshot = query({
     const version = await libraryVersion(ctx, user._id, "position");
     return { ownerKey: user._id, version, rows: rows.flatMap(row => row.hadith ? [{ collectionSlug: row.collectionSlug, hadithId: row.hadithId,
       updatedAt: row.updatedAt, ...(row.position === undefined ? {} : { position: row.position }), hadith: cleanSummary(row.hadith) }] : []) };
+  },
+});
+
+export const advanceFolderManifest = internalMutation({
+  args: { id: v.id("savedFolderManifests"), generation: v.string(), step: v.number() },
+  handler: async (ctx, request): Promise<FolderManifestStep> => advanceManifest(ctx, request),
+});
+
+export const purgeFolderManifestMembers = internalMutation({
+  args: { id: v.id("savedFolderManifests"), generation: v.string() },
+  handler: async (ctx, request): Promise<{ deleted: number }> => purgeManifest(ctx, request),
+});
+
+export const recoverFolderManifests = internalMutation({
+  args: {},
+  handler: async (ctx): Promise<{ scheduled: number }> => {
+    const now = Date.now();
+    const rows = await ctx.db.query("savedFolderManifests").withIndex("by_state_updated", q => q.eq("state.kind", "scanning").lte("updatedAt", now - 5 * 60_000)).take(25);
+    for (const header of rows) {
+      if (header.state.kind !== "scanning") continue;
+      await ctx.scheduler.runAfter(0, internal.librarySync.advanceFolderManifest, { id: header._id, generation: header.generation, step: header.state.step });
+      // Dispatch does not renew the inactivity lease. Only committed progress can.
+      await ctx.db.patch(header._id, { updatedAt: now });
+    }
+    if (rows.length === 25) await ctx.scheduler.runAfter(0, internal.librarySync.recoverFolderManifests, {});
+    return { scheduled: rows.length };
+  },
+});
+
+export const pruneFolderManifests = internalMutation({
+  args: { cutoff: v.optional(v.number()) },
+  handler: async (ctx, request): Promise<{ scheduled: number }> => {
+    const cutoff = request.cutoff ?? Date.now();
+    const rows = await ctx.db.query("savedFolderManifests").withIndex("by_expiry", q => q.lte("expiresAt", cutoff)).take(25);
+    for (const header of rows) {
+      const reason = header.state.kind === "abandoned" || header.state.kind === "purging" ? header.state.reason : "expired";
+      await ctx.db.patch(header._id, { state: { kind: "purging", reason, count: header.state.count }, expiresAt: Date.now() + FOLDER_MANIFEST_LEASE_MS });
+      await ctx.scheduler.runAfter(0, internal.librarySync.purgeFolderManifestMembers, { id: header._id, generation: header.generation });
+    }
+    if (rows.length === 25) await ctx.scheduler.runAfter(0, internal.librarySync.pruneFolderManifests, { cutoff });
+    return { scheduled: rows.length };
+  },
+});
+
+/** Erasure keeps discoverable headers until their facts are gone. Never touches a live owner. */
+export const eraseFolderManifestOwner = internalMutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, { userId }): Promise<{ deleted: number }> => {
+    if (await ctx.db.get(userId)) return { deleted: 0 };
+    const facts = await ctx.db.query("savedFolderManifestMembers").withIndex("by_user", q => q.eq("userId", userId)).take(50);
+    for (const fact of facts) await ctx.db.delete(fact._id);
+    let deleted = facts.length;
+    if (facts.length < 50) {
+      const headers = await ctx.db.query("savedFolderManifests").withIndex("by_user", q => q.eq("userId", userId)).take(25);
+      for (const header of headers) await ctx.db.delete(header._id);
+      deleted += headers.length;
+      if (headers.length < 25) return { deleted };
+    }
+    await ctx.scheduler.runAfter(0, internal.librarySync.eraseFolderManifestOwner, { userId });
+    return { deleted };
   },
 });

@@ -50,5 +50,7 @@ crons.interval("operational budget warnings", { hours: 1 }, internal.support.bud
 crons.interval("dispatch operational notices", { hours: 1 }, internal.support.dispatch, {});
 
 crons.interval("expired deletion authorization retention", { hours: 1 }, internal.users.pruneExpiredDeletionAuthorizations, {});
+crons.interval("recover folder manifest preparation", { minutes: 5 }, internal.librarySync.recoverFolderManifests, {});
+crons.interval("expire unused folder manifest preparation", { minutes: 5 }, internal.librarySync.pruneFolderManifests, {});
 
 export default crons;

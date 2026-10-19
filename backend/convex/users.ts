@@ -428,6 +428,7 @@ export const deleteCurrentUser = mutation({
     }
 
     await ctx.db.delete(user._id);
+    await ctx.scheduler.runAfter(0, internal.librarySync.eraseFolderManifestOwner, { userId: user._id });
     return { subject: identity.clerkId, deleted: true };
   },
 });
