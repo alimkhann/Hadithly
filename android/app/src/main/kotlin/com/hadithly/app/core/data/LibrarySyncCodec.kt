@@ -10,6 +10,7 @@ private val libraryWireJson = Json { encodeDefaults = true; explicitNulls = fals
 fun SyncFrame.toConvexArgument(): Any? = libraryArgument(libraryWireJson.encodeToJsonElement(this))
 fun SyncAcknowledgement.toConvexArgument(): Any? = libraryArgument(libraryWireJson.encodeToJsonElement(this))
 fun SyncPending.toConvexArgument(): Any? = libraryArgument(libraryWireJson.encodeToJsonElement(this))
+fun SyncOutcomePageRequest.toConvexArgument(): Any? = libraryArgument(libraryWireJson.encodeToJsonElement(this))
 
 fun SyncBatch.intentDigest(): String {
     fun encode(value: JsonElement): String = when (value) {

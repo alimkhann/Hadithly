@@ -4,6 +4,31 @@ import SwiftData
 @testable import Hadithly
 
 final class GuestMergePlannerTests: XCTestCase {
+    @MainActor func testManifestRestoreUsesOwnedSnapshotWithoutGuessingMembers() throws {
+        let first = "jn7fxd3z54153q9j13kmhgzkv18df2zd", second = "an7fxd3z54153q9j13kmhgzkv18df2zd"
+        func item(_ id: String, folder: String?) -> SyncSavedItem {
+            .init(hadithId: id, createdAt: 1, updatedAt: 1, bookmarkCreatedAt: 1, favoriteCreatedAt: nil, noteContent: nil, noteCreatedAt: nil,
+                noteUpdatedAt: nil, folderId: folder, hadith: .init(_id: id, providerHadithId: "1", collectionSlug: "bukhari", collectionName: "Bukhari", volumeId: "1", arabicText: "نص", englishText: nil, referenceDisplay: "Bukhari 1"))
+        }
+        var state = LibraryPartitionState()
+        state.savedSnapshot = .init(ownerKey: "owner-a", version: 1, folders: [], items: [item(first, folder: nil), item(second, folder: nil)])
+        state.append(.account(nil), command: .folderRestore(.init(deletionId: "deleted", name: "Folder", hadithIds: [first, second])), at: 1_000)
+        let frame = try XCTUnwrap(state.freeze()), operation = frame.batch.operations[0]
+        let reply = SyncReply(ownerKey: "owner-a", batchId: frame.batch.id, receipts: [.init(id: operation.id, revision: operation.revision,
+            outcome: .folderRestoredManifest(.init(manifestId: "manifest", generation: "generation", folderId: "destination", restored: 1, superseded: 0, missing: 1)))])
+        let committed = SyncCommitted(clientKey: frame.clientKey, sequence: frame.sequence, digest: "fixture-digest", revision: .init(saved: 2, position: 0), reply: reply)
+        try state.settle(.accepted(.init(committed: committed)), requested: frame, now: 2_000)
+        XCTAssertTrue(LibraryProjection(state).folders.isEmpty)
+        XCTAssertTrue(LibraryProjection(state).items.allSatisfy { $0.folderId == nil })
+        state.savedSnapshot = .init(ownerKey: "owner-a", version: 2, folders: [.init(_id: "destination", name: "Folder", createdAt: 1)], items: [item(first, folder: "destination"), item(second, folder: nil)])
+        let visible = LibraryProjection(state)
+        XCTAssertEqual(visible.folders.map(\.id), ["destination"])
+        XCTAssertEqual(visible.items.first { $0.hadithId == first }?.folderId, "destination")
+        XCTAssertNil(visible.items.first { $0.hadithId == second }?.folderId)
+        XCTAssertNil(state.acknowledgement); XCTAssertNotNil(state.frozen)
+    }
+
+
     @MainActor func testOutcomeJournalVerificationResumesAndRejectsMissingPersistedMember() async throws {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".store")
         let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), proof = outcomeProof(owner, count: 100)
@@ -218,7 +243,7 @@ final class GuestMergePlannerTests: XCTestCase {
     }
 
 
-    func testReconciledManifestCannotBypassOutcomeCollection() throws {
+    func testReconciledManifestStagesCollectionWithoutAcknowledging() throws {
         let outcomes: [SyncOutcome] = [
             .folderDeletedManifest(.init(manifestId: "manifest", generation: "generation", count: 501, deletedAt: 1_000)),
             .folderRestoredManifest(.init(manifestId: "manifest", generation: "generation", folderId: "folder", restored: 499, superseded: 1, missing: 1)),
@@ -231,11 +256,13 @@ final class GuestMergePlannerTests: XCTestCase {
                 reply: .init(ownerKey: "owner-a", batchId: frame.batch.id, receipts: [.init(id: operation.id, revision: operation.revision, outcome: outcome)]))
             let cursor = SyncCursor(closedThrough: 0, outstanding: .committed(.init(committed: committed)))
             var reconciled = original
-            XCTAssertThrowsError(try reconciled.settle(.reconcile(.init(ownerKey: "owner-a", clientKey: frame.clientKey, requestedSequence: frame.sequence, requestedBatchId: frame.batch.id, cursor: cursor)), requested: frame, now: 2_000))
-            XCTAssertEqual(reconciled, original)
+            try reconciled.settle(.reconcile(.init(ownerKey: "owner-a", clientKey: frame.clientKey, requestedSequence: frame.sequence, requestedBatchId: frame.batch.id, cursor: cursor)), requested: frame, now: 2_000)
+            XCTAssertEqual(reconciled.collectingOutcome, .init(committed: committed, origin: .historical))
+            XCTAssertEqual(reconciled.recovery, original.frozen!.changes.map(LibraryRecovery.historical)); XCTAssertNil(reconciled.acknowledgement)
+            XCTAssertThrowsError(try reconciled.freeze())
             var retired = original
-            XCTAssertThrowsError(try retired.settleRetirement(.init(ownerKey: "owner-a", clientKey: frame.clientKey, cursor: cursor), requested: frame))
-            XCTAssertEqual(retired, original)
+            try retired.settleRetirement(.init(ownerKey: "owner-a", clientKey: frame.clientKey, cursor: cursor), requested: frame)
+            XCTAssertEqual(retired, reconciled)
 
             let different = SyncBatch(id: frame.batch.id, operations: [.init(id: operation.id, revision: operation.revision, at: operation.at,
                 command: .folderDelete(.init(folder: .server(.init(id: "folder-b")))))])
@@ -243,10 +270,10 @@ final class GuestMergePlannerTests: XCTestCase {
                 intentDigest: try different.intentDigest(), manifestId: "manifest", generation: "generation", retryAfterMs: 1_000)
             var polled = original
             try polled.settle(.pending(.init(ownerKey: "owner-a", pending: pending)), requested: frame, now: 2_000)
-            let beforePoll = polled
-            XCTAssertEqual(polled.recovery.count, 1)
-            XCTAssertThrowsError(try polled.settlePending(.accepted(.init(committed: committed)), requested: pending, now: 2_000))
-            XCTAssertEqual(polled, beforePoll)
+            let previousRecovery = polled.recovery
+            try polled.settlePending(.accepted(.init(committed: committed)), requested: pending, now: 2_000)
+            XCTAssertEqual(polled.recovery, previousRecovery); XCTAssertEqual(polled.recovery.count, 1)
+            XCTAssertEqual(polled.collectingOutcome?.origin, .historical); XCTAssertNil(polled.acknowledgement)
 
             var acknowledged = original
             try acknowledged.settle(accepted(frame, reply: .init(ownerKey: "owner-a", batchId: frame.batch.id,
@@ -254,20 +281,78 @@ final class GuestMergePlannerTests: XCTestCase {
             let ack = try XCTUnwrap(acknowledged.acknowledgement), beforeAck = acknowledged
             let next = SyncCommitted(clientKey: frame.clientKey, sequence: 2, digest: "next-digest", revision: committed.revision,
                 reply: .init(ownerKey: "owner-a", batchId: "next-batch", receipts: committed.reply.receipts))
-            XCTAssertThrowsError(try acknowledged.settleAcknowledgement(.init(ownerKey: "owner-a", clientKey: frame.clientKey,
-                cursor: .init(closedThrough: 1, outstanding: .committed(.init(committed: next)))), requested: ack))
-            XCTAssertEqual(acknowledged, beforeAck)
+            try acknowledged.settleAcknowledgement(.init(ownerKey: "owner-a", clientKey: frame.clientKey,
+                cursor: .init(closedThrough: 1, outstanding: .committed(.init(committed: next)))), requested: ack)
+            XCTAssertEqual(acknowledged.collectingOutcome, .init(committed: next, origin: .historical)); XCTAssertNil(acknowledged.acknowledgement)
+            XCTAssertEqual(acknowledged.confirmed, beforeAck.confirmed)
         }
     }
 
-    func testManifestReceiptCannotAckBeforeOutcomeCollectionExists() throws {
+    func testManifestReceiptStagesOriginalUntilOutcomeCollection() throws {
         var state = LibraryPartitionState()
         state.append(.account(nil), command: .folderDelete(.init(folder: .server(.init(id: "folder")))), at: 1_000)
         let frame = try XCTUnwrap(state.freeze()), operation = frame.batch.operations[0]
         let reply = SyncReply(ownerKey: "owner-a", batchId: frame.batch.id, receipts: [.init(id: operation.id, revision: operation.revision,
             outcome: .folderDeletedManifest(.init(manifestId: "manifest", generation: "generation", count: 501, deletedAt: 1_000)))])
-        XCTAssertThrowsError(try state.settle(accepted(frame, reply: reply), requested: frame, now: 2_000))
+        try state.settle(accepted(frame, reply: reply), requested: frame, now: 2_000)
         XCTAssertEqual(state.frozen?.batch, frame.batch); XCTAssertEqual(state.nextSequence, 1); XCTAssertNil(state.acknowledgement)
+        XCTAssertEqual(state.collectingOutcome?.origin, .matched(intentDigest: try frame.batch.intentDigest()))
+        XCTAssertThrowsError(try state.freeze())
+        XCTAssertEqual(try JSONDecoder().decode(LibraryPartitionState.self, from: JSONEncoder().encode(state)), state)
+    }
+
+    @MainActor func testCoordinatorResumesManifestPagesAfterReopenWithoutAcknowledgingOrSendingLaterChanges() async throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".store")
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), session = LibrarySyncSession(id: "session-a", subject: "subject-a")
+        let store = GuestDataStore(storeURL: url); try store.claimGuestForSync(owner)
+        try store.enqueueSyncChange(.init(command: .folderDelete(.init(folder: .server(.init(id: "folder")))), at: 1_000, source: .account(nil)), owner: owner)
+        let later = LibraryLocalChange(command: .bookmarkAdd(.init(hadithId: "later", createdAt: 2_000)), at: 2_000, source: .account(nil))
+        try store.enqueueSyncChange(later, owner: owner)
+        var proof: SyncCommitted?, sends = 0, acknowledgements = 0, starts: [Double] = []
+        func transport(failAt100: Bool) -> LibrarySyncTransport {
+            .init(namespace: "fixture", open: { .init(ownerKey: owner.key, subject: owner.subject, capability: "fixture", validUntil: Date.now.millisecondsSinceEpoch + 60_000) },
+                acknowledge: { _, value in acknowledgements += 1; return self.acknowledged(value) }, send: { _, frame in
+                    sends += 1
+                    let operation = frame.batch.operations[0]
+                    let committed = SyncCommitted(clientKey: frame.clientKey, sequence: frame.sequence, digest: "fixture-digest", revision: .init(saved: 2, position: 0),
+                        reply: .init(ownerKey: owner.key, batchId: frame.batch.id, receipts: [.init(id: operation.id, revision: operation.revision,
+                            outcome: .folderDeletedManifest(.init(manifestId: "manifest", generation: "generation", count: 501, deletedAt: 1_000)))]))
+                    proof = committed
+                    return .accepted(.init(committed: committed))
+                }, outcomePage: { _, request in
+                    starts.append(request.start)
+                    if failAt100 && request.start == 100 { throw LibrarySyncFailure.storeUnavailable }
+                    return self.outcomePage(request, owner: owner, count: 501)
+                })
+        }
+        let sync = LibrarySync(store: store, transport: transport(failAt100: true), currentSession: { session })
+        await sync.activate(session)
+        XCTAssertEqual(sync.status, .failed); sync.deactivate()
+        let committed = try XCTUnwrap(proof), original = try XCTUnwrap(store.syncPartition(owner))
+        XCTAssertEqual(original.collectingOutcome?.committed, committed); XCTAssertEqual(original.pending, [later])
+        XCTAssertNotNil(original.frozen); XCTAssertNil(original.acknowledgement)
+        XCTAssertEqual(try store.outcomeEvidencePage(committed, owner: owner, start: 0).checkpoint.next, 100)
+        starts = []
+        let reopened = GuestDataStore(storeURL: url), resumed = LibrarySync(store: reopened, transport: transport(failAt100: false), currentSession: { session })
+        defer { resumed.deactivate() }
+        await resumed.activate(session)
+        try await waitForLibrary { resumed.status == .failed }
+        XCTAssertEqual(starts, stride(from: 100, through: 500, by: 50).map(Double.init))
+        XCTAssertEqual(try reopened.outcomeEvidencePage(committed, owner: owner, start: 500).checkpoint.status, .complete)
+        XCTAssertEqual(try reopened.syncPartition(owner), original)
+        XCTAssertEqual(sends, 1); XCTAssertEqual(acknowledgements, 0)
+    }
+
+    func testMalformedManifestCannotArchiveOriginalBeforeValidation() throws {
+        var state = LibraryPartitionState()
+        state.append(.account(nil), command: .folderDelete(.init(folder: .server(.init(id: "folder")))), at: 1_000)
+        let frame = try XCTUnwrap(state.freeze()), before = state, operation = frame.batch.operations[0]
+        let bad = SyncCommitted(clientKey: frame.clientKey, sequence: frame.sequence, digest: "digest", revision: .init(saved: 2, position: 0),
+            reply: .init(ownerKey: "owner-a", batchId: frame.batch.id, receipts: [.init(id: operation.id, revision: operation.revision,
+                outcome: .folderRestoredManifest(.init(manifestId: "manifest", generation: "generation", folderId: "folder", restored: 2, superseded: 0, missing: -1)))]))
+        XCTAssertThrowsError(try state.settle(.reconcile(.init(ownerKey: "owner-a", clientKey: frame.clientKey, requestedSequence: frame.sequence, requestedBatchId: frame.batch.id,
+            cursor: .init(closedThrough: 0, outstanding: .committed(.init(committed: bad))))), requested: frame, now: 2_000))
+        XCTAssertEqual(state, before)
     }
 
     @MainActor func testHeldOriginalSurvivesStoreReopenRetirementAndTerminalFailure() throws {

@@ -37,23 +37,21 @@ data class LibraryOutcomeCheckpoint(val counts: LibraryOutcomeCounts = LibraryOu
 @Serializable
 data class LibraryOutcomeAuthority(val owner: LibrarySyncOwner, val committed: SyncCommitted)
 
-class LibraryOutcomeBinding(val owner: LibrarySyncOwner, val committed: SyncCommitted) {
+val SyncCommitted.needsOutcomeCollection: Boolean get() = reply.receipts.any { it.outcome is SyncOutcome.FolderDeletedManifest || it.outcome is SyncOutcome.FolderRestoredManifest }
+
+class LibraryManifestProof(committed: SyncCommitted) {
     val request: SyncOutcomePageRequest
     val expected: LibraryOutcomeCounts
-    val key: String
-    val scopeKey: String get() = hash(listOf(owner.namespace, owner.subject, owner.key))
-    val authority: LibraryOutcomeAuthority get() = LibraryOutcomeAuthority(owner, committed)
+    val receipt: SyncReceipt
     init {
         fun identifier(value: String) = value.isNotEmpty() && value.toByteArray(Charsets.UTF_8).size <= 128
         fun count(value: Double): Long {
             if (!value.isFinite() || value < 0 || kotlin.math.floor(value) != value || value >= 9_007_199_254_740_991.0) throw LibrarySyncFailure.InvalidReceipt
             return value.toLong()
         }
-        if (committed.reply.ownerKey != owner.key) throw LibrarySyncFailure.OwnerMismatch
-        if (listOf(owner.key, owner.subject, owner.namespace).any { it.isEmpty() } ||
-            !listOf(committed.clientKey, committed.digest, committed.reply.batchId).all(::identifier) ||
+        if (!listOf(committed.clientKey, committed.digest, committed.reply.batchId).all(::identifier) ||
             count(committed.sequence) < 1 || count(committed.revision.saved) < 0 || committed.reply.receipts.size != 1) throw LibrarySyncFailure.InvalidReceipt
-        val receipt = committed.reply.receipts.single()
+        receipt = committed.reply.receipts.single()
         if (!listOf(receipt.id, receipt.revision).all(::identifier)) throw LibrarySyncFailure.InvalidReceipt
         val manifest: String; val generation: String; val phase: SyncOutcomePageRequestPhase
         when (val outcome = receipt.outcome) {
@@ -71,8 +69,29 @@ class LibraryOutcomeBinding(val owner: LibrarySyncOwner, val committed: SyncComm
         }
         if (!identifier(manifest) || !identifier(generation) || expected.total >= 9_007_199_254_740_991L) throw LibrarySyncFailure.InvalidReceipt
         request = SyncOutcomePageRequest(SyncAcknowledgement(committed.clientKey, committed.sequence, committed.reply.batchId, committed.digest), receipt.id, manifest, generation, phase, 0.0)
+    }
+}
+@Serializable
+sealed interface LibraryOutcomeOrigin {
+    @Serializable data class Matched(val intentDigest: String) : LibraryOutcomeOrigin
+    @Serializable data object Historical : LibraryOutcomeOrigin
+}
+@Serializable
+data class LibraryPendingOutcome(val committed: SyncCommitted, val origin: LibraryOutcomeOrigin)
+
+class LibraryOutcomeBinding(val owner: LibrarySyncOwner, val committed: SyncCommitted) {
+    val request: SyncOutcomePageRequest
+    val expected: LibraryOutcomeCounts
+    val key: String
+    val scopeKey: String get() = hash(listOf(owner.namespace, owner.subject, owner.key))
+    val authority: LibraryOutcomeAuthority get() = LibraryOutcomeAuthority(owner, committed)
+    init {
+        if (committed.reply.ownerKey != owner.key) throw LibrarySyncFailure.OwnerMismatch
+        if (listOf(owner.key, owner.subject, owner.namespace).any { it.isEmpty() }) throw LibrarySyncFailure.InvalidReceipt
+        val proof = LibraryManifestProof(committed)
+        request = proof.request; expected = proof.expected
         key = hash(listOf(owner.namespace, owner.subject, owner.key, committed.clientKey, committed.sequence.toLong().toString(), committed.reply.batchId,
-            committed.digest, receipt.id, receipt.revision, manifest, generation, phase.name.lowercase()))
+            committed.digest, proof.receipt.id, proof.receipt.revision, request.manifestId, request.generation, request.phase.name.lowercase()))
     }
     fun pageRequest(start: Long) = request.copy(start = start.toDouble())
     fun validate(page: SyncOutcomePage, requested: SyncOutcomePageRequest): List<SyncOutcomeMember> {

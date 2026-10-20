@@ -46,12 +46,13 @@ and migration limits. Recommend a base plus grafts, not implementation code.
 
 Workflow: [x] ground/frame; [x] distinct candidates; [x] cross-judge/synthesis;
 [x] parent server page implementation; [x] actual backend proof;
-[x] native durable journal core/proof; [ ] native coordinator/settlement/export
-cutover/proof; [x] retain open gates.
+[x] native durable journal core/proof; [x] native coordinator collection/proof;
+[ ] settlement/export cutover/proof; [x] retain open gates.
 
 The chosen contract is `outcome-collection.md`. Candidate A's row journal is the
 base, with candidate B's persistent erasure fence, unavailable-proof distinction
 and Undo-aware pruning. Source candidates and independent judgment are saved here.
-The current implementation proves the server query and native journal core. Native
-manifest guards preserve originals while coordinator, settlement and export cutover
-remain open. The journal does not itself ACK or settle a frozen operation.
+The current implementation proves the server query, native journal core and native
+coordinator collection. The persisted collection phase preserves originals while
+settlement and export cutover remain open. The journal does not itself ACK or settle
+a frozen operation.

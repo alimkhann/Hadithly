@@ -159,6 +159,11 @@ failure resumes after its first committed batch. See
 `LIBRARY_OUTCOME_JOURNAL_VERIFICATION.md`. This stores evidence only. Every manifest
 ACK guard remains until coordinator/settlement, full export, Saved revision barriers
 and retention are integrated. The public producer and full A2 gate remain open.
+The actual native coordinators now route direct and adopted manifests into durable
+matched/historical collection phases and fetch journal pages. Interrupted 501-member
+reopen fixtures pass with zero ACKs and no later sends, with 68 iOS/48 Android checks.
+See `LIBRARY_OUTCOME_COORDINATOR_VERIFICATION.md`. The no-ACK guard now lives in the
+persisted phase. Final settlement/export/pruning and public cutover remain open.
 Continue A2 integration while retaining A1's content dependencies. No paid
 generation or production change has been approved. Research, later native redesign, website and Linear remain
 pending in the owner's requested order.

@@ -646,7 +646,7 @@ struct LibraryProjection {
             byID[id] ?? .init(hadithId: id, createdAt: date(change.operation.at), updatedAt: date(change.operation.at), hadith: change.source.reference)
         }
         let changes: [(LibraryLocalChange, SyncOutcome?)] = state.confirmed.map { ($0.change, $0.outcome) }
-            + (state.frozen?.changes ?? []).map { ($0, nil) } + state.pending.map { ($0, nil) }
+            + state.projectedFrozenChanges.map { ($0, nil) } + state.pending.map { ($0, nil) }
         for (change, outcome) in changes {
             let at = date(change.operation.at)
             switch change.operation.command {

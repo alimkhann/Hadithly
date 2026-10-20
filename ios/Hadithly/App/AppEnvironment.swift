@@ -130,6 +130,9 @@ final class AppEnvironment {
         }, poll: { capability, pending in
             for try await value in libraryClient.subscribe(to: "librarySync:pollPending", with: ["capability": capability, "pending": pending], yielding: SyncExchange.self).values { return value }
             throw LibrarySyncFailure.invalidReceipt
+        }, outcomePage: { capability, request in
+            for try await value in libraryClient.subscribe(to: "librarySync:outcomePage", with: ["capability": capability, "request": request], yielding: SyncOutcomePage.self).values { return value }
+            throw LibrarySyncFailure.invalidReceipt
         }), currentSession: currentLibrarySession)
         self.library = UserLibraryModel(convex: convex, guestData: self.guestData, sync: self.librarySync, currentSession: currentLibrarySession)
         let privateLibrary = self.library

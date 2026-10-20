@@ -198,6 +198,12 @@ checks pass 65 iOS and 45 Android tests; see
 change the partition while collecting. Coordinator/settlement, full local export,
 Saved revision and pruning integration remain open alongside the public producer.
 The full A2 gate and all previously listed deployment/device/release gates stay open.
+Both native coordinators now persist matched/historical collection phases and drive
+the journal through the registered page transport. Full 501-member interrupted/reopen
+fixtures pass with one send and zero ACKs, with 68 iOS/48 Android checks overall.
+See `docs/LIBRARY_OUTCOME_COORDINATOR_VERIFICATION.md`. Completed/unavailable journals
+still stop behind the settlement/export guard. Final settlement, full local export,
+retention, public producer and the existing full A2/deployment gates remain open.
 
 ## Read the plan in layers
 

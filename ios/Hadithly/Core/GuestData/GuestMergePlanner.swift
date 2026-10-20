@@ -416,23 +416,25 @@ struct LibraryOutcomeCheckpoint: Codable, Equatable, Sendable {
     var next: Int { counts.total }
 }
 
-struct LibraryOutcomeBinding: Codable, Equatable, Sendable {
-    let owner: LibrarySyncOwner
-    let committed: SyncCommitted
+extension SyncCommitted {
+    var needsOutcomeCollection: Bool {
+        reply.receipts.contains { receipt in
+            switch receipt.outcome { case .folderDeletedManifest, .folderRestoredManifest: true; default: false }
+        }
+    }
+}
+
+struct LibraryManifestProof {
     let request: SyncOutcomePageRequest
     let expected: LibraryOutcomeCounts
-    let key: String
-    var scopeKey: String { Self.hash([owner.namespace, owner.subject, owner.key]) }
-
-    init(owner: LibrarySyncOwner, committed: SyncCommitted) throws {
+    let receipt: SyncReceipt
+    init(_ committed: SyncCommitted) throws {
         func identifier(_ value: String) -> Bool { !value.isEmpty && value.utf8.count <= 128 }
         func count(_ value: Double) throws -> Int {
             guard value.isFinite, value >= 0, value.rounded(.down) == value, value < 9_007_199_254_740_991 else { throw LibrarySyncFailure.invalidReceipt }
             return Int(value)
         }
-        guard committed.reply.ownerKey == owner.key else { throw LibrarySyncFailure.ownerMismatch }
-        guard [owner.key, owner.subject, owner.namespace].allSatisfy({ !$0.isEmpty }),
-              [committed.clientKey, committed.digest, committed.reply.batchId].allSatisfy(identifier),
+        guard [committed.clientKey, committed.digest, committed.reply.batchId].allSatisfy(identifier),
               committed.sequence >= 1, try count(committed.sequence) > 0,
               try count(committed.revision.saved) >= 0,
               committed.reply.receipts.count == 1, let receipt = committed.reply.receipts.first,
@@ -450,11 +452,33 @@ struct LibraryOutcomeBinding: Codable, Equatable, Sendable {
         default: throw LibrarySyncFailure.invalidReceipt
         }
         guard identifier(manifest), identifier(generation), expected.total < 9_007_199_254_740_991 else { throw LibrarySyncFailure.invalidReceipt }
-        self.owner = owner; self.committed = committed; self.expected = expected
+        self.expected = expected; self.receipt = receipt
         request = .init(proof: .init(clientKey: committed.clientKey, sequence: committed.sequence, batchId: committed.reply.batchId, digest: committed.digest),
             receiptId: receipt.id, manifestId: manifest, generation: generation, phase: phase, start: 0)
+    }
+}
+
+enum LibraryOutcomeOrigin: Codable, Equatable, Sendable { case matched(intentDigest: String), historical }
+struct LibraryPendingOutcome: Codable, Equatable, Sendable {
+    let committed: SyncCommitted
+    let origin: LibraryOutcomeOrigin
+}
+
+struct LibraryOutcomeBinding: Codable, Equatable, Sendable {
+    let owner: LibrarySyncOwner
+    let committed: SyncCommitted
+    let request: SyncOutcomePageRequest
+    let expected: LibraryOutcomeCounts
+    let key: String
+    var scopeKey: String { Self.hash([owner.namespace, owner.subject, owner.key]) }
+
+    init(owner: LibrarySyncOwner, committed: SyncCommitted) throws {
+        guard committed.reply.ownerKey == owner.key else { throw LibrarySyncFailure.ownerMismatch }
+        guard [owner.key, owner.subject, owner.namespace].allSatisfy({ !$0.isEmpty }) else { throw LibrarySyncFailure.invalidReceipt }
+        let proof = try LibraryManifestProof(committed)
+        self.owner = owner; self.committed = committed; expected = proof.expected; request = proof.request
         key = Self.hash([owner.namespace, owner.subject, owner.key, committed.clientKey, String(Int(committed.sequence)), committed.reply.batchId,
-            committed.digest, receipt.id, receipt.revision, manifest, generation, phase.rawValue])
+            committed.digest, proof.receipt.id, proof.receipt.revision, request.manifestId, request.generation, request.phase.rawValue])
     }
     private enum CodingKeys: String, CodingKey { case owner, committed }
     init(from decoder: Decoder) throws {
@@ -517,12 +541,13 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
     var nextSequence = 1
     var acknowledgement: SyncAcknowledgement?
     var waiting: SyncPending?
+    var collectingOutcome: LibraryPendingOutcome?
     var confirmed: [LibraryConfirmedChange] = []
     var folderMappings: [String: String] = [:]
     var savedSnapshot: SyncSavedSnapshot?
     var positionsSnapshot: SyncPositionsSnapshot?
 
-    private enum CodingKeys: String, CodingKey { case pending, frozen, recovery, recent, clientKey, nextSequence, acknowledgement, waiting, confirmed, folderMappings, savedSnapshot, positionsSnapshot }
+    private enum CodingKeys: String, CodingKey { case pending, frozen, recovery, recent, clientKey, nextSequence, acknowledgement, waiting, collectingOutcome, confirmed, folderMappings, savedSnapshot, positionsSnapshot }
     init() { }
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
@@ -534,10 +559,19 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
         nextSequence = try values.decodeIfPresent(Int.self, forKey: .nextSequence) ?? 1
         acknowledgement = try values.decodeIfPresent(SyncAcknowledgement.self, forKey: .acknowledgement)
         waiting = try values.decodeIfPresent(SyncPending.self, forKey: .waiting)
+        collectingOutcome = try values.decodeIfPresent(LibraryPendingOutcome.self, forKey: .collectingOutcome)
         confirmed = try values.decodeIfPresent([LibraryConfirmedChange].self, forKey: .confirmed) ?? []
         folderMappings = try values.decodeIfPresent([String: String].self, forKey: .folderMappings) ?? [:]
         savedSnapshot = try values.decodeIfPresent(SyncSavedSnapshot.self, forKey: .savedSnapshot)
         positionsSnapshot = try values.decodeIfPresent(SyncPositionsSnapshot.self, forKey: .positionsSnapshot)
+    }
+
+    var projectedFrozenChanges: [LibraryLocalChange] {
+        guard let collectingOutcome else { return frozen?.changes ?? [] }
+        return (frozen?.changes ?? []).filter { change in
+            if case .folderDelete = change.operation.command { return (savedSnapshot?.version ?? -1) < collectingOutcome.committed.revision.saved }
+            return false
+        }
     }
 
     mutating func pruneConfirmed() {
@@ -552,7 +586,7 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
         pending.append(.init(command: command, at: at, source: source))
     }
     mutating func freeze() throws -> SyncFrame? {
-        guard acknowledgement == nil, waiting == nil else { throw LibrarySyncFailure.invalidReceipt }
+        guard acknowledgement == nil, waiting == nil, collectingOutcome == nil else { throw LibrarySyncFailure.invalidReceipt }
         if let frozen {
             guard frozen.changes.map(\.operation) == frozen.batch.operations else { throw LibrarySyncFailure.invalidReceipt }
             return SyncFrame(clientKey: clientKey, sequence: Double(nextSequence), batch: frozen.batch)
@@ -617,12 +651,7 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
         if let active = cursor.outstanding?.committedValue {
             guard active.clientKey == clientKey, active.sequence == cursor.closedThrough + 1,
                   !active.reply.batchId.isEmpty, !active.digest.isEmpty else { throw LibrarySyncFailure.invalidReceipt }
-            for receipt in active.reply.receipts {
-                switch receipt.outcome {
-                case .folderDeletedManifest, .folderRestoredManifest: throw LibrarySyncFailure.invalidReceipt
-                default: break
-                }
-            }
+            if active.needsOutcomeCollection { _ = try LibraryManifestProof(active) }
         }
         if let pending = cursor.outstanding?.pendingValue {
             guard pending.clientKey == clientKey, pending.sequence == cursor.closedThrough + 1,
@@ -635,6 +664,23 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
 
     private mutating func adopt(_ cursor: SyncCursor) throws {
         try checkCursor(cursor)
+        guard collectingOutcome == nil else { throw LibrarySyncFailure.invalidReceipt }
+        if let committed = cursor.outstanding?.committedValue, committed.needsOutcomeCollection {
+            var origin = LibraryOutcomeOrigin.historical
+            if let waiting, waiting.clientKey == committed.clientKey, waiting.sequence == committed.sequence,
+               waiting.batchId == committed.reply.batchId, waiting.digest == committed.digest,
+               let frozen, (try? frozen.batch.intentDigest()) == waiting.intentDigest {
+                try validateMatchedOutcome(committed)
+                origin = .matched(intentDigest: waiting.intentDigest)
+            } else {
+                if let frozen { recovery.append(contentsOf: frozen.changes.map(LibraryRecovery.historical)) }
+                frozen = nil
+            }
+            collectingOutcome = .init(committed: committed, origin: origin)
+            nextSequence = Int(cursor.closedThrough) + 1
+            self.waiting = nil; acknowledgement = nil
+            return
+        }
         let pending = cursor.outstanding?.pendingValue
         let keepOriginal = pending.map { $0.sequence == Double(nextSequence) && $0.batchId == frozen?.batch.id && $0.intentDigest == (try? frozen?.batch.intentDigest()) } ?? false
         if !keepOriginal {
@@ -646,13 +692,31 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
         acknowledgement = cursor.outstanding?.committedValue.map { .init(clientKey: clientKey, sequence: $0.sequence, batchId: $0.reply.batchId, digest: $0.digest) }
     }
 
+    private func validateMatchedOutcome(_ committed: SyncCommitted) throws {
+        let proof = try LibraryManifestProof(committed)
+        guard let frozen, frozen.batch.id == committed.reply.batchId, frozen.changes.map(\.operation) == frozen.batch.operations,
+              frozen.changes.count == 1, let operation = frozen.batch.operations.first,
+              operation.id == proof.receipt.id, operation.revision == proof.receipt.revision else { throw LibrarySyncFailure.invalidReceipt }
+        switch (operation.command, proof.receipt.outcome) {
+        case (.folderDelete, .folderDeletedManifest), (.folderRestore, .folderRestoredManifest): break
+        default: throw LibrarySyncFailure.invalidReceipt
+        }
+    }
+
     mutating func settle(_ exchange: SyncExchange, requested: SyncFrame, now: Double) throws {
         guard requested.clientKey == clientKey, requested.sequence == Double(nextSequence), frozen?.batch == requested.batch,
-              acknowledgement == nil else { throw LibrarySyncFailure.invalidReceipt }
+              acknowledgement == nil, collectingOutcome == nil else { throw LibrarySyncFailure.invalidReceipt }
         switch exchange {
         case .accepted(let value):
             let committed = value.committed
             guard committed.clientKey == clientKey, committed.sequence == requested.sequence, !committed.digest.isEmpty else { throw LibrarySyncFailure.invalidReceipt }
+            if committed.needsOutcomeCollection {
+                try validateMatchedOutcome(committed)
+                guard let frozen else { throw LibrarySyncFailure.invalidReceipt }
+                collectingOutcome = .init(committed: committed, origin: .matched(intentDigest: try frozen.batch.intentDigest()))
+                waiting = nil
+                return
+            }
             let submitted = frozen?.changes ?? []
             try settleReceipts(committed.reply, now: now)
             for change in submitted {
@@ -744,6 +808,7 @@ struct LibrarySyncTransport {
     let send: (String, SyncFrame) async throws -> SyncExchange
     var retireInvalid: (String, SyncFrame) async throws -> SyncAckReply = { _, _ in throw LibrarySyncFailure.invalidChange }
     var poll: (String, SyncPending) async throws -> SyncExchange = { _, _ in throw LibrarySyncFailure.invalidChange }
+    var outcomePage: (String, SyncOutcomePageRequest) async throws -> SyncOutcomePage = { _, _ in throw LibrarySyncFailure.invalidChange }
 }
 
 @MainActor
@@ -869,6 +934,19 @@ final class LibrarySync {
                 try check(session, epoch: epoch)
                 try store.claimGuestForSync(owner)
                 onPartitionChange(owner)
+                if let collection = try store.syncPartition(owner)?.collectingOutcome {
+                    let checkpoint = try await store.collectOutcomeStep(collection.committed, owner: owner, isCurrent: {
+                        (try? self.check(session, epoch: epoch)) != nil
+                    }, fetch: { request in try await self.transport.outcomePage(binding.capability, request) })
+                    try check(session, epoch: epoch)
+                    switch checkpoint.status {
+                    case .collecting, .verifying: continue
+                    case .complete, .unavailable:
+                        // Collection alone does not authorize settlement or ACK.
+                        status = .failed
+                        return
+                    }
+                }
                 if let waiting = try store.syncPartition(owner)?.pollRequest() {
                     let reply = try await transport.poll(binding.capability, waiting)
                     try store.settleSyncPending(reply, requested: waiting, owner: owner, now: now())

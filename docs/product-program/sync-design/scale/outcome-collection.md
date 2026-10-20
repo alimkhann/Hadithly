@@ -1,8 +1,8 @@
 # Paged outcome collection contract
 
 October 20, 2026. A2 continuation. This is the chosen native design and the
-implemented server page contract. The native journal core is implemented; coordinator,
-settlement, export and app cutover still require integration and proof. No deployment
+implemented server page contract. Native journal and coordinator collection are
+implemented; settlement, export and app cutover still require integration and proof. No deployment
 is authorized by this record.
 
 ## Caller and ownership

@@ -26,7 +26,7 @@ class LibraryProjection(state: LibraryPartitionState) {
             is SyncFolderReference.Local -> state.folderMappings[value.key] ?: "local:${value.key}"
         }
         fun initial(id: String, change: LibraryLocalChange) = byId[id] ?: SavedItemEntry(id, change.operation.at, change.operation.at, hadith = change.source.reference)
-        val changes: List<Pair<LibraryLocalChange, SyncOutcome?>> = state.confirmed.map { it.change to it.outcome } + state.frozen?.changes.orEmpty().map { it to null } + state.pending.map { it to null }
+        val changes: List<Pair<LibraryLocalChange, SyncOutcome?>> = state.confirmed.map { it.change to it.outcome } + state.projectedFrozenChanges.map { it to null } + state.pending.map { it to null }
         for ((change, outcome) in changes) {
             val at = change.operation.at
             when (val command = change.operation.command) {
