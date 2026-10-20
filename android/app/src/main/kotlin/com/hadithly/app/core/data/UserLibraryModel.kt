@@ -325,7 +325,10 @@ class UserLibraryModel private constructor(
             try { reads.savedSnapshot().collect { value ->
                 if (!matches(owner, session, capturedEpoch) || value.ownerKey != owner.key) return@collect
                 guestData.cacheSavedSnapshot(value, owner)
-                if (matches(owner, session, capturedEpoch)) reloadAccount(owner)
+                if (matches(owner, session, capturedEpoch)) {
+                    reloadAccount(owner)
+                    if (matches(owner, session, capturedEpoch)) account?.sync?.wake()
+                }
             } } catch (cancelled: CancellationException) { throw cancelled }
             catch (_: Exception) { subscriptionFailed(owner, session, capturedEpoch) }
         })

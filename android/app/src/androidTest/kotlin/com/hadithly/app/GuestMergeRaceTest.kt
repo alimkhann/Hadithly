@@ -506,6 +506,180 @@ class GuestMergeRaceTest {
         try { state.freeze(); fail("Froze past collection") } catch (_: LibrarySyncFailure.InvalidReceipt) { }
         assertEquals(state, Json.decodeFromString<LibraryPartitionState>(Json.encodeToString(state)))
     }
+    @Test fun outcomeSettlementUnavailablePolicySurvivesReopenAndExport() = runBlocking {
+        for (reason in listOf(SyncOutcomePageUnavailableReason.DETAIL_UNAVAILABLE, SyncOutcomePageUnavailableReason.PROOF_UNAVAILABLE)) isolated { store, reopen, _ ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
+            val original = LibraryLocalChange(SyncCommand.FolderRestore("deleted", "Original unavailable", listOf("hadith-0")), 1_000.0, LibraryLocalSource.Account(null))
+            store.enqueueSyncChange(original, owner)
+            val frame = store.freezeSyncFrame(owner)!!; val operation = frame.batch.operations.single()
+            val proof = SyncCommitted(frame.clientKey, frame.sequence, "fixture-digest", SyncRevision(2.0, 0.0), SyncReply(owner.key, frame.batch.id, listOf(
+                SyncReceipt(operation.id, operation.revision, SyncOutcome.FolderRestoredManifest("manifest", "generation", "destination", 50.0, 0.0, 1.0)))))
+            store.settleSyncExchange(SyncExchange.Accepted(proof), frame, owner)
+            store.collectOutcomeStep(proof, owner, { true }) { outcomePage(it, owner, 51, restore = true) }
+            store.collectOutcomeStep(proof, owner, { true }) { SyncOutcomePage.Unavailable(owner.key, it, reason) }
+            store.cacheSavedSnapshot(SyncSavedSnapshot(owner.key, 2.0, emptyList(), emptyList()), owner)
+            val before = store.syncPartition(owner)!!; val pending = before.collectingOutcome!!; val reopened = reopen()
+            assertEquals(if (reason == SyncOutcomePageUnavailableReason.DETAIL_UNAVAILABLE) LibraryOutcomeSettlement.Settled else LibraryOutcomeSettlement.ProofUnavailable, reopened.settleCollectedOutcome(pending, owner, 2_000.0))
+            if (reason == SyncOutcomePageUnavailableReason.PROOF_UNAVAILABLE) assertEquals(before, reopened.syncPartition(owner)) else assertNotNull(reopened.syncPartition(owner)!!.acknowledgement)
+            val fixture = AndroidLibraryFacadeFixture(reopened)
+            try {
+                fixture.start(); assertEquals(if (reason == SyncOutcomePageUnavailableReason.DETAIL_UNAVAILABLE) 1 else 0, fixture.server.acknowledgements)
+                withContext(Dispatchers.Main) {
+                    val captured = fixture.sync.captureWriteContext(); val export = fixture.sync.preparePortableExport(kotlinx.serialization.json.JsonObject(emptyMap()), captured, "export.json")
+                    try {
+                        val data = export.file.readText(); val document = Json.parseToJsonElement(data) as kotlinx.serialization.json.JsonObject
+                        val entry = (document["localOutcomeEvidence"] as kotlinx.serialization.json.JsonArray).single() as kotlinx.serialization.json.JsonObject
+                        assertEquals(50, (entry["rows"] as kotlinx.serialization.json.JsonArray).size)
+                        assertEquals(kotlinx.serialization.json.JsonPrimitive(false), entry["detailComplete"])
+                        assertTrue(data.contains("Original unavailable"))
+                    } finally { fixture.sync.discardPreparedExport(export) }
+                }
+            } finally { fixture.stop() }
+        }
+    }
+
+    @Test fun outcomeSettlementRejectsForeignScopeAndErasedOwnerWithoutRecreation() = runBlocking {
+        isolated { store, reopen, _ ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
+            store.enqueueSyncChange(LibraryLocalChange(SyncCommand.FolderDelete(SyncFolderReference.Server("folder")), 1_000.0, LibraryLocalSource.Account(null)), owner)
+            val frame = store.freezeSyncFrame(owner)!!; val operation = frame.batch.operations.single()
+            val proof = SyncCommitted(frame.clientKey, frame.sequence, "fixture-digest", SyncRevision(2.0, 0.0), SyncReply(owner.key, frame.batch.id, listOf(
+                SyncReceipt(operation.id, operation.revision, SyncOutcome.FolderDeletedManifest("manifest", "generation", 1.0, 1_000.0)))))
+            store.settleSyncExchange(SyncExchange.Accepted(proof), frame, owner); collectExportFacts(proof, owner, 1, store)
+            store.cacheSavedSnapshot(SyncSavedSnapshot(owner.key, 2.0, emptyList(), emptyList()), owner)
+            val before = store.syncPartition(owner)!!; val pending = before.collectingOutcome!!
+            val foreign = LibrarySyncOwner(owner.key, owner.subject, "other-deployment")
+            try { store.settleCollectedOutcome(pending, foreign, 2_000.0); fail("Foreign scope settled") } catch (_: LibrarySyncFailure.SessionChanged) { }
+            assertEquals(before, store.syncPartition(owner)); assertNull(store.syncPartition(foreign))
+            store.beginDeletion(owner.subject, owner.namespace); store.markDeletionBackendComplete(owner.subject, owner.namespace)
+            val reopened = reopen()
+            try { reopened.settleCollectedOutcome(pending, owner, 2_000.0); fail("Erased owner settled") } catch (_: LibrarySyncFailure.AccountDeleting) { }
+            assertNull(reopened.syncPartition(owner))
+            try { reopened.outcomeEvidencePage(proof, owner, 0); fail("Erased evidence recreated") } catch (_: LibrarySyncFailure.StoreUnavailable) { }
+        }
+    }
+
+    @Test fun outcomeSettlementWriteFailureKeepsFrozenAndRetryAdvancesOnce() = runBlocking {
+        isolated { store, reopen, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
+            store.enqueueSyncChange(LibraryLocalChange(SyncCommand.FolderDelete(SyncFolderReference.Server("folder")), 1_000.0, LibraryLocalSource.Account(null)), owner)
+            val frame = store.freezeSyncFrame(owner)!!; val operation = frame.batch.operations.single()
+            val proof = SyncCommitted(frame.clientKey, frame.sequence, "fixture-digest", SyncRevision(2.0, 0.0), SyncReply(owner.key, frame.batch.id, listOf(
+                SyncReceipt(operation.id, operation.revision, SyncOutcome.FolderDeletedManifest("manifest", "generation", 1.0, 1_000.0)))))
+            store.settleSyncExchange(SyncExchange.Accepted(proof), frame, owner)
+            collectExportFacts(proof, owner, 1, store)
+            store.cacheSavedSnapshot(SyncSavedSnapshot(owner.key, 2.0, emptyList(), emptyList()), owner)
+            val before = store.syncPartition(owner)!!; val pending = before.collectingOutcome!!
+            assertTrue(directory.setWritable(false, false))
+            try {
+                try { store.settleCollectedOutcome(pending, owner, 2_000.0); fail("Failed AtomicFile write settled") } catch (_: java.io.IOException) { }
+            } finally { assertTrue(directory.setWritable(true, true)) }
+            val reopened = reopen(); assertEquals(before, reopened.syncPartition(owner))
+            assertEquals(LibraryOutcomeSettlement.Settled, reopened.settleCollectedOutcome(pending, owner, 7_000.0))
+            val settled = reopened.syncPartition(owner)
+            assertEquals(LibraryOutcomeSettlement.Settled, reopened.settleCollectedOutcome(pending, owner, 8_000.0)); assertEquals(settled, reopened.syncPartition(owner))
+            assertTrue(settled!!.recent.isEmpty()); assertEquals(1, reopened.outcomeEvidencePage(proof, owner, 0).rows.size)
+        }
+    }
+
+    @Test fun outcomeSettlementTerminalPoliciesAndExactIntent() {
+        val owner = LibrarySyncOwner("owner-a", "subject-a")
+        for (mode in listOf("delete", "restore", "partial", "detail", "proof", "historical")) {
+            val state = LibraryPartitionState()
+            val command = if (mode == "delete") SyncCommand.FolderDelete(SyncFolderReference.Server("folder")) else SyncCommand.FolderRestore("deleted", "Original folder", listOf("hadith-0", "hadith-1"))
+            state.append(LibraryLocalSource.Account(null), command, 1_000.0)
+            val frame = state.freeze()!!; val operation = frame.batch.operations.single()
+            val outcome = if (mode == "delete") SyncOutcome.FolderDeletedManifest("manifest", "generation", 51.0, 1_000.0)
+                else SyncOutcome.FolderRestoredManifest("manifest", "generation", "destination", 50.0, 0.0, if (mode == "restore") 0.0 else 1.0)
+            val proof = SyncCommitted(frame.clientKey, frame.sequence, "fixture-digest", SyncRevision(2.0, 0.0), SyncReply(owner.key, frame.batch.id, listOf(SyncReceipt(operation.id, operation.revision, outcome))))
+            if (mode == "historical") state.settle(SyncExchange.Reconcile(owner.key, frame.clientKey, frame.sequence, frame.batch.id, SyncCursor(0.0, SyncOutstanding.Committed(proof))), frame, 2_000.0)
+            else state.settle(SyncExchange.Accepted(proof), frame, 2_000.0)
+            val pending = state.collectingOutcome!!; val binding = LibraryOutcomeBinding(owner, proof)
+            val checkpoint = if (mode == "detail" || mode == "proof") LibraryOutcomeCheckpoint(LibraryOutcomeCounts(restored = 50), LibraryOutcomeStatus.Unavailable(if (mode == "detail") SyncOutcomePageUnavailableReason.DETAIL_UNAVAILABLE else SyncOutcomePageUnavailableReason.PROOF_UNAVAILABLE))
+                else LibraryOutcomeCheckpoint(binding.expected, LibraryOutcomeStatus.Complete)
+            state.savedSnapshot = SyncSavedSnapshot(owner.key, 1.0, emptyList(), emptyList())
+            val before = Json.encodeToString(state)
+            assertEquals(if (mode == "proof") LibraryOutcomeSettlement.ProofUnavailable else LibraryOutcomeSettlement.AwaitingSaved, state.settleCollectedOutcome(pending, binding, checkpoint, 2_000.0))
+            assertEquals(before, Json.encodeToString(state))
+            state.savedSnapshot = SyncSavedSnapshot(owner.key, 3.0, emptyList(), emptyList())
+            if (mode == "proof") {
+                val blocked = Json.encodeToString(state)
+                assertEquals(LibraryOutcomeSettlement.ProofUnavailable, state.settleCollectedOutcome(pending, binding, checkpoint, 2_000.0)); assertEquals(blocked, Json.encodeToString(state)); continue
+            }
+            val original = state.frozen?.changes?.single()
+            if (mode == "delete") {
+                val late = state.copy()
+                assertEquals(LibraryOutcomeSettlement.Settled, late.settleCollectedOutcome(pending, binding, checkpoint, 7_000.0)); assertTrue(late.recent.isEmpty())
+            }
+            if (mode == "partial") {
+                for (status in listOf(LibraryOutcomeStatus.Collecting, LibraryOutcomeStatus.Verifying(LibraryOutcomeCounts()))) {
+                    val unfinished = state.copy(); val unfinishedBefore = Json.encodeToString(unfinished)
+                    assertEquals(LibraryOutcomeSettlement.Collecting, unfinished.settleCollectedOutcome(pending, binding, LibraryOutcomeCheckpoint(binding.expected, status), 2_000.0)); assertEquals(unfinishedBefore, Json.encodeToString(unfinished))
+                }
+                val incomplete = state.copy(); val incompleteBefore = Json.encodeToString(incomplete)
+                try { incomplete.settleCollectedOutcome(pending, binding, LibraryOutcomeCheckpoint(status = LibraryOutcomeStatus.Complete), 2_000.0); fail("Incomplete totals accepted") } catch (_: LibrarySyncFailure.InvalidReceipt) { }; assertEquals(incompleteBefore, Json.encodeToString(incomplete))
+                val missing = state.copy(frozen = null); val missingBefore = Json.encodeToString(missing)
+                try { missing.settleCollectedOutcome(pending, binding, checkpoint, 2_000.0); fail("Missing original accepted") } catch (_: LibrarySyncFailure.InvalidReceipt) { }; assertEquals(missingBefore, Json.encodeToString(missing))
+                val wrongOwner = state.copy(savedSnapshot = SyncSavedSnapshot("owner-b", 3.0, emptyList(), emptyList())); val wrongBefore = Json.encodeToString(wrongOwner)
+                try { wrongOwner.settleCollectedOutcome(pending, binding, checkpoint, 2_000.0); fail("Foreign snapshot accepted") } catch (_: LibrarySyncFailure.OwnerMismatch) { }; assertEquals(wrongBefore, Json.encodeToString(wrongOwner))
+                val fork = Json.decodeFromString<LibraryPartitionState>(Json.encodeToString(state).replace("Original folder", "Changed folder")); val forkBefore = Json.encodeToString(fork)
+                try { fork.settleCollectedOutcome(pending, binding, checkpoint, 2_000.0); fail("Changed original accepted") } catch (_: LibrarySyncFailure.InvalidReceipt) { }; assertEquals(forkBefore, Json.encodeToString(fork))
+                val conflict = state.copy(folderMappings = mapOf("restore:deleted" to "another-folder")); val conflictBefore = Json.encodeToString(conflict)
+                try { conflict.settleCollectedOutcome(pending, binding, checkpoint, 2_000.0); fail("Alias collision replaced") } catch (_: LibrarySyncFailure.InvalidReceipt) { }; assertEquals(conflictBefore, Json.encodeToString(conflict))
+            }
+            assertEquals(LibraryOutcomeSettlement.Settled, state.settleCollectedOutcome(pending, binding, checkpoint, 2_000.0))
+            assertEquals(2.0, state.nextSequence, 0.0); assertNull(state.collectingOutcome); assertNull(state.frozen)
+            if (mode == "delete") { assertEquals(listOf(6_000.0), state.recent.map { it.expiresAt }); assertTrue(state.recovery.isEmpty()) }
+            else if (mode == "restore") { assertEquals("destination", state.folderMappings["restore:deleted"]); assertTrue(state.recovery.isEmpty()) }
+            else {
+                val retained = state.recovery.last() as LibraryRecovery.Outcome
+                assertEquals(binding.authority, retained.authority); assertEquals(checkpoint, retained.checkpoint)
+                assertEquals(if (mode == "historical") null else original, retained.original)
+                if (mode == "historical") assertEquals(2, state.recovery.size)
+            }
+            val settled = Json.encodeToString(state)
+            assertEquals(LibraryOutcomeSettlement.Settled, state.settleCollectedOutcome(pending, binding, checkpoint, 7_000.0)); assertEquals(settled, Json.encodeToString(state))
+        }
+    }
+
+    @Test fun manifestSettlementWaitsForOwnedSavedThenPersistsRecoveryBeforeRetryableAck() = runBlocking {
+        isolated { store, reopen, _ ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
+            val original = LibraryLocalChange(SyncCommand.FolderRestore("deleted", "Original folder", listOf("hadith-0", "hadith-1")), 1_000.0, LibraryLocalSource.Account(null))
+            store.enqueueSyncChange(original, owner)
+            val frame = store.freezeSyncFrame(owner)!!; val operation = frame.batch.operations.single()
+            val proof = SyncCommitted(frame.clientKey, frame.sequence, "fixture-digest", SyncRevision(2.0, 0.0), SyncReply(owner.key, frame.batch.id, listOf(
+                SyncReceipt(operation.id, operation.revision, SyncOutcome.FolderRestoredManifest("manifest", "generation", "restored-folder", 1.0, 0.0, 1.0)))))
+            store.settleSyncExchange(SyncExchange.Accepted(proof), frame, owner)
+            repeat(2) { store.collectOutcomeStep(proof, owner, { true }) { outcomePage(it, owner, 2, restore = true) } }
+            val later = LibraryLocalChange(SyncCommand.NotePut("later", "Later original", 2_000.0, 2_000.0), 2_000.0, LibraryLocalSource.Account(null))
+            store.enqueueSyncChange(later, owner)
+            val fixture = AndroidLibraryFacadeFixture(store); fixture.server.failAcknowledgements = true
+            try {
+                fixture.start(); fixture.saved.emit(fixture.snapshot(1.0, "Before barrier"))
+                withTimeout(3_000) { while (store.syncPartition(owner)?.savedSnapshot?.version != 1.0) delay(10) }
+                assertEquals(0, fixture.server.acknowledgements); assertNotNull(store.syncPartition(owner)!!.frozen)
+                fixture.saved.emit(fixture.snapshot(2.0, "Authoritative"))
+                waitForLibrary { fixture.server.acknowledgements > 0 }
+                val settled = store.syncPartition(owner)!!
+                assertNull(settled.collectingOutcome); assertNull(settled.frozen)
+                assertEquals(listOf(later), settled.pending); assertEquals(2.0, settled.nextSequence, 0.0)
+                assertNotNull(settled.acknowledgement); assertEquals(1, settled.recovery.size)
+                assertEquals("restored-folder", settled.folderMappings["restore:deleted"])
+                assertTrue(Json.encodeToString(settled.recovery).contains("Original folder"))
+                fixture.stop()
+                val reopened = reopen(); val resumed = AndroidLibraryFacadeFixture(reopened)
+                try {
+                    resumed.start()
+                    assertEquals(1, resumed.server.acknowledgements)
+                    assertNull(reopened.syncPartition(owner)!!.acknowledgement)
+                    assertEquals(settled.recovery, reopened.syncPartition(owner)!!.recovery)
+                    assertEquals(listOf(later), reopened.syncPartition(owner)!!.frozen!!.changes)
+                    assertEquals(2, reopened.outcomeEvidencePage(proof, owner, 0).rows.size)
+                } finally { resumed.stop() }
+            } finally { fixture.stop() }
+        }
+    }
     @Test fun coordinatorResumesManifestPagesAfterReopenWithoutAcknowledgingOrSendingLaterChanges() = runBlocking {
         isolated { store, reopen, _ ->
             val owner = LibrarySyncOwner("owner-a", "subject-a"); val session = LibrarySyncSession("session-a", "subject-a")
@@ -544,7 +718,7 @@ class GuestMergeRaceTest {
                 val reopened = reopen(); val resumed = LibrarySync(reopened, transport(false), scope, { session })
                 try {
                     resumed.activate(session)
-                    withTimeout(8_000) { resumed.status.first { it == LibrarySync.Status.Failed } }
+                    withTimeout(8_000) { resumed.status.first { it == LibrarySync.Status.WaitingForSaved } }
                     assertEquals((100..500 step 50).map { it.toDouble() }, starts)
                     assertEquals(LibraryOutcomeStatus.Complete, reopened.outcomeEvidencePage(committed, owner, 500).checkpoint.status)
                     assertEquals(original, reopened.syncPartition(owner)); assertEquals(1, sends); assertEquals(0, acknowledgements)
@@ -1403,6 +1577,8 @@ class GuestMergeRaceTest {
 private class AndroidLibraryFixtureServer {
     val frames = mutableListOf<SyncFrame>()
     var failSends = true
+    var failAcknowledgements = false
+    var acknowledgements = 0
     val revisions = mutableMapOf<String, SyncRevision>()
     fun send(capability: String, frame: SyncFrame): SyncExchange {
         frames.add(frame)
@@ -1436,7 +1612,11 @@ private class AndroidLibraryFacadeFixture(val store: GuestDataStore) {
                 return SyncBinding(owner, current.subject, "fixture:$owner", System.currentTimeMillis() + 900_000.0)
             }
             override suspend fun send(capability: String, frame: SyncFrame) = server.send(capability, frame)
-            override suspend fun acknowledge(capability: String, acknowledgement: SyncAcknowledgement) = SyncAckReply(capability.removePrefix("fixture:"), acknowledgement.clientKey, SyncCursor(acknowledgement.sequence))
+            override suspend fun acknowledge(capability: String, acknowledgement: SyncAcknowledgement): SyncAckReply {
+                server.acknowledgements++
+                if (server.failAcknowledgements) throw java.io.IOException("Fixture ACK offline")
+                return SyncAckReply(capability.removePrefix("fixture:"), acknowledgement.clientKey, SyncCursor(acknowledgement.sequence))
+            }
         }
         sync = LibrarySync(store, transport, scope, { session.value })
         val reads = object : LibraryReadTransport {

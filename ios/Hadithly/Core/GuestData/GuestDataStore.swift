@@ -439,6 +439,19 @@ final class GuestDataStore {
         try saveSyncPartition(state, owner: owner)
     }
 
+    func settleCollectedOutcome(_ expected: LibraryPendingOutcome, owner: LibrarySyncOwner, now: Double) throws -> LibraryOutcomeSettlement {
+        try assertOutcomeOwnerActive(owner)
+        let binding = try LibraryOutcomeBinding(owner: owner, committed: expected.committed), journal = outcomeContext()
+        guard let scope = try outcomeScope(binding.scopeKey, in: journal),
+              let header = try outcomeHeader(binding.key, in: journal), header.generation == scope.generation else { throw LibrarySyncFailure.storeUnavailable }
+        let checkpoint = try outcomeCheckpoint(header, binding: binding)
+        guard var state = try syncPartition(owner) else { throw LibrarySyncFailure.sessionChanged }
+        let before = state
+        let progress = try state.settleCollectedOutcome(expected, binding: binding, checkpoint: checkpoint, now: now)
+        if state != before { try saveSyncPartition(state, owner: owner) }
+        return progress
+    }
+
     func cacheSavedSnapshot(_ snapshot: SyncSavedSnapshot, owner: LibrarySyncOwner) throws {
         guard snapshot.ownerKey == owner.key else { throw LibrarySyncFailure.ownerMismatch }
         guard var state = try syncPartition(owner) else { throw LibrarySyncFailure.sessionChanged }

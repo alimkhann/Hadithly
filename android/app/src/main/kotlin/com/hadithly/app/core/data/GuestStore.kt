@@ -183,16 +183,18 @@ class GuestDataStore(context: Context) {
     private suspend fun writeLocked(notify: Boolean = true, transform: suspend (GuestStoreFile) -> GuestStoreFile) {
         mutex.withLock {
             val next = transform(readLocked())
-            withContext(Dispatchers.IO) {
-                file.parentFile?.mkdirs()
-                val stream = atomicFile.startWrite()
-                try {
-                    stream.write(json.encodeToString(next).toByteArray(Charsets.UTF_8))
-                    atomicFile.finishWrite(stream)
-                    if (notify) onGuestChanged?.invoke()
-                } catch (error: Exception) { atomicFile.failWrite(stream); throw error }
-            }
+            persistLocked(next, notify)
         }
+    }
+
+    private suspend fun persistLocked(next: GuestStoreFile, notify: Boolean) = withContext(Dispatchers.IO) {
+        file.parentFile?.mkdirs()
+        val stream = atomicFile.startWrite()
+        try {
+            stream.write(json.encodeToString(next).toByteArray(Charsets.UTF_8))
+            atomicFile.finishWrite(stream)
+            if (notify) onGuestChanged?.invoke()
+        } catch (error: Exception) { atomicFile.failWrite(stream); throw error }
     }
 
     suspend fun snapshots(): GuestStoreFile = read()
@@ -401,6 +403,18 @@ class GuestDataStore(context: Context) {
         if (partition.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
         partition.state.settleAcknowledgement(reply, requested)
         store
+    }
+
+    suspend fun settleCollectedOutcome(expected: LibraryPendingOutcome, owner: LibrarySyncOwner, now: Double): LibraryOutcomeSettlement = mutex.withLock {
+        assertOutcomeOwnerActive(owner)
+        val store = readLocked()
+        val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey && it.subject == owner.subject } ?: throw LibrarySyncFailure.SessionChanged
+        val binding = LibraryOutcomeBinding(owner, expected.committed)
+        val checkpoint = withContext(Dispatchers.IO) { outcomeJournal.settlementCheckpoint(binding) }
+        val next = partition.state.copy()
+        val progress = next.settleCollectedOutcome(expected, binding, checkpoint, now)
+        if (next != partition.state) persistLocked(store.copy(syncPartitions = store.syncPartitions.map { if (it === partition) it.copy(state = next) else it }), notify = false)
+        progress
     }
 
     suspend fun cacheSavedSnapshot(snapshot: SyncSavedSnapshot, owner: LibrarySyncOwner) = writeLocked(notify = false) { store ->

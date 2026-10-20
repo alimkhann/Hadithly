@@ -456,7 +456,7 @@ final class UserLibraryModel {
             if case .failure = completion { self?.subscriptionFailed(owner: owner, session: session, epoch: epoch) }
         }, receiveValue: { [weak self] snapshot in
             guard let self, matches(owner, session: session, epoch: epoch), snapshot.ownerKey == owner.key else { return }
-            do { try guestData.cacheSavedSnapshot(snapshot, owner: owner); reloadAccount(owner) }
+            do { try guestData.cacheSavedSnapshot(snapshot, owner: owner); reloadAccount(owner); sync?.wake() }
             catch { loadState = .failed }
         }).store(in: &cancellables)
         reads.positions().receive(on: DispatchQueue.main).sink(receiveCompletion: { [weak self] completion in

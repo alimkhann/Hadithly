@@ -215,6 +215,14 @@ physical/external-provider behavior and the full A2 gate remain open. The no-ACK
 settlement guard remains until exact terminal policy, Saved barriers and recovery
 are integrated; pruning and public producer cutover are still pending.
 
+Exact native outcome settlement now waits for the owned Saved revision, preserves
+partial/unavailable recovery and original source, persists ACK intent, and retries it
+after reopen. Full local checks pass 78 iOS and 61 Android tests; see
+`docs/LIBRARY_OUTCOME_SETTLEMENT_VERIFICATION.md`. Unavailable proof still blocks ACK.
+All journals remain retained. Pruning/retention, manifest Undo, public producer/read
+cutover, full-library scale, iOS write-failure and actual hosted/device matrices remain
+open. No A2 deployment or full A2 completion is claimed.
+
 ## Read the plan in layers
 
 - `docs/PLAN.md` holds product rules, current state, session order, contracts,

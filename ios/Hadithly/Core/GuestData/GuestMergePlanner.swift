@@ -277,6 +277,7 @@ enum LibraryRecovery: Codable, Equatable, Sendable {
     case server(LibraryLocalChange, SyncOutcome)
     case historical(LibraryLocalChange)
     case rejected(LibraryLocalChange)
+    case outcome(authority: LibraryOutcomeBinding, checkpoint: LibraryOutcomeCheckpoint, original: LibraryLocalChange?)
 }
 
 struct LibraryRecentReceipt: Codable, Equatable, Sendable {
@@ -547,6 +548,10 @@ struct LibraryExportArtifact: Sendable {
     let directory: URL
 }
 
+enum LibraryOutcomeSettlement: Equatable, Sendable {
+    case collecting, awaitingSaved, proofUnavailable, settled
+}
+
 struct LibraryPartitionState: Codable, Equatable, Sendable {
     var pending: [LibraryLocalChange] = []
     var frozen: LibraryFrozenBatch?
@@ -657,6 +662,64 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
         recent = recent.filter { $0.expiresAt > now } + stagedRecent
         self.frozen = nil
         nextSequence += 1
+    }
+
+    mutating func settleCollectedOutcome(_ expected: LibraryPendingOutcome, binding: LibraryOutcomeBinding,
+                                         checkpoint: LibraryOutcomeCheckpoint, now: Double) throws -> LibraryOutcomeSettlement {
+        let committed = expected.committed, proof = try LibraryManifestProof(committed)
+        let ack = SyncAcknowledgement(clientKey: committed.clientKey, sequence: committed.sequence, batchId: committed.reply.batchId, digest: committed.digest)
+        guard binding.committed == committed, binding.owner.key == committed.reply.ownerKey,
+              clientKey == committed.clientKey else { throw LibrarySyncFailure.invalidReceipt }
+        if collectingOutcome == nil, acknowledgement == ack, Double(nextSequence) == committed.sequence + 1 { return .settled }
+        guard collectingOutcome == expected, acknowledgement == nil, waiting == nil,
+              Double(nextSequence) == committed.sequence, checkpoint.counts.valid,
+              checkpoint.counts.fits(binding.expected) else { throw LibrarySyncFailure.invalidReceipt }
+        let original: LibraryLocalChange?
+        switch expected.origin {
+        case .matched(let digest):
+            try validateMatchedOutcome(committed)
+            guard let frozen, try frozen.batch.intentDigest() == digest else { throw LibrarySyncFailure.invalidReceipt }
+            original = frozen.changes[0]
+        case .historical:
+            guard frozen == nil else { throw LibrarySyncFailure.invalidReceipt }
+            original = nil
+        }
+        let unavailable: Bool
+        switch checkpoint.status {
+        case .collecting, .verifying: return .collecting
+        case .unavailable(.proofUnavailable): return .proofUnavailable
+        case .unavailable(.detailUnavailable): unavailable = true
+        case .complete:
+            guard checkpoint.counts == binding.expected else { throw LibrarySyncFailure.invalidReceipt }
+            unavailable = false
+        }
+        guard let snapshot = savedSnapshot else { return .awaitingSaved }
+        guard snapshot.ownerKey == binding.owner.key else { throw LibrarySyncFailure.ownerMismatch }
+        guard snapshot.version.isFinite, snapshot.version >= 0, snapshot.version.rounded(.down) == snapshot.version else { throw LibrarySyncFailure.invalidReceipt }
+        guard snapshot.version >= committed.revision.saved else { return .awaitingSaved }
+        var mapping: (String, String)?
+        if let original, case .folderRestore(let command) = original.operation.command,
+           case .folderRestoredManifest(let result) = proof.receipt.outcome {
+            let key = "restore:" + command.deletionId
+            guard folderMappings[key] == nil || folderMappings[key] == result.folderId else { throw LibrarySyncFailure.invalidReceipt }
+            mapping = (key, result.folderId)
+        }
+        let recoveryEntry = LibraryRecovery.outcome(authority: binding, checkpoint: checkpoint, original: original)
+        let needsRecovery = original == nil || unavailable || binding.expected.superseded > 0 || binding.expected.missing > 0
+        if needsRecovery {
+            let existing = recovery.filter { if case .outcome(let authority, _, _) = $0 { return authority.key == binding.key }; return false }
+            guard existing.isEmpty || existing == [recoveryEntry] else { throw LibrarySyncFailure.invalidReceipt }
+            if existing.isEmpty { recovery.append(recoveryEntry) }
+        }
+        if let (key, value) = mapping { folderMappings[key] = value }
+        recent = recent.filter { $0.expiresAt > now }
+        if let original, case .folderDelete = original.operation.command {
+            let deadline = original.operation.at + SavedUndoDeadline.duration * 1_000
+            if deadline > now { recent.append(.init(receipt: proof.receipt, expiresAt: deadline)) }
+        }
+        frozen = nil; collectingOutcome = nil
+        nextSequence += 1; acknowledgement = ack
+        return .settled
     }
 
     private func checkCursor(_ cursor: SyncCursor) throws {
@@ -857,7 +920,7 @@ struct LibrarySyncTransport {
 @MainActor
 @Observable
 final class LibrarySync {
-    enum Status: Equatable { case idle, syncing, ready(recovered: Int), failed }
+    enum Status: Equatable { case idle, syncing, waitingForSaved, ready(recovered: Int), failed }
     private(set) var owner: LibrarySyncOwner?
     private(set) var status = Status.idle
     var onOwnerChange: (LibrarySyncOwner?) -> Void = { _ in }
@@ -1051,9 +1114,13 @@ final class LibrarySync {
                     switch checkpoint.status {
                     case .collecting, .verifying: continue
                     case .complete, .unavailable:
-                        // Collection alone does not authorize settlement or ACK.
-                        status = .failed
-                        return
+                        let progress = try store.settleCollectedOutcome(collection, owner: owner, now: now())
+                        switch progress {
+                        case .settled: onPartitionChange(owner); continue
+                        case .awaitingSaved: status = .waitingForSaved; return
+                        case .proofUnavailable: status = .failed; return
+                        case .collecting: continue
+                        }
                     }
                 }
                 if let waiting = try store.syncPartition(owner)?.pollRequest() {

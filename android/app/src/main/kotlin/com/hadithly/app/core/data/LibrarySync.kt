@@ -48,6 +48,7 @@ sealed interface LibraryRecovery {
     @Serializable data class Server(val change: LibraryLocalChange, val outcome: SyncOutcome) : LibraryRecovery
     @Serializable data class Historical(val change: LibraryLocalChange) : LibraryRecovery
     @Serializable data class Rejected(val change: LibraryLocalChange) : LibraryRecovery
+    @Serializable data class Outcome(val authority: LibraryOutcomeAuthority, val checkpoint: LibraryOutcomeCheckpoint, val original: LibraryLocalChange?) : LibraryRecovery
 }
 
 @Serializable
@@ -112,6 +113,8 @@ val SyncCommand.isPositionChange: Boolean get() = this is SyncCommand.PositionPu
 val SyncOutstanding.committedValue: SyncCommitted? get() = when (this) { is SyncOutstanding.Committed -> committed; is SyncOutstanding.Pending -> null }
 val SyncOutstanding.pendingValue: SyncPending? get() = when (this) { is SyncOutstanding.Pending -> pending; is SyncOutstanding.Committed -> null }
 fun SyncPending.matches(other: SyncPending) = clientKey == other.clientKey && sequence == other.sequence && batchId == other.batchId && digest == other.digest && intentDigest == other.intentDigest && manifestId == other.manifestId && generation == other.generation
+
+enum class LibraryOutcomeSettlement { Collecting, AwaitingSaved, ProofUnavailable, Settled }
 
 @Serializable
 data class LibraryPartitionState(
@@ -204,6 +207,54 @@ data class LibraryPartitionState(
             (observed ?: -1.0) < value.version
         }
     }
+    fun settleCollectedOutcome(expected: LibraryPendingOutcome, binding: LibraryOutcomeBinding, checkpoint: LibraryOutcomeCheckpoint, now: Double): LibraryOutcomeSettlement {
+        val committed = expected.committed; val proof = LibraryManifestProof(committed)
+        val ack = SyncAcknowledgement(committed.clientKey, committed.sequence, committed.reply.batchId, committed.digest)
+        if (binding.committed != committed || binding.owner.key != committed.reply.ownerKey || clientKey != committed.clientKey) throw LibrarySyncFailure.InvalidReceipt
+        if (collectingOutcome == null && acknowledgement == ack && nextSequence == committed.sequence + 1) return LibraryOutcomeSettlement.Settled
+        if (collectingOutcome != expected || acknowledgement != null || waiting != null || nextSequence != committed.sequence || !checkpoint.counts.valid || !checkpoint.counts.fits(binding.expected)) throw LibrarySyncFailure.InvalidReceipt
+        val original = when (val origin = expected.origin) {
+            is LibraryOutcomeOrigin.Matched -> {
+                validateMatchedOutcome(committed)
+                val source = frozen ?: throw LibrarySyncFailure.InvalidReceipt
+                if (source.batch.intentDigest() != origin.intentDigest) throw LibrarySyncFailure.InvalidReceipt
+                source.changes.single()
+            }
+            LibraryOutcomeOrigin.Historical -> { if (frozen != null) throw LibrarySyncFailure.InvalidReceipt; null }
+        }
+        val unavailable = when (val status = checkpoint.status) {
+            LibraryOutcomeStatus.Collecting, is LibraryOutcomeStatus.Verifying -> return LibraryOutcomeSettlement.Collecting
+            is LibraryOutcomeStatus.Unavailable -> {
+                if (status.reason == SyncOutcomePageUnavailableReason.PROOF_UNAVAILABLE) return LibraryOutcomeSettlement.ProofUnavailable
+                true
+            }
+            LibraryOutcomeStatus.Complete -> { if (checkpoint.counts != binding.expected) throw LibrarySyncFailure.InvalidReceipt; false }
+        }
+        val snapshot = savedSnapshot ?: return LibraryOutcomeSettlement.AwaitingSaved
+        if (snapshot.ownerKey != binding.owner.key) throw LibrarySyncFailure.OwnerMismatch
+        if (!snapshot.version.isFinite() || snapshot.version < 0 || kotlin.math.floor(snapshot.version) != snapshot.version) throw LibrarySyncFailure.InvalidReceipt
+        if (snapshot.version < committed.revision.saved) return LibraryOutcomeSettlement.AwaitingSaved
+        val restore = original?.operation?.command as? SyncCommand.FolderRestore
+        val restored = proof.receipt.outcome as? SyncOutcome.FolderRestoredManifest
+        val mapping = if (restore != null && restored != null) "restore:${restore.deletionId}" to restored.folderId else null
+        if (mapping != null && folderMappings[mapping.first] != null && folderMappings[mapping.first] != mapping.second) throw LibrarySyncFailure.InvalidReceipt
+        val entry = LibraryRecovery.Outcome(binding.authority, checkpoint, original)
+        if (original == null || unavailable || binding.expected.superseded > 0 || binding.expected.missing > 0) {
+            val existing = recovery.filterIsInstance<LibraryRecovery.Outcome>().filter { LibraryOutcomeBinding(it.authority.owner, it.authority.committed).key == binding.key }
+            if (existing.isNotEmpty() && existing != listOf(entry)) throw LibrarySyncFailure.InvalidReceipt
+            if (existing.isEmpty()) recovery = recovery + entry
+        }
+        if (mapping != null) folderMappings = folderMappings + mapping
+        recent = recent.filter { it.expiresAt > now }
+        if (original?.operation?.command is SyncCommand.FolderDelete) {
+            val deadline = original.operation.at + 5_000
+            if (deadline > now) recent = recent + LibraryRecentReceipt(proof.receipt, deadline)
+        }
+        frozen = null; collectingOutcome = null
+        nextSequence++; acknowledgement = ack
+        return LibraryOutcomeSettlement.Settled
+    }
+
     private fun checkCursor(cursor: SyncCursor) {
         if (!cursor.closedThrough.isFinite() || cursor.closedThrough < 0 || kotlin.math.floor(cursor.closedThrough) != cursor.closedThrough || cursor.closedThrough >= 9_007_199_254_740_991.0) throw LibrarySyncFailure.InvalidReceipt
         cursor.outstanding?.committedValue?.let {
@@ -400,6 +451,7 @@ class LibrarySync(
     sealed interface Status {
         data object Idle : Status
         data object Syncing : Status
+        data object WaitingForSaved : Status
         data class Ready(val recovered: Int) : Status
         data object Failed : Status
     }
@@ -623,9 +675,12 @@ class LibrarySync(
                     when (checkpoint.status) {
                         LibraryOutcomeStatus.Collecting, is LibraryOutcomeStatus.Verifying -> return@repeat
                         LibraryOutcomeStatus.Complete, is LibraryOutcomeStatus.Unavailable -> {
-                            // Collection alone does not authorize settlement or ACK.
-                            mutableStatus.value = Status.Failed
-                            return
+                            when (store.settleCollectedOutcome(collection, owner, now())) {
+                                LibraryOutcomeSettlement.Settled -> { onPartitionChange(owner); return@repeat }
+                                LibraryOutcomeSettlement.AwaitingSaved -> { mutableStatus.value = Status.WaitingForSaved; return }
+                                LibraryOutcomeSettlement.ProofUnavailable -> { mutableStatus.value = Status.Failed; return }
+                                LibraryOutcomeSettlement.Collecting -> return@repeat
+                            }
                         }
                     }
                 }

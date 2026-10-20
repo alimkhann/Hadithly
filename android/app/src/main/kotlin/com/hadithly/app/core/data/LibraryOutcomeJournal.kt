@@ -379,6 +379,11 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
             }
         }
     }
+    fun settlementCheckpoint(binding: LibraryOutcomeBinding): LibraryOutcomeCheckpoint = transaction { db ->
+        val current = generation(db, binding.scopeKey) ?: throw LibrarySyncFailure.StoreUnavailable
+        header(db, binding, current) ?: throw LibrarySyncFailure.StoreUnavailable
+    }
+
     fun evidence(binding: LibraryOutcomeBinding, start: Long): LibraryOutcomeEvidencePage = transaction { db ->
         val checkpoint = header(db, binding) ?: throw LibrarySyncFailure.StoreUnavailable
         if (start < 0 || start > checkpoint.next) throw LibrarySyncFailure.InvalidReceipt
