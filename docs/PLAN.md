@@ -205,6 +205,16 @@ See `docs/LIBRARY_OUTCOME_COORDINATOR_VERIFICATION.md`. Completed/unavailable jo
 still stop behind the settlement/export guard. Final settlement, full local export,
 retention, public producer and the existing full A2/deployment gates remain open.
 
+Retained native outcome export now streams bounded journal pages for the captured
+subject/deployment, including older-owner orphan evidence, with mutation fencing
+and private artifact cleanup. Actual old-store migration, corruption and account/
+erasure/cancellation fixtures pass: 74 iOS and 56 Android checks. Android also
+exercises real local document URI rollback. See
+`docs/LIBRARY_OUTCOME_EXPORT_VERIFICATION.md`. Existing server/partition export scale,
+physical/external-provider behavior and the full A2 gate remain open. The no-ACK
+settlement guard remains until exact terminal policy, Saved barriers and recovery
+are integrated; pruning and public producer cutover are still pending.
+
 ## Read the plan in layers
 
 - `docs/PLAN.md` holds product rules, current state, session order, contracts,

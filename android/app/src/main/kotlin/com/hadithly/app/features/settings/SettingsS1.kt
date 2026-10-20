@@ -67,6 +67,15 @@ object SettingsExport {
         return "hadithly-export-${formatter.format(date)}.json"
     }
 
+    // ACTION_CREATE_DOCUMENT returns a newly created document; rollback never targets an existing selection.
+    suspend fun removeFailedDocument(resolver: android.content.ContentResolver, uri: android.net.Uri): Boolean =
+        kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable + kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                if (android.provider.DocumentsContract.deleteDocument(resolver, uri)) return@withContext true
+            } catch (_: Exception) { }
+            try { resolver.delete(uri, null, null) > 0 } catch (_: Exception) { false }
+        }
+
     /** Key fragments that must never appear in an export payload. */
     val forbiddenFragments = listOf("pushTokens", "adminAuditLog", "revenueCatAppUserId")
 }

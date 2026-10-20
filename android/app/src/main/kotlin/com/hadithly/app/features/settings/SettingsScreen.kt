@@ -1037,31 +1037,34 @@ private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
         val captured = exportScope
         exportScope = null
         if (uri == null || captured == null) {
+            if (uri != null) app.appScope.launch { SettingsExport.removeFailedDocument(context.contentResolver, uri) }
             exporting = false
             return@rememberLauncherForActivityResult
         }
         scope.launch {
+            var completed = false
             try {
                 val capability = app.librarySync.capability(captured)
-                val local = app.librarySync.portableState(captured)
                 val payload = app.repository.exportUserData(capability)
                 if (payload == null) {
                     exportNotice = "Export is unavailable right now."
                     return@launch
                 }
                 app.librarySync.capability(captured)
-                val document = kotlinx.serialization.json.JsonObject(payload + ("localLibrary" to local))
-                check(!document.containsExportKey(SettingsExport.forbiddenFragments.toSet())) { "Invalid export fields" }
-                val json = Json { prettyPrint = true }.encodeToString(kotlinx.serialization.json.JsonObject.serializer(), document)
-                val output = context.contentResolver.openOutputStream(uri) ?: error("Export is unavailable right now.")
-                output.use { it.write(json.toByteArray(Charsets.UTF_8)) }
+                val prepared = app.librarySync.preparePortableExport(payload, captured, SettingsExport.fileName())
+                try {
+                    val output = context.contentResolver.openOutputStream(uri) ?: error("Export is unavailable right now.")
+                    output.use { app.librarySync.copyPreparedExport(prepared, it) }
+                } finally { app.librarySync.discardPreparedExport(prepared) }
                 val savedCount = (payload["savedItems"] as? kotlinx.serialization.json.JsonArray)?.size ?: 0
                 val progressCount = (payload["readingProgress"] as? kotlinx.serialization.json.JsonArray)?.size ?: 0
+                completed = true
                 exportNotice = "Export saved: $savedCount saved items, $progressCount reading positions."
             } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
             catch (_: Exception) {
                 exportNotice = "Export failed. Please try again."
             } finally {
+                if (!completed) SettingsExport.removeFailedDocument(context.contentResolver, uri)
                 exporting = false
             }
         }

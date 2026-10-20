@@ -1,9 +1,189 @@
 import XCTest
 import Combine
 import SwiftData
+import SQLite3
 @testable import Hadithly
 
 final class GuestMergePlannerTests: XCTestCase {
+    private struct OutcomeExportProbe: Decodable {
+        struct Entry: Decodable {
+            let authority: LibraryOutcomeBinding
+            let expected: LibraryOutcomeCounts
+            let collected: LibraryOutcomeCounts
+            let status: String
+            let detailComplete: Bool
+            let unavailableReason: String?
+            let rows: [SyncOutcomeMember]
+        }
+        let localOutcomeEvidence: [Entry]
+    }
+    private func taggedOutcomeProof(_ owner: LibrarySyncOwner, count: Int, tag: String) -> SyncCommitted {
+        let base = outcomeProof(owner, count: count)
+        return .init(clientKey: tag, sequence: 1, digest: tag + "-digest", revision: base.revision,
+            reply: .init(ownerKey: owner.key, batchId: tag + "-batch", receipts: base.reply.receipts.map { .init(id: tag + "-operation", revision: $0.revision, outcome: $0.outcome) }))
+    }
+    @MainActor private func collectExportFacts(_ proof: SyncCommitted, owner: LibrarySyncOwner, count: Int, store: GuestDataStore, complete: Bool = true) async throws {
+        for _ in 0..<50 {
+            let value = try await store.collectOutcomeStep(proof, owner: owner, isCurrent: { true }) { self.outcomePage($0, owner: owner, count: count) }
+            if value.status == .complete || !complete { return }
+        }
+        XCTFail("Export fixture did not finish bounded collection")
+    }
+    private func exportContains(_ value: LibraryExportValue, text: String) -> Bool {
+        switch value {
+        case .string(let current): current == text
+        case .object(let fields): fields.values.contains { exportContains($0, text: text) }
+        case .array(let rows): rows.contains { exportContains($0, text: text) }
+        default: false
+        }
+    }
+    @MainActor func testOutcomeExportPreservesFieldsAndIncludesOldOwnerOrphansOnlyForCapturedSubject() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let url = directory.appendingPathComponent("legacy.store"), root = directory.appendingPathComponent("exports")
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        let old = LibrarySyncOwner(key: "older-owner", subject: owner.subject)
+        let foreign = LibrarySyncOwner(key: "foreign-owner", subject: "subject-b")
+        let deployment = LibrarySyncOwner(key: "older-owner", subject: owner.subject, namespace: "other-deployment")
+        // Exact pre-export schema, created before the upgraded store ever opens it.
+        do {
+            let schema = Schema([GuestBookmark.self, GuestNote.self, GuestFavorite.self, GuestSavedFolder.self, GuestSavedMembership.self, GuestReadingProgress.self, GuestLibraryPartition.self, GuestAccountDeletion.self, GuestOutcomeScope.self, GuestOutcomeHeader.self, GuestOutcomeMember.self])
+            let container = try ModelContainer(for: schema, configurations: [ModelConfiguration(schema: schema, url: url)]), context = ModelContext(container)
+            for target in [old, foreign, deployment] {
+                let proof = taggedOutcomeProof(target, count: 1, tag: target.key), binding = try LibraryOutcomeBinding(owner: target, committed: proof)
+                let scope = GuestOutcomeScope(binding: binding); context.insert(scope)
+                context.insert(try GuestOutcomeHeader(binding: binding, generation: scope.generation, checkpoint: .init(counts: .init(deleted: 1), status: .complete)))
+                context.insert(try GuestOutcomeMember(binding: binding, row: .init(ordinal: 0, memberId: target.key + "-member", hadithId: target.key + "-hadith", disposition: .deleted)))
+            }
+            try context.save()
+        }
+        let store = GuestDataStore(storeURL: url, exportDirectory: root), fixture = LibraryFacadeFixture(store: store)
+        defer { fixture.stop() }
+        await fixture.start()
+        let text = "Private \"quote\" — عربى mentions arabicText, capability and pushTokens"
+        XCTAssertTrue(fixture.model.saveNote(fixture.reference, content: text))
+        let partial = taggedOutcomeProof(owner, count: 51, tag: "partial")
+        try await collectExportFacts(partial, owner: owner, count: 51, store: store, complete: false)
+        _ = try await store.collectOutcomeStep(partial, owner: owner, isCurrent: { true }) { .unavailable(.init(ownerKey: owner.key, request: $0, reason: .detailUnavailable)) }
+        let captured = try fixture.sync.captureWriteContext()
+        let server = LibraryExportValue.object(["sync": .object(["streams": .array([])]), "evidenceItems": .array([]), "custom": .string("server-kept")])
+        let export = try await fixture.sync.preparePortableExport(server: server, context: captured, fileName: "export.json")
+        let data = try Data(contentsOf: export.url), document = try JSONDecoder().decode(LibraryExportValue.self, from: data)
+        let probe = try JSONDecoder().decode(OutcomeExportProbe.self, from: data)
+        XCTAssertEqual(probe.localOutcomeEvidence.count, 2)
+        XCTAssertTrue(probe.localOutcomeEvidence.allSatisfy { $0.authority.owner.subject == owner.subject && $0.authority.owner.namespace == owner.namespace })
+        XCTAssertTrue(probe.localOutcomeEvidence.contains { $0.authority.owner.key == old.key && $0.rows.map(\.memberId) == [old.key + "-member"] })
+        let retained = try XCTUnwrap(probe.localOutcomeEvidence.first { $0.status == "unavailable" })
+        XCTAssertEqual(retained.expected.deleted, 51); XCTAssertEqual(retained.collected.deleted, 50); XCTAssertEqual(retained.rows.count, 50)
+        XCTAssertEqual(retained.unavailableReason, "detail_unavailable"); XCTAssertFalse(retained.detailComplete)
+        XCTAssertTrue(exportContains(document, text: text)); XCTAssertTrue(exportContains(document, text: "server-kept"))
+        XCTAssertFalse(document.containsAnyKey(["arabicText", "englishText", "capability", "pushTokens", "adminAuditLog", "revenueCatAppUserId"]))
+        try fixture.sync.discardPreparedExport(export)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: export.url.path))
+        let reopened = GuestDataStore(storeURL: url, exportDirectory: root)
+        let fence = try await reopened.prepareOutcomeExport(owner, isCurrent: { true })
+        XCTAssertEqual(try reopened.outcomeExportEntries(fence, after: nil).count, 2)
+        var database: OpaquePointer?
+        XCTAssertEqual(sqlite3_open_v2(url.path, &database, SQLITE_OPEN_READONLY, nil), SQLITE_OK)
+        defer { sqlite3_close(database) }
+        var query: OpaquePointer?
+        XCTAssertEqual(sqlite3_prepare_v2(database, "EXPLAIN QUERY PLAN SELECT ZKEY FROM ZGUESTOUTCOMEINVENTORY WHERE ZKEY >= 'a' AND ZKEY < 'b' ORDER BY ZKEY LIMIT 50", -1, &query, nil), SQLITE_OK)
+        defer { sqlite3_finalize(query) }
+        XCTAssertEqual(sqlite3_step(query), SQLITE_ROW)
+        let plan = String(cString: sqlite3_column_text(query, 3))
+        XCTAssertTrue(plan.contains("INDEX")); XCTAssertTrue(plan.contains("SEARCH"))
+    }
+
+    @MainActor func testOutcomeExportFenceRejectsInsertBeforeCursorVerificationAndErasure() async throws {
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), store = GuestDataStore(inMemory: true)
+        try store.claimGuestForSync(owner)
+        let proofs = try (0..<4).map { taggedOutcomeProof(owner, count: 1, tag: "clock-\($0)") }.sorted {
+            try LibraryOutcomeBinding(owner: owner, committed: $0).key < LibraryOutcomeBinding(owner: owner, committed: $1).key
+        }
+        try await collectExportFacts(proofs[2], owner: owner, count: 1, store: store)
+        let first = try await store.prepareOutcomeExport(owner, isCurrent: { true })
+        let cursor = try XCTUnwrap(store.outcomeExportEntries(first, after: nil).first?.binding.key)
+        try await collectExportFacts(proofs[0], owner: owner, count: 1, store: store)
+        XCTAssertThrowsError(try store.outcomeExportEntries(first, after: cursor))
+        try await collectExportFacts(proofs[3], owner: owner, count: 1, store: store, complete: false)
+        let beforeVerify = try await store.prepareOutcomeExport(owner, isCurrent: { true })
+        _ = try await store.collectOutcomeStep(proofs[3], owner: owner, isCurrent: { true }) { _ in XCTFail("Local verification fetched"); throw LibrarySyncFailure.invalidReceipt }
+        XCTAssertThrowsError(try store.validateOutcomeExport(beforeVerify))
+        let beforeErase = try await store.prepareOutcomeExport(owner, isCurrent: { true })
+        let artifact = try store.beginOutcomeExportArtifact(beforeErase)
+        try Data("private-prefix".utf8).write(to: artifact.directory.appendingPathComponent("document.partial"))
+        try store.beginDeletion(subject: owner.subject, namespace: owner.namespace)
+        try store.markDeletionBackendComplete(subject: owner.subject, namespace: owner.namespace)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: artifact.directory.path))
+        XCTAssertThrowsError(try store.validateOutcomeExport(beforeErase))
+    }
+
+    @MainActor func testOutcomeExportMutationCancellationSwitchAndErasureDiscardPartialFiles() async throws {
+        for mode in ["mutation", "cancel", "switch", "erase"] {
+            let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+            let store = GuestDataStore(inMemory: true, exportDirectory: root), fixture = LibraryFacadeFixture(store: store)
+            defer { fixture.stop() }
+            await fixture.start()
+            let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), proof = taggedOutcomeProof(owner, count: 501, tag: "large")
+            try await collectExportFacts(proof, owner: owner, count: 501, store: store)
+            let captured = try fixture.sync.captureWriteContext()
+            let task = Task { try await fixture.sync.preparePortableExport(server: .object([:]), context: captured, fileName: "export.json") }
+            var sawPartial = false
+            for _ in 0..<1_000 {
+                let directories = (try? FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)) ?? []
+                if directories.contains(where: { FileManager.default.fileExists(atPath: $0.appendingPathComponent("document.partial").path) }) { sawPartial = true; break }
+                await Task.yield()
+            }
+            XCTAssertTrue(sawPartial)
+            switch mode {
+            case "cancel": task.cancel()
+            case "switch": fixture.session.value = .init(id: "session-b", subject: "subject-b"); fixture.sync.deactivate()
+            case "erase":
+                try store.beginDeletion(subject: owner.subject, namespace: owner.namespace)
+                try store.markDeletionBackendComplete(subject: owner.subject, namespace: owner.namespace)
+            default: try await collectExportFacts(taggedOutcomeProof(owner, count: 1, tag: "insert-during-export"), owner: owner, count: 1, store: store)
+            }
+            do { _ = try await task.value; XCTFail("Changed/canceled export was published") } catch { }
+            let leftovers = (try? FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)) ?? []
+            XCTAssertTrue(leftovers.isEmpty)
+        }
+    }
+
+    @MainActor func testOutcomeExportRejectsMissingFactAfterCompletedVerification() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let url = directory.appendingPathComponent("journal.store"), root = directory.appendingPathComponent("exports")
+        let store = GuestDataStore(storeURL: url, exportDirectory: root), fixture = LibraryFacadeFixture(store: store)
+        defer { fixture.stop() }
+        await fixture.start()
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), proof = taggedOutcomeProof(owner, count: 51, tag: "corrupt-export")
+        try await collectExportFacts(proof, owner: owner, count: 51, store: store)
+        let container = try ModelContainer(for: GuestDataStore.schema, configurations: [ModelConfiguration(schema: GuestDataStore.schema, url: url)])
+        let context = ModelContext(container), key = try LibraryOutcomeBinding(owner: owner, committed: proof).ordinalKey(50)
+        let row = try XCTUnwrap(context.fetch(FetchDescriptor<GuestOutcomeMember>(predicate: #Predicate { $0.ordinalKey == key })).first)
+        context.delete(row); try context.save()
+        let captured = try fixture.sync.captureWriteContext()
+        do { _ = try await fixture.sync.preparePortableExport(server: .object([:]), context: captured, fileName: "export.json"); XCTFail("Corrupt journal exported as complete") }
+        catch LibrarySyncFailure.storeUnavailable { }
+        XCTAssertTrue(((try? FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)) ?? []).isEmpty)
+    }
+
+    @MainActor func testOutcomeExportArtifactCleanupAndEmptyFenceNeverRecreateDeletedMetadata() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        let store = GuestDataStore(inMemory: true, exportDirectory: root)
+        try store.claimGuestForSync(owner)
+        let empty = try await store.prepareOutcomeExport(owner, isCurrent: { true })
+        XCTAssertEqual(empty.version, .empty)
+        let artifact = try store.beginOutcomeExportArtifact(empty)
+        try Data("abandoned".utf8).write(to: artifact.directory.appendingPathComponent("document.partial"))
+        try store.clearAbandonedOutcomeExports()
+        XCTAssertFalse(FileManager.default.fileExists(atPath: artifact.directory.path))
+        try store.beginDeletion(subject: owner.subject, namespace: owner.namespace)
+        try store.markDeletionBackendComplete(subject: owner.subject, namespace: owner.namespace)
+        do { _ = try await store.prepareOutcomeExport(owner, isCurrent: { true }); XCTFail("Deleted export recreated metadata") } catch LibrarySyncFailure.accountDeleting { }
+    }
+
+
     @MainActor func testManifestRestoreUsesOwnedSnapshotWithoutGuessingMembers() throws {
         let first = "jn7fxd3z54153q9j13kmhgzkv18df2zd", second = "an7fxd3z54153q9j13kmhgzkv18df2zd"
         func item(_ id: String, folder: String?) -> SyncSavedItem {
@@ -36,7 +216,7 @@ final class GuestMergePlannerTests: XCTestCase {
         for _ in 0..<2 { _ = try await store.collectOutcomeStep(proof, owner: owner, isCurrent: { true }) { self.outcomePage($0, owner: owner, count: 100) } }
         let first = try await store.collectOutcomeStep(proof, owner: owner, isCurrent: { true }) { _ in XCTFail("Verification fetched"); throw LibrarySyncFailure.invalidReceipt }
         XCTAssertEqual(first.status, .verifying(.init(deleted: 50)))
-        let schema = Schema([GuestBookmark.self, GuestNote.self, GuestFavorite.self, GuestSavedFolder.self, GuestSavedMembership.self, GuestReadingProgress.self, GuestLibraryPartition.self, GuestAccountDeletion.self, GuestOutcomeScope.self, GuestOutcomeHeader.self, GuestOutcomeMember.self])
+        let schema = GuestDataStore.schema
         let container = try ModelContainer(for: schema, configurations: [ModelConfiguration(schema: schema, url: url)]), context = ModelContext(container)
         let key = try LibraryOutcomeBinding(owner: owner, committed: proof).ordinalKey(80)
         let query = FetchDescriptor<GuestOutcomeMember>(predicate: #Predicate { $0.ordinalKey == key })
@@ -220,7 +400,7 @@ final class GuestMergePlannerTests: XCTestCase {
                 if checkpoint.status != .collecting { break }
             }
         }
-        let schema = Schema([GuestBookmark.self, GuestNote.self, GuestFavorite.self, GuestSavedFolder.self, GuestSavedMembership.self, GuestReadingProgress.self, GuestLibraryPartition.self, GuestAccountDeletion.self, GuestOutcomeScope.self, GuestOutcomeHeader.self, GuestOutcomeMember.self])
+        let schema = GuestDataStore.schema
         let container = try ModelContainer(for: schema, configurations: [ModelConfiguration(schema: schema, url: url)]), context = ModelContext(container)
         for row in try context.fetch(FetchDescriptor<GuestLibraryPartition>()) where row.ownerKey == owner.storageKey { context.delete(row) }
         try context.save()
@@ -537,6 +717,21 @@ final class GuestMergePlannerTests: XCTestCase {
         XCTAssertEqual(erases, 1); XCTAssertEqual(identities, 0)
     }
 
+    @MainActor func testPortableExportIncludesDurableOutcomeJournal() async throws {
+        let fixture = LibraryFacadeFixture(store: GuestDataStore(inMemory: true))
+        defer { fixture.stop() }
+        await fixture.start()
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), proof = outcomeProof(owner, count: 51)
+        for _ in 0..<4 { _ = try await fixture.store.collectOutcomeStep(proof, owner: owner, isCurrent: { true }) { self.outcomePage($0, owner: owner, count: 51) } }
+        let captured = try fixture.sync.captureWriteContext()
+        let export = try await fixture.sync.preparePortableExport(server: .object(["sync": .object([:])]), context: captured, fileName: "export.json")
+        defer { try? fixture.sync.discardPreparedExport(export) }
+        let data = try Data(contentsOf: export.url)
+        _ = try JSONDecoder().decode(LibraryExportValue.self, from: data)
+        let json = String(decoding: data, as: UTF8.self)
+        XCTAssertTrue(json.contains("member-50"), "Retained journal facts must be in the private export")
+    }
+
     @MainActor func testPortableExportIncludesOfflineAndRecoveryTextWithoutProviderPassagesAndRejectsSwitchedOwner() async throws {
         let store = GuestDataStore(inMemory: true)
         let recovered = "Recovery fixture " + String(repeating: "界", count: 8_001)
@@ -643,7 +838,7 @@ final class GuestMergePlannerTests: XCTestCase {
     }
 
     @MainActor private func seedPartitionFixture(_ state: LibraryPartitionState, owner: LibrarySyncOwner, url: URL) throws {
-        let schema = Schema([GuestBookmark.self, GuestNote.self, GuestFavorite.self, GuestSavedFolder.self, GuestSavedMembership.self, GuestReadingProgress.self, GuestLibraryPartition.self, GuestAccountDeletion.self])
+        let schema = GuestDataStore.schema
         let container = try ModelContainer(for: schema, configurations: [ModelConfiguration(schema: schema, url: url)])
         let context = ModelContext(container)
         context.insert(GuestLibraryPartition(ownerKey: owner.storageKey, subject: owner.subject, stateData: try JSONEncoder().encode(state)))

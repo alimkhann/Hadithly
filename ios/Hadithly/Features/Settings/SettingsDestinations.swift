@@ -983,7 +983,8 @@ struct PrivacyDataView: View {
     @State private var pendingExportContext: LibraryWriteContext?
     @State private var isExporting = false
     @State private var exportTask: Task<Void, Never>?
-    @State private var exportURL: URL?
+    @State private var preparedExport: LibraryPreparedExport?
+    private var exportURL: URL? { preparedExport?.url }
     @State private var exportError: String?
     @State private var showDeleteConfirmation = false
     @State private var pendingDeletionSession: LibrarySyncSession?
@@ -1081,7 +1082,10 @@ struct PrivacyDataView: View {
             }
         }
         .onChange(of: clerk.session?.id) { _, _ in clearExportPresentation() }
-        .onDisappear { exportTask?.cancel() }
+        .onDisappear {
+            exportTask?.cancel()
+            discardPreparedExport()
+        }
         .confirmationDialog(
             "Export your data?",
             isPresented: $showExportConfirm,
@@ -1125,9 +1129,14 @@ struct PrivacyDataView: View {
 
     private func clearExportPresentation() {
         exportTask?.cancel(); exportTask = nil
-        if let exportURL { try? FileManager.default.removeItem(at: exportURL) }
-        exportURL = nil; exportError = nil; showExportConfirm = false; pendingExportContext = nil
+        discardPreparedExport()
+        exportError = nil; showExportConfirm = false; pendingExportContext = nil
         showDeleteConfirmation = false; pendingDeletionSession = nil; deletionError = nil
+    }
+
+    private func discardPreparedExport() {
+        if let preparedExport { try? environment.librarySync.discardPreparedExport(preparedExport) }
+        preparedExport = nil
     }
 
     /// Device reauthentication precedes the export whenever the device can
@@ -1138,9 +1147,8 @@ struct PrivacyDataView: View {
         defer { isExporting = false }
         do {
             try Task.checkCancellation()
-            if let exportURL { try? FileManager.default.removeItem(at: exportURL) }
-            exportURL = nil
-            let local = try environment.librarySync.portableState(for: captured)
+            if let preparedExport { try? environment.librarySync.discardPreparedExport(preparedExport) }
+            preparedExport = nil
             let context = LAContext()
             var authError: NSError?
             if context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &authError) {
@@ -1163,12 +1171,7 @@ struct PrivacyDataView: View {
             }
             try Task.checkCancellation()
             _ = try environment.librarySync.capability(for: captured)
-            let document = try server.includingLocalLibrary(local)
-            guard !document.containsAnyKey(Set(SettingsExport.forbiddenFragments)) else { throw LibrarySyncFailure.invalidReceipt }
-            let data = try JSONEncoder().encode(document)
-            let url = FileManager.default.temporaryDirectory.appendingPathComponent(SettingsExport.fileName())
-            try data.write(to: url, options: [.atomic, .completeFileProtection])
-            exportURL = url
+            preparedExport = try await environment.librarySync.preparePortableExport(server: server, context: captured, fileName: SettingsExport.fileName())
             exportError = nil
         } catch is CancellationError { }
         catch {

@@ -164,6 +164,15 @@ matched/historical collection phases and fetch journal pages. Interrupted 501-me
 reopen fixtures pass with zero ACKs and no later sends, with 68 iOS/48 Android checks.
 See `LIBRARY_OUTCOME_COORDINATOR_VERIFICATION.md`. The no-ACK guard now lives in the
 persisted phase. Final settlement/export/pruning and public cutover remain open.
+Retained native outcome export now streams bounded journal pages for the captured
+subject/deployment, including older-owner orphan evidence, with mutation fencing
+and private artifact cleanup. Actual old-store migration, corruption and account/
+erasure/cancellation fixtures pass: 74 iOS and 56 Android checks. Android also
+exercises real local document URI rollback. See
+`LIBRARY_OUTCOME_EXPORT_VERIFICATION.md`. Existing server/partition export scale,
+physical/external-provider behavior and the full A2 gate remain open. The no-ACK
+settlement guard remains until exact terminal policy, Saved barriers and recovery
+are integrated; pruning and public producer cutover are still pending.
 Continue A2 integration while retaining A1's content dependencies. No paid
 generation or production change has been approved. Research, later native redesign, website and Linear remain
 pending in the owner's requested order.

@@ -13,6 +13,230 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class GuestMergeRaceTest {
+    @Test fun outcomeExportSafMidCopyFailuresRemoveActualPartialDocuments() = runBlocking {
+        isolated { store, _, _ ->
+            val fixture = AndroidLibraryFacadeFixture(store)
+            try {
+                fixture.start(); val owner = LibrarySyncOwner("owner-a", "subject-a")
+                collectExportFacts(taggedOutcomeProof(owner, 501, "copy-source"), owner, 501, store)
+                val captured = withContext(Dispatchers.Main) { fixture.sync.captureWriteContext() }
+                val context = InstrumentationRegistry.getInstrumentation().targetContext; val resolver = context.contentResolver
+                val root = android.provider.DocumentsContract.buildDocumentUri(context.packageName + ".verification.exports", "root")
+                for (mode in listOf("mutation", "io", "cancel", "switch")) {
+                    val prepared = fixture.sync.preparePortableExport(kotlinx.serialization.json.JsonObject(emptyMap()), captured, "export.json")
+                    val uri = android.provider.DocumentsContract.createDocument(resolver, root, "application/json", "export.json")!!
+                    try {
+                        val destination = resolver.openOutputStream(uri)!!
+                        var injected = false
+                        val failing = object : java.io.OutputStream() {
+                            override fun write(value: Int) = destination.write(value)
+                            override fun write(bytes: ByteArray, offset: Int, length: Int) {
+                                destination.write(bytes, offset, minOf(length, 1_024)); destination.flush()
+                                if (!injected) {
+                                    injected = true
+                                    when (mode) {
+                                        "mutation" -> runBlocking { collectExportFacts(taggedOutcomeProof(owner, 1, "mid-copy"), owner, 1, store) }
+                                        "io" -> throw java.io.IOException("Controlled destination failure")
+                                        "cancel" -> throw CancellationException("Controlled copy cancellation")
+                                        "switch" -> runBlocking { withContext(Dispatchers.Main) { fixture.session.value = LibrarySyncSession("session-b", "subject-b"); fixture.sync.deactivate() } }
+                                    }
+                                }
+                            }
+                            override fun flush() = destination.flush()
+                            override fun close() = destination.close()
+                        }
+                        try { failing.use { fixture.sync.copyPreparedExport(prepared, it) }; fail("Failed copy reported success") } catch (_: Exception) { }
+                        assertTrue(injected)
+                        assertTrue(resolver.openInputStream(uri)!!.use { it.readBytes() }.isNotEmpty())
+                        assertTrue(com.hadithly.app.features.settings.SettingsExport.removeFailedDocument(resolver, uri))
+                        try { resolver.openInputStream(uri)?.close(); fail("Partial destination retained") } catch (_: java.io.FileNotFoundException) { }
+                    } finally { fixture.sync.discardPreparedExport(prepared) }
+                    assertFalse(prepared.file.exists())
+                }
+            } finally { fixture.stop() }
+        }
+    }
+
+
+    private fun taggedOutcomeProof(owner: LibrarySyncOwner, count: Int, tag: String): SyncCommitted {
+        val base = outcomeProof(owner, count)
+        return base.copy(clientKey = tag, digest = "$tag-digest", reply = base.reply.copy(batchId = "$tag-batch", receipts = base.reply.receipts.map { it.copy(id = "$tag-operation") }))
+    }
+    private suspend fun collectExportFacts(proof: SyncCommitted, owner: LibrarySyncOwner, count: Int, store: GuestDataStore, complete: Boolean = true) {
+        repeat(50) {
+            val value = store.collectOutcomeStep(proof, owner, { true }) { outcomePage(it, owner, count) }
+            if (value.status == LibraryOutcomeStatus.Complete || !complete) return
+        }
+        fail("Export fixture did not finish bounded collection")
+    }
+    private fun exportContains(value: kotlinx.serialization.json.JsonElement, text: String): Boolean = when (value) {
+        is kotlinx.serialization.json.JsonPrimitive -> value.isString && value.content == text
+        is kotlinx.serialization.json.JsonObject -> value.values.any { exportContains(it, text) }
+        is kotlinx.serialization.json.JsonArray -> value.any { exportContains(it, text) }
+        else -> false
+    }
+    private fun legacyJournal(directory: File, owners: List<LibrarySyncOwner>) {
+        android.database.sqlite.SQLiteDatabase.openOrCreateDatabase(File(directory, "library_outcomes.db"), null).use { db ->
+            db.execSQL("CREATE TABLE scopes (scope_key TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, generation TEXT NOT NULL)")
+            db.execSQL("CREATE INDEX scopes_owner ON scopes(subject,namespace,owner_key)")
+            db.execSQL("CREATE TABLE headers (collection_key TEXT PRIMARY KEY NOT NULL, owner_key TEXT NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, generation TEXT NOT NULL, authority TEXT NOT NULL, checkpoint TEXT NOT NULL)")
+            db.execSQL("CREATE INDEX headers_owner ON headers(subject,namespace,owner_key,collection_key)")
+            db.execSQL("CREATE TABLE members (collection_key TEXT NOT NULL REFERENCES headers(collection_key) ON DELETE CASCADE, ordinal INTEGER NOT NULL, member_id TEXT NOT NULL, hadith_id TEXT NOT NULL, disposition TEXT NOT NULL, row_data TEXT NOT NULL, PRIMARY KEY(collection_key,ordinal), UNIQUE(collection_key,member_id), UNIQUE(collection_key,hadith_id))")
+            db.execSQL("CREATE INDEX members_category ON members(collection_key,disposition)")
+            for (owner in owners) {
+                val binding = LibraryOutcomeBinding(owner, taggedOutcomeProof(owner, 1, owner.key)); val generation = "legacy-generation"
+                db.insertOrThrow("scopes", null, android.content.ContentValues().apply { put("scope_key", binding.scopeKey); put("subject", owner.subject); put("namespace", owner.namespace); put("owner_key", owner.storageKey); put("generation", generation) })
+                db.insertOrThrow("headers", null, android.content.ContentValues().apply {
+                    put("collection_key", binding.key); put("owner_key", owner.storageKey); put("subject", owner.subject); put("namespace", owner.namespace); put("generation", generation)
+                    put("authority", Json.encodeToString(binding.authority)); put("checkpoint", Json.encodeToString(LibraryOutcomeCheckpoint(LibraryOutcomeCounts(deleted = 1), LibraryOutcomeStatus.Complete)))
+                })
+                val row = SyncOutcomeMember(0.0, "${owner.key}-member", "${owner.key}-hadith", SyncOutcomeMemberDisposition.DELETED)
+                db.insertOrThrow("members", null, android.content.ContentValues().apply {
+                    put("collection_key", binding.key); put("ordinal", 0); put("member_id", row.memberId); put("hadith_id", row.hadithId); put("disposition", row.disposition.name); put("row_data", Json.encodeToString(row))
+                })
+            }
+            db.version = 1
+        }
+    }
+    @Test fun outcomeExportPreservesFieldsAndIncludesOldOwnerOrphansOnlyForCapturedSubject() = runBlocking {
+        isolated { store, reopen, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); val old = LibrarySyncOwner("older-owner", owner.subject)
+            val foreign = LibrarySyncOwner("foreign-owner", "subject-b"); val deployment = LibrarySyncOwner("older-owner", owner.subject, "other-deployment")
+            legacyJournal(directory, listOf(old, foreign, deployment))
+            val fixture = AndroidLibraryFacadeFixture(store)
+            try {
+                fixture.start()
+                val text = "Private \"quote\" — عربى mentions arabicText, capability and pushTokens"
+                assertTrue(withContext(Dispatchers.Main) { fixture.model.saveNote(fixture.reference, text) }.await())
+                val partial = taggedOutcomeProof(owner, 51, "partial")
+                collectExportFacts(partial, owner, 51, store, complete = false)
+                store.collectOutcomeStep(partial, owner, { true }) { SyncOutcomePage.Unavailable(owner.key, it, SyncOutcomePageUnavailableReason.DETAIL_UNAVAILABLE) }
+                val captured = withContext(Dispatchers.Main) { fixture.sync.captureWriteContext() }
+                val server = kotlinx.serialization.json.JsonObject(mapOf("sync" to kotlinx.serialization.json.JsonObject(emptyMap()), "evidenceItems" to kotlinx.serialization.json.JsonArray(emptyList()), "custom" to kotlinx.serialization.json.JsonPrimitive("server-kept")))
+                val prepared = fixture.sync.preparePortableExport(server, captured, "export.json")
+                try {
+                    val document = Json.parseToJsonElement(prepared.file.readText()); require(document is kotlinx.serialization.json.JsonObject)
+                    val entries = document["localOutcomeEvidence"]; require(entries is kotlinx.serialization.json.JsonArray)
+                    assertEquals(2, entries.size)
+                    val owners = entries.map { entry -> require(entry is kotlinx.serialization.json.JsonObject); Json.decodeFromString<LibraryOutcomeAuthority>(entry.getValue("authority").toString()).owner }
+                    assertTrue(owners.all { it.subject == owner.subject && it.namespace == owner.namespace }); assertTrue(owners.any { it.key == old.key })
+                    val retained = entries.filterIsInstance<kotlinx.serialization.json.JsonObject>().first { it["status"] == kotlinx.serialization.json.JsonPrimitive("unavailable") }
+                    assertEquals(kotlinx.serialization.json.JsonPrimitive(false), retained["detailComplete"])
+                    assertEquals(kotlinx.serialization.json.JsonPrimitive("detail_unavailable"), retained["unavailableReason"])
+                    val rows = retained["rows"]; require(rows is kotlinx.serialization.json.JsonArray); assertEquals(50, rows.size)
+                    assertTrue(exportContains(document, text)); assertTrue(exportContains(document, "server-kept"))
+                    assertFalse(document.containsExportKey(setOf("arabicText", "englishText", "capability", "pushTokens", "adminAuditLog", "revenueCatAppUserId")))
+                } finally { fixture.sync.discardPreparedExport(prepared) }
+                assertFalse(prepared.file.exists())
+                android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, android.database.sqlite.SQLiteDatabase.OPEN_READONLY).use { db ->
+                    assertEquals(2, db.version)
+                    db.rawQuery("EXPLAIN QUERY PLAN SELECT collection_key FROM headers WHERE subject=? AND namespace=? AND collection_key>? ORDER BY collection_key LIMIT 50", arrayOf(owner.subject, owner.namespace, "")).use {
+                        assertTrue(it.moveToFirst()); assertTrue(it.getString(3).contains("headers_export"))
+                    }
+                }
+                val reopened = reopen(); val fence = reopened.prepareOutcomeExport(owner) { true }
+                assertEquals(2, reopened.outcomeExportEntries(fence, null).size)
+            } finally { fixture.stop() }
+        }
+    }
+    @Test fun outcomeExportFenceRejectsInsertBeforeCursorVerificationAndErasure() = runBlocking {
+        isolated { store, _, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
+            val proofs = (0 until 4).map { taggedOutcomeProof(owner, 1, "clock-$it") }.sortedBy { LibraryOutcomeBinding(owner, it).key }
+            collectExportFacts(proofs[2], owner, 1, store)
+            val first = store.prepareOutcomeExport(owner) { true }; val after = store.outcomeExportEntries(first, null).first().binding.key
+            collectExportFacts(proofs[0], owner, 1, store)
+            try { store.outcomeExportEntries(first, after); fail("Insert before cursor escaped fence") } catch (_: LibrarySyncFailure.StoreUnavailable) { }
+            collectExportFacts(proofs[3], owner, 1, store, complete = false)
+            val beforeVerify = store.prepareOutcomeExport(owner) { true }
+            store.collectOutcomeStep(proofs[3], owner, { true }) { fail("Local verification fetched"); throw LibrarySyncFailure.InvalidReceipt }
+            try { store.validateOutcomeExport(beforeVerify); fail("Verification escaped fence") } catch (_: LibrarySyncFailure.StoreUnavailable) { }
+            val beforeErase = store.prepareOutcomeExport(owner) { true }; val artifact = store.beginOutcomeExportArtifact(beforeErase)
+            File(artifact.directory, "document.partial").writeText("private-prefix")
+            store.beginDeletion(owner.subject, owner.namespace); store.markDeletionBackendComplete(owner.subject, owner.namespace)
+            assertFalse(artifact.directory.exists())
+            try { store.validateOutcomeExport(beforeErase); fail("Erasure escaped fence") } catch (_: LibrarySyncFailure.AccountDeleting) { }
+            android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, android.database.sqlite.SQLiteDatabase.OPEN_READONLY).use { db ->
+                for (table in listOf("export_clocks", "export_artifacts")) db.rawQuery("SELECT count(*) FROM $table", null).use { assertTrue(it.moveToFirst()); assertEquals(0L, it.getLong(0)) }
+            }
+        }
+    }
+    @Test fun outcomeExportMutationCancellationSwitchAndErasureDiscardPartialFiles() = runBlocking {
+        for (mode in listOf("mutation", "cancel", "switch", "erase")) isolated { store, _, directory ->
+            val fixture = AndroidLibraryFacadeFixture(store)
+            try {
+                fixture.start(); val owner = LibrarySyncOwner("owner-a", "subject-a")
+                collectExportFacts(taggedOutcomeProof(owner, 501, "large"), owner, 501, store)
+                withContext(Dispatchers.Main) {
+                    supervisorScope {
+                        val captured = fixture.sync.captureWriteContext()
+                        val task = async { fixture.sync.preparePortableExport(kotlinx.serialization.json.JsonObject(emptyMap()), captured, "export.json") }
+                        val root = File(directory, "cache/LibraryExports")
+                        withTimeout(8_000) { while (root.listFiles().orEmpty().none { File(it, "document.partial").exists() }) yield() }
+                        when (mode) {
+                            "cancel" -> task.cancel()
+                            "switch" -> { fixture.session.value = LibrarySyncSession("session-b", "subject-b"); fixture.sync.deactivate() }
+                            "erase" -> { store.beginDeletion(owner.subject, owner.namespace); store.markDeletionBackendComplete(owner.subject, owner.namespace) }
+                            else -> collectExportFacts(taggedOutcomeProof(owner, 1, "insert-during-export"), owner, 1, store)
+                        }
+                        try { task.await(); fail("Changed/canceled export was published") } catch (_: Exception) { }
+                        assertTrue(root.listFiles().orEmpty().isEmpty())
+                    }
+                }
+            } finally { fixture.stop() }
+        }
+    }
+    @Test fun outcomeExportRejectsMissingFactAfterCompletedVerification() = runBlocking {
+        isolated { store, _, directory ->
+            val fixture = AndroidLibraryFacadeFixture(store)
+            try {
+                fixture.start(); val owner = LibrarySyncOwner("owner-a", "subject-a")
+                val proof = taggedOutcomeProof(owner, 51, "corrupt-export")
+                collectExportFacts(proof, owner, 51, store)
+                android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, android.database.sqlite.SQLiteDatabase.OPEN_READWRITE).use {
+                    it.delete("members", "collection_key=? AND ordinal=?", arrayOf(LibraryOutcomeBinding(owner, proof).key, "50"))
+                }
+                withContext(Dispatchers.Main) {
+                    val captured = fixture.sync.captureWriteContext()
+                    try { fixture.sync.preparePortableExport(kotlinx.serialization.json.JsonObject(emptyMap()), captured, "export.json"); fail("Corrupt journal exported as complete") }
+                    catch (_: LibrarySyncFailure.StoreUnavailable) { }
+                    assertTrue(File(directory, "cache/LibraryExports").listFiles().orEmpty().isEmpty())
+                }
+            } finally { fixture.stop() }
+        }
+    }
+    @Test fun outcomeExportArtifactCleanupAndEmptyFenceNeverRecreateDeletedMetadata() = runBlocking {
+        isolated { store, reopen, _ ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
+            val empty = store.prepareOutcomeExport(owner) { true }; assertEquals(LibraryOutcomeExportVersion.Empty, empty.version)
+            val artifact = store.beginOutcomeExportArtifact(empty); File(artifact.directory, "document.partial").writeText("abandoned")
+            reopen().clearAbandonedOutcomeExports()
+            assertFalse(artifact.directory.exists())
+            store.beginDeletion(owner.subject, owner.namespace); store.markDeletionBackendComplete(owner.subject, owner.namespace)
+            try { store.prepareOutcomeExport(owner) { true }; fail("Deleted export recreated metadata") } catch (_: LibrarySyncFailure.AccountDeleting) { }
+        }
+    }
+    @Test fun outcomeExportSafCopyRechecksFenceAndRollsBackNewDocument() = runBlocking {
+        isolated { store, _, _ ->
+            val fixture = AndroidLibraryFacadeFixture(store)
+            try {
+                fixture.start(); val owner = LibrarySyncOwner("owner-a", "subject-a")
+                collectExportFacts(taggedOutcomeProof(owner, 51, "source"), owner, 51, store)
+                val captured = withContext(Dispatchers.Main) { fixture.sync.captureWriteContext() }
+                val prepared = fixture.sync.preparePortableExport(kotlinx.serialization.json.JsonObject(emptyMap()), captured, "export.json")
+                val context = InstrumentationRegistry.getInstrumentation().targetContext; val resolver = context.contentResolver
+                val root = android.provider.DocumentsContract.buildDocumentUri(context.packageName + ".verification.exports", "root")
+                val uri = android.provider.DocumentsContract.createDocument(resolver, root, "application/json", "export.json")!!
+                try {
+                    collectExportFacts(taggedOutcomeProof(owner, 1, "after-seal"), owner, 1, store)
+                    try { resolver.openOutputStream(uri)!!.use { fixture.sync.copyPreparedExport(prepared, it) }; fail("Changed snapshot copied") } catch (_: LibrarySyncFailure.StoreUnavailable) { }
+                    assertTrue(com.hadithly.app.features.settings.SettingsExport.removeFailedDocument(resolver, uri))
+                    try { resolver.openInputStream(uri)?.use { it.read() }; fail("Failed document still exists") } catch (_: java.io.FileNotFoundException) { }
+                } finally { fixture.sync.discardPreparedExport(prepared) }
+            } finally { fixture.stop() }
+        }
+    }
+
     @Test fun manifestRestoreUsesOwnedSnapshotWithoutGuessingMembers() {
         val first = "jn7fxd3z54153q9j13kmhgzkv18df2zd"; val second = "an7fxd3z54153q9j13kmhgzkv18df2zd"
         fun item(id: String, folder: String?) = SyncSavedItem(id, 1.0, 1.0, bookmarkCreatedAt = 1.0, folderId = folder,
@@ -423,7 +647,10 @@ class GuestMergeRaceTest {
     private suspend fun isolated(block: suspend (GuestDataStore, () -> GuestDataStore, File) -> Unit) {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val directory = File(context.cacheDir, "guest-merge-race-${System.nanoTime()}").apply { mkdirs() }
-        val wrapper = object : ContextWrapper(context) { override fun getFilesDir(): File = directory }
+        val wrapper = object : ContextWrapper(context) {
+            override fun getFilesDir(): File = directory
+            override fun getCacheDir(): File = File(directory, "cache").apply { mkdirs() }
+        }
         try { block(GuestDataStore(wrapper), { GuestDataStore(wrapper) }, directory) }
         finally { directory.deleteRecursively() }
     }
@@ -514,6 +741,26 @@ class GuestMergeRaceTest {
             assertEquals(LibraryDeletionPhase.IDENTITY_PENDING, store.deletionPhase(a.subject, "fixture"))
             try { switched.run(a); fail("Stale confirmation accepted") } catch (_: LibrarySyncFailure.SessionChanged) { }
             assertEquals(1, erases); assertEquals(0, identities)
+        }
+    }
+
+    @Test fun portableExportIncludesDurableOutcomeJournal() = runBlocking {
+        isolated { store, _, _ ->
+            val fixture = AndroidLibraryFacadeFixture(store)
+            try {
+                fixture.start()
+                val owner = LibrarySyncOwner("owner-a", "subject-a"); val proof = outcomeProof(owner, 51)
+                repeat(4) { store.collectOutcomeStep(proof, owner, { true }) { outcomePage(it, owner, 51) } }
+                val captured = withContext(Dispatchers.Main) { fixture.sync.captureWriteContext() }
+                val prepared = fixture.sync.preparePortableExport(kotlinx.serialization.json.JsonObject(mapOf("sync" to kotlinx.serialization.json.JsonObject(emptyMap()))), captured, "export.json")
+                try {
+                    val document = Json.parseToJsonElement(prepared.file.readText())
+                    assertTrue("Retained journal facts must be in the private export", document.toString().contains("member-50"))
+                    val output = java.io.ByteArrayOutputStream()
+                    fixture.sync.copyPreparedExport(prepared, output)
+                    assertEquals(document, Json.parseToJsonElement(output.toString(Charsets.UTF_8.name())))
+                } finally { fixture.sync.discardPreparedExport(prepared) }
+            } finally { fixture.stop() }
         }
     }
 

@@ -139,6 +139,7 @@ final class AppEnvironment {
         self.librarySync.onOwnerChange = { [weak privateLibrary] _ in privateLibrary?.refresh() }
         self.librarySync.onPartitionChange = { [weak privateLibrary] owner in privateLibrary?.partitionChanged(owner) }
         SettingsExport.clearTemporaryFiles()
+        try? self.guestData.clearAbandonedOutcomeExports()
         let client = convex
         let probeURL = URL(string: config.convexURL)
         self.offline = OfflineStore(manifestProvider: { locale in

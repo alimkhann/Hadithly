@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -347,6 +348,30 @@ sealed class LibrarySyncFailure : Exception() {
     data object AccountDeleting : LibrarySyncFailure()
 }
 
+object LibraryExportPolicy { val deniedKeys = setOf("pushTokens", "adminAuditLog", "revenueCatAppUserId", "capability") }
+class LibraryPreparedExport internal constructor(val file: java.io.File, internal val artifactID: String, internal val context: LibraryWriteContext, internal val fence: LibraryOutcomeExportFence)
+private val portableExportJson = Json { encodeDefaults = true; explicitNulls = false }
+private fun LibraryOutcomeExportEntry.exportMetadata(): kotlinx.serialization.json.JsonObject {
+    fun counts(value: LibraryOutcomeCounts) = kotlinx.serialization.json.JsonObject(mapOf(
+        "deleted" to kotlinx.serialization.json.JsonPrimitive(value.deleted), "restored" to kotlinx.serialization.json.JsonPrimitive(value.restored),
+        "superseded" to kotlinx.serialization.json.JsonPrimitive(value.superseded), "missing" to kotlinx.serialization.json.JsonPrimitive(value.missing)))
+    val result = mutableMapOf<String, kotlinx.serialization.json.JsonElement>(
+        "authority" to portableExportJson.encodeToJsonElement(LibraryOutcomeAuthority.serializer(), binding.authority), "expected" to counts(binding.expected),
+        "collected" to counts(checkpoint.counts), "collectedPrefixCount" to kotlinx.serialization.json.JsonPrimitive(checkpoint.next),
+        "detailComplete" to kotlinx.serialization.json.JsonPrimitive(checkpoint.status == LibraryOutcomeStatus.Complete))
+    val status = when (val value = checkpoint.status) {
+        LibraryOutcomeStatus.Collecting -> "collecting"
+        LibraryOutcomeStatus.Complete -> "complete"
+        is LibraryOutcomeStatus.Verifying -> { result["verified"] = counts(value.counts); "verifying" }
+        is LibraryOutcomeStatus.Unavailable -> {
+            result["unavailableReason"] = kotlinx.serialization.json.JsonPrimitive(if (value.reason == SyncOutcomePageUnavailableReason.PROOF_UNAVAILABLE) "proof_unavailable" else "detail_unavailable")
+            "unavailable"
+        }
+    }
+    result["status"] = kotlinx.serialization.json.JsonPrimitive(status)
+    return kotlinx.serialization.json.JsonObject(result)
+}
+
 data class LibrarySyncSession(val id: String, val subject: String)
 
 class LibraryWriteContext internal constructor(
@@ -464,6 +489,102 @@ class LibrarySync(
         capability(context)
         Json.encodeToJsonElement(LibraryPartitionState.serializer(), state).withoutProviderPassages()
     }
+
+    suspend fun preparePortableExport(server: kotlinx.serialization.json.JsonObject, captured: LibraryWriteContext, fileName: String): LibraryPreparedExport = withContext(Dispatchers.Main.immediate) {
+        capability(captured)
+        if (fileName.isEmpty() || fileName == "." || fileName == ".." || java.io.File(fileName).name != fileName) throw LibrarySyncFailure.InvalidChange
+        val fence = store.prepareOutcomeExport(captured.owner) { runCatching { capability(captured) }.isSuccess }
+        capability(captured)
+        val fields = kotlinx.serialization.json.JsonObject(server + ("localLibrary" to portableState(captured)))
+        if (fields.containsKey("localOutcomeEvidence") || fields.containsExportKey(LibraryExportPolicy.deniedKeys)) throw LibrarySyncFailure.InvalidReceipt
+        val artifact = store.beginOutcomeExportArtifact(fence)
+        val partial = java.io.File(artifact.directory, "document.partial")
+        var keep = false
+        var stream: java.io.FileOutputStream? = null
+        var buffer: java.io.BufferedOutputStream? = null
+        try {
+            val opened = withContext(Dispatchers.IO) { java.io.FileOutputStream(partial) }
+            stream = opened
+            val output = java.io.BufferedOutputStream(opened); buffer = output
+            suspend fun raw(value: String) = withContext(Dispatchers.IO) { output.write(value.toByteArray(Charsets.UTF_8)) }
+            suspend fun json(value: kotlinx.serialization.json.JsonElement) = raw(value.toString())
+            suspend fun current() { kotlinx.coroutines.currentCoroutineContext().ensureActive(); capability(captured) }
+            raw("{")
+            var first = true
+            for ((key, value) in fields.toSortedMap()) {
+                if (!first) raw(","); first = false
+                json(kotlinx.serialization.json.JsonPrimitive(key)); raw(":"); json(value)
+            }
+            if (!first) raw(",")
+            raw("\"localOutcomeEvidence\":[")
+            var after: String? = null; var firstEntry = true
+            while (true) {
+                current()
+                val entries = store.outcomeExportEntries(fence, after)
+                if (entries.isEmpty()) break
+                for (entry in entries) {
+                    if (!firstEntry) raw(","); firstEntry = false
+                    raw("{")
+                    for ((key, value) in entry.exportMetadata().toSortedMap()) { json(kotlinx.serialization.json.JsonPrimitive(key)); raw(":"); json(value); raw(",") }
+                    raw("\"rows\":[")
+                    var start = 0L; var firstRow = true
+                    while (true) {
+                        current()
+                        val page = store.outcomeExportPage(fence, entry, start)
+                        withContext(Dispatchers.IO) {
+                            page.rows.forEachIndexed { index, row ->
+                                if (!firstRow || index > 0) output.write(','.code)
+                                output.write(Json.encodeToString(row).toByteArray(Charsets.UTF_8))
+                            }
+                        }
+                        if (page.rows.isNotEmpty()) firstRow = false
+                        start = page.next
+                        if (page.endOfCollectedPrefix) break
+                        kotlinx.coroutines.yield()
+                    }
+                    raw("]}"); after = entry.binding.key
+                    kotlinx.coroutines.yield()
+                }
+            }
+            raw("]}")
+            withContext(Dispatchers.IO) { output.flush(); opened.fd.sync(); output.close() }
+            buffer = null; stream = null
+            current()
+            val destination = store.sealOutcomeExport(fence, artifact, fileName)
+            current()
+            keep = true
+            LibraryPreparedExport(destination, artifact.id, captured, fence)
+        } finally {
+            withContext(kotlinx.coroutines.NonCancellable) {
+                withContext(Dispatchers.IO) { runCatching { buffer?.close() }; runCatching { stream?.close() } }
+                if (!keep) store.discardOutcomeExportArtifact(artifact.id)
+            }
+        }
+    }
+    suspend fun copyPreparedExport(export: LibraryPreparedExport, output: java.io.OutputStream) = withContext(Dispatchers.Main.immediate) {
+        suspend fun current() {
+            kotlinx.coroutines.currentCoroutineContext().ensureActive()
+            capability(export.context)
+            store.validateOutcomeExport(export.fence)
+            store.validateOutcomeExportArtifact(export.artifactID, export.context.owner)
+            capability(export.context)
+        }
+        current()
+        val input = withContext(Dispatchers.IO) { export.file.inputStream() }
+        try {
+            val bytes = ByteArray(8_192)
+            while (true) {
+                current()
+                val read = withContext(Dispatchers.IO) { input.read(bytes) }
+                if (read < 0) break
+                current()
+                withContext(Dispatchers.IO) { output.write(bytes, 0, read) }
+            }
+            withContext(Dispatchers.IO) { output.flush() }
+            current()
+        } finally { withContext(kotlinx.coroutines.NonCancellable + Dispatchers.IO) { input.close() } }
+    }
+    suspend fun discardPreparedExport(export: LibraryPreparedExport) = withContext(kotlinx.coroutines.NonCancellable) { store.discardOutcomeExportArtifact(export.artifactID) }
 
     private fun checkSession(session: LibrarySyncSession, epoch: String) {
         if (generation != epoch || currentSession() != session) throw LibrarySyncFailure.SessionChanged

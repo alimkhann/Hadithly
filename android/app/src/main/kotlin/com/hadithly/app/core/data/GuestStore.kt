@@ -437,7 +437,11 @@ class GuestDataStore(context: Context) {
     suspend fun markDeletionBackendComplete(subject: String, namespace: String) {
         mutex.withLock {
             if (readLocked().deletions.none { it.subject == subject && it.namespace == namespace }) throw LibrarySyncFailure.SessionChanged
-            withContext(Dispatchers.IO) { outcomeJournal.erase(subject, namespace) }
+            withContext(Dispatchers.IO) {
+                outcomeJournal.beginErase(subject, namespace, full = true)
+                clearArtifactScope(subject, namespace)
+                outcomeJournal.erase(subject, namespace)
+            }
         }
         writeLocked(notify = false) { store ->
             if (store.deletions.none { it.subject == subject && it.namespace == namespace }) throw LibrarySyncFailure.SessionChanged
@@ -452,7 +456,11 @@ class GuestDataStore(context: Context) {
     // Reset fixture only. Account erasure uses the durable deletion intent above.
     suspend fun resetSyncPartitionForTesting(owner: LibrarySyncOwner) {
         writeLocked(notify = false) { store ->
-            withContext(Dispatchers.IO) { outcomeJournal.erase(owner.subject, owner.namespace, owner.storageKey) }
+            withContext(Dispatchers.IO) {
+                outcomeJournal.beginErase(owner.subject, owner.namespace, full = false)
+                clearArtifactScope(owner.subject, owner.namespace)
+                outcomeJournal.erase(owner.subject, owner.namespace, owner.storageKey)
+            }
             store.copy(syncPartitions = store.syncPartitions.filterNot { it.ownerKey == owner.storageKey && it.subject == owner.subject })
         }
     }
@@ -491,6 +499,100 @@ class GuestDataStore(context: Context) {
     suspend fun outcomeEvidencePage(committed: SyncCommitted, owner: LibrarySyncOwner, start: Long): LibraryOutcomeEvidencePage =
         withContext(Dispatchers.IO) { outcomeJournal.evidence(LibraryOutcomeBinding(owner, committed), start) }
 
+
+    private val exportDirectory: File = File(context.cacheDir, "LibraryExports")
+    private var exportCleanupDone = false
+    private fun artifactDirectory(id: String): File {
+        val parsed = try { UUID.fromString(id) } catch (_: IllegalArgumentException) { throw LibrarySyncFailure.StoreUnavailable }
+        if (parsed.toString() != id.lowercase(java.util.Locale.ROOT)) throw LibrarySyncFailure.StoreUnavailable
+        return File(exportDirectory, id)
+    }
+    private fun removeArtifactDirectory(id: String) {
+        val directory = artifactDirectory(id)
+        if (directory.exists() && !directory.deleteRecursively()) throw LibrarySyncFailure.StoreUnavailable
+    }
+    private fun clearArtifactScope(subject: String, namespace: String) {
+        while (true) {
+            val ids = outcomeJournal.artifactIds(subject, namespace)
+            if (ids.isEmpty()) return
+            ids.forEach { id -> removeArtifactDirectory(id); outcomeJournal.discardArtifact(id) }
+        }
+    }
+    suspend fun clearAbandonedOutcomeExports() = mutex.withLock {
+        if (!exportCleanupDone) withContext(Dispatchers.IO) {
+            while (true) {
+                val ids = outcomeJournal.artifactIds()
+                if (ids.isEmpty()) break
+                ids.forEach { id -> removeArtifactDirectory(id); outcomeJournal.discardArtifact(id) }
+            }
+            if (exportDirectory.exists()) java.nio.file.Files.newDirectoryStream(exportDirectory.toPath()).use { entries ->
+                for (entry in entries) {
+                    val id = entry.fileName.toString()
+                    if (runCatching { UUID.fromString(id).toString() == id.lowercase(java.util.Locale.ROOT) }.getOrDefault(false)) removeArtifactDirectory(id)
+                }
+            }
+            exportCleanupDone = true
+        }
+    }
+    suspend fun prepareOutcomeExport(owner: LibrarySyncOwner, isCurrent: () -> Boolean): LibraryOutcomeExportFence {
+        clearAbandonedOutcomeExports()
+        while (true) {
+            if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
+            val ready = mutex.withLock {
+                assertOutcomeOwnerActive(owner)
+                val blocked = readLocked().deletions.map { LibraryOutcomeBinding.hash(listOf(it.namespace, it.subject)) }.toSet()
+                withContext(Dispatchers.IO) { outcomeJournal.prepareExportStep(blocked) }
+            }
+            if (ready) break
+            kotlinx.coroutines.yield()
+        }
+        if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
+        return mutex.withLock {
+            assertOutcomeOwnerActive(owner)
+            withContext(Dispatchers.IO) { outcomeJournal.captureExportFence(owner) }
+        }
+    }
+    suspend fun validateOutcomeExport(fence: LibraryOutcomeExportFence) = mutex.withLock {
+        assertOutcomeOwnerActive(fence.owner)
+        withContext(Dispatchers.IO) { outcomeJournal.validateExport(fence) }
+    }
+    suspend fun outcomeExportEntries(fence: LibraryOutcomeExportFence, after: String?): List<LibraryOutcomeExportEntry> = mutex.withLock {
+        assertOutcomeOwnerActive(fence.owner)
+        withContext(Dispatchers.IO) { outcomeJournal.exportEntries(fence, after) }
+    }
+    suspend fun outcomeExportPage(fence: LibraryOutcomeExportFence, entry: LibraryOutcomeExportEntry, start: Long): LibraryOutcomeEvidencePage = mutex.withLock {
+        assertOutcomeOwnerActive(fence.owner)
+        withContext(Dispatchers.IO) { outcomeJournal.exportPage(fence, entry, start) }
+    }
+    suspend fun beginOutcomeExportArtifact(fence: LibraryOutcomeExportFence): LibraryExportArtifact = mutex.withLock {
+        assertOutcomeOwnerActive(fence.owner)
+        withContext(Dispatchers.IO) {
+            val id = outcomeJournal.registerArtifact(fence)
+            val directory = artifactDirectory(id)
+            try {
+                if (!directory.mkdirs() && !directory.isDirectory) throw LibrarySyncFailure.StoreUnavailable
+                LibraryExportArtifact(id, directory)
+            } catch (error: Exception) { removeArtifactDirectory(id); outcomeJournal.discardArtifact(id); throw error }
+        }
+    }
+    suspend fun sealOutcomeExport(fence: LibraryOutcomeExportFence, artifact: LibraryExportArtifact, fileName: String): File = mutex.withLock {
+        assertOutcomeOwnerActive(fence.owner)
+        withContext(Dispatchers.IO) {
+            val directory = artifactDirectory(artifact.id)
+            outcomeJournal.sealExport(fence, artifact.id) {
+                val destination = File(directory, fileName)
+                java.nio.file.Files.move(File(directory, "document.partial").toPath(), destination.toPath(), java.nio.file.StandardCopyOption.ATOMIC_MOVE)
+                destination
+            }
+        }
+    }
+    suspend fun validateOutcomeExportArtifact(id: String, owner: LibrarySyncOwner) = mutex.withLock {
+        assertOutcomeOwnerActive(owner)
+        withContext(Dispatchers.IO) { outcomeJournal.validateArtifact(id, owner) }
+    }
+    suspend fun discardOutcomeExportArtifact(id: String) = mutex.withLock {
+        withContext(Dispatchers.IO) { removeArtifactDirectory(id); outcomeJournal.discardArtifact(id) }
+    }
 
     private fun nowMillis(): Double = System.currentTimeMillis().toDouble()
 }

@@ -16,9 +16,11 @@ final class GuestDataStore {
 
     private let container: ModelContainer
     private let context: ModelContext
+    private let exportDirectory: URL
+    private var exportCleanupDone = false
 
-    init(inMemory: Bool = false, storeURL: URL? = nil) {
-        let schema = Schema([
+    static var schema: Schema {
+        Schema([
             GuestBookmark.self,
             GuestNote.self,
             GuestFavorite.self,
@@ -30,10 +32,19 @@ final class GuestDataStore {
             GuestOutcomeScope.self,
             GuestOutcomeHeader.self,
             GuestOutcomeMember.self,
+            GuestOutcomeClock.self,
+            GuestOutcomeInventory.self,
+            GuestOutcomeInventoryMigration.self,
+            GuestLibraryExportArtifact.self,
         ])
+    }
+
+    init(inMemory: Bool = false, storeURL: URL? = nil, exportDirectory: URL? = nil) {
+        let schema = Self.schema
         let configuration = storeURL.map { ModelConfiguration(schema: schema, url: $0) }
             ?? ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
         self.container = try! ModelContainer(for: schema, configurations: [configuration])
+        self.exportDirectory = exportDirectory ?? FileManager.default.temporaryDirectory.appendingPathComponent("LibraryExports", isDirectory: true)
         self.context = ModelContext(container)
         context.autosaveEnabled = false
         refreshCount()
@@ -486,6 +497,184 @@ final class GuestDataStore {
 
     // Each page uses a fresh context: a long-lived identity map must not hide a
     // conflicting row saved by a reopened store. MainActor serializes local writes.
+    private func outcomeClock(subject: String, namespace: String, in journal: ModelContext) throws -> GuestOutcomeClock? {
+        let key = LibraryOutcomeBinding.hash([namespace, subject])
+        var query = FetchDescriptor<GuestOutcomeClock>(predicate: #Predicate { $0.key == key }); query.fetchLimit = 2
+        let rows = try journal.fetch(query)
+        guard rows.count <= 1 else { throw LibrarySyncFailure.storeUnavailable }
+        if let row = rows.first {
+            guard row.subject == subject, row.namespace == namespace, !row.epoch.isEmpty,
+                  row.revision >= 0, row.revision < 9_007_199_254_740_991 else { throw LibrarySyncFailure.storeUnavailable }
+        }
+        return rows.first
+    }
+    @discardableResult private func bumpOutcomeClock(subject: String, namespace: String, erasing: Bool = false, in journal: ModelContext) throws -> GuestOutcomeClock {
+        let clock: GuestOutcomeClock
+        if let stored = try outcomeClock(subject: subject, namespace: namespace, in: journal) { clock = stored }
+        else { clock = GuestOutcomeClock(subject: subject, namespace: namespace); journal.insert(clock) }
+        guard erasing || !clock.erasing else { throw LibrarySyncFailure.accountDeleting }
+        guard clock.revision < 9_007_199_254_740_990 else { throw LibrarySyncFailure.storeUnavailable }
+        clock.revision += 1
+        if erasing { clock.erasing = true }
+        return clock
+    }
+    private func insertOutcomeInventory(_ binding: LibraryOutcomeBinding, in journal: ModelContext) throws {
+        let expected = GuestOutcomeInventory(binding: binding), key = expected.key
+        var query = FetchDescriptor<GuestOutcomeInventory>(predicate: #Predicate { $0.key == key }); query.fetchLimit = 2
+        let rows = try journal.fetch(query)
+        guard rows.count <= 1 else { throw LibrarySyncFailure.storeUnavailable }
+        if let stored = rows.first {
+            guard stored.headerKey == binding.key else { throw LibrarySyncFailure.storeUnavailable }
+        } else {
+            journal.insert(expected)
+            try bumpOutcomeClock(subject: binding.owner.subject, namespace: binding.owner.namespace, in: journal)
+        }
+        if try outcomeClock(subject: binding.owner.subject, namespace: binding.owner.namespace, in: journal) == nil {
+            try bumpOutcomeClock(subject: binding.owner.subject, namespace: binding.owner.namespace, in: journal)
+        }
+    }
+    private func prepareOutcomeInventoryStep() throws -> Bool {
+        let journal = outcomeContext(), migrationKey = "outcome-inventory-v1"
+        var query = FetchDescriptor<GuestOutcomeInventoryMigration>(predicate: #Predicate { $0.key == migrationKey }); query.fetchLimit = 2
+        let markers = try journal.fetch(query)
+        guard markers.count <= 1 else { throw LibrarySyncFailure.storeUnavailable }
+        let marker: GuestOutcomeInventoryMigration
+        if let stored = markers.first { marker = stored }
+        else { marker = try GuestOutcomeInventoryMigration(); journal.insert(marker) }
+        let progress = try JSONDecoder().decode(LibraryOutcomeInventoryProgress.self, from: marker.stateData)
+        let after: String, reconciling: Bool
+        switch progress {
+        case .ready: return true
+        case .scanning(let value): after = value; reconciling = false
+        case .reconciling(let value): after = value; reconciling = true
+        }
+        var headersQuery = FetchDescriptor<GuestOutcomeHeader>(predicate: #Predicate { $0.key > after }, sortBy: [SortDescriptor(\.key)])
+        headersQuery.fetchLimit = LibrarySyncLimits.outcomePage
+        let headers = try journal.fetch(headersQuery)
+        for header in headers {
+            let binding = try JSONDecoder().decode(LibraryOutcomeBinding.self, from: header.bindingData)
+            _ = try outcomeCheckpoint(header, binding: binding)
+            // A deleting account never regains clock/index metadata from backfill.
+            if try deletionPhase(subject: binding.owner.subject, namespace: binding.owner.namespace) == nil {
+                try insertOutcomeInventory(binding, in: journal)
+            }
+        }
+        let next: LibraryOutcomeInventoryProgress
+        if let last = headers.last { next = reconciling ? .reconciling(after: last.key) : .scanning(after: last.key) }
+        else { next = reconciling ? .ready : .reconciling(after: "") }
+        marker.stateData = try JSONEncoder().encode(next)
+        try saveOutcomeContext(journal)
+        if case .ready = next { return true }
+        return false
+    }
+    func prepareOutcomeExport(_ owner: LibrarySyncOwner, isCurrent: () -> Bool) async throws -> LibraryOutcomeExportFence {
+        if !exportCleanupDone { try clearAbandonedOutcomeExports() }
+        while true {
+            guard isCurrent() else { throw LibrarySyncFailure.sessionChanged }
+            try assertOutcomeOwnerActive(owner)
+            if try prepareOutcomeInventoryStep() { break }
+            await Task.yield()
+        }
+        guard isCurrent() else { throw LibrarySyncFailure.sessionChanged }
+        let journal = outcomeContext()
+        if let clock = try outcomeClock(subject: owner.subject, namespace: owner.namespace, in: journal) {
+            guard !clock.erasing else { throw LibrarySyncFailure.accountDeleting }
+            return .init(owner: owner, version: .present(epoch: clock.epoch, revision: clock.revision))
+        }
+        let prefix = LibraryOutcomeBinding.hash([owner.namespace, owner.subject]) + ":", upper = prefix + "~"
+        var query = FetchDescriptor<GuestOutcomeInventory>(predicate: #Predicate { $0.key >= prefix && $0.key < upper }); query.fetchLimit = 1
+        guard try journal.fetch(query).isEmpty else { throw LibrarySyncFailure.storeUnavailable }
+        return .init(owner: owner, version: .empty)
+    }
+    private func validateOutcomeExport(_ fence: LibraryOutcomeExportFence, in journal: ModelContext) throws {
+        try assertOutcomeOwnerActive(fence.owner)
+        let clock = try outcomeClock(subject: fence.owner.subject, namespace: fence.owner.namespace, in: journal)
+        switch (fence.version, clock) {
+        case (.empty, nil): break
+        case (.present(let epoch, let revision), .some(let clock)):
+            guard !clock.erasing, clock.epoch == epoch, clock.revision == revision else { throw LibrarySyncFailure.storeUnavailable }
+        default: throw LibrarySyncFailure.storeUnavailable
+        }
+    }
+    func validateOutcomeExport(_ fence: LibraryOutcomeExportFence) throws { try validateOutcomeExport(fence, in: outcomeContext()) }
+    func outcomeExportEntries(_ fence: LibraryOutcomeExportFence, after: String?) throws -> [LibraryOutcomeExportEntry] {
+        let journal = outcomeContext(); try validateOutcomeExport(fence, in: journal)
+        let prefix = LibraryOutcomeBinding.hash([fence.owner.namespace, fence.owner.subject]) + ":", upper = prefix + "~"
+        let lower = after.map { prefix + $0 + "!" } ?? prefix
+        var query = FetchDescriptor<GuestOutcomeInventory>(predicate: #Predicate { $0.key >= lower && $0.key < upper }, sortBy: [SortDescriptor(\.key)])
+        query.fetchLimit = LibrarySyncLimits.outcomePage
+        let rows = try journal.fetch(query)
+        return try rows.map { row in
+            guard let header = try outcomeHeader(row.headerKey, in: journal) else { throw LibrarySyncFailure.storeUnavailable }
+            let binding = try JSONDecoder().decode(LibraryOutcomeBinding.self, from: header.bindingData)
+            guard binding.owner.subject == fence.owner.subject, binding.owner.namespace == fence.owner.namespace,
+                  row.key == prefix + binding.key else { throw LibrarySyncFailure.ownerMismatch }
+            return .init(binding: binding, checkpoint: try outcomeCheckpoint(header, binding: binding))
+        }
+    }
+    func outcomeExportPage(_ fence: LibraryOutcomeExportFence, entry: LibraryOutcomeExportEntry, start: Int) throws -> LibraryOutcomeEvidencePage {
+        try validateOutcomeExport(fence)
+        guard entry.binding.owner.subject == fence.owner.subject, entry.binding.owner.namespace == fence.owner.namespace else { throw LibrarySyncFailure.ownerMismatch }
+        let page = try outcomeEvidencePage(entry.binding.committed, owner: entry.binding.owner, start: start)
+        guard page.checkpoint == entry.checkpoint else { throw LibrarySyncFailure.storeUnavailable }
+        try validateOutcomeExport(fence)
+        return page
+    }
+    private func artifactDirectory(_ id: String) throws -> URL {
+        guard UUID(uuidString: id) != nil else { throw LibrarySyncFailure.storeUnavailable }
+        return exportDirectory.appendingPathComponent(id, isDirectory: true)
+    }
+    func beginOutcomeExportArtifact(_ fence: LibraryOutcomeExportFence) throws -> LibraryExportArtifact {
+        let journal = outcomeContext(); try validateOutcomeExport(fence, in: journal)
+        let id = UUID().uuidString, directory = try artifactDirectory(id)
+        journal.insert(GuestLibraryExportArtifact(id: id, owner: fence.owner))
+        try saveOutcomeContext(journal)
+        do { try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true, attributes: [.protectionKey: FileProtectionType.complete]) }
+        catch { try? discardOutcomeExportArtifact(id); throw error }
+        return .init(id: id, directory: directory)
+    }
+    func discardOutcomeExportArtifact(_ id: String) throws {
+        let journal = outcomeContext(), directory = try artifactDirectory(id)
+        if FileManager.default.fileExists(atPath: directory.path) { try FileManager.default.removeItem(at: directory) }
+        var query = FetchDescriptor<GuestLibraryExportArtifact>(predicate: #Predicate { $0.id == id }); query.fetchLimit = 2
+        let rows = try journal.fetch(query)
+        guard rows.count <= 1 else { throw LibrarySyncFailure.storeUnavailable }
+        rows.forEach { journal.delete($0) }; try saveOutcomeContext(journal)
+    }
+    private func eraseOutcomeExportArtifacts(subject: String, namespace: String) throws {
+        while true {
+            let journal = outcomeContext()
+            var query = FetchDescriptor<GuestLibraryExportArtifact>(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace }); query.fetchLimit = LibrarySyncLimits.outcomePage
+            let rows = try journal.fetch(query)
+            if rows.isEmpty { return }
+            for row in rows {
+                let directory = try artifactDirectory(row.id)
+                if FileManager.default.fileExists(atPath: directory.path) { try FileManager.default.removeItem(at: directory) }
+                journal.delete(row)
+            }
+            try saveOutcomeContext(journal)
+        }
+    }
+    func clearAbandonedOutcomeExports() throws {
+        while true {
+            let journal = outcomeContext(); var query = FetchDescriptor<GuestLibraryExportArtifact>(); query.fetchLimit = LibrarySyncLimits.outcomePage
+            let rows = try journal.fetch(query)
+            if rows.isEmpty { break }
+            for row in rows {
+                let directory = try artifactDirectory(row.id)
+                if FileManager.default.fileExists(atPath: directory.path) { try FileManager.default.removeItem(at: directory) }
+                journal.delete(row)
+            }
+            try saveOutcomeContext(journal)
+        }
+        if let entries = FileManager.default.enumerator(at: exportDirectory, includingPropertiesForKeys: nil, options: [.skipsSubdirectoryDescendants]) {
+            for case let directory as URL in entries where UUID(uuidString: directory.lastPathComponent) != nil {
+                try FileManager.default.removeItem(at: directory)
+            }
+        }
+        exportCleanupDone = true
+    }
+
     private func outcomeContext() -> ModelContext {
         let value = ModelContext(container); value.autosaveEnabled = false; return value
     }
@@ -508,6 +697,9 @@ final class GuestDataStore {
         let checkpoint = try JSONDecoder().decode(LibraryOutcomeCheckpoint.self, from: header.checkpointData)
         guard checkpoint.counts.valid, checkpoint.counts.fits(binding.expected) else { throw LibrarySyncFailure.storeUnavailable }
         if checkpoint.status == .complete, checkpoint.counts != binding.expected { throw LibrarySyncFailure.storeUnavailable }
+        if case .verifying(let counts) = checkpoint.status {
+            guard counts.valid, counts.fits(checkpoint.counts), checkpoint.counts == binding.expected else { throw LibrarySyncFailure.storeUnavailable }
+        }
         return checkpoint
     }
     private func outcomeRows(_ binding: LibraryOutcomeBinding, start: Int, limit: Int, in journal: ModelContext) throws -> [SyncOutcomeMember] {
@@ -537,6 +729,7 @@ final class GuestDataStore {
             next.status = .complete
         } else { next.status = .verifying(counts) }
         header.checkpointData = try JSONEncoder().encode(next)
+        try bumpOutcomeClock(subject: binding.owner.subject, namespace: binding.owner.namespace, in: journal)
         try saveOutcomeContext(journal)
         return next
     }
@@ -554,12 +747,17 @@ final class GuestDataStore {
         try assertOutcomeOwnerActive(owner)
         let binding = try LibraryOutcomeBinding(owner: owner, committed: committed), journal = outcomeContext()
         let scope: GuestOutcomeScope
-        if let stored = try outcomeScope(binding.scopeKey, in: journal) { scope = stored }
-        else { scope = GuestOutcomeScope(binding: binding); journal.insert(scope) }
+        let insertedScope: Bool
+        if let stored = try outcomeScope(binding.scopeKey, in: journal) { scope = stored; insertedScope = false }
+        else { scope = GuestOutcomeScope(binding: binding); journal.insert(scope); insertedScope = true }
         let header: GuestOutcomeHeader
         if let stored = try outcomeHeader(binding.key, in: journal) { header = stored }
-        else { header = try GuestOutcomeHeader(binding: binding, generation: scope.generation, checkpoint: .init()); journal.insert(header) }
+        else {
+            header = try GuestOutcomeHeader(binding: binding, generation: scope.generation, checkpoint: .init()); journal.insert(header)
+            try insertOutcomeInventory(binding, in: journal)
+        }
         guard header.generation == scope.generation else { throw LibrarySyncFailure.sessionChanged }
+        if insertedScope { try bumpOutcomeClock(subject: owner.subject, namespace: owner.namespace, in: journal) }
         let checkpoint = try outcomeCheckpoint(header, binding: binding)
         if case .verifying = checkpoint.status { return try verifyOutcomeStep(header, checkpoint: checkpoint, binding: binding, in: journal) }
         try saveOutcomeContext(journal)
@@ -612,6 +810,7 @@ final class GuestDataStore {
             }
         }
         header.checkpointData = try JSONEncoder().encode(checkpoint)
+        try bumpOutcomeClock(subject: binding.owner.subject, namespace: binding.owner.namespace, in: journal)
         // Rows and continuation share one save; a failed save advances neither.
         try saveOutcomeContext(journal)
         return checkpoint
@@ -629,6 +828,9 @@ final class GuestDataStore {
 
     private func eraseOutcomeEvidence(subject: String, namespace: String, ownerKey: String? = nil) throws {
         let journal = outcomeContext()
+        try bumpOutcomeClock(subject: subject, namespace: namespace, erasing: ownerKey == nil, in: journal)
+        try saveOutcomeContext(journal)
+        try eraseOutcomeExportArtifacts(subject: subject, namespace: namespace)
         var after = ""
         while true {
             var query = FetchDescriptor<GuestOutcomeScope>(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace && $0.key > after }, sortBy: [SortDescriptor(\.key)])
@@ -637,7 +839,9 @@ final class GuestDataStore {
             let scopes = try journal.fetch(query)
             guard let last = scopes.last else { break }
             scopes.forEach { $0.generation = UUID().uuidString }
-            after = last.key; try saveOutcomeContext(journal)
+            after = last.key
+            try bumpOutcomeClock(subject: subject, namespace: namespace, erasing: ownerKey == nil, in: journal)
+            try saveOutcomeContext(journal)
         }
         while true {
             var query = FetchDescriptor<GuestOutcomeMember>(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace })
@@ -645,7 +849,9 @@ final class GuestDataStore {
             query.fetchLimit = LibrarySyncLimits.outcomePage
             let rows = try journal.fetch(query)
             if rows.isEmpty { break }
-            rows.forEach { journal.delete($0) }; try saveOutcomeContext(journal)
+            rows.forEach { journal.delete($0) }
+            try bumpOutcomeClock(subject: subject, namespace: namespace, erasing: ownerKey == nil, in: journal)
+            try saveOutcomeContext(journal)
         }
         while true {
             var query = FetchDescriptor<GuestOutcomeHeader>(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace })
@@ -653,7 +859,14 @@ final class GuestDataStore {
             query.fetchLimit = LibrarySyncLimits.outcomePage
             let rows = try journal.fetch(query)
             if rows.isEmpty { break }
-            rows.forEach { journal.delete($0) }; try saveOutcomeContext(journal)
+            for row in rows {
+                let key = LibraryOutcomeBinding.hash([namespace, subject]) + ":" + row.key
+                var inventoryQuery = FetchDescriptor<GuestOutcomeInventory>(predicate: #Predicate { $0.key == key }); inventoryQuery.fetchLimit = 1
+                for item in try journal.fetch(inventoryQuery) { journal.delete(item) }
+                journal.delete(row)
+            }
+            try bumpOutcomeClock(subject: subject, namespace: namespace, erasing: ownerKey == nil, in: journal)
+            try saveOutcomeContext(journal)
         }
         while true {
             var query = FetchDescriptor<GuestOutcomeScope>(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace })
@@ -661,7 +874,25 @@ final class GuestDataStore {
             query.fetchLimit = LibrarySyncLimits.outcomePage
             let scopes = try journal.fetch(query)
             if scopes.isEmpty { break }
-            scopes.forEach { journal.delete($0) }; try saveOutcomeContext(journal)
+            scopes.forEach { journal.delete($0) }
+            try bumpOutcomeClock(subject: subject, namespace: namespace, erasing: ownerKey == nil, in: journal)
+            try saveOutcomeContext(journal)
+        }
+        let prefix = LibraryOutcomeBinding.hash([namespace, subject]) + ":", upper = prefix + "~"
+        if ownerKey == nil {
+            while true {
+                var query = FetchDescriptor<GuestOutcomeInventory>(predicate: #Predicate { $0.key >= prefix && $0.key < upper }); query.fetchLimit = LibrarySyncLimits.outcomePage
+                let rows = try journal.fetch(query)
+                if rows.isEmpty { break }
+                rows.forEach { journal.delete($0) }
+                try bumpOutcomeClock(subject: subject, namespace: namespace, erasing: true, in: journal)
+                try saveOutcomeContext(journal)
+            }
+        }
+        let headers = try journal.fetchCount(FetchDescriptor<GuestOutcomeHeader>(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace }))
+        let scopes = try journal.fetchCount(FetchDescriptor<GuestOutcomeScope>(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace }))
+        if headers == 0 && scopes == 0, let clock = try outcomeClock(subject: subject, namespace: namespace, in: journal) {
+            journal.delete(clock); try saveOutcomeContext(journal)
         }
     }
 

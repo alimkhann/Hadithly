@@ -318,6 +318,48 @@ final class GuestLibraryPartition {
 enum LibraryDeletionPhase: String, Codable, Sendable { case serverPending, identityPending }
 
 @Model
+final class GuestOutcomeClock {
+    @Attribute(.unique) var key: String
+    var subject: String
+    var namespace: String
+    var epoch: String
+    var revision: Int
+    var erasing: Bool
+    init(subject: String, namespace: String) {
+        key = LibraryOutcomeBinding.hash([namespace, subject]); self.subject = subject; self.namespace = namespace
+        epoch = UUID().uuidString; revision = 0; erasing = false
+    }
+}
+
+@Model
+final class GuestOutcomeInventory {
+    @Attribute(.unique) var key: String
+    var headerKey: String
+    init(binding: LibraryOutcomeBinding) {
+        key = LibraryOutcomeBinding.hash([binding.owner.namespace, binding.owner.subject]) + ":" + binding.key
+        headerKey = binding.key
+    }
+}
+
+@Model
+final class GuestOutcomeInventoryMigration {
+    @Attribute(.unique) var key: String
+    var stateData: Data
+    init() throws {
+        key = "outcome-inventory-v1"
+        stateData = try JSONEncoder().encode(LibraryOutcomeInventoryProgress.scanning(after: ""))
+    }
+}
+
+@Model
+final class GuestLibraryExportArtifact {
+    @Attribute(.unique) var id: String
+    var subject: String
+    var namespace: String
+    init(id: String, owner: LibrarySyncOwner) { self.id = id; subject = owner.subject; namespace = owner.namespace }
+}
+
+@Model
 final class GuestOutcomeScope {
     @Attribute(.unique) var key: String
     var subject: String

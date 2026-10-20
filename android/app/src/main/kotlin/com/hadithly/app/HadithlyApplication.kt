@@ -91,6 +91,11 @@ class HadithlyApplication : Application() {
         repository = ConvexRepository(this)
         purchases.verifyBackendAccess = { repository.refreshSubscriptionAccess() }
         guestData = GuestDataStore(this)
+        appScope.launch {
+            try { guestData.clearAbandonedOutcomeExports() }
+            catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: Exception) { /* Export retries cleanup before creating an artifact. */ }
+        }
         librarySync = LibrarySync(guestData, repository, appScope, ::currentLibrarySession)
         library = UserLibraryModel(repository, guestData, appScope, librarySync, ::currentLibrarySession)
         librarySync.onOwnerChange = { library.refresh() }

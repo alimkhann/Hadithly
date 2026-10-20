@@ -532,6 +532,21 @@ struct LibraryOutcomeEvidencePage: Codable, Equatable, Sendable {
     let endOfCollectedPrefix: Bool
 }
 
+enum LibraryOutcomeInventoryProgress: Codable { case scanning(after: String), reconciling(after: String), ready }
+enum LibraryOutcomeExportVersion: Equatable, Sendable { case empty, present(epoch: String, revision: Int) }
+struct LibraryOutcomeExportFence: Equatable, Sendable {
+    let owner: LibrarySyncOwner
+    let version: LibraryOutcomeExportVersion
+}
+struct LibraryOutcomeExportEntry: Equatable, Sendable {
+    let binding: LibraryOutcomeBinding
+    let checkpoint: LibraryOutcomeCheckpoint
+}
+struct LibraryExportArtifact: Sendable {
+    let id: String
+    let directory: URL
+}
+
 struct LibraryPartitionState: Codable, Equatable, Sendable {
     var pending: [LibraryLocalChange] = []
     var frozen: LibraryFrozenBatch?
@@ -794,6 +809,34 @@ struct LibrarySyncSession: Equatable, Sendable {
     let subject: String
 }
 
+enum LibraryExportPolicy {
+    static let deniedKeys: Set<String> = ["pushTokens", "adminAuditLog", "revenueCatAppUserId", "capability"]
+}
+struct LibraryPreparedExport: Sendable {
+    let url: URL
+    fileprivate let artifactID: String
+    fileprivate let context: LibraryWriteContext
+}
+extension LibraryOutcomeExportEntry {
+    func exportMetadata() throws -> [String: LibraryExportValue] {
+        func counts(_ value: LibraryOutcomeCounts) -> LibraryExportValue {
+            .object(["deleted": .number(Double(value.deleted)), "restored": .number(Double(value.restored)), "superseded": .number(Double(value.superseded)), "missing": .number(Double(value.missing))])
+        }
+        var result: [String: LibraryExportValue] = [
+            "authority": try JSONDecoder().decode(LibraryExportValue.self, from: JSONEncoder().encode(binding)),
+            "expected": counts(binding.expected), "collected": counts(checkpoint.counts), "collectedPrefixCount": .number(Double(checkpoint.next)),
+            "detailComplete": .bool(checkpoint.status == .complete),
+        ]
+        switch checkpoint.status {
+        case .collecting: result["status"] = .string("collecting")
+        case .complete: result["status"] = .string("complete")
+        case .verifying(let verified): result["status"] = .string("verifying"); result["verified"] = counts(verified)
+        case .unavailable(let reason): result["status"] = .string("unavailable"); result["unavailableReason"] = .string(reason.rawValue)
+        }
+        return result
+    }
+}
+
 struct LibraryWriteContext: Sendable {
     fileprivate let session: LibrarySyncSession
     fileprivate let owner: LibrarySyncOwner
@@ -909,6 +952,72 @@ final class LibrarySync {
         let encoded = try JSONEncoder().encode(state)
         return try JSONDecoder().decode(LibraryExportValue.self, from: encoded).withoutProviderPassages
     }
+
+    func preparePortableExport(server: LibraryExportValue, context captured: LibraryWriteContext, fileName: String) async throws -> LibraryPreparedExport {
+        _ = try capability(for: captured)
+        guard !fileName.isEmpty, fileName != ".", fileName != "..", URL(fileURLWithPath: fileName).lastPathComponent == fileName else { throw LibrarySyncFailure.invalidChange }
+        let fence = try await store.prepareOutcomeExport(captured.owner, isCurrent: { (try? self.capability(for: captured)) != nil })
+        _ = try capability(for: captured)
+        let document = try server.includingLocalLibrary(portableState(for: captured))
+        guard case .object(let fields) = document, fields["localOutcomeEvidence"] == nil,
+              !document.containsAnyKey(LibraryExportPolicy.deniedKeys) else { throw LibrarySyncFailure.invalidReceipt }
+        let artifact = try store.beginOutcomeExportArtifact(fence)
+        let partial = artifact.directory.appendingPathComponent("document.partial"), destination = artifact.directory.appendingPathComponent(fileName)
+        var keep = false
+        defer { if !keep { try? store.discardOutcomeExportArtifact(artifact.id) } }
+        guard FileManager.default.createFile(atPath: partial.path, contents: nil, attributes: [.protectionKey: FileProtectionType.complete]) else { throw LibrarySyncFailure.storeUnavailable }
+        let file = try FileHandle(forWritingTo: partial)
+        defer { try? file.close() }
+        let encoder = JSONEncoder()
+        func raw(_ text: String) throws { try file.write(contentsOf: Data(text.utf8)) }
+        func encoded<T: Encodable>(_ value: T) throws { try file.write(contentsOf: encoder.encode(value)) }
+        try raw("{")
+        var first = true
+        for key in fields.keys.sorted() {
+            if !first { try raw(",") }; first = false
+            try encoded(key); try raw(":"); try encoded(fields[key])
+        }
+        if !first { try raw(",") }
+        try raw("\"localOutcomeEvidence\":[")
+        var after: String?, firstEntry = true
+        while true {
+            try Task.checkCancellation(); _ = try capability(for: captured)
+            let entries = try store.outcomeExportEntries(fence, after: after)
+            if entries.isEmpty { break }
+            for entry in entries {
+                if !firstEntry { try raw(",") }; firstEntry = false
+                let metadata = try entry.exportMetadata()
+                try raw("{")
+                for key in metadata.keys.sorted() {
+                    try encoded(key); try raw(":"); try encoded(metadata[key]); try raw(",")
+                }
+                try raw("\"rows\":[")
+                var start = 0, firstRow = true
+                while true {
+                    try Task.checkCancellation(); _ = try capability(for: captured)
+                    let page = try store.outcomeExportPage(fence, entry: entry, start: start)
+                    for row in page.rows {
+                        if !firstRow { try raw(",") }; firstRow = false
+                        try encoded(row)
+                    }
+                    start = page.next
+                    if page.endOfCollectedPrefix { break }
+                    await Task.yield()
+                }
+                try raw("]}")
+                after = entry.binding.key
+                await Task.yield()
+            }
+        }
+        try raw("]}")
+        try file.synchronize(); try file.close()
+        try Task.checkCancellation(); _ = try capability(for: captured)
+        try store.validateOutcomeExport(fence)
+        try FileManager.default.moveItem(at: partial, to: destination)
+        keep = true
+        return .init(url: destination, artifactID: artifact.id, context: captured)
+    }
+    func discardPreparedExport(_ export: LibraryPreparedExport) throws { try store.discardOutcomeExportArtifact(export.artifactID) }
 
     private func check(_ session: LibrarySyncSession, epoch: UUID) throws {
         guard !Task.isCancelled, generation == epoch, currentSession() == session else { throw LibrarySyncFailure.sessionChanged }

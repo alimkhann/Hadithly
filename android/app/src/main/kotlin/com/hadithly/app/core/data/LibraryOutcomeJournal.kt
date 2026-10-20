@@ -122,8 +122,16 @@ class LibraryOutcomeBinding(val owner: LibrarySyncOwner, val committed: SyncComm
 @Serializable
 data class LibraryOutcomeEvidencePage(val authority: LibraryOutcomeAuthority, val checkpoint: LibraryOutcomeCheckpoint, val rows: List<SyncOutcomeMember>, val next: Long, val endOfCollectedPrefix: Boolean)
 
+sealed interface LibraryOutcomeExportVersion {
+    data object Empty : LibraryOutcomeExportVersion
+    data class Present(val epoch: String, val revision: Long) : LibraryOutcomeExportVersion
+}
+data class LibraryOutcomeExportFence(val owner: LibrarySyncOwner, val version: LibraryOutcomeExportVersion)
+data class LibraryOutcomeExportEntry(val binding: LibraryOutcomeBinding, val checkpoint: LibraryOutcomeCheckpoint)
+data class LibraryExportArtifact(val id: String, val directory: File)
+
 /** Owns page identity, row transactions and erase fences. Never writes ACK intent. */
-internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(context, File(context.filesDir, "library_outcomes.db").absolutePath, null, 1) {
+internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(context, File(context.filesDir, "library_outcomes.db").absolutePath, null, 2) {
     override fun onConfigure(db: SQLiteDatabase) { db.setForeignKeyConstraintsEnabled(true) }
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE scopes (scope_key TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, generation TEXT NOT NULL)")
@@ -132,8 +140,131 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         db.execSQL("CREATE INDEX headers_owner ON headers(subject,namespace,owner_key,collection_key)")
         db.execSQL("CREATE TABLE members (collection_key TEXT NOT NULL REFERENCES headers(collection_key) ON DELETE CASCADE, ordinal INTEGER NOT NULL, member_id TEXT NOT NULL, hadith_id TEXT NOT NULL, disposition TEXT NOT NULL, row_data TEXT NOT NULL, PRIMARY KEY(collection_key,ordinal), UNIQUE(collection_key,member_id), UNIQUE(collection_key,hadith_id))")
         db.execSQL("CREATE INDEX members_category ON members(collection_key,disposition)")
+        createExportSchema(db, ready = true)
     }
-    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) { throw LibrarySyncFailure.StoreUnavailable }
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        if (oldVersion == 1 && newVersion == 2) createExportSchema(db, ready = false)
+        else throw LibrarySyncFailure.StoreUnavailable
+    }
+    private fun createExportSchema(db: SQLiteDatabase, ready: Boolean) {
+        db.execSQL("CREATE TABLE export_clocks (scope_key TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, epoch TEXT NOT NULL, revision INTEGER NOT NULL, erasing INTEGER NOT NULL)")
+        db.execSQL("CREATE TABLE export_migration (id INTEGER PRIMARY KEY CHECK(id=1), phase TEXT NOT NULL, cursor TEXT NOT NULL)")
+        db.execSQL("INSERT INTO export_migration(id,phase,cursor) VALUES(1,?,?)", arrayOf(if (ready) "ready" else "scan", ""))
+        db.execSQL("CREATE INDEX headers_export ON headers(subject,namespace,collection_key)")
+        db.execSQL("CREATE TABLE export_artifacts (artifact_id TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL)")
+        db.execSQL("CREATE INDEX artifacts_owner ON export_artifacts(subject,namespace,artifact_id)")
+    }
+    private data class Clock(val epoch: String, val revision: Long, val erasing: Boolean)
+    private fun clock(db: SQLiteDatabase, subject: String, namespace: String): Clock? =
+        db.rawQuery("SELECT subject,namespace,epoch,revision,erasing FROM export_clocks WHERE scope_key=?", arrayOf(LibraryOutcomeBinding.hash(listOf(namespace, subject)))).use {
+            if (!it.moveToFirst()) null else {
+                if (it.getString(0) != subject || it.getString(1) != namespace || it.getString(2).isEmpty() || it.getLong(3) < 0 || it.getLong(3) >= 9_007_199_254_740_991L) throw LibrarySyncFailure.StoreUnavailable
+                Clock(it.getString(2), it.getLong(3), it.getInt(4) != 0)
+            }
+        }
+    private fun bumpClock(db: SQLiteDatabase, subject: String, namespace: String, erasing: Boolean = false) {
+        val key = LibraryOutcomeBinding.hash(listOf(namespace, subject)); val old = clock(db, subject, namespace)
+        if (old?.erasing == true && !erasing) throw LibrarySyncFailure.AccountDeleting
+        if ((old?.revision ?: 0) >= 9_007_199_254_740_990L) throw LibrarySyncFailure.StoreUnavailable
+        val values = ContentValues().apply {
+            put("scope_key", key); put("subject", subject); put("namespace", namespace); put("epoch", old?.epoch ?: UUID.randomUUID().toString())
+            put("revision", (old?.revision ?: 0) + 1); put("erasing", if (erasing || old?.erasing == true) 1 else 0)
+        }
+        if (old == null) db.insertOrThrow("export_clocks", null, values)
+        else db.update("export_clocks", values, "scope_key=?", arrayOf(key))
+    }
+    fun beginErase(subject: String, namespace: String, full: Boolean) = transaction { db -> bumpClock(db, subject, namespace, erasing = full) }
+    fun prepareExportStep(blockedScopes: Set<String>): Boolean = transaction { db ->
+        val phase: String; val after: String
+        db.rawQuery("SELECT phase,cursor FROM export_migration WHERE id=1", null).use {
+            if (!it.moveToFirst()) throw LibrarySyncFailure.StoreUnavailable
+            phase = it.getString(0); after = it.getString(1)
+        }
+        if (phase == "ready") return@transaction true
+        if (phase != "scan" && phase != "check") throw LibrarySyncFailure.StoreUnavailable
+        var last: String? = null
+        db.rawQuery("SELECT collection_key,authority FROM headers WHERE collection_key>? ORDER BY collection_key LIMIT 50", arrayOf(after)).use { cursor ->
+            while (cursor.moveToNext()) {
+                last = cursor.getString(0)
+                val value = Json.decodeFromString<LibraryOutcomeAuthority>(cursor.getString(1)); val binding = LibraryOutcomeBinding(value.owner, value.committed)
+                if (last != binding.key) throw LibrarySyncFailure.StoreUnavailable
+                header(db, binding) ?: throw LibrarySyncFailure.StoreUnavailable
+                val key = LibraryOutcomeBinding.hash(listOf(binding.owner.namespace, binding.owner.subject))
+                if (key !in blockedScopes && clock(db, binding.owner.subject, binding.owner.namespace) == null) bumpClock(db, binding.owner.subject, binding.owner.namespace)
+            }
+        }
+        val nextPhase = if (last != null) phase else if (phase == "scan") "check" else "ready"
+        db.update("export_migration", ContentValues().apply { put("phase", nextPhase); put("cursor", last ?: "") }, "id=1", null)
+        nextPhase == "ready"
+    }
+    private fun checkFence(db: SQLiteDatabase, fence: LibraryOutcomeExportFence) {
+        val current = clock(db, fence.owner.subject, fence.owner.namespace)
+        when (val expected = fence.version) {
+            LibraryOutcomeExportVersion.Empty -> if (current != null) throw LibrarySyncFailure.StoreUnavailable
+            is LibraryOutcomeExportVersion.Present -> if (current == null || current.erasing || current.epoch != expected.epoch || current.revision != expected.revision) throw LibrarySyncFailure.StoreUnavailable
+        }
+    }
+    fun captureExportFence(owner: LibrarySyncOwner): LibraryOutcomeExportFence = transaction { db ->
+        db.rawQuery("SELECT phase FROM export_migration WHERE id=1", null).use { if (!it.moveToFirst() || it.getString(0) != "ready") throw LibrarySyncFailure.StoreUnavailable }
+        val value = clock(db, owner.subject, owner.namespace)
+        val version = if (value == null) {
+            db.rawQuery("SELECT collection_key FROM headers WHERE subject=? AND namespace=? LIMIT 1", arrayOf(owner.subject, owner.namespace)).use { if (it.moveToFirst()) throw LibrarySyncFailure.StoreUnavailable }
+            LibraryOutcomeExportVersion.Empty
+        } else {
+            if (value.erasing) throw LibrarySyncFailure.AccountDeleting
+            LibraryOutcomeExportVersion.Present(value.epoch, value.revision)
+        }
+        LibraryOutcomeExportFence(owner, version)
+    }
+    fun validateExport(fence: LibraryOutcomeExportFence) = transaction { db -> checkFence(db, fence) }
+    fun exportEntries(fence: LibraryOutcomeExportFence, after: String?): List<LibraryOutcomeExportEntry> = transaction { db ->
+        checkFence(db, fence)
+        val values = mutableListOf<LibraryOutcomeExportEntry>()
+        db.rawQuery("SELECT collection_key,authority FROM headers WHERE subject=? AND namespace=? AND collection_key>? ORDER BY collection_key LIMIT 50", arrayOf(fence.owner.subject, fence.owner.namespace, after ?: "")).use {
+            while (it.moveToNext()) {
+                val authority = Json.decodeFromString<LibraryOutcomeAuthority>(it.getString(1)); val binding = LibraryOutcomeBinding(authority.owner, authority.committed)
+                if (binding.key != it.getString(0) || binding.owner.subject != fence.owner.subject || binding.owner.namespace != fence.owner.namespace) throw LibrarySyncFailure.OwnerMismatch
+                values.add(LibraryOutcomeExportEntry(binding, header(db, binding) ?: throw LibrarySyncFailure.StoreUnavailable))
+            }
+        }
+        checkFence(db, fence)
+        values
+    }
+    fun exportPage(fence: LibraryOutcomeExportFence, entry: LibraryOutcomeExportEntry, start: Long): LibraryOutcomeEvidencePage = transaction { db ->
+        checkFence(db, fence)
+        if (entry.binding.owner.subject != fence.owner.subject || entry.binding.owner.namespace != fence.owner.namespace) throw LibrarySyncFailure.OwnerMismatch
+        val checkpoint = header(db, entry.binding) ?: throw LibrarySyncFailure.StoreUnavailable
+        if (checkpoint != entry.checkpoint || start < 0 || start > checkpoint.next) throw LibrarySyncFailure.StoreUnavailable
+        val rows = rows(db, entry.binding, start, checkpoint.next); val next = start + rows.size
+        checkFence(db, fence)
+        LibraryOutcomeEvidencePage(entry.binding.authority, checkpoint, rows, next, next == checkpoint.next)
+    }
+    fun registerArtifact(fence: LibraryOutcomeExportFence): String = transaction { db ->
+        checkFence(db, fence)
+        UUID.randomUUID().toString().also { id -> db.insertOrThrow("export_artifacts", null, ContentValues().apply { put("artifact_id", id); put("subject", fence.owner.subject); put("namespace", fence.owner.namespace) }) }
+    }
+    fun artifactIds(subject: String? = null, namespace: String? = null): List<String> = transaction { db ->
+        val query = if (subject == null) "SELECT artifact_id FROM export_artifacts ORDER BY artifact_id LIMIT 50" else "SELECT artifact_id FROM export_artifacts WHERE subject=? AND namespace=? ORDER BY artifact_id LIMIT 50"
+        val args = if (subject == null) null else arrayOf(subject, namespace ?: throw LibrarySyncFailure.InvalidReceipt)
+        val result = mutableListOf<String>()
+        db.rawQuery(query, args).use { while (it.moveToNext()) result.add(it.getString(0)) }
+        result
+    }
+    fun validateArtifact(id: String, owner: LibrarySyncOwner) = transaction { db ->
+        db.rawQuery("SELECT subject,namespace FROM export_artifacts WHERE artifact_id=?", arrayOf(id)).use {
+            if (!it.moveToFirst() || it.getString(0) != owner.subject || it.getString(1) != owner.namespace) throw LibrarySyncFailure.SessionChanged
+        }
+    }
+    fun <T> sealExport(fence: LibraryOutcomeExportFence, artifactID: String, publish: () -> T): T = transaction { db ->
+        checkFence(db, fence)
+        db.rawQuery("SELECT subject,namespace FROM export_artifacts WHERE artifact_id=?", arrayOf(artifactID)).use {
+            if (!it.moveToFirst() || it.getString(0) != fence.owner.subject || it.getString(1) != fence.owner.namespace) throw LibrarySyncFailure.SessionChanged
+        }
+        val value = publish()
+        checkFence(db, fence)
+        value
+    }
+    fun discardArtifact(id: String) = transaction { db -> db.delete("export_artifacts", "artifact_id=?", arrayOf(id)); Unit }
     private fun <T> transaction(block: (SQLiteDatabase) -> T): T {
         val db = writableDatabase
         db.beginTransaction()
@@ -147,6 +278,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
                 put("scope_key", binding.scopeKey); put("generation", value); put("subject", binding.owner.subject)
                 put("namespace", binding.owner.namespace); put("owner_key", binding.owner.storageKey)
             })
+            bumpClock(db, binding.owner.subject, binding.owner.namespace)
         }
     }
     private fun header(db: SQLiteDatabase, binding: LibraryOutcomeBinding, expectedGeneration: String? = null): LibraryOutcomeCheckpoint? =
@@ -159,6 +291,8 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
                 if (expectedGeneration != null && cursor.getString(3) != expectedGeneration) throw LibrarySyncFailure.SessionChanged
                 Json.decodeFromString<LibraryOutcomeCheckpoint>(cursor.getString(5)).also {
                     if (!it.counts.valid || !it.counts.fits(binding.expected) || it.status == LibraryOutcomeStatus.Complete && it.counts != binding.expected) throw LibrarySyncFailure.StoreUnavailable
+                    val status = it.status
+                    if (status is LibraryOutcomeStatus.Verifying && (!status.counts.valid || !status.counts.fits(it.counts) || it.counts != binding.expected)) throw LibrarySyncFailure.StoreUnavailable
                 }
             }
         }
@@ -171,6 +305,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
                 put("collection_key", binding.key); put("owner_key", binding.owner.storageKey); put("subject", binding.owner.subject); put("namespace", binding.owner.namespace)
                 put("generation", expectedGeneration); put("authority", Json.encodeToString(binding.authority)); put("checkpoint", Json.encodeToString(checkpoint))
             })
+            bumpClock(db, binding.owner.subject, binding.owner.namespace)
         }
     }
     private fun rows(db: SQLiteDatabase, binding: LibraryOutcomeBinding, start: Long, limit: Long): List<SyncOutcomeMember> {
@@ -198,6 +333,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         } else LibraryOutcomeStatus.Verifying(verified)
         val next = checkpoint.copy(status = nextStatus)
         db.update("headers", ContentValues().apply { put("checkpoint", Json.encodeToString(next)) }, "collection_key=?", arrayOf(binding.key))
+        bumpClock(db, binding.owner.subject, binding.owner.namespace)
         return next
     }
     fun persist(binding: LibraryOutcomeBinding, expectedGeneration: String, requested: SyncOutcomePageRequest, page: SyncOutcomePage): LibraryOutcomeCheckpoint {
@@ -238,6 +374,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
                     }
                 }
                 db.update("headers", ContentValues().apply { put("checkpoint", Json.encodeToString(next)) }, "collection_key=?", arrayOf(binding.key))
+                bumpClock(db, binding.owner.subject, binding.owner.namespace)
                 next
             }
         }
@@ -250,6 +387,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         LibraryOutcomeEvidencePage(binding.authority, checkpoint, rows, next, next == checkpoint.next)
     }
     fun erase(subject: String, namespace: String, ownerKey: String? = null) {
+        beginErase(subject, namespace, full = ownerKey == null)
         val selection = if (ownerKey == null) "subject=? AND namespace=?" else "subject=? AND namespace=? AND owner_key=?"
         val joined = if (ownerKey == null) "h.subject=? AND h.namespace=?" else "h.subject=? AND h.namespace=? AND h.owner_key=?"
         val args = if (ownerKey == null) arrayOf(subject, namespace) else arrayOf(subject, namespace, ownerKey)
@@ -259,15 +397,29 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
                 val values = mutableListOf<String>()
                 db.rawQuery("SELECT scope_key FROM scopes WHERE $selection AND scope_key>? ORDER BY scope_key LIMIT 50", args + after).use { while (it.moveToNext()) values.add(it.getString(0)) }
                 values.forEach { key -> db.update("scopes", ContentValues().apply { put("generation", UUID.randomUUID().toString()) }, "scope_key=?", arrayOf(key)) }
+                if (values.isNotEmpty()) bumpClock(db, subject, namespace, erasing = ownerKey == null)
                 values
             }
             if (keys.isEmpty()) break
             after = keys.last()
         }
         while (transaction { db ->
-            db.delete("members", "rowid IN (SELECT m.rowid FROM members m JOIN headers h ON h.collection_key=m.collection_key WHERE $joined LIMIT 50)", args)
-        } > 0) { /* Each member batch commits independently behind the erase fence. */ }
-        while (transaction { db -> db.delete("headers", "collection_key IN (SELECT collection_key FROM headers WHERE $selection LIMIT 50)", args) } > 0) { }
-        while (transaction { db -> db.delete("scopes", "scope_key IN (SELECT scope_key FROM scopes WHERE $selection LIMIT 50)", args) } > 0) { }
+            val deleted = db.delete("members", "rowid IN (SELECT m.rowid FROM members m JOIN headers h ON h.collection_key=m.collection_key WHERE $joined ORDER BY m.collection_key,m.ordinal LIMIT 50)", args)
+            if (deleted > 0) bumpClock(db, subject, namespace, erasing = ownerKey == null)
+            deleted
+        } > 0) { }
+        for ((table, key) in listOf("headers" to "collection_key", "scopes" to "scope_key")) {
+            while (transaction { db ->
+                val deleted = db.delete(table, "$key IN (SELECT $key FROM $table WHERE $selection LIMIT 50)", args)
+                if (deleted > 0) bumpClock(db, subject, namespace, erasing = ownerKey == null)
+                deleted
+            } > 0) { }
+        }
+        transaction { db ->
+            val remaining = db.rawQuery("SELECT 1 FROM headers WHERE subject=? AND namespace=? UNION ALL SELECT 1 FROM scopes WHERE subject=? AND namespace=? LIMIT 1", arrayOf(subject, namespace, subject, namespace)).use { it.moveToFirst() }
+            val artifacts = db.rawQuery("SELECT 1 FROM export_artifacts WHERE subject=? AND namespace=? LIMIT 1", arrayOf(subject, namespace)).use { it.moveToFirst() }
+            if (!remaining && !artifacts) db.delete("export_clocks", "scope_key=?", arrayOf(LibraryOutcomeBinding.hash(listOf(namespace, subject))))
+            else if (ownerKey == null) throw LibrarySyncFailure.StoreUnavailable
+        }
     }
 }
