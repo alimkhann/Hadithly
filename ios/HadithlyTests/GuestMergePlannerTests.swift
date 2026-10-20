@@ -4,6 +4,220 @@ import SwiftData
 @testable import Hadithly
 
 final class GuestMergePlannerTests: XCTestCase {
+    @MainActor func testOutcomeJournalVerificationResumesAndRejectsMissingPersistedMember() async throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".store")
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), proof = outcomeProof(owner, count: 100)
+        let store = GuestDataStore(storeURL: url); try store.claimGuestForSync(owner)
+        for _ in 0..<2 { _ = try await store.collectOutcomeStep(proof, owner: owner, isCurrent: { true }) { self.outcomePage($0, owner: owner, count: 100) } }
+        let first = try await store.collectOutcomeStep(proof, owner: owner, isCurrent: { true }) { _ in XCTFail("Verification fetched"); throw LibrarySyncFailure.invalidReceipt }
+        XCTAssertEqual(first.status, .verifying(.init(deleted: 50)))
+        let schema = Schema([GuestBookmark.self, GuestNote.self, GuestFavorite.self, GuestSavedFolder.self, GuestSavedMembership.self, GuestReadingProgress.self, GuestLibraryPartition.self, GuestAccountDeletion.self, GuestOutcomeScope.self, GuestOutcomeHeader.self, GuestOutcomeMember.self])
+        let container = try ModelContainer(for: schema, configurations: [ModelConfiguration(schema: schema, url: url)]), context = ModelContext(container)
+        let key = try LibraryOutcomeBinding(owner: owner, committed: proof).ordinalKey(80)
+        let query = FetchDescriptor<GuestOutcomeMember>(predicate: #Predicate { $0.ordinalKey == key })
+        for row in try context.fetch(query) { context.delete(row) }
+        try context.save()
+        let reopened = GuestDataStore(storeURL: url)
+        do {
+            _ = try await reopened.collectOutcomeStep(proof, owner: owner, isCurrent: { true }) { _ in XCTFail("Verification fetched"); throw LibrarySyncFailure.invalidReceipt }
+            XCTFail("Missing persisted fact became complete")
+        } catch LibrarySyncFailure.storeUnavailable { }
+        XCTAssertEqual(try reopened.outcomeEvidencePage(proof, owner: owner, start: 0).checkpoint.status, first.status)
+        XCTAssertThrowsError(try reopened.outcomeEvidencePage(proof, owner: owner, start: 50))
+        XCTAssertNil(try reopened.syncPartition(owner)?.acknowledgement)
+    }
+
+
+    private func outcomeProof(_ owner: LibrarySyncOwner, count: Int, restore: Bool = false) -> SyncCommitted {
+        let outcome: SyncOutcome = restore
+            ? .folderRestoredManifest(.init(manifestId: "manifest", generation: "generation", folderId: "restored-folder", restored: Double(max(0, count - 1)), superseded: 0, missing: Double(min(count, 1))))
+            : .folderDeletedManifest(.init(manifestId: "manifest", generation: "generation", count: Double(count), deletedAt: 1_000))
+        return .init(clientKey: "outcome-device", sequence: 1, digest: "outcome-digest", revision: .init(saved: 2, position: 0),
+            reply: .init(ownerKey: owner.key, batchId: "outcome-batch", receipts: [.init(id: "outcome-operation", revision: "r1", outcome: outcome)]))
+    }
+    private func outcomePage(_ request: SyncOutcomePageRequest, owner: LibrarySyncOwner, count: Int, restore: Bool = false) -> SyncOutcomePage {
+        let start = Int(request.start), end = min(start + LibrarySyncLimits.outcomePage, count)
+        let rows = (start..<end).map { index in
+            SyncOutcomeMember(ordinal: Double(index), memberId: "member-\(index)", hadithId: "hadith-\(index)", disposition: restore ? (index == count - 1 ? .missing : .restored) : .deleted)
+        }
+        return .page(.init(ownerKey: owner.key, request: request, rows: rows, next: Double(end), done: end == count))
+    }
+    @MainActor private func finishOutcomeVerification(_ proof: SyncCommitted, owner: LibrarySyncOwner, store: GuestDataStore) async throws -> LibraryOutcomeCheckpoint {
+        for _ in 0..<30 {
+            let checkpoint = try await store.collectOutcomeStep(proof, owner: owner, isCurrent: { true }) { _ in XCTFail("Verification fetched a server page"); throw LibrarySyncFailure.invalidReceipt }
+            if checkpoint.status == .complete { return checkpoint }
+        }
+        throw LibrarySyncFailure.invalidReceipt
+    }
+
+    @MainActor func testOutcomeJournalCollectsBoundedPagesAcrossReopensWithoutChangingPartition() async throws {
+        for count in [0, 1, 50, 51, 501] {
+            let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".store")
+            let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), proof = outcomeProof(owner, count: count)
+            var store = GuestDataStore(storeURL: url)
+            try store.claimGuestForSync(owner)
+            try store.enqueueSyncChange(.init(command: .folderDelete(.init(folder: .server(.init(id: "folder")))), at: 1_000, source: .account(nil)), owner: owner)
+            _ = try store.freezeSyncFrame(owner)
+            let original = try XCTUnwrap(store.syncPartition(owner))
+            var checkpoint = LibraryOutcomeCheckpoint(), requests: [Double] = []
+            for _ in 0..<30 {
+                checkpoint = try await store.collectOutcomeStep(proof, owner: owner, isCurrent: { true }) { request in
+                    requests.append(request.start)
+                    return self.outcomePage(request, owner: owner, count: count)
+                }
+                XCTAssertEqual(try store.syncPartition(owner), original)
+                store = GuestDataStore(storeURL: url)
+                if checkpoint.status == .complete { break }
+            }
+            XCTAssertEqual(checkpoint.status, .complete); XCTAssertEqual(checkpoint.next, count)
+            XCTAssertEqual(requests, stride(from: 0, to: max(1, count), by: 50).map(Double.init))
+            var start = 0, members = Set<String>()
+            repeat {
+                let evidence = try store.outcomeEvidencePage(proof, owner: owner, start: start)
+                XCTAssertEqual(evidence.checkpoint, checkpoint); XCTAssertLessThanOrEqual(evidence.rows.count, 50)
+                members.formUnion(evidence.rows.map(\.memberId)); start = evidence.next
+                if evidence.endOfCollectedPrefix { break }
+            } while start <= count
+            XCTAssertEqual(members.count, count)
+            _ = try await store.collectOutcomeStep(proof, owner: owner, isCurrent: { true }) { _ in XCTFail("Fetched complete journal"); throw LibrarySyncFailure.invalidReceipt }
+            XCTAssertEqual(try store.syncPartition(owner), original)
+        }
+    }
+
+    @MainActor func testOutcomeJournalDuplicateAndConflictingReopenedContextCannotUpsertEvidence() async throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".store")
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), proof = outcomeProof(owner, count: 100)
+        let store = GuestDataStore(storeURL: url); try store.claimGuestForSync(owner)
+        let first = try await store.collectOutcomeStep(proof, owner: owner, isCurrent: { true }) { request in
+            let reopened = GuestDataStore(storeURL: url)
+            _ = try await reopened.collectOutcomeStep(proof, owner: owner, isCurrent: { true }) { self.outcomePage($0, owner: owner, count: 100) }
+            return self.outcomePage(request, owner: owner, count: 100)
+        }
+        XCTAssertEqual(first.next, 50)
+        do {
+            _ = try await store.collectOutcomeStep(proof, owner: owner, isCurrent: { true }) { request in
+                let reopened = GuestDataStore(storeURL: url)
+                _ = try await reopened.collectOutcomeStep(proof, owner: owner, isCurrent: { true }) { self.outcomePage($0, owner: owner, count: 100) }
+                guard case .page(let page) = self.outcomePage(request, owner: owner, count: 100) else { throw LibrarySyncFailure.invalidReceipt }
+                var rows = page.rows
+                rows[0] = .init(ordinal: rows[0].ordinal, memberId: "conflicting-member", hadithId: "conflicting-hadith", disposition: .deleted)
+                return .page(.init(ownerKey: page.ownerKey, request: request, rows: rows, next: page.next, done: page.done))
+            }
+            XCTFail("Conflicting duplicate replaced saved evidence")
+        } catch LibrarySyncFailure.invalidReceipt { }
+        _ = try await finishOutcomeVerification(proof, owner: owner, store: GuestDataStore(storeURL: url))
+        let evidence = try GuestDataStore(storeURL: url).outcomeEvidencePage(proof, owner: owner, start: 50)
+        XCTAssertEqual(evidence.checkpoint.status, .complete)
+        XCTAssertEqual(evidence.rows.first?.memberId, "member-50"); XCTAssertEqual(evidence.rows.first?.hadithId, "hadith-50")
+    }
+
+    @MainActor func testOutcomeJournalRollsBackEarlierRowsWhenLaterMemberConflicts() async throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".store")
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), proof = outcomeProof(owner, count: 100)
+        let store = GuestDataStore(storeURL: url); try store.claimGuestForSync(owner)
+        _ = try await store.collectOutcomeStep(proof, owner: owner, isCurrent: { true }) { self.outcomePage($0, owner: owner, count: 100) }
+        do {
+            _ = try await store.collectOutcomeStep(proof, owner: owner, isCurrent: { true }) { request in
+                guard case .page(let page) = self.outcomePage(request, owner: owner, count: 100) else { throw LibrarySyncFailure.invalidReceipt }
+                var rows = page.rows
+                rows[10] = .init(ordinal: rows[10].ordinal, memberId: "member-0", hadithId: rows[10].hadithId, disposition: .deleted)
+                return .page(.init(ownerKey: owner.key, request: request, rows: rows, next: page.next, done: true))
+            }
+            XCTFail("Repeated member identity accepted")
+        } catch LibrarySyncFailure.invalidReceipt { }
+        let reopened = GuestDataStore(storeURL: url), partial = try reopened.outcomeEvidencePage(proof, owner: owner, start: 50)
+        XCTAssertEqual(partial.checkpoint.next, 50); XCTAssertTrue(partial.rows.isEmpty)
+        _ = try await reopened.collectOutcomeStep(proof, owner: owner, isCurrent: { true }) { self.outcomePage($0, owner: owner, count: 100) }
+        let complete = try await finishOutcomeVerification(proof, owner: owner, store: reopened)
+        XCTAssertEqual(complete.status, .complete)
+    }
+
+    @MainActor func testOutcomeJournalUnavailableRetainsPartialFactsAndNeverAcknowledges() async throws {
+        for reason in [SyncOutcomePageUnavailableReason.detailUnavailable, .proofUnavailable] {
+            let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".store")
+            let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), proof = outcomeProof(owner, count: 51)
+            let store = GuestDataStore(storeURL: url); try store.claimGuestForSync(owner)
+            _ = try await store.collectOutcomeStep(proof, owner: owner, isCurrent: { true }) { self.outcomePage($0, owner: owner, count: 51) }
+            let result = try await store.collectOutcomeStep(proof, owner: owner, isCurrent: { true }) { .unavailable(.init(ownerKey: owner.key, request: $0, reason: reason)) }
+            XCTAssertEqual(result.status, .unavailable(reason)); XCTAssertEqual(result.next, 50)
+            let reopened = GuestDataStore(storeURL: url), evidence = try reopened.outcomeEvidencePage(proof, owner: owner, start: 0)
+            XCTAssertEqual(evidence.rows.count, 50); XCTAssertEqual(evidence.checkpoint.status, .unavailable(reason))
+            XCTAssertNil(try reopened.syncPartition(owner)?.acknowledgement)
+        }
+    }
+
+    @MainActor func testOutcomeJournalRejectsWrongCategoriesAndOwnerWithoutAdvancing() async throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".store")
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), proof = outcomeProof(owner, count: 51, restore: true)
+        let store = GuestDataStore(storeURL: url); try store.claimGuestForSync(owner)
+        _ = try await store.collectOutcomeStep(proof, owner: owner, isCurrent: { true }) { self.outcomePage($0, owner: owner, count: 51, restore: true) }
+        for wrongOwner in [false, true] {
+            do {
+                _ = try await store.collectOutcomeStep(proof, owner: owner, isCurrent: { true }) { request in
+                    let row = SyncOutcomeMember(ordinal: request.start, memberId: "member-50", hadithId: "hadith-50", disposition: .restored)
+                    return .page(.init(ownerKey: wrongOwner ? "other-owner" : owner.key, request: request, rows: [row], next: 51, done: true))
+                }
+                XCTFail("Invalid page accepted")
+            } catch LibrarySyncFailure.invalidReceipt { }
+            XCTAssertEqual(try GuestDataStore(storeURL: url).outcomeEvidencePage(proof, owner: owner, start: 50).checkpoint.next, 50)
+        }
+        let terminal = try await store.collectOutcomeStep(proof, owner: owner, isCurrent: { true }) { self.outcomePage($0, owner: owner, count: 51, restore: true) }
+        XCTAssertEqual(terminal.counts, .init(restored: 50, missing: 1))
+    }
+
+    @MainActor func testOutcomeJournalErasureFenceRejectsLatePageAfterPartitionRecreation() async throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".store")
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), proof = outcomeProof(owner, count: 1)
+        let store = GuestDataStore(storeURL: url); try store.claimGuestForSync(owner)
+        do {
+            _ = try await store.collectOutcomeStep(proof, owner: owner, isCurrent: { true }) { request in
+                try store.resetSyncPartitionForTesting(owner); try store.claimGuestForSync(owner)
+                return self.outcomePage(request, owner: owner, count: 1)
+            }
+            XCTFail("Late page recreated erased evidence")
+        } catch LibrarySyncFailure.sessionChanged { }
+        XCTAssertThrowsError(try GuestDataStore(storeURL: url).outcomeEvidencePage(proof, owner: owner, start: 0))
+        _ = try await store.collectOutcomeStep(proof, owner: owner, isCurrent: { true }) { self.outcomePage($0, owner: owner, count: 1) }
+        let fresh = try await finishOutcomeVerification(proof, owner: owner, store: store)
+        XCTAssertEqual(fresh.status, .complete)
+    }
+
+    @MainActor func testOutcomeJournalAccountErasureFindsOrphansAndPreservesOtherScopes() async throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".store")
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), other = LibrarySyncOwner(key: "owner-b", subject: "subject-b")
+        let deployment = LibrarySyncOwner(key: "owner-a", subject: "subject-a", namespace: "other-deployment")
+        let store = GuestDataStore(storeURL: url)
+        for target in [owner, other, deployment] {
+            try store.claimGuestForSync(target)
+            let count = target == owner ? 501 : 1
+            for _ in 0..<12 {
+                let checkpoint = try await store.collectOutcomeStep(outcomeProof(target, count: count), owner: target, isCurrent: { true }) { self.outcomePage($0, owner: target, count: count) }
+                if checkpoint.status != .collecting { break }
+            }
+        }
+        let schema = Schema([GuestBookmark.self, GuestNote.self, GuestFavorite.self, GuestSavedFolder.self, GuestSavedMembership.self, GuestReadingProgress.self, GuestLibraryPartition.self, GuestAccountDeletion.self, GuestOutcomeScope.self, GuestOutcomeHeader.self, GuestOutcomeMember.self])
+        let container = try ModelContainer(for: schema, configurations: [ModelConfiguration(schema: schema, url: url)]), context = ModelContext(container)
+        for row in try context.fetch(FetchDescriptor<GuestLibraryPartition>()) where row.ownerKey == owner.storageKey { context.delete(row) }
+        try context.save()
+        XCTAssertEqual(try store.outcomeEvidencePage(outcomeProof(owner, count: 501), owner: owner, start: 0).rows.count, 50)
+        try store.beginDeletion(subject: owner.subject, namespace: owner.namespace)
+        try store.markDeletionBackendComplete(subject: owner.subject, namespace: owner.namespace)
+        let reopened = GuestDataStore(storeURL: url)
+        XCTAssertThrowsError(try reopened.outcomeEvidencePage(outcomeProof(owner, count: 501), owner: owner, start: 0))
+        do {
+            _ = try await reopened.collectOutcomeStep(outcomeProof(owner, count: 501), owner: owner, isCurrent: { true }) { _ in XCTFail("Erased owner fetched"); throw LibrarySyncFailure.invalidReceipt }
+            XCTFail("Stale erased owner recreated metadata")
+        } catch LibrarySyncFailure.accountDeleting { }
+        let check = ModelContext(container), subject = owner.subject, namespace = owner.namespace
+        XCTAssertEqual(try check.fetchCount(FetchDescriptor<GuestOutcomeScope>(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace })), 0)
+        XCTAssertEqual(try check.fetchCount(FetchDescriptor<GuestOutcomeHeader>(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace })), 0)
+        XCTAssertEqual(try check.fetchCount(FetchDescriptor<GuestOutcomeMember>(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace })), 0)
+        for target in [other, deployment] {
+            XCTAssertEqual(try reopened.outcomeEvidencePage(outcomeProof(target, count: 1), owner: target, start: 0).rows.count, 1)
+        }
+    }
+
+
     func testReconciledManifestCannotBypassOutcomeCollection() throws {
         let outcomes: [SyncOutcome] = [
             .folderDeletedManifest(.init(manifestId: "manifest", generation: "generation", count: 501, deletedAt: 1_000)),
@@ -607,7 +821,7 @@ final class GuestMergePlannerTests: XCTestCase {
         let ownerB = try XCTUnwrap(sync.owner)
         XCTAssertTrue(try store.syncPartition(ownerB)?.pending.isEmpty == true)
         let currentContext = try sync.captureWriteContext()
-        try store.eraseSyncPartition(ownerB)
+        try store.resetSyncPartitionForTesting(ownerB)
         XCTAssertThrowsError(try sync.enqueue(change, context: currentContext))
         XCTAssertNil(try store.syncPartition(ownerB))
     }

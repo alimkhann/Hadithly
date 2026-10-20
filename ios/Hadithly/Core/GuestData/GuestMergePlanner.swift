@@ -388,6 +388,126 @@ extension SyncBatch {
     }
 }
 
+struct LibraryOutcomeCounts: Codable, Equatable, Sendable {
+    var deleted = 0, restored = 0, superseded = 0, missing = 0
+    var valid: Bool { [deleted, restored, superseded, missing].allSatisfy { $0 >= 0 && $0 < 9_007_199_254_740_991 } }
+    var total: Int { deleted + restored + superseded + missing }
+    mutating func add(_ rows: [SyncOutcomeMember]) {
+        for row in rows {
+            switch row.disposition {
+            case .deleted: deleted += 1
+            case .restored: restored += 1
+            case .superseded: superseded += 1
+            case .missing: missing += 1
+            }
+        }
+    }
+    func fits(_ expected: Self) -> Bool {
+        deleted <= expected.deleted && restored <= expected.restored && superseded <= expected.superseded && missing <= expected.missing
+    }
+}
+
+enum LibraryOutcomeStatus: Codable, Equatable, Sendable {
+    case collecting, verifying(LibraryOutcomeCounts), complete, unavailable(SyncOutcomePageUnavailableReason)
+}
+struct LibraryOutcomeCheckpoint: Codable, Equatable, Sendable {
+    var counts = LibraryOutcomeCounts()
+    var status = LibraryOutcomeStatus.collecting
+    var next: Int { counts.total }
+}
+
+struct LibraryOutcomeBinding: Codable, Equatable, Sendable {
+    let owner: LibrarySyncOwner
+    let committed: SyncCommitted
+    let request: SyncOutcomePageRequest
+    let expected: LibraryOutcomeCounts
+    let key: String
+    var scopeKey: String { Self.hash([owner.namespace, owner.subject, owner.key]) }
+
+    init(owner: LibrarySyncOwner, committed: SyncCommitted) throws {
+        func identifier(_ value: String) -> Bool { !value.isEmpty && value.utf8.count <= 128 }
+        func count(_ value: Double) throws -> Int {
+            guard value.isFinite, value >= 0, value.rounded(.down) == value, value < 9_007_199_254_740_991 else { throw LibrarySyncFailure.invalidReceipt }
+            return Int(value)
+        }
+        guard committed.reply.ownerKey == owner.key else { throw LibrarySyncFailure.ownerMismatch }
+        guard [owner.key, owner.subject, owner.namespace].allSatisfy({ !$0.isEmpty }),
+              [committed.clientKey, committed.digest, committed.reply.batchId].allSatisfy(identifier),
+              committed.sequence >= 1, try count(committed.sequence) > 0,
+              try count(committed.revision.saved) >= 0,
+              committed.reply.receipts.count == 1, let receipt = committed.reply.receipts.first,
+              [receipt.id, receipt.revision].allSatisfy(identifier) else { throw LibrarySyncFailure.invalidReceipt }
+        let manifest: String, generation: String, phase: SyncOutcomePageRequestPhase, expected: LibraryOutcomeCounts
+        switch receipt.outcome {
+        case .folderDeletedManifest(let value):
+            guard value.deletedAt.isFinite, value.deletedAt >= 0 else { throw LibrarySyncFailure.invalidReceipt }
+            manifest = value.manifestId; generation = value.generation; phase = .delete
+            expected = .init(deleted: try count(value.count))
+        case .folderRestoredManifest(let value):
+            guard identifier(value.folderId) else { throw LibrarySyncFailure.invalidReceipt }
+            manifest = value.manifestId; generation = value.generation; phase = .restore
+            expected = .init(restored: try count(value.restored), superseded: try count(value.superseded), missing: try count(value.missing))
+        default: throw LibrarySyncFailure.invalidReceipt
+        }
+        guard identifier(manifest), identifier(generation), expected.total < 9_007_199_254_740_991 else { throw LibrarySyncFailure.invalidReceipt }
+        self.owner = owner; self.committed = committed; self.expected = expected
+        request = .init(proof: .init(clientKey: committed.clientKey, sequence: committed.sequence, batchId: committed.reply.batchId, digest: committed.digest),
+            receiptId: receipt.id, manifestId: manifest, generation: generation, phase: phase, start: 0)
+        key = Self.hash([owner.namespace, owner.subject, owner.key, committed.clientKey, String(Int(committed.sequence)), committed.reply.batchId,
+            committed.digest, receipt.id, receipt.revision, manifest, generation, phase.rawValue])
+    }
+    private enum CodingKeys: String, CodingKey { case owner, committed }
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(owner: values.decode(LibrarySyncOwner.self, forKey: .owner), committed: values.decode(SyncCommitted.self, forKey: .committed))
+    }
+    func encode(to encoder: Encoder) throws {
+        var values = encoder.container(keyedBy: CodingKeys.self)
+        try values.encode(owner, forKey: .owner); try values.encode(committed, forKey: .committed)
+    }
+    static func hash(_ values: [String]) -> String {
+        let input = values.map { "\($0.utf8.count):\($0)" }.joined()
+        return SHA256.hash(data: Data(input.utf8)).map { String(format: "%02x", $0) }.joined()
+    }
+    func pageRequest(start: Int) -> SyncOutcomePageRequest {
+        .init(proof: request.proof, receiptId: request.receiptId, manifestId: request.manifestId, generation: request.generation, phase: request.phase, start: Double(start))
+    }
+    func ordinalKey(_ ordinal: Int) -> String {
+        let digits = String(ordinal)
+        return key + ":" + String(repeating: "0", count: 16 - digits.count) + digits
+    }
+    func validate(_ page: SyncOutcomePage, requested: SyncOutcomePageRequest) throws -> [SyncOutcomeMember] {
+        guard requested.start.isFinite, requested.start >= 0, requested.start.rounded(.down) == requested.start, requested.start <= Double(expected.total),
+              requested == pageRequest(start: Int(requested.start)),
+              try JSONEncoder().encode(page).count <= LibrarySyncLimits.outcomeBytes else { throw LibrarySyncFailure.invalidReceipt }
+        switch page {
+        case .unavailable(let value):
+            guard value.ownerKey == owner.key, value.request == requested else { throw LibrarySyncFailure.invalidReceipt }
+            return []
+        case .page(let value):
+            guard value.ownerKey == owner.key, value.request == requested,
+                  value.rows.count == min(LibrarySyncLimits.outcomePage, expected.total - Int(requested.start)),
+                  value.next == requested.start + Double(value.rows.count), value.done == (value.next == Double(expected.total)),
+                  Set(value.rows.map(\.memberId)).count == value.rows.count,
+                  Set(value.rows.map(\.hadithId)).count == value.rows.count else { throw LibrarySyncFailure.invalidReceipt }
+            for (index, row) in value.rows.enumerated() {
+                guard row.ordinal == requested.start + Double(index), !row.memberId.isEmpty, row.memberId.utf8.count <= 128,
+                      !row.hadithId.isEmpty, row.hadithId.utf8.count <= 128,
+                      (request.phase == .delete) == (row.disposition == .deleted) else { throw LibrarySyncFailure.invalidReceipt }
+            }
+            return value.rows
+        }
+    }
+}
+
+struct LibraryOutcomeEvidencePage: Codable, Equatable, Sendable {
+    let binding: LibraryOutcomeBinding
+    let checkpoint: LibraryOutcomeCheckpoint
+    let rows: [SyncOutcomeMember]
+    let next: Int
+    let endOfCollectedPrefix: Bool
+}
+
 struct LibraryPartitionState: Codable, Equatable, Sendable {
     var pending: [LibraryLocalChange] = []
     var frozen: LibraryFrozenBatch?

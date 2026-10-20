@@ -191,6 +191,13 @@ A restored-copy cursor could bypass the earlier native manifest guard; actual
 iOS/Android failure cases led to a central pre-adoption guard. The chosen native
 row-journal design is recorded, but durable collection, public producer and bounded
 Saved read/export remain open. This query has not been deployed.
+The native journal core now persists and verifies outcome facts in bounded steps,
+with real-store reopen, duplicate/conflict, missing-member and erasure proof. Local
+checks pass 65 iOS and 45 Android tests; see
+`docs/LIBRARY_OUTCOME_JOURNAL_VERIFICATION.md`. It does not create ACK intent or
+change the partition while collecting. Coordinator/settlement, full local export,
+Saved revision and pruning integration remain open alongside the public producer.
+The full A2 gate and all previously listed deployment/device/release gates stay open.
 
 ## Read the plan in layers
 

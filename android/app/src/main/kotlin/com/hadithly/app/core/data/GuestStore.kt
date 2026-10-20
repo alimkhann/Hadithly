@@ -169,6 +169,7 @@ class GuestDataStore(context: Context) {
     private val file: File = File(context.filesDir, "guest_store.json")
     private val mutex = Mutex()
     private val atomicFile = AtomicFile(file)
+    private val outcomeJournal by lazy { LibraryOutcomeJournal(context) }
     var onGuestChanged: (() -> Unit)? = null
 
     private suspend fun read(): GuestStoreFile = mutex.withLock { readLocked() }
@@ -179,7 +180,7 @@ class GuestDataStore(context: Context) {
         catch (_: Exception) { throw LibrarySyncFailure.StoreUnavailable }
     }
 
-    private suspend fun writeLocked(notify: Boolean = true, transform: (GuestStoreFile) -> GuestStoreFile) {
+    private suspend fun writeLocked(notify: Boolean = true, transform: suspend (GuestStoreFile) -> GuestStoreFile) {
         mutex.withLock {
             val next = transform(readLocked())
             withContext(Dispatchers.IO) {
@@ -433,18 +434,62 @@ class GuestDataStore(context: Context) {
         if (store.deletions.any { it.subject == subject && it.namespace == namespace }) store
         else store.copy(deletions = store.deletions + LibraryDeletionIntent(subject, namespace, LibraryDeletionPhase.SERVER_PENDING))
     }
-    suspend fun markDeletionBackendComplete(subject: String, namespace: String) = writeLocked(notify = false) { store ->
-        if (store.deletions.none { it.subject == subject && it.namespace == namespace }) throw LibrarySyncFailure.SessionChanged
-        store.copy(deletions = store.deletions.map { if (it.subject == subject && it.namespace == namespace) it.copy(phase = LibraryDeletionPhase.IDENTITY_PENDING) else it },
-            syncPartitions = store.syncPartitions.filterNot { it.subject == subject && it.ownerKey.startsWith("$namespace|") })
+    suspend fun markDeletionBackendComplete(subject: String, namespace: String) {
+        mutex.withLock {
+            if (readLocked().deletions.none { it.subject == subject && it.namespace == namespace }) throw LibrarySyncFailure.SessionChanged
+            withContext(Dispatchers.IO) { outcomeJournal.erase(subject, namespace) }
+        }
+        writeLocked(notify = false) { store ->
+            if (store.deletions.none { it.subject == subject && it.namespace == namespace }) throw LibrarySyncFailure.SessionChanged
+            store.copy(deletions = store.deletions.map { if (it.subject == subject && it.namespace == namespace) it.copy(phase = LibraryDeletionPhase.IDENTITY_PENDING) else it },
+                syncPartitions = store.syncPartitions.filterNot { it.subject == subject && it.ownerKey.startsWith("$namespace|") })
+        }
     }
     suspend fun clearDeletion(subject: String, namespace: String) = writeLocked(notify = false) { store ->
         store.copy(deletions = store.deletions.filterNot { it.subject == subject && it.namespace == namespace })
     }
 
-    suspend fun eraseSyncPartition(owner: LibrarySyncOwner) = writeLocked(notify = false) { store ->
-        store.copy(syncPartitions = store.syncPartitions.filterNot { it.ownerKey == owner.storageKey && it.subject == owner.subject })
+    // Reset fixture only. Account erasure uses the durable deletion intent above.
+    suspend fun resetSyncPartitionForTesting(owner: LibrarySyncOwner) {
+        writeLocked(notify = false) { store ->
+            withContext(Dispatchers.IO) { outcomeJournal.erase(owner.subject, owner.namespace, owner.storageKey) }
+            store.copy(syncPartitions = store.syncPartitions.filterNot { it.ownerKey == owner.storageKey && it.subject == owner.subject })
+        }
     }
+
+    private fun assertOutcomeOwnerActive(owner: LibrarySyncOwner) {
+        val store = readLocked()
+        if (store.deletions.any { it.subject == owner.subject && it.namespace == owner.namespace }) throw LibrarySyncFailure.AccountDeleting
+        val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey } ?: throw LibrarySyncFailure.SessionChanged
+        if (partition.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
+    }
+
+    suspend fun collectOutcomeStep(committed: SyncCommitted, owner: LibrarySyncOwner, isCurrent: () -> Boolean,
+                                   fetch: suspend (SyncOutcomePageRequest) -> SyncOutcomePage): LibraryOutcomeCheckpoint {
+        if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
+        val binding = LibraryOutcomeBinding(owner, committed)
+        val (generation, checkpoint) = mutex.withLock {
+            assertOutcomeOwnerActive(owner)
+            withContext(Dispatchers.IO) {
+                val generation = outcomeJournal.captureGeneration(binding)
+                generation to outcomeJournal.open(binding, generation)
+            }
+        }
+        if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
+        if (checkpoint.status != LibraryOutcomeStatus.Collecting) return checkpoint
+        val requested = binding.pageRequest(checkpoint.next)
+        val page = fetch(requested)
+        if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
+        val result = mutex.withLock {
+            assertOutcomeOwnerActive(owner)
+            withContext(Dispatchers.IO) { outcomeJournal.persist(binding, generation, requested, page) }
+        }
+        if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
+        return result
+    }
+
+    suspend fun outcomeEvidencePage(committed: SyncCommitted, owner: LibrarySyncOwner, start: Long): LibraryOutcomeEvidencePage =
+        withContext(Dispatchers.IO) { outcomeJournal.evidence(LibraryOutcomeBinding(owner, committed), start) }
 
 
     private fun nowMillis(): Double = System.currentTimeMillis().toDouble()

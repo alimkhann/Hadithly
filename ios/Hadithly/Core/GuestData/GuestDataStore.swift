@@ -27,6 +27,9 @@ final class GuestDataStore {
             GuestReadingProgress.self,
             GuestLibraryPartition.self,
             GuestAccountDeletion.self,
+            GuestOutcomeScope.self,
+            GuestOutcomeHeader.self,
+            GuestOutcomeMember.self,
         ])
         let configuration = storeURL.map { ModelConfiguration(schema: schema, url: $0) }
             ?? ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
@@ -461,6 +464,7 @@ final class GuestDataStore {
     }
     func markDeletionBackendComplete(subject: String, namespace: String) throws {
         guard let row = try deletionRow(subject: subject, namespace: namespace) else { throw LibrarySyncFailure.sessionChanged }
+        try eraseOutcomeEvidence(subject: subject, namespace: namespace)
         row.phase = LibraryDeletionPhase.identityPending.rawValue
         for partition in try context.fetch(FetchDescriptor<GuestLibraryPartition>()) where partition.subject == subject && partition.ownerKey.hasPrefix(namespace + "|") {
             context.delete(partition)
@@ -472,10 +476,193 @@ final class GuestDataStore {
         do { try context.save() } catch { context.rollback(); throw LibrarySyncFailure.storeUnavailable }
     }
 
-    func eraseSyncPartition(_ owner: LibrarySyncOwner) throws {
+    // Reset fixture only. Account erasure uses the durable deletion intent above.
+    func resetSyncPartitionForTesting(_ owner: LibrarySyncOwner) throws {
+        try eraseOutcomeEvidence(subject: owner.subject, namespace: owner.namespace, ownerKey: owner.storageKey)
         if let row = try partitionRow(owner) { context.delete(row) }
         do { try context.save() }
         catch { context.rollback(); throw LibrarySyncFailure.storeUnavailable }
+    }
+
+    // Each page uses a fresh context: a long-lived identity map must not hide a
+    // conflicting row saved by a reopened store. MainActor serializes local writes.
+    private func outcomeContext() -> ModelContext {
+        let value = ModelContext(container); value.autosaveEnabled = false; return value
+    }
+    private func outcomeHeader(_ key: String, in journal: ModelContext) throws -> GuestOutcomeHeader? {
+        var query = FetchDescriptor<GuestOutcomeHeader>(predicate: #Predicate { $0.key == key }); query.fetchLimit = 2
+        let rows = try journal.fetch(query)
+        guard rows.count <= 1 else { throw LibrarySyncFailure.storeUnavailable }
+        return rows.first
+    }
+    private func outcomeScope(_ key: String, in journal: ModelContext) throws -> GuestOutcomeScope? {
+        var query = FetchDescriptor<GuestOutcomeScope>(predicate: #Predicate { $0.key == key }); query.fetchLimit = 2
+        let rows = try journal.fetch(query)
+        guard rows.count <= 1 else { throw LibrarySyncFailure.storeUnavailable }
+        return rows.first
+    }
+    private func outcomeCheckpoint(_ header: GuestOutcomeHeader, binding: LibraryOutcomeBinding) throws -> LibraryOutcomeCheckpoint {
+        guard header.key == binding.key, header.ownerKey == binding.owner.storageKey, header.subject == binding.owner.subject,
+              header.namespace == binding.owner.namespace,
+              try JSONDecoder().decode(LibraryOutcomeBinding.self, from: header.bindingData) == binding else { throw LibrarySyncFailure.ownerMismatch }
+        let checkpoint = try JSONDecoder().decode(LibraryOutcomeCheckpoint.self, from: header.checkpointData)
+        guard checkpoint.counts.valid, checkpoint.counts.fits(binding.expected) else { throw LibrarySyncFailure.storeUnavailable }
+        if checkpoint.status == .complete, checkpoint.counts != binding.expected { throw LibrarySyncFailure.storeUnavailable }
+        return checkpoint
+    }
+    private func outcomeRows(_ binding: LibraryOutcomeBinding, start: Int, limit: Int, in journal: ModelContext) throws -> [SyncOutcomeMember] {
+        let lower = binding.ordinalKey(start), upper = binding.key + ":~"
+        var query = FetchDescriptor<GuestOutcomeMember>(predicate: #Predicate { $0.ordinalKey >= lower && $0.ordinalKey < upper }, sortBy: [SortDescriptor(\.ordinalKey)])
+        query.fetchLimit = LibrarySyncLimits.outcomePage
+        let stored = try journal.fetch(query)
+        guard stored.count == min(LibrarySyncLimits.outcomePage, limit - start) else { throw LibrarySyncFailure.storeUnavailable }
+        return try stored.enumerated().map { index, value in
+            let row = try JSONDecoder().decode(SyncOutcomeMember.self, from: value.rowData)
+            guard row.ordinal == Double(start + index), value.ordinal == start + index, value.ordinalKey == binding.ordinalKey(start + index),
+                  value.collectionKey == binding.key, value.ownerKey == binding.owner.storageKey, value.subject == binding.owner.subject,
+                  value.namespace == binding.owner.namespace, value.disposition == row.disposition.rawValue,
+                  value.memberKey == binding.key + ":" + row.memberId, value.hadithKey == binding.key + ":" + row.hadithId else { throw LibrarySyncFailure.storeUnavailable }
+            return row
+        }
+    }
+    private func verifyOutcomeStep(_ header: GuestOutcomeHeader, checkpoint: LibraryOutcomeCheckpoint, binding: LibraryOutcomeBinding, in journal: ModelContext) throws -> LibraryOutcomeCheckpoint {
+        guard case .verifying(var counts) = checkpoint.status else { return checkpoint }
+        guard counts.valid, counts.fits(checkpoint.counts), checkpoint.counts == binding.expected else { throw LibrarySyncFailure.storeUnavailable }
+        let rows = try outcomeRows(binding, start: counts.total, limit: checkpoint.next, in: journal)
+        counts.add(rows)
+        guard counts.fits(binding.expected) else { throw LibrarySyncFailure.storeUnavailable }
+        var next = checkpoint
+        if counts.total == checkpoint.next {
+            guard counts == binding.expected else { throw LibrarySyncFailure.storeUnavailable }
+            next.status = .complete
+        } else { next.status = .verifying(counts) }
+        header.checkpointData = try JSONEncoder().encode(next)
+        try saveOutcomeContext(journal)
+        return next
+    }
+    private func saveOutcomeContext(_ journal: ModelContext) throws {
+        do { try journal.save() } catch { journal.rollback(); throw LibrarySyncFailure.storeUnavailable }
+    }
+    private func assertOutcomeOwnerActive(_ owner: LibrarySyncOwner) throws {
+        guard try deletionPhase(subject: owner.subject, namespace: owner.namespace) == nil else { throw LibrarySyncFailure.accountDeleting }
+        guard try partitionRow(owner) != nil else { throw LibrarySyncFailure.sessionChanged }
+    }
+
+    func collectOutcomeStep(_ committed: SyncCommitted, owner: LibrarySyncOwner, isCurrent: () -> Bool,
+                            fetch: (SyncOutcomePageRequest) async throws -> SyncOutcomePage) async throws -> LibraryOutcomeCheckpoint {
+        guard isCurrent() else { throw LibrarySyncFailure.sessionChanged }
+        try assertOutcomeOwnerActive(owner)
+        let binding = try LibraryOutcomeBinding(owner: owner, committed: committed), journal = outcomeContext()
+        let scope: GuestOutcomeScope
+        if let stored = try outcomeScope(binding.scopeKey, in: journal) { scope = stored }
+        else { scope = GuestOutcomeScope(binding: binding); journal.insert(scope) }
+        let header: GuestOutcomeHeader
+        if let stored = try outcomeHeader(binding.key, in: journal) { header = stored }
+        else { header = try GuestOutcomeHeader(binding: binding, generation: scope.generation, checkpoint: .init()); journal.insert(header) }
+        guard header.generation == scope.generation else { throw LibrarySyncFailure.sessionChanged }
+        let checkpoint = try outcomeCheckpoint(header, binding: binding)
+        if case .verifying = checkpoint.status { return try verifyOutcomeStep(header, checkpoint: checkpoint, binding: binding, in: journal) }
+        try saveOutcomeContext(journal)
+        guard checkpoint.status == .collecting else { return checkpoint }
+        let generation = scope.generation, requested = binding.pageRequest(start: checkpoint.next)
+        let page = try await fetch(requested)
+        guard isCurrent() else { throw LibrarySyncFailure.sessionChanged }
+        return try persistOutcomePage(page, requested: requested, binding: binding, generation: generation)
+    }
+
+    private func persistOutcomePage(_ page: SyncOutcomePage, requested: SyncOutcomePageRequest, binding: LibraryOutcomeBinding, generation: String) throws -> LibraryOutcomeCheckpoint {
+        try assertOutcomeOwnerActive(binding.owner)
+        let rows = try binding.validate(page, requested: requested), journal = outcomeContext()
+        guard let scope = try outcomeScope(binding.scopeKey, in: journal), scope.generation == generation,
+              let header = try outcomeHeader(binding.key, in: journal), header.generation == generation else { throw LibrarySyncFailure.sessionChanged }
+        var checkpoint = try outcomeCheckpoint(header, binding: binding)
+        guard requested.start <= Double(checkpoint.next) else { throw LibrarySyncFailure.invalidReceipt }
+        if case .unavailable(let reason) = checkpoint.status {
+            guard case .unavailable(let value) = page, value.reason == reason, requested.start == Double(checkpoint.next) else { throw LibrarySyncFailure.invalidReceipt }
+            return checkpoint
+        }
+        if case .unavailable = page, requested.start != Double(checkpoint.next) || checkpoint.status != .collecting { throw LibrarySyncFailure.invalidReceipt }
+        let replay = requested.start < Double(checkpoint.next) || checkpoint.status != .collecting
+        if replay {
+            for row in rows {
+                let key = binding.ordinalKey(Int(row.ordinal))
+                var query = FetchDescriptor<GuestOutcomeMember>(predicate: #Predicate { $0.ordinalKey == key }); query.fetchLimit = 2
+                let existing = try journal.fetch(query)
+                guard existing.count == 1, let stored = existing.first,
+                      try JSONDecoder().decode(SyncOutcomeMember.self, from: stored.rowData) == row else { throw LibrarySyncFailure.invalidReceipt }
+            }
+            if case .page(let value) = page, value.next > Double(checkpoint.next) { throw LibrarySyncFailure.invalidReceipt }
+            return checkpoint
+        }
+        guard checkpoint.status == .collecting else { throw LibrarySyncFailure.invalidReceipt }
+        for row in rows {
+            let ordinalKey = binding.ordinalKey(Int(row.ordinal)), memberKey = binding.key + ":" + row.memberId, hadithKey = binding.key + ":" + row.hadithId
+            let duplicate = try journal.fetchCount(FetchDescriptor<GuestOutcomeMember>(predicate: #Predicate { $0.ordinalKey == ordinalKey || $0.memberKey == memberKey || $0.hadithKey == hadithKey }))
+            guard duplicate == 0 else { throw LibrarySyncFailure.invalidReceipt }
+            journal.insert(try GuestOutcomeMember(binding: binding, row: row))
+        }
+        switch page {
+        case .unavailable(let value): checkpoint.status = .unavailable(value.reason)
+        case .page(let value):
+            checkpoint.counts.add(rows)
+            guard checkpoint.counts.fits(binding.expected) else { throw LibrarySyncFailure.invalidReceipt }
+            if value.done {
+                guard checkpoint.counts == binding.expected else { throw LibrarySyncFailure.invalidReceipt }
+                checkpoint.status = .verifying(.init())
+            }
+        }
+        header.checkpointData = try JSONEncoder().encode(checkpoint)
+        // Rows and continuation share one save; a failed save advances neither.
+        try saveOutcomeContext(journal)
+        return checkpoint
+    }
+
+    func outcomeEvidencePage(_ committed: SyncCommitted, owner: LibrarySyncOwner, start: Int) throws -> LibraryOutcomeEvidencePage {
+        let binding = try LibraryOutcomeBinding(owner: owner, committed: committed), journal = outcomeContext()
+        guard let header = try outcomeHeader(binding.key, in: journal) else { throw LibrarySyncFailure.storeUnavailable }
+        let checkpoint = try outcomeCheckpoint(header, binding: binding)
+        guard start >= 0, start <= checkpoint.next else { throw LibrarySyncFailure.invalidReceipt }
+        let rows = try outcomeRows(binding, start: start, limit: checkpoint.next, in: journal)
+        let next = start + rows.count
+        return .init(binding: binding, checkpoint: checkpoint, rows: rows, next: next, endOfCollectedPrefix: next == checkpoint.next)
+    }
+
+    private func eraseOutcomeEvidence(subject: String, namespace: String, ownerKey: String? = nil) throws {
+        let journal = outcomeContext()
+        var after = ""
+        while true {
+            var query = FetchDescriptor<GuestOutcomeScope>(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace && $0.key > after }, sortBy: [SortDescriptor(\.key)])
+            if let ownerKey { query = FetchDescriptor(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace && $0.ownerKey == ownerKey && $0.key > after }, sortBy: [SortDescriptor(\.key)]) }
+            query.fetchLimit = LibrarySyncLimits.outcomePage
+            let scopes = try journal.fetch(query)
+            guard let last = scopes.last else { break }
+            scopes.forEach { $0.generation = UUID().uuidString }
+            after = last.key; try saveOutcomeContext(journal)
+        }
+        while true {
+            var query = FetchDescriptor<GuestOutcomeMember>(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace })
+            if let ownerKey { query = FetchDescriptor(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace && $0.ownerKey == ownerKey }) }
+            query.fetchLimit = LibrarySyncLimits.outcomePage
+            let rows = try journal.fetch(query)
+            if rows.isEmpty { break }
+            rows.forEach { journal.delete($0) }; try saveOutcomeContext(journal)
+        }
+        while true {
+            var query = FetchDescriptor<GuestOutcomeHeader>(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace })
+            if let ownerKey { query = FetchDescriptor(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace && $0.ownerKey == ownerKey }) }
+            query.fetchLimit = LibrarySyncLimits.outcomePage
+            let rows = try journal.fetch(query)
+            if rows.isEmpty { break }
+            rows.forEach { journal.delete($0) }; try saveOutcomeContext(journal)
+        }
+        while true {
+            var query = FetchDescriptor<GuestOutcomeScope>(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace })
+            if let ownerKey { query = FetchDescriptor(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace && $0.ownerKey == ownerKey }) }
+            query.fetchLimit = LibrarySyncLimits.outcomePage
+            let scopes = try journal.fetch(query)
+            if scopes.isEmpty { break }
+            scopes.forEach { journal.delete($0) }; try saveOutcomeContext(journal)
+        }
     }
 
     // MARK: - Lifecycle

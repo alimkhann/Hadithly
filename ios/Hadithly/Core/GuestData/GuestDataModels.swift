@@ -318,6 +318,56 @@ final class GuestLibraryPartition {
 enum LibraryDeletionPhase: String, Codable, Sendable { case serverPending, identityPending }
 
 @Model
+final class GuestOutcomeScope {
+    @Attribute(.unique) var key: String
+    var subject: String
+    var namespace: String
+    var ownerKey: String
+    var generation: String
+    init(binding: LibraryOutcomeBinding) {
+        key = binding.scopeKey; subject = binding.owner.subject; namespace = binding.owner.namespace
+        ownerKey = binding.owner.storageKey; generation = UUID().uuidString
+    }
+}
+
+@Model
+final class GuestOutcomeHeader {
+    @Attribute(.unique) var key: String
+    var ownerKey: String
+    var subject: String
+    var namespace: String
+    var generation: String
+    var bindingData: Data
+    var checkpointData: Data
+    init(binding: LibraryOutcomeBinding, generation: String, checkpoint: LibraryOutcomeCheckpoint) throws {
+        key = binding.key; ownerKey = binding.owner.storageKey; subject = binding.owner.subject; namespace = binding.owner.namespace
+        self.generation = generation
+        bindingData = try JSONEncoder().encode(binding)
+        checkpointData = try JSONEncoder().encode(checkpoint)
+    }
+}
+
+@Model
+final class GuestOutcomeMember {
+    @Attribute(.unique) var ordinalKey: String
+    @Attribute(.unique) var memberKey: String
+    @Attribute(.unique) var hadithKey: String
+    var collectionKey: String
+    var ownerKey: String
+    var subject: String
+    var namespace: String
+    var ordinal: Int
+    var disposition: String
+    var rowData: Data
+    init(binding: LibraryOutcomeBinding, row: SyncOutcomeMember) throws {
+        ordinalKey = binding.ordinalKey(Int(row.ordinal)); memberKey = binding.key + ":" + row.memberId
+        hadithKey = binding.key + ":" + row.hadithId
+        collectionKey = binding.key; ownerKey = binding.owner.storageKey; subject = binding.owner.subject; namespace = binding.owner.namespace
+        ordinal = Int(row.ordinal); disposition = row.disposition.rawValue; rowData = try JSONEncoder().encode(row)
+    }
+}
+
+@Model
 final class GuestAccountDeletion {
     @Attribute(.unique) var scope: String
     var subject: String

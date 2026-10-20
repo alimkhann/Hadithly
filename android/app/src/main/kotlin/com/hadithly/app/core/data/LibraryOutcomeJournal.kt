@@ -1,0 +1,254 @@
+package com.hadithly.app.core.data
+
+import android.content.ContentValues
+import android.content.Context
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
+import java.security.MessageDigest
+import java.io.File
+import java.util.UUID
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+
+@Serializable
+data class LibraryOutcomeCounts(val deleted: Long = 0, val restored: Long = 0, val superseded: Long = 0, val missing: Long = 0) {
+    val valid: Boolean get() = listOf(deleted, restored, superseded, missing).all { it >= 0 && it < 9_007_199_254_740_991L }
+    val total: Long get() = deleted + restored + superseded + missing
+    fun fits(other: LibraryOutcomeCounts) = deleted <= other.deleted && restored <= other.restored && superseded <= other.superseded && missing <= other.missing
+    fun adding(rows: List<SyncOutcomeMember>) = copy(
+        deleted = deleted + rows.count { it.disposition == SyncOutcomeMemberDisposition.DELETED },
+        restored = restored + rows.count { it.disposition == SyncOutcomeMemberDisposition.RESTORED },
+        superseded = superseded + rows.count { it.disposition == SyncOutcomeMemberDisposition.SUPERSEDED },
+        missing = missing + rows.count { it.disposition == SyncOutcomeMemberDisposition.MISSING },
+    )
+}
+@Serializable
+sealed interface LibraryOutcomeStatus {
+    @Serializable data object Collecting : LibraryOutcomeStatus
+    @Serializable data class Verifying(val counts: LibraryOutcomeCounts) : LibraryOutcomeStatus
+    @Serializable data object Complete : LibraryOutcomeStatus
+    @Serializable data class Unavailable(val reason: SyncOutcomePageUnavailableReason) : LibraryOutcomeStatus
+}
+@Serializable
+data class LibraryOutcomeCheckpoint(val counts: LibraryOutcomeCounts = LibraryOutcomeCounts(), val status: LibraryOutcomeStatus = LibraryOutcomeStatus.Collecting) {
+    val next: Long get() = counts.total
+}
+@Serializable
+data class LibraryOutcomeAuthority(val owner: LibrarySyncOwner, val committed: SyncCommitted)
+
+class LibraryOutcomeBinding(val owner: LibrarySyncOwner, val committed: SyncCommitted) {
+    val request: SyncOutcomePageRequest
+    val expected: LibraryOutcomeCounts
+    val key: String
+    val scopeKey: String get() = hash(listOf(owner.namespace, owner.subject, owner.key))
+    val authority: LibraryOutcomeAuthority get() = LibraryOutcomeAuthority(owner, committed)
+    init {
+        fun identifier(value: String) = value.isNotEmpty() && value.toByteArray(Charsets.UTF_8).size <= 128
+        fun count(value: Double): Long {
+            if (!value.isFinite() || value < 0 || kotlin.math.floor(value) != value || value >= 9_007_199_254_740_991.0) throw LibrarySyncFailure.InvalidReceipt
+            return value.toLong()
+        }
+        if (committed.reply.ownerKey != owner.key) throw LibrarySyncFailure.OwnerMismatch
+        if (listOf(owner.key, owner.subject, owner.namespace).any { it.isEmpty() } ||
+            !listOf(committed.clientKey, committed.digest, committed.reply.batchId).all(::identifier) ||
+            count(committed.sequence) < 1 || count(committed.revision.saved) < 0 || committed.reply.receipts.size != 1) throw LibrarySyncFailure.InvalidReceipt
+        val receipt = committed.reply.receipts.single()
+        if (!listOf(receipt.id, receipt.revision).all(::identifier)) throw LibrarySyncFailure.InvalidReceipt
+        val manifest: String; val generation: String; val phase: SyncOutcomePageRequestPhase
+        when (val outcome = receipt.outcome) {
+            is SyncOutcome.FolderDeletedManifest -> {
+                if (!outcome.deletedAt.isFinite() || outcome.deletedAt < 0) throw LibrarySyncFailure.InvalidReceipt
+                manifest = outcome.manifestId; generation = outcome.generation; phase = SyncOutcomePageRequestPhase.DELETE
+                expected = LibraryOutcomeCounts(deleted = count(outcome.count))
+            }
+            is SyncOutcome.FolderRestoredManifest -> {
+                if (!identifier(outcome.folderId)) throw LibrarySyncFailure.InvalidReceipt
+                manifest = outcome.manifestId; generation = outcome.generation; phase = SyncOutcomePageRequestPhase.RESTORE
+                expected = LibraryOutcomeCounts(restored = count(outcome.restored), superseded = count(outcome.superseded), missing = count(outcome.missing))
+            }
+            else -> throw LibrarySyncFailure.InvalidReceipt
+        }
+        if (!identifier(manifest) || !identifier(generation) || expected.total >= 9_007_199_254_740_991L) throw LibrarySyncFailure.InvalidReceipt
+        request = SyncOutcomePageRequest(SyncAcknowledgement(committed.clientKey, committed.sequence, committed.reply.batchId, committed.digest), receipt.id, manifest, generation, phase, 0.0)
+        key = hash(listOf(owner.namespace, owner.subject, owner.key, committed.clientKey, committed.sequence.toLong().toString(), committed.reply.batchId,
+            committed.digest, receipt.id, receipt.revision, manifest, generation, phase.name.lowercase()))
+    }
+    fun pageRequest(start: Long) = request.copy(start = start.toDouble())
+    fun validate(page: SyncOutcomePage, requested: SyncOutcomePageRequest): List<SyncOutcomeMember> {
+        if (!requested.start.isFinite() || requested.start < 0 || kotlin.math.floor(requested.start) != requested.start || requested.start > expected.total.toDouble() ||
+            requested != pageRequest(requested.start.toLong()) || Json.encodeToString(page).toByteArray(Charsets.UTF_8).size > LibrarySyncLimits.outcomeBytes) throw LibrarySyncFailure.InvalidReceipt
+        when (page) {
+            is SyncOutcomePage.Unavailable -> {
+                if (page.ownerKey != owner.key || page.request != requested) throw LibrarySyncFailure.InvalidReceipt
+                return emptyList()
+            }
+            is SyncOutcomePage.Page -> {
+                if (page.ownerKey != owner.key || page.request != requested || page.rows.size.toLong() != minOf(LibrarySyncLimits.outcomePage.toLong(), expected.total - requested.start.toLong()) ||
+                    page.next != requested.start + page.rows.size || page.done != (page.next == expected.total.toDouble()) ||
+                    page.rows.map { it.memberId }.toSet().size != page.rows.size || page.rows.map { it.hadithId }.toSet().size != page.rows.size) throw LibrarySyncFailure.InvalidReceipt
+                page.rows.forEachIndexed { index, row ->
+                    if (row.ordinal != requested.start + index || listOf(row.memberId, row.hadithId).any { it.isEmpty() || it.toByteArray(Charsets.UTF_8).size > 128 } ||
+                        (request.phase == SyncOutcomePageRequestPhase.DELETE) != (row.disposition == SyncOutcomeMemberDisposition.DELETED)) throw LibrarySyncFailure.InvalidReceipt
+                }
+                return page.rows
+            }
+        }
+    }
+    companion object {
+        fun hash(values: List<String>): String = MessageDigest.getInstance("SHA-256").digest(values.joinToString("") { "${it.toByteArray(Charsets.UTF_8).size}:$it" }.toByteArray(Charsets.UTF_8))
+            .joinToString("") { "%02x".format(it.toInt() and 255) }
+    }
+}
+@Serializable
+data class LibraryOutcomeEvidencePage(val authority: LibraryOutcomeAuthority, val checkpoint: LibraryOutcomeCheckpoint, val rows: List<SyncOutcomeMember>, val next: Long, val endOfCollectedPrefix: Boolean)
+
+/** Owns page identity, row transactions and erase fences. Never writes ACK intent. */
+internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(context, File(context.filesDir, "library_outcomes.db").absolutePath, null, 1) {
+    override fun onConfigure(db: SQLiteDatabase) { db.setForeignKeyConstraintsEnabled(true) }
+    override fun onCreate(db: SQLiteDatabase) {
+        db.execSQL("CREATE TABLE scopes (scope_key TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, generation TEXT NOT NULL)")
+        db.execSQL("CREATE INDEX scopes_owner ON scopes(subject,namespace,owner_key)")
+        db.execSQL("CREATE TABLE headers (collection_key TEXT PRIMARY KEY NOT NULL, owner_key TEXT NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, generation TEXT NOT NULL, authority TEXT NOT NULL, checkpoint TEXT NOT NULL)")
+        db.execSQL("CREATE INDEX headers_owner ON headers(subject,namespace,owner_key,collection_key)")
+        db.execSQL("CREATE TABLE members (collection_key TEXT NOT NULL REFERENCES headers(collection_key) ON DELETE CASCADE, ordinal INTEGER NOT NULL, member_id TEXT NOT NULL, hadith_id TEXT NOT NULL, disposition TEXT NOT NULL, row_data TEXT NOT NULL, PRIMARY KEY(collection_key,ordinal), UNIQUE(collection_key,member_id), UNIQUE(collection_key,hadith_id))")
+        db.execSQL("CREATE INDEX members_category ON members(collection_key,disposition)")
+    }
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) { throw LibrarySyncFailure.StoreUnavailable }
+    private fun <T> transaction(block: (SQLiteDatabase) -> T): T {
+        val db = writableDatabase
+        db.beginTransaction()
+        try { val result = block(db); db.setTransactionSuccessful(); return result }
+        finally { db.endTransaction() }
+    }
+    private fun generation(db: SQLiteDatabase, key: String): String? = db.rawQuery("SELECT generation FROM scopes WHERE scope_key=?", arrayOf(key)).use { if (it.moveToFirst()) it.getString(0) else null }
+    fun captureGeneration(binding: LibraryOutcomeBinding): String = transaction { db ->
+        generation(db, binding.scopeKey) ?: UUID.randomUUID().toString().also { value ->
+            db.insertOrThrow("scopes", null, ContentValues().apply {
+                put("scope_key", binding.scopeKey); put("generation", value); put("subject", binding.owner.subject)
+                put("namespace", binding.owner.namespace); put("owner_key", binding.owner.storageKey)
+            })
+        }
+    }
+    private fun header(db: SQLiteDatabase, binding: LibraryOutcomeBinding, expectedGeneration: String? = null): LibraryOutcomeCheckpoint? =
+        db.rawQuery("SELECT owner_key,subject,namespace,generation,authority,checkpoint FROM headers WHERE collection_key=?", arrayOf(binding.key)).use { cursor ->
+            if (!cursor.moveToFirst()) null else {
+                val authority = Json.decodeFromString<LibraryOutcomeAuthority>(cursor.getString(4))
+                // Reconstructing also validates persisted authority instead of trusting its JSON shape.
+                val parsed = LibraryOutcomeBinding(authority.owner, authority.committed)
+                if (cursor.getString(0) != binding.owner.storageKey || cursor.getString(1) != binding.owner.subject || cursor.getString(2) != binding.owner.namespace || parsed.authority != binding.authority) throw LibrarySyncFailure.OwnerMismatch
+                if (expectedGeneration != null && cursor.getString(3) != expectedGeneration) throw LibrarySyncFailure.SessionChanged
+                Json.decodeFromString<LibraryOutcomeCheckpoint>(cursor.getString(5)).also {
+                    if (!it.counts.valid || !it.counts.fits(binding.expected) || it.status == LibraryOutcomeStatus.Complete && it.counts != binding.expected) throw LibrarySyncFailure.StoreUnavailable
+                }
+            }
+        }
+    fun open(binding: LibraryOutcomeBinding, expectedGeneration: String): LibraryOutcomeCheckpoint = transaction { db ->
+        if (generation(db, binding.scopeKey) != expectedGeneration) throw LibrarySyncFailure.SessionChanged
+        val stored = header(db, binding, expectedGeneration)
+        if (stored != null) { verifyStep(db, binding, stored) }
+        else LibraryOutcomeCheckpoint().also { checkpoint ->
+            db.insertOrThrow("headers", null, ContentValues().apply {
+                put("collection_key", binding.key); put("owner_key", binding.owner.storageKey); put("subject", binding.owner.subject); put("namespace", binding.owner.namespace)
+                put("generation", expectedGeneration); put("authority", Json.encodeToString(binding.authority)); put("checkpoint", Json.encodeToString(checkpoint))
+            })
+        }
+    }
+    private fun rows(db: SQLiteDatabase, binding: LibraryOutcomeBinding, start: Long, limit: Long): List<SyncOutcomeMember> {
+        val result = mutableListOf<SyncOutcomeMember>()
+        db.rawQuery("SELECT ordinal,member_id,hadith_id,disposition,row_data FROM members WHERE collection_key=? AND ordinal>=? ORDER BY ordinal LIMIT ?", arrayOf(binding.key, start.toString(), LibrarySyncLimits.outcomePage.toString())).use { cursor ->
+            while (cursor.moveToNext()) {
+                val row = Json.decodeFromString<SyncOutcomeMember>(cursor.getString(4))
+                if (row.ordinal != (start + result.size).toDouble() || row.ordinal != cursor.getLong(0).toDouble() || row.memberId != cursor.getString(1) ||
+                    row.hadithId != cursor.getString(2) || row.disposition.name != cursor.getString(3)) throw LibrarySyncFailure.StoreUnavailable
+                result.add(row)
+            }
+        }
+        if (result.size.toLong() != minOf(LibrarySyncLimits.outcomePage.toLong(), limit - start)) throw LibrarySyncFailure.StoreUnavailable
+        return result
+    }
+    private fun verifyStep(db: SQLiteDatabase, binding: LibraryOutcomeBinding, checkpoint: LibraryOutcomeCheckpoint): LibraryOutcomeCheckpoint {
+        val status = checkpoint.status
+        if (status !is LibraryOutcomeStatus.Verifying) return checkpoint
+        if (!status.counts.valid || !status.counts.fits(checkpoint.counts) || checkpoint.counts != binding.expected) throw LibrarySyncFailure.StoreUnavailable
+        val verified = status.counts.adding(rows(db, binding, status.counts.total, checkpoint.next))
+        if (!verified.fits(binding.expected)) throw LibrarySyncFailure.StoreUnavailable
+        val nextStatus = if (verified.total == checkpoint.next) {
+            if (verified != binding.expected) throw LibrarySyncFailure.StoreUnavailable
+            LibraryOutcomeStatus.Complete
+        } else LibraryOutcomeStatus.Verifying(verified)
+        val next = checkpoint.copy(status = nextStatus)
+        db.update("headers", ContentValues().apply { put("checkpoint", Json.encodeToString(next)) }, "collection_key=?", arrayOf(binding.key))
+        return next
+    }
+    fun persist(binding: LibraryOutcomeBinding, expectedGeneration: String, requested: SyncOutcomePageRequest, page: SyncOutcomePage): LibraryOutcomeCheckpoint {
+        val rows = binding.validate(page, requested)
+        return transaction { db ->
+            if (generation(db, binding.scopeKey) != expectedGeneration) throw LibrarySyncFailure.SessionChanged
+            val checkpoint = header(db, binding, expectedGeneration) ?: throw LibrarySyncFailure.SessionChanged
+            if (requested.start > checkpoint.next.toDouble()) throw LibrarySyncFailure.InvalidReceipt
+            if (checkpoint.status is LibraryOutcomeStatus.Unavailable) {
+                if (page !is SyncOutcomePage.Unavailable || page.reason != checkpoint.status.reason || requested.start != checkpoint.next.toDouble()) throw LibrarySyncFailure.InvalidReceipt
+                return@transaction checkpoint
+            }
+            if (page is SyncOutcomePage.Unavailable && (requested.start != checkpoint.next.toDouble() || checkpoint.status != LibraryOutcomeStatus.Collecting)) throw LibrarySyncFailure.InvalidReceipt
+            if (requested.start < checkpoint.next || checkpoint.status != LibraryOutcomeStatus.Collecting) {
+                rows.forEach { row ->
+                    val same = db.rawQuery("SELECT row_data FROM members WHERE collection_key=? AND ordinal=?", arrayOf(binding.key, row.ordinal.toLong().toString())).use {
+                        it.moveToFirst() && Json.decodeFromString<SyncOutcomeMember>(it.getString(0)) == row
+                    }
+                    if (!same) throw LibrarySyncFailure.InvalidReceipt
+                }
+                if (page is SyncOutcomePage.Page && page.next > checkpoint.next) throw LibrarySyncFailure.InvalidReceipt
+                checkpoint
+            } else {
+                if (checkpoint.status != LibraryOutcomeStatus.Collecting) throw LibrarySyncFailure.InvalidReceipt
+                rows.forEach { row ->
+                    // INSERT never replaces conflicting evidence. The transaction rolls back all earlier rows.
+                    db.insertOrThrow("members", null, ContentValues().apply {
+                        put("collection_key", binding.key); put("ordinal", row.ordinal.toLong()); put("member_id", row.memberId); put("hadith_id", row.hadithId)
+                        put("disposition", row.disposition.name); put("row_data", Json.encodeToString(row))
+                    })
+                }
+                val next = when (page) {
+                    is SyncOutcomePage.Unavailable -> checkpoint.copy(status = LibraryOutcomeStatus.Unavailable(page.reason))
+                    is SyncOutcomePage.Page -> {
+                        val counts = checkpoint.counts.adding(rows)
+                        if (!counts.fits(binding.expected) || page.done && counts != binding.expected) throw LibrarySyncFailure.InvalidReceipt
+                        LibraryOutcomeCheckpoint(counts, if (page.done) LibraryOutcomeStatus.Verifying(LibraryOutcomeCounts()) else LibraryOutcomeStatus.Collecting)
+                    }
+                }
+                db.update("headers", ContentValues().apply { put("checkpoint", Json.encodeToString(next)) }, "collection_key=?", arrayOf(binding.key))
+                next
+            }
+        }
+    }
+    fun evidence(binding: LibraryOutcomeBinding, start: Long): LibraryOutcomeEvidencePage = transaction { db ->
+        val checkpoint = header(db, binding) ?: throw LibrarySyncFailure.StoreUnavailable
+        if (start < 0 || start > checkpoint.next) throw LibrarySyncFailure.InvalidReceipt
+        val rows = rows(db, binding, start, checkpoint.next)
+        val next = start + rows.size
+        LibraryOutcomeEvidencePage(binding.authority, checkpoint, rows, next, next == checkpoint.next)
+    }
+    fun erase(subject: String, namespace: String, ownerKey: String? = null) {
+        val selection = if (ownerKey == null) "subject=? AND namespace=?" else "subject=? AND namespace=? AND owner_key=?"
+        val joined = if (ownerKey == null) "h.subject=? AND h.namespace=?" else "h.subject=? AND h.namespace=? AND h.owner_key=?"
+        val args = if (ownerKey == null) arrayOf(subject, namespace) else arrayOf(subject, namespace, ownerKey)
+        var after = ""
+        while (true) {
+            val keys = transaction { db ->
+                val values = mutableListOf<String>()
+                db.rawQuery("SELECT scope_key FROM scopes WHERE $selection AND scope_key>? ORDER BY scope_key LIMIT 50", args + after).use { while (it.moveToNext()) values.add(it.getString(0)) }
+                values.forEach { key -> db.update("scopes", ContentValues().apply { put("generation", UUID.randomUUID().toString()) }, "scope_key=?", arrayOf(key)) }
+                values
+            }
+            if (keys.isEmpty()) break
+            after = keys.last()
+        }
+        while (transaction { db ->
+            db.delete("members", "rowid IN (SELECT m.rowid FROM members m JOIN headers h ON h.collection_key=m.collection_key WHERE $joined LIMIT 50)", args)
+        } > 0) { /* Each member batch commits independently behind the erase fence. */ }
+        while (transaction { db -> db.delete("headers", "collection_key IN (SELECT collection_key FROM headers WHERE $selection LIMIT 50)", args) } > 0) { }
+        while (transaction { db -> db.delete("scopes", "scope_key IN (SELECT scope_key FROM scopes WHERE $selection LIMIT 50)", args) } > 0) { }
+    }
+}

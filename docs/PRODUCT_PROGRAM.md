@@ -152,6 +152,13 @@ the chosen SwiftData/SQLite collection design still needs implementation and pro
 See `LIBRARY_OUTCOME_PAGE_VERIFICATION.md`. This advances the server page contract;
 public producer, durable native collection, bounded Saved read/export and installed
 migration remain open. No deployment was performed.
+The native journal core is now implemented and verified against real SwiftData and
+SQLite stores, with 65 iOS and 45 Android checks. Bounded resumable verification,
+partial evidence and account erasure are covered; an injected Android cleanup
+failure resumes after its first committed batch. See
+`LIBRARY_OUTCOME_JOURNAL_VERIFICATION.md`. This stores evidence only. Every manifest
+ACK guard remains until coordinator/settlement, full export, Saved revision barriers
+and retention are integrated. The public producer and full A2 gate remain open.
 Continue A2 integration while retaining A1's content dependencies. No paid
 generation or production change has been approved. Research, later native redesign, website and Linear remain
 pending in the owner's requested order.

@@ -13,6 +13,208 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class GuestMergeRaceTest {
+    @Test fun outcomeJournalVerificationResumesAndRejectsMissingPersistedMember() = runBlocking {
+        isolated { store, reopen, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); val proof = outcomeProof(owner, 100)
+            store.claimGuestForSync(owner)
+            repeat(2) { store.collectOutcomeStep(proof, owner, { true }) { outcomePage(it, owner, 100) } }
+            val first = store.collectOutcomeStep(proof, owner, { true }) { fail("Verification fetched"); throw LibrarySyncFailure.InvalidReceipt }
+            assertEquals(LibraryOutcomeStatus.Verifying(LibraryOutcomeCounts(deleted = 50)), first.status)
+            android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, android.database.sqlite.SQLiteDatabase.OPEN_READWRITE).use {
+                it.delete("members", "collection_key=? AND ordinal=?", arrayOf(LibraryOutcomeBinding(owner, proof).key, "80"))
+            }
+            val reopened = reopen()
+            try { reopened.collectOutcomeStep(proof, owner, { true }) { fail("Verification fetched"); throw LibrarySyncFailure.InvalidReceipt }; fail("Missing fact became complete") } catch (_: LibrarySyncFailure.StoreUnavailable) { }
+            assertEquals(first.status, reopened.outcomeEvidencePage(proof, owner, 0).checkpoint.status)
+            try { reopened.outcomeEvidencePage(proof, owner, 50); fail("Missing fact exported") } catch (_: LibrarySyncFailure.StoreUnavailable) { }
+            assertNull(reopened.syncPartition(owner)!!.acknowledgement)
+        }
+    }
+    @Test fun outcomeJournalInterruptedEraseRetainsIntentAndResumesCommittedBatches() = runBlocking {
+        isolated { store, reopen, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); val proof = outcomeProof(owner, 100)
+            store.claimGuestForSync(owner)
+            repeat(2) { store.collectOutcomeStep(proof, owner, { true }) { outcomePage(it, owner, 100) } }
+            val database = File(directory, "library_outcomes.db").path
+            android.database.sqlite.SQLiteDatabase.openDatabase(database, null, android.database.sqlite.SQLiteDatabase.OPEN_READWRITE).use {
+                it.execSQL("CREATE TRIGGER stop_second_erase_batch BEFORE DELETE ON members WHEN OLD.ordinal>=50 BEGIN SELECT RAISE(ABORT,'controlled-erase-failure'); END")
+            }
+            store.beginDeletion(owner.subject, owner.namespace)
+            try { store.markDeletionBackendComplete(owner.subject, owner.namespace); fail("Interrupted sweep completed") } catch (_: android.database.sqlite.SQLiteException) { }
+            assertEquals(LibraryDeletionPhase.SERVER_PENDING, reopen().deletionPhase(owner.subject, owner.namespace))
+            android.database.sqlite.SQLiteDatabase.openDatabase(database, null, android.database.sqlite.SQLiteDatabase.OPEN_READWRITE).use { db ->
+                db.rawQuery("SELECT count(*) FROM members", null).use { assertTrue(it.moveToFirst()); assertEquals(50L, it.getLong(0)) }
+                db.execSQL("DROP TRIGGER stop_second_erase_batch")
+            }
+            reopen().markDeletionBackendComplete(owner.subject, owner.namespace)
+            assertEquals(LibraryDeletionPhase.IDENTITY_PENDING, reopen().deletionPhase(owner.subject, owner.namespace))
+            android.database.sqlite.SQLiteDatabase.openDatabase(database, null, android.database.sqlite.SQLiteDatabase.OPEN_READONLY).use { db ->
+                for (table in listOf("members", "headers", "scopes")) db.rawQuery("SELECT count(*) FROM $table", null).use { assertTrue(it.moveToFirst()); assertEquals(0L, it.getLong(0)) }
+            }
+        }
+    }
+
+
+    private fun outcomeProof(owner: LibrarySyncOwner, count: Int, restore: Boolean = false): SyncCommitted {
+        val outcome: SyncOutcome = if (restore) SyncOutcome.FolderRestoredManifest("manifest", "generation", "restored-folder", maxOf(0, count - 1).toDouble(), 0.0, minOf(count, 1).toDouble())
+            else SyncOutcome.FolderDeletedManifest("manifest", "generation", count.toDouble(), 1_000.0)
+        return SyncCommitted("outcome-device", 1.0, "outcome-digest", SyncRevision(2.0, 0.0), SyncReply(owner.key, "outcome-batch", listOf(SyncReceipt("outcome-operation", "r1", outcome))))
+    }
+    private fun outcomePage(request: SyncOutcomePageRequest, owner: LibrarySyncOwner, count: Int, restore: Boolean = false): SyncOutcomePage {
+        val start = request.start.toInt(); val end = minOf(start + LibrarySyncLimits.outcomePage, count)
+        val rows = (start until end).map { SyncOutcomeMember(it.toDouble(), "member-$it", "hadith-$it", if (!restore) SyncOutcomeMemberDisposition.DELETED else if (it == count - 1) SyncOutcomeMemberDisposition.MISSING else SyncOutcomeMemberDisposition.RESTORED) }
+        return SyncOutcomePage.Page(owner.key, request, rows, end.toDouble(), end == count)
+    }
+    private suspend fun finishOutcomeVerification(proof: SyncCommitted, owner: LibrarySyncOwner, store: GuestDataStore): LibraryOutcomeCheckpoint {
+        repeat(30) {
+            val checkpoint = store.collectOutcomeStep(proof, owner, { true }) { fail("Verification fetched a server page"); throw LibrarySyncFailure.InvalidReceipt }
+            if (checkpoint.status == LibraryOutcomeStatus.Complete) return checkpoint
+        }
+        throw LibrarySyncFailure.InvalidReceipt
+    }
+    @Test fun outcomeJournalCollectsBoundedPagesAcrossReopensWithoutChangingPartition() = runBlocking {
+        for (count in listOf(0, 1, 50, 51, 501)) isolated { initial, reopen, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); val proof = outcomeProof(owner, count)
+            var store = initial
+            store.claimGuestForSync(owner)
+            store.enqueueSyncChange(LibraryLocalChange(SyncCommand.FolderDelete(SyncFolderReference.Server("folder")), 1_000.0, LibraryLocalSource.Account(null)), owner)
+            store.freezeSyncFrame(owner)
+            val original = File(directory, "guest_store.json").readText()
+            var checkpoint = LibraryOutcomeCheckpoint(); val requests = mutableListOf<Double>()
+            for (index in 0 until 30) {
+                checkpoint = store.collectOutcomeStep(proof, owner, { true }) { request -> requests.add(request.start); outcomePage(request, owner, count) }
+                assertEquals(original, File(directory, "guest_store.json").readText())
+                store = reopen()
+                if (checkpoint.status == LibraryOutcomeStatus.Complete) break
+            }
+            assertEquals(LibraryOutcomeStatus.Complete, checkpoint.status); assertEquals(count.toLong(), checkpoint.next)
+            assertEquals((0 until maxOf(1, count) step 50).map { it.toDouble() }, requests)
+            var start = 0L; val members = mutableSetOf<String>()
+            do {
+                val evidence = store.outcomeEvidencePage(proof, owner, start)
+                assertEquals(checkpoint, evidence.checkpoint); assertTrue(evidence.rows.size <= 50)
+                members.addAll(evidence.rows.map { it.memberId }); start = evidence.next
+                if (evidence.endOfCollectedPrefix) break
+            } while (start <= count)
+            assertEquals(count, members.size)
+            store.collectOutcomeStep(proof, owner, { true }) { fail("Fetched complete journal"); throw LibrarySyncFailure.InvalidReceipt }
+            assertEquals(original, File(directory, "guest_store.json").readText())
+        }
+    }
+    @Test fun outcomeJournalDuplicateAndConflictingReopenedContextCannotReplaceEvidence() = runBlocking {
+        isolated { store, reopen, _ ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); val proof = outcomeProof(owner, 100)
+            store.claimGuestForSync(owner)
+            val first = store.collectOutcomeStep(proof, owner, { true }) { request ->
+                reopen().collectOutcomeStep(proof, owner, { true }) { outcomePage(it, owner, 100) }
+                outcomePage(request, owner, 100)
+            }
+            assertEquals(50L, first.next)
+            try {
+                store.collectOutcomeStep(proof, owner, { true }) { request ->
+                    reopen().collectOutcomeStep(proof, owner, { true }) { outcomePage(it, owner, 100) }
+                    val page = outcomePage(request, owner, 100) as SyncOutcomePage.Page
+                    page.copy(rows = page.rows.mapIndexed { index, row -> if (index == 0) row.copy(memberId = "conflicting-member", hadithId = "conflicting-hadith") else row })
+                }
+                fail("Conflicting duplicate replaced evidence")
+            } catch (_: LibrarySyncFailure.InvalidReceipt) { }
+            finishOutcomeVerification(proof, owner, reopen())
+            val evidence = reopen().outcomeEvidencePage(proof, owner, 50)
+            assertEquals(LibraryOutcomeStatus.Complete, evidence.checkpoint.status)
+            assertEquals("member-50", evidence.rows.first().memberId); assertEquals("hadith-50", evidence.rows.first().hadithId)
+        }
+    }
+    @Test fun outcomeJournalRollsBackEarlierRowsWhenLaterMemberConflicts() = runBlocking {
+        isolated { store, reopen, _ ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); val proof = outcomeProof(owner, 100)
+            store.claimGuestForSync(owner)
+            store.collectOutcomeStep(proof, owner, { true }) { outcomePage(it, owner, 100) }
+            try {
+                store.collectOutcomeStep(proof, owner, { true }) { request ->
+                    val page = outcomePage(request, owner, 100) as SyncOutcomePage.Page
+                    page.copy(rows = page.rows.mapIndexed { index, row -> if (index == 10) row.copy(memberId = "member-0") else row })
+                }
+                fail("Repeated member accepted")
+            } catch (_: android.database.sqlite.SQLiteConstraintException) { }
+            val partial = reopen().outcomeEvidencePage(proof, owner, 50)
+            assertEquals(50L, partial.checkpoint.next); assertTrue(partial.rows.isEmpty())
+            store.collectOutcomeStep(proof, owner, { true }) { outcomePage(it, owner, 100) }
+            val complete = finishOutcomeVerification(proof, owner, reopen())
+            assertEquals(LibraryOutcomeStatus.Complete, complete.status)
+        }
+    }
+    @Test fun outcomeJournalUnavailableRetainsPartialFactsAndNeverAcknowledges() = runBlocking {
+        for (reason in listOf(SyncOutcomePageUnavailableReason.DETAIL_UNAVAILABLE, SyncOutcomePageUnavailableReason.PROOF_UNAVAILABLE)) isolated { store, reopen, _ ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); val proof = outcomeProof(owner, 51)
+            store.claimGuestForSync(owner)
+            store.collectOutcomeStep(proof, owner, { true }) { outcomePage(it, owner, 51) }
+            val result = store.collectOutcomeStep(proof, owner, { true }) { SyncOutcomePage.Unavailable(owner.key, it, reason) }
+            assertEquals(LibraryOutcomeStatus.Unavailable(reason), result.status); assertEquals(50L, result.next)
+            val reopened = reopen(); val evidence = reopened.outcomeEvidencePage(proof, owner, 0)
+            assertEquals(50, evidence.rows.size); assertEquals(result.status, evidence.checkpoint.status)
+            assertNull(reopened.syncPartition(owner)!!.acknowledgement)
+        }
+    }
+    @Test fun outcomeJournalRejectsWrongCategoriesAndOwnerWithoutAdvancing() = runBlocking {
+        isolated { store, reopen, _ ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); val proof = outcomeProof(owner, 51, true)
+            store.claimGuestForSync(owner)
+            store.collectOutcomeStep(proof, owner, { true }) { outcomePage(it, owner, 51, true) }
+            for (wrongOwner in listOf(false, true)) {
+                try {
+                    store.collectOutcomeStep(proof, owner, { true }) { request ->
+                        SyncOutcomePage.Page(if (wrongOwner) "other-owner" else owner.key, request, listOf(SyncOutcomeMember(request.start, "member-50", "hadith-50", SyncOutcomeMemberDisposition.RESTORED)), 51.0, true)
+                    }
+                    fail("Invalid page accepted")
+                } catch (_: LibrarySyncFailure.InvalidReceipt) { }
+                assertEquals(50L, reopen().outcomeEvidencePage(proof, owner, 50).checkpoint.next)
+            }
+            val terminal = store.collectOutcomeStep(proof, owner, { true }) { outcomePage(it, owner, 51, true) }
+            assertEquals(LibraryOutcomeCounts(restored = 50, missing = 1), terminal.counts)
+        }
+    }
+    @Test fun outcomeJournalErasureFenceRejectsLatePageAfterPartitionRecreation() = runBlocking {
+        isolated { store, reopen, _ ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); val proof = outcomeProof(owner, 1)
+            store.claimGuestForSync(owner)
+            try {
+                store.collectOutcomeStep(proof, owner, { true }) { request ->
+                    store.resetSyncPartitionForTesting(owner); store.claimGuestForSync(owner)
+                    outcomePage(request, owner, 1)
+                }
+                fail("Late page recreated erased evidence")
+            } catch (_: LibrarySyncFailure.SessionChanged) { }
+            try { reopen().outcomeEvidencePage(proof, owner, 0); fail("Erased evidence returned") } catch (_: LibrarySyncFailure.StoreUnavailable) { }
+            store.collectOutcomeStep(proof, owner, { true }) { outcomePage(it, owner, 1) }
+            assertEquals(LibraryOutcomeStatus.Complete, finishOutcomeVerification(proof, owner, reopen()).status)
+        }
+    }
+    @Test fun outcomeJournalAccountErasureFindsOrphansAndPreservesOtherScopes() = runBlocking {
+        isolated { store, reopen, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); val other = LibrarySyncOwner("owner-b", "subject-b"); val deployment = LibrarySyncOwner("owner-a", "subject-a", "other-deployment")
+            for (target in listOf(owner, other, deployment)) {
+                store.claimGuestForSync(target)
+                val count = if (target == owner) 501 else 1
+                for (index in 0 until 12) {
+                    val checkpoint = store.collectOutcomeStep(outcomeProof(target, count), target, { true }) { outcomePage(it, target, count) }
+                    if (checkpoint.status != LibraryOutcomeStatus.Collecting) break
+                }
+            }
+            val file = File(directory, "guest_store.json"); val json = Json { ignoreUnknownKeys = true; encodeDefaults = true; explicitNulls = false }
+            val state = json.decodeFromString<GuestStoreFile>(file.readText())
+            file.writeText(json.encodeToString(state.copy(syncPartitions = state.syncPartitions.filterNot { it.ownerKey == owner.storageKey })))
+            assertEquals(50, store.outcomeEvidencePage(outcomeProof(owner, 501), owner, 0).rows.size)
+            store.beginDeletion(owner.subject, owner.namespace); store.markDeletionBackendComplete(owner.subject, owner.namespace)
+            try { reopen().outcomeEvidencePage(outcomeProof(owner, 501), owner, 0); fail("Orphan evidence retained") } catch (_: LibrarySyncFailure.StoreUnavailable) { }
+            try { reopen().collectOutcomeStep(outcomeProof(owner, 501), owner, { true }) { fail("Erased owner fetched"); throw LibrarySyncFailure.InvalidReceipt }; fail("Stale erased owner recreated metadata") } catch (_: LibrarySyncFailure.AccountDeleting) { }
+            android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, android.database.sqlite.SQLiteDatabase.OPEN_READONLY).use { db ->
+                for (table in listOf("scopes", "headers")) db.rawQuery("SELECT count(*) FROM $table WHERE subject=? AND namespace=?", arrayOf(owner.subject, owner.namespace)).use { assertTrue(it.moveToFirst()); assertEquals(0L, it.getLong(0)) }
+                db.rawQuery("SELECT count(*) FROM members", null).use { assertTrue(it.moveToFirst()); assertEquals(2L, it.getLong(0)) }
+            }
+            for (target in listOf(other, deployment)) assertEquals(1, reopen().outcomeEvidencePage(outcomeProof(target, 1), target, 0).rows.size)
+        }
+    }
+
     @Test fun reconciledManifestCannotBypassOutcomeCollection() {
         val outcomes = listOf(
             SyncOutcome.FolderDeletedManifest("manifest", "generation", 501.0, 1_000.0),
@@ -578,7 +780,7 @@ class GuestMergeRaceTest {
                 val ownerB = sync.owner.value!!
                 assertTrue(store.syncPartition(ownerB)!!.pending.isEmpty())
                 val currentContext = withContext(Dispatchers.Main) { sync.captureWriteContext() }
-                store.eraseSyncPartition(ownerB)
+                store.resetSyncPartitionForTesting(ownerB)
                 try { sync.enqueue(change, currentContext); fail("Erased partition recreated") } catch (_: LibrarySyncFailure.SessionChanged) { }
                 assertNull(store.syncPartition(ownerB))
             } finally { withContext(Dispatchers.Main) { sync.deactivate() }; scope.cancel() }

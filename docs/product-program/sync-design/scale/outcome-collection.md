@@ -1,8 +1,9 @@
 # Paged outcome collection contract
 
 October 20, 2026. A2 continuation. This is the chosen native design and the
-implemented server page contract. Native collection and app cutover still require
-implementation and real-store proof. No deployment is authorized by this record.
+implemented server page contract. The native journal core is implemented; coordinator,
+settlement, export and app cutover still require integration and proof. No deployment
+is authorized by this record.
 
 ## Caller and ownership
 
@@ -51,8 +52,9 @@ Network errors and malformed facts remain unfinished work.
 
 Use candidate A's native row journal: SwiftData rows on iOS and private SQLite
 rows on Android. Its transaction can write a bounded page and header together.
-The existing partition JSON holds a compact handle only. It must not grow an array
-of collected identities. Strict fetch-and-compare plus database uniqueness protect
+At cutover, partition JSON will hold a compact handle only. The journal core currently
+leaves the partition unchanged. It must not grow an array of collected identities.
+Strict fetch-and-compare plus database uniqueness protect
 ordinal/member identity; SwiftData uniqueness alone can upsert and is insufficient.
 
 Android's journal transaction commits before the existing AtomicFile settlement,
@@ -62,8 +64,11 @@ stop. iOS can settle partition and journal in the same ModelContext save, but mu
 also tolerate and prove page/reopen boundaries. The coordinator calls a small store
 operation instead of coordinating individual filesystem/database steps.
 
-Graft candidate B's persistent subject/namespace erasure generation. Erasure must
-fence writers and remove orphan journal rows even when the partition disappeared.
+Each active owner scope has an erasure generation. Erasure rotates it before the
+member/header sweep and removes the scope row afterward. A missing scope or a new
+scope UUID also rejects stale writers. The durable account-deletion intent remains
+until cleanup finishes. Erasure removes orphan journal rows even when the partition
+disappeared. Scope metadata is not an indefinite tombstone.
 Export discovers retained evidence under captured ownership rather than only
 following partition references. It must fail explicitly if required evidence
 vanishes during export. Do not persist capabilities or JWTs in this journal.
@@ -89,6 +94,34 @@ file rename, directory synchronization, hash-chain repair and bounded file walks
 Reject B as the base; retain its erasure, proof distinction and Undo-aware pruning.
 Reject growing partition arrays because every page would rewrite previous members.
 Source candidates and independent judgment are saved beside this contract.
+
+## Implemented journal core
+
+`GuestDataStore.collectOutcomeStep` owns request binding, page fetch, strict parsing,
+generation checks and one row/checkpoint transaction. `collecting` writes at most
+50 facts. The final server page starts `verifying` instead of claiming completion.
+Each subsequent local step checks at most 50 persisted facts and saves its category
+cursor. Only verified exact totals reach `complete`. Reopen continues from either
+cursor; completed verification relies on the journal's immutable rows and atomic
+transactions. It is not a fresh full audit on every read. Whole-manifest scans per
+page were rejected after implementation review.
+
+Swift uses a fixed-width ordinal key's unique index for bounded page order, a fresh
+ModelContext per journal transaction, and strict compare before any unique-model
+insert. Android uses SQLite primary/unique indexes and INSERT without REPLACE.
+Unavailable proof and unavailable detail retain their different terminal reasons
+and all collected facts. Conflicting terminal replays fail. Neither journal writes
+an ACK or changes the partition while collecting.
+
+`outcomeEvidencePage.endOfCollectedPrefix` marks only the end of locally retained
+facts. It does not mean the original manifest is complete. Recovery/export must
+carry expected totals and checkpoint status. Whole-export discovery, retention,
+Undo-aware success pruning and coordinator settlement are still cutover work.
+Account cleanup uses bounded committed sweeps and removes scope metadata. The
+separate reset helper is explicitly test-only and does not claim final erasure.
+
+See `../../../LIBRARY_OUTCOME_JOURNAL_VERIFICATION.md` for actual store proof and
+remaining device/migration limits.
 
 Prove 0/1/50/51/large pages and mixed frozen categories against the actual server.
 Then prove real SwiftData and SQLite reopen, identical/conflicting duplicate,
