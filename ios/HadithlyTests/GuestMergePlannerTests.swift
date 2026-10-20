@@ -481,6 +481,208 @@ final class GuestMergePlannerTests: XCTestCase {
         XCTAssertEqual(try JSONDecoder().decode(LibraryPartitionState.self, from: JSONEncoder().encode(state)), state)
     }
 
+    @MainActor private func acknowledgedRetentionFixture(count: Int, url: URL, acknowledge: Bool = true, acknowledgedAt: Double = 2_000) async throws -> (GuestDataStore, SyncCommitted, SyncAcknowledgement) {
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        var state = LibraryPartitionState()
+        state.append(.account(nil), command: .folderDelete(.init(folder: .server(.init(id: "folder")))), at: 1_000)
+        let original = try XCTUnwrap(state.freeze()), operation = original.batch.operations[0]
+        var encoded = String(decoding: try JSONEncoder().encode(state), as: UTF8.self)
+        for (from, to) in [(state.clientKey, "retention-device"), (original.batch.id, "retention-batch"), (operation.id, "retention-operation"), (operation.revision, "retention-revision")] { encoded = encoded.replacingOccurrences(of: from, with: to) }
+        state = try JSONDecoder().decode(LibraryPartitionState.self, from: Data(encoded.utf8))
+        try seedPartitionFixture(state, owner: owner, url: url)
+        let store = GuestDataStore(storeURL: url), frame = try XCTUnwrap(store.freezeSyncFrame(owner)), sent = frame.batch.operations[0]
+        let proof = SyncCommitted(clientKey: frame.clientKey, sequence: frame.sequence, digest: "retention-proof", revision: .init(saved: 2, position: 0), reply: .init(ownerKey: owner.key, batchId: frame.batch.id,
+            receipts: [.init(id: sent.id, revision: sent.revision, outcome: .folderDeletedManifest(.init(manifestId: "manifest", generation: "generation", count: Double(count), deletedAt: 1_000)))]))
+        try store.settleSyncExchange(.accepted(.init(committed: proof)), requested: frame, owner: owner)
+        try await collectExportFacts(proof, owner: owner, count: count, store: store)
+        try store.cacheSavedSnapshot(.init(ownerKey: owner.key, version: 2, folders: [], items: []), owner: owner)
+        let pending = try XCTUnwrap(store.syncPartition(owner)?.collectingOutcome)
+        XCTAssertEqual(try store.settleCollectedOutcome(pending, owner: owner, now: acknowledgedAt), .settled)
+        let ack = try XCTUnwrap(store.syncPartition(owner)?.acknowledgement)
+        if acknowledge { try store.settleSyncAcknowledgement(acknowledged(ack), requested: ack, owner: owner, now: acknowledgedAt) }
+        return (store, proof, ack)
+    }
+
+    @MainActor func testOutcomeAckMarkerReplaysOldPartitionWithoutRenewalAndAcceptsLaterCursor() async throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".store")
+        let (store, proof, ack) = try await acknowledgedRetentionFixture(count: 1, url: url, acknowledge: false)
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), before = try XCTUnwrap(store.syncPartition(owner))
+        XCTAssertNotNil(before.manifestAckLink)
+        let wrong = SyncAcknowledgement(clientKey: ack.clientKey, sequence: ack.sequence, batchId: ack.batchId, digest: "wrong")
+        XCTAssertThrowsError(try store.settleSyncAcknowledgement(acknowledged(wrong), requested: wrong, owner: owner, now: 2_000))
+        XCTAssertNil(try store.outcomeEvidencePage(proof, owner: owner, start: 0).checkpoint.retention)
+        let fence = try await store.prepareOutcomeExport(owner, isCurrent: { true })
+        try store.settleSyncAcknowledgement(acknowledged(ack), requested: ack, owner: owner, now: 2_000)
+        XCTAssertThrowsError(try store.validateOutcomeExport(fence))
+        XCTAssertEqual(try store.outcomeEvidencePage(proof, owner: owner, start: 0).checkpoint.retention?.acknowledgedAt, 2_000)
+        // Reconstruct the durable crash seam after journal commit, before partition save.
+        let container = try ModelContainer(for: GuestDataStore.schema, configurations: [ModelConfiguration(schema: GuestDataStore.schema, url: url)]), context = ModelContext(container)
+        let storageKey = owner.storageKey
+        let row = try XCTUnwrap(context.fetch(FetchDescriptor<GuestLibraryPartition>(predicate: #Predicate { $0.ownerKey == storageKey })).first)
+        row.stateData = try JSONEncoder().encode(before); try context.save()
+        let reopened = GuestDataStore(storeURL: url)
+        let pending = SyncPending(clientKey: ack.clientKey, sequence: 4, batchId: "next-batch", digest: "next-proof", intentDigest: String(repeating: "a", count: 64), manifestId: "next-manifest", generation: "next-generation", retryAfterMs: 250)
+        try reopened.settleSyncAcknowledgement(.init(ownerKey: owner.key, clientKey: ack.clientKey, cursor: .init(closedThrough: 3, outstanding: .pending(.init(pending: pending)))), requested: ack, owner: owner, now: 9_000)
+        XCTAssertEqual(try reopened.syncPartition(owner)?.nextSequence, 4)
+        XCTAssertEqual(try reopened.syncPartition(owner)?.waiting, pending)
+        XCTAssertNil(try reopened.syncPartition(owner)?.manifestAckLink)
+        XCTAssertEqual(try reopened.outcomeEvidencePage(proof, owner: owner, start: 0).checkpoint.retention?.acknowledgedAt, 2_000)
+        XCTAssertThrowsError(try reopened.settleSyncAcknowledgement(acknowledged(ack), requested: ack, owner: owner, now: 12_000))
+        XCTAssertEqual(try reopened.outcomeEvidencePage(proof, owner: owner, start: 0).checkpoint.retention?.acknowledgedAt, 2_000)
+    }
+
+    @MainActor func testOutcomeRetentionPreservesPartitionlessEvidenceUntilScopedErasure() async throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".store")
+        let (_, proof, _) = try await acknowledgedRetentionFixture(count: 1, url: url)
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), replacement = LibrarySyncOwner(key: "replacement", subject: "subject-a")
+        let container = try ModelContainer(for: GuestDataStore.schema, configurations: [ModelConfiguration(schema: GuestDataStore.schema, url: url)]), context = ModelContext(container)
+        let key = owner.storageKey
+        for row in try context.fetch(FetchDescriptor<GuestLibraryPartition>(predicate: #Predicate { $0.ownerKey == key })) { context.delete(row) }; try context.save()
+        let store = GuestDataStore(storeURL: url); try store.claimGuestForSync(replacement)
+        try store.cacheSavedSnapshot(.init(ownerKey: replacement.key, version: 2, folders: [], items: []), owner: replacement)
+        for _ in 0..<10 { if try !store.pruneOutcomeSuccessStep(replacement, now: 2_000 + LibraryOutcomeRetention.duration) { break } }
+        XCTAssertEqual(try store.outcomeEvidencePage(proof, owner: owner, start: 0).rows.count, 1)
+        XCTAssertNil(try store.syncPartition(owner))
+        try store.beginDeletion(subject: replacement.subject, namespace: replacement.namespace)
+        try store.markDeletionBackendComplete(subject: replacement.subject, namespace: replacement.namespace)
+        XCTAssertThrowsError(try store.outcomeEvidencePage(proof, owner: owner, start: 0))
+        XCTAssertThrowsError(try store.pruneOutcomeSuccessStep(replacement, now: 2_000 + LibraryOutcomeRetention.duration))
+        XCTAssertNil(try store.syncPartition(replacement))
+    }
+
+    @MainActor func testOutcomeRetentionResumesBoundedPruneRejectsPartialExportAndAdmitsLateRestore() async throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".store"), acknowledgedAt = Date.now.millisecondsSinceEpoch
+        let (store, proof, _) = try await acknowledgedRetentionFixture(count: 501, url: url, acknowledgedAt: acknowledgedAt)
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        let oldFence = try await store.prepareOutcomeExport(owner, isCurrent: { true })
+        let fixture = LibraryFacadeFixture(store: store); await fixture.start()
+        let captured = try fixture.sync.captureWriteContext()
+        XCTAssertTrue(try store.pruneOutcomeSuccessStep(owner, now: acknowledgedAt + LibraryOutcomeRetention.duration - 1))
+        _ = try store.pruneOutcomeSuccessStep(owner, now: acknowledgedAt + LibraryOutcomeRetention.duration - 1)
+        XCTAssertEqual(try store.outcomeEvidencePage(proof, owner: owner, start: 500).rows.count, 1)
+        XCTAssertTrue(try store.pruneOutcomeSuccessStep(owner, now: acknowledgedAt + LibraryOutcomeRetention.duration))
+        XCTAssertThrowsError(try store.validateOutcomeExport(oldFence))
+        XCTAssertThrowsError(try store.outcomeEvidencePage(proof, owner: owner, start: 0))
+        let current = try await store.prepareOutcomeExport(owner, isCurrent: { true })
+        XCTAssertEqual(try store.outcomeExportEntries(current, after: nil).first?.checkpoint.retention?.removed, 50)
+        do { _ = try await fixture.sync.preparePortableExport(server: .object([:]), context: captured, fileName: "export.json"); XCTFail("Half-pruned journal exported as complete") } catch LibrarySyncFailure.storeUnavailable { }
+        fixture.stop()
+        let reopened = GuestDataStore(storeURL: url)
+        let late = LibraryLocalChange(command: .folderRestore(.init(deletionId: proof.reply.receipts[0].id, name: "Late restore original", hadithIds: [])), at: Date.now.millisecondsSinceEpoch, source: .account(nil))
+        try reopened.enqueueSyncChange(late, owner: owner)
+        var steps = 0
+        while try reopened.pruneOutcomeSuccessStep(owner, now: acknowledgedAt + LibraryOutcomeRetention.duration) { steps += 1; XCTAssertLessThan(steps, 30) }
+        XCTAssertThrowsError(try reopened.outcomeEvidencePage(proof, owner: owner, start: 0))
+        XCTAssertEqual(try reopened.syncPartition(owner)?.pending, [late])
+        let inspection = try ModelContainer(for: GuestDataStore.schema, configurations: [ModelConfiguration(schema: GuestDataStore.schema, url: url)]), inspectionContext = ModelContext(inspection)
+        XCTAssertEqual(try inspectionContext.fetchCount(FetchDescriptor<GuestOutcomeMember>()), 0)
+        XCTAssertEqual(try inspectionContext.fetchCount(FetchDescriptor<GuestOutcomeHeader>()), 0)
+        XCTAssertEqual(try inspectionContext.fetchCount(FetchDescriptor<GuestOutcomeInventory>()), 0)
+        XCTAssertEqual(try inspectionContext.fetchCount(FetchDescriptor<GuestOutcomeScope>()), 0)
+        let resumed = LibraryFacadeFixture(store: reopened); resumed.server.failSends = false; resumed.server.nextOutcome = .unresolved(.init(reason: .missingFolder))
+        defer { resumed.stop() }; await resumed.start()
+        XCTAssertEqual(resumed.server.frames.first?.batch.operations, [late.operation])
+        guard case .server(let original, .unresolved) = try XCTUnwrap(reopened.syncPartition(owner)?.recovery.last) else { return XCTFail("Late server rejection lost original") }
+        XCTAssertEqual(original, late)
+    }
+
+    @MainActor func testOutcomeRetentionCursorPassesFiftyRetainedHeadersAndResumesAfterReopen() async throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".store")
+        let (store, proof, _) = try await acknowledgedRetentionFixture(count: 1, url: url)
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), key = try LibraryOutcomeBinding(owner: owner, committed: proof).key
+        let retained = try (0..<1_000).map { taggedOutcomeProof(owner, count: 0, tag: "retained-\($0)") }.filter { try LibraryOutcomeBinding(owner: owner, committed: $0).key < key }.prefix(51)
+        XCTAssertEqual(retained.count, 51)
+        for item in retained { try await collectExportFacts(item, owner: owner, count: 0, store: store) }
+        _ = try await store.prepareOutcomeExport(owner, isCurrent: { true })
+        XCTAssertTrue(try store.pruneOutcomeSuccessStep(owner, now: 2_000 + LibraryOutcomeRetention.duration))
+        XCTAssertNotNil(try store.syncPartition(owner)?.outcomeRetentionCursor)
+        XCTAssertEqual(try store.outcomeEvidencePage(proof, owner: owner, start: 0).rows.count, 1)
+        let reopened = GuestDataStore(storeURL: url)
+        XCTAssertTrue(try reopened.pruneOutcomeSuccessStep(owner, now: 2_000 + LibraryOutcomeRetention.duration))
+        XCTAssertThrowsError(try reopened.outcomeEvidencePage(proof, owner: owner, start: 0))
+        for item in retained { XCTAssertEqual(try reopened.outcomeEvidencePage(item, owner: owner, start: 0).checkpoint.retention, nil) }
+        XCTAssertFalse(try reopened.pruneOutcomeSuccessStep(owner, now: 2_000 + LibraryOutcomeRetention.duration))
+        XCTAssertNil(try reopened.syncPartition(owner)?.outcomeRetentionCursor)
+    }
+
+    func testOutcomeRetentionPolicyPreservesEachDurableDependencyAndOldProoflessData() throws {
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), proof = taggedOutcomeProof(owner, count: 1, tag: "policy")
+        let binding = try LibraryOutcomeBinding(owner: owner, committed: proof), now = 2_000 + LibraryOutcomeRetention.duration
+        let checkpoint = LibraryOutcomeCheckpoint(counts: binding.expected, status: .complete, retention: .init(acknowledgedAt: 2_000, removed: nil))
+        var base = LibraryPartitionState(); base.savedSnapshot = .init(ownerKey: owner.key, version: 2, folders: [], items: [])
+        XCTAssertTrue(base.canPruneOutcome(binding, checkpoint: checkpoint, now: now))
+        XCTAssertFalse(base.canPruneOutcome(binding, checkpoint: checkpoint, now: now - 1))
+        XCTAssertFalse(base.canPruneOutcome(binding, checkpoint: checkpoint, now: 1_000))
+        XCTAssertFalse(base.canPruneOutcome(binding, checkpoint: .init(counts: binding.expected, status: .complete), now: now))
+        let undo = LibraryLocalChange(command: .folderRestore(.init(deletionId: binding.request.receiptId, name: "Offline Undo", hadithIds: [])), at: 1_000, source: .account(nil))
+        var states: [LibraryPartitionState] = []
+        var pending = base; pending.pending = [undo]; states.append(pending)
+        var frozen = base; frozen.frozen = .init(batch: .init(id: "frozen", operations: [undo.operation]), changes: [undo]); states.append(frozen)
+        var linked = base; linked.manifestAckLink = binding; states.append(linked)
+        var collecting = base; collecting.collectingOutcome = .init(committed: proof, origin: .historical); states.append(collecting)
+        var recent = base; recent.recent = [.init(receipt: proof.reply.receipts[0], expiresAt: now + 1)]; states.append(recent)
+        for entry: LibraryRecovery in [.server(undo, .unresolved(.init(reason: .missingFolder))), .historical(undo), .rejected(undo), .outcome(authority: binding, checkpoint: checkpoint, original: nil)] {
+            var recovered = base; recovered.recovery = [entry]; states.append(recovered)
+        }
+        for state in states { XCTAssertFalse(state.canPruneOutcome(binding, checkpoint: checkpoint, now: now)) }
+    }
+
+    func testOutcomeRetentionDependenciesDoNotBlockUnrelatedJournals() throws {
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        let deleteA = try LibraryOutcomeBinding(owner: owner, committed: taggedOutcomeProof(owner, count: 1, tag: "a"))
+        let deleteB = try LibraryOutcomeBinding(owner: owner, committed: taggedOutcomeProof(owner, count: 1, tag: "b"))
+        func restore(_ tag: String) throws -> LibraryOutcomeBinding {
+            let base = taggedOutcomeProof(owner, count: 1, tag: tag)
+            return try .init(owner: owner, committed: .init(clientKey: base.clientKey, sequence: base.sequence, digest: base.digest, revision: base.revision,
+                reply: .init(ownerKey: owner.key, batchId: base.reply.batchId, receipts: [.init(id: tag + "-restore", revision: "r1", outcome: .folderRestoredManifest(.init(manifestId: tag, generation: "generation", folderId: "destination-" + tag, restored: 1, superseded: 0, missing: 0)))])))
+        }
+        let restoreA = try restore("a"), restoreB = try restore("b")
+        var state = LibraryPartitionState()
+        let undo = LibraryLocalChange(command: .folderRestore(.init(deletionId: deleteA.request.receiptId, name: "Undo A", hadithIds: [])), at: 1_000, source: .account(nil))
+        for recovery in [false, true] {
+            state.pending = recovery ? [] : [undo]; state.recovery = recovery ? [.historical(undo)] : []
+            XCTAssertTrue(state.retainsOutcome(deleteA, now: 99_000))
+            XCTAssertFalse(state.retainsOutcome(deleteB, now: 99_000))
+            XCTAssertFalse(state.retainsOutcome(restoreB, now: 99_000))
+        }
+        state.recovery = []; state.folderMappings["alias-a"] = "destination-a"
+        for command: SyncCommand in [.membershipPut(.init(hadithId: "hadith", folder: .local(.init(key: "alias-a")), mode: nil)), .folderDelete(.init(folder: .local(.init(key: "alias-a"))))] {
+            state.pending = [.init(command: command, at: 1_000, source: .account(nil))]
+            XCTAssertTrue(state.retainsOutcome(restoreA, now: 99_000))
+            XCTAssertFalse(state.retainsOutcome(restoreB, now: 99_000))
+            XCTAssertFalse(state.retainsOutcome(deleteA, now: 99_000))
+        }
+    }
+
+    @MainActor func testCoordinatorPrunesAcknowledgedSuccessfulOutcomeAfterRetention() async throws {
+        let store = GuestDataStore(inMemory: true), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        let session = LibrarySyncSession(id: "session-a", subject: owner.subject)
+        var clock = 1_000.0, proof: SyncCommitted?, acknowledgements = 0
+        try store.claimGuestForSync(owner)
+        try store.enqueueSyncChange(.init(command: .folderDelete(.init(folder: .server(.init(id: "folder")))), at: clock, source: .account(nil)), owner: owner)
+        try store.cacheSavedSnapshot(.init(ownerKey: owner.key, version: 1, folders: [], items: []), owner: owner)
+        let sync = LibrarySync(store: store, transport: .init(namespace: owner.namespace, open: {
+            .init(ownerKey: owner.key, subject: owner.subject, capability: "fixture", validUntil: clock + 60_000)
+        }, acknowledge: { _, value in acknowledgements += 1; return self.acknowledged(value) }, send: { _, frame in
+            let operation = frame.batch.operations[0]
+            let committed = SyncCommitted(clientKey: frame.clientKey, sequence: frame.sequence, digest: "fixture-proof", revision: .init(saved: 1, position: 0), reply: .init(ownerKey: owner.key, batchId: frame.batch.id,
+                receipts: [.init(id: operation.id, revision: operation.revision, outcome: .folderDeletedManifest(.init(manifestId: "manifest", generation: "generation", count: 1, deletedAt: clock)))]))
+            proof = committed; return .accepted(.init(committed: committed))
+        }, outcomePage: { _, request in self.outcomePage(request, owner: owner, count: 1) }), currentSession: { session }, now: { clock })
+        defer { sync.deactivate() }
+        await sync.activate(session)
+        let committed = try XCTUnwrap(proof)
+        XCTAssertEqual(acknowledgements, 1)
+        XCTAssertEqual(try store.outcomeEvidencePage(committed, owner: owner, start: 0).rows.count, 1)
+        try await waitForLibrary { (try? store.syncPartition(owner)?.outcomeRetentionCursor) == nil && sync.status == .ready(recovered: 0) }
+        clock += 31 * 24 * 60 * 60 * 1_000
+        await sync.activate(session)
+        try await waitForLibrary { (try? store.outcomeEvidencePage(committed, owner: owner, start: 0)) == nil }
+        XCTAssertThrowsError(try store.outcomeEvidencePage(committed, owner: owner, start: 0), "Successful acknowledged journal remained forever")
+        let fence = try await store.prepareOutcomeExport(owner, isCurrent: { true })
+        XCTAssertTrue(try store.outcomeExportEntries(fence, after: nil).isEmpty)
+    }
+
     @MainActor func testOutcomeSettlementUnavailablePolicySurvivesReopenAndExport() async throws {
         for reason in [SyncOutcomePageUnavailableReason.detailUnavailable, .proofUnavailable] {
             let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".store")
@@ -1617,6 +1819,7 @@ final class GuestMergePlannerTests: XCTestCase {
     enum Failure: Error { case offline }
     var frames: [SyncFrame] = []
     var failSends = true
+    var nextOutcome: SyncOutcome?
     var failAcknowledgements = false
     var acknowledgements = 0
     var revisions: [String: SyncRevision] = [:]
@@ -1629,7 +1832,8 @@ final class GuestMergePlannerTests: XCTestCase {
         let position = frame.batch.operations.contains { $0.command.isPositionChange }
         let revision = SyncRevision(saved: old.saved + (saved ? 1 : 0), position: old.position + (position ? 1 : 0))
         revisions[owner] = revision
-        let receipts = frame.batch.operations.map { SyncReceipt(id: $0.id, revision: $0.revision, outcome: .preserved) }
+        let outcome = nextOutcome ?? .preserved; nextOutcome = nil
+        let receipts = frame.batch.operations.map { SyncReceipt(id: $0.id, revision: $0.revision, outcome: outcome) }
         return .accepted(.init(committed: .init(clientKey: frame.clientKey, sequence: frame.sequence, digest: "fixture-proof", revision: revision,
             reply: .init(ownerKey: owner, batchId: frame.batch.id, receipts: receipts))))
     }

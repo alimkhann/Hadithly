@@ -31,7 +31,12 @@ sealed interface LibraryOutcomeStatus {
     @Serializable data class Unavailable(val reason: SyncOutcomePageUnavailableReason) : LibraryOutcomeStatus
 }
 @Serializable
-data class LibraryOutcomeCheckpoint(val counts: LibraryOutcomeCounts = LibraryOutcomeCounts(), val status: LibraryOutcomeStatus = LibraryOutcomeStatus.Collecting) {
+data class LibraryOutcomeRetention(val acknowledgedAt: Double, val removed: Long? = null) {
+    fun valid(total: Long) = acknowledgedAt.isFinite() && acknowledgedAt >= 0 && (removed == null || removed in 0..total)
+    companion object { const val duration: Double = 30 * 24 * 60 * 60 * 1_000.0 }
+}
+@Serializable
+data class LibraryOutcomeCheckpoint(val counts: LibraryOutcomeCounts = LibraryOutcomeCounts(), val status: LibraryOutcomeStatus = LibraryOutcomeStatus.Collecting, val retention: LibraryOutcomeRetention? = null) {
     val next: Long get() = counts.total
 }
 @Serializable
@@ -234,7 +239,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         checkFence(db, fence)
         if (entry.binding.owner.subject != fence.owner.subject || entry.binding.owner.namespace != fence.owner.namespace) throw LibrarySyncFailure.OwnerMismatch
         val checkpoint = header(db, entry.binding) ?: throw LibrarySyncFailure.StoreUnavailable
-        if (checkpoint != entry.checkpoint || start < 0 || start > checkpoint.next) throw LibrarySyncFailure.StoreUnavailable
+        if (checkpoint.retention?.removed != null || checkpoint != entry.checkpoint || start < 0 || start > checkpoint.next) throw LibrarySyncFailure.StoreUnavailable
         val rows = rows(db, entry.binding, start, checkpoint.next); val next = start + rows.size
         checkFence(db, fence)
         LibraryOutcomeEvidencePage(entry.binding.authority, checkpoint, rows, next, next == checkpoint.next)
@@ -291,6 +296,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
                 if (expectedGeneration != null && cursor.getString(3) != expectedGeneration) throw LibrarySyncFailure.SessionChanged
                 Json.decodeFromString<LibraryOutcomeCheckpoint>(cursor.getString(5)).also {
                     if (!it.counts.valid || !it.counts.fits(binding.expected) || it.status == LibraryOutcomeStatus.Complete && it.counts != binding.expected) throw LibrarySyncFailure.StoreUnavailable
+                    if (it.retention != null && (!it.retention.valid(it.next) || it.status != LibraryOutcomeStatus.Complete || binding.expected.superseded != 0L || binding.expected.missing != 0L)) throw LibrarySyncFailure.StoreUnavailable
                     val status = it.status
                     if (status is LibraryOutcomeStatus.Verifying && (!status.counts.valid || !status.counts.fits(it.counts) || it.counts != binding.expected)) throw LibrarySyncFailure.StoreUnavailable
                 }
@@ -299,7 +305,10 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
     fun open(binding: LibraryOutcomeBinding, expectedGeneration: String): LibraryOutcomeCheckpoint = transaction { db ->
         if (generation(db, binding.scopeKey) != expectedGeneration) throw LibrarySyncFailure.SessionChanged
         val stored = header(db, binding, expectedGeneration)
-        if (stored != null) { verifyStep(db, binding, stored) }
+        if (stored != null) {
+            if (stored.retention?.removed != null) throw LibrarySyncFailure.StoreUnavailable
+            verifyStep(db, binding, stored)
+        }
         else LibraryOutcomeCheckpoint().also { checkpoint ->
             db.insertOrThrow("headers", null, ContentValues().apply {
                 put("collection_key", binding.key); put("owner_key", binding.owner.storageKey); put("subject", binding.owner.subject); put("namespace", binding.owner.namespace)
@@ -379,6 +388,49 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
             }
         }
     }
+    fun acknowledge(binding: LibraryOutcomeBinding, now: Double) = transaction { db ->
+        val current = generation(db, binding.scopeKey) ?: throw LibrarySyncFailure.StoreUnavailable
+        val checkpoint = header(db, binding, current) ?: throw LibrarySyncFailure.StoreUnavailable
+        if (!now.isFinite() || now < 0 || checkpoint.status != LibraryOutcomeStatus.Complete || binding.expected.superseded != 0L || binding.expected.missing != 0L || checkpoint.retention?.removed != null) throw LibrarySyncFailure.InvalidReceipt
+        if (checkpoint.retention == null) {
+            db.update("headers", ContentValues().apply { put("checkpoint", Json.encodeToString(checkpoint.copy(retention = LibraryOutcomeRetention(now)))) }, "collection_key=?", arrayOf(binding.key))
+            bumpClock(db, binding.owner.subject, binding.owner.namespace)
+        }
+    }
+    fun retentionEntries(owner: LibrarySyncOwner, after: String?): List<LibraryOutcomeExportEntry> = transaction { db ->
+        val entries = mutableListOf<LibraryOutcomeExportEntry>()
+        db.rawQuery("SELECT collection_key,authority FROM headers WHERE subject=? AND namespace=? AND collection_key>? ORDER BY collection_key LIMIT 50", arrayOf(owner.subject, owner.namespace, after ?: "")).use {
+            while (it.moveToNext()) {
+                val authority = Json.decodeFromString<LibraryOutcomeAuthority>(it.getString(1)); val binding = LibraryOutcomeBinding(authority.owner, authority.committed)
+                if (binding.key != it.getString(0) || binding.owner.subject != owner.subject || binding.owner.namespace != owner.namespace) throw LibrarySyncFailure.OwnerMismatch
+                entries.add(LibraryOutcomeExportEntry(binding, header(db, binding) ?: throw LibrarySyncFailure.StoreUnavailable))
+            }
+        }
+        entries
+    }
+    fun prune(binding: LibraryOutcomeBinding, expected: LibraryOutcomeCheckpoint): Boolean = transaction { db ->
+        val current = generation(db, binding.scopeKey) ?: throw LibrarySyncFailure.StoreUnavailable
+        val checkpoint = header(db, binding, current) ?: throw LibrarySyncFailure.StoreUnavailable
+        if (checkpoint != expected || checkpoint.status != LibraryOutcomeStatus.Complete) throw LibrarySyncFailure.StoreUnavailable
+        val retention = checkpoint.retention ?: throw LibrarySyncFailure.StoreUnavailable
+        val start = retention.removed ?: 0
+        val members = rows(db, binding, start, checkpoint.next)
+        members.forEach { row ->
+            if (db.delete("members", "collection_key=? AND ordinal=?", arrayOf(binding.key, row.ordinal.toLong().toString())) != 1) throw LibrarySyncFailure.StoreUnavailable
+        }
+        val next = start + members.size
+        val done = next == checkpoint.next
+        if (done) {
+            db.rawQuery("SELECT ordinal FROM members WHERE collection_key=? LIMIT 1", arrayOf(binding.key)).use { if (it.moveToFirst()) throw LibrarySyncFailure.StoreUnavailable }
+            db.delete("headers", "collection_key=?", arrayOf(binding.key))
+            val otherHeader = db.rawQuery("SELECT collection_key FROM headers WHERE owner_key=? AND subject=? AND namespace=? LIMIT 1", arrayOf(binding.owner.storageKey, binding.owner.subject, binding.owner.namespace)).use { it.moveToFirst() }
+            if (!otherHeader) db.delete("scopes", "scope_key=?", arrayOf(binding.scopeKey))
+        }
+        else db.update("headers", ContentValues().apply { put("checkpoint", Json.encodeToString(checkpoint.copy(retention = retention.copy(removed = next)))) }, "collection_key=?", arrayOf(binding.key))
+        bumpClock(db, binding.owner.subject, binding.owner.namespace)
+        done
+    }
+
     fun settlementCheckpoint(binding: LibraryOutcomeBinding): LibraryOutcomeCheckpoint = transaction { db ->
         val current = generation(db, binding.scopeKey) ?: throw LibrarySyncFailure.StoreUnavailable
         header(db, binding, current) ?: throw LibrarySyncFailure.StoreUnavailable
@@ -386,6 +438,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
 
     fun evidence(binding: LibraryOutcomeBinding, start: Long): LibraryOutcomeEvidencePage = transaction { db ->
         val checkpoint = header(db, binding) ?: throw LibrarySyncFailure.StoreUnavailable
+        if (checkpoint.retention?.removed != null) throw LibrarySyncFailure.StoreUnavailable
         if (start < 0 || start > checkpoint.next) throw LibrarySyncFailure.InvalidReceipt
         val rows = rows(db, binding, start, checkpoint.next)
         val next = start + rows.size

@@ -180,6 +180,13 @@ after reopen. Full local checks pass 78 iOS and 61 Android tests; see
 All journals remain retained. Pruning/retention, manifest Undo, public producer/read
 cutover, full-library scale, iOS write-failure and actual hosted/device matrices remain
 open. No A2 deployment or full A2 completion is claimed.
+Native outcome ACK confirmation and bounded success cleanup now have local proof.
+Only exact matched complete success gains ACK metadata; aged cleanup preserves
+queued/offline Undo and recovery dependencies, advances fairly past retained headers,
+and removes at most 50 facts per transaction. Export fails during partial pruning.
+See `LIBRARY_OUTCOME_RETENTION_VERIFICATION.md` for 85 iOS/68 Android checks,
+501-row interruption, ACK replay and their limits. Manifest Undo/public cutover,
+full-library scale, iOS save failures and hosted/device/deployment gates remain open.
 Continue A2 integration while retaining A1's content dependencies. No paid
 generation or production change has been approved. Research, later native redesign, website and Linear remain
 pending in the owner's requested order.

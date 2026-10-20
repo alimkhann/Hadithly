@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-10-20. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-10-21. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
 D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its
 simulator/emulator and unit gates; its physical-device gate is open. R4's
@@ -222,6 +222,14 @@ after reopen. Full local checks pass 78 iOS and 61 Android tests; see
 All journals remain retained. Pruning/retention, manifest Undo, public producer/read
 cutover, full-library scale, iOS write-failure and actual hosted/device matrices remain
 open. No A2 deployment or full A2 completion is claimed.
+
+Native outcome ACK confirmation and bounded success cleanup now have local proof.
+Only exact matched complete success gains ACK metadata; aged cleanup preserves
+queued/offline Undo and recovery dependencies, advances fairly past retained headers,
+and removes at most 50 facts per transaction. Export fails during partial pruning.
+See `docs/LIBRARY_OUTCOME_RETENTION_VERIFICATION.md` for 85 iOS/68 Android checks,
+501-row interruption, ACK replay and their limits. Manifest Undo/public cutover,
+full-library scale, iOS save failures and hosted/device/deployment gates remain open.
 
 ## Read the plan in layers
 

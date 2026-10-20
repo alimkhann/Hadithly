@@ -127,6 +127,8 @@ data class LibraryPartitionState(
     var acknowledgement: SyncAcknowledgement? = null,
     var waiting: SyncPending? = null,
     var collectingOutcome: LibraryPendingOutcome? = null,
+    var manifestAckLink: LibraryOutcomeAuthority? = null,
+    var outcomeRetentionCursor: String? = null,
     var confirmed: List<LibraryConfirmedChange> = emptyList(),
     var folderMappings: Map<String, String> = emptyMap(),
     var savedSnapshot: SyncSavedSnapshot? = null,
@@ -137,7 +139,7 @@ data class LibraryPartitionState(
         else pending = pending + LibraryLocalChange(command, at, source)
     }
     fun freeze(): SyncFrame? {
-        if (acknowledgement != null || waiting != null || collectingOutcome != null) throw LibrarySyncFailure.InvalidReceipt
+        if (acknowledgement != null || waiting != null || collectingOutcome != null || manifestAckLink != null) throw LibrarySyncFailure.InvalidReceipt
         frozen?.let {
             if (it.changes.map { change -> change.operation } != it.batch.operations) throw LibrarySyncFailure.InvalidReceipt
             return SyncFrame(clientKey, nextSequence, it.batch)
@@ -250,9 +252,49 @@ data class LibraryPartitionState(
             val deadline = original.operation.at + 5_000
             if (deadline > now) recent = recent + LibraryRecentReceipt(proof.receipt, deadline)
         }
+        manifestAckLink = if (original != null && !unavailable && binding.expected.superseded == 0L && binding.expected.missing == 0L) binding.authority else null
         frozen = null; collectingOutcome = null
         nextSequence++; acknowledgement = ack
         return LibraryOutcomeSettlement.Settled
+    }
+
+    fun retainsOutcome(binding: LibraryOutcomeBinding, now: Double): Boolean {
+        val target = binding.request.receiptId
+        fun folderReferences(folder: SyncFolderReference): Boolean {
+            val local = folder as? SyncFolderReference.Local ?: return false
+            if (binding.request.phase == SyncOutcomePageRequestPhase.DELETE) return local.key == "restore:$target"
+            val restored = binding.committed.reply.receipts.firstOrNull()?.outcome as? SyncOutcome.FolderRestoredManifest ?: return false
+            return folderMappings[local.key] == restored.folderId
+        }
+        fun references(change: LibraryLocalChange): Boolean {
+            if (change.operation.id == target) return true
+            return when (val command = change.operation.command) {
+                is SyncCommand.FolderRestore -> command.deletionId == target
+                is SyncCommand.MembershipPut -> folderReferences(command.folder)
+                is SyncCommand.FolderDelete -> folderReferences(command.folder)
+                is SyncCommand.BookmarkAdd, is SyncCommand.BookmarkRemove, is SyncCommand.FavoriteAdd, is SyncCommand.FavoriteRemove,
+                is SyncCommand.NotePut, is SyncCommand.NoteRemove, is SyncCommand.FolderCreate, is SyncCommand.PositionPut,
+                is SyncCommand.LegacyPositionPut, is SyncCommand.FacetRestore -> false
+            }
+        }
+        if (manifestAckLink?.let { LibraryOutcomeBinding(it.owner, it.committed).key } == binding.key) return true
+        if (collectingOutcome?.let { runCatching { LibraryOutcomeBinding(binding.owner, it.committed).key }.getOrNull() } == binding.key) return true
+        if (waiting?.manifestId == binding.request.manifestId && waiting?.generation == binding.request.generation) return true
+        if (recent.any { it.receipt.id == target && it.expiresAt > now }) return true
+        if ((pending + frozen?.changes.orEmpty() + confirmed.map { it.change }).any(::references)) return true
+        return recovery.any { value -> when (value) {
+            is LibraryRecovery.Invalid -> false
+            is LibraryRecovery.Server -> references(value.change)
+            is LibraryRecovery.Historical -> references(value.change)
+            is LibraryRecovery.Rejected -> references(value.change)
+            is LibraryRecovery.Outcome -> LibraryOutcomeBinding(value.authority.owner, value.authority.committed).key == binding.key || value.original?.let(::references) == true
+        } }
+    }
+    fun canPruneOutcome(binding: LibraryOutcomeBinding, checkpoint: LibraryOutcomeCheckpoint, now: Double): Boolean {
+        val retention = checkpoint.retention ?: return false
+        val snapshot = savedSnapshot ?: return false
+        if (checkpoint.status != LibraryOutcomeStatus.Complete || checkpoint.counts != binding.expected || binding.expected.superseded != 0L || binding.expected.missing != 0L || !retention.valid(checkpoint.next) || !now.isFinite() || now < retention.acknowledgedAt + LibraryOutcomeRetention.duration || snapshot.ownerKey != binding.owner.key || !snapshot.version.isFinite() || snapshot.version < binding.committed.revision.saved || kotlin.math.floor(snapshot.version) != snapshot.version) return false
+        return !retainsOutcome(binding, now)
     }
 
     private fun checkCursor(cursor: SyncCursor) {
@@ -283,7 +325,7 @@ data class LibraryPartitionState(
             }
             collectingOutcome = LibraryPendingOutcome(committed, origin)
             nextSequence = cursor.closedThrough + 1
-            waiting = null; acknowledgement = null
+            waiting = null; acknowledgement = null; manifestAckLink = null
             return
         }
         val pending = cursor.outstanding?.pendingValue
@@ -294,6 +336,7 @@ data class LibraryPartitionState(
         }
         nextSequence = cursor.closedThrough + 1
         waiting = pending
+        manifestAckLink = null
         acknowledgement = cursor.outstanding?.committedValue?.let { SyncAcknowledgement(clientKey, it.sequence, it.reply.batchId, it.digest) }
     }
     private fun validateMatchedOutcome(committed: SyncCommitted) {
@@ -420,6 +463,7 @@ private fun LibraryOutcomeExportEntry.exportMetadata(): kotlinx.serialization.js
         }
     }
     result["status"] = kotlinx.serialization.json.JsonPrimitive(status)
+    checkpoint.retention?.let { result["retention"] = portableExportJson.encodeToJsonElement(LibraryOutcomeRetention.serializer(), it) }
     return kotlinx.serialization.json.JsonObject(result)
 }
 
@@ -476,7 +520,7 @@ class LibrarySync(
     private suspend fun activateOnMain(next: LibrarySyncSession) {
         if (currentSession() != next) return
         if (session != next) { deactivate(); session = next }
-        worker?.let { it.await(); return }
+        worker?.let { requested = true; it.await(); return }
         retryTask?.cancel()
         retryTask = null
         val epoch = generation
@@ -575,6 +619,7 @@ class LibrarySync(
                 val entries = store.outcomeExportEntries(fence, after)
                 if (entries.isEmpty()) break
                 for (entry in entries) {
+                    if (entry.checkpoint.retention?.removed != null) throw LibrarySyncFailure.StoreUnavailable
                     if (!firstEntry) raw(","); firstEntry = false
                     raw("{")
                     for ((key, value) in entry.exportMetadata().toSortedMap()) { json(kotlinx.serialization.json.JsonPrimitive(key)); raw(":"); json(value); raw(",") }
@@ -700,7 +745,7 @@ class LibrarySync(
                 checkSession(session, epoch)
                 if (acknowledgement != null) {
                     val reply = transport.acknowledge(binding.capability, acknowledgement)
-                    store.settleSyncAcknowledgement(reply, acknowledgement, owner)
+                    store.settleSyncAcknowledgement(reply, acknowledgement, owner, now())
                     onPartitionChange(owner)
                     checkSession(session, epoch)
                     return@repeat
@@ -711,8 +756,17 @@ class LibrarySync(
                     onPartitionChange(owner)
                     checkSession(session, epoch)
                     if (state?.pending?.isNotEmpty() == true) return@repeat
+                    var moreCleanup = false
+                    for (step in 0 until 4) {
+                        checkSession(session, epoch)
+                        moreCleanup = store.pruneOutcomeSuccessStep(owner, now())
+                        if (!moreCleanup) break
+                        kotlinx.coroutines.yield()
+                    }
+                    checkSession(session, epoch)
                     mutableStatus.value = Status.Ready(state?.recovery?.size ?: 0)
                     retryDelay = 1_000
+                    if (moreCleanup) schedule(session, epoch, 250)
                     return
                 }
                 val frozen = store.syncPartition(owner)?.frozen ?: throw LibrarySyncFailure.SessionChanged

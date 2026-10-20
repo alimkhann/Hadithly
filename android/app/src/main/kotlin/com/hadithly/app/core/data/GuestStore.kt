@@ -397,12 +397,54 @@ class GuestDataStore(context: Context) {
         store
     }
 
-    suspend fun settleSyncAcknowledgement(reply: SyncAckReply, requested: SyncAcknowledgement, owner: LibrarySyncOwner) = writeLocked(notify = false) { store ->
+    suspend fun settleSyncAcknowledgement(reply: SyncAckReply, requested: SyncAcknowledgement, owner: LibrarySyncOwner, now: Double = nowMillis()) = writeLocked(notify = false) { store ->
         validateSyncOwner(owner, reply.ownerKey, reply.cursor)
         val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey } ?: return@writeLocked store
         if (partition.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
-        partition.state.settleAcknowledgement(reply, requested)
-        store
+        val link = partition.state.manifestAckLink
+        val next = partition.state.copy()
+        next.settleAcknowledgement(reply, requested)
+        if (link != null && reply.cursor.closedThrough >= requested.sequence) {
+            val binding = LibraryOutcomeBinding(link.owner, link.committed)
+            if (link.owner != owner || binding.request.proof != requested) throw LibrarySyncFailure.InvalidReceipt
+            assertOutcomeOwnerActive(owner)
+            withContext(Dispatchers.IO) { outcomeJournal.acknowledge(binding, now) }
+        }
+        store.copy(syncPartitions = store.syncPartitions.map { if (it === partition) it.copy(state = next) else it })
+    }
+
+    suspend fun pruneOutcomeSuccessStep(owner: LibrarySyncOwner, now: Double): Boolean = mutex.withLock {
+        assertOutcomeOwnerActive(owner)
+        if (!now.isFinite() || now < 0) throw LibrarySyncFailure.InvalidReceipt
+        val store = readLocked()
+        val blocked = store.deletions.map { LibraryOutcomeBinding.hash(listOf(it.namespace, it.subject)) }.toSet()
+        if (!withContext(Dispatchers.IO) { outcomeJournal.prepareExportStep(blocked) }) return@withLock true
+        val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey && it.subject == owner.subject } ?: throw LibrarySyncFailure.SessionChanged
+        val next = partition.state.copy()
+        val entries = withContext(Dispatchers.IO) { outcomeJournal.retentionEntries(owner, next.outcomeRetentionCursor) }
+        if (entries.isEmpty()) {
+            if (next.outcomeRetentionCursor != null) {
+                next.outcomeRetentionCursor = null
+                persistLocked(store.copy(syncPartitions = store.syncPartitions.map { if (it === partition) it.copy(state = next) else it }), notify = false)
+            }
+            return@withLock false
+        }
+        var cursor = next.outcomeRetentionCursor
+        for (entry in entries) {
+            val binding = entry.binding
+            val dependency = store.syncPartitions.firstOrNull { it.ownerKey == binding.owner.storageKey && it.subject == binding.owner.subject }?.state
+            if (dependency != null && (entry.checkpoint.retention?.removed != null || dependency.canPruneOutcome(binding, entry.checkpoint, now))) {
+                val done = withContext(Dispatchers.IO) { outcomeJournal.prune(binding, entry.checkpoint) }
+                if (done) cursor = binding.key
+                next.outcomeRetentionCursor = cursor
+                persistLocked(store.copy(syncPartitions = store.syncPartitions.map { if (it === partition) it.copy(state = next) else it }), notify = false)
+                return@withLock true
+            }
+            cursor = binding.key
+        }
+        next.outcomeRetentionCursor = cursor
+        persistLocked(store.copy(syncPartitions = store.syncPartitions.map { if (it === partition) it.copy(state = next) else it }), notify = false)
+        true
     }
 
     suspend fun settleCollectedOutcome(expected: LibraryPendingOutcome, owner: LibrarySyncOwner, now: Double): LibraryOutcomeSettlement = mutex.withLock {

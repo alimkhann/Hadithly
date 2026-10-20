@@ -411,9 +411,16 @@ struct LibraryOutcomeCounts: Codable, Equatable, Sendable {
 enum LibraryOutcomeStatus: Codable, Equatable, Sendable {
     case collecting, verifying(LibraryOutcomeCounts), complete, unavailable(SyncOutcomePageUnavailableReason)
 }
+struct LibraryOutcomeRetention: Codable, Equatable, Sendable {
+    static let duration: Double = 30 * 24 * 60 * 60 * 1_000
+    let acknowledgedAt: Double
+    var removed: Int?
+    func valid(total: Int) -> Bool { acknowledgedAt.isFinite && acknowledgedAt >= 0 && (removed.map { $0 >= 0 && $0 <= total } ?? true) }
+}
 struct LibraryOutcomeCheckpoint: Codable, Equatable, Sendable {
     var counts = LibraryOutcomeCounts()
     var status = LibraryOutcomeStatus.collecting
+    var retention: LibraryOutcomeRetention?
     var next: Int { counts.total }
 }
 
@@ -562,12 +569,14 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
     var acknowledgement: SyncAcknowledgement?
     var waiting: SyncPending?
     var collectingOutcome: LibraryPendingOutcome?
+    var manifestAckLink: LibraryOutcomeBinding?
+    var outcomeRetentionCursor: String?
     var confirmed: [LibraryConfirmedChange] = []
     var folderMappings: [String: String] = [:]
     var savedSnapshot: SyncSavedSnapshot?
     var positionsSnapshot: SyncPositionsSnapshot?
 
-    private enum CodingKeys: String, CodingKey { case pending, frozen, recovery, recent, clientKey, nextSequence, acknowledgement, waiting, collectingOutcome, confirmed, folderMappings, savedSnapshot, positionsSnapshot }
+    private enum CodingKeys: String, CodingKey { case pending, frozen, recovery, recent, clientKey, nextSequence, acknowledgement, waiting, collectingOutcome, manifestAckLink, outcomeRetentionCursor, confirmed, folderMappings, savedSnapshot, positionsSnapshot }
     init() { }
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
@@ -580,6 +589,8 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
         acknowledgement = try values.decodeIfPresent(SyncAcknowledgement.self, forKey: .acknowledgement)
         waiting = try values.decodeIfPresent(SyncPending.self, forKey: .waiting)
         collectingOutcome = try values.decodeIfPresent(LibraryPendingOutcome.self, forKey: .collectingOutcome)
+        manifestAckLink = try values.decodeIfPresent(LibraryOutcomeBinding.self, forKey: .manifestAckLink)
+        outcomeRetentionCursor = try values.decodeIfPresent(String.self, forKey: .outcomeRetentionCursor)
         confirmed = try values.decodeIfPresent([LibraryConfirmedChange].self, forKey: .confirmed) ?? []
         folderMappings = try values.decodeIfPresent([String: String].self, forKey: .folderMappings) ?? [:]
         savedSnapshot = try values.decodeIfPresent(SyncSavedSnapshot.self, forKey: .savedSnapshot)
@@ -606,7 +617,7 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
         pending.append(.init(command: command, at: at, source: source))
     }
     mutating func freeze() throws -> SyncFrame? {
-        guard acknowledgement == nil, waiting == nil, collectingOutcome == nil else { throw LibrarySyncFailure.invalidReceipt }
+        guard acknowledgement == nil, waiting == nil, collectingOutcome == nil, manifestAckLink == nil else { throw LibrarySyncFailure.invalidReceipt }
         if let frozen {
             guard frozen.changes.map(\.operation) == frozen.batch.operations else { throw LibrarySyncFailure.invalidReceipt }
             return SyncFrame(clientKey: clientKey, sequence: Double(nextSequence), batch: frozen.batch)
@@ -717,9 +728,52 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
             let deadline = original.operation.at + SavedUndoDeadline.duration * 1_000
             if deadline > now { recent.append(.init(receipt: proof.receipt, expiresAt: deadline)) }
         }
+        manifestAckLink = !needsRecovery && checkpoint.status == .complete ? binding : nil
         frozen = nil; collectingOutcome = nil
         nextSequence += 1; acknowledgement = ack
         return .settled
+    }
+
+    func retainsOutcome(_ binding: LibraryOutcomeBinding, now: Double) -> Bool {
+        let target = binding.request.receiptId
+        func folderReferences(_ folder: SyncFolderReference) -> Bool {
+            guard case .local(let value) = folder else { return false }
+            if binding.request.phase == .delete { return value.key == "restore:" + target }
+            if case .folderRestoredManifest(let result) = binding.committed.reply.receipts.first?.outcome { return folderMappings[value.key] == result.folderId }
+            return false
+        }
+        func changeReferences(_ change: LibraryLocalChange) -> Bool {
+            if change.operation.id == target { return true }
+            switch change.operation.command {
+            case .folderRestore(let value): return value.deletionId == target
+            case .membershipPut(let value): return folderReferences(value.folder)
+            case .folderDelete(let value): return folderReferences(value.folder)
+            case .bookmarkAdd, .bookmarkRemove, .favoriteAdd, .favoriteRemove, .notePut, .noteRemove,
+                 .folderCreate, .positionPut, .legacyPositionPut, .facetRestore: return false
+            }
+        }
+        if manifestAckLink?.key == binding.key { return true }
+        if let collectingOutcome, (try? LibraryOutcomeBinding(owner: binding.owner, committed: collectingOutcome.committed).key) == binding.key { return true }
+        if waiting?.manifestId == binding.request.manifestId && waiting?.generation == binding.request.generation { return true }
+        if recent.contains(where: { $0.receipt.id == target && $0.expiresAt > now }) { return true }
+        if (pending + (frozen?.changes ?? []) + confirmed.map(\.change)).contains(where: changeReferences) { return true }
+        return recovery.contains { value in
+            switch value {
+            case .invalid: return false
+            case .server(let change, _), .historical(let change), .rejected(let change): return changeReferences(change)
+            case .outcome(let authority, _, let original): return authority.key == binding.key || original.map(changeReferences) == true
+            }
+        }
+    }
+    func canPruneOutcome(_ binding: LibraryOutcomeBinding, checkpoint: LibraryOutcomeCheckpoint, now: Double) -> Bool {
+        guard checkpoint.status == .complete, checkpoint.counts == binding.expected,
+              binding.expected.superseded == 0, binding.expected.missing == 0,
+              let retention = checkpoint.retention, retention.valid(total: checkpoint.next),
+              now.isFinite, now >= retention.acknowledgedAt + LibraryOutcomeRetention.duration,
+              let snapshot = savedSnapshot, snapshot.ownerKey == binding.owner.key,
+              snapshot.version.isFinite, snapshot.version.rounded(.down) == snapshot.version,
+              snapshot.version >= binding.committed.revision.saved else { return false }
+        return !retainsOutcome(binding, now: now)
     }
 
     private func checkCursor(_ cursor: SyncCursor) throws {
@@ -756,7 +810,7 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
             }
             collectingOutcome = .init(committed: committed, origin: origin)
             nextSequence = Int(cursor.closedThrough) + 1
-            self.waiting = nil; acknowledgement = nil
+            self.waiting = nil; acknowledgement = nil; manifestAckLink = nil
             return
         }
         let pending = cursor.outstanding?.pendingValue
@@ -767,6 +821,7 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
         }
         nextSequence = Int(cursor.closedThrough) + 1
         waiting = pending
+        manifestAckLink = nil
         acknowledgement = cursor.outstanding?.committedValue.map { .init(clientKey: clientKey, sequence: $0.sequence, batchId: $0.reply.batchId, digest: $0.digest) }
     }
 
@@ -896,6 +951,7 @@ extension LibraryOutcomeExportEntry {
         case .verifying(let verified): result["status"] = .string("verifying"); result["verified"] = counts(verified)
         case .unavailable(let reason): result["status"] = .string("unavailable"); result["unavailableReason"] = .string(reason.rawValue)
         }
+        if let retention = checkpoint.retention { result["retention"] = try JSONDecoder().decode(LibraryExportValue.self, from: JSONEncoder().encode(retention)) }
         return result
     }
 }
@@ -949,7 +1005,7 @@ final class LibrarySync {
     func activate(_ next: LibrarySyncSession) async {
         guard currentSession() == next else { return }
         if session != next { deactivate(); session = next }
-        if let worker { await worker.value; return }
+        if let worker { requested = true; await worker.value; return }
         retryTask?.cancel()
         retryTask = nil
         let epoch = generation
@@ -1048,6 +1104,7 @@ final class LibrarySync {
             let entries = try store.outcomeExportEntries(fence, after: after)
             if entries.isEmpty { break }
             for entry in entries {
+                guard entry.checkpoint.retention?.removed == nil else { throw LibrarySyncFailure.storeUnavailable }
                 if !firstEntry { try raw(",") }; firstEntry = false
                 let metadata = try entry.exportMetadata()
                 try raw("{")
@@ -1136,7 +1193,7 @@ final class LibrarySync {
                 }
                 if let acknowledgement = try store.syncPartition(owner)?.acknowledgement {
                     let reply = try await transport.acknowledge(binding.capability, acknowledgement)
-                    try store.settleSyncAcknowledgement(reply, requested: acknowledgement, owner: owner)
+                    try store.settleSyncAcknowledgement(reply, requested: acknowledgement, owner: owner, now: now())
                     onPartitionChange(owner)
                     try check(session, epoch: epoch)
                     continue
@@ -1145,8 +1202,17 @@ final class LibrarySync {
                     let state = try store.syncPartition(owner)
                     onPartitionChange(owner)
                     if state?.pending.isEmpty == false { continue }
+                    var moreCleanup = false
+                    for _ in 0..<4 {
+                        try check(session, epoch: epoch)
+                        moreCleanup = try store.pruneOutcomeSuccessStep(owner, now: now())
+                        if !moreCleanup { break }
+                        await Task.yield()
+                    }
+                    try check(session, epoch: epoch)
                     status = .ready(recovered: state?.recovery.count ?? 0)
                     retryDelay = 1
+                    if moreCleanup { schedule(session, epoch: epoch, after: 0.25) }
                     return
                 }
                 guard let frozen = try store.syncPartition(owner)?.frozen else { throw LibrarySyncFailure.sessionChanged }

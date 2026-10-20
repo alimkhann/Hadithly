@@ -432,11 +432,94 @@ final class GuestDataStore {
         try saveSyncPartition(state, owner: owner)
     }
 
-    func settleSyncAcknowledgement(_ reply: SyncAckReply, requested: SyncAcknowledgement, owner: LibrarySyncOwner) throws {
+    func settleSyncAcknowledgement(_ reply: SyncAckReply, requested: SyncAcknowledgement, owner: LibrarySyncOwner, now: Double = Date.now.millisecondsSinceEpoch) throws {
         try validateSyncOwner(owner, replyOwner: reply.ownerKey, cursor: reply.cursor)
         guard var state = try syncPartition(owner) else { return }
+        let link = state.manifestAckLink
         try state.settleAcknowledgement(reply, requested: requested)
+        if let link, reply.cursor.closedThrough >= requested.sequence {
+            guard link.owner == owner, link.request.proof == requested else { throw LibrarySyncFailure.invalidReceipt }
+            try assertOutcomeOwnerActive(owner)
+            try acknowledgeOutcomeEvidence(link, now: now)
+        }
         try saveSyncPartition(state, owner: owner)
+    }
+
+    private func acknowledgeOutcomeEvidence(_ binding: LibraryOutcomeBinding, now: Double) throws {
+        let journal = outcomeContext()
+        guard now.isFinite, now >= 0, let scope = try outcomeScope(binding.scopeKey, in: journal),
+              let header = try outcomeHeader(binding.key, in: journal), header.generation == scope.generation else { throw LibrarySyncFailure.storeUnavailable }
+        var checkpoint = try outcomeCheckpoint(header, binding: binding)
+        guard checkpoint.status == .complete, binding.expected.superseded == 0, binding.expected.missing == 0,
+              checkpoint.retention?.removed == nil else { throw LibrarySyncFailure.invalidReceipt }
+        if checkpoint.retention != nil { return }
+        checkpoint.retention = .init(acknowledgedAt: now, removed: nil)
+        header.checkpointData = try JSONEncoder().encode(checkpoint)
+        try bumpOutcomeClock(subject: binding.owner.subject, namespace: binding.owner.namespace, in: journal)
+        try saveOutcomeContext(journal)
+    }
+
+    func pruneOutcomeSuccessStep(_ owner: LibrarySyncOwner, now: Double) throws -> Bool {
+        try assertOutcomeOwnerActive(owner)
+        guard now.isFinite, now >= 0 else { throw LibrarySyncFailure.invalidReceipt }
+        if try !prepareOutcomeInventoryStep() { return true }
+        guard var active = try syncPartition(owner) else { throw LibrarySyncFailure.sessionChanged }
+        let journal = outcomeContext(), prefix = LibraryOutcomeBinding.hash([owner.namespace, owner.subject]) + ":"
+        let lower = active.outcomeRetentionCursor.map { prefix + $0 + "!" } ?? prefix, upper = prefix + "~"
+        var query = FetchDescriptor<GuestOutcomeInventory>(predicate: #Predicate { $0.key >= lower && $0.key < upper }, sortBy: [SortDescriptor(\.key)])
+        query.fetchLimit = LibrarySyncLimits.outcomePage
+        let inventory = try journal.fetch(query)
+        if inventory.isEmpty {
+            if active.outcomeRetentionCursor != nil { active.outcomeRetentionCursor = nil; try saveSyncPartition(active, owner: owner) }
+            return false
+        }
+        var cursor = active.outcomeRetentionCursor
+        for entry in inventory {
+            guard let header = try outcomeHeader(entry.headerKey, in: journal) else { throw LibrarySyncFailure.storeUnavailable }
+            let binding = try JSONDecoder().decode(LibraryOutcomeBinding.self, from: header.bindingData)
+            guard binding.owner.subject == owner.subject, binding.owner.namespace == owner.namespace,
+                  entry.key == prefix + binding.key else { throw LibrarySyncFailure.ownerMismatch }
+            var checkpoint = try outcomeCheckpoint(header, binding: binding)
+            let dependencyState = try syncPartition(binding.owner)
+            let claimed = checkpoint.retention?.removed != nil
+            let eligible = dependencyState?.canPruneOutcome(binding, checkpoint: checkpoint, now: now) == true
+            // A missing owner partition never supplies Saved/dependency authority.
+            if dependencyState != nil && (claimed || eligible) {
+                guard let scope = try outcomeScope(binding.scopeKey, in: journal), scope.generation == header.generation,
+                      var retention = checkpoint.retention else { throw LibrarySyncFailure.storeUnavailable }
+                let start = retention.removed ?? 0
+                let rows = try outcomeRows(binding, start: start, limit: checkpoint.next, in: journal)
+                for row in rows {
+                    let ordinal = binding.ordinalKey(Int(row.ordinal))
+                    var memberQuery = FetchDescriptor<GuestOutcomeMember>(predicate: #Predicate { $0.ordinalKey == ordinal }); memberQuery.fetchLimit = 2
+                    let stored = try journal.fetch(memberQuery)
+                    guard stored.count == 1 else { throw LibrarySyncFailure.storeUnavailable }
+                    journal.delete(stored[0])
+                }
+                retention.removed = start + rows.count
+                if retention.removed == checkpoint.next {
+                    let collectionKey = binding.key
+                    var remaining = FetchDescriptor<GuestOutcomeMember>(predicate: #Predicate { $0.collectionKey == collectionKey }); remaining.fetchLimit = 1
+                    guard try journal.fetch(remaining).isEmpty else { throw LibrarySyncFailure.storeUnavailable }
+                    journal.delete(header); journal.delete(entry); cursor = binding.key
+                    let storageKey = binding.owner.storageKey, subject = binding.owner.subject, namespace = binding.owner.namespace
+                    var others = FetchDescriptor<GuestOutcomeHeader>(predicate: #Predicate { $0.ownerKey == storageKey && $0.subject == subject && $0.namespace == namespace }); others.fetchLimit = 1
+                    if try journal.fetch(others).isEmpty { journal.delete(scope) }
+                } else {
+                    checkpoint.retention = retention
+                    header.checkpointData = try JSONEncoder().encode(checkpoint)
+                }
+                try bumpOutcomeClock(subject: owner.subject, namespace: owner.namespace, in: journal)
+                try saveOutcomeContext(journal)
+                active.outcomeRetentionCursor = cursor
+                try saveSyncPartition(active, owner: owner)
+                return true
+            }
+            cursor = binding.key
+        }
+        active.outcomeRetentionCursor = cursor
+        try saveSyncPartition(active, owner: owner)
+        return true
     }
 
     func settleCollectedOutcome(_ expected: LibraryPendingOutcome, owner: LibrarySyncOwner, now: Double) throws -> LibraryOutcomeSettlement {
@@ -710,6 +793,10 @@ final class GuestDataStore {
         let checkpoint = try JSONDecoder().decode(LibraryOutcomeCheckpoint.self, from: header.checkpointData)
         guard checkpoint.counts.valid, checkpoint.counts.fits(binding.expected) else { throw LibrarySyncFailure.storeUnavailable }
         if checkpoint.status == .complete, checkpoint.counts != binding.expected { throw LibrarySyncFailure.storeUnavailable }
+        if let retention = checkpoint.retention {
+            guard retention.valid(total: checkpoint.next), checkpoint.status == .complete,
+                  binding.expected.superseded == 0, binding.expected.missing == 0 else { throw LibrarySyncFailure.storeUnavailable }
+        }
         if case .verifying(let counts) = checkpoint.status {
             guard counts.valid, counts.fits(checkpoint.counts), checkpoint.counts == binding.expected else { throw LibrarySyncFailure.storeUnavailable }
         }
@@ -772,6 +859,7 @@ final class GuestDataStore {
         guard header.generation == scope.generation else { throw LibrarySyncFailure.sessionChanged }
         if insertedScope { try bumpOutcomeClock(subject: owner.subject, namespace: owner.namespace, in: journal) }
         let checkpoint = try outcomeCheckpoint(header, binding: binding)
+        guard checkpoint.retention?.removed == nil else { throw LibrarySyncFailure.storeUnavailable }
         if case .verifying = checkpoint.status { return try verifyOutcomeStep(header, checkpoint: checkpoint, binding: binding, in: journal) }
         try saveOutcomeContext(journal)
         guard checkpoint.status == .collecting else { return checkpoint }
@@ -833,6 +921,7 @@ final class GuestDataStore {
         let binding = try LibraryOutcomeBinding(owner: owner, committed: committed), journal = outcomeContext()
         guard let header = try outcomeHeader(binding.key, in: journal) else { throw LibrarySyncFailure.storeUnavailable }
         let checkpoint = try outcomeCheckpoint(header, binding: binding)
+        guard checkpoint.retention?.removed == nil else { throw LibrarySyncFailure.storeUnavailable }
         guard start >= 0, start <= checkpoint.next else { throw LibrarySyncFailure.invalidReceipt }
         let rows = try outcomeRows(binding, start: start, limit: checkpoint.next, in: journal)
         let next = start + rows.count
