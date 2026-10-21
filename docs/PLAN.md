@@ -275,6 +275,15 @@ no production revision authority. Final server recheck/atomic activation, the fo
 observation/barrier consumers, public hydration, practical throughput, whole-file/
 export scale and hosted/device/deployment gates remain open. A2 is still active.
 
+Exact final completion recheck and atomic active-generation switching now have
+local native proof. Old active data stays readable during refresh; stale handles,
+changed/older revisions, late responses and occupied retirement reject safely.
+Bounded retired cleanup and prior-Saved schema migration pass, with 114 iOS and
+96 Android tests. See `docs/LIBRARY_SAVED_ACTIVATION_VERIFICATION.md`. Production
+subscriptions/UI and the four Saved observation consumers still use the old complete
+snapshot. Their coordinated cutover, public hydration/cache migration, practical
+throughput/full scale and existing hosted/device/deployment gates remain open.
+
 ## Read the plan in layers
 
 - `docs/PLAN.md` holds product rules, current state, session order, contracts,

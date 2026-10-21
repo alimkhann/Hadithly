@@ -2,6 +2,7 @@ import XCTest
 import Combine
 import SwiftData
 import SQLite3
+import zlib
 @testable import Hadithly
 
 final class GuestMergePlannerTests: XCTestCase {
@@ -79,12 +80,12 @@ final class GuestMergePlannerTests: XCTestCase {
         XCTAssertEqual(row.hadithId, "h"); XCTAssertEqual(row.noteContent, " \nعربى ")
     }
 
-    private func savedReply(_ input: String?, owner: LibrarySyncOwner, facts: [SavedFact]) throws -> SavedFactsReply {
-        if input == nil { return .page(.init(ownerKey: owner.key, version: 9, assemblyId: "private-root-proof", input: nil, start: 0, facts: [], next: "cursor:0")) }
+    private func savedReply(_ input: String?, owner: LibrarySyncOwner, facts: [SavedFact], version: Double = 9) throws -> SavedFactsReply {
+        if input == nil { return .page(.init(ownerKey: owner.key, version: version, assemblyId: "private-root-proof", input: nil, start: 0, facts: [], next: "cursor:0")) }
         guard let input, input.hasPrefix("cursor:"), let index = Int(input.dropFirst(7)), index >= 0, index <= facts.count else { throw LibrarySyncFailure.invalidReceipt }
         let rows = index < facts.count ? [facts[index]] : []
-        if index + rows.count == facts.count { return .complete(.init(ownerKey: owner.key, version: 9, assemblyId: "private-root-proof", input: input, start: Double(index), facts: rows, total: Double(facts.count), completion: "private-completion-proof")) }
-        return .page(.init(ownerKey: owner.key, version: 9, assemblyId: "private-root-proof", input: input, start: Double(index), facts: rows, next: "cursor:\(index + rows.count)"))
+        if index + rows.count == facts.count { return .complete(.init(ownerKey: owner.key, version: version, assemblyId: "private-root-proof", input: input, start: Double(index), facts: rows, total: Double(facts.count), completion: "private-completion-proof")) }
+        return .page(.init(ownerKey: owner.key, version: version, assemblyId: "private-root-proof", input: input, start: Double(index), facts: rows, next: "cursor:\(index + rows.count)"))
     }
     private func savedLargeFacts() -> [SavedFact] {
         var facts: [SavedFact] = [.folder(.init(sourceId: "empty-folder", ordinal: 0, value: .init(_id: "empty-folder", name: "Empty folder", createdAt: 1)))]
@@ -188,10 +189,154 @@ final class GuestMergePlannerTests: XCTestCase {
         XCTAssertTrue(found == expected, "Technical export windows must preserve all101 unique identities; found \(found.count)")
     }
 
-    @MainActor private func prepareSaved(_ store: GuestDataStore, lease: LibrarySavedLease, facts: [SavedFact]) async throws {
+    @MainActor private func prepareSaved(_ store: GuestDataStore, lease: LibrarySavedLease, facts: [SavedFact], version: Double = 9) async throws {
         for _ in 0..<(facts.count * 3 + 100) {
-            if try await store.collectSavedStep(lease, isCurrent: { true }, fetch: { try self.savedReply($0, owner: lease.owner, facts: facts) }).stage == .prepared { return }
+            if try await store.collectSavedStep(lease, isCurrent: { true }, fetch: { try self.savedReply($0, owner: lease.owner, facts: facts, version: version) }).stage == .prepared { return }
         }; XCTFail("Saved preparation did not finish")
+    }
+    private func terminalSavedReply(_ checkpoint: LibrarySavedCheckpoint) throws -> SavedFactsReply {
+        let position = try XCTUnwrap(checkpoint.position), token = position.continuation.token
+        return .complete(.init(ownerKey: position.owner.key, version: position.version, assemblyId: position.assemblyID, input: token, start: Double(position.nextOrdinal), facts: [], total: Double(position.nextOrdinal), completion: token))
+    }
+    @MainActor private func activateSaved(_ store: GuestDataStore, _ lease: LibrarySavedLease) async throws -> LibrarySavedActiveGeneration {
+        let reply = try terminalSavedReply(store.savedCheckpoint(lease))
+        guard case .active(let handle) = try await store.activateSavedGeneration(lease, isCurrent: { true }, fetch: { _ in reply }) else { throw LibrarySyncFailure.invalidReceipt }
+        return handle
+    }
+    @MainActor func testSavedActivationRequiresExactFinalCheckAndReplaysWithoutClockChange() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString); try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("activation.store"), store = GuestDataStore(storeURL: url), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        try store.claimGuestForSync(owner); let original = try store.syncPartition(owner), lease = try store.beginSavedAssembly(owner)
+        XCTAssertNil(try store.activeSavedGeneration(owner))
+        do { _ = try await store.activateSavedGeneration(lease, isCurrent: { true }) { _ in XCTFail("Incomplete candidate queried completion"); throw LibrarySyncFailure.invalidReceipt }; XCTFail("Incomplete candidate activated") } catch { }
+        let facts = try JSONDecoder().decode([SavedFact].self, from: Data(LibrarySavedParityVector.factsJSON.utf8)); try await prepareSaved(store, lease: lease, facts: facts)
+        let prepared = try store.savedCheckpoint(lease)
+        do { _ = try await store.activateSavedGeneration(lease, isCurrent: { true }) { _ in .complete(.init(ownerKey: owner.key, version: 10, assemblyId: "private-root-proof", input: "private-completion-proof", start: Double(facts.count), facts: [], total: Double(facts.count), completion: "private-completion-proof")) }; XCTFail("Changed terminal revision activated") } catch { }
+        do { _ = try await store.activateSavedGeneration(lease, isCurrent: { true }) { _ in throw LibrarySyncFailure.storeUnavailable }; XCTFail("Failed network activated") } catch { }
+        XCTAssertEqual(try store.savedCheckpoint(lease), prepared); XCTAssertNil(try store.activeSavedGeneration(owner))
+        let fence = try await store.prepareOutcomeExport(owner, isCurrent: { true }), active = try await activateSaved(store, lease)
+        XCTAssertThrowsError(try store.validateOutcomeExport(fence)); XCTAssertEqual(active.version, 9)
+        let stable = try await store.prepareOutcomeExport(owner, isCurrent: { true })
+        let replay = try await store.activateSavedGeneration(lease, isCurrent: { true }) { _ in XCTFail("Exact activation replay queried server"); throw LibrarySyncFailure.invalidReceipt }
+        XCTAssertEqual(replay, .active(active)); XCTAssertNoThrow(try store.validateOutcomeExport(stable))
+        let reopened = GuestDataStore(storeURL: url)
+        XCTAssertEqual(try reopened.activeSavedGeneration(owner), active); XCTAssertEqual(try reopened.activeSavedPage(active, after: nil).rows, try store.preparedSavedPage(lease, after: nil).rows)
+        XCTAssertEqual(try reopened.syncPartition(owner), original)
+    }
+    @MainActor func testSavedThreeGenerationsKeepOldActiveUntilCommitAndCleanRetiredRowsInBatches() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString); try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("generations.store"), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        var store = GuestDataStore(storeURL: url); try store.claimGuestForSync(owner)
+        let facts: [SavedFact] = (0..<17).map { .note(.init(sourceId: "note-\($0)", ordinal: Double($0), hadithId: "target-\($0)", content: "Retained private note", createdAt: 1, updatedAt: 2)) }
+        let first = try store.beginSavedAssembly(owner); try await prepareSaved(store, lease: first, facts: facts); let old = try await activateSaved(store, first)
+        let second = try store.beginSavedAssembly(owner); XCTAssertEqual(second.epoch, first.epoch); XCTAssertNotEqual(second.generation, first.generation)
+        XCTAssertEqual(try store.activeSavedPage(old, after: nil).rows.count, 8)
+        try await prepareSaved(store, lease: second, facts: facts, version: 10); let active = try await activateSaved(store, second)
+        XCTAssertThrowsError(try store.activeSavedPage(old, after: nil)); XCTAssertThrowsError(try store.beginSavedAssembly(owner))
+        let fence = try await store.prepareOutcomeExport(owner, isCurrent: { true }), metadata = try store.savedExportRecords(fence, section: 0, after: nil)
+        let exported = String(decoding: try JSONEncoder().encode(metadata.values), as: UTF8.self)
+        XCTAssertTrue(exported.contains("retiringGeneration")); XCTAssertTrue(exported.contains(first.generation)); XCTAssertTrue(exported.contains(second.generation)); XCTAssertFalse(exported.contains("private-completion-proof"))
+        XCTAssertTrue(try store.cleanupSavedGenerationStep(owner))
+        let container = try ModelContainer(for: GuestDataStore.schema, configurations: [ModelConfiguration(schema: GuestDataStore.schema, url: url)]), inspection = ModelContext(container), collection = first.collection
+        XCTAssertEqual(try inspection.fetchCount(FetchDescriptor<GuestSavedFactRow>(predicate: #Predicate { $0.collectionKey == collection })), 9)
+        store = GuestDataStore(storeURL: url)
+        for _ in 0..<100 { if try !store.cleanupSavedGenerationStep(owner) { break } }
+        XCTAssertEqual(try ModelContext(container).fetchCount(FetchDescriptor<GuestSavedFactRow>(predicate: #Predicate { $0.collectionKey == collection })), 0)
+        XCTAssertEqual(try store.activeSavedGeneration(owner), active)
+        let third = try store.beginSavedAssembly(owner); try await prepareSaved(store, lease: third, facts: [], version: 11); let newest = try await activateSaved(store, third)
+        XCTAssertEqual(newest.version, 11); XCTAssertTrue(try store.activeSavedPage(newest, after: nil).rows.isEmpty); XCTAssertThrowsError(try store.activeSavedPage(active, after: nil))
+        try store.beginDeletion(subject: owner.subject, namespace: owner.namespace); XCTAssertThrowsError(try store.activeSavedPage(newest, after: nil))
+    }
+    @MainActor func testSavedStoppedRefreshAndOccupiedRetirementPreserveActiveAndPreparedData() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString); try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), store = GuestDataStore(storeURL: directory.appendingPathComponent("stopped.store"))
+        try store.claimGuestForSync(owner); let first = try store.beginSavedAssembly(owner); try await prepareSaved(store, lease: first, facts: []); let old = try await activateSaved(store, first)
+        let second = try store.beginSavedAssembly(owner); try await prepareSaved(store, lease: second, facts: [], version: 10)
+        let stopped = try await store.activateSavedGeneration(second, isCurrent: { true }) { _ in .restart(.init(reason: "saved_changed")) }
+        XCTAssertEqual(stopped, .restart); XCTAssertEqual(try store.activeSavedGeneration(owner), old)
+        let third = try store.replaceSavedCandidate(second); XCTAssertThrowsError(try store.replaceSavedCandidate(third)); XCTAssertThrowsError(try store.savedCheckpoint(second))
+        try await prepareSaved(store, lease: third, facts: [], version: 11); let prepared = try store.savedCheckpoint(third)
+        do { _ = try await activateSaved(store, third); XCTFail("Retirement overwritten") } catch { }
+        XCTAssertEqual(try store.savedCheckpoint(third), prepared); XCTAssertEqual(try store.activeSavedGeneration(owner), old)
+        for _ in 0..<100 { if try !store.cleanupSavedGenerationStep(owner) { break } }
+        let active = try await activateSaved(store, third)
+        for _ in 0..<100 { if try !store.cleanupSavedGenerationStep(owner) { break } }
+        let fourth = try store.beginSavedAssembly(owner); try await prepareSaved(store, lease: fourth, facts: [], version: 12)
+        let unavailable = try await store.activateSavedGeneration(fourth, isCurrent: { true }) { _ in .unavailable(.init(reason: .pageTooLarge)) }
+        XCTAssertEqual(unavailable, .unavailable(.pageTooLarge)); XCTAssertEqual(try store.activeSavedGeneration(owner), active)
+    }
+    @MainActor func testSavedFinalCheckCannotActivateAfterCandidateReplacementSessionChangeOrErase() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString); try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("races.store"), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), store = GuestDataStore(storeURL: url)
+        try store.claimGuestForSync(owner)
+        for mode in 0..<3 {
+            let lease = try store.beginSavedAssembly(owner); try await prepareSaved(store, lease: lease, facts: [])
+            let reply = try terminalSavedReply(store.savedCheckpoint(lease)), clone = GuestDataStore(storeURL: url)
+            var current = true, release: CheckedContinuation<SavedFactsReply, Never>?
+            let late = Task { try await clone.activateSavedGeneration(lease, isCurrent: { current }) { _ in await withCheckedContinuation { release = $0 } } }
+            for _ in 0..<1_000 { if release != nil { break }; await Task.yield() }; let gate = try XCTUnwrap(release)
+            if mode == 0 { _ = try store.replaceSavedCandidate(lease) }
+            else if mode == 1 { current = false }
+            else { try store.beginDeletion(subject: owner.subject, namespace: owner.namespace) }
+            gate.resume(returning: reply)
+            do { _ = try await late.value; XCTFail("Stale completion activated") } catch { }
+            if mode < 2 {
+                XCTAssertNil(try store.activeSavedGeneration(owner))
+                if mode == 1 { _ = try store.replaceSavedCandidate(lease) }
+                for _ in 0..<100 { if try !store.cleanupSavedGenerationStep(owner) { break } }
+            }
+        }
+    }
+    @MainActor func testSavedOverlappingCloneActivationsCommitOnePointerAndOneClockTransition() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString); try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("overlap.store"), store = GuestDataStore(storeURL: url), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        try store.claimGuestForSync(owner); let lease = try store.beginSavedAssembly(owner); try await prepareSaved(store, lease: lease, facts: [])
+        let reply = try terminalSavedReply(store.savedCheckpoint(lease)), first = GuestDataStore(storeURL: url), second = GuestDataStore(storeURL: url)
+        var releaseA: CheckedContinuation<SavedFactsReply, Never>?, releaseB: CheckedContinuation<SavedFactsReply, Never>?
+        let a = Task { try await first.activateSavedGeneration(lease, isCurrent: { true }) { _ in await withCheckedContinuation { releaseA = $0 } } }
+        let b = Task { try await second.activateSavedGeneration(lease, isCurrent: { true }) { _ in await withCheckedContinuation { releaseB = $0 } } }
+        for _ in 0..<1_000 { if releaseA != nil && releaseB != nil { break }; await Task.yield() }
+        let gateA = try XCTUnwrap(releaseA), gateB = try XCTUnwrap(releaseB)
+        gateA.resume(returning: reply); let accepted = try await a.value
+        let fence = try await store.prepareOutcomeExport(owner, isCurrent: { true })
+        gateB.resume(returning: reply); let repeated = try await b.value
+        XCTAssertEqual(repeated, accepted); XCTAssertNoThrow(try store.validateOutcomeExport(fence))
+        guard case .active(let handle) = accepted else { return XCTFail("Valid generation did not activate") }
+        XCTAssertEqual(try GuestDataStore(storeURL: url).activeSavedGeneration(owner), handle)
+    }
+    @MainActor func testSavedOlderVerifiedRefreshCannotRegressActiveRevision() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString); try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), store = GuestDataStore(storeURL: directory.appendingPathComponent("revision.store"))
+        try store.claimGuestForSync(owner); let first = try store.beginSavedAssembly(owner); try await prepareSaved(store, lease: first, facts: [], version: 10); let active = try await activateSaved(store, first)
+        let second = try store.beginSavedAssembly(owner); try await prepareSaved(store, lease: second, facts: [], version: 9)
+        let prepared = try store.savedCheckpoint(second), fence = try await store.prepareOutcomeExport(owner, isCurrent: { true })
+        do { _ = try await activateSaved(store, second); XCTFail("Older private revision activated") } catch { }
+        XCTAssertEqual(try store.activeSavedGeneration(owner), active); XCTAssertEqual(try store.savedCheckpoint(second), prepared); XCTAssertNoThrow(try store.validateOutcomeExport(fence))
+    }
+    @MainActor func testSavedActivationMigratesActualPriorSavedSchemaDisk() async throws {
+        let fixture = URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("Fixtures/SavedSchemaV3.store.gz")
+        let input = try XCTUnwrap(gzopen(fixture.path, "rb")), directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true); defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("old-saved.store"); FileManager.default.createFile(atPath: url.path, contents: nil)
+        let output = try FileHandle(forWritingTo: url); var bytes = [UInt8](repeating: 0, count: 32_768)
+        while true { let count = gzread(input, &bytes, UInt32(bytes.count)); if count == 0 { break }; guard count > 0 else { throw LibrarySyncFailure.storeUnavailable }; try output.write(contentsOf: bytes.prefix(Int(count))) }
+        gzclose(input); try output.close()
+        var database: OpaquePointer?; XCTAssertEqual(sqlite3_open_v2(url.path, &database, SQLITE_OPEN_READONLY, nil), SQLITE_OK)
+        var statement: OpaquePointer?; guard sqlite3_prepare_v2(database, "SELECT ZLEASEDATA FROM ZGUESTSAVEDASSEMBLY LIMIT 1", -1, &statement, nil) == SQLITE_OK, sqlite3_step(statement) == SQLITE_ROW else { sqlite3_close(database); throw LibrarySyncFailure.storeUnavailable }
+        let lease = try JSONDecoder().decode(LibrarySavedLease.self, from: Data(bytes: sqlite3_column_blob(statement, 0), count: Int(sqlite3_column_bytes(statement, 0))))
+        sqlite3_finalize(statement); sqlite3_close(database)
+        let store = GuestDataStore(storeURL: url)
+        XCTAssertNil(try store.activeSavedGeneration(lease.owner)); XCTAssertEqual(try store.savedCheckpoint(lease).next, 1_005)
+        for _ in 0..<1_000 { if try store.advanceSavedAssembly(lease).stage == .prepared { break } }
+        let active = try await activateSaved(store, lease)
+        XCTAssertEqual(active.version, 9); XCTAssertEqual(try store.savedCheckpoint(lease).counts, .init(items: 502, folders: 1)); XCTAssertEqual(try store.activeSavedPage(active, after: nil).rows.count, 8)
+        XCTAssertEqual(try GuestDataStore(storeURL: url).activeSavedGeneration(lease.owner), active)
     }
     @MainActor func testSavedHistoricalReplayAndChangedRetryPreserveExactOriginal() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString); try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)

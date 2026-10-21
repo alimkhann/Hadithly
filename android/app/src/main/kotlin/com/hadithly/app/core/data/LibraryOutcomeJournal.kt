@@ -139,7 +139,7 @@ data class LibraryExportArtifact(val id: String, val directory: File)
 /** Owns page identity, row transactions and erase fences. Never writes ACK intent. */
 private val savedJournalJson = Json { encodeDefaults = true; explicitNulls = false }
 
-internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(context, File(context.filesDir, "library_outcomes.db").absolutePath, null, 3) {
+internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(context, File(context.filesDir, "library_outcomes.db").absolutePath, null, 4) {
     override fun onConfigure(db: SQLiteDatabase) { db.setForeignKeyConstraintsEnabled(true) }
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE scopes (scope_key TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, generation TEXT NOT NULL)")
@@ -152,12 +152,16 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         createSavedSchema(db)
     }
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        if (oldVersion !in 1..2 || newVersion != 3) throw LibrarySyncFailure.StoreUnavailable
+        if (oldVersion !in 1..3 || newVersion != 4) throw LibrarySyncFailure.StoreUnavailable
         if (oldVersion == 1) createExportSchema(db, ready = false)
-        createSavedSchema(db)
+        if (oldVersion <= 2) createSavedSchema(db)
+        else {
+            db.execSQL("ALTER TABLE saved_assemblies ADD COLUMN active TEXT")
+            db.execSQL("ALTER TABLE saved_assemblies ADD COLUMN retiring TEXT")
+        }
     }
     private fun createSavedSchema(db: SQLiteDatabase) {
-        db.execSQL("CREATE TABLE saved_assemblies (scope_key TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, lease TEXT NOT NULL, checkpoint TEXT NOT NULL, erasing INTEGER NOT NULL)")
+        db.execSQL("CREATE TABLE saved_assemblies (scope_key TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, lease TEXT NOT NULL, checkpoint TEXT NOT NULL, erasing INTEGER NOT NULL, active TEXT, retiring TEXT)")
         db.execSQL("CREATE TABLE saved_facts (row_key TEXT NOT NULL UNIQUE, collection_key TEXT NOT NULL, ordinal INTEGER NOT NULL, source_key TEXT NOT NULL UNIQUE, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, fingerprint TEXT NOT NULL, data TEXT NOT NULL, PRIMARY KEY(collection_key,ordinal))")
         db.execSQL("CREATE TABLE saved_pages (collection_key TEXT NOT NULL, input_key TEXT NOT NULL UNIQUE, sequence INTEGER NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, data TEXT NOT NULL, PRIMARY KEY(collection_key,sequence))")
         db.execSQL("CREATE TABLE saved_projection (row_key TEXT PRIMARY KEY NOT NULL, collection_key TEXT NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, fingerprint TEXT NOT NULL, data TEXT NOT NULL)")
@@ -500,7 +504,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         lease.validate()
         return db.rawQuery("SELECT subject,namespace,owner_key,lease,checkpoint,erasing FROM saved_assemblies WHERE scope_key=?", arrayOf(lease.key)).use {
             if (!it.moveToFirst() || it.getInt(5) != 0 || it.getString(0) != lease.owner.subject || it.getString(1) != lease.owner.namespace || it.getString(2) != lease.owner.storageKey || it.getString(3).toByteArray().size > 16_384 || it.getString(4).toByteArray().size > 256 * 1024 || Json.decodeFromString<LibrarySavedLease>(it.getString(3)) != lease) throw LibrarySyncFailure.SessionChanged
-            Json.decodeFromString<LibrarySavedCheckpoint>(it.getString(4)).also { value -> value.validate(lease.owner) }
+            Json.decodeFromString<LibrarySavedCheckpoint>(it.getString(4)).also { value -> value.validate(lease.owner); savedGenerations(db, lease, value) }
         }
     }
     private fun savedSave(db: SQLiteDatabase, lease: LibrarySavedLease, checkpoint: LibrarySavedCheckpoint) {
@@ -513,7 +517,17 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         savedCheckClock(db, owner)
         val candidate = LibrarySavedLease(owner, UUID.randomUUID().toString(), UUID.randomUUID().toString()); candidate.validate()
         val existing = db.rawQuery("SELECT lease FROM saved_assemblies WHERE scope_key=?", arrayOf(candidate.key)).use { if (it.moveToFirst()) { if (it.getString(0).toByteArray().size > 16_384) throw LibrarySyncFailure.StoreUnavailable; Json.decodeFromString<LibrarySavedLease>(it.getString(0)) } else null }
-        if (existing != null) { if (existing.owner != owner) throw LibrarySyncFailure.OwnerMismatch; savedHeader(db, existing); existing }
+        if (existing != null) {
+            if (existing.owner != owner) throw LibrarySyncFailure.OwnerMismatch
+            val checkpoint = savedHeader(db, existing); val generations = savedGenerations(db, existing, checkpoint)
+            if (generations.first?.lease != existing) existing
+            else {
+                if (generations.second != null) throw LibrarySyncFailure.StoreUnavailable
+                val next = LibrarySavedLease(owner, existing.epoch, UUID.randomUUID().toString())
+                db.update("saved_assemblies", ContentValues().apply { put("lease", Json.encodeToString(next)) }, "scope_key=?", arrayOf(existing.key))
+                savedSave(db, next, LibrarySavedCheckpoint()); next
+            }
+        }
         else {
             for (table in listOf("saved_facts", "saved_pages", "saved_projection")) db.rawQuery("SELECT 1 FROM $table WHERE subject=? AND namespace=? AND owner_key=? LIMIT 1", arrayOf(owner.subject, owner.namespace, owner.storageKey)).use { if (it.moveToFirst()) throw LibrarySyncFailure.StoreUnavailable }
             db.insertOrThrow("saved_assemblies", null, ContentValues().apply {
@@ -670,6 +684,83 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
             else -> return@transaction checkpoint
         }; savedSave(db, lease, next); next
     }
+    private fun savedGeneration(data: String?, scope: LibrarySavedLease, prepared: Boolean): LibrarySavedGenerationRecord? {
+        if (data == null) return null
+        if (data.toByteArray().size > 256 * 1024) throw LibrarySyncFailure.StoreUnavailable
+        return Json.decodeFromString<LibrarySavedGenerationRecord>(data).also { it.validate(scope, prepared) }
+    }
+    private fun savedGenerations(db: SQLiteDatabase, lease: LibrarySavedLease, checkpoint: LibrarySavedCheckpoint): Pair<LibrarySavedGenerationRecord?, LibrarySavedGenerationRecord?> =
+        db.rawQuery("SELECT active,retiring FROM saved_assemblies WHERE scope_key=?", arrayOf(lease.key)).use {
+            if (!it.moveToFirst()) throw LibrarySyncFailure.SessionChanged
+            val active = savedGeneration(if (it.isNull(0)) null else it.getString(0), lease, true)
+            val retiring = savedGeneration(if (it.isNull(1)) null else it.getString(1), lease, false)
+            if ((active?.lease == lease && active.checkpoint != checkpoint) || (retiring != null && (retiring.lease == lease || retiring.lease == active?.lease))) throw LibrarySyncFailure.StoreUnavailable
+            active to retiring
+        }
+    private fun currentSavedScope(db: SQLiteDatabase, owner: LibrarySyncOwner): Pair<LibrarySavedLease, LibrarySavedCheckpoint>? {
+        savedCheckClock(db, owner)
+        val key = LibrarySavedLease(owner, "lookup", "lookup").key
+        val lease = db.rawQuery("SELECT lease FROM saved_assemblies WHERE scope_key=?", arrayOf(key)).use {
+            if (!it.moveToFirst()) null else {
+                if (it.getString(0).toByteArray().size > 16_384) throw LibrarySyncFailure.StoreUnavailable
+                Json.decodeFromString<LibrarySavedLease>(it.getString(0))
+            }
+        } ?: return null
+        if (lease.owner != owner) throw LibrarySyncFailure.OwnerMismatch
+        return lease to savedHeader(db, lease)
+    }
+    fun savedActive(owner: LibrarySyncOwner): LibrarySavedActiveGeneration? = transaction { db ->
+        val scope = currentSavedScope(db, owner) ?: return@transaction null
+        savedGenerations(db, scope.first, scope.second).first?.let { LibrarySavedActiveGeneration(it) }
+    }
+    fun savedActivePage(handle: LibrarySavedActiveGeneration, after: String?): LibrarySavedProjectionPage = transaction { db ->
+        val scope = currentSavedScope(db, handle.lease.owner) ?: throw LibrarySyncFailure.SessionChanged
+        val active = savedGenerations(db, scope.first, scope.second).first ?: throw LibrarySyncFailure.SessionChanged
+        if (LibrarySavedActiveGeneration(active) != handle) throw LibrarySyncFailure.SessionChanged
+        val rows = savedProjectionRows(db, handle.lease, after)
+        LibrarySavedProjectionPage(rows.map { it.second }, rows.lastOrNull()?.first, rows.size < savedStepLimit)
+    }
+    fun activateSaved(lease: LibrarySavedLease, captured: LibrarySavedCheckpoint, reply: SavedFactsReply): LibrarySavedActivation = transaction { db ->
+        savedCheckClock(db, lease.owner); val checkpoint = savedHeader(db, lease)
+        if (checkpoint != captured || checkpoint.stage != LibrarySavedStage.Prepared) throw LibrarySyncFailure.SessionChanged
+        val position = checkpoint.position ?: throw LibrarySyncFailure.InvalidReceipt
+        val generations = savedGenerations(db, lease, checkpoint)
+        generations.first?.let { if (it.lease == lease) return@transaction LibrarySavedActivation.Active(LibrarySavedActiveGeneration(it)) }
+        when (reply) {
+            is SavedFactsReply.Restart -> {
+                if (reply.reason != "saved_changed") throw LibrarySyncFailure.InvalidReceipt
+                savedSave(db, lease, checkpoint.copy(stage = LibrarySavedStage.Restart)); return@transaction LibrarySavedActivation.Restart
+            }
+            is SavedFactsReply.Unavailable -> {
+                savedSave(db, lease, checkpoint.copy(stage = LibrarySavedStage.Unavailable(reply.reason))); return@transaction LibrarySavedActivation.Unavailable(reply.reason)
+            }
+            else -> LibrarySavedPolicy.confirm(reply, position)
+        }
+        if (generations.second != null || (generations.first?.checkpoint?.position?.version ?: -1.0) > position.version) throw LibrarySyncFailure.InvalidReceipt
+        val active = LibrarySavedGenerationRecord(lease, checkpoint)
+        val values = ContentValues().apply { put("active", Json.encodeToString(active)); put("retiring", generations.first?.let { Json.encodeToString(it) }) }
+        if (db.update("saved_assemblies", values, "scope_key=?", arrayOf(lease.key)) != 1) throw LibrarySyncFailure.SessionChanged
+        savedSave(db, lease, checkpoint); LibrarySavedActivation.Active(LibrarySavedActiveGeneration(active))
+    }
+    fun replaceSavedCandidate(lease: LibrarySavedLease): LibrarySavedLease = transaction { db ->
+        savedCheckClock(db, lease.owner); val checkpoint = savedHeader(db, lease)
+        val generations = savedGenerations(db, lease, checkpoint)
+        if (generations.first?.lease == lease || generations.second != null) throw LibrarySyncFailure.InvalidChange
+        val next = LibrarySavedLease(lease.owner, lease.epoch, UUID.randomUUID().toString())
+        val values = ContentValues().apply { put("lease", Json.encodeToString(next)); put("retiring", Json.encodeToString(LibrarySavedGenerationRecord(lease, checkpoint))) }
+        if (db.update("saved_assemblies", values, "scope_key=?", arrayOf(lease.key)) != 1) throw LibrarySyncFailure.SessionChanged
+        savedSave(db, next, LibrarySavedCheckpoint()); next
+    }
+    fun cleanupSavedGenerationStep(owner: LibrarySyncOwner): Boolean = transaction { db ->
+        val scope = currentSavedScope(db, owner) ?: return@transaction false
+        val retiring = savedGenerations(db, scope.first, scope.second).second ?: return@transaction false
+        for (table in listOf("saved_facts", "saved_pages", "saved_projection")) {
+            val deleted = db.delete(table, "rowid IN (SELECT rowid FROM $table WHERE collection_key=? LIMIT 8)", arrayOf(retiring.lease.collection))
+            if (deleted > 0) { savedSave(db, scope.first, scope.second); return@transaction true }
+        }
+        db.update("saved_assemblies", ContentValues().apply { putNull("retiring") }, "scope_key=?", arrayOf(scope.first.key))
+        savedSave(db, scope.first, scope.second); true
+    }
     fun savedPreparedPage(lease: LibrarySavedLease, after: String?): LibrarySavedProjectionPage = transaction { db ->
         savedCheckClock(db, lease.owner); if (savedHeader(db, lease).stage != LibrarySavedStage.Prepared) throw LibrarySyncFailure.StoreUnavailable
         val rows = savedProjectionRows(db, lease, after); LibrarySavedProjectionPage(rows.map { it.second }, rows.lastOrNull()?.first, rows.size < savedStepLimit)
@@ -715,7 +806,10 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
                 if (it.getString(1).toByteArray().size > 16_384) throw LibrarySyncFailure.StoreUnavailable
                 val lease = Json.decodeFromString<LibrarySavedLease>(it.getString(1))
                 if (lease.owner.subject != subject || lease.owner.namespace != namespace || lease.key != it.getString(0)) throw LibrarySyncFailure.OwnerMismatch
-                val data = LibrarySavedExportEntry(lease, savedHeader(db, lease)).exportMetadata().toMutableMap()
+                val checkpoint = savedHeader(db, lease); val generations = savedGenerations(db, lease, checkpoint)
+                val data = LibrarySavedGenerationRecord(lease, checkpoint).exportMetadata(generations.first?.lease == lease).toMutableMap()
+                generations.first?.takeIf { active -> active.lease != lease }?.let { data["activeGeneration"] = kotlinx.serialization.json.JsonObject(it.exportMetadata(true)) }
+                generations.second?.let { data["retiringGeneration"] = kotlinx.serialization.json.JsonObject(it.exportMetadata()) }
                 data["kind"] = kotlinx.serialization.json.JsonPrimitive("assembly"); data["coverage"] = kotlinx.serialization.json.JsonPrimitive("retained_local_rows")
                 values.add(kotlinx.serialization.json.JsonObject(data)); last = it.getString(0)
             }
@@ -753,4 +847,16 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         return value
     }
 
+}
+
+@ConsistentCopyVisibility
+data class LibrarySavedActiveGeneration internal constructor(val lease: LibrarySavedLease, val version: Double) {
+    internal constructor(record: LibrarySavedGenerationRecord) : this(record.lease, record.checkpoint.position?.version ?: throw LibrarySyncFailure.StoreUnavailable) {
+        if (record.checkpoint.stage != LibrarySavedStage.Prepared) throw LibrarySyncFailure.StoreUnavailable
+    }
+}
+sealed interface LibrarySavedActivation {
+    data class Active(val handle: LibrarySavedActiveGeneration) : LibrarySavedActivation
+    data object Restart : LibrarySavedActivation
+    data class Unavailable(val reason: SavedFactsReplyUnavailableReason) : LibrarySavedActivation
 }

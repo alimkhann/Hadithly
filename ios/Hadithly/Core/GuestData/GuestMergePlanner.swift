@@ -1554,7 +1554,15 @@ struct LibrarySavedPageReceipt: Codable, Equatable, Sendable {
         }
     }
 }
-struct LibrarySavedExportEntry: Codable, Equatable, Sendable { let lease: LibrarySavedLease; let checkpoint: LibrarySavedCheckpoint }
+struct LibrarySavedGenerationRecord: Codable, Equatable, Sendable {
+    let lease: LibrarySavedLease
+    let checkpoint: LibrarySavedCheckpoint
+    func validate(scope: LibrarySavedLease, prepared: Bool) throws {
+        try lease.validate(); try checkpoint.validate(owner: lease.owner)
+        guard lease.owner == scope.owner, lease.epoch == scope.epoch,
+              !prepared || checkpoint.stage == .prepared else { throw LibrarySyncFailure.storeUnavailable }
+    }
+}
 enum LibrarySavedExportRecord: Codable, Equatable, Sendable {
     case fact(SavedFact), page(LibrarySavedPageReceipt), projection(LibrarySavedProjection)
 }
@@ -1587,12 +1595,12 @@ extension LibrarySavedPageReceipt {
         }
     }
 }
-extension LibrarySavedExportEntry {
-    func exportMetadata() -> [String: LibraryExportValue] {
+extension LibrarySavedGenerationRecord {
+    func exportMetadata(active: Bool = false) -> [String: LibraryExportValue] {
         let phase: String
         switch checkpoint.stage { case .collecting: phase = "collecting"; case .folding: phase = "folding"; case .checkingPages: phase = "checking_pages"; case .verifying: phase = "verifying"; case .prepared: phase = "prepared"; case .restart: phase = "restart"; case .unavailable: phase = "unavailable" }
         return ["formatVersion": .number(1), "ownerKey": .string(lease.owner.key), "subject": .string(lease.owner.subject), "namespace": .string(lease.owner.namespace),
-            "generation": .string(lease.generation), "status": .string(phase), "active": .bool(false), "collectedFacts": .number(Double(checkpoint.next)), "pageCount": .number(Double(checkpoint.pages)),
+            "generation": .string(lease.generation), "status": .string(phase), "active": .bool(active), "collectedFacts": .number(Double(checkpoint.next)), "pageCount": .number(Double(checkpoint.pages)),
             "projectedItems": .number(Double(checkpoint.counts.items)), "projectedFolders": .number(Double(checkpoint.counts.folders)), "privateVersion": checkpoint.position.map { .number($0.version) } ?? .null]
     }
 }

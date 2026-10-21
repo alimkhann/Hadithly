@@ -42,5 +42,6 @@ the reproduced technical-sort failure and indexed-query review corrections.
 
 Workflow: [x] ground; [x] two distinct sketches; [x] independent judge; [x] select;
 [x] native policy/wire proof; [x] durable raw store/fold/migration/export/erase proof;
-[x] store component review; [ ] activation and production integration;
+[x] store component review; [x] exact final recheck/atomic activation/lifecycle proof;
+[ ] all production observation consumers and read/UI integration;
 [ ] real hosted/device proof. No cloud change authorized.

@@ -1095,7 +1095,7 @@ extension GuestDataStore {
               row.leaseData.count <= 16_384, row.checkpointData.count <= 256 * 1024,
               try JSONDecoder().decode(LibrarySavedLease.self, from: row.leaseData) == lease else { throw LibrarySyncFailure.sessionChanged }
         let value = try JSONDecoder().decode(LibrarySavedCheckpoint.self, from: row.checkpointData)
-        try value.validate(owner: lease.owner); return (row, value)
+        try value.validate(owner: lease.owner); _ = try savedGenerations(row, lease: lease, checkpoint: value); return (row, value)
     }
     private func saveSaved(_ value: LibrarySavedCheckpoint, header: GuestSavedAssembly, lease: LibrarySavedLease, in db: ModelContext) throws {
         try value.validate(owner: lease.owner); header.checkpointData = try JSONEncoder().encode(value)
@@ -1110,7 +1110,13 @@ extension GuestDataStore {
             guard stored.leaseData.count <= 16_384 else { throw LibrarySyncFailure.storeUnavailable }
             let lease = try JSONDecoder().decode(LibrarySavedLease.self, from: stored.leaseData)
             guard lease.owner == owner else { throw LibrarySyncFailure.ownerMismatch }
-            _ = try savedHeader(lease, in: db); return lease
+            let (_, checkpoint) = try savedHeader(lease, in: db)
+            let generations = try savedGenerations(stored, lease: lease, checkpoint: checkpoint)
+            guard generations.active?.lease == lease else { return lease }
+            guard generations.retiring == nil else { throw LibrarySyncFailure.storeUnavailable }
+            let next = LibrarySavedLease(owner: owner, epoch: lease.epoch, generation: UUID().uuidString)
+            stored.leaseData = try JSONEncoder().encode(next)
+            try saveSaved(LibrarySavedCheckpoint(), header: stored, lease: next, in: db); return next
         }
         let lower = candidate.key + ":", upper = candidate.key + ":~"
         var facts = FetchDescriptor<GuestSavedFactRow>(predicate: #Predicate { $0.key >= lower && $0.key < upper }); facts.fetchLimit = 1
@@ -1285,6 +1291,103 @@ extension GuestDataStore {
         guard !Task.isCancelled, isCurrent() else { throw LibrarySyncFailure.sessionChanged }
         return try persistSavedPage(lease, requested: requested, reply: reply)
     }
+    private func savedGeneration(_ data: Data?, scope: LibrarySavedLease, prepared: Bool) throws -> LibrarySavedGenerationRecord? {
+        guard let data else { return nil }
+        guard data.count <= 256 * 1024 else { throw LibrarySyncFailure.storeUnavailable }
+        let value = try JSONDecoder().decode(LibrarySavedGenerationRecord.self, from: data)
+        try value.validate(scope: scope, prepared: prepared); return value
+    }
+    private func savedGenerations(_ header: GuestSavedAssembly, lease: LibrarySavedLease, checkpoint: LibrarySavedCheckpoint) throws -> (active: LibrarySavedGenerationRecord?, retiring: LibrarySavedGenerationRecord?) {
+        let active = try savedGeneration(header.activeData, scope: lease, prepared: true)
+        let retiring = try savedGeneration(header.retiringData, scope: lease, prepared: false)
+        if active?.lease == lease, active?.checkpoint != checkpoint { throw LibrarySyncFailure.storeUnavailable }
+        if let retiring, retiring.lease == lease || retiring.lease == active?.lease { throw LibrarySyncFailure.storeUnavailable }
+        return (active, retiring)
+    }
+    private func currentSavedScope(_ owner: LibrarySyncOwner, in db: ModelContext) throws -> (GuestSavedAssembly, LibrarySavedLease, LibrarySavedCheckpoint)? {
+        let key = LibrarySavedLease(owner: owner, epoch: "lookup", generation: "lookup").key
+        guard let row = try savedAssembly(key, in: db) else { return nil }
+        guard row.leaseData.count <= 16_384 else { throw LibrarySyncFailure.storeUnavailable }
+        let lease = try JSONDecoder().decode(LibrarySavedLease.self, from: row.leaseData)
+        guard lease.owner == owner else { throw LibrarySyncFailure.ownerMismatch }
+        let (_, checkpoint) = try savedHeader(lease, in: db); return (row, lease, checkpoint)
+    }
+    func activeSavedGeneration(_ owner: LibrarySyncOwner) throws -> LibrarySavedActiveGeneration? {
+        let db = outcomeContext()
+        guard let (header, lease, checkpoint) = try currentSavedScope(owner, in: db) else { return nil }
+        return try savedGenerations(header, lease: lease, checkpoint: checkpoint).active.map(LibrarySavedActiveGeneration.init)
+    }
+    func activeSavedPage(_ handle: LibrarySavedActiveGeneration, after: String?) throws -> LibrarySavedProjectionPage {
+        let db = outcomeContext()
+        guard let (header, lease, checkpoint) = try currentSavedScope(handle.lease.owner, in: db),
+              let active = try savedGenerations(header, lease: lease, checkpoint: checkpoint).active,
+              try LibrarySavedActiveGeneration(active) == handle else { throw LibrarySyncFailure.sessionChanged }
+        let rows = try savedProjectionRows(handle.lease, after: after, in: db)
+        return .init(rows: try rows.map { try decodeSavedProjection($0, lease: handle.lease) }, next: rows.last?.key, done: rows.count < Self.savedStepLimit)
+    }
+    func activateSavedGeneration(_ lease: LibrarySavedLease, isCurrent: () -> Bool, fetch: (String) async throws -> SavedFactsReply) async throws -> LibrarySavedActivation {
+        guard !Task.isCancelled, isCurrent(), !savedCollectionRunning else { throw LibrarySyncFailure.sessionChanged }
+        savedCollectionRunning = true; defer { savedCollectionRunning = false }
+        let captured = try savedCheckpoint(lease)
+        guard captured.stage == .prepared, let position = captured.position else { throw LibrarySyncFailure.invalidReceipt }
+        if let active = try activeSavedGeneration(lease.owner), active.lease == lease { return .active(active) }
+        let reply = try await fetch(position.continuation.token)
+        guard !Task.isCancelled, isCurrent() else { throw LibrarySyncFailure.sessionChanged }
+        let db = outcomeContext()
+        do {
+            let (header, checkpoint) = try savedHeader(lease, in: db)
+            guard checkpoint == captured else { throw LibrarySyncFailure.sessionChanged }
+            let generations = try savedGenerations(header, lease: lease, checkpoint: checkpoint)
+            if let active = generations.active, active.lease == lease { return .active(try .init(active)) }
+            var stopped = checkpoint
+            switch reply {
+            case .restart(let value):
+                guard value.reason == "saved_changed" else { throw LibrarySyncFailure.invalidReceipt }
+                stopped.stage = .restart; try saveSaved(stopped, header: header, lease: lease, in: db); return .restart
+            case .unavailable(let value):
+                stopped.stage = .unavailable(value.reason); try saveSaved(stopped, header: header, lease: lease, in: db); return .unavailable(value.reason)
+            default: try LibrarySavedPolicy.confirm(reply, position: position)
+            }
+            guard generations.retiring == nil, (generations.active?.checkpoint.position?.version ?? -1) <= position.version else { throw LibrarySyncFailure.invalidReceipt }
+            let active = LibrarySavedGenerationRecord(lease: lease, checkpoint: checkpoint)
+            header.retiringData = header.activeData; header.activeData = try JSONEncoder().encode(active)
+            try saveSaved(checkpoint, header: header, lease: lease, in: db); return .active(try .init(active))
+        } catch { db.rollback(); throw error }
+    }
+    func replaceSavedCandidate(_ lease: LibrarySavedLease) throws -> LibrarySavedLease {
+        let db = outcomeContext()
+        do {
+            let (header, checkpoint) = try savedHeader(lease, in: db)
+            let generations = try savedGenerations(header, lease: lease, checkpoint: checkpoint)
+            guard generations.active?.lease != lease, generations.retiring == nil else { throw LibrarySyncFailure.invalidChange }
+            let next = LibrarySavedLease(owner: lease.owner, epoch: lease.epoch, generation: UUID().uuidString)
+            header.retiringData = try JSONEncoder().encode(LibrarySavedGenerationRecord(lease: lease, checkpoint: checkpoint))
+            header.leaseData = try JSONEncoder().encode(next)
+            try saveSaved(LibrarySavedCheckpoint(), header: header, lease: next, in: db); return next
+        } catch { db.rollback(); throw error }
+    }
+    func cleanupSavedGenerationStep(_ owner: LibrarySyncOwner) throws -> Bool {
+        let db = outcomeContext()
+        do {
+            guard let (header, lease, checkpoint) = try currentSavedScope(owner, in: db),
+                  let retiring = try savedGenerations(header, lease: lease, checkpoint: checkpoint).retiring else { return false }
+            let lower = retiring.lease.collection + ":", upper = lower + "~"
+            var facts = FetchDescriptor<GuestSavedFactRow>(predicate: #Predicate { $0.key >= lower && $0.key < upper }); facts.fetchLimit = Self.savedStepLimit
+            let raw = try db.fetch(facts)
+            if !raw.isEmpty { raw.forEach { db.delete($0) } }
+            else {
+                var pages = FetchDescriptor<GuestSavedPageRow>(predicate: #Predicate { $0.key >= lower && $0.key < upper }); pages.fetchLimit = Self.savedStepLimit
+                let receipts = try db.fetch(pages)
+                if !receipts.isEmpty { receipts.forEach { db.delete($0) } }
+                else {
+                    var rows = FetchDescriptor<GuestSavedProjectionRow>(predicate: #Predicate { $0.key >= lower && $0.key < upper }); rows.fetchLimit = Self.savedStepLimit
+                    let values = try db.fetch(rows)
+                    if !values.isEmpty { values.forEach { db.delete($0) } } else { header.retiringData = nil }
+                }
+            }
+            try saveSaved(checkpoint, header: header, lease: lease, in: db); return true
+        } catch { db.rollback(); throw error }
+    }
     func preparedSavedPage(_ lease: LibrarySavedLease, after: String?) throws -> LibrarySavedProjectionPage {
         let db = outcomeContext()
         guard try savedHeader(lease, in: db).1.stage == .prepared else { throw LibrarySyncFailure.storeUnavailable }
@@ -1360,7 +1463,11 @@ extension GuestDataStore {
                 let lease = try JSONDecoder().decode(LibrarySavedLease.self, from: row.leaseData)
                 guard lease.owner.subject == subject, lease.owner.namespace == namespace else { throw LibrarySyncFailure.ownerMismatch }
                 let checkpoint = try savedHeader(lease, in: db).1
-                var metadata = LibrarySavedExportEntry(lease: lease, checkpoint: checkpoint).exportMetadata(); metadata["kind"] = .string("assembly"); metadata["coverage"] = .string("retained_local_rows")
+                let generations = try savedGenerations(row, lease: lease, checkpoint: checkpoint)
+                var metadata = LibrarySavedGenerationRecord(lease: lease, checkpoint: checkpoint).exportMetadata(active: generations.active?.lease == lease)
+                if let active = generations.active, active.lease != lease { metadata["activeGeneration"] = .object(active.exportMetadata(active: true)) }
+                if let retiring = generations.retiring { metadata["retiringGeneration"] = .object(retiring.exportMetadata()) }
+                metadata["kind"] = .string("assembly"); metadata["coverage"] = .string("retained_local_rows")
                 values.append(.object(metadata)); last = row.key
             }
         case 1:
@@ -1400,4 +1507,16 @@ extension GuestDataStore {
         }
         try validateOutcomeExport(fence, in: db); return (values, last, values.count < Self.savedStepLimit)
     }
+}
+
+struct LibrarySavedActiveGeneration: Equatable, Sendable {
+    let lease: LibrarySavedLease
+    let version: Double
+    fileprivate init(_ generation: LibrarySavedGenerationRecord) throws {
+        guard generation.checkpoint.stage == .prepared, let position = generation.checkpoint.position else { throw LibrarySyncFailure.storeUnavailable }
+        lease = generation.lease; version = position.version
+    }
+}
+enum LibrarySavedActivation: Equatable, Sendable {
+    case active(LibrarySavedActiveGeneration), restart, unavailable(SavedFactsReplyUnavailableReason)
 }

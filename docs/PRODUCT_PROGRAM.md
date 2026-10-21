@@ -262,6 +262,15 @@ complete snapshot. Final server recheck/atomic activation, all consumer cutovers
 public hydration, practical throughput, whole-file/export scale and hosted/device/
 deployment gates remain open. A2 is still active.
 
+The native activation/lifecycle component now passes 114 iOS and 96 Android tests.
+Exact final completion checks precede one row-database pointer/retirement/clock
+commit. Three-generation refresh, bounded cleanup/reopen, overlapping replies,
+older-version refusal, Android transaction abort and prior-Saved schema migration
+are locally proved. See `LIBRARY_SAVED_ACTIVATION_VERIFICATION.md`. Production
+Saved reads and all four observation consumers still use the old complete joined
+snapshot. Their coordinated migration, public hydration/cache retirement, practical
+throughput/full scale and actual hosted/device/deployment gates remain open.
+
 Continue A2 integration while retaining A1's content dependencies. No paid
 generation or production change has been approved. Research, later native redesign, website and Linear remain
 pending in the owner's requested order.

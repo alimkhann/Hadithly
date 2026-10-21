@@ -561,6 +561,35 @@ class GuestDataStore(context: Context) {
     suspend fun preparedSavedPage(lease: LibrarySavedLease, after: String?): LibrarySavedProjectionPage = mutex.withLock {
         withContext(Dispatchers.IO) { outcomeJournal.savedPreparedPage(lease, after) }
     }
+    suspend fun activeSavedGeneration(owner: LibrarySyncOwner): LibrarySavedActiveGeneration? = mutex.withLock {
+        withContext(Dispatchers.IO) { outcomeJournal.savedActive(owner) }
+    }
+    suspend fun activeSavedPage(handle: LibrarySavedActiveGeneration, after: String?): LibrarySavedProjectionPage = mutex.withLock {
+        withContext(Dispatchers.IO) { outcomeJournal.savedActivePage(handle, after) }
+    }
+    suspend fun replaceSavedCandidate(lease: LibrarySavedLease): LibrarySavedLease = mutex.withLock {
+        withContext(Dispatchers.IO) { outcomeJournal.replaceSavedCandidate(lease) }
+    }
+    suspend fun cleanupSavedGenerationStep(owner: LibrarySyncOwner): Boolean = mutex.withLock {
+        withContext(Dispatchers.IO) { outcomeJournal.cleanupSavedGenerationStep(owner) }
+    }
+    suspend fun activateSavedGeneration(lease: LibrarySavedLease, isCurrent: () -> Boolean, fetch: suspend (String) -> SavedFactsReply): LibrarySavedActivation {
+        if (!isCurrent() || !savedCollectorMutex.tryLock()) throw LibrarySyncFailure.SessionChanged
+        try {
+            val captured = savedCheckpoint(lease)
+            val position = captured.position ?: throw LibrarySyncFailure.InvalidReceipt
+            if (captured.stage != LibrarySavedStage.Prepared) throw LibrarySyncFailure.InvalidReceipt
+            activeSavedGeneration(lease.owner)?.let { if (!isCurrent()) throw LibrarySyncFailure.SessionChanged; if (it.lease == lease) return LibrarySavedActivation.Active(it) }
+            if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
+            val reply = fetch(position.continuation.token)
+            if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
+            val result = mutex.withLock {
+                withContext(Dispatchers.IO) { if (!isCurrent()) throw LibrarySyncFailure.SessionChanged; outcomeJournal.activateSaved(lease, captured, reply) }
+            }
+            if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
+            return result
+        } finally { savedCollectorMutex.unlock() }
+    }
     suspend fun collectSavedStep(lease: LibrarySavedLease, isCurrent: () -> Boolean, fetch: suspend (String?) -> SavedFactsReply): LibrarySavedCheckpoint {
         if (!isCurrent() || !savedCollectorMutex.tryLock()) throw LibrarySyncFailure.SessionChanged
         try {

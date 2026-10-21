@@ -477,6 +477,8 @@ final class GuestSavedAssembly {
     var leaseData: Data
     var checkpointData: Data
     var erasing: Bool
+    var activeData: Data?
+    var retiringData: Data?
     init(lease: LibrarySavedLease) throws {
         key = lease.key; subject = lease.owner.subject; namespace = lease.owner.namespace; ownerKey = lease.owner.storageKey
         leaseData = try JSONEncoder().encode(lease); checkpointData = try JSONEncoder().encode(LibrarySavedCheckpoint()); erasing = false

@@ -195,7 +195,12 @@ data class LibrarySavedPageReceipt(val sequence: Long, val input: String?, val b
     }
 }
 @Serializable
-data class LibrarySavedExportEntry(val lease: LibrarySavedLease, val checkpoint: LibrarySavedCheckpoint)
+data class LibrarySavedGenerationRecord(val lease: LibrarySavedLease, val checkpoint: LibrarySavedCheckpoint) {
+    fun validate(scope: LibrarySavedLease, prepared: Boolean) {
+        lease.validate(); checkpoint.validate(lease.owner)
+        if (lease.owner != scope.owner || lease.epoch != scope.epoch || (prepared && checkpoint.stage != LibrarySavedStage.Prepared)) throw LibrarySyncFailure.StoreUnavailable
+    }
+}
 @Serializable
 sealed interface LibrarySavedExportRecord {
     @Serializable data class Fact(val value: SavedFact) : LibrarySavedExportRecord
@@ -230,11 +235,11 @@ fun LibrarySavedPageReceipt.reply(facts: List<SavedFact>, owner: LibrarySyncOwne
     is LibrarySavedReceiptResult.Unavailable -> SavedFactsReply.Unavailable(value.reason)
 }
 data class LibrarySavedExportPage(val records: List<LibrarySavedExportRecord>, val next: Long, val done: Boolean)
-fun LibrarySavedExportEntry.exportMetadata(): Map<String, kotlinx.serialization.json.JsonElement> {
+fun LibrarySavedGenerationRecord.exportMetadata(active: Boolean = false): Map<String, kotlinx.serialization.json.JsonElement> {
     fun number(value: Long) = kotlinx.serialization.json.JsonPrimitive(value)
     val phase = when (checkpoint.stage) { LibrarySavedStage.Collecting -> "collecting"; is LibrarySavedStage.Folding -> "folding"; is LibrarySavedStage.CheckingPages -> "checking_pages"; is LibrarySavedStage.Verifying -> "verifying"; LibrarySavedStage.Prepared -> "prepared"; LibrarySavedStage.Restart -> "restart"; is LibrarySavedStage.Unavailable -> "unavailable" }
     return mapOf("formatVersion" to number(1), "ownerKey" to kotlinx.serialization.json.JsonPrimitive(lease.owner.key), "subject" to kotlinx.serialization.json.JsonPrimitive(lease.owner.subject), "namespace" to kotlinx.serialization.json.JsonPrimitive(lease.owner.namespace),
-        "generation" to kotlinx.serialization.json.JsonPrimitive(lease.generation), "status" to kotlinx.serialization.json.JsonPrimitive(phase), "active" to kotlinx.serialization.json.JsonPrimitive(false), "collectedFacts" to number(checkpoint.next), "pageCount" to number(checkpoint.pages),
+        "generation" to kotlinx.serialization.json.JsonPrimitive(lease.generation), "status" to kotlinx.serialization.json.JsonPrimitive(phase), "active" to kotlinx.serialization.json.JsonPrimitive(active), "collectedFacts" to number(checkpoint.next), "pageCount" to number(checkpoint.pages),
         "projectedItems" to number(checkpoint.counts.items), "projectedFolders" to number(checkpoint.counts.folders), "privateVersion" to (checkpoint.position?.let { kotlinx.serialization.json.JsonPrimitive(it.version) } ?: kotlinx.serialization.json.JsonNull))
 }
 fun LibrarySavedExportRecord.exportValue(): kotlinx.serialization.json.JsonElement = when (this) {

@@ -84,13 +84,13 @@ class GuestMergeRaceTest {
         if (result is LibrarySavedProjection.Item) { assertEquals("h", result.value.hadithId); assertEquals(" \nعربى ", result.value.noteContent) }
     }
 
-    private fun savedReply(input: String?, owner: LibrarySyncOwner, facts: List<SavedFact>): SavedFactsReply {
-        if (input == null) return SavedFactsReply.Page(owner.key, 9.0, "private-root-proof", null, 0.0, emptyList(), "cursor:0")
+    private fun savedReply(input: String?, owner: LibrarySyncOwner, facts: List<SavedFact>, version: Double = 9.0): SavedFactsReply {
+        if (input == null) return SavedFactsReply.Page(owner.key, version, "private-root-proof", null, 0.0, emptyList(), "cursor:0")
         val index = if (input.startsWith("cursor:")) input.removePrefix("cursor:").toIntOrNull() else null
         if (index == null || index !in 0..facts.size) throw LibrarySyncFailure.InvalidReceipt
         val rows = if (index < facts.size) listOf(facts[index]) else emptyList()
-        if (index + rows.size == facts.size) return SavedFactsReply.Complete(owner.key, 9.0, "private-root-proof", input, index.toDouble(), rows, facts.size.toDouble(), "private-completion-proof")
-        return SavedFactsReply.Page(owner.key, 9.0, "private-root-proof", input, index.toDouble(), rows, "cursor:${index + rows.size}")
+        if (index + rows.size == facts.size) return SavedFactsReply.Complete(owner.key, version, "private-root-proof", input, index.toDouble(), rows, facts.size.toDouble(), "private-completion-proof")
+        return SavedFactsReply.Page(owner.key, version, "private-root-proof", input, index.toDouble(), rows, "cursor:${index + rows.size}")
     }
     private fun savedLargeFacts(): List<SavedFact> = buildList {
         add(SavedFact.Folder("empty-folder", 0.0, SyncFolderRow("empty-folder", "Empty folder", 1.0)))
@@ -152,10 +152,168 @@ class GuestMergeRaceTest {
         }
     }
 
-    private suspend fun prepareSaved(store: GuestDataStore, lease: LibrarySavedLease, facts: List<SavedFact>) {
+    private suspend fun prepareSaved(store: GuestDataStore, lease: LibrarySavedLease, facts: List<SavedFact>, version: Double = 9.0) {
         repeat(facts.size * 3 + 100) {
-            if (store.collectSavedStep(lease, { true }) { input -> savedReply(input, lease.owner, facts) }.stage == LibrarySavedStage.Prepared) return
+            if (store.collectSavedStep(lease, { true }) { input -> savedReply(input, lease.owner, facts, version) }.stage == LibrarySavedStage.Prepared) return
         }; fail("Saved preparation did not finish")
+    }
+    private fun terminalSavedReply(checkpoint: LibrarySavedCheckpoint): SavedFactsReply.Complete {
+        val position = checkpoint.position ?: throw LibrarySyncFailure.InvalidReceipt
+        return SavedFactsReply.Complete(position.owner.key, position.version, position.assemblyID, position.continuation.token, position.nextOrdinal.toDouble(), emptyList(), position.nextOrdinal.toDouble(), position.continuation.token)
+    }
+    private suspend fun activateSaved(store: GuestDataStore, lease: LibrarySavedLease): LibrarySavedActiveGeneration {
+        val reply = terminalSavedReply(store.savedCheckpoint(lease))
+        return when (val result = store.activateSavedGeneration(lease, { true }) { reply }) {
+            is LibrarySavedActivation.Active -> result.handle
+            else -> throw LibrarySyncFailure.InvalidReceipt
+        }
+    }
+    @Test fun savedActivationRequiresExactFinalCheckAndReplaysWithoutClockChange() = runBlocking {
+        isolated { store, reopen, _ ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
+            val original = store.syncPartition(owner); val lease = store.beginSavedAssembly(owner)
+            assertNull(store.activeSavedGeneration(owner))
+            try { store.activateSavedGeneration(lease, { true }) { fail("Incomplete candidate queried completion"); throw LibrarySyncFailure.InvalidReceipt }; fail("Incomplete activated") } catch (_: LibrarySyncFailure) { }
+            val facts = Json.decodeFromString<List<SavedFact>>(LibrarySavedParityVector.factsJSON); prepareSaved(store, lease, facts)
+            val prepared = store.savedCheckpoint(lease); val reply = terminalSavedReply(prepared)
+            try { store.activateSavedGeneration(lease, { true }) { reply.copy(version = 10.0) }; fail("Changed version activated") } catch (_: LibrarySyncFailure) { }
+            try { store.activateSavedGeneration(lease, { true }) { throw LibrarySyncFailure.StoreUnavailable }; fail("Network failure activated") } catch (_: LibrarySyncFailure) { }
+            assertEquals(prepared, store.savedCheckpoint(lease)); assertNull(store.activeSavedGeneration(owner))
+            val fence = store.prepareOutcomeExport(owner) { true }; val active = activateSaved(store, lease)
+            try { store.validateOutcomeExport(fence); fail("Activation did not invalidate export") } catch (_: LibrarySyncFailure) { }
+            assertEquals(9.0, active.version, 0.0)
+            val stable = store.prepareOutcomeExport(owner) { true }
+            assertEquals(LibrarySavedActivation.Active(active), store.activateSavedGeneration(lease, { true }) { fail("Replay queried completion"); throw LibrarySyncFailure.InvalidReceipt })
+            store.validateOutcomeExport(stable)
+            val recovered = reopen(); assertEquals(active, recovered.activeSavedGeneration(owner)); assertEquals(store.preparedSavedPage(lease, null).rows, recovered.activeSavedPage(active, null).rows)
+            assertEquals(original, recovered.syncPartition(owner))
+        }
+    }
+    @Test fun savedThreeGenerationsKeepOldActiveUntilCommitAndCleanRetiredRowsInBatches() = runBlocking {
+        isolated { initial, reopen, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); var store = initial; store.claimGuestForSync(owner)
+            val facts = (0 until 17).map { SavedFact.Note("note-$it", it.toDouble(), "target-$it", "Retained private note", 1.0, 2.0) }
+            val first = store.beginSavedAssembly(owner); prepareSaved(store, first, facts); val old = activateSaved(store, first)
+            val second = store.beginSavedAssembly(owner); assertEquals(first.epoch, second.epoch); assertNotEquals(first.generation, second.generation)
+            assertEquals(8, store.activeSavedPage(old, null).rows.size)
+            prepareSaved(store, second, facts, 10.0); val active = activateSaved(store, second)
+            try { store.activeSavedPage(old, null); fail("Retired handle read") } catch (_: LibrarySyncFailure) { }
+            try { store.beginSavedAssembly(owner); fail("Retirement overwritten") } catch (_: LibrarySyncFailure) { }
+            val fence = store.prepareOutcomeExport(owner) { true }; val exported = store.savedExportRecords(fence, 0, null).first.toString()
+            assertTrue(exported.contains("retiringGeneration")); assertTrue(exported.contains(first.generation)); assertTrue(exported.contains(second.generation)); assertFalse(exported.contains("private-completion-proof"))
+            assertTrue(store.cleanupSavedGenerationStep(owner))
+            android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { db ->
+                db.rawQuery("SELECT COUNT(*) FROM saved_facts WHERE collection_key=?", arrayOf(first.collection)).use { it.moveToFirst(); assertEquals(9, it.getInt(0)) }
+            }
+            store = reopen()
+            for (step in 0 until 100) { if (!store.cleanupSavedGenerationStep(owner)) break }
+            android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { db ->
+                for (table in listOf("saved_facts", "saved_pages", "saved_projection")) db.rawQuery("SELECT COUNT(*) FROM $table WHERE collection_key=?", arrayOf(first.collection)).use { it.moveToFirst(); assertEquals(0, it.getInt(0)) }
+            }
+            assertEquals(active, store.activeSavedGeneration(owner))
+            val third = store.beginSavedAssembly(owner); prepareSaved(store, third, emptyList(), 11.0); val newest = activateSaved(store, third)
+            assertEquals(11.0, newest.version, 0.0); assertTrue(store.activeSavedPage(newest, null).rows.isEmpty())
+            try { store.activeSavedPage(active, null); fail("Old handle read newer generation") } catch (_: LibrarySyncFailure) { }
+            store.beginDeletion(owner.subject, owner.namespace)
+            try { store.activeSavedPage(newest, null); fail("Erasing generation remained visible") } catch (_: LibrarySyncFailure) { }
+        }
+    }
+    @Test fun savedStoppedRefreshAndOccupiedRetirementPreserveActiveAndPreparedData() = runBlocking {
+        isolated { store, _, _ ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
+            val first = store.beginSavedAssembly(owner); prepareSaved(store, first, emptyList()); val old = activateSaved(store, first)
+            val second = store.beginSavedAssembly(owner); prepareSaved(store, second, emptyList(), 10.0)
+            assertEquals(LibrarySavedActivation.Restart, store.activateSavedGeneration(second, { true }) { SavedFactsReply.Restart("saved_changed") })
+            assertEquals(old, store.activeSavedGeneration(owner))
+            val third = store.replaceSavedCandidate(second)
+            try { store.replaceSavedCandidate(third); fail("Retirement overwritten") } catch (_: LibrarySyncFailure) { }
+            try { store.savedCheckpoint(second); fail("Replaced candidate remained current") } catch (_: LibrarySyncFailure) { }
+            prepareSaved(store, third, emptyList(), 11.0); val prepared = store.savedCheckpoint(third)
+            try { activateSaved(store, third); fail("Activation overwrote retirement") } catch (_: LibrarySyncFailure) { }
+            assertEquals(prepared, store.savedCheckpoint(third)); assertEquals(old, store.activeSavedGeneration(owner))
+            for (step in 0 until 100) { if (!store.cleanupSavedGenerationStep(owner)) break }
+            val active = activateSaved(store, third)
+            for (step in 0 until 100) { if (!store.cleanupSavedGenerationStep(owner)) break }
+            val fourth = store.beginSavedAssembly(owner); prepareSaved(store, fourth, emptyList(), 12.0)
+            assertEquals(LibrarySavedActivation.Unavailable(SavedFactsReplyUnavailableReason.PAGE_TOO_LARGE), store.activateSavedGeneration(fourth, { true }) { SavedFactsReply.Unavailable(SavedFactsReplyUnavailableReason.PAGE_TOO_LARGE) })
+            assertEquals(active, store.activeSavedGeneration(owner))
+        }
+    }
+    @Test fun savedFinalCheckCannotActivateAfterCandidateReplacementSessionChangeOrErase() = runBlocking {
+        isolated { store, reopen, _ ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
+            for (mode in 0 until 3) {
+                val lease = store.beginSavedAssembly(owner); prepareSaved(store, lease, emptyList())
+                val reply = terminalSavedReply(store.savedCheckpoint(lease)); val clone = reopen(); var current = true
+                val started = CompletableDeferred<Unit>(); val release = CompletableDeferred<SavedFactsReply>()
+                val late = async { runCatching { clone.activateSavedGeneration(lease, { current }) { started.complete(Unit); release.await() } } }
+                started.await()
+                when (mode) { 0 -> store.replaceSavedCandidate(lease); 1 -> current = false; else -> store.beginDeletion(owner.subject, owner.namespace) }
+                release.complete(reply); assertTrue(late.await().isFailure)
+                if (mode < 2) {
+                    assertNull(store.activeSavedGeneration(owner)); if (mode == 1) store.replaceSavedCandidate(lease)
+                    for (step in 0 until 100) { if (!store.cleanupSavedGenerationStep(owner)) break }
+                }
+            }
+        }
+    }
+    @Test fun savedActivationPointerAndExportClockRollBackOnActualSqliteCheckpointAbort() = runBlocking {
+        isolated { store, reopen, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
+            val lease = store.beginSavedAssembly(owner); prepareSaved(store, lease, emptyList()); val before = store.savedCheckpoint(lease)
+            val fence = store.prepareOutcomeExport(owner) { true }
+            android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { it.execSQL("CREATE TRIGGER fail_saved_activation BEFORE UPDATE OF checkpoint ON saved_assemblies BEGIN SELECT RAISE(ABORT,'injected'); END") }
+            try { activateSaved(store, lease); fail("Failed checkpoint left pointer") } catch (_: android.database.sqlite.SQLiteException) { }
+            val recovered = reopen(); assertNull(recovered.activeSavedGeneration(owner)); assertEquals(before, recovered.savedCheckpoint(lease)); recovered.validateOutcomeExport(fence)
+            android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { it.execSQL("DROP TRIGGER fail_saved_activation") }
+            assertEquals(lease, activateSaved(recovered, lease).lease)
+        }
+    }
+    @Test fun savedOverlappingCloneActivationsCommitOnePointerAndOneClockTransition() = runBlocking {
+        isolated { store, reopen, _ ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
+            val lease = store.beginSavedAssembly(owner); prepareSaved(store, lease, emptyList()); val reply = terminalSavedReply(store.savedCheckpoint(lease))
+            val first = reopen(); val second = reopen(); val startedA = CompletableDeferred<Unit>(); val startedB = CompletableDeferred<Unit>()
+            val releaseA = CompletableDeferred<SavedFactsReply>(); val releaseB = CompletableDeferred<SavedFactsReply>()
+            val a = async { first.activateSavedGeneration(lease, { true }) { startedA.complete(Unit); releaseA.await() } }
+            val b = async { second.activateSavedGeneration(lease, { true }) { startedB.complete(Unit); releaseB.await() } }
+            startedA.await(); startedB.await(); releaseA.complete(reply); val accepted = a.await()
+            val fence = store.prepareOutcomeExport(owner) { true }; releaseB.complete(reply)
+            assertEquals(accepted, b.await()); store.validateOutcomeExport(fence)
+            assertTrue(accepted is LibrarySavedActivation.Active)
+            if (accepted is LibrarySavedActivation.Active) assertEquals(accepted.handle, reopen().activeSavedGeneration(owner))
+        }
+    }
+    @Test fun savedOlderVerifiedRefreshCannotRegressActiveRevision() = runBlocking {
+        isolated { store, _, _ ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
+            val first = store.beginSavedAssembly(owner); prepareSaved(store, first, emptyList(), 10.0); val active = activateSaved(store, first)
+            val second = store.beginSavedAssembly(owner); prepareSaved(store, second, emptyList(), 9.0)
+            val prepared = store.savedCheckpoint(second); val fence = store.prepareOutcomeExport(owner) { true }
+            try { activateSaved(store, second); fail("Older private revision activated") } catch (_: LibrarySyncFailure) { }
+            assertEquals(active, store.activeSavedGeneration(owner)); assertEquals(prepared, store.savedCheckpoint(second)); store.validateOutcomeExport(fence)
+        }
+    }
+    @Test fun savedActivationMigratesActualPriorSavedV3DiskWithoutLosingPreparedData() = runBlocking {
+        isolated { store, reopen, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
+            val lease = store.beginSavedAssembly(owner); val facts = Json.decodeFromString<List<SavedFact>>(LibrarySavedParityVector.factsJSON); prepareSaved(store, lease, facts)
+            val before = store.savedCheckpoint(lease); val expected = store.preparedSavedPage(lease, null)
+            android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { db ->
+                db.beginTransaction()
+                try {
+                    db.execSQL("ALTER TABLE saved_assemblies RENAME TO saved_assemblies_v4")
+                    db.execSQL("CREATE TABLE saved_assemblies (scope_key TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, lease TEXT NOT NULL, checkpoint TEXT NOT NULL, erasing INTEGER NOT NULL)")
+                    db.execSQL("INSERT INTO saved_assemblies SELECT scope_key,subject,namespace,owner_key,lease,checkpoint,erasing FROM saved_assemblies_v4")
+                    db.execSQL("DROP TABLE saved_assemblies_v4"); db.execSQL("CREATE INDEX saved_assemblies_owner ON saved_assemblies(subject,namespace,owner_key)")
+                    db.version = 3; db.setTransactionSuccessful()
+                } finally { db.endTransaction() }
+            }
+            val recovered = reopen(); assertEquals(before, recovered.savedCheckpoint(lease)); assertEquals(expected, recovered.preparedSavedPage(lease, null)); assertNull(recovered.activeSavedGeneration(owner))
+            val active = activateSaved(recovered, lease); assertEquals(expected.rows, recovered.activeSavedPage(active, null).rows)
+            assertEquals(active, reopen().activeSavedGeneration(owner))
+            android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { assertEquals(4, it.version) }
+        }
     }
     @Test fun savedRawAndReceiptWritesRollBackTogetherOnActualSqliteAbort() = runBlocking {
         isolated { store, reopen, directory ->
@@ -282,7 +440,7 @@ class GuestMergeRaceTest {
             }
             store.claimGuestForSync(owner); val lease = store.beginSavedAssembly(owner)
             android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { db ->
-                assertEquals(3, db.version)
+                assertEquals(4, db.version)
                 db.rawQuery("EXPLAIN QUERY PLAN SELECT row_key FROM saved_projection WHERE collection_key=? AND row_key>? AND row_key<? ORDER BY row_key LIMIT 8", arrayOf(lease.collection, lease.collection + ":r:", lease.collection + ":r:~")).use {
                     assertTrue(it.moveToFirst()); assertTrue(it.getString(3).contains("saved_projection_collection")); assertTrue(it.getString(3).contains("SEARCH"))
                 }
@@ -447,7 +605,7 @@ class GuestMergeRaceTest {
                 } finally { fixture.sync.discardPreparedExport(prepared) }
                 assertFalse(prepared.file.exists())
                 android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, android.database.sqlite.SQLiteDatabase.OPEN_READONLY).use { db ->
-                    assertEquals(3, db.version)
+                    assertEquals(4, db.version)
                     db.rawQuery("EXPLAIN QUERY PLAN SELECT collection_key FROM headers WHERE subject=? AND namespace=? AND collection_key>? ORDER BY collection_key LIMIT 50", arrayOf(owner.subject, owner.namespace, "")).use {
                         assertTrue(it.moveToFirst()); assertTrue(it.getString(3).contains("headers_export"))
                     }
