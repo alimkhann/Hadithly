@@ -368,7 +368,11 @@ extension SyncPending {
 }
 
 extension SyncBatch {
-    func intentDigest() throws -> String {
+    func intentDigest() throws -> String { try LibrarySemanticFingerprint.digest(self, domain: "library-intent-v1:") }
+}
+
+enum LibrarySemanticFingerprint {
+    static func digest<T: Encodable>(_ input: T, domain: String) throws -> String {
         func encode(_ value: Any) throws -> String {
             if value is NSNull { return "z" }
             if let text = value as? String { return "s\(text.utf8.count):" + text }
@@ -384,8 +388,8 @@ extension SyncBatch {
             }
             throw LibrarySyncFailure.invalidReceipt
         }
-        let value = try JSONSerialization.jsonObject(with: JSONEncoder().encode(self))
-        return SHA256.hash(data: Data(("library-intent-v1:" + (try encode(value))).utf8)).map { String(format: "%02x", $0) }.joined()
+        let value = try JSONSerialization.jsonObject(with: JSONEncoder().encode(input))
+        return SHA256.hash(data: Data((domain + (try encode(value))).utf8)).map { String(format: "%02x", $0) }.joined()
     }
 }
 
@@ -1309,5 +1313,141 @@ struct LibraryAccountDeletion {
         guard currentSession() == captured else { throw LibrarySyncFailure.sessionChanged }
         try await deleteIdentity(captured)
         try store.clearDeletion(subject: captured.subject, namespace: namespace)
+    }
+}
+
+// Private Saved page policy. Collection/preparation never grants the production Saved barrier.
+enum LibrarySavedContinuation: Codable, Equatable, Sendable {
+    case next(String), complete(String)
+    var token: String { switch self { case .next(let value), .complete(let value): value } }
+}
+struct LibrarySavedReadPosition: Codable, Equatable, Sendable {
+    let owner: LibrarySyncOwner
+    let version: Double
+    let assemblyID: String
+    let nextOrdinal: Int
+    let phase: Int
+    let continuation: LibrarySavedContinuation
+}
+struct LibrarySavedPagePlan: Equatable, Sendable {
+    let position: LibrarySavedReadPosition
+    let facts: [SavedFact]
+    let input: String?
+    let start: Int
+    let fingerprint: String
+}
+enum LibrarySavedPageDecision: Equatable, Sendable {
+    case append(LibrarySavedPagePlan), restart, unavailable(SavedFactsReplyUnavailableReason)
+}
+enum LibrarySavedProjection: Codable, Equatable, Sendable {
+    case item(SavedPrivateItem, firstOrdinal: Int), folder(SyncFolderRow, firstOrdinal: Int)
+    var firstOrdinal: Int { switch self { case .item(_, let value), .folder(_, let value): value } }
+}
+extension SavedFact {
+    var ordinalValue: Double { switch self { case .folder(let v): v.ordinal; case .item(let v): v.ordinal; case .bookmark(let v): v.ordinal; case .favorite(let v): v.ordinal; case .note(let v): v.ordinal } }
+    var sourceID: String { switch self { case .folder(let v): v.sourceId; case .item(let v): v.sourceId; case .bookmark(let v): v.sourceId; case .favorite(let v): v.sourceId; case .note(let v): v.sourceId } }
+    var sourcePhase: Int { switch self { case .folder: 0; case .item: 1; case .bookmark: 2; case .favorite: 3; case .note: 4 } }
+    var targetID: String { switch self { case .folder(let v): v.value._id; case .item(let v): v.value.hadithId; case .bookmark(let v): v.hadithId; case .favorite(let v): v.hadithId; case .note(let v): v.hadithId } }
+    func savedFingerprint() throws -> String { try LibrarySemanticFingerprint.digest(self, domain: "library-saved-fact-v1:") }
+}
+enum LibrarySavedPolicy {
+    static let maxInteger = 9_007_199_254_740_991.0
+    static func integer(_ value: Double) throws -> Int {
+        guard value.isFinite, value >= 0, value <= maxInteger, value.rounded(.down) == value else { throw LibrarySyncFailure.invalidReceipt }
+        return Int(value)
+    }
+    private static func text(_ value: String, limit: Int, empty: Bool = false) throws {
+        guard (empty || !value.isEmpty), value.utf8.count <= limit else { throw LibrarySyncFailure.invalidReceipt }
+    }
+    private static func time(_ value: Double) throws {
+        guard value.isFinite, value >= 0 else { throw LibrarySyncFailure.invalidReceipt }
+    }
+    private static func encodedSize<T: Encodable>(_ value: T) throws -> Int {
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.withoutEscapingSlashes]
+        return try encoder.encode(value).count
+    }
+    static func validate(_ item: SavedPrivateItem) throws {
+        try text(item.hadithId, limit: 128); try time(item.createdAt); try time(item.updatedAt)
+        for stamp in [item.bookmarkCreatedAt, item.favoriteCreatedAt, item.noteCreatedAt, item.noteUpdatedAt, item.folderUpdatedAt].compactMap({ $0 }) { try time(stamp) }
+        if let id = item.folderId { try text(id, limit: 128) }
+        guard try encodedSize(item) <= 128 * 1024 else { throw LibrarySyncFailure.invalidReceipt }
+    }
+    static func validate(_ fact: SavedFact) throws {
+        _ = try integer(fact.ordinalValue); try text(fact.sourceID, limit: 128); try text(fact.targetID, limit: 128)
+        guard try encodedSize(fact) <= LibrarySyncLimits.savedFactSourceBytes else { throw LibrarySyncFailure.invalidReceipt }
+        switch fact {
+        case .folder(let v): try text(v.value.name, limit: LibrarySyncLimits.savedFactSourceBytes, empty: true); try time(v.value.createdAt)
+        case .item(let v): try validate(v.value)
+        case .bookmark(let v): try time(v.createdAt)
+        case .favorite(let v): try time(v.createdAt)
+        case .note(let v): try time(v.createdAt); try time(v.updatedAt)
+        }
+    }
+    static func inspect(_ reply: SavedFactsReply, owner: LibrarySyncOwner, previous: LibrarySavedReadPosition?, requested: String?) throws -> LibrarySavedPageDecision {
+        guard try encodedSize(reply) <= LibrarySyncLimits.savedFactPageBytes else { throw LibrarySyncFailure.invalidReceipt }
+        if let requested { try text(requested, limit: LibrarySyncLimits.savedFactCursorBytes) }
+        if let previous {
+            guard previous.owner == owner, previous.nextOrdinal >= 0, previous.phase >= -1, previous.phase <= 4,
+                  case .next(let expected) = previous.continuation, expected == requested else { throw LibrarySyncFailure.invalidReceipt }
+            _ = try integer(previous.version)
+        } else if requested != nil { throw LibrarySyncFailure.invalidReceipt }
+        let key: String, version: Double, root: String, input: String?, start: Double, facts: [SavedFact], continuation: LibrarySavedContinuation
+        switch reply {
+        case .restart(let value):
+            guard value.reason == "saved_changed" else { throw LibrarySyncFailure.invalidReceipt }; return .restart
+        case .unavailable(let v): return .unavailable(v.reason)
+        case .page(let v): key = v.ownerKey; version = v.version; root = v.assemblyId; input = v.input; start = v.start; facts = v.facts; continuation = .next(v.next)
+        case .complete(let v):
+            key = v.ownerKey; version = v.version; root = v.assemblyId; input = v.input; start = v.start; facts = v.facts; continuation = .complete(v.completion)
+            guard try integer(v.total) == integer(v.start) + facts.count else { throw LibrarySyncFailure.invalidReceipt }
+        }
+        _ = try integer(version); let ordinal = try integer(start)
+        try text(root, limit: LibrarySyncLimits.savedFactCursorBytes); try text(continuation.token, limit: LibrarySyncLimits.savedFactCursorBytes)
+        guard key == owner.key, input == requested, ordinal == (previous?.nextOrdinal ?? 0), facts.count <= LibrarySyncLimits.savedFactRows,
+              Double(ordinal + facts.count) <= maxInteger else { throw LibrarySyncFailure.invalidReceipt }
+        if let previous { guard version == previous.version, root == previous.assemblyID else { throw LibrarySyncFailure.invalidReceipt } }
+        if case .next(let next) = continuation, next == requested { throw LibrarySyncFailure.invalidReceipt }
+        var phase = previous?.phase ?? -1
+        for (offset, fact) in facts.enumerated() {
+            try validate(fact)
+            guard try integer(fact.ordinalValue) == ordinal + offset, fact.sourcePhase >= phase else { throw LibrarySyncFailure.invalidReceipt }
+            phase = fact.sourcePhase
+        }
+        return .append(.init(position: .init(owner: owner, version: version, assemblyID: root, nextOrdinal: ordinal + facts.count, phase: phase, continuation: continuation), facts: facts, input: input, start: ordinal,
+            fingerprint: try LibrarySemanticFingerprint.digest(reply, domain: "library-saved-page-v1:")))
+    }
+    static func confirm(_ reply: SavedFactsReply, position: LibrarySavedReadPosition) throws {
+        guard case .complete(let token) = position.continuation, case .complete(let value) = reply,
+              try encodedSize(reply) <= LibrarySyncLimits.savedFactPageBytes,
+              value.ownerKey == position.owner.key, value.version == position.version, value.assemblyId == position.assemblyID,
+              value.input == token, value.completion == token, value.start == Double(position.nextOrdinal), value.total == value.start, value.facts.isEmpty else { throw LibrarySyncFailure.invalidReceipt }
+        _ = try integer(value.version); _ = try integer(value.start)
+        try text(token, limit: LibrarySyncLimits.savedFactCursorBytes); try text(value.assemblyId, limit: LibrarySyncLimits.savedFactCursorBytes)
+    }
+    static func fold(_ fact: SavedFact, previous: LibrarySavedProjection?) throws -> LibrarySavedProjection {
+        try validate(fact); let ordinal = try integer(fact.ordinalValue), first = previous?.firstOrdinal ?? ordinal
+        guard first >= 0, first <= ordinal else { throw LibrarySyncFailure.invalidReceipt }
+        if case .folder(let value) = fact {
+            if let previous { guard case .folder(let row, _) = previous, row._id == value.value._id else { throw LibrarySyncFailure.invalidReceipt } }
+            return .folder(value.value, firstOrdinal: first)
+        }
+        let prior: SavedPrivateItem?
+        if let previous { guard case .item(let value, _) = previous, value.hadithId == fact.targetID else { throw LibrarySyncFailure.invalidReceipt }; try validate(value); prior = value }
+        else { prior = nil }
+        if case .item(let value) = fact { return .item(value.value, firstOrdinal: first) }
+        let stamp: Double
+        switch fact { case .bookmark(let v): stamp = v.createdAt; case .favorite(let v): stamp = v.createdAt; case .note(let v): stamp = v.updatedAt; default: throw LibrarySyncFailure.invalidReceipt }
+        var bookmark = prior?.bookmarkCreatedAt, favorite = prior?.favoriteCreatedAt, content = prior?.noteContent, noteCreated = prior?.noteCreatedAt, noteUpdated = prior?.noteUpdatedAt
+        let created: Double, updated: Double
+        switch fact {
+        case .bookmark(let v): bookmark = min(bookmark ?? v.createdAt, v.createdAt); created = min(prior?.createdAt ?? v.createdAt, v.createdAt); updated = prior?.updatedAt ?? v.createdAt
+        case .favorite(let v): favorite = min(favorite ?? v.createdAt, v.createdAt); created = min(prior?.createdAt ?? v.createdAt, v.createdAt); updated = prior?.updatedAt ?? v.createdAt
+        case .note(let v):
+            if (noteUpdated ?? -.infinity) < v.updatedAt { content = v.content; noteCreated = v.createdAt; noteUpdated = v.updatedAt }
+            created = min(prior?.createdAt ?? v.createdAt, v.createdAt); updated = max(prior?.updatedAt ?? stamp, stamp)
+        default: throw LibrarySyncFailure.invalidReceipt
+        }
+        let row = SavedPrivateItem(hadithId: fact.targetID, createdAt: created, updatedAt: updated, bookmarkCreatedAt: bookmark, favoriteCreatedAt: favorite, noteContent: content, noteCreatedAt: noteCreated, noteUpdatedAt: noteUpdated, folderId: prior?.folderId, folderUpdatedAt: prior?.folderUpdatedAt)
+        try validate(row); return .item(row, firstOrdinal: first)
     }
 }

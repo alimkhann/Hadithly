@@ -15,6 +15,10 @@ object LibrarySyncLimits {
     const val folderLength = 64
     const val outcomePage = 50
     const val outcomeBytes = 65536
+    const val savedFactRows = 1
+    const val savedFactPageBytes = 65536
+    const val savedFactSourceBytes = 32768
+    const val savedFactCursorBytes = 12288
 }
 
 @Serializable
@@ -295,6 +299,103 @@ data class SyncPositionsSnapshot(
 )
 
 @Serializable
+data class SavedPrivateItem(
+    val hadithId: String,
+    val createdAt: Double,
+    val updatedAt: Double,
+    val bookmarkCreatedAt: Double? = null,
+    val favoriteCreatedAt: Double? = null,
+    val noteContent: String? = null,
+    val noteCreatedAt: Double? = null,
+    val noteUpdatedAt: Double? = null,
+    val folderId: String? = null,
+    val folderUpdatedAt: Double? = null,
+)
+
+@Serializable
+@JsonClassDiscriminator("kind")
+sealed interface SavedFact {
+    @Serializable
+    @SerialName("folder")
+    data class Folder(
+        val sourceId: String,
+        val ordinal: Double,
+        val value: SyncFolderRow,
+    ) : SavedFact
+    @Serializable
+    @SerialName("item")
+    data class Item(
+        val sourceId: String,
+        val ordinal: Double,
+        val value: SavedPrivateItem,
+    ) : SavedFact
+    @Serializable
+    @SerialName("bookmark")
+    data class Bookmark(
+        val sourceId: String,
+        val ordinal: Double,
+        val hadithId: String,
+        val createdAt: Double,
+    ) : SavedFact
+    @Serializable
+    @SerialName("favorite")
+    data class Favorite(
+        val sourceId: String,
+        val ordinal: Double,
+        val hadithId: String,
+        val createdAt: Double,
+    ) : SavedFact
+    @Serializable
+    @SerialName("note")
+    data class Note(
+        val sourceId: String,
+        val ordinal: Double,
+        val hadithId: String,
+        val content: String,
+        val createdAt: Double,
+        val updatedAt: Double,
+    ) : SavedFact
+}
+
+@Serializable
+@JsonClassDiscriminator("kind")
+sealed interface SavedFactsReply {
+    @Serializable
+    @SerialName("page")
+    data class Page(
+        val ownerKey: String,
+        val version: Double,
+        val assemblyId: String,
+        val input: String? = null,
+        val start: Double,
+        val facts: List<SavedFact>,
+        val next: String,
+    ) : SavedFactsReply
+    @Serializable
+    @SerialName("complete")
+    data class Complete(
+        val ownerKey: String,
+        val version: Double,
+        val assemblyId: String,
+        val input: String? = null,
+        val start: Double,
+        val facts: List<SavedFact>,
+        val total: Double,
+        val completion: String,
+    ) : SavedFactsReply
+    @Serializable
+    @SerialName("restart")
+    data class Restart(
+        val reason: String,
+    ) : SavedFactsReply
+    @Serializable
+    @SerialName("unavailable")
+    data class Unavailable(
+        val reason: SavedFactsReplyUnavailableReason,
+    ) : SavedFactsReply
+}
+
+@Serializable
 data class SyncFrame(
     val clientKey: String,
     val sequence: Double,
@@ -485,6 +586,14 @@ enum class SyncOutcomeUnresolvedReason {
 }
 
 @Serializable
+enum class SavedFactsReplyUnavailableReason {
+    @SerialName("source_too_large") SOURCE_TOO_LARGE,
+    @SerialName("page_too_large") PAGE_TOO_LARGE,
+    @SerialName("source_did_not_advance") SOURCE_DID_NOT_ADVANCE,
+    @SerialName("source_requires_split") SOURCE_REQUIRES_SPLIT,
+}
+
+@Serializable
 enum class SyncOutcomePageUnavailableReason {
     @SerialName("proof_unavailable") PROOF_UNAVAILABLE,
     @SerialName("detail_unavailable") DETAIL_UNAVAILABLE,
@@ -496,4 +605,10 @@ object LibrarySyncIntentVectors {
         "{\"id\":\"unicode\",\"operations\":[{\"id\":\"note\",\"revision\":\"r1\",\"at\":1e-7,\"command\":{\"kind\":\"note_put\",\"hadithId\":\"target\",\"content\":\"العربية 🙂 é \\n \\\\ / \\\"\",\"createdAt\":0,\"updatedAt\":100000000000000000000}}]}" to "db0c85275f1948a4b5ba1d240d3ff8155d02885f901d1ef3a80b0920fd534375",
         "{\"id\":\"folders\",\"operations\":[{\"id\":\"delete\",\"revision\":\"r2\",\"at\":1000,\"command\":{\"kind\":\"folder_delete\",\"folder\":{\"kind\":\"server\",\"id\":\"folder-a\"}}}]}" to "6a049b18f66f123f134768983693195696440b0429c7a2b42c5f09ae13a82980",
     )
+}
+
+object LibrarySavedParityVector {
+    const val factsJSON = "[{\"kind\":\"item\",\"ordinal\":0,\"sourceId\":\"10004;savedItems\",\"value\":{\"bookmarkCreatedAt\":30,\"createdAt\":15,\"favoriteCreatedAt\":50,\"hadithId\":\"10002;hadiths\",\"noteContent\":\"Canonical tie wins\",\"noteCreatedAt\":15,\"noteUpdatedAt\":80,\"updatedAt\":90}},{\"createdAt\":20,\"hadithId\":\"10002;hadiths\",\"kind\":\"bookmark\",\"ordinal\":1,\"sourceId\":\"10005;bookmarks\"},{\"createdAt\":5,\"hadithId\":\"10002;hadiths\",\"kind\":\"bookmark\",\"ordinal\":2,\"sourceId\":\"10006;bookmarks\"},{\"createdAt\":12,\"hadithId\":\"10002;hadiths\",\"kind\":\"bookmark\",\"ordinal\":3,\"sourceId\":\"10007;bookmarks\"},{\"createdAt\":40,\"hadithId\":\"10002;hadiths\",\"kind\":\"favorite\",\"ordinal\":4,\"sourceId\":\"10008;favorites\"},{\"createdAt\":7,\"hadithId\":\"10002;hadiths\",\"kind\":\"favorite\",\"ordinal\":5,\"sourceId\":\"10009;favorites\"},{\"content\":\"Legacy tie loses\",\"createdAt\":2,\"hadithId\":\"10002;hadiths\",\"kind\":\"note\",\"ordinal\":6,\"sourceId\":\"10010;notes\",\"updatedAt\":80},{\"content\":\"Newer note wins\",\"createdAt\":3,\"hadithId\":\"10002;hadiths\",\"kind\":\"note\",\"ordinal\":7,\"sourceId\":\"10011;notes\",\"updatedAt\":100},{\"content\":\"Equal legacy later loses\",\"createdAt\":1,\"hadithId\":\"10002;hadiths\",\"kind\":\"note\",\"ordinal\":8,\"sourceId\":\"10012;notes\",\"updatedAt\":100}]"
+    const val expectedJSON = "{\"bookmarkCreatedAt\":5,\"createdAt\":1,\"favoriteCreatedAt\":7,\"hadithId\":\"10002;hadiths\",\"noteContent\":\"Newer note wins\",\"noteCreatedAt\":3,\"noteUpdatedAt\":100,\"updatedAt\":100}"
+    val digests = listOf("2910f44808bac9af5ad8a4a5750d66379e10cb63078aef1051d2b314193963ff", "ba32014ba64629d8607ed10aca49525712b4557a916cafac9c5d6c230a24dc9f", "6745d688a1dae0589415eb26841d02adab8aef67bf0fe905a2fa3a3a8d4fa4a0", "d8f2d0249b52a97acf3ff2ef6444ec2d6974f1cbd1317102e235b322bf9307be", "0b9e4bd0d702fbfff91ad850722216b676891daba89a7bf18eaf1c8461dc63fe", "b7d957d6708e364a4b8429f9dcd0879b271e1dde18613a835568d52f8ae66cf2", "10045f121a89b0ce62e747eb255bd21176c8a9db0e2aa88543aa61f6ccfe79e8", "57676453fc0c865e4d4c80302075142fad2d3d0eecb6dc6504a06206024a93a8", "646fd55994ca980fb4dacbb7dcce43c2923b16ba0c5c7fbe7250ab4bd9e80337")
 }

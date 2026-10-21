@@ -6,6 +6,7 @@ import { libraryVersion } from "./librarySyncVersions";
 import { effectiveSavedMembership } from "./savedMembership";
 import { syncSavedItem, syncFolderRow } from "./librarySyncPolicy";
 
+export const SAVED_FACT_PAGE_ROWS = 1;
 export const SAVED_FACT_SOURCE_BYTES = 32 * 1024;
 export const SAVED_FACT_PAGE_BYTES = 64 * 1024;
 export const SAVED_FACT_CURSOR_BYTES = 12 * 1024;
@@ -86,7 +87,7 @@ export async function readSavedFactsPage(ctx: QueryCtx, request: { capability: s
   if (prior && prior.version !== version) return { kind: "restart", reason: "saved_changed" };
   const position: Cursor = prior ?? { v: 1, bindingId: binding._id, ownerKey: user._id, version, source: "folders", cursor: null, ordinal: 0 };
   const envelope = { ownerKey: user._id, version, assemblyId: await seal({ ...position, source: "folders", cursor: null, ordinal: 0 }, key), ...(request.continuation === undefined ? {} : { input: request.continuation }), start: position.ordinal };
-  const options = { cursor: position.cursor, numItems: 1, maximumRowsRead: 1, maximumBytesRead: SAVED_FACT_SOURCE_BYTES };
+  const options = { cursor: position.cursor, numItems: SAVED_FACT_PAGE_ROWS, maximumRowsRead: SAVED_FACT_PAGE_ROWS, maximumBytesRead: SAVED_FACT_SOURCE_BYTES };
   const facts: SavedFact[] = [];
   let next = position;
   if (position.source !== "complete") {
@@ -97,7 +98,7 @@ export async function readSavedFactsPage(ctx: QueryCtx, request: { capability: s
       : source === "favorites" ? await ctx.db.query("favorites").withIndex("by_user", q => q.eq("userId", user._id)).paginate(options)
       : await ctx.db.query("notes").withIndex("by_user_hadith", q => q.eq("userId", user._id)).paginate(options);
     if (sourcePage.pageStatus === "SplitRequired") return { kind: "unavailable", reason: "source_requires_split" };
-    if (sourcePage.page.length > 1) throw new Error("SYNC_SAVED_PAGE_BOUND");
+    if (sourcePage.page.length > SAVED_FACT_PAGE_ROWS) throw new Error("SYNC_SAVED_PAGE_BOUND");
     for (const row of sourcePage.page) {
       if (row.userId !== user._id) throw new Error("SYNC_SAVED_OWNER_INVARIANT");
       if (bytes(row) > SAVED_FACT_SOURCE_BYTES) return { kind: "unavailable", reason: "source_too_large" };

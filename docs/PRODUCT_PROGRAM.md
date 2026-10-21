@@ -8,6 +8,36 @@ for this program, not session names supplied by the owner.
 Their checksums and every research URL are recorded in
 `product-program/research-manifest.json`. No later phase replaces unfinished work.
 
+## Current stage and rough time budget
+
+October 21 checkpoint: **A2 is active**, specifically native durable assembly of
+bounded Saved pages. Core queue/receipt/ownership, manifest folder delete/Undo,
+outcome journal/export/retention and the first server Saved page boundary have local
+proof. Native assembly/read cutover, broader storage/export scale, installed/SDK
+compatibility and real cross-device proof remain. A1 still has content dependencies.
+
+These are remaining focused-work-day estimates at the pace observed October 18–21,
+not measured hours or completion promises. External review/account/device waits are
+additional; some observation can overlap later work. Re-estimate after native A2
+integration, rather than interpreting a test count as a percentage complete.
+
+| Stage | Remaining rough budget |
+| --- | --- |
+| A1 first-reading content | 1–2 days plus language review |
+| A2 sync/storage/cross-device verification | 3–6 days |
+| A3 grounding/source quality | 2–4 days |
+| A4 fifteen-language localization | 3–5 days plus language review |
+| A5 remaining core bugs/UX | 2–3 days |
+| A6 release/device/service checks | 2–4 days plus external waits |
+| A7 activation/return/conversion evidence | 1 day setup, then 2–4 weeks observation |
+| B videos and other research | 3–5 days |
+| C research-led native refinements | 3–5 days |
+| D website redesign | 2–3 days |
+| E Linear setup/readback | Half to one day |
+
+Overall planning allowance: roughly five to eight weeks of focused work, with
+external waits unresolved. These estimates preserve the full checklist below.
+
 ## Sequence and definition of done
 
 The requested end state is a reliable first reading and return experience on both
@@ -214,6 +244,13 @@ adapter red/green regressions. The complete backend suite passes 511 tests; see
 old whole snapshot. Both native durable row assembly/activation and independent
 summary hydration, practical throughput, full export and whole-partition scale,
 installed/SDK/device and deployment gates remain open. No A2 rollout occurred.
+
+Native Saved wire and deterministic page/reducer policy now derive actual validators
+and match a real backend parity fixture on both platforms. Selected native suites
+pass 95 iOS and 78 Android checks; all 511 backend tests pass. See
+`LIBRARY_SAVED_POLICY_VERIFICATION.md`. This is a pure policy/codec substep.
+Durable raw collection, bounded fold/verification, migration, erasure/export,
+activation and production barrier/read cutover remain open. A2 is still active.
 Continue A2 integration while retaining A1's content dependencies. No paid
 generation or production change has been approved. Research, later native redesign, website and Linear remain
 pending in the owner's requested order.

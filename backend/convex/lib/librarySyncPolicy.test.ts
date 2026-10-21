@@ -70,6 +70,7 @@ afterAll(async () => {
   const { mkdirSync, writeFileSync } = await import("node:fs");
   const { resolve } = await import("node:path");
   const policy = await import("./librarySyncPolicy");
+  const saved = await import("./librarySavedFacts");
   const { readingPositionValidator } = await import("./readingPositions");
   mkdirSync(directory, { recursive: true });
   const validators = { SyncFolderReference: syncValidatorContract(policy.syncFolderReference), SyncCommand: syncValidatorContract(policy.syncCommand),
@@ -79,6 +80,7 @@ afterAll(async () => {
     SyncRevision: syncValidatorContract(policy.syncRevision), SyncHadithSummary: syncValidatorContract(policy.syncHadithSummary),
     SyncSavedItem: syncValidatorContract(policy.syncSavedItem), SyncFolderRow: syncValidatorContract(policy.syncFolderRow), SyncPositionRow: syncValidatorContract(policy.syncPositionRow),
     SyncSavedSnapshot: syncValidatorContract(policy.syncSavedSnapshot), SyncPositionsSnapshot: syncValidatorContract(policy.syncPositionsSnapshot),
+    SavedPrivateItem: syncValidatorContract(saved.savedPrivateItem), SavedFact: syncValidatorContract(saved.savedFact), SavedFactsReply: syncValidatorContract(saved.savedFactsReply),
     SyncFrame: syncValidatorContract(policy.syncFrame), SyncCommitted: syncValidatorContract(policy.syncCommitted),
     SyncPending: syncValidatorContract(policy.syncPending), SyncOutstanding: syncValidatorContract(policy.syncOutstanding),
     SyncOutcomePageRequest: syncValidatorContract(policy.syncOutcomePageRequest), SyncOutcomeMember: syncValidatorContract(policy.syncOutcomeMember), SyncOutcomePage: syncValidatorContract(policy.syncOutcomePage),
@@ -86,5 +88,5 @@ afterAll(async () => {
     SyncExchange: syncValidatorContract(policy.syncExchange), SyncAckReply: syncValidatorContract(policy.syncAckReply),
     ReadingPosition: syncValidatorContract(readingPositionValidator) };
   const intentDigests = await Promise.all(intentVectors.map(async value => ({ json: JSON.stringify(value), digest: await syncIntentDigest(value) })));
-  writeFileSync(resolve(directory, "contract.json"), JSON.stringify({ ...validators, intentDigests, limits: { operations: policy.SYNC_BATCH_LIMIT, fanoutOperations: policy.SYNC_FANOUT_LIMIT, bytes: policy.SYNC_BATCH_BYTES, noteBytes: policy.SYNC_NOTE_BYTES, folderLength: policy.SYNC_FOLDER_LENGTH, outcomePage: policy.SYNC_OUTCOME_PAGE, outcomeBytes: policy.SYNC_OUTCOME_BYTES } }, null, 2) + "\n");
+  writeFileSync(resolve(directory, "contract.json"), JSON.stringify({ ...validators, intentDigests, limits: { operations: policy.SYNC_BATCH_LIMIT, fanoutOperations: policy.SYNC_FANOUT_LIMIT, bytes: policy.SYNC_BATCH_BYTES, noteBytes: policy.SYNC_NOTE_BYTES, folderLength: policy.SYNC_FOLDER_LENGTH, outcomePage: policy.SYNC_OUTCOME_PAGE, outcomeBytes: policy.SYNC_OUTCOME_BYTES, savedFactRows: saved.SAVED_FACT_PAGE_ROWS, savedFactPageBytes: saved.SAVED_FACT_PAGE_BYTES, savedFactSourceBytes: saved.SAVED_FACT_SOURCE_BYTES, savedFactCursorBytes: saved.SAVED_FACT_CURSOR_BYTES } }, null, 2) + "\n");
 });

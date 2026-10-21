@@ -17,6 +17,10 @@ with tempfile.TemporaryDirectory(prefix='hadithly-sync-contract-') as directory:
     result = subprocess.run(['npm', 'test', '--', 'convex/lib/librarySyncPolicy.test.ts'], cwd=ROOT/'backend', env=environment, capture_output=True, text=True)
     if result.returncode:
         raise SystemExit('Sync contract source tests failed; inspect backend tests.')
+    parity_result = subprocess.run(['npm', 'test', '--', 'convex/librarySavedFacts.test.ts', '-t', 'source facts preserve canonical'], cwd=ROOT/'backend', env=environment, capture_output=True, text=True)
+    if parity_result.returncode:
+        raise SystemExit('Saved parity fixture source failed; inspect backend tests.')
+    saved_parity = json.loads((Path(directory)/'saved-parity.json').read_text())
     roots = json.loads((Path(directory)/'contract.json').read_text())
     limits = roots.pop('limits')
     intent_digests = roots.pop('intentDigests')
@@ -120,6 +124,11 @@ import kotlinx.serialization.json.JsonClassDiscriminator
 
 '''+ 'object LibrarySyncLimits {\n'+''.join(f'    const val {name} = {value}\n' for name,value in limits.items())+'}\n\n'+ '\n\n'.join(kotlin(name,definitions[name]) for name in kotlin_names)+'\n'
 kotlin_code += '\nobject LibrarySyncIntentVectors {\n    val values = listOf(\n' + ''.join('        ' + json.dumps(value['json'], ensure_ascii=False).replace('$', '\\$') + ' to ' + json.dumps(value['digest']) + ',\n' for value in intent_digests) + '    )\n}\n'
+
+saved_facts_json = json.dumps(saved_parity['facts'], ensure_ascii=False, separators=(',', ':'))
+saved_expected_json = json.dumps(saved_parity['expected'], ensure_ascii=False, separators=(',', ':'))
+swift_code += '\nenum LibrarySavedParityVector {\n    static let factsJSON = ' + json.dumps(saved_facts_json, ensure_ascii=False) + '\n    static let expectedJSON = ' + json.dumps(saved_expected_json, ensure_ascii=False) + '\n    static let digests = [' + ', '.join(json.dumps(value) for value in saved_parity['digests']) + ']\n}\n'
+kotlin_code += '\nobject LibrarySavedParityVector {\n    const val factsJSON = ' + json.dumps(saved_facts_json, ensure_ascii=False).replace('$', '\\$') + '\n    const val expectedJSON = ' + json.dumps(saved_expected_json, ensure_ascii=False).replace('$', '\\$') + '\n    val digests = listOf(' + ', '.join(json.dumps(value) for value in saved_parity['digests']) + ')\n}\n'
 
 swift_path=ROOT/'ios/Hadithly/Core/GuestData/GuestDataModels.swift'
 old=swift_path.read_text();marker='// MARK: - Generated library sync wire values'

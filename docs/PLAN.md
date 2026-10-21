@@ -258,6 +258,13 @@ old whole snapshot. Both native durable row assembly/activation and independent
 summary hydration, practical throughput, full export and whole-partition scale,
 installed/SDK/device and deployment gates remain open. No A2 rollout occurred.
 
+Native Saved wire and deterministic page/reducer policy now derive actual validators
+and match a real backend parity fixture on both platforms. Selected native suites
+pass 95 iOS and 78 Android checks; all 511 backend tests pass. See
+`docs/LIBRARY_SAVED_POLICY_VERIFICATION.md`. This is a pure policy/codec substep.
+Durable raw collection, bounded fold/verification, migration, erasure/export,
+activation and production barrier/read cutover remain open. A2 is still active.
+
 ## Read the plan in layers
 
 - `docs/PLAN.md` holds product rules, current state, session order, contracts,

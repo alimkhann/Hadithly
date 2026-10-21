@@ -127,6 +127,14 @@ test("source facts preserve canonical and duplicate legacy timestamp/tie semanti
   const { hadith: _summary, ...privateExpected } = expected;
   expect(merged).toEqual(privateExpected);
   expect(merged).toMatchObject({ bookmarkCreatedAt: 5, favoriteCreatedAt: 7, noteContent: "Newer note wins", createdAt: 1, updatedAt: 100 });
+  const directory = process.env.HADITHLY_LIBRARY_SYNC_CONTRACT_DIR;
+  if (directory) {
+    const { writeFileSync } = await import("node:fs");
+    const { resolve } = await import("node:path");
+    const { syncSemanticDigest } = await import("./lib/librarySyncPolicy");
+    writeFileSync(resolve(directory, "saved-parity.json"), JSON.stringify({ facts, expected: privateExpected,
+      digests: await Promise.all(facts.map(fact => syncSemanticDigest(fact, "library-saved-fact-v1:"))) }));
+  }
 });
 
 test("cursor tampering, owner/binding swaps and old bindings cannot select source rows", async () => {

@@ -160,6 +160,10 @@ export async function syncBatchDigest(batch: SyncBatch): Promise<string> {
 
 /** Cross-native content identity. Numbers use IEEE-754 bits, strings length-prefixed UTF-8. */
 export async function syncIntentDigest(batch: SyncBatch): Promise<string> {
+  return syncSemanticDigest(batch, "library-intent-v1:");
+}
+
+export async function syncSemanticDigest(value: unknown, domain: string): Promise<string> {
   function encode(value: unknown): string {
     if (value === null) return "z";
     if (typeof value === "string") return `s${new TextEncoder().encode(value).length}:${value}`;
@@ -176,7 +180,7 @@ export async function syncIntentDigest(batch: SyncBatch): Promise<string> {
     }
     throw new Error("SYNC_INVALID_VALUE");
   }
-  return textDigest("library-intent-v1:" + encode(batch));
+  return textDigest(domain + encode(value));
 }
 function canonicalSyncValue(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(canonicalSyncValue);

@@ -5,6 +5,80 @@ import SQLite3
 @testable import Hadithly
 
 final class GuestMergePlannerTests: XCTestCase {
+    private func savedPlan(_ reply: SavedFactsReply, owner: LibrarySyncOwner, previous: LibrarySavedReadPosition? = nil, requested: String? = nil) throws -> LibrarySavedPagePlan {
+        guard case .append(let value) = try LibrarySavedPolicy.inspect(reply, owner: owner, previous: previous, requested: requested) else { throw LibrarySyncFailure.invalidReceipt }
+        return value
+    }
+    func testSavedFoldMatchesActualBackendParityAndFingerprints() throws {
+        let facts = try JSONDecoder().decode([SavedFact].self, from: Data(LibrarySavedParityVector.factsJSON.utf8))
+        let expected = try JSONDecoder().decode(SavedPrivateItem.self, from: Data(LibrarySavedParityVector.expectedJSON.utf8))
+        var result: LibrarySavedProjection?
+        for (index, fact) in facts.enumerated() {
+            XCTAssertEqual(try fact.savedFingerprint(), LibrarySavedParityVector.digests[index])
+            result = try LibrarySavedPolicy.fold(fact, previous: result)
+        }
+        guard case .item(let row, let first) = result else { return XCTFail("Missing private row") }
+        XCTAssertEqual(row, expected); XCTAssertEqual(first, 0)
+    }
+    func testSavedCanonicalReplacementClearsFieldsAndPreservesFirstEncounter() throws {
+        let original = SavedPrivateItem(hadithId: "missing-public-target", createdAt: 1, updatedAt: 30, bookmarkCreatedAt: 1, favoriteCreatedAt: 2, noteContent: "Original", noteCreatedAt: 3, noteUpdatedAt: 4, folderId: "old-folder", folderUpdatedAt: 30)
+        let first = try LibrarySavedPolicy.fold(.item(.init(sourceId: "source-a", ordinal: 0, value: original)), previous: nil)
+        let replacement = SavedPrivateItem(hadithId: original.hadithId, createdAt: 5, updatedAt: 5, bookmarkCreatedAt: nil, favoriteCreatedAt: nil, noteContent: nil, noteCreatedAt: nil, noteUpdatedAt: nil, folderId: nil, folderUpdatedAt: nil)
+        let folded = try LibrarySavedPolicy.fold(.item(.init(sourceId: "source-b", ordinal: 1, value: replacement)), previous: first)
+        XCTAssertEqual(folded, .item(replacement, firstOrdinal: 0))
+    }
+    func testSavedLegacyOnlyClockAndEqualNotePrecedence() throws {
+        let facts: [SavedFact] = [
+            .bookmark(.init(sourceId: "b1", ordinal: 0, hadithId: "h", createdAt: 100)),
+            .bookmark(.init(sourceId: "b2", ordinal: 1, hadithId: "h", createdAt: 20)),
+            .favorite(.init(sourceId: "f1", ordinal: 2, hadithId: "h", createdAt: 200)),
+            .note(.init(sourceId: "n1", ordinal: 3, hadithId: "h", content: "First note", createdAt: 10, updatedAt: 50)),
+            .note(.init(sourceId: "n2", ordinal: 4, hadithId: "h", content: "Equal note loses", createdAt: 5, updatedAt: 50))]
+        var result: LibrarySavedProjection?
+        for fact in facts { result = try LibrarySavedPolicy.fold(fact, previous: result) }
+        guard case .item(let row, let first) = result else { return XCTFail("Missing private row") }
+        XCTAssertEqual(row.bookmarkCreatedAt, 20); XCTAssertEqual(row.favoriteCreatedAt, 200)
+        XCTAssertEqual(row.createdAt, 5); XCTAssertEqual(row.updatedAt, 100); XCTAssertEqual(first, 0)
+        XCTAssertEqual(row.noteContent, "First note"); XCTAssertEqual(row.noteCreatedAt, 10)
+    }
+    func testSavedEmptyPageAndCheckpointRoundtripThenTerminalRecheck() throws {
+        let owner = LibrarySyncOwner(key: "owner", subject: "subject")
+        let first = try savedPlan(.page(.init(ownerKey: owner.key, version: 3, assemblyId: "root", input: nil, start: 0, facts: [], next: "next")), owner: owner)
+        let reopened = try JSONDecoder().decode(LibrarySavedReadPosition.self, from: JSONEncoder().encode(first.position))
+        XCTAssertEqual(reopened, first.position); XCTAssertEqual(reopened.nextOrdinal, 0)
+        let terminal = try savedPlan(.complete(.init(ownerKey: owner.key, version: 3, assemblyId: "root", input: "next", start: 0, facts: [], total: 0, completion: "finish")), owner: owner, previous: reopened, requested: "next")
+        try LibrarySavedPolicy.confirm(.complete(.init(ownerKey: owner.key, version: 3, assemblyId: "root", input: "finish", start: 0, facts: [], total: 0, completion: "finish")), position: terminal.position)
+        XCTAssertThrowsError(try LibrarySavedPolicy.confirm(.complete(.init(ownerKey: owner.key, version: 4, assemblyId: "root", input: "finish", start: 0, facts: [], total: 0, completion: "finish")), position: terminal.position))
+        XCTAssertThrowsError(try LibrarySavedPolicy.confirm(.restart(.init(reason: "saved_changed")), position: terminal.position))
+        XCTAssertThrowsError(try LibrarySavedPolicy.inspect(.page(.init(ownerKey: owner.key, version: 3, assemblyId: "root", input: "finish", start: 0, facts: [], next: "again")), owner: owner, previous: terminal.position, requested: "finish"))
+    }
+    func testSavedPageRejectsOwnerRootInputRevisionOrdinalAndCycleMismatch() throws {
+        let owner = LibrarySyncOwner(key: "owner", subject: "subject")
+        let first = try savedPlan(.page(.init(ownerKey: owner.key, version: 1, assemblyId: "root", input: nil, start: 0, facts: [], next: "next")), owner: owner)
+        let invalid: [SavedFactsReply] = [
+            .page(.init(ownerKey: "other", version: 1, assemblyId: "root", input: "next", start: 0, facts: [], next: "new")),
+            .page(.init(ownerKey: owner.key, version: 2, assemblyId: "root", input: "next", start: 0, facts: [], next: "new")),
+            .page(.init(ownerKey: owner.key, version: 1, assemblyId: "other-root", input: "next", start: 0, facts: [], next: "new")),
+            .page(.init(ownerKey: owner.key, version: 1, assemblyId: "root", input: "wrong", start: 0, facts: [], next: "new")),
+            .page(.init(ownerKey: owner.key, version: 1, assemblyId: "root", input: "next", start: 1, facts: [], next: "new")),
+            .page(.init(ownerKey: owner.key, version: 1, assemblyId: "root", input: "next", start: 0, facts: [], next: "next")),
+            .complete(.init(ownerKey: owner.key, version: 1, assemblyId: "root", input: "next", start: 0, facts: [], total: 1, completion: "finish")),
+            .restart(.init(reason: "unrecognized"))]
+        for reply in invalid { XCTAssertThrowsError(try LibrarySavedPolicy.inspect(reply, owner: owner, previous: first.position, requested: "next")) }
+        XCTAssertEqual(first.position.nextOrdinal, 0)
+    }
+    func testSavedPhaseAndWireBoundsRejectMalformedFacts() throws {
+        let owner = LibrarySyncOwner(key: "owner", subject: "subject")
+        let note: SavedFact = .note(.init(sourceId: "n", ordinal: 0, hadithId: "h", content: " \nعربى ", createdAt: 1, updatedAt: 2))
+        let first = try savedPlan(.page(.init(ownerKey: owner.key, version: 1, assemblyId: "root", input: nil, start: 0, facts: [note], next: "next")), owner: owner)
+        let backwards: SavedFact = .item(.init(sourceId: "i", ordinal: 1, value: .init(hadithId: "h", createdAt: 1, updatedAt: 1, bookmarkCreatedAt: nil, favoriteCreatedAt: nil, noteContent: nil, noteCreatedAt: nil, noteUpdatedAt: nil, folderId: nil, folderUpdatedAt: nil)))
+        XCTAssertThrowsError(try LibrarySavedPolicy.inspect(.page(.init(ownerKey: owner.key, version: 1, assemblyId: "root", input: "next", start: 1, facts: [backwards], next: "new")), owner: owner, previous: first.position, requested: "next"))
+        for value in [-1.0, 0.5, .infinity, .nan, 9_007_199_254_740_992] { XCTAssertThrowsError(try LibrarySavedPolicy.integer(value)) }
+        XCTAssertThrowsError(try LibrarySavedPolicy.validate(SavedFact.note(.init(sourceId: "n", ordinal: 0, hadithId: "h", content: String(repeating: "ع", count: 20_000), createdAt: 1, updatedAt: 2))))
+        guard case .item(let row, _) = try LibrarySavedPolicy.fold(note, previous: nil) else { return XCTFail("Missing retained target") }
+        XCTAssertEqual(row.hadithId, "h"); XCTAssertEqual(row.noteContent, " \nعربى ")
+    }
+
     private struct OutcomeExportProbe: Decodable {
         struct Entry: Decodable {
             let authority: LibraryOutcomeBinding

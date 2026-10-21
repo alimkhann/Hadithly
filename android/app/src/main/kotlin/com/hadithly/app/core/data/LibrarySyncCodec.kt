@@ -12,7 +12,9 @@ fun SyncAcknowledgement.toConvexArgument(): Any? = libraryArgument(libraryWireJs
 fun SyncPending.toConvexArgument(): Any? = libraryArgument(libraryWireJson.encodeToJsonElement(this))
 fun SyncOutcomePageRequest.toConvexArgument(): Any? = libraryArgument(libraryWireJson.encodeToJsonElement(this))
 
-fun SyncBatch.intentDigest(): String {
+fun SyncBatch.intentDigest(): String = librarySemanticDigest(libraryWireJson.encodeToJsonElement(this), "library-intent-v1:")
+
+internal fun librarySemanticDigest(input: JsonElement, domain: String): String {
     fun encode(value: JsonElement): String = when (value) {
         JsonNull -> "z"
         is JsonObject -> "o${value.size}:" + value.keys.sorted().joinToString("") { key -> encode(JsonPrimitive(key)) + encode(value.getValue(key)) }
@@ -27,7 +29,7 @@ fun SyncBatch.intentDigest(): String {
             }
         }
     }
-    val canonical = "library-intent-v1:" + encode(libraryWireJson.encodeToJsonElement(this))
+    val canonical = domain + encode(input)
     return MessageDigest.getInstance("SHA-256").digest(canonical.toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it.toInt() and 255) }
 }
 

@@ -13,6 +13,77 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class GuestMergeRaceTest {
+    private fun savedPlan(reply: SavedFactsReply, owner: LibrarySyncOwner, previous: LibrarySavedReadPosition? = null, requested: String? = null): LibrarySavedPagePlan =
+        when (val value = LibrarySavedPolicy.inspect(reply, owner, previous, requested)) {
+            is LibrarySavedPageDecision.Append -> value.plan
+            else -> throw LibrarySyncFailure.InvalidReceipt
+        }
+    private fun rejectsSaved(block: () -> Unit) { try { block(); fail("Malformed Saved input accepted") } catch (_: LibrarySyncFailure) { } }
+    @Test fun savedFoldMatchesActualBackendParityAndFingerprints() {
+        val facts = Json.decodeFromString<List<SavedFact>>(LibrarySavedParityVector.factsJSON)
+        val expected = Json.decodeFromString<SavedPrivateItem>(LibrarySavedParityVector.expectedJSON)
+        var result: LibrarySavedProjection? = null
+        facts.forEachIndexed { index, fact ->
+            assertEquals(LibrarySavedParityVector.digests[index], fact.savedFingerprint())
+            result = LibrarySavedPolicy.fold(fact, result)
+        }
+        val row = result
+        assertTrue(row is LibrarySavedProjection.Item)
+        if (row !is LibrarySavedProjection.Item) return
+        assertEquals(expected, row.value); assertEquals(0L, row.firstOrdinal)
+    }
+    @Test fun savedCanonicalReplacementClearsFieldsAndPreservesFirstEncounter() {
+        val original = SavedPrivateItem("missing-public-target", 1.0, 30.0, 1.0, 2.0, "Original", 3.0, 4.0, "old-folder", 30.0)
+        val first = LibrarySavedPolicy.fold(SavedFact.Item("source-a", 0.0, original), null)
+        val replacement = SavedPrivateItem(original.hadithId, 5.0, 5.0)
+        assertEquals(LibrarySavedProjection.Item(replacement, 0L), LibrarySavedPolicy.fold(SavedFact.Item("source-b", 1.0, replacement), first))
+    }
+    @Test fun savedLegacyOnlyClockAndEqualNotePrecedence() {
+        val facts = listOf(SavedFact.Bookmark("b1", 0.0, "h", 100.0), SavedFact.Bookmark("b2", 1.0, "h", 20.0),
+            SavedFact.Favorite("f1", 2.0, "h", 200.0), SavedFact.Note("n1", 3.0, "h", "First note", 10.0, 50.0), SavedFact.Note("n2", 4.0, "h", "Equal note loses", 5.0, 50.0))
+        var result: LibrarySavedProjection? = null
+        facts.forEach { result = LibrarySavedPolicy.fold(it, result) }
+        val row = result
+        assertTrue(row is LibrarySavedProjection.Item)
+        if (row !is LibrarySavedProjection.Item) return
+        assertEquals(20.0, row.value.bookmarkCreatedAt); assertEquals(200.0, row.value.favoriteCreatedAt)
+        assertEquals(5.0, row.value.createdAt, 0.0); assertEquals(100.0, row.value.updatedAt, 0.0); assertEquals(0L, row.firstOrdinal)
+        assertEquals("First note", row.value.noteContent); assertEquals(10.0, row.value.noteCreatedAt)
+    }
+    @Test fun savedEmptyPageAndCheckpointRoundtripThenTerminalRecheck() {
+        val owner = LibrarySyncOwner("owner", "subject")
+        val first = savedPlan(SavedFactsReply.Page(owner.key, 3.0, "root", null, 0.0, emptyList(), "next"), owner)
+        val reopened = Json.decodeFromString<LibrarySavedReadPosition>(Json.encodeToString(first.position))
+        assertEquals(first.position, reopened); assertEquals(0L, reopened.nextOrdinal)
+        val terminal = savedPlan(SavedFactsReply.Complete(owner.key, 3.0, "root", "next", 0.0, emptyList(), 0.0, "finish"), owner, reopened, "next")
+        LibrarySavedPolicy.confirm(SavedFactsReply.Complete(owner.key, 3.0, "root", "finish", 0.0, emptyList(), 0.0, "finish"), terminal.position)
+        rejectsSaved { LibrarySavedPolicy.confirm(SavedFactsReply.Complete(owner.key, 4.0, "root", "finish", 0.0, emptyList(), 0.0, "finish"), terminal.position) }
+        rejectsSaved { LibrarySavedPolicy.confirm(SavedFactsReply.Restart("saved_changed"), terminal.position) }
+        rejectsSaved { LibrarySavedPolicy.inspect(SavedFactsReply.Page(owner.key, 3.0, "root", "finish", 0.0, emptyList(), "again"), owner, terminal.position, "finish") }
+    }
+    @Test fun savedPageRejectsOwnerRootInputRevisionOrdinalAndCycleMismatch() {
+        val owner = LibrarySyncOwner("owner", "subject")
+        val first = savedPlan(SavedFactsReply.Page(owner.key, 1.0, "root", null, 0.0, emptyList(), "next"), owner)
+        val invalid = listOf(SavedFactsReply.Page("other", 1.0, "root", "next", 0.0, emptyList(), "new"),
+            SavedFactsReply.Page(owner.key, 2.0, "root", "next", 0.0, emptyList(), "new"), SavedFactsReply.Page(owner.key, 1.0, "other-root", "next", 0.0, emptyList(), "new"),
+            SavedFactsReply.Page(owner.key, 1.0, "root", "wrong", 0.0, emptyList(), "new"), SavedFactsReply.Page(owner.key, 1.0, "root", "next", 1.0, emptyList(), "new"),
+            SavedFactsReply.Page(owner.key, 1.0, "root", "next", 0.0, emptyList(), "next"), SavedFactsReply.Complete(owner.key, 1.0, "root", "next", 0.0, emptyList(), 1.0, "finish"), SavedFactsReply.Restart("unrecognized"))
+        invalid.forEach { reply -> rejectsSaved { LibrarySavedPolicy.inspect(reply, owner, first.position, "next") } }
+        assertEquals(0L, first.position.nextOrdinal)
+    }
+    @Test fun savedPhaseAndWireBoundsRejectMalformedFacts() {
+        val owner = LibrarySyncOwner("owner", "subject")
+        val note = SavedFact.Note("n", 0.0, "h", " \nعربى ", 1.0, 2.0)
+        val first = savedPlan(SavedFactsReply.Page(owner.key, 1.0, "root", null, 0.0, listOf(note), "next"), owner)
+        val backwards = SavedFact.Item("i", 1.0, SavedPrivateItem("h", 1.0, 1.0))
+        rejectsSaved { LibrarySavedPolicy.inspect(SavedFactsReply.Page(owner.key, 1.0, "root", "next", 1.0, listOf(backwards), "new"), owner, first.position, "next") }
+        listOf(-1.0, 0.5, Double.POSITIVE_INFINITY, Double.NaN, 9_007_199_254_740_992.0).forEach { number -> rejectsSaved { LibrarySavedPolicy.integer(number) } }
+        rejectsSaved { LibrarySavedPolicy.validate(SavedFact.Note("n", 0.0, "h", "ع".repeat(20_000), 1.0, 2.0)) }
+        val result = LibrarySavedPolicy.fold(note, null)
+        assertTrue(result is LibrarySavedProjection.Item)
+        if (result is LibrarySavedProjection.Item) { assertEquals("h", result.value.hadithId); assertEquals(" \nعربى ", result.value.noteContent) }
+    }
+
     @Test fun outcomeExportSafMidCopyFailuresRemoveActualPartialDocuments() = runBlocking {
         isolated { store, _, _ ->
             val fixture = AndroidLibraryFacadeFixture(store)
