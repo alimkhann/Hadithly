@@ -98,6 +98,43 @@ describe("F1 storage migration fixtures", () => {
 });
 
 describe("H3 Saved dual-read migration fixtures", () => {
+  test.each(["bookmarks", "favorites", "notes"] as const)("%s backfill invalidates owned Saved reads once per changed owner and leaves replay stable", async (source) => {
+    const t = convexTest(schema, modules);
+    const a = t.withIdentity({ subject: "backfill-clock-a", tokenIdentifier: "fixture:backfill-a" });
+    const b = t.withIdentity({ subject: "backfill-clock-b", tokenIdentifier: "fixture:backfill-b" });
+    const c = t.withIdentity({ subject: "backfill-clock-c", tokenIdentifier: "fixture:backfill-c" });
+    const userA = await a.mutation(api.users.ensureCurrentUser, {});
+    const userB = await b.mutation(api.users.ensureCurrentUser, {});
+    await c.mutation(api.users.ensureCurrentUser, {});
+    const ids = await t.run(async ctx => {
+      const ids = [];
+      for (let index = 0; index < 3; index++) {
+        const hadithId = await ctx.db.insert("hadiths", { provider: "sunnah_now", providerHadithId: String(index + 1), collectionSlug: "bukhari", arabicText: "text", referenceDisplay: `Bukhari ${index + 1}`, collectionName: "Bukhari", createdAt: 1 });
+        ids.push(hadithId);
+        const value = { userId: index < 2 ? userA : userB, hadithId, createdAt: 10 + index };
+        if (source === "notes") await ctx.db.insert("notes", { ...value, content: `Private note ${index}`, updatedAt: 20 + index });
+        else await ctx.db.insert(source, value);
+      }
+      return ids;
+    });
+    const beforeA = await a.query(api.librarySync.savedSnapshot, {});
+    const beforeB = await b.query(api.librarySync.savedSnapshot, {});
+    const beforeC = await c.query(api.librarySync.savedSnapshot, {});
+    const request = { source, paginationOpts: { cursor: null, numItems: 10 } };
+    expect(await t.mutation(internal.migrations.migrateH3SavedItems, request)).toMatchObject({ migrated: 3, unchanged: 0, isDone: true });
+    const afterA = await a.query(api.librarySync.savedSnapshot, {});
+    const afterB = await b.query(api.librarySync.savedSnapshot, {});
+    expect(afterA.version).toBe(beforeA.version + 1);
+    expect(afterB.version).toBe(beforeB.version + 1);
+    expect(afterA.items.map(item => item.hadithId).sort()).toEqual(ids.slice(0, 2).sort());
+    expect(afterB.items.map(item => item.hadithId)).toEqual([ids[2]]);
+    expect(await c.query(api.librarySync.savedSnapshot, {})).toEqual(beforeC);
+    expect(await t.mutation(internal.migrations.migrateH3SavedItems, request)).toMatchObject({ migrated: 0, unchanged: 3, isDone: true });
+    expect(await a.query(api.librarySync.savedSnapshot, {})).toEqual(afterA);
+    expect(await b.query(api.librarySync.savedSnapshot, {})).toEqual(afterB);
+    expect(await c.query(api.librarySync.savedSnapshot, {})).toEqual(beforeC);
+  });
+
   test("unifies all legacy facets without deleting their exact target", async () => {
     const t = convexTest(schema, modules);
     const { userId, hadithId } = await t.run(async (ctx) => {

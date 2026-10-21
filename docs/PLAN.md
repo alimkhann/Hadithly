@@ -242,6 +242,13 @@ now green locally; the default v1 probe retains its safe size limit. Full Saved/
 folder/export and whole-file scale, legacy transaction/age, installed/SDK/device,
 iOS save-failure and A2 deployment gates remain open. No A2 deployment occurred.
 
+Paged-read grounding found and repaired a missing Saved revision advance in the
+legacy H3 backfill. Each changed owner now advances once per page in the same
+transaction; unchanged replay and unrelated owners do not. Three actual-function
+red/green regressions and the complete 487-test backend suite pass. See
+`docs/LIBRARY_BACKFILL_REVISION_VERIFICATION.md`. Bounded reads/native assembly,
+whole-file/export scale and all hosted/device/deployment gates remain open.
+
 ## Read the plan in layers
 
 - `docs/PLAN.md` holds product rules, current state, session order, contracts,

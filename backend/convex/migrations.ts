@@ -1,3 +1,5 @@
+import { advanceLibraryVersion } from "./lib/librarySyncVersions";
+import type { Id } from "./_generated/dataModel";
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { internalMutation } from "./_generated/server";
@@ -167,6 +169,12 @@ export const migrateH3SavedItems = internalMutation({
   handler: async (ctx, args) => {
     let migrated = 0;
     let unchanged = 0;
+    const changedOwners = new Set<Id<"users">>();
+    const recordChangedOwner = async (userId: Id<"users">) => {
+      if (changedOwners.has(userId)) return;
+      await advanceLibraryVersion(ctx, userId, "saved");
+      changedOwners.add(userId);
+    };
     if (args.source === "bookmarks") {
       const result = await ctx.db.query("bookmarks").paginate(args.paginationOpts);
       for (const row of result.page) {
@@ -175,6 +183,7 @@ export const migrateH3SavedItems = internalMutation({
         const now = Date.now();
         if (existing) await ctx.db.patch(existing._id, { bookmarkCreatedAt: row.createdAt, updatedAt: Math.max(existing.updatedAt, row.createdAt) });
         else await ctx.db.insert("savedItems", { userId: row.userId, hadithId: row.hadithId, bookmarkCreatedAt: row.createdAt, createdAt: row.createdAt, updatedAt: now });
+        await recordChangedOwner(row.userId);
         migrated += 1;
       }
       return { source: args.source, migrated, unchanged, continueCursor: result.continueCursor, isDone: result.isDone };
@@ -187,6 +196,7 @@ export const migrateH3SavedItems = internalMutation({
         const now = Date.now();
         if (existing) await ctx.db.patch(existing._id, { favoriteCreatedAt: row.createdAt, updatedAt: Math.max(existing.updatedAt, row.createdAt) });
         else await ctx.db.insert("savedItems", { userId: row.userId, hadithId: row.hadithId, favoriteCreatedAt: row.createdAt, createdAt: row.createdAt, updatedAt: now });
+        await recordChangedOwner(row.userId);
         migrated += 1;
       }
       return { source: args.source, migrated, unchanged, continueCursor: result.continueCursor, isDone: result.isDone };
@@ -198,6 +208,7 @@ export const migrateH3SavedItems = internalMutation({
       const now = Date.now();
       if (existing) await ctx.db.patch(existing._id, { noteContent: row.content, noteCreatedAt: row.createdAt, noteUpdatedAt: row.updatedAt, updatedAt: Math.max(existing.updatedAt, row.updatedAt) });
       else await ctx.db.insert("savedItems", { userId: row.userId, hadithId: row.hadithId, noteContent: row.content, noteCreatedAt: row.createdAt, noteUpdatedAt: row.updatedAt, createdAt: row.createdAt, updatedAt: now });
+      await recordChangedOwner(row.userId);
       migrated += 1;
     }
     return { source: args.source, migrated, unchanged, continueCursor: result.continueCursor, isDone: result.isDone };
