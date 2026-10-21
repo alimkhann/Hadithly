@@ -205,6 +205,15 @@ transaction; unchanged replay and unrelated owners do not. Three actual-function
 red/green regressions and the complete 487-test backend suite pass. See
 `LIBRARY_BACKFILL_REVISION_VERIFICATION.md`. Bounded reads/native assembly,
 whole-file/export scale and all hosted/device/deployment gates remain open.
+
+The first bounded Saved read component now serves owner/revision-bound private
+source facts with signed continuations, explicit incomplete/oversized failure and
+no public hadith joins. A review-discovered SplitRequired gap has four actual
+adapter red/green regressions. The complete backend suite passes 511 tests; see
+`LIBRARY_SAVED_FACTS_VERIFICATION.md`. Production native reads still use the
+old whole snapshot. Both native durable row assembly/activation and independent
+summary hydration, practical throughput, full export and whole-partition scale,
+installed/SDK/device and deployment gates remain open. No A2 rollout occurred.
 Continue A2 integration while retaining A1's content dependencies. No paid
 generation or production change has been approved. Research, later native redesign, website and Linear remain
 pending in the owner's requested order.

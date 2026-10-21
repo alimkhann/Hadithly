@@ -1,0 +1,18 @@
+# Bounded Saved reads, A2 next component
+
+After bd2e77e. No cloud/deployment/paid/private-account calls. Parent owns implementation.
+Workflow: [x] ground; [x] two sketches; [x] independent judge; [x] parent implementation; [x] actual tests; [x] review/docs; commit follows staged checks. Full native read/whole-file/export/installed/device gates cannot be closed by a backend-only page API.
+
+Question: smallest truthful bounded Saved/folder page boundary, then native revision-assembly contract. Current librarySync:savedSnapshot loads all savedItems,folders,bookmarks,favorites,notes with collect; merges canonical+legacy by hadith, earliest bookmarks/favorites, newest note, createdAt min and updatedAt max with effective membership clock; excludes missing hadith. Both native production subscriptions persist whole SyncSavedSnapshot partition JSON and settle overlays by version. Existing old clients keep current endpoint through installed-client migration. Do not silently return a subset as complete or delete old compatibility prematurely.
+
+Ground actual source: backend/convex/library.ts readSavedSnapshot and legacy writers; lib/librarySyncVersions.ts, librarySyncMarks.ts, savedMembership.ts; schema savedItems/savedFolders/bookmarks/favorites/notes and hadiths; lib/librarySyncPolicy.ts snapshots; librarySync.ts savedSnapshot; users.ts exportCurrentUserData. Native UserLibraryModel reads and GuestDataStore/GuestStore cache, projection + outcome settlement.
+
+The current saved version is per-owner; existing accepted writes/legacy marks/folder visibility advance it. Effective membership follows at most one stage/header/folder/tombstone; materialization should preserve same visible projection. Legacy rows may duplicate bookmarks/favorites; per-hadith collect is unbounded too. Canonical hadith docs can be large (schema has unbounded provider text); canonical IDs/source data may change outside Saved clock. Export includes far more tables/fields and is separate full-scale work, not quietly omitted.
+
+Require owner from JWT, no supplied user identity. Pages must not leak other accounts through replayed cursors, stage/folder pointers or malformed rows. Requests/cursors must be validated and bounded; saved revision changed midassembly => explicit restart, no mixed complete cache/ACK barrier. Every source read, per-step processing and response bytes has explicit budgets; one oversized source/row must be honest unavailable/failure, no truncation/loss. No whole-library collect behind paginated response. Need retained legacy semantics and exact no-duplicate coverage including missing canonical target and migrated duplicates.
+
+Two structurally distinct directions to compare: stateless sequential source/fact pages + native deterministic merge behind data layer, versus bounded server durable projection/session snapshot preparation then single merged row pages. You may reject either and propose smaller design if real constraints require. No arbitrary growth of per-read persistent copies. A page is not full atomic account export. Define current-page replay, cross-owner cursor reuse, version/invalidation and final completion. New frontend wire should derive actual validators when consumed, no parallel manual DTO.
+
+Rubric 1-5 each: whole-source/read/wire bounds; owner/revision/cursor/completion truth; canonical+legacy/effective-membership parity; native integration simplicity/correct ACK barriers; smallest deep module and executable failure/interleaving proof.
+
+Read architect runner-prompt and rationale-template. Write caller usage FIRST, types/signatures/module map, choices/rejected alternatives, risks, first bounded implementation slice. Output only own /tmp report, no repo edits or account calls.

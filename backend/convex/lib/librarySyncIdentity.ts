@@ -11,11 +11,11 @@ export async function requireLibraryUser(ctx: Context) {
   return user;
 }
 export type LibrarySyncProtocol = "inline_v1" | "manifest_v2";
-export async function requireLibraryBinding(ctx: Context, capability: string): Promise<{ user: Doc<"users">; protocol: LibrarySyncProtocol }> {
+export async function requireLibraryBinding(ctx: Context, capability: string): Promise<{ user: Doc<"users">; protocol: LibrarySyncProtocol; binding: Doc<"librarySyncBindings"> }> {
   const user = await requireLibraryUser(ctx);
   const digest = await textDigest(capability);
   const binding = await ctx.db.query("librarySyncBindings").withIndex("by_digest", q => q.eq("digest", digest)).unique();
   if (!binding || binding.userId !== user._id) throw new Error("SYNC_OWNER_MISMATCH");
   if (binding.expiresAt <= Date.now()) throw new Error("SYNC_BINDING_EXPIRED");
-  return { user, protocol: binding.protocol ?? "inline_v1" };
+  return { user, protocol: binding.protocol ?? "inline_v1", binding };
 }

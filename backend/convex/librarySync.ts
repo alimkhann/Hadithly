@@ -1,3 +1,4 @@
+import { savedFactsReply, readSavedFactsPage } from "./lib/librarySavedFacts";
 import { resolveLibraryFolder as folder, bindLibraryFolderKey as folderAlias } from "./lib/librarySyncFolders";
 import { writeSavedMembership, removeEmptySavedMembership, touchSavedFolderMemberships, savedFolderScanGuard, assertSavedFolderStable } from "./lib/savedMembership";
 import { commitPreparedFolderDeletion, beginFolderRestoration, advanceFolderRestoration as advanceRestoration, materializeFolderEffect as materializeEffect, expireFolderTransition, type FolderEffectStep } from "./lib/savedFolderTransitions";
@@ -34,7 +35,7 @@ async function createBinding(ctx: MutationCtx, protocol?: "manifest_v2"): Promis
   }
   if (live >= SYNC_BINDING_LIMIT) throw new Error("SYNC_BINDING_LIMIT");
   const capability = `${crypto.randomUUID()}.${crypto.randomUUID()}`, validUntil = now + SYNC_BINDING_LIFETIME;
-  await ctx.db.insert("librarySyncBindings", { userId: user._id, ...(protocol ? { protocol } : {}), digest: await textDigest(capability), expiresAt: validUntil, createdAt: now });
+  await ctx.db.insert("librarySyncBindings", { userId: user._id, ...(protocol ? { protocol, savedCursorKey: `${crypto.randomUUID()}.${crypto.randomUUID()}` } : {}), digest: await textDigest(capability), expiresAt: validUntil, createdAt: now });
   return { ownerKey: user._id, subject: user.clerkId, capability, validUntil };
 }
 export const openBinding = mutation({ args: {}, handler: async (ctx): Promise<SyncBinding> => createBinding(ctx) });
@@ -382,6 +383,11 @@ function cleanSummary(value: { _id: string; providerHadithId: string; collection
     ...(value.volumeId === null ? {} : { volumeId: value.volumeId }), arabicText: value.arabicText,
     ...(value.englishText === null ? {} : { englishText: value.englishText }), referenceDisplay: value.referenceDisplay };
 }
+export const savedFactsPage = query({
+  args: { capability: v.string(), continuation: v.optional(v.string()) }, returns: savedFactsReply,
+  handler: readSavedFactsPage,
+});
+
 export const savedSnapshot = query({
   args: {}, returns: syncSavedSnapshot,
   handler: async (ctx): Promise<SyncSavedSnapshot> => {
