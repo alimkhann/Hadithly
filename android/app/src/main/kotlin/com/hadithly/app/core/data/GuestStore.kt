@@ -486,11 +486,19 @@ class GuestDataStore(context: Context) {
     suspend fun deletionPhase(subject: String, namespace: String): LibraryDeletionPhase? = mutex.withLock {
         readLocked().deletions.firstOrNull { it.subject == subject && it.namespace == namespace }?.phase
     }
-    suspend fun beginDeletion(subject: String, namespace: String) = writeLocked(notify = false) { store ->
-        if (store.deletions.any { it.subject == subject && it.namespace == namespace }) store
-        else store.copy(deletions = store.deletions + LibraryDeletionIntent(subject, namespace, LibraryDeletionPhase.SERVER_PENDING))
+    suspend fun beginDeletion(subject: String, namespace: String) {
+        writeLocked(notify = false) { store ->
+            if (store.deletions.any { it.subject == subject && it.namespace == namespace }) store
+            else store.copy(deletions = store.deletions + LibraryDeletionIntent(subject, namespace, LibraryDeletionPhase.SERVER_PENDING))
+        }
+        mutex.withLock {
+            if (readLocked().deletions.any { it.subject == subject && it.namespace == namespace && it.phase == LibraryDeletionPhase.SERVER_PENDING })
+                withContext(Dispatchers.IO) { outcomeJournal.beginSavedErase(subject, namespace, null) }
+        }
     }
     suspend fun markDeletionBackendComplete(subject: String, namespace: String) {
+        beginSavedErase(subject, namespace, null)
+        while (eraseSavedStep(subject, namespace, null)) kotlinx.coroutines.yield()
         mutex.withLock {
             if (readLocked().deletions.none { it.subject == subject && it.namespace == namespace }) throw LibrarySyncFailure.SessionChanged
             withContext(Dispatchers.IO) {
@@ -513,6 +521,8 @@ class GuestDataStore(context: Context) {
     suspend fun resetSyncPartitionForTesting(owner: LibrarySyncOwner) {
         writeLocked(notify = false) { store ->
             withContext(Dispatchers.IO) {
+                outcomeJournal.beginSavedErase(owner.subject, owner.namespace, owner.storageKey)
+                while (outcomeJournal.eraseSavedStep(owner.subject, owner.namespace, owner.storageKey)) { }
                 outcomeJournal.beginErase(owner.subject, owner.namespace, full = false)
                 clearArtifactScope(owner.subject, owner.namespace)
                 outcomeJournal.erase(owner.subject, owner.namespace, owner.storageKey)
@@ -526,6 +536,51 @@ class GuestDataStore(context: Context) {
         if (store.deletions.any { it.subject == owner.subject && it.namespace == owner.namespace }) throw LibrarySyncFailure.AccountDeleting
         val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey } ?: throw LibrarySyncFailure.SessionChanged
         if (partition.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
+    }
+
+    suspend fun beginSavedErase(subject: String, namespace: String, ownerKey: String?) = mutex.withLock {
+        withContext(Dispatchers.IO) { outcomeJournal.beginSavedErase(subject, namespace, ownerKey) }
+    }
+    suspend fun eraseSavedStep(subject: String, namespace: String, ownerKey: String?): Boolean = mutex.withLock {
+        if (ownerKey == null && readLocked().deletions.none { it.subject == subject && it.namespace == namespace }) throw LibrarySyncFailure.SessionChanged
+        withContext(Dispatchers.IO) { outcomeJournal.eraseSavedStep(subject, namespace, ownerKey) }
+    }
+    suspend fun savedExportRecords(fence: LibraryOutcomeExportFence, section: Int, after: String?) = mutex.withLock {
+        withContext(Dispatchers.IO) { outcomeJournal.savedExportRecords(fence, section, after) }
+    }
+    private val savedCollectorMutex = Mutex()
+    suspend fun beginSavedAssembly(owner: LibrarySyncOwner): LibrarySavedLease = mutex.withLock {
+        assertOutcomeOwnerActive(owner); withContext(Dispatchers.IO) { outcomeJournal.beginSaved(owner) }
+    }
+    suspend fun savedCheckpoint(lease: LibrarySavedLease): LibrarySavedCheckpoint = mutex.withLock {
+        withContext(Dispatchers.IO) { outcomeJournal.savedCheckpoint(lease) }
+    }
+    suspend fun savedRawPage(lease: LibrarySavedLease, start: Long): LibrarySavedRawPage = mutex.withLock {
+        withContext(Dispatchers.IO) { outcomeJournal.savedRawPage(lease, start) }
+    }
+    suspend fun preparedSavedPage(lease: LibrarySavedLease, after: String?): LibrarySavedProjectionPage = mutex.withLock {
+        withContext(Dispatchers.IO) { outcomeJournal.savedPreparedPage(lease, after) }
+    }
+    suspend fun collectSavedStep(lease: LibrarySavedLease, isCurrent: () -> Boolean, fetch: suspend (String?) -> SavedFactsReply): LibrarySavedCheckpoint {
+        if (!isCurrent() || !savedCollectorMutex.tryLock()) throw LibrarySyncFailure.SessionChanged
+        try {
+            val checkpoint = savedCheckpoint(lease)
+            if (checkpoint.stage != LibrarySavedStage.Collecting) {
+                val result = mutex.withLock {
+                    if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
+                    withContext(Dispatchers.IO) { if (!isCurrent()) throw LibrarySyncFailure.SessionChanged; outcomeJournal.advanceSaved(lease) }
+                }
+                if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
+                return result
+            }
+            val requested = checkpoint.position?.continuation?.token; val reply = fetch(requested)
+            if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
+            val result = mutex.withLock {
+                withContext(Dispatchers.IO) { if (!isCurrent()) throw LibrarySyncFailure.SessionChanged; outcomeJournal.persistSaved(lease, requested, reply) }
+            }
+            if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
+            return result
+        } finally { savedCollectorMutex.unlock() }
     }
 
     suspend fun collectOutcomeStep(committed: SyncCommitted, owner: LibrarySyncOwner, isCurrent: () -> Boolean,

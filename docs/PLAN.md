@@ -265,6 +265,16 @@ pass 95 iOS and 78 Android checks; all 511 backend tests pass. See
 Durable raw collection, bounded fold/verification, migration, erasure/export,
 activation and production barrier/read cutover remain open. A2 is still active.
 
+The durable native Saved store now retains raw facts and exact replay receipts,
+folds and verifies bounded projection rows, and streams retained private evidence
+through existing fenced export. Actual old-schema migration, interruption, rollback,
+erasure/reopen and indexed query checks pass with 107 iOS and 88 Android tests.
+See `docs/LIBRARY_SAVED_STORE_VERIFICATION.md`. A real iOS technical cursor-sort bug
+and an Android unrelated-row scan were reproduced and repaired. Prepared data grants
+no production revision authority. Final server recheck/atomic activation, the four
+observation/barrier consumers, public hydration, practical throughput, whole-file/
+export scale and hosted/device/deployment gates remain open. A2 is still active.
+
 ## Read the plan in layers
 
 - `docs/PLAN.md` holds product rules, current state, session order, contracts,

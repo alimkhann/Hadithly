@@ -1098,7 +1098,7 @@ final class LibrarySync {
         let fence = try await store.prepareOutcomeExport(captured.owner, isCurrent: { (try? self.capability(for: captured)) != nil })
         _ = try capability(for: captured)
         let document = try server.includingLocalLibrary(portableState(for: captured))
-        guard case .object(let fields) = document, fields["localOutcomeEvidence"] == nil,
+        guard case .object(let fields) = document, fields["localOutcomeEvidence"] == nil, fields["localSavedEvidence"] == nil,
               !document.containsAnyKey(LibraryExportPolicy.deniedKeys) else { throw LibrarySyncFailure.invalidReceipt }
         let artifact = try store.beginOutcomeExportArtifact(fence)
         let partial = artifact.directory.appendingPathComponent("document.partial"), destination = artifact.directory.appendingPathComponent(fileName)
@@ -1146,6 +1146,19 @@ final class LibrarySync {
                 }
                 try raw("]}")
                 after = entry.binding.key
+                await Task.yield()
+            }
+        }
+        try raw("],\"localSavedEvidence\":[")
+        var firstSaved = true
+        for section in 0..<4 {
+            var cursor: String?
+            while true {
+                try Task.checkCancellation(); _ = try capability(for: captured)
+                let page = try store.savedExportRecords(fence, section: section, after: cursor)
+                for value in page.values { if !firstSaved { try raw(",") }; firstSaved = false; try encoded(value) }
+                cursor = page.next
+                if page.done { break }
                 await Task.yield()
             }
         }
@@ -1307,7 +1320,7 @@ struct LibraryAccountDeletion {
                   grant.validUntil.isFinite, grant.validUntil > Date.now.millisecondsSinceEpoch else { throw LibrarySyncFailure.ownerMismatch }
             let result = try await erase(grant.authorization)
             guard result.subject == captured.subject else { throw LibrarySyncFailure.ownerMismatch }
-            try store.markDeletionBackendComplete(subject: captured.subject, namespace: namespace)
+            try await store.markDeletionBackendComplete(subject: captured.subject, namespace: namespace)
         }
         cleanup(captured.subject)
         guard currentSession() == captured else { throw LibrarySyncFailure.sessionChanged }
@@ -1424,6 +1437,13 @@ enum LibrarySavedPolicy {
         _ = try integer(value.version); _ = try integer(value.start)
         try text(token, limit: LibrarySyncLimits.savedFactCursorBytes); try text(value.assemblyId, limit: LibrarySyncLimits.savedFactCursorBytes)
     }
+    static func validateProjection(_ value: LibrarySavedProjection) throws {
+        _ = try integer(Double(value.firstOrdinal))
+        switch value {
+        case .item(let row, _): try validate(row)
+        case .folder(let row, _): try text(row._id, limit: 128); try text(row.name, limit: LibrarySyncLimits.savedFactSourceBytes, empty: true); try time(row.createdAt)
+        }
+    }
     static func fold(_ fact: SavedFact, previous: LibrarySavedProjection?) throws -> LibrarySavedProjection {
         try validate(fact); let ordinal = try integer(fact.ordinalValue), first = previous?.firstOrdinal ?? ordinal
         guard first >= 0, first <= ordinal else { throw LibrarySyncFailure.invalidReceipt }
@@ -1449,5 +1469,147 @@ enum LibrarySavedPolicy {
         }
         let row = SavedPrivateItem(hadithId: fact.targetID, createdAt: created, updatedAt: updated, bookmarkCreatedAt: bookmark, favoriteCreatedAt: favorite, noteContent: content, noteCreatedAt: noteCreated, noteUpdatedAt: noteUpdated, folderId: prior?.folderId, folderUpdatedAt: prior?.folderUpdatedAt)
         try validate(row); return .item(row, firstOrdinal: first)
+    }
+}
+
+struct LibrarySavedLease: Codable, Equatable, Sendable {
+    let owner: LibrarySyncOwner
+    let epoch: String
+    let generation: String
+    func validate() throws {
+        guard [owner.key, owner.subject, owner.namespace].allSatisfy({ !$0.isEmpty && $0.utf8.count <= 1024 }),
+              [epoch, generation].allSatisfy({ !$0.isEmpty && $0.utf8.count <= 128 }) else { throw LibrarySyncFailure.storeUnavailable }
+    }
+    var key: String { LibraryOutcomeBinding.hash([owner.namespace, owner.subject]) + ":" + LibraryOutcomeBinding.hash([owner.storageKey, owner.subject]) }
+    var collection: String { key + ":" + LibraryOutcomeBinding.hash([epoch, generation]) }
+    func ordinalKey(_ ordinal: Int) -> String { collection + ":f:" + String(format: "%016llx", UInt64(ordinal)) }
+    func inputKey(_ input: String?) -> String { collection + ":p:" + LibraryOutcomeBinding.hash([input == nil ? "absent" : "present", input ?? ""]) }
+    func sequenceKey(_ sequence: Int) -> String { collection + ":s:" + String(format: "%016llx", UInt64(sequence)) }
+    func sourceKey(_ fact: SavedFact) -> String { collection + ":i:" + LibraryOutcomeBinding.hash([String(fact.sourcePhase), fact.sourceID]) }
+    func projectionKey(_ value: LibrarySavedProjection) -> String { collection + ":r:" + LibraryOutcomeBinding.hash([value.kind, value.targetID]) }
+}
+struct LibrarySavedCounts: Codable, Equatable, Sendable {
+    var items = 0, folders = 0
+    var total: Int { items + folders }
+    mutating func add(_ value: LibrarySavedProjection) { if value.kind == "item" { items += 1 } else { folders += 1 } }
+}
+enum LibrarySavedStage: Codable, Equatable, Sendable {
+    case collecting
+    case folding(next: Int, phase: Int, digest: String)
+    case checkingPages(next: Int, input: String?, position: LibrarySavedReadPosition?)
+    case verifying(after: String?, seen: LibrarySavedCounts)
+    case prepared
+    case restart
+    case unavailable(SavedFactsReplyUnavailableReason)
+}
+struct LibrarySavedCheckpoint: Codable, Equatable, Sendable {
+    var position: LibrarySavedReadPosition?
+    var pages = 0
+    var digest = LibraryOutcomeBinding.hash(["saved-raw-v1"])
+    var counts = LibrarySavedCounts()
+    var stage = LibrarySavedStage.collecting
+    var next: Int { position?.nextOrdinal ?? 0 }
+    func validate(owner: LibrarySyncOwner) throws {
+        guard pages >= 0, Double(pages) <= LibrarySavedPolicy.maxInteger, counts.items >= 0, counts.folders >= 0, Double(counts.items) <= LibrarySavedPolicy.maxInteger, Double(counts.folders) <= LibrarySavedPolicy.maxInteger,
+              counts.total <= next, digest.count == 64 else { throw LibrarySyncFailure.storeUnavailable }
+        if let position {
+            guard position.owner == owner, position.nextOrdinal >= 0, Double(position.nextOrdinal) <= LibrarySavedPolicy.maxInteger,
+                  (-1...4).contains(position.phase), !position.assemblyID.isEmpty, position.assemblyID.utf8.count <= LibrarySyncLimits.savedFactCursorBytes,
+                  !position.continuation.token.isEmpty, position.continuation.token.utf8.count <= LibrarySyncLimits.savedFactCursorBytes else { throw LibrarySyncFailure.storeUnavailable }
+            _ = try LibrarySavedPolicy.integer(position.version)
+        }
+        switch stage {
+        case .collecting: if let position { guard case .next = position.continuation else { throw LibrarySyncFailure.storeUnavailable } }
+        case .folding(let at, let phase, let checksum):
+            guard let position, case .complete = position.continuation, at >= 0, at <= next, (-1...4).contains(phase), checksum.count == 64 else { throw LibrarySyncFailure.storeUnavailable }
+        case .checkingPages(let sequence, _, _):
+            guard let position, case .complete = position.continuation, sequence >= 0, sequence <= pages else { throw LibrarySyncFailure.storeUnavailable }
+        case .verifying(_, let seen):
+            guard let position, case .complete = position.continuation, seen.items >= 0, seen.folders >= 0, seen.items <= counts.items, seen.folders <= counts.folders else { throw LibrarySyncFailure.storeUnavailable }
+        case .prepared: guard let position, case .complete = position.continuation else { throw LibrarySyncFailure.storeUnavailable }
+        case .restart, .unavailable: break
+        }
+    }
+}
+enum LibrarySavedReceiptResult: Codable, Equatable, Sendable {
+    case advanced(LibrarySavedReadPosition), restart, unavailable(SavedFactsReplyUnavailableReason)
+}
+struct LibrarySavedPageReceipt: Codable, Equatable, Sendable {
+    let sequence: Int
+    let input: String?
+    let before: LibrarySavedReadPosition?
+    let start: Int
+    let count: Int
+    let fingerprint: String
+    let result: LibrarySavedReceiptResult
+    func validate(reply: SavedFactsReply, owner: LibrarySyncOwner, facts: [SavedFact]) throws {
+        let decision = try LibrarySavedPolicy.inspect(reply, owner: owner, previous: before, requested: input)
+        guard fingerprint == (try LibrarySemanticFingerprint.digest(reply, domain: "library-saved-page-v1:")) else { throw LibrarySyncFailure.invalidReceipt }
+        switch (decision, result) {
+        case (.append(let plan), .advanced(let position)):
+            guard plan.position == position, plan.start == start, plan.facts == facts, facts.count == count else { throw LibrarySyncFailure.invalidReceipt }
+        case (.restart, .restart): guard facts.isEmpty, count == 0 else { throw LibrarySyncFailure.invalidReceipt }
+        case (.unavailable(let a), .unavailable(let b)): guard a == b, facts.isEmpty, count == 0 else { throw LibrarySyncFailure.invalidReceipt }
+        default: throw LibrarySyncFailure.invalidReceipt
+        }
+    }
+}
+struct LibrarySavedExportEntry: Codable, Equatable, Sendable { let lease: LibrarySavedLease; let checkpoint: LibrarySavedCheckpoint }
+enum LibrarySavedExportRecord: Codable, Equatable, Sendable {
+    case fact(SavedFact), page(LibrarySavedPageReceipt), projection(LibrarySavedProjection)
+}
+struct LibrarySavedRawPage: Sendable { let lease: LibrarySavedLease; let checkpoint: LibrarySavedCheckpoint; let facts: [SavedFact]; let next: Int }
+struct LibrarySavedProjectionPage: Sendable { let rows: [LibrarySavedProjection]; let next: String?; let done: Bool }
+extension LibrarySavedProjection {
+    var kind: String { switch self { case .item: "item"; case .folder: "folder" } }
+    var targetID: String { switch self { case .item(let v, _): v.hadithId; case .folder(let v, _): v._id } }
+    func savedFingerprint() throws -> String {
+        let value: String
+        switch self {
+        case .item(let row, _): value = try LibrarySemanticFingerprint.digest(row, domain: "saved-private-value-v1:")
+        case .folder(let row, _): value = try LibrarySemanticFingerprint.digest(row, domain: "saved-private-value-v1:")
+        }
+        return LibraryOutcomeBinding.hash([kind, String(firstOrdinal), value])
+    }
+}
+
+struct LibrarySavedExportPage: Sendable { let records: [LibrarySavedExportRecord]; let next: Int; let done: Bool }
+extension LibrarySavedPageReceipt {
+    func reply(facts: [SavedFact], owner: LibrarySyncOwner) -> SavedFactsReply {
+        switch result {
+        case .advanced(let position):
+            switch position.continuation {
+            case .next(let token): return .page(.init(ownerKey: owner.key, version: position.version, assemblyId: position.assemblyID, input: input, start: Double(start), facts: facts, next: token))
+            case .complete(let token): return .complete(.init(ownerKey: owner.key, version: position.version, assemblyId: position.assemblyID, input: input, start: Double(start), facts: facts, total: Double(position.nextOrdinal), completion: token))
+            }
+        case .restart: return .restart(.init(reason: "saved_changed"))
+        case .unavailable(let reason): return .unavailable(.init(reason: reason))
+        }
+    }
+}
+extension LibrarySavedExportEntry {
+    func exportMetadata() -> [String: LibraryExportValue] {
+        let phase: String
+        switch checkpoint.stage { case .collecting: phase = "collecting"; case .folding: phase = "folding"; case .checkingPages: phase = "checking_pages"; case .verifying: phase = "verifying"; case .prepared: phase = "prepared"; case .restart: phase = "restart"; case .unavailable: phase = "unavailable" }
+        return ["formatVersion": .number(1), "ownerKey": .string(lease.owner.key), "subject": .string(lease.owner.subject), "namespace": .string(lease.owner.namespace),
+            "generation": .string(lease.generation), "status": .string(phase), "active": .bool(false), "collectedFacts": .number(Double(checkpoint.next)), "pageCount": .number(Double(checkpoint.pages)),
+            "projectedItems": .number(Double(checkpoint.counts.items)), "projectedFolders": .number(Double(checkpoint.counts.folders)), "privateVersion": checkpoint.position.map { .number($0.version) } ?? .null]
+    }
+}
+extension LibrarySavedExportRecord {
+    func exportValue() throws -> LibraryExportValue {
+        func encoded<T: Encodable>(_ value: T) throws -> LibraryExportValue { try JSONDecoder().decode(LibraryExportValue.self, from: JSONEncoder().encode(value)) }
+        switch self {
+        case .fact(let fact): return .object(["kind": .string("fact"), "value": try encoded(fact)])
+        case .projection(let value):
+            let row: LibraryExportValue
+            switch value { case .item(let v, _): row = try encoded(v); case .folder(let v, _): row = try encoded(v) }
+            return .object(["kind": .string(value.kind), "firstOrdinal": .number(Double(value.firstOrdinal)), "value": row])
+        case .page(let receipt):
+            let status: String, output: LibraryExportValue
+            switch receipt.result { case .advanced(let p): status = "advanced"; output = .string(LibraryOutcomeBinding.hash([p.continuation.token])); case .restart: status = "restart"; output = .null; case .unavailable(let reason): status = reason.rawValue; output = .null }
+            return .object(["kind": .string("page"), "sequence": .number(Double(receipt.sequence)), "start": .number(Double(receipt.start)), "count": .number(Double(receipt.count)),
+                "fingerprint": .string(receipt.fingerprint), "inputFingerprint": .string(LibraryOutcomeBinding.hash([receipt.input == nil ? "absent" : "present", receipt.input ?? ""])), "status": .string(status), "outputFingerprint": output])
+        }
     }
 }

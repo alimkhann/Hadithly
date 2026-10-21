@@ -468,6 +468,68 @@ enum LibraryExportValue: Codable, Equatable, Sendable {
     }
 }
 
+@Model
+final class GuestSavedAssembly {
+    @Attribute(.unique) var key: String
+    var subject: String
+    var namespace: String
+    var ownerKey: String
+    var leaseData: Data
+    var checkpointData: Data
+    var erasing: Bool
+    init(lease: LibrarySavedLease) throws {
+        key = lease.key; subject = lease.owner.subject; namespace = lease.owner.namespace; ownerKey = lease.owner.storageKey
+        leaseData = try JSONEncoder().encode(lease); checkpointData = try JSONEncoder().encode(LibrarySavedCheckpoint()); erasing = false
+    }
+}
+@Model
+final class GuestSavedFactRow {
+    @Attribute(.unique) var key: String
+    @Attribute(.unique) var sourceKey: String
+    var collectionKey: String
+    var subject: String
+    var namespace: String
+    var ownerKey: String
+    var ordinal: Int
+    var fingerprint: String
+    var data: Data
+    init(lease: LibrarySavedLease, fact: SavedFact) throws {
+        let parsed = try LibrarySavedPolicy.integer(fact.ordinalValue); ordinal = parsed; key = lease.ordinalKey(parsed); sourceKey = lease.sourceKey(fact); collectionKey = lease.collection
+        subject = lease.owner.subject; namespace = lease.owner.namespace; ownerKey = lease.owner.storageKey
+        fingerprint = try fact.savedFingerprint(); data = try JSONEncoder().encode(fact)
+    }
+}
+@Model
+final class GuestSavedPageRow {
+    @Attribute(.unique) var key: String
+    @Attribute(.unique) var sequenceKey: String
+    var collectionKey: String
+    var subject: String
+    var namespace: String
+    var ownerKey: String
+    var data: Data
+    init(lease: LibrarySavedLease, receipt: LibrarySavedPageReceipt) throws {
+        key = lease.inputKey(receipt.input); sequenceKey = lease.sequenceKey(receipt.sequence); collectionKey = lease.collection
+        subject = lease.owner.subject; namespace = lease.owner.namespace; ownerKey = lease.owner.storageKey
+        data = try JSONEncoder().encode(receipt)
+    }
+}
+@Model
+final class GuestSavedProjectionRow {
+    @Attribute(.unique) var key: String
+    var collectionKey: String
+    var subject: String
+    var namespace: String
+    var ownerKey: String
+    var fingerprint: String
+    var data: Data
+    init(lease: LibrarySavedLease, value: LibrarySavedProjection) throws {
+        key = lease.projectionKey(value); collectionKey = lease.collection
+        subject = lease.owner.subject; namespace = lease.owner.namespace; ownerKey = lease.owner.storageKey
+        fingerprint = try value.savedFingerprint(); data = try JSONEncoder().encode(value)
+    }
+}
+
 // MARK: - Generated library sync wire values
 // Source: scripts/generate-library-sync-wire.py
 

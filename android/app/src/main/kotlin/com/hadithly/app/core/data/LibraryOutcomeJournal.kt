@@ -10,6 +10,7 @@ import java.util.UUID
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
 
 @Serializable
 data class LibraryOutcomeCounts(val deleted: Long = 0, val restored: Long = 0, val superseded: Long = 0, val missing: Long = 0) {
@@ -136,7 +137,9 @@ data class LibraryOutcomeExportEntry(val binding: LibraryOutcomeBinding, val che
 data class LibraryExportArtifact(val id: String, val directory: File)
 
 /** Owns page identity, row transactions and erase fences. Never writes ACK intent. */
-internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(context, File(context.filesDir, "library_outcomes.db").absolutePath, null, 2) {
+private val savedJournalJson = Json { encodeDefaults = true; explicitNulls = false }
+
+internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(context, File(context.filesDir, "library_outcomes.db").absolutePath, null, 3) {
     override fun onConfigure(db: SQLiteDatabase) { db.setForeignKeyConstraintsEnabled(true) }
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE scopes (scope_key TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, generation TEXT NOT NULL)")
@@ -146,10 +149,20 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         db.execSQL("CREATE TABLE members (collection_key TEXT NOT NULL REFERENCES headers(collection_key) ON DELETE CASCADE, ordinal INTEGER NOT NULL, member_id TEXT NOT NULL, hadith_id TEXT NOT NULL, disposition TEXT NOT NULL, row_data TEXT NOT NULL, PRIMARY KEY(collection_key,ordinal), UNIQUE(collection_key,member_id), UNIQUE(collection_key,hadith_id))")
         db.execSQL("CREATE INDEX members_category ON members(collection_key,disposition)")
         createExportSchema(db, ready = true)
+        createSavedSchema(db)
     }
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        if (oldVersion == 1 && newVersion == 2) createExportSchema(db, ready = false)
-        else throw LibrarySyncFailure.StoreUnavailable
+        if (oldVersion !in 1..2 || newVersion != 3) throw LibrarySyncFailure.StoreUnavailable
+        if (oldVersion == 1) createExportSchema(db, ready = false)
+        createSavedSchema(db)
+    }
+    private fun createSavedSchema(db: SQLiteDatabase) {
+        db.execSQL("CREATE TABLE saved_assemblies (scope_key TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, lease TEXT NOT NULL, checkpoint TEXT NOT NULL, erasing INTEGER NOT NULL)")
+        db.execSQL("CREATE TABLE saved_facts (row_key TEXT NOT NULL UNIQUE, collection_key TEXT NOT NULL, ordinal INTEGER NOT NULL, source_key TEXT NOT NULL UNIQUE, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, fingerprint TEXT NOT NULL, data TEXT NOT NULL, PRIMARY KEY(collection_key,ordinal))")
+        db.execSQL("CREATE TABLE saved_pages (collection_key TEXT NOT NULL, input_key TEXT NOT NULL UNIQUE, sequence INTEGER NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, data TEXT NOT NULL, PRIMARY KEY(collection_key,sequence))")
+        db.execSQL("CREATE TABLE saved_projection (row_key TEXT PRIMARY KEY NOT NULL, collection_key TEXT NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, fingerprint TEXT NOT NULL, data TEXT NOT NULL)")
+        db.execSQL("CREATE INDEX saved_projection_collection ON saved_projection(collection_key,row_key)")
+        for (table in listOf("saved_assemblies", "saved_facts", "saved_pages", "saved_projection")) db.execSQL("CREATE INDEX ${table}_owner ON $table(subject,namespace,owner_key)")
     }
     private fun createExportSchema(db: SQLiteDatabase, ready: Boolean) {
         db.execSQL("CREATE TABLE export_clocks (scope_key TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, epoch TEXT NOT NULL, revision INTEGER NOT NULL, erasing INTEGER NOT NULL)")
@@ -205,7 +218,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
     private fun checkFence(db: SQLiteDatabase, fence: LibraryOutcomeExportFence) {
         val current = clock(db, fence.owner.subject, fence.owner.namespace)
         when (val expected = fence.version) {
-            LibraryOutcomeExportVersion.Empty -> if (current != null) throw LibrarySyncFailure.StoreUnavailable
+            LibraryOutcomeExportVersion.Empty -> if (current != null || hasSavedRows(db, fence.owner.subject, fence.owner.namespace)) throw LibrarySyncFailure.StoreUnavailable
             is LibraryOutcomeExportVersion.Present -> if (current == null || current.erasing || current.epoch != expected.epoch || current.revision != expected.revision) throw LibrarySyncFailure.StoreUnavailable
         }
     }
@@ -214,6 +227,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         val value = clock(db, owner.subject, owner.namespace)
         val version = if (value == null) {
             db.rawQuery("SELECT collection_key FROM headers WHERE subject=? AND namespace=? LIMIT 1", arrayOf(owner.subject, owner.namespace)).use { if (it.moveToFirst()) throw LibrarySyncFailure.StoreUnavailable }
+            if (hasSavedRows(db, owner.subject, owner.namespace)) throw LibrarySyncFailure.StoreUnavailable
             LibraryOutcomeExportVersion.Empty
         } else {
             if (value.erasing) throw LibrarySyncFailure.AccountDeleting
@@ -476,8 +490,267 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         transaction { db ->
             val remaining = db.rawQuery("SELECT 1 FROM headers WHERE subject=? AND namespace=? UNION ALL SELECT 1 FROM scopes WHERE subject=? AND namespace=? LIMIT 1", arrayOf(subject, namespace, subject, namespace)).use { it.moveToFirst() }
             val artifacts = db.rawQuery("SELECT 1 FROM export_artifacts WHERE subject=? AND namespace=? LIMIT 1", arrayOf(subject, namespace)).use { it.moveToFirst() }
-            if (!remaining && !artifacts) db.delete("export_clocks", "scope_key=?", arrayOf(LibraryOutcomeBinding.hash(listOf(namespace, subject))))
+            if (!remaining && !artifacts && !hasSavedRows(db, subject, namespace)) db.delete("export_clocks", "scope_key=?", arrayOf(LibraryOutcomeBinding.hash(listOf(namespace, subject))))
             else if (ownerKey == null) throw LibrarySyncFailure.StoreUnavailable
         }
     }
+    companion object { const val savedStepLimit = 8 }
+    private fun savedCheckClock(db: SQLiteDatabase, owner: LibrarySyncOwner) { if (clock(db, owner.subject, owner.namespace)?.erasing == true) throw LibrarySyncFailure.AccountDeleting }
+    private fun savedHeader(db: SQLiteDatabase, lease: LibrarySavedLease): LibrarySavedCheckpoint {
+        lease.validate()
+        return db.rawQuery("SELECT subject,namespace,owner_key,lease,checkpoint,erasing FROM saved_assemblies WHERE scope_key=?", arrayOf(lease.key)).use {
+            if (!it.moveToFirst() || it.getInt(5) != 0 || it.getString(0) != lease.owner.subject || it.getString(1) != lease.owner.namespace || it.getString(2) != lease.owner.storageKey || it.getString(3).toByteArray().size > 16_384 || it.getString(4).toByteArray().size > 256 * 1024 || Json.decodeFromString<LibrarySavedLease>(it.getString(3)) != lease) throw LibrarySyncFailure.SessionChanged
+            Json.decodeFromString<LibrarySavedCheckpoint>(it.getString(4)).also { value -> value.validate(lease.owner) }
+        }
+    }
+    private fun savedSave(db: SQLiteDatabase, lease: LibrarySavedLease, checkpoint: LibrarySavedCheckpoint) {
+        checkpoint.validate(lease.owner); val data = Json.encodeToString(checkpoint)
+        if (data.toByteArray().size > 256 * 1024) throw LibrarySyncFailure.StoreUnavailable
+        if (db.update("saved_assemblies", ContentValues().apply { put("checkpoint", data) }, "scope_key=?", arrayOf(lease.key)) != 1) throw LibrarySyncFailure.SessionChanged
+        bumpClock(db, lease.owner.subject, lease.owner.namespace)
+    }
+    fun beginSaved(owner: LibrarySyncOwner): LibrarySavedLease = transaction { db ->
+        savedCheckClock(db, owner)
+        val candidate = LibrarySavedLease(owner, UUID.randomUUID().toString(), UUID.randomUUID().toString()); candidate.validate()
+        val existing = db.rawQuery("SELECT lease FROM saved_assemblies WHERE scope_key=?", arrayOf(candidate.key)).use { if (it.moveToFirst()) { if (it.getString(0).toByteArray().size > 16_384) throw LibrarySyncFailure.StoreUnavailable; Json.decodeFromString<LibrarySavedLease>(it.getString(0)) } else null }
+        if (existing != null) { if (existing.owner != owner) throw LibrarySyncFailure.OwnerMismatch; savedHeader(db, existing); existing }
+        else {
+            for (table in listOf("saved_facts", "saved_pages", "saved_projection")) db.rawQuery("SELECT 1 FROM $table WHERE subject=? AND namespace=? AND owner_key=? LIMIT 1", arrayOf(owner.subject, owner.namespace, owner.storageKey)).use { if (it.moveToFirst()) throw LibrarySyncFailure.StoreUnavailable }
+            db.insertOrThrow("saved_assemblies", null, ContentValues().apply {
+                put("scope_key", candidate.key); put("subject", owner.subject); put("namespace", owner.namespace); put("owner_key", owner.storageKey)
+                put("lease", Json.encodeToString(candidate)); put("checkpoint", Json.encodeToString(LibrarySavedCheckpoint())); put("erasing", 0)
+            }); bumpClock(db, owner.subject, owner.namespace); candidate
+        }
+    }
+    fun savedCheckpoint(lease: LibrarySavedLease): LibrarySavedCheckpoint = transaction { db -> savedCheckClock(db, lease.owner); savedHeader(db, lease) }
+    private fun savedFacts(db: SQLiteDatabase, lease: LibrarySavedLease, start: Long, end: Long): List<SavedFact> {
+        if (start < 0 || start > end) throw LibrarySyncFailure.InvalidReceipt
+        val values = mutableListOf<SavedFact>()
+        db.rawQuery("SELECT ordinal,source_key,subject,namespace,owner_key,fingerprint,data FROM saved_facts WHERE collection_key=? AND ordinal>=? AND ordinal<? ORDER BY ordinal LIMIT 8", arrayOf(lease.collection, start.toString(), end.toString())).use {
+            while (it.moveToNext()) {
+                if (it.getString(6).toByteArray().size > LibrarySyncLimits.savedFactPageBytes) throw LibrarySyncFailure.StoreUnavailable
+                val fact = Json.decodeFromString<SavedFact>(it.getString(6)); LibrarySavedPolicy.validate(fact)
+                if (it.getLong(0) != start + values.size || fact.ordinalValue != (start + values.size).toDouble() || it.getString(1) != lease.sourceKey(fact) || it.getString(2) != lease.owner.subject || it.getString(3) != lease.owner.namespace || it.getString(4) != lease.owner.storageKey || it.getString(5) != fact.savedFingerprint()) throw LibrarySyncFailure.StoreUnavailable
+                values.add(fact)
+            }
+        }
+        if (values.size.toLong() != minOf(savedStepLimit.toLong(), end - start)) throw LibrarySyncFailure.StoreUnavailable
+        return values
+    }
+    private fun savedNoExtraFacts(db: SQLiteDatabase, lease: LibrarySavedLease, end: Long) {
+        db.rawQuery("SELECT 1 FROM saved_facts WHERE collection_key=? AND ordinal>=? LIMIT 1", arrayOf(lease.collection, end.toString())).use { if (it.moveToFirst()) throw LibrarySyncFailure.StoreUnavailable }
+    }
+    fun savedRawPage(lease: LibrarySavedLease, start: Long): LibrarySavedRawPage = transaction { db ->
+        savedCheckClock(db, lease.owner); val checkpoint = savedHeader(db, lease)
+        val rows = savedFacts(db, lease, start, checkpoint.next)
+        if (start + rows.size == checkpoint.next) savedNoExtraFacts(db, lease, checkpoint.next)
+        LibrarySavedRawPage(lease, checkpoint, rows, start + rows.size)
+    }
+    private fun savedReceipt(db: SQLiteDatabase, lease: LibrarySavedLease, input: String?): LibrarySavedPageReceipt? =
+        db.rawQuery("SELECT sequence,subject,namespace,owner_key,data FROM saved_pages WHERE collection_key=? AND input_key=?", arrayOf(lease.collection, lease.inputKey(input))).use {
+            if (!it.moveToFirst()) null else {
+                if (it.getString(4).toByteArray().size > 256 * 1024) throw LibrarySyncFailure.StoreUnavailable
+                val receipt = Json.decodeFromString<LibrarySavedPageReceipt>(it.getString(4))
+                LibrarySavedPolicy.integer(receipt.sequence.toDouble()); LibrarySavedPolicy.integer(receipt.start.toDouble())
+                if (receipt.start.toDouble() > LibrarySavedPolicy.maxInteger - receipt.count) throw LibrarySyncFailure.StoreUnavailable
+                if (receipt.input != input || receipt.sequence < 0 || receipt.sequence != it.getLong(0) || it.getString(1) != lease.owner.subject || it.getString(2) != lease.owner.namespace || it.getString(3) != lease.owner.storageKey || receipt.start < 0 || receipt.count !in 0..LibrarySyncLimits.savedFactRows) throw LibrarySyncFailure.StoreUnavailable
+                receipt
+            }
+        }
+    fun persistSaved(lease: LibrarySavedLease, requested: String?, reply: SavedFactsReply): LibrarySavedCheckpoint = transaction { db ->
+        savedCheckClock(db, lease.owner); val checkpoint = savedHeader(db, lease)
+        val replay = savedReceipt(db, lease, requested)
+        if (replay != null) {
+            if (replay.sequence >= checkpoint.pages || replay.start + replay.count > checkpoint.next) throw LibrarySyncFailure.StoreUnavailable
+            replay.validate(reply, lease.owner, savedFacts(db, lease, replay.start, replay.start + replay.count)); return@transaction checkpoint
+        }
+        if (checkpoint.stage != LibrarySavedStage.Collecting) throw LibrarySyncFailure.InvalidReceipt
+        val decision = LibrarySavedPolicy.inspect(reply, lease.owner, checkpoint.position, requested)
+        var next = checkpoint; val result: LibrarySavedReceiptResult; val count: Int
+        when (decision) {
+            LibrarySavedPageDecision.Restart -> { next = next.copy(stage = LibrarySavedStage.Restart); result = LibrarySavedReceiptResult.Restart; count = 0 }
+            is LibrarySavedPageDecision.Unavailable -> { next = next.copy(stage = LibrarySavedStage.Unavailable(decision.reason)); result = LibrarySavedReceiptResult.Unavailable(decision.reason); count = 0 }
+            is LibrarySavedPageDecision.Append -> {
+                val plan = decision.plan
+                if (plan.position.continuation is LibrarySavedContinuation.Next && savedReceipt(db, lease, plan.position.continuation.token) != null) throw LibrarySyncFailure.InvalidReceipt
+                for (fact in plan.facts) {
+                    db.rawQuery("SELECT 1 FROM saved_facts WHERE collection_key=? AND ordinal=? OR source_key=? LIMIT 1", arrayOf(lease.collection, LibrarySavedPolicy.integer(fact.ordinalValue).toString(), lease.sourceKey(fact))).use { if (it.moveToFirst()) throw LibrarySyncFailure.InvalidReceipt }
+                    db.insertOrThrow("saved_facts", null, ContentValues().apply {
+                        put("row_key", lease.ordinalKey(LibrarySavedPolicy.integer(fact.ordinalValue))); put("collection_key", lease.collection); put("ordinal", LibrarySavedPolicy.integer(fact.ordinalValue)); put("source_key", lease.sourceKey(fact)); put("subject", lease.owner.subject); put("namespace", lease.owner.namespace); put("owner_key", lease.owner.storageKey)
+                        put("fingerprint", fact.savedFingerprint()); put("data", Json.encodeToString(fact))
+                    }); next = next.copy(digest = LibraryOutcomeBinding.hash(listOf(next.digest, fact.savedFingerprint())))
+                }
+                next = next.copy(position = plan.position)
+                if (plan.position.continuation is LibrarySavedContinuation.Complete) next = next.copy(stage = LibrarySavedStage.Folding(0, -1, LibraryOutcomeBinding.hash(listOf("saved-raw-v1"))))
+                result = LibrarySavedReceiptResult.Advanced(plan.position); count = plan.facts.size
+            }
+        }
+        val receipt = LibrarySavedPageReceipt(checkpoint.pages, requested, checkpoint.position, checkpoint.next, count, librarySemanticDigest(savedJournalJson.encodeToJsonElement(reply), "library-saved-page-v1:"), result)
+        db.insertOrThrow("saved_pages", null, ContentValues().apply {
+            put("collection_key", lease.collection); put("input_key", lease.inputKey(requested)); put("sequence", receipt.sequence); put("subject", lease.owner.subject); put("namespace", lease.owner.namespace); put("owner_key", lease.owner.storageKey); put("data", Json.encodeToString(receipt))
+        }); next = next.copy(pages = next.pages + 1); savedSave(db, lease, next); next
+    }
+    private fun savedProjectionValue(lease: LibrarySavedLease, key: String, subject: String, namespace: String, owner: String, fingerprint: String, data: String): LibrarySavedProjection {
+        if (data.toByteArray().size > 256 * 1024) throw LibrarySyncFailure.StoreUnavailable
+        val value = Json.decodeFromString<LibrarySavedProjection>(data); value.validateProjection()
+        if (key != lease.projectionKey(value) || subject != lease.owner.subject || namespace != lease.owner.namespace || owner != lease.owner.storageKey || fingerprint != value.savedFingerprint()) throw LibrarySyncFailure.StoreUnavailable
+        return value
+    }
+    private fun savedProjection(db: SQLiteDatabase, lease: LibrarySavedLease, key: String): LibrarySavedProjection? =
+        db.rawQuery("SELECT subject,namespace,owner_key,fingerprint,data FROM saved_projection WHERE collection_key=? AND row_key=?", arrayOf(lease.collection, key)).use {
+            if (it.moveToFirst()) savedProjectionValue(lease, key, it.getString(0), it.getString(1), it.getString(2), it.getString(3), it.getString(4)) else null
+        }
+    private fun savedProjectionRows(db: SQLiteDatabase, lease: LibrarySavedLease, after: String?): List<Pair<String, LibrarySavedProjection>> {
+        val values = mutableListOf<Pair<String, LibrarySavedProjection>>()
+        val prefix = lease.collection + ":r:"
+        if (after != null && !after.startsWith(prefix)) throw LibrarySyncFailure.InvalidReceipt
+        db.rawQuery("SELECT row_key,subject,namespace,owner_key,fingerprint,data FROM saved_projection WHERE collection_key=? AND row_key>? AND row_key<? ORDER BY row_key LIMIT 8", arrayOf(lease.collection, after ?: prefix, prefix + "~")).use {
+            while (it.moveToNext()) values.add(it.getString(0) to savedProjectionValue(lease, it.getString(0), it.getString(1), it.getString(2), it.getString(3), it.getString(4), it.getString(5)))
+        }; return values
+    }
+    private fun savedPageReceipts(db: SQLiteDatabase, lease: LibrarySavedLease, start: Long, total: Long): List<LibrarySavedPageReceipt> {
+        if (start !in 0..total) throw LibrarySyncFailure.StoreUnavailable
+        val receipts = mutableListOf<LibrarySavedPageReceipt>()
+        db.rawQuery("SELECT sequence,input_key,subject,namespace,owner_key,data FROM saved_pages WHERE collection_key=? AND sequence>=? ORDER BY sequence LIMIT 8", arrayOf(lease.collection, start.toString())).use {
+            while (it.moveToNext()) {
+                if (it.getString(5).toByteArray().size > 256 * 1024) throw LibrarySyncFailure.StoreUnavailable
+                val receipt = Json.decodeFromString<LibrarySavedPageReceipt>(it.getString(5))
+                LibrarySavedPolicy.integer(receipt.sequence.toDouble()); LibrarySavedPolicy.integer(receipt.start.toDouble())
+                if (receipt.start.toDouble() > LibrarySavedPolicy.maxInteger - receipt.count) throw LibrarySyncFailure.StoreUnavailable
+                if (receipt.sequence != start + receipts.size || it.getLong(0) != receipt.sequence || it.getString(1) != lease.inputKey(receipt.input) || it.getString(2) != lease.owner.subject || it.getString(3) != lease.owner.namespace || it.getString(4) != lease.owner.storageKey || receipt.start < 0 || receipt.count !in 0..LibrarySyncLimits.savedFactRows) throw LibrarySyncFailure.StoreUnavailable
+                val facts = savedFacts(db, lease, receipt.start, receipt.start + receipt.count)
+                receipt.validate(receipt.reply(facts, lease.owner), lease.owner, facts); receipts.add(receipt)
+            }
+        }
+        if (receipts.size.toLong() != minOf(savedStepLimit.toLong(), total - start)) throw LibrarySyncFailure.StoreUnavailable
+        return receipts
+    }
+    fun advanceSaved(lease: LibrarySavedLease): LibrarySavedCheckpoint = transaction { db ->
+        savedCheckClock(db, lease.owner); val checkpoint = savedHeader(db, lease); var next = checkpoint
+        when (val phase = checkpoint.stage) {
+            is LibrarySavedStage.Folding -> {
+                val rows = savedFacts(db, lease, phase.next, checkpoint.next); var rank = phase.phase; var checksum = phase.digest
+                for (fact in rows) {
+                    if (fact.sourcePhase < rank) throw LibrarySyncFailure.StoreUnavailable; rank = fact.sourcePhase
+                    val kind = if (fact.sourcePhase == 0) "folder" else "item"; val key = lease.collection + ":r:" + LibraryOutcomeBinding.hash(listOf(kind, fact.targetID))
+                    val previous = savedProjection(db, lease, key); val value = LibrarySavedPolicy.fold(fact, previous)
+                    if (previous == null) next = next.copy(counts = next.counts.adding(value))
+                    val data = ContentValues().apply { put("row_key", key); put("collection_key", lease.collection); put("subject", lease.owner.subject); put("namespace", lease.owner.namespace); put("owner_key", lease.owner.storageKey); put("fingerprint", value.savedFingerprint()); put("data", Json.encodeToString(value)) }
+                    if (previous == null) db.insertOrThrow("saved_projection", null, data) else if (db.update("saved_projection", data, "row_key=?", arrayOf(key)) != 1) throw LibrarySyncFailure.StoreUnavailable
+                    checksum = LibraryOutcomeBinding.hash(listOf(checksum, fact.savedFingerprint()))
+                }
+                val end = phase.next + rows.size
+                next = if (end == checkpoint.next) {
+                    savedNoExtraFacts(db, lease, end)
+                    if (checksum != checkpoint.digest) throw LibrarySyncFailure.StoreUnavailable
+                    next.copy(stage = LibrarySavedStage.CheckingPages(0, null, null))
+                } else next.copy(stage = LibrarySavedStage.Folding(end, rank, checksum))
+            }
+            is LibrarySavedStage.CheckingPages -> {
+                val rows = savedPageReceipts(db, lease, phase.next, checkpoint.pages); var input = phase.input; var position = phase.position
+                for (receipt in rows) {
+                    if (receipt.input != input || receipt.before != position || receipt.result !is LibrarySavedReceiptResult.Advanced) throw LibrarySyncFailure.StoreUnavailable
+                    position = receipt.result.position; input = position.continuation.token
+                }
+                val end = phase.next + rows.size
+                next = if (end == checkpoint.pages) {
+                    if (position != checkpoint.position) throw LibrarySyncFailure.StoreUnavailable
+                    next.copy(stage = LibrarySavedStage.Verifying(null, LibrarySavedCounts()))
+                } else next.copy(stage = LibrarySavedStage.CheckingPages(end, input, position))
+            }
+            is LibrarySavedStage.Verifying -> {
+                val rows = savedProjectionRows(db, lease, phase.after); var seen = phase.seen
+                for (row in rows) seen = seen.adding(row.second)
+                if (seen.items > checkpoint.counts.items || seen.folders > checkpoint.counts.folders) throw LibrarySyncFailure.StoreUnavailable
+                next = if (rows.size < savedStepLimit) {
+                    if (seen != checkpoint.counts) throw LibrarySyncFailure.StoreUnavailable
+                    next.copy(stage = LibrarySavedStage.Prepared)
+                } else next.copy(stage = LibrarySavedStage.Verifying(rows.last().first, seen))
+            }
+            else -> return@transaction checkpoint
+        }; savedSave(db, lease, next); next
+    }
+    fun savedPreparedPage(lease: LibrarySavedLease, after: String?): LibrarySavedProjectionPage = transaction { db ->
+        savedCheckClock(db, lease.owner); if (savedHeader(db, lease).stage != LibrarySavedStage.Prepared) throw LibrarySyncFailure.StoreUnavailable
+        val rows = savedProjectionRows(db, lease, after); LibrarySavedProjectionPage(rows.map { it.second }, rows.lastOrNull()?.first, rows.size < savedStepLimit)
+    }
+
+    private fun hasSavedRows(db: SQLiteDatabase, subject: String, namespace: String): Boolean {
+        for (table in listOf("saved_assemblies", "saved_facts", "saved_pages", "saved_projection")) db.rawQuery("SELECT 1 FROM $table WHERE subject=? AND namespace=? LIMIT 1", arrayOf(subject, namespace)).use { if (it.moveToFirst()) return true }
+        return false
+    }
+    fun beginSavedErase(subject: String, namespace: String, ownerKey: String?) = transaction { db ->
+        if (ownerKey != null) {
+            val key = LibraryOutcomeBinding.hash(listOf(namespace, subject)) + ":" + LibraryOutcomeBinding.hash(listOf(ownerKey, subject))
+            db.rawQuery("SELECT subject,namespace,owner_key FROM saved_assemblies WHERE scope_key=?", arrayOf(key)).use {
+                if (it.moveToFirst() && (it.getString(0) != subject || it.getString(1) != namespace || it.getString(2) != ownerKey)) throw LibrarySyncFailure.OwnerMismatch
+            }
+            db.update("saved_assemblies", ContentValues().apply { put("erasing", 1) }, "scope_key=?", arrayOf(key))
+        }
+        bumpClock(db, subject, namespace, erasing = ownerKey == null)
+    }
+    fun eraseSavedStep(subject: String, namespace: String, ownerKey: String?): Boolean = transaction { db ->
+        if (ownerKey == null && clock(db, subject, namespace)?.erasing != true) throw LibrarySyncFailure.AccountDeleting
+        if (ownerKey != null) db.rawQuery("SELECT erasing FROM saved_assemblies WHERE subject=? AND namespace=? AND owner_key=? LIMIT 1", arrayOf(subject, namespace, ownerKey)).use { if (it.moveToFirst() && it.getInt(0) == 0) throw LibrarySyncFailure.InvalidChange }
+        val selection = if (ownerKey == null) "subject=? AND namespace=?" else "subject=? AND namespace=? AND owner_key=?"
+        val args = if (ownerKey == null) arrayOf(subject, namespace) else arrayOf(subject, namespace, ownerKey)
+        for (table in listOf("saved_facts", "saved_pages", "saved_projection", "saved_assemblies")) {
+            val deleted = db.delete(table, "rowid IN (SELECT rowid FROM $table WHERE $selection LIMIT 8)", args)
+            if (deleted > 0) { bumpClock(db, subject, namespace, erasing = ownerKey == null); return@transaction true }
+        }; false
+    }
+    fun savedExportRecords(fence: LibraryOutcomeExportFence, section: Int, after: String?): Triple<List<kotlinx.serialization.json.JsonElement>, String?, Boolean> = transaction { db ->
+        checkFence(db, fence)
+        val subject = fence.owner.subject; val namespace = fence.owner.namespace
+        val prefix = LibraryOutcomeBinding.hash(listOf(namespace, subject)) + ":"; val lower = after ?: prefix; val upper = prefix + "~"
+        val (table, key) = when (section) { 0 -> "saved_assemblies" to "scope_key"; 1 -> "saved_facts" to "row_key"; 2 -> "saved_pages" to "input_key"; 3 -> "saved_projection" to "row_key"; else -> throw LibrarySyncFailure.InvalidReceipt }
+        val values = mutableListOf<kotlinx.serialization.json.JsonElement>(); var last: String? = null
+        fun metadata(s: String, n: String, owner: String, collection: String): MutableMap<String, kotlinx.serialization.json.JsonElement> {
+            val scope = LibraryOutcomeBinding.hash(listOf(namespace, subject)) + ":" + LibraryOutcomeBinding.hash(listOf(owner, subject))
+            if (s != subject || n != namespace || !owner.startsWith("$namespace|") || !collection.startsWith("$scope:")) throw LibrarySyncFailure.OwnerMismatch
+            return mutableMapOf("ownerStorageKey" to kotlinx.serialization.json.JsonPrimitive(owner), "subject" to kotlinx.serialization.json.JsonPrimitive(s), "namespace" to kotlinx.serialization.json.JsonPrimitive(n), "collection" to kotlinx.serialization.json.JsonPrimitive(collection), "coverage" to kotlinx.serialization.json.JsonPrimitive("retained_local_rows"))
+        }
+        if (section == 0) db.rawQuery("SELECT scope_key,lease FROM saved_assemblies WHERE scope_key>? AND scope_key<? ORDER BY scope_key LIMIT 8", arrayOf(lower, upper)).use {
+            while (it.moveToNext()) {
+                if (it.getString(1).toByteArray().size > 16_384) throw LibrarySyncFailure.StoreUnavailable
+                val lease = Json.decodeFromString<LibrarySavedLease>(it.getString(1))
+                if (lease.owner.subject != subject || lease.owner.namespace != namespace || lease.key != it.getString(0)) throw LibrarySyncFailure.OwnerMismatch
+                val data = LibrarySavedExportEntry(lease, savedHeader(db, lease)).exportMetadata().toMutableMap()
+                data["kind"] = kotlinx.serialization.json.JsonPrimitive("assembly"); data["coverage"] = kotlinx.serialization.json.JsonPrimitive("retained_local_rows")
+                values.add(kotlinx.serialization.json.JsonObject(data)); last = it.getString(0)
+            }
+        } else {
+            val columns = when (section) { 1 -> "ordinal,source_key,fingerprint,data"; 2 -> "sequence,data"; else -> "fingerprint,data" }
+            db.rawQuery("SELECT $key,collection_key,subject,namespace,owner_key,$columns FROM $table WHERE $key>? AND $key<? ORDER BY $key LIMIT 8", arrayOf(lower, upper)).use {
+                while (it.moveToNext()) {
+                    val rowKey = it.getString(0); val collection = it.getString(1); val data = metadata(it.getString(2), it.getString(3), it.getString(4), collection)
+                    val record: LibrarySavedExportRecord = when (section) {
+                        1 -> {
+                            if (it.getString(8).toByteArray().size > LibrarySyncLimits.savedFactPageBytes) throw LibrarySyncFailure.StoreUnavailable
+                            val fact = Json.decodeFromString<SavedFact>(it.getString(8)); LibrarySavedPolicy.validate(fact); val ordinal = LibrarySavedPolicy.integer(fact.ordinalValue)
+                            if (it.getLong(5) != ordinal || rowKey != collection + ":f:" + ordinal.toString(16).padStart(16, '0') || it.getString(6) != collection + ":i:" + LibraryOutcomeBinding.hash(listOf(fact.sourcePhase.toString(), fact.sourceID)) || it.getString(7) != fact.savedFingerprint()) throw LibrarySyncFailure.StoreUnavailable
+                            LibrarySavedExportRecord.Fact(fact)
+                        }
+                        2 -> {
+                            if (it.getString(6).toByteArray().size > 256 * 1024) throw LibrarySyncFailure.StoreUnavailable
+                            val receipt = Json.decodeFromString<LibrarySavedPageReceipt>(it.getString(6))
+                            if (receipt.sequence < 0 || receipt.sequence != it.getLong(5) || receipt.start < 0 || receipt.count < 0 || rowKey != collection + ":p:" + LibraryOutcomeBinding.hash(listOf(if (receipt.input == null) "absent" else "present", receipt.input ?: ""))) throw LibrarySyncFailure.StoreUnavailable
+                            val positions = listOfNotNull(receipt.before, when (val result = receipt.result) { is LibrarySavedReceiptResult.Advanced -> result.position; else -> null })
+                            if (positions.any { p -> p.owner.subject != subject || p.owner.namespace != namespace || p.owner.storageKey != it.getString(4) }) throw LibrarySyncFailure.OwnerMismatch
+                            LibrarySavedExportRecord.Page(receipt)
+                        }
+                        else -> LibrarySavedExportRecord.Projection(savedProjectionValueFromExport(collection, rowKey, it.getString(5), it.getString(6)))
+                    }
+                    data["record"] = record.exportValue(); values.add(kotlinx.serialization.json.JsonObject(data)); last = rowKey
+                }
+            }
+        }; checkFence(db, fence); Triple(values, last, values.size < savedStepLimit)
+    }
+    private fun savedProjectionValueFromExport(collection: String, key: String, fingerprint: String, data: String): LibrarySavedProjection {
+        if (data.toByteArray().size > 256 * 1024) throw LibrarySyncFailure.StoreUnavailable
+        val value = Json.decodeFromString<LibrarySavedProjection>(data); value.validateProjection()
+        if (key != collection + ":r:" + LibraryOutcomeBinding.hash(listOf(value.kind, value.targetID)) || fingerprint != value.savedFingerprint()) throw LibrarySyncFailure.StoreUnavailable
+        return value
+    }
+
 }

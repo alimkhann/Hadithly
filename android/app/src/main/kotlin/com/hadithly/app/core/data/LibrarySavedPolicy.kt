@@ -127,3 +127,129 @@ object LibrarySavedPolicy {
         validate(row); return LibrarySavedProjection.Item(row, first)
     }
 }
+
+@Serializable
+data class LibrarySavedLease(val owner: LibrarySyncOwner, val epoch: String, val generation: String) {
+    fun validate() {
+        if (listOf(owner.key, owner.subject, owner.namespace).any { it.isEmpty() || it.toByteArray().size > 1024 } || listOf(epoch, generation).any { it.isEmpty() || it.toByteArray().size > 128 }) throw LibrarySyncFailure.StoreUnavailable
+    }
+    val key: String get() = LibraryOutcomeBinding.hash(listOf(owner.namespace, owner.subject)) + ":" + LibraryOutcomeBinding.hash(listOf(owner.storageKey, owner.subject))
+    val collection: String get() = key + ":" + LibraryOutcomeBinding.hash(listOf(epoch, generation))
+    fun ordinalKey(ordinal: Long) = collection + ":f:" + ordinal.toString(16).padStart(16, '0')
+    fun inputKey(input: String?) = collection + ":p:" + LibraryOutcomeBinding.hash(listOf(if (input == null) "absent" else "present", input ?: ""))
+    fun sequenceKey(sequence: Long) = collection + ":s:" + sequence.toString(16).padStart(16, '0')
+    fun sourceKey(fact: SavedFact) = collection + ":i:" + LibraryOutcomeBinding.hash(listOf(fact.sourcePhase.toString(), fact.sourceID))
+    fun projectionKey(value: LibrarySavedProjection) = collection + ":r:" + LibraryOutcomeBinding.hash(listOf(value.kind, value.targetID))
+}
+@Serializable
+data class LibrarySavedCounts(val items: Long = 0, val folders: Long = 0) {
+    val total: Long get() = items + folders
+    fun adding(value: LibrarySavedProjection) = if (value is LibrarySavedProjection.Item) copy(items = items + 1) else copy(folders = folders + 1)
+}
+@Serializable
+sealed interface LibrarySavedStage {
+    @Serializable data object Collecting : LibrarySavedStage
+    @Serializable data class Folding(val next: Long, val phase: Int, val digest: String) : LibrarySavedStage
+    @Serializable data class CheckingPages(val next: Long, val input: String?, val position: LibrarySavedReadPosition?) : LibrarySavedStage
+    @Serializable data class Verifying(val after: String?, val seen: LibrarySavedCounts) : LibrarySavedStage
+    @Serializable data object Prepared : LibrarySavedStage
+    @Serializable data object Restart : LibrarySavedStage
+    @Serializable data class Unavailable(val reason: SavedFactsReplyUnavailableReason) : LibrarySavedStage
+}
+@Serializable
+data class LibrarySavedCheckpoint(val position: LibrarySavedReadPosition? = null, val pages: Long = 0,
+    val digest: String = LibraryOutcomeBinding.hash(listOf("saved-raw-v1")), val counts: LibrarySavedCounts = LibrarySavedCounts(), val stage: LibrarySavedStage = LibrarySavedStage.Collecting) {
+    val next: Long get() = position?.nextOrdinal ?: 0L
+    fun validate(owner: LibrarySyncOwner) {
+        if (pages < 0 || pages.toDouble() > LibrarySavedPolicy.maxInteger || counts.items < 0 || counts.folders < 0 || counts.items.toDouble() > LibrarySavedPolicy.maxInteger || counts.folders.toDouble() > LibrarySavedPolicy.maxInteger || counts.total > next || digest.length != 64) throw LibrarySyncFailure.StoreUnavailable
+        position?.let {
+            if (it.owner != owner || it.nextOrdinal < 0 || it.nextOrdinal.toDouble() > LibrarySavedPolicy.maxInteger || it.phase !in -1..4 || it.assemblyID.isEmpty() || it.assemblyID.toByteArray().size > LibrarySyncLimits.savedFactCursorBytes || it.continuation.token.isEmpty() || it.continuation.token.toByteArray().size > LibrarySyncLimits.savedFactCursorBytes) throw LibrarySyncFailure.StoreUnavailable
+            LibrarySavedPolicy.integer(it.version)
+        }
+        when (val phase = stage) {
+            LibrarySavedStage.Collecting -> if (position != null && position.continuation !is LibrarySavedContinuation.Next) throw LibrarySyncFailure.StoreUnavailable
+            is LibrarySavedStage.Folding -> if (position?.continuation !is LibrarySavedContinuation.Complete || phase.next !in 0..next || phase.phase !in -1..4 || phase.digest.length != 64) throw LibrarySyncFailure.StoreUnavailable
+            is LibrarySavedStage.CheckingPages -> if (position?.continuation !is LibrarySavedContinuation.Complete || phase.next !in 0..pages) throw LibrarySyncFailure.StoreUnavailable
+            is LibrarySavedStage.Verifying -> if (position?.continuation !is LibrarySavedContinuation.Complete || phase.seen.items !in 0..counts.items || phase.seen.folders !in 0..counts.folders) throw LibrarySyncFailure.StoreUnavailable
+            LibrarySavedStage.Prepared -> if (position?.continuation !is LibrarySavedContinuation.Complete) throw LibrarySyncFailure.StoreUnavailable
+            LibrarySavedStage.Restart, is LibrarySavedStage.Unavailable -> Unit
+        }
+    }
+}
+@Serializable
+sealed interface LibrarySavedReceiptResult {
+    @Serializable data class Advanced(val position: LibrarySavedReadPosition) : LibrarySavedReceiptResult
+    @Serializable data object Restart : LibrarySavedReceiptResult
+    @Serializable data class Unavailable(val reason: SavedFactsReplyUnavailableReason) : LibrarySavedReceiptResult
+}
+@Serializable
+data class LibrarySavedPageReceipt(val sequence: Long, val input: String?, val before: LibrarySavedReadPosition?, val start: Long, val count: Int, val fingerprint: String, val result: LibrarySavedReceiptResult) {
+    fun validate(reply: SavedFactsReply, owner: LibrarySyncOwner, facts: List<SavedFact>) {
+        val decision = LibrarySavedPolicy.inspect(reply, owner, before, input)
+        if (fingerprint != librarySemanticDigest(savedPolicyJson.encodeToJsonElement(reply), "library-saved-page-v1:")) throw LibrarySyncFailure.InvalidReceipt
+        when (decision) {
+            is LibrarySavedPageDecision.Append -> if (result !is LibrarySavedReceiptResult.Advanced || decision.plan.position != result.position || decision.plan.start != start || decision.plan.facts != facts || facts.size != count) throw LibrarySyncFailure.InvalidReceipt
+            LibrarySavedPageDecision.Restart -> if (result != LibrarySavedReceiptResult.Restart || facts.isNotEmpty() || count != 0) throw LibrarySyncFailure.InvalidReceipt
+            is LibrarySavedPageDecision.Unavailable -> if (result !is LibrarySavedReceiptResult.Unavailable || result.reason != decision.reason || facts.isNotEmpty() || count != 0) throw LibrarySyncFailure.InvalidReceipt
+        }
+    }
+}
+@Serializable
+data class LibrarySavedExportEntry(val lease: LibrarySavedLease, val checkpoint: LibrarySavedCheckpoint)
+@Serializable
+sealed interface LibrarySavedExportRecord {
+    @Serializable data class Fact(val value: SavedFact) : LibrarySavedExportRecord
+    @Serializable data class Page(val value: LibrarySavedPageReceipt) : LibrarySavedExportRecord
+    @Serializable data class Projection(val value: LibrarySavedProjection) : LibrarySavedExportRecord
+}
+data class LibrarySavedRawPage(val lease: LibrarySavedLease, val checkpoint: LibrarySavedCheckpoint, val facts: List<SavedFact>, val next: Long)
+data class LibrarySavedProjectionPage(val rows: List<LibrarySavedProjection>, val next: String?, val done: Boolean)
+val LibrarySavedProjection.kind: String get() = if (this is LibrarySavedProjection.Item) "item" else "folder"
+val LibrarySavedProjection.targetID: String get() = when (this) { is LibrarySavedProjection.Item -> value.hadithId; is LibrarySavedProjection.Folder -> value._id }
+fun LibrarySavedProjection.savedFingerprint(): String {
+    val payload = when (this) {
+        is LibrarySavedProjection.Item -> librarySemanticDigest(savedPolicyJson.encodeToJsonElement(value), "saved-private-value-v1:")
+        is LibrarySavedProjection.Folder -> librarySemanticDigest(savedPolicyJson.encodeToJsonElement(value), "saved-private-value-v1:")
+    }
+    return LibraryOutcomeBinding.hash(listOf(kind, firstOrdinal.toString(), payload))
+}
+fun LibrarySavedProjection.validateProjection() {
+    LibrarySavedPolicy.integer(firstOrdinal.toDouble())
+    when (this) {
+        is LibrarySavedProjection.Item -> LibrarySavedPolicy.validate(value)
+        is LibrarySavedProjection.Folder -> if (value._id.isEmpty() || value._id.toByteArray().size > 128 || value.name.toByteArray().size > LibrarySyncLimits.savedFactSourceBytes || !value.createdAt.isFinite() || value.createdAt < 0) throw LibrarySyncFailure.InvalidReceipt
+    }
+}
+
+fun LibrarySavedPageReceipt.reply(facts: List<SavedFact>, owner: LibrarySyncOwner): SavedFactsReply = when (val value = result) {
+    is LibrarySavedReceiptResult.Advanced -> when (val next = value.position.continuation) {
+        is LibrarySavedContinuation.Next -> SavedFactsReply.Page(owner.key, value.position.version, value.position.assemblyID, input, start.toDouble(), facts, next.token)
+        is LibrarySavedContinuation.Complete -> SavedFactsReply.Complete(owner.key, value.position.version, value.position.assemblyID, input, start.toDouble(), facts, value.position.nextOrdinal.toDouble(), next.token)
+    }
+    LibrarySavedReceiptResult.Restart -> SavedFactsReply.Restart("saved_changed")
+    is LibrarySavedReceiptResult.Unavailable -> SavedFactsReply.Unavailable(value.reason)
+}
+data class LibrarySavedExportPage(val records: List<LibrarySavedExportRecord>, val next: Long, val done: Boolean)
+fun LibrarySavedExportEntry.exportMetadata(): Map<String, kotlinx.serialization.json.JsonElement> {
+    fun number(value: Long) = kotlinx.serialization.json.JsonPrimitive(value)
+    val phase = when (checkpoint.stage) { LibrarySavedStage.Collecting -> "collecting"; is LibrarySavedStage.Folding -> "folding"; is LibrarySavedStage.CheckingPages -> "checking_pages"; is LibrarySavedStage.Verifying -> "verifying"; LibrarySavedStage.Prepared -> "prepared"; LibrarySavedStage.Restart -> "restart"; is LibrarySavedStage.Unavailable -> "unavailable" }
+    return mapOf("formatVersion" to number(1), "ownerKey" to kotlinx.serialization.json.JsonPrimitive(lease.owner.key), "subject" to kotlinx.serialization.json.JsonPrimitive(lease.owner.subject), "namespace" to kotlinx.serialization.json.JsonPrimitive(lease.owner.namespace),
+        "generation" to kotlinx.serialization.json.JsonPrimitive(lease.generation), "status" to kotlinx.serialization.json.JsonPrimitive(phase), "active" to kotlinx.serialization.json.JsonPrimitive(false), "collectedFacts" to number(checkpoint.next), "pageCount" to number(checkpoint.pages),
+        "projectedItems" to number(checkpoint.counts.items), "projectedFolders" to number(checkpoint.counts.folders), "privateVersion" to (checkpoint.position?.let { kotlinx.serialization.json.JsonPrimitive(it.version) } ?: kotlinx.serialization.json.JsonNull))
+}
+fun LibrarySavedExportRecord.exportValue(): kotlinx.serialization.json.JsonElement = when (this) {
+    is LibrarySavedExportRecord.Fact -> kotlinx.serialization.json.buildJsonObject { put("kind", kotlinx.serialization.json.JsonPrimitive("fact")); put("value", savedPolicyJson.encodeToJsonElement(value)) }
+    is LibrarySavedExportRecord.Projection -> kotlinx.serialization.json.buildJsonObject {
+        put("kind", kotlinx.serialization.json.JsonPrimitive(value.kind)); put("firstOrdinal", kotlinx.serialization.json.JsonPrimitive(value.firstOrdinal))
+        put("value", when (val row = value) { is LibrarySavedProjection.Item -> savedPolicyJson.encodeToJsonElement(row.value); is LibrarySavedProjection.Folder -> savedPolicyJson.encodeToJsonElement(row.value) })
+    }
+    is LibrarySavedExportRecord.Page -> kotlinx.serialization.json.buildJsonObject {
+        put("kind", kotlinx.serialization.json.JsonPrimitive("page")); put("sequence", kotlinx.serialization.json.JsonPrimitive(value.sequence)); put("start", kotlinx.serialization.json.JsonPrimitive(value.start)); put("count", kotlinx.serialization.json.JsonPrimitive(value.count))
+        put("fingerprint", kotlinx.serialization.json.JsonPrimitive(value.fingerprint)); put("inputFingerprint", kotlinx.serialization.json.JsonPrimitive(LibraryOutcomeBinding.hash(listOf(if (value.input == null) "absent" else "present", value.input ?: ""))))
+        when (val result = value.result) {
+            is LibrarySavedReceiptResult.Advanced -> { put("status", kotlinx.serialization.json.JsonPrimitive("advanced")); put("outputFingerprint", kotlinx.serialization.json.JsonPrimitive(LibraryOutcomeBinding.hash(listOf(result.position.continuation.token)))) }
+            LibrarySavedReceiptResult.Restart -> put("status", kotlinx.serialization.json.JsonPrimitive("restart"))
+            is LibrarySavedReceiptResult.Unavailable -> put("status", kotlinx.serialization.json.JsonPrimitive(result.reason.name.lowercase()))
+        }
+    }
+}

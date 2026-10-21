@@ -3,8 +3,11 @@
 October 21, after `2a287fd`. Parent read both complete candidates and the independent
 judgment. Select A21/25 over B20/25: retain exact raw facts and page identities,
 then fold and verify bounded rows before producing an opaque prepared generation.
-Graft B's single-flight facade and conservative sixteen-data-row transaction budget,
-counting all metadata and identity checks. Do not add a second compact fact ledger
+Graft B's single-flight facade and conservative fixed work budget. A local step
+folds eight facts with up to eight prior projections and eight writes plus fixed
+metadata, below fifty row operations. Page-chain checking reads eight receipts and
+at most eight facts at the current one-fact transport limit. The original
+sixteen-total-operation wording was too tight. Do not add a second compact fact ledger
 or duplicate full private page payload alongside the raw journal.
 
 The row database owns any eventual active pointer and private revision. Existing
@@ -32,6 +35,12 @@ SwiftData migration needs an actual old disk store. No unbounded cascades or hid
 whole-library array may substitute for bounded work. iOS recoverable save-failure
 and real hosted/device/SDK matrices remain open until their own evidence exists.
 
+The durable store component now has actual on-disk reopen, old-schema migration,
+streamed export, bounded cleanup/erase and replay proof. See
+`../../../LIBRARY_SAVED_STORE_VERIFICATION.md` for 107 iOS and 88 Android passes,
+the reproduced technical-sort failure and indexed-query review corrections.
+
 Workflow: [x] ground; [x] two distinct sketches; [x] independent judge; [x] select;
-[x] native policy/wire proof; [ ] durable raw store/fold/migration/export/erase proof;
-[ ] review and integration; [ ] real hosted/device proof. No cloud change authorized.
+[x] native policy/wire proof; [x] durable raw store/fold/migration/export/erase proof;
+[x] store component review; [ ] activation and production integration;
+[ ] real hosted/device proof. No cloud change authorized.

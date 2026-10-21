@@ -602,7 +602,7 @@ class LibrarySync(
         val fence = store.prepareOutcomeExport(captured.owner) { runCatching { capability(captured) }.isSuccess }
         capability(captured)
         val fields = kotlinx.serialization.json.JsonObject(server + ("localLibrary" to portableState(captured)))
-        if (fields.containsKey("localOutcomeEvidence") || fields.containsExportKey(LibraryExportPolicy.deniedKeys)) throw LibrarySyncFailure.InvalidReceipt
+        if (fields.containsKey("localOutcomeEvidence") || fields.containsKey("localSavedEvidence") || fields.containsExportKey(LibraryExportPolicy.deniedKeys)) throw LibrarySyncFailure.InvalidReceipt
         val artifact = store.beginOutcomeExportArtifact(fence)
         val partial = java.io.File(artifact.directory, "document.partial")
         var keep = false
@@ -650,6 +650,19 @@ class LibrarySync(
                         kotlinx.coroutines.yield()
                     }
                     raw("]}"); after = entry.binding.key
+                    kotlinx.coroutines.yield()
+                }
+            }
+            raw("],\"localSavedEvidence\":[")
+            var firstSaved = true
+            for (section in 0..3) {
+                var cursor: String? = null
+                while (true) {
+                    current()
+                    val page = store.savedExportRecords(fence, section, cursor)
+                    for (value in page.first) { if (!firstSaved) raw(","); firstSaved = false; json(value) }
+                    cursor = page.second
+                    if (page.third) break
                     kotlinx.coroutines.yield()
                 }
             }

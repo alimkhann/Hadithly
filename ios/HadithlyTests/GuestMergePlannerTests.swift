@@ -79,6 +79,312 @@ final class GuestMergePlannerTests: XCTestCase {
         XCTAssertEqual(row.hadithId, "h"); XCTAssertEqual(row.noteContent, " \nعربى ")
     }
 
+    private func savedReply(_ input: String?, owner: LibrarySyncOwner, facts: [SavedFact]) throws -> SavedFactsReply {
+        if input == nil { return .page(.init(ownerKey: owner.key, version: 9, assemblyId: "private-root-proof", input: nil, start: 0, facts: [], next: "cursor:0")) }
+        guard let input, input.hasPrefix("cursor:"), let index = Int(input.dropFirst(7)), index >= 0, index <= facts.count else { throw LibrarySyncFailure.invalidReceipt }
+        let rows = index < facts.count ? [facts[index]] : []
+        if index + rows.count == facts.count { return .complete(.init(ownerKey: owner.key, version: 9, assemblyId: "private-root-proof", input: input, start: Double(index), facts: rows, total: Double(facts.count), completion: "private-completion-proof")) }
+        return .page(.init(ownerKey: owner.key, version: 9, assemblyId: "private-root-proof", input: input, start: Double(index), facts: rows, next: "cursor:\(index + rows.count)"))
+    }
+    private func savedLargeFacts() -> [SavedFact] {
+        var facts: [SavedFact] = [.folder(.init(sourceId: "empty-folder", ordinal: 0, value: .init(_id: "empty-folder", name: "Empty folder", createdAt: 1)))]
+        for index in 0..<502 {
+            facts.append(.item(.init(sourceId: "canonical-\(index)", ordinal: Double(facts.count), value: .init(hadithId: "private-target-\(index)", createdAt: 10, updatedAt: 11,
+                bookmarkCreatedAt: index == 0 ? 1_000 : 1, favoriteCreatedAt: nil, noteContent: index == 0 ? "Private original mentions capability" : nil,
+                noteCreatedAt: index == 0 ? 10 : nil, noteUpdatedAt: index == 0 ? 10 : nil, folderId: nil, folderUpdatedAt: 11))))
+        }
+        for index in 0..<502 { facts.append(.bookmark(.init(sourceId: "legacy-\(index)", ordinal: Double(facts.count), hadithId: "private-target-0", createdAt: Double(1_000 - index)))) }
+        return facts
+    }
+    @MainActor func testSavedDiskCollectionFoldAndVerificationMatchBackendAfterReopen() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString); try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("saved.store"), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        var store = GuestDataStore(storeURL: url); try store.claimGuestForSync(owner)
+        try store.cacheSavedSnapshot(.init(ownerKey: owner.key, version: 1, folders: [], items: []), owner: owner)
+        let original = try store.syncPartition(owner), lease = try store.beginSavedAssembly(owner)
+        let facts = try JSONDecoder().decode([SavedFact].self, from: Data(LibrarySavedParityVector.factsJSON.utf8))
+        var previous = "", seen = Set<String>()
+        for _ in 0..<100 {
+            let checkpoint = try await store.collectSavedStep(lease, isCurrent: { true }) { try self.savedReply($0, owner: owner, facts: facts) }
+            let phase = savedStage(checkpoint.stage); seen.insert(phase)
+            if phase != previous { store = GuestDataStore(storeURL: url); XCTAssertEqual(try store.beginSavedAssembly(owner), lease); XCTAssertEqual(try store.savedCheckpoint(lease), checkpoint); previous = phase }
+            if checkpoint.stage == .prepared { break }
+        }
+        XCTAssertEqual(try store.savedCheckpoint(lease).stage, .prepared)
+        XCTAssertTrue(seen.isSuperset(of: ["collecting", "folding", "checking_pages", "verifying", "prepared"]))
+        let page = try store.preparedSavedPage(lease, after: nil)
+        let expected = try JSONDecoder().decode(SavedPrivateItem.self, from: Data(LibrarySavedParityVector.expectedJSON.utf8))
+        XCTAssertEqual(page.rows, [.item(expected, firstOrdinal: 0)]); XCTAssertTrue(page.done)
+        XCTAssertEqual(try store.syncPartition(owner), original)
+    }
+    private func savedStage(_ stage: LibrarySavedStage) -> String {
+        switch stage { case .collecting: "collecting"; case .folding: "folding"; case .checkingPages: "checking_pages"; case .verifying: "verifying"; case .prepared: "prepared"; case .restart: "restart"; case .unavailable: "unavailable" }
+    }
+    @MainActor func testSavedLargeJournalHasBoundedPagesPreservesDuplicatesAndNeverAdvancesJoinedBase() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString); try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("large.store"), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        var store = GuestDataStore(storeURL: url); try store.claimGuestForSync(owner)
+        try store.cacheSavedSnapshot(.init(ownerKey: owner.key, version: 1, folders: [], items: []), owner: owner)
+        let original = try store.syncPartition(owner), lease = try store.beginSavedAssembly(owner), facts = savedLargeFacts()
+        var phases = Set<String>()
+        for step in 0..<2_000 {
+            let checkpoint: LibrarySavedCheckpoint
+            do { checkpoint = try await store.collectSavedStep(lease, isCurrent: { true }) { try self.savedReply($0, owner: owner, facts: facts) } }
+            catch { let prior = try store.savedCheckpoint(lease); XCTFail("Saved step \(step), stage \(savedStage(prior.stage)), next \(prior.next): \(error)"); return }
+            let phase = savedStage(checkpoint.stage)
+            if !phases.contains(phase) || step == 17 {
+                phases.insert(phase); store = GuestDataStore(storeURL: url); XCTAssertEqual(try store.savedCheckpoint(lease), checkpoint)
+            }
+            if checkpoint.stage == .prepared { break }
+            if step == 20 { XCTAssertThrowsError(try store.preparedSavedPage(lease, after: nil)) }
+        }
+        let checkpoint = try store.savedCheckpoint(lease)
+        XCTAssertEqual(checkpoint.stage, .prepared); XCTAssertEqual(checkpoint.next, 1_005); XCTAssertEqual(checkpoint.counts, .init(items: 502, folders: 1))
+        var cursor: String?, values: [LibrarySavedProjection] = []
+        repeat {
+            let page = try store.preparedSavedPage(lease, after: cursor); XCTAssertLessThanOrEqual(page.rows.count, GuestDataStore.savedStepLimit); values += page.rows; cursor = page.next
+            if page.done { break }
+        } while true
+        XCTAssertEqual(values.count, 503)
+        let rows = values.compactMap { value -> SavedPrivateItem? in if case .item(let row, _) = value { row } else { nil } }
+        XCTAssertEqual(Set(rows.map(\.hadithId)).count, 502)
+        XCTAssertEqual(rows.first(where: { $0.hadithId == "private-target-0" })?.bookmarkCreatedAt, 499)
+        XCTAssertEqual(rows.first(where: { $0.hadithId == "private-target-0" })?.noteContent, "Private original mentions capability")
+        var start = 0, raw = 0
+        repeat { let page = try store.savedRawPage(lease, start: start); XCTAssertLessThanOrEqual(page.facts.count, GuestDataStore.savedStepLimit); raw += page.facts.count; start = page.next; if start == checkpoint.next { break } } while true
+        XCTAssertEqual(raw, facts.count); XCTAssertEqual(try store.syncPartition(owner), original)
+    }
+
+    @MainActor func testSavedHexOrdinalDiskOrderingMatchesCursorRanges() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString); try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), store = GuestDataStore(storeURL: directory.appendingPathComponent("order.store"))
+        try store.claimGuestForSync(owner); let lease = try store.beginSavedAssembly(owner), facts = Array(savedLargeFacts().prefix(32))
+        for _ in 0...facts.count { _ = try await store.collectSavedStep(lease, isCurrent: { true }) { try self.savedReply($0, owner: owner, facts: facts) } }
+        var start = 0, ordinals: [Int] = []
+        while start < facts.count { let page = try store.savedRawPage(lease, start: start); ordinals += page.facts.map { Int($0.ordinalValue) }; start = page.next }
+        XCTAssertEqual(ordinals, Array(0..<32))
+    }
+    @MainActor func testOutcomeTechnicalHashOrderingPreservesEveryExportWindow() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString); try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), store = GuestDataStore(storeURL: directory.appendingPathComponent("outcome-order.store"))
+        try store.claimGuestForSync(owner)
+        var expected = Set<String>()
+        for index in 0..<101 {
+            let proof = taggedOutcomeProof(owner, count: 0, tag: "technical-order-\(index)")
+            expected.insert(try LibraryOutcomeBinding(owner: owner, committed: proof).key)
+            try await collectExportFacts(proof, owner: owner, count: 0, store: store)
+        }
+        let fence = try await store.prepareOutcomeExport(owner, isCurrent: { true }); var after: String?, found = Set<String>()
+        for _ in 0..<10 {
+            let page = try store.outcomeExportEntries(fence, after: after)
+            if page.isEmpty { break }
+            for entry in page { XCTAssertTrue(found.insert(entry.binding.key).inserted) }
+            after = page.last?.binding.key
+        }
+        XCTAssertTrue(found == expected, "Technical export windows must preserve all101 unique identities; found \(found.count)")
+    }
+
+    @MainActor private func prepareSaved(_ store: GuestDataStore, lease: LibrarySavedLease, facts: [SavedFact]) async throws {
+        for _ in 0..<(facts.count * 3 + 100) {
+            if try await store.collectSavedStep(lease, isCurrent: { true }, fetch: { try self.savedReply($0, owner: lease.owner, facts: facts) }).stage == .prepared { return }
+        }; XCTFail("Saved preparation did not finish")
+    }
+    @MainActor func testSavedHistoricalReplayAndChangedRetryPreserveExactOriginal() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString); try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("replay.store"), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), store = GuestDataStore(storeURL: url)
+        try store.claimGuestForSync(owner); let lease = try store.beginSavedAssembly(owner)
+        let facts = Array(try JSONDecoder().decode([SavedFact].self, from: Data(LibrarySavedParityVector.factsJSON.utf8)).prefix(2))
+        _ = try await store.collectSavedStep(lease, isCurrent: { true }) { try self.savedReply($0, owner: owner, facts: facts) }
+        let clone = GuestDataStore(storeURL: url); var input: String?, release: CheckedContinuation<SavedFactsReply, Never>?
+        let replay = Task { try await clone.collectSavedStep(lease, isCurrent: { true }) { requested in input = requested; return await withCheckedContinuation { release = $0 } } }
+        for _ in 0..<1_000 { if release != nil { break }; await Task.yield() }
+        let gate = try XCTUnwrap(release)
+        _ = try await store.collectSavedStep(lease, isCurrent: { true }) { try self.savedReply($0, owner: owner, facts: facts) }
+        let before = try store.savedCheckpoint(lease), fence = try await store.prepareOutcomeExport(owner, isCurrent: { true })
+        gate.resume(returning: try savedReply(input, owner: owner, facts: facts)); release = nil
+        let replayed = try await replay.value; XCTAssertEqual(replayed, before); try store.validateOutcomeExport(fence)
+        guard case .item(let first) = facts[0] else { return XCTFail("Missing canonical fixture") }
+        do {
+            _ = try await store.collectSavedStep(lease, isCurrent: { true }) { requested in
+                .complete(.init(ownerKey: owner.key, version: 9, assemblyId: "private-root-proof", input: requested, start: 1, facts: [.item(.init(sourceId: first.sourceId, ordinal: 1, value: first.value))], total: 2, completion: "private-completion-proof"))
+            }; XCTFail("Reused source identity accepted")
+        } catch { }
+        XCTAssertEqual(try store.savedCheckpoint(lease), before); XCTAssertEqual(try store.savedRawPage(lease, start: 0).facts.count, 1)
+        let clone2 = GuestDataStore(storeURL: url); var input2: String?, release2: CheckedContinuation<SavedFactsReply, Never>?
+        let changed = Task { try await clone2.collectSavedStep(lease, isCurrent: { true }) { requested in input2 = requested; return await withCheckedContinuation { release2 = $0 } } }
+        for _ in 0..<1_000 { if release2 != nil { break }; await Task.yield() }
+        let gate2 = try XCTUnwrap(release2)
+        _ = try await store.collectSavedStep(lease, isCurrent: { true }) { try self.savedReply($0, owner: owner, facts: facts) }; let terminal = try store.savedCheckpoint(lease)
+        guard case .bookmark(let second) = facts[1] else { return XCTFail("Missing bookmark fixture") }
+        gate2.resume(returning: .complete(.init(ownerKey: owner.key, version: 9, assemblyId: "private-root-proof", input: input2, start: 1, facts: [.bookmark(.init(sourceId: second.sourceId, ordinal: 1, hadithId: second.hadithId, createdAt: second.createdAt + 1))], total: 2, completion: "private-completion-proof"))); release2 = nil
+        do { _ = try await changed.value; XCTFail("Changed retry accepted") } catch { }
+        XCTAssertEqual(try store.savedCheckpoint(lease), terminal); try await prepareSaved(store, lease: lease, facts: facts)
+    }
+    @MainActor func testSavedLogicalFailureRollsBackRowsAndCheckpointTogether() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString); try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("rollback.store"), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), store = GuestDataStore(storeURL: url)
+        try store.claimGuestForSync(owner); let lease = try store.beginSavedAssembly(owner)
+        let facts = try JSONDecoder().decode([SavedFact].self, from: Data(LibrarySavedParityVector.factsJSON.utf8))
+        _ = try await store.collectSavedStep(lease, isCurrent: { true }) { try self.savedReply($0, owner: owner, facts: facts) }
+        let original = try store.savedCheckpoint(lease), container = try ModelContainer(for: GuestDataStore.schema, configurations: [ModelConfiguration(schema: GuestDataStore.schema, url: url)]), context = ModelContext(container)
+        context.autosaveEnabled = false
+        let key = lease.key; var query = FetchDescriptor<GuestSavedAssembly>(predicate: #Predicate { $0.key == key }); query.fetchLimit = 2
+        let header = try XCTUnwrap(context.fetch(query).first)
+        var invalid = original; invalid.pages = Int(LibrarySavedPolicy.maxInteger); header.checkpointData = try JSONEncoder().encode(invalid); try context.save()
+        do { _ = try await store.collectSavedStep(lease, isCurrent: { true }) { try self.savedReply($0, owner: owner, facts: facts) }; XCTFail("Invalid checkpoint committed") } catch { }
+        let reopened = GuestDataStore(storeURL: url); XCTAssertEqual(try reopened.savedCheckpoint(lease), invalid)
+        let inspection = ModelContext(container)
+        XCTAssertEqual(try inspection.fetchCount(FetchDescriptor<GuestSavedFactRow>()), 0); XCTAssertEqual(try inspection.fetchCount(FetchDescriptor<GuestSavedPageRow>()), 1)
+        header.checkpointData = try JSONEncoder().encode(original); try context.save(); try await prepareSaved(reopened, lease: lease, facts: facts)
+    }
+    @MainActor func testSavedRowsStreamIntoPortableExportAndShareItsMutationFence() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString); try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = GuestDataStore(storeURL: directory.appendingPathComponent("export.store"), exportDirectory: directory.appendingPathComponent("exports")), fixture = LibraryFacadeFixture(store: store)
+        defer { fixture.stop() }; await fixture.start()
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), lease = try store.beginSavedAssembly(owner)
+        let own: [SavedFact] = [.note(.init(sourceId: "own-source", ordinal: 0, hadithId: "own-target", content: "Own note says capability", createdAt: 1, updatedAt: 2))]
+        try await prepareSaved(store, lease: lease, facts: own)
+        let peers = [(LibrarySyncOwner(key: "old-owner", subject: owner.subject), "Old owner retained note"), (LibrarySyncOwner(key: "foreign-owner", subject: "foreign-subject"), "Foreign private note"), (LibrarySyncOwner(key: "old-owner", subject: owner.subject, namespace: "other-deployment"), "Other deployment private note")]
+        for (peer, text) in peers {
+            try store.claimGuestForSync(peer); let candidate = try store.beginSavedAssembly(peer)
+            let facts: [SavedFact] = [.note(.init(sourceId: "peer-source", ordinal: 0, hadithId: "peer-target", content: text, createdAt: 1, updatedAt: 2))]
+            for _ in 0..<2 { _ = try await store.collectSavedStep(candidate, isCurrent: { true }) { try self.savedReply($0, owner: peer, facts: facts) } }
+        }
+        // Simulate an older owner partition disappearing while its private journal remains.
+        let container = try ModelContainer(for: GuestDataStore.schema, configurations: [ModelConfiguration(schema: GuestDataStore.schema, url: directory.appendingPathComponent("export.store"))]), orphanContext = ModelContext(container), oldKey = peers[0].0.storageKey
+        var oldPartition = FetchDescriptor<GuestLibraryPartition>(predicate: #Predicate { $0.ownerKey == oldKey }); oldPartition.fetchLimit = 2
+        for row in try orphanContext.fetch(oldPartition) { orphanContext.delete(row) }; try orphanContext.save()
+        let captured = try fixture.sync.captureWriteContext(), exported = try await fixture.sync.preparePortableExport(server: .object([:]), context: captured, fileName: "saved.json")
+        defer { try? fixture.sync.discardPreparedExport(exported) }
+        let data = try Data(contentsOf: exported.url), json = try JSONDecoder().decode(LibraryExportValue.self, from: data)
+        guard case .object(let fields) = json else { return XCTFail("Export is not an object") }; XCTAssertNotNil(fields["localSavedEvidence"])
+        XCTAssertTrue(exportContains(json, text: "Own note says capability")); XCTAssertTrue(exportContains(json, text: "Old owner retained note"))
+        XCTAssertFalse(exportContains(json, text: "Foreign private note")); XCTAssertFalse(exportContains(json, text: "Other deployment private note"))
+        XCTAssertFalse(String(decoding: data, as: UTF8.self).contains("private-root-proof")); XCTAssertFalse(String(decoding: data, as: UTF8.self).contains("private-completion-proof"))
+        let fence = try await store.prepareOutcomeExport(owner, isCurrent: { true }), another = LibrarySyncOwner(key: "another-old-owner", subject: owner.subject)
+        try store.claimGuestForSync(another); _ = try store.beginSavedAssembly(another)
+        XCTAssertThrowsError(try store.validateOutcomeExport(fence))
+    }
+    @MainActor func testSavedErasureFencesSuspendedReplyAndResumesAfterReopen() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString); try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("erase.store"), store = GuestDataStore(storeURL: url), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), other = LibrarySyncOwner(key: "owner-b", subject: "subject-b")
+        try store.claimGuestForSync(owner); try store.claimGuestForSync(other)
+        let lease = try store.beginSavedAssembly(owner), peer = try store.beginSavedAssembly(other), facts = Array(savedLargeFacts().prefix(32))
+        for _ in 0..<18 { _ = try await store.collectSavedStep(lease, isCurrent: { true }) { try self.savedReply($0, owner: owner, facts: facts) } }
+        let peerBefore = try store.savedCheckpoint(peer), clone = GuestDataStore(storeURL: url)
+        var input: String?, release: CheckedContinuation<SavedFactsReply, Never>?
+        let late = Task { try await clone.collectSavedStep(lease, isCurrent: { true }) { requested in input = requested; return await withCheckedContinuation { release = $0 } } }
+        for _ in 0..<1_000 { if release != nil { break }; await Task.yield() }; let gate = try XCTUnwrap(release)
+        try store.beginDeletion(subject: owner.subject, namespace: owner.namespace); XCTAssertTrue(try store.eraseSavedStep(subject: owner.subject, namespace: owner.namespace))
+        let container = try ModelContainer(for: GuestDataStore.schema, configurations: [ModelConfiguration(schema: GuestDataStore.schema, url: url)]), inspection = ModelContext(container), subject = owner.subject
+        XCTAssertEqual(try inspection.fetchCount(FetchDescriptor<GuestSavedFactRow>(predicate: #Predicate { $0.subject == subject })), 9)
+        gate.resume(returning: try savedReply(input, owner: owner, facts: facts)); release = nil
+        do { _ = try await late.value; XCTFail("Erased reply recreated rows") } catch { }
+        let reopened = GuestDataStore(storeURL: url); try await reopened.markDeletionBackendComplete(subject: owner.subject, namespace: owner.namespace)
+        XCTAssertEqual(try reopened.savedCheckpoint(peer), peerBefore); XCTAssertEqual(try reopened.deletionPhase(subject: owner.subject, namespace: owner.namespace), .identityPending)
+        let fresh = ModelContext(container)
+        XCTAssertEqual(try fresh.fetchCount(FetchDescriptor<GuestSavedFactRow>(predicate: #Predicate { $0.subject == subject })), 0)
+        XCTAssertEqual(try fresh.fetchCount(FetchDescriptor<GuestSavedPageRow>(predicate: #Predicate { $0.subject == subject })), 0)
+        XCTAssertEqual(try fresh.fetchCount(FetchDescriptor<GuestSavedAssembly>(predicate: #Predicate { $0.subject == subject })), 0)
+    }
+    @MainActor func testSavedOwnerResetPreservesOtherOwnerAndSharedClock() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString); try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = GuestDataStore(storeURL: directory.appendingPathComponent("reset.store")), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), old = LibrarySyncOwner(key: "old-owner", subject: "subject-a")
+        try store.claimGuestForSync(owner); try store.claimGuestForSync(old)
+        _ = try store.beginSavedAssembly(owner); let lease = try store.beginSavedAssembly(old)
+        let facts: [SavedFact] = [.note(.init(sourceId: "source", ordinal: 0, hadithId: "target", content: "Old owner retained note", createdAt: 1, updatedAt: 2))]
+        for _ in 0..<2 { _ = try await store.collectSavedStep(lease, isCurrent: { true }) { try self.savedReply($0, owner: old, facts: facts) } }
+        let checkpoint = try store.savedCheckpoint(lease), before = try await store.prepareOutcomeExport(old, isCurrent: { true })
+        try store.resetSyncPartitionForTesting(owner)
+        XCTAssertEqual(try store.savedCheckpoint(lease), checkpoint); XCTAssertEqual(try store.savedRawPage(lease, start: 0).facts.count, 1)
+        let after = try await store.prepareOutcomeExport(old, isCurrent: { true }); guard case .present = after.version else { return XCTFail("Shared clock was dropped") }
+        XCTAssertNotEqual(before, after)
+    }
+    @MainActor func testSavedAdditiveSchemaOpensOldDiskWithoutChangingExistingEvidence() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString); try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("old.store"), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        var original = LibraryPartitionState(); original.savedSnapshot = .init(ownerKey: owner.key, version: 1, folders: [], items: [])
+        let proof = taggedOutcomeProof(owner, count: 1, tag: "old-evidence"), binding = try LibraryOutcomeBinding(owner: owner, committed: proof)
+        do {
+            let schema = Schema([GuestBookmark.self, GuestNote.self, GuestFavorite.self, GuestSavedFolder.self, GuestSavedMembership.self, GuestReadingProgress.self, GuestLibraryPartition.self, GuestAccountDeletion.self, GuestOutcomeScope.self, GuestOutcomeHeader.self, GuestOutcomeMember.self, GuestOutcomeClock.self, GuestOutcomeInventory.self, GuestOutcomeInventoryMigration.self, GuestLibraryExportArtifact.self])
+            let container = try ModelContainer(for: schema, configurations: [ModelConfiguration(schema: schema, url: url)]), context = ModelContext(container)
+            context.insert(GuestLibraryPartition(ownerKey: owner.storageKey, subject: owner.subject, stateData: try JSONEncoder().encode(original)))
+            let scope = GuestOutcomeScope(binding: binding); context.insert(scope)
+            context.insert(try GuestOutcomeHeader(binding: binding, generation: scope.generation, checkpoint: .init(counts: .init(deleted: 1), status: .complete)))
+            context.insert(try GuestOutcomeMember(binding: binding, row: .init(ordinal: 0, memberId: "old-member", hadithId: "old-target", disposition: .deleted)))
+            context.insert(GuestOutcomeInventory(binding: binding)); context.insert(try GuestOutcomeInventoryMigration())
+            let clock = GuestOutcomeClock(subject: owner.subject, namespace: owner.namespace); clock.epoch = "old-clock"; clock.revision = 7; context.insert(clock)
+            context.insert(GuestLibraryExportArtifact(id: "old-artifact", owner: owner)); context.insert(GuestAccountDeletion(subject: "other-deleting-subject", namespace: owner.namespace)); try context.save()
+        }
+        let store = GuestDataStore(storeURL: url); XCTAssertEqual(try store.syncPartition(owner), original)
+        let lease = try store.beginSavedAssembly(owner); let facts = try JSONDecoder().decode([SavedFact].self, from: Data(LibrarySavedParityVector.factsJSON.utf8)); try await prepareSaved(store, lease: lease, facts: facts)
+        XCTAssertEqual(try store.outcomeEvidencePage(proof, owner: owner, start: 0).rows.count, 1)
+        XCTAssertEqual(try store.deletionPhase(subject: "other-deleting-subject", namespace: owner.namespace), .serverPending)
+        let container = try ModelContainer(for: GuestDataStore.schema, configurations: [ModelConfiguration(schema: GuestDataStore.schema, url: url)]), inspection = ModelContext(container)
+        let clocks = try inspection.fetch(FetchDescriptor<GuestOutcomeClock>())
+        XCTAssertEqual(clocks.first?.epoch, "old-clock"); XCTAssertGreaterThan(clocks.first?.revision ?? 0, 7)
+        XCTAssertEqual(try inspection.fetchCount(FetchDescriptor<GuestLibraryExportArtifact>()), 1)
+        var database: OpaquePointer?
+        XCTAssertEqual(sqlite3_open_v2(url.path, &database, SQLITE_OPEN_READONLY, nil), SQLITE_OK)
+        defer { sqlite3_close(database) }
+        for (table, column) in [("ZGUESTSAVEDFACTROW", "ZKEY"), ("ZGUESTSAVEDPAGEROW", "ZSEQUENCEKEY"), ("ZGUESTSAVEDPROJECTIONROW", "ZKEY")] {
+            var statement: OpaquePointer?
+            let sql = "EXPLAIN QUERY PLAN SELECT \(column) FROM \(table) WHERE \(column)>'0' AND \(column)<'~' ORDER BY \(column) LIMIT 8"
+            XCTAssertEqual(sqlite3_prepare_v2(database, sql, -1, &statement, nil), SQLITE_OK)
+            var plans: [String] = []
+            while sqlite3_step(statement) == SQLITE_ROW { if let value = sqlite3_column_text(statement, 3) { plans.append(String(cString: value)) } }
+            sqlite3_finalize(statement)
+            XCTAssertTrue(plans.contains { $0.contains("SEARCH") && $0.contains("INDEX") }, "Technical range query must use its real indexed key: \(plans)")
+        }
+    }
+
+    @MainActor func testSavedTokenCyclesStoppedReadsAndFreshGenerationRemainNonactivating() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString); try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = GuestDataStore(storeURL: directory.appendingPathComponent("cycles.store")), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        try store.claimGuestForSync(owner); let original = try store.syncPartition(owner), lease = try store.beginSavedAssembly(owner)
+        XCTAssertThrowsError(try store.eraseSavedStep(subject: owner.subject, namespace: owner.namespace, ownerKey: owner.storageKey))
+        _ = try await store.collectSavedStep(lease, isCurrent: { true }) { try self.savedReply($0, owner: owner, facts: []) }
+        _ = try await store.collectSavedStep(lease, isCurrent: { true }) { input in .page(.init(ownerKey: owner.key, version: 9, assemblyId: "private-root-proof", input: input, start: 0, facts: [], next: "cursor:1")) }
+        let before = try store.savedCheckpoint(lease)
+        do { _ = try await store.collectSavedStep(lease, isCurrent: { true }) { input in .page(.init(ownerKey: owner.key, version: 9, assemblyId: "private-root-proof", input: input, start: 0, facts: [], next: "cursor:0")) }; XCTFail("Historical cursor cycle accepted") } catch { }
+        XCTAssertEqual(try store.savedCheckpoint(lease), before)
+        let stopped = try await store.collectSavedStep(lease, isCurrent: { true }) { _ in .unavailable(.init(reason: .sourceTooLarge)) }
+        XCTAssertEqual(stopped.stage, .unavailable(.sourceTooLarge)); XCTAssertThrowsError(try store.preparedSavedPage(lease, after: nil))
+        let unchanged = try await store.collectSavedStep(lease, isCurrent: { true }) { _ in throw LibrarySyncFailure.invalidReceipt }; XCTAssertEqual(unchanged, stopped)
+        try store.beginSavedErase(subject: owner.subject, namespace: owner.namespace, ownerKey: owner.storageKey)
+        for _ in 0..<20 { if try !store.eraseSavedStep(subject: owner.subject, namespace: owner.namespace, ownerKey: owner.storageKey) { break } }
+        let next = try store.beginSavedAssembly(owner); XCTAssertNotEqual(next, lease); XCTAssertThrowsError(try store.savedCheckpoint(lease))
+        var current = true
+        do { _ = try await store.collectSavedStep(next, isCurrent: { current }) { input in current = false; return try self.savedReply(input, owner: owner, facts: []) }; XCTFail("Stale session reply committed") } catch { }
+        XCTAssertEqual(try store.savedCheckpoint(next).pages, 0); XCTAssertEqual(try store.syncPartition(owner), original)
+    }
+    @MainActor func testSavedMissingRawFactCannotBecomePreparedAfterReopen() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString); try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("missing.store"), store = GuestDataStore(storeURL: url), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        try store.claimGuestForSync(owner); let lease = try store.beginSavedAssembly(owner), facts = Array(savedLargeFacts().prefix(32))
+        for _ in 0...facts.count { _ = try await store.collectSavedStep(lease, isCurrent: { true }) { try self.savedReply($0, owner: owner, facts: facts) } }
+        let container = try ModelContainer(for: GuestDataStore.schema, configurations: [ModelConfiguration(schema: GuestDataStore.schema, url: url)]), context = ModelContext(container), key = lease.ordinalKey(8)
+        var query = FetchDescriptor<GuestSavedFactRow>(predicate: #Predicate { $0.key == key }); query.fetchLimit = 2
+        context.delete(try XCTUnwrap(context.fetch(query).first)); try context.save()
+        let reopened = GuestDataStore(storeURL: url)
+        _ = try await reopened.collectSavedStep(lease, isCurrent: { true }) { _ in throw LibrarySyncFailure.invalidReceipt }
+        let before = try reopened.savedCheckpoint(lease)
+        do { _ = try await reopened.collectSavedStep(lease, isCurrent: { true }) { _ in throw LibrarySyncFailure.invalidReceipt }; XCTFail("Missing fact silently skipped") } catch { }
+        XCTAssertEqual(try reopened.savedCheckpoint(lease), before); XCTAssertThrowsError(try reopened.preparedSavedPage(lease, after: nil))
+    }
+
     private struct OutcomeExportProbe: Decodable {
         struct Entry: Decodable {
             let authority: LibraryOutcomeBinding
@@ -187,7 +493,7 @@ final class GuestMergePlannerTests: XCTestCase {
         let artifact = try store.beginOutcomeExportArtifact(beforeErase)
         try Data("private-prefix".utf8).write(to: artifact.directory.appendingPathComponent("document.partial"))
         try store.beginDeletion(subject: owner.subject, namespace: owner.namespace)
-        try store.markDeletionBackendComplete(subject: owner.subject, namespace: owner.namespace)
+        try await store.markDeletionBackendComplete(subject: owner.subject, namespace: owner.namespace)
         XCTAssertFalse(FileManager.default.fileExists(atPath: artifact.directory.path))
         XCTAssertThrowsError(try store.validateOutcomeExport(beforeErase))
     }
@@ -214,7 +520,7 @@ final class GuestMergePlannerTests: XCTestCase {
             case "switch": fixture.session.value = .init(id: "session-b", subject: "subject-b"); fixture.sync.deactivate()
             case "erase":
                 try store.beginDeletion(subject: owner.subject, namespace: owner.namespace)
-                try store.markDeletionBackendComplete(subject: owner.subject, namespace: owner.namespace)
+                try await store.markDeletionBackendComplete(subject: owner.subject, namespace: owner.namespace)
             default: try await collectExportFacts(taggedOutcomeProof(owner, count: 1, tag: "insert-during-export"), owner: owner, count: 1, store: store)
             }
             do { _ = try await task.value; XCTFail("Changed/canceled export was published") } catch { }
@@ -253,7 +559,7 @@ final class GuestMergePlannerTests: XCTestCase {
         try store.clearAbandonedOutcomeExports()
         XCTAssertFalse(FileManager.default.fileExists(atPath: artifact.directory.path))
         try store.beginDeletion(subject: owner.subject, namespace: owner.namespace)
-        try store.markDeletionBackendComplete(subject: owner.subject, namespace: owner.namespace)
+        try await store.markDeletionBackendComplete(subject: owner.subject, namespace: owner.namespace)
         do { _ = try await store.prepareOutcomeExport(owner, isCurrent: { true }); XCTFail("Deleted export recreated metadata") } catch LibrarySyncFailure.accountDeleting { }
     }
 
@@ -480,7 +786,7 @@ final class GuestMergePlannerTests: XCTestCase {
         try context.save()
         XCTAssertEqual(try store.outcomeEvidencePage(outcomeProof(owner, count: 501), owner: owner, start: 0).rows.count, 50)
         try store.beginDeletion(subject: owner.subject, namespace: owner.namespace)
-        try store.markDeletionBackendComplete(subject: owner.subject, namespace: owner.namespace)
+        try await store.markDeletionBackendComplete(subject: owner.subject, namespace: owner.namespace)
         let reopened = GuestDataStore(storeURL: url)
         XCTAssertThrowsError(try reopened.outcomeEvidencePage(outcomeProof(owner, count: 501), owner: owner, start: 0))
         do {
@@ -729,7 +1035,7 @@ final class GuestMergePlannerTests: XCTestCase {
         XCTAssertEqual(try store.outcomeEvidencePage(proof, owner: owner, start: 0).rows.count, 1)
         XCTAssertNil(try store.syncPartition(owner))
         try store.beginDeletion(subject: replacement.subject, namespace: replacement.namespace)
-        try store.markDeletionBackendComplete(subject: replacement.subject, namespace: replacement.namespace)
+        try await store.markDeletionBackendComplete(subject: replacement.subject, namespace: replacement.namespace)
         XCTAssertThrowsError(try store.outcomeEvidencePage(proof, owner: owner, start: 0))
         XCTAssertThrowsError(try store.pruneOutcomeSuccessStep(replacement, now: 2_000 + LibraryOutcomeRetention.duration))
         XCTAssertNil(try store.syncPartition(replacement))
@@ -916,7 +1222,7 @@ final class GuestMergePlannerTests: XCTestCase {
         XCTAssertEqual(try store.syncPartition(owner), before)
         XCTAssertNil(try store.syncPartition(foreign))
         try store.beginDeletion(subject: owner.subject, namespace: owner.namespace)
-        try store.markDeletionBackendComplete(subject: owner.subject, namespace: owner.namespace)
+        try await store.markDeletionBackendComplete(subject: owner.subject, namespace: owner.namespace)
         let reopened = GuestDataStore(storeURL: url)
         XCTAssertThrowsError(try reopened.settleCollectedOutcome(pending, owner: owner, now: 2_000))
         XCTAssertNil(try reopened.syncPartition(owner))

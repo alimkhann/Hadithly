@@ -84,6 +84,253 @@ class GuestMergeRaceTest {
         if (result is LibrarySavedProjection.Item) { assertEquals("h", result.value.hadithId); assertEquals(" \nعربى ", result.value.noteContent) }
     }
 
+    private fun savedReply(input: String?, owner: LibrarySyncOwner, facts: List<SavedFact>): SavedFactsReply {
+        if (input == null) return SavedFactsReply.Page(owner.key, 9.0, "private-root-proof", null, 0.0, emptyList(), "cursor:0")
+        val index = if (input.startsWith("cursor:")) input.removePrefix("cursor:").toIntOrNull() else null
+        if (index == null || index !in 0..facts.size) throw LibrarySyncFailure.InvalidReceipt
+        val rows = if (index < facts.size) listOf(facts[index]) else emptyList()
+        if (index + rows.size == facts.size) return SavedFactsReply.Complete(owner.key, 9.0, "private-root-proof", input, index.toDouble(), rows, facts.size.toDouble(), "private-completion-proof")
+        return SavedFactsReply.Page(owner.key, 9.0, "private-root-proof", input, index.toDouble(), rows, "cursor:${index + rows.size}")
+    }
+    private fun savedLargeFacts(): List<SavedFact> = buildList {
+        add(SavedFact.Folder("empty-folder", 0.0, SyncFolderRow("empty-folder", "Empty folder", 1.0)))
+        repeat(502) { index -> add(SavedFact.Item("canonical-$index", size.toDouble(), SavedPrivateItem("private-target-$index", 10.0, 11.0,
+            if (index == 0) 1_000.0 else 1.0, null, if (index == 0) "Private original mentions capability" else null, if (index == 0) 10.0 else null, if (index == 0) 10.0 else null, null, 11.0))) }
+        repeat(502) { index -> add(SavedFact.Bookmark("legacy-$index", size.toDouble(), "private-target-0", (1_000 - index).toDouble())) }
+    }
+    private fun savedStage(stage: LibrarySavedStage): String = when (stage) {
+        LibrarySavedStage.Collecting -> "collecting"; is LibrarySavedStage.Folding -> "folding"; is LibrarySavedStage.CheckingPages -> "checking_pages"; is LibrarySavedStage.Verifying -> "verifying"; LibrarySavedStage.Prepared -> "prepared"; LibrarySavedStage.Restart -> "restart"; is LibrarySavedStage.Unavailable -> "unavailable"
+    }
+    @Test fun savedDiskCollectionFoldAndVerificationMatchBackendAfterReopen() = runBlocking {
+        isolated { initial, reopen, _ ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); var store = initial
+            store.claimGuestForSync(owner); store.cacheSavedSnapshot(SyncSavedSnapshot(owner.key, 1.0, emptyList(), emptyList()), owner)
+            val original = store.syncPartition(owner); val lease = store.beginSavedAssembly(owner)
+            val facts = Json.decodeFromString<List<SavedFact>>(LibrarySavedParityVector.factsJSON)
+            var previous = ""; val seen = mutableSetOf<String>()
+            for (step in 0 until 100) {
+                val checkpoint = store.collectSavedStep(lease, { true }) { savedReply(it, owner, facts) }
+                val phase = savedStage(checkpoint.stage); seen.add(phase)
+                if (phase != previous) { store = reopen(); assertEquals(lease, store.beginSavedAssembly(owner)); assertEquals(checkpoint, store.savedCheckpoint(lease)); previous = phase }
+                if (checkpoint.stage == LibrarySavedStage.Prepared) break
+            }
+            assertEquals(LibrarySavedStage.Prepared, store.savedCheckpoint(lease).stage)
+            assertTrue(seen.containsAll(listOf("collecting", "folding", "checking_pages", "verifying", "prepared")))
+            val page = store.preparedSavedPage(lease, null)
+            val expected = Json.decodeFromString<SavedPrivateItem>(LibrarySavedParityVector.expectedJSON)
+            assertEquals(listOf(LibrarySavedProjection.Item(expected, 0L)), page.rows); assertTrue(page.done)
+            assertEquals(original, store.syncPartition(owner))
+        }
+    }
+    @Test fun savedLargeJournalHasBoundedPagesPreservesDuplicatesAndNeverAdvancesJoinedBase() = runBlocking {
+        isolated { initial, reopen, _ ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); var store = initial
+            store.claimGuestForSync(owner); store.cacheSavedSnapshot(SyncSavedSnapshot(owner.key, 1.0, emptyList(), emptyList()), owner)
+            val original = store.syncPartition(owner); val lease = store.beginSavedAssembly(owner); val facts = savedLargeFacts(); val phases = mutableSetOf<String>()
+            for (step in 0 until 2_000) {
+                val checkpoint = store.collectSavedStep(lease, { true }) { savedReply(it, owner, facts) }
+                val phase = savedStage(checkpoint.stage)
+                if (phase !in phases || step == 17) { phases.add(phase); store = reopen(); assertEquals(checkpoint, store.savedCheckpoint(lease)) }
+                if (checkpoint.stage == LibrarySavedStage.Prepared) break
+                if (step == 20) { try { store.preparedSavedPage(lease, null); fail("Partial data exposed as prepared") } catch (_: LibrarySyncFailure) { } }
+            }
+            val checkpoint = store.savedCheckpoint(lease)
+            assertEquals(LibrarySavedStage.Prepared, checkpoint.stage); assertEquals(1_005L, checkpoint.next); assertEquals(LibrarySavedCounts(502, 1), checkpoint.counts)
+            var cursor: String? = null; val values = mutableListOf<LibrarySavedProjection>()
+            while (true) {
+                val page = store.preparedSavedPage(lease, cursor); assertTrue(page.rows.size <= 8); values.addAll(page.rows); cursor = page.next
+                if (page.done) break
+            }
+            assertEquals(503, values.size)
+            val rows = values.filterIsInstance<LibrarySavedProjection.Item>().map { it.value }
+            assertEquals(502, rows.map { it.hadithId }.toSet().size)
+            assertEquals(499.0, rows.first { it.hadithId == "private-target-0" }.bookmarkCreatedAt)
+            assertEquals("Private original mentions capability", rows.first { it.hadithId == "private-target-0" }.noteContent)
+            var start = 0L; var raw = 0
+            while (true) { val page = store.savedRawPage(lease, start); assertTrue(page.facts.size <= 8); raw += page.facts.size; start = page.next; if (start == checkpoint.next) break }
+            assertEquals(facts.size, raw); assertEquals(original, store.syncPartition(owner))
+        }
+    }
+
+    private suspend fun prepareSaved(store: GuestDataStore, lease: LibrarySavedLease, facts: List<SavedFact>) {
+        repeat(facts.size * 3 + 100) {
+            if (store.collectSavedStep(lease, { true }) { input -> savedReply(input, lease.owner, facts) }.stage == LibrarySavedStage.Prepared) return
+        }; fail("Saved preparation did not finish")
+    }
+    @Test fun savedRawAndReceiptWritesRollBackTogetherOnActualSqliteAbort() = runBlocking {
+        isolated { store, reopen, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
+            val lease = store.beginSavedAssembly(owner); val facts = Json.decodeFromString<List<SavedFact>>(LibrarySavedParityVector.factsJSON)
+            store.collectSavedStep(lease, { true }) { savedReply(it, owner, facts) }; val before = store.savedCheckpoint(lease)
+            android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { it.execSQL("CREATE TRIGGER fail_saved_checkpoint BEFORE UPDATE OF checkpoint ON saved_assemblies BEGIN SELECT RAISE(ABORT,'injected'); END") }
+            try { store.collectSavedStep(lease, { true }) { savedReply(it, owner, facts) }; fail("Failed checkpoint write committed") } catch (_: android.database.sqlite.SQLiteException) { }
+            val recovered = reopen(); assertEquals(before, recovered.savedCheckpoint(lease)); assertTrue(recovered.savedRawPage(lease, 0).facts.isEmpty())
+            android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { db ->
+                db.rawQuery("SELECT COUNT(*) FROM saved_pages WHERE collection_key=?", arrayOf(lease.collection)).use { it.moveToFirst(); assertEquals(1, it.getInt(0)) }
+                db.execSQL("DROP TRIGGER fail_saved_checkpoint")
+            }
+            prepareSaved(recovered, lease, facts); assertEquals(LibrarySavedStage.Prepared, recovered.savedCheckpoint(lease).stage)
+        }
+    }
+    @Test fun savedHistoricalReplayIsExactAndDuplicateSourceOrChangedRetryCannotOverwrite() = runBlocking {
+        isolated { store, reopen, _ ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
+            val lease = store.beginSavedAssembly(owner); val facts = Json.decodeFromString<List<SavedFact>>(LibrarySavedParityVector.factsJSON).take(2)
+            store.collectSavedStep(lease, { true }) { savedReply(it, owner, facts) }
+            val clone = reopen(); val captured = CompletableDeferred<String?>(); val release = CompletableDeferred<SavedFactsReply>()
+            val replay = async { clone.collectSavedStep(lease, { true }) { captured.complete(it); release.await() } }
+            val input = captured.await(); store.collectSavedStep(lease, { true }) { savedReply(it, owner, facts) }
+            val before = store.savedCheckpoint(lease); val fence = store.prepareOutcomeExport(owner) { true }
+            release.complete(savedReply(input, owner, facts)); assertEquals(before, replay.await()); store.validateOutcomeExport(fence)
+            val first = facts[0]
+            if (first !is SavedFact.Item) error("Fixture lacks canonical row")
+            try {
+                store.collectSavedStep(lease, { true }) { requested -> SavedFactsReply.Complete(owner.key, 9.0, "private-root-proof", requested, 1.0, listOf(SavedFact.Item(first.sourceId, 1.0, first.value.copy(hadithId = "other-target"))), 2.0, "private-completion-proof") }
+                fail("Reused source identity accepted")
+            } catch (_: LibrarySyncFailure) { }
+            assertEquals(before, store.savedCheckpoint(lease)); assertEquals(1, store.savedRawPage(lease, 0).facts.size)
+            val changedClone = reopen(); val captured2 = CompletableDeferred<String?>(); val release2 = CompletableDeferred<SavedFactsReply>()
+            val changed = async { runCatching { changedClone.collectSavedStep(lease, { true }) { captured2.complete(it); release2.await() } } }
+            val input2 = captured2.await(); store.collectSavedStep(lease, { true }) { savedReply(it, owner, facts) }; val terminal = store.savedCheckpoint(lease)
+            val second = facts[1]; if (second !is SavedFact.Bookmark) error("Fixture lacks bookmark")
+            release2.complete(SavedFactsReply.Complete(owner.key, 9.0, "private-root-proof", input2, 1.0, listOf(second.copy(createdAt = second.createdAt + 1)), 2.0, "private-completion-proof"))
+            assertTrue(changed.await().isFailure); assertEquals(terminal, store.savedCheckpoint(lease))
+            prepareSaved(store, lease, facts)
+        }
+    }
+    @Test fun savedRowsStreamInRealPortableExportAndSharedFenceRejectsLaterMutation() = runBlocking {
+        isolated { store, _, directory ->
+            val fixture = AndroidLibraryFacadeFixture(store)
+            try {
+                fixture.start(); val owner = LibrarySyncOwner("owner-a", "subject-a")
+                val own = store.beginSavedAssembly(owner)
+                val ownFacts = listOf(SavedFact.Note("own-source", 0.0, "own-target", "Own note says capability", 1.0, 2.0))
+                prepareSaved(store, own, ownFacts)
+                val others = listOf(LibrarySyncOwner("old-owner", owner.subject) to "Old owner retained note", LibrarySyncOwner("foreign-owner", "foreign-subject") to "Foreign private note", LibrarySyncOwner("old-owner", owner.subject, "other-deployment") to "Other deployment private note")
+                for ((peer, text) in others) {
+                    store.claimGuestForSync(peer); val lease = store.beginSavedAssembly(peer)
+                    val facts = listOf(SavedFact.Note("peer-source", 0.0, "peer-target", text, 1.0, 2.0))
+                    repeat(2) { store.collectSavedStep(lease, { true }) { savedReply(it, peer, facts) } }
+                }
+                val stateFile = android.util.AtomicFile(File(directory, "guest_store.json"))
+                val state = stateFile.openRead().bufferedReader().use { Json.parseToJsonElement(it.readText()) }
+                require(state is kotlinx.serialization.json.JsonObject)
+                val partitions = state["syncPartitions"]; require(partitions is kotlinx.serialization.json.JsonArray)
+                val restored = kotlinx.serialization.json.JsonObject(state + ("syncPartitions" to kotlinx.serialization.json.JsonArray(partitions.filterNot { it is kotlinx.serialization.json.JsonObject && it["ownerKey"] == kotlinx.serialization.json.JsonPrimitive(others[0].first.storageKey) })))
+                val update = stateFile.startWrite(); try { update.write(restored.toString().toByteArray()); stateFile.finishWrite(update) } catch (error: Exception) { stateFile.failWrite(update); throw error }
+                val captured = withContext(Dispatchers.Main) { fixture.sync.captureWriteContext() }
+                val prepared = fixture.sync.preparePortableExport(kotlinx.serialization.json.JsonObject(emptyMap()), captured, "saved.json")
+                try {
+                    val json = Json.parseToJsonElement(prepared.file.readText())
+                    assertTrue(json is kotlinx.serialization.json.JsonObject && json.containsKey("localSavedEvidence"))
+                    assertTrue(exportContains(json, "Own note says capability")); assertTrue(exportContains(json, "Old owner retained note"))
+                    assertFalse(exportContains(json, "Foreign private note")); assertFalse(exportContains(json, "Other deployment private note"))
+                    assertFalse(prepared.file.readText().contains("private-completion-proof")); assertFalse(prepared.file.readText().contains("private-root-proof"))
+                    val another = LibrarySyncOwner("another-old-owner", owner.subject); store.claimGuestForSync(another); store.beginSavedAssembly(another)
+                    try { fixture.sync.copyPreparedExport(prepared, java.io.ByteArrayOutputStream()); fail("Stale combined export accepted") } catch (_: Exception) { }
+                } finally { fixture.sync.discardPreparedExport(prepared) }
+            } finally { fixture.stop() }
+        }
+    }
+    @Test fun savedErasureFencesSuspendedReplyAndResumesBoundedCleanupAcrossReopen() = runBlocking {
+        isolated { store, reopen, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); val other = LibrarySyncOwner("owner-b", "subject-b")
+            store.claimGuestForSync(owner); store.claimGuestForSync(other)
+            val lease = store.beginSavedAssembly(owner); val peer = store.beginSavedAssembly(other); val facts = savedLargeFacts().take(32)
+            repeat(18) { store.collectSavedStep(lease, { true }) { savedReply(it, owner, facts) } }
+            val peerBefore = store.savedCheckpoint(peer); val captured = CompletableDeferred<String?>(); val release = CompletableDeferred<SavedFactsReply>(); val clone = reopen()
+            val late = async { runCatching { clone.collectSavedStep(lease, { true }) { captured.complete(it); release.await() } } }
+            val input = captured.await(); store.beginDeletion(owner.subject, owner.namespace)
+            assertTrue(store.eraseSavedStep(owner.subject, owner.namespace, null))
+            android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { db ->
+                db.rawQuery("SELECT COUNT(*) FROM saved_facts WHERE subject=?", arrayOf(owner.subject)).use { it.moveToFirst(); assertEquals(9, it.getInt(0)) }
+            }
+            release.complete(savedReply(input, owner, facts)); assertTrue(late.await().isFailure)
+            val recovered = reopen(); recovered.markDeletionBackendComplete(owner.subject, owner.namespace)
+            assertEquals(peerBefore, recovered.savedCheckpoint(peer)); assertEquals(LibraryDeletionPhase.IDENTITY_PENDING, recovered.deletionPhase(owner.subject, owner.namespace))
+            android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { db ->
+                for (table in listOf("saved_facts", "saved_pages", "saved_projection", "saved_assemblies")) db.rawQuery("SELECT COUNT(*) FROM $table WHERE subject=?", arrayOf(owner.subject)).use { it.moveToFirst(); assertEquals(0, it.getInt(0)) }
+            }
+        }
+    }
+    @Test fun savedOwnerOnlyResetKeepsOtherOwnerDataAndSharedClock() = runBlocking {
+        isolated { store, _, _ ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); val old = LibrarySyncOwner("older-owner", owner.subject)
+            store.claimGuestForSync(owner); store.claimGuestForSync(old)
+            store.beginSavedAssembly(owner); val lease = store.beginSavedAssembly(old)
+            val facts = listOf(SavedFact.Note("old-source", 0.0, "old-target", "Retained old owner", 1.0, 2.0))
+            repeat(2) { store.collectSavedStep(lease, { true }) { savedReply(it, old, facts) } }
+            val checkpoint = store.savedCheckpoint(lease); val before = store.prepareOutcomeExport(old) { true }
+            store.resetSyncPartitionForTesting(owner)
+            assertEquals(checkpoint, store.savedCheckpoint(lease)); assertEquals(1, store.savedRawPage(lease, 0).facts.size)
+            val after = store.prepareOutcomeExport(old) { true }
+            assertTrue(after.version is LibraryOutcomeExportVersion.Present); assertNotEquals(before, after)
+        }
+    }
+    @Test fun savedSchemaUpgradePreservesActualInstalledV1AndV2OutcomeData() = runBlocking {
+        for (version in listOf(1, 2)) isolated { store, _, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); legacyJournal(directory, listOf(owner))
+            if (version == 2) android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { db ->
+                db.execSQL("CREATE TABLE export_clocks (scope_key TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, epoch TEXT NOT NULL, revision INTEGER NOT NULL, erasing INTEGER NOT NULL)")
+                db.execSQL("CREATE TABLE export_migration (id INTEGER PRIMARY KEY CHECK(id=1), phase TEXT NOT NULL, cursor TEXT NOT NULL)")
+                db.execSQL("INSERT INTO export_migration VALUES(1,'scan','')")
+                db.execSQL("CREATE INDEX headers_export ON headers(subject,namespace,collection_key)")
+                db.execSQL("CREATE TABLE export_artifacts (artifact_id TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL)")
+                db.execSQL("CREATE INDEX artifacts_owner ON export_artifacts(subject,namespace,artifact_id)")
+                db.execSQL("INSERT INTO export_clocks VALUES(?,?,?,?,?,?)", arrayOf<Any>(LibraryOutcomeBinding.hash(listOf(owner.namespace, owner.subject)), owner.subject, owner.namespace, "v2-clock", 7, 0))
+                db.version = 2
+            }
+            store.claimGuestForSync(owner); val lease = store.beginSavedAssembly(owner)
+            android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { db ->
+                assertEquals(3, db.version)
+                db.rawQuery("EXPLAIN QUERY PLAN SELECT row_key FROM saved_projection WHERE collection_key=? AND row_key>? AND row_key<? ORDER BY row_key LIMIT 8", arrayOf(lease.collection, lease.collection + ":r:", lease.collection + ":r:~")).use {
+                    assertTrue(it.moveToFirst()); assertTrue(it.getString(3).contains("saved_projection_collection")); assertTrue(it.getString(3).contains("SEARCH"))
+                }
+                db.rawQuery("SELECT COUNT(*) FROM members", null).use { it.moveToFirst(); assertEquals(1, it.getInt(0)) }
+                if (version == 2) db.rawQuery("SELECT epoch,revision FROM export_clocks WHERE subject=?", arrayOf(owner.subject)).use { it.moveToFirst(); assertEquals("v2-clock", it.getString(0)); assertTrue(it.getLong(1) > 7) }
+            }
+            val proof = taggedOutcomeProof(owner, 1, owner.key)
+            assertEquals(1, store.outcomeEvidencePage(proof, owner, 0).rows.size)
+            store.prepareOutcomeExport(owner) { true }
+        }
+    }
+
+    @Test fun savedTokenCyclesStoppedReadsAndFreshGenerationRemainNonactivating() = runBlocking {
+        isolated { store, _, _ ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
+            val original = store.syncPartition(owner); val lease = store.beginSavedAssembly(owner)
+            try { store.eraseSavedStep(owner.subject, owner.namespace, owner.storageKey); fail("Unfenced erase accepted") } catch (_: LibrarySyncFailure) { }
+            store.collectSavedStep(lease, { true }) { savedReply(it, owner, emptyList()) }
+            store.collectSavedStep(lease, { true }) { SavedFactsReply.Page(owner.key, 9.0, "private-root-proof", it, 0.0, emptyList(), "cursor:1") }
+            val before = store.savedCheckpoint(lease)
+            try { store.collectSavedStep(lease, { true }) { SavedFactsReply.Page(owner.key, 9.0, "private-root-proof", it, 0.0, emptyList(), "cursor:0") }; fail("Historical cycle accepted") } catch (_: LibrarySyncFailure) { }
+            assertEquals(before, store.savedCheckpoint(lease))
+            val stopped = store.collectSavedStep(lease, { true }) { SavedFactsReply.Unavailable(SavedFactsReplyUnavailableReason.SOURCE_TOO_LARGE) }
+            assertEquals(LibrarySavedStage.Unavailable(SavedFactsReplyUnavailableReason.SOURCE_TOO_LARGE), stopped.stage)
+            try { store.preparedSavedPage(lease, null); fail("Stopped generation exposed as prepared") } catch (_: LibrarySyncFailure) { }
+            assertEquals(stopped, store.collectSavedStep(lease, { true }) { error("Stopped collector fetched again") })
+            store.beginSavedErase(owner.subject, owner.namespace, owner.storageKey)
+            for (step in 0 until 20) if (!store.eraseSavedStep(owner.subject, owner.namespace, owner.storageKey)) break
+            val next = store.beginSavedAssembly(owner); assertNotEquals(lease, next)
+            try { store.savedCheckpoint(lease); fail("Old incarnation revived") } catch (_: LibrarySyncFailure) { }
+            var current = true
+            try { store.collectSavedStep(next, { current }) { current = false; savedReply(it, owner, emptyList()) }; fail("Stale session reply committed") } catch (_: LibrarySyncFailure) { }
+            assertEquals(0L, store.savedCheckpoint(next).pages); assertEquals(original, store.syncPartition(owner))
+        }
+    }
+    @Test fun savedMissingRawFactCannotBecomePreparedAfterReopen() = runBlocking {
+        isolated { store, reopen, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
+            val lease = store.beginSavedAssembly(owner); val facts = savedLargeFacts().take(32)
+            repeat(facts.size + 1) { store.collectSavedStep(lease, { true }) { savedReply(it, owner, facts) } }
+            android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { it.delete("saved_facts", "collection_key=? AND ordinal=8", arrayOf(lease.collection)) }
+            val recovered = reopen(); recovered.collectSavedStep(lease, { true }) { error("Local fold fetched") }; val before = recovered.savedCheckpoint(lease)
+            try { recovered.collectSavedStep(lease, { true }) { error("Local fold fetched") }; fail("Missing fact silently skipped") } catch (_: LibrarySyncFailure) { }
+            assertEquals(before, recovered.savedCheckpoint(lease))
+            try { recovered.preparedSavedPage(lease, null); fail("Broken data became prepared") } catch (_: LibrarySyncFailure) { }
+        }
+    }
+
     @Test fun outcomeExportSafMidCopyFailuresRemoveActualPartialDocuments() = runBlocking {
         isolated { store, _, _ ->
             val fixture = AndroidLibraryFacadeFixture(store)
@@ -200,7 +447,7 @@ class GuestMergeRaceTest {
                 } finally { fixture.sync.discardPreparedExport(prepared) }
                 assertFalse(prepared.file.exists())
                 android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, android.database.sqlite.SQLiteDatabase.OPEN_READONLY).use { db ->
-                    assertEquals(2, db.version)
+                    assertEquals(3, db.version)
                     db.rawQuery("EXPLAIN QUERY PLAN SELECT collection_key FROM headers WHERE subject=? AND namespace=? AND collection_key>? ORDER BY collection_key LIMIT 50", arrayOf(owner.subject, owner.namespace, "")).use {
                         assertTrue(it.moveToFirst()); assertTrue(it.getString(3).contains("headers_export"))
                     }

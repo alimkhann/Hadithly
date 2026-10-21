@@ -18,6 +18,7 @@ final class GuestDataStore {
     private let context: ModelContext
     private let exportDirectory: URL
     private var exportCleanupDone = false
+    private var savedCollectionRunning = false
 
     static var schema: Schema {
         Schema([
@@ -36,6 +37,7 @@ final class GuestDataStore {
             GuestOutcomeInventory.self,
             GuestOutcomeInventoryMigration.self,
             GuestLibraryExportArtifact.self,
+            GuestSavedAssembly.self, GuestSavedFactRow.self, GuestSavedPageRow.self, GuestSavedProjectionRow.self,
         ])
     }
 
@@ -466,7 +468,7 @@ final class GuestDataStore {
         guard var active = try syncPartition(owner) else { throw LibrarySyncFailure.sessionChanged }
         let journal = outcomeContext(), prefix = LibraryOutcomeBinding.hash([owner.namespace, owner.subject]) + ":"
         let lower = active.outcomeRetentionCursor.map { prefix + $0 + "!" } ?? prefix, upper = prefix + "~"
-        var query = FetchDescriptor<GuestOutcomeInventory>(predicate: #Predicate { $0.key >= lower && $0.key < upper }, sortBy: [SortDescriptor(\.key)])
+        var query = FetchDescriptor<GuestOutcomeInventory>(predicate: #Predicate { $0.key >= lower && $0.key < upper }, sortBy: [SortDescriptor(\.key, comparator: .lexical)])
         query.fetchLimit = LibrarySyncLimits.outcomePage
         let inventory = try journal.fetch(query)
         if inventory.isEmpty {
@@ -566,12 +568,19 @@ final class GuestDataStore {
     func beginDeletion(subject: String, namespace: String) throws {
         if try deletionRow(subject: subject, namespace: namespace) == nil {
             context.insert(GuestAccountDeletion(subject: subject, namespace: namespace))
+            try bumpOutcomeClock(subject: subject, namespace: namespace, erasing: true, in: context)
         }
         do { try context.save() } catch { context.rollback(); throw LibrarySyncFailure.storeUnavailable }
     }
-    func markDeletionBackendComplete(subject: String, namespace: String) throws {
-        guard let row = try deletionRow(subject: subject, namespace: namespace) else { throw LibrarySyncFailure.sessionChanged }
+    func markDeletionBackendComplete(subject: String, namespace: String) async throws {
+        guard try deletionRow(subject: subject, namespace: namespace) != nil else { throw LibrarySyncFailure.sessionChanged }
+        try beginSavedErase(subject: subject, namespace: namespace)
+        while try eraseSavedStep(subject: subject, namespace: namespace) {
+            await Task.yield(); try Task.checkCancellation()
+            guard try deletionRow(subject: subject, namespace: namespace) != nil else { throw LibrarySyncFailure.sessionChanged }
+        }
         try eraseOutcomeEvidence(subject: subject, namespace: namespace)
+        guard let row = try deletionRow(subject: subject, namespace: namespace) else { throw LibrarySyncFailure.sessionChanged }
         row.phase = LibraryDeletionPhase.identityPending.rawValue
         for partition in try context.fetch(FetchDescriptor<GuestLibraryPartition>()) where partition.subject == subject && partition.ownerKey.hasPrefix(namespace + "|") {
             context.delete(partition)
@@ -585,6 +594,8 @@ final class GuestDataStore {
 
     // Reset fixture only. Account erasure uses the durable deletion intent above.
     func resetSyncPartitionForTesting(_ owner: LibrarySyncOwner) throws {
+        try beginSavedErase(subject: owner.subject, namespace: owner.namespace, ownerKey: owner.storageKey)
+        while try eraseSavedStep(subject: owner.subject, namespace: owner.namespace, ownerKey: owner.storageKey) { }
         try eraseOutcomeEvidence(subject: owner.subject, namespace: owner.namespace, ownerKey: owner.storageKey)
         if let row = try partitionRow(owner) { context.delete(row) }
         do { try context.save() }
@@ -644,7 +655,7 @@ final class GuestDataStore {
         case .scanning(let value): after = value; reconciling = false
         case .reconciling(let value): after = value; reconciling = true
         }
-        var headersQuery = FetchDescriptor<GuestOutcomeHeader>(predicate: #Predicate { $0.key > after }, sortBy: [SortDescriptor(\.key)])
+        var headersQuery = FetchDescriptor<GuestOutcomeHeader>(predicate: #Predicate { $0.key > after }, sortBy: [SortDescriptor(\.key, comparator: .lexical)])
         headersQuery.fetchLimit = LibrarySyncLimits.outcomePage
         let headers = try journal.fetch(headersQuery)
         for header in headers {
@@ -679,14 +690,14 @@ final class GuestDataStore {
         }
         let prefix = LibraryOutcomeBinding.hash([owner.namespace, owner.subject]) + ":", upper = prefix + "~"
         var query = FetchDescriptor<GuestOutcomeInventory>(predicate: #Predicate { $0.key >= prefix && $0.key < upper }); query.fetchLimit = 1
-        guard try journal.fetch(query).isEmpty else { throw LibrarySyncFailure.storeUnavailable }
+        guard try journal.fetch(query).isEmpty, try !hasSavedRows(subject: owner.subject, namespace: owner.namespace, in: journal) else { throw LibrarySyncFailure.storeUnavailable }
         return .init(owner: owner, version: .empty)
     }
     private func validateOutcomeExport(_ fence: LibraryOutcomeExportFence, in journal: ModelContext) throws {
         try assertOutcomeOwnerActive(fence.owner)
         let clock = try outcomeClock(subject: fence.owner.subject, namespace: fence.owner.namespace, in: journal)
         switch (fence.version, clock) {
-        case (.empty, nil): break
+        case (.empty, nil): guard try !hasSavedRows(subject: fence.owner.subject, namespace: fence.owner.namespace, in: journal) else { throw LibrarySyncFailure.storeUnavailable }
         case (.present(let epoch, let revision), .some(let clock)):
             guard !clock.erasing, clock.epoch == epoch, clock.revision == revision else { throw LibrarySyncFailure.storeUnavailable }
         default: throw LibrarySyncFailure.storeUnavailable
@@ -697,7 +708,7 @@ final class GuestDataStore {
         let journal = outcomeContext(); try validateOutcomeExport(fence, in: journal)
         let prefix = LibraryOutcomeBinding.hash([fence.owner.namespace, fence.owner.subject]) + ":", upper = prefix + "~"
         let lower = after.map { prefix + $0 + "!" } ?? prefix
-        var query = FetchDescriptor<GuestOutcomeInventory>(predicate: #Predicate { $0.key >= lower && $0.key < upper }, sortBy: [SortDescriptor(\.key)])
+        var query = FetchDescriptor<GuestOutcomeInventory>(predicate: #Predicate { $0.key >= lower && $0.key < upper }, sortBy: [SortDescriptor(\.key, comparator: .lexical)])
         query.fetchLimit = LibrarySyncLimits.outcomePage
         let rows = try journal.fetch(query)
         return try rows.map { row in
@@ -804,7 +815,7 @@ final class GuestDataStore {
     }
     private func outcomeRows(_ binding: LibraryOutcomeBinding, start: Int, limit: Int, in journal: ModelContext) throws -> [SyncOutcomeMember] {
         let lower = binding.ordinalKey(start), upper = binding.key + ":~"
-        var query = FetchDescriptor<GuestOutcomeMember>(predicate: #Predicate { $0.ordinalKey >= lower && $0.ordinalKey < upper }, sortBy: [SortDescriptor(\.ordinalKey)])
+        var query = FetchDescriptor<GuestOutcomeMember>(predicate: #Predicate { $0.ordinalKey >= lower && $0.ordinalKey < upper }, sortBy: [SortDescriptor(\.ordinalKey, comparator: .lexical)])
         query.fetchLimit = LibrarySyncLimits.outcomePage
         let stored = try journal.fetch(query)
         guard stored.count == min(LibrarySyncLimits.outcomePage, limit - start) else { throw LibrarySyncFailure.storeUnavailable }
@@ -935,8 +946,8 @@ final class GuestDataStore {
         try eraseOutcomeExportArtifacts(subject: subject, namespace: namespace)
         var after = ""
         while true {
-            var query = FetchDescriptor<GuestOutcomeScope>(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace && $0.key > after }, sortBy: [SortDescriptor(\.key)])
-            if let ownerKey { query = FetchDescriptor(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace && $0.ownerKey == ownerKey && $0.key > after }, sortBy: [SortDescriptor(\.key)]) }
+            var query = FetchDescriptor<GuestOutcomeScope>(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace && $0.key > after }, sortBy: [SortDescriptor(\.key, comparator: .lexical)])
+            if let ownerKey { query = FetchDescriptor(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace && $0.ownerKey == ownerKey && $0.key > after }, sortBy: [SortDescriptor(\.key, comparator: .lexical)]) }
             query.fetchLimit = LibrarySyncLimits.outcomePage
             let scopes = try journal.fetch(query)
             guard let last = scopes.last else { break }
@@ -993,7 +1004,7 @@ final class GuestDataStore {
         }
         let headers = try journal.fetchCount(FetchDescriptor<GuestOutcomeHeader>(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace }))
         let scopes = try journal.fetchCount(FetchDescriptor<GuestOutcomeScope>(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace }))
-        if headers == 0 && scopes == 0, let clock = try outcomeClock(subject: subject, namespace: namespace, in: journal) {
+        if headers == 0 && scopes == 0, try !hasSavedRows(subject: subject, namespace: namespace, in: journal), let clock = try outcomeClock(subject: subject, namespace: namespace, in: journal) {
             journal.delete(clock); try saveOutcomeContext(journal)
         }
     }
@@ -1054,5 +1065,339 @@ final class GuestDataStore {
         return !name.isEmpty && name.unicodeScalars.count <= 64 && !name.unicodeScalars.contains {
             $0.value <= 0x1f || ($0.value >= 0x7f && $0.value <= 0x9f)
         }
+    }
+}
+
+// One pending private generation per owner. Prepared data does not alter the joined production base.
+extension GuestDataStore {
+    static var savedStepLimit: Int { 8 }
+    private func savedOwnerActive(_ owner: LibrarySyncOwner, in db: ModelContext) throws {
+        let key = owner.storageKey, subject = owner.subject, namespace = owner.namespace
+        var partition = FetchDescriptor<GuestLibraryPartition>(predicate: #Predicate { $0.ownerKey == key }); partition.fetchLimit = 2
+        let partitions = try db.fetch(partition)
+        guard partitions.count == 1, partitions.first?.subject == subject else { throw LibrarySyncFailure.sessionChanged }
+        let deletionKey = namespace + "|" + subject
+        var deletion = FetchDescriptor<GuestAccountDeletion>(predicate: #Predicate { $0.scope == deletionKey }); deletion.fetchLimit = 1
+        guard try db.fetch(deletion).isEmpty, try outcomeClock(subject: subject, namespace: namespace, in: db)?.erasing != true else { throw LibrarySyncFailure.accountDeleting }
+    }
+    private func savedAssembly(_ key: String, in db: ModelContext) throws -> GuestSavedAssembly? {
+        var query = FetchDescriptor<GuestSavedAssembly>(predicate: #Predicate { $0.key == key }); query.fetchLimit = 2
+        let rows = try db.fetch(query); guard rows.count <= 1 else { throw LibrarySyncFailure.storeUnavailable }; return rows.first
+    }
+    private func savedHeader(_ lease: LibrarySavedLease, in db: ModelContext) throws -> (GuestSavedAssembly, LibrarySavedCheckpoint) {
+        try lease.validate()
+        let subject = lease.owner.subject, namespace = lease.owner.namespace
+        let deletionKey = namespace + "|" + subject
+        var deletion = FetchDescriptor<GuestAccountDeletion>(predicate: #Predicate { $0.scope == deletionKey }); deletion.fetchLimit = 1
+        guard try db.fetch(deletion).isEmpty, try outcomeClock(subject: subject, namespace: namespace, in: db)?.erasing != true else { throw LibrarySyncFailure.accountDeleting }
+        guard let row = try savedAssembly(lease.key, in: db), !row.erasing,
+              row.subject == lease.owner.subject, row.namespace == lease.owner.namespace, row.ownerKey == lease.owner.storageKey,
+              row.leaseData.count <= 16_384, row.checkpointData.count <= 256 * 1024,
+              try JSONDecoder().decode(LibrarySavedLease.self, from: row.leaseData) == lease else { throw LibrarySyncFailure.sessionChanged }
+        let value = try JSONDecoder().decode(LibrarySavedCheckpoint.self, from: row.checkpointData)
+        try value.validate(owner: lease.owner); return (row, value)
+    }
+    private func saveSaved(_ value: LibrarySavedCheckpoint, header: GuestSavedAssembly, lease: LibrarySavedLease, in db: ModelContext) throws {
+        try value.validate(owner: lease.owner); header.checkpointData = try JSONEncoder().encode(value)
+        guard header.checkpointData.count <= 256 * 1024 else { throw LibrarySyncFailure.storeUnavailable }
+        try bumpOutcomeClock(subject: lease.owner.subject, namespace: lease.owner.namespace, in: db); try saveOutcomeContext(db)
+    }
+    func beginSavedAssembly(_ owner: LibrarySyncOwner) throws -> LibrarySavedLease {
+        let db = outcomeContext(); try savedOwnerActive(owner, in: db)
+        let candidate = LibrarySavedLease(owner: owner, epoch: UUID().uuidString, generation: UUID().uuidString)
+        try candidate.validate()
+        if let stored = try savedAssembly(candidate.key, in: db) {
+            guard stored.leaseData.count <= 16_384 else { throw LibrarySyncFailure.storeUnavailable }
+            let lease = try JSONDecoder().decode(LibrarySavedLease.self, from: stored.leaseData)
+            guard lease.owner == owner else { throw LibrarySyncFailure.ownerMismatch }
+            _ = try savedHeader(lease, in: db); return lease
+        }
+        let lower = candidate.key + ":", upper = candidate.key + ":~"
+        var facts = FetchDescriptor<GuestSavedFactRow>(predicate: #Predicate { $0.key >= lower && $0.key < upper }); facts.fetchLimit = 1
+        var pages = FetchDescriptor<GuestSavedPageRow>(predicate: #Predicate { $0.key >= lower && $0.key < upper }); pages.fetchLimit = 1
+        var rows = FetchDescriptor<GuestSavedProjectionRow>(predicate: #Predicate { $0.key >= lower && $0.key < upper }); rows.fetchLimit = 1
+        guard try db.fetch(facts).isEmpty, try db.fetch(pages).isEmpty, try db.fetch(rows).isEmpty else { throw LibrarySyncFailure.storeUnavailable }
+        let row = try GuestSavedAssembly(lease: candidate); db.insert(row)
+        try bumpOutcomeClock(subject: owner.subject, namespace: owner.namespace, in: db); try saveOutcomeContext(db); return candidate
+    }
+    func savedCheckpoint(_ lease: LibrarySavedLease) throws -> LibrarySavedCheckpoint {
+        let db = outcomeContext(); return try savedHeader(lease, in: db).1
+    }
+    private func savedFacts(_ lease: LibrarySavedLease, start: Int, end: Int, in db: ModelContext) throws -> [SavedFact] {
+        guard start >= 0, start <= end else { throw LibrarySyncFailure.invalidReceipt }
+        let lower = lease.ordinalKey(start), upper = lease.ordinalKey(end)
+        var query = FetchDescriptor<GuestSavedFactRow>(predicate: #Predicate { $0.key >= lower && $0.key < upper }, sortBy: [SortDescriptor(\.key, comparator: .lexical)])
+        query.fetchLimit = Self.savedStepLimit
+        let rows = try db.fetch(query)
+        guard rows.count == min(Self.savedStepLimit, end - start) else { throw LibrarySyncFailure.storeUnavailable }
+        return try rows.enumerated().map { index, row in
+            guard row.data.count <= LibrarySyncLimits.savedFactPageBytes else { throw LibrarySyncFailure.storeUnavailable }
+            let fact = try JSONDecoder().decode(SavedFact.self, from: row.data)
+            try LibrarySavedPolicy.validate(fact)
+            guard row.key == lease.ordinalKey(start + index), row.ordinal == start + index, fact.ordinalValue == Double(start + index),
+                  row.sourceKey == lease.sourceKey(fact), row.collectionKey == lease.collection, row.subject == lease.owner.subject,
+                  row.namespace == lease.owner.namespace, row.ownerKey == lease.owner.storageKey, row.fingerprint == (try fact.savedFingerprint()) else { throw LibrarySyncFailure.storeUnavailable }
+            return fact
+        }
+    }
+    func savedRawPage(_ lease: LibrarySavedLease, start: Int) throws -> LibrarySavedRawPage {
+        let db = outcomeContext(); let checkpoint = try savedHeader(lease, in: db).1
+        let rows = try savedFacts(lease, start: start, end: checkpoint.next, in: db)
+        return .init(lease: lease, checkpoint: checkpoint, facts: rows, next: start + rows.count)
+    }
+    private func savedReceipt(_ lease: LibrarySavedLease, input: String?, in db: ModelContext) throws -> LibrarySavedPageReceipt? {
+        let key = lease.inputKey(input); var query = FetchDescriptor<GuestSavedPageRow>(predicate: #Predicate { $0.key == key }); query.fetchLimit = 2
+        let rows = try db.fetch(query); guard rows.count <= 1 else { throw LibrarySyncFailure.storeUnavailable }
+        guard let row = rows.first else { return nil }
+        guard row.data.count <= 256 * 1024 else { throw LibrarySyncFailure.storeUnavailable }
+        let receipt = try JSONDecoder().decode(LibrarySavedPageReceipt.self, from: row.data)
+        _ = try LibrarySavedPolicy.integer(Double(receipt.sequence)); _ = try LibrarySavedPolicy.integer(Double(receipt.start))
+        guard Double(receipt.start) <= LibrarySavedPolicy.maxInteger - Double(receipt.count) else { throw LibrarySyncFailure.storeUnavailable }
+        guard receipt.input == input, receipt.sequence >= 0, row.sequenceKey == lease.sequenceKey(receipt.sequence), row.collectionKey == lease.collection,
+              row.subject == lease.owner.subject, row.namespace == lease.owner.namespace, row.ownerKey == lease.owner.storageKey,
+              receipt.start >= 0, receipt.count >= 0, receipt.count <= LibrarySyncLimits.savedFactRows else { throw LibrarySyncFailure.storeUnavailable }
+        return receipt
+    }
+    private func persistSavedPage(_ lease: LibrarySavedLease, requested: String?, reply: SavedFactsReply) throws -> LibrarySavedCheckpoint {
+        let db = outcomeContext()
+        do {
+            let (header, checkpoint) = try savedHeader(lease, in: db)
+            if let receipt = try savedReceipt(lease, input: requested, in: db) {
+                guard receipt.sequence < checkpoint.pages, receipt.start + receipt.count <= checkpoint.next else { throw LibrarySyncFailure.storeUnavailable }
+                let facts = try savedFacts(lease, start: receipt.start, end: receipt.start + receipt.count, in: db)
+                try receipt.validate(reply: reply, owner: lease.owner, facts: facts); return checkpoint
+            }
+            guard checkpoint.stage == .collecting else { throw LibrarySyncFailure.invalidReceipt }
+            let decision = try LibrarySavedPolicy.inspect(reply, owner: lease.owner, previous: checkpoint.position, requested: requested)
+            var next = checkpoint; let result: LibrarySavedReceiptResult; let count: Int
+            switch decision {
+            case .restart: next.stage = .restart; result = .restart; count = 0
+            case .unavailable(let reason): next.stage = .unavailable(reason); result = .unavailable(reason); count = 0
+            case .append(let plan):
+                if case .next(let token) = plan.position.continuation, try savedReceipt(lease, input: token, in: db) != nil { throw LibrarySyncFailure.invalidReceipt }
+                for fact in plan.facts {
+                    let key = lease.ordinalKey(try LibrarySavedPolicy.integer(fact.ordinalValue)), source = lease.sourceKey(fact)
+                    var duplicate = FetchDescriptor<GuestSavedFactRow>(predicate: #Predicate { $0.key == key || $0.sourceKey == source }); duplicate.fetchLimit = 1
+                    guard try db.fetch(duplicate).isEmpty else { throw LibrarySyncFailure.invalidReceipt }
+                    db.insert(try GuestSavedFactRow(lease: lease, fact: fact)); next.digest = LibraryOutcomeBinding.hash([next.digest, try fact.savedFingerprint()])
+                }
+                next.position = plan.position; result = .advanced(plan.position); count = plan.facts.count
+                if case .complete = plan.position.continuation { next.stage = .folding(next: 0, phase: -1, digest: LibraryOutcomeBinding.hash(["saved-raw-v1"])) }
+            }
+            let receipt = LibrarySavedPageReceipt(sequence: checkpoint.pages, input: requested, before: checkpoint.position, start: checkpoint.next, count: count,
+                fingerprint: try LibrarySemanticFingerprint.digest(reply, domain: "library-saved-page-v1:"), result: result)
+            db.insert(try GuestSavedPageRow(lease: lease, receipt: receipt)); next.pages += 1
+            try saveSaved(next, header: header, lease: lease, in: db); return next
+        } catch { db.rollback(); throw error }
+    }
+    private func decodeSavedProjection(_ row: GuestSavedProjectionRow, lease: LibrarySavedLease) throws -> LibrarySavedProjection {
+        guard row.data.count <= 256 * 1024 else { throw LibrarySyncFailure.storeUnavailable }
+        let value = try JSONDecoder().decode(LibrarySavedProjection.self, from: row.data)
+        try LibrarySavedPolicy.validateProjection(value)
+        guard row.key == lease.projectionKey(value), row.collectionKey == lease.collection, row.subject == lease.owner.subject,
+              row.namespace == lease.owner.namespace, row.ownerKey == lease.owner.storageKey, row.fingerprint == (try value.savedFingerprint()) else { throw LibrarySyncFailure.storeUnavailable }
+        return value
+    }
+    private func savedProjection(_ lease: LibrarySavedLease, fact: SavedFact, in db: ModelContext) throws -> GuestSavedProjectionRow? {
+        let kind = fact.sourcePhase == 0 ? "folder" : "item"
+        let key = lease.collection + ":r:" + LibraryOutcomeBinding.hash([kind, fact.targetID])
+        var query = FetchDescriptor<GuestSavedProjectionRow>(predicate: #Predicate { $0.key == key }); query.fetchLimit = 2
+        let rows = try db.fetch(query); guard rows.count <= 1 else { throw LibrarySyncFailure.storeUnavailable }; return rows.first
+    }
+    private func savedProjectionRows(_ lease: LibrarySavedLease, after: String?, in db: ModelContext) throws -> [GuestSavedProjectionRow] {
+        guard after == nil || after?.hasPrefix(lease.collection + ":r:") == true else { throw LibrarySyncFailure.invalidReceipt }
+        let lower = after ?? (lease.collection + ":r:"), upper = lease.collection + ":r:~"
+        var query = FetchDescriptor<GuestSavedProjectionRow>(predicate: #Predicate { $0.key > lower && $0.key < upper }, sortBy: [SortDescriptor(\.key, comparator: .lexical)])
+        query.fetchLimit = Self.savedStepLimit; return try db.fetch(query)
+    }
+    private func savedPageReceipts(_ lease: LibrarySavedLease, start: Int, total: Int, in db: ModelContext) throws -> [LibrarySavedPageReceipt] {
+        guard start >= 0, start <= total else { throw LibrarySyncFailure.storeUnavailable }
+        let lower = lease.sequenceKey(start), upper = lease.collection + ":s:~"
+        var query = FetchDescriptor<GuestSavedPageRow>(predicate: #Predicate { $0.sequenceKey >= lower && $0.sequenceKey < upper }, sortBy: [SortDescriptor(\.sequenceKey, comparator: .lexical)])
+        query.fetchLimit = Self.savedStepLimit; let rows = try db.fetch(query)
+        guard rows.count == min(Self.savedStepLimit, total - start) else { throw LibrarySyncFailure.storeUnavailable }
+        return try rows.enumerated().map { index, row in
+            guard row.data.count <= 256 * 1024 else { throw LibrarySyncFailure.storeUnavailable }
+            let receipt = try JSONDecoder().decode(LibrarySavedPageReceipt.self, from: row.data)
+            _ = try LibrarySavedPolicy.integer(Double(receipt.sequence)); _ = try LibrarySavedPolicy.integer(Double(receipt.start))
+            guard Double(receipt.start) <= LibrarySavedPolicy.maxInteger - Double(receipt.count) else { throw LibrarySyncFailure.storeUnavailable }
+            guard receipt.sequence == start + index, row.sequenceKey == lease.sequenceKey(receipt.sequence), row.key == lease.inputKey(receipt.input),
+                  row.collectionKey == lease.collection, row.subject == lease.owner.subject, row.namespace == lease.owner.namespace, row.ownerKey == lease.owner.storageKey,
+                  receipt.start >= 0, receipt.count >= 0, receipt.count <= LibrarySyncLimits.savedFactRows else { throw LibrarySyncFailure.storeUnavailable }
+            let facts = try savedFacts(lease, start: receipt.start, end: receipt.start + receipt.count, in: db)
+            try receipt.validate(reply: receipt.reply(facts: facts, owner: lease.owner), owner: lease.owner, facts: facts)
+            return receipt
+        }
+    }
+    func advanceSavedAssembly(_ lease: LibrarySavedLease) throws -> LibrarySavedCheckpoint {
+        let db = outcomeContext()
+        do {
+            let (header, checkpoint) = try savedHeader(lease, in: db); var next = checkpoint
+            switch checkpoint.stage {
+            case .folding(let start, var phase, var checksum):
+                let rows = try savedFacts(lease, start: start, end: checkpoint.next, in: db)
+                for fact in rows {
+                    guard fact.sourcePhase >= phase else { throw LibrarySyncFailure.storeUnavailable }; phase = fact.sourcePhase
+                    let stored = try savedProjection(lease, fact: fact, in: db)
+                    let previous = try stored.map { try decodeSavedProjection($0, lease: lease) }
+                    let projection = try LibrarySavedPolicy.fold(fact, previous: previous)
+                    if let stored { stored.data = try JSONEncoder().encode(projection); stored.fingerprint = try projection.savedFingerprint() }
+                    else { db.insert(try GuestSavedProjectionRow(lease: lease, value: projection)); next.counts.add(projection) }
+                    checksum = LibraryOutcomeBinding.hash([checksum, try fact.savedFingerprint()])
+                }
+                let end = start + rows.count
+                if end == checkpoint.next {
+                    let lower = lease.ordinalKey(checkpoint.next), upper = lease.collection + ":f:~"
+                    var extras = FetchDescriptor<GuestSavedFactRow>(predicate: #Predicate { $0.key >= lower && $0.key < upper }); extras.fetchLimit = 1
+                    guard try db.fetch(extras).isEmpty, checksum == checkpoint.digest else { throw LibrarySyncFailure.storeUnavailable }
+                    next.stage = .checkingPages(next: 0, input: nil, position: nil)
+                } else { next.stage = .folding(next: end, phase: phase, digest: checksum) }
+            case .checkingPages(let start, var expectedInput, var position):
+                let rows = try savedPageReceipts(lease, start: start, total: checkpoint.pages, in: db)
+                for receipt in rows {
+                    guard receipt.input == expectedInput, receipt.before == position, case .advanced(let advanced) = receipt.result else { throw LibrarySyncFailure.storeUnavailable }
+                    expectedInput = advanced.continuation.token; position = advanced
+                }
+                let end = start + rows.count
+                if end == checkpoint.pages {
+                    guard position == checkpoint.position else { throw LibrarySyncFailure.storeUnavailable }
+                    next.stage = .verifying(after: nil, seen: .init())
+                } else { next.stage = .checkingPages(next: end, input: expectedInput, position: position) }
+            case .verifying(let after, var seen):
+                let rows = try savedProjectionRows(lease, after: after, in: db)
+                for row in rows { seen.add(try decodeSavedProjection(row, lease: lease)) }
+                guard seen.items <= checkpoint.counts.items, seen.folders <= checkpoint.counts.folders else { throw LibrarySyncFailure.storeUnavailable }
+                if rows.count < Self.savedStepLimit {
+                    guard seen == checkpoint.counts else { throw LibrarySyncFailure.storeUnavailable }; next.stage = .prepared
+                } else { next.stage = .verifying(after: rows.last?.key, seen: seen) }
+            default: return checkpoint
+            }
+            try saveSaved(next, header: header, lease: lease, in: db); return next
+        } catch { db.rollback(); throw error }
+    }
+    func collectSavedStep(_ lease: LibrarySavedLease, isCurrent: () -> Bool, fetch: (String?) async throws -> SavedFactsReply) async throws -> LibrarySavedCheckpoint {
+        guard !Task.isCancelled, isCurrent(), !savedCollectionRunning else { throw LibrarySyncFailure.sessionChanged }
+        savedCollectionRunning = true; defer { savedCollectionRunning = false }
+        let checkpoint = try savedCheckpoint(lease)
+        guard checkpoint.stage == .collecting else { return try advanceSavedAssembly(lease) }
+        let requested = checkpoint.position?.continuation.token
+        let reply = try await fetch(requested)
+        guard !Task.isCancelled, isCurrent() else { throw LibrarySyncFailure.sessionChanged }
+        return try persistSavedPage(lease, requested: requested, reply: reply)
+    }
+    func preparedSavedPage(_ lease: LibrarySavedLease, after: String?) throws -> LibrarySavedProjectionPage {
+        let db = outcomeContext()
+        guard try savedHeader(lease, in: db).1.stage == .prepared else { throw LibrarySyncFailure.storeUnavailable }
+        let rows = try savedProjectionRows(lease, after: after, in: db)
+        return .init(rows: try rows.map { try decodeSavedProjection($0, lease: lease) }, next: rows.last?.key, done: rows.count < Self.savedStepLimit)
+    }
+}
+
+extension GuestDataStore {
+    private func hasSavedRows(subject: String, namespace: String, in db: ModelContext) throws -> Bool {
+        let lower = LibraryOutcomeBinding.hash([namespace, subject]) + ":", upper = lower + "~"
+        var a = FetchDescriptor<GuestSavedAssembly>(predicate: #Predicate { $0.key >= lower && $0.key < upper }); a.fetchLimit = 1
+        if try !db.fetch(a).isEmpty { return true }
+        var f = FetchDescriptor<GuestSavedFactRow>(predicate: #Predicate { $0.key >= lower && $0.key < upper }); f.fetchLimit = 1
+        if try !db.fetch(f).isEmpty { return true }
+        var p = FetchDescriptor<GuestSavedPageRow>(predicate: #Predicate { $0.key >= lower && $0.key < upper }); p.fetchLimit = 1
+        if try !db.fetch(p).isEmpty { return true }
+        var r = FetchDescriptor<GuestSavedProjectionRow>(predicate: #Predicate { $0.key >= lower && $0.key < upper }); r.fetchLimit = 1
+        return try !db.fetch(r).isEmpty
+    }
+    func beginSavedErase(subject: String, namespace: String, ownerKey: String? = nil) throws {
+        let db = outcomeContext()
+        if let ownerKey {
+            let key = LibraryOutcomeBinding.hash([namespace, subject]) + ":" + LibraryOutcomeBinding.hash([ownerKey, subject])
+            if let row = try savedAssembly(key, in: db) {
+                guard row.subject == subject, row.namespace == namespace, row.ownerKey == ownerKey else { throw LibrarySyncFailure.ownerMismatch }
+                row.erasing = true
+            }
+        }
+        try bumpOutcomeClock(subject: subject, namespace: namespace, erasing: ownerKey == nil, in: db); try saveOutcomeContext(db)
+    }
+    func eraseSavedStep(subject: String, namespace: String, ownerKey: String? = nil) throws -> Bool {
+        let db = outcomeContext()
+        guard try ownerKey != nil || outcomeClock(subject: subject, namespace: namespace, in: db)?.erasing == true else { throw LibrarySyncFailure.accountDeleting }
+        let prefix = LibraryOutcomeBinding.hash([namespace, subject]) + ":"
+        let lower = ownerKey.map { prefix + LibraryOutcomeBinding.hash([$0, subject]) } ?? prefix, upper = lower + "~"
+        if let ownerKey {
+            let key = prefix + LibraryOutcomeBinding.hash([ownerKey, subject])
+            if let header = try savedAssembly(key, in: db), !header.erasing { throw LibrarySyncFailure.invalidChange }
+        }
+        func owned(_ s: String, _ n: String, _ o: String) throws {
+            guard s == subject, n == namespace, ownerKey == nil || o == ownerKey else { throw LibrarySyncFailure.ownerMismatch }
+        }
+        var f = FetchDescriptor<GuestSavedFactRow>(predicate: #Predicate { $0.key >= lower && $0.key < upper }); f.fetchLimit = Self.savedStepLimit
+        let facts = try db.fetch(f)
+        if !facts.isEmpty { for row in facts { try owned(row.subject, row.namespace, row.ownerKey); db.delete(row) }; try bumpOutcomeClock(subject: subject, namespace: namespace, erasing: ownerKey == nil, in: db); try saveOutcomeContext(db); return true }
+        var p = FetchDescriptor<GuestSavedPageRow>(predicate: #Predicate { $0.key >= lower && $0.key < upper }); p.fetchLimit = Self.savedStepLimit
+        let pages = try db.fetch(p)
+        if !pages.isEmpty { for row in pages { try owned(row.subject, row.namespace, row.ownerKey); db.delete(row) }; try bumpOutcomeClock(subject: subject, namespace: namespace, erasing: ownerKey == nil, in: db); try saveOutcomeContext(db); return true }
+        var r = FetchDescriptor<GuestSavedProjectionRow>(predicate: #Predicate { $0.key >= lower && $0.key < upper }); r.fetchLimit = Self.savedStepLimit
+        let projection = try db.fetch(r)
+        if !projection.isEmpty { for row in projection { try owned(row.subject, row.namespace, row.ownerKey); db.delete(row) }; try bumpOutcomeClock(subject: subject, namespace: namespace, erasing: ownerKey == nil, in: db); try saveOutcomeContext(db); return true }
+        var a = FetchDescriptor<GuestSavedAssembly>(predicate: #Predicate { $0.key >= lower && $0.key < upper }); a.fetchLimit = Self.savedStepLimit
+        let headers = try db.fetch(a)
+        if !headers.isEmpty { for row in headers { try owned(row.subject, row.namespace, row.ownerKey); db.delete(row) }; try bumpOutcomeClock(subject: subject, namespace: namespace, erasing: ownerKey == nil, in: db); try saveOutcomeContext(db); return true }
+        return false
+    }
+    func savedExportRecords(_ fence: LibraryOutcomeExportFence, section: Int, after: String?) throws -> (values: [LibraryExportValue], next: String?, done: Bool) {
+        let db = outcomeContext(); try validateOutcomeExport(fence, in: db)
+        let subject = fence.owner.subject, namespace = fence.owner.namespace
+        let prefix = LibraryOutcomeBinding.hash([namespace, subject]) + ":", lower = after ?? prefix, upper = prefix + "~"
+        func owned(_ s: String, _ n: String, _ o: String, _ collection: String) throws -> [String: LibraryExportValue] {
+            let scope = LibraryOutcomeBinding.hash([namespace, subject]) + ":" + LibraryOutcomeBinding.hash([o, subject])
+            guard s == subject, n == namespace, o.hasPrefix(namespace + "|"), collection.hasPrefix(scope + ":") else { throw LibrarySyncFailure.ownerMismatch }
+            return ["ownerStorageKey": .string(o), "subject": .string(s), "namespace": .string(n), "collection": .string(collection), "coverage": .string("retained_local_rows")]
+        }
+        var values: [LibraryExportValue] = [], last: String?
+        switch section {
+        case 0:
+            var query = FetchDescriptor<GuestSavedAssembly>(predicate: #Predicate { $0.key > lower && $0.key < upper }, sortBy: [SortDescriptor(\.key, comparator: .lexical)]); query.fetchLimit = Self.savedStepLimit
+            for row in try db.fetch(query) {
+                guard row.leaseData.count <= 16_384 else { throw LibrarySyncFailure.storeUnavailable }
+                let lease = try JSONDecoder().decode(LibrarySavedLease.self, from: row.leaseData)
+                guard lease.owner.subject == subject, lease.owner.namespace == namespace else { throw LibrarySyncFailure.ownerMismatch }
+                let checkpoint = try savedHeader(lease, in: db).1
+                var metadata = LibrarySavedExportEntry(lease: lease, checkpoint: checkpoint).exportMetadata(); metadata["kind"] = .string("assembly"); metadata["coverage"] = .string("retained_local_rows")
+                values.append(.object(metadata)); last = row.key
+            }
+        case 1:
+            var query = FetchDescriptor<GuestSavedFactRow>(predicate: #Predicate { $0.key > lower && $0.key < upper }, sortBy: [SortDescriptor(\.key, comparator: .lexical)]); query.fetchLimit = Self.savedStepLimit
+            for row in try db.fetch(query) {
+                var metadata = try owned(row.subject, row.namespace, row.ownerKey, row.collectionKey)
+                guard row.data.count <= LibrarySyncLimits.savedFactPageBytes else { throw LibrarySyncFailure.storeUnavailable }
+                let fact = try JSONDecoder().decode(SavedFact.self, from: row.data); try LibrarySavedPolicy.validate(fact)
+                let ordinal = try LibrarySavedPolicy.integer(fact.ordinalValue)
+                guard row.ordinal == ordinal, row.key == row.collectionKey + ":f:" + String(format: "%016llx", UInt64(ordinal)), row.sourceKey == row.collectionKey + ":i:" + LibraryOutcomeBinding.hash([String(fact.sourcePhase), fact.sourceID]), row.fingerprint == (try fact.savedFingerprint()) else { throw LibrarySyncFailure.storeUnavailable }
+                metadata["record"] = try LibrarySavedExportRecord.fact(fact).exportValue(); values.append(.object(metadata)); last = row.key
+            }
+        case 2:
+            var query = FetchDescriptor<GuestSavedPageRow>(predicate: #Predicate { $0.key > lower && $0.key < upper }, sortBy: [SortDescriptor(\.key, comparator: .lexical)]); query.fetchLimit = Self.savedStepLimit
+            for row in try db.fetch(query) {
+                var metadata = try owned(row.subject, row.namespace, row.ownerKey, row.collectionKey)
+                guard row.data.count <= 256 * 1024 else { throw LibrarySyncFailure.storeUnavailable }
+                let receipt = try JSONDecoder().decode(LibrarySavedPageReceipt.self, from: row.data)
+                guard receipt.sequence >= 0, receipt.count >= 0, receipt.start >= 0,
+                      row.key == row.collectionKey + ":p:" + LibraryOutcomeBinding.hash([receipt.input == nil ? "absent" : "present", receipt.input ?? ""]),
+                      row.sequenceKey == row.collectionKey + ":s:" + String(format: "%016llx", UInt64(receipt.sequence)) else { throw LibrarySyncFailure.storeUnavailable }
+                for position in [receipt.before, { if case .advanced(let p) = receipt.result { return p }; return nil }()].compactMap({ $0 }) {
+                    guard position.owner.subject == subject, position.owner.namespace == namespace, position.owner.storageKey == row.ownerKey else { throw LibrarySyncFailure.ownerMismatch }
+                }
+                metadata["record"] = try LibrarySavedExportRecord.page(receipt).exportValue(); values.append(.object(metadata)); last = row.key
+            }
+        case 3:
+            var query = FetchDescriptor<GuestSavedProjectionRow>(predicate: #Predicate { $0.key > lower && $0.key < upper }, sortBy: [SortDescriptor(\.key, comparator: .lexical)]); query.fetchLimit = Self.savedStepLimit
+            for row in try db.fetch(query) {
+                var metadata = try owned(row.subject, row.namespace, row.ownerKey, row.collectionKey)
+                guard row.data.count <= 256 * 1024 else { throw LibrarySyncFailure.storeUnavailable }
+                let value = try JSONDecoder().decode(LibrarySavedProjection.self, from: row.data); try LibrarySavedPolicy.validateProjection(value)
+                guard row.key == row.collectionKey + ":r:" + LibraryOutcomeBinding.hash([value.kind, value.targetID]), row.fingerprint == (try value.savedFingerprint()) else { throw LibrarySyncFailure.storeUnavailable }
+                metadata["record"] = try LibrarySavedExportRecord.projection(value).exportValue(); values.append(.object(metadata)); last = row.key
+            }
+        default: throw LibrarySyncFailure.invalidReceipt
+        }
+        try validateOutcomeExport(fence, in: db); return (values, last, values.count < Self.savedStepLimit)
     }
 }

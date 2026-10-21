@@ -251,6 +251,17 @@ pass 95 iOS and 78 Android checks; all 511 backend tests pass. See
 `LIBRARY_SAVED_POLICY_VERIFICATION.md`. This is a pure policy/codec substep.
 Durable raw collection, bounded fold/verification, migration, erasure/export,
 activation and production barrier/read cutover remain open. A2 is still active.
+The durable native Saved store now retains raw facts and exact replay receipts,
+folds and verifies bounded projection rows, and streams retained private evidence
+through existing fenced export. Real old-schema migration, interruption, rollback,
+erasure/reopen and indexed query checks pass with 107 iOS and 88 Android tests.
+See `LIBRARY_SAVED_STORE_VERIFICATION.md`. A real iOS technical cursor-sort bug and
+an Android unrelated-row scan were reproduced and repaired. This yields prepared
+data only; production reads and all acknowledgement barriers still use the existing
+complete snapshot. Final server recheck/atomic activation, all consumer cutovers,
+public hydration, practical throughput, whole-file/export scale and hosted/device/
+deployment gates remain open. A2 is still active.
+
 Continue A2 integration while retaining A1's content dependencies. No paid
 generation or production change has been approved. Research, later native redesign, website and Linear remain
 pending in the owner's requested order.
