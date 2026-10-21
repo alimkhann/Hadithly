@@ -80,6 +80,97 @@ final class GuestMergePlannerTests: XCTestCase {
         XCTAssertEqual(row.hadithId, "h"); XCTAssertEqual(row.noteContent, " \nعربى ")
     }
 
+    func testSavedReadBoundaryUsesActualBackendWireAndPreservesCompleteText() throws {
+        let head = try JSONDecoder().decode(SavedReadHead.self, from: Data(LibrarySavedReadsParityVector.headJSON.utf8))
+        let owner = LibrarySyncOwner(key: head.ownerKey, subject: "subject-a"), target = "10002;hadiths"
+        XCTAssertEqual(try LibrarySavedReadPolicy.invalidation(head, owner: owner).version, 1)
+        let metadata = try JSONDecoder().decode(SavedReferenceReply.self, from: Data(LibrarySavedReadsParityVector.referenceJSON.utf8))
+        guard case .available(let reference) = try LibrarySavedReadPolicy.reference(metadata, owner: owner, target: target) else { return XCTFail("Missing backend reference") }
+        XCTAssertEqual(reference.hadithID, target); XCTAssertEqual(reference.collectionSlug, "bukhari")
+        let text = try JSONDecoder().decode(SavedTextReply.self, from: Data(LibrarySavedReadsParityVector.textJSON.utf8))
+        guard case .available(let complete) = try LibrarySavedReadPolicy.text(text, owner: owner, target: target) else { return XCTFail("Missing backend text") }
+        XCTAssertEqual(complete.reference.arabicText, "  إِنَّمَا\n"); XCTAssertEqual(complete.reference.englishText, "Actions \"by intentions\".\n")
+        let arabic = String(repeating: "ع\n", count: 100_000), english = String(repeating: "\"\\\u{0000}", count: 30_000)
+        let large = SavedTextReply.available(.init(ownerKey: owner.key, hadithId: target, hadith: .init(_id: target, providerHadithId: "1", collectionSlug: "bukhari", collectionName: "Bukhari", volumeId: "1", arabicText: arabic, englishText: english, referenceDisplay: "Bukhari 1")))
+        guard case .available(let full) = try LibrarySavedReadPolicy.text(large, owner: owner, target: target) else { return XCTFail("Large complete passage lost") }
+        XCTAssertEqual(full.reference.arabicText, arabic); XCTAssertEqual(full.reference.englishText, english)
+    }
+    func testSavedReadBoundaryRejectsForeignWrongTargetInvalidHeadAndUnknownUnavailable() throws {
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), target = "target"
+        for version in [-1, 0.5, Double.infinity, 9_007_199_254_740_992] { XCTAssertThrowsError(try LibrarySavedReadPolicy.invalidation(.init(ownerKey: owner.key, version: version), owner: owner)) }
+        XCTAssertThrowsError(try LibrarySavedReadPolicy.invalidation(.init(ownerKey: "other", version: 1), owner: owner))
+        XCTAssertEqual(try LibrarySavedReadPolicy.reference(.missing(.init(ownerKey: owner.key, hadithId: target)), owner: owner, target: target), .missing)
+        XCTAssertEqual(try LibrarySavedReadPolicy.text(.unavailable(.init(ownerKey: owner.key, hadithId: target, reason: "text_too_large")), owner: owner, target: target), .unavailable)
+        XCTAssertThrowsError(try LibrarySavedReadPolicy.reference(.missing(.init(ownerKey: "other", hadithId: target)), owner: owner, target: target))
+        XCTAssertThrowsError(try LibrarySavedReadPolicy.text(.missing(.init(ownerKey: owner.key, hadithId: "other")), owner: owner, target: target))
+        XCTAssertThrowsError(try LibrarySavedReadPolicy.reference(.unavailable(.init(ownerKey: owner.key, hadithId: target, reason: "invented")), owner: owner, target: target))
+        let row = SavedHadithReference(_id: "other", providerHadithId: "1", collectionSlug: "bukhari", collectionName: "Bukhari", volumeId: nil, referenceDisplay: "")
+        XCTAssertThrowsError(try LibrarySavedReadPolicy.reference(.available(.init(ownerKey: owner.key, hadithId: target, reference: row)), owner: owner, target: target))
+        let oversized = SavedHadithReference(_id: target, providerHadithId: "1", collectionSlug: "bukhari", collectionName: String(repeating: "ع", count: LibrarySyncLimits.savedReferenceBytes), volumeId: nil, referenceDisplay: "")
+        XCTAssertThrowsError(try LibrarySavedReadPolicy.reference(.available(.init(ownerKey: owner.key, hadithId: target, reference: oversized)), owner: owner, target: target))
+    }
+    @MainActor func testSavedReadTransportInvalidationNeverObservesPrivateRevisionAndQuietBindingExpires() async throws {
+        let fixture = try LibrarySavedReadFixture(store: GuestDataStore(inMemory: true)); defer { fixture.sync.deactivate() }
+        try await fixture.start()
+        let context = try fixture.sync.captureSavedReadContext(), before = try fixture.store.syncPartition(context.owner)
+        let observed = expectation(description: "Validated compact invalidation"), ready = expectation(description: "Head transport requests values")
+        fixture.onHeadRequest = { ready.fulfill() }
+        let subscription = try fixture.sync.savedInvalidations(context).sink(receiveCompletion: { _ in }, receiveValue: { value in XCTAssertEqual(value.version, 999); observed.fulfill() })
+        await fulfillment(of: [ready], timeout: 2)
+        fixture.heads.send(.init(ownerKey: context.owner.key, version: 999)); await fulfillment(of: [observed], timeout: 2)
+        subscription.cancel()
+        XCTAssertEqual(try fixture.store.syncPartition(context.owner), before); XCTAssertNil(try fixture.store.activeSavedGeneration(context.owner))
+        let ref = try await fixture.sync.savedReference(hadithID: fixture.target, context: context)
+        guard case .available = ref else { return XCTFail("Validated metadata unavailable") }
+        fixture.now = context.validUntil + 1; await fixture.sync.activate(try XCTUnwrap(fixture.session))
+        XCTAssertThrowsError(try fixture.sync.savedInvalidations(context))
+        let fresh = try fixture.sync.captureSavedReadContext(); fixture.bindingTTL = 100
+        fixture.now = fresh.validUntil + 1; await fixture.sync.activate(try XCTUnwrap(fixture.session))
+        let short = try fixture.sync.captureSavedReadContext(), expired = expectation(description: "Quiet binding expires")
+        let quiet = try fixture.sync.savedInvalidations(short).sink(receiveCompletion: { result in if case .failure = result { expired.fulfill() } }, receiveValue: { _ in XCTFail("Quiet transport emitted data") })
+        await fulfillment(of: [expired], timeout: 2); quiet.cancel()
+    }
+    @MainActor func testSavedReadTransportDelayedSubscriptionKeepsAbsoluteExpiryAndRejectsStaleScopeBeforeTransport() async throws {
+        let fixture = try LibrarySavedReadFixture(store: GuestDataStore(inMemory: true)); defer { fixture.sync.deactivate() }; try await fixture.start()
+        let context = try fixture.sync.captureSavedReadContext(), publisher = try fixture.sync.savedInvalidations(context)
+        XCTAssertEqual(fixture.headStarts, 0)
+        fixture.now = context.validUntil - 100
+        let expired = expectation(description: "Remaining absolute lifetime expires")
+        let first = publisher.sink(receiveCompletion: { if case .failure = $0 { expired.fulfill() } }, receiveValue: { _ in XCTFail("Quiet transport emitted data") })
+        await fulfillment(of: [expired], timeout: 1); first.cancel(); XCTAssertEqual(fixture.headStarts, 1)
+        let stale = try fixture.sync.savedInvalidations(context); fixture.session = nil
+        let rejected = expectation(description: "Stale delayed subscription rejects")
+        let second = stale.sink(receiveCompletion: { if case .failure = $0 { rejected.fulfill() } }, receiveValue: { _ in XCTFail("Stale scope delivered data") })
+        await fulfillment(of: [rejected], timeout: 1); second.cancel(); XCTAssertEqual(fixture.headStarts, 1)
+    }
+    @MainActor func testSavedReadTransportClosedHeadStreamFailsWithoutWaitingForBindingExpiry() async throws {
+        let fixture = try LibrarySavedReadFixture(store: GuestDataStore(inMemory: true)); defer { fixture.sync.deactivate() }; try await fixture.start()
+        fixture.headFetch = { _ in Empty<SavedReadHead, Error>(completeImmediately: true).eraseToAnyPublisher() }
+        let stopped = expectation(description: "Closed transport fails immediately")
+        let subscription = try fixture.sync.savedInvalidations(fixture.sync.captureSavedReadContext()).sink(receiveCompletion: { result in
+            if case .failure = result { stopped.fulfill() } else { XCTFail("Closed head stream silently finished") }
+        }, receiveValue: { _ in XCTFail("Empty transport emitted a head") })
+        await fulfillment(of: [stopped], timeout: 1); subscription.cancel()
+    }
+    @MainActor func testSavedReadTransportRejectsLateHydrationAfterBindingRenewalAndAccountSwitch() async throws {
+        let fixture = try LibrarySavedReadFixture(store: GuestDataStore(inMemory: true)); defer { fixture.sync.deactivate() }; try await fixture.start()
+        let context = try fixture.sync.captureSavedReadContext(); var release: CheckedContinuation<SavedReferenceReply, Never>?
+        fixture.referenceFetch = { _, _ in await withCheckedContinuation { release = $0 } }
+        let late = Task { try await fixture.sync.savedReference(hadithID: fixture.target, context: context) }
+        for _ in 0..<1_000 { if release != nil { break }; await Task.yield() }; let gate = try XCTUnwrap(release)
+        fixture.now = context.validUntil + 1; await fixture.sync.activate(try XCTUnwrap(fixture.session)); gate.resume(returning: fixture.referenceReply)
+        do { _ = try await late.value; XCTFail("Renewed binding accepted old callback") } catch { }
+        fixture.referenceFetch = nil; let renewed = try fixture.sync.captureSavedReadContext()
+        guard case .available = try await fixture.sync.savedReference(hadithID: fixture.target, context: renewed) else { return XCTFail("Renewed read failed") }
+        var textRelease: CheckedContinuation<SavedTextReply, Never>?
+        fixture.textFetch = { _, _ in await withCheckedContinuation { textRelease = $0 } }
+        let text = Task { try await fixture.sync.savedText(hadithID: fixture.target, context: renewed) }
+        for _ in 0..<1_000 { if textRelease != nil { break }; await Task.yield() }; let textGate = try XCTUnwrap(textRelease)
+        fixture.session = .init(id: "session-b", subject: "subject-b"); await fixture.sync.activate(try XCTUnwrap(fixture.session)); textGate.resume(returning: fixture.textReply)
+        do { _ = try await text.value; XCTFail("Account switch accepted old text") } catch { }
+        XCTAssertEqual(fixture.sync.owner?.subject, "subject-b")
+    }
+
     private func savedReply(_ input: String?, owner: LibrarySyncOwner, facts: [SavedFact], version: Double = 9) throws -> SavedFactsReply {
         if input == nil { return .page(.init(ownerKey: owner.key, version: version, assemblyId: "private-root-proof", input: nil, start: 0, facts: [], next: "cursor:0")) }
         guard let input, input.hasPrefix("cursor:"), let index = Int(input.dropFirst(7)), index >= 0, index <= facts.count else { throw LibrarySyncFailure.invalidReceipt }
@@ -2508,4 +2599,39 @@ final class GuestMergePlannerTests: XCTestCase {
             bookmarkCreatedAt: nil, favoriteCreatedAt: nil, noteContent: note, noteCreatedAt: 1_000, noteUpdatedAt: 2_000, folderId: nil,
             hadith: .init(_id: reference.hadithId, providerHadithId: "1", collectionSlug: "bukhari", collectionName: "Bukhari", volumeId: "1", arabicText: "نص", englishText: "Fixture", referenceDisplay: "Bukhari 1"))])
     }
+}
+
+@MainActor private final class LibrarySavedReadFixture {
+    let store: GuestDataStore
+    var session: LibrarySyncSession? = .init(id: "session-a", subject: "subject-a")
+    var now = 1_000.0, bindingTTL = 900_000.0
+    var opens = 0
+    let heads = PassthroughSubject<SavedReadHead, Error>()
+    let referenceReply: SavedReferenceReply
+    let textReply: SavedTextReply
+    let target = "10002;hadiths"
+    var headStarts = 0
+    var onHeadRequest: (() -> Void)?
+    var headFetch: ((String) -> AnyPublisher<SavedReadHead, Error>)?
+    var referenceFetch: ((String, String) async throws -> SavedReferenceReply)?
+    var textFetch: ((String, String) async throws -> SavedTextReply)?
+    lazy var sync = LibrarySync(store: store, transport: .init(namespace: "fixture", open: { [unowned self] in
+        let current = try XCTUnwrap(session); opens += 1
+        return .init(ownerKey: current.subject == "subject-a" ? "10000;users" : "owner-b", subject: current.subject, capability: "fixture-read-\(opens)", validUntil: now + bindingTTL)
+    }, acknowledge: { _, _ in throw LibrarySyncFailure.invalidChange }, send: { _, _ in throw LibrarySyncFailure.invalidChange }, savedHeads: { [unowned self] capability in
+        headStarts += 1
+        return headFetch?(capability) ?? heads.handleEvents(receiveRequest: { [unowned self] demand in
+            if demand > .none { let ready = onHeadRequest; onHeadRequest = nil; ready?() }
+        }).eraseToAnyPublisher()
+    }, savedReference: { [unowned self] capability, target in
+        if let referenceFetch { return try await referenceFetch(capability, target) }; return referenceReply
+    }, savedText: { [unowned self] capability, target in
+        if let textFetch { return try await textFetch(capability, target) }; return textReply
+    }), currentSession: { [unowned self] in session }, now: { [unowned self] in now })
+    init(store: GuestDataStore) throws {
+        self.store = store
+        referenceReply = try JSONDecoder().decode(SavedReferenceReply.self, from: Data(LibrarySavedReadsParityVector.referenceJSON.utf8))
+        textReply = try JSONDecoder().decode(SavedTextReply.self, from: Data(LibrarySavedReadsParityVector.textJSON.utf8))
+    }
+    func start() async throws { await sync.activate(try XCTUnwrap(session)) }
 }

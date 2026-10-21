@@ -547,6 +547,8 @@ enum LibrarySyncLimits {
     static let savedFactPageBytes = 65536
     static let savedFactSourceBytes = 32768
     static let savedFactCursorBytes = 12288
+    static let savedReferenceBytes = 8192
+    static let savedTextBytes = 8388608
 }
 
 enum SyncFolderReference: Codable, Equatable, Sendable {
@@ -817,6 +819,80 @@ struct SyncPositionsSnapshot: Codable, Equatable, Sendable {
     let ownerKey: String
     let version: Double
     let rows: [SyncPositionRow]
+}
+
+struct SavedReadHead: Codable, Equatable, Sendable {
+    let ownerKey: String
+    let version: Double
+}
+
+struct SavedHadithReference: Codable, Equatable, Sendable {
+    let _id: String
+    let providerHadithId: String
+    let collectionSlug: String
+    let collectionName: String
+    let volumeId: String?
+    let referenceDisplay: String
+}
+
+enum SavedReferenceReply: Codable, Equatable, Sendable {
+    case available(SavedReferenceReplyAvailable)
+    case missing(SavedReferenceReplyMissing)
+    case unavailable(SavedReferenceReplyUnavailable)
+    private enum KindKey: String, CodingKey { case kind }
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: KindKey.self)
+        switch try values.decode(String.self, forKey: .kind) {
+        case "available": self = .available(try SavedReferenceReplyAvailable(from: decoder))
+        case "missing": self = .missing(try SavedReferenceReplyMissing(from: decoder))
+        case "unavailable": self = .unavailable(try SavedReferenceReplyUnavailable(from: decoder))
+        default: throw DecodingError.dataCorruptedError(forKey: .kind, in: values, debugDescription: "Unsupported sync kind")
+        }
+    }
+    func encode(to encoder: Encoder) throws {
+        var values = encoder.container(keyedBy: KindKey.self)
+        switch self {
+        case .available(let value):
+            try values.encode("available", forKey: .kind)
+            try value.encode(to: encoder)
+        case .missing(let value):
+            try values.encode("missing", forKey: .kind)
+            try value.encode(to: encoder)
+        case .unavailable(let value):
+            try values.encode("unavailable", forKey: .kind)
+            try value.encode(to: encoder)
+        }
+    }
+}
+
+enum SavedTextReply: Codable, Equatable, Sendable {
+    case available(SavedTextReplyAvailable)
+    case missing(SavedTextReplyMissing)
+    case unavailable(SavedTextReplyUnavailable)
+    private enum KindKey: String, CodingKey { case kind }
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: KindKey.self)
+        switch try values.decode(String.self, forKey: .kind) {
+        case "available": self = .available(try SavedTextReplyAvailable(from: decoder))
+        case "missing": self = .missing(try SavedTextReplyMissing(from: decoder))
+        case "unavailable": self = .unavailable(try SavedTextReplyUnavailable(from: decoder))
+        default: throw DecodingError.dataCorruptedError(forKey: .kind, in: values, debugDescription: "Unsupported sync kind")
+        }
+    }
+    func encode(to encoder: Encoder) throws {
+        var values = encoder.container(keyedBy: KindKey.self)
+        switch self {
+        case .available(let value):
+            try values.encode("available", forKey: .kind)
+            try value.encode(to: encoder)
+        case .missing(let value):
+            try values.encode("missing", forKey: .kind)
+            try value.encode(to: encoder)
+        case .unavailable(let value):
+            try values.encode("unavailable", forKey: .kind)
+            try value.encode(to: encoder)
+        }
+    }
 }
 
 struct SavedPrivateItem: Codable, Equatable, Sendable {
@@ -1164,6 +1240,40 @@ struct SyncOutcomeUnresolved: Codable, Equatable, Sendable {
     let reason: SyncOutcomeUnresolvedReason
 }
 
+struct SavedReferenceReplyAvailable: Codable, Equatable, Sendable {
+    let ownerKey: String
+    let hadithId: String
+    let reference: SavedHadithReference
+}
+
+struct SavedReferenceReplyMissing: Codable, Equatable, Sendable {
+    let ownerKey: String
+    let hadithId: String
+}
+
+struct SavedReferenceReplyUnavailable: Codable, Equatable, Sendable {
+    let ownerKey: String
+    let hadithId: String
+    let reason: String
+}
+
+struct SavedTextReplyAvailable: Codable, Equatable, Sendable {
+    let ownerKey: String
+    let hadithId: String
+    let hadith: SyncHadithSummary
+}
+
+struct SavedTextReplyMissing: Codable, Equatable, Sendable {
+    let ownerKey: String
+    let hadithId: String
+}
+
+struct SavedTextReplyUnavailable: Codable, Equatable, Sendable {
+    let ownerKey: String
+    let hadithId: String
+    let reason: String
+}
+
 struct SavedFactFolder: Codable, Equatable, Sendable {
     let sourceId: String
     let ordinal: Double
@@ -1370,4 +1480,10 @@ enum LibrarySavedParityVector {
     static let factsJSON = "[{\"kind\":\"item\",\"ordinal\":0,\"sourceId\":\"10004;savedItems\",\"value\":{\"bookmarkCreatedAt\":30,\"createdAt\":15,\"favoriteCreatedAt\":50,\"hadithId\":\"10002;hadiths\",\"noteContent\":\"Canonical tie wins\",\"noteCreatedAt\":15,\"noteUpdatedAt\":80,\"updatedAt\":90}},{\"createdAt\":20,\"hadithId\":\"10002;hadiths\",\"kind\":\"bookmark\",\"ordinal\":1,\"sourceId\":\"10005;bookmarks\"},{\"createdAt\":5,\"hadithId\":\"10002;hadiths\",\"kind\":\"bookmark\",\"ordinal\":2,\"sourceId\":\"10006;bookmarks\"},{\"createdAt\":12,\"hadithId\":\"10002;hadiths\",\"kind\":\"bookmark\",\"ordinal\":3,\"sourceId\":\"10007;bookmarks\"},{\"createdAt\":40,\"hadithId\":\"10002;hadiths\",\"kind\":\"favorite\",\"ordinal\":4,\"sourceId\":\"10008;favorites\"},{\"createdAt\":7,\"hadithId\":\"10002;hadiths\",\"kind\":\"favorite\",\"ordinal\":5,\"sourceId\":\"10009;favorites\"},{\"content\":\"Legacy tie loses\",\"createdAt\":2,\"hadithId\":\"10002;hadiths\",\"kind\":\"note\",\"ordinal\":6,\"sourceId\":\"10010;notes\",\"updatedAt\":80},{\"content\":\"Newer note wins\",\"createdAt\":3,\"hadithId\":\"10002;hadiths\",\"kind\":\"note\",\"ordinal\":7,\"sourceId\":\"10011;notes\",\"updatedAt\":100},{\"content\":\"Equal legacy later loses\",\"createdAt\":1,\"hadithId\":\"10002;hadiths\",\"kind\":\"note\",\"ordinal\":8,\"sourceId\":\"10012;notes\",\"updatedAt\":100}]"
     static let expectedJSON = "{\"bookmarkCreatedAt\":5,\"createdAt\":1,\"favoriteCreatedAt\":7,\"hadithId\":\"10002;hadiths\",\"noteContent\":\"Newer note wins\",\"noteCreatedAt\":3,\"noteUpdatedAt\":100,\"updatedAt\":100}"
     static let digests = ["2910f44808bac9af5ad8a4a5750d66379e10cb63078aef1051d2b314193963ff", "ba32014ba64629d8607ed10aca49525712b4557a916cafac9c5d6c230a24dc9f", "6745d688a1dae0589415eb26841d02adab8aef67bf0fe905a2fa3a3a8d4fa4a0", "d8f2d0249b52a97acf3ff2ef6444ec2d6974f1cbd1317102e235b322bf9307be", "0b9e4bd0d702fbfff91ad850722216b676891daba89a7bf18eaf1c8461dc63fe", "b7d957d6708e364a4b8429f9dcd0879b271e1dde18613a835568d52f8ae66cf2", "10045f121a89b0ce62e747eb255bd21176c8a9db0e2aa88543aa61f6ccfe79e8", "57676453fc0c865e4d4c80302075142fad2d3d0eecb6dc6504a06206024a93a8", "646fd55994ca980fb4dacbb7dcce43c2923b16ba0c5c7fbe7250ab4bd9e80337"]
+}
+
+enum LibrarySavedReadsParityVector {
+    static let headJSON = "{\"ownerKey\":\"10000;users\",\"version\":1}"
+    static let referenceJSON = "{\"hadithId\":\"10002;hadiths\",\"kind\":\"available\",\"ownerKey\":\"10000;users\",\"reference\":{\"_id\":\"10002;hadiths\",\"collectionName\":\"Bukhari\",\"collectionSlug\":\"bukhari\",\"providerHadithId\":\"1\",\"referenceDisplay\":\"Bukhari 1\",\"volumeId\":\"1\"}}"
+    static let textJSON = "{\"hadith\":{\"_id\":\"10002;hadiths\",\"arabicText\":\"  إِنَّمَا\\n\",\"collectionName\":\"Bukhari\",\"collectionSlug\":\"bukhari\",\"englishText\":\"Actions \\\"by intentions\\\".\\n\",\"providerHadithId\":\"1\",\"referenceDisplay\":\"Bukhari 1\",\"volumeId\":\"1\"},\"hadithId\":\"10002;hadiths\",\"kind\":\"available\",\"ownerKey\":\"10000;users\"}"
 }

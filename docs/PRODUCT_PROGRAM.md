@@ -271,6 +271,15 @@ Saved reads and all four observation consumers still use the old complete joined
 snapshot. Their coordinated migration, public hydration/cache retirement, practical
 throughput/full scale and actual hosted/device/deployment gates remain open.
 
+Compact Saved invalidation, independent reference metadata/full text and captured
+native read delivery now pass 524 backend, 120 iOS and 102 Android tests. Source EOF
+and delayed-subscription expiry failures were reproduced and fixed; see
+`LIBRARY_SAVED_READ_BOUNDARY_VERIFICATION.md`. The selected production design uses
+indexed materialized presentation rows with direct point edits and staged bulk
+publication. Its next prerequisite is Android account-partition migration with
+crash-safe guest transfer, followed by the coordinated four-consumer/read/UI cutover.
+The old joined production path is still active. No deployment or full A2 gate closes.
+
 Continue A2 integration while retaining A1's content dependencies. No paid
 generation or production change has been approved. Research, later native redesign, website and Linear remain
 pending in the owner's requested order.

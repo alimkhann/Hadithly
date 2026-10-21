@@ -76,6 +76,18 @@ class ConvexRepository(context: Context) : LibraryReadTransport, LibrarySyncTran
     override suspend fun outcomePage(capability: String, request: SyncOutcomePageRequest): SyncOutcomePage = withContext(Dispatchers.IO) {
         subscribe<SyncOutcomePage>("librarySync:outcomePage", mapOf("capability" to capability, "request" to request.toConvexArgument())).firstOrNull() ?: throw LibrarySyncFailure.InvalidReceipt
     }
+    override fun savedHeads(capability: String): Flow<SavedReadHead> = subscribe<SavedReadHead>("librarySync:savedHead", mapOf("capability" to capability)).flowOn(Dispatchers.IO)
+    override suspend fun savedFacts(capability: String, continuation: String?): SavedFactsReply = withContext(Dispatchers.IO) {
+        val arguments = mutableMapOf<String, Any?>("capability" to capability)
+        if (continuation != null) arguments["continuation"] = continuation
+        subscribe<SavedFactsReply>("librarySync:savedFactsPage", arguments).firstOrNull() ?: throw LibrarySyncFailure.InvalidReceipt
+    }
+    override suspend fun savedReference(capability: String, hadithID: String): SavedReferenceReply = withContext(Dispatchers.IO) {
+        subscribe<SavedReferenceReply>("librarySync:savedReference", mapOf("capability" to capability, "hadithId" to hadithID)).firstOrNull() ?: throw LibrarySyncFailure.InvalidReceipt
+    }
+    override suspend fun savedText(capability: String, hadithID: String): SavedTextReply = withContext(Dispatchers.IO) {
+        subscribe<SavedTextReply>("librarySync:savedText", mapOf("capability" to capability, "hadithId" to hadithID)).firstOrNull() ?: throw LibrarySyncFailure.InvalidReceipt
+    }
     override suspend fun acknowledge(capability: String, acknowledgement: SyncAcknowledgement): SyncAckReply = withContext(Dispatchers.IO) {
         convex.mutation<SyncAckReply>("librarySync:acknowledge", mapOf("capability" to capability, "acknowledgement" to acknowledgement.toConvexArgument()))
     }

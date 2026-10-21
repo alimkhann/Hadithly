@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-10-21. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-10-22. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
 D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its
 simulator/emulator and unit gates; its physical-device gate is open. R4's
@@ -283,6 +283,19 @@ Bounded retired cleanup and prior-Saved schema migration pass, with 114 iOS and
 subscriptions/UI and the four Saved observation consumers still use the old complete
 snapshot. Their coordinated cutover, public hydration/cache migration, practical
 throughput/full scale and existing hosted/device/deployment gates remain open.
+
+The compact Saved read prerequisite now separates authenticated head invalidation,
+exact-ID reference metadata and complete cached passages. Generated native contracts
+and captured session/binding/expiry delivery guards pass 524 backend, 120 iOS and
+102 Android tests. Unexpected stream closure on both platforms and delayed Swift
+subscription expiry were reproduced and repaired. See
+`docs/LIBRARY_SAVED_READ_BOUNDARY_VERIFICATION.md`. Two full production integration
+designs and independent judgment select indexed materialized presentation rows,
+with direct point updates and staged bulk publication. Android account migration
+must first solve idempotent cross-store guest transfer. Production reads, all four
+private observation consumers, UI/Reader exact-target behavior, cache retirement,
+practical scale and existing hosted/device/deployment gates remain open. A2 remains
+active; no A2 cloud rollout has been approved.
 
 ## Read the plan in layers
 

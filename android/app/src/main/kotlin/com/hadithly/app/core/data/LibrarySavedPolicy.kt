@@ -258,3 +258,66 @@ fun LibrarySavedExportRecord.exportValue(): kotlinx.serialization.json.JsonEleme
         }
     }
 }
+
+class LibrarySavedReadContext internal constructor(internal val write: LibraryWriteContext, internal val capability: String, val validUntil: Double) {
+    val owner: LibrarySyncOwner get() = write.owner
+}
+data class LibrarySavedInvalidation(val version: Double)
+data class LibrarySavedReferenceValue(val hadithID: String, val providerHadithID: String, val collectionSlug: String, val collectionName: String, val volumeID: String?, val referenceDisplay: String)
+@ConsistentCopyVisibility
+data class LibrarySavedCompleteText internal constructor(val reference: HadithRef)
+sealed interface LibrarySavedReferenceState {
+    data class Available(val reference: LibrarySavedReferenceValue) : LibrarySavedReferenceState
+    data object Missing : LibrarySavedReferenceState
+    data object Unavailable : LibrarySavedReferenceState
+}
+sealed interface LibrarySavedTextState {
+    data class Available(val text: LibrarySavedCompleteText) : LibrarySavedTextState
+    data object Missing : LibrarySavedTextState
+    data object Unavailable : LibrarySavedTextState
+}
+object LibrarySavedReadPolicy {
+    fun target(value: String) { if (value.isEmpty() || value.toByteArray().size > 128) throw LibrarySyncFailure.InvalidReceipt }
+    private inline fun <reified T> size(value: T, limit: Int) { if (savedPolicyJson.encodeToString(value).toByteArray().size > limit) throw LibrarySyncFailure.InvalidReceipt }
+    fun invalidation(value: SavedReadHead, owner: LibrarySyncOwner): LibrarySavedInvalidation {
+        if (value.ownerKey != owner.key) throw LibrarySyncFailure.OwnerMismatch
+        LibrarySavedPolicy.integer(value.version); return LibrarySavedInvalidation(value.version)
+    }
+    private fun identity(ownerKey: String, hadithID: String, owner: LibrarySyncOwner, target: String) {
+        this.target(target)
+        if (ownerKey != owner.key) throw LibrarySyncFailure.OwnerMismatch
+        if (hadithID != target) throw LibrarySyncFailure.InvalidReceipt
+    }
+    private fun referenceValue(value: SavedHadithReference, target: String): LibrarySavedReferenceValue {
+        if (value._id != target || value.collectionSlug.isEmpty() || value.providerHadithId.isEmpty()) throw LibrarySyncFailure.InvalidReceipt
+        return LibrarySavedReferenceValue(target, value.providerHadithId, value.collectionSlug, value.collectionName, value.volumeId, value.referenceDisplay)
+    }
+    fun reference(reply: SavedReferenceReply, owner: LibrarySyncOwner, target: String): LibrarySavedReferenceState {
+        size(reply, LibrarySyncLimits.savedReferenceBytes)
+        return when (reply) {
+            is SavedReferenceReply.Available -> { identity(reply.ownerKey, reply.hadithId, owner, target); LibrarySavedReferenceState.Available(referenceValue(reply.reference, target)) }
+            is SavedReferenceReply.Missing -> { identity(reply.ownerKey, reply.hadithId, owner, target); LibrarySavedReferenceState.Missing }
+            is SavedReferenceReply.Unavailable -> {
+                identity(reply.ownerKey, reply.hadithId, owner, target)
+                if (reply.reason != "reference_too_large") throw LibrarySyncFailure.InvalidReceipt
+                LibrarySavedReferenceState.Unavailable
+            }
+        }
+    }
+    fun text(reply: SavedTextReply, owner: LibrarySyncOwner, target: String): LibrarySavedTextState {
+        size(reply, LibrarySyncLimits.savedTextBytes)
+        return when (reply) {
+            is SavedTextReply.Available -> {
+                identity(reply.ownerKey, reply.hadithId, owner, target); val row = reply.hadith
+                val metadata = referenceValue(SavedHadithReference(row._id, row.providerHadithId, row.collectionSlug, row.collectionName, row.volumeId, row.referenceDisplay), target)
+                LibrarySavedTextState.Available(LibrarySavedCompleteText(HadithRef(metadata.hadithID, metadata.collectionSlug, metadata.collectionName, metadata.volumeID, metadata.providerHadithID, row.arabicText, row.englishText, metadata.referenceDisplay)))
+            }
+            is SavedTextReply.Missing -> { identity(reply.ownerKey, reply.hadithId, owner, target); LibrarySavedTextState.Missing }
+            is SavedTextReply.Unavailable -> {
+                identity(reply.ownerKey, reply.hadithId, owner, target)
+                if (reply.reason != "text_too_large") throw LibrarySyncFailure.InvalidReceipt
+                LibrarySavedTextState.Unavailable
+            }
+        }
+    }
+}

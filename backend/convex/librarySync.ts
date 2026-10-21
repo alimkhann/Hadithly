@@ -1,4 +1,5 @@
 import { savedFactsReply, readSavedFactsPage } from "./lib/librarySavedFacts";
+import { savedReadHead, savedReferenceReply, savedTextReply, readSavedHead, readSavedReference, readSavedText } from "./lib/librarySavedReads";
 import { resolveLibraryFolder as folder, bindLibraryFolderKey as folderAlias } from "./lib/librarySyncFolders";
 import { writeSavedMembership, removeEmptySavedMembership, touchSavedFolderMemberships, savedFolderScanGuard, assertSavedFolderStable } from "./lib/savedMembership";
 import { commitPreparedFolderDeletion, beginFolderRestoration, advanceFolderRestoration as advanceRestoration, materializeFolderEffect as materializeEffect, expireFolderTransition, type FolderEffectStep } from "./lib/savedFolderTransitions";
@@ -386,6 +387,15 @@ function cleanSummary(value: { _id: string; providerHadithId: string; collection
 export const savedFactsPage = query({
   args: { capability: v.string(), continuation: v.optional(v.string()) }, returns: savedFactsReply,
   handler: readSavedFactsPage,
+});
+export const savedHead = query({
+  args: { capability: v.string() }, returns: savedReadHead, handler: readSavedHead,
+});
+export const savedReference = query({
+  args: { capability: v.string(), hadithId: v.id("hadiths") }, returns: savedReferenceReply, handler: readSavedReference,
+});
+export const savedText = query({
+  args: { capability: v.string(), hadithId: v.id("hadiths") }, returns: savedTextReply, handler: readSavedText,
 });
 
 export const savedSnapshot = query({

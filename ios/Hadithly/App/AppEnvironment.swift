@@ -133,6 +133,19 @@ final class AppEnvironment {
         }, outcomePage: { capability, request in
             for try await value in libraryClient.subscribe(to: "librarySync:outcomePage", with: ["capability": capability, "request": request], yielding: SyncOutcomePage.self).values { return value }
             throw LibrarySyncFailure.invalidReceipt
+        }, savedHeads: { capability in
+            libraryClient.subscribe(to: "librarySync:savedHead", with: ["capability": capability], yielding: SavedReadHead.self).mapError { value -> Error in value }.eraseToAnyPublisher()
+        }, savedFacts: { capability, continuation in
+            var arguments: [String: ConvexEncodable?] = ["capability": capability]
+            if let continuation { arguments["continuation"] = continuation }
+            for try await value in libraryClient.subscribe(to: "librarySync:savedFactsPage", with: arguments, yielding: SavedFactsReply.self).values { return value }
+            throw LibrarySyncFailure.invalidReceipt
+        }, savedReference: { capability, hadithID in
+            for try await value in libraryClient.subscribe(to: "librarySync:savedReference", with: ["capability": capability, "hadithId": hadithID], yielding: SavedReferenceReply.self).values { return value }
+            throw LibrarySyncFailure.invalidReceipt
+        }, savedText: { capability, hadithID in
+            for try await value in libraryClient.subscribe(to: "librarySync:savedText", with: ["capability": capability, "hadithId": hadithID], yielding: SavedTextReply.self).values { return value }
+            throw LibrarySyncFailure.invalidReceipt
         }), currentSession: currentLibrarySession)
         self.library = UserLibraryModel(convex: convex, guestData: self.guestData, sync: self.librarySync, currentSession: currentLibrarySession)
         let privateLibrary = self.library

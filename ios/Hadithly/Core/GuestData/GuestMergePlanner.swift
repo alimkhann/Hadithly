@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 import Observation
 import CryptoKit
 import CoreFoundation
@@ -991,6 +992,10 @@ struct LibrarySyncTransport {
     var retireInvalid: (String, SyncFrame) async throws -> SyncAckReply = { _, _ in throw LibrarySyncFailure.invalidChange }
     var poll: (String, SyncPending) async throws -> SyncExchange = { _, _ in throw LibrarySyncFailure.invalidChange }
     var outcomePage: (String, SyncOutcomePageRequest) async throws -> SyncOutcomePage = { _, _ in throw LibrarySyncFailure.invalidChange }
+    var savedHeads: (String) -> AnyPublisher<SavedReadHead, Error> = { _ in Fail(error: LibrarySyncFailure.invalidChange).eraseToAnyPublisher() }
+    var savedFacts: (String, String?) async throws -> SavedFactsReply = { _, _ in throw LibrarySyncFailure.invalidChange }
+    var savedReference: (String, String) async throws -> SavedReferenceReply = { _, _ in throw LibrarySyncFailure.invalidChange }
+    var savedText: (String, String) async throws -> SavedTextReply = { _, _ in throw LibrarySyncFailure.invalidChange }
 }
 
 @MainActor
@@ -1083,6 +1088,51 @@ final class LibrarySync {
         guard generation == context.generation, session == context.session, currentSession() == context.session,
               owner == context.owner, let binding, binding.validUntil > now() else { throw LibrarySyncFailure.sessionChanged }
         return binding.capability
+    }
+
+    func captureSavedReadContext() throws -> LibrarySavedReadContext {
+        let write = try captureWriteContext(), capability = try capability(for: write)
+        guard let binding else { throw LibrarySyncFailure.sessionChanged }
+        return .init(write: write, capability: capability, validUntil: binding.validUntil)
+    }
+    private func savedCapability(_ context: LibrarySavedReadContext) throws -> String {
+        let value = try capability(for: context.write)
+        guard value == context.capability, now() < context.validUntil else { throw LibrarySyncFailure.sessionChanged }
+        return value
+    }
+    func savedInvalidations(_ context: LibrarySavedReadContext) throws -> AnyPublisher<LibrarySavedInvalidation, Error> {
+        _ = try savedCapability(context)
+        return Deferred { [weak self] () -> AnyPublisher<LibrarySavedInvalidation, Error> in
+            do {
+                guard let self else { throw LibrarySyncFailure.sessionChanged }
+                let capability = try savedCapability(context)
+                let expiry = Just(()).delay(for: .seconds(max(0, (context.validUntil - now()) / 1_000)), scheduler: DispatchQueue.main)
+                return transport.savedHeads(capability).prefix(untilOutputFrom: expiry)
+                    .append(Fail<SavedReadHead, Error>(error: LibrarySyncFailure.sessionChanged)).receive(on: DispatchQueue.main)
+                    .tryMap { [weak self] value in
+                        guard let self else { throw LibrarySyncFailure.sessionChanged }
+                        _ = try savedCapability(context)
+                        return try LibrarySavedReadPolicy.invalidation(value, owner: context.owner)
+                    }.eraseToAnyPublisher()
+            } catch { return Fail(error: error).eraseToAnyPublisher() }
+        }.subscribe(on: DispatchQueue.main).eraseToAnyPublisher()
+    }
+    func savedFacts(continuation: String?, context: LibrarySavedReadContext) async throws -> SavedFactsReply {
+        let reply = try await transport.savedFacts(savedCapability(context), continuation)
+        try Task.checkCancellation(); _ = try savedCapability(context)
+        return reply // The durable collector validates source position, identity and completion.
+    }
+    func savedReference(hadithID: String, context: LibrarySavedReadContext) async throws -> LibrarySavedReferenceState {
+        try LibrarySavedReadPolicy.target(hadithID)
+        let reply = try await transport.savedReference(savedCapability(context), hadithID)
+        try Task.checkCancellation(); _ = try savedCapability(context)
+        return try LibrarySavedReadPolicy.reference(reply, owner: context.owner, target: hadithID)
+    }
+    func savedText(hadithID: String, context: LibrarySavedReadContext) async throws -> LibrarySavedTextState {
+        try LibrarySavedReadPolicy.target(hadithID)
+        let reply = try await transport.savedText(savedCapability(context), hadithID)
+        try Task.checkCancellation(); _ = try savedCapability(context)
+        return try LibrarySavedReadPolicy.text(reply, owner: context.owner, target: hadithID)
     }
 
     func portableState(for context: LibraryWriteContext) throws -> LibraryExportValue {
@@ -1618,6 +1668,77 @@ extension LibrarySavedExportRecord {
             switch receipt.result { case .advanced(let p): status = "advanced"; output = .string(LibraryOutcomeBinding.hash([p.continuation.token])); case .restart: status = "restart"; output = .null; case .unavailable(let reason): status = reason.rawValue; output = .null }
             return .object(["kind": .string("page"), "sequence": .number(Double(receipt.sequence)), "start": .number(Double(receipt.start)), "count": .number(Double(receipt.count)),
                 "fingerprint": .string(receipt.fingerprint), "inputFingerprint": .string(LibraryOutcomeBinding.hash([receipt.input == nil ? "absent" : "present", receipt.input ?? ""])), "status": .string(status), "outputFingerprint": output])
+        }
+    }
+}
+
+struct LibrarySavedReadContext {
+    fileprivate let write: LibraryWriteContext
+    fileprivate let capability: String
+    let validUntil: Double
+    var owner: LibrarySyncOwner { write.owner }
+}
+struct LibrarySavedInvalidation: Equatable, Sendable { let version: Double }
+struct LibrarySavedReferenceValue: Equatable, Sendable {
+    let hadithID: String
+    let providerHadithID: String
+    let collectionSlug: String
+    let collectionName: String
+    let volumeID: String?
+    let referenceDisplay: String
+}
+struct LibrarySavedCompleteText: Equatable, Sendable {
+    let reference: HadithRef
+    fileprivate init(_ reference: HadithRef) { self.reference = reference }
+}
+enum LibrarySavedReferenceState: Equatable, Sendable { case available(LibrarySavedReferenceValue), missing, unavailable }
+enum LibrarySavedTextState: Equatable, Sendable { case available(LibrarySavedCompleteText), missing, unavailable }
+enum LibrarySavedReadPolicy {
+    static func target(_ value: String) throws {
+        guard !value.isEmpty, value.utf8.count <= 128 else { throw LibrarySyncFailure.invalidReceipt }
+    }
+    private static func size<T: Encodable>(_ value: T, limit: Int) throws {
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.withoutEscapingSlashes]
+        guard try encoder.encode(value).count <= limit else { throw LibrarySyncFailure.invalidReceipt }
+    }
+    static func invalidation(_ value: SavedReadHead, owner: LibrarySyncOwner) throws -> LibrarySavedInvalidation {
+        guard value.ownerKey == owner.key else { throw LibrarySyncFailure.ownerMismatch }
+        _ = try LibrarySavedPolicy.integer(value.version)
+        return .init(version: value.version)
+    }
+    private static func identity(_ ownerKey: String, _ hadithID: String, owner: LibrarySyncOwner, target: String) throws {
+        try self.target(target)
+        guard ownerKey == owner.key else { throw LibrarySyncFailure.ownerMismatch }
+        guard hadithID == target else { throw LibrarySyncFailure.invalidReceipt }
+    }
+    private static func referenceValue(_ value: SavedHadithReference, target: String) throws -> LibrarySavedReferenceValue {
+        guard value._id == target, !value.collectionSlug.isEmpty, !value.providerHadithId.isEmpty else { throw LibrarySyncFailure.invalidReceipt }
+        return .init(hadithID: target, providerHadithID: value.providerHadithId, collectionSlug: value.collectionSlug, collectionName: value.collectionName, volumeID: value.volumeId, referenceDisplay: value.referenceDisplay)
+    }
+    static func reference(_ reply: SavedReferenceReply, owner: LibrarySyncOwner, target: String) throws -> LibrarySavedReferenceState {
+        try size(reply, limit: LibrarySyncLimits.savedReferenceBytes)
+        switch reply {
+        case .available(let value):
+            try identity(value.ownerKey, value.hadithId, owner: owner, target: target)
+            return .available(try referenceValue(value.reference, target: target))
+        case .missing(let value): try identity(value.ownerKey, value.hadithId, owner: owner, target: target); return .missing
+        case .unavailable(let value):
+            try identity(value.ownerKey, value.hadithId, owner: owner, target: target)
+            guard value.reason == "reference_too_large" else { throw LibrarySyncFailure.invalidReceipt }; return .unavailable
+        }
+    }
+    static func text(_ reply: SavedTextReply, owner: LibrarySyncOwner, target: String) throws -> LibrarySavedTextState {
+        try size(reply, limit: LibrarySyncLimits.savedTextBytes)
+        switch reply {
+        case .available(let value):
+            try identity(value.ownerKey, value.hadithId, owner: owner, target: target)
+            let row = value.hadith
+            let metadata = try referenceValue(.init(_id: row._id, providerHadithId: row.providerHadithId, collectionSlug: row.collectionSlug, collectionName: row.collectionName, volumeId: row.volumeId, referenceDisplay: row.referenceDisplay), target: target)
+            return .available(.init(.init(hadithId: metadata.hadithID, collectionSlug: metadata.collectionSlug, collectionName: metadata.collectionName, volumeId: metadata.volumeID, hadithNumber: metadata.providerHadithID, arabicText: row.arabicText, englishText: row.englishText, referenceDisplay: metadata.referenceDisplay)))
+        case .missing(let value): try identity(value.ownerKey, value.hadithId, owner: owner, target: target); return .missing
+        case .unavailable(let value):
+            try identity(value.ownerKey, value.hadithId, owner: owner, target: target)
+            guard value.reason == "text_too_large" else { throw LibrarySyncFailure.invalidReceipt }; return .unavailable
         }
     }
 }

@@ -20,6 +20,10 @@ with tempfile.TemporaryDirectory(prefix='hadithly-sync-contract-') as directory:
     parity_result = subprocess.run(['npm', 'test', '--', 'convex/librarySavedFacts.test.ts', '-t', 'source facts preserve canonical'], cwd=ROOT/'backend', env=environment, capture_output=True, text=True)
     if parity_result.returncode:
         raise SystemExit('Saved parity fixture source failed; inspect backend tests.')
+    reads_result = subprocess.run(['npm', 'test', '--', 'convex/librarySavedReads.test.ts', '-t', 'metadata excludes passages'], cwd=ROOT/'backend', env=environment, capture_output=True, text=True)
+    if reads_result.returncode:
+        raise SystemExit('Saved read parity fixture source failed; inspect backend tests.')
+    saved_reads_parity = json.loads((Path(directory)/'saved-reads-parity.json').read_text())
     saved_parity = json.loads((Path(directory)/'saved-parity.json').read_text())
     roots = json.loads((Path(directory)/'contract.json').read_text())
     limits = roots.pop('limits')
@@ -129,6 +133,15 @@ saved_facts_json = json.dumps(saved_parity['facts'], ensure_ascii=False, separat
 saved_expected_json = json.dumps(saved_parity['expected'], ensure_ascii=False, separators=(',', ':'))
 swift_code += '\nenum LibrarySavedParityVector {\n    static let factsJSON = ' + json.dumps(saved_facts_json, ensure_ascii=False) + '\n    static let expectedJSON = ' + json.dumps(saved_expected_json, ensure_ascii=False) + '\n    static let digests = [' + ', '.join(json.dumps(value) for value in saved_parity['digests']) + ']\n}\n'
 kotlin_code += '\nobject LibrarySavedParityVector {\n    const val factsJSON = ' + json.dumps(saved_facts_json, ensure_ascii=False).replace('$', '\\$') + '\n    const val expectedJSON = ' + json.dumps(saved_expected_json, ensure_ascii=False).replace('$', '\\$') + '\n    val digests = listOf(' + ', '.join(json.dumps(value) for value in saved_parity['digests']) + ')\n}\n'
+
+swift_code += '\nenum LibrarySavedReadsParityVector {\n'
+kotlin_code += '\nobject LibrarySavedReadsParityVector {\n'
+for key, value in saved_reads_parity.items():
+    encoded = json.dumps(json.dumps(value, ensure_ascii=False, separators=(',', ':')), ensure_ascii=False)
+    swift_code += '    static let ' + key + 'JSON = ' + encoded + '\n'
+    kotlin_code += '    const val ' + key + 'JSON = ' + encoded.replace('$', '\\$') + '\n'
+swift_code += '}\n'
+kotlin_code += '}\n'
 
 swift_path=ROOT/'ios/Hadithly/Core/GuestData/GuestDataModels.swift'
 old=swift_path.read_text();marker='// MARK: - Generated library sync wire values'

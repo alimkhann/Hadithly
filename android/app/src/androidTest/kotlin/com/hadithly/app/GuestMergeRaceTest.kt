@@ -84,6 +84,94 @@ class GuestMergeRaceTest {
         if (result is LibrarySavedProjection.Item) { assertEquals("h", result.value.hadithId); assertEquals(" \nعربى ", result.value.noteContent) }
     }
 
+    @Test fun savedReadBoundaryUsesActualBackendWireAndPreservesCompleteText() {
+        val head = Json.decodeFromString<SavedReadHead>(LibrarySavedReadsParityVector.headJSON)
+        val owner = LibrarySyncOwner(head.ownerKey, "subject-a"); val target = "10002;hadiths"
+        assertEquals(1.0, LibrarySavedReadPolicy.invalidation(head, owner).version, 0.0)
+        val metadata = LibrarySavedReadPolicy.reference(Json.decodeFromString(LibrarySavedReadsParityVector.referenceJSON), owner, target)
+        assertTrue(metadata is LibrarySavedReferenceState.Available)
+        if (metadata is LibrarySavedReferenceState.Available) { assertEquals(target, metadata.reference.hadithID); assertEquals("bukhari", metadata.reference.collectionSlug) }
+        val text = LibrarySavedReadPolicy.text(Json.decodeFromString(LibrarySavedReadsParityVector.textJSON), owner, target)
+        assertTrue(text is LibrarySavedTextState.Available)
+        if (text is LibrarySavedTextState.Available) { assertEquals("  إِنَّمَا\n", text.text.reference.arabicText); assertEquals("Actions \"by intentions\".\n", text.text.reference.englishText) }
+        val arabic = "ع\n".repeat(100_000); val english = "\"\\\u0000".repeat(30_000)
+        val large = LibrarySavedReadPolicy.text(SavedTextReply.Available(owner.key, target, SyncHadithSummary(target, "1", "bukhari", "Bukhari", "1", arabic, english, "Bukhari 1")), owner, target)
+        assertTrue(large is LibrarySavedTextState.Available)
+        if (large is LibrarySavedTextState.Available) { assertEquals(arabic, large.text.reference.arabicText); assertEquals(english, large.text.reference.englishText) }
+    }
+    @Test fun savedReadBoundaryRejectsForeignWrongTargetInvalidHeadAndUnknownUnavailable() {
+        val owner = LibrarySyncOwner("owner-a", "subject-a"); val target = "target"
+        listOf(-1.0, 0.5, Double.POSITIVE_INFINITY, 9_007_199_254_740_992.0).forEach { rejectsSaved { LibrarySavedReadPolicy.invalidation(SavedReadHead(owner.key, it), owner) } }
+        rejectsSaved { LibrarySavedReadPolicy.invalidation(SavedReadHead("other", 1.0), owner) }
+        assertEquals(LibrarySavedReferenceState.Missing, LibrarySavedReadPolicy.reference(SavedReferenceReply.Missing(owner.key, target), owner, target))
+        assertEquals(LibrarySavedTextState.Unavailable, LibrarySavedReadPolicy.text(SavedTextReply.Unavailable(owner.key, target, "text_too_large"), owner, target))
+        rejectsSaved { LibrarySavedReadPolicy.reference(SavedReferenceReply.Missing("other", target), owner, target) }
+        rejectsSaved { LibrarySavedReadPolicy.text(SavedTextReply.Missing(owner.key, "other"), owner, target) }
+        rejectsSaved { LibrarySavedReadPolicy.reference(SavedReferenceReply.Unavailable(owner.key, target, "invented"), owner, target) }
+        rejectsSaved { LibrarySavedReadPolicy.reference(SavedReferenceReply.Available(owner.key, target, SavedHadithReference("other", "1", "bukhari", "Bukhari", null, "")), owner, target) }
+        rejectsSaved { LibrarySavedReadPolicy.reference(SavedReferenceReply.Available(owner.key, target, SavedHadithReference(target, "1", "bukhari", "ع".repeat(LibrarySyncLimits.savedReferenceBytes), null, "")), owner, target) }
+    }
+    @Test fun savedReadTransportInvalidationNeverObservesPrivateRevisionAndQuietBindingExpires() = runBlocking {
+        isolated { store, _, _ ->
+            val fixture = AndroidSavedReadFixture(store)
+            try {
+                fixture.start(); val context = fixture.sync.captureSavedReadContext(); val before = store.syncPartition(context.owner)
+                val invalidation = async { fixture.sync.savedInvalidations(context).first() }
+                fixture.heads.subscriptionCount.first { it > 0 }; fixture.heads.emit(SavedReadHead(context.owner.key, 999.0))
+                assertEquals(999.0, invalidation.await().version, 0.0); assertEquals(before, store.syncPartition(context.owner)); assertNull(store.activeSavedGeneration(context.owner))
+                assertTrue(fixture.sync.savedReference(fixture.target, context) is LibrarySavedReferenceState.Available)
+                fixture.now = context.validUntil + 1; fixture.start()
+                try { fixture.sync.savedInvalidations(context).first(); fail("Old binding remained current") } catch (_: LibrarySyncFailure) { }
+            } finally { fixture.stop() }
+            val quiet = AndroidSavedReadFixture(store); quiet.bindingTTL = 100.0
+            try {
+                quiet.start(); val context = quiet.sync.captureSavedReadContext()
+                try { withTimeout(2_000) { quiet.sync.savedInvalidations(context).first() }; fail("Quiet expired binding remained open") } catch (_: LibrarySyncFailure) { }
+            } finally { quiet.stop() }
+        }
+    }
+    @Test fun savedReadTransportDelayedCollectionKeepsAbsoluteExpiryAndRejectsStaleScopeBeforeTransport() = runBlocking {
+        isolated { store, _, _ ->
+            val fixture = AndroidSavedReadFixture(store)
+            try {
+                fixture.start(); val context = fixture.sync.captureSavedReadContext(); val flow = fixture.sync.savedInvalidations(context)
+                assertEquals(0, fixture.headStarts); fixture.now = context.validUntil - 100
+                try { withTimeout(1_000) { flow.first() }; fail("Delayed collection extended expiry") } catch (_: LibrarySyncFailure) { }
+                assertEquals(1, fixture.headStarts)
+                val stale = fixture.sync.savedInvalidations(context); fixture.session.value = null
+                try { withTimeout(1_000) { stale.first() }; fail("Delayed stale collection started") } catch (_: LibrarySyncFailure) { }
+                assertEquals(1, fixture.headStarts)
+            } finally { fixture.stop() }
+        }
+    }
+    @Test fun savedReadTransportClosedHeadStreamFailsWithoutWaitingForBindingExpiry() = runBlocking {
+        isolated { store, _, _ ->
+            val fixture = AndroidSavedReadFixture(store)
+            try {
+                fixture.start(); fixture.headFetch = { kotlinx.coroutines.flow.emptyFlow() }
+                try { withTimeout(1_000) { fixture.sync.savedInvalidations(fixture.sync.captureSavedReadContext()).collect { fail("Empty transport emitted a head") } }; fail("Closed head stream silently finished") } catch (_: LibrarySyncFailure) { }
+            } finally { fixture.stop() }
+        }
+    }
+    @Test fun savedReadTransportRejectsLateHydrationAfterBindingRenewalAndAccountSwitch() = runBlocking {
+        isolated { store, _, _ ->
+            val fixture = AndroidSavedReadFixture(store)
+            try {
+                fixture.start(); val context = fixture.sync.captureSavedReadContext(); val started = CompletableDeferred<Unit>(); val release = CompletableDeferred<SavedReferenceReply>()
+                fixture.referenceFetch = { _, _ -> started.complete(Unit); release.await() }
+                val late = async { runCatching { fixture.sync.savedReference(fixture.target, context) } }
+                started.await(); fixture.now = context.validUntil + 1; fixture.start(); release.complete(fixture.referenceReply)
+                assertTrue(late.await().isFailure); fixture.referenceFetch = null
+                val renewed = fixture.sync.captureSavedReadContext(); assertTrue(fixture.sync.savedReference(fixture.target, renewed) is LibrarySavedReferenceState.Available)
+                val textStarted = CompletableDeferred<Unit>(); val textRelease = CompletableDeferred<SavedTextReply>()
+                fixture.textFetch = { _, _ -> textStarted.complete(Unit); textRelease.await() }
+                val text = async { runCatching { fixture.sync.savedText(fixture.target, renewed) } }
+                textStarted.await(); fixture.session.value = LibrarySyncSession("session-b", "subject-b"); fixture.start(); textRelease.complete(fixture.textReply)
+                assertTrue(text.await().isFailure); assertEquals("subject-b", fixture.sync.owner.value?.subject)
+            } finally { fixture.stop() }
+        }
+    }
+
     private fun savedReply(input: String?, owner: LibrarySyncOwner, facts: List<SavedFact>, version: Double = 9.0): SavedFactsReply {
         if (input == null) return SavedFactsReply.Page(owner.key, version, "private-root-proof", null, 0.0, emptyList(), "cursor:0")
         val index = if (input.startsWith("cursor:")) input.removePrefix("cursor:").toIntOrNull() else null
@@ -2431,4 +2519,34 @@ private class AndroidLibraryFacadeFixture(val store: GuestDataStore) {
     suspend fun stop() = withContext(Dispatchers.Main) { sync.deactivate(); session.value = null; model.refresh(); scope.cancel() }
     fun snapshot(version: Double, note: String) = SyncSavedSnapshot("owner-a", version, emptyList(), listOf(SyncSavedItem(reference.hadithId, 1_000.0, 2_000.0,
         noteContent = note, noteCreatedAt = 1_000.0, noteUpdatedAt = 2_000.0, hadith = SyncHadithSummary(reference.hadithId, "1", "bukhari", "Bukhari", "1", "نص", "Fixture", "Bukhari 1"))))
+}
+
+private class AndroidSavedReadFixture(val store: GuestDataStore) {
+    val session = MutableStateFlow<LibrarySyncSession?>(LibrarySyncSession("session-a", "subject-a"))
+    var now = 1_000.0
+    var bindingTTL = 900_000.0
+    var opens = 0
+    val heads = kotlinx.coroutines.flow.MutableSharedFlow<SavedReadHead>()
+    val referenceReply = Json.decodeFromString<SavedReferenceReply>(LibrarySavedReadsParityVector.referenceJSON)
+    val textReply = Json.decodeFromString<SavedTextReply>(LibrarySavedReadsParityVector.textJSON)
+    val target = "10002;hadiths"
+    var headStarts = 0
+    var headFetch: ((String) -> kotlinx.coroutines.flow.Flow<SavedReadHead>)? = null
+    var referenceFetch: (suspend (String, String) -> SavedReferenceReply)? = null
+    var textFetch: (suspend (String, String) -> SavedTextReply)? = null
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    val sync = LibrarySync(store, object : LibrarySyncTransport {
+        override val namespace = "fixture"
+        override suspend fun open(): SyncBinding {
+            val current = session.value ?: throw LibrarySyncFailure.SessionChanged; opens++
+            return SyncBinding(if (current.subject == "subject-a") "10000;users" else "owner-b", current.subject, "fixture-read-$opens", now + bindingTTL)
+        }
+        override suspend fun send(capability: String, frame: SyncFrame): SyncExchange = throw LibrarySyncFailure.InvalidChange
+        override suspend fun acknowledge(capability: String, acknowledgement: SyncAcknowledgement): SyncAckReply = throw LibrarySyncFailure.InvalidChange
+        override fun savedHeads(capability: String): kotlinx.coroutines.flow.Flow<SavedReadHead> { headStarts++; return headFetch?.invoke(capability) ?: heads }
+        override suspend fun savedReference(capability: String, hadithID: String) = referenceFetch?.invoke(capability, hadithID) ?: referenceReply
+        override suspend fun savedText(capability: String, hadithID: String) = textFetch?.invoke(capability, hadithID) ?: textReply
+    }, scope, { session.value }, { now })
+    suspend fun start() { session.value?.let { sync.activate(it) } }
+    fun stop() { sync.deactivate(); scope.cancel() }
 }

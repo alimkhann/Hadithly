@@ -493,6 +493,10 @@ interface LibrarySyncTransport {
     suspend fun retireInvalid(capability: String, frame: SyncFrame): SyncAckReply = throw LibrarySyncFailure.InvalidChange
     suspend fun poll(capability: String, pending: SyncPending): SyncExchange = throw LibrarySyncFailure.InvalidChange
     suspend fun outcomePage(capability: String, request: SyncOutcomePageRequest): SyncOutcomePage = throw LibrarySyncFailure.InvalidChange
+    fun savedHeads(capability: String): kotlinx.coroutines.flow.Flow<SavedReadHead> = kotlinx.coroutines.flow.flow { throw LibrarySyncFailure.InvalidChange }
+    suspend fun savedFacts(capability: String, continuation: String?): SavedFactsReply = throw LibrarySyncFailure.InvalidChange
+    suspend fun savedReference(capability: String, hadithID: String): SavedReferenceReply = throw LibrarySyncFailure.InvalidChange
+    suspend fun savedText(capability: String, hadithID: String): SavedTextReply = throw LibrarySyncFailure.InvalidChange
 }
 
 class LibrarySync(
@@ -589,6 +593,48 @@ class LibrarySync(
         if (generation != context.generation || session != context.session || currentSession() != context.session || mutableOwner.value != context.owner || (binding?.validUntil ?: 0.0) <= now()) throw LibrarySyncFailure.SessionChanged
         return binding?.capability ?: throw LibrarySyncFailure.SessionChanged
     }
+    fun captureSavedReadContext(): LibrarySavedReadContext {
+        val write = captureWriteContext(); val capability = capability(write)
+        val active = binding ?: throw LibrarySyncFailure.SessionChanged
+        return LibrarySavedReadContext(write, capability, active.validUntil)
+    }
+    private fun savedCapability(context: LibrarySavedReadContext): String {
+        val current = capability(context.write)
+        if (current != context.capability || now() >= context.validUntil) throw LibrarySyncFailure.SessionChanged
+        return current
+    }
+    fun savedInvalidations(context: LibrarySavedReadContext): kotlinx.coroutines.flow.Flow<LibrarySavedInvalidation> = kotlinx.coroutines.flow.flow {
+        val capability = savedCapability(context)
+        try {
+            kotlinx.coroutines.withTimeout(maxOf(1L, (context.validUntil - now()).toLong())) {
+                transport.savedHeads(capability).collect { value ->
+                    savedCapability(context); emit(LibrarySavedReadPolicy.invalidation(value, context.owner))
+                }
+                throw LibrarySyncFailure.SessionChanged
+            }
+        } catch (expired: kotlinx.coroutines.TimeoutCancellationException) {
+            kotlinx.coroutines.currentCoroutineContext().ensureActive()
+            throw LibrarySyncFailure.SessionChanged
+        }
+    }
+    suspend fun savedFacts(continuation: String?, context: LibrarySavedReadContext): SavedFactsReply {
+        val reply = transport.savedFacts(savedCapability(context), continuation)
+        kotlinx.coroutines.currentCoroutineContext().ensureActive(); savedCapability(context)
+        return reply // Durable collection validates position, source identity and completion.
+    }
+    suspend fun savedReference(hadithID: String, context: LibrarySavedReadContext): LibrarySavedReferenceState {
+        LibrarySavedReadPolicy.target(hadithID)
+        val reply = transport.savedReference(savedCapability(context), hadithID)
+        kotlinx.coroutines.currentCoroutineContext().ensureActive(); savedCapability(context)
+        return LibrarySavedReadPolicy.reference(reply, context.owner, hadithID)
+    }
+    suspend fun savedText(hadithID: String, context: LibrarySavedReadContext): LibrarySavedTextState {
+        LibrarySavedReadPolicy.target(hadithID)
+        val reply = transport.savedText(savedCapability(context), hadithID)
+        kotlinx.coroutines.currentCoroutineContext().ensureActive(); savedCapability(context)
+        return LibrarySavedReadPolicy.text(reply, context.owner, hadithID)
+    }
+
     suspend fun portableState(context: LibraryWriteContext): kotlinx.serialization.json.JsonElement = withContext(Dispatchers.Main.immediate) {
         capability(context)
         val state = store.syncPartition(context.owner) ?: throw LibrarySyncFailure.SessionChanged

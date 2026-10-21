@@ -19,3 +19,11 @@ export async function requireLibraryBinding(ctx: Context, capability: string): P
   if (binding.expiresAt <= Date.now()) throw new Error("SYNC_BINDING_EXPIRED");
   return { user, protocol: binding.protocol ?? "inline_v1", binding };
 }
+
+export async function requireSavedReadBinding(ctx: QueryCtx, capability: string) {
+  if (new TextEncoder().encode(capability).byteLength > 512) throw new Error("SYNC_INVALID_SAVED_REQUEST");
+  const result = await requireLibraryBinding(ctx, capability);
+  if (result.protocol !== "manifest_v2") throw new Error("SYNC_CLIENT_UPGRADE_REQUIRED");
+  if (!result.binding.savedCursorKey) throw new Error("SYNC_BINDING_REOPEN_REQUIRED");
+  return result;
+}

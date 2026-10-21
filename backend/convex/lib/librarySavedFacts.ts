@@ -1,7 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
-import { requireLibraryBinding } from "./librarySyncIdentity";
+import { requireSavedReadBinding } from "./librarySyncIdentity";
 import { libraryVersion } from "./librarySyncVersions";
 import { effectiveSavedMembership } from "./savedMembership";
 import { syncSavedItem, syncFolderRow } from "./librarySyncPolicy";
@@ -76,8 +76,7 @@ function nextSource(source: Exclude<Source, "complete">): Source {
 /** Private traversal only. Public hadith hydration and durable native activation are separate. */
 export async function readSavedFactsPage(ctx: QueryCtx, request: { capability: string; continuation?: string }): Promise<SavedFactsReply> {
   if (bytes(request.capability) > 512 || request.continuation !== undefined && bytes(request.continuation) > SAVED_FACT_CURSOR_BYTES) throw invalid();
-  const { user, protocol, binding } = await requireLibraryBinding(ctx, request.capability);
-  if (protocol !== "manifest_v2") throw new Error("SYNC_CLIENT_UPGRADE_REQUIRED");
+  const { user, binding } = await requireSavedReadBinding(ctx, request.capability);
   if (!binding.savedCursorKey) throw new Error("SYNC_BINDING_REOPEN_REQUIRED");
   const key = await signingKey(binding.savedCursorKey);
   const prior = request.continuation === undefined ? undefined : await open(request.continuation, key);
