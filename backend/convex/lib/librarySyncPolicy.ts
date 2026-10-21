@@ -46,6 +46,7 @@ export type SyncBatch = Infer<typeof syncBatch>;
 export type SyncFolderReference = Infer<typeof syncFolderReference>;
 
 export const syncOutcome = v.union(
+  v.object({ kind: v.literal("batch_requires_split") }),
   v.object({ kind: v.literal("preserved") }),
   v.object({ kind: v.literal("folder"), folderId: v.id("savedFolders") }),
   v.object({ kind: v.literal("folder_deleted"), hadithIds: v.array(v.id("hadiths")), deletedAt: v.number() }),

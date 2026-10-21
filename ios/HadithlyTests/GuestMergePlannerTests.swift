@@ -481,6 +481,117 @@ final class GuestMergePlannerTests: XCTestCase {
         XCTAssertEqual(try JSONDecoder().decode(LibraryPartitionState.self, from: JSONEncoder().encode(state)), state)
     }
 
+    private func mixedFolderFixture() -> (LibraryPartitionState, [LibraryLocalChange], LibraryLocalChange) {
+        let before = LibraryLocalChange(command: .notePut(.init(hadithId: "before", content: "Unsent original A", createdAt: 1_000, updatedAt: 1_000)), at: 1_000, source: .note(.init(hadithId: "before", content: "Unsent original A", createdAt: date(1), updatedAt: date(1))))
+        let folder = LibraryLocalChange(command: .folderDelete(.init(folder: .server(.init(id: "folder")))), at: 1_000, source: .account(nil))
+        let after = LibraryLocalChange(command: .notePut(.init(hadithId: "after", content: "Unsent original B", createdAt: 1_000, updatedAt: 1_000)), at: 1_000, source: .account(nil))
+        let later = LibraryLocalChange(command: .bookmarkAdd(.init(hadithId: "later", createdAt: 2_000)), at: 2_000, source: .account(nil))
+        let original = [before, folder, after]
+        var state = LibraryPartitionState(); state.frozen = .init(batch: .init(id: "old-mixed", operations: original.map(\.operation)), changes: original); state.pending = [later]
+        return (state, original, later)
+    }
+    @MainActor func testMixedSplitPersistsExactOriginalsAcrossFailedAckAndReopenBeforeIsolatedSends() async throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".store"), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), session = LibrarySyncSession(id: "session-a", subject: "subject-a")
+        let (state, original, later) = mixedFolderFixture(); try seedPartitionFixture(state, owner: owner, url: url)
+        var failAck = true, frames: [SyncFrame] = []
+        let transport = LibrarySyncTransport(namespace: owner.namespace, open: { .init(ownerKey: owner.key, subject: owner.subject, capability: "fixture", validUntil: Date.now.millisecondsSinceEpoch + 60_000) }, acknowledge: { _, value in
+            if value.sequence == 1 && failAck { throw LibrarySyncFailure.storeUnavailable }
+            return self.acknowledged(value)
+        }, send: { _, frame in
+            frames.append(frame)
+            let receipts = frame.batch.operations.map { operation -> SyncReceipt in
+                let outcome: SyncOutcome
+                if frame.batch.id == "old-mixed" { outcome = .batchRequiresSplit }
+                else if case .folderDelete = operation.command { outcome = .unresolved(.init(reason: .missingFolder)) }
+                else { outcome = .preserved }
+                return .init(id: operation.id, revision: operation.revision, outcome: outcome)
+            }
+            return self.accepted(frame, reply: .init(ownerKey: owner.key, batchId: frame.batch.id, receipts: receipts))
+        })
+        let store = GuestDataStore(storeURL: url), sync = LibrarySync(store: store, transport: transport, currentSession: { session })
+        await sync.activate(session); sync.deactivate()
+        let saved = try XCTUnwrap(store.syncPartition(owner))
+        XCTAssertNil(saved.frozen); XCTAssertEqual(saved.pending, original + [later]); XCTAssertEqual(saved.nextSequence, 2)
+        XCTAssertEqual(saved.acknowledgement?.sequence, 1); XCTAssertTrue(saved.recovery.isEmpty)
+        XCTAssertThrowsError(try store.freezeSyncFrame(owner))
+        failAck = false
+        let reopened = GuestDataStore(storeURL: url), resumed = LibrarySync(store: reopened, transport: transport, currentSession: { session })
+        defer { resumed.deactivate() }; await resumed.activate(session)
+        try await waitForLibrary { if case .ready = resumed.status { return true }; return false }
+        XCTAssertEqual(frames.dropFirst().flatMap { $0.batch.operations }, (original + [later]).map(\.operation))
+        XCTAssertEqual(frames.filter { $0.batch.id == "old-mixed" }.count, 1)
+        XCTAssertEqual(frames.dropFirst().filter { $0.batch.operations.contains { if case .folderDelete = $0.command { return true }; return false } }.map { $0.batch.operations.count }, [1])
+        XCTAssertNil(try reopened.syncPartition(owner)?.acknowledgement)
+        XCTAssertEqual(try reopened.syncPartition(owner)?.recovery.count, 1)
+    }
+    func testMixedSplitExactPollingRequeuesButHistoricalAndPartialRepliesDoNot() throws {
+        let (base, original, later) = mixedFolderFixture(), frame = SyncFrame(clientKey: base.clientKey, sequence: 1, batch: try XCTUnwrap(base.frozen).batch)
+        let receipts = frame.batch.operations.map { SyncReceipt(id: $0.id, revision: $0.revision, outcome: .batchRequiresSplit) }
+        let proof = SyncCommitted(clientKey: frame.clientKey, sequence: 1, digest: "mixed-proof", revision: .init(saved: 0, position: 0), reply: .init(ownerKey: "owner-a", batchId: frame.batch.id, receipts: receipts))
+        var waiting = base
+        let pending = SyncPending(clientKey: frame.clientKey, sequence: 1, batchId: frame.batch.id, digest: proof.digest, intentDigest: try frame.batch.intentDigest(), manifestId: "pending", generation: "generation", retryAfterMs: 250)
+        try waiting.settle(.pending(.init(ownerKey: "owner-a", pending: pending)), requested: frame, now: 2_000)
+        try waiting.settlePending(.accepted(.init(committed: proof)), requested: pending, now: 2_000)
+        XCTAssertEqual(waiting.pending, original + [later]); XCTAssertNotNil(waiting.acknowledgement)
+        var unknown = base
+        try unknown.settle(.reconcile(.init(ownerKey: "owner-a", clientKey: frame.clientKey, requestedSequence: 1, requestedBatchId: frame.batch.id, cursor: .init(closedThrough: 0, outstanding: .committed(.init(committed: proof))))), requested: frame, now: 2_000)
+        XCTAssertEqual(unknown.pending, [later]); XCTAssertEqual(unknown.recovery, original.map(LibraryRecovery.historical))
+        for malformed in [Array(receipts.dropLast()), [receipts[0], receipts[0], receipts[2]], [receipts[0], .init(id: receipts[1].id, revision: receipts[1].revision, outcome: .preserved), receipts[2]]] {
+            var state = base
+            let bad = SyncCommitted(clientKey: proof.clientKey, sequence: proof.sequence, digest: proof.digest, revision: proof.revision, reply: .init(ownerKey: "owner-a", batchId: frame.batch.id, receipts: malformed))
+            XCTAssertThrowsError(try state.settle(.accepted(.init(committed: bad)), requested: frame, now: 2_000)); XCTAssertEqual(state, base)
+        }
+    }
+    @MainActor func testCompactFolderUndoCannotOverrideNewerMovesRemovalOrLaterDeletion() throws {
+        var state = LibraryPartitionState()
+        state.savedSnapshot = .init(ownerKey: "owner-a", version: 1, folders: [.init(_id: "folder", name: "Original", createdAt: 1_000), .init(_id: "other", name: "Other", createdAt: 1_000)], items: (0..<3).map { index in
+            .init(hadithId: "item-\(index)", createdAt: 1_000, updatedAt: 1_000, bookmarkCreatedAt: 1_000, favoriteCreatedAt: nil, noteContent: nil, noteCreatedAt: nil, noteUpdatedAt: nil, folderId: "folder", hadith: .init(_id: "item-\(index)", providerHadithId: String(index), collectionSlug: "bukhari", collectionName: "Bukhari", volumeId: "1", arabicText: "نص", englishText: nil, referenceDisplay: "Fixture"))
+        })
+        let deletion = LibraryLocalChange(command: .folderDelete(.init(folder: .server(.init(id: "folder")))), at: 2_000, source: .account(nil)); state.pending = [deletion]
+        state.append(.account(nil), command: .membershipPut(.init(hadithId: "item-0", folder: .none, mode: nil)), at: 3_000)
+        state.append(.account(nil), command: .bookmarkRemove(.init(hadithId: "item-1")), at: 3_000)
+        state.append(.account(nil), command: .bookmarkAdd(.init(hadithId: "item-1", createdAt: 4_000)), at: 4_000)
+        state.append(.account(nil), command: .folderRestore(.init(deletionId: deletion.operation.id, name: "Original", hadithIds: [])), at: 5_000)
+        let restored = LibraryProjection(state)
+        XCTAssertNil(restored.items.first { $0.hadithId == "item-0" }?.folderId); XCTAssertNil(restored.items.first { $0.hadithId == "item-1" }?.folderId)
+        XCTAssertNotNil(restored.items.first { $0.hadithId == "item-2" }?.folderId)
+        state.append(.account(nil), command: .folderDelete(.init(folder: .local(.init(key: "restore:" + deletion.operation.id)))), at: 6_000)
+        state.append(.account(nil), command: .folderRestore(.init(deletionId: deletion.operation.id, name: "Original", hadithIds: [])), at: 7_000)
+        XCTAssertTrue(LibraryProjection(state).items.allSatisfy { $0.folderId == nil })
+        var advanced = state; advanced.pending = [try XCTUnwrap(state.pending.first { if case .folderRestore = $0.operation.command { return true }; return false })]
+        if let snapshot = advanced.savedSnapshot { advanced.savedSnapshot = .init(ownerKey: snapshot.ownerKey, version: 2, folders: [], items: snapshot.items.map { .init(hadithId: $0.hadithId, createdAt: $0.createdAt, updatedAt: $0.updatedAt, bookmarkCreatedAt: $0.bookmarkCreatedAt, favoriteCreatedAt: $0.favoriteCreatedAt, noteContent: $0.noteContent, noteCreatedAt: $0.noteCreatedAt, noteUpdatedAt: $0.noteUpdatedAt, folderId: nil, hadith: $0.hadith) }) }
+        XCTAssertTrue(LibraryProjection(advanced).items.allSatisfy { $0.folderId == nil })
+    }
+
+    @MainActor func testAccountFolderUndoIsCompactAndRestores501OfflineMembers() async throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".store")
+        let store = GuestDataStore(storeURL: url), fixture = LibraryFacadeFixture(store: store)
+        defer { fixture.stop() }; await fixture.start()
+        let rows: [SyncSavedItem] = (0..<501).map { index in
+            let id = "item-\(index)"
+            return .init(hadithId: id, createdAt: 1_000, updatedAt: 1_000, bookmarkCreatedAt: 1_000, favoriteCreatedAt: nil, noteContent: nil, noteCreatedAt: nil, noteUpdatedAt: nil, folderId: "folder",
+                hadith: .init(_id: id, providerHadithId: String(index + 1), collectionSlug: "bukhari", collectionName: "Bukhari", volumeId: "1", arabicText: "نص", englishText: nil, referenceDisplay: "Bukhari \(index + 1)"))
+        }
+        fixture.saved.send(.init(ownerKey: "owner-a", version: 1, folders: [.init(_id: "folder", name: "Original folder", createdAt: 1_000)], items: rows))
+        try await waitForLibrary { fixture.model.savedItems.count == 501 }
+        let folder = try XCTUnwrap(fixture.model.folders.first), scope = fixture.model.actionScope
+        fixture.model.deleteFolder(folder, scope: scope)
+        XCTAssertTrue(fixture.model.folders.isEmpty)
+        fixture.model.undoDeleteFolder()
+        let owner = try XCTUnwrap(fixture.sync.owner), state = try XCTUnwrap(store.syncPartition(owner))
+        let commands = (state.frozen?.changes ?? []) + state.pending
+        guard let undo = commands.first(where: { if case .folderRestore = $0.operation.command { return true }; return false }), case .folderRestore(let value) = undo.operation.command else { return XCTFail("Undo was not durably queued") }
+        XCTAssertTrue(value.hadithIds.isEmpty)
+        XCTAssertEqual(fixture.model.savedItems.filter { $0.folderId != nil }.count, 501)
+        XCTAssertEqual(fixture.model.folders.first?.name, "Original folder")
+        XCTAssertLessThan(try JSONEncoder().encode(undo.operation).count, 1_024)
+        fixture.stop()
+        let reopened = LibraryFacadeFixture(store: GuestDataStore(storeURL: url)); defer { reopened.stop() }; await reopened.start()
+        XCTAssertEqual(reopened.model.savedItems.filter { $0.folderId != nil }.count, 501)
+        XCTAssertEqual(reopened.model.folders.first?.name, "Original folder")
+        XCTAssertNil(reopened.model.lastFolderDeletion)
+    }
+
     @MainActor private func acknowledgedRetentionFixture(count: Int, url: URL, acknowledge: Bool = true, acknowledgedAt: Double = 2_000) async throws -> (GuestDataStore, SyncCommitted, SyncAcknowledgement) {
         let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
         var state = LibraryPartitionState()

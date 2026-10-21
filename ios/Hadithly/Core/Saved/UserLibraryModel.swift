@@ -63,11 +63,10 @@ enum SavedUndoDeadline {
 
 struct SavedFolderDeletion: Decodable, Equatable, Sendable {
     let name: String
-    let hadithIds: [String]
     let deletedAt: Double
     let undoID = UUID()
     let undoDeadline = Date.now.addingTimeInterval(SavedUndoDeadline.duration)
-    private enum CodingKeys: String, CodingKey { case name, hadithIds, deletedAt }
+    private enum CodingKeys: String, CodingKey { case name, deletedAt }
 }
 
 private struct SavedFolderRestore: Decodable, Sendable {
@@ -362,15 +361,14 @@ final class UserLibraryModel {
     func deleteFolder(_ folder: SavedFolder, scope: UUID) {
         guard isActionCurrent(scope) else { return }
         if isSignedIn() {
-            let ids = savedItems.filter { $0.folderId == folder.id }.map(\.hadithId)
             guard let (change, context) = submit({ _ in .folderDelete(.init(folder: folderReference(folder.id))) }) else { return }
             folderUndo = .init(deletionID: change.operation.id, scope: .account(context), expiresAt: Date.now.millisecondsSinceEpoch + SavedUndoDeadline.duration * 1_000)
-            lastFolderDeletion = .init(name: folder.name, hadithIds: ids, deletedAt: change.operation.at)
+            lastFolderDeletion = .init(name: folder.name, deletedAt: change.operation.at)
         } else {
             guard let deletion = guestData.deleteSavedFolder(localId: folder.id) else { return }
             guestFolderDeletion = deletion
             folderUndo = .init(deletionID: "guest", scope: .guest(epoch), expiresAt: Date.now.millisecondsSinceEpoch + SavedUndoDeadline.duration * 1_000)
-            lastFolderDeletion = SavedFolderDeletion(name: deletion.folder.name, hadithIds: deletion.hadithIds, deletedAt: deletion.folder.createdAt.timeIntervalSince1970 * 1_000)
+            lastFolderDeletion = SavedFolderDeletion(name: deletion.folder.name, deletedAt: deletion.folder.createdAt.timeIntervalSince1970 * 1_000)
             loadGuestData()
         }
     }
@@ -380,7 +378,7 @@ final class UserLibraryModel {
         if isSignedIn() {
             guard let undo = folderUndo, undo.expiresAt > Date.now.millisecondsSinceEpoch else { clearFolderDeletion(); return }
             guard case .account(let context) = undo.scope else { return }
-            submit({ _ in .folderRestore(.init(deletionId: undo.deletionID, name: deletion.name, hadithIds: deletion.hadithIds)) }, context: context)
+            submit({ _ in .folderRestore(.init(deletionId: undo.deletionID, name: deletion.name, hadithIds: [])) }, context: context)
             folderUndo = nil; lastFolderDeletion = nil
         } else if let guestFolderDeletion {
             guard let undo = folderUndo, undo.expiresAt > Date.now.millisecondsSinceEpoch,
@@ -645,6 +643,8 @@ struct LibraryProjection {
         func initial(_ id: String, _ change: LibraryLocalChange) -> SavedItemEntry {
             byID[id] ?? .init(hadithId: id, createdAt: date(change.operation.at), updatedAt: date(change.operation.at), hadith: change.source.reference)
         }
+        var removedBy: [String: String] = [:]
+        func hasSavedFacet(_ item: SavedItemEntry) -> Bool { item.bookmarkCreatedAt != nil || item.favoriteCreatedAt != nil || item.noteContent != nil }
         let changes: [(LibraryLocalChange, SyncOutcome?)] = state.confirmed.map { ($0.change, $0.outcome) }
             + state.projectedFrozenChanges.map { ($0, nil) } + state.pending.map { ($0, nil) }
         for (change, outcome) in changes {
@@ -653,32 +653,39 @@ struct LibraryProjection {
             case .bookmarkAdd(let value):
                 var item = initial(value.hadithId, change); item.bookmarkCreatedAt = min(item.bookmarkCreatedAt ?? date(value.createdAt), date(value.createdAt)); item.updatedAt = max(item.updatedAt, at); byID[value.hadithId] = item
             case .bookmarkRemove(let value):
-                if var item = byID[value.hadithId] { item.bookmarkCreatedAt = nil; item.updatedAt = max(item.updatedAt, at); byID[value.hadithId] = item }
+                if var item = byID[value.hadithId] { item.bookmarkCreatedAt = nil; item.updatedAt = max(item.updatedAt, at); byID[value.hadithId] = item; if !hasSavedFacet(item) { removedBy.removeValue(forKey: value.hadithId) } }
             case .favoriteAdd(let value):
                 var item = initial(value.hadithId, change); item.favoriteCreatedAt = min(item.favoriteCreatedAt ?? date(value.createdAt), date(value.createdAt)); item.updatedAt = max(item.updatedAt, at); byID[value.hadithId] = item
             case .favoriteRemove(let value):
-                if var item = byID[value.hadithId] { item.favoriteCreatedAt = nil; item.updatedAt = max(item.updatedAt, at); byID[value.hadithId] = item }
+                if var item = byID[value.hadithId] { item.favoriteCreatedAt = nil; item.updatedAt = max(item.updatedAt, at); byID[value.hadithId] = item; if !hasSavedFacet(item) { removedBy.removeValue(forKey: value.hadithId) } }
             case .notePut(let value):
                 var item = initial(value.hadithId, change); item.noteContent = value.content; item.noteCreatedAt = item.noteCreatedAt ?? date(value.createdAt); item.noteUpdatedAt = date(value.updatedAt); item.updatedAt = max(item.updatedAt, date(value.updatedAt)); byID[value.hadithId] = item
             case .noteRemove(let value):
-                if var item = byID[value.hadithId] { item.noteContent = nil; item.noteCreatedAt = nil; item.noteUpdatedAt = nil; item.updatedAt = max(item.updatedAt, at); byID[value.hadithId] = item }
+                if var item = byID[value.hadithId] { item.noteContent = nil; item.noteCreatedAt = nil; item.noteUpdatedAt = nil; item.updatedAt = max(item.updatedAt, at); byID[value.hadithId] = item; if !hasSavedFacet(item) { removedBy.removeValue(forKey: value.hadithId) } }
             case .membershipPut(let value):
                 if value.mode == "claim_if_unset" && outcome == nil { break }
                 if var item = byID[value.hadithId] { item.folderId = folderID(value.folder); item.updatedAt = max(item.updatedAt, at); byID[value.hadithId] = item }
+                removedBy.removeValue(forKey: value.hadithId)
             case .folderCreate(let value):
                 let id = state.folderMappings[value.key] ?? "local:" + value.key
                 byFolder[id] = byFolder[id] ?? .init(id: id, name: value.name, createdAt: at)
             case .folderDelete(let value):
                 if let id = folderID(value.folder) {
                     byFolder.removeValue(forKey: id)
-                    for (key, var item) in byID where item.folderId == id { item.folderId = nil; item.updatedAt = max(item.updatedAt, at); byID[key] = item }
+                    for (key, var item) in byID where item.folderId == id { removedBy[key] = change.operation.id; item.folderId = nil; item.updatedAt = max(item.updatedAt, at); byID[key] = item }
                 }
             case .folderRestore(let value):
                 let id: String; let restored: [String]
                 if case .folderRestored(let result) = outcome { id = result.folderId; restored = result.restored }
                 else { id = byFolder.values.first { $0.name.precomposedStringWithCanonicalMapping.lowercased() == value.name.precomposedStringWithCanonicalMapping.lowercased() }?.id ?? state.folderMappings["restore:" + value.deletionId] ?? "local:restore:" + value.deletionId; restored = value.hadithIds }
                 byFolder[id] = byFolder[id] ?? .init(id: id, name: value.name, createdAt: at)
-                for key in restored { if var item = byID[key] { item.folderId = id; item.updatedAt = max(item.updatedAt, at); byID[key] = item } }
+                if outcome == nil && value.hadithIds.isEmpty {
+                    for (key, var item) in byID where removedBy[key] == value.deletionId && item.folderId == nil && hasSavedFacet(item) {
+                        item.folderId = id; item.updatedAt = max(item.updatedAt, at); byID[key] = item; removedBy.removeValue(forKey: key)
+                    }
+                } else {
+                    for key in restored { if var item = byID[key] { item.folderId = id; item.updatedAt = max(item.updatedAt, at); byID[key] = item; removedBy.removeValue(forKey: key) } }
+                }
             case .facetRestore(let value):
                 var item = initial(value.hadithId, change)
                 switch value.value {

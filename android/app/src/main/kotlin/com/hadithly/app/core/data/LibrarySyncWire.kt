@@ -137,6 +137,9 @@ data class SyncBatch(
 @JsonClassDiscriminator("kind")
 sealed interface SyncOutcome {
     @Serializable
+    @SerialName("batch_requires_split")
+    data object BatchRequiresSplit : SyncOutcome
+    @Serializable
     @SerialName("preserved")
     data object Preserved : SyncOutcome
     @Serializable

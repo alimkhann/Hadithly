@@ -187,6 +187,17 @@ and removes at most 50 facts per transaction. Export fails during partial prunin
 See `LIBRARY_OUTCOME_RETENTION_VERIFICATION.md` for 85 iOS/68 Android checks,
 501-row interruption, ACK replay and their limits. Manifest Undo/public cutover,
 full-library scale, iOS save failures and hosted/device/deployment gates remain open.
+
+The public manifest producer and compact native account Undo now pass local proof.
+Current native bindings explicitly select manifest-v2; legacy capabilities cannot
+consume upgraded stream proof. Exact old mixed frames split without business effects
+and ACK before isolated replay. Scheduled delete/Undo, authoritative membership,
+atomic destination aliases and causal offline projection pass 501-member fixtures.
+See `LIBRARY_PUBLIC_FOLDER_VERIFICATION.md` for 484 backend, 89 iOS and 72 Android
+passes and the final independent review. The current-binding 501 support probe is
+now green locally; the default v1 probe retains its safe size limit. Full Saved/
+folder/export and whole-file scale, legacy transaction/age, installed/SDK/device,
+iOS save-failure and A2 deployment gates remain open. No A2 deployment occurred.
 Continue A2 integration while retaining A1's content dependencies. No paid
 generation or production change has been approved. Research, later native redesign, website and Linear remain
 pending in the owner's requested order.

@@ -287,9 +287,8 @@ class UserLibraryModel private constructor(
     fun deleteFolder(folder: SavedFolder, message: String, capturedScope: String) {
         if (!isActionCurrent(capturedScope)) return
         if (isSignedIn()) {
-            var ids = emptyList<String>()
-            ownedWrite(command = { ids = _savedItems.value.filter { it.folderId == folder.id }.map { it.hadithId }; SyncCommand.FolderDelete(folderReference(folder.id)) }, queued = { change, context ->
-                undo.show(message) { ownedWrite(captured = context, command = { SyncCommand.FolderRestore(change.operation.id, folder.name, ids) }) }
+            ownedWrite(command = { SyncCommand.FolderDelete(folderReference(folder.id)) }, queued = { change, context ->
+                undo.show(message) { ownedWrite(captured = context, command = { SyncCommand.FolderRestore(change.operation.id, folder.name, emptyList()) }) }
             })
         } else launchGuestOperation {
             val deletion = guestData.deleteSavedFolder(folder.id)

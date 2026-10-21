@@ -179,7 +179,7 @@ data class LibraryPartitionState(
             val change = byId.remove(receipt.id) ?: throw LibrarySyncFailure.InvalidReceipt
             if (change.operation.revision != receipt.revision) throw LibrarySyncFailure.InvalidReceipt
             when (receipt.outcome) {
-                is SyncOutcome.FolderDeletedManifest, is SyncOutcome.FolderRestoredManifest -> throw LibrarySyncFailure.InvalidReceipt
+                SyncOutcome.BatchRequiresSplit, is SyncOutcome.FolderDeletedManifest, is SyncOutcome.FolderRestoredManifest -> throw LibrarySyncFailure.InvalidReceipt
                 SyncOutcome.Preserved, is SyncOutcome.Folder, is SyncOutcome.FolderDeleted -> Unit
                 is SyncOutcome.FolderRestored -> if (receipt.outcome.superseded.isNotEmpty() || receipt.outcome.missing.isNotEmpty()) stagedRecovery.add(LibraryRecovery.Server(change, receipt.outcome))
                 is SyncOutcome.Superseded, is SyncOutcome.Unresolved, is SyncOutcome.ResolvedPosition -> stagedRecovery.add(LibraryRecovery.Server(change, receipt.outcome))
@@ -361,12 +361,22 @@ data class LibraryPartitionState(
                     waiting = null
                     return
                 }
+                if (committed.reply.receipts.any { it.outcome == SyncOutcome.BatchRequiresSplit }) {
+                    val original = frozen ?: throw LibrarySyncFailure.InvalidReceipt
+                    val changes = original.changes
+                    if (original.batch.id != committed.reply.batchId || changes.map { it.operation } != original.batch.operations || changes.size <= 1 || changes.map { it.operation.id }.toSet().size != changes.size || changes.count { it.operation.command is SyncCommand.FolderDelete || it.operation.command is SyncCommand.FolderRestore } != 1 || committed.reply.receipts.size != changes.size) throw LibrarySyncFailure.InvalidReceipt
+                    val receipts = committed.reply.receipts.associateBy { it.id }
+                    if (receipts.size != changes.size || changes.any { receipts[it.operation.id]?.revision != it.operation.revision || receipts[it.operation.id]?.outcome != SyncOutcome.BatchRequiresSplit }) throw LibrarySyncFailure.InvalidReceipt
+                    pending = changes + pending; frozen = null; nextSequence++; waiting = null
+                    acknowledgement = SyncAcknowledgement(clientKey, committed.sequence, committed.reply.batchId, committed.digest)
+                    return
+                }
                 val submitted = frozen?.changes.orEmpty()
                 settleReceipts(committed.reply, now)
                 for (change in submitted) {
                     val receipt = committed.reply.receipts.first { it.id == change.operation.id }
                     when (receipt.outcome) {
-                        is SyncOutcome.FolderDeletedManifest, is SyncOutcome.FolderRestoredManifest -> throw LibrarySyncFailure.InvalidReceipt
+                        SyncOutcome.BatchRequiresSplit, is SyncOutcome.FolderDeletedManifest, is SyncOutcome.FolderRestoredManifest -> throw LibrarySyncFailure.InvalidReceipt
                         SyncOutcome.Preserved, is SyncOutcome.Folder, is SyncOutcome.FolderDeleted, is SyncOutcome.FolderRestored, is SyncOutcome.ResolvedPosition -> {
                             val version = if (change.operation.command.isPositionChange) committed.revision.position else committed.revision.saved
                             confirmed = confirmed + LibraryConfirmedChange(change, receipt.outcome, version)

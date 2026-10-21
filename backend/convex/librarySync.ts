@@ -1,9 +1,10 @@
+import { resolveLibraryFolder as folder, bindLibraryFolderKey as folderAlias } from "./lib/librarySyncFolders";
 import { writeSavedMembership, removeEmptySavedMembership, touchSavedFolderMemberships, savedFolderScanGuard, assertSavedFolderStable } from "./lib/savedMembership";
-import { advanceFolderRestoration as advanceRestoration, materializeFolderEffect as materializeEffect, expireFolderTransition, type FolderEffectStep } from "./lib/savedFolderTransitions";
-import { advanceFolderManifest as advanceManifest, purgeFolderManifestMembers as purgeManifest,
+import { commitPreparedFolderDeletion, beginFolderRestoration, advanceFolderRestoration as advanceRestoration, materializeFolderEffect as materializeEffect, expireFolderTransition, type FolderEffectStep } from "./lib/savedFolderTransitions";
+import { prepareFolderManifest, advanceFolderManifest as advanceManifest, purgeFolderManifestMembers as purgeManifest,
   FOLDER_MANIFEST_LEASE_MS, type FolderManifestStep } from "./lib/savedFolderManifests";
 import { internal } from "./_generated/api";
-import { existingFrameExchange, librarySyncCursor } from "./lib/librarySyncFrames";
+import { existingFrameExchange, librarySyncCursor, holdFolderFrame, protocolExchange, assertSyncProtocolCursor } from "./lib/librarySyncFrames";
 import { readLibraryOutcomePage } from "./lib/libraryOutcomePages";
 import { requireLibraryUser as owner, requireLibraryBinding as boundOwner } from "./lib/librarySyncIdentity";
 import { libraryVersion, advanceLibraryVersion } from "./lib/librarySyncVersions";
@@ -20,39 +21,25 @@ import {
   SYNC_BINDING_LIMIT, SYNC_BINDING_LIFETIME,
   syncFrame, syncPending, syncAcknowledgement, syncOutcomePageRequest, syncOutcomePage, type SyncOutcomePage, validateSyncStream, syncSavedSnapshot, syncPositionsSnapshot,
   type SyncHadithSummary, type SyncSavedSnapshot, type SyncPositionsSnapshot,
-  type SyncBinding, type SyncOperation, type SyncOutcome, type SyncReceipt, type SyncFolderReference, type SyncExchange, type SyncAckReply,
+  type SyncBinding, type SyncFrame, type SyncOperation, type SyncOutcome, type SyncReceipt, type SyncFolderReference, type SyncExchange, type SyncAckReply,
 } from "./lib/librarySyncPolicy";
 
-export const openBinding = mutation({
-  args: {},
-  handler: async (ctx): Promise<SyncBinding> => {
-    const user = await owner(ctx), now = Date.now();
-    const bindings = await ctx.db.query("librarySyncBindings").withIndex("by_user", q => q.eq("userId", user._id)).take(SYNC_BINDING_LIMIT + 1);
-    let live = 0;
-    for (const binding of bindings) {
-      if (binding.expiresAt <= now) await ctx.db.delete(binding._id);
-      else live++;
-    }
-    if (live >= SYNC_BINDING_LIMIT) throw new Error("SYNC_BINDING_LIMIT");
-    const capability = `${crypto.randomUUID()}.${crypto.randomUUID()}`;
-    const validUntil = now + SYNC_BINDING_LIFETIME;
-    await ctx.db.insert("librarySyncBindings", { userId: user._id, digest: await textDigest(capability), expiresAt: validUntil, createdAt: now });
-    return { ownerKey: user._id, subject: user.clerkId, capability, validUntil };
-  },
-});
+async function createBinding(ctx: MutationCtx, protocol?: "manifest_v2"): Promise<SyncBinding> {
+  const user = await owner(ctx), now = Date.now();
+  const bindings = await ctx.db.query("librarySyncBindings").withIndex("by_user", q => q.eq("userId", user._id)).take(SYNC_BINDING_LIMIT + 1);
+  let live = 0;
+  for (const binding of bindings) {
+    if (binding.expiresAt <= now) await ctx.db.delete(binding._id);
+    else live++;
+  }
+  if (live >= SYNC_BINDING_LIMIT) throw new Error("SYNC_BINDING_LIMIT");
+  const capability = `${crypto.randomUUID()}.${crypto.randomUUID()}`, validUntil = now + SYNC_BINDING_LIFETIME;
+  await ctx.db.insert("librarySyncBindings", { userId: user._id, ...(protocol ? { protocol } : {}), digest: await textDigest(capability), expiresAt: validUntil, createdAt: now });
+  return { ownerKey: user._id, subject: user.clerkId, capability, validUntil };
+}
+export const openBinding = mutation({ args: {}, handler: async (ctx): Promise<SyncBinding> => createBinding(ctx) });
+export const openManifestBinding = mutation({ args: {}, handler: async (ctx): Promise<SyncBinding> => createBinding(ctx, "manifest_v2") });
 
-async function folder(ctx: MutationCtx, userId: Id<"users">, reference: SyncFolderReference) {
-  if (reference.kind === "none") return null;
-  const id = reference.kind === "server" ? ctx.db.normalizeId("savedFolders", reference.id)
-    : (await ctx.db.query("librarySyncFolderKeys").withIndex("by_user_key", q => q.eq("userId", userId).eq("key", reference.key)).unique())?.folderId;
-  const row = id ? await ctx.db.get(id) : null;
-  return row?.userId === userId ? row : null;
-}
-async function folderAlias(ctx: MutationCtx, userId: Id<"users">, key: string, folderId: Id<"savedFolders">) {
-  const existing = await ctx.db.query("librarySyncFolderKeys").withIndex("by_user_key", q => q.eq("userId", userId).eq("key", key)).unique();
-  if (!existing) await ctx.db.insert("librarySyncFolderKeys", { userId, key, folderId });
-  else if (existing.folderId !== folderId) throw new Error("SYNC_FOLDER_KEY_REUSED");
-}
 function superseded(reason: Extract<SyncOutcome, { kind: "superseded" }>["reason"]): SyncOutcome { return { kind: "superseded", reason }; }
 function unresolved(reason: "missing_target" | "missing_folder" | "missing_saved_item" | "folder_name_taken" | "position_unavailable" | "folder_too_large"): SyncOutcome { return { kind: "unresolved", reason }; }
 type Applied = { outcome: SyncOutcome };
@@ -60,6 +47,7 @@ type Applied = { outcome: SyncOutcome };
 async function applyOperation(ctx: MutationCtx, userId: Id<"users">, operation: SyncOperation): Promise<Applied> {
   const command = operation.command;
   if (command.kind === "folder_create") {
+    if (command.key.startsWith("restore:")) throw new Error("SYNC_RESERVED_FOLDER_KEY");
     const previous = await ctx.db.query("librarySyncFolderKeys").withIndex("by_user_key", q => q.eq("userId", userId).eq("key", command.key)).unique();
     if (previous) {
       const row = await ctx.db.get(previous.folderId);
@@ -96,6 +84,8 @@ async function applyOperation(ctx: MutationCtx, userId: Id<"users">, operation: 
     return { outcome: { kind: "folder_deleted", hadithIds: ids, deletedAt: operation.at } };
   }
   if (command.kind === "folder_restore") {
+    const manifest = await ctx.db.query("savedFolderManifests").withIndex("by_user_operation", q => q.eq("userId", userId).eq("operationId", command.deletionId)).unique();
+    if (manifest) throw new Error("SYNC_CLIENT_UPGRADE_REQUIRED");
     const deletionMarks = await ctx.db.query("librarySyncMarks").withIndex("by_user_operation", q => q.eq("userId", userId).eq("operationId", command.deletionId)).take(501);
     const deletion = deletionMarks.find(value => value.key.startsWith("folder:") && value.commandKind === "folder_delete");
     if (!deletion || deletion.detail.kind !== "folder_deletion") return { outcome: unresolved("missing_folder") };
@@ -240,50 +230,88 @@ async function applyOperation(ctx: MutationCtx, userId: Id<"users">, operation: 
   return { outcome: { kind: "preserved" } };
 }
 
+async function commitFrame(ctx: MutationCtx, userId: Id<"users">, frame: SyncFrame, digest: string, receipts: SyncReceipt[], changesSaved: boolean): Promise<SyncExchange> {
+  const revision = { saved: changesSaved ? await advanceLibraryVersion(ctx, userId, "saved") : await libraryVersion(ctx, userId, "saved"), position: await libraryVersion(ctx, userId, "position") };
+  const committed = { clientKey: frame.clientKey, sequence: frame.sequence, digest, revision, reply: { ownerKey: userId, batchId: frame.batch.id, receipts } };
+  const stream = await ctx.db.query("librarySyncStreams").withIndex("by_user_client", q => q.eq("userId", userId).eq("clientKey", frame.clientKey)).unique();
+  if (stream) await ctx.db.patch(stream._id, { slot: { kind: "committed", committed } });
+  else await ctx.db.insert("librarySyncStreams", { userId, clientKey: frame.clientKey, closedThrough: 0, slot: { kind: "committed", committed } });
+  return { kind: "accepted", committed };
+}
+async function manifestFrame(ctx: MutationCtx, userId: Id<"users">, frame: SyncFrame, digest: string): Promise<SyncExchange> {
+  const operation = frame.batch.operations[0], command = operation.command;
+  let outcome: SyncOutcome;
+  let changesSaved = false;
+  if (command.kind === "folder_delete") {
+    const current = await folder(ctx, userId, command.folder);
+    if (!current) outcome = unresolved("missing_folder");
+    else {
+      const prepared = await prepareFolderManifest(ctx, userId, { id: operation.id, at: operation.at, folderId: current._id });
+      if (prepared.kind === "manifest") return holdFolderFrame(ctx, userId, frame, prepared);
+      switch (prepared.reason) {
+        case "folder_busy": case "owner_busy": throw new Error("SYNC_FOLDER_BUSY");
+        case "missing_owner": throw new Error("SYNC_ACCOUNT_MISSING");
+        case "newer_cloud": outcome = superseded("newer_cloud"); break;
+        case "changed": outcome = superseded("changed_since_delete"); break;
+        case "missing_folder": outcome = unresolved("missing_folder"); break;
+        case "expired": outcome = { kind: "unresolved", reason: "preparation_expired" }; break;
+        default: { const exhaustive: never = prepared.reason; return exhaustive; }
+      }
+    }
+  } else if (command.kind === "folder_restore") {
+    const header = await ctx.db.query("savedFolderManifests").withIndex("by_user_operation", q => q.eq("userId", userId).eq("operationId", command.deletionId)).unique();
+    if (header) {
+      const started = await beginFolderRestoration(ctx, userId, { id: operation.id, at: operation.at, deletionId: command.deletionId });
+      if (started.kind === "restoring") return holdFolderFrame(ctx, userId, frame, started);
+      outcome = started.outcome;
+    } else {
+      const marks = await ctx.db.query("librarySyncMarks").withIndex("by_user_operation", q => q.eq("userId", userId).eq("operationId", command.deletionId)).take(501);
+      const deletion = marks.find(mark => mark.key.startsWith("folder:") && mark.commandKind === "folder_delete" && mark.detail.kind === "folder_deletion");
+      if (!deletion || deletion.detail.kind !== "folder_deletion" || deletion.detail.hadithIds.length > 500) outcome = { kind: "unresolved", reason: "folder_restore_unavailable" };
+      else { outcome = (await applyOperation(ctx, userId, operation)).outcome; changesSaved = true; }
+    }
+  } else throw new Error("SYNC_FOLDER_FRAME_NOT_ISOLATED");
+  return commitFrame(ctx, userId, frame, digest, [{ id: operation.id, revision: operation.revision, outcome }], changesSaved);
+}
 export const applyBatch = mutation({
   args: { capability: v.string(), frame: syncFrame },
   handler: async (ctx, { capability, frame }): Promise<SyncExchange> => {
-    const user = await boundOwner(ctx, capability);
-    validateSyncStream(frame.clientKey, frame.sequence);
-    validateSyncBatch(frame.batch, Date.now());
+    const { user, protocol } = await boundOwner(ctx, capability);
+    validateSyncStream(frame.clientKey, frame.sequence); validateSyncBatch(frame.batch, Date.now());
     const stream = await ctx.db.query("librarySyncStreams").withIndex("by_user_client", q => q.eq("userId", user._id).eq("clientKey", frame.clientKey)).unique();
-    const digest = await syncBatchDigest(frame.batch);
-    const existing = existingFrameExchange(user._id, frame, digest, stream);
-    if (existing) return existing;
-    const receipts: SyncReceipt[] = [];
-    for (const operation of frame.batch.operations) {
-      const result = await applyOperation(ctx, user._id, operation);
-      receipts.push({ id: operation.id, revision: operation.revision, outcome: result.outcome });
+    const digest = await syncBatchDigest(frame.batch), existing = existingFrameExchange(user._id, frame, digest, stream);
+    if (existing) return protocolExchange(protocol, existing);
+    const hasFolder = frame.batch.operations.some(op => op.command.kind === "folder_delete" || op.command.kind === "folder_restore");
+    if (protocol === "manifest_v2" && hasFolder) {
+      if (frame.batch.operations.length !== 1) return commitFrame(ctx, user._id, frame, digest, frame.batch.operations.map(op => ({ id: op.id, revision: op.revision, outcome: { kind: "batch_requires_split" } })), false);
+      return manifestFrame(ctx, user._id, frame, digest);
     }
-    const saved = frame.batch.operations.some(value => value.command.kind !== "position_put" && value.command.kind !== "legacy_position_put");
-    const revision = { saved: saved ? await advanceLibraryVersion(ctx, user._id, "saved") : await libraryVersion(ctx, user._id, "saved"), position: await libraryVersion(ctx, user._id, "position") };
-    const committed = { clientKey: frame.clientKey, sequence: frame.sequence, digest, revision,
-      reply: { ownerKey: user._id, batchId: frame.batch.id, receipts } };
-    if (stream) await ctx.db.patch(stream._id, { slot: { kind: "committed", committed } });
-    else await ctx.db.insert("librarySyncStreams", { userId: user._id, clientKey: frame.clientKey, closedThrough: 0, slot: { kind: "committed", committed } });
-    return { kind: "accepted", committed };
+    const receipts: SyncReceipt[] = [];
+    for (const operation of frame.batch.operations) receipts.push({ id: operation.id, revision: operation.revision, outcome: (await applyOperation(ctx, user._id, operation)).outcome });
+    return commitFrame(ctx, user._id, frame, digest, receipts, frame.batch.operations.some(op => op.command.kind !== "position_put" && op.command.kind !== "legacy_position_put"));
   },
 });
 
 export const pollPending = query({
   args: { capability: v.string(), pending: syncPending },
   handler: async (ctx, { capability, pending }): Promise<SyncExchange> => {
-    const user = await boundOwner(ctx, capability);
+    const { user, protocol } = await boundOwner(ctx, capability);
     validateSyncStream(pending.clientKey, pending.sequence);
     if (!/^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$/.test(pending.batchId) || !pending.digest || pending.digest.length > 128) throw new Error("SYNC_INVALID_PENDING");
     const stream = await ctx.db.query("librarySyncStreams").withIndex("by_user_client", q => q.eq("userId", user._id).eq("clientKey", pending.clientKey)).unique();
     const slot = stream?.slot;
     if (slot?.kind === "pending" && slot.pending.sequence === pending.sequence && slot.pending.batchId === pending.batchId && slot.pending.digest === pending.digest
-      && slot.pending.intentDigest === pending.intentDigest && slot.pending.manifestId === pending.manifestId && slot.pending.generation === pending.generation) return { kind: "pending", ownerKey: user._id, pending: slot.pending };
-    if (slot?.kind === "committed" && slot.committed.sequence === pending.sequence && slot.committed.reply.batchId === pending.batchId && slot.committed.digest === pending.digest) return { kind: "accepted", committed: slot.committed };
-    return { kind: "reconcile", ownerKey: user._id, clientKey: pending.clientKey, requestedSequence: pending.sequence, requestedBatchId: pending.batchId, cursor: librarySyncCursor(stream) };
+      && slot.pending.intentDigest === pending.intentDigest && slot.pending.manifestId === pending.manifestId && slot.pending.generation === pending.generation) return protocolExchange(protocol, { kind: "pending", ownerKey: user._id, pending: slot.pending });
+    if (slot?.kind === "committed" && slot.committed.sequence === pending.sequence && slot.committed.reply.batchId === pending.batchId && slot.committed.digest === pending.digest) return protocolExchange(protocol, { kind: "accepted", committed: slot.committed });
+    return protocolExchange(protocol, { kind: "reconcile", ownerKey: user._id, clientKey: pending.clientKey, requestedSequence: pending.sequence, requestedBatchId: pending.batchId, cursor: librarySyncCursor(stream) });
   },
 });
 
 export const outcomePage = query({
   args: { capability: v.string(), request: syncOutcomePageRequest }, returns: syncOutcomePage,
   handler: async (ctx, { capability, request }): Promise<SyncOutcomePage> => {
-    const user = await boundOwner(ctx, capability);
+    const { user, protocol } = await boundOwner(ctx, capability);
+    if (protocol !== "manifest_v2") throw new Error("SYNC_CLIENT_UPGRADE_REQUIRED");
     validateSyncStream(request.proof.clientKey, request.proof.sequence);
     if (!request.proof.digest || request.proof.digest.length > 128 || !request.proof.batchId || request.proof.batchId.length > 128 || !request.receiptId || request.receiptId.length > 128 || !request.generation || request.generation.length > 128) throw new Error("SYNC_INVALID_OUTCOME_PAGE");
     return readLibraryOutcomePage(ctx, user._id, request);
@@ -306,11 +334,12 @@ async function consumeRetirements(ctx: MutationCtx, userId: Id<"users">, clientK
 export const retireInvalidFrame = mutation({
   args: { capability: v.string(), clientKey: v.string(), sequence: v.number() },
   handler: async (ctx, { capability, clientKey, sequence }): Promise<SyncAckReply> => {
-    const user = await boundOwner(ctx, capability);
+    const { user, protocol } = await boundOwner(ctx, capability);
     validateSyncStream(clientKey, sequence);
     const stream = await ctx.db.query("librarySyncStreams").withIndex("by_user_client", q => q.eq("userId", user._id).eq("clientKey", clientKey)).unique();
     const closedThrough = stream?.closedThrough ?? 0;
     const cursor = librarySyncCursor(stream), slot = stream?.slot;
+    assertSyncProtocolCursor(protocol, cursor);
     const outstandingSequence = slot?.kind === "pending" ? slot.pending.sequence : slot?.committed.sequence;
     if (sequence <= closedThrough || outstandingSequence === sequence) return { ownerKey: user._id, clientKey, cursor };
     if (!slot && sequence === closedThrough + 1) {
@@ -333,10 +362,11 @@ export const retireInvalidFrame = mutation({
 export const acknowledge = mutation({
   args: { capability: v.string(), acknowledgement: syncAcknowledgement },
   handler: async (ctx, { capability, acknowledgement }): Promise<SyncAckReply> => {
-    const user = await boundOwner(ctx, capability);
+    const { user, protocol } = await boundOwner(ctx, capability);
     validateSyncStream(acknowledgement.clientKey, acknowledgement.sequence);
     const stream = await ctx.db.query("librarySyncStreams").withIndex("by_user_client", q => q.eq("userId", user._id).eq("clientKey", acknowledgement.clientKey)).unique();
     if (!stream) return { ownerKey: user._id, clientKey: acknowledgement.clientKey, cursor: { closedThrough: 0 } };
+    assertSyncProtocolCursor(protocol, librarySyncCursor(stream));
     const active = stream.slot?.kind === "committed" ? stream.slot.committed : undefined;
     if (active && active.sequence === acknowledgement.sequence && active.reply.batchId === acknowledgement.batchId && active.digest === acknowledgement.digest) {
       const closedThrough = await consumeRetirements(ctx, user._id, acknowledgement.clientKey, active.sequence);
@@ -380,7 +410,20 @@ export const positionsSnapshot = query({
 
 export const advanceFolderManifest = internalMutation({
   args: { id: v.id("savedFolderManifests"), generation: v.string(), step: v.number() },
-  handler: async (ctx, request): Promise<FolderManifestStep> => advanceManifest(ctx, request),
+  handler: async (ctx, request): Promise<FolderManifestStep> => {
+    const result = await advanceManifest(ctx, request);
+    if (result.kind === "prepared" && (await ctx.db.get(request.id))?.heldBy) await ctx.scheduler.runAfter(0, internal.librarySync.commitFolderDeletion, { id: request.id, generation: request.generation });
+    return result;
+  },
+});
+
+export const commitFolderDeletion = internalMutation({
+  args: { id: v.id("savedFolderManifests"), generation: v.string() },
+  handler: async (ctx, request): Promise<SyncOutcome | null> => {
+    const header = await ctx.db.get(request.id);
+    if (!header?.heldBy || header.generation !== request.generation) return null;
+    return commitPreparedFolderDeletion(ctx, header.userId, request);
+  },
 });
 
 export const purgeFolderManifestMembers = internalMutation({
@@ -393,14 +436,16 @@ export const recoverFolderManifests = internalMutation({
   handler: async (ctx): Promise<{ scheduled: number }> => {
     const now = Date.now();
     let scheduled = 0;
-    for (const phase of ["scanning", "restoring", "expiring", "normalization"] as const) {
+    for (const phase of ["scanning", "prepared", "restoring", "expiring", "normalization"] as const) {
       if (scheduled === 25) break;
       const rows = phase === "normalization"
         ? await ctx.db.query("savedFolderManifests").withIndex("by_normalization_updated", q => q.eq("state.normalization.kind", "pending").lte("updatedAt", now - 5 * 60_000)).take(25 - scheduled)
         : await ctx.db.query("savedFolderManifests").withIndex("by_state_updated", q => q.eq("state.kind", phase).lte("updatedAt", now - 5 * 60_000)).take(25 - scheduled);
       for (const header of rows) {
         const state = header.state, base = { id: header._id, generation: header.generation };
-        if (state.kind === "scanning") await ctx.scheduler.runAfter(0, internal.librarySync.advanceFolderManifest, { ...base, step: state.step });
+        if (state.kind === "prepared" && !header.heldBy) { await ctx.db.patch(header._id, { updatedAt: now }); continue; }
+        if (state.kind === "prepared") await ctx.scheduler.runAfter(0, internal.librarySync.commitFolderDeletion, base);
+        else if (state.kind === "scanning") await ctx.scheduler.runAfter(0, internal.librarySync.advanceFolderManifest, { ...base, step: state.step });
         else if (state.kind === "restoring") await ctx.scheduler.runAfter(0, internal.librarySync.advanceFolderRestoration, { ...base, operationId: state.operationId, step: state.step });
         else if (state.kind === "expiring") await ctx.scheduler.runAfter(0, internal.librarySync.materializeFolderEffect, { ...base, operationId: header.operationId, step: state.step });
         else if (state.kind === "restored" && state.normalization.kind === "pending") await ctx.scheduler.runAfter(0, internal.librarySync.materializeFolderEffect, { ...base, operationId: state.operationId, step: state.normalization.step });

@@ -30,7 +30,7 @@ async function fixture() {
   });
   const held = await t.run(ctx => holdFolderFrame(ctx, userId, frame, work));
   if (held.kind !== "pending") throw new Error("Missing held proof");
-  const capability = (await a.mutation(api.librarySync.openBinding, {})).capability;
+  const capability = (await a.mutation(api.librarySync.openManifestBinding, {})).capability;
   return { t, a, b, userId, otherId, folderId, hadithId, frame, work, held, capability };
 }
 
@@ -38,8 +38,6 @@ test("a held frame cannot be applied, ACKed or retired as terminal while its wor
   const f = await fixture(), { pending } = f.held;
   expect(await f.a.mutation(api.librarySync.applyBatch, { capability: f.capability, frame: f.frame })).toEqual(f.held);
   expect(await f.t.run(ctx => holdFolderFrame(ctx, f.userId, f.frame, f.work))).toEqual(f.held);
-  await f.t.finishAllScheduledFunctions(vi.runAllTimers);
-  expect((await f.t.run(ctx => ctx.db.get(f.work.id)))?.state).toEqual({ kind: "prepared", count: 1 });
   expect(await f.a.query(api.librarySync.pollPending, { capability: f.capability, pending })).toEqual(f.held);
   const acknowledgement = { clientKey: pending.clientKey, sequence: pending.sequence, batchId: pending.batchId, digest: pending.digest };
   const expected = { ownerKey: f.userId, clientKey: pending.clientKey, cursor: { closedThrough: 0, outstanding: { kind: "pending", pending } } };
@@ -49,17 +47,19 @@ test("a held frame cannot be applied, ACKed or retired as terminal while its wor
   if (!exported.sync) throw new Error("Missing owner export");
   expect(exported.sync.streams[0]).toMatchObject({ slot: { kind: "pending", batch: f.frame.batch } });
   expect((await f.a.query(api.library.listSavedSnapshot, {})).items[0]).toMatchObject({ folderId: f.folderId, noteContent: "Original stays in Saved" });
+  await f.t.finishAllScheduledFunctions(vi.runAllTimers);
+  expect((await f.t.run(ctx => ctx.db.get(f.work.id)))?.state).toEqual({ kind: "deleted", count: 1 });
+  expect(await f.a.query(api.librarySync.pollPending, { capability: f.capability, pending })).toMatchObject({ kind: "accepted", committed: { reply: { receipts: [{ outcome: { kind: "folder_deleted_manifest", count: 1 } }] } } });
 });
 
 test("expiry retains an exact failure after work cleanup; only its exact ACK crosses a future retirement fence", async () => {
   const f = await fixture(), { pending } = f.held;
-  await f.t.finishAllScheduledFunctions(vi.runAllTimers);
   await f.a.mutation(api.librarySync.retireInvalidFrame, { capability: f.capability, clientKey: pending.clientKey, sequence: 2 });
   vi.setSystemTime(Date.now() + FOLDER_MANIFEST_LEASE_MS);
   await f.t.mutation(internal.librarySync.pruneFolderManifests, {});
   await f.t.finishAllScheduledFunctions(vi.runAllTimers);
   expect(await f.t.run(ctx => ctx.db.get(f.work.id))).toBeNull();
-  const capability = (await f.a.mutation(api.librarySync.openBinding, {})).capability;
+  const capability = (await f.a.mutation(api.librarySync.openManifestBinding, {})).capability;
   const terminal = await f.a.query(api.librarySync.pollPending, { capability, pending });
   if (terminal.kind !== "accepted") throw new Error("Missing terminal failure proof");
   expect(terminal.committed.reply.receipts).toEqual([{ id: "held-delete", revision: "r1", outcome: { kind: "unresolved", reason: "preparation_expired" } }]);
@@ -85,7 +85,7 @@ test("a changed scan commits its no-effect conflict before purging temporary fac
 test("foreign owners, another stream and changed payloads cannot steal held authority", async () => {
   const f = await fixture();
   await expect(f.b.query(api.librarySync.pollPending, { capability: f.capability, pending: f.held.pending })).rejects.toThrow("SYNC_OWNER_MISMATCH");
-  const otherCapability = (await f.b.mutation(api.librarySync.openBinding, {})).capability;
+  const otherCapability = (await f.b.mutation(api.librarySync.openManifestBinding, {})).capability;
   expect(await f.b.query(api.librarySync.pollPending, { capability: otherCapability, pending: f.held.pending })).toMatchObject({ kind: "reconcile", ownerKey: f.otherId, cursor: { closedThrough: 0 } });
   await expect(f.t.run(ctx => holdFolderFrame(ctx, f.otherId, f.frame, f.work))).rejects.toThrow("SYNC_WORK_MISMATCH");
   await expect(f.t.run(ctx => holdFolderFrame(ctx, f.userId, { ...f.frame, clientKey: "another-device" }, f.work))).rejects.toThrow("SYNC_WORK_ALREADY_BOUND");

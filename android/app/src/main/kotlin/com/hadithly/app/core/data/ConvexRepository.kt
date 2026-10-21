@@ -62,7 +62,7 @@ class ConvexRepository(context: Context) : LibraryReadTransport, LibrarySyncTran
     override fun positionsSnapshot(): Flow<SyncPositionsSnapshot> = subscribe<SyncPositionsSnapshot>("librarySync:positionsSnapshot").flowOn(Dispatchers.IO)
     override suspend fun open(): SyncBinding = withContext(Dispatchers.IO) {
         ensureCurrentUser()
-        convex.mutation<SyncBinding>("librarySync:openBinding", emptyMap())
+        convex.mutation<SyncBinding>("librarySync:openManifestBinding", emptyMap())
     }
     override suspend fun send(capability: String, frame: SyncFrame): SyncExchange = withContext(Dispatchers.IO) {
         convex.mutation<SyncExchange>("librarySync:applyBatch", mapOf("capability" to capability, "frame" to frame.toConvexArgument()))

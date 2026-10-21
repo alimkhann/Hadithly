@@ -1,3 +1,4 @@
+import { bindLibraryFolderKey } from "./librarySyncFolders";
 import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
@@ -11,7 +12,7 @@ import type { SyncOutcome } from "./librarySyncPolicy";
 type Header = Doc<"savedFolderManifests">;
 type Restored = Extract<Header["state"], { kind: "restored" }>;
 type Work = { id: Header["_id"]; generation: string };
-export type FolderEffectStep = { kind: "ignored" | "staged" | "restored" | "materialized" | "expired"; read: number };
+export type FolderEffectStep = { kind: "ignored" | "staged" | "restored" | "materialized" | "expired" | "failed"; read: number };
 export type RestoreStart = { kind: "restoring"; id: Header["_id"]; generation: string; operationId: string }
   | { kind: "outcome"; outcome: SyncOutcome };
 const unavailable = (): SyncOutcome => ({ kind: "unresolved", reason: "folder_restore_unavailable" });
@@ -69,6 +70,8 @@ export async function beginFolderRestoration(ctx: MutationCtx, userId: Id<"users
   if (operation.at < header.requestedAt) return { kind: "outcome", outcome: { kind: "superseded", reason: "newer_cloud" } };
   const name = normalizedFolderName(header.captured.name);
   const existing = await ctx.db.query("savedFolders").withIndex("by_user_normalized_name", q => q.eq("userId", userId).eq("normalizedName", name.normalizedName)).unique();
+  const alias = await ctx.db.query("librarySyncFolderKeys").withIndex("by_user_key", q => q.eq("userId", userId).eq("key", `restore:${header.operationId}`)).unique();
+  if (alias && alias.folderId !== existing?._id) return { kind: "outcome", outcome: { kind: "superseded", reason: "changed_since_delete" } };
   if (existing) { await assertSavedFolderStable(ctx, existing); await ctx.db.patch(existing._id, { transition: header._id }); }
   await ctx.db.patch(header._id, { state: { kind: "restoring", count: header.state.count, operationId: operation.id, at: operation.at, cursor: null, step: 0,
     destination: existing ? { kind: "existing", id: existing._id } : { kind: "new" }, restored: 0, superseded: 0, missing: 0 },
@@ -108,8 +111,14 @@ export async function advanceFolderRestoration(ctx: MutationCtx, work: Work & { 
     : await ctx.db.query("savedFolders").withIndex("by_user_normalized_name", q => q.eq("userId", header.userId).eq("normalizedName", name.normalizedName)).unique();
   if (state.destination.kind === "existing" && (destination?.userId !== header.userId || destination.transition !== header._id || destination.normalizedName !== name.normalizedName)) throw new Error("SAVED_FOLDER_DESTINATION_INVARIANT");
   if (destination && destination.transition !== header._id) await assertSavedFolderStable(ctx, destination);
+  const alias = await ctx.db.query("librarySyncFolderKeys").withIndex("by_user_key", q => q.eq("userId", header.userId).eq("key", `restore:${header.operationId}`)).unique();
+  if (alias && alias.folderId !== destination?._id) {
+    await startFolderExpiry(ctx, header, { kind: "superseded", reason: "changed_since_delete" });
+    return { kind: "failed", read: page.page.length };
+  }
   const destinationId = destination?._id ?? await ctx.db.insert("savedFolders", { userId: header.userId, ...name, createdAt: Date.now(), updatedAt: state.at, transition: header._id });
   if (destination) await ctx.db.patch(destinationId, { transition: header._id });
+  await bindLibraryFolderKey(ctx, header.userId, `restore:${header.operationId}`, destinationId);
   const restored: Restored = { kind: "restored", count: state.count, operationId: state.operationId, at: state.at, destinationId, ...counts, normalization: { kind: "pending", cursor: null, step: 0 } };
   await ctx.db.patch(header._id, { state: restored, updatedAt: Date.now(), expiresAt: Date.now() + FOLDER_HANDLE_RETENTION_MS });
   await advanceLibraryVersion(ctx, header.userId, "saved");
@@ -122,6 +131,18 @@ async function releaseDestination(ctx: MutationCtx, header: Header, destinationI
   if (!destinationId) return;
   const folder = await ctx.db.get(destinationId);
   if (folder?.userId === header.userId && folder.transition === header._id) await ctx.db.patch(folder._id, { transition: undefined });
+}
+
+async function startFolderExpiry(ctx: MutationCtx, header: Header, outcome: SyncOutcome = unavailable()): Promise<void> {
+  const state = header.state;
+  if (state.kind !== "deleted" && state.kind !== "restoring") throw new Error("SAVED_FOLDER_EXPIRY_INVARIANT");
+  const releaseFolderId = state.kind === "restoring" && state.destination.kind === "existing" ? state.destination.id : null;
+  if (state.kind === "restoring") {
+    const published = await publishHeldFolderOutcome(ctx, header, outcome, "restore");
+    if (header.restoreHeldBy && !published && await ctx.db.get(header.userId)) throw new Error("SYNC_HELD_FRAME_UNAVAILABLE");
+  }
+  await ctx.db.patch(header._id, { state: { kind: "expiring", count: state.count, cursor: null, step: 0, releaseFolderId }, expiresAt: Date.now() + FOLDER_WORK_LEASE_MS, updatedAt: Date.now() });
+  await ctx.scheduler.runAfter(0, internal.librarySync.materializeFolderEffect, { id: header._id, generation: header.generation, operationId: header.operationId, step: 0 });
 }
 
 /** Expiry cannot purge an in-progress lease or change already-visible staged membership. */
@@ -138,10 +159,7 @@ export async function expireFolderTransition(ctx: MutationCtx, header: Header): 
     return;
   }
   if (header.state.kind === "deleted" || header.state.kind === "restoring") {
-    const releaseFolderId = header.state.kind === "restoring" && header.state.destination.kind === "existing" ? header.state.destination.id : null;
-    if (header.state.kind === "restoring") await publishHeldFolderOutcome(ctx, header, unavailable(), "restore");
-    await ctx.db.patch(header._id, { state: { kind: "expiring", count: header.state.count, cursor: null, step: 0, releaseFolderId }, expiresAt: Date.now() + FOLDER_WORK_LEASE_MS, updatedAt: Date.now() });
-    await ctx.scheduler.runAfter(0, internal.librarySync.materializeFolderEffect, { id: header._id, generation: header.generation, operationId: header.operationId, step: 0 });
+    await startFolderExpiry(ctx, header);
   } else if (header.state.kind === "expiring") {
     await ctx.db.patch(header._id, { expiresAt: Date.now() + FOLDER_WORK_LEASE_MS });
     await ctx.scheduler.runAfter(0, internal.librarySync.materializeFolderEffect, { id: header._id, generation: header.generation, operationId: header.operationId, step: header.state.step });

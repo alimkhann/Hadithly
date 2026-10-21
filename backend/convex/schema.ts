@@ -511,7 +511,7 @@ export default defineSchema({
   evidenceAbuseEvents: defineTable({ submissionId: v.id("communitySubmissions"), ownerUserId: v.id("users"), status: v.union(v.literal("none"), v.literal("blocked")), createdAt: v.number() }).index("by_owner", ["ownerUserId"]).index("by_submission", ["submissionId"]),
   evidenceDeletionStates: defineTable({ submissionId: v.id("communitySubmissions"), status: v.union(v.literal("active"), v.literal("deleted")), createdAt: v.number() }).index("by_submission", ["submissionId"]),
 
-  librarySyncBindings: defineTable({ userId: v.id("users"), digest: v.string(), expiresAt: v.number(), createdAt: v.number() })
+  librarySyncBindings: defineTable({ userId: v.id("users"), protocol: v.optional(v.literal("manifest_v2")), digest: v.string(), expiresAt: v.number(), createdAt: v.number() })
     .index("by_digest", ["digest"]).index("by_user", ["userId"]),
   librarySyncStreams: defineTable({ userId: v.id("users"), clientKey: v.string(), closedThrough: v.number(), slot: v.optional(syncStreamSlot) })
     .index("by_user_client", ["userId", "clientKey"]).index("by_user", ["userId"]),

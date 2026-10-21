@@ -506,6 +506,126 @@ class GuestMergeRaceTest {
         try { state.freeze(); fail("Froze past collection") } catch (_: LibrarySyncFailure.InvalidReceipt) { }
         assertEquals(state, Json.decodeFromString<LibraryPartitionState>(Json.encodeToString(state)))
     }
+    private fun mixedFolderFixture(): Triple<LibraryPartitionState, List<LibraryLocalChange>, LibraryLocalChange> {
+        val before = LibraryLocalChange(SyncCommand.NotePut("before", "Unsent original A", 1_000.0, 1_000.0), 1_000.0, LibraryLocalSource.Note(GuestNoteDraft("before", "Unsent original A", 1_000.0, 1_000.0)))
+        val folder = LibraryLocalChange(SyncCommand.FolderDelete(SyncFolderReference.Server("folder")), 1_000.0, LibraryLocalSource.Account(null))
+        val after = LibraryLocalChange(SyncCommand.NotePut("after", "Unsent original B", 1_000.0, 1_000.0), 1_000.0, LibraryLocalSource.Account(null))
+        val later = LibraryLocalChange(SyncCommand.BookmarkAdd("later", 2_000.0), 2_000.0, LibraryLocalSource.Account(null)); val original = listOf(before, folder, after)
+        return Triple(LibraryPartitionState(frozen = LibraryFrozenBatch(SyncBatch("old-mixed", original.map { it.operation }), original), pending = listOf(later)), original, later)
+    }
+    @Test fun mixedSplitPersistsExactOriginalsAcrossFailedAckAndReopenBeforeIsolatedSends() = runBlocking {
+        isolated { store, reopen, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); val session = LibrarySyncSession("session-a", owner.subject)
+            val (state, original, later) = mixedFolderFixture()
+            File(directory, "guest_store.json").writeText(Json.encodeToString(GuestStoreFile(syncPartitions = listOf(LibrarySyncPartition(owner.storageKey, owner.subject, state)))))
+            var failAck = true; val frames = mutableListOf<SyncFrame>(); val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+            val transport = object : LibrarySyncTransport {
+                override val namespace = owner.namespace
+                override suspend fun open() = SyncBinding(owner.key, owner.subject, "fixture", System.currentTimeMillis() + 60_000.0)
+                override suspend fun acknowledge(capability: String, acknowledgement: SyncAcknowledgement): SyncAckReply {
+                    if (acknowledgement.sequence == 1.0 && failAck) throw LibrarySyncFailure.StoreUnavailable
+                    return SyncAckReply(owner.key, acknowledgement.clientKey, SyncCursor(acknowledgement.sequence))
+                }
+                override suspend fun send(capability: String, frame: SyncFrame): SyncExchange {
+                    frames.add(frame)
+                    return SyncExchange.Accepted(SyncCommitted(frame.clientKey, frame.sequence, "fixture-proof", SyncRevision(1.0, 0.0), SyncReply(owner.key, frame.batch.id, frame.batch.operations.map {
+                        SyncReceipt(it.id, it.revision, if (frame.batch.id == "old-mixed") SyncOutcome.BatchRequiresSplit else if (it.command is SyncCommand.FolderDelete) SyncOutcome.Unresolved(SyncOutcomeUnresolvedReason.MISSING_FOLDER) else SyncOutcome.Preserved)
+                    })))
+                }
+            }
+            val sync = LibrarySync(store, transport, scope, { session })
+            try {
+                sync.activate(session); sync.deactivate()
+                val saved = store.syncPartition(owner)!!
+                assertNull(saved.frozen); assertEquals(original + later, saved.pending); assertEquals(2.0, saved.nextSequence, 0.0)
+                assertEquals(1.0, saved.acknowledgement!!.sequence, 0.0); assertTrue(saved.recovery.isEmpty())
+                try { store.freezeSyncFrame(owner); fail("Split requeue escaped ACK fence") } catch (_: LibrarySyncFailure.InvalidReceipt) { }
+                failAck = false; val reopened = reopen(); val resumed = LibrarySync(reopened, transport, scope, { session })
+                try {
+                    resumed.activate(session); withTimeout(5_000) { resumed.status.first { it is LibrarySync.Status.Ready } }
+                    assertEquals((original + later).map { it.operation }, frames.drop(1).flatMap { it.batch.operations })
+                    assertEquals(1, frames.count { it.batch.id == "old-mixed" })
+                    assertEquals(listOf(1), frames.drop(1).filter { it.batch.operations.any { it.command is SyncCommand.FolderDelete } }.map { it.batch.operations.size })
+                    assertNull(reopened.syncPartition(owner)!!.acknowledgement); assertEquals(1, reopened.syncPartition(owner)!!.recovery.size)
+                } finally { resumed.deactivate() }
+            } finally { sync.deactivate(); scope.cancel() }
+        }
+    }
+    @Test fun mixedSplitExactPollingRequeuesButHistoricalAndPartialRepliesDoNot() {
+        val (base, original, later) = mixedFolderFixture(); val frame = SyncFrame(base.clientKey, 1.0, base.frozen!!.batch)
+        val receipts = frame.batch.operations.map { SyncReceipt(it.id, it.revision, SyncOutcome.BatchRequiresSplit) }
+        val proof = SyncCommitted(frame.clientKey, 1.0, "mixed-proof", SyncRevision(0.0, 0.0), SyncReply("owner-a", frame.batch.id, receipts))
+        val waiting = base.copy(); val pending = SyncPending(frame.clientKey, 1.0, frame.batch.id, proof.digest, frame.batch.intentDigest(), "pending", "generation", 250.0)
+        waiting.settle(SyncExchange.Pending("owner-a", pending), frame, 2_000.0); waiting.settlePending(SyncExchange.Accepted(proof), pending, 2_000.0)
+        assertEquals(original + later, waiting.pending); assertNotNull(waiting.acknowledgement)
+        val unknown = base.copy()
+        unknown.settle(SyncExchange.Reconcile("owner-a", frame.clientKey, 1.0, frame.batch.id, SyncCursor(0.0, SyncOutstanding.Committed(proof))), frame, 2_000.0)
+        assertEquals(listOf(later), unknown.pending); assertEquals(original.map(LibraryRecovery::Historical), unknown.recovery)
+        for (malformed in listOf(receipts.dropLast(1), listOf(receipts[0], receipts[0], receipts[2]), listOf(receipts[0], receipts[1].copy(outcome = SyncOutcome.Preserved), receipts[2]))) {
+            val state = base.copy(); val before = Json.encodeToString(state)
+            try { state.settle(SyncExchange.Accepted(proof.copy(reply = proof.reply.copy(receipts = malformed))), frame, 2_000.0); fail("Malformed split changed original") } catch (_: LibrarySyncFailure.InvalidReceipt) { }
+            assertEquals(before, Json.encodeToString(state))
+        }
+    }
+    @Test fun compactFolderUndoCannotOverrideNewerMovesRemovalOrLaterDeletion() {
+        val state = LibraryPartitionState(savedSnapshot = SyncSavedSnapshot("owner-a", 1.0, listOf(SyncFolderRow("folder", "Original", 1_000.0), SyncFolderRow("other", "Other", 1_000.0)), (0 until 3).map { index ->
+            SyncSavedItem("item-$index", 1_000.0, 1_000.0, bookmarkCreatedAt = 1_000.0, folderId = "folder", hadith = SyncHadithSummary("item-$index", index.toString(), "bukhari", "Bukhari", "1", "نص", null, "Fixture"))
+        }))
+        val deletion = LibraryLocalChange(SyncCommand.FolderDelete(SyncFolderReference.Server("folder")), 2_000.0, LibraryLocalSource.Account(null)); state.pending = listOf(deletion)
+        state.append(LibraryLocalSource.Account(null), SyncCommand.MembershipPut("item-0", SyncFolderReference.None), 3_000.0)
+        state.append(LibraryLocalSource.Account(null), SyncCommand.BookmarkRemove("item-1"), 3_000.0); state.append(LibraryLocalSource.Account(null), SyncCommand.BookmarkAdd("item-1", 4_000.0), 4_000.0)
+        state.append(LibraryLocalSource.Account(null), SyncCommand.FolderRestore(deletion.operation.id, "Original", emptyList()), 5_000.0)
+        val restored = LibraryProjection(state)
+        assertNull(restored.items.first { it.hadithId == "item-0" }.folderId); assertNull(restored.items.first { it.hadithId == "item-1" }.folderId); assertNotNull(restored.items.first { it.hadithId == "item-2" }.folderId)
+        state.append(LibraryLocalSource.Account(null), SyncCommand.FolderDelete(SyncFolderReference.Local("restore:${deletion.operation.id}")), 6_000.0)
+        state.append(LibraryLocalSource.Account(null), SyncCommand.FolderRestore(deletion.operation.id, "Original", emptyList()), 7_000.0)
+        assertTrue(LibraryProjection(state).items.all { it.folderId == null })
+        val advanced = state.copy(pending = listOf(state.pending.first { it.operation.command is SyncCommand.FolderRestore }), savedSnapshot = state.savedSnapshot!!.copy(version = 2.0, folders = emptyList(), items = state.savedSnapshot!!.items.map { it.copy(folderId = null) }))
+        assertTrue(LibraryProjection(advanced).items.all { it.folderId == null })
+    }
+
+    @Test fun accountFolderUndoIsCompactAndRestores501OfflineMembers() = runBlocking {
+        isolated { store, reopen, _ ->
+            val fixture = AndroidLibraryFacadeFixture(store)
+            try {
+                fixture.start()
+                val rows = (0 until 501).map { index ->
+                    val id = "item-$index"
+                    SyncSavedItem(id, 1_000.0, 1_000.0, bookmarkCreatedAt = 1_000.0, folderId = "folder",
+                        hadith = SyncHadithSummary(id, (index + 1).toString(), "bukhari", "Bukhari", "1", "نص", null, "Bukhari ${index + 1}"))
+                }
+                fixture.saved.emit(SyncSavedSnapshot("owner-a", 1.0, listOf(SyncFolderRow("folder", "Original folder", 1_000.0)), rows))
+                waitForLibrary { fixture.model.savedItems.value.size == 501 }
+                withContext(Dispatchers.Main) {
+                    fixture.model.deleteFolder(fixture.model.folders.value.single(), "Folder deleted", fixture.model.actionScope)
+                }
+                waitForLibrary { fixture.model.undo.notice.value != null }
+                withContext(Dispatchers.Main) { fixture.model.undo.undo() }
+                withTimeout(3_000) {
+                    while (true) {
+                        val state = store.syncPartition(LibrarySyncOwner("owner-a", "subject-a"))!!
+                        if ((state.frozen?.changes.orEmpty() + state.pending).any { it.operation.command is SyncCommand.FolderRestore }) break
+                        if (fixture.model.lastWriteFailed.value) fail("Undo was rejected instead of queued")
+                        delay(10)
+                    }
+                }
+                val state = store.syncPartition(LibrarySyncOwner("owner-a", "subject-a"))!!
+                val undo = (state.frozen?.changes.orEmpty() + state.pending).first { it.operation.command is SyncCommand.FolderRestore }
+                assertTrue((undo.operation.command as SyncCommand.FolderRestore).hadithIds.isEmpty())
+                waitForLibrary { fixture.model.savedItems.value.count { it.folderId != null } == 501 }
+                assertEquals("Original folder", fixture.model.folders.value.single().name)
+                assertTrue(Json.encodeToString(undo.operation).toByteArray().size < 1_024)
+                fixture.stop()
+                val reopened = AndroidLibraryFacadeFixture(reopen())
+                try {
+                    reopened.start(); waitForLibrary { reopened.model.savedItems.value.count { it.folderId != null } == 501 }
+                    assertEquals("Original folder", reopened.model.folders.value.single().name)
+                    assertNull(reopened.model.undo.notice.value)
+                } finally { reopened.stop() }
+            } finally { fixture.stop() }
+        }
+    }
+
     private suspend fun acknowledgedRetentionFixture(store: GuestDataStore, directory: File, count: Int, acknowledge: Boolean = true, acknowledgedAt: Double = 2_000.0): Pair<SyncCommitted, SyncAcknowledgement> {
         val owner = LibrarySyncOwner("owner-a", "subject-a"); var state = LibraryPartitionState()
         state.append(LibraryLocalSource.Account(null), SyncCommand.FolderDelete(SyncFolderReference.Server("folder")), 1_000.0)

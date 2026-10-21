@@ -26,24 +26,29 @@ class LibraryProjection(state: LibraryPartitionState) {
             is SyncFolderReference.Local -> state.folderMappings[value.key] ?: "local:${value.key}"
         }
         fun initial(id: String, change: LibraryLocalChange) = byId[id] ?: SavedItemEntry(id, change.operation.at, change.operation.at, hadith = change.source.reference)
+        val removedBy = mutableMapOf<String, String>()
+        fun hasSavedFacet(item: SavedItemEntry) = item.bookmarkCreatedAt != null || item.favoriteCreatedAt != null || item.noteContent != null
         val changes: List<Pair<LibraryLocalChange, SyncOutcome?>> = state.confirmed.map { it.change to it.outcome } + state.projectedFrozenChanges.map { it to null } + state.pending.map { it to null }
         for ((change, outcome) in changes) {
             val at = change.operation.at
             when (val command = change.operation.command) {
                 is SyncCommand.BookmarkAdd -> initial(command.hadithId, change).let { byId[command.hadithId] = it.copy(bookmarkCreatedAt = minOf(it.bookmarkCreatedAt ?: command.createdAt, command.createdAt), updatedAt = maxOf(it.updatedAt, at)) }
-                is SyncCommand.BookmarkRemove -> byId[command.hadithId]?.let { byId[command.hadithId] = it.copy(bookmarkCreatedAt = null, updatedAt = maxOf(it.updatedAt, at)) }
+                is SyncCommand.BookmarkRemove -> byId[command.hadithId]?.let { byId[command.hadithId] = it.copy(bookmarkCreatedAt = null, updatedAt = maxOf(it.updatedAt, at)); if (byId[command.hadithId]?.let(::hasSavedFacet) != true) removedBy.remove(command.hadithId) }
                 is SyncCommand.FavoriteAdd -> initial(command.hadithId, change).let { byId[command.hadithId] = it.copy(favoriteCreatedAt = minOf(it.favoriteCreatedAt ?: command.createdAt, command.createdAt), updatedAt = maxOf(it.updatedAt, at)) }
-                is SyncCommand.FavoriteRemove -> byId[command.hadithId]?.let { byId[command.hadithId] = it.copy(favoriteCreatedAt = null, updatedAt = maxOf(it.updatedAt, at)) }
+                is SyncCommand.FavoriteRemove -> byId[command.hadithId]?.let { byId[command.hadithId] = it.copy(favoriteCreatedAt = null, updatedAt = maxOf(it.updatedAt, at)); if (byId[command.hadithId]?.let(::hasSavedFacet) != true) removedBy.remove(command.hadithId) }
                 is SyncCommand.NotePut -> initial(command.hadithId, change).let { byId[command.hadithId] = it.copy(noteContent = command.content, noteCreatedAt = it.noteCreatedAt ?: command.createdAt, noteUpdatedAt = command.updatedAt, updatedAt = maxOf(it.updatedAt, command.updatedAt)) }
-                is SyncCommand.NoteRemove -> byId[command.hadithId]?.let { byId[command.hadithId] = it.copy(noteContent = null, noteCreatedAt = null, noteUpdatedAt = null, updatedAt = maxOf(it.updatedAt, at)) }
-                is SyncCommand.MembershipPut -> if (command.mode != "claim_if_unset" || outcome != null) byId[command.hadithId]?.let { byId[command.hadithId] = it.copy(folderId = folderId(command.folder), updatedAt = maxOf(it.updatedAt, at)) }
+                is SyncCommand.NoteRemove -> byId[command.hadithId]?.let { byId[command.hadithId] = it.copy(noteContent = null, noteCreatedAt = null, noteUpdatedAt = null, updatedAt = maxOf(it.updatedAt, at)); if (byId[command.hadithId]?.let(::hasSavedFacet) != true) removedBy.remove(command.hadithId) }
+                is SyncCommand.MembershipPut -> if (command.mode != "claim_if_unset" || outcome != null) {
+                    byId[command.hadithId]?.let { byId[command.hadithId] = it.copy(folderId = folderId(command.folder), updatedAt = maxOf(it.updatedAt, at)) }
+                    removedBy.remove(command.hadithId)
+                }
                 is SyncCommand.FolderCreate -> {
                     val id = state.folderMappings[command.key] ?: "local:${command.key}"
                     byFolder.putIfAbsent(id, SavedFolder(id, command.name, at))
                 }
                 is SyncCommand.FolderDelete -> folderId(command.folder)?.let { id ->
                     byFolder.remove(id)
-                    for ((key, item) in byId.toMap()) if (item.folderId == id) byId[key] = item.copy(folderId = null, updatedAt = maxOf(item.updatedAt, at))
+                    for ((key, item) in byId.toMap()) if (item.folderId == id) { removedBy[key] = change.operation.id; byId[key] = item.copy(folderId = null, updatedAt = maxOf(item.updatedAt, at)) }
                 }
                 is SyncCommand.FolderRestore -> {
                     val id: String
@@ -51,7 +56,11 @@ class LibraryProjection(state: LibraryPartitionState) {
                     if (outcome is SyncOutcome.FolderRestored) { id = outcome.folderId; restored = outcome.restored }
                     else { id = byFolder.values.firstOrNull { it.name.lowercase(java.util.Locale.ROOT) == command.name.lowercase(java.util.Locale.ROOT) }?.id ?: state.folderMappings["restore:${command.deletionId}"] ?: "local:restore:${command.deletionId}"; restored = command.hadithIds }
                     byFolder.putIfAbsent(id, SavedFolder(id, command.name, at))
-                    for (key in restored) byId[key]?.let { byId[key] = it.copy(folderId = id, updatedAt = maxOf(it.updatedAt, at)) }
+                    if (outcome == null && command.hadithIds.isEmpty()) {
+                        for ((key, item) in byId.toMap()) if (removedBy[key] == command.deletionId && item.folderId == null && hasSavedFacet(item)) {
+                            byId[key] = item.copy(folderId = id, updatedAt = maxOf(item.updatedAt, at)); removedBy.remove(key)
+                        }
+                    } else for (key in restored) byId[key]?.let { byId[key] = it.copy(folderId = id, updatedAt = maxOf(it.updatedAt, at)); removedBy.remove(key) }
                 }
                 is SyncCommand.FacetRestore -> {
                     val item = initial(command.hadithId, change)

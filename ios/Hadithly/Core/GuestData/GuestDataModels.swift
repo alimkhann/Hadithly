@@ -603,6 +603,7 @@ struct SyncBatch: Codable, Equatable, Sendable {
 }
 
 enum SyncOutcome: Codable, Equatable, Sendable {
+    case batchRequiresSplit
     case preserved
     case folder(SyncOutcomeFolder)
     case folderDeleted(SyncOutcomeFolderDeleted)
@@ -616,6 +617,7 @@ enum SyncOutcome: Codable, Equatable, Sendable {
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: KindKey.self)
         switch try values.decode(String.self, forKey: .kind) {
+        case "batch_requires_split": self = .batchRequiresSplit
         case "preserved": self = .preserved
         case "folder": self = .folder(try SyncOutcomeFolder(from: decoder))
         case "folder_deleted": self = .folderDeleted(try SyncOutcomeFolderDeleted(from: decoder))
@@ -631,6 +633,8 @@ enum SyncOutcome: Codable, Equatable, Sendable {
     func encode(to encoder: Encoder) throws {
         var values = encoder.container(keyedBy: KindKey.self)
         switch self {
+        case .batchRequiresSplit:
+            try values.encode("batch_requires_split", forKey: .kind)
         case .preserved:
             try values.encode("preserved", forKey: .kind)
         case .folder(let value):

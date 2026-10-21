@@ -5,7 +5,7 @@ import { api, internal } from "./_generated/api";
 import schema from "./schema";
 import type { Id } from "./_generated/dataModel";
 import { SYNC_OUTCOME_BYTES, SYNC_OUTCOME_PAGE, type SyncBinding, type SyncCommand, type SyncFrame, type SyncOutcomePageRequest } from "./lib/librarySyncPolicy";
-import { prepareFolderManifest } from "./lib/savedFolderManifests";
+import { prepareFolderManifest, advanceFolderManifest } from "./lib/savedFolderManifests";
 import { holdFolderFrame } from "./lib/librarySyncFrames";
 import { beginFolderRestoration, commitPreparedFolderDeletion } from "./lib/savedFolderTransitions";
 import { FOLDER_HANDLE_RETENTION_MS, FOLDER_WORK_LEASE_MS } from "./lib/savedFolderPolicy";
@@ -38,7 +38,12 @@ async function fixture(count = 9) {
     if (held.kind !== "pending") throw new Error("Missing held delete");
     return { id: prepared.id, generation: prepared.generation, pending: held.pending };
   });
-  await t.finishAllScheduledFunctions(vi.runAllTimers);
+  // Domain fixtures intentionally stop prepared; public automatic delivery has
+  // separate actual-endpoint tests. Stale scheduled scan steps are CAS no-ops.
+  for (let step = 0; step <= Math.ceil(count / 50); step++) {
+    const result = await t.run(ctx => advanceFolderManifest(ctx, { id: work.id, generation: work.generation, step }));
+    if (result.kind === "prepared") break;
+  }
   async function commit() { return t.run(ctx => commitPreparedFolderDeletion(ctx, userId, work)); }
   async function begin(id = "logical-restore", at = 200_000) {
     const result = await t.run(ctx => beginFolderRestoration(ctx, userId, { id, at, deletionId: "logical-delete" }));
@@ -74,7 +79,7 @@ async function fixture(count = 9) {
   }
   let outcomeBinding: SyncBinding | undefined;
   async function outcomeCapability() {
-    if (!outcomeBinding || outcomeBinding.validUntil <= Date.now()) outcomeBinding = await a.mutation(api.librarySync.openBinding, {});
+    if (!outcomeBinding || outcomeBinding.validUntil <= Date.now()) outcomeBinding = await a.mutation(api.librarySync.openManifestBinding, {});
     return outcomeBinding.capability;
   }
   return { t, a, b, userId, folderId, ids, work, frame, commit, begin, send, header, finishRestoration, outcomeCapability };
@@ -134,7 +139,7 @@ test("one restore operation reserves the handle and an existing destination stay
   const restore = await f.begin();
   expect(await f.t.run(ctx => beginFolderRestoration(ctx, f.userId, { id: "competing-undo", at: 200_000, deletionId: "logical-delete" }))).toMatchObject({ kind: "outcome", outcome: { kind: "superseded" } });
   await expect(f.a.mutation(api.library.deleteSavedFolder, { folderId: destination })).rejects.toThrow("SAVED_FOLDER_BUSY");
-  const binding = await f.a.mutation(api.librarySync.openBinding, {});
+  const binding = await f.a.mutation(api.librarySync.openManifestBinding, {});
   await expect(f.a.mutation(api.librarySync.applyBatch, { capability: binding.capability, frame: { clientKey: "delete-locked", sequence: 1,
     batch: { id: "delete-locked", operations: [{ id: "delete-locked", revision: "r1", at: 1_000_000, command: { kind: "folder_delete", folder: { kind: "server", id: destination } } }] } } })).rejects.toThrow("SAVED_FOLDER_BUSY");
   await f.t.finishAllScheduledFunctions(vi.runAllTimers);
@@ -263,7 +268,7 @@ test("older note updates retain the existing note ID and original creation time"
 });
 
 async function outcomeRequest(f: Awaited<ReturnType<typeof fixture>>, pending = f.work.pending): Promise<SyncOutcomePageRequest> {
-  const capability = (await f.a.mutation(api.librarySync.openBinding, {})).capability;
+  const capability = (await f.a.mutation(api.librarySync.openManifestBinding, {})).capability;
   const exchange = await f.a.query(api.librarySync.pollPending, { capability, pending });
   if (exchange.kind !== "accepted") throw new Error("Missing terminal proof");
   const receipt = exchange.committed.reply.receipts[0], outcome = receipt.outcome;
@@ -325,7 +330,7 @@ test("delete outcome pages stay historical while Undo changes the same manifest 
 
 test("outcome details require the JWT owner and its exact committed receipt proof", async () => {
   const f = await fixture(1); await f.commit();
-  const request = await outcomeRequest(f), aBinding = await f.a.mutation(api.librarySync.openBinding, {}), bBinding = await f.b.mutation(api.librarySync.openBinding, {});
+  const request = await outcomeRequest(f), aBinding = await f.a.mutation(api.librarySync.openManifestBinding, {}), bBinding = await f.b.mutation(api.librarySync.openManifestBinding, {});
   await expect(f.b.query(api.librarySync.outcomePage, { capability: aBinding.capability, request })).rejects.toThrow("SYNC_OWNER_MISMATCH");
   expect(await f.b.query(api.librarySync.outcomePage, { capability: bBinding.capability, request })).toEqual({ kind: "unavailable", ownerKey: bBinding.ownerKey, request, reason: "proof_unavailable" });
   const changed: SyncOutcomePageRequest[] = [
@@ -353,7 +358,7 @@ test("pending work and acknowledged proof cannot expose manifest details", async
     receiptId: "logical-delete", manifestId: pending.manifestId, generation: pending.generation, phase: "delete", start: 0 };
   expect(await outcomePage(f, request)).toMatchObject({ kind: "unavailable", reason: "proof_unavailable" });
   await f.commit(); expect(await outcomePage(f, request)).toMatchObject({ kind: "page" });
-  const capability = (await f.a.mutation(api.librarySync.openBinding, {})).capability;
+  const capability = (await f.a.mutation(api.librarySync.openManifestBinding, {})).capability;
   await f.a.mutation(api.librarySync.acknowledge, { capability, acknowledgement: request.proof });
   expect(await outcomePage(f, request)).toMatchObject({ kind: "unavailable", reason: "proof_unavailable" });
 });

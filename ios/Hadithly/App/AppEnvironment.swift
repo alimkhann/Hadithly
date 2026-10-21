@@ -120,7 +120,7 @@ final class AppEnvironment {
         let libraryClient = self.convex
         self.librarySync = LibrarySync(store: self.guestData, transport: .init(namespace: config.convexURL, open: {
             let _: String? = try await libraryClient.mutation("users:ensureCurrentUser", with: [:])
-            return try await libraryClient.mutation("librarySync:openBinding", with: [:])
+            return try await libraryClient.mutation("librarySync:openManifestBinding", with: [:])
         }, acknowledge: { capability, acknowledgement in
             try await libraryClient.mutation("librarySync:acknowledge", with: ["capability": capability, "acknowledgement": acknowledgement])
         }, send: { capability, frame in

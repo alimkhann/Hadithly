@@ -655,7 +655,7 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
         for receipt in reply.receipts {
             guard let change = byID.removeValue(forKey: receipt.id), change.operation.revision == receipt.revision else { throw LibrarySyncFailure.invalidReceipt }
             switch receipt.outcome {
-            case .folderDeletedManifest, .folderRestoredManifest: throw LibrarySyncFailure.invalidReceipt
+            case .batchRequiresSplit, .folderDeletedManifest, .folderRestoredManifest: throw LibrarySyncFailure.invalidReceipt
             case .preserved, .folder, .folderDeleted: break
             case .folderRestored(let value):
                 if !value.superseded.isEmpty || !value.missing.isEmpty { stagedRecovery.append(.server(change, receipt.outcome)) }
@@ -850,12 +850,28 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
                 waiting = nil
                 return
             }
+            if committed.reply.receipts.contains(where: { $0.outcome == .batchRequiresSplit }) {
+                guard let frozen, frozen.batch.id == committed.reply.batchId,
+                      frozen.changes.map(\.operation) == frozen.batch.operations,
+                      frozen.changes.count > 1, Set(frozen.changes.map { $0.operation.id }).count == frozen.changes.count,
+                      frozen.changes.filter({ if case .folderDelete = $0.operation.command { return true }; if case .folderRestore = $0.operation.command { return true }; return false }).count == 1,
+                      committed.reply.receipts.count == frozen.changes.count,
+                      Set(committed.reply.receipts.map(\.id)).count == committed.reply.receipts.count else { throw LibrarySyncFailure.invalidReceipt }
+                let receipts = Dictionary(uniqueKeysWithValues: committed.reply.receipts.map { ($0.id, $0) })
+                guard receipts.count == frozen.changes.count, frozen.changes.allSatisfy({ change in
+                    receipts[change.operation.id]?.revision == change.operation.revision && receipts[change.operation.id]?.outcome == .batchRequiresSplit
+                }) else { throw LibrarySyncFailure.invalidReceipt }
+                pending = frozen.changes + pending
+                self.frozen = nil; nextSequence += 1; waiting = nil
+                acknowledgement = .init(clientKey: clientKey, sequence: committed.sequence, batchId: committed.reply.batchId, digest: committed.digest)
+                return
+            }
             let submitted = frozen?.changes ?? []
             try settleReceipts(committed.reply, now: now)
             for change in submitted {
                 guard let receipt = committed.reply.receipts.first(where: { $0.id == change.operation.id }) else { throw LibrarySyncFailure.invalidReceipt }
                 switch receipt.outcome {
-                case .folderDeletedManifest, .folderRestoredManifest: throw LibrarySyncFailure.invalidReceipt
+                case .batchRequiresSplit, .folderDeletedManifest, .folderRestoredManifest: throw LibrarySyncFailure.invalidReceipt
                 case .preserved, .folder, .folderDeleted, .folderRestored, .resolvedPosition:
                     let version = change.operation.command.isPositionChange ? committed.revision.position : committed.revision.saved
                     confirmed.append(.init(change: change, outcome: receipt.outcome, version: version))

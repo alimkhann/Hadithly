@@ -1,7 +1,21 @@
 import type { Doc, Id } from "../_generated/dataModel";
+import type { LibrarySyncProtocol } from "./librarySyncIdentity";
 import type { MutationCtx } from "../_generated/server";
 import { libraryVersion } from "./librarySyncVersions";
 import { syncBatchDigest, syncIntentDigest, syncReceiptSetMatches, type SyncCursor, type SyncExchange, type SyncFrame, type SyncOutcome } from "./librarySyncPolicy";
+
+export function assertSyncProtocolCursor(protocol: LibrarySyncProtocol, cursor: SyncCursor): void {
+  if (protocol === "manifest_v2" || !cursor.outstanding) return;
+  const slot = cursor.outstanding;
+  if (slot.kind === "pending" || slot.committed.reply.receipts.some(receipt => receipt.outcome.kind === "folder_deleted_manifest" || receipt.outcome.kind === "folder_restored_manifest" || receipt.outcome.kind === "batch_requires_split")) throw new Error("SYNC_CLIENT_UPGRADE_REQUIRED");
+}
+export function protocolExchange(protocol: LibrarySyncProtocol, exchange: SyncExchange): SyncExchange {
+  if (protocol === "inline_v1") {
+    if (exchange.kind === "pending" || exchange.kind === "accepted" && exchange.committed.reply.receipts.some(receipt => receipt.outcome.kind === "folder_deleted_manifest" || receipt.outcome.kind === "folder_restored_manifest" || receipt.outcome.kind === "batch_requires_split")) throw new Error("SYNC_CLIENT_UPGRADE_REQUIRED");
+    if (exchange.kind === "reconcile") assertSyncProtocolCursor(protocol, exchange.cursor);
+  }
+  return exchange;
+}
 
 export function librarySyncCursor(stream: Doc<"librarySyncStreams"> | null): SyncCursor {
   const slot = stream?.slot;
@@ -21,7 +35,7 @@ export function existingFrameExchange(ownerKey: string, frame: SyncFrame, digest
   return { kind: "accepted", committed: slot.committed };
 }
 
-/** Called inside the future validated frame adapter. No public producer is enabled yet. */
+/** Called only after the public adapter validates owner, frame and current stream. */
 export async function holdFolderFrame(ctx: MutationCtx, userId: Id<"users">, frame: SyncFrame,
   work: { id: Id<"savedFolderManifests">; generation: string }): Promise<SyncExchange> {
   if (!await ctx.db.get(userId)) throw new Error("SYNC_ACCOUNT_MISSING");
