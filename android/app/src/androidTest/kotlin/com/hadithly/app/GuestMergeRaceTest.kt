@@ -13,6 +13,262 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class GuestMergeRaceTest {
+    private fun <T> sql(directory: File, block: (android.database.sqlite.SQLiteDatabase) -> T): T =
+        android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use(block)
+
+    @Test fun clonedGuestWritersPreserveAllAcceptedNotes() = runBlocking {
+        isolated { store, reopen, _ ->
+            // Establish existing storage before launching independently opened writers.
+            store.snapshots()
+            val writers = (0 until 16).map { reopen() }; val ready = java.util.concurrent.atomic.AtomicInteger(); val start = CompletableDeferred<Unit>()
+            val results = writers.mapIndexed { index, writer -> async(Dispatchers.Default) {
+                if (ready.incrementAndGet() == writers.size) start.complete(Unit)
+                start.await()
+                runCatching { writer.saveNote("guest-$index", "Accepted note $index", null, null, null, null, null, "", null) }
+            } }.awaitAll()
+            assertTrue("Concurrent accepted guest writes must not conflict", results.all { it.isSuccess })
+            assertEquals((0 until 16).map { "guest-$it" }.toSet(), reopen().snapshots().notes.map { it.hadithId }.toSet())
+        }
+    }
+    @Test fun clonedAccountWritersPreserveAllAcceptedCommands() = runBlocking {
+        isolated { store, reopen, _ ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
+            val writers = (0 until 16).map { reopen() }; val ready = java.util.concurrent.atomic.AtomicInteger(); val start = CompletableDeferred<Unit>()
+            val changes = (0 until 16).map { LibraryLocalChange(SyncCommand.NotePut("target-$it", "Accepted command $it", 1_000.0, 1_000.0), 1_000.0, LibraryLocalSource.Account(null)) }
+            val results = writers.mapIndexed { index, writer -> async(Dispatchers.Default) {
+                if (ready.incrementAndGet() == writers.size) start.complete(Unit)
+                start.await(); runCatching { writer.enqueueSyncChange(changes[index], owner) }
+            } }.awaitAll()
+            assertTrue("Concurrent accepted account writes must not conflict", results.all { it.isSuccess })
+            assertEquals(changes.map { it.operation.id }.toSet(), reopen().syncPartition(owner)?.pending?.map { it.operation.id }?.toSet())
+        }
+    }
+    private fun journal(directory: File): LibraryOutcomeJournal {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        return LibraryOutcomeJournal(object : ContextWrapper(context) { override fun getFilesDir(): File = directory })
+    }
+    private fun phase(directory: File): String = sql(directory) { db -> db.rawQuery("SELECT phase FROM local_import WHERE id=1", null).use { assertTrue(it.moveToFirst()); it.getString(0) } }
+    private fun count(directory: File, table: String): Int = sql(directory) { db -> db.rawQuery("SELECT count(*) FROM $table", null).use { it.moveToFirst(); it.getInt(0) } }
+    private fun unavailable(block: () -> Unit) {
+        try { block(); fail("Unavailable local authority was admitted") } catch (_: LibrarySyncFailure) { }
+    }
+    @Test fun localImportStagesBoundedRowsAndRollbackKeepsCanonicalDefaultsAcrossReopen() = runBlocking {
+        isolated { store, _, directory ->
+            val sourceFile = File(directory, "guest_store.json")
+            val owner = LibrarySyncOwner("owner-0", "subject-0")
+            val partitions = (0 until 19).map { LibrarySyncPartition(LibrarySyncOwner("owner-$it", "subject-$it").storageKey, "subject-$it", LibraryPartitionState(nextSequence = it + 1.0)) }
+            val json = Json { encodeDefaults = true; explicitNulls = false }
+            val legacy = GuestStoreFile(notes = listOf(GuestNoteDraft("guest", "مرحبا Қазақша", 1.0, 2.0)), syncPartitions = partitions)
+            // Old installed JSON can omit the UUID default. Normalize it only once.
+            val tree = json.parseToJsonElement(json.encodeToString(legacy)) as kotlinx.serialization.json.JsonObject
+            val rows = tree.getValue("syncPartitions") as kotlinx.serialization.json.JsonArray
+            val raw = kotlinx.serialization.json.JsonObject(tree + ("syncPartitions" to kotlinx.serialization.json.JsonArray(rows.map { row ->
+                val obj = row as kotlinx.serialization.json.JsonObject
+                val state = obj.getValue("state") as kotlinx.serialization.json.JsonObject
+                kotlinx.serialization.json.JsonObject(obj + ("state" to kotlinx.serialization.json.JsonObject(state - "clientKey")))
+            }))).toString().toByteArray()
+            sourceFile.writeBytes(raw)
+            val first = journal(directory); val captured = first.localImportSource { sourceFile.readBytes() }!!
+            val client = captured.accounts.getValue(owner.storageKey).second.clientKey
+            unavailable { first.localGuest() }; unavailable { first.captureExportFence(owner) }
+            sql(directory) { it.execSQL("CREATE TRIGGER fail_import_checkpoint BEFORE UPDATE ON local_import BEGIN SELECT RAISE(ABORT,'injected'); END") }
+            try { first.advanceLocalImport(captured) { raw }; fail("Partial staging committed") } catch (_: android.database.sqlite.SQLiteException) { }
+            assertEquals(0, count(directory, "local_import_rows")); assertEquals(0, count(directory, "local_accounts")); assertEquals(0, count(directory, "local_guest"))
+            sql(directory) { it.execSQL("DROP TRIGGER fail_import_checkpoint") }; first.close()
+            var steps = 0
+            while (true) {
+                val reopened = journal(directory)
+                val resumed = reopened.localImportSource { fail("Captured source was reloaded"); raw }!!
+                assertEquals(client, resumed.accounts.getValue(owner.storageKey).second.clientKey)
+                val before = count(directory, "local_import_rows")
+                if (phase(directory) == "publish") {
+                    sql(directory) { it.execSQL("CREATE TRIGGER fail_ready BEFORE UPDATE ON local_import WHEN NEW.phase='ready' BEGIN SELECT RAISE(ABORT,'injected'); END") }
+                    try { reopened.advanceLocalImport(resumed) { raw }; fail("Failed Ready publication committed") } catch (_: android.database.sqlite.SQLiteException) { }
+                    assertEquals("publish", phase(directory)); unavailable { reopened.localGuest() }; unavailable { reopened.savedActive(owner) }
+                    sql(directory) { db ->
+                        db.rawQuery("SELECT source,original FROM local_import", null).use { assertTrue(it.moveToFirst()); assertFalse(it.isNull(0)); assertFalse(it.isNull(1)) }
+                        db.execSQL("DROP TRIGGER fail_ready")
+                    }
+                }
+                val more = reopened.advanceLocalImport(resumed) { raw }
+                assertTrue(count(directory, "local_import_rows") - before <= 8)
+                reopened.close(); steps++
+                if (!more) break
+                assertTrue(steps < 40)
+            }
+            assertEquals("ready", phase(directory)); assertTrue(steps > 6)
+            assertEquals(client, store.syncPartition(owner)!!.clientKey)
+            assertEquals(legacy.notes, store.snapshots().notes)
+            for (partition in partitions.drop(1)) {
+                val target = LibrarySyncOwner(partition.ownerKey.substringAfter('|'), partition.subject)
+                assertEquals(partition.state.nextSequence, store.syncPartition(target)!!.nextSequence, 0.0)
+            }
+            sql(directory) { db -> db.rawQuery("SELECT source,original,source_size FROM local_import", null).use { assertTrue(it.moveToFirst()); assertTrue(it.isNull(0)); assertTrue(it.isNull(1)); assertEquals(0, it.getInt(2)) } }
+        }
+    }
+    @Test fun localImportRejectsUnknownConflictingAndAmbiguousSourceWithoutReplacingIt() = runBlocking {
+        val owner = LibrarySyncOwner("owner", "subject")
+        val original = LibrarySyncPartition(owner.storageKey, owner.subject, LibraryPartitionState(clientKey = "stable"))
+        val changed = original.copy(state = original.state.copy(nextSequence = 2.0))
+        val ambiguous = original.copy(ownerKey = "ambiguous|owner|key")
+        val conflicts = listOf(
+            """{"futureField":true}""",
+            Json.encodeToString(GuestStoreFile(syncPartitions = listOf(original, changed))),
+            Json.encodeToString(GuestStoreFile(syncPartitions = listOf(ambiguous))),
+        )
+        for (text in conflicts) isolated { store, _, directory ->
+            val file = File(directory, "guest_store.json"); file.writeText(text)
+            try { store.snapshots(); fail("Invalid migration became empty") } catch (_: LibrarySyncFailure) { }
+            assertEquals(text, file.readText()); assertEquals(0, count(directory, "local_import")); assertEquals(0, count(directory, "local_accounts"))
+        }
+    }
+    @Test fun localImportIdenticalDuplicateRecordsAreAccountedAndChangedSourceBlocksPublication() = runBlocking {
+        isolated { store, _, directory ->
+            val owner = LibrarySyncOwner("owner", "subject")
+            val partition = LibrarySyncPartition(owner.storageKey, owner.subject, LibraryPartitionState(clientKey = "stable", nextSequence = 7.0, folderMappings = mapOf("local" to "server")))
+            val intent = LibraryDeletionIntent("deleted-subject", owner.namespace, LibraryDeletionPhase.SERVER_PENDING)
+            val file = File(directory, "guest_store.json")
+            val raw = Json.encodeToString(GuestStoreFile(syncPartitions = listOf(partition, partition), deletions = listOf(intent, intent))).toByteArray(); file.writeBytes(raw)
+            journal(directory).use { journal ->
+                val source = journal.localImportSource { raw }!!
+                while (phase(directory) != "publish") journal.advanceLocalImport(source) { raw }
+                assertEquals(5, count(directory, "local_import_rows")); assertEquals(1, count(directory, "local_accounts")); assertEquals(1, count(directory, "local_deletions"))
+                file.writeText("{}")
+                unavailable { journal.advanceLocalImport(source) { file.readBytes() } }; assertEquals("publish", phase(directory))
+                sql(directory) { db -> db.rawQuery("SELECT original FROM local_import", null).use { assertTrue(it.moveToFirst()); assertArrayEquals(raw, it.getBlob(0)) } }
+                file.writeBytes(raw); assertFalse(journal.advanceLocalImport(source) { raw })
+            }
+            assertEquals(partition.state, store.syncPartition(owner)); assertEquals(intent.phase, store.deletionPhase(intent.subject, intent.namespace))
+        }
+    }
+    @Test fun localClaimRollsBackAccountAndGuestTogetherAndRetainsInvalidOriginalsExactlyOnce() = runBlocking {
+        isolated { store, reopen, directory ->
+            val owner = LibrarySyncOwner("owner", "subject")
+            val drafts = listOf(GuestNoteDraft("same", "First original", 1.0, 2.0), GuestNoteDraft("same", "Second original", 3.0, 4.0), GuestNoteDraft("invalid", "", 1.0, 2.0))
+            val legacy = GuestStoreFile(notes = drafts)
+            File(directory, "guest_store.json").writeText(Json.encodeToString(legacy)); store.snapshots()
+            sql(directory) { it.execSQL("CREATE TRIGGER fail_guest_clear BEFORE UPDATE ON local_guest BEGIN SELECT RAISE(ABORT,'injected'); END") }
+            try { store.claimGuestForSync(owner); fail("Guest claim partially committed") } catch (_: android.database.sqlite.SQLiteException) { }
+            assertNull(reopen().syncPartition(owner)); assertEquals(drafts, reopen().snapshots().notes)
+            sql(directory) { it.execSQL("DROP TRIGGER fail_guest_clear") }
+            val recovered = reopen(); recovered.claimGuestForSync(owner)
+            val claimed = recovered.syncPartition(owner)!!
+            assertEquals(drafts.take(2), claimed.pending.map { (it.source as LibraryLocalSource.Note).value })
+            assertEquals(LibraryRecovery.Invalid(LibraryLocalSource.Note(drafts.last())), claimed.recovery.single())
+            assertTrue(recovered.snapshots().notes.isEmpty()); recovered.claimGuestForSync(owner); assertEquals(claimed, recovered.syncPartition(owner))
+            // A restored legacy copy is never authoritative after Ready or claim.
+            File(directory, "guest_store.json").writeText(Json.encodeToString(legacy))
+            assertTrue(reopen().snapshots().notes.isEmpty()); assertEquals(claimed, reopen().syncPartition(owner))
+        }
+    }
+    @Test fun localAccountWindowedPayloadAndForeignIsolationAndSharedExportClock() = runBlocking {
+        isolated { store, reopen, directory ->
+            val owner = LibrarySyncOwner("owner", "subject"); val other = LibrarySyncOwner("foreign", "other")
+            val original = GuestNoteDraft("large", "x".repeat(2_300_000) + " النهاية", 1.0, 2.0)
+            val huge = LibraryPartitionState(clientKey = "stable-large", recovery = listOf(LibraryRecovery.Invalid(LibraryLocalSource.Note(original))))
+            File(directory, "guest_store.json").writeText(Json.encodeToString(GuestStoreFile(syncPartitions = listOf(LibrarySyncPartition(owner.storageKey, owner.subject, huge), LibrarySyncPartition(other.storageKey, other.subject, LibraryPartitionState())))))
+            assertEquals(huge, store.syncPartition(owner))
+            sql(directory) { it.execSQL("UPDATE local_accounts SET payload=X'00' WHERE key=?", arrayOf(other.storageKey)) }
+            val fence = store.prepareOutcomeExport(owner) { true }
+            note(reopen(), "Guest-only accepted note"); store.validateOutcomeExport(fence)
+            val change = LibraryLocalChange(SyncCommand.NoteRemove("one"), 3.0, LibraryLocalSource.Account(null)); reopen().enqueueSyncChange(change, owner)
+            try { store.validateOutcomeExport(fence); fail("Account-only mutation escaped export clock") } catch (_: LibrarySyncFailure.StoreUnavailable) { }
+            assertEquals(huge.recovery, reopen().syncPartition(owner)!!.recovery)
+            assertEquals(listOf(change), reopen().syncPartition(owner)!!.pending)
+            try { store.syncPartition(other); fail("Corrupt selected payload became empty") } catch (_: LibrarySyncFailure.StoreUnavailable) { }
+            assertEquals(1, store.snapshots().notes.size)
+            sql(directory) { db ->
+                db.rawQuery("EXPLAIN QUERY PLAN SELECT 1 FROM local_accounts WHERE subject=? AND namespace=? LIMIT 1", arrayOf(owner.subject, owner.namespace)).use { assertTrue(it.moveToFirst()); assertTrue(it.getString(3).contains("local_accounts_scope")); assertTrue(it.getString(3).contains("SEARCH")) }
+                db.rawQuery("SELECT payload FROM local_accounts WHERE key=?", arrayOf(other.storageKey)).use { assertTrue(it.moveToFirst()); assertArrayEquals(byteArrayOf(0), it.getBlob(0)) }
+            }
+        }
+    }
+    @Test fun localDeletionIntentClockRollbackAndStrictLegacyCleanupPreserveSiblingAndGuest() = runBlocking {
+        isolated { store, reopen, directory ->
+            val owner = LibrarySyncOwner("owner", "subject"); val sibling = LibrarySyncOwner("other", "sibling")
+            store.claimGuestForSync(owner); store.claimGuestForSync(sibling); note(store, "Unclaimed newer guest note")
+            val before = store.syncPartition(sibling); val fence = store.prepareOutcomeExport(owner) { true }
+            sql(directory) { it.execSQL("CREATE TRIGGER fail_erase_clock BEFORE UPDATE ON export_clocks BEGIN SELECT RAISE(ABORT,'injected'); END") }
+            try { store.beginDeletion(owner.subject, owner.namespace); fail("Deletion intent committed without clock") } catch (_: android.database.sqlite.SQLiteException) { }
+            sql(directory) { it.execSQL("DROP TRIGGER fail_erase_clock") }
+            assertNull(store.deletionPhase(owner.subject, owner.namespace)); store.validateOutcomeExport(fence)
+            store.beginDeletion(owner.subject, owner.namespace)
+            val legacy = File(directory, "guest_store.json").apply { mkdirs() }; File(legacy, "blocked").writeText("fixture")
+            try { store.markDeletionBackendComplete(owner.subject, owner.namespace); fail("Identity cleanup admitted retained legacy path") } catch (_: LibrarySyncFailure.StoreUnavailable) { }
+            assertEquals(LibraryDeletionPhase.SERVER_PENDING, reopen().deletionPhase(owner.subject, owner.namespace))
+            assertNull(reopen().syncPartition(owner)); assertEquals(before, reopen().syncPartition(sibling)); assertEquals(1, reopen().snapshots().notes.size)
+            legacy.deleteRecursively(); reopen().markDeletionBackendComplete(owner.subject, owner.namespace)
+            assertEquals(LibraryDeletionPhase.IDENTITY_PENDING, reopen().deletionPhase(owner.subject, owner.namespace)); reopen().clearDeletion(owner.subject, owner.namespace)
+            assertNull(reopen().deletionPhase(owner.subject, owner.namespace)); assertEquals(before, reopen().syncPartition(sibling)); assertEquals(1, reopen().snapshots().notes.size)
+        }
+    }
+    @Test fun localJournalAdmissionRechecksLiveAccountInsideItsOwnTransaction() = runBlocking {
+        isolated { store, _, directory ->
+            val owner = LibrarySyncOwner("owner", "subject"); store.claimGuestForSync(owner)
+            val fence = store.prepareOutcomeExport(owner) { true }; val proof = outcomeProof(owner, 1)
+            sql(directory) { it.delete("local_accounts", "key=?", arrayOf(owner.storageKey)) }
+            journal(directory).use { journal ->
+                unavailable { journal.captureGeneration(LibraryOutcomeBinding(owner, proof)) }
+                unavailable { journal.beginSaved(owner) }; unavailable { journal.captureExportFence(owner) }
+                unavailable { journal.registerArtifact(fence) }; unavailable { journal.sealExport(fence, "late") { fail("Late publication") } }
+            }
+            assertEquals(0, count(directory, "scopes")); assertEquals(0, count(directory, "headers")); assertEquals(0, count(directory, "saved_assemblies")); assertEquals(0, count(directory, "export_artifacts"))
+        }
+    }
+    @Test fun localArtifactValidationRechecksDeletionInsideJournalTransaction() = runBlocking {
+        isolated { store, _, directory ->
+            val owner = LibrarySyncOwner("owner", "subject"); store.claimGuestForSync(owner)
+            val fence = store.prepareOutcomeExport(owner) { true }; val artifact = store.beginOutcomeExportArtifact(fence)
+            store.beginDeletion(owner.subject, owner.namespace)
+            assertEquals(1, count(directory, "export_artifacts"))
+            journal(directory).use { journal -> unavailable { journal.validateArtifact(artifact.id, owner) } }
+            assertEquals(1, count(directory, "export_artifacts"))
+        }
+    }
+    @Test fun localMigrationFromActualV4PreservesActiveRetiringAndFrozenAccountState() = runBlocking {
+        isolated { store, reopen, directory ->
+            val owner = LibrarySyncOwner("owner", "subject"); store.claimGuestForSync(owner)
+            val first = store.beginSavedAssembly(owner); prepareSaved(store, first, emptyList(), 8.0); activateSaved(store, first)
+            val second = store.beginSavedAssembly(owner); prepareSaved(store, second, emptyList(), 9.0); val active = activateSaved(store, second)
+            val change = LibraryLocalChange(SyncCommand.NotePut("target", "Frozen private original", 1.0, 2.0), 2.0, LibraryLocalSource.Account(null))
+            store.enqueueSyncChange(change, owner); val frame = store.freezeSyncFrame(owner)!!
+            val state = store.syncPartition(owner)!!; val fence = store.prepareOutcomeExport(owner) { true }
+            val artifact = store.beginOutcomeExportArtifact(fence)
+            val before = sql(directory) { db -> db.rawQuery("SELECT active,retiring FROM saved_assemblies", null).use { assertTrue(it.moveToFirst()); listOf(it.getString(0), it.getString(1)) } }
+            assertTrue(before.all { !it.isNullOrEmpty() })
+            File(directory, "guest_store.json").writeText(Json.encodeToString(GuestStoreFile(syncPartitions = listOf(LibrarySyncPartition(owner.storageKey, owner.subject, state)))))
+            sql(directory) { db ->
+                db.beginTransaction()
+                try {
+                    for (table in listOf("local_import_rows", "local_import", "local_guest", "local_accounts", "local_deletions")) db.execSQL("DROP TABLE $table")
+                    db.version = 4; db.setTransactionSuccessful()
+                } finally { db.endTransaction() }
+            }
+            val recovered = reopen(); assertEquals(state, recovered.syncPartition(owner)); assertEquals(frame, recovered.freezeSyncFrame(owner))
+            assertEquals(active, recovered.activeSavedGeneration(owner)); assertTrue(recovered.activeSavedPage(active, null).done)
+            recovered.validateOutcomeExport(fence)
+            sql(directory) { db ->
+                assertEquals(5, db.version)
+                db.rawQuery("SELECT active,retiring FROM saved_assemblies", null).use { assertTrue(it.moveToFirst()); assertEquals(before, listOf(it.getString(0), it.getString(1))) }
+                db.rawQuery("SELECT artifact_id FROM export_artifacts", null).use { assertTrue(it.moveToFirst()); assertEquals(artifact.id, it.getString(0)) }
+            }
+        }
+    }
+    @Test fun clonedOwnersClaimEachOriginalOnceAndLateGuestNoteSurvives() = runBlocking {
+        isolated { store, reopen, _ ->
+            note(store, "Original before either claim")
+            val owners = listOf(LibrarySyncOwner("a", "subject-a"), LibrarySyncOwner("b", "subject-b"))
+            val release = CompletableDeferred<Unit>(); val entered = java.util.concurrent.atomic.AtomicInteger()
+            val writers = owners.map { owner -> async(Dispatchers.Default) {
+                val clone = reopen(); if (entered.incrementAndGet() == 2) release.complete(Unit); release.await(); clone.claimGuestForSync(owner)
+            } }
+            writers.awaitAll()
+            assertEquals(1, owners.sumOf { reopen().syncPartition(it)!!.pending.size })
+            note(reopen(), "Late guest original")
+            assertEquals("Late guest original", reopen().snapshots().notes.single().content)
+            assertEquals(1, owners.sumOf { reopen().syncPartition(it)!!.pending.size })
+        }
+    }
     private fun savedPlan(reply: SavedFactsReply, owner: LibrarySyncOwner, previous: LibrarySavedReadPosition? = null, requested: String? = null): LibrarySavedPagePlan =
         when (val value = LibrarySavedPolicy.inspect(reply, owner, previous, requested)) {
             is LibrarySavedPageDecision.Append -> value.plan
@@ -387,6 +643,7 @@ class GuestMergeRaceTest {
             val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
             val lease = store.beginSavedAssembly(owner); val facts = Json.decodeFromString<List<SavedFact>>(LibrarySavedParityVector.factsJSON); prepareSaved(store, lease, facts)
             val before = store.savedCheckpoint(lease); val expected = store.preparedSavedPage(lease, null)
+            File(directory, "guest_store.json").writeText(Json.encodeToString(GuestStoreFile(syncPartitions = listOf(LibrarySyncPartition(owner.storageKey, owner.subject, store.syncPartition(owner)!!)))))
             android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { db ->
                 db.beginTransaction()
                 try {
@@ -394,13 +651,14 @@ class GuestMergeRaceTest {
                     db.execSQL("CREATE TABLE saved_assemblies (scope_key TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, lease TEXT NOT NULL, checkpoint TEXT NOT NULL, erasing INTEGER NOT NULL)")
                     db.execSQL("INSERT INTO saved_assemblies SELECT scope_key,subject,namespace,owner_key,lease,checkpoint,erasing FROM saved_assemblies_v4")
                     db.execSQL("DROP TABLE saved_assemblies_v4"); db.execSQL("CREATE INDEX saved_assemblies_owner ON saved_assemblies(subject,namespace,owner_key)")
+                    for (table in listOf("local_import_rows", "local_import", "local_guest", "local_accounts", "local_deletions")) db.execSQL("DROP TABLE $table")
                     db.version = 3; db.setTransactionSuccessful()
                 } finally { db.endTransaction() }
             }
             val recovered = reopen(); assertEquals(before, recovered.savedCheckpoint(lease)); assertEquals(expected, recovered.preparedSavedPage(lease, null)); assertNull(recovered.activeSavedGeneration(owner))
             val active = activateSaved(recovered, lease); assertEquals(expected.rows, recovered.activeSavedPage(active, null).rows)
             assertEquals(active, reopen().activeSavedGeneration(owner))
-            android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { assertEquals(4, it.version) }
+            android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { assertEquals(5, it.version) }
         }
     }
     @Test fun savedRawAndReceiptWritesRollBackTogetherOnActualSqliteAbort() = runBlocking {
@@ -458,12 +716,7 @@ class GuestMergeRaceTest {
                     val facts = listOf(SavedFact.Note("peer-source", 0.0, "peer-target", text, 1.0, 2.0))
                     repeat(2) { store.collectSavedStep(lease, { true }) { savedReply(it, peer, facts) } }
                 }
-                val stateFile = android.util.AtomicFile(File(directory, "guest_store.json"))
-                val state = stateFile.openRead().bufferedReader().use { Json.parseToJsonElement(it.readText()) }
-                require(state is kotlinx.serialization.json.JsonObject)
-                val partitions = state["syncPartitions"]; require(partitions is kotlinx.serialization.json.JsonArray)
-                val restored = kotlinx.serialization.json.JsonObject(state + ("syncPartitions" to kotlinx.serialization.json.JsonArray(partitions.filterNot { it is kotlinx.serialization.json.JsonObject && it["ownerKey"] == kotlinx.serialization.json.JsonPrimitive(others[0].first.storageKey) })))
-                val update = stateFile.startWrite(); try { update.write(restored.toString().toByteArray()); stateFile.finishWrite(update) } catch (error: Exception) { stateFile.failWrite(update); throw error }
+                sql(directory) { db -> db.delete("local_accounts", "key=?", arrayOf(others[0].first.storageKey)) }
                 val captured = withContext(Dispatchers.Main) { fixture.sync.captureWriteContext() }
                 val prepared = fixture.sync.preparePortableExport(kotlinx.serialization.json.JsonObject(emptyMap()), captured, "saved.json")
                 try {
@@ -528,7 +781,7 @@ class GuestMergeRaceTest {
             }
             store.claimGuestForSync(owner); val lease = store.beginSavedAssembly(owner)
             android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { db ->
-                assertEquals(4, db.version)
+                assertEquals(5, db.version)
                 db.rawQuery("EXPLAIN QUERY PLAN SELECT row_key FROM saved_projection WHERE collection_key=? AND row_key>? AND row_key<? ORDER BY row_key LIMIT 8", arrayOf(lease.collection, lease.collection + ":r:", lease.collection + ":r:~")).use {
                     assertTrue(it.moveToFirst()); assertTrue(it.getString(3).contains("saved_projection_collection")); assertTrue(it.getString(3).contains("SEARCH"))
                 }
@@ -693,7 +946,7 @@ class GuestMergeRaceTest {
                 } finally { fixture.sync.discardPreparedExport(prepared) }
                 assertFalse(prepared.file.exists())
                 android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, android.database.sqlite.SQLiteDatabase.OPEN_READONLY).use { db ->
-                    assertEquals(4, db.version)
+                    assertEquals(5, db.version)
                     db.rawQuery("EXPLAIN QUERY PLAN SELECT collection_key FROM headers WHERE subject=? AND namespace=? AND collection_key>? ORDER BY collection_key LIMIT 50", arrayOf(owner.subject, owner.namespace, "")).use {
                         assertTrue(it.moveToFirst()); assertTrue(it.getString(3).contains("headers_export"))
                     }
@@ -769,10 +1022,10 @@ class GuestMergeRaceTest {
             } finally { fixture.stop() }
         }
     }
-    @Test fun outcomeExportArtifactCleanupAndEmptyFenceNeverRecreateDeletedMetadata() = runBlocking {
+    @Test fun outcomeExportArtifactCleanupAndAccountFenceNeverRecreateDeletedMetadata() = runBlocking {
         isolated { store, reopen, _ ->
             val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
-            val empty = store.prepareOutcomeExport(owner) { true }; assertEquals(LibraryOutcomeExportVersion.Empty, empty.version)
+            val empty = store.prepareOutcomeExport(owner) { true }; assertTrue(empty.version is LibraryOutcomeExportVersion.Present)
             val artifact = store.beginOutcomeExportArtifact(empty); File(artifact.directory, "document.partial").writeText("abandoned")
             reopen().clearAbandonedOutcomeExports()
             assertFalse(artifact.directory.exists())
@@ -889,11 +1142,11 @@ class GuestMergeRaceTest {
             store.claimGuestForSync(owner)
             store.enqueueSyncChange(LibraryLocalChange(SyncCommand.FolderDelete(SyncFolderReference.Server("folder")), 1_000.0, LibraryLocalSource.Account(null)), owner)
             store.freezeSyncFrame(owner)
-            val original = File(directory, "guest_store.json").readText()
+            val original = store.syncPartition(owner)
             var checkpoint = LibraryOutcomeCheckpoint(); val requests = mutableListOf<Double>()
             for (index in 0 until 30) {
                 checkpoint = store.collectOutcomeStep(proof, owner, { true }) { request -> requests.add(request.start); outcomePage(request, owner, count) }
-                assertEquals(original, File(directory, "guest_store.json").readText())
+                assertEquals(original, store.syncPartition(owner))
                 store = reopen()
                 if (checkpoint.status == LibraryOutcomeStatus.Complete) break
             }
@@ -908,7 +1161,7 @@ class GuestMergeRaceTest {
             } while (start <= count)
             assertEquals(count, members.size)
             store.collectOutcomeStep(proof, owner, { true }) { fail("Fetched complete journal"); throw LibrarySyncFailure.InvalidReceipt }
-            assertEquals(original, File(directory, "guest_store.json").readText())
+            assertEquals(original, store.syncPartition(owner))
         }
     }
     @Test fun outcomeJournalDuplicateAndConflictingReopenedContextCannotReplaceEvidence() = runBlocking {
@@ -1010,9 +1263,7 @@ class GuestMergeRaceTest {
                     if (checkpoint.status != LibraryOutcomeStatus.Collecting) break
                 }
             }
-            val file = File(directory, "guest_store.json"); val json = Json { ignoreUnknownKeys = true; encodeDefaults = true; explicitNulls = false }
-            val state = json.decodeFromString<GuestStoreFile>(file.readText())
-            file.writeText(json.encodeToString(state.copy(syncPartitions = state.syncPartitions.filterNot { it.ownerKey == owner.storageKey })))
+            sql(directory) { db -> db.delete("local_accounts", "key=?", arrayOf(owner.storageKey)) }
             assertEquals(50, store.outcomeEvidencePage(outcomeProof(owner, 501), owner, 0).rows.size)
             store.beginDeletion(owner.subject, owner.namespace); store.markDeletionBackendComplete(owner.subject, owner.namespace)
             try { reopen().outcomeEvidencePage(outcomeProof(owner, 501), owner, 0); fail("Orphan evidence retained") } catch (_: LibrarySyncFailure.StoreUnavailable) { }
@@ -1209,7 +1460,7 @@ class GuestMergeRaceTest {
         return proof to ack
     }
 
-    @Test fun outcomeAckMarkerSurvivesFailedPartitionSaveAndAcceptsLaterCursorWithoutRenewal() = runBlocking {
+    @Test fun outcomeAckAndPartitionRollbackTogetherAndAcceptLaterCursorWithoutRenewal() = runBlocking {
         isolated { store, reopen, directory ->
             val (proof, ack) = acknowledgedRetentionFixture(store, directory, 1, acknowledge = false)
             val owner = LibrarySyncOwner("owner-a", "subject-a"); val before = store.syncPartition(owner)!!
@@ -1218,20 +1469,20 @@ class GuestMergeRaceTest {
             try { store.settleSyncAcknowledgement(SyncAckReply(owner.key, wrong.clientKey, SyncCursor(wrong.sequence)), wrong, owner, 2_000.0); fail("Wrong proof marked") } catch (_: LibrarySyncFailure.InvalidReceipt) { }
             assertNull(store.outcomeEvidencePage(proof, owner, 0).checkpoint.retention)
             val fence = store.prepareOutcomeExport(owner) { true }
-            assertTrue(directory.setWritable(false, false))
+            sql(directory) { it.execSQL("CREATE TRIGGER fail_account_write BEFORE UPDATE OF payload ON local_accounts BEGIN SELECT RAISE(ABORT,'injected'); END") }
             try {
-                try { store.settleSyncAcknowledgement(SyncAckReply(owner.key, ack.clientKey, SyncCursor(ack.sequence)), ack, owner, 2_000.0); fail("Failed partition ACK save succeeded") } catch (_: java.io.IOException) { }
-            } finally { assertTrue(directory.setWritable(true, true)) }
+                try { store.settleSyncAcknowledgement(SyncAckReply(owner.key, ack.clientKey, SyncCursor(ack.sequence)), ack, owner, 2_000.0); fail("Failed partition ACK save succeeded") } catch (_: android.database.sqlite.SQLiteException) { }
+            } finally { sql(directory) { it.execSQL("DROP TRIGGER fail_account_write") } }
             val reopened = reopen(); assertEquals(before, reopened.syncPartition(owner))
-            assertEquals(2_000.0, reopened.outcomeEvidencePage(proof, owner, 0).checkpoint.retention!!.acknowledgedAt, 0.0)
-            try { reopened.validateOutcomeExport(fence); fail("ACK marker escaped export fence") } catch (_: LibrarySyncFailure.StoreUnavailable) { }
+            assertNull(reopened.outcomeEvidencePage(proof, owner, 0).checkpoint.retention)
+            reopened.validateOutcomeExport(fence)
             val pending = SyncPending(ack.clientKey, 4.0, "next-batch", "next-proof", "a".repeat(64), "next-manifest", "next-generation", 250.0)
             reopened.settleSyncAcknowledgement(SyncAckReply(owner.key, ack.clientKey, SyncCursor(3.0, SyncOutstanding.Pending(pending))), ack, owner, 9_000.0)
             assertEquals(4.0, reopened.syncPartition(owner)!!.nextSequence, 0.0); assertEquals(pending, reopened.syncPartition(owner)!!.waiting)
             assertNull(reopened.syncPartition(owner)!!.manifestAckLink)
-            assertEquals(2_000.0, reopened.outcomeEvidencePage(proof, owner, 0).checkpoint.retention!!.acknowledgedAt, 0.0)
+            assertEquals(9_000.0, reopened.outcomeEvidencePage(proof, owner, 0).checkpoint.retention!!.acknowledgedAt, 0.0)
             try { reopened.settleSyncAcknowledgement(SyncAckReply(owner.key, ack.clientKey, SyncCursor(ack.sequence)), ack, owner, 12_000.0); fail("Stale ACK renewed marker") } catch (_: LibrarySyncFailure.InvalidReceipt) { }
-            assertEquals(2_000.0, reopened.outcomeEvidencePage(proof, owner, 0).checkpoint.retention!!.acknowledgedAt, 0.0)
+            assertEquals(9_000.0, reopened.outcomeEvidencePage(proof, owner, 0).checkpoint.retention!!.acknowledgedAt, 0.0)
         }
     }
 
@@ -1239,7 +1490,9 @@ class GuestMergeRaceTest {
         isolated { store, reopen, directory ->
             val (proof, _) = acknowledgedRetentionFixture(store, directory, 1)
             val owner = LibrarySyncOwner("owner-a", "subject-a"); val replacement = LibrarySyncOwner("replacement", owner.subject)
-            File(directory, "guest_store.json").writeText(Json.encodeToString(store.snapshots().copy(syncPartitions = emptyList())))
+            android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { db ->
+                assertEquals(1, db.delete("local_accounts", "key=? AND subject=?", arrayOf(owner.storageKey, owner.subject)))
+            }
             val reopened = reopen(); reopened.claimGuestForSync(replacement)
             reopened.cacheSavedSnapshot(SyncSavedSnapshot(replacement.key, 2.0, emptyList(), emptyList()), replacement)
             for (step in 0 until 10) { if (!reopened.pruneOutcomeSuccessStep(replacement, 2_000 + LibraryOutcomeRetention.duration)) break }
@@ -1456,10 +1709,10 @@ class GuestMergeRaceTest {
             collectExportFacts(proof, owner, 1, store)
             store.cacheSavedSnapshot(SyncSavedSnapshot(owner.key, 2.0, emptyList(), emptyList()), owner)
             val before = store.syncPartition(owner)!!; val pending = before.collectingOutcome!!
-            assertTrue(directory.setWritable(false, false))
+            sql(directory) { it.execSQL("CREATE TRIGGER fail_account_write BEFORE UPDATE OF payload ON local_accounts BEGIN SELECT RAISE(ABORT,'injected'); END") }
             try {
-                try { store.settleCollectedOutcome(pending, owner, 2_000.0); fail("Failed AtomicFile write settled") } catch (_: java.io.IOException) { }
-            } finally { assertTrue(directory.setWritable(true, true)) }
+                try { store.settleCollectedOutcome(pending, owner, 2_000.0); fail("Failed SQLite write settled") } catch (_: android.database.sqlite.SQLiteException) { }
+            } finally { sql(directory) { it.execSQL("DROP TRIGGER fail_account_write") } }
             val reopened = reopen(); assertEquals(before, reopened.syncPartition(owner))
             assertEquals(LibraryOutcomeSettlement.Settled, reopened.settleCollectedOutcome(pending, owner, 7_000.0))
             val settled = reopened.syncPartition(owner)

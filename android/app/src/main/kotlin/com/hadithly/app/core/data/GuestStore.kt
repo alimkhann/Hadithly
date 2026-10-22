@@ -2,6 +2,7 @@ package com.hadithly.app.core.data
 
 import android.content.Context
 import android.util.AtomicFile
+import android.database.sqlite.SQLiteDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -12,11 +13,7 @@ import kotlinx.serialization.json.Json
 import java.io.File
 import java.util.UUID
 
-/**
- * Local guest data — what readers collect before signing in. Stored as JSON
- * in the app's files directory. On sign-in the whole store merges into Convex
- * (idempotently) and is cleared. Mirrors the iOS SwiftData GuestDataStore.
- */
+/** Private local drafts. Guest and account state share the outcome journal's SQLite transaction. */
 @Serializable
 data class GuestBookmarkDraft(
     val hadithId: String,
@@ -161,43 +158,45 @@ data class GuestMergeResult(
 
 class GuestDataStore(context: Context) {
 
-    private val json = Json {
-        ignoreUnknownKeys = true
-        encodeDefaults = true
-        explicitNulls = false
-    }
-    private val file: File = File(context.filesDir, "guest_store.json")
-    private val mutex = Mutex()
+    private val file = File(context.filesDir, "guest_store.json")
     private val atomicFile = AtomicFile(file)
+    private val mutex = Mutex()
     private val outcomeJournal by lazy { LibraryOutcomeJournal(context) }
     var onGuestChanged: (() -> Unit)? = null
 
-    private suspend fun read(): GuestStoreFile = mutex.withLock { readLocked() }
-
-    private fun readLocked(): GuestStoreFile {
-        if (!file.exists() && !File(file.path + ".bak").exists()) return GuestStoreFile()
-        return try { atomicFile.openRead().bufferedReader().use { json.decodeFromString<GuestStoreFile>(it.readText()) } }
+    private fun legacyBytes(): ByteArray? {
+        if (!file.exists() && !File(file.path + ".bak").exists()) return null
+        return try { atomicFile.openRead().use { it.readBytes() } }
         catch (_: Exception) { throw LibrarySyncFailure.StoreUnavailable }
     }
-
-    private suspend fun writeLocked(notify: Boolean = true, transform: suspend (GuestStoreFile) -> GuestStoreFile) {
-        mutex.withLock {
-            val next = transform(readLocked())
-            persistLocked(next, notify)
+    private fun clearLegacyFiles() {
+        for (path in listOf(file, File(file.path + ".bak"), File(file.path + ".new"))) {
+            if (path.exists() && !path.delete() && path.exists()) throw LibrarySyncFailure.StoreUnavailable
         }
     }
-
-    private suspend fun persistLocked(next: GuestStoreFile, notify: Boolean) = withContext(Dispatchers.IO) {
-        file.parentFile?.mkdirs()
-        val stream = atomicFile.startWrite()
-        try {
-            stream.write(json.encodeToString(next).toByteArray(Charsets.UTF_8))
-            atomicFile.finishWrite(stream)
-            if (notify) onGuestChanged?.invoke()
-        } catch (error: Exception) { atomicFile.failWrite(stream); throw error }
+    private suspend fun ensureReady() {
+        val source = withContext(Dispatchers.IO) { outcomeJournal.localImportSource(::legacyBytes) }
+        if (source != null) {
+            while (withContext(Dispatchers.IO) { outcomeJournal.advanceLocalImport(source, ::legacyBytes) }) kotlinx.coroutines.yield()
+        }
+        withContext(Dispatchers.IO) {
+            outcomeJournal.cleanupLocalImportStep()
+            try { clearLegacyFiles() } catch (_: LibrarySyncFailure.StoreUnavailable) { /* Deletion retries this strictly before identity cleanup. */ }
+        }
     }
-
-    suspend fun snapshots(): GuestStoreFile = read()
+    private suspend fun <T> withStorage(block: suspend () -> T): T {
+        ensureReady()
+        return mutex.withLock { block() }
+    }
+    private suspend fun read(): GuestSnapshot = withStorage { withContext(Dispatchers.IO) { outcomeJournal.localGuest() } }
+    private suspend fun writeLocked(notify: Boolean = true, transform: (GuestSnapshot) -> GuestSnapshot) {
+        val changed = withStorage { withContext(Dispatchers.IO) { outcomeJournal.updateLocalGuest(transform) } }
+        if (changed && notify) onGuestChanged?.invoke()
+    }
+    private suspend fun <T> accountWrite(owner: LibrarySyncOwner, block: (SQLiteDatabase, LibraryPartitionState) -> T): T = withStorage {
+        withContext(Dispatchers.IO) { outcomeJournal.mutateLocalAccount(owner, block) }
+    }
+    suspend fun snapshots(): GuestSnapshot = read()
 
     suspend fun isBookmarked(hadithId: String): Boolean =
         read().bookmarks.any { it.hadithId == hadithId }
@@ -313,264 +312,147 @@ class GuestDataStore(context: Context) {
         store.copy(progress = store.progress.filterNot { it == expected })
     }
 
-    suspend fun syncPartition(owner: LibrarySyncOwner): LibraryPartitionState? = mutex.withLock {
-        readLocked().syncPartitions.firstOrNull { it.ownerKey == owner.storageKey }?.also {
-            if (it.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
-        }?.state
+    suspend fun syncPartition(owner: LibrarySyncOwner): LibraryPartitionState? = withStorage {
+        withContext(Dispatchers.IO) { outcomeJournal.localAccount(owner) }
     }
-
-    suspend fun claimGuestForSync(owner: LibrarySyncOwner) = writeLocked(notify = false) { store ->
-        if (store.deletions.any { it.subject == owner.subject && it.namespace == owner.namespace }) throw LibrarySyncFailure.AccountDeleting
-        val existing = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey }
-        if (existing != null && existing.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
-        val state = existing?.state ?: LibraryPartitionState()
-        for (draft in store.savedFolders) {
-            val name = draft.name.trim()
-            state.append(LibraryLocalSource.Folder(draft), if (name.isNotEmpty() && name.codePointCount(0, name.length) <= LibrarySyncLimits.folderLength && name.none { Character.isISOControl(it) })
-                SyncCommand.FolderCreate(draft.localId, draft.name, SyncCommandFolderCreatePurpose.GUEST_CLAIM) else null, draft.createdAt)
-        }
-        for (draft in store.bookmarks) state.append(LibraryLocalSource.Bookmark(draft), SyncCommand.BookmarkAdd(draft.hadithId, draft.createdAt), draft.createdAt)
-        for (draft in store.favorites) state.append(LibraryLocalSource.Favorite(draft), SyncCommand.FavoriteAdd(draft.hadithId, draft.createdAt), draft.createdAt)
-        for (draft in store.notes) state.append(LibraryLocalSource.Note(draft), if (draft.content.isNotEmpty() && draft.content.toByteArray(Charsets.UTF_8).size <= LibrarySyncLimits.noteBytes)
-            SyncCommand.NotePut(draft.hadithId, draft.content, draft.createdAt, draft.updatedAt) else null, draft.updatedAt)
-        for (draft in store.savedMemberships) {
-            state.append(LibraryLocalSource.Membership(draft), SyncCommand.MembershipPut(draft.hadithId, SyncFolderReference.Local(draft.folderLocalId), if (draft.updatedAt == null) "claim_if_unset" else null), draft.updatedAt ?: 0.0)
-        }
-        for (draft in store.progress) state.append(LibraryLocalSource.Position(draft), draft.readingPosition?.let { SyncCommand.PositionPut(it) }
-            ?: SyncCommand.LegacyPositionPut(draft.hadithId, draft.updatedAt), draft.effectiveUpdatedAt)
-        store.copy(bookmarks = emptyList(), notes = emptyList(), favorites = emptyList(), progress = emptyList(), savedFolders = emptyList(), savedMemberships = emptyList(),
-            syncPartitions = store.syncPartitions.filterNot { it.ownerKey == owner.storageKey } + LibrarySyncPartition(owner.storageKey, owner.subject, state))
+    suspend fun claimGuestForSync(owner: LibrarySyncOwner) = withStorage {
+        withContext(Dispatchers.IO) { outcomeJournal.claimLocalGuest(owner) }
     }
-
-    suspend fun freezeSyncFrame(owner: LibrarySyncOwner): SyncFrame? {
-        var batch: SyncFrame? = null
-        writeLocked(notify = false) { store ->
-            val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey } ?: return@writeLocked store
-            if (partition.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
-            batch = partition.state.freeze()
-            store
-        }
-        return batch
-    }
-
-    suspend fun enqueueSyncChange(change: LibraryLocalChange, owner: LibrarySyncOwner) = writeLocked(notify = false) { store ->
-        val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey } ?: throw LibrarySyncFailure.SessionChanged
-        if (partition.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
-        val state = partition.state
-        state.pending = state.pending + change
-        store.copy(syncPartitions = store.syncPartitions.filterNot { it.ownerKey == owner.storageKey } + LibrarySyncPartition(owner.storageKey, owner.subject, state))
-    }
-
+    suspend fun freezeSyncFrame(owner: LibrarySyncOwner): SyncFrame? = accountWrite(owner) { _, state -> state.freeze() }
+    suspend fun enqueueSyncChange(change: LibraryLocalChange, owner: LibrarySyncOwner) = accountWrite(owner) { _, state -> state.pending = state.pending + change }
     private fun validateSyncOwner(owner: LibrarySyncOwner, replyOwner: String, cursor: SyncCursor? = null) {
         if (replyOwner != owner.key || cursor?.outstanding?.committedValue?.reply?.ownerKey?.let { it != owner.key } == true) throw LibrarySyncFailure.OwnerMismatch
     }
-
-    suspend fun settleSyncExchange(exchange: SyncExchange, requested: SyncFrame, owner: LibrarySyncOwner, now: Double = nowMillis()) = writeLocked(notify = false) { store ->
+    private fun validateExchange(owner: LibrarySyncOwner, exchange: SyncExchange) {
         when (exchange) {
             is SyncExchange.Accepted -> validateSyncOwner(owner, exchange.committed.reply.ownerKey)
             is SyncExchange.Pending -> validateSyncOwner(owner, exchange.ownerKey)
             is SyncExchange.Reconcile -> validateSyncOwner(owner, exchange.ownerKey, exchange.cursor)
         }
-        val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey } ?: return@writeLocked store
-        if (partition.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
-        partition.state.settle(exchange, requested, now)
-        store
     }
-
-    suspend fun settleSyncPending(exchange: SyncExchange, requested: SyncPending, owner: LibrarySyncOwner, now: Double = nowMillis()) = writeLocked(notify = false) { store ->
-        when (exchange) {
-            is SyncExchange.Accepted -> validateSyncOwner(owner, exchange.committed.reply.ownerKey)
-            is SyncExchange.Pending -> validateSyncOwner(owner, exchange.ownerKey)
-            is SyncExchange.Reconcile -> validateSyncOwner(owner, exchange.ownerKey, exchange.cursor)
-        }
-        val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey } ?: return@writeLocked store
-        if (partition.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
-        partition.state.settlePending(exchange, requested, now)
-        store
+    suspend fun settleSyncExchange(exchange: SyncExchange, requested: SyncFrame, owner: LibrarySyncOwner, now: Double = nowMillis()) {
+        validateExchange(owner, exchange)
+        accountWrite(owner) { _, state -> state.settle(exchange, requested, now) }
     }
-
-    suspend fun settleSyncRetirement(reply: SyncAckReply, requested: SyncFrame, owner: LibrarySyncOwner) = writeLocked(notify = false) { store ->
+    suspend fun settleSyncPending(exchange: SyncExchange, requested: SyncPending, owner: LibrarySyncOwner, now: Double = nowMillis()) {
+        validateExchange(owner, exchange)
+        accountWrite(owner) { _, state -> state.settlePending(exchange, requested, now) }
+    }
+    suspend fun settleSyncRetirement(reply: SyncAckReply, requested: SyncFrame, owner: LibrarySyncOwner) {
         validateSyncOwner(owner, reply.ownerKey, reply.cursor)
-        val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey } ?: return@writeLocked store
-        if (partition.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
-        partition.state.settleRetirement(reply, requested)
-        store
+        accountWrite(owner) { _, state -> state.settleRetirement(reply, requested) }
     }
-
-    suspend fun settleSyncAcknowledgement(reply: SyncAckReply, requested: SyncAcknowledgement, owner: LibrarySyncOwner, now: Double = nowMillis()) = writeLocked(notify = false) { store ->
+    suspend fun settleSyncAcknowledgement(reply: SyncAckReply, requested: SyncAcknowledgement, owner: LibrarySyncOwner, now: Double = nowMillis()) = accountWrite(owner) { db, state ->
         validateSyncOwner(owner, reply.ownerKey, reply.cursor)
-        val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey } ?: return@writeLocked store
-        if (partition.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
-        val link = partition.state.manifestAckLink
-        val next = partition.state.copy()
-        next.settleAcknowledgement(reply, requested)
+        val link = state.manifestAckLink; state.settleAcknowledgement(reply, requested)
         if (link != null && reply.cursor.closedThrough >= requested.sequence) {
             val binding = LibraryOutcomeBinding(link.owner, link.committed)
             if (link.owner != owner || binding.request.proof != requested) throw LibrarySyncFailure.InvalidReceipt
-            assertOutcomeOwnerActive(owner)
-            withContext(Dispatchers.IO) { outcomeJournal.acknowledge(binding, now) }
+            outcomeJournal.acknowledgeIn(db, binding, now)
         }
-        store.copy(syncPartitions = store.syncPartitions.map { if (it === partition) it.copy(state = next) else it })
     }
-
-    suspend fun pruneOutcomeSuccessStep(owner: LibrarySyncOwner, now: Double): Boolean = mutex.withLock {
-        assertOutcomeOwnerActive(owner)
+    suspend fun pruneOutcomeSuccessStep(owner: LibrarySyncOwner, now: Double): Boolean = accountWrite(owner) { db, state ->
         if (!now.isFinite() || now < 0) throw LibrarySyncFailure.InvalidReceipt
-        val store = readLocked()
-        val blocked = store.deletions.map { LibraryOutcomeBinding.hash(listOf(it.namespace, it.subject)) }.toSet()
-        if (!withContext(Dispatchers.IO) { outcomeJournal.prepareExportStep(blocked) }) return@withLock true
-        val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey && it.subject == owner.subject } ?: throw LibrarySyncFailure.SessionChanged
-        val next = partition.state.copy()
-        val entries = withContext(Dispatchers.IO) { outcomeJournal.retentionEntries(owner, next.outcomeRetentionCursor) }
-        if (entries.isEmpty()) {
-            if (next.outcomeRetentionCursor != null) {
-                next.outcomeRetentionCursor = null
-                persistLocked(store.copy(syncPartitions = store.syncPartitions.map { if (it === partition) it.copy(state = next) else it }), notify = false)
-            }
-            return@withLock false
-        }
-        var cursor = next.outcomeRetentionCursor
+        if (!outcomeJournal.prepareExportStepIn(db)) return@accountWrite true
+        val entries = outcomeJournal.retentionEntriesIn(db, owner, state.outcomeRetentionCursor)
+        if (entries.isEmpty()) { state.outcomeRetentionCursor = null; return@accountWrite false }
+        var cursor = state.outcomeRetentionCursor
         for (entry in entries) {
             val binding = entry.binding
-            val dependency = store.syncPartitions.firstOrNull { it.ownerKey == binding.owner.storageKey && it.subject == binding.owner.subject }?.state
+            val dependency = if (binding.owner == owner) state else readLocalAccount(db, binding.owner)
             if (dependency != null && (entry.checkpoint.retention?.removed != null || dependency.canPruneOutcome(binding, entry.checkpoint, now))) {
-                val done = withContext(Dispatchers.IO) { outcomeJournal.prune(binding, entry.checkpoint) }
-                if (done) cursor = binding.key
-                next.outcomeRetentionCursor = cursor
-                persistLocked(store.copy(syncPartitions = store.syncPartitions.map { if (it === partition) it.copy(state = next) else it }), notify = false)
-                return@withLock true
-            }
-            cursor = binding.key
+                if (outcomeJournal.pruneIn(db, binding, entry.checkpoint)) cursor = binding.key
+                state.outcomeRetentionCursor = cursor; return@accountWrite true
+            }; cursor = binding.key
         }
-        next.outcomeRetentionCursor = cursor
-        persistLocked(store.copy(syncPartitions = store.syncPartitions.map { if (it === partition) it.copy(state = next) else it }), notify = false)
-        true
+        state.outcomeRetentionCursor = cursor; true
     }
-
-    suspend fun settleCollectedOutcome(expected: LibraryPendingOutcome, owner: LibrarySyncOwner, now: Double): LibraryOutcomeSettlement = mutex.withLock {
-        assertOutcomeOwnerActive(owner)
-        val store = readLocked()
-        val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey && it.subject == owner.subject } ?: throw LibrarySyncFailure.SessionChanged
+    suspend fun settleCollectedOutcome(expected: LibraryPendingOutcome, owner: LibrarySyncOwner, now: Double): LibraryOutcomeSettlement = accountWrite(owner) { db, state ->
         val binding = LibraryOutcomeBinding(owner, expected.committed)
-        val checkpoint = withContext(Dispatchers.IO) { outcomeJournal.settlementCheckpoint(binding) }
-        val next = partition.state.copy()
-        val progress = next.settleCollectedOutcome(expected, binding, checkpoint, now)
-        if (next != partition.state) persistLocked(store.copy(syncPartitions = store.syncPartitions.map { if (it === partition) it.copy(state = next) else it }), notify = false)
-        progress
+        state.settleCollectedOutcome(expected, binding, outcomeJournal.settlementCheckpointIn(db, binding), now)
     }
-
-    suspend fun cacheSavedSnapshot(snapshot: SyncSavedSnapshot, owner: LibrarySyncOwner) = writeLocked(notify = false) { store ->
+    suspend fun cacheSavedSnapshot(snapshot: SyncSavedSnapshot, owner: LibrarySyncOwner) = accountWrite(owner) { _, state ->
         if (snapshot.ownerKey != owner.key) throw LibrarySyncFailure.OwnerMismatch
-        val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey } ?: throw LibrarySyncFailure.SessionChanged
-        if (partition.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
         if (!snapshot.version.isFinite() || snapshot.version < 0 || kotlin.math.floor(snapshot.version) != snapshot.version) throw LibrarySyncFailure.InvalidReceipt
-        if (snapshot.version >= (partition.state.savedSnapshot?.version ?: -1.0)) {
-            partition.state.savedSnapshot = snapshot
-            partition.state.pruneConfirmed()
-        }
-        store
+        if (snapshot.version >= (state.savedSnapshot?.version ?: -1.0)) { state.savedSnapshot = snapshot; state.pruneConfirmed() }
     }
-
-    suspend fun cachePositionsSnapshot(snapshot: SyncPositionsSnapshot, owner: LibrarySyncOwner) = writeLocked(notify = false) { store ->
+    suspend fun cachePositionsSnapshot(snapshot: SyncPositionsSnapshot, owner: LibrarySyncOwner) = accountWrite(owner) { _, state ->
         if (snapshot.ownerKey != owner.key) throw LibrarySyncFailure.OwnerMismatch
-        val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey } ?: throw LibrarySyncFailure.SessionChanged
-        if (partition.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
         if (!snapshot.version.isFinite() || snapshot.version < 0 || kotlin.math.floor(snapshot.version) != snapshot.version) throw LibrarySyncFailure.InvalidReceipt
-        if (snapshot.version >= (partition.state.positionsSnapshot?.version ?: -1.0)) {
-            partition.state.positionsSnapshot = snapshot
-            partition.state.pruneConfirmed()
-        }
-        store
+        if (snapshot.version >= (state.positionsSnapshot?.version ?: -1.0)) { state.positionsSnapshot = snapshot; state.pruneConfirmed() }
     }
-
-    suspend fun deletionPhase(subject: String, namespace: String): LibraryDeletionPhase? = mutex.withLock {
-        readLocked().deletions.firstOrNull { it.subject == subject && it.namespace == namespace }?.phase
+    suspend fun deletionPhase(subject: String, namespace: String): LibraryDeletionPhase? = withStorage {
+        val phase = withContext(Dispatchers.IO) { outcomeJournal.localDeletion(subject, namespace) }
+        if (phase == LibraryDeletionPhase.IDENTITY_PENDING) withContext(Dispatchers.IO) { clearLegacyFiles() }
+        phase
     }
-    suspend fun beginDeletion(subject: String, namespace: String) {
-        writeLocked(notify = false) { store ->
-            if (store.deletions.any { it.subject == subject && it.namespace == namespace }) store
-            else store.copy(deletions = store.deletions + LibraryDeletionIntent(subject, namespace, LibraryDeletionPhase.SERVER_PENDING))
-        }
-        mutex.withLock {
-            if (readLocked().deletions.any { it.subject == subject && it.namespace == namespace && it.phase == LibraryDeletionPhase.SERVER_PENDING })
-                withContext(Dispatchers.IO) { outcomeJournal.beginSavedErase(subject, namespace, null) }
-        }
+    suspend fun beginDeletion(subject: String, namespace: String) = withStorage {
+        withContext(Dispatchers.IO) { outcomeJournal.beginLocalDeletion(subject, namespace) }
     }
     suspend fun markDeletionBackendComplete(subject: String, namespace: String) {
         beginSavedErase(subject, namespace, null)
         while (eraseSavedStep(subject, namespace, null)) kotlinx.coroutines.yield()
-        mutex.withLock {
-            if (readLocked().deletions.none { it.subject == subject && it.namespace == namespace }) throw LibrarySyncFailure.SessionChanged
-            withContext(Dispatchers.IO) {
-                outcomeJournal.beginErase(subject, namespace, full = true)
-                clearArtifactScope(subject, namespace)
-                outcomeJournal.erase(subject, namespace)
-            }
-        }
-        writeLocked(notify = false) { store ->
-            if (store.deletions.none { it.subject == subject && it.namespace == namespace }) throw LibrarySyncFailure.SessionChanged
-            store.copy(deletions = store.deletions.map { if (it.subject == subject && it.namespace == namespace) it.copy(phase = LibraryDeletionPhase.IDENTITY_PENDING) else it },
-                syncPartitions = store.syncPartitions.filterNot { it.subject == subject && it.ownerKey.startsWith("$namespace|") })
-        }
+        while (withStorage { withContext(Dispatchers.IO) { outcomeJournal.eraseLocalAccountsStep(subject, namespace) } }) kotlinx.coroutines.yield()
+        withStorage { withContext(Dispatchers.IO) {
+            outcomeJournal.beginErase(subject, namespace, full = true)
+            clearArtifactScope(subject, namespace)
+            outcomeJournal.erase(subject, namespace)
+            clearLegacyFiles()
+        } }
+        while (withStorage { withContext(Dispatchers.IO) { outcomeJournal.cleanupLocalImportStep() } }) kotlinx.coroutines.yield()
+        withStorage { withContext(Dispatchers.IO) { outcomeJournal.finishLocalDeletion(subject, namespace) } }
     }
-    suspend fun clearDeletion(subject: String, namespace: String) = writeLocked(notify = false) { store ->
-        store.copy(deletions = store.deletions.filterNot { it.subject == subject && it.namespace == namespace })
+    suspend fun clearDeletion(subject: String, namespace: String) = withStorage {
+        withContext(Dispatchers.IO) { outcomeJournal.clearLocalDeletion(subject, namespace) }
     }
-
-    // Reset fixture only. Account erasure uses the durable deletion intent above.
-    suspend fun resetSyncPartitionForTesting(owner: LibrarySyncOwner) {
-        writeLocked(notify = false) { store ->
-            withContext(Dispatchers.IO) {
-                outcomeJournal.beginSavedErase(owner.subject, owner.namespace, owner.storageKey)
-                while (outcomeJournal.eraseSavedStep(owner.subject, owner.namespace, owner.storageKey)) { }
-                outcomeJournal.beginErase(owner.subject, owner.namespace, full = false)
-                clearArtifactScope(owner.subject, owner.namespace)
-                outcomeJournal.erase(owner.subject, owner.namespace, owner.storageKey)
-            }
-            store.copy(syncPartitions = store.syncPartitions.filterNot { it.ownerKey == owner.storageKey && it.subject == owner.subject })
+    // Fixture only. Normal erasure remains scoped by its durable deletion intent.
+    suspend fun resetSyncPartitionForTesting(owner: LibrarySyncOwner) = withStorage {
+        withContext(Dispatchers.IO) {
+            outcomeJournal.beginSavedErase(owner.subject, owner.namespace, owner.storageKey)
+            while (outcomeJournal.eraseSavedStep(owner.subject, owner.namespace, owner.storageKey)) { }
+            outcomeJournal.beginErase(owner.subject, owner.namespace, full = false)
+            clearArtifactScope(owner.subject, owner.namespace)
+            outcomeJournal.erase(owner.subject, owner.namespace, owner.storageKey)
+            outcomeJournal.removeLocalAccountForTesting(owner)
         }
     }
-
-    private fun assertOutcomeOwnerActive(owner: LibrarySyncOwner) {
-        val store = readLocked()
-        if (store.deletions.any { it.subject == owner.subject && it.namespace == owner.namespace }) throw LibrarySyncFailure.AccountDeleting
-        val partition = store.syncPartitions.firstOrNull { it.ownerKey == owner.storageKey } ?: throw LibrarySyncFailure.SessionChanged
-        if (partition.subject != owner.subject) throw LibrarySyncFailure.OwnerMismatch
+    private suspend fun assertOutcomeOwnerActive(owner: LibrarySyncOwner) {
+        withContext(Dispatchers.IO) { outcomeJournal.transaction { db -> assertLocalOwner(db, owner) } }
     }
 
-    suspend fun beginSavedErase(subject: String, namespace: String, ownerKey: String?) = mutex.withLock {
+    suspend fun beginSavedErase(subject: String, namespace: String, ownerKey: String?) = withStorage {
         withContext(Dispatchers.IO) { outcomeJournal.beginSavedErase(subject, namespace, ownerKey) }
     }
-    suspend fun eraseSavedStep(subject: String, namespace: String, ownerKey: String?): Boolean = mutex.withLock {
-        if (ownerKey == null && readLocked().deletions.none { it.subject == subject && it.namespace == namespace }) throw LibrarySyncFailure.SessionChanged
+    suspend fun eraseSavedStep(subject: String, namespace: String, ownerKey: String?): Boolean = withStorage {
+        if (ownerKey == null && withContext(Dispatchers.IO) { outcomeJournal.localDeletion(subject, namespace) } == null) throw LibrarySyncFailure.SessionChanged
         withContext(Dispatchers.IO) { outcomeJournal.eraseSavedStep(subject, namespace, ownerKey) }
     }
-    suspend fun savedExportRecords(fence: LibraryOutcomeExportFence, section: Int, after: String?) = mutex.withLock {
+    suspend fun savedExportRecords(fence: LibraryOutcomeExportFence, section: Int, after: String?) = withStorage {
         withContext(Dispatchers.IO) { outcomeJournal.savedExportRecords(fence, section, after) }
     }
     private val savedCollectorMutex = Mutex()
-    suspend fun beginSavedAssembly(owner: LibrarySyncOwner): LibrarySavedLease = mutex.withLock {
+    suspend fun beginSavedAssembly(owner: LibrarySyncOwner): LibrarySavedLease = withStorage {
         assertOutcomeOwnerActive(owner); withContext(Dispatchers.IO) { outcomeJournal.beginSaved(owner) }
     }
-    suspend fun savedCheckpoint(lease: LibrarySavedLease): LibrarySavedCheckpoint = mutex.withLock {
+    suspend fun savedCheckpoint(lease: LibrarySavedLease): LibrarySavedCheckpoint = withStorage {
         withContext(Dispatchers.IO) { outcomeJournal.savedCheckpoint(lease) }
     }
-    suspend fun savedRawPage(lease: LibrarySavedLease, start: Long): LibrarySavedRawPage = mutex.withLock {
+    suspend fun savedRawPage(lease: LibrarySavedLease, start: Long): LibrarySavedRawPage = withStorage {
         withContext(Dispatchers.IO) { outcomeJournal.savedRawPage(lease, start) }
     }
-    suspend fun preparedSavedPage(lease: LibrarySavedLease, after: String?): LibrarySavedProjectionPage = mutex.withLock {
+    suspend fun preparedSavedPage(lease: LibrarySavedLease, after: String?): LibrarySavedProjectionPage = withStorage {
         withContext(Dispatchers.IO) { outcomeJournal.savedPreparedPage(lease, after) }
     }
-    suspend fun activeSavedGeneration(owner: LibrarySyncOwner): LibrarySavedActiveGeneration? = mutex.withLock {
+    suspend fun activeSavedGeneration(owner: LibrarySyncOwner): LibrarySavedActiveGeneration? = withStorage {
         withContext(Dispatchers.IO) { outcomeJournal.savedActive(owner) }
     }
-    suspend fun activeSavedPage(handle: LibrarySavedActiveGeneration, after: String?): LibrarySavedProjectionPage = mutex.withLock {
+    suspend fun activeSavedPage(handle: LibrarySavedActiveGeneration, after: String?): LibrarySavedProjectionPage = withStorage {
         withContext(Dispatchers.IO) { outcomeJournal.savedActivePage(handle, after) }
     }
-    suspend fun replaceSavedCandidate(lease: LibrarySavedLease): LibrarySavedLease = mutex.withLock {
+    suspend fun replaceSavedCandidate(lease: LibrarySavedLease): LibrarySavedLease = withStorage {
         withContext(Dispatchers.IO) { outcomeJournal.replaceSavedCandidate(lease) }
     }
-    suspend fun cleanupSavedGenerationStep(owner: LibrarySyncOwner): Boolean = mutex.withLock {
+    suspend fun cleanupSavedGenerationStep(owner: LibrarySyncOwner): Boolean = withStorage {
         withContext(Dispatchers.IO) { outcomeJournal.cleanupSavedGenerationStep(owner) }
     }
     suspend fun activateSavedGeneration(lease: LibrarySavedLease, isCurrent: () -> Boolean, fetch: suspend (String) -> SavedFactsReply): LibrarySavedActivation {
@@ -583,7 +465,7 @@ class GuestDataStore(context: Context) {
             if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
             val reply = fetch(position.continuation.token)
             if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
-            val result = mutex.withLock {
+            val result = withStorage {
                 withContext(Dispatchers.IO) { if (!isCurrent()) throw LibrarySyncFailure.SessionChanged; outcomeJournal.activateSaved(lease, captured, reply) }
             }
             if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
@@ -595,7 +477,7 @@ class GuestDataStore(context: Context) {
         try {
             val checkpoint = savedCheckpoint(lease)
             if (checkpoint.stage != LibrarySavedStage.Collecting) {
-                val result = mutex.withLock {
+                val result = withStorage {
                     if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
                     withContext(Dispatchers.IO) { if (!isCurrent()) throw LibrarySyncFailure.SessionChanged; outcomeJournal.advanceSaved(lease) }
                 }
@@ -604,7 +486,7 @@ class GuestDataStore(context: Context) {
             }
             val requested = checkpoint.position?.continuation?.token; val reply = fetch(requested)
             if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
-            val result = mutex.withLock {
+            val result = withStorage {
                 withContext(Dispatchers.IO) { if (!isCurrent()) throw LibrarySyncFailure.SessionChanged; outcomeJournal.persistSaved(lease, requested, reply) }
             }
             if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
@@ -616,7 +498,7 @@ class GuestDataStore(context: Context) {
                                    fetch: suspend (SyncOutcomePageRequest) -> SyncOutcomePage): LibraryOutcomeCheckpoint {
         if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
         val binding = LibraryOutcomeBinding(owner, committed)
-        val (generation, checkpoint) = mutex.withLock {
+        val (generation, checkpoint) = withStorage {
             assertOutcomeOwnerActive(owner)
             withContext(Dispatchers.IO) {
                 val generation = outcomeJournal.captureGeneration(binding)
@@ -628,7 +510,7 @@ class GuestDataStore(context: Context) {
         val requested = binding.pageRequest(checkpoint.next)
         val page = fetch(requested)
         if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
-        val result = mutex.withLock {
+        val result = withStorage {
             assertOutcomeOwnerActive(owner)
             withContext(Dispatchers.IO) { outcomeJournal.persist(binding, generation, requested, page) }
         }
@@ -637,7 +519,7 @@ class GuestDataStore(context: Context) {
     }
 
     suspend fun outcomeEvidencePage(committed: SyncCommitted, owner: LibrarySyncOwner, start: Long): LibraryOutcomeEvidencePage =
-        withContext(Dispatchers.IO) { outcomeJournal.evidence(LibraryOutcomeBinding(owner, committed), start) }
+        withStorage { withContext(Dispatchers.IO) { outcomeJournal.evidence(LibraryOutcomeBinding(owner, committed), start) } }
 
 
     private val exportDirectory: File = File(context.cacheDir, "LibraryExports")
@@ -658,7 +540,7 @@ class GuestDataStore(context: Context) {
             ids.forEach { id -> removeArtifactDirectory(id); outcomeJournal.discardArtifact(id) }
         }
     }
-    suspend fun clearAbandonedOutcomeExports() = mutex.withLock {
+    suspend fun clearAbandonedOutcomeExports() = withStorage {
         if (!exportCleanupDone) withContext(Dispatchers.IO) {
             while (true) {
                 val ids = outcomeJournal.artifactIds()
@@ -678,33 +560,32 @@ class GuestDataStore(context: Context) {
         clearAbandonedOutcomeExports()
         while (true) {
             if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
-            val ready = mutex.withLock {
+            val ready = withStorage {
                 assertOutcomeOwnerActive(owner)
-                val blocked = readLocked().deletions.map { LibraryOutcomeBinding.hash(listOf(it.namespace, it.subject)) }.toSet()
-                withContext(Dispatchers.IO) { outcomeJournal.prepareExportStep(blocked) }
+                withContext(Dispatchers.IO) { outcomeJournal.prepareExportStep() }
             }
             if (ready) break
             kotlinx.coroutines.yield()
         }
         if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
-        return mutex.withLock {
+        return withStorage {
             assertOutcomeOwnerActive(owner)
             withContext(Dispatchers.IO) { outcomeJournal.captureExportFence(owner) }
         }
     }
-    suspend fun validateOutcomeExport(fence: LibraryOutcomeExportFence) = mutex.withLock {
+    suspend fun validateOutcomeExport(fence: LibraryOutcomeExportFence) = withStorage {
         assertOutcomeOwnerActive(fence.owner)
         withContext(Dispatchers.IO) { outcomeJournal.validateExport(fence) }
     }
-    suspend fun outcomeExportEntries(fence: LibraryOutcomeExportFence, after: String?): List<LibraryOutcomeExportEntry> = mutex.withLock {
+    suspend fun outcomeExportEntries(fence: LibraryOutcomeExportFence, after: String?): List<LibraryOutcomeExportEntry> = withStorage {
         assertOutcomeOwnerActive(fence.owner)
         withContext(Dispatchers.IO) { outcomeJournal.exportEntries(fence, after) }
     }
-    suspend fun outcomeExportPage(fence: LibraryOutcomeExportFence, entry: LibraryOutcomeExportEntry, start: Long): LibraryOutcomeEvidencePage = mutex.withLock {
+    suspend fun outcomeExportPage(fence: LibraryOutcomeExportFence, entry: LibraryOutcomeExportEntry, start: Long): LibraryOutcomeEvidencePage = withStorage {
         assertOutcomeOwnerActive(fence.owner)
         withContext(Dispatchers.IO) { outcomeJournal.exportPage(fence, entry, start) }
     }
-    suspend fun beginOutcomeExportArtifact(fence: LibraryOutcomeExportFence): LibraryExportArtifact = mutex.withLock {
+    suspend fun beginOutcomeExportArtifact(fence: LibraryOutcomeExportFence): LibraryExportArtifact = withStorage {
         assertOutcomeOwnerActive(fence.owner)
         withContext(Dispatchers.IO) {
             val id = outcomeJournal.registerArtifact(fence)
@@ -715,7 +596,7 @@ class GuestDataStore(context: Context) {
             } catch (error: Exception) { removeArtifactDirectory(id); outcomeJournal.discardArtifact(id); throw error }
         }
     }
-    suspend fun sealOutcomeExport(fence: LibraryOutcomeExportFence, artifact: LibraryExportArtifact, fileName: String): File = mutex.withLock {
+    suspend fun sealOutcomeExport(fence: LibraryOutcomeExportFence, artifact: LibraryExportArtifact, fileName: String): File = withStorage {
         assertOutcomeOwnerActive(fence.owner)
         withContext(Dispatchers.IO) {
             val directory = artifactDirectory(artifact.id)
@@ -726,11 +607,11 @@ class GuestDataStore(context: Context) {
             }
         }
     }
-    suspend fun validateOutcomeExportArtifact(id: String, owner: LibrarySyncOwner) = mutex.withLock {
+    suspend fun validateOutcomeExportArtifact(id: String, owner: LibrarySyncOwner) = withStorage {
         assertOutcomeOwnerActive(owner)
         withContext(Dispatchers.IO) { outcomeJournal.validateArtifact(id, owner) }
     }
-    suspend fun discardOutcomeExportArtifact(id: String) = mutex.withLock {
+    suspend fun discardOutcomeExportArtifact(id: String) = withStorage {
         withContext(Dispatchers.IO) { removeArtifactDirectory(id); outcomeJournal.discardArtifact(id) }
     }
 

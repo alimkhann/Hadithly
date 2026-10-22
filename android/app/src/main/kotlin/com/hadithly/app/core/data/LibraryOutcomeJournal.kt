@@ -136,10 +136,10 @@ data class LibraryOutcomeExportFence(val owner: LibrarySyncOwner, val version: L
 data class LibraryOutcomeExportEntry(val binding: LibraryOutcomeBinding, val checkpoint: LibraryOutcomeCheckpoint)
 data class LibraryExportArtifact(val id: String, val directory: File)
 
-/** Owns page identity, row transactions and erase fences. Never writes ACK intent. */
 private val savedJournalJson = Json { encodeDefaults = true; explicitNulls = false }
 
-internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(context, File(context.filesDir, "library_outcomes.db").absolutePath, null, 4) {
+/** Shared transaction boundary for account state, retained page evidence and erase fences. */
+internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(context, File(context.filesDir, "library_outcomes.db").absolutePath, null, 5) {
     override fun onConfigure(db: SQLiteDatabase) { db.setForeignKeyConstraintsEnabled(true) }
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE scopes (scope_key TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, generation TEXT NOT NULL)")
@@ -150,15 +150,17 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         db.execSQL("CREATE INDEX members_category ON members(collection_key,disposition)")
         createExportSchema(db, ready = true)
         createSavedSchema(db)
+        createLocalStoreSchema(db)
     }
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        if (oldVersion !in 1..3 || newVersion != 4) throw LibrarySyncFailure.StoreUnavailable
+        if (oldVersion !in 1..4 || newVersion != 5) throw LibrarySyncFailure.StoreUnavailable
         if (oldVersion == 1) createExportSchema(db, ready = false)
         if (oldVersion <= 2) createSavedSchema(db)
-        else {
+        else if (oldVersion == 3) {
             db.execSQL("ALTER TABLE saved_assemblies ADD COLUMN active TEXT")
             db.execSQL("ALTER TABLE saved_assemblies ADD COLUMN retiring TEXT")
         }
+        createLocalStoreSchema(db)
     }
     private fun createSavedSchema(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE saved_assemblies (scope_key TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, lease TEXT NOT NULL, checkpoint TEXT NOT NULL, erasing INTEGER NOT NULL, active TEXT, retiring TEXT)")
@@ -184,7 +186,8 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
                 Clock(it.getString(2), it.getLong(3), it.getInt(4) != 0)
             }
         }
-    private fun bumpClock(db: SQLiteDatabase, subject: String, namespace: String, erasing: Boolean = false) {
+    internal fun bumpClock(db: SQLiteDatabase, subject: String, namespace: String, erasing: Boolean = false) {
+        if (!erasing && localScopeDeleting(db, subject, namespace)) throw LibrarySyncFailure.AccountDeleting
         val key = LibraryOutcomeBinding.hash(listOf(namespace, subject)); val old = clock(db, subject, namespace)
         if (old?.erasing == true && !erasing) throw LibrarySyncFailure.AccountDeleting
         if ((old?.revision ?: 0) >= 9_007_199_254_740_990L) throw LibrarySyncFailure.StoreUnavailable
@@ -196,13 +199,14 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         else db.update("export_clocks", values, "scope_key=?", arrayOf(key))
     }
     fun beginErase(subject: String, namespace: String, full: Boolean) = transaction { db -> bumpClock(db, subject, namespace, erasing = full) }
-    fun prepareExportStep(blockedScopes: Set<String>): Boolean = transaction { db ->
+    fun prepareExportStep(): Boolean = transaction { db -> prepareExportStepIn(db) }
+    internal fun prepareExportStepIn(db: SQLiteDatabase): Boolean {
         val phase: String; val after: String
         db.rawQuery("SELECT phase,cursor FROM export_migration WHERE id=1", null).use {
             if (!it.moveToFirst()) throw LibrarySyncFailure.StoreUnavailable
             phase = it.getString(0); after = it.getString(1)
         }
-        if (phase == "ready") return@transaction true
+        if (phase == "ready") return true
         if (phase != "scan" && phase != "check") throw LibrarySyncFailure.StoreUnavailable
         var last: String? = null
         db.rawQuery("SELECT collection_key,authority FROM headers WHERE collection_key>? ORDER BY collection_key LIMIT 50", arrayOf(after)).use { cursor ->
@@ -211,27 +215,28 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
                 val value = Json.decodeFromString<LibraryOutcomeAuthority>(cursor.getString(1)); val binding = LibraryOutcomeBinding(value.owner, value.committed)
                 if (last != binding.key) throw LibrarySyncFailure.StoreUnavailable
                 header(db, binding) ?: throw LibrarySyncFailure.StoreUnavailable
-                val key = LibraryOutcomeBinding.hash(listOf(binding.owner.namespace, binding.owner.subject))
-                if (key !in blockedScopes && clock(db, binding.owner.subject, binding.owner.namespace) == null) bumpClock(db, binding.owner.subject, binding.owner.namespace)
+                if (!localScopeDeleting(db, binding.owner.subject, binding.owner.namespace) && clock(db, binding.owner.subject, binding.owner.namespace) == null) bumpClock(db, binding.owner.subject, binding.owner.namespace)
             }
         }
         val nextPhase = if (last != null) phase else if (phase == "scan") "check" else "ready"
         db.update("export_migration", ContentValues().apply { put("phase", nextPhase); put("cursor", last ?: "") }, "id=1", null)
-        nextPhase == "ready"
+        return nextPhase == "ready"
     }
     private fun checkFence(db: SQLiteDatabase, fence: LibraryOutcomeExportFence) {
+        assertLocalOwner(db, fence.owner)
         val current = clock(db, fence.owner.subject, fence.owner.namespace)
         when (val expected = fence.version) {
-            LibraryOutcomeExportVersion.Empty -> if (current != null || hasSavedRows(db, fence.owner.subject, fence.owner.namespace)) throw LibrarySyncFailure.StoreUnavailable
+            LibraryOutcomeExportVersion.Empty -> if (current != null || hasSavedRows(db, fence.owner.subject, fence.owner.namespace) || hasLocalAccountRows(db, fence.owner.subject, fence.owner.namespace)) throw LibrarySyncFailure.StoreUnavailable
             is LibraryOutcomeExportVersion.Present -> if (current == null || current.erasing || current.epoch != expected.epoch || current.revision != expected.revision) throw LibrarySyncFailure.StoreUnavailable
         }
     }
     fun captureExportFence(owner: LibrarySyncOwner): LibraryOutcomeExportFence = transaction { db ->
+        assertLocalOwner(db, owner)
         db.rawQuery("SELECT phase FROM export_migration WHERE id=1", null).use { if (!it.moveToFirst() || it.getString(0) != "ready") throw LibrarySyncFailure.StoreUnavailable }
         val value = clock(db, owner.subject, owner.namespace)
         val version = if (value == null) {
             db.rawQuery("SELECT collection_key FROM headers WHERE subject=? AND namespace=? LIMIT 1", arrayOf(owner.subject, owner.namespace)).use { if (it.moveToFirst()) throw LibrarySyncFailure.StoreUnavailable }
-            if (hasSavedRows(db, owner.subject, owner.namespace)) throw LibrarySyncFailure.StoreUnavailable
+            if (hasSavedRows(db, owner.subject, owner.namespace) || hasLocalAccountRows(db, owner.subject, owner.namespace)) throw LibrarySyncFailure.StoreUnavailable
             LibraryOutcomeExportVersion.Empty
         } else {
             if (value.erasing) throw LibrarySyncFailure.AccountDeleting
@@ -274,6 +279,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         result
     }
     fun validateArtifact(id: String, owner: LibrarySyncOwner) = transaction { db ->
+        assertLocalOwner(db, owner)
         db.rawQuery("SELECT subject,namespace FROM export_artifacts WHERE artifact_id=?", arrayOf(id)).use {
             if (!it.moveToFirst() || it.getString(0) != owner.subject || it.getString(1) != owner.namespace) throw LibrarySyncFailure.SessionChanged
         }
@@ -288,14 +294,15 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         value
     }
     fun discardArtifact(id: String) = transaction { db -> db.delete("export_artifacts", "artifact_id=?", arrayOf(id)); Unit }
-    private fun <T> transaction(block: (SQLiteDatabase) -> T): T {
+    internal fun <T> transaction(allowUnready: Boolean = false, block: (SQLiteDatabase) -> T): T {
         val db = writableDatabase
         db.beginTransaction()
-        try { val result = block(db); db.setTransactionSuccessful(); return result }
+        try { if (!allowUnready) requireLocalReady(db); val result = block(db); db.setTransactionSuccessful(); return result }
         finally { db.endTransaction() }
     }
     private fun generation(db: SQLiteDatabase, key: String): String? = db.rawQuery("SELECT generation FROM scopes WHERE scope_key=?", arrayOf(key)).use { if (it.moveToFirst()) it.getString(0) else null }
     fun captureGeneration(binding: LibraryOutcomeBinding): String = transaction { db ->
+        assertLocalOwner(db, binding.owner)
         generation(db, binding.scopeKey) ?: UUID.randomUUID().toString().also { value ->
             db.insertOrThrow("scopes", null, ContentValues().apply {
                 put("scope_key", binding.scopeKey); put("generation", value); put("subject", binding.owner.subject)
@@ -321,6 +328,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
             }
         }
     fun open(binding: LibraryOutcomeBinding, expectedGeneration: String): LibraryOutcomeCheckpoint = transaction { db ->
+        assertLocalOwner(db, binding.owner)
         if (generation(db, binding.scopeKey) != expectedGeneration) throw LibrarySyncFailure.SessionChanged
         val stored = header(db, binding, expectedGeneration)
         if (stored != null) {
@@ -366,6 +374,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
     fun persist(binding: LibraryOutcomeBinding, expectedGeneration: String, requested: SyncOutcomePageRequest, page: SyncOutcomePage): LibraryOutcomeCheckpoint {
         val rows = binding.validate(page, requested)
         return transaction { db ->
+            assertLocalOwner(db, binding.owner)
             if (generation(db, binding.scopeKey) != expectedGeneration) throw LibrarySyncFailure.SessionChanged
             val checkpoint = header(db, binding, expectedGeneration) ?: throw LibrarySyncFailure.SessionChanged
             if (requested.start > checkpoint.next.toDouble()) throw LibrarySyncFailure.InvalidReceipt
@@ -406,7 +415,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
             }
         }
     }
-    fun acknowledge(binding: LibraryOutcomeBinding, now: Double) = transaction { db ->
+    internal fun acknowledgeIn(db: SQLiteDatabase, binding: LibraryOutcomeBinding, now: Double) {
         val current = generation(db, binding.scopeKey) ?: throw LibrarySyncFailure.StoreUnavailable
         val checkpoint = header(db, binding, current) ?: throw LibrarySyncFailure.StoreUnavailable
         if (!now.isFinite() || now < 0 || checkpoint.status != LibraryOutcomeStatus.Complete || binding.expected.superseded != 0L || binding.expected.missing != 0L || checkpoint.retention?.removed != null) throw LibrarySyncFailure.InvalidReceipt
@@ -415,7 +424,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
             bumpClock(db, binding.owner.subject, binding.owner.namespace)
         }
     }
-    fun retentionEntries(owner: LibrarySyncOwner, after: String?): List<LibraryOutcomeExportEntry> = transaction { db ->
+    internal fun retentionEntriesIn(db: SQLiteDatabase, owner: LibrarySyncOwner, after: String?): List<LibraryOutcomeExportEntry> {
         val entries = mutableListOf<LibraryOutcomeExportEntry>()
         db.rawQuery("SELECT collection_key,authority FROM headers WHERE subject=? AND namespace=? AND collection_key>? ORDER BY collection_key LIMIT 50", arrayOf(owner.subject, owner.namespace, after ?: "")).use {
             while (it.moveToNext()) {
@@ -424,9 +433,9 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
                 entries.add(LibraryOutcomeExportEntry(binding, header(db, binding) ?: throw LibrarySyncFailure.StoreUnavailable))
             }
         }
-        entries
+        return entries
     }
-    fun prune(binding: LibraryOutcomeBinding, expected: LibraryOutcomeCheckpoint): Boolean = transaction { db ->
+    internal fun pruneIn(db: SQLiteDatabase, binding: LibraryOutcomeBinding, expected: LibraryOutcomeCheckpoint): Boolean {
         val current = generation(db, binding.scopeKey) ?: throw LibrarySyncFailure.StoreUnavailable
         val checkpoint = header(db, binding, current) ?: throw LibrarySyncFailure.StoreUnavailable
         if (checkpoint != expected || checkpoint.status != LibraryOutcomeStatus.Complete) throw LibrarySyncFailure.StoreUnavailable
@@ -446,12 +455,12 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         }
         else db.update("headers", ContentValues().apply { put("checkpoint", Json.encodeToString(checkpoint.copy(retention = retention.copy(removed = next)))) }, "collection_key=?", arrayOf(binding.key))
         bumpClock(db, binding.owner.subject, binding.owner.namespace)
-        done
+        return done
     }
 
-    fun settlementCheckpoint(binding: LibraryOutcomeBinding): LibraryOutcomeCheckpoint = transaction { db ->
+    internal fun settlementCheckpointIn(db: SQLiteDatabase, binding: LibraryOutcomeBinding): LibraryOutcomeCheckpoint {
         val current = generation(db, binding.scopeKey) ?: throw LibrarySyncFailure.StoreUnavailable
-        header(db, binding, current) ?: throw LibrarySyncFailure.StoreUnavailable
+        return header(db, binding, current) ?: throw LibrarySyncFailure.StoreUnavailable
     }
 
     fun evidence(binding: LibraryOutcomeBinding, start: Long): LibraryOutcomeEvidencePage = transaction { db ->
@@ -494,7 +503,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         transaction { db ->
             val remaining = db.rawQuery("SELECT 1 FROM headers WHERE subject=? AND namespace=? UNION ALL SELECT 1 FROM scopes WHERE subject=? AND namespace=? LIMIT 1", arrayOf(subject, namespace, subject, namespace)).use { it.moveToFirst() }
             val artifacts = db.rawQuery("SELECT 1 FROM export_artifacts WHERE subject=? AND namespace=? LIMIT 1", arrayOf(subject, namespace)).use { it.moveToFirst() }
-            if (!remaining && !artifacts && !hasSavedRows(db, subject, namespace)) db.delete("export_clocks", "scope_key=?", arrayOf(LibraryOutcomeBinding.hash(listOf(namespace, subject))))
+            if (!remaining && !artifacts && !hasSavedRows(db, subject, namespace) && !hasLocalAccountRows(db, subject, namespace)) db.delete("export_clocks", "scope_key=?", arrayOf(LibraryOutcomeBinding.hash(listOf(namespace, subject))))
             else if (ownerKey == null) throw LibrarySyncFailure.StoreUnavailable
         }
     }
@@ -514,6 +523,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         bumpClock(db, lease.owner.subject, lease.owner.namespace)
     }
     fun beginSaved(owner: LibrarySyncOwner): LibrarySavedLease = transaction { db ->
+        assertLocalOwner(db, owner)
         savedCheckClock(db, owner)
         val candidate = LibrarySavedLease(owner, UUID.randomUUID().toString(), UUID.randomUUID().toString()); candidate.validate()
         val existing = db.rawQuery("SELECT lease FROM saved_assemblies WHERE scope_key=?", arrayOf(candidate.key)).use { if (it.moveToFirst()) { if (it.getString(0).toByteArray().size > 16_384) throw LibrarySyncFailure.StoreUnavailable; Json.decodeFromString<LibrarySavedLease>(it.getString(0)) } else null }
@@ -572,6 +582,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
             }
         }
     fun persistSaved(lease: LibrarySavedLease, requested: String?, reply: SavedFactsReply): LibrarySavedCheckpoint = transaction { db ->
+        assertLocalOwner(db, lease.owner)
         savedCheckClock(db, lease.owner); val checkpoint = savedHeader(db, lease)
         val replay = savedReceipt(db, lease, requested)
         if (replay != null) {
@@ -640,6 +651,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         return receipts
     }
     fun advanceSaved(lease: LibrarySavedLease): LibrarySavedCheckpoint = transaction { db ->
+        assertLocalOwner(db, lease.owner)
         savedCheckClock(db, lease.owner); val checkpoint = savedHeader(db, lease); var next = checkpoint
         when (val phase = checkpoint.stage) {
             is LibrarySavedStage.Folding -> {
@@ -710,10 +722,12 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         return lease to savedHeader(db, lease)
     }
     fun savedActive(owner: LibrarySyncOwner): LibrarySavedActiveGeneration? = transaction { db ->
+        assertLocalOwner(db, owner)
         val scope = currentSavedScope(db, owner) ?: return@transaction null
         savedGenerations(db, scope.first, scope.second).first?.let { LibrarySavedActiveGeneration(it) }
     }
     fun savedActivePage(handle: LibrarySavedActiveGeneration, after: String?): LibrarySavedProjectionPage = transaction { db ->
+        assertLocalOwner(db, handle.lease.owner)
         val scope = currentSavedScope(db, handle.lease.owner) ?: throw LibrarySyncFailure.SessionChanged
         val active = savedGenerations(db, scope.first, scope.second).first ?: throw LibrarySyncFailure.SessionChanged
         if (LibrarySavedActiveGeneration(active) != handle) throw LibrarySyncFailure.SessionChanged
@@ -721,6 +735,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         LibrarySavedProjectionPage(rows.map { it.second }, rows.lastOrNull()?.first, rows.size < savedStepLimit)
     }
     fun activateSaved(lease: LibrarySavedLease, captured: LibrarySavedCheckpoint, reply: SavedFactsReply): LibrarySavedActivation = transaction { db ->
+        assertLocalOwner(db, lease.owner)
         savedCheckClock(db, lease.owner); val checkpoint = savedHeader(db, lease)
         if (checkpoint != captured || checkpoint.stage != LibrarySavedStage.Prepared) throw LibrarySyncFailure.SessionChanged
         val position = checkpoint.position ?: throw LibrarySyncFailure.InvalidReceipt
@@ -743,6 +758,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         savedSave(db, lease, checkpoint); LibrarySavedActivation.Active(LibrarySavedActiveGeneration(active))
     }
     fun replaceSavedCandidate(lease: LibrarySavedLease): LibrarySavedLease = transaction { db ->
+        assertLocalOwner(db, lease.owner)
         savedCheckClock(db, lease.owner); val checkpoint = savedHeader(db, lease)
         val generations = savedGenerations(db, lease, checkpoint)
         if (generations.first?.lease == lease || generations.second != null) throw LibrarySyncFailure.InvalidChange

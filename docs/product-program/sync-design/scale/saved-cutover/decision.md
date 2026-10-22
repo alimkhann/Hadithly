@@ -20,9 +20,16 @@ From B, retain exact offscreen-target and folder-time-floor counterexamples, ser
 
 From A, retain same-DB partition ownership, staged bulk publication, private observation type and a deep native Saved facade. Reject A's immutable-base-plus-point-overlay anti-join because an empty query could exhaust every overridden row. No invariant requires immutable presentation rows when tickets invalidate on serial changes. Do not claim instantaneous bulk application or normalized pending/positions scale.
 
-## Required guest-transfer correction
+## Guest/account transaction prerequisite
 
-Moving an Android account partition out of AtomicFile breaks the existing one-file atomic guest claim. An account DB marker alone does not solve that seam. Before migrating ownership, specify an idempotent cross-store guest transfer with durable transfer identity, DB import before guest cleanup, restart suppression of the same captured originals, and preservation of newer guest edits. Claims, export and account deletion must converge across each crash boundary. Keep this as a prerequisite; no account migration is implemented or approved by these sketches.
+The initial sketch required a cross-file guest transfer before moving account rows
+out of AtomicFile. The subsequent [account-store design](../account-store/decision.md)
+compared keeping that split with migrating guest state into the same SQLite database.
+The latter eliminates the permanent transfer protocol. Android's one-way staged
+v5 import and atomic guest/account claim now pass real disk/rollback/clone/export/
+deletion evidence. iOS already shares one SwiftData container and has no-change
+parity proof. This does not yet implement the future observation/effective-view
+adapters or enable the production read cutover.
 
 ## Common read boundary implemented first
 
@@ -31,7 +38,7 @@ Compact authenticated Saved-head invalidation, independent exact-ID route/refere
 ## Ordered work and evidence
 
 1. [x] Backend head/reference/fulltext, generated native DTOs and captured native transport guards; 524 backend, 120 iOS and 102 Android checks. See `../../../../LIBRARY_SAVED_READ_BOUNDARY_VERIFICATION.md`. No production observer switch.
-2. [ ] Android owned-partition and guest-transfer protocol, real disk migration/crash/export/erase proof; matching iOS transactional adapters.
+2. [ ] Android shared guest/account transaction prerequisite is locally implemented and verified, with 114 Android and 120 iOS no-change parity passes. See `../../../../LIBRARY_LOCAL_STORE_VERIFICATION.md`. Matching future observation/effective-view transactional adapters remain open; production row mode is still disabled.
 3. [ ] Mandatory single observation through all four pure consumers and every wrapper/internal call; high old joined version must not authorize absent/lower row observation. Production row mode stays disabled until complete read/UI readiness.
 4. [ ] Effective indexes/compiler, exact target/folder reads and filtered keyset windows. Compare exhausted output to the existing reducer oracle on2,001 rows, offscreen Undo, sparse facets, many folders, equal times and unknown routes. No full scan merely to establish empty.
 5. [ ] Bulk build/catch-up/publication, final completion check, binding refresh and private export/erase of all retained stages. Prove every accepted intent and Undo through reopen and races.

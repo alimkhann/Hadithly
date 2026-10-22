@@ -10,16 +10,19 @@ Their checksums and every research URL are recorded in
 
 ## Current stage and rough time budget
 
-October 21 checkpoint: **A2 is active**, specifically native durable assembly of
-bounded Saved pages. Core queue/receipt/ownership, manifest folder delete/Undo,
-outcome journal/export/retention and the first server Saved page boundary have local
-proof. Native assembly/read cutover, broader storage/export scale, installed/SDK
-compatibility and real cross-device proof remain. A1 still has content dependencies.
+October 22 checkpoint: **A2 is active**. Bounded private Saved assembly/activation
+and compact read adapters have local proof. Android now migrates guest and per-owner
+account state into the same SQLite transaction boundary, fixing cloned lost writes;
+114 Android and 120 iOS parity checks pass. See
+`LIBRARY_LOCAL_STORE_VERIFICATION.md`. Next is the coherent private observation,
+effective presentation and production read/UI cutover. Broader storage/export scale,
+installed/SDK compatibility and real cross-device proof remain. A1 still has content
+dependencies.
 
-These are remaining focused-work-day estimates at the pace observed October 18–21,
+These are remaining focused-work-day estimates at the pace observed October 18–22,
 not measured hours or completion promises. External review/account/device waits are
-additional; some observation can overlap later work. Re-estimate after native A2
-integration, rather than interpreting a test count as a percentage complete.
+additional; some observation can overlap later work. Re-estimate after the production A2
+read/UI cutover, rather than interpreting a test count as a percentage complete.
 
 | Stage | Remaining rough budget |
 | --- | --- |

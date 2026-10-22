@@ -7,7 +7,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.clerk.api.Clerk
 import com.hadithly.app.HadithlyApplication
 import com.hadithly.app.core.data.GuestReadingProgressDraft
-import com.hadithly.app.core.data.GuestStoreFile
+import com.hadithly.app.core.data.GuestSnapshot
 import com.hadithly.app.core.data.ReadingPosition
 import com.hadithly.app.core.widgets.WidgetSnapshotStore
 import kotlinx.coroutines.delay
@@ -28,7 +28,7 @@ class ContinueWidgetRuntimeTest {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val app = instrumentation.targetContext.applicationContext as HadithlyApplication
         val before = app.guestData.snapshots()
-        assumeTrue("Run this fixture only on an empty guest store", before == GuestStoreFile())
+        assumeTrue("Run this fixture only on an empty guest store", before == GuestSnapshot())
         assumeTrue("Run this fixture only while signed out", Clerk.sessionsFlow.value.isEmpty())
         assumeTrue("An installed widget is required", androidx.glance.appwidget.GlanceAppWidgetManager(app)
             .getGlanceIds(ContinueReadingWidget::class.java).isNotEmpty())

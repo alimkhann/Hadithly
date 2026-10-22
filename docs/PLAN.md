@@ -57,6 +57,20 @@ start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
 
+## A2 local-state checkpoint, October 22
+
+Android guest and per-owner account state now share the Saved/outcome SQLite
+transaction boundary. Actual cloned-store probes reproduced sixteen accepted writes
+retaining only one; both now retain all sixteen. Staged v5 import, exact originals,
+claim/ACK rollback, scoped deletion, orphan export and prior v1-v4 data preservation
+pass locally. See `docs/LIBRARY_LOCAL_STORE_VERIFICATION.md` and its accepted
+independent recheck. Android has 114 store/facade passes and one separate installed
+widget fixture skip; iOS has 120 no-change parity passes. Production Saved reads
+and all four private observation consumers still use the legacy joined snapshot.
+Their coherent cutover, effective presentation indexes, full scale, installed/SDK/
+cross-device/device, recoverable iOS save failure and deployment remain open.
+No A2 deployment was performed. The full PRODUCT_PROGRAM and A1 dependencies remain.
+
 ## Native finishing pass, October 16
 
 Owner-authorized work continues from `4c24b08`, including the October 16 screenshot
