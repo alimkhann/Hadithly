@@ -642,7 +642,19 @@ class LibrarySync(
         Json.encodeToJsonElement(LibraryPartitionState.serializer(), state).withoutProviderPassages()
     }
 
-    suspend fun preparePortableExport(server: kotlinx.serialization.json.JsonObject, captured: LibraryWriteContext, fileName: String): LibraryPreparedExport = withContext(Dispatchers.Main.immediate) {
+    suspend fun preparePortableExport(server: kotlinx.serialization.json.JsonObject, captured: LibraryWriteContext, fileName: String): LibraryPreparedExport {
+        repeat(3) { attempt ->
+            try { return preparePortableExportAttempt(server, captured, fileName) }
+            catch (failure: LibrarySyncFailure.StoreUnavailable) {
+                if (attempt == 2) throw failure
+                kotlinx.coroutines.currentCoroutineContext().ensureActive()
+                kotlinx.coroutines.yield()
+            }
+        }
+        throw LibrarySyncFailure.StoreUnavailable
+    }
+    private suspend fun preparePortableExportAttempt(server: kotlinx.serialization.json.JsonObject, captured: LibraryWriteContext, fileName: String): LibraryPreparedExport = withContext(Dispatchers.Main.immediate) {
+
         capability(captured)
         if (fileName.isEmpty() || fileName == "." || fileName == ".." || java.io.File(fileName).name != fileName) throw LibrarySyncFailure.InvalidChange
         val fence = store.prepareOutcomeExport(captured.owner) { runCatching { capability(captured) }.isSuccess }

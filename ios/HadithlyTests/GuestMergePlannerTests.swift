@@ -6,6 +6,92 @@ import zlib
 @testable import Hadithly
 
 final class GuestMergePlannerTests: XCTestCase {
+    @MainActor func testReopenedAccountWritersPreserveEachAcceptedCommand() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("clones.store"), owner = LibrarySyncOwner(key: "owner", subject: "subject")
+        let initial = GuestDataStore(storeURL: url); try initial.claimGuestForSync(owner)
+        let clones = (0..<8).map { _ in GuestDataStore(storeURL: url) }
+        for clone in clones { XCTAssertNotNil(try clone.syncPartition(owner)) }
+        let changes = (0..<8).map { LibraryLocalChange(command: .notePut(.init(hadithId: "target-\($0)", content: "Accepted original \($0)", createdAt: 1_000, updatedAt: 1_000)), at: 1_000, source: .account(nil)) }
+        for (clone, change) in zip(clones, changes) { try clone.enqueueSyncChange(change, owner: owner) }
+        XCTAssertEqual(try GuestDataStore(storeURL: url).syncPartition(owner)?.pending, changes)
+        XCTAssertEqual(try initial.syncPartition(owner)?.pending, changes)
+    }
+    @MainActor func testAccountOnlyMutationInvalidatesExportFenceAndGuestMutationDoesNot() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("clock.store"), owner = LibrarySyncOwner(key: "owner", subject: "subject")
+        let store = GuestDataStore(storeURL: url); try store.claimGuestForSync(owner)
+        let fence = try await store.prepareOutcomeExport(owner, isCurrent: { true })
+        store.addBookmark(hadithId: "unclaimed-guest"); XCTAssertNoThrow(try store.validateOutcomeExport(fence))
+        try GuestDataStore(storeURL: url).enqueueSyncChange(.init(command: .noteRemove(.init(hadithId: "target")), at: 1_000, source: .account(nil)), owner: owner)
+        XCTAssertThrowsError(try store.validateOutcomeExport(fence))
+    }
+    @MainActor func testAccountAndAckMarkerRollbackTogetherOnClockExhaustion() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("rollback.store")
+        let (store, proof, ack) = try await acknowledgedRetentionFixture(count: 1, url: url, acknowledge: false)
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), before = try store.syncPartition(owner)
+        let container = try ModelContainer(for: GuestDataStore.schema, configurations: [ModelConfiguration(schema: GuestDataStore.schema, url: url)])
+        let setup = ModelContext(container); setup.autosaveEnabled = false
+        let key = LibraryOutcomeBinding.hash([owner.namespace, owner.subject])
+        let clock = try XCTUnwrap(setup.fetch(FetchDescriptor<GuestOutcomeClock>(predicate: #Predicate { $0.key == key })).first)
+        let originalRevision = clock.revision
+        // The journal's ACK bump succeeds; the account bump then exhausts this clock.
+        clock.revision = 9_007_199_254_740_989; try setup.save()
+        let fence = try await store.prepareOutcomeExport(owner, isCurrent: { true })
+        XCTAssertThrowsError(try store.settleSyncAcknowledgement(acknowledged(ack), requested: ack, owner: owner, now: 2_000))
+        let reopened = GuestDataStore(storeURL: url)
+        XCTAssertEqual(try reopened.syncPartition(owner), before)
+        XCTAssertNil(try reopened.outcomeEvidencePage(proof, owner: owner, start: 0).checkpoint.retention)
+        XCTAssertNoThrow(try reopened.validateOutcomeExport(fence))
+        clock.revision = originalRevision; try setup.save()
+        try reopened.settleSyncAcknowledgement(acknowledged(ack), requested: ack, owner: owner, now: 9_000)
+        XCTAssertEqual(try reopened.outcomeEvidencePage(proof, owner: owner, start: 0).checkpoint.retention?.acknowledgedAt, 9_000)
+        XCTAssertNil(try reopened.syncPartition(owner)?.acknowledgement)
+    }
+    @MainActor func testClaimDoesNotResurrectCachedGuestAndLateOriginalSurvives() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("claim.store"), owner = LibrarySyncOwner(key: "owner", subject: "subject")
+        let old = GuestDataStore(storeURL: url); old.addBookmark(hadithId: "before")
+        XCTAssertEqual(old.bookmarkDrafts().map(\.hadithId), ["before"])
+        try GuestDataStore(storeURL: url).claimGuestForSync(owner)
+        XCTAssertTrue(old.bookmarkDrafts().isEmpty)
+        old.addBookmark(hadithId: "late")
+        let reopened = GuestDataStore(storeURL: url)
+        XCTAssertEqual(reopened.bookmarkDrafts().map(\.hadithId), ["late"])
+        XCTAssertEqual(try reopened.syncPartition(owner)?.pending.count, 1)
+        try reopened.claimGuestForSync(owner); let state = try reopened.syncPartition(owner)
+        try reopened.claimGuestForSync(owner); XCTAssertEqual(try reopened.syncPartition(owner), state)
+        XCTAssertEqual(state?.pending.count, 2)
+    }
+    @MainActor func testLegacyAccountWithoutClockGainsPresentFenceAndNoOpDoesNotInvalidateIt() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("legacy.store"), owner = LibrarySyncOwner(key: "legacy", subject: "subject")
+        let original = LibraryPartitionState()
+        try seedPartitionFixture(original, owner: owner, url: url)
+        let store = GuestDataStore(storeURL: url), fence = try await store.prepareOutcomeExport(owner, isCurrent: { true })
+        if case .present = fence.version { } else { XCTFail("Existing account exported as empty") }
+        XCTAssertNil(try store.freezeSyncFrame(owner)); try store.claimGuestForSync(owner)
+        XCTAssertEqual(try store.syncPartition(owner), original); XCTAssertNoThrow(try store.validateOutcomeExport(fence))
+    }
+    @MainActor func testAmbiguousAccountKeysRejectBeforeCreationAndLateWritesRespectDeletion() throws {
+        let store = GuestDataStore(inMemory: true), owner = LibrarySyncOwner(key: "owner", subject: "subject")
+        XCTAssertThrowsError(try store.claimGuestForSync(.init(key: "bad|owner", subject: owner.subject)))
+        try store.claimGuestForSync(owner); try store.beginDeletion(subject: owner.subject, namespace: owner.namespace)
+        XCTAssertThrowsError(try store.enqueueSyncChange(.init(command: .noteRemove(.init(hadithId: "late")), at: 1_000, source: .account(nil)), owner: owner))
+        XCTAssertThrowsError(try store.clearDeletion(subject: owner.subject, namespace: owner.namespace))
+        XCTAssertEqual(try store.deletionPhase(subject: owner.subject, namespace: owner.namespace), .serverPending)
+    }
     private func savedPlan(_ reply: SavedFactsReply, owner: LibrarySyncOwner, previous: LibrarySavedReadPosition? = nil, requested: String? = nil) throws -> LibrarySavedPagePlan {
         guard case .append(let value) = try LibrarySavedPolicy.inspect(reply, owner: owner, previous: previous, requested: requested) else { throw LibrarySyncFailure.invalidReceipt }
         return value
@@ -735,7 +821,7 @@ final class GuestMergePlannerTests: XCTestCase {
     }
 
     @MainActor func testOutcomeExportMutationCancellationSwitchAndErasureDiscardPartialFiles() async throws {
-        for mode in ["mutation", "cancel", "switch", "erase"] {
+        for mode in ["mutation", "persistent", "cancel", "switch", "erase"] {
             let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
             let store = GuestDataStore(inMemory: true, exportDirectory: root), fixture = LibraryFacadeFixture(store: store)
             defer { fixture.stop() }
@@ -752,6 +838,20 @@ final class GuestMergePlannerTests: XCTestCase {
             }
             XCTAssertTrue(sawPartial)
             switch mode {
+            case "persistent":
+                var invalidated = Set<URL>()
+                for attempt in 0..<3 {
+                    var next: URL?
+                    for _ in 0..<1_000 {
+                        let directories = (try? FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)) ?? []
+                        next = directories.first { !invalidated.contains($0) && FileManager.default.fileExists(atPath: $0.appendingPathComponent("document.partial").path) }
+                        if next != nil { break }; await Task.yield()
+                    }
+                    invalidated.insert(try XCTUnwrap(next))
+                    try store.enqueueSyncChange(.init(command: .noteRemove(.init(hadithId: "changed-\(attempt)")), at: 1_000, source: .account(nil)), owner: owner)
+                    await Task.yield()
+                }
+                XCTAssertEqual(invalidated.count, 3)
             case "cancel": task.cancel()
             case "switch": fixture.session.value = .init(id: "session-b", subject: "subject-b"); fixture.sync.deactivate()
             case "erase":
@@ -759,7 +859,15 @@ final class GuestMergePlannerTests: XCTestCase {
                 try await store.markDeletionBackendComplete(subject: owner.subject, namespace: owner.namespace)
             default: try await collectExportFacts(taggedOutcomeProof(owner, count: 1, tag: "insert-during-export"), owner: owner, count: 1, store: store)
             }
-            do { _ = try await task.value; XCTFail("Changed/canceled export was published") } catch { }
+            if mode == "mutation" {
+                let prepared = try await task.value
+                let probe = try JSONDecoder().decode(OutcomeExportProbe.self, from: Data(contentsOf: prepared.url))
+                XCTAssertEqual(probe.localOutcomeEvidence.count, 2)
+                XCTAssertTrue(probe.localOutcomeEvidence.contains { $0.authority.committed.clientKey == "insert-during-export" })
+                try fixture.sync.discardPreparedExport(prepared)
+            } else {
+                do { _ = try await task.value; XCTFail("Canceled, erased or repeatedly changed export was published") } catch { }
+            }
             let leftovers = (try? FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)) ?? []
             XCTAssertTrue(leftovers.isEmpty)
         }
@@ -784,12 +892,12 @@ final class GuestMergePlannerTests: XCTestCase {
         XCTAssertTrue(((try? FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)) ?? []).isEmpty)
     }
 
-    @MainActor func testOutcomeExportArtifactCleanupAndEmptyFenceNeverRecreateDeletedMetadata() async throws {
+    @MainActor func testOutcomeExportArtifactCleanupAndAccountFenceNeverRecreateDeletedMetadata() async throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
         let store = GuestDataStore(inMemory: true, exportDirectory: root)
         try store.claimGuestForSync(owner)
         let empty = try await store.prepareOutcomeExport(owner, isCurrent: { true })
-        XCTAssertEqual(empty.version, .empty)
+        if case .present = empty.version { } else { XCTFail("Account state requires a clock") }
         let artifact = try store.beginOutcomeExportArtifact(empty)
         try Data("abandoned".utf8).write(to: artifact.directory.appendingPathComponent("document.partial"))
         try store.clearAbandonedOutcomeExports()

@@ -10,14 +10,23 @@ Their checksums and every research URL are recorded in
 
 ## Current stage and rough time budget
 
-October 22 checkpoint: **A2 is active**. Bounded private Saved assembly/activation
-and compact read adapters have local proof. Android now migrates guest and per-owner
-account state into the same SQLite transaction boundary, fixing cloned lost writes;
-114 Android and 120 iOS parity checks pass. See
-`LIBRARY_LOCAL_STORE_VERIFICATION.md`. Next is the coherent private observation,
-effective presentation and production read/UI cutover. Broader storage/export scale,
-installed/SDK compatibility and real cross-device proof remain. A1 still has content
-dependencies.
+October 23 checkpoint: **A2 is active**. Android shared guest/account storage and
+the matching iOS account/journal/clock transaction boundary are implemented locally.
+Both native exporters now retain strict local fences and retry a transient change
+at most three times. See `LIBRARY_ACCOUNT_TRANSACTIONS_VERIFICATION.md`.
+
+The owner asked to wrap up A2 as quickly as possible. Use the already selected
+cutover design and concentrate remaining work into these delivery steps:
+
+1. Migrate all four private Saved observation consumers through store authority.
+2. Connect effective indexed presentation, bounded refresh and both native Saved/
+   Reader surfaces together; remove the old production joined-array authority.
+3. Verify scale, installed/SDK compatibility and actual delivery in both directions,
+   with sign-out/account switches. Complete an authorized development rollout when
+   the code is reviewable. Keep unavailable external/device gates explicit.
+
+Actual recoverable iOS save failure, storage/export scale and A1 content dependencies
+remain open. This checkpoint does not move the program to A3 or claim A2 complete.
 
 These are remaining focused-work-day estimates at the pace observed October 18–22,
 not measured hours or completion promises. External review/account/device waits are

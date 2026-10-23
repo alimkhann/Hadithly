@@ -979,7 +979,7 @@ class GuestMergeRaceTest {
         }
     }
     @Test fun outcomeExportMutationCancellationSwitchAndErasureDiscardPartialFiles() = runBlocking {
-        for (mode in listOf("mutation", "cancel", "switch", "erase")) isolated { store, _, directory ->
+        for (mode in listOf("mutation", "persistent", "cancel", "switch", "erase")) isolated { store, _, directory ->
             val fixture = AndroidLibraryFacadeFixture(store)
             try {
                 fixture.start(); val owner = LibrarySyncOwner("owner-a", "subject-a")
@@ -991,12 +991,34 @@ class GuestMergeRaceTest {
                         val root = File(directory, "cache/LibraryExports")
                         withTimeout(8_000) { while (root.listFiles().orEmpty().none { File(it, "document.partial").exists() }) yield() }
                         when (mode) {
+                            "persistent" -> {
+                                val invalidated = mutableSetOf<File>()
+                                repeat(3) { attempt ->
+                                    val next = withTimeout(8_000) {
+                                        var found: File? = null
+                                        while (found == null) { found = root.listFiles().orEmpty().firstOrNull { it !in invalidated && File(it, "document.partial").exists() }; if (found == null) yield() }
+                                        found
+                                    }
+                                    invalidated.add(next)
+                                    store.enqueueSyncChange(LibraryLocalChange(SyncCommand.NoteRemove("changed-$attempt"), 1_000.0, LibraryLocalSource.Account(null)), owner)
+                                    yield()
+                                }
+                                assertEquals(3, invalidated.size)
+                            }
                             "cancel" -> task.cancel()
                             "switch" -> { fixture.session.value = LibrarySyncSession("session-b", "subject-b"); fixture.sync.deactivate() }
                             "erase" -> { store.beginDeletion(owner.subject, owner.namespace); store.markDeletionBackendComplete(owner.subject, owner.namespace) }
                             else -> collectExportFacts(taggedOutcomeProof(owner, 1, "insert-during-export"), owner, 1, store)
                         }
-                        try { task.await(); fail("Changed/canceled export was published") } catch (_: Exception) { }
+                        if (mode == "mutation") {
+                            val prepared = task.await()
+                            val document = Json.parseToJsonElement(prepared.file.readText()) as kotlinx.serialization.json.JsonObject
+                            val entries = document.getValue("localOutcomeEvidence") as kotlinx.serialization.json.JsonArray
+                            assertEquals(2, entries.size); assertTrue(exportContains(entries, "insert-during-export"))
+                            fixture.sync.discardPreparedExport(prepared)
+                        } else {
+                            try { task.await(); fail("Canceled, erased or repeatedly changed export was published") } catch (_: Exception) { }
+                        }
                         assertTrue(root.listFiles().orEmpty().isEmpty())
                     }
                 }

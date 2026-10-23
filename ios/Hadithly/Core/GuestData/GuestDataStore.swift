@@ -310,39 +310,53 @@ final class GuestDataStore {
 
     // MARK: - Durable account partitions
 
-    private func partitionRow(_ owner: LibrarySyncOwner) throws -> GuestLibraryPartition? {
+    private func partitionRow(_ owner: LibrarySyncOwner, in db: ModelContext) throws -> GuestLibraryPartition? {
+        guard [owner.key, owner.subject, owner.namespace].allSatisfy({ !$0.isEmpty && $0.utf8.count <= 1_024 }),
+              !owner.key.contains("|"), !owner.namespace.contains("|") else { throw LibrarySyncFailure.ownerMismatch }
         let key = owner.storageKey
         var descriptor = FetchDescriptor<GuestLibraryPartition>(predicate: #Predicate { $0.ownerKey == key })
-        descriptor.fetchLimit = 1
-        let row = try context.fetch(descriptor).first
-        guard row == nil || row?.subject == owner.subject else { throw LibrarySyncFailure.ownerMismatch }
-        return row
+        descriptor.fetchLimit = 2
+        let rows = try db.fetch(descriptor)
+        guard rows.count <= 1 else { throw LibrarySyncFailure.storeUnavailable }
+        guard rows.first == nil || rows.first?.subject == owner.subject else { throw LibrarySyncFailure.ownerMismatch }
+        return rows.first
     }
-
-    func syncPartition(_ owner: LibrarySyncOwner) throws -> LibraryPartitionState? {
-        guard let row = try partitionRow(owner) else { return nil }
+    private func syncPartition(_ owner: LibrarySyncOwner, in db: ModelContext) throws -> LibraryPartitionState? {
+        guard let row = try partitionRow(owner, in: db) else { return nil }
         do { return try JSONDecoder().decode(LibraryPartitionState.self, from: row.stateData) }
         catch { throw LibrarySyncFailure.storeUnavailable }
     }
-
-    private func saveSyncPartition(_ state: LibraryPartitionState, owner: LibrarySyncOwner) throws {
-        let data = try JSONEncoder().encode(state)
-        if let row = try partitionRow(owner) { row.stateData = data }
-        else { context.insert(GuestLibraryPartition(ownerKey: owner.storageKey, subject: owner.subject, stateData: data)) }
-        do { try context.save() }
-        catch { context.rollback(); throw LibrarySyncFailure.storeUnavailable }
+    func syncPartition(_ owner: LibrarySyncOwner) throws -> LibraryPartitionState? {
+        try syncPartition(owner, in: outcomeContext())
+    }
+    private func withAccount<T>(_ owner: LibrarySyncOwner, _ body: (inout LibraryPartitionState, ModelContext) throws -> T) throws -> T {
+        let db = outcomeContext()
+        try assertOutcomeOwnerActive(owner, in: db)
+        guard var state = try syncPartition(owner, in: db), let row = try partitionRow(owner, in: db) else { throw LibrarySyncFailure.sessionChanged }
+        let before = state
+        do {
+            let result = try body(&state, db)
+            if state != before {
+                row.stateData = try JSONEncoder().encode(state)
+                try bumpOutcomeClock(subject: owner.subject, namespace: owner.namespace, in: db)
+            }
+            if db.hasChanges { try saveOutcomeContext(db) }
+            return result
+        } catch { db.rollback(); throw error }
     }
 
     /// The claim and guest removal share one SwiftData commit, with no network await.
     func claimGuestForSync(_ owner: LibrarySyncOwner) throws {
-        guard try deletionPhase(subject: owner.subject, namespace: owner.namespace) == nil else { throw LibrarySyncFailure.accountDeleting }
-        let bookmarks = try context.fetch(FetchDescriptor<GuestBookmark>())
-        let favorites = try context.fetch(FetchDescriptor<GuestFavorite>())
-        let notes = try context.fetch(FetchDescriptor<GuestNote>())
-        let folders = try context.fetch(FetchDescriptor<GuestSavedFolder>())
-        let memberships = try context.fetch(FetchDescriptor<GuestSavedMembership>())
-        let positions = try context.fetch(FetchDescriptor<GuestReadingProgress>())
-        var state = try syncPartition(owner) ?? LibraryPartitionState()
+        let db = outcomeContext()
+        guard try deletionRow(subject: owner.subject, namespace: owner.namespace, in: db) == nil else { throw LibrarySyncFailure.accountDeleting }
+        let bookmarks = try db.fetch(FetchDescriptor<GuestBookmark>())
+        let favorites = try db.fetch(FetchDescriptor<GuestFavorite>())
+        let notes = try db.fetch(FetchDescriptor<GuestNote>())
+        let folders = try db.fetch(FetchDescriptor<GuestSavedFolder>())
+        let memberships = try db.fetch(FetchDescriptor<GuestSavedMembership>())
+        let positions = try db.fetch(FetchDescriptor<GuestReadingProgress>())
+        let before = try syncPartition(owner, in: db)
+        var state = before ?? LibraryPartitionState()
         for row in folders {
             let draft = GuestSavedFolderDraft(localId: row.localId, name: row.name, createdAt: row.createdAt)
             let name = row.name.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -375,30 +389,25 @@ final class GuestDataStore {
             state.append(.position(draft), command: command, at: draft.effectiveUpdatedAt.millisecondsSinceEpoch)
         }
         let data = try JSONEncoder().encode(state)
-        if let row = try partitionRow(owner) { row.stateData = data }
-        else { context.insert(GuestLibraryPartition(ownerKey: owner.storageKey, subject: owner.subject, stateData: data)) }
-        bookmarks.forEach { context.delete($0) }
-        favorites.forEach { context.delete($0) }
-        notes.forEach { context.delete($0) }
-        folders.forEach { context.delete($0) }
-        memberships.forEach { context.delete($0) }
-        positions.forEach { context.delete($0) }
-        do { try context.save() }
-        catch { context.rollback(); throw LibrarySyncFailure.storeUnavailable }
+        if let row = try partitionRow(owner, in: db) { row.stateData = data }
+        else { db.insert(GuestLibraryPartition(ownerKey: owner.storageKey, subject: owner.subject, stateData: data)) }
+        bookmarks.forEach { db.delete($0) }
+        favorites.forEach { db.delete($0) }
+        notes.forEach { db.delete($0) }
+        folders.forEach { db.delete($0) }
+        memberships.forEach { db.delete($0) }
+        positions.forEach { db.delete($0) }
+        if before != state { try bumpOutcomeClock(subject: owner.subject, namespace: owner.namespace, in: db) }
+        do { try db.save() }
+        catch { db.rollback(); throw LibrarySyncFailure.storeUnavailable }
         refreshCount()
     }
 
     func freezeSyncFrame(_ owner: LibrarySyncOwner) throws -> SyncFrame? {
-        guard var state = try syncPartition(owner) else { return nil }
-        let batch = try state.freeze()
-        try saveSyncPartition(state, owner: owner)
-        return batch
+        try withAccount(owner) { state, _ in try state.freeze() }
     }
-
     func enqueueSyncChange(_ change: LibraryLocalChange, owner: LibrarySyncOwner) throws {
-        guard var state = try syncPartition(owner) else { throw LibrarySyncFailure.sessionChanged }
-        state.pending.append(change)
-        try saveSyncPartition(state, owner: owner)
+        try withAccount(owner) { state, _ in state.pending.append(change) }
     }
 
     private func validateSyncOwner(_ owner: LibrarySyncOwner, replyOwner: String, cursor: SyncCursor? = nil) throws {
@@ -411,9 +420,7 @@ final class GuestDataStore {
         case .pending(let value): try validateSyncOwner(owner, replyOwner: value.ownerKey)
         case .reconcile(let value): try validateSyncOwner(owner, replyOwner: value.ownerKey, cursor: value.cursor)
         }
-        guard var state = try syncPartition(owner) else { return }
-        try state.settle(exchange, requested: requested, now: now)
-        try saveSyncPartition(state, owner: owner)
+        try withAccount(owner) { state, _ in try state.settle(exchange, requested: requested, now: now) }
     }
 
     func settleSyncPending(_ exchange: SyncExchange, requested: SyncPending, owner: LibrarySyncOwner, now: Double = Date.now.millisecondsSinceEpoch) throws {
@@ -422,184 +429,199 @@ final class GuestDataStore {
         case .pending(let value): try validateSyncOwner(owner, replyOwner: value.ownerKey)
         case .reconcile(let value): try validateSyncOwner(owner, replyOwner: value.ownerKey, cursor: value.cursor)
         }
-        guard var state = try syncPartition(owner) else { return }
-        try state.settlePending(exchange, requested: requested, now: now)
-        try saveSyncPartition(state, owner: owner)
+        try withAccount(owner) { state, _ in try state.settlePending(exchange, requested: requested, now: now) }
     }
 
     func settleSyncRetirement(_ reply: SyncAckReply, requested: SyncFrame, owner: LibrarySyncOwner) throws {
         try validateSyncOwner(owner, replyOwner: reply.ownerKey, cursor: reply.cursor)
-        guard var state = try syncPartition(owner) else { return }
-        try state.settleRetirement(reply, requested: requested)
-        try saveSyncPartition(state, owner: owner)
+        try withAccount(owner) { state, _ in try state.settleRetirement(reply, requested: requested) }
     }
 
     func settleSyncAcknowledgement(_ reply: SyncAckReply, requested: SyncAcknowledgement, owner: LibrarySyncOwner, now: Double = Date.now.millisecondsSinceEpoch) throws {
         try validateSyncOwner(owner, replyOwner: reply.ownerKey, cursor: reply.cursor)
-        guard var state = try syncPartition(owner) else { return }
-        let link = state.manifestAckLink
-        try state.settleAcknowledgement(reply, requested: requested)
-        if let link, reply.cursor.closedThrough >= requested.sequence {
-            guard link.owner == owner, link.request.proof == requested else { throw LibrarySyncFailure.invalidReceipt }
-            try assertOutcomeOwnerActive(owner)
-            try acknowledgeOutcomeEvidence(link, now: now)
+        try withAccount(owner) { state, db in
+            let link = state.manifestAckLink
+            try state.settleAcknowledgement(reply, requested: requested)
+            if let link, reply.cursor.closedThrough >= requested.sequence {
+                guard link.owner == owner, link.request.proof == requested else { throw LibrarySyncFailure.invalidReceipt }
+                try acknowledgeOutcomeEvidence(link, now: now, in: db)
+            }
         }
-        try saveSyncPartition(state, owner: owner)
     }
-
-    private func acknowledgeOutcomeEvidence(_ binding: LibraryOutcomeBinding, now: Double) throws {
-        let journal = outcomeContext()
-        guard now.isFinite, now >= 0, let scope = try outcomeScope(binding.scopeKey, in: journal),
-              let header = try outcomeHeader(binding.key, in: journal), header.generation == scope.generation else { throw LibrarySyncFailure.storeUnavailable }
+    private func acknowledgeOutcomeEvidence(_ binding: LibraryOutcomeBinding, now: Double, in db: ModelContext) throws {
+        guard now.isFinite, now >= 0, let scope = try outcomeScope(binding.scopeKey, in: db),
+              let header = try outcomeHeader(binding.key, in: db), header.generation == scope.generation else { throw LibrarySyncFailure.storeUnavailable }
         var checkpoint = try outcomeCheckpoint(header, binding: binding)
         guard checkpoint.status == .complete, binding.expected.superseded == 0, binding.expected.missing == 0,
               checkpoint.retention?.removed == nil else { throw LibrarySyncFailure.invalidReceipt }
         if checkpoint.retention != nil { return }
         checkpoint.retention = .init(acknowledgedAt: now, removed: nil)
         header.checkpointData = try JSONEncoder().encode(checkpoint)
-        try bumpOutcomeClock(subject: binding.owner.subject, namespace: binding.owner.namespace, in: journal)
-        try saveOutcomeContext(journal)
+        try bumpOutcomeClock(subject: binding.owner.subject, namespace: binding.owner.namespace, in: db)
     }
 
     func pruneOutcomeSuccessStep(_ owner: LibrarySyncOwner, now: Double) throws -> Bool {
         try assertOutcomeOwnerActive(owner)
         guard now.isFinite, now >= 0 else { throw LibrarySyncFailure.invalidReceipt }
         if try !prepareOutcomeInventoryStep() { return true }
-        guard var active = try syncPartition(owner) else { throw LibrarySyncFailure.sessionChanged }
-        let journal = outcomeContext(), prefix = LibraryOutcomeBinding.hash([owner.namespace, owner.subject]) + ":"
-        let lower = active.outcomeRetentionCursor.map { prefix + $0 + "!" } ?? prefix, upper = prefix + "~"
-        var query = FetchDescriptor<GuestOutcomeInventory>(predicate: #Predicate { $0.key >= lower && $0.key < upper }, sortBy: [SortDescriptor(\.key, comparator: .lexical)])
-        query.fetchLimit = LibrarySyncLimits.outcomePage
-        let inventory = try journal.fetch(query)
-        if inventory.isEmpty {
-            if active.outcomeRetentionCursor != nil { active.outcomeRetentionCursor = nil; try saveSyncPartition(active, owner: owner) }
-            return false
-        }
-        var cursor = active.outcomeRetentionCursor
-        for entry in inventory {
-            guard let header = try outcomeHeader(entry.headerKey, in: journal) else { throw LibrarySyncFailure.storeUnavailable }
-            let binding = try JSONDecoder().decode(LibraryOutcomeBinding.self, from: header.bindingData)
-            guard binding.owner.subject == owner.subject, binding.owner.namespace == owner.namespace,
-                  entry.key == prefix + binding.key else { throw LibrarySyncFailure.ownerMismatch }
-            var checkpoint = try outcomeCheckpoint(header, binding: binding)
-            let dependencyState = try syncPartition(binding.owner)
-            let claimed = checkpoint.retention?.removed != nil
-            let eligible = dependencyState?.canPruneOutcome(binding, checkpoint: checkpoint, now: now) == true
-            // A missing owner partition never supplies Saved/dependency authority.
-            if dependencyState != nil && (claimed || eligible) {
-                guard let scope = try outcomeScope(binding.scopeKey, in: journal), scope.generation == header.generation,
-                      var retention = checkpoint.retention else { throw LibrarySyncFailure.storeUnavailable }
-                let start = retention.removed ?? 0
-                let rows = try outcomeRows(binding, start: start, limit: checkpoint.next, in: journal)
-                for row in rows {
-                    let ordinal = binding.ordinalKey(Int(row.ordinal))
-                    var memberQuery = FetchDescriptor<GuestOutcomeMember>(predicate: #Predicate { $0.ordinalKey == ordinal }); memberQuery.fetchLimit = 2
-                    let stored = try journal.fetch(memberQuery)
-                    guard stored.count == 1 else { throw LibrarySyncFailure.storeUnavailable }
-                    journal.delete(stored[0])
-                }
-                retention.removed = start + rows.count
-                if retention.removed == checkpoint.next {
-                    let collectionKey = binding.key
-                    var remaining = FetchDescriptor<GuestOutcomeMember>(predicate: #Predicate { $0.collectionKey == collectionKey }); remaining.fetchLimit = 1
-                    guard try journal.fetch(remaining).isEmpty else { throw LibrarySyncFailure.storeUnavailable }
-                    journal.delete(header); journal.delete(entry); cursor = binding.key
-                    let storageKey = binding.owner.storageKey, subject = binding.owner.subject, namespace = binding.owner.namespace
-                    var others = FetchDescriptor<GuestOutcomeHeader>(predicate: #Predicate { $0.ownerKey == storageKey && $0.subject == subject && $0.namespace == namespace }); others.fetchLimit = 1
-                    if try journal.fetch(others).isEmpty { journal.delete(scope) }
-                } else {
-                    checkpoint.retention = retention
-                    header.checkpointData = try JSONEncoder().encode(checkpoint)
-                }
-                try bumpOutcomeClock(subject: owner.subject, namespace: owner.namespace, in: journal)
-                try saveOutcomeContext(journal)
-                active.outcomeRetentionCursor = cursor
-                try saveSyncPartition(active, owner: owner)
-                return true
+        return try withAccount(owner) { active, journal in
+            let prefix = LibraryOutcomeBinding.hash([owner.namespace, owner.subject]) + ":"
+            let lower = active.outcomeRetentionCursor.map { prefix + $0 + "!" } ?? prefix, upper = prefix + "~"
+            var query = FetchDescriptor<GuestOutcomeInventory>(predicate: #Predicate { $0.key >= lower && $0.key < upper }, sortBy: [SortDescriptor(\.key, comparator: .lexical)])
+            query.fetchLimit = LibrarySyncLimits.outcomePage
+            let inventory = try journal.fetch(query)
+            if inventory.isEmpty {
+                active.outcomeRetentionCursor = nil
+                return false
             }
-            cursor = binding.key
+            var cursor = active.outcomeRetentionCursor
+            for entry in inventory {
+                guard let header = try outcomeHeader(entry.headerKey, in: journal) else { throw LibrarySyncFailure.storeUnavailable }
+                let binding = try JSONDecoder().decode(LibraryOutcomeBinding.self, from: header.bindingData)
+                guard binding.owner.subject == owner.subject, binding.owner.namespace == owner.namespace,
+                      entry.key == prefix + binding.key else { throw LibrarySyncFailure.ownerMismatch }
+                var checkpoint = try outcomeCheckpoint(header, binding: binding)
+                let dependencyState = try syncPartition(binding.owner, in: journal)
+                let claimed = checkpoint.retention?.removed != nil
+                let eligible = dependencyState?.canPruneOutcome(binding, checkpoint: checkpoint, now: now) == true
+                // A missing owner partition never supplies Saved/dependency authority.
+                if dependencyState != nil && (claimed || eligible) {
+                    guard let scope = try outcomeScope(binding.scopeKey, in: journal), scope.generation == header.generation,
+                          var retention = checkpoint.retention else { throw LibrarySyncFailure.storeUnavailable }
+                    let start = retention.removed ?? 0
+                    let rows = try outcomeRows(binding, start: start, limit: checkpoint.next, in: journal)
+                    for row in rows {
+                        let ordinal = binding.ordinalKey(Int(row.ordinal))
+                        var memberQuery = FetchDescriptor<GuestOutcomeMember>(predicate: #Predicate { $0.ordinalKey == ordinal }); memberQuery.fetchLimit = 2
+                        let stored = try journal.fetch(memberQuery)
+                        guard stored.count == 1 else { throw LibrarySyncFailure.storeUnavailable }
+                        journal.delete(stored[0])
+                    }
+                    retention.removed = start + rows.count
+                    if retention.removed == checkpoint.next {
+                        let collectionKey = binding.key
+                        var remaining = FetchDescriptor<GuestOutcomeMember>(predicate: #Predicate { $0.collectionKey == collectionKey }); remaining.fetchLimit = 1
+                        guard try journal.fetch(remaining).isEmpty else { throw LibrarySyncFailure.storeUnavailable }
+                        journal.delete(header); journal.delete(entry); cursor = binding.key
+                        let storageKey = binding.owner.storageKey, subject = binding.owner.subject, namespace = binding.owner.namespace
+                        var others = FetchDescriptor<GuestOutcomeHeader>(predicate: #Predicate { $0.ownerKey == storageKey && $0.subject == subject && $0.namespace == namespace }); others.fetchLimit = 1
+                        if try journal.fetch(others).isEmpty { journal.delete(scope) }
+                    } else {
+                        checkpoint.retention = retention
+                        header.checkpointData = try JSONEncoder().encode(checkpoint)
+                    }
+                    try bumpOutcomeClock(subject: owner.subject, namespace: owner.namespace, in: journal)
+                    active.outcomeRetentionCursor = cursor
+                    return true
+                }
+                cursor = binding.key
+            }
+            active.outcomeRetentionCursor = cursor
+            return true
         }
-        active.outcomeRetentionCursor = cursor
-        try saveSyncPartition(active, owner: owner)
-        return true
     }
 
     func settleCollectedOutcome(_ expected: LibraryPendingOutcome, owner: LibrarySyncOwner, now: Double) throws -> LibraryOutcomeSettlement {
-        try assertOutcomeOwnerActive(owner)
-        let binding = try LibraryOutcomeBinding(owner: owner, committed: expected.committed), journal = outcomeContext()
-        guard let scope = try outcomeScope(binding.scopeKey, in: journal),
-              let header = try outcomeHeader(binding.key, in: journal), header.generation == scope.generation else { throw LibrarySyncFailure.storeUnavailable }
-        let checkpoint = try outcomeCheckpoint(header, binding: binding)
-        guard var state = try syncPartition(owner) else { throw LibrarySyncFailure.sessionChanged }
-        let before = state
-        let progress = try state.settleCollectedOutcome(expected, binding: binding, checkpoint: checkpoint, now: now)
-        if state != before { try saveSyncPartition(state, owner: owner) }
-        return progress
+        try withAccount(owner) { state, db in
+            let binding = try LibraryOutcomeBinding(owner: owner, committed: expected.committed)
+            guard let scope = try outcomeScope(binding.scopeKey, in: db), let header = try outcomeHeader(binding.key, in: db), header.generation == scope.generation else { throw LibrarySyncFailure.storeUnavailable }
+            return try state.settleCollectedOutcome(expected, binding: binding, checkpoint: outcomeCheckpoint(header, binding: binding), now: now)
+        }
     }
-
     func cacheSavedSnapshot(_ snapshot: SyncSavedSnapshot, owner: LibrarySyncOwner) throws {
         guard snapshot.ownerKey == owner.key else { throw LibrarySyncFailure.ownerMismatch }
-        guard var state = try syncPartition(owner) else { throw LibrarySyncFailure.sessionChanged }
         guard snapshot.version.isFinite, snapshot.version >= 0, snapshot.version.rounded(.down) == snapshot.version else { throw LibrarySyncFailure.invalidReceipt }
-        if snapshot.version < (state.savedSnapshot?.version ?? -1) { return }
-        state.savedSnapshot = snapshot
-        state.pruneConfirmed()
-        try saveSyncPartition(state, owner: owner)
+        try withAccount(owner) { state, _ in
+            if snapshot.version >= (state.savedSnapshot?.version ?? -1) { state.savedSnapshot = snapshot; state.pruneConfirmed() }
+        }
     }
-
     func cachePositionsSnapshot(_ snapshot: SyncPositionsSnapshot, owner: LibrarySyncOwner) throws {
         guard snapshot.ownerKey == owner.key else { throw LibrarySyncFailure.ownerMismatch }
-        guard var state = try syncPartition(owner) else { throw LibrarySyncFailure.sessionChanged }
         guard snapshot.version.isFinite, snapshot.version >= 0, snapshot.version.rounded(.down) == snapshot.version else { throw LibrarySyncFailure.invalidReceipt }
-        if snapshot.version < (state.positionsSnapshot?.version ?? -1) { return }
-        state.positionsSnapshot = snapshot
-        state.pruneConfirmed()
-        try saveSyncPartition(state, owner: owner)
+        try withAccount(owner) { state, _ in
+            if snapshot.version >= (state.positionsSnapshot?.version ?? -1) { state.positionsSnapshot = snapshot; state.pruneConfirmed() }
+        }
     }
 
-    private func deletionRow(subject: String, namespace: String) throws -> GuestAccountDeletion? {
-        try context.fetch(FetchDescriptor<GuestAccountDeletion>()).first { $0.subject == subject && $0.namespace == namespace }
+    private func deletionRow(subject: String, namespace: String, in db: ModelContext) throws -> GuestAccountDeletion? {
+        var query = FetchDescriptor<GuestAccountDeletion>(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace }); query.fetchLimit = 2
+        let rows = try db.fetch(query)
+        guard rows.count <= 1 else { throw LibrarySyncFailure.storeUnavailable }
+        return rows.first
+    }
+    private func accountRows(subject: String, namespace: String, in db: ModelContext) throws -> [GuestLibraryPartition] {
+        guard !subject.isEmpty, !namespace.isEmpty, !namespace.contains("|") else { throw LibrarySyncFailure.ownerMismatch }
+        let lower = namespace + "|", upper = namespace + "}"
+        var query = FetchDescriptor<GuestLibraryPartition>(predicate: #Predicate { $0.subject == subject && $0.ownerKey >= lower && $0.ownerKey < upper }, sortBy: [SortDescriptor(\.ownerKey, comparator: .lexical)])
+        query.fetchLimit = LibrarySyncLimits.outcomePage
+        return try db.fetch(query)
+    }
+    private func assertAccountScopeErased(subject: String, namespace: String, in db: ModelContext) throws {
+        guard try accountRows(subject: subject, namespace: namespace, in: db).isEmpty,
+              try !hasSavedRows(subject: subject, namespace: namespace, in: db) else { throw LibrarySyncFailure.storeUnavailable }
+        var headers = FetchDescriptor<GuestOutcomeHeader>(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace }); headers.fetchLimit = 1
+        var scopes = FetchDescriptor<GuestOutcomeScope>(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace }); scopes.fetchLimit = 1
+        var artifacts = FetchDescriptor<GuestLibraryExportArtifact>(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace }); artifacts.fetchLimit = 1
+        guard try db.fetch(headers).isEmpty, try db.fetch(scopes).isEmpty, try db.fetch(artifacts).isEmpty else { throw LibrarySyncFailure.storeUnavailable }
     }
     func deletionPhase(subject: String, namespace: String) throws -> LibraryDeletionPhase? {
-        guard let row = try deletionRow(subject: subject, namespace: namespace) else { return nil }
+        let db = outcomeContext()
+        guard let row = try deletionRow(subject: subject, namespace: namespace, in: db) else { return nil }
         guard let phase = LibraryDeletionPhase(rawValue: row.phase) else { throw LibrarySyncFailure.storeUnavailable }
+        if phase == .identityPending { try assertAccountScopeErased(subject: subject, namespace: namespace, in: db) }
         return phase
     }
     func beginDeletion(subject: String, namespace: String) throws {
-        if try deletionRow(subject: subject, namespace: namespace) == nil {
-            context.insert(GuestAccountDeletion(subject: subject, namespace: namespace))
-            try bumpOutcomeClock(subject: subject, namespace: namespace, erasing: true, in: context)
+        let db = outcomeContext()
+        if try deletionRow(subject: subject, namespace: namespace, in: db) == nil {
+            db.insert(GuestAccountDeletion(subject: subject, namespace: namespace))
+            try bumpOutcomeClock(subject: subject, namespace: namespace, erasing: true, in: db)
         }
-        do { try context.save() } catch { context.rollback(); throw LibrarySyncFailure.storeUnavailable }
+        do { try db.save() } catch { db.rollback(); throw LibrarySyncFailure.storeUnavailable }
     }
     func markDeletionBackendComplete(subject: String, namespace: String) async throws {
-        guard try deletionRow(subject: subject, namespace: namespace) != nil else { throw LibrarySyncFailure.sessionChanged }
+        guard try deletionPhase(subject: subject, namespace: namespace) != nil else { throw LibrarySyncFailure.sessionChanged }
         try beginSavedErase(subject: subject, namespace: namespace)
         while try eraseSavedStep(subject: subject, namespace: namespace) {
             await Task.yield(); try Task.checkCancellation()
-            guard try deletionRow(subject: subject, namespace: namespace) != nil else { throw LibrarySyncFailure.sessionChanged }
+            guard try deletionPhase(subject: subject, namespace: namespace) != nil else { throw LibrarySyncFailure.sessionChanged }
+        }
+        while true {
+            let db = outcomeContext()
+            guard try deletionRow(subject: subject, namespace: namespace, in: db) != nil else { throw LibrarySyncFailure.sessionChanged }
+            let rows = try accountRows(subject: subject, namespace: namespace, in: db)
+            if rows.isEmpty { break }
+            rows.forEach { db.delete($0) }
+            try bumpOutcomeClock(subject: subject, namespace: namespace, erasing: true, in: db)
+            try saveOutcomeContext(db)
+            await Task.yield(); try Task.checkCancellation()
         }
         try eraseOutcomeEvidence(subject: subject, namespace: namespace)
-        guard let row = try deletionRow(subject: subject, namespace: namespace) else { throw LibrarySyncFailure.sessionChanged }
+        let db = outcomeContext()
+        guard let row = try deletionRow(subject: subject, namespace: namespace, in: db) else { throw LibrarySyncFailure.sessionChanged }
+        try assertAccountScopeErased(subject: subject, namespace: namespace, in: db)
         row.phase = LibraryDeletionPhase.identityPending.rawValue
-        for partition in try context.fetch(FetchDescriptor<GuestLibraryPartition>()) where partition.subject == subject && partition.ownerKey.hasPrefix(namespace + "|") {
-            context.delete(partition)
-        }
-        do { try context.save() } catch { context.rollback(); throw LibrarySyncFailure.storeUnavailable }
+        try saveOutcomeContext(db)
     }
     func clearDeletion(subject: String, namespace: String) throws {
-        if let row = try deletionRow(subject: subject, namespace: namespace) { context.delete(row) }
-        do { try context.save() } catch { context.rollback(); throw LibrarySyncFailure.storeUnavailable }
+        let db = outcomeContext()
+        guard let row = try deletionRow(subject: subject, namespace: namespace, in: db) else { return }
+        guard row.phase == LibraryDeletionPhase.identityPending.rawValue else { throw LibrarySyncFailure.accountDeleting }
+        try assertAccountScopeErased(subject: subject, namespace: namespace, in: db)
+        db.delete(row)
+        if let clock = try outcomeClock(subject: subject, namespace: namespace, in: db) { db.delete(clock) }
+        try saveOutcomeContext(db)
     }
 
     // Reset fixture only. Account erasure uses the durable deletion intent above.
     func resetSyncPartitionForTesting(_ owner: LibrarySyncOwner) throws {
+        let db = outcomeContext()
         try beginSavedErase(subject: owner.subject, namespace: owner.namespace, ownerKey: owner.storageKey)
         while try eraseSavedStep(subject: owner.subject, namespace: owner.namespace, ownerKey: owner.storageKey) { }
         try eraseOutcomeEvidence(subject: owner.subject, namespace: owner.namespace, ownerKey: owner.storageKey)
-        if let row = try partitionRow(owner) { context.delete(row) }
-        do { try context.save() }
-        catch { context.rollback(); throw LibrarySyncFailure.storeUnavailable }
+        if let row = try partitionRow(owner, in: db) { db.delete(row) }
+        do { try db.save() }
+        catch { db.rollback(); throw LibrarySyncFailure.storeUnavailable }
     }
 
     // Each page uses a fresh context: a long-lived identity map must not hide a
@@ -616,6 +638,7 @@ final class GuestDataStore {
         return rows.first
     }
     @discardableResult private func bumpOutcomeClock(subject: String, namespace: String, erasing: Bool = false, in journal: ModelContext) throws -> GuestOutcomeClock {
+        if !erasing, try deletionRow(subject: subject, namespace: namespace, in: journal) != nil { throw LibrarySyncFailure.accountDeleting }
         let clock: GuestOutcomeClock
         if let stored = try outcomeClock(subject: subject, namespace: namespace, in: journal) { clock = stored }
         else { clock = GuestOutcomeClock(subject: subject, namespace: namespace); journal.insert(clock) }
@@ -688,16 +711,16 @@ final class GuestDataStore {
             guard !clock.erasing else { throw LibrarySyncFailure.accountDeleting }
             return .init(owner: owner, version: .present(epoch: clock.epoch, revision: clock.revision))
         }
-        let prefix = LibraryOutcomeBinding.hash([owner.namespace, owner.subject]) + ":", upper = prefix + "~"
-        var query = FetchDescriptor<GuestOutcomeInventory>(predicate: #Predicate { $0.key >= prefix && $0.key < upper }); query.fetchLimit = 1
-        guard try journal.fetch(query).isEmpty, try !hasSavedRows(subject: owner.subject, namespace: owner.namespace, in: journal) else { throw LibrarySyncFailure.storeUnavailable }
-        return .init(owner: owner, version: .empty)
+        try assertOutcomeOwnerActive(owner, in: journal)
+        let clock = try bumpOutcomeClock(subject: owner.subject, namespace: owner.namespace, in: journal)
+        try saveOutcomeContext(journal)
+        return .init(owner: owner, version: .present(epoch: clock.epoch, revision: clock.revision))
     }
     private func validateOutcomeExport(_ fence: LibraryOutcomeExportFence, in journal: ModelContext) throws {
-        try assertOutcomeOwnerActive(fence.owner)
+        try assertOutcomeOwnerActive(fence.owner, in: journal)
         let clock = try outcomeClock(subject: fence.owner.subject, namespace: fence.owner.namespace, in: journal)
         switch (fence.version, clock) {
-        case (.empty, nil): guard try !hasSavedRows(subject: fence.owner.subject, namespace: fence.owner.namespace, in: journal) else { throw LibrarySyncFailure.storeUnavailable }
+        case (.empty, nil): guard try !hasSavedRows(subject: fence.owner.subject, namespace: fence.owner.namespace, in: journal), try accountRows(subject: fence.owner.subject, namespace: fence.owner.namespace, in: journal).isEmpty else { throw LibrarySyncFailure.storeUnavailable }
         case (.present(let epoch, let revision), .some(let clock)):
             guard !clock.erasing, clock.epoch == epoch, clock.revision == revision else { throw LibrarySyncFailure.storeUnavailable }
         default: throw LibrarySyncFailure.storeUnavailable
@@ -847,9 +870,12 @@ final class GuestDataStore {
     private func saveOutcomeContext(_ journal: ModelContext) throws {
         do { try journal.save() } catch { journal.rollback(); throw LibrarySyncFailure.storeUnavailable }
     }
+    private func assertOutcomeOwnerActive(_ owner: LibrarySyncOwner, in db: ModelContext) throws {
+        guard try deletionRow(subject: owner.subject, namespace: owner.namespace, in: db) == nil else { throw LibrarySyncFailure.accountDeleting }
+        guard try partitionRow(owner, in: db) != nil else { throw LibrarySyncFailure.sessionChanged }
+    }
     private func assertOutcomeOwnerActive(_ owner: LibrarySyncOwner) throws {
-        guard try deletionPhase(subject: owner.subject, namespace: owner.namespace) == nil else { throw LibrarySyncFailure.accountDeleting }
-        guard try partitionRow(owner) != nil else { throw LibrarySyncFailure.sessionChanged }
+        try assertOutcomeOwnerActive(owner, in: outcomeContext())
     }
 
     func collectOutcomeStep(_ committed: SyncCommitted, owner: LibrarySyncOwner, isCurrent: () -> Bool,
@@ -1004,7 +1030,7 @@ final class GuestDataStore {
         }
         let headers = try journal.fetchCount(FetchDescriptor<GuestOutcomeHeader>(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace }))
         let scopes = try journal.fetchCount(FetchDescriptor<GuestOutcomeScope>(predicate: #Predicate { $0.subject == subject && $0.namespace == namespace }))
-        if headers == 0 && scopes == 0, try !hasSavedRows(subject: subject, namespace: namespace, in: journal), let clock = try outcomeClock(subject: subject, namespace: namespace, in: journal) {
+        if headers == 0 && scopes == 0, try !hasSavedRows(subject: subject, namespace: namespace, in: journal), try accountRows(subject: subject, namespace: namespace, in: journal).isEmpty, let clock = try outcomeClock(subject: subject, namespace: namespace, in: journal) {
             journal.delete(clock); try saveOutcomeContext(journal)
         }
     }

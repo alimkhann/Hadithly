@@ -1143,6 +1143,19 @@ final class LibrarySync {
     }
 
     func preparePortableExport(server: LibraryExportValue, context captured: LibraryWriteContext, fileName: String) async throws -> LibraryPreparedExport {
+        for attempt in 0..<3 {
+            do { return try await preparePortableExportAttempt(server: server, context: captured, fileName: fileName) }
+            catch LibrarySyncFailure.storeUnavailable {
+                guard attempt < 2 else { throw LibrarySyncFailure.storeUnavailable }
+                try Task.checkCancellation()
+                _ = try capability(for: captured)
+                await Task.yield()
+            }
+        }
+        throw LibrarySyncFailure.storeUnavailable
+    }
+    private func preparePortableExportAttempt(server: LibraryExportValue, context captured: LibraryWriteContext, fileName: String) async throws -> LibraryPreparedExport {
+
         _ = try capability(for: captured)
         guard !fileName.isEmpty, fileName != ".", fileName != "..", URL(fileURLWithPath: fileName).lastPathComponent == fileName else { throw LibrarySyncFailure.invalidChange }
         let fence = try await store.prepareOutcomeExport(captured.owner, isCurrent: { (try? self.capability(for: captured)) != nil })
