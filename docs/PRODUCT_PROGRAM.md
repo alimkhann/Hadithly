@@ -10,7 +10,7 @@ Their checksums and every research URL are recorded in
 
 ## Current stage and rough time budget
 
-October 23 checkpoint: **A2 is active**. Android shared guest/account storage and
+October 24 checkpoint: **A2 is active**. Android shared guest/account storage and
 the matching iOS account/journal/clock transaction boundary are implemented locally.
 Both native exporters now retain strict local fences and retry a transient change
 at most three times. See `LIBRARY_ACCOUNT_TRANSACTIONS_VERIFICATION.md`.
@@ -22,8 +22,11 @@ cutover design and concentrate remaining work into these delivery steps:
    owner-bound authority through every receipt/cache/projection caller. Forced
    row-mode and migration checks pass 129 iOS/118 Android tests; see
    `LIBRARY_SAVED_OBSERVATION_VERIFICATION.md`. Production row mode remains off.
-2. Connect effective indexed presentation, bounded refresh and both native Saved/
-   Reader surfaces together; remove the old production joined-array authority.
+2. The draft compiler/index/query component now passes 2,001-row native checks,
+   with 134 iOS/123 Android tests; see `LIBRARY_SAVED_VIEW_DRAFT_VERIFICATION.md`.
+   Complete coverage verification, bulk catch-up/retirement and atomic publication,
+   then connect both Saved/Reader surfaces and independent public hydration. Remove
+   the old production joined-array authority. Draft storage is not published UI.
 3. Verify scale, installed/SDK compatibility and actual delivery in both directions,
    with sign-out/account switches. Complete an authorized development rollout when
    the code is reviewable. Keep unavailable external/device gates explicit.

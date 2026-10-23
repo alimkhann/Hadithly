@@ -533,6 +533,48 @@ final class GuestSavedProjectionRow {
     }
 }
 
+@Model
+final class GuestSavedViewHead {
+    @Attribute(.unique) var key: String
+    var scopeKey: String
+    var subject: String
+    var namespace: String
+    var ownerKey: String
+    var identityData: Data
+    var serial: Int
+    init(_ identity: LibrarySavedViewIdentity) throws {
+        key = identity.key; scopeKey = identity.scope; subject = identity.owner.subject; namespace = identity.owner.namespace; ownerKey = identity.owner.storageKey
+        identityData = try JSONEncoder().encode(identity); serial = 0
+    }
+}
+@Model
+final class GuestSavedViewRow {
+    @Attribute(.unique) var key: String
+    var viewKey: String
+    var subject: String
+    var namespace: String
+    var ownerKey: String
+    var kind: Int
+    var data: Data
+    var fingerprint: String
+    init(_ identity: LibrarySavedViewIdentity, key: String, kind: Int, data: Data, fingerprint: String) {
+        self.key = key; viewKey = identity.key; subject = identity.owner.subject; namespace = identity.owner.namespace; ownerKey = identity.owner.storageKey
+        self.kind = kind; self.data = data; self.fingerprint = fingerprint
+    }
+}
+@Model
+final class GuestSavedViewIndex {
+    @Attribute(.unique) var key: String
+    var viewKey: String
+    var subject: String
+    var namespace: String
+    var ownerKey: String
+    var targetKey: String
+    init(_ identity: LibrarySavedViewIdentity, key: String, target: String) {
+        self.key = key; viewKey = identity.key; subject = identity.owner.subject; namespace = identity.owner.namespace; ownerKey = identity.owner.storageKey; targetKey = target
+    }
+}
+
 // MARK: - Generated library sync wire values
 // Source: scripts/generate-library-sync-wire.py
 

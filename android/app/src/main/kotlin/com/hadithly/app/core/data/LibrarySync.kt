@@ -714,7 +714,7 @@ class LibrarySync(
             }
             raw("],\"localSavedEvidence\":[")
             var firstSaved = true
-            for (section in 0..3) {
+            for (section in 0..5) {
                 var cursor: String? = null
                 while (true) {
                     current()

@@ -166,6 +166,165 @@ final class GuestMergePlannerTests: XCTestCase {
             XCTAssertThrowsError(try state.canPruneOutcome(binding, checkpoint: checkpoint, observed: foreign, now: 2_000 + LibraryOutcomeRetention.duration))
         }
     }
+    private func viewState(_ owner: LibrarySyncOwner, count: Int) -> LibraryPartitionState {
+        let folders = (0..<70).map { SyncFolderRow(_id: "folder-\($0)", name: "Folder \($0)", createdAt: 1_000 + Double($0)) }
+        let items = (0..<count).map { i -> SyncSavedItem in
+            let mask = i % 7 + 1, at = 1_000 + Double(i % 3)
+            let hadith = SyncHadithSummary(_id: i % 13 == 0 ? "mismatched-public-id" : "target-\(i)", providerHadithId: "\(i)", collectionSlug: i % 2 == 0 ? "bukhari" : "muslim", collectionName: "Collection", volumeId: "1", arabicText: "Provider passage", englishText: "Provider translation", referenceDisplay: "Reference")
+            return .init(hadithId: "target-\(i)", createdAt: 1_000, updatedAt: at, bookmarkCreatedAt: mask & 1 == 0 ? nil : 1_000, favoriteCreatedAt: mask & 2 == 0 ? nil : 1_000, noteContent: mask & 4 == 0 ? nil : "Private note \(i)", noteCreatedAt: mask & 4 == 0 ? nil : 1_000, noteUpdatedAt: mask & 4 == 0 ? nil : at, folderId: i % 6 == 5 ? nil : "folder-\(i % 5)", hadith: hadith)
+        }
+        var state = LibraryPartitionState(); state.savedSnapshot = .init(ownerKey: owner.key, version: 9, folders: folders, items: items); return state
+    }
+    @MainActor func testViewCompilerMatchesLegacyOracleAndPreservesBulkProvenanceAndTimeFloors() throws {
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"); var state = viewState(owner, count: 2_001)
+        let deletion = LibraryLocalChange(command: .folderDelete(.init(folder: .server(.init(id: "folder-1")))), at: 5_000, source: .account(nil))
+        state.folderMappings = ["restore:" + deletion.operation.id: "restored-folder"]
+        state.pending = [deletion,
+            .init(command: .membershipPut(.init(hadithId: "target-1999", folder: .server(.init(id: "folder-4")), mode: nil)), at: 6_000, source: .account(nil)),
+            .init(command: .folderRestore(.init(deletionId: deletion.operation.id, name: "Folder 1", hadithIds: [])), at: 7_000, source: .account(nil)),
+            .init(command: .bookmarkRemove(.init(hadithId: "target-0")), at: 8_000, source: .account(nil)),
+            .init(command: .facetRestore(.init(hadithId: "target-0", deletionId: "removed", value: .bookmark(.init(createdAt: 1_000)))), at: 9_000, source: .account(nil))]
+        let source = try LibrarySavedViewPolicy.captureLegacy(state, owner: owner, observed: observation(state)), oracle = try legacyProjection(state)
+        XCTAssertEqual(source.items.count, 2_001); XCTAssertEqual(Set(oracle.items.map(\.hadithId)), Set(source.items.map { $0.value.hadithId }))
+        let expected = Dictionary(uniqueKeysWithValues: oracle.items.map { ($0.hadithId, $0) })
+        for item in source.items {
+            let old = try XCTUnwrap(expected[item.value.hadithId]), value = item.value
+            XCTAssertEqual(old.createdAt, Date(timeIntervalSince1970: value.createdAt / 1_000))
+            XCTAssertEqual(old.updatedAt, Date(timeIntervalSince1970: value.updatedAt / 1_000))
+            XCTAssertEqual(old.folderId, value.folderId); XCTAssertEqual(old.bookmarkCreatedAt?.timeIntervalSince1970, value.bookmarkCreatedAt.map { $0 / 1_000 }); XCTAssertEqual(old.favoriteCreatedAt?.timeIntervalSince1970, value.favoriteCreatedAt.map { $0 / 1_000 }); XCTAssertEqual(old.noteContent, value.noteContent)
+        }
+        XCTAssertEqual(source.items.first { $0.value.hadithId == "target-1999" }?.value.folderId, "folder-4")
+        XCTAssertEqual(source.items.first { $0.value.hadithId == "target-0" }?.value.createdAt, 1_000)
+        XCTAssertTrue(source.items.filter { $0.value.folderId == "restored-folder" }.allSatisfy { $0.value.updatedAt >= 7_000 && $0.removedBy == nil })
+        let deleted = LibrarySavedViewPolicy.deleted(try XCTUnwrap(source.items.first), operation: deletion.operation.id, at: 10_000)
+        XCTAssertEqual(deleted.removedBy, deletion.operation.id); XCTAssertEqual(deleted.value.updatedAt, 10_000)
+        let data = try JSONEncoder().encode(source), document = try JSONDecoder().decode(LibraryExportValue.self, from: data)
+        XCTAssertFalse(document.containsAnyKey(["arabicText", "englishText"]))
+    }
+    func testViewNamingAndTechnicalKeysMatchBackendAndPortableVectors() throws {
+        struct NameCase: Decodable { let input: String; let expected: String }
+        struct Vectors: Decodable { let names: [NameCase]; let identity: String; let rank: String; let prefix: String }
+        let url = URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("Fixtures/SavedViewVectors.json")
+        let vectors = try JSONDecoder().decode(Vectors.self, from: Data(contentsOf: url))
+        for value in vectors.names { XCTAssertEqual(LibrarySavedViewPolicy.nameKey(value.input), value.expected) }
+        let identity = LibrarySavedViewIdentity(owner: .init(key: "owner-a", subject: "subject-a"), epoch: "epoch", generation: "generation")
+        XCTAssertEqual(identity.key, vectors.identity)
+        let item = SavedPrivateItem(hadithId: "target-Ω", createdAt: 1, updatedAt: 4500.5, bookmarkCreatedAt: nil, favoriteCreatedAt: nil, noteContent: nil, noteCreatedAt: nil, noteUpdatedAt: nil, folderId: nil, folderUpdatedAt: nil)
+        XCTAssertEqual(try LibrarySavedViewPolicy.rank(item), vectors.rank)
+        XCTAssertEqual(identity.queryPrefix(.init(facet: .bookmarks, folder: .folder("folder"), collection: "bukhari")), vectors.prefix)
+    }
+    @MainActor func testViewRowsPageByIndexedSelectionAndReadOffscreenTargetsAcrossReopen() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true); defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("views.store"), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        var store = GuestDataStore(storeURL: url, exportDirectory: directory.appendingPathComponent("exports")); try store.claimGuestForSync(owner)
+        let privateLease = try store.beginSavedAssembly(owner), state = viewState(owner, count: 2_001)
+        let source = try LibrarySavedViewPolicy.captureLegacy(state, owner: owner, observed: observation(state))
+        var stamp = try store.createSavedViewRows(privateLease); let identity = stamp.identity
+        for start in stride(from: 0, to: source.items.count, by: 8) { stamp = try autoreleasepool { try store.writeSavedViewRows(stamp, items: Array(source.items[start..<min(start + 8, source.items.count)])) } }
+        for start in stride(from: 0, to: source.folders.count, by: 8) { stamp = try autoreleasepool { try store.writeSavedViewRows(stamp, items: [], folders: Array(source.folders[start..<min(start + 8, source.folders.count)])) } }
+        store = GuestDataStore(storeURL: url, exportDirectory: directory.appendingPathComponent("exports")); XCTAssertEqual(try store.draftSavedViewStamp(identity), stamp)
+        let selections = LibrarySavedViewFacet.allCases.map { LibrarySavedViewSelection(facet: $0) } + [.init(facet: .notes, folder: .folder("folder-1"), collection: "bukhari"), .init(facet: .bookmarks, folder: .unfiled, collection: "muslim"), .init(collection: "unavailable-collection")]
+        for selection in selections {
+            var all: [LibrarySavedViewItem] = [], ticket: LibrarySavedViewTicket?
+            repeat { let page = try store.draftSavedViewPage(stamp, selection: selection, ticket: ticket); XCTAssertLessThanOrEqual(page.items.count, 32); all.append(contentsOf: page.items); ticket = page.next } while ticket != nil
+            let expected = try source.items.filter { try LibrarySavedViewPolicy.matches($0, selection: selection) }
+            XCTAssertEqual(all, expected)
+        }
+        let empty = try store.draftSavedViewPage(stamp, selection: .init(collection: "unavailable-collection")); XCTAssertTrue(empty.items.isEmpty); XCTAssertTrue(empty.unresolvedCoverage)
+        XCTAssertEqual(try store.draftSavedViewItem(stamp, target: "target-1999"), source.items.first { $0.value.hadithId == "target-1999" })
+        let first = try store.draftSavedViewPage(stamp, selection: .init()), old = stamp
+        let current = try XCTUnwrap(store.draftSavedViewItem(stamp, target: "target-1999"))
+        let update = LibraryLocalChange(command: .notePut(.init(hadithId: "target-1999", content: "Offscreen accepted note", createdAt: 1_000, updatedAt: 20_000)), at: 20_000, source: .account(nil))
+        let changed = try XCTUnwrap(LibrarySavedViewPolicy.point(current, change: update, outcome: nil, mappings: [:], route: nil))
+        stamp = try store.writeSavedViewRows(stamp, items: [changed])
+        XCTAssertThrowsError(try store.draftSavedViewPage(old, selection: .init(), ticket: first.next))
+        XCTAssertEqual(try store.draftSavedViewPage(stamp, selection: .init(facet: .notes)).items.first?.value.noteContent, "Offscreen accepted note")
+        stamp = try store.writeSavedViewRows(stamp, items: [], folders: [.init(_id: "\u{E000}", name: " ΟΣ ", createdAt: 1_000), .init(_id: "\u{10000}", name: "ος", createdAt: 1_000)])
+        XCTAssertEqual(try store.draftSavedViewFolders(stamp, name: "ΟΣ").folders.first?._id, "\u{E000}")
+        var folderCount = 0, ticket: LibrarySavedViewFolderTicket?
+        repeat { let page = try store.draftSavedViewFolders(stamp, ticket: ticket); folderCount += page.folders.count; ticket = page.next } while ticket != nil
+        XCTAssertEqual(folderCount, 72); XCTAssertEqual(try store.draftSavedViewFolder(stamp, target: "folder-69")?.name, "Folder 69")
+        var database: OpaquePointer?; XCTAssertEqual(sqlite3_open_v2(url.path, &database, SQLITE_OPEN_READONLY, nil), SQLITE_OK)
+        defer { sqlite3_close(database) }
+        var statement: OpaquePointer?
+        XCTAssertEqual(sqlite3_prepare_v2(database, "SELECT ZKEY,ZTARGETKEY FROM ZGUESTSAVEDVIEWINDEX WHERE ZKEY>? AND ZKEY<? ORDER BY ZKEY LIMIT 33", -1, &statement, nil), SQLITE_OK)
+        let prefix = identity.queryPrefix(.init(collection: "empty")), upper = prefix + "~"
+        prefix.withCString { lowerBytes in upper.withCString { upperBytes in
+            sqlite3_bind_text(statement, 1, lowerBytes, -1, nil); sqlite3_bind_text(statement, 2, upperBytes, -1, nil)
+            XCTAssertEqual(sqlite3_step(statement), SQLITE_DONE)
+            XCTAssertLessThan(sqlite3_stmt_status(statement, SQLITE_STMTSTATUS_VM_STEP, 0), 100)
+        } }; sqlite3_finalize(statement)
+        let fixture = LibraryFacadeFixture(store: store); await fixture.start()
+        do {
+            let prepared = try await fixture.sync.preparePortableExport(server: .object([:]), context: fixture.sync.captureWriteContext(), fileName: "views.json")
+            let document = try JSONDecoder().decode(LibraryExportValue.self, from: Data(contentsOf: prepared.url))
+            guard case .object(let fields) = document, case .array(let records) = fields["localSavedEvidence"] else { return XCTFail("Missing view export") }
+            XCTAssertEqual(records.filter { if case .object(let value) = $0 { value["kind"] == .string("viewItem") } else { false } }.count, 2_001)
+            XCTAssertTrue(exportContains(.array(records), text: "Offscreen accepted note")); XCTAssertFalse(document.containsAnyKey(["arabicText", "englishText"]))
+            try fixture.sync.discardPreparedExport(prepared)
+        }; fixture.stop()
+        try store.beginDeletion(subject: owner.subject, namespace: owner.namespace); try await store.markDeletionBackendComplete(subject: owner.subject, namespace: owner.namespace)
+        let container = try ModelContainer(for: GuestDataStore.schema, configurations: [ModelConfiguration(schema: GuestDataStore.schema, url: url)]), db = ModelContext(container)
+        XCTAssertEqual(try db.fetchCount(FetchDescriptor<GuestSavedViewHead>()), 0); XCTAssertEqual(try db.fetchCount(FetchDescriptor<GuestSavedViewRow>()), 0); XCTAssertEqual(try db.fetchCount(FetchDescriptor<GuestSavedViewIndex>()), 0)
+    }
+    @MainActor func testViewDraftAllocationNeverRevivesMissingHeadsAndScopedExportRetainsOrphans() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true); defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("lifecycle.store"), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), store = GuestDataStore(storeURL: url)
+        try store.claimGuestForSync(owner); let scope = try store.beginSavedAssembly(owner)
+        let container = try ModelContainer(for: GuestDataStore.schema, configurations: [ModelConfiguration(schema: GuestDataStore.schema, url: url)])
+        func removeHead(_ identity: LibrarySavedViewIdentity) throws {
+            let db = ModelContext(container), key = identity.key
+            for row in try db.fetch(FetchDescriptor<GuestSavedViewHead>(predicate: #Predicate { $0.key == key })) { db.delete(row) }; try db.save()
+        }
+        let empty = try store.createSavedViewRows(scope); try removeHead(empty.identity)
+        XCTAssertThrowsError(try store.draftSavedViewStamp(empty.identity))
+        let allocated = try store.createSavedViewRows(scope); XCTAssertNotEqual(empty.identity, allocated.identity)
+        let item = LibrarySavedViewItem(value: .init(hadithId: "private-target", createdAt: 1, updatedAt: 1, bookmarkCreatedAt: nil, favoriteCreatedAt: nil, noteContent: "Orphan retained note", noteCreatedAt: 1, noteUpdatedAt: 1, folderId: nil, folderUpdatedAt: nil))
+        let orphan = try store.writeSavedViewRows(allocated, items: [item]); try removeHead(orphan.identity)
+        XCTAssertThrowsError(try store.draftSavedViewItem(orphan, target: "private-target"))
+        let replacement = try store.createSavedViewRows(scope); XCTAssertNotEqual(orphan.identity, replacement.identity); XCTAssertNil(try store.draftSavedViewItem(replacement, target: "private-target"))
+        let oldOwner = LibrarySyncOwner(key: "old-owner", subject: owner.subject); try store.claimGuestForSync(oldOwner); let oldScope = try store.beginSavedAssembly(oldOwner)
+        let oldItem = try XCTUnwrap(LibrarySavedViewPolicy.point(item, change: .init(command: .notePut(.init(hadithId: "private-target", content: "Old owner retained note", createdAt: 1, updatedAt: 2)), at: 2, source: .account(nil)), outcome: nil, mappings: [:], route: nil))
+        let old = try store.writeSavedViewRows(store.createSavedViewRows(oldScope), items: [oldItem])
+        let db = ModelContext(container), oldKey = oldOwner.storageKey
+        for row in try db.fetch(FetchDescriptor<GuestLibraryPartition>(predicate: #Predicate { $0.ownerKey == oldKey })) { db.delete(row) }; try db.save()
+        XCTAssertThrowsError(try store.draftSavedViewItem(old, target: "private-target"))
+        let peer = LibrarySyncOwner(key: "foreign-owner", subject: "foreign-subject"); try store.claimGuestForSync(peer); let peerScope = try store.beginSavedAssembly(peer)
+        let peerItem = try XCTUnwrap(LibrarySavedViewPolicy.point(item, change: .init(command: .notePut(.init(hadithId: "private-target", content: "Foreign private note", createdAt: 1, updatedAt: 2)), at: 2, source: .account(nil)), outcome: nil, mappings: [:], route: nil))
+        let foreign = try store.writeSavedViewRows(store.createSavedViewRows(peerScope), items: [peerItem])
+        let fence = try await store.prepareOutcomeExport(owner, isCurrent: { true }); var records: [LibraryExportValue] = [], after: String?
+        while true { let page = try store.savedExportRecords(fence, section: 5, after: after); records.append(contentsOf: page.values); after = page.next; if page.done { break } }
+        XCTAssertTrue(exportContains(.array(records), text: "Orphan retained note")); XCTAssertTrue(exportContains(.array(records), text: "Old owner retained note")); XCTAssertFalse(exportContains(.array(records), text: "Foreign private note"))
+        store.addNote(hadithId: "guest", content: "Unclaimed guest original")
+        try store.beginDeletion(subject: owner.subject, namespace: owner.namespace); try await store.markDeletionBackendComplete(subject: owner.subject, namespace: owner.namespace)
+        XCTAssertEqual(try store.draftSavedViewItem(foreign, target: "private-target")?.value.noteContent, "Foreign private note")
+        XCTAssertEqual(store.noteDrafts().first?.content, "Unclaimed guest original")
+    }
+    @MainActor func testViewDraftSerialLimitsAndLogicalRollbackPreserveRowsIndexesAndFence() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true); defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("serial.store"), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), store = GuestDataStore(storeURL: url)
+        try store.claimGuestForSync(owner); let scope = try store.beginSavedAssembly(owner), initial = try store.createSavedViewRows(scope)
+        let container = try ModelContainer(for: GuestDataStore.schema, configurations: [ModelConfiguration(schema: GuestDataStore.schema, url: url)]), setup = ModelContext(container)
+        let head = try XCTUnwrap(setup.fetch(FetchDescriptor<GuestSavedViewHead>()).first)
+        head.serial = 9_007_199_254_740_990; try setup.save()
+        let terminal = try store.draftSavedViewStamp(initial.identity), fence = try await store.prepareOutcomeExport(owner, isCurrent: { true })
+        let item = LibrarySavedViewItem(value: .init(hadithId: "target", createdAt: 1, updatedAt: 1, bookmarkCreatedAt: 1, favoriteCreatedAt: nil, noteContent: nil, noteCreatedAt: nil, noteUpdatedAt: nil, folderId: nil, folderUpdatedAt: nil))
+        XCTAssertTrue(try store.draftSavedViewPage(terminal, selection: .init()).items.isEmpty)
+        XCTAssertThrowsError(try store.writeSavedViewRows(terminal, items: [item])); XCTAssertNil(try store.draftSavedViewItem(terminal, target: "target")); XCTAssertNoThrow(try store.validateOutcomeExport(fence))
+        XCTAssertEqual(try store.savedExportRecords(fence, section: 4, after: nil).values.count, 1)
+        head.serial = 0
+        let clock = try XCTUnwrap(setup.fetch(FetchDescriptor<GuestOutcomeClock>()).first), revision = clock.revision
+        clock.revision = 9_007_199_254_740_990; try setup.save()
+        let before = try await store.prepareOutcomeExport(owner, isCurrent: { true })
+        XCTAssertThrowsError(try store.writeSavedViewRows(initial, items: [item]))
+        XCTAssertNil(try store.draftSavedViewItem(initial, target: "target")); XCTAssertNoThrow(try store.validateOutcomeExport(before))
+        XCTAssertEqual(try ModelContext(container).fetchCount(FetchDescriptor<GuestSavedViewIndex>()), 0)
+        clock.revision = revision; try setup.save()
+        let accepted = try store.writeSavedViewRows(initial, items: [item]); XCTAssertEqual(try store.draftSavedViewItem(accepted, target: "target"), item)
+    }
     private func observationOwner(_ state: LibraryPartitionState) -> LibrarySyncOwner { .init(key: state.savedSnapshot?.ownerKey ?? "owner-a", subject: "subject-a") }
     private func observation(_ state: LibraryPartitionState, owner: LibrarySyncOwner? = nil) throws -> LibrarySavedObservation {
         try .legacy(owner ?? observationOwner(state), snapshot: state.savedSnapshot)

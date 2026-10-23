@@ -42,3 +42,12 @@ The observation migration test also requires the new `rowMode` property to defau
 to false after reopening this genuine older model, while preserving all 1,005 facts
 and completing activation. This is lightweight migration from the captured prior
 Saved model, not evidence from every intermediate installed build or device OS.
+
+## Saved view vectors
+
+`SavedViewVectors.json` is generated together with the Android instrumentation asset
+by `scripts/generate-saved-view-vectors.py`. Naming results execute the actual backend
+`normalizedFolderName` function. Technical key vectors use framed UTF-8 SHA256 and
+positive IEEE754 timestamp bits. Run the helper with `--check` to verify both copies.
+The cases include NFC/trim behavior, contextual Greek sigma, Turkish dotted I and
+fractional timestamps. These are synthetic policy fixtures, not user content.

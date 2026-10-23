@@ -1,0 +1,43 @@
+{
+  "names": [
+    {
+      "input": "  Folder  ",
+      "expected": "folder"
+    },
+    {
+      "input": "\u039f\u03a3",
+      "expected": "\u03bf\u03c2"
+    },
+    {
+      "input": "\u03bf\u03c3",
+      "expected": "\u03bf\u03c3"
+    },
+    {
+      "input": "\u03bf\u03c2",
+      "expected": "\u03bf\u03c2"
+    },
+    {
+      "input": "\ufeff\u00c9\u00a0",
+      "expected": "\u00e9"
+    },
+    {
+      "input": "E\u0301",
+      "expected": "\u00e9"
+    },
+    {
+      "input": "\u0130",
+      "expected": "i\u0307"
+    },
+    {
+      "input": "\u212a",
+      "expected": "k"
+    },
+    {
+      "input": "\u03a3\u039f\u03a3",
+      "expected": "\u03c3\u03bf\u03c2"
+    }
+  ],
+  "identity": "1236b88ddddb12ddcb01a593c00f7f3c7ce23a8dfbb9a85cece7363c4eb3c04b:47fe5e6e0edf09a49205c3e88d0f703d2c9c306090766385058bc2db0cfa000e:e9a6e1dc3b5501507b7cb0561a568750a6311f0b719ad37862d9ec987c04bfe0:view",
+  "rank": "bf4e6b7fffffffff:7461726765742dcea9",
+  "prefix": "1236b88ddddb12ddcb01a593c00f7f3c7ce23a8dfbb9a85cece7363c4eb3c04b:47fe5e6e0edf09a49205c3e88d0f703d2c9c306090766385058bc2db0cfa000e:e9a6e1dc3b5501507b7cb0561a568750a6311f0b719ad37862d9ec987c04bfe0:view:q:350b78bf4846382a128a3c5194254c86f85977df701efc7b738c9b45d03b57ac:"
+}

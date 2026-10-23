@@ -1212,7 +1212,7 @@ final class LibrarySync {
         }
         try raw("],\"localSavedEvidence\":[")
         var firstSaved = true
-        for section in 0..<4 {
+        for section in 0..<6 {
             var cursor: String?
             while true {
                 try Task.checkCancellation(); _ = try capability(for: captured)
@@ -1753,3 +1753,191 @@ enum LibrarySavedReadPolicy {
         }
     }
 }
+
+struct LibrarySavedViewItem: Codable, Equatable, Sendable {
+    var value: SavedPrivateItem
+    var collectionSlug: String?
+    var removedBy: String?
+    var mask: Int { (value.bookmarkCreatedAt == nil ? 0 : 1) | (value.favoriteCreatedAt == nil ? 0 : 2) | (value.noteContent == nil ? 0 : 4) }
+    init(value: SavedPrivateItem, collectionSlug: String? = nil, removedBy: String? = nil) { self.value = value; self.collectionSlug = collectionSlug; self.removedBy = removedBy }
+    func validate() throws {
+        try LibrarySavedPolicy.validate(value)
+        for text in [collectionSlug, removedBy].compactMap({ $0 }) { guard !text.isEmpty, text.utf8.count <= 128 else { throw LibrarySyncFailure.invalidReceipt } }
+    }
+}
+enum LibrarySavedViewFacet: String, Codable, CaseIterable, Sendable { case all = "All", bookmarks = "Bookmarks", favorites = "Favorites", notes = "Notes" }
+enum LibrarySavedViewFolderSelection: Codable, Equatable, Sendable { case all, unfiled, folder(String) }
+struct LibrarySavedViewSelection: Codable, Equatable, Sendable {
+    var facet: LibrarySavedViewFacet = .all
+    var folder: LibrarySavedViewFolderSelection = .all
+    var collection: String?
+    func validate() throws {
+        var values = collection.map { [$0] } ?? []
+        if case .folder(let id) = folder { values.append(id) }
+        for value in values { guard !value.isEmpty, value.utf8.count <= 128 else { throw LibrarySyncFailure.invalidChange } }
+    }
+}
+struct LibrarySavedViewIdentity: Codable, Equatable, Sendable {
+    let owner: LibrarySyncOwner
+    let epoch: String
+    let generation: String
+    let scope: String
+    let key: String
+    private enum CodingKeys: String, CodingKey { case owner, epoch, generation }
+    init(owner: LibrarySyncOwner, epoch: String, generation: String) {
+        self.owner = owner; self.epoch = epoch; self.generation = generation
+        let lease = LibrarySavedLease(owner: owner, epoch: epoch, generation: generation); scope = lease.key; key = lease.collection + ":view"
+    }
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(owner: try values.decode(LibrarySyncOwner.self, forKey: .owner), epoch: try values.decode(String.self, forKey: .epoch), generation: try values.decode(String.self, forKey: .generation))
+    }
+    func itemKey(_ id: String) -> String { key + ":i:" + LibraryOutcomeBinding.hash([id]) }
+    func folderKey(_ id: String) -> String { key + ":f:" + LibraryOutcomeBinding.hash([id]) }
+    func queryPrefix(_ selection: LibrarySavedViewSelection, unresolved: Bool = false) -> String {
+        let folder: [String]
+        switch selection.folder { case .all: folder = ["all"]; case .unfiled: folder = ["unfiled"]; case .folder(let id): folder = ["folder", id] }
+        let collection = unresolved ? ["unresolved"] : selection.collection.map { ["collection", $0] } ?? ["all"]
+        return key + ":q:" + LibraryOutcomeBinding.hash([selection.facet.rawValue] + folder + collection) + ":"
+    }
+    var folderPrefix: String { key + ":d:" }
+    func namePrefix(_ name: String) -> String { key + ":n:" + LibraryOutcomeBinding.hash([LibrarySavedViewPolicy.nameKey(name)]) + ":" }
+}
+struct LibrarySavedViewStamp: Codable, Equatable, Sendable { let identity: LibrarySavedViewIdentity; let serial: Int }
+struct LibrarySavedViewTicket: Sendable { let stamp: LibrarySavedViewStamp; let selection: LibrarySavedViewSelection; let after: String }
+struct LibrarySavedViewPage: Sendable { let stamp: LibrarySavedViewStamp; let items: [LibrarySavedViewItem]; let next: LibrarySavedViewTicket?; let unresolvedCoverage: Bool }
+
+enum LibrarySavedViewPolicy {
+    private static let nameTrim = CharacterSet(charactersIn: "\u{0009}\u{000A}\u{000B}\u{000C}\u{000D}\u{0020}\u{00A0}\u{1680}\u{2000}\u{2001}\u{2002}\u{2003}\u{2004}\u{2005}\u{2006}\u{2007}\u{2008}\u{2009}\u{200A}\u{2028}\u{2029}\u{202F}\u{205F}\u{3000}\u{FEFF}")
+    static func nameKey(_ name: String) -> String { name.trimmingCharacters(in: nameTrim).precomposedStringWithCanonicalMapping.lowercased(with: Locale(identifier: "en_US_POSIX")) }
+    private static func bytesKey(_ value: String) -> String { value.utf8.map { String(format: "%02x", $0) }.joined() }
+    private static func timeKey(_ value: Double, descending: Bool) throws -> String {
+        guard value.isFinite, value >= 0 else { throw LibrarySyncFailure.invalidReceipt }
+        let bits = (value == 0 ? 0.0 : value).bitPattern
+        return String(format: "%016llx", descending ? ~bits : bits)
+    }
+    static func rank(_ item: SavedPrivateItem) throws -> String { try timeKey(item.updatedAt, descending: true) + ":" + bytesKey(item.hadithId) }
+    static func folderRank(_ folder: SyncFolderRow) throws -> String { try timeKey(folder.createdAt, descending: false) + ":" + bytesKey(folder._id) }
+    static func indexKeys(_ identity: LibrarySavedViewIdentity, item: LibrarySavedViewItem) throws -> Set<String> {
+        try item.validate(); guard item.mask != 0 else { return [] }
+        let facets: [LibrarySavedViewFacet] = [.all] + [item.mask & 1 == 0 ? nil : .bookmarks, item.mask & 2 == 0 ? nil : .favorites, item.mask & 4 == 0 ? nil : .notes].compactMap { $0 }
+        let folders: [LibrarySavedViewFolderSelection] = [.all, item.value.folderId.map(LibrarySavedViewFolderSelection.folder) ?? .unfiled]
+        let rank = try rank(item.value)
+        return Set(facets.flatMap { facet in folders.flatMap { folder in
+            let global = LibrarySavedViewSelection(facet: facet, folder: folder)
+            return [identity.queryPrefix(global) + rank, identity.queryPrefix(.init(facet: facet, folder: folder, collection: item.collectionSlug), unresolved: item.collectionSlug == nil) + rank]
+        } })
+    }
+    static func matches(_ item: LibrarySavedViewItem, selection: LibrarySavedViewSelection) throws -> Bool {
+        try item.validate()
+        let facet: Bool
+        switch selection.facet { case .all: facet = item.mask != 0; case .bookmarks: facet = item.mask & 1 != 0; case .favorites: facet = item.mask & 2 != 0; case .notes: facet = item.mask & 4 != 0 }
+        let folder: Bool
+        switch selection.folder { case .all: folder = true; case .unfiled: folder = item.value.folderId == nil; case .folder(let id): folder = item.value.folderId == id }
+        return facet && folder && (selection.collection == nil || item.collectionSlug == selection.collection)
+    }
+    static func target(_ command: SyncCommand) -> String? {
+        switch command {
+        case .bookmarkAdd(let v): v.hadithId; case .bookmarkRemove(let v): v.hadithId
+        case .favoriteAdd(let v): v.hadithId; case .favoriteRemove(let v): v.hadithId
+        case .notePut(let v): v.hadithId; case .noteRemove(let v): v.hadithId
+        case .membershipPut(let v): v.hadithId; case .facetRestore(let v): v.hadithId
+        case .folderCreate, .folderDelete, .folderRestore, .positionPut, .legacyPositionPut: nil
+        }
+    }
+    static func point(_ current: LibrarySavedViewItem?, change: LibraryLocalChange, outcome: SyncOutcome?, mappings: [String: String], route: String?) throws -> LibrarySavedViewItem? {
+        let command = change.operation.command, at = change.operation.at
+        guard let target = target(command) else { throw LibrarySyncFailure.invalidChange }
+        guard current == nil || current?.value.hadithId == target else { throw LibrarySyncFailure.ownerMismatch }
+        var item = current ?? .init(value: .init(hadithId: target, createdAt: at, updatedAt: at, bookmarkCreatedAt: nil, favoriteCreatedAt: nil, noteContent: nil, noteCreatedAt: nil, noteUpdatedAt: nil, folderId: nil, folderUpdatedAt: nil), collectionSlug: route)
+        var bookmark = item.value.bookmarkCreatedAt, favorite = item.value.favoriteCreatedAt
+        var content = item.value.noteContent, noteCreated = item.value.noteCreatedAt, noteUpdated = item.value.noteUpdatedAt
+        var folderID = item.value.folderId, folderUpdated = item.value.folderUpdatedAt, updated = item.value.updatedAt
+        func folder(_ reference: SyncFolderReference) -> String? { switch reference { case .none: nil; case .server(let value): value.id; case .local(let value): mappings[value.key] ?? "local:" + value.key } }
+        switch command {
+        case .bookmarkAdd(let value): bookmark = min(bookmark ?? value.createdAt, value.createdAt); updated = max(updated, at)
+        case .favoriteAdd(let value): favorite = min(favorite ?? value.createdAt, value.createdAt); updated = max(updated, at)
+        case .notePut(let value): content = value.content; noteCreated = noteCreated ?? value.createdAt; noteUpdated = value.updatedAt; updated = max(updated, value.updatedAt)
+        case .bookmarkRemove: guard current != nil else { return nil }; bookmark = nil; updated = max(updated, at)
+        case .favoriteRemove: guard current != nil else { return nil }; favorite = nil; updated = max(updated, at)
+        case .noteRemove: guard current != nil else { return nil }; content = nil; noteCreated = nil; noteUpdated = nil; updated = max(updated, at)
+        case .membershipPut(let value):
+            guard current != nil, value.mode != "claim_if_unset" || outcome != nil else { return current }
+            folderID = folder(value.folder); folderUpdated = max(folderUpdated ?? 0, at); updated = max(updated, at); item.removedBy = nil
+        case .facetRestore(let value):
+            switch value.value {
+            case .bookmark(let v): bookmark = bookmark ?? v.createdAt
+            case .favorite(let v): favorite = favorite ?? v.createdAt
+            case .note(let v): content = v.content; noteCreated = v.createdAt; noteUpdated = at
+            }
+            updated = max(updated, at)
+        default: throw LibrarySyncFailure.invalidChange
+        }
+        item.value = .init(hadithId: target, createdAt: item.value.createdAt, updatedAt: updated, bookmarkCreatedAt: bookmark, favoriteCreatedAt: favorite, noteContent: content, noteCreatedAt: noteCreated, noteUpdatedAt: noteUpdated, folderId: folderID, folderUpdatedAt: folderUpdated)
+        if item.mask == 0 { item.removedBy = nil }
+        try item.validate(); return item
+    }
+    private static func placing(_ item: LibrarySavedViewItem, folder: String?, removedBy: String?, at: Double) -> LibrarySavedViewItem {
+        let value = item.value
+        return .init(value: .init(hadithId: value.hadithId, createdAt: value.createdAt, updatedAt: max(value.updatedAt, at), bookmarkCreatedAt: value.bookmarkCreatedAt, favoriteCreatedAt: value.favoriteCreatedAt, noteContent: value.noteContent, noteCreatedAt: value.noteCreatedAt, noteUpdatedAt: value.noteUpdatedAt, folderId: folder, folderUpdatedAt: max(value.folderUpdatedAt ?? 0, at)), collectionSlug: item.collectionSlug, removedBy: removedBy)
+    }
+    static func deleted(_ item: LibrarySavedViewItem, operation: String, at: Double) -> LibrarySavedViewItem { placing(item, folder: nil, removedBy: operation, at: at) }
+    static func restored(_ item: LibrarySavedViewItem, folder: String, at: Double) -> LibrarySavedViewItem { placing(item, folder: folder, removedBy: nil, at: at) }
+}
+
+struct LibrarySavedViewSnapshot: Codable, Equatable, Sendable { let items: [LibrarySavedViewItem]; let folders: [SyncFolderRow] }
+extension LibrarySavedViewPolicy {
+    @MainActor static func captureLegacy(_ state: LibraryPartitionState, owner: LibrarySyncOwner, observed: LibrarySavedObservation) throws -> LibrarySavedViewSnapshot {
+        guard state.savedSnapshot == nil || state.savedSnapshot?.ownerKey == owner.key else { throw LibrarySyncFailure.ownerMismatch }
+        var items: [String: LibrarySavedViewItem] = [:], folders: [String: SyncFolderRow] = [:]
+        for row in state.savedSnapshot?.items ?? [] {
+            let value = SavedPrivateItem(hadithId: row.hadithId, createdAt: row.createdAt, updatedAt: row.updatedAt, bookmarkCreatedAt: row.bookmarkCreatedAt, favoriteCreatedAt: row.favoriteCreatedAt, noteContent: row.noteContent, noteCreatedAt: row.noteCreatedAt, noteUpdatedAt: row.noteUpdatedAt, folderId: row.folderId, folderUpdatedAt: nil)
+            let item = LibrarySavedViewItem(value: value, collectionSlug: row.hadith._id == row.hadithId && !row.hadith.collectionSlug.isEmpty ? row.hadith.collectionSlug : nil)
+            try item.validate(); guard items.updateValue(item, forKey: row.hadithId) == nil else { throw LibrarySyncFailure.storeUnavailable }
+        }
+        for row in state.savedSnapshot?.folders ?? [] {
+            try LibrarySavedPolicy.validate(.folder(.init(sourceId: row._id, ordinal: 0, value: row)))
+            guard folders.updateValue(row, forKey: row._id) == nil else { throw LibrarySyncFailure.storeUnavailable }
+        }
+        func folder(_ reference: SyncFolderReference) -> String? { switch reference { case .none: nil; case .server(let value): value.id; case .local(let value): state.folderMappings[value.key] ?? "local:" + value.key } }
+        let changes: [(LibraryLocalChange, SyncOutcome?)] = state.confirmed.map { ($0.change, $0.outcome) } + (try state.projectedFrozenChanges(owner: owner, observed: observed)).map { ($0, nil) } + state.pending.map { ($0, nil) }
+        for (change, outcome) in changes {
+            let at = change.operation.at
+            if let target = target(change.operation.command) {
+                let reference = change.source.reference
+                let route = reference?.hadithId == target ? reference?.collectionSlug : nil
+                if let item = try point(items[target], change: change, outcome: outcome, mappings: state.folderMappings, route: route) { items[target] = item }
+                continue
+            }
+            switch change.operation.command {
+            case .folderCreate(let value):
+                let id = state.folderMappings[value.key] ?? "local:" + value.key
+                folders[id] = folders[id] ?? .init(_id: id, name: value.name, createdAt: at)
+            case .folderDelete(let value):
+                if let id = folder(value.folder) {
+                    folders.removeValue(forKey: id)
+                    for (target, item) in items where item.value.folderId == id { items[target] = deleted(item, operation: change.operation.id, at: at) }
+                }
+            case .folderRestore(let value):
+                let id: String, targets: [String]
+                if case .folderRestored(let result) = outcome { id = result.folderId; targets = result.restored }
+                else {
+                    let match = try folders.values.filter { nameKey($0.name) == nameKey(value.name) }.sorted { try folderRank($0) < folderRank($1) }.first
+                    id = match?._id ?? state.folderMappings["restore:" + value.deletionId] ?? "local:restore:" + value.deletionId; targets = value.hadithIds
+                }
+                folders[id] = folders[id] ?? .init(_id: id, name: value.name, createdAt: at)
+                if outcome == nil && value.hadithIds.isEmpty {
+                    for (target, item) in items where item.removedBy == value.deletionId && item.value.folderId == nil && item.mask != 0 { items[target] = restored(item, folder: id, at: at) }
+                } else { for target in targets { if let item = items[target] { items[target] = restored(item, folder: id, at: at) } } }
+            case .positionPut, .legacyPositionPut: break
+            default: throw LibrarySyncFailure.invalidChange
+            }
+        }
+        let result = try LibrarySavedViewSnapshot(items: items.values.filter { $0.mask != 0 }.sorted { try rank($0.value) < rank($1.value) }, folders: folders.values.sorted { try folderRank($0) < folderRank($1) })
+        for item in result.items { try item.validate() }; for folder in result.folders { try LibrarySavedPolicy.validate(.folder(.init(sourceId: folder._id, ordinal: 0, value: folder))) }; return result
+    }
+}
+
+enum LibrarySavedViewChanged: Error { case stale }
+struct LibrarySavedViewFolderTicket: Sendable { let stamp: LibrarySavedViewStamp; let name: String?; let after: String }
+struct LibrarySavedViewFolderPage: Sendable { let stamp: LibrarySavedViewStamp; let folders: [SyncFolderRow]; let next: LibrarySavedViewFolderTicket? }

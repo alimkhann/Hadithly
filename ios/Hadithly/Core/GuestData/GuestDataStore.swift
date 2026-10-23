@@ -61,6 +61,7 @@ final class GuestDataStore {
             GuestOutcomeInventoryMigration.self,
             GuestLibraryExportArtifact.self,
             GuestSavedAssembly.self, GuestSavedFactRow.self, GuestSavedPageRow.self, GuestSavedProjectionRow.self,
+            GuestSavedViewHead.self, GuestSavedViewRow.self, GuestSavedViewIndex.self,
         ])
     }
 
@@ -333,9 +334,12 @@ final class GuestDataStore {
 
     // MARK: - Durable account partitions
 
-    private func partitionRow(_ owner: LibrarySyncOwner, in db: ModelContext) throws -> GuestLibraryPartition? {
+    private func validateAccountOwner(_ owner: LibrarySyncOwner) throws {
         guard [owner.key, owner.subject, owner.namespace].allSatisfy({ !$0.isEmpty && $0.utf8.count <= 1_024 }),
               !owner.key.contains("|"), !owner.namespace.contains("|") else { throw LibrarySyncFailure.ownerMismatch }
+    }
+    private func partitionRow(_ owner: LibrarySyncOwner, in db: ModelContext) throws -> GuestLibraryPartition? {
+        try validateAccountOwner(owner)
         let key = owner.storageKey
         var descriptor = FetchDescriptor<GuestLibraryPartition>(predicate: #Predicate { $0.ownerKey == key })
         descriptor.fetchLimit = 2
@@ -895,7 +899,16 @@ final class GuestDataStore {
     }
     private func assertOutcomeOwnerActive(_ owner: LibrarySyncOwner, in db: ModelContext) throws {
         guard try deletionRow(subject: owner.subject, namespace: owner.namespace, in: db) == nil else { throw LibrarySyncFailure.accountDeleting }
-        guard try partitionRow(owner, in: db) != nil else { throw LibrarySyncFailure.sessionChanged }
+        try validateAccountOwner(owner)
+        let key = owner.storageKey, subject = owner.subject
+        let matching = FetchDescriptor<GuestLibraryPartition>(predicate: #Predicate { $0.ownerKey == key && $0.subject == subject })
+        let count = try db.fetchCount(matching)
+        if count == 0 {
+            let other = FetchDescriptor<GuestLibraryPartition>(predicate: #Predicate { $0.ownerKey == key })
+            if try db.fetchCount(other) != 0 { throw LibrarySyncFailure.ownerMismatch }
+            throw LibrarySyncFailure.sessionChanged
+        }
+        guard count == 1 else { throw LibrarySyncFailure.storeUnavailable }
     }
     private func assertOutcomeOwnerActive(_ owner: LibrarySyncOwner) throws {
         try assertOutcomeOwnerActive(owner, in: outcomeContext())
@@ -1467,7 +1480,13 @@ extension GuestDataStore {
         var p = FetchDescriptor<GuestSavedPageRow>(predicate: #Predicate { $0.key >= lower && $0.key < upper }); p.fetchLimit = 1
         if try !db.fetch(p).isEmpty { return true }
         var r = FetchDescriptor<GuestSavedProjectionRow>(predicate: #Predicate { $0.key >= lower && $0.key < upper }); r.fetchLimit = 1
-        return try !db.fetch(r).isEmpty
+        if try !db.fetch(r).isEmpty { return true }
+        var vi = FetchDescriptor<GuestSavedViewIndex>(predicate: #Predicate { $0.key >= lower && $0.key < upper }); vi.fetchLimit = 1
+        if try !db.fetch(vi).isEmpty { return true }
+        var vr = FetchDescriptor<GuestSavedViewRow>(predicate: #Predicate { $0.key >= lower && $0.key < upper }); vr.fetchLimit = 1
+        if try !db.fetch(vr).isEmpty { return true }
+        var vh = FetchDescriptor<GuestSavedViewHead>(predicate: #Predicate { $0.key >= lower && $0.key < upper }); vh.fetchLimit = 1
+        return try !db.fetch(vh).isEmpty
     }
     func beginSavedErase(subject: String, namespace: String, ownerKey: String? = nil) throws {
         let db = outcomeContext()
@@ -1492,6 +1511,15 @@ extension GuestDataStore {
         func owned(_ s: String, _ n: String, _ o: String) throws {
             guard s == subject, n == namespace, ownerKey == nil || o == ownerKey else { throw LibrarySyncFailure.ownerMismatch }
         }
+        var vi = FetchDescriptor<GuestSavedViewIndex>(predicate: #Predicate { $0.key >= lower && $0.key < upper }); vi.fetchLimit = 128
+        let indexes = try db.fetch(vi)
+        if !indexes.isEmpty { for row in indexes { try owned(row.subject, row.namespace, row.ownerKey); db.delete(row) }; try bumpOutcomeClock(subject: subject, namespace: namespace, erasing: ownerKey == nil, in: db); try saveOutcomeContext(db); return true }
+        var vr = FetchDescriptor<GuestSavedViewRow>(predicate: #Predicate { $0.key >= lower && $0.key < upper }); vr.fetchLimit = Self.savedStepLimit
+        let viewRows = try db.fetch(vr)
+        if !viewRows.isEmpty { for row in viewRows { try owned(row.subject, row.namespace, row.ownerKey); db.delete(row) }; try bumpOutcomeClock(subject: subject, namespace: namespace, erasing: ownerKey == nil, in: db); try saveOutcomeContext(db); return true }
+        var vh = FetchDescriptor<GuestSavedViewHead>(predicate: #Predicate { $0.key >= lower && $0.key < upper }); vh.fetchLimit = Self.savedStepLimit
+        let viewHeads = try db.fetch(vh)
+        if !viewHeads.isEmpty { for row in viewHeads { try owned(row.subject, row.namespace, row.ownerKey); db.delete(row) }; try bumpOutcomeClock(subject: subject, namespace: namespace, erasing: ownerKey == nil, in: db); try saveOutcomeContext(db); return true }
         var f = FetchDescriptor<GuestSavedFactRow>(predicate: #Predicate { $0.key >= lower && $0.key < upper }); f.fetchLimit = Self.savedStepLimit
         let facts = try db.fetch(f)
         if !facts.isEmpty { for row in facts { try owned(row.subject, row.namespace, row.ownerKey); db.delete(row) }; try bumpOutcomeClock(subject: subject, namespace: namespace, erasing: ownerKey == nil, in: db); try saveOutcomeContext(db); return true }
@@ -1564,6 +1592,32 @@ extension GuestDataStore {
                 guard row.key == row.collectionKey + ":r:" + LibraryOutcomeBinding.hash([value.kind, value.targetID]), row.fingerprint == (try value.savedFingerprint()) else { throw LibrarySyncFailure.storeUnavailable }
                 metadata["record"] = try LibrarySavedExportRecord.projection(value).exportValue(); values.append(.object(metadata)); last = row.key
             }
+        case 4:
+            var query = FetchDescriptor<GuestSavedViewHead>(predicate: #Predicate { $0.key > lower && $0.key < upper }, sortBy: [SortDescriptor(\.key, comparator: .lexical)]); query.fetchLimit = Self.savedStepLimit
+            for row in try db.fetch(query) {
+                guard row.identityData.count <= 16_384, row.serial >= 0, row.serial <= 9_007_199_254_740_990 else { throw LibrarySyncFailure.storeUnavailable }
+                let identity = try JSONDecoder().decode(LibrarySavedViewIdentity.self, from: row.identityData)
+                var metadata = try owned(row.subject, row.namespace, row.ownerKey, row.key)
+                guard identity.key == row.key, identity.owner.subject == subject, identity.owner.namespace == namespace, identity.owner.storageKey == row.ownerKey else { throw LibrarySyncFailure.ownerMismatch }
+                metadata["kind"] = .string("viewHead"); metadata["identity"] = try JSONDecoder().decode(LibraryExportValue.self, from: JSONEncoder().encode(identity)); metadata["serial"] = .number(Double(row.serial))
+                values.append(.object(metadata)); last = row.key
+            }
+        case 5:
+            var query = FetchDescriptor<GuestSavedViewRow>(predicate: #Predicate { $0.key > lower && $0.key < upper }, sortBy: [SortDescriptor(\.key, comparator: .lexical)]); query.fetchLimit = Self.savedStepLimit
+            for row in try db.fetch(query) {
+                var metadata = try owned(row.subject, row.namespace, row.ownerKey, row.viewKey)
+                guard row.data.count <= 256 * 1024, try LibrarySemanticFingerprint.digest(JSONDecoder().decode(LibraryExportValue.self, from: row.data), domain: "saved-view-row-v1:") == row.fingerprint else { throw LibrarySyncFailure.storeUnavailable }
+                let expected: String
+                if row.kind == 1 {
+                    let item = try JSONDecoder().decode(LibrarySavedViewItem.self, from: row.data); try item.validate(); expected = row.viewKey + ":i:" + LibraryOutcomeBinding.hash([item.value.hadithId])
+                } else {
+                    guard row.kind == 0 else { throw LibrarySyncFailure.storeUnavailable }
+                    let folder = try JSONDecoder().decode(SyncFolderRow.self, from: row.data); try LibrarySavedPolicy.validate(.folder(.init(sourceId: folder._id, ordinal: 0, value: folder))); expected = row.viewKey + ":f:" + LibraryOutcomeBinding.hash([folder._id])
+                }
+                guard row.key == expected else { throw LibrarySyncFailure.storeUnavailable }
+                metadata["kind"] = .string(row.kind == 1 ? "viewItem" : "viewFolder"); metadata["view"] = .string(row.viewKey); metadata["value"] = try JSONDecoder().decode(LibraryExportValue.self, from: row.data)
+                values.append(.object(metadata)); last = row.key
+            }
         default: throw LibrarySyncFailure.invalidReceipt
         }
         try validateOutcomeExport(fence, in: db); return (values, last, values.count < Self.savedStepLimit)
@@ -1580,4 +1634,157 @@ struct LibrarySavedActiveGeneration: Equatable, Sendable {
 }
 enum LibrarySavedActivation: Equatable, Sendable {
     case active(LibrarySavedActiveGeneration), restart, unavailable(SavedFactsReplyUnavailableReason)
+}
+
+// Derived draft storage. These reads do not certify completeness or publish a user library.
+extension GuestDataStore {
+    private func viewHead(_ identity: LibrarySavedViewIdentity, in db: ModelContext) throws -> (GuestSavedViewHead, LibrarySavedViewStamp) {
+        try assertOutcomeOwnerActive(identity.owner, in: db)
+        try LibrarySavedLease(owner: identity.owner, epoch: identity.epoch, generation: identity.generation).validate()
+        guard let (_, lease, _) = try currentSavedScope(identity.owner, in: db), lease.epoch == identity.epoch else { throw LibrarySyncFailure.sessionChanged }
+        let key = identity.key
+        var query = FetchDescriptor<GuestSavedViewHead>(predicate: #Predicate { $0.key == key }); query.fetchLimit = 2
+        let rows = try db.fetch(query)
+        guard rows.count == 1, let row = rows.first, row.identityData.count <= 16_384,
+              row.subject == identity.owner.subject, row.namespace == identity.owner.namespace, row.ownerKey == identity.owner.storageKey, row.scopeKey == identity.scope,
+              try JSONDecoder().decode(LibrarySavedViewIdentity.self, from: row.identityData) == identity, row.serial >= 0, row.serial <= 9_007_199_254_740_990 else { throw LibrarySyncFailure.storeUnavailable }
+        return (row, .init(identity: identity, serial: row.serial))
+    }
+    func draftSavedViewStamp(_ identity: LibrarySavedViewIdentity) throws -> LibrarySavedViewStamp { try viewHead(identity, in: outcomeContext()).1 }
+    func createSavedViewRows(_ privateScope: LibrarySavedLease) throws -> LibrarySavedViewStamp {
+        let identity = LibrarySavedViewIdentity(owner: privateScope.owner, epoch: privateScope.epoch, generation: UUID().uuidString)
+        let db = outcomeContext()
+        try assertOutcomeOwnerActive(identity.owner, in: db)
+        try LibrarySavedLease(owner: identity.owner, epoch: identity.epoch, generation: identity.generation).validate()
+        guard let (_, lease, _) = try currentSavedScope(identity.owner, in: db), lease.epoch == identity.epoch else { throw LibrarySyncFailure.sessionChanged }
+        let key = identity.key, scope = identity.scope
+        var existing = FetchDescriptor<GuestSavedViewHead>(predicate: #Predicate { $0.key == key }); existing.fetchLimit = 1
+        guard try db.fetch(existing).isEmpty else { throw LibrarySyncFailure.storeUnavailable }
+        let upper = key + "~"
+        var rows = FetchDescriptor<GuestSavedViewRow>(predicate: #Predicate { $0.key >= key && $0.key < upper }); rows.fetchLimit = 1
+        var indexes = FetchDescriptor<GuestSavedViewIndex>(predicate: #Predicate { $0.key >= key && $0.key < upper }); indexes.fetchLimit = 1
+        guard try db.fetch(rows).isEmpty, try db.fetch(indexes).isEmpty else { throw LibrarySyncFailure.storeUnavailable }
+        let scopeLower = scope + ":", scopeUpper = scopeLower + "~"
+        var peers = FetchDescriptor<GuestSavedViewHead>(predicate: #Predicate { $0.key >= scopeLower && $0.key < scopeUpper }); peers.fetchLimit = 3
+        guard try db.fetch(peers).count < 3 else { throw LibrarySyncFailure.storeUnavailable }
+        db.insert(try GuestSavedViewHead(identity)); try bumpOutcomeClock(subject: identity.owner.subject, namespace: identity.owner.namespace, in: db); try saveOutcomeContext(db)
+        return .init(identity: identity, serial: 0)
+    }
+    private func rawViewRow(_ identity: LibrarySavedViewIdentity, key: String, in db: ModelContext) throws -> GuestSavedViewRow? {
+        var query = FetchDescriptor<GuestSavedViewRow>(predicate: #Predicate { $0.key == key }); query.fetchLimit = 2
+        let rows = try db.fetch(query); guard rows.count <= 1 else { throw LibrarySyncFailure.storeUnavailable }
+        guard let row = rows.first else { return nil }
+        guard row.viewKey == identity.key, row.subject == identity.owner.subject, row.namespace == identity.owner.namespace, row.ownerKey == identity.owner.storageKey, row.data.count <= 256 * 1024,
+              try LibrarySemanticFingerprint.digest(JSONDecoder().decode(LibraryExportValue.self, from: row.data), domain: "saved-view-row-v1:") == row.fingerprint else { throw LibrarySyncFailure.storeUnavailable }
+        if row.kind == 1 {
+            let value = try JSONDecoder().decode(LibrarySavedViewItem.self, from: row.data); try value.validate()
+            guard key == identity.itemKey(value.value.hadithId) else { throw LibrarySyncFailure.storeUnavailable }
+        } else {
+            let value = try JSONDecoder().decode(SyncFolderRow.self, from: row.data); try LibrarySavedPolicy.validate(.folder(.init(sourceId: value._id, ordinal: 0, value: value)))
+            guard row.kind == 0, key == identity.folderKey(value._id) else { throw LibrarySyncFailure.storeUnavailable }
+        }
+        return row
+    }
+    private func viewIndex(_ identity: LibrarySavedViewIdentity, key: String, target: String?, in db: ModelContext) throws {
+        var query = FetchDescriptor<GuestSavedViewIndex>(predicate: #Predicate { $0.key == key }); query.fetchLimit = 2
+        let rows = try db.fetch(query); guard rows.count <= 1 else { throw LibrarySyncFailure.storeUnavailable }
+        if let row = rows.first {
+            guard row.viewKey == identity.key, row.subject == identity.owner.subject, row.namespace == identity.owner.namespace, row.ownerKey == identity.owner.storageKey else { throw LibrarySyncFailure.ownerMismatch }
+            if let target { row.targetKey = target } else { db.delete(row) }
+        } else if let target { db.insert(GuestSavedViewIndex(identity, key: key, target: target)) }
+    }
+    func writeSavedViewRows(_ stamp: LibrarySavedViewStamp, items: [LibrarySavedViewItem], folders: [SyncFolderRow] = []) throws -> LibrarySavedViewStamp {
+        let db = outcomeContext(), identity = stamp.identity
+        do {
+            let (head, current) = try viewHead(identity, in: db)
+            guard current == stamp else { throw LibrarySavedViewChanged.stale }
+            guard stamp.serial < 9_007_199_254_740_990 else { throw LibrarySyncFailure.storeUnavailable }
+            guard (1...8).contains(items.count + folders.count), Set(items.map { $0.value.hadithId }).count == items.count, Set(folders.map(\._id)).count == folders.count else { throw LibrarySyncFailure.invalidChange }
+            func write(_ key: String, kind: Int, data: Data) throws {
+                guard data.count <= 256 * 1024 else { throw LibrarySyncFailure.storeUnavailable }
+                let fingerprint = try LibrarySemanticFingerprint.digest(JSONDecoder().decode(LibraryExportValue.self, from: data), domain: "saved-view-row-v1:")
+                if let row = try rawViewRow(identity, key: key, in: db) { guard row.kind == kind else { throw LibrarySyncFailure.storeUnavailable }; row.data = data; row.fingerprint = fingerprint }
+                else { db.insert(GuestSavedViewRow(identity, key: key, kind: kind, data: data, fingerprint: fingerprint)) }
+            }
+            for item in items {
+                try item.validate(); let key = identity.itemKey(item.value.hadithId)
+                if let old = try rawViewRow(identity, key: key, in: db) {
+                    guard old.kind == 1 else { throw LibrarySyncFailure.storeUnavailable }
+                    let value = try JSONDecoder().decode(LibrarySavedViewItem.self, from: old.data)
+                    for index in try LibrarySavedViewPolicy.indexKeys(identity, item: value) { try viewIndex(identity, key: index, target: nil, in: db) }
+                    if item.mask == 0 { db.delete(old) }
+                }
+                if item.mask != 0 {
+                    try write(key, kind: 1, data: JSONEncoder().encode(item))
+                    for index in try LibrarySavedViewPolicy.indexKeys(identity, item: item) { try viewIndex(identity, key: index, target: key, in: db) }
+                }
+            }
+            for folder in folders {
+                try LibrarySavedPolicy.validate(.folder(.init(sourceId: folder._id, ordinal: 0, value: folder)))
+                let key = identity.folderKey(folder._id)
+                if let old = try rawViewRow(identity, key: key, in: db) {
+                    guard old.kind == 0 else { throw LibrarySyncFailure.storeUnavailable }
+                    let value = try JSONDecoder().decode(SyncFolderRow.self, from: old.data)
+                    for prefix in [identity.folderPrefix, identity.namePrefix(value.name)] { try viewIndex(identity, key: prefix + LibrarySavedViewPolicy.folderRank(value), target: nil, in: db) }
+                }
+                try write(key, kind: 0, data: JSONEncoder().encode(folder))
+                for prefix in [identity.folderPrefix, identity.namePrefix(folder.name)] { try viewIndex(identity, key: prefix + LibrarySavedViewPolicy.folderRank(folder), target: key, in: db) }
+            }
+            head.serial += 1; try bumpOutcomeClock(subject: identity.owner.subject, namespace: identity.owner.namespace, in: db); try saveOutcomeContext(db)
+            return .init(identity: identity, serial: head.serial)
+        } catch { db.rollback(); throw error }
+    }
+    func draftSavedViewItem(_ stamp: LibrarySavedViewStamp, target: String) throws -> LibrarySavedViewItem? {
+        let db = outcomeContext(); guard try viewHead(stamp.identity, in: db).1 == stamp else { throw LibrarySavedViewChanged.stale }
+        guard let row = try rawViewRow(stamp.identity, key: stamp.identity.itemKey(target), in: db) else { return nil }
+        let value = try JSONDecoder().decode(LibrarySavedViewItem.self, from: row.data); try value.validate()
+        guard row.kind == 1, value.value.hadithId == target else { throw LibrarySyncFailure.storeUnavailable }; return value
+    }
+    func draftSavedViewFolder(_ stamp: LibrarySavedViewStamp, target: String) throws -> SyncFolderRow? {
+        let db = outcomeContext(); guard try viewHead(stamp.identity, in: db).1 == stamp else { throw LibrarySavedViewChanged.stale }
+        guard let row = try rawViewRow(stamp.identity, key: stamp.identity.folderKey(target), in: db) else { return nil }
+        let value = try JSONDecoder().decode(SyncFolderRow.self, from: row.data)
+        try LibrarySavedPolicy.validate(.folder(.init(sourceId: value._id, ordinal: 0, value: value)))
+        guard row.kind == 0, value._id == target else { throw LibrarySyncFailure.storeUnavailable }; return value
+    }
+    private func viewIndexPage(_ identity: LibrarySavedViewIdentity, prefix: String, after: String?, limit: Int, in db: ModelContext) throws -> [GuestSavedViewIndex] {
+        guard after == nil || after?.hasPrefix(prefix) == true else { throw LibrarySavedViewChanged.stale }
+        let lower = after ?? prefix, upper = prefix + "~"
+        var query = FetchDescriptor<GuestSavedViewIndex>(predicate: #Predicate { $0.key > lower && $0.key < upper }, sortBy: [SortDescriptor(\.key, comparator: .lexical)]); query.fetchLimit = limit
+        let rows = try db.fetch(query)
+        for row in rows { guard row.viewKey == identity.key, row.subject == identity.owner.subject, row.namespace == identity.owner.namespace, row.ownerKey == identity.owner.storageKey else { throw LibrarySyncFailure.ownerMismatch } }
+        return rows
+    }
+    func draftSavedViewPage(_ stamp: LibrarySavedViewStamp, selection: LibrarySavedViewSelection, ticket: LibrarySavedViewTicket? = nil, limit: Int = 32) throws -> LibrarySavedViewPage {
+        try selection.validate()
+        let db = outcomeContext()
+        guard (1...32).contains(limit) else { throw LibrarySyncFailure.invalidChange }
+        guard ticket == nil || ticket?.stamp.identity.owner == stamp.identity.owner else { throw LibrarySyncFailure.ownerMismatch }
+        guard try viewHead(stamp.identity, in: db).1 == stamp, ticket == nil || ticket?.stamp == stamp && ticket?.selection == selection else { throw LibrarySavedViewChanged.stale }
+        let prefix = stamp.identity.queryPrefix(selection)
+        let entries = try viewIndexPage(stamp.identity, prefix: prefix, after: ticket?.after, limit: limit + 1, in: db)
+        let items = try entries.prefix(limit).map { entry -> LibrarySavedViewItem in
+            guard let row = try rawViewRow(stamp.identity, key: entry.targetKey, in: db), row.kind == 1 else { throw LibrarySyncFailure.storeUnavailable }
+            let value = try JSONDecoder().decode(LibrarySavedViewItem.self, from: row.data)
+            guard entry.targetKey == stamp.identity.itemKey(value.value.hadithId), entry.key == prefix + (try LibrarySavedViewPolicy.rank(value.value)), try LibrarySavedViewPolicy.matches(value, selection: selection) else { throw LibrarySyncFailure.storeUnavailable }; return value
+        }
+        var global = selection; global.collection = nil
+        let unknown = try selection.collection != nil && !viewIndexPage(stamp.identity, prefix: stamp.identity.queryPrefix(global, unresolved: true), after: nil, limit: 1, in: db).isEmpty
+        return .init(stamp: stamp, items: items, next: entries.count > limit ? .init(stamp: stamp, selection: selection, after: entries[limit - 1].key) : nil, unresolvedCoverage: unknown)
+    }
+    func draftSavedViewFolders(_ stamp: LibrarySavedViewStamp, ticket: LibrarySavedViewFolderTicket? = nil, limit: Int = 32, name: String? = nil) throws -> LibrarySavedViewFolderPage {
+        let db = outcomeContext()
+        guard (1...32).contains(limit) else { throw LibrarySyncFailure.invalidChange }
+        guard ticket == nil || ticket?.stamp.identity.owner == stamp.identity.owner else { throw LibrarySyncFailure.ownerMismatch }
+        guard try viewHead(stamp.identity, in: db).1 == stamp, ticket == nil || ticket?.stamp == stamp && ticket?.name == name else { throw LibrarySavedViewChanged.stale }
+        let prefix = name.map(stamp.identity.namePrefix) ?? stamp.identity.folderPrefix
+        let entries = try viewIndexPage(stamp.identity, prefix: prefix, after: ticket?.after, limit: limit + 1, in: db)
+        let folders = try entries.prefix(limit).map { entry -> SyncFolderRow in
+            guard let row = try rawViewRow(stamp.identity, key: entry.targetKey, in: db), row.kind == 0 else { throw LibrarySyncFailure.storeUnavailable }
+            let value = try JSONDecoder().decode(SyncFolderRow.self, from: row.data)
+            try LibrarySavedPolicy.validate(.folder(.init(sourceId: value._id, ordinal: 0, value: value)))
+            guard entry.targetKey == stamp.identity.folderKey(value._id), entry.key == prefix + (try LibrarySavedViewPolicy.folderRank(value)), (name.map { LibrarySavedViewPolicy.nameKey(value.name) == LibrarySavedViewPolicy.nameKey($0) } ?? true) else { throw LibrarySyncFailure.storeUnavailable }; return value
+        }
+        return .init(stamp: stamp, folders: folders, next: entries.count > limit ? .init(stamp: stamp, name: name, after: entries[limit - 1].key) : nil)
+    }
 }

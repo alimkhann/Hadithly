@@ -168,7 +168,7 @@ internal fun LibraryOutcomeJournal.eraseLocalAccountsStep(subject: String, names
     count > 0
 }
 private fun assertErasedScope(db: SQLiteDatabase, subject: String, namespace: String) {
-    for (table in listOf("local_accounts", "saved_assemblies", "saved_facts", "saved_pages", "saved_projection", "scopes", "headers", "export_artifacts")) {
+    for (table in listOf("local_accounts", "saved_view_heads", "saved_view_rows", "saved_view_indexes", "saved_assemblies", "saved_facts", "saved_pages", "saved_projection", "scopes", "headers", "export_artifacts")) {
         db.rawQuery("SELECT 1 FROM $table WHERE subject=? AND namespace=? LIMIT 1", arrayOf(subject, namespace)).use { if (it.moveToFirst()) throw LibrarySyncFailure.StoreUnavailable }
     }
 }

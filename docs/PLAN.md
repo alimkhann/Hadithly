@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-10-23. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-10-24. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
 D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its
 simulator/emulator and unit gates; its physical-device gate is open. R4's
@@ -56,6 +56,20 @@ Do not
 start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
+
+## A2 indexed draft-view checkpoint, October 24
+
+Both native stores now materialize private Saved draft rows and filter/folder/route
+indexes, with exact target reads, serial-bound pages and normalized folder lookup.
+The compiler, 2,001-row query/reopen/offscreen/export/erase cases and lifecycle
+rollback checks pass with 134 iOS, 123 Android connected and 212 Android unit tests.
+See `docs/LIBRARY_SAVED_VIEW_DRAFT_VERIFICATION.md`. Review-discovered normalization,
+alias ordering, serial reuse/bounds and Android scalar coercion defects are repaired.
+This is a draft component. It does not certify complete views, publish an active
+presentation or enable row mode. Complete build/catch-up/retirement, atomic
+private/view/mode/queue publication, both native UI switches and independent
+hydration remain next. Existing scale, hosted/device/deployment, recoverable iOS
+save failure and A1 gates stay open. A2 is not complete.
 
 ## A2 Saved observation checkpoint, October 23
 
