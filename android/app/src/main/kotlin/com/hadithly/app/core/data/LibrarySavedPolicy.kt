@@ -321,3 +321,33 @@ object LibrarySavedReadPolicy {
         }
     }
 }
+
+// Ephemeral authority selected by the native store. Never serialize a copied revision into the account queue.
+class LibrarySavedObservation private constructor(val owner: LibrarySyncOwner, private val source: Source) {
+    private sealed interface Source {
+        data object Unavailable : Source
+        data class Legacy(val version: Double) : Source
+        data class Active(val handle: LibrarySavedActiveGeneration) : Source
+    }
+    fun versionFor(expected: LibrarySyncOwner): Double? {
+        if (owner != expected) throw LibrarySyncFailure.OwnerMismatch
+        return when (val value = source) {
+            Source.Unavailable -> null
+            is Source.Legacy -> value.version
+            is Source.Active -> value.handle.version
+        }
+    }
+    companion object {
+        internal fun unavailable(owner: LibrarySyncOwner) = LibrarySavedObservation(owner, Source.Unavailable)
+        internal fun legacy(owner: LibrarySyncOwner, snapshot: SyncSavedSnapshot?): LibrarySavedObservation {
+            if (snapshot == null) return unavailable(owner)
+            if (snapshot.ownerKey != owner.key) throw LibrarySyncFailure.OwnerMismatch
+            LibrarySavedPolicy.integer(snapshot.version)
+            return LibrarySavedObservation(owner, Source.Legacy(snapshot.version))
+        }
+        internal fun active(record: LibrarySavedGenerationRecord): LibrarySavedObservation {
+            record.validate(record.lease, true)
+            return LibrarySavedObservation(record.lease.owner, Source.Active(LibrarySavedActiveGeneration(record)))
+        }
+    }
+}

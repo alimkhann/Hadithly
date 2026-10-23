@@ -476,6 +476,7 @@ final class GuestSavedAssembly {
     var ownerKey: String
     var leaseData: Data
     var checkpointData: Data
+    var rowMode: Bool = false
     var erasing: Bool
     var activeData: Data?
     var retiringData: Data?

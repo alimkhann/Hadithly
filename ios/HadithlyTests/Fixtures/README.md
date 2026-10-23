@@ -5,7 +5,7 @@ already-compiled `d1c80bc` iOS simulator test binary on October 21, before addin
 `activeData` and `retiringData` to `GuestSavedAssembly`. SQLite's backup API captured
 the existing large-journal test at its terminal folding boundary. It contains
 1,005 source facts, their exact page receipts, and the existing owner partition and
-mutation clock. It has no active/retiring columns and no `/Users/` path bytes.
+mutation clock. It has no active/retiring or rowMode columns and no `/Users/` path bytes.
 V3 is the Saved component fixture label, not a registered SwiftData VersionedSchema.
 
 The backup's journal mode was changed to DELETE before deterministic gzip
@@ -37,3 +37,8 @@ The migration test decompresses this file, opens it through the new SwiftData sc
 finishes the retained fold/verification, activates it after an exact final transport
 fixture and reopens again. It supplements the pre-Saved schema test. It does not
 prove physical-device migration or every supported OS release.
+
+The observation migration test also requires the new `rowMode` property to default
+to false after reopening this genuine older model, while preserving all 1,005 facts
+and completing activation. This is lightweight migration from the captured prior
+Saved model, not evidence from every intermediate installed build or device OS.

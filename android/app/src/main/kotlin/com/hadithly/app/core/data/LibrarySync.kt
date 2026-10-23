@@ -198,18 +198,19 @@ data class LibraryPartitionState(
         frozen = null
         nextSequence++
     }
-    val projectedFrozenChanges: List<LibraryLocalChange> get() {
+    fun projectedFrozenChanges(owner: LibrarySyncOwner, observed: LibrarySavedObservation): List<LibraryLocalChange> {
+        val version = observed.versionFor(owner)
         val collection = collectingOutcome ?: return frozen?.changes.orEmpty()
-        return frozen?.changes.orEmpty().filter { it.operation.command is SyncCommand.FolderDelete && (savedSnapshot?.version ?: -1.0) < collection.committed.revision.saved }
+        return frozen?.changes.orEmpty().filter { it.operation.command is SyncCommand.FolderDelete && (version ?: -1.0) < collection.committed.revision.saved }
     }
-
-    fun pruneConfirmed() {
+    fun pruneConfirmed(owner: LibrarySyncOwner, observed: LibrarySavedObservation) {
+        val savedVersion = observed.versionFor(owner)
         confirmed = confirmed.filter { value ->
-            val observed = if (value.change.operation.command.isPositionChange) positionsSnapshot?.version else savedSnapshot?.version
-            (observed ?: -1.0) < value.version
+            val version = if (value.change.operation.command.isPositionChange) positionsSnapshot?.version else savedVersion
+            (version ?: -1.0) < value.version
         }
     }
-    fun settleCollectedOutcome(expected: LibraryPendingOutcome, binding: LibraryOutcomeBinding, checkpoint: LibraryOutcomeCheckpoint, now: Double): LibraryOutcomeSettlement {
+    fun settleCollectedOutcome(expected: LibraryPendingOutcome, binding: LibraryOutcomeBinding, checkpoint: LibraryOutcomeCheckpoint, observed: LibrarySavedObservation, now: Double): LibraryOutcomeSettlement {
         val committed = expected.committed; val proof = LibraryManifestProof(committed)
         val ack = SyncAcknowledgement(committed.clientKey, committed.sequence, committed.reply.batchId, committed.digest)
         if (binding.committed != committed || binding.owner.key != committed.reply.ownerKey || clientKey != committed.clientKey) throw LibrarySyncFailure.InvalidReceipt
@@ -232,10 +233,8 @@ data class LibraryPartitionState(
             }
             LibraryOutcomeStatus.Complete -> { if (checkpoint.counts != binding.expected) throw LibrarySyncFailure.InvalidReceipt; false }
         }
-        val snapshot = savedSnapshot ?: return LibraryOutcomeSettlement.AwaitingSaved
-        if (snapshot.ownerKey != binding.owner.key) throw LibrarySyncFailure.OwnerMismatch
-        if (!snapshot.version.isFinite() || snapshot.version < 0 || kotlin.math.floor(snapshot.version) != snapshot.version) throw LibrarySyncFailure.InvalidReceipt
-        if (snapshot.version < committed.revision.saved) return LibraryOutcomeSettlement.AwaitingSaved
+        val version = observed.versionFor(binding.owner) ?: return LibraryOutcomeSettlement.AwaitingSaved
+        if (version < committed.revision.saved) return LibraryOutcomeSettlement.AwaitingSaved
         val restore = original?.operation?.command as? SyncCommand.FolderRestore
         val restored = proof.receipt.outcome as? SyncOutcome.FolderRestoredManifest
         val mapping = if (restore != null && restored != null) "restore:${restore.deletionId}" to restored.folderId else null
@@ -290,10 +289,10 @@ data class LibraryPartitionState(
             is LibraryRecovery.Outcome -> LibraryOutcomeBinding(value.authority.owner, value.authority.committed).key == binding.key || value.original?.let(::references) == true
         } }
     }
-    fun canPruneOutcome(binding: LibraryOutcomeBinding, checkpoint: LibraryOutcomeCheckpoint, now: Double): Boolean {
+    fun canPruneOutcome(binding: LibraryOutcomeBinding, checkpoint: LibraryOutcomeCheckpoint, observed: LibrarySavedObservation, now: Double): Boolean {
         val retention = checkpoint.retention ?: return false
-        val snapshot = savedSnapshot ?: return false
-        if (checkpoint.status != LibraryOutcomeStatus.Complete || checkpoint.counts != binding.expected || binding.expected.superseded != 0L || binding.expected.missing != 0L || !retention.valid(checkpoint.next) || !now.isFinite() || now < retention.acknowledgedAt + LibraryOutcomeRetention.duration || snapshot.ownerKey != binding.owner.key || !snapshot.version.isFinite() || snapshot.version < binding.committed.revision.saved || kotlin.math.floor(snapshot.version) != snapshot.version) return false
+        val version = observed.versionFor(binding.owner) ?: return false
+        if (checkpoint.status != LibraryOutcomeStatus.Complete || checkpoint.counts != binding.expected || binding.expected.superseded != 0L || binding.expected.missing != 0L || !retention.valid(checkpoint.next) || !now.isFinite() || now < retention.acknowledgedAt + LibraryOutcomeRetention.duration || version < binding.committed.revision.saved) return false
         return !retainsOutcome(binding, now)
     }
 
@@ -348,7 +347,8 @@ data class LibraryPartitionState(
             !(operation.command is SyncCommand.FolderDelete && proof.receipt.outcome is SyncOutcome.FolderDeletedManifest || operation.command is SyncCommand.FolderRestore && proof.receipt.outcome is SyncOutcome.FolderRestoredManifest)) throw LibrarySyncFailure.InvalidReceipt
     }
 
-    fun settle(exchange: SyncExchange, requested: SyncFrame, now: Double) {
+    fun settle(exchange: SyncExchange, requested: SyncFrame, owner: LibrarySyncOwner, observed: LibrarySavedObservation, now: Double) {
+        observed.versionFor(owner)
         if (requested.clientKey != clientKey || requested.sequence != nextSequence || frozen?.batch != requested.batch || acknowledgement != null || collectingOutcome != null) throw LibrarySyncFailure.InvalidReceipt
         when (exchange) {
             is SyncExchange.Accepted -> {
@@ -388,7 +388,7 @@ data class LibraryPartitionState(
                     if (command is SyncCommand.FolderCreate && outcome is SyncOutcome.Folder) folderMappings = folderMappings + (command.key to outcome.folderId)
                     if (command is SyncCommand.FolderRestore && outcome is SyncOutcome.FolderRestored) folderMappings = folderMappings + ("restore:${command.deletionId}" to outcome.folderId)
                 }
-                pruneConfirmed()
+                pruneConfirmed(owner, observed)
                 acknowledgement = SyncAcknowledgement(clientKey, committed.sequence, committed.reply.batchId, committed.digest)
                 waiting = null
             }
@@ -403,7 +403,8 @@ data class LibraryPartitionState(
             }
         }
     }
-    fun settlePending(exchange: SyncExchange, requested: SyncPending, now: Double) {
+    fun settlePending(exchange: SyncExchange, requested: SyncPending, owner: LibrarySyncOwner, observed: LibrarySavedObservation, now: Double) {
+        observed.versionFor(owner)
         if (waiting != requested || acknowledgement != null) throw LibrarySyncFailure.InvalidReceipt
         when (exchange) {
             is SyncExchange.Pending -> {
@@ -414,7 +415,7 @@ data class LibraryPartitionState(
                 val proof = exchange.committed
                 if (proof.clientKey != requested.clientKey || proof.sequence != requested.sequence || proof.reply.batchId != requested.batchId || proof.digest != requested.digest) throw LibrarySyncFailure.InvalidReceipt
                 val original = frozen
-                if (original != null && original.batch.id == requested.batchId && runCatching { original.batch.intentDigest() }.getOrNull() == requested.intentDigest) settle(exchange, SyncFrame(clientKey, requested.sequence, original.batch), now)
+                if (original != null && original.batch.id == requested.batchId && runCatching { original.batch.intentDigest() }.getOrNull() == requested.intentDigest) settle(exchange, SyncFrame(clientKey, requested.sequence, original.batch), owner, observed, now)
                 else adopt(SyncCursor(requested.sequence - 1, SyncOutstanding.Committed(proof)))
             }
             is SyncExchange.Reconcile -> {

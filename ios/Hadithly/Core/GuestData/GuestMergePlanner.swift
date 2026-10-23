@@ -602,18 +602,19 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
         positionsSnapshot = try values.decodeIfPresent(SyncPositionsSnapshot.self, forKey: .positionsSnapshot)
     }
 
-    var projectedFrozenChanges: [LibraryLocalChange] {
+    func projectedFrozenChanges(owner: LibrarySyncOwner, observed: LibrarySavedObservation) throws -> [LibraryLocalChange] {
+        let version = try observed.version(for: owner)
         guard let collectingOutcome else { return frozen?.changes ?? [] }
         return (frozen?.changes ?? []).filter { change in
-            if case .folderDelete = change.operation.command { return (savedSnapshot?.version ?? -1) < collectingOutcome.committed.revision.saved }
+            if case .folderDelete = change.operation.command { return (version ?? -1) < collectingOutcome.committed.revision.saved }
             return false
         }
     }
-
-    mutating func pruneConfirmed() {
+    mutating func pruneConfirmed(owner: LibrarySyncOwner, observed: LibrarySavedObservation) throws {
+        let savedVersion = try observed.version(for: owner)
         confirmed.removeAll { value in
-            let observed = value.change.operation.command.isPositionChange ? positionsSnapshot?.version : savedSnapshot?.version
-            return (observed ?? -1) >= value.version
+            let version = value.change.operation.command.isPositionChange ? positionsSnapshot?.version : savedVersion
+            return (version ?? -1) >= value.version
         }
     }
 
@@ -681,7 +682,7 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
     }
 
     mutating func settleCollectedOutcome(_ expected: LibraryPendingOutcome, binding: LibraryOutcomeBinding,
-                                         checkpoint: LibraryOutcomeCheckpoint, now: Double) throws -> LibraryOutcomeSettlement {
+                                         checkpoint: LibraryOutcomeCheckpoint, observed: LibrarySavedObservation, now: Double) throws -> LibraryOutcomeSettlement {
         let committed = expected.committed, proof = try LibraryManifestProof(committed)
         let ack = SyncAcknowledgement(clientKey: committed.clientKey, sequence: committed.sequence, batchId: committed.reply.batchId, digest: committed.digest)
         guard binding.committed == committed, binding.owner.key == committed.reply.ownerKey,
@@ -709,10 +710,7 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
             guard checkpoint.counts == binding.expected else { throw LibrarySyncFailure.invalidReceipt }
             unavailable = false
         }
-        guard let snapshot = savedSnapshot else { return .awaitingSaved }
-        guard snapshot.ownerKey == binding.owner.key else { throw LibrarySyncFailure.ownerMismatch }
-        guard snapshot.version.isFinite, snapshot.version >= 0, snapshot.version.rounded(.down) == snapshot.version else { throw LibrarySyncFailure.invalidReceipt }
-        guard snapshot.version >= committed.revision.saved else { return .awaitingSaved }
+        guard let version = try observed.version(for: binding.owner), version >= committed.revision.saved else { return .awaitingSaved }
         var mapping: (String, String)?
         if let original, case .folderRestore(let command) = original.operation.command,
            case .folderRestoredManifest(let result) = proof.receipt.outcome {
@@ -770,14 +768,12 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
             }
         }
     }
-    func canPruneOutcome(_ binding: LibraryOutcomeBinding, checkpoint: LibraryOutcomeCheckpoint, now: Double) -> Bool {
+    func canPruneOutcome(_ binding: LibraryOutcomeBinding, checkpoint: LibraryOutcomeCheckpoint, observed: LibrarySavedObservation, now: Double) throws -> Bool {
         guard checkpoint.status == .complete, checkpoint.counts == binding.expected,
               binding.expected.superseded == 0, binding.expected.missing == 0,
               let retention = checkpoint.retention, retention.valid(total: checkpoint.next),
               now.isFinite, now >= retention.acknowledgedAt + LibraryOutcomeRetention.duration,
-              let snapshot = savedSnapshot, snapshot.ownerKey == binding.owner.key,
-              snapshot.version.isFinite, snapshot.version.rounded(.down) == snapshot.version,
-              snapshot.version >= binding.committed.revision.saved else { return false }
+              let version = try observed.version(for: binding.owner), version >= binding.committed.revision.saved else { return false }
         return !retainsOutcome(binding, now: now)
     }
 
@@ -841,7 +837,8 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
         }
     }
 
-    mutating func settle(_ exchange: SyncExchange, requested: SyncFrame, now: Double) throws {
+    mutating func settle(_ exchange: SyncExchange, requested: SyncFrame, owner: LibrarySyncOwner, observed: LibrarySavedObservation, now: Double) throws {
+        _ = try observed.version(for: owner)
         guard requested.clientKey == clientKey, requested.sequence == Double(nextSequence), frozen?.batch == requested.batch,
               acknowledgement == nil, collectingOutcome == nil else { throw LibrarySyncFailure.invalidReceipt }
         switch exchange {
@@ -885,7 +882,7 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
                 if case .folderCreate(let created) = change.operation.command, case .folder(let value) = receipt.outcome { folderMappings[created.key] = value.folderId }
                 if case .folderRestore(let restored) = change.operation.command, case .folderRestored(let value) = receipt.outcome { folderMappings["restore:" + restored.deletionId] = value.folderId }
             }
-            pruneConfirmed()
+            try pruneConfirmed(owner: owner, observed: observed)
             acknowledgement = .init(clientKey: clientKey, sequence: committed.sequence, batchId: committed.reply.batchId, digest: committed.digest)
             waiting = nil
         case .pending(let value):
@@ -898,7 +895,8 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
         }
     }
 
-    mutating func settlePending(_ exchange: SyncExchange, requested: SyncPending, now: Double) throws {
+    mutating func settlePending(_ exchange: SyncExchange, requested: SyncPending, owner: LibrarySyncOwner, observed: LibrarySavedObservation, now: Double) throws {
+        _ = try observed.version(for: owner)
         guard waiting == requested, acknowledgement == nil else { throw LibrarySyncFailure.invalidReceipt }
         switch exchange {
         case .pending(let value):
@@ -908,7 +906,7 @@ struct LibraryPartitionState: Codable, Equatable, Sendable {
             let proof = value.committed
             guard proof.clientKey == requested.clientKey, proof.sequence == requested.sequence, proof.reply.batchId == requested.batchId, proof.digest == requested.digest else { throw LibrarySyncFailure.invalidReceipt }
             if let frozen, frozen.batch.id == requested.batchId, (try? frozen.batch.intentDigest()) == requested.intentDigest {
-                try settle(exchange, requested: .init(clientKey: clientKey, sequence: requested.sequence, batch: frozen.batch), now: now)
+                try settle(exchange, requested: .init(clientKey: clientKey, sequence: requested.sequence, batch: frozen.batch), owner: owner, observed: observed, now: now)
             } else {
                 try adopt(.init(closedThrough: requested.sequence - 1, outstanding: .committed(.init(committed: proof))))
             }

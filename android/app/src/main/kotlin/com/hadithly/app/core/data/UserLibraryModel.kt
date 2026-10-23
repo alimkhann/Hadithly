@@ -161,14 +161,13 @@ class UserLibraryModel private constructor(
         val capturedEpoch = epoch
         if (scopedOwner != owner || currentSession() != scopedSession) return
         try {
-            val state = guestData.syncPartition(owner) ?: return
+            val value = guestData.libraryProjection(owner)
             if (epoch != capturedEpoch || scopedOwner != owner || currentSession() != scopedSession) return
-            val value = LibraryProjection(state)
             _savedItems.value = value.items; _folders.value = value.folders; _progress.value = value.progress
             _bookmarks.value = value.items.mapNotNull { item -> item.bookmarkCreatedAt?.let { SavedEntry(item.hadithId, it, hadith = item.hadith) } }
             _favorites.value = value.items.mapNotNull { item -> item.favoriteCreatedAt?.let { SavedEntry(item.hadithId, it, hadith = item.hadith) } }
             _notes.value = value.items.mapNotNull { item -> item.noteContent?.let { SavedEntry(item.hadithId, item.noteCreatedAt ?: item.createdAt, item.noteUpdatedAt ?: item.updatedAt, it, item.hadith) } }
-            _loadState.value = if (state.savedSnapshot != null || value.items.isNotEmpty()) LoadState.Ready else LoadState.Loading
+            _loadState.value = if (value.hasSavedBase || value.items.isNotEmpty()) LoadState.Ready else LoadState.Loading
         } catch (cancelled: CancellationException) { throw cancelled }
         catch (_: Exception) { if (epoch == capturedEpoch) _loadState.value = LoadState.Failed }
     }

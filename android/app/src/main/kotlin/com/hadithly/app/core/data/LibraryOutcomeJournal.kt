@@ -139,7 +139,7 @@ data class LibraryExportArtifact(val id: String, val directory: File)
 private val savedJournalJson = Json { encodeDefaults = true; explicitNulls = false }
 
 /** Shared transaction boundary for account state, retained page evidence and erase fences. */
-internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(context, File(context.filesDir, "library_outcomes.db").absolutePath, null, 5) {
+internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(context, File(context.filesDir, "library_outcomes.db").absolutePath, null, 6) {
     override fun onConfigure(db: SQLiteDatabase) { db.setForeignKeyConstraintsEnabled(true) }
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE scopes (scope_key TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, generation TEXT NOT NULL)")
@@ -153,17 +153,20 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         createLocalStoreSchema(db)
     }
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        if (oldVersion !in 1..4 || newVersion != 5) throw LibrarySyncFailure.StoreUnavailable
+        if (oldVersion !in 1..5 || newVersion != 6) throw LibrarySyncFailure.StoreUnavailable
         if (oldVersion == 1) createExportSchema(db, ready = false)
         if (oldVersion <= 2) createSavedSchema(db)
-        else if (oldVersion == 3) {
-            db.execSQL("ALTER TABLE saved_assemblies ADD COLUMN active TEXT")
-            db.execSQL("ALTER TABLE saved_assemblies ADD COLUMN retiring TEXT")
+        else {
+            if (oldVersion == 3) {
+                db.execSQL("ALTER TABLE saved_assemblies ADD COLUMN active TEXT")
+                db.execSQL("ALTER TABLE saved_assemblies ADD COLUMN retiring TEXT")
+            }
+            db.execSQL("ALTER TABLE saved_assemblies ADD COLUMN row_mode INTEGER NOT NULL DEFAULT 0")
         }
-        createLocalStoreSchema(db)
+        if (oldVersion <= 4) createLocalStoreSchema(db)
     }
     private fun createSavedSchema(db: SQLiteDatabase) {
-        db.execSQL("CREATE TABLE saved_assemblies (scope_key TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, lease TEXT NOT NULL, checkpoint TEXT NOT NULL, erasing INTEGER NOT NULL, active TEXT, retiring TEXT)")
+        db.execSQL("CREATE TABLE saved_assemblies (scope_key TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, lease TEXT NOT NULL, checkpoint TEXT NOT NULL, erasing INTEGER NOT NULL, active TEXT, retiring TEXT, row_mode INTEGER NOT NULL DEFAULT 0)")
         db.execSQL("CREATE TABLE saved_facts (row_key TEXT NOT NULL UNIQUE, collection_key TEXT NOT NULL, ordinal INTEGER NOT NULL, source_key TEXT NOT NULL UNIQUE, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, fingerprint TEXT NOT NULL, data TEXT NOT NULL, PRIMARY KEY(collection_key,ordinal))")
         db.execSQL("CREATE TABLE saved_pages (collection_key TEXT NOT NULL, input_key TEXT NOT NULL UNIQUE, sequence INTEGER NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, data TEXT NOT NULL, PRIMARY KEY(collection_key,sequence))")
         db.execSQL("CREATE TABLE saved_projection (row_key TEXT PRIMARY KEY NOT NULL, collection_key TEXT NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, fingerprint TEXT NOT NULL, data TEXT NOT NULL)")
@@ -720,6 +723,20 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         } ?: return null
         if (lease.owner != owner) throw LibrarySyncFailure.OwnerMismatch
         return lease to savedHeader(db, lease)
+    }
+    internal fun savedObservationIn(db: SQLiteDatabase, owner: LibrarySyncOwner, state: LibraryPartitionState): LibrarySavedObservation {
+        assertLocalOwner(db, owner)
+        val scope = currentSavedScope(db, owner) ?: return LibrarySavedObservation.legacy(owner, state.savedSnapshot)
+        val mode = db.rawQuery("SELECT row_mode FROM saved_assemblies WHERE scope_key=?", arrayOf(scope.first.key)).use {
+            if (!it.moveToFirst()) throw LibrarySyncFailure.SessionChanged
+            if (it.getType(0) != android.database.Cursor.FIELD_TYPE_INTEGER) throw LibrarySyncFailure.StoreUnavailable
+            it.getLong(0)
+        }
+        return when (mode) {
+            0L -> LibrarySavedObservation.legacy(owner, state.savedSnapshot)
+            1L -> savedGenerations(db, scope.first, scope.second).first?.let(LibrarySavedObservation::active) ?: LibrarySavedObservation.unavailable(owner)
+            else -> throw LibrarySyncFailure.StoreUnavailable
+        }
     }
     fun savedActive(owner: LibrarySyncOwner): LibrarySavedActiveGeneration? = transaction { db ->
         assertLocalOwner(db, owner)

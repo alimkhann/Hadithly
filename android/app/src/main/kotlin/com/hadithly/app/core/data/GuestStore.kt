@@ -315,6 +315,12 @@ class GuestDataStore(context: Context) {
     suspend fun syncPartition(owner: LibrarySyncOwner): LibraryPartitionState? = withStorage {
         withContext(Dispatchers.IO) { outcomeJournal.localAccount(owner) }
     }
+    suspend fun libraryProjection(owner: LibrarySyncOwner): LibraryProjection = withStorage {
+        withContext(Dispatchers.IO) { outcomeJournal.transaction { db ->
+            val state = readLocalAccount(db, owner) ?: throw LibrarySyncFailure.SessionChanged
+            LibraryProjection(state, owner, outcomeJournal.savedObservationIn(db, owner, state))
+        } }
+    }
     suspend fun claimGuestForSync(owner: LibrarySyncOwner) = withStorage {
         withContext(Dispatchers.IO) { outcomeJournal.claimLocalGuest(owner) }
     }
@@ -332,11 +338,11 @@ class GuestDataStore(context: Context) {
     }
     suspend fun settleSyncExchange(exchange: SyncExchange, requested: SyncFrame, owner: LibrarySyncOwner, now: Double = nowMillis()) {
         validateExchange(owner, exchange)
-        accountWrite(owner) { _, state -> state.settle(exchange, requested, now) }
+        accountWrite(owner) { db, state -> state.settle(exchange, requested, owner, outcomeJournal.savedObservationIn(db, owner, state), now) }
     }
     suspend fun settleSyncPending(exchange: SyncExchange, requested: SyncPending, owner: LibrarySyncOwner, now: Double = nowMillis()) {
         validateExchange(owner, exchange)
-        accountWrite(owner) { _, state -> state.settlePending(exchange, requested, now) }
+        accountWrite(owner) { db, state -> state.settlePending(exchange, requested, owner, outcomeJournal.savedObservationIn(db, owner, state), now) }
     }
     suspend fun settleSyncRetirement(reply: SyncAckReply, requested: SyncFrame, owner: LibrarySyncOwner) {
         validateSyncOwner(owner, reply.ownerKey, reply.cursor)
@@ -360,7 +366,7 @@ class GuestDataStore(context: Context) {
         for (entry in entries) {
             val binding = entry.binding
             val dependency = if (binding.owner == owner) state else readLocalAccount(db, binding.owner)
-            if (dependency != null && (entry.checkpoint.retention?.removed != null || dependency.canPruneOutcome(binding, entry.checkpoint, now))) {
+            if (dependency != null && (entry.checkpoint.retention?.removed != null || dependency.canPruneOutcome(binding, entry.checkpoint, outcomeJournal.savedObservationIn(db, binding.owner, dependency), now))) {
                 if (outcomeJournal.pruneIn(db, binding, entry.checkpoint)) cursor = binding.key
                 state.outcomeRetentionCursor = cursor; return@accountWrite true
             }; cursor = binding.key
@@ -369,17 +375,17 @@ class GuestDataStore(context: Context) {
     }
     suspend fun settleCollectedOutcome(expected: LibraryPendingOutcome, owner: LibrarySyncOwner, now: Double): LibraryOutcomeSettlement = accountWrite(owner) { db, state ->
         val binding = LibraryOutcomeBinding(owner, expected.committed)
-        state.settleCollectedOutcome(expected, binding, outcomeJournal.settlementCheckpointIn(db, binding), now)
+        state.settleCollectedOutcome(expected, binding, outcomeJournal.settlementCheckpointIn(db, binding), outcomeJournal.savedObservationIn(db, owner, state), now)
     }
-    suspend fun cacheSavedSnapshot(snapshot: SyncSavedSnapshot, owner: LibrarySyncOwner) = accountWrite(owner) { _, state ->
+    suspend fun cacheSavedSnapshot(snapshot: SyncSavedSnapshot, owner: LibrarySyncOwner) = accountWrite(owner) { db, state ->
         if (snapshot.ownerKey != owner.key) throw LibrarySyncFailure.OwnerMismatch
         if (!snapshot.version.isFinite() || snapshot.version < 0 || kotlin.math.floor(snapshot.version) != snapshot.version) throw LibrarySyncFailure.InvalidReceipt
-        if (snapshot.version >= (state.savedSnapshot?.version ?: -1.0)) { state.savedSnapshot = snapshot; state.pruneConfirmed() }
+        if (snapshot.version >= (state.savedSnapshot?.version ?: -1.0)) { state.savedSnapshot = snapshot; state.pruneConfirmed(owner, outcomeJournal.savedObservationIn(db, owner, state)) }
     }
-    suspend fun cachePositionsSnapshot(snapshot: SyncPositionsSnapshot, owner: LibrarySyncOwner) = accountWrite(owner) { _, state ->
+    suspend fun cachePositionsSnapshot(snapshot: SyncPositionsSnapshot, owner: LibrarySyncOwner) = accountWrite(owner) { db, state ->
         if (snapshot.ownerKey != owner.key) throw LibrarySyncFailure.OwnerMismatch
         if (!snapshot.version.isFinite() || snapshot.version < 0 || kotlin.math.floor(snapshot.version) != snapshot.version) throw LibrarySyncFailure.InvalidReceipt
-        if (snapshot.version >= (state.positionsSnapshot?.version ?: -1.0)) { state.positionsSnapshot = snapshot; state.pruneConfirmed() }
+        if (snapshot.version >= (state.positionsSnapshot?.version ?: -1.0)) { state.positionsSnapshot = snapshot; state.pruneConfirmed(owner, outcomeJournal.savedObservationIn(db, owner, state)) }
     }
     suspend fun deletionPhase(subject: String, namespace: String): LibraryDeletionPhase? = withStorage {
         val phase = withContext(Dispatchers.IO) { outcomeJournal.localDeletion(subject, namespace) }

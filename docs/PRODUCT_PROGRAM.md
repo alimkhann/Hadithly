@@ -18,7 +18,10 @@ at most three times. See `LIBRARY_ACCOUNT_TRANSACTIONS_VERIFICATION.md`.
 The owner asked to wrap up A2 as quickly as possible. Use the already selected
 cutover design and concentrate remaining work into these delivery steps:
 
-1. Migrate all four private Saved observation consumers through store authority.
+1. [x] All four private Saved observation consumers now require store-selected,
+   owner-bound authority through every receipt/cache/projection caller. Forced
+   row-mode and migration checks pass 129 iOS/118 Android tests; see
+   `LIBRARY_SAVED_OBSERVATION_VERIFICATION.md`. Production row mode remains off.
 2. Connect effective indexed presentation, bounded refresh and both native Saved/
    Reader surfaces together; remove the old production joined-array authority.
 3. Verify scale, installed/SDK compatibility and actual delivery in both directions,

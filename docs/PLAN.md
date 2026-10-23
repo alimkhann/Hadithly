@@ -57,6 +57,21 @@ start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
 
+## A2 Saved observation checkpoint, October 23
+
+All four private Saved consumers now require an explicit owner-bound observation
+selected by the native store in the same account transaction/context. Receipt and
+pending settlement, both cache paths and existing projection callers are migrated.
+Forced row-mode cases reject high old joined revisions when active private data is
+absent or lower. Installed Android v5 and the genuine captured older SwiftData
+schema retain their data through mode migration. Local suites pass 129 iOS,
+118 Android connected and 212 Android unit tests; the independent recheck accepts
+this component. See `docs/LIBRARY_SAVED_OBSERVATION_VERIFICATION.md`.
+Production mode remains legacy until effective indexed presentation, bounded refresh
+publication and both native Saved/Reader UI switches are ready. Those are next;
+scale, hosted/device/deployment, recoverable iOS save failure and A1 dependencies
+stay open. This does not complete A2 or move the program to A3.
+
 ## A2 account transaction checkpoint, October 23
 
 The matching iOS prerequisite now uses one fresh synchronous context/save for

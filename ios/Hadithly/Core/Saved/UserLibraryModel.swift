@@ -178,13 +178,12 @@ final class UserLibraryModel {
     private func reloadAccount(_ owner: LibrarySyncOwner) {
         guard currentSession() == scopedSession, scopedOwner == owner else { return }
         do {
-            guard let state = try guestData.syncPartition(owner) else { loadState = .loading; return }
-            let value = LibraryProjection(state)
+            let value = try guestData.libraryProjection(owner)
             savedItems = value.items; folders = value.folders; progress = value.progress
             bookmarks = value.items.compactMap { item in item.bookmarkCreatedAt.map { .init(rowId: item.hadithId, createdAt: $0, hadith: item.hadith) } }
             favorites = value.items.compactMap { item in item.favoriteCreatedAt.map { .init(rowId: item.hadithId, createdAt: $0, hadith: item.hadith) } }
             notes = value.items.compactMap { item in item.noteContent.map { .init(rowId: item.hadithId, createdAt: item.noteCreatedAt ?? item.createdAt, updatedAt: item.noteUpdatedAt ?? item.updatedAt, noteContent: $0, hadith: item.hadith) } }
-            loadState = state.savedSnapshot != nil || !value.items.isEmpty ? .ready : .loading
+            loadState = value.hasSavedBase || !value.items.isEmpty ? .ready : .loading
         } catch { loadState = .failed }
     }
 
@@ -620,11 +619,13 @@ extension LibraryLocalSource {
 
 @MainActor
 struct LibraryProjection {
+    let hasSavedBase: Bool
     let items: [SavedItemEntry]
     let folders: [SavedFolder]
     let progress: [ProgressEntry]
 
-    init(_ state: LibraryPartitionState) {
+    init(_ state: LibraryPartitionState, owner: LibrarySyncOwner, observed: LibrarySavedObservation) throws {
+        hasSavedBase = state.savedSnapshot != nil
         func date(_ value: Double) -> Date { Date(timeIntervalSince1970: value / 1_000) }
         func reference(_ value: SyncHadithSummary) -> HadithRef {
             .init(hadithId: value._id, collectionSlug: value.collectionSlug, collectionName: value.collectionName, volumeId: value.volumeId,
@@ -646,7 +647,7 @@ struct LibraryProjection {
         var removedBy: [String: String] = [:]
         func hasSavedFacet(_ item: SavedItemEntry) -> Bool { item.bookmarkCreatedAt != nil || item.favoriteCreatedAt != nil || item.noteContent != nil }
         let changes: [(LibraryLocalChange, SyncOutcome?)] = state.confirmed.map { ($0.change, $0.outcome) }
-            + state.projectedFrozenChanges.map { ($0, nil) } + state.pending.map { ($0, nil) }
+            + (try state.projectedFrozenChanges(owner: owner, observed: observed)).map { ($0, nil) } + state.pending.map { ($0, nil) }
         for (change, outcome) in changes {
             let at = date(change.operation.at)
             switch change.operation.command {

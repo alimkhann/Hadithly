@@ -241,6 +241,11 @@ class GuestMergeRaceTest {
                 db.beginTransaction()
                 try {
                     for (table in listOf("local_import_rows", "local_import", "local_guest", "local_accounts", "local_deletions")) db.execSQL("DROP TABLE $table")
+                    db.execSQL("ALTER TABLE saved_assemblies RENAME TO saved_assemblies_v6")
+                    db.execSQL("CREATE TABLE saved_assemblies (scope_key TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, lease TEXT NOT NULL, checkpoint TEXT NOT NULL, erasing INTEGER NOT NULL, active TEXT, retiring TEXT)")
+                    db.execSQL("INSERT INTO saved_assemblies SELECT scope_key,subject,namespace,owner_key,lease,checkpoint,erasing,active,retiring FROM saved_assemblies_v6")
+                    db.execSQL("DROP TABLE saved_assemblies_v6")
+                    db.execSQL("CREATE INDEX saved_assemblies_owner ON saved_assemblies(subject,namespace,owner_key)")
                     db.version = 4; db.setTransactionSuccessful()
                 } finally { db.endTransaction() }
             }
@@ -248,7 +253,7 @@ class GuestMergeRaceTest {
             assertEquals(active, recovered.activeSavedGeneration(owner)); assertTrue(recovered.activeSavedPage(active, null).done)
             recovered.validateOutcomeExport(fence)
             sql(directory) { db ->
-                assertEquals(5, db.version)
+                assertEquals(6, db.version)
                 db.rawQuery("SELECT active,retiring FROM saved_assemblies", null).use { assertTrue(it.moveToFirst()); assertEquals(before, listOf(it.getString(0), it.getString(1))) }
                 db.rawQuery("SELECT artifact_id FROM export_artifacts", null).use { assertTrue(it.moveToFirst()); assertEquals(artifact.id, it.getString(0)) }
             }
@@ -269,6 +274,93 @@ class GuestMergeRaceTest {
             assertEquals(1, owners.sumOf { reopen().syncPartition(it)!!.pending.size })
         }
     }
+    @Test fun rowObservationBlocksLegacyHighVersionsAcrossAllFourConsumers() = runBlocking {
+        isolated { store, reopen, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner); val lease = store.beginSavedAssembly(owner)
+            sql(directory) { it.execSQL("UPDATE saved_assemblies SET row_mode=1") }
+            store.enqueueSyncChange(LibraryLocalChange(SyncCommand.NoteRemove("note-target"), 1_000.0, LibraryLocalSource.Account(null)), owner)
+            val note = store.freezeSyncFrame(owner)!!; val operation = note.batch.operations.single()
+            val noteProof = SyncCommitted(note.clientKey, note.sequence, "note-proof", SyncRevision(2.0, 0.0), SyncReply(owner.key, note.batch.id, listOf(SyncReceipt(operation.id, operation.revision, SyncOutcome.Preserved))))
+            store.settleSyncExchange(SyncExchange.Accepted(noteProof), note, owner)
+            store.cacheSavedSnapshot(SyncSavedSnapshot(owner.key, 999.0, emptyList(), emptyList()), owner)
+            store.cachePositionsSnapshot(SyncPositionsSnapshot(owner.key, 999.0, emptyList()), owner)
+            assertEquals(1, store.syncPartition(owner)!!.confirmed.size)
+            val noteAck = store.syncPartition(owner)!!.acknowledgement!!
+            store.settleSyncAcknowledgement(SyncAckReply(owner.key, noteAck.clientKey, SyncCursor(noteAck.sequence)), noteAck, owner)
+            store.enqueueSyncChange(LibraryLocalChange(SyncCommand.FolderDelete(SyncFolderReference.Server("folder")), 1_000.0, LibraryLocalSource.Account(null)), owner)
+            val frame = store.freezeSyncFrame(owner)!!; val deletion = frame.batch.operations.single()
+            val proof = SyncCommitted(frame.clientKey, frame.sequence, "delete-proof", SyncRevision(3.0, 0.0), SyncReply(owner.key, frame.batch.id, listOf(SyncReceipt(deletion.id, deletion.revision, SyncOutcome.FolderDeletedManifest("manifest", "generation", 1.0, 1_000.0)))))
+            store.settleSyncExchange(SyncExchange.Accepted(proof), frame, owner); collectExportFacts(proof, owner, 1, store)
+            val hadith = SyncHadithSummary("hadith-0", "1", "bukhari", "Bukhari", "1", "نص", null, "Bukhari 1")
+            store.cacheSavedSnapshot(SyncSavedSnapshot(owner.key, 1_000.0, listOf(SyncFolderRow("folder", "Old joined folder", 1_000.0)), listOf(SyncSavedItem("hadith-0", 1_000.0, 1_000.0, bookmarkCreatedAt = 1_000.0, folderId = "folder", hadith = hadith))), owner)
+            val pending = store.syncPartition(owner)!!.collectingOutcome!!
+            assertEquals(LibraryOutcomeSettlement.AwaitingSaved, store.settleCollectedOutcome(pending, owner, 2_000.0))
+            assertTrue(store.libraryProjection(owner).folders.isEmpty()); assertNull(store.libraryProjection(owner).items.first().folderId)
+            prepareSaved(store, lease, emptyList(), 2.0); activateSaved(store, lease)
+            store.cachePositionsSnapshot(SyncPositionsSnapshot(owner.key, 1_000.0, emptyList()), owner)
+            assertTrue(store.syncPartition(owner)!!.confirmed.isEmpty())
+            assertEquals(LibraryOutcomeSettlement.AwaitingSaved, store.settleCollectedOutcome(pending, owner, 2_000.0)); assertTrue(store.libraryProjection(owner).folders.isEmpty())
+            val next = store.beginSavedAssembly(owner); prepareSaved(store, next, emptyList(), 3.0); activateSaved(store, next)
+            assertEquals(LibraryOutcomeSettlement.Settled, store.settleCollectedOutcome(pending, owner, 2_000.0)); assertNotNull(reopen().syncPartition(owner)!!.acknowledgement)
+        }
+    }
+    @Test fun rowObservationUnavailablePreservesAcknowledgedEvidenceUntilActive() = runBlocking {
+        isolated { _, _, directory ->
+            val initial = GuestDataStore(object : ContextWrapper(InstrumentationRegistry.getInstrumentation().targetContext) { override fun getFilesDir() = directory })
+            val (proof, _) = acknowledgedRetentionFixture(initial, directory, 1)
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); val lease = initial.beginSavedAssembly(owner)
+            sql(directory) { it.execSQL("UPDATE saved_assemblies SET row_mode=1") }
+            val now = 2_000 + LibraryOutcomeRetention.duration
+            initial.pruneOutcomeSuccessStep(owner, now); assertEquals(1, initial.outcomeEvidencePage(proof, owner, 0).rows.size)
+            prepareSaved(initial, lease, emptyList(), 2.0); activateSaved(initial, lease)
+            repeat(4) { initial.pruneOutcomeSuccessStep(owner, now) }
+            try { initial.outcomeEvidencePage(proof, owner, 0); fail("Observed success was not pruned") } catch (_: LibrarySyncFailure.StoreUnavailable) { }
+        }
+    }
+    @Test fun everySavedConsumerRejectsForeignObservationWithoutMutation() {
+        val owner = LibrarySyncOwner("owner-a", "subject-a"); val proof = outcomeProof(owner, 1); val binding = LibraryOutcomeBinding(owner, proof)
+        val pending = LibraryPendingOutcome(proof, LibraryOutcomeOrigin.Historical)
+        val checkpoint = LibraryOutcomeCheckpoint(binding.expected, LibraryOutcomeStatus.Complete, LibraryOutcomeRetention(2_000.0))
+        val state = LibraryPartitionState(clientKey = proof.clientKey, collectingOutcome = pending, savedSnapshot = SyncSavedSnapshot(owner.key, 999.0, emptyList(), emptyList()))
+        val before = Json.encodeToString(state)
+        for (peer in listOf(owner.copy(subject = "another-subject"), owner.copy(namespace = "another-deployment"))) {
+            val foreign = LibrarySavedObservation.legacy(peer, SyncSavedSnapshot(peer.key, 999.0, emptyList(), emptyList()))
+            try { state.projectedFrozenChanges(owner, foreign); fail("Foreign projection authority") } catch (_: LibrarySyncFailure.OwnerMismatch) { }
+            try { state.pruneConfirmed(owner, foreign); fail("Foreign confirmation authority") } catch (_: LibrarySyncFailure.OwnerMismatch) { }; assertEquals(before, Json.encodeToString(state))
+            try { state.settleCollectedOutcome(pending, binding, checkpoint, foreign, 2_000.0); fail("Foreign settlement authority") } catch (_: LibrarySyncFailure.OwnerMismatch) { }; assertEquals(before, Json.encodeToString(state))
+            try { state.canPruneOutcome(binding, checkpoint, foreign, 2_000 + LibraryOutcomeRetention.duration); fail("Foreign retention authority") } catch (_: LibrarySyncFailure.OwnerMismatch) { }
+        }
+    }
+    @Test fun rowObservationV5UpgradePreservesReadyAccountsDeletionClockAndActiveGeneration() = runBlocking {
+        isolated { store, reopen, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
+            store.enqueueSyncChange(LibraryLocalChange(SyncCommand.NoteRemove("accepted"), 1_000.0, LibraryLocalSource.Account(null)), owner)
+            val lease = store.beginSavedAssembly(owner); prepareSaved(store, lease, emptyList()); val active = activateSaved(store, lease)
+            store.beginDeletion("deleted-subject", owner.namespace)
+            val state = store.syncPartition(owner); val fence = store.prepareOutcomeExport(owner) { true }
+            sql(directory) { db ->
+                db.beginTransaction()
+                try {
+                    db.execSQL("ALTER TABLE saved_assemblies RENAME TO saved_assemblies_v6")
+                    db.execSQL("CREATE TABLE saved_assemblies (scope_key TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, lease TEXT NOT NULL, checkpoint TEXT NOT NULL, erasing INTEGER NOT NULL, active TEXT, retiring TEXT)")
+                    db.execSQL("INSERT INTO saved_assemblies SELECT scope_key,subject,namespace,owner_key,lease,checkpoint,erasing,active,retiring FROM saved_assemblies_v6")
+                    db.execSQL("DROP TABLE saved_assemblies_v6"); db.execSQL("CREATE INDEX saved_assemblies_owner ON saved_assemblies(subject,namespace,owner_key)")
+                    db.version = 5; db.setTransactionSuccessful()
+                } finally { db.endTransaction() }
+            }
+            File(directory, "guest_store.json").writeText("{stale-invalid-source")
+            val recovered = reopen(); assertEquals(state, recovered.syncPartition(owner)); assertEquals(active, recovered.activeSavedGeneration(owner)); recovered.validateOutcomeExport(fence)
+            assertEquals(LibraryDeletionPhase.SERVER_PENDING, recovered.deletionPhase("deleted-subject", owner.namespace)); assertEquals("ready", phase(directory))
+            sql(directory) { db ->
+                assertEquals(6, db.version)
+                db.rawQuery("SELECT row_mode FROM saved_assemblies", null).use { assertTrue(it.moveToFirst()); assertEquals(0, it.getInt(0)) }
+                db.rawQuery("SELECT erasing FROM export_clocks WHERE subject=?", arrayOf("deleted-subject")).use { assertTrue(it.moveToFirst()); assertEquals(1, it.getInt(0)) }
+            }
+        }
+    }
+    private fun observationOwner(state: LibraryPartitionState) = LibrarySyncOwner(state.savedSnapshot?.ownerKey ?: "owner-a", "subject-a")
+    private fun observation(state: LibraryPartitionState, owner: LibrarySyncOwner = observationOwner(state)) = LibrarySavedObservation.legacy(owner, state.savedSnapshot)
+    private fun legacyProjection(state: LibraryPartitionState) = LibraryProjection(state, observationOwner(state), observation(state))
     private fun savedPlan(reply: SavedFactsReply, owner: LibrarySyncOwner, previous: LibrarySavedReadPosition? = null, requested: String? = null): LibrarySavedPagePlan =
         when (val value = LibrarySavedPolicy.inspect(reply, owner, previous, requested)) {
             is LibrarySavedPageDecision.Append -> value.plan
@@ -658,7 +750,7 @@ class GuestMergeRaceTest {
             val recovered = reopen(); assertEquals(before, recovered.savedCheckpoint(lease)); assertEquals(expected, recovered.preparedSavedPage(lease, null)); assertNull(recovered.activeSavedGeneration(owner))
             val active = activateSaved(recovered, lease); assertEquals(expected.rows, recovered.activeSavedPage(active, null).rows)
             assertEquals(active, reopen().activeSavedGeneration(owner))
-            android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { assertEquals(5, it.version) }
+            android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { assertEquals(6, it.version) }
         }
     }
     @Test fun savedRawAndReceiptWritesRollBackTogetherOnActualSqliteAbort() = runBlocking {
@@ -781,7 +873,7 @@ class GuestMergeRaceTest {
             }
             store.claimGuestForSync(owner); val lease = store.beginSavedAssembly(owner)
             android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { db ->
-                assertEquals(5, db.version)
+                assertEquals(6, db.version)
                 db.rawQuery("EXPLAIN QUERY PLAN SELECT row_key FROM saved_projection WHERE collection_key=? AND row_key>? AND row_key<? ORDER BY row_key LIMIT 8", arrayOf(lease.collection, lease.collection + ":r:", lease.collection + ":r:~")).use {
                     assertTrue(it.moveToFirst()); assertTrue(it.getString(3).contains("saved_projection_collection")); assertTrue(it.getString(3).contains("SEARCH"))
                 }
@@ -946,7 +1038,7 @@ class GuestMergeRaceTest {
                 } finally { fixture.sync.discardPreparedExport(prepared) }
                 assertFalse(prepared.file.exists())
                 android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, android.database.sqlite.SQLiteDatabase.OPEN_READONLY).use { db ->
-                    assertEquals(5, db.version)
+                    assertEquals(6, db.version)
                     db.rawQuery("EXPLAIN QUERY PLAN SELECT collection_key FROM headers WHERE subject=? AND namespace=? AND collection_key>? ORDER BY collection_key LIMIT 50", arrayOf(owner.subject, owner.namespace, "")).use {
                         assertTrue(it.moveToFirst()); assertTrue(it.getString(3).contains("headers_export"))
                     }
@@ -1086,11 +1178,11 @@ class GuestMergeRaceTest {
         val reply = SyncReply("owner-a", frame.batch.id, listOf(SyncReceipt(operation.id, operation.revision,
             SyncOutcome.FolderRestoredManifest("manifest", "generation", "destination", 1.0, 0.0, 1.0))))
         val committed = SyncCommitted(frame.clientKey, frame.sequence, "fixture-digest", SyncRevision(2.0, 0.0), reply)
-        state.settle(SyncExchange.Accepted(committed), frame, 2_000.0)
-        assertTrue(LibraryProjection(state).folders.isEmpty())
-        assertTrue(LibraryProjection(state).items.all { it.folderId == null })
+        state.settle(SyncExchange.Accepted(committed), frame, observationOwner(state), observation(state), 2_000.0)
+        assertTrue(legacyProjection(state).folders.isEmpty())
+        assertTrue(legacyProjection(state).items.all { it.folderId == null })
         state.savedSnapshot = SyncSavedSnapshot("owner-a", 2.0, listOf(SyncFolderRow("destination", "Folder", 1.0)), listOf(item(first, "destination"), item(second, null)))
-        val visible = LibraryProjection(state)
+        val visible = legacyProjection(state)
         assertEquals(listOf("destination"), visible.folders.map { it.id })
         assertEquals("destination", visible.items.first { it.hadithId == first }.folderId)
         assertNull(visible.items.first { it.hadithId == second }.folderId)
@@ -1308,7 +1400,7 @@ class GuestMergeRaceTest {
             val committed = SyncCommitted(frame.clientKey, frame.sequence, "fixture-digest", SyncRevision(1.0, 0.0), SyncReply("owner-a", frame.batch.id, listOf(SyncReceipt(operation.id, operation.revision, outcome))))
             val cursor = SyncCursor(0.0, SyncOutstanding.Committed(committed))
             val reconciled = copied(original)
-            reconciled.settle(SyncExchange.Reconcile("owner-a", frame.clientKey, frame.sequence, frame.batch.id, cursor), frame, 2_000.0)
+            reconciled.settle(SyncExchange.Reconcile("owner-a", frame.clientKey, frame.sequence, frame.batch.id, cursor), frame, observationOwner(reconciled), observation(reconciled), 2_000.0)
             assertEquals(LibraryPendingOutcome(committed, LibraryOutcomeOrigin.Historical), reconciled.collectingOutcome)
             assertEquals(original.frozen!!.changes.map(LibraryRecovery::Historical), reconciled.recovery); assertNull(reconciled.acknowledgement)
             try { reconciled.freeze(); fail("Froze past collection") } catch (_: LibrarySyncFailure.InvalidReceipt) { }
@@ -1318,13 +1410,13 @@ class GuestMergeRaceTest {
             val different = frame.batch.copy(operations = listOf(operation.copy(command = SyncCommand.FolderDelete(SyncFolderReference.Server("folder-b")))))
             val pending = SyncPending(frame.clientKey, frame.sequence, frame.batch.id, committed.digest, different.intentDigest(), "manifest", "generation", 1_000.0)
             val polled = copied(original)
-            polled.settle(SyncExchange.Pending("owner-a", pending), frame, 2_000.0)
+            polled.settle(SyncExchange.Pending("owner-a", pending), frame, observationOwner(polled), observation(polled), 2_000.0)
             val previousRecovery = polled.recovery
-            polled.settlePending(SyncExchange.Accepted(committed), pending, 2_000.0)
+            polled.settlePending(SyncExchange.Accepted(committed), pending, observationOwner(polled), observation(polled), 2_000.0)
             assertEquals(previousRecovery, polled.recovery); assertEquals(1, polled.recovery.size)
             assertEquals(LibraryOutcomeOrigin.Historical, polled.collectingOutcome!!.origin); assertNull(polled.acknowledgement)
             val acknowledged = copied(original)
-            acknowledged.settle(accepted(frame, SyncReply("owner-a", frame.batch.id, listOf(SyncReceipt(operation.id, operation.revision, SyncOutcome.Preserved)))), frame, 2_000.0)
+            acknowledged.settle(accepted(frame, SyncReply("owner-a", frame.batch.id, listOf(SyncReceipt(operation.id, operation.revision, SyncOutcome.Preserved)))), frame, observationOwner(acknowledged), observation(acknowledged), 2_000.0)
             val ack = acknowledged.acknowledgement!!; val beforeAck = copied(acknowledged)
             val next = committed.copy(sequence = 2.0, digest = "next-digest", reply = committed.reply.copy(batchId = "next-batch"))
             acknowledged.settleAcknowledgement(SyncAckReply("owner-a", frame.clientKey, SyncCursor(1.0, SyncOutstanding.Committed(next))), ack)
@@ -1337,7 +1429,7 @@ class GuestMergeRaceTest {
         state.append(LibraryLocalSource.Account(null), SyncCommand.FolderDelete(SyncFolderReference.Server("folder")), 1_000.0)
         val frame = state.freeze()!!; val operation = frame.batch.operations[0]
         val reply = SyncReply("owner-a", frame.batch.id, listOf(SyncReceipt(operation.id, operation.revision, SyncOutcome.FolderDeletedManifest("manifest", "generation", 501.0, 1_000.0))))
-        state.settle(accepted(frame, reply), frame, 2_000.0)
+        state.settle(accepted(frame, reply), frame, observationOwner(state), observation(state), 2_000.0)
         assertEquals(frame.batch, state.frozen!!.batch); assertEquals(1.0, state.nextSequence, 0.0); assertNull(state.acknowledgement)
         assertEquals(LibraryOutcomeOrigin.Matched(frame.batch.intentDigest()), state.collectingOutcome!!.origin)
         try { state.freeze(); fail("Froze past collection") } catch (_: LibrarySyncFailure.InvalidReceipt) { }
@@ -1393,14 +1485,14 @@ class GuestMergeRaceTest {
         val receipts = frame.batch.operations.map { SyncReceipt(it.id, it.revision, SyncOutcome.BatchRequiresSplit) }
         val proof = SyncCommitted(frame.clientKey, 1.0, "mixed-proof", SyncRevision(0.0, 0.0), SyncReply("owner-a", frame.batch.id, receipts))
         val waiting = base.copy(); val pending = SyncPending(frame.clientKey, 1.0, frame.batch.id, proof.digest, frame.batch.intentDigest(), "pending", "generation", 250.0)
-        waiting.settle(SyncExchange.Pending("owner-a", pending), frame, 2_000.0); waiting.settlePending(SyncExchange.Accepted(proof), pending, 2_000.0)
+        waiting.settle(SyncExchange.Pending("owner-a", pending), frame, observationOwner(waiting), observation(waiting), 2_000.0); waiting.settlePending(SyncExchange.Accepted(proof), pending, observationOwner(waiting), observation(waiting), 2_000.0)
         assertEquals(original + later, waiting.pending); assertNotNull(waiting.acknowledgement)
         val unknown = base.copy()
-        unknown.settle(SyncExchange.Reconcile("owner-a", frame.clientKey, 1.0, frame.batch.id, SyncCursor(0.0, SyncOutstanding.Committed(proof))), frame, 2_000.0)
+        unknown.settle(SyncExchange.Reconcile("owner-a", frame.clientKey, 1.0, frame.batch.id, SyncCursor(0.0, SyncOutstanding.Committed(proof))), frame, observationOwner(unknown), observation(unknown), 2_000.0)
         assertEquals(listOf(later), unknown.pending); assertEquals(original.map(LibraryRecovery::Historical), unknown.recovery)
         for (malformed in listOf(receipts.dropLast(1), listOf(receipts[0], receipts[0], receipts[2]), listOf(receipts[0], receipts[1].copy(outcome = SyncOutcome.Preserved), receipts[2]))) {
             val state = base.copy(); val before = Json.encodeToString(state)
-            try { state.settle(SyncExchange.Accepted(proof.copy(reply = proof.reply.copy(receipts = malformed))), frame, 2_000.0); fail("Malformed split changed original") } catch (_: LibrarySyncFailure.InvalidReceipt) { }
+            try { state.settle(SyncExchange.Accepted(proof.copy(reply = proof.reply.copy(receipts = malformed))), frame, observationOwner(state), observation(state), 2_000.0); fail("Malformed split changed original") } catch (_: LibrarySyncFailure.InvalidReceipt) { }
             assertEquals(before, Json.encodeToString(state))
         }
     }
@@ -1412,13 +1504,13 @@ class GuestMergeRaceTest {
         state.append(LibraryLocalSource.Account(null), SyncCommand.MembershipPut("item-0", SyncFolderReference.None), 3_000.0)
         state.append(LibraryLocalSource.Account(null), SyncCommand.BookmarkRemove("item-1"), 3_000.0); state.append(LibraryLocalSource.Account(null), SyncCommand.BookmarkAdd("item-1", 4_000.0), 4_000.0)
         state.append(LibraryLocalSource.Account(null), SyncCommand.FolderRestore(deletion.operation.id, "Original", emptyList()), 5_000.0)
-        val restored = LibraryProjection(state)
+        val restored = legacyProjection(state)
         assertNull(restored.items.first { it.hadithId == "item-0" }.folderId); assertNull(restored.items.first { it.hadithId == "item-1" }.folderId); assertNotNull(restored.items.first { it.hadithId == "item-2" }.folderId)
         state.append(LibraryLocalSource.Account(null), SyncCommand.FolderDelete(SyncFolderReference.Local("restore:${deletion.operation.id}")), 6_000.0)
         state.append(LibraryLocalSource.Account(null), SyncCommand.FolderRestore(deletion.operation.id, "Original", emptyList()), 7_000.0)
-        assertTrue(LibraryProjection(state).items.all { it.folderId == null })
+        assertTrue(legacyProjection(state).items.all { it.folderId == null })
         val advanced = state.copy(pending = listOf(state.pending.first { it.operation.command is SyncCommand.FolderRestore }), savedSnapshot = state.savedSnapshot!!.copy(version = 2.0, folders = emptyList(), items = state.savedSnapshot!!.items.map { it.copy(folderId = null) }))
-        assertTrue(LibraryProjection(advanced).items.all { it.folderId == null })
+        assertTrue(legacyProjection(advanced).items.all { it.folderId == null })
     }
 
     @Test fun accountFolderUndoIsCompactAndRestores501OfflineMembers() = runBlocking {
@@ -1596,14 +1688,14 @@ class GuestMergeRaceTest {
         val owner = LibrarySyncOwner("owner-a", "subject-a"); val proof = taggedOutcomeProof(owner, 1, "policy"); val binding = LibraryOutcomeBinding(owner, proof)
         val now = 2_000 + LibraryOutcomeRetention.duration; val checkpoint = LibraryOutcomeCheckpoint(binding.expected, LibraryOutcomeStatus.Complete, LibraryOutcomeRetention(2_000.0))
         val base = LibraryPartitionState(savedSnapshot = SyncSavedSnapshot(owner.key, 2.0, emptyList(), emptyList()))
-        assertTrue(base.canPruneOutcome(binding, checkpoint, now)); assertFalse(base.canPruneOutcome(binding, checkpoint, now - 1)); assertFalse(base.canPruneOutcome(binding, checkpoint, 1_000.0))
-        assertFalse(base.canPruneOutcome(binding, LibraryOutcomeCheckpoint(binding.expected, LibraryOutcomeStatus.Complete), now))
+        assertTrue(base.canPruneOutcome(binding, checkpoint, observation(base, binding.owner), now)); assertFalse(base.canPruneOutcome(binding, checkpoint, observation(base, binding.owner), now - 1)); assertFalse(base.canPruneOutcome(binding, checkpoint, observation(base, binding.owner), 1_000.0))
+        assertFalse(base.canPruneOutcome(binding, LibraryOutcomeCheckpoint(binding.expected, LibraryOutcomeStatus.Complete), observation(base, binding.owner), now))
         val undo = LibraryLocalChange(SyncCommand.FolderRestore(binding.request.receiptId, "Offline Undo", emptyList()), 1_000.0, LibraryLocalSource.Account(null))
         val states = mutableListOf(base.copy(pending = listOf(undo)), base.copy(frozen = LibraryFrozenBatch(SyncBatch("frozen", listOf(undo.operation)), listOf(undo))),
             base.copy(manifestAckLink = binding.authority), base.copy(collectingOutcome = LibraryPendingOutcome(proof, LibraryOutcomeOrigin.Historical)),
             base.copy(recent = listOf(LibraryRecentReceipt(proof.reply.receipts.single(), now + 1))))
         for (entry in listOf(LibraryRecovery.Server(undo, SyncOutcome.Unresolved(SyncOutcomeUnresolvedReason.MISSING_FOLDER)), LibraryRecovery.Historical(undo), LibraryRecovery.Rejected(undo), LibraryRecovery.Outcome(binding.authority, checkpoint, null))) states.add(base.copy(recovery = listOf(entry)))
-        states.forEach { assertFalse(it.canPruneOutcome(binding, checkpoint, now)) }
+        states.forEach { assertFalse(it.canPruneOutcome(binding, checkpoint, observation(it, binding.owner), now)) }
     }
 
     @Test fun outcomeRetentionDependenciesDoNotBlockUnrelatedJournals() {
@@ -1753,42 +1845,42 @@ class GuestMergeRaceTest {
             val outcome = if (mode == "delete") SyncOutcome.FolderDeletedManifest("manifest", "generation", 51.0, 1_000.0)
                 else SyncOutcome.FolderRestoredManifest("manifest", "generation", "destination", 50.0, 0.0, if (mode == "restore") 0.0 else 1.0)
             val proof = SyncCommitted(frame.clientKey, frame.sequence, "fixture-digest", SyncRevision(2.0, 0.0), SyncReply(owner.key, frame.batch.id, listOf(SyncReceipt(operation.id, operation.revision, outcome))))
-            if (mode == "historical") state.settle(SyncExchange.Reconcile(owner.key, frame.clientKey, frame.sequence, frame.batch.id, SyncCursor(0.0, SyncOutstanding.Committed(proof))), frame, 2_000.0)
-            else state.settle(SyncExchange.Accepted(proof), frame, 2_000.0)
+            if (mode == "historical") state.settle(SyncExchange.Reconcile(owner.key, frame.clientKey, frame.sequence, frame.batch.id, SyncCursor(0.0, SyncOutstanding.Committed(proof))), frame, observationOwner(state), observation(state), 2_000.0)
+            else state.settle(SyncExchange.Accepted(proof), frame, observationOwner(state), observation(state), 2_000.0)
             val pending = state.collectingOutcome!!; val binding = LibraryOutcomeBinding(owner, proof)
             val checkpoint = if (mode == "detail" || mode == "proof") LibraryOutcomeCheckpoint(LibraryOutcomeCounts(restored = 50), LibraryOutcomeStatus.Unavailable(if (mode == "detail") SyncOutcomePageUnavailableReason.DETAIL_UNAVAILABLE else SyncOutcomePageUnavailableReason.PROOF_UNAVAILABLE))
                 else LibraryOutcomeCheckpoint(binding.expected, LibraryOutcomeStatus.Complete)
             state.savedSnapshot = SyncSavedSnapshot(owner.key, 1.0, emptyList(), emptyList())
             val before = Json.encodeToString(state)
-            assertEquals(if (mode == "proof") LibraryOutcomeSettlement.ProofUnavailable else LibraryOutcomeSettlement.AwaitingSaved, state.settleCollectedOutcome(pending, binding, checkpoint, 2_000.0))
+            assertEquals(if (mode == "proof") LibraryOutcomeSettlement.ProofUnavailable else LibraryOutcomeSettlement.AwaitingSaved, state.settleCollectedOutcome(pending, binding, checkpoint, observation(state, binding.owner), 2_000.0))
             assertEquals(before, Json.encodeToString(state))
             state.savedSnapshot = SyncSavedSnapshot(owner.key, 3.0, emptyList(), emptyList())
             if (mode == "proof") {
                 val blocked = Json.encodeToString(state)
-                assertEquals(LibraryOutcomeSettlement.ProofUnavailable, state.settleCollectedOutcome(pending, binding, checkpoint, 2_000.0)); assertEquals(blocked, Json.encodeToString(state)); continue
+                assertEquals(LibraryOutcomeSettlement.ProofUnavailable, state.settleCollectedOutcome(pending, binding, checkpoint, observation(state, binding.owner), 2_000.0)); assertEquals(blocked, Json.encodeToString(state)); continue
             }
             val original = state.frozen?.changes?.single()
             if (mode == "delete") {
                 val late = state.copy()
-                assertEquals(LibraryOutcomeSettlement.Settled, late.settleCollectedOutcome(pending, binding, checkpoint, 7_000.0)); assertTrue(late.recent.isEmpty())
+                assertEquals(LibraryOutcomeSettlement.Settled, late.settleCollectedOutcome(pending, binding, checkpoint, observation(late, binding.owner), 7_000.0)); assertTrue(late.recent.isEmpty())
             }
             if (mode == "partial") {
                 for (status in listOf(LibraryOutcomeStatus.Collecting, LibraryOutcomeStatus.Verifying(LibraryOutcomeCounts()))) {
                     val unfinished = state.copy(); val unfinishedBefore = Json.encodeToString(unfinished)
-                    assertEquals(LibraryOutcomeSettlement.Collecting, unfinished.settleCollectedOutcome(pending, binding, LibraryOutcomeCheckpoint(binding.expected, status), 2_000.0)); assertEquals(unfinishedBefore, Json.encodeToString(unfinished))
+                    assertEquals(LibraryOutcomeSettlement.Collecting, unfinished.settleCollectedOutcome(pending, binding, LibraryOutcomeCheckpoint(binding.expected, status), observation(unfinished, binding.owner), 2_000.0)); assertEquals(unfinishedBefore, Json.encodeToString(unfinished))
                 }
                 val incomplete = state.copy(); val incompleteBefore = Json.encodeToString(incomplete)
-                try { incomplete.settleCollectedOutcome(pending, binding, LibraryOutcomeCheckpoint(status = LibraryOutcomeStatus.Complete), 2_000.0); fail("Incomplete totals accepted") } catch (_: LibrarySyncFailure.InvalidReceipt) { }; assertEquals(incompleteBefore, Json.encodeToString(incomplete))
+                try { incomplete.settleCollectedOutcome(pending, binding, LibraryOutcomeCheckpoint(status = LibraryOutcomeStatus.Complete), observation(incomplete, binding.owner), 2_000.0); fail("Incomplete totals accepted") } catch (_: LibrarySyncFailure.InvalidReceipt) { }; assertEquals(incompleteBefore, Json.encodeToString(incomplete))
                 val missing = state.copy(frozen = null); val missingBefore = Json.encodeToString(missing)
-                try { missing.settleCollectedOutcome(pending, binding, checkpoint, 2_000.0); fail("Missing original accepted") } catch (_: LibrarySyncFailure.InvalidReceipt) { }; assertEquals(missingBefore, Json.encodeToString(missing))
+                try { missing.settleCollectedOutcome(pending, binding, checkpoint, observation(missing, binding.owner), 2_000.0); fail("Missing original accepted") } catch (_: LibrarySyncFailure.InvalidReceipt) { }; assertEquals(missingBefore, Json.encodeToString(missing))
                 val wrongOwner = state.copy(savedSnapshot = SyncSavedSnapshot("owner-b", 3.0, emptyList(), emptyList())); val wrongBefore = Json.encodeToString(wrongOwner)
-                try { wrongOwner.settleCollectedOutcome(pending, binding, checkpoint, 2_000.0); fail("Foreign snapshot accepted") } catch (_: LibrarySyncFailure.OwnerMismatch) { }; assertEquals(wrongBefore, Json.encodeToString(wrongOwner))
+                try { wrongOwner.settleCollectedOutcome(pending, binding, checkpoint, observation(wrongOwner, binding.owner), 2_000.0); fail("Foreign snapshot accepted") } catch (_: LibrarySyncFailure.OwnerMismatch) { }; assertEquals(wrongBefore, Json.encodeToString(wrongOwner))
                 val fork = Json.decodeFromString<LibraryPartitionState>(Json.encodeToString(state).replace("Original folder", "Changed folder")); val forkBefore = Json.encodeToString(fork)
-                try { fork.settleCollectedOutcome(pending, binding, checkpoint, 2_000.0); fail("Changed original accepted") } catch (_: LibrarySyncFailure.InvalidReceipt) { }; assertEquals(forkBefore, Json.encodeToString(fork))
+                try { fork.settleCollectedOutcome(pending, binding, checkpoint, observation(fork, binding.owner), 2_000.0); fail("Changed original accepted") } catch (_: LibrarySyncFailure.InvalidReceipt) { }; assertEquals(forkBefore, Json.encodeToString(fork))
                 val conflict = state.copy(folderMappings = mapOf("restore:deleted" to "another-folder")); val conflictBefore = Json.encodeToString(conflict)
-                try { conflict.settleCollectedOutcome(pending, binding, checkpoint, 2_000.0); fail("Alias collision replaced") } catch (_: LibrarySyncFailure.InvalidReceipt) { }; assertEquals(conflictBefore, Json.encodeToString(conflict))
+                try { conflict.settleCollectedOutcome(pending, binding, checkpoint, observation(conflict, binding.owner), 2_000.0); fail("Alias collision replaced") } catch (_: LibrarySyncFailure.InvalidReceipt) { }; assertEquals(conflictBefore, Json.encodeToString(conflict))
             }
-            assertEquals(LibraryOutcomeSettlement.Settled, state.settleCollectedOutcome(pending, binding, checkpoint, 2_000.0))
+            assertEquals(LibraryOutcomeSettlement.Settled, state.settleCollectedOutcome(pending, binding, checkpoint, observation(state, binding.owner), 2_000.0))
             assertEquals(2.0, state.nextSequence, 0.0); assertNull(state.collectingOutcome); assertNull(state.frozen)
             if (mode == "delete") { assertEquals(listOf(6_000.0), state.recent.map { it.expiresAt }); assertTrue(state.recovery.isEmpty()) }
             else if (mode == "restore") { assertEquals("destination", state.folderMappings["restore:deleted"]); assertTrue(state.recovery.isEmpty()) }
@@ -1799,7 +1891,7 @@ class GuestMergeRaceTest {
                 if (mode == "historical") assertEquals(2, state.recovery.size)
             }
             val settled = Json.encodeToString(state)
-            assertEquals(LibraryOutcomeSettlement.Settled, state.settleCollectedOutcome(pending, binding, checkpoint, 7_000.0)); assertEquals(settled, Json.encodeToString(state))
+            assertEquals(LibraryOutcomeSettlement.Settled, state.settleCollectedOutcome(pending, binding, checkpoint, observation(state, binding.owner), 7_000.0)); assertEquals(settled, Json.encodeToString(state))
         }
     }
 
@@ -1893,7 +1985,7 @@ class GuestMergeRaceTest {
         val frame = state.freeze()!!; val before = Json.encodeToString(state); val operation = frame.batch.operations[0]
         val bad = SyncCommitted(frame.clientKey, frame.sequence, "digest", SyncRevision(2.0, 0.0), SyncReply("owner-a", frame.batch.id,
             listOf(SyncReceipt(operation.id, operation.revision, SyncOutcome.FolderRestoredManifest("manifest", "generation", "folder", 2.0, 0.0, -1.0)))))
-        try { state.settle(SyncExchange.Reconcile("owner-a", frame.clientKey, frame.sequence, frame.batch.id, SyncCursor(0.0, SyncOutstanding.Committed(bad))), frame, 2_000.0); fail("Malformed manifest accepted") } catch (_: LibrarySyncFailure.InvalidReceipt) { }
+        try { state.settle(SyncExchange.Reconcile("owner-a", frame.clientKey, frame.sequence, frame.batch.id, SyncCursor(0.0, SyncOutstanding.Committed(bad))), frame, observationOwner(state), observation(state), 2_000.0); fail("Malformed manifest accepted") } catch (_: LibrarySyncFailure.InvalidReceipt) { }
         assertEquals(before, Json.encodeToString(state))
     }
 
@@ -1968,10 +2060,10 @@ class GuestMergeRaceTest {
         val original = frame.batch.operations[0]
         val serverBatch = frame.batch.copy(operations = listOf(original.copy(command = SyncCommand.FolderDelete(SyncFolderReference.Server("folder-b")))))
         val pending = SyncPending(frame.clientKey, frame.sequence, frame.batch.id, "fixture-digest", serverBatch.intentDigest(), "manifest", "generation", 1_000.0)
-        state.settle(SyncExchange.Reconcile("owner-a", frame.clientKey, frame.sequence, frame.batch.id, SyncCursor(0.0, SyncOutstanding.Pending(pending))), frame, 2_000.0)
+        state.settle(SyncExchange.Reconcile("owner-a", frame.clientKey, frame.sequence, frame.batch.id, SyncCursor(0.0, SyncOutstanding.Pending(pending))), frame, observationOwner(state), observation(state), 2_000.0)
         assertNull(state.frozen)
         assertEquals(1, state.recovery.size)
-        state.settlePending(accepted(frame, SyncReply("owner-a", frame.batch.id, listOf(SyncReceipt(original.id, original.revision, SyncOutcome.Preserved)))), pending, 2_000.0)
+        state.settlePending(accepted(frame, SyncReply("owner-a", frame.batch.id, listOf(SyncReceipt(original.id, original.revision, SyncOutcome.Preserved)))), pending, observationOwner(state), observation(state), 2_000.0)
         assertTrue(state.confirmed.isEmpty())
         assertEquals(pending.digest, state.acknowledgement!!.digest)
     }
@@ -2176,20 +2268,20 @@ class GuestMergeRaceTest {
             assertEquals("claim_if_unset", command.mode); assertEquals(0.0, change.operation.at, 0.0)
             val hadith = SyncHadithSummary(id, "1", "bukhari", "Bukhari", "1", "نص", null, "Bukhari 1")
             state.savedSnapshot = SyncSavedSnapshot(owner.key, 1.0, listOf(SyncFolderRow("cloud-folder", "Cloud folder", 1_000.0)), listOf(SyncSavedItem(id, 1_000.0, 3_000.0, bookmarkCreatedAt = 1_000.0, folderId = "cloud-folder", hadith = hadith)))
-            assertEquals("cloud-folder", LibraryProjection(state).items.single().folderId)
+            assertEquals("cloud-folder", legacyProjection(state).items.single().folderId)
             state.pending = emptyList()
             state.confirmed = listOf(LibraryConfirmedChange(change, SyncOutcome.Preserved, 2.0))
             state.folderMappings = mapOf("old-guest-folder" to "accepted-guest-folder")
-            assertEquals("accepted-guest-folder", LibraryProjection(state).items.single().folderId)
+            assertEquals("accepted-guest-folder", legacyProjection(state).items.single().folderId)
             state.confirmed = emptyList()
-            assertEquals("cloud-folder", LibraryProjection(state).items.single().folderId)
+            assertEquals("cloud-folder", legacyProjection(state).items.single().folderId)
             val batch = SyncBatch("unversioned-rejected", listOf(change.operation))
             state.frozen = LibraryFrozenBatch(batch, listOf(change))
             val frame = SyncFrame(state.clientKey, state.nextSequence, batch)
             val outcome = SyncOutcome.Superseded(SyncOutcomeSupersededReason.UNVERSIONED_CLOUD)
-            state.settle(accepted(frame, SyncReply(owner.key, batch.id, listOf(SyncReceipt(change.operation.id, change.operation.revision, outcome)))), frame, System.currentTimeMillis().toDouble())
+            state.settle(accepted(frame, SyncReply(owner.key, batch.id, listOf(SyncReceipt(change.operation.id, change.operation.revision, outcome)))), frame, observationOwner(state), observation(state), System.currentTimeMillis().toDouble())
             assertEquals(listOf(LibraryRecovery.Server(change, outcome)), state.recovery)
-            assertEquals("cloud-folder", LibraryProjection(state).items.single().folderId)
+            assertEquals("cloud-folder", legacyProjection(state).items.single().folderId)
             val reopened = Json.decodeFromString(LibraryPartitionState.serializer(), Json.encodeToString(state))
             assertEquals(state.recovery, reopened.recovery)
         }

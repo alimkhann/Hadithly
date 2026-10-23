@@ -2,6 +2,29 @@ import Foundation
 import Observation
 import SwiftData
 
+// Ephemeral store-selected authority. It is deliberately neither Codable nor account state.
+struct LibrarySavedObservation: Sendable {
+    private enum Source: Sendable { case unavailable, legacy(Double), active(LibrarySavedActiveGeneration) }
+    let owner: LibrarySyncOwner
+    private let source: Source
+    private init(owner: LibrarySyncOwner, source: Source) { self.owner = owner; self.source = source }
+    func version(for expected: LibrarySyncOwner) throws -> Double? {
+        guard owner == expected else { throw LibrarySyncFailure.ownerMismatch }
+        switch source { case .unavailable: return nil; case .legacy(let version): return version; case .active(let handle): return handle.version }
+    }
+    static func unavailable(_ owner: LibrarySyncOwner) -> Self { .init(owner: owner, source: .unavailable) }
+    static func legacy(_ owner: LibrarySyncOwner, snapshot: SyncSavedSnapshot?) throws -> Self {
+        guard let snapshot else { return .unavailable(owner) }
+        guard snapshot.ownerKey == owner.key else { throw LibrarySyncFailure.ownerMismatch }
+        _ = try LibrarySavedPolicy.integer(snapshot.version)
+        return .init(owner: owner, source: .legacy(snapshot.version))
+    }
+    static func active(_ record: LibrarySavedGenerationRecord) throws -> Self {
+        try record.validate(scope: record.lease, prepared: true)
+        return .init(owner: record.lease.owner, source: .active(try LibrarySavedActiveGeneration(record)))
+    }
+}
+
 /// Owns the on-device guest store. Guests read everything through Convex but
 /// their bookmarks, favorites, notes, and reading progress never touch the
 /// server until sign-in, when the planner builds a payload and the store
@@ -420,7 +443,7 @@ final class GuestDataStore {
         case .pending(let value): try validateSyncOwner(owner, replyOwner: value.ownerKey)
         case .reconcile(let value): try validateSyncOwner(owner, replyOwner: value.ownerKey, cursor: value.cursor)
         }
-        try withAccount(owner) { state, _ in try state.settle(exchange, requested: requested, now: now) }
+        try withAccount(owner) { state, db in try state.settle(exchange, requested: requested, owner: owner, observed: savedObservation(owner, state: state, in: db), now: now) }
     }
 
     func settleSyncPending(_ exchange: SyncExchange, requested: SyncPending, owner: LibrarySyncOwner, now: Double = Date.now.millisecondsSinceEpoch) throws {
@@ -429,7 +452,7 @@ final class GuestDataStore {
         case .pending(let value): try validateSyncOwner(owner, replyOwner: value.ownerKey)
         case .reconcile(let value): try validateSyncOwner(owner, replyOwner: value.ownerKey, cursor: value.cursor)
         }
-        try withAccount(owner) { state, _ in try state.settlePending(exchange, requested: requested, now: now) }
+        try withAccount(owner) { state, db in try state.settlePending(exchange, requested: requested, owner: owner, observed: savedObservation(owner, state: state, in: db), now: now) }
     }
 
     func settleSyncRetirement(_ reply: SyncAckReply, requested: SyncFrame, owner: LibrarySyncOwner) throws {
@@ -483,7 +506,7 @@ final class GuestDataStore {
                 var checkpoint = try outcomeCheckpoint(header, binding: binding)
                 let dependencyState = try syncPartition(binding.owner, in: journal)
                 let claimed = checkpoint.retention?.removed != nil
-                let eligible = dependencyState?.canPruneOutcome(binding, checkpoint: checkpoint, now: now) == true
+                let eligible = try dependencyState.map { try $0.canPruneOutcome(binding, checkpoint: checkpoint, observed: savedObservation(binding.owner, state: $0, in: journal), now: now) } == true
                 // A missing owner partition never supplies Saved/dependency authority.
                 if dependencyState != nil && (claimed || eligible) {
                     guard let scope = try outcomeScope(binding.scopeKey, in: journal), scope.generation == header.generation,
@@ -525,21 +548,21 @@ final class GuestDataStore {
         try withAccount(owner) { state, db in
             let binding = try LibraryOutcomeBinding(owner: owner, committed: expected.committed)
             guard let scope = try outcomeScope(binding.scopeKey, in: db), let header = try outcomeHeader(binding.key, in: db), header.generation == scope.generation else { throw LibrarySyncFailure.storeUnavailable }
-            return try state.settleCollectedOutcome(expected, binding: binding, checkpoint: outcomeCheckpoint(header, binding: binding), now: now)
+            return try state.settleCollectedOutcome(expected, binding: binding, checkpoint: outcomeCheckpoint(header, binding: binding), observed: savedObservation(owner, state: state, in: db), now: now)
         }
     }
     func cacheSavedSnapshot(_ snapshot: SyncSavedSnapshot, owner: LibrarySyncOwner) throws {
         guard snapshot.ownerKey == owner.key else { throw LibrarySyncFailure.ownerMismatch }
         guard snapshot.version.isFinite, snapshot.version >= 0, snapshot.version.rounded(.down) == snapshot.version else { throw LibrarySyncFailure.invalidReceipt }
-        try withAccount(owner) { state, _ in
-            if snapshot.version >= (state.savedSnapshot?.version ?? -1) { state.savedSnapshot = snapshot; state.pruneConfirmed() }
+        try withAccount(owner) { state, db in
+            if snapshot.version >= (state.savedSnapshot?.version ?? -1) { state.savedSnapshot = snapshot; try state.pruneConfirmed(owner: owner, observed: savedObservation(owner, state: state, in: db)) }
         }
     }
     func cachePositionsSnapshot(_ snapshot: SyncPositionsSnapshot, owner: LibrarySyncOwner) throws {
         guard snapshot.ownerKey == owner.key else { throw LibrarySyncFailure.ownerMismatch }
         guard snapshot.version.isFinite, snapshot.version >= 0, snapshot.version.rounded(.down) == snapshot.version else { throw LibrarySyncFailure.invalidReceipt }
-        try withAccount(owner) { state, _ in
-            if snapshot.version >= (state.positionsSnapshot?.version ?? -1) { state.positionsSnapshot = snapshot; state.pruneConfirmed() }
+        try withAccount(owner) { state, db in
+            if snapshot.version >= (state.positionsSnapshot?.version ?? -1) { state.positionsSnapshot = snapshot; try state.pruneConfirmed(owner: owner, observed: savedObservation(owner, state: state, in: db)) }
         }
     }
 
@@ -1337,6 +1360,18 @@ extension GuestDataStore {
         let lease = try JSONDecoder().decode(LibrarySavedLease.self, from: row.leaseData)
         guard lease.owner == owner else { throw LibrarySyncFailure.ownerMismatch }
         let (_, checkpoint) = try savedHeader(lease, in: db); return (row, lease, checkpoint)
+    }
+    private func savedObservation(_ owner: LibrarySyncOwner, state: LibraryPartitionState, in db: ModelContext) throws -> LibrarySavedObservation {
+        try assertOutcomeOwnerActive(owner, in: db)
+        guard let (header, lease, checkpoint) = try currentSavedScope(owner, in: db) else { return try .legacy(owner, snapshot: state.savedSnapshot) }
+        guard header.rowMode else { return try .legacy(owner, snapshot: state.savedSnapshot) }
+        guard let active = try savedGenerations(header, lease: lease, checkpoint: checkpoint).active else { return .unavailable(owner) }
+        return try .active(active)
+    }
+    func libraryProjection(_ owner: LibrarySyncOwner) throws -> LibraryProjection {
+        let db = outcomeContext()
+        guard let state = try syncPartition(owner, in: db) else { throw LibrarySyncFailure.sessionChanged }
+        return try LibraryProjection(state, owner: owner, observed: savedObservation(owner, state: state, in: db))
     }
     func activeSavedGeneration(_ owner: LibrarySyncOwner) throws -> LibrarySavedActiveGeneration? {
         let db = outcomeContext()

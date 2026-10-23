@@ -13,7 +13,7 @@ import time
 
 def inspect(connection):
     columns = {row[1] for row in connection.execute("PRAGMA table_info(ZGUESTSAVEDASSEMBLY)")}
-    if not columns or {"ZACTIVEDATA", "ZRETIRINGDATA"} & columns:
+    if not columns or {"ZACTIVEDATA", "ZRETIRINGDATA", "ZROWMODE"} & columns:
         return False
     row = connection.execute("SELECT ZLEASEDATA,ZCHECKPOINTDATA FROM ZGUESTSAVEDASSEMBLY LIMIT 1").fetchone()
     if not row:

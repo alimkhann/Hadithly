@@ -11,7 +11,8 @@ val LibraryLocalSource.reference: HadithRef? get() = when (this) {
     is LibraryLocalSource.Folder, is LibraryLocalSource.Membership -> null
 }
 
-class LibraryProjection(state: LibraryPartitionState) {
+class LibraryProjection(state: LibraryPartitionState, owner: LibrarySyncOwner, observed: LibrarySavedObservation) {
+    val hasSavedBase = state.savedSnapshot != null
     val items: List<SavedItemEntry>
     val folders: List<SavedFolder>
     val progress: List<ProgressEntry>
@@ -28,7 +29,7 @@ class LibraryProjection(state: LibraryPartitionState) {
         fun initial(id: String, change: LibraryLocalChange) = byId[id] ?: SavedItemEntry(id, change.operation.at, change.operation.at, hadith = change.source.reference)
         val removedBy = mutableMapOf<String, String>()
         fun hasSavedFacet(item: SavedItemEntry) = item.bookmarkCreatedAt != null || item.favoriteCreatedAt != null || item.noteContent != null
-        val changes: List<Pair<LibraryLocalChange, SyncOutcome?>> = state.confirmed.map { it.change to it.outcome } + state.projectedFrozenChanges.map { it to null } + state.pending.map { it to null }
+        val changes: List<Pair<LibraryLocalChange, SyncOutcome?>> = state.confirmed.map { it.change to it.outcome } + state.projectedFrozenChanges(owner, observed).map { it to null } + state.pending.map { it to null }
         for ((change, outcome) in changes) {
             val at = change.operation.at
             when (val command = change.operation.command) {
