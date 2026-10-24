@@ -4,6 +4,8 @@ import android.content.Context
 import android.util.AtomicFile
 import android.database.sqlite.SQLiteDatabase
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -317,6 +319,7 @@ class GuestDataStore(context: Context) {
     }
     suspend fun libraryProjection(owner: LibrarySyncOwner): LibraryProjection = withStorage {
         withContext(Dispatchers.IO) { outcomeJournal.transaction { db ->
+            outcomeJournal.assertLegacySavedProjectionIn(db, owner)
             val state = readLocalAccount(db, owner) ?: throw LibrarySyncFailure.SessionChanged
             LibraryProjection(state, owner, outcomeJournal.savedObservationIn(db, owner, state))
         } }
@@ -460,6 +463,47 @@ class GuestDataStore(context: Context) {
     }
     suspend fun cleanupSavedGenerationStep(owner: LibrarySyncOwner): Boolean = withStorage {
         withContext(Dispatchers.IO) { outcomeJournal.cleanupSavedGenerationStep(owner) }
+    }
+    suspend fun beginSavedViewBuild(lease: LibrarySavedLease): LibrarySavedBuildSession = withStorage { withContext(Dispatchers.IO) { outcomeJournal.beginSavedViewBuild(lease) } }
+    suspend fun captureSavedViewBuild(identity: LibrarySavedViewIdentity): LibrarySavedBuildSession = withStorage { withContext(Dispatchers.IO) { outcomeJournal.captureSavedViewBuild(identity) } }
+    suspend fun advanceSavedViewBuild(session: LibrarySavedBuildSession): LibrarySavedBuildRecord = withStorage { withContext(Dispatchers.IO) { outcomeJournal.advanceSavedViewBuild(session) } }
+    suspend fun savedViewBuildProgress(session: LibrarySavedBuildSession): Pair<LibrarySavedViewStamp, LibrarySavedBuildRecord> = withStorage { withContext(Dispatchers.IO) { outcomeJournal.savedViewBuildProgress(session) } }
+    suspend fun publishedSavedViewStamp(owner: LibrarySyncOwner): LibrarySavedViewStamp? = withStorage { withContext(Dispatchers.IO) { outcomeJournal.publishedSavedViewStamp(owner) } }
+    suspend fun publishedSavedViewItem(owner: LibrarySyncOwner, target: String): LibrarySavedViewTarget? = withStorage { withContext(Dispatchers.IO) { outcomeJournal.publishedSavedViewItem(owner, target) } }
+    suspend fun publishedSavedViewFolder(owner: LibrarySyncOwner, target: String): LibrarySavedViewFolderTarget? = withStorage { withContext(Dispatchers.IO) { outcomeJournal.publishedSavedViewFolder(owner, target) } }
+    suspend fun publishedSavedViewPage(owner: LibrarySyncOwner, selection: LibrarySavedViewSelection, ticket: LibrarySavedViewTicket? = null, limit: Int = 32): LibrarySavedViewPage? = withStorage { withContext(Dispatchers.IO) { outcomeJournal.publishedSavedViewPage(owner, selection, ticket, limit) } }
+    suspend fun publishedSavedViewFolders(owner: LibrarySyncOwner, ticket: LibrarySavedViewFolderTicket? = null, limit: Int = 32, name: String? = null): LibrarySavedViewFolderPage? = withStorage { withContext(Dispatchers.IO) { outcomeJournal.publishedSavedViewFolders(owner, ticket, limit, name) } }
+    suspend fun cleanupSavedViewStep(owner: LibrarySyncOwner): Boolean = withStorage { withContext(Dispatchers.IO) { outcomeJournal.cleanupSavedViewStep(owner) } }
+    suspend fun publishSavedViewBuild(session: LibrarySavedBuildSession, isCurrent: () -> Boolean, fetch: suspend (String) -> SavedFactsReply): LibrarySavedPublicationResult {
+        currentCoroutineContext().ensureActive()
+        if (!isCurrent() || !savedCollectorMutex.tryLock()) throw LibrarySyncFailure.SessionChanged
+        try {
+            publishedSavedViewStamp(session.identity.owner)?.let { current ->
+                currentCoroutineContext().ensureActive(); if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
+                if (current.identity == session.identity) return LibrarySavedPublicationResult.Published(current)
+            }
+            val captured = savedViewBuildProgress(session)
+            if (captured.second.phase != LibrarySavedBuildPhase.Prepared) throw LibrarySyncFailure.InvalidReceipt
+            val position = captured.second.source.checkpoint.position ?: throw LibrarySyncFailure.InvalidReceipt
+            currentCoroutineContext().ensureActive(); if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
+            val reply = fetch(position.continuation.token)
+            currentCoroutineContext().ensureActive(); if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
+            val result = withStorage { withContext(Dispatchers.IO) {
+                if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
+                outcomeJournal.publishSavedViewBuild(session, captured.first, reply)
+            } }
+            currentCoroutineContext().ensureActive(); if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
+            return result
+        } finally { savedCollectorMutex.unlock() }
+    }
+    suspend fun publishActiveSavedViewBuild(session: LibrarySavedBuildSession, isCurrent: () -> Boolean): LibrarySavedPublicationResult {
+        currentCoroutineContext().ensureActive(); if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
+        val result = withStorage { withContext(Dispatchers.IO) {
+            if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
+            outcomeJournal.publishActiveSavedViewBuild(session)
+        } }
+        currentCoroutineContext().ensureActive(); if (!isCurrent()) throw LibrarySyncFailure.SessionChanged
+        return result
     }
     suspend fun activateSavedGeneration(lease: LibrarySavedLease, isCurrent: () -> Boolean, fetch: suspend (String) -> SavedFactsReply): LibrarySavedActivation {
         if (!isCurrent() || !savedCollectorMutex.tryLock()) throw LibrarySyncFailure.SessionChanged

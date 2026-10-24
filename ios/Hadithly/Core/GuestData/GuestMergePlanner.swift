@@ -2094,3 +2094,20 @@ struct LibrarySavedBuildBinding: Codable, Sendable {
         guard folder.utf8.count <= 128, digest == LibraryOutcomeBinding.hash([identity.key, String(index), cut.prefixes[index + 1], folder]) else { throw LibrarySyncFailure.invalidReceipt }
     }
 }
+
+
+struct LibrarySavedPublication: Codable, Equatable, Sendable {
+    let identity: LibrarySavedViewIdentity
+    let source: LibrarySavedLease
+    let version: Double
+    let digest: String
+    let commandCount: Int
+    let cutDigest: String
+    func validate(owner: LibrarySyncOwner, epoch: String) throws {
+        try source.validate(); try LibrarySavedLease(owner: identity.owner, epoch: identity.epoch, generation: identity.generation).validate(); _ = try LibrarySavedPolicy.integer(version)
+        guard identity.owner == owner, source.owner == owner, identity.epoch == epoch, source.epoch == epoch, digest.count == 64, digest.allSatisfy({ "0123456789abcdef".contains($0) }), (0...9_007_199_254_740_990).contains(commandCount), cutDigest.count == 64, cutDigest.allSatisfy({ "0123456789abcdef".contains($0) }) else { throw LibrarySyncFailure.ownerMismatch }
+    }
+}
+enum LibrarySavedPublicationResult: Equatable, Sendable { case published(LibrarySavedViewStamp), restart, unavailable(SavedFactsReplyUnavailableReason) }
+struct LibrarySavedViewTarget: Sendable { let stamp: LibrarySavedViewStamp; let item: LibrarySavedViewItem? }
+struct LibrarySavedViewFolderTarget: Sendable { let stamp: LibrarySavedViewStamp; let folder: SyncFolderRow? }

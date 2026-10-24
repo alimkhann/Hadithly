@@ -139,7 +139,7 @@ data class LibraryExportArtifact(val id: String, val directory: File)
 private val savedJournalJson = Json { encodeDefaults = true; explicitNulls = false }
 
 /** Shared transaction boundary for account state, retained page evidence and erase fences. */
-internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(context, File(context.filesDir, "library_outcomes.db").absolutePath, null, 9) {
+internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(context, File(context.filesDir, "library_outcomes.db").absolutePath, null, 10) {
     override fun onConfigure(db: SQLiteDatabase) { db.setForeignKeyConstraintsEnabled(true) }
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE scopes (scope_key TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, generation TEXT NOT NULL)")
@@ -154,7 +154,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         createSavedViewSchema(db)
     }
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        if (oldVersion !in 1..8 || newVersion != 9) throw LibrarySyncFailure.StoreUnavailable
+        if (oldVersion !in 1..9 || newVersion != 10) throw LibrarySyncFailure.StoreUnavailable
         if (oldVersion == 1) createExportSchema(db, ready = false)
         if (oldVersion <= 2) createSavedSchema(db)
         else if (oldVersion <= 5) {
@@ -164,6 +164,10 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
             }
             db.execSQL("ALTER TABLE saved_assemblies ADD COLUMN row_mode INTEGER NOT NULL DEFAULT 0")
         }
+        if (oldVersion >= 3) {
+            db.execSQL("ALTER TABLE saved_assemblies ADD COLUMN published_view TEXT")
+            db.execSQL("ALTER TABLE saved_assemblies ADD COLUMN retiring_view TEXT")
+        }
         if (oldVersion <= 4) createLocalStoreSchema(db)
         if (oldVersion <= 6) createSavedViewSchema(db)
         else {
@@ -171,11 +175,11 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
                 db.execSQL("ALTER TABLE saved_view_heads ADD COLUMN audit TEXT")
                 db.execSQL("ALTER TABLE saved_view_heads ADD COLUMN retiring INTEGER NOT NULL DEFAULT 0")
             }
-            db.execSQL("ALTER TABLE saved_view_heads ADD COLUMN build TEXT")
+            if (oldVersion <= 8) db.execSQL("ALTER TABLE saved_view_heads ADD COLUMN build TEXT")
         }
     }
     private fun createSavedSchema(db: SQLiteDatabase) {
-        db.execSQL("CREATE TABLE saved_assemblies (scope_key TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, lease TEXT NOT NULL, checkpoint TEXT NOT NULL, erasing INTEGER NOT NULL, active TEXT, retiring TEXT, row_mode INTEGER NOT NULL DEFAULT 0)")
+        db.execSQL("CREATE TABLE saved_assemblies (scope_key TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, lease TEXT NOT NULL, checkpoint TEXT NOT NULL, erasing INTEGER NOT NULL, active TEXT, retiring TEXT, row_mode INTEGER NOT NULL DEFAULT 0, published_view TEXT, retiring_view TEXT)")
         db.execSQL("CREATE TABLE saved_facts (row_key TEXT NOT NULL UNIQUE, collection_key TEXT NOT NULL, ordinal INTEGER NOT NULL, source_key TEXT NOT NULL UNIQUE, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, fingerprint TEXT NOT NULL, data TEXT NOT NULL, PRIMARY KEY(collection_key,ordinal))")
         db.execSQL("CREATE TABLE saved_pages (collection_key TEXT NOT NULL, input_key TEXT NOT NULL UNIQUE, sequence INTEGER NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, data TEXT NOT NULL, PRIMARY KEY(collection_key,sequence))")
         db.execSQL("CREATE TABLE saved_projection (row_key TEXT PRIMARY KEY NOT NULL, collection_key TEXT NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, fingerprint TEXT NOT NULL, data TEXT NOT NULL)")
@@ -767,6 +771,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         val position = checkpoint.position ?: throw LibrarySyncFailure.InvalidReceipt
         val generations = savedGenerations(db, lease, checkpoint)
         generations.first?.let { if (it.lease == lease) return@transaction LibrarySavedActivation.Active(LibrarySavedActiveGeneration(it)) }
+        if (publicationData(db, lease) != null) throw LibrarySyncFailure.InvalidChange
         when (reply) {
             is SavedFactsReply.Restart -> {
                 if (reply.reason != "saved_changed") throw LibrarySyncFailure.InvalidReceipt
@@ -982,6 +987,8 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
     private fun writeViewRows(db: SQLiteDatabase, stamp: LibrarySavedViewStamp, items: List<LibrarySavedViewItem>, folders: List<SyncFolderRow> = emptyList(), preserveBuild: Boolean = false): LibrarySavedViewStamp {
         val identity = stamp.identity
         if (viewHead(db, identity) != stamp) throw LibrarySavedViewChanged()
+        val scope = currentSavedScope(db, identity.owner) ?: throw LibrarySyncFailure.SessionChanged
+        if (!preserveBuild && publicationData(db, scope.first)?.identity == identity) throw LibrarySyncFailure.InvalidChange
         if (stamp.serial >= 9_007_199_254_740_990L) throw LibrarySyncFailure.StoreUnavailable
         if (items.size + folders.size !in 1..8 || items.map { it.value.hadithId }.toSet().size != items.size || folders.map { it._id }.toSet().size != folders.size) throw LibrarySyncFailure.InvalidChange
         fun write(key: String, kind: Int, data: String) {
@@ -1006,6 +1013,116 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         }
         val next = stamp.copy(serial = stamp.serial + 1)
         db.execSQL("UPDATE saved_view_heads SET serial=?,audit=NULL" + (if (preserveBuild) "" else ",build=NULL") + " WHERE key=?", arrayOf<Any>(next.serial, identity.key)); bumpClock(db, identity.owner.subject, identity.owner.namespace); return next
+    }
+    private fun publicationData(db: SQLiteDatabase, lease: LibrarySavedLease): LibrarySavedPublication? =
+        db.rawQuery("SELECT published_view FROM saved_assemblies WHERE scope_key=?", arrayOf(lease.key)).use {
+            if (!it.moveToFirst()) throw LibrarySyncFailure.SessionChanged
+            if (it.isNull(0)) null else {
+                if (it.getString(0).toByteArray().size > 64 * 1024) throw LibrarySyncFailure.StoreUnavailable
+                viewJson.decodeFromString<LibrarySavedPublication>(it.getString(0)).also { value -> value.validate(lease.owner, lease.epoch) }
+            }
+        }
+    private fun publicationMode(db: SQLiteDatabase, lease: LibrarySavedLease): Long =
+        db.rawQuery("SELECT row_mode FROM saved_assemblies WHERE scope_key=?", arrayOf(lease.key)).use {
+            if (!it.moveToFirst() || it.getType(0) != android.database.Cursor.FIELD_TYPE_INTEGER || it.getLong(0) !in 0..1L) throw LibrarySyncFailure.StoreUnavailable
+            it.getLong(0)
+        }
+    private fun publishedView(db: SQLiteDatabase, owner: LibrarySyncOwner): LibrarySavedViewStamp? {
+        assertLocalOwner(db, owner); val scope = currentSavedScope(db, owner) ?: return null
+        val value = publicationData(db, scope.first)
+        if (publicationMode(db, scope.first) == 0L) {
+            if (value != null) throw LibrarySyncFailure.StoreUnavailable
+            return null
+        }
+        val publication = value ?: throw LibrarySyncFailure.StoreUnavailable
+        val active = savedGenerations(db, scope.first, scope.second).first ?: throw LibrarySyncFailure.StoreUnavailable
+        if (active.lease != publication.source || active.checkpoint.position?.version != publication.version || active.checkpoint.digest != publication.digest) throw LibrarySyncFailure.StoreUnavailable
+        return viewHead(db, publication.identity)
+    }
+    internal fun assertLegacySavedProjectionIn(db: SQLiteDatabase, owner: LibrarySyncOwner) {
+        val scope = currentSavedScope(db, owner) ?: return
+        if (publicationData(db, scope.first) != null) throw LibrarySyncFailure.InvalidChange
+    }
+    internal fun publishedSavedViewStamp(owner: LibrarySyncOwner): LibrarySavedViewStamp? = transaction { publishedView(it, owner) }
+    internal fun publishedSavedViewItem(owner: LibrarySyncOwner, target: String): LibrarySavedViewTarget? = transaction { db ->
+        val stamp = publishedView(db, owner) ?: return@transaction null
+        LibrarySavedViewTarget(stamp, readSavedViewItem(db, stamp, target))
+    }
+    internal fun publishedSavedViewFolder(owner: LibrarySyncOwner, target: String): LibrarySavedViewFolderTarget? = transaction { db ->
+        val stamp = publishedView(db, owner) ?: return@transaction null
+        LibrarySavedViewFolderTarget(stamp, readSavedViewFolder(db, stamp, target))
+    }
+    internal fun publishedSavedViewPage(owner: LibrarySyncOwner, selection: LibrarySavedViewSelection, ticket: LibrarySavedViewTicket? = null, limit: Int = 32): LibrarySavedViewPage? = transaction { db ->
+        val stamp = publishedView(db, owner) ?: return@transaction null
+        readSavedViewPage(db, stamp, selection, ticket, limit)
+    }
+    internal fun publishedSavedViewFolders(owner: LibrarySyncOwner, ticket: LibrarySavedViewFolderTicket? = null, limit: Int = 32, name: String? = null): LibrarySavedViewFolderPage? = transaction { db ->
+        val stamp = publishedView(db, owner) ?: return@transaction null
+        readSavedViewFolders(db, stamp, ticket, limit, name)
+    }
+    internal fun publishSavedViewBuild(session: LibrarySavedBuildSession, captured: LibrarySavedViewStamp, reply: SavedFactsReply): LibrarySavedPublicationResult = synchronized(session) {
+        mutateLocalAccount(session.identity.owner) { db, state -> publishViewIn(db, session, state, captured, reply) }
+    }
+    internal fun publishActiveSavedViewBuild(session: LibrarySavedBuildSession): LibrarySavedPublicationResult = synchronized(session) {
+        mutateLocalAccount(session.identity.owner) { db, state -> publishViewIn(db, session, state, null, null) }
+    }
+    private fun publishViewIn(db: SQLiteDatabase, session: LibrarySavedBuildSession, state: LibraryPartitionState, captured: LibrarySavedViewStamp?, reply: SavedFactsReply?): LibrarySavedPublicationResult {
+        val owner = session.identity.owner
+        val previous = publishedView(db, owner)
+        if (previous?.identity == session.identity) return LibrarySavedPublicationResult.Published(previous)
+        val (stamp, record) = checkBuild(db, session)
+        if (record.phase != LibrarySavedBuildPhase.Prepared) throw LibrarySyncFailure.InvalidReceipt
+        val scope = currentSavedScope(db, owner) ?: throw LibrarySyncFailure.SessionChanged
+        val generations = savedGenerations(db, scope.first, scope.second); val active = generations.first
+        if (reply == null) {
+            if (previous == null || publicationMode(db, scope.first) != 1L || active != record.source) throw LibrarySyncFailure.InvalidReceipt
+        } else {
+            if (captured != stamp || scope.first != record.source.lease || scope.second != record.source.checkpoint) throw LibrarySavedBuildChanged()
+            when (reply) {
+                is SavedFactsReply.Restart -> {
+                    if (reply.reason != "saved_changed") throw LibrarySyncFailure.InvalidReceipt
+                    if (active?.lease != scope.first) {
+                        db.update("saved_assemblies", ContentValues().apply { put("checkpoint", Json.encodeToString(scope.second.copy(stage = LibrarySavedStage.Restart))) }, "scope_key=?", arrayOf(scope.first.key)); bumpClock(db, owner.subject, owner.namespace)
+                    }
+                    return LibrarySavedPublicationResult.Restart
+                }
+                is SavedFactsReply.Unavailable -> {
+                    if (active?.lease != scope.first) {
+                        db.update("saved_assemblies", ContentValues().apply { put("checkpoint", Json.encodeToString(scope.second.copy(stage = LibrarySavedStage.Unavailable(reply.reason)))) }, "scope_key=?", arrayOf(scope.first.key)); bumpClock(db, owner.subject, owner.namespace)
+                    }
+                    return LibrarySavedPublicationResult.Unavailable(reply.reason)
+                }
+                else -> LibrarySavedPolicy.confirm(reply, record.source.checkpoint.position ?: throw LibrarySyncFailure.InvalidReceipt)
+            }
+        }
+        if (active != record.source && (generations.second != null || (active?.checkpoint?.position?.version ?: -1.0) > (record.source.checkpoint.position?.version ?: -1.0))) throw LibrarySyncFailure.InvalidReceipt
+        db.rawQuery("SELECT retiring_view FROM saved_assemblies WHERE scope_key=?", arrayOf(scope.first.key)).use { if (!it.moveToFirst() || !it.isNull(0)) throw LibrarySyncFailure.InvalidReceipt }
+        val version = record.source.checkpoint.position?.version ?: throw LibrarySyncFailure.InvalidReceipt
+        val publication = LibrarySavedPublication(session.identity, record.source.lease, version, record.source.checkpoint.digest, record.commandCount, record.cutDigest)
+        publication.validate(owner, scope.first.epoch)
+        val encoded = viewJson.encodeToString(publication); if (encoded.toByteArray().size > 64 * 1024) throw LibrarySyncFailure.StoreUnavailable
+        val values = ContentValues().apply {
+            put("published_view", encoded); put("row_mode", 1)
+            if (active != record.source) { put("active", Json.encodeToString(record.source)); put("retiring", active?.let { Json.encodeToString(it) }) }
+            if (previous != null) put("retiring_view", viewJson.encodeToString(previous))
+        }
+        if (previous != null) db.execSQL("UPDATE saved_view_heads SET retiring=1,build=NULL WHERE key=?", arrayOf(previous.identity.key))
+        db.execSQL("UPDATE saved_view_heads SET build=NULL WHERE key=?", arrayOf(stamp.identity.key))
+        if (db.update("saved_assemblies", values, "scope_key=?", arrayOf(scope.first.key)) != 1) throw LibrarySyncFailure.SessionChanged
+        state.pruneConfirmed(owner, savedObservationIn(db, owner, state))
+        bumpClock(db, owner.subject, owner.namespace)
+        return LibrarySavedPublicationResult.Published(stamp)
+    }
+    internal fun cleanupSavedViewStep(owner: LibrarySyncOwner): Boolean = transaction { db ->
+        assertLocalOwner(db, owner); val scope = currentSavedScope(db, owner) ?: return@transaction false
+        val data = db.rawQuery("SELECT retiring_view FROM saved_assemblies WHERE scope_key=?", arrayOf(scope.first.key)).use { if (!it.moveToFirst()) throw LibrarySyncFailure.SessionChanged; if (it.isNull(0)) null else it.getString(0) } ?: return@transaction false
+        if (data.toByteArray().size > 64 * 1024) throw LibrarySyncFailure.StoreUnavailable
+        val stamp = viewJson.decodeFromString<LibrarySavedViewStamp>(data)
+        LibrarySavedLease(stamp.identity.owner, stamp.identity.epoch, stamp.identity.generation).validate()
+        if (stamp.serial !in 0..9_007_199_254_740_990L || stamp.identity.owner != owner || stamp.identity.epoch != scope.first.epoch) throw LibrarySyncFailure.OwnerMismatch
+        if (!discardViewRows(db, stamp)) {
+            db.update("saved_assemblies", ContentValues().apply { putNull("retiring_view") }, "scope_key=?", arrayOf(scope.first.key)); bumpClock(db, owner.subject, owner.namespace)
+        }; true
     }
     private fun buildRevision(db: SQLiteDatabase, owner: LibrarySyncOwner): Long {
         assertLocalOwner(db, owner)
@@ -1257,28 +1374,33 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         saveViewAudit(db, stamp, audit)
     }
     /** Draft-only discard. Mark first so interrupted cleanup can never be read as empty. */
-    internal fun discardSavedViewStep(stamp: LibrarySavedViewStamp): Boolean = transaction { db ->
+    internal fun discardSavedViewStep(stamp: LibrarySavedViewStamp): Boolean = transaction { discardViewRows(it, stamp) }
+    private fun discardViewRows(db: SQLiteDatabase, stamp: LibrarySavedViewStamp): Boolean {
         val identity = stamp.identity
         assertLocalOwner(db, identity.owner)
-        if (currentSavedScope(db, identity.owner)?.first?.epoch != identity.epoch) throw LibrarySyncFailure.SessionChanged
+        val scope = currentSavedScope(db, identity.owner) ?: throw LibrarySyncFailure.SessionChanged
+        if (scope.first.epoch != identity.epoch) throw LibrarySyncFailure.SessionChanged
+        if (publicationData(db, scope.first)?.identity == identity) throw LibrarySyncFailure.InvalidChange
         val present = db.rawQuery("SELECT key FROM saved_view_heads WHERE key=?", arrayOf(identity.key)).use { it.moveToFirst() }
-        if (!present) return@transaction false
+        if (!present) return false
         if (viewHead(db, identity, allowRetiring = true) != stamp) throw LibrarySavedViewChanged()
         db.execSQL("UPDATE saved_view_heads SET retiring=1,audit=NULL WHERE key=?", arrayOf(identity.key))
         val prefix = identity.key + ":"; val upper = prefix + "~"
         for ((table, limit) in listOf("saved_view_indexes" to 128, "saved_view_rows" to 8)) {
             val removed = db.delete(table, "key IN (SELECT key FROM $table WHERE key>? AND key<? ORDER BY key LIMIT $limit)", arrayOf(prefix, upper))
-            if (removed > 0) { bumpClock(db, identity.owner.subject, identity.owner.namespace); return@transaction true }
+            if (removed > 0) { bumpClock(db, identity.owner.subject, identity.owner.namespace); return true }
         }
-        db.delete("saved_view_heads", "key=?", arrayOf(identity.key)); bumpClock(db, identity.owner.subject, identity.owner.namespace); false
+        db.delete("saved_view_heads", "key=?", arrayOf(identity.key)); bumpClock(db, identity.owner.subject, identity.owner.namespace); return false
     }
-    internal fun draftSavedViewItem(stamp: LibrarySavedViewStamp, target: String): LibrarySavedViewItem? = transaction { db ->
+    internal fun draftSavedViewItem(stamp: LibrarySavedViewStamp, target: String): LibrarySavedViewItem? = transaction { readSavedViewItem(it, stamp, target) }
+    private fun readSavedViewItem(db: SQLiteDatabase, stamp: LibrarySavedViewStamp, target: String): LibrarySavedViewItem? {
         if (viewHead(db, stamp.identity) != stamp) throw LibrarySavedViewChanged()
-        viewRow(db, stamp.identity, stamp.identity.itemKey(target), 1)?.let { viewJson.decodeFromString<LibrarySavedViewItem>(it).also { row -> row.validate(); if (row.value.hadithId != target) throw LibrarySyncFailure.StoreUnavailable } }
+        return viewRow(db, stamp.identity, stamp.identity.itemKey(target), 1)?.let { viewJson.decodeFromString<LibrarySavedViewItem>(it).also { row -> row.validate(); if (row.value.hadithId != target) throw LibrarySyncFailure.StoreUnavailable } }
     }
-    internal fun draftSavedViewFolder(stamp: LibrarySavedViewStamp, target: String): SyncFolderRow? = transaction { db ->
+    internal fun draftSavedViewFolder(stamp: LibrarySavedViewStamp, target: String): SyncFolderRow? = transaction { readSavedViewFolder(it, stamp, target) }
+    private fun readSavedViewFolder(db: SQLiteDatabase, stamp: LibrarySavedViewStamp, target: String): SyncFolderRow? {
         if (viewHead(db, stamp.identity) != stamp) throw LibrarySavedViewChanged()
-        viewRow(db, stamp.identity, stamp.identity.folderKey(target), 0)?.let { viewJson.decodeFromString<SyncFolderRow>(it).also { row -> if (row._id != target) throw LibrarySyncFailure.StoreUnavailable; LibrarySavedPolicy.validate(SavedFact.Folder(row._id, 0.0, row)) } }
+        return viewRow(db, stamp.identity, stamp.identity.folderKey(target), 0)?.let { viewJson.decodeFromString<SyncFolderRow>(it).also { row -> if (row._id != target) throw LibrarySyncFailure.StoreUnavailable; LibrarySavedPolicy.validate(SavedFact.Folder(row._id, 0.0, row)) } }
     }
     private fun viewIndexPage(db: SQLiteDatabase, identity: LibrarySavedViewIdentity, prefix: String, after: String?, limit: Int): List<Pair<String, String>> {
         if (after != null && !after.startsWith(prefix)) throw LibrarySavedViewChanged()
@@ -1290,7 +1412,8 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
             }
         }; return values
     }
-    internal fun draftSavedViewPage(stamp: LibrarySavedViewStamp, selection: LibrarySavedViewSelection, ticket: LibrarySavedViewTicket? = null, limit: Int = 32): LibrarySavedViewPage = transaction { db ->
+    internal fun draftSavedViewPage(stamp: LibrarySavedViewStamp, selection: LibrarySavedViewSelection, ticket: LibrarySavedViewTicket? = null, limit: Int = 32): LibrarySavedViewPage = transaction { readSavedViewPage(it, stamp, selection, ticket, limit) }
+    private fun readSavedViewPage(db: SQLiteDatabase, stamp: LibrarySavedViewStamp, selection: LibrarySavedViewSelection, ticket: LibrarySavedViewTicket?, limit: Int): LibrarySavedViewPage {
         selection.validate()
         if (limit !in 1..32) throw LibrarySyncFailure.InvalidChange
         if (ticket != null && ticket.stamp.identity.owner != stamp.identity.owner) throw LibrarySyncFailure.OwnerMismatch
@@ -1303,9 +1426,10 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
             row
         }
         val unknown = selection.collection != null && viewIndexPage(db, stamp.identity, stamp.identity.queryPrefix(selection.copy(collection = null), true), null, 1).isNotEmpty()
-        LibrarySavedViewPage(stamp, values, if (entries.size > limit) LibrarySavedViewTicket(stamp, selection, entries[limit - 1].first) else null, unknown)
+        return LibrarySavedViewPage(stamp, values, if (entries.size > limit) LibrarySavedViewTicket(stamp, selection, entries[limit - 1].first) else null, unknown)
     }
-    internal fun draftSavedViewFolders(stamp: LibrarySavedViewStamp, ticket: LibrarySavedViewFolderTicket? = null, limit: Int = 32, name: String? = null): LibrarySavedViewFolderPage = transaction { db ->
+    internal fun draftSavedViewFolders(stamp: LibrarySavedViewStamp, ticket: LibrarySavedViewFolderTicket? = null, limit: Int = 32, name: String? = null): LibrarySavedViewFolderPage = transaction { readSavedViewFolders(it, stamp, ticket, limit, name) }
+    private fun readSavedViewFolders(db: SQLiteDatabase, stamp: LibrarySavedViewStamp, ticket: LibrarySavedViewFolderTicket?, limit: Int, name: String?): LibrarySavedViewFolderPage {
         if (limit !in 1..32) throw LibrarySyncFailure.InvalidChange
         if (ticket != null && ticket.stamp.identity.owner != stamp.identity.owner) throw LibrarySyncFailure.OwnerMismatch
         if (viewHead(db, stamp.identity) != stamp || ticket != null && (ticket.stamp != stamp || ticket.name != name)) throw LibrarySavedViewChanged()
@@ -1316,7 +1440,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
             if (target != stamp.identity.folderKey(row._id) || key != (name?.let(stamp.identity::namePrefix) ?: stamp.identity.folderPrefix) + LibrarySavedViewPolicy.folderRank(row) || name != null && LibrarySavedViewPolicy.nameKey(row.name) != LibrarySavedViewPolicy.nameKey(name)) throw LibrarySyncFailure.StoreUnavailable
             row
         }
-        LibrarySavedViewFolderPage(stamp, rows, if (entries.size > limit) LibrarySavedViewFolderTicket(stamp, name, entries[limit - 1].first) else null)
+        return LibrarySavedViewFolderPage(stamp, rows, if (entries.size > limit) LibrarySavedViewFolderTicket(stamp, name, entries[limit - 1].first) else null)
     }
 
 }

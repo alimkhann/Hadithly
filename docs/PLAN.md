@@ -57,6 +57,19 @@ start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
 
+## A2 coherent publication checkpoint, October 24
+
+Both native stores now atomically publish actual private/view pointers, row mode,
+covered queue pruning and retirement references, with final completion/current-cut
+guards and coherent published exact/page reads. Restart, stale replies and late
+rollback retain the prior pair and accepted originals. Full local suites pass 143
+iOS, 134 Android connected and 212 Android units; the independent source review has
+no actionable finding. See `docs/LIBRARY_SAVED_PUBLICATION_VERIFICATION.md`.
+Only component tests invoke publication. Ordinary point admission, runtime/binding
+orchestration and both Saved/Reader UI switches remain next; production still uses
+the existing display path. A2 and scale/device/deployment/iOS save-failure/A1 gates
+remain open.
+
 ## A2 private-source build checkpoint, October 24
 
 Both native stores now compile an actual prepared private generation plus a bound

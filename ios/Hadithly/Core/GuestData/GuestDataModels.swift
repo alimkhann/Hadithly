@@ -478,6 +478,8 @@ final class GuestSavedAssembly {
     var leaseData: Data
     var checkpointData: Data
     var rowMode: Bool = false
+    var viewData: Data? = nil
+    var retiringViewData: Data? = nil
     var erasing: Bool
     var activeData: Data?
     var retiringData: Data?

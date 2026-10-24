@@ -247,14 +247,14 @@ class GuestMergeRaceTest {
                     db.execSQL("DROP TABLE saved_assemblies_v6")
                     db.execSQL("CREATE INDEX saved_assemblies_owner ON saved_assemblies(subject,namespace,owner_key)")
                     for (viewTable in listOf("saved_view_heads", "saved_view_rows", "saved_view_indexes")) db.execSQL("DROP TABLE $viewTable")
-                    db.version = 4; db.setTransactionSuccessful()
+                    removeSavedPublicationColumnsForFixture(db); db.version = 4; db.setTransactionSuccessful()
                 } finally { db.endTransaction() }
             }
             val recovered = reopen(); assertEquals(state, recovered.syncPartition(owner)); assertEquals(frame, recovered.freezeSyncFrame(owner))
             assertEquals(active, recovered.activeSavedGeneration(owner)); assertTrue(recovered.activeSavedPage(active, null).done)
             recovered.validateOutcomeExport(fence)
             sql(directory) { db ->
-                assertEquals(9, db.version)
+                assertEquals(10, db.version)
                 db.rawQuery("SELECT active,retiring FROM saved_assemblies", null).use { assertTrue(it.moveToFirst()); assertEquals(before, listOf(it.getString(0), it.getString(1))) }
                 db.rawQuery("SELECT artifact_id FROM export_artifacts", null).use { assertTrue(it.moveToFirst()); assertEquals(artifact.id, it.getString(0)) }
             }
@@ -347,14 +347,14 @@ class GuestMergeRaceTest {
                     db.execSQL("INSERT INTO saved_assemblies SELECT scope_key,subject,namespace,owner_key,lease,checkpoint,erasing,active,retiring FROM saved_assemblies_v6")
                     db.execSQL("DROP TABLE saved_assemblies_v6"); db.execSQL("CREATE INDEX saved_assemblies_owner ON saved_assemblies(subject,namespace,owner_key)")
                     for (viewTable in listOf("saved_view_heads", "saved_view_rows", "saved_view_indexes")) db.execSQL("DROP TABLE $viewTable")
-                    db.version = 5; db.setTransactionSuccessful()
+                    removeSavedPublicationColumnsForFixture(db); db.version = 5; db.setTransactionSuccessful()
                 } finally { db.endTransaction() }
             }
             File(directory, "guest_store.json").writeText("{stale-invalid-source")
             val recovered = reopen(); assertEquals(state, recovered.syncPartition(owner)); assertEquals(active, recovered.activeSavedGeneration(owner)); recovered.validateOutcomeExport(fence)
             assertEquals(LibraryDeletionPhase.SERVER_PENDING, recovered.deletionPhase("deleted-subject", owner.namespace)); assertEquals("ready", phase(directory))
             sql(directory) { db ->
-                assertEquals(9, db.version)
+                assertEquals(10, db.version)
                 db.rawQuery("SELECT row_mode FROM saved_assemblies", null).use { assertTrue(it.moveToFirst()); assertEquals(0, it.getInt(0)) }
                 db.rawQuery("SELECT erasing FROM export_clocks WHERE subject=?", arrayOf("deleted-subject")).use { assertTrue(it.moveToFirst()); assertEquals(1, it.getInt(0)) }
             }
@@ -377,7 +377,7 @@ class GuestMergeRaceTest {
                     old.execSQL("INSERT INTO saved_view_heads SELECT key,scope_key,subject,namespace,owner_key,identity_data,serial FROM saved_view_heads_v8")
                     old.execSQL("DROP TABLE saved_view_heads_v8"); old.execSQL("CREATE INDEX saved_view_heads_scope ON saved_view_heads(scope_key,key)")
                     old.execSQL("CREATE INDEX saved_view_heads_owner ON saved_view_heads(subject,namespace,owner_key,key)")
-                    old.version = 7; old.setTransactionSuccessful()
+                    removeSavedPublicationColumnsForFixture(old); old.version = 7; old.setTransactionSuccessful()
                 } finally { old.endTransaction() }
             }
             db = journal(directory); assertEquals(stamp, db.draftSavedViewStamp(stamp.identity)); assertNull(db.savedViewAudit(stamp))
@@ -577,17 +577,151 @@ class GuestMergeRaceTest {
                     old.execSQL("INSERT INTO saved_view_heads SELECT key,scope_key,subject,namespace,owner_key,identity_data,serial,audit,retiring FROM saved_view_heads_v9")
                     old.execSQL("DROP TABLE saved_view_heads_v9"); old.execSQL("CREATE INDEX saved_view_heads_scope ON saved_view_heads(scope_key,key)")
                     old.execSQL("CREATE INDEX saved_view_heads_owner ON saved_view_heads(subject,namespace,owner_key,key)")
-                    old.version = 8; old.setTransactionSuccessful()
+                    removeSavedPublicationColumnsForFixture(old); old.version = 8; old.setTransactionSuccessful()
                 } finally { old.endTransaction() }
             }
             db = journal(directory); assertEquals(stamp, db.draftSavedViewStamp(stamp.identity)); assertEquals(item, db.draftSavedViewItem(stamp, "target")); assertNull(db.savedViewAudit(stamp)); store.validateOutcomeExport(fence)
-            assertEquals(account, store.syncPartition(owner)); sql(directory) { sql -> assertEquals(9, sql.version); sql.rawQuery("SELECT build FROM saved_view_heads", null).use { assertTrue(it.moveToFirst()); assertTrue(it.isNull(0)) } }; db.close()
+            assertEquals(account, store.syncPartition(owner)); sql(directory) { sql -> assertEquals(10, sql.version); sql.rawQuery("SELECT build FROM saved_view_heads", null).use { assertTrue(it.moveToFirst()); assertTrue(it.isNull(0)) } }; db.close()
         }
     }
     private fun sqlPayloadForBuildTest(directory: File, owner: LibrarySyncOwner): ByteArray {
         var result = byteArrayOf()
         sql(directory) { db -> db.rawQuery("SELECT payload FROM local_accounts WHERE key=?", arrayOf(owner.storageKey)).use { assertTrue(it.moveToFirst()); result = it.getBlob(0) } }
         return result
+    }
+    private fun removeSavedPublicationColumnsForFixture(db: android.database.sqlite.SQLiteDatabase) {
+        val present = db.rawQuery("PRAGMA table_info(saved_assemblies)", null).use { cursor -> var found = false; while (cursor.moveToNext()) if (cursor.getString(1) == "published_view") found = true; found }
+        if (!present) return
+        db.rawQuery("SELECT published_view,retiring_view FROM saved_assemblies", null).use { while (it.moveToNext()) { assertTrue(it.isNull(0)); assertTrue(it.isNull(1)) } }
+        db.execSQL("ALTER TABLE saved_assemblies RENAME TO saved_assemblies_pub_fixture")
+        db.execSQL("CREATE TABLE saved_assemblies (scope_key TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, lease TEXT NOT NULL, checkpoint TEXT NOT NULL, erasing INTEGER NOT NULL, active TEXT, retiring TEXT, row_mode INTEGER NOT NULL DEFAULT 0)")
+        db.execSQL("INSERT INTO saved_assemblies SELECT scope_key,subject,namespace,owner_key,lease,checkpoint,erasing,active,retiring,row_mode FROM saved_assemblies_pub_fixture")
+        db.execSQL("DROP TABLE saved_assemblies_pub_fixture"); db.execSQL("CREATE INDEX saved_assemblies_owner ON saved_assemblies(subject,namespace,owner_key)")
+    }
+    private suspend fun finishViewBuild(store: GuestDataStore, lease: LibrarySavedLease): LibrarySavedBuildSession {
+        val session = store.beginSavedViewBuild(lease)
+        repeat(2_000) { if (store.advanceSavedViewBuild(session).phase == LibrarySavedBuildPhase.Prepared) return session }
+        error("View build did not finish")
+    }
+    private suspend fun finishCapturedViewBuild(store: GuestDataStore, identity: LibrarySavedViewIdentity): LibrarySavedBuildSession {
+        val session = store.captureSavedViewBuild(identity)
+        repeat(2_000) { if (store.advanceSavedViewBuild(session).phase == LibrarySavedBuildPhase.Prepared) return session }
+        error("Captured view build did not finish")
+    }
+    private fun canonicalNote(text: String) = SavedFact.Item("target", 0.0, SavedPrivateItem("target", 1.0, 1.0, noteContent = text, noteCreatedAt = 1.0, noteUpdatedAt = 1.0))
+    private fun seedConfirmedForPublication(directory: File, owner: LibrarySyncOwner, version: Double) {
+        journal(directory).use { db -> db.mutateLocalAccount(owner) { _, state ->
+            state.confirmed = state.confirmed + LibraryConfirmedChange(LibraryLocalChange(SyncCommand.NotePut("target", "Covered original", 1.0, 1.0), 1.0, LibraryLocalSource.Account(null)), SyncOutcome.Preserved, version)
+        } }
+    }
+    @Test fun publicationSwitchesPrivateViewModeAndQueueTogetherThenRetiresOldViews() = runBlocking {
+        isolated { store, reopen, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
+            val state = viewState(owner, 67); store.cacheSavedSnapshot(state.savedSnapshot!!, owner)
+            val source = store.beginSavedAssembly(owner); prepareSaved(store, source, viewFacts(state)); seedConfirmedForPublication(directory, owner, 9.0)
+            val deletion = LibraryLocalChange(SyncCommand.FolderDelete(SyncFolderReference.Server("folder-1")), 5_000.0, LibraryLocalSource.Account(null)); store.enqueueSyncChange(deletion, owner)
+            store.enqueueSyncChange(LibraryLocalChange(SyncCommand.NotePut("local-only", "Accepted local note", 6_000.0, 6_000.0), 6_000.0, LibraryLocalSource.Account(null)), owner)
+            assertNull(store.publishedSavedViewItem(owner, "missing"))
+            val session = finishViewBuild(store, source); val reply = terminalSavedReply(store.savedCheckpoint(source))
+            val first = store.publishSavedViewBuild(session, { true }) { input -> assertEquals(reply.completion, input); reply } as LibrarySavedPublicationResult.Published
+            assertEquals(first.stamp, reopen().publishedSavedViewStamp(owner)); assertEquals(source, store.activeSavedGeneration(owner)!!.lease)
+            assertTrue(store.syncPartition(owner)!!.confirmed.isEmpty()); assertEquals(2, store.syncPartition(owner)!!.pending.size)
+            assertEquals("Accepted local note", store.publishedSavedViewItem(owner, "local-only")!!.item!!.value.noteContent)
+            assertNotNull(store.publishedSavedViewItem(owner, "missing")); assertNull(store.publishedSavedViewItem(owner, "missing")!!.item)
+            val oldPage = store.publishedSavedViewPage(owner, LibrarySavedViewSelection(), limit = 2)!!; assertNotNull(oldPage.next)
+            assertNotNull(store.publishedSavedViewFolders(owner, limit = 2)!!.next); assertNull(store.publishedSavedViewFolder(owner, "folder-1")!!.folder)
+            assertTrue(store.publishedSavedViewPage(owner, LibrarySavedViewSelection(collection = "unknown"))!!.unresolvedCoverage)
+            val fence = store.prepareOutcomeExport(owner) { true }; assertEquals(first, store.publishSavedViewBuild(session, { true }) { error("Idempotent publication fetched") }); store.validateOutcomeExport(fence)
+            journal(directory).use { db ->
+                try { db.discardSavedViewStep(first.stamp); fail("Active view discarded") } catch (_: LibrarySyncFailure.InvalidChange) { }
+                try { db.writeSavedViewRows(first.stamp, listOf(store.publishedSavedViewItem(owner, "local-only")!!.item!!)); fail("Active view mutated outside queue") } catch (_: LibrarySyncFailure.InvalidChange) { }
+            }
+            try { store.libraryProjection(owner); fail("Published library used joined-array authority") } catch (_: LibrarySyncFailure.InvalidChange) { }
+            val next = store.beginSavedAssembly(owner); prepareSaved(store, next, viewFacts(state), 10.0)
+            try { activateSaved(store, next); fail("Private-only activation bypassed view") } catch (_: LibrarySyncFailure.InvalidChange) { }
+            assertEquals(first.stamp, store.publishedSavedViewStamp(owner))
+            val nextSession = finishViewBuild(store, next)
+            val second = store.publishSavedViewBuild(nextSession, { true }) { terminalSavedReply(store.savedCheckpoint(next)) } as LibrarySavedPublicationResult.Published
+            assertNotEquals(first.stamp.identity, second.stamp.identity)
+            try { store.publishedSavedViewPage(owner, LibrarySavedViewSelection(), oldPage.next, 2); fail("Old view ticket continued") } catch (_: LibrarySavedViewChanged) { }
+            var steps = 0; while (store.cleanupSavedViewStep(owner)) { assertEquals(second.stamp, store.publishedSavedViewStamp(owner)); steps++; assertTrue(steps < 200) }
+            while (store.cleanupSavedGenerationStep(owner)) { }
+            assertEquals(1, count(directory, "saved_view_heads"))
+            val collecting = store.beginSavedAssembly(owner)
+            store.enqueueSyncChange(LibraryLocalChange(SyncCommand.FolderRestore(deletion.operation.id, "Folder 1", emptyList()), 7_000.0, LibraryLocalSource.Account(null)), owner)
+            val offline = finishViewBuild(store, next)
+            val third = store.publishActiveSavedViewBuild(offline, { true }) as LibrarySavedPublicationResult.Published
+            assertEquals(next, store.activeSavedGeneration(owner)!!.lease); assertEquals(LibrarySavedStage.Collecting, store.savedCheckpoint(collecting).stage)
+            assertEquals(third.stamp, store.publishedSavedViewStamp(owner)); assertNotNull(store.publishedSavedViewFolders(owner, name = "Folder 1")!!.folders.firstOrNull())
+        }
+    }
+    @Test fun publicationRejectsWrongCompletionStaleSessionQueueChangesAndKeepsPriorViewOnRestart() = runBlocking {
+        isolated { store, _, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner); val source = store.beginSavedAssembly(owner); prepareSaved(store, source, emptyList())
+            store.enqueueSyncChange(LibraryLocalChange(SyncCommand.NotePut("local", "Accepted original", 1.0, 1.0), 1.0, LibraryLocalSource.Account(null)), owner)
+            var session = finishViewBuild(store, source); val good = terminalSavedReply(store.savedCheckpoint(source)); val fence = store.prepareOutcomeExport(owner) { true }
+            val bad = listOf(good.copy(ownerKey = "foreign"), good.copy(version = good.version + 1), good.copy(assemblyId = "foreign"), good.copy(input = "foreign"), good.copy(completion = "foreign"), good.copy(total = good.total + 1), good.copy(start = good.start + 1))
+            for (reply in bad) {
+                try { store.publishSavedViewBuild(session, { true }) { reply }; fail("Invalid completion published") } catch (_: LibrarySyncFailure.InvalidReceipt) { }
+                assertNull(store.publishedSavedViewStamp(owner)); assertNull(store.activeSavedGeneration(owner)); store.validateOutcomeExport(fence)
+            }
+            var live = true
+            try { store.publishSavedViewBuild(session, { live }) { live = false; good }; fail("Stale session published") } catch (_: LibrarySyncFailure.SessionChanged) { }
+            assertNull(store.publishedSavedViewStamp(owner)); store.validateOutcomeExport(fence)
+            try { store.publishSavedViewBuild(session, { true }) { store.enqueueSyncChange(LibraryLocalChange(SyncCommand.BookmarkAdd("during-confirmation", 2.0), 2.0, LibraryLocalSource.Account(null)), owner); good }; fail("Changed account published old cut") } catch (_: LibrarySavedBuildChanged) { }
+            assertNull(store.publishedSavedViewStamp(owner)); assertEquals(2, store.syncPartition(owner)!!.pending.size)
+            session = finishCapturedViewBuild(store, session.identity)
+            val first = store.publishSavedViewBuild(session, { true }) { good } as LibrarySavedPublicationResult.Published
+            val next = store.beginSavedAssembly(owner); prepareSaved(store, next, emptyList(), 10.0); val newer = finishViewBuild(store, next)
+            assertEquals(LibrarySavedPublicationResult.Restart, store.publishSavedViewBuild(newer, { true }) { SavedFactsReply.Restart("saved_changed") })
+            assertEquals(first.stamp, store.publishedSavedViewStamp(owner)); assertEquals(source, store.activeSavedGeneration(owner)!!.lease)
+            assertEquals(LibrarySavedStage.Restart, store.savedCheckpoint(next).stage); assertEquals(2, store.syncPartition(owner)!!.pending.size)
+            val replacement = store.replaceSavedCandidate(next); while (store.cleanupSavedGenerationStep(owner)) { }
+            prepareSaved(store, replacement, emptyList(), 11.0); val unavailable = finishViewBuild(store, replacement)
+            val reason = SavedFactsReplyUnavailableReason.SOURCE_TOO_LARGE
+            assertEquals(LibrarySavedPublicationResult.Unavailable(reason), store.publishSavedViewBuild(unavailable, { true }) { SavedFactsReply.Unavailable(reason) })
+            assertEquals(first.stamp, store.publishedSavedViewStamp(owner)); assertEquals("Accepted original", store.publishedSavedViewItem(owner, "local")!!.item!!.value.noteContent)
+        }
+    }
+    @Test fun publicationRollbackRestoresBothPointersQueueDraftAndOldReadabilityAndEraseCoversRetainedViews() = runBlocking {
+        isolated { store, _, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
+            val source = store.beginSavedAssembly(owner); prepareSaved(store, source, listOf(canonicalNote("Canonical original")), 1.0)
+            val firstSession = finishViewBuild(store, source); val first = store.publishSavedViewBuild(firstSession, { true }) { terminalSavedReply(store.savedCheckpoint(source)) } as LibrarySavedPublicationResult.Published
+            val next = store.beginSavedAssembly(owner); prepareSaved(store, next, listOf(canonicalNote("New canonical original")), 2.0); seedConfirmedForPublication(directory, owner, 2.0)
+            val session = finishViewBuild(store, next); val reply = terminalSavedReply(store.savedCheckpoint(next)); val before = store.syncPartition(owner); val draft = store.savedViewBuildProgress(session)
+            val fence = store.prepareOutcomeExport(owner) { true }
+            sql(directory) { it.execSQL("CREATE TRIGGER refuse_publication_account BEFORE UPDATE OF payload ON local_accounts BEGIN SELECT RAISE(ABORT, 'injected publication failure'); END") }
+            try { store.publishSavedViewBuild(session, { true }) { reply }; fail("Failed account publication committed") } catch (_: android.database.sqlite.SQLiteException) { }
+            assertEquals(first.stamp, store.publishedSavedViewStamp(owner)); assertEquals(source, store.activeSavedGeneration(owner)!!.lease); assertEquals(before, store.syncPartition(owner)); assertEquals(draft, store.savedViewBuildProgress(session)); store.validateOutcomeExport(fence)
+            assertEquals("Canonical original", store.publishedSavedViewItem(owner, "target")!!.item!!.value.noteContent)
+            sql(directory) { it.execSQL("DROP TRIGGER refuse_publication_account") }
+            store.publishSavedViewBuild(session, { true }) { reply }
+            val export = store.prepareOutcomeExport(owner) { true }; val records = mutableListOf<kotlinx.serialization.json.JsonElement>(); var after: String? = null
+            while (true) { val page = store.savedExportRecords(export, 5, after); records.addAll(page.first); after = page.second; if (page.third) break }
+            val text = Json.encodeToString(kotlinx.serialization.json.JsonArray(records)); assertTrue(text.contains("Canonical original")); assertTrue(text.contains("New canonical original"))
+            val peer = LibrarySyncOwner("peer", "foreign-subject"); store.claimGuestForSync(peer); val peerSource = store.beginSavedAssembly(peer); prepareSaved(store, peerSource, listOf(canonicalNote("Foreign retained original")), 1.0)
+            val peerSession = finishViewBuild(store, peerSource); store.publishSavedViewBuild(peerSession, { true }) { terminalSavedReply(store.savedCheckpoint(peerSource)) }
+            note(store, "Unclaimed original")
+            store.beginDeletion(owner.subject, owner.namespace); store.markDeletionBackendComplete(owner.subject, owner.namespace)
+            assertEquals("Foreign retained original", store.publishedSavedViewItem(peer, "target")!!.item!!.value.noteContent); assertEquals("Unclaimed original", store.snapshots().notes.first().content)
+            assertNull(store.syncPartition(owner))
+        }
+    }
+    @Test fun publicationV9UpgradePreservesPreparedDraftPrivateDataQueueAndFence() = runBlocking {
+        isolated { store, reopen, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
+            val source = store.beginSavedAssembly(owner); prepareSaved(store, source, listOf(canonicalNote("Installed original")), 1.0)
+            store.enqueueSyncChange(LibraryLocalChange(SyncCommand.NotePut("queued", "Installed accepted edit", 2.0, 2.0), 2.0, LibraryLocalSource.Account(null)), owner)
+            val session = finishViewBuild(store, source); val before = store.savedViewBuildProgress(session); val account = store.syncPartition(owner); val fence = store.prepareOutcomeExport(owner) { true }
+            sql(directory) { db -> removeSavedPublicationColumnsForFixture(db); db.version = 9 }
+            val recovered = reopen(); val resumed = recovered.captureSavedViewBuild(session.identity)
+            assertEquals(before, recovered.savedViewBuildProgress(resumed)); assertEquals(account, recovered.syncPartition(owner)); recovered.validateOutcomeExport(fence); assertNull(recovered.publishedSavedViewStamp(owner))
+            val result = recovered.publishSavedViewBuild(resumed, { true }) { terminalSavedReply(recovered.savedCheckpoint(source)) } as LibrarySavedPublicationResult.Published
+            assertEquals(before.first, result.stamp); assertEquals("Installed original", recovered.publishedSavedViewItem(owner, "target")!!.item!!.value.noteContent)
+            assertEquals("Installed accepted edit", recovered.publishedSavedViewItem(owner, "queued")!!.item!!.value.noteContent); assertEquals(account!!.pending, recovered.syncPartition(owner)!!.pending)
+            sql(directory) { assertEquals(10, it.version) }
+        }
     }
     private fun viewState(owner: LibrarySyncOwner, count: Int): LibraryPartitionState {
         val folders = (0 until 70).map { SyncFolderRow("folder-$it", "Folder $it", 1_000.0 + it) }
@@ -641,7 +775,7 @@ class GuestMergeRaceTest {
             val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner); val privateLease = store.beginSavedAssembly(owner)
             val state = viewState(owner, 2_001); val source = LibrarySavedViewPolicy.captureLegacy(state, owner, observation(state))
             // The immediate predecessor schema has private/local state but no view tables.
-            sql(directory) { db -> for (table in listOf("saved_view_heads", "saved_view_rows", "saved_view_indexes")) db.execSQL("DROP TABLE $table"); db.version = 6 }
+            sql(directory) { db -> for (table in listOf("saved_view_heads", "saved_view_rows", "saved_view_indexes")) db.execSQL("DROP TABLE $table"); removeSavedPublicationColumnsForFixture(db); db.version = 6 }
             var db = journal(directory)
             var stamp = db.createSavedViewRows(privateLease); val identity = stamp.identity
             source.items.chunked(8).forEach { stamp = db.writeSavedViewRows(stamp, it) }
@@ -1133,13 +1267,13 @@ class GuestMergeRaceTest {
                     db.execSQL("DROP TABLE saved_assemblies_v4"); db.execSQL("CREATE INDEX saved_assemblies_owner ON saved_assemblies(subject,namespace,owner_key)")
                     for (table in listOf("local_import_rows", "local_import", "local_guest", "local_accounts", "local_deletions")) db.execSQL("DROP TABLE $table")
                     for (viewTable in listOf("saved_view_heads", "saved_view_rows", "saved_view_indexes")) db.execSQL("DROP TABLE $viewTable")
-                    db.version = 3; db.setTransactionSuccessful()
+                    removeSavedPublicationColumnsForFixture(db); db.version = 3; db.setTransactionSuccessful()
                 } finally { db.endTransaction() }
             }
             val recovered = reopen(); assertEquals(before, recovered.savedCheckpoint(lease)); assertEquals(expected, recovered.preparedSavedPage(lease, null)); assertNull(recovered.activeSavedGeneration(owner))
             val active = activateSaved(recovered, lease); assertEquals(expected.rows, recovered.activeSavedPage(active, null).rows)
             assertEquals(active, reopen().activeSavedGeneration(owner))
-            android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { assertEquals(9, it.version) }
+            android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { assertEquals(10, it.version) }
         }
     }
     @Test fun savedRawAndReceiptWritesRollBackTogetherOnActualSqliteAbort() = runBlocking {
@@ -1258,11 +1392,11 @@ class GuestMergeRaceTest {
                 db.execSQL("CREATE TABLE export_artifacts (artifact_id TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL)")
                 db.execSQL("CREATE INDEX artifacts_owner ON export_artifacts(subject,namespace,artifact_id)")
                 db.execSQL("INSERT INTO export_clocks VALUES(?,?,?,?,?,?)", arrayOf<Any>(LibraryOutcomeBinding.hash(listOf(owner.namespace, owner.subject)), owner.subject, owner.namespace, "v2-clock", 7, 0))
-                db.version = 2
+                removeSavedPublicationColumnsForFixture(db); db.version = 2
             }
             store.claimGuestForSync(owner); val lease = store.beginSavedAssembly(owner)
             android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { db ->
-                assertEquals(9, db.version)
+                assertEquals(10, db.version)
                 db.rawQuery("EXPLAIN QUERY PLAN SELECT row_key FROM saved_projection WHERE collection_key=? AND row_key>? AND row_key<? ORDER BY row_key LIMIT 8", arrayOf(lease.collection, lease.collection + ":r:", lease.collection + ":r:~")).use {
                     assertTrue(it.moveToFirst()); assertTrue(it.getString(3).contains("saved_projection_collection")); assertTrue(it.getString(3).contains("SEARCH"))
                 }
@@ -1393,7 +1527,7 @@ class GuestMergeRaceTest {
                     put("collection_key", binding.key); put("ordinal", 0); put("member_id", row.memberId); put("hadith_id", row.hadithId); put("disposition", row.disposition.name); put("row_data", Json.encodeToString(row))
                 })
             }
-            db.version = 1
+            removeSavedPublicationColumnsForFixture(db); db.version = 1
         }
     }
     @Test fun outcomeExportPreservesFieldsAndIncludesOldOwnerOrphansOnlyForCapturedSubject() = runBlocking {
@@ -1427,7 +1561,7 @@ class GuestMergeRaceTest {
                 } finally { fixture.sync.discardPreparedExport(prepared) }
                 assertFalse(prepared.file.exists())
                 android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, android.database.sqlite.SQLiteDatabase.OPEN_READONLY).use { db ->
-                    assertEquals(9, db.version)
+                    assertEquals(10, db.version)
                     db.rawQuery("EXPLAIN QUERY PLAN SELECT collection_key FROM headers WHERE subject=? AND namespace=? AND collection_key>? ORDER BY collection_key LIMIT 50", arrayOf(owner.subject, owner.namespace, "")).use {
                         assertTrue(it.moveToFirst()); assertTrue(it.getString(3).contains("headers_export"))
                     }

@@ -356,6 +356,115 @@ final class GuestMergePlannerTests: XCTestCase {
         XCTAssertEqual(try ModelContext(container).fetch(FetchDescriptor<GuestLibraryPartition>()).first?.stateData, original)
         partition.revision = revisionBeforePoison; try setup.save()
     }
+    @MainActor private func finishViewBuild(_ store: GuestDataStore, lease: LibrarySavedLease) throws -> LibrarySavedBuildSession {
+        let session = try store.beginSavedViewBuild(lease)
+        for _ in 0..<2_000 { if try store.advanceSavedViewBuild(session).phase == .prepared { return session } }; throw LibrarySyncFailure.storeUnavailable
+    }
+    @MainActor private func finishCapturedViewBuild(_ store: GuestDataStore, identity: LibrarySavedViewIdentity) throws -> LibrarySavedBuildSession {
+        let session = try store.captureSavedViewBuild(identity)
+        for _ in 0..<2_000 { if try store.advanceSavedViewBuild(session).phase == .prepared { return session } }; throw LibrarySyncFailure.storeUnavailable
+    }
+    private func canonicalNote(_ text: String) -> SavedFact { .item(.init(sourceId: "target", ordinal: 0, value: .init(hadithId: "target", createdAt: 1, updatedAt: 1, bookmarkCreatedAt: nil, favoriteCreatedAt: nil, noteContent: text, noteCreatedAt: 1, noteUpdatedAt: 1, folderId: nil, folderUpdatedAt: nil))) }
+    @MainActor private func seedConfirmedForPublication(_ url: URL, owner: LibrarySyncOwner, version: Double) throws {
+        let container = try ModelContainer(for: GuestDataStore.schema, configurations: [ModelConfiguration(schema: GuestDataStore.schema, url: url)]), db = ModelContext(container), key = owner.storageKey
+        let row = try XCTUnwrap(db.fetch(FetchDescriptor<GuestLibraryPartition>(predicate: #Predicate { $0.ownerKey == key })).first)
+        var state = try JSONDecoder().decode(LibraryPartitionState.self, from: row.stateData)
+        state.confirmed.append(.init(change: .init(command: .notePut(.init(hadithId: "target", content: "Covered original", createdAt: 1, updatedAt: 1)), at: 1, source: .account(nil)), outcome: .preserved, version: version))
+        row.stateData = try JSONEncoder().encode(state); row.revision += 1; try db.save()
+    }
+    @MainActor func testPublicationSwitchesPrivateViewModeAndQueueTogetherThenRetiresOldViews() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString); try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true); defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("publication.store"), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), store = GuestDataStore(storeURL: url)
+        try store.claimGuestForSync(owner); let state = viewState(owner, count: 67); try store.cacheSavedSnapshot(XCTUnwrap(state.savedSnapshot), owner: owner)
+        let source = try store.beginSavedAssembly(owner); try await prepareSaved(store, lease: source, facts: viewFacts(state)); try seedConfirmedForPublication(url, owner: owner, version: 9)
+        let deletion = LibraryLocalChange(command: .folderDelete(.init(folder: .server(.init(id: "folder-1")))), at: 5_000, source: .account(nil)); try store.enqueueSyncChange(deletion, owner: owner)
+        try store.enqueueSyncChange(.init(command: .notePut(.init(hadithId: "local-only", content: "Accepted local note", createdAt: 6_000, updatedAt: 6_000)), at: 6_000, source: .account(nil)), owner: owner)
+        XCTAssertNil(try store.publishedSavedViewItem(owner, target: "missing"))
+        let session = try finishViewBuild(store, lease: source), reply = try terminalSavedReply(store.savedCheckpoint(source))
+        guard case .published(let first) = try await store.publishSavedViewBuild(session, isCurrent: { true }, fetch: { _ in reply }) else { return XCTFail("Initial publication failed") }
+        XCTAssertEqual(try GuestDataStore(storeURL: url).publishedSavedViewStamp(owner), first); XCTAssertEqual(try store.activeSavedGeneration(owner)?.lease, source)
+        XCTAssertTrue(try XCTUnwrap(store.syncPartition(owner)).confirmed.isEmpty); XCTAssertEqual(try store.syncPartition(owner)?.pending.count, 2)
+        XCTAssertEqual(try store.publishedSavedViewItem(owner, target: "local-only")?.item?.value.noteContent, "Accepted local note")
+        XCTAssertNotNil(try store.publishedSavedViewItem(owner, target: "missing")); XCTAssertNil(try store.publishedSavedViewItem(owner, target: "missing")?.item)
+        let oldPage = try XCTUnwrap(store.publishedSavedViewPage(owner, selection: .init(), limit: 2)); XCTAssertNotNil(oldPage.next)
+        XCTAssertNotNil(try store.publishedSavedViewFolders(owner, limit: 2)?.next); XCTAssertNil(try store.publishedSavedViewFolder(owner, target: "folder-1")?.folder)
+        XCTAssertTrue(try XCTUnwrap(store.publishedSavedViewPage(owner, selection: .init(collection: "unknown"))).unresolvedCoverage)
+        let fence = try await store.prepareOutcomeExport(owner, isCurrent: { true })
+        let repeated = try await store.publishSavedViewBuild(session, isCurrent: { true }, fetch: { _ in XCTFail("Idempotent publication fetched"); return reply })
+        XCTAssertEqual(repeated, .published(first)); XCTAssertNoThrow(try store.validateOutcomeExport(fence))
+        XCTAssertThrowsError(try store.discardSavedViewStep(first)); XCTAssertThrowsError(try store.writeSavedViewRows(first, items: [XCTUnwrap(store.publishedSavedViewItem(owner, target: "local-only")?.item)])); XCTAssertThrowsError(try store.libraryProjection(owner))
+        let next = try store.beginSavedAssembly(owner); try await prepareSaved(store, lease: next, facts: viewFacts(state), version: 10)
+        do { _ = try await activateSaved(store, next); XCTFail("Private-only activation bypassed view") } catch { }
+        XCTAssertEqual(try store.publishedSavedViewStamp(owner), first)
+        let nextSession = try finishViewBuild(store, lease: next), nextReply = try terminalSavedReply(store.savedCheckpoint(next))
+        guard case .published(let second) = try await store.publishSavedViewBuild(nextSession, isCurrent: { true }, fetch: { _ in nextReply }) else { return XCTFail("Refresh publication failed") }
+        XCTAssertNotEqual(second.identity, first.identity); XCTAssertThrowsError(try store.publishedSavedViewPage(owner, selection: .init(), ticket: oldPage.next, limit: 2))
+        var steps = 0
+        while try store.cleanupSavedViewStep(owner) { XCTAssertEqual(try store.publishedSavedViewStamp(owner), second); steps += 1; guard steps < 200 else { return XCTFail("View retirement did not finish") } }
+        while try store.cleanupSavedGenerationStep(owner) { }
+        let container = try ModelContainer(for: GuestDataStore.schema, configurations: [ModelConfiguration(schema: GuestDataStore.schema, url: url)])
+        XCTAssertEqual(try ModelContext(container).fetchCount(FetchDescriptor<GuestSavedViewHead>()), 1)
+        let collecting = try store.beginSavedAssembly(owner)
+        try store.enqueueSyncChange(.init(command: .folderRestore(.init(deletionId: deletion.operation.id, name: "Folder 1", hadithIds: [])), at: 7_000, source: .account(nil)), owner: owner)
+        let offline = try finishViewBuild(store, lease: next)
+        guard case .published(let third) = try store.publishActiveSavedViewBuild(offline, isCurrent: { true }) else { return XCTFail("Offline local publication failed") }
+        XCTAssertEqual(try store.activeSavedGeneration(owner)?.lease, next); XCTAssertEqual(try store.savedCheckpoint(collecting).stage, .collecting); XCTAssertEqual(try store.publishedSavedViewStamp(owner), third)
+        XCTAssertFalse(try XCTUnwrap(store.publishedSavedViewFolders(owner, name: "Folder 1")).folders.isEmpty)
+    }
+    @MainActor func testPublicationRejectsWrongCompletionStaleSessionQueueChangesAndKeepsPriorViewOnRestart() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString); try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true); defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("invalid-publication.store"), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), store = GuestDataStore(storeURL: url)
+        try store.claimGuestForSync(owner); let source = try store.beginSavedAssembly(owner); try await prepareSaved(store, lease: source, facts: [])
+        try store.enqueueSyncChange(.init(command: .notePut(.init(hadithId: "local", content: "Accepted original", createdAt: 1, updatedAt: 1)), at: 1, source: .account(nil)), owner: owner)
+        var session = try finishViewBuild(store, lease: source); let good = try terminalSavedReply(store.savedCheckpoint(source)), fence = try await store.prepareOutcomeExport(owner, isCurrent: { true })
+        for field in ["ownerKey", "version", "assemblyId", "input", "completion", "total", "start"] {
+            var value = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(good)) as? [String: Any])
+            value[field] = ["version", "total", "start"].contains(field) ? 99 : "foreign"
+            let bad = try JSONDecoder().decode(SavedFactsReply.self, from: JSONSerialization.data(withJSONObject: value))
+            do { _ = try await store.publishSavedViewBuild(session, isCurrent: { true }, fetch: { _ in bad }); XCTFail("Invalid completion published") } catch { }
+            XCTAssertNil(try store.publishedSavedViewStamp(owner)); XCTAssertNil(try store.activeSavedGeneration(owner)); XCTAssertNoThrow(try store.validateOutcomeExport(fence))
+        }
+        var live = true
+        do { _ = try await store.publishSavedViewBuild(session, isCurrent: { live }, fetch: { _ in live = false; return good }); XCTFail("Stale session published") } catch { }
+        XCTAssertNil(try store.publishedSavedViewStamp(owner)); XCTAssertNoThrow(try store.validateOutcomeExport(fence))
+        do { _ = try await store.publishSavedViewBuild(session, isCurrent: { true }, fetch: { _ in try store.enqueueSyncChange(.init(command: .bookmarkAdd(.init(hadithId: "during-confirmation", createdAt: 2)), at: 2, source: .account(nil)), owner: owner); return good }); XCTFail("Changed account published old cut") } catch { }
+        XCTAssertNil(try store.publishedSavedViewStamp(owner)); XCTAssertEqual(try store.syncPartition(owner)?.pending.count, 2)
+        session = try finishCapturedViewBuild(store, identity: session.identity)
+        guard case .published(let first) = try await store.publishSavedViewBuild(session, isCurrent: { true }, fetch: { _ in good }) else { return XCTFail("Recaptured publication failed") }
+        let next = try store.beginSavedAssembly(owner); try await prepareSaved(store, lease: next, facts: [], version: 10); let newer = try finishViewBuild(store, lease: next)
+        let restarted = try await store.publishSavedViewBuild(newer, isCurrent: { true }, fetch: { _ in .restart(.init(reason: "saved_changed")) })
+        XCTAssertEqual(restarted, .restart)
+        XCTAssertEqual(try store.publishedSavedViewStamp(owner), first); XCTAssertEqual(try store.activeSavedGeneration(owner)?.lease, source); XCTAssertEqual(try store.savedCheckpoint(next).stage, .restart)
+        let replacement = try store.replaceSavedCandidate(next); while try store.cleanupSavedGenerationStep(owner) { }
+        try await prepareSaved(store, lease: replacement, facts: [], version: 11); let unavailable = try finishViewBuild(store, lease: replacement)
+        let unavailableResult = try await store.publishSavedViewBuild(unavailable, isCurrent: { true }, fetch: { _ in .unavailable(.init(reason: .sourceTooLarge)) })
+        XCTAssertEqual(unavailableResult, .unavailable(.sourceTooLarge))
+        XCTAssertEqual(try store.publishedSavedViewStamp(owner), first); XCTAssertEqual(try store.publishedSavedViewItem(owner, target: "local")?.item?.value.noteContent, "Accepted original")
+    }
+    @MainActor func testPublicationRollbackRestoresBothPointersQueueDraftAndOldReadabilityAndEraseCoversRetainedViews() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString); try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true); defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("rollback-publication.store"), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), store = GuestDataStore(storeURL: url)
+        try store.claimGuestForSync(owner); let source = try store.beginSavedAssembly(owner); try await prepareSaved(store, lease: source, facts: [canonicalNote("Canonical original")], version: 1)
+        let firstSession = try finishViewBuild(store, lease: source), firstReply = try terminalSavedReply(store.savedCheckpoint(source))
+        guard case .published(let first) = try await store.publishSavedViewBuild(firstSession, isCurrent: { true }, fetch: { _ in firstReply }) else { return XCTFail("Initial publication failed") }
+        let next = try store.beginSavedAssembly(owner); try await prepareSaved(store, lease: next, facts: [canonicalNote("New canonical original")], version: 2); try seedConfirmedForPublication(url, owner: owner, version: 2)
+        let session = try finishViewBuild(store, lease: next), reply = try terminalSavedReply(store.savedCheckpoint(next)), before = try store.syncPartition(owner), draft = try store.savedViewBuildProgress(session)
+        let container = try ModelContainer(for: GuestDataStore.schema, configurations: [ModelConfiguration(schema: GuestDataStore.schema, url: url)]), setup = ModelContext(container)
+        let clock = try XCTUnwrap(setup.fetch(FetchDescriptor<GuestOutcomeClock>()).first), revision = clock.revision; clock.revision = 9_007_199_254_740_989; try setup.save()
+        let fence = try await store.prepareOutcomeExport(owner, isCurrent: { true })
+        do { _ = try await store.publishSavedViewBuild(session, isCurrent: { true }, fetch: { _ in reply }); XCTFail("Failed account publication committed") } catch { }
+        XCTAssertEqual(try store.publishedSavedViewStamp(owner), first); XCTAssertEqual(try store.activeSavedGeneration(owner)?.lease, source); XCTAssertEqual(try store.syncPartition(owner), before)
+        XCTAssertEqual(try store.savedViewBuildProgress(session).0, draft.0); XCTAssertEqual(try store.savedViewBuildProgress(session).1, draft.1); XCTAssertNoThrow(try store.validateOutcomeExport(fence))
+        XCTAssertEqual(try store.publishedSavedViewItem(owner, target: "target")?.item?.value.noteContent, "Canonical original")
+        clock.revision = revision; try setup.save(); _ = try await store.publishSavedViewBuild(session, isCurrent: { true }, fetch: { _ in reply })
+        let export = try await store.prepareOutcomeExport(owner, isCurrent: { true }); var values: [LibraryExportValue] = [], after: String?
+        while true { let page = try store.savedExportRecords(export, section: 5, after: after); values.append(contentsOf: page.values); after = page.next; if page.done { break } }
+        XCTAssertTrue(exportContains(.array(values), text: "Canonical original")); XCTAssertTrue(exportContains(.array(values), text: "New canonical original"))
+        let peer = LibrarySyncOwner(key: "peer", subject: "foreign-subject"); try store.claimGuestForSync(peer); let peerSource = try store.beginSavedAssembly(peer); try await prepareSaved(store, lease: peerSource, facts: [canonicalNote("Foreign retained original")], version: 1)
+        let peerSession = try finishViewBuild(store, lease: peerSource), peerReply = try terminalSavedReply(store.savedCheckpoint(peerSource)); _ = try await store.publishSavedViewBuild(peerSession, isCurrent: { true }, fetch: { _ in peerReply })
+        store.addNote(hadithId: "guest", content: "Unclaimed original"); try store.beginDeletion(subject: owner.subject, namespace: owner.namespace); try await store.markDeletionBackendComplete(subject: owner.subject, namespace: owner.namespace)
+        XCTAssertEqual(try store.publishedSavedViewItem(peer, target: "target")?.item?.value.noteContent, "Foreign retained original"); XCTAssertEqual(store.noteDrafts().first?.content, "Unclaimed original"); XCTAssertNil(try store.syncPartition(owner))
+    }
     private func viewState(_ owner: LibrarySyncOwner, count: Int) -> LibraryPartitionState {
         let folders = (0..<70).map { SyncFolderRow(_id: "folder-\($0)", name: "Folder \($0)", createdAt: 1_000 + Double($0)) }
         let items = (0..<count).map { i -> SyncSavedItem in

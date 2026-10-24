@@ -1387,6 +1387,7 @@ extension GuestDataStore {
     }
     func libraryProjection(_ owner: LibrarySyncOwner) throws -> LibraryProjection {
         let db = outcomeContext()
+        if let (header, lease, _) = try currentSavedScope(owner, in: db), try publicationData(header, lease: lease) != nil { throw LibrarySyncFailure.invalidChange }
         guard let state = try syncPartition(owner, in: db) else { throw LibrarySyncFailure.sessionChanged }
         return try LibraryProjection(state, owner: owner, observed: savedObservation(owner, state: state, in: db))
     }
@@ -1417,6 +1418,7 @@ extension GuestDataStore {
             guard checkpoint == captured else { throw LibrarySyncFailure.sessionChanged }
             let generations = try savedGenerations(header, lease: lease, checkpoint: checkpoint)
             if let active = generations.active, active.lease == lease { return .active(try .init(active)) }
+            guard header.viewData == nil else { throw LibrarySyncFailure.invalidChange }
             var stopped = checkpoint
             switch reply {
             case .restart(let value):
@@ -1711,6 +1713,8 @@ extension GuestDataStore {
         let identity = stamp.identity
         let (head, current) = try viewHead(identity, in: db)
         guard current == stamp else { throw LibrarySavedViewChanged.stale }
+        guard let (scopeHeader, scopeLease, _) = try currentSavedScope(identity.owner, in: db) else { throw LibrarySyncFailure.sessionChanged }
+        if !preserveBuild, try publicationData(scopeHeader, lease: scopeLease)?.identity == identity { throw LibrarySyncFailure.invalidChange }
         guard stamp.serial < 9_007_199_254_740_990 else { throw LibrarySyncFailure.storeUnavailable }
         guard (1...8).contains(items.count + folders.count), Set(items.map { $0.value.hadithId }).count == items.count, Set(folders.map(\._id)).count == folders.count else { throw LibrarySyncFailure.invalidChange }
         func write(_ key: String, kind: Int, data: Data) throws {
@@ -1745,6 +1749,109 @@ extension GuestDataStore {
         }
         head.serial += 1; head.auditData = nil; if !preserveBuild { head.buildData = nil }; try bumpOutcomeClock(subject: identity.owner.subject, namespace: identity.owner.namespace, in: db)
         return .init(identity: identity, serial: head.serial)
+    }
+    private func publicationData(_ header: GuestSavedAssembly, lease: LibrarySavedLease) throws -> LibrarySavedPublication? {
+        guard let data = header.viewData else { return nil }
+        guard data.count <= 64 * 1024 else { throw LibrarySyncFailure.storeUnavailable }
+        let value = try JSONDecoder().decode(LibrarySavedPublication.self, from: data); try value.validate(owner: lease.owner, epoch: lease.epoch); return value
+    }
+    private func publishedView(_ owner: LibrarySyncOwner, in db: ModelContext) throws -> LibrarySavedViewStamp? {
+        try assertOutcomeOwnerActive(owner, in: db)
+        guard let (header, lease, checkpoint) = try currentSavedScope(owner, in: db) else { return nil }
+        let value = try publicationData(header, lease: lease)
+        guard header.rowMode else { guard value == nil else { throw LibrarySyncFailure.storeUnavailable }; return nil }
+        guard let publication = value, let active = try savedGenerations(header, lease: lease, checkpoint: checkpoint).active,
+              active.lease == publication.source, active.checkpoint.position?.version == publication.version, active.checkpoint.digest == publication.digest else { throw LibrarySyncFailure.storeUnavailable }
+        return try viewHead(publication.identity, in: db).1
+    }
+    func publishedSavedViewStamp(_ owner: LibrarySyncOwner) throws -> LibrarySavedViewStamp? { try publishedView(owner, in: outcomeContext()) }
+    func publishedSavedViewItem(_ owner: LibrarySyncOwner, target: String) throws -> LibrarySavedViewTarget? {
+        let db = outcomeContext(); guard let stamp = try publishedView(owner, in: db) else { return nil }
+        return .init(stamp: stamp, item: try readSavedViewItem(stamp, target: target, in: db))
+    }
+    func publishedSavedViewFolder(_ owner: LibrarySyncOwner, target: String) throws -> LibrarySavedViewFolderTarget? {
+        let db = outcomeContext(); guard let stamp = try publishedView(owner, in: db) else { return nil }
+        return .init(stamp: stamp, folder: try readSavedViewFolder(stamp, target: target, in: db))
+    }
+    func publishedSavedViewPage(_ owner: LibrarySyncOwner, selection: LibrarySavedViewSelection, ticket: LibrarySavedViewTicket? = nil, limit: Int = 32) throws -> LibrarySavedViewPage? {
+        let db = outcomeContext(); guard let stamp = try publishedView(owner, in: db) else { return nil }
+        return try readSavedViewPage(stamp, selection: selection, ticket: ticket, limit: limit, in: db)
+    }
+    func publishedSavedViewFolders(_ owner: LibrarySyncOwner, ticket: LibrarySavedViewFolderTicket? = nil, limit: Int = 32, name: String? = nil) throws -> LibrarySavedViewFolderPage? {
+        let db = outcomeContext(); guard let stamp = try publishedView(owner, in: db) else { return nil }
+        return try readSavedViewFolders(stamp, ticket: ticket, limit: limit, name: name, in: db)
+    }
+    func publishSavedViewBuild(_ session: LibrarySavedBuildSession, isCurrent: () -> Bool, fetch: (String) async throws -> SavedFactsReply) async throws -> LibrarySavedPublicationResult {
+        guard !Task.isCancelled, isCurrent(), !savedCollectionRunning else { throw LibrarySyncFailure.sessionChanged }
+        if let current = try publishedSavedViewStamp(session.identity.owner), current.identity == session.identity { return .published(current) }
+        let (stamp, record) = try savedViewBuildProgress(session)
+        guard record.phase == .prepared, let position = record.source.checkpoint.position else { throw LibrarySyncFailure.invalidReceipt }
+        savedCollectionRunning = true; defer { savedCollectionRunning = false }
+        let reply = try await fetch(position.continuation.token)
+        guard !Task.isCancelled, isCurrent() else { throw LibrarySyncFailure.sessionChanged }
+        return try withAccount(session.identity.owner) { state, db in try publishView(session, state: &state, captured: stamp, reply: reply, in: db) }
+    }
+    func publishActiveSavedViewBuild(_ session: LibrarySavedBuildSession, isCurrent: () -> Bool) throws -> LibrarySavedPublicationResult {
+        guard !Task.isCancelled, isCurrent() else { throw LibrarySyncFailure.sessionChanged }
+        return try withAccount(session.identity.owner) { state, db in try publishView(session, state: &state, captured: nil, reply: nil, in: db) }
+    }
+    private func publishView(_ session: LibrarySavedBuildSession, state: inout LibraryPartitionState, captured: LibrarySavedViewStamp?, reply: SavedFactsReply?, in db: ModelContext) throws -> LibrarySavedPublicationResult {
+        let owner = session.identity.owner, previous = try publishedView(owner, in: db)
+        if previous?.identity == session.identity, let previous { return .published(previous) }
+        let (stamp, record) = try checkBuild(session, in: db)
+        guard record.phase == .prepared, let (header, lease, checkpoint) = try currentSavedScope(owner, in: db) else { throw LibrarySyncFailure.invalidReceipt }
+        let generations = try savedGenerations(header, lease: lease, checkpoint: checkpoint), active = generations.active
+        if let reply {
+            guard captured == stamp, lease == record.source.lease, checkpoint == record.source.checkpoint else { throw LibrarySavedBuildChanged.sourceChanged }
+            switch reply {
+            case .restart(let value):
+                guard value.reason == "saved_changed" else { throw LibrarySyncFailure.invalidReceipt }
+                if active?.lease != lease {
+                    var stopped = checkpoint; stopped.stage = .restart; header.checkpointData = try JSONEncoder().encode(stopped)
+                    try bumpOutcomeClock(subject: owner.subject, namespace: owner.namespace, in: db)
+                }; return .restart
+            case .unavailable(let value):
+                if active?.lease != lease {
+                    var stopped = checkpoint; stopped.stage = .unavailable(value.reason); header.checkpointData = try JSONEncoder().encode(stopped)
+                    try bumpOutcomeClock(subject: owner.subject, namespace: owner.namespace, in: db)
+                }; return .unavailable(value.reason)
+            default:
+                guard let position = record.source.checkpoint.position else { throw LibrarySyncFailure.invalidReceipt }
+                try LibrarySavedPolicy.confirm(reply, position: position)
+            }
+        } else {
+            guard previous != nil, header.rowMode, active == record.source else { throw LibrarySyncFailure.invalidReceipt }
+        }
+        if active != record.source { guard generations.retiring == nil, (active?.checkpoint.position?.version ?? -1) <= (record.source.checkpoint.position?.version ?? -1) else { throw LibrarySyncFailure.invalidReceipt } }
+        guard header.retiringViewData == nil, let version = record.source.checkpoint.position?.version else { throw LibrarySyncFailure.invalidReceipt }
+        let publication = LibrarySavedPublication(identity: session.identity, source: record.source.lease, version: version, digest: record.source.checkpoint.digest, commandCount: record.commandCount, cutDigest: record.cutDigest)
+        try publication.validate(owner: owner, epoch: lease.epoch)
+        let data = try JSONEncoder().encode(publication); guard data.count <= 64 * 1024 else { throw LibrarySyncFailure.storeUnavailable }
+        if let previous {
+            let (old, current) = try viewHead(previous.identity, in: db); guard current == previous else { throw LibrarySavedViewChanged.stale }
+            old.retiring = true; old.buildData = nil; header.retiringViewData = try JSONEncoder().encode(previous)
+        }
+        let (head, current) = try viewHead(stamp.identity, in: db); guard current == stamp else { throw LibrarySavedViewChanged.stale }; head.buildData = nil
+        if active != record.source { header.retiringData = header.activeData; header.activeData = try JSONEncoder().encode(record.source) }
+        header.viewData = data; header.rowMode = true
+        try state.pruneConfirmed(owner: owner, observed: savedObservation(owner, state: state, in: db))
+        try bumpOutcomeClock(subject: owner.subject, namespace: owner.namespace, in: db)
+        return .published(stamp)
+    }
+    func cleanupSavedViewStep(_ owner: LibrarySyncOwner) throws -> Bool {
+        let db = outcomeContext()
+        do {
+            try assertOutcomeOwnerActive(owner, in: db)
+            guard let (header, lease, _) = try currentSavedScope(owner, in: db), let data = header.retiringViewData else { return false }
+            guard data.count <= 64 * 1024 else { throw LibrarySyncFailure.storeUnavailable }
+            let stamp = try JSONDecoder().decode(LibrarySavedViewStamp.self, from: data)
+            try LibrarySavedLease(owner: stamp.identity.owner, epoch: stamp.identity.epoch, generation: stamp.identity.generation).validate()
+            guard stamp.identity.owner == owner, stamp.identity.epoch == lease.epoch, (0...9_007_199_254_740_990).contains(stamp.serial) else { throw LibrarySyncFailure.ownerMismatch }
+            if try !discardViewRows(stamp, in: db) {
+                header.retiringViewData = nil; try bumpOutcomeClock(subject: owner.subject, namespace: owner.namespace, in: db)
+            }
+            try saveOutcomeContext(db); return true
+        } catch { db.rollback(); throw error }
     }
     private func buildRevision(_ owner: LibrarySyncOwner, in db: ModelContext) throws -> Int {
         try assertOutcomeOwnerActive(owner, in: db)
@@ -1995,36 +2102,42 @@ extension GuestDataStore {
     }
     // Draft-only discard. Retiring rows cannot satisfy any normal query or write.
     func discardSavedViewStep(_ stamp: LibrarySavedViewStamp) throws -> Bool {
-        let db = outcomeContext(), identity = stamp.identity
-        do {
-            try assertOutcomeOwnerActive(identity.owner, in: db)
-            guard let (_, scope, _) = try currentSavedScope(identity.owner, in: db), scope.epoch == identity.epoch else { throw LibrarySyncFailure.sessionChanged }
-            let key = identity.key
-            var query = FetchDescriptor<GuestSavedViewHead>(predicate: #Predicate { $0.key == key }); query.fetchLimit = 1
-            guard let head = try db.fetch(query).first else { return false }
-            guard try viewHead(identity, in: db, allowRetiring: true).1 == stamp else { throw LibrarySavedViewChanged.stale }
-            head.retiring = true; head.auditData = nil
-            let lower = key + ":", upper = lower + "~"
-            var indexes = FetchDescriptor<GuestSavedViewIndex>(predicate: #Predicate { $0.key > lower && $0.key < upper }, sortBy: [SortDescriptor(\.key, comparator: .lexical)]); indexes.fetchLimit = 128
-            let entries = try db.fetch(indexes)
-            if !entries.isEmpty { entries.forEach { db.delete($0) } }
-            else {
-                var rows = FetchDescriptor<GuestSavedViewRow>(predicate: #Predicate { $0.key > lower && $0.key < upper }, sortBy: [SortDescriptor(\.key, comparator: .lexical)]); rows.fetchLimit = 8
-                let values = try db.fetch(rows)
-                if !values.isEmpty { values.forEach { db.delete($0) } }
-                else { db.delete(head); try bumpOutcomeClock(subject: identity.owner.subject, namespace: identity.owner.namespace, in: db); try saveOutcomeContext(db); return false }
-            }
-            try bumpOutcomeClock(subject: identity.owner.subject, namespace: identity.owner.namespace, in: db); try saveOutcomeContext(db); return true
-        } catch { db.rollback(); throw error }
+        let db = outcomeContext()
+        do { let more = try discardViewRows(stamp, in: db); if db.hasChanges { try saveOutcomeContext(db) }; return more }
+        catch { db.rollback(); throw error }
     }
-    func draftSavedViewItem(_ stamp: LibrarySavedViewStamp, target: String) throws -> LibrarySavedViewItem? {
-        let db = outcomeContext(); guard try viewHead(stamp.identity, in: db).1 == stamp else { throw LibrarySavedViewChanged.stale }
+    private func discardViewRows(_ stamp: LibrarySavedViewStamp, in db: ModelContext) throws -> Bool {
+        let identity = stamp.identity
+        try assertOutcomeOwnerActive(identity.owner, in: db)
+        guard let (scopeHeader, scope, _) = try currentSavedScope(identity.owner, in: db), scope.epoch == identity.epoch else { throw LibrarySyncFailure.sessionChanged }
+        guard (try publicationData(scopeHeader, lease: scope))?.identity != identity else { throw LibrarySyncFailure.invalidChange }
+        let key = identity.key
+        var query = FetchDescriptor<GuestSavedViewHead>(predicate: #Predicate { $0.key == key }); query.fetchLimit = 1
+        guard let head = try db.fetch(query).first else { return false }
+        guard try viewHead(identity, in: db, allowRetiring: true).1 == stamp else { throw LibrarySavedViewChanged.stale }
+        head.retiring = true; head.auditData = nil
+        let lower = key + ":", upper = lower + "~"
+        var indexes = FetchDescriptor<GuestSavedViewIndex>(predicate: #Predicate { $0.key > lower && $0.key < upper }, sortBy: [SortDescriptor(\.key, comparator: .lexical)]); indexes.fetchLimit = 128
+        let entries = try db.fetch(indexes)
+        if !entries.isEmpty { entries.forEach { db.delete($0) } }
+        else {
+            var rows = FetchDescriptor<GuestSavedViewRow>(predicate: #Predicate { $0.key > lower && $0.key < upper }, sortBy: [SortDescriptor(\.key, comparator: .lexical)]); rows.fetchLimit = 8
+            let values = try db.fetch(rows)
+            if !values.isEmpty { values.forEach { db.delete($0) } }
+            else { db.delete(head); try bumpOutcomeClock(subject: identity.owner.subject, namespace: identity.owner.namespace, in: db); return false }
+        }
+        try bumpOutcomeClock(subject: identity.owner.subject, namespace: identity.owner.namespace, in: db); return true
+    }
+    func draftSavedViewItem(_ stamp: LibrarySavedViewStamp, target: String) throws -> LibrarySavedViewItem? { try readSavedViewItem(stamp, target: target, in: outcomeContext()) }
+    private func readSavedViewItem(_ stamp: LibrarySavedViewStamp, target: String, in db: ModelContext) throws -> LibrarySavedViewItem? {
+        guard try viewHead(stamp.identity, in: db).1 == stamp else { throw LibrarySavedViewChanged.stale }
         guard let row = try rawViewRow(stamp.identity, key: stamp.identity.itemKey(target), in: db) else { return nil }
         let value = try JSONDecoder().decode(LibrarySavedViewItem.self, from: row.data); try value.validate()
         guard row.kind == 1, value.value.hadithId == target else { throw LibrarySyncFailure.storeUnavailable }; return value
     }
-    func draftSavedViewFolder(_ stamp: LibrarySavedViewStamp, target: String) throws -> SyncFolderRow? {
-        let db = outcomeContext(); guard try viewHead(stamp.identity, in: db).1 == stamp else { throw LibrarySavedViewChanged.stale }
+    func draftSavedViewFolder(_ stamp: LibrarySavedViewStamp, target: String) throws -> SyncFolderRow? { try readSavedViewFolder(stamp, target: target, in: outcomeContext()) }
+    private func readSavedViewFolder(_ stamp: LibrarySavedViewStamp, target: String, in db: ModelContext) throws -> SyncFolderRow? {
+        guard try viewHead(stamp.identity, in: db).1 == stamp else { throw LibrarySavedViewChanged.stale }
         guard let row = try rawViewRow(stamp.identity, key: stamp.identity.folderKey(target), in: db) else { return nil }
         let value = try JSONDecoder().decode(SyncFolderRow.self, from: row.data)
         try LibrarySavedPolicy.validate(.folder(.init(sourceId: value._id, ordinal: 0, value: value)))
@@ -2038,9 +2151,9 @@ extension GuestDataStore {
         for row in rows { guard row.viewKey == identity.key, row.subject == identity.owner.subject, row.namespace == identity.owner.namespace, row.ownerKey == identity.owner.storageKey else { throw LibrarySyncFailure.ownerMismatch } }
         return rows
     }
-    func draftSavedViewPage(_ stamp: LibrarySavedViewStamp, selection: LibrarySavedViewSelection, ticket: LibrarySavedViewTicket? = nil, limit: Int = 32) throws -> LibrarySavedViewPage {
+    func draftSavedViewPage(_ stamp: LibrarySavedViewStamp, selection: LibrarySavedViewSelection, ticket: LibrarySavedViewTicket? = nil, limit: Int = 32) throws -> LibrarySavedViewPage { try readSavedViewPage(stamp, selection: selection, ticket: ticket, limit: limit, in: outcomeContext()) }
+    private func readSavedViewPage(_ stamp: LibrarySavedViewStamp, selection: LibrarySavedViewSelection, ticket: LibrarySavedViewTicket?, limit: Int, in db: ModelContext) throws -> LibrarySavedViewPage {
         try selection.validate()
-        let db = outcomeContext()
         guard (1...32).contains(limit) else { throw LibrarySyncFailure.invalidChange }
         guard ticket == nil || ticket?.stamp.identity.owner == stamp.identity.owner else { throw LibrarySyncFailure.ownerMismatch }
         guard try viewHead(stamp.identity, in: db).1 == stamp, ticket == nil || ticket?.stamp == stamp && ticket?.selection == selection else { throw LibrarySavedViewChanged.stale }
@@ -2055,8 +2168,8 @@ extension GuestDataStore {
         let unknown = try selection.collection != nil && !viewIndexPage(stamp.identity, prefix: stamp.identity.queryPrefix(global, unresolved: true), after: nil, limit: 1, in: db).isEmpty
         return .init(stamp: stamp, items: items, next: entries.count > limit ? .init(stamp: stamp, selection: selection, after: entries[limit - 1].key) : nil, unresolvedCoverage: unknown)
     }
-    func draftSavedViewFolders(_ stamp: LibrarySavedViewStamp, ticket: LibrarySavedViewFolderTicket? = nil, limit: Int = 32, name: String? = nil) throws -> LibrarySavedViewFolderPage {
-        let db = outcomeContext()
+    func draftSavedViewFolders(_ stamp: LibrarySavedViewStamp, ticket: LibrarySavedViewFolderTicket? = nil, limit: Int = 32, name: String? = nil) throws -> LibrarySavedViewFolderPage { try readSavedViewFolders(stamp, ticket: ticket, limit: limit, name: name, in: outcomeContext()) }
+    private func readSavedViewFolders(_ stamp: LibrarySavedViewStamp, ticket: LibrarySavedViewFolderTicket?, limit: Int, name: String?, in db: ModelContext) throws -> LibrarySavedViewFolderPage {
         guard (1...32).contains(limit) else { throw LibrarySyncFailure.invalidChange }
         guard ticket == nil || ticket?.stamp.identity.owner == stamp.identity.owner else { throw LibrarySyncFailure.ownerMismatch }
         guard try viewHead(stamp.identity, in: db).1 == stamp, ticket == nil || ticket?.stamp == stamp && ticket?.name == name else { throw LibrarySavedViewChanged.stale }

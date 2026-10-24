@@ -278,3 +278,19 @@ internal data class LibrarySavedBuildBinding(val folder: String, val digest: Str
         fun make(identity: LibrarySavedViewIdentity, index: Int, cut: LibrarySavedReplayCut, folder: String) = LibrarySavedBuildBinding(folder, LibraryOutcomeBinding.hash(listOf(identity.key, index.toString(), cut.prefixes[index + 1], folder)))
     }
 }
+
+
+@Serializable
+internal data class LibrarySavedPublication(val identity: LibrarySavedViewIdentity, val source: LibrarySavedLease, val version: Double, val digest: String, val commandCount: Int, val cutDigest: String) {
+    fun validate(owner: LibrarySyncOwner, epoch: String) {
+        source.validate(); LibrarySavedLease(identity.owner, identity.epoch, identity.generation).validate(); LibrarySavedPolicy.integer(version)
+        if (identity.owner != owner || source.owner != owner || identity.epoch != epoch || source.epoch != epoch || !digest.matches(Regex("[0-9a-f]{64}")) || commandCount < 0 || !cutDigest.matches(Regex("[0-9a-f]{64}"))) throw LibrarySyncFailure.OwnerMismatch
+    }
+}
+sealed interface LibrarySavedPublicationResult {
+    data class Published(val stamp: LibrarySavedViewStamp) : LibrarySavedPublicationResult
+    data object Restart : LibrarySavedPublicationResult
+    data class Unavailable(val reason: SavedFactsReplyUnavailableReason) : LibrarySavedPublicationResult
+}
+data class LibrarySavedViewTarget(val stamp: LibrarySavedViewStamp, val item: LibrarySavedViewItem?)
+data class LibrarySavedViewFolderTarget(val stamp: LibrarySavedViewStamp, val folder: SyncFolderRow?)
