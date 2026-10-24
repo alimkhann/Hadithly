@@ -1941,3 +1941,54 @@ extension LibrarySavedViewPolicy {
 enum LibrarySavedViewChanged: Error { case stale }
 struct LibrarySavedViewFolderTicket: Sendable { let stamp: LibrarySavedViewStamp; let name: String?; let after: String }
 struct LibrarySavedViewFolderPage: Sendable { let stamp: LibrarySavedViewStamp; let folders: [SyncFolderRow]; let next: LibrarySavedViewFolderTicket? }
+
+
+// Integrity of a compiled snapshot is distinct from current server/queue coverage.
+struct LibrarySavedViewManifest: Codable, Equatable, Sendable {
+    let items: Int
+    let folders: Int
+    let indexes: Int
+    let digest: String
+    static var initialDigest: String { LibraryOutcomeBinding.hash(["saved-view-manifest-v1"]) }
+    func validate() throws {
+        guard [items, folders, indexes].allSatisfy({ (0...9_007_199_254_740_990).contains($0) }),
+              digest.count == 64, digest.allSatisfy({ "0123456789abcdef".contains($0) }), indexes <= items * 16 + folders * 2 else { throw LibrarySyncFailure.invalidReceipt }
+    }
+    static func make(_ identity: LibrarySavedViewIdentity, source: LibrarySavedViewSnapshot) throws -> Self {
+        var rows: [String: String] = [:], indexes = 0
+        func insert<T: Encodable>(_ key: String, value: T) throws {
+            guard rows[key] == nil else { throw LibrarySyncFailure.invalidChange }
+            rows[key] = try LibrarySemanticFingerprint.digest(JSONDecoder().decode(LibraryExportValue.self, from: JSONEncoder().encode(value)), domain: "saved-view-row-v1:")
+        }
+        for item in source.items {
+            try item.validate(); guard item.mask != 0 else { throw LibrarySyncFailure.invalidChange }
+            try insert(identity.itemKey(item.value.hadithId), value: item)
+            indexes += try LibrarySavedViewPolicy.indexKeys(identity, item: item).count
+        }
+        for folder in source.folders {
+            try LibrarySavedPolicy.validate(.folder(.init(sourceId: folder._id, ordinal: 0, value: folder)))
+            try insert(identity.folderKey(folder._id), value: folder); indexes += 2
+        }
+        var digest = initialDigest
+        for (key, fingerprint) in rows.sorted(by: { $0.key < $1.key }) { digest = LibraryOutcomeBinding.hash([digest, key, fingerprint]) }
+        let value = Self(items: source.items.count, folders: source.folders.count, indexes: indexes, digest: digest); try value.validate(); return value
+    }
+}
+enum LibrarySavedViewAuditPhase: String, Codable, Sendable { case rows, indexes, verified }
+struct LibrarySavedViewAudit: Codable, Equatable, Sendable {
+    let serial: Int
+    let manifest: LibrarySavedViewManifest
+    var phase: LibrarySavedViewAuditPhase = .rows
+    var after: String?
+    var items: Int = 0
+    var folders: Int = 0
+    var indexes: Int = 0
+    var digest: String = LibrarySavedViewManifest.initialDigest
+    func validate(_ stamp: LibrarySavedViewStamp) throws {
+        try manifest.validate()
+        guard serial == stamp.serial, (0...manifest.items).contains(items), (0...manifest.folders).contains(folders), (0...manifest.indexes).contains(indexes), digest.count == 64, digest.allSatisfy({ "0123456789abcdef".contains($0) }),
+              after.map({ $0.utf8.count <= 1024 && $0.hasPrefix(stamp.identity.key + ":") }) ?? true else { throw LibrarySyncFailure.invalidReceipt }
+        if phase != .rows { guard items == manifest.items, folders == manifest.folders, digest == manifest.digest else { throw LibrarySyncFailure.invalidReceipt } }
+        if phase == .verified { guard indexes == manifest.indexes, after == nil else { throw LibrarySyncFailure.invalidReceipt } }
+    }
+}

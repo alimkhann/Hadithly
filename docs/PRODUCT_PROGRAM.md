@@ -24,7 +24,9 @@ cutover design and concentrate remaining work into these delivery steps:
    `LIBRARY_SAVED_OBSERVATION_VERIFICATION.md`. Production row mode remains off.
 2. The draft compiler/index/query component now passes 2,001-row native checks,
    with 134 iOS/123 Android tests; see `LIBRARY_SAVED_VIEW_DRAFT_VERIFICATION.md`.
-   Complete coverage verification, bulk catch-up/retirement and atomic publication,
+   Compiled-input integrity and bounded draft discard now pass 137 iOS/126 Android
+   checks; see `LIBRARY_SAVED_VIEW_INTEGRITY_VERIFICATION.md`. Bind a persisted build
+   to private/queue coverage, catch up accepted edits and publish atomically,
    then connect both Saved/Reader surfaces and independent public hydration. Remove
    the old production joined-array authority. Draft storage is not published UI.
 3. Verify scale, installed/SDK compatibility and actual delivery in both directions,

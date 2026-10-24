@@ -254,7 +254,7 @@ class GuestMergeRaceTest {
             assertEquals(active, recovered.activeSavedGeneration(owner)); assertTrue(recovered.activeSavedPage(active, null).done)
             recovered.validateOutcomeExport(fence)
             sql(directory) { db ->
-                assertEquals(7, db.version)
+                assertEquals(8, db.version)
                 db.rawQuery("SELECT active,retiring FROM saved_assemblies", null).use { assertTrue(it.moveToFirst()); assertEquals(before, listOf(it.getString(0), it.getString(1))) }
                 db.rawQuery("SELECT artifact_id FROM export_artifacts", null).use { assertTrue(it.moveToFirst()); assertEquals(artifact.id, it.getString(0)) }
             }
@@ -354,10 +354,119 @@ class GuestMergeRaceTest {
             val recovered = reopen(); assertEquals(state, recovered.syncPartition(owner)); assertEquals(active, recovered.activeSavedGeneration(owner)); recovered.validateOutcomeExport(fence)
             assertEquals(LibraryDeletionPhase.SERVER_PENDING, recovered.deletionPhase("deleted-subject", owner.namespace)); assertEquals("ready", phase(directory))
             sql(directory) { db ->
-                assertEquals(7, db.version)
+                assertEquals(8, db.version)
                 db.rawQuery("SELECT row_mode FROM saved_assemblies", null).use { assertTrue(it.moveToFirst()); assertEquals(0, it.getInt(0)) }
                 db.rawQuery("SELECT erasing FROM export_clocks WHERE subject=?", arrayOf("deleted-subject")).use { assertTrue(it.moveToFirst()); assertEquals(1, it.getInt(0)) }
             }
+        }
+    }
+    @Test fun viewAuditResumesVerifiesWholeCompiledSnapshotAndInvalidatesOnWrite() = runBlocking {
+        isolated { store, _, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner); val scope = store.beginSavedAssembly(owner)
+            val state = viewState(owner, 2_001); val source = LibrarySavedViewPolicy.captureLegacy(state, owner, observation(state))
+            var db = journal(directory); var stamp = db.createSavedViewRows(scope)
+            source.items.chunked(8).forEach { stamp = db.writeSavedViewRows(stamp, it) }
+            source.folders.chunked(8).forEach { stamp = db.writeSavedViewRows(stamp, emptyList(), it) }
+            db.close()
+            // Actual v7 head migration keeps all already-built rows and indexes.
+            sql(directory) { old ->
+                old.beginTransaction()
+                try {
+                    old.execSQL("ALTER TABLE saved_view_heads RENAME TO saved_view_heads_v8")
+                    old.execSQL("CREATE TABLE saved_view_heads (key TEXT PRIMARY KEY NOT NULL, scope_key TEXT NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, identity_data TEXT NOT NULL, serial INTEGER NOT NULL)")
+                    old.execSQL("INSERT INTO saved_view_heads SELECT key,scope_key,subject,namespace,owner_key,identity_data,serial FROM saved_view_heads_v8")
+                    old.execSQL("DROP TABLE saved_view_heads_v8"); old.execSQL("CREATE INDEX saved_view_heads_scope ON saved_view_heads(scope_key,key)")
+                    old.execSQL("CREATE INDEX saved_view_heads_owner ON saved_view_heads(subject,namespace,owner_key,key)")
+                    old.version = 7; old.setTransactionSuccessful()
+                } finally { old.endTransaction() }
+            }
+            db = journal(directory); assertEquals(stamp, db.draftSavedViewStamp(stamp.identity)); assertNull(db.savedViewAudit(stamp))
+            val manifest = LibrarySavedViewManifest.make(stamp.identity, source)
+            var audit = db.beginSavedViewAudit(stamp, manifest); var steps = 0
+            while (audit.phase != LibrarySavedViewAuditPhase.Verified) {
+                val previous = audit; audit = db.savedViewAuditStep(stamp)
+                assertTrue(audit.items + audit.folders - previous.items - previous.folders <= 8)
+                assertTrue(audit.indexes - previous.indexes <= 128); steps++
+                if (steps % 17 == 0) { db.close(); db = journal(directory); assertEquals(audit, db.savedViewAudit(stamp)) }
+                assertTrue(steps < 1_000)
+            }
+            assertEquals(2_001, audit.items.toInt()); assertEquals(70, audit.folders.toInt()); assertEquals(manifest.indexes, audit.indexes); assertEquals(manifest.digest, audit.digest)
+            assertEquals(audit, db.beginSavedViewAudit(stamp, manifest))
+            val fence = store.prepareOutcomeExport(owner) { true }; assertEquals(audit, db.savedViewAuditStep(stamp)); store.validateOutcomeExport(fence)
+            val old = stamp; stamp = db.writeSavedViewRows(stamp, listOf(source.items.first()))
+            assertNull(db.savedViewAudit(stamp)); try { db.savedViewAudit(old); fail("Stale integrity proof survived write") } catch (_: LibrarySavedViewChanged) { }
+            // Integrity never publishes a private generation or changes production mode.
+            assertNull(store.activeSavedGeneration(owner))
+            sql(directory) { sql -> sql.rawQuery("SELECT row_mode FROM saved_assemblies", null).use { assertTrue(it.moveToFirst()); assertEquals(0, it.getInt(0)) } }
+            db.close()
+        }
+    }
+    @Test fun viewAuditRejectsMissingRowsIndexesExtraIndexesWrongTargetsAndPayloadChanges() = runBlocking {
+        for (damage in listOf("missing-row", "missing-index", "extra-index", "wrong-target", "payload", "empty")) isolated { store, _, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner); val scope = store.beginSavedAssembly(owner)
+            val state = viewState(owner, 2); val source = LibrarySavedViewPolicy.captureLegacy(state, owner, observation(state)).copy(folders = emptyList())
+            val db = journal(directory); var stamp = db.createSavedViewRows(scope)
+            if (damage != "empty") stamp = db.writeSavedViewRows(stamp, source.items)
+            val identity = stamp.identity; val manifest = LibrarySavedViewManifest.make(identity, source)
+            db.beginSavedViewAudit(stamp, manifest)
+            sql(directory) { sql ->
+                when (damage) {
+                    "missing-row" -> sql.delete("saved_view_rows", "key=?", arrayOf(identity.itemKey(source.items.first().value.hadithId)))
+                    "missing-index" -> sql.execSQL("DELETE FROM saved_view_indexes WHERE key=(SELECT MIN(key) FROM saved_view_indexes)")
+                    "extra-index" -> sql.execSQL("INSERT INTO saved_view_indexes SELECT ? ,view_key,subject,namespace,owner_key,target_key FROM saved_view_indexes LIMIT 1", arrayOf(identity.key + ":extra"))
+                    "wrong-target" -> sql.execSQL("UPDATE saved_view_indexes SET target_key='wrong'")
+                    "payload" -> {
+                        val item = source.items.first(); val changed = item.copy(value = item.value.copy(createdAt = 999.0))
+                        val json = Json { encodeDefaults = true; explicitNulls = false }; val data = json.encodeToString(changed)
+                        sql.execSQL("UPDATE saved_view_rows SET data=?,fingerprint=? WHERE key=?", arrayOf(data, librarySemanticDigest(json.parseToJsonElement(data), "saved-view-row-v1:"), identity.itemKey(item.value.hadithId)))
+                    }
+                }
+            }
+            var rejected = false
+            try { repeat(20) { if (db.savedViewAuditStep(stamp).phase == LibrarySavedViewAuditPhase.Verified) fail("Corrupt $damage draft verified") } }
+            catch (_: LibrarySyncFailure) { rejected = true }
+            assertTrue("Corrupt $damage draft did not reject", rejected); assertTrue(db.savedViewAudit(stamp)?.phase != LibrarySavedViewAuditPhase.Verified)
+            db.close()
+        }
+    }
+    @Test fun viewDiscardIsBoundedDurableAndCannotExposePartialEmptyOrConsumeAnotherDraft() = runBlocking {
+        isolated { store, _, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner); val scope = store.beginSavedAssembly(owner)
+            val state = viewState(owner, 97); val source = LibrarySavedViewPolicy.captureLegacy(state, owner, observation(state)).copy(folders = emptyList())
+            var db = journal(directory); var stamp = db.createSavedViewRows(scope)
+            source.items.chunked(8).forEach { stamp = db.writeSavedViewRows(stamp, it) }
+            val peer = db.writeSavedViewRows(db.createSavedViewRows(scope), listOf(source.items.first())); db.createSavedViewRows(scope)
+            try { db.createSavedViewRows(scope); fail("Draft capacity exceeded") } catch (_: LibrarySyncFailure) { }
+            val initialAudit = db.beginSavedViewAudit(stamp, LibrarySavedViewManifest.make(stamp.identity, source))
+            // A real statement failure rolls back the persisted audit and its export clock.
+            val fence = store.prepareOutcomeExport(owner) { true }
+            sql(directory) { it.execSQL("CREATE TRIGGER refuse_view_audit BEFORE UPDATE ON saved_view_heads BEGIN SELECT RAISE(ABORT, 'injected audit failure'); END") }
+            try { db.savedViewAuditStep(stamp); fail("Aborted audit advanced") } catch (_: android.database.sqlite.SQLiteException) { }
+            assertEquals(initialAudit, db.savedViewAudit(stamp)); store.validateOutcomeExport(fence)
+            sql(directory) { it.execSQL("DROP TRIGGER refuse_view_audit") }
+            // Failure after the retiring mark also rolls back admission and child deletion.
+            sql(directory) { it.execSQL("CREATE TRIGGER refuse_view_discard BEFORE DELETE ON saved_view_indexes BEGIN SELECT RAISE(ABORT, 'injected discard failure'); END") }
+            try { db.discardSavedViewStep(stamp); fail("Aborted discard succeeded") } catch (_: android.database.sqlite.SQLiteException) { }
+            assertEquals(stamp, db.draftSavedViewStamp(stamp.identity)); store.validateOutcomeExport(fence)
+            sql(directory) { it.execSQL("DROP TRIGGER refuse_view_discard") }
+            var steps = 0; var more: Boolean
+            do {
+                val oldIndexes = count(directory, "saved_view_indexes"); val oldRows = count(directory, "saved_view_rows")
+                more = db.discardSavedViewStep(stamp)
+                assertTrue(oldIndexes - count(directory, "saved_view_indexes") <= 128); assertTrue(oldRows - count(directory, "saved_view_rows") <= 8)
+                if (more) {
+                    try { db.draftSavedViewPage(stamp, LibrarySavedViewSelection()); fail("Retiring draft read as empty") } catch (_: LibrarySavedViewChanged) { }
+                    try { db.writeSavedViewRows(stamp, listOf(source.items.first())); fail("Retiring draft accepted write") } catch (_: LibrarySavedViewChanged) { }
+                }
+                assertEquals(source.items.first(), db.draftSavedViewItem(peer, source.items.first().value.hadithId))
+                db.close(); db = journal(directory); steps++; assertTrue(steps < 100)
+            } while (more)
+            val after = store.prepareOutcomeExport(owner) { true }; assertFalse(db.discardSavedViewStep(stamp)); store.validateOutcomeExport(after)
+            val empty = db.createSavedViewRows(scope); assertNotEquals(stamp.identity, empty.identity)
+            db.beginSavedViewAudit(empty, LibrarySavedViewManifest.make(empty.identity, LibrarySavedViewSnapshot(emptyList(), emptyList())))
+            assertEquals(LibrarySavedViewAuditPhase.Indexes, db.savedViewAuditStep(empty).phase)
+            assertEquals(LibrarySavedViewAuditPhase.Verified, db.savedViewAuditStep(empty).phase)
+            assertEquals(1, count(directory, "saved_view_rows")); db.close()
         }
     }
     private fun viewState(owner: LibrarySyncOwner, count: Int): LibraryPartitionState {
@@ -401,6 +510,8 @@ class GuestMergeRaceTest {
         }
         val identity = LibrarySavedViewIdentity(LibrarySyncOwner("owner-a", "subject-a"), "epoch", "generation")
         assertEquals((vectors.getValue("identity") as kotlinx.serialization.json.JsonPrimitive).content, identity.key)
+        val source = Json.decodeFromString<LibrarySavedViewSnapshot>(vectors.getValue("manifestSource").toString())
+        assertEquals(Json.decodeFromString<LibrarySavedViewManifest>(vectors.getValue("manifest").toString()), LibrarySavedViewManifest.make(identity, source))
         assertEquals((vectors.getValue("rank") as kotlinx.serialization.json.JsonPrimitive).content, LibrarySavedViewPolicy.rank(SavedPrivateItem("target-Ω", 1.0, 4500.5)))
         assertEquals((vectors.getValue("prefix") as kotlinx.serialization.json.JsonPrimitive).content, identity.queryPrefix(LibrarySavedViewSelection(LibrarySavedViewFacet.Bookmarks, LibrarySavedViewFolderSelection.Folder("folder"), "bukhari")))
     }
@@ -907,7 +1018,7 @@ class GuestMergeRaceTest {
             val recovered = reopen(); assertEquals(before, recovered.savedCheckpoint(lease)); assertEquals(expected, recovered.preparedSavedPage(lease, null)); assertNull(recovered.activeSavedGeneration(owner))
             val active = activateSaved(recovered, lease); assertEquals(expected.rows, recovered.activeSavedPage(active, null).rows)
             assertEquals(active, reopen().activeSavedGeneration(owner))
-            android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { assertEquals(7, it.version) }
+            android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { assertEquals(8, it.version) }
         }
     }
     @Test fun savedRawAndReceiptWritesRollBackTogetherOnActualSqliteAbort() = runBlocking {
@@ -1030,7 +1141,7 @@ class GuestMergeRaceTest {
             }
             store.claimGuestForSync(owner); val lease = store.beginSavedAssembly(owner)
             android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { db ->
-                assertEquals(7, db.version)
+                assertEquals(8, db.version)
                 db.rawQuery("EXPLAIN QUERY PLAN SELECT row_key FROM saved_projection WHERE collection_key=? AND row_key>? AND row_key<? ORDER BY row_key LIMIT 8", arrayOf(lease.collection, lease.collection + ":r:", lease.collection + ":r:~")).use {
                     assertTrue(it.moveToFirst()); assertTrue(it.getString(3).contains("saved_projection_collection")); assertTrue(it.getString(3).contains("SEARCH"))
                 }
@@ -1195,7 +1306,7 @@ class GuestMergeRaceTest {
                 } finally { fixture.sync.discardPreparedExport(prepared) }
                 assertFalse(prepared.file.exists())
                 android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, android.database.sqlite.SQLiteDatabase.OPEN_READONLY).use { db ->
-                    assertEquals(7, db.version)
+                    assertEquals(8, db.version)
                     db.rawQuery("EXPLAIN QUERY PLAN SELECT collection_key FROM headers WHERE subject=? AND namespace=? AND collection_key>? ORDER BY collection_key LIMIT 50", arrayOf(owner.subject, owner.namespace, "")).use {
                         assertTrue(it.moveToFirst()); assertTrue(it.getString(3).contains("headers_export"))
                     }

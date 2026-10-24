@@ -57,6 +57,18 @@ start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
 
+## A2 draft integrity and discard checkpoint, October 24
+
+Both native stores now persist/resume a serial-bound integrity audit of a compiled
+Saved snapshot and discard abandoned drafts in bounded transactions. Missing,
+extra, misdirected or changed rows/indexes reject; retiring drafts cannot read as
+empty. The 2,001-item audit, reopen and rollback cases pass with 137 iOS, 126 Android
+connected and 212 Android unit tests. See
+`docs/LIBRARY_SAVED_VIEW_INTEGRITY_VERIFICATION.md`. This verifies compiled-input
+integrity, not latest private/queue coverage. Persisted source build/catch-up, final
+transport check, atomic publication and both UI switches remain next. Row mode is
+still off; A2, deployment/device/scale/iOS save-failure and A1 gates remain open.
+
 ## A2 indexed draft-view checkpoint, October 24
 
 Both native stores now materialize private Saved draft rows and filter/folder/route

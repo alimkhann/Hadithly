@@ -51,3 +51,7 @@ by `scripts/generate-saved-view-vectors.py`. Naming results execute the actual b
 positive IEEE754 timestamp bits. Run the helper with `--check` to verify both copies.
 The cases include NFC/trim behavior, contextual Greek sigma, Turkish dotted I and
 fractional timestamps. These are synthetic policy fixtures, not user content.
+
+The same helper independently encodes a synthetic private row/folder manifest,
+including fractional times and Greek names. Both native implementations must
+produce its row fingerprints, deterministic ordering and final digest.

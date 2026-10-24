@@ -542,6 +542,8 @@ final class GuestSavedViewHead {
     var ownerKey: String
     var identityData: Data
     var serial: Int
+    var auditData: Data? = nil
+    var retiring: Bool = false
     init(_ identity: LibrarySavedViewIdentity) throws {
         key = identity.key; scopeKey = identity.scope; subject = identity.owner.subject; namespace = identity.owner.namespace; ownerKey = identity.owner.storageKey
         identityData = try JSONEncoder().encode(identity); serial = 0

@@ -154,3 +154,47 @@ fun LibrarySavedViewPolicy.captureLegacy(state: LibraryPartitionState, owner: Li
 class LibrarySavedViewChanged : Exception()
 data class LibrarySavedViewFolderTicket internal constructor(internal val stamp: LibrarySavedViewStamp, internal val name: String?, internal val after: String)
 data class LibrarySavedViewFolderPage(val stamp: LibrarySavedViewStamp, val folders: List<SyncFolderRow>, val next: LibrarySavedViewFolderTicket?)
+
+
+/** Integrity of one compiled snapshot, never proof of current server/queue coverage. */
+@Serializable
+data class LibrarySavedViewManifest(val items: Long, val folders: Long, val indexes: Long, val digest: String) {
+    fun validate() {
+        if (listOf(items, folders, indexes).any { it !in 0..9_007_199_254_740_990L } || !digest.matches(Regex("[0-9a-f]{64}")) || indexes > items * 16 + folders * 2) throw LibrarySyncFailure.InvalidReceipt
+    }
+    companion object {
+        val initialDigest: String get() = LibraryOutcomeBinding.hash(listOf("saved-view-manifest-v1"))
+        fun make(identity: LibrarySavedViewIdentity, source: LibrarySavedViewSnapshot): LibrarySavedViewManifest {
+            val json = kotlinx.serialization.json.Json { encodeDefaults = true; explicitNulls = false }
+            val rows = mutableMapOf<String, String>(); var indexes = 0L
+            for (item in source.items) {
+                item.validate(); if (item.mask == 0) throw LibrarySyncFailure.InvalidChange
+                val key = identity.itemKey(item.value.hadithId)
+                if (rows.put(key, librarySemanticDigest(json.encodeToJsonElement(LibrarySavedViewItem.serializer(), item), "saved-view-row-v1:")) != null) throw LibrarySyncFailure.InvalidChange
+                indexes += LibrarySavedViewPolicy.indexKeys(identity, item).size
+            }
+            for (folder in source.folders) {
+                LibrarySavedPolicy.validate(SavedFact.Folder(folder._id, 0.0, folder))
+                if (rows.put(identity.folderKey(folder._id), librarySemanticDigest(json.encodeToJsonElement(SyncFolderRow.serializer(), folder), "saved-view-row-v1:")) != null) throw LibrarySyncFailure.InvalidChange
+                indexes += 2
+            }
+            var digest = initialDigest
+            for ((key, fingerprint) in rows.toSortedMap()) digest = LibraryOutcomeBinding.hash(listOf(digest, key, fingerprint))
+            return LibrarySavedViewManifest(source.items.size.toLong(), source.folders.size.toLong(), indexes, digest).also { it.validate() }
+        }
+    }
+}
+@Serializable
+enum class LibrarySavedViewAuditPhase { Rows, Indexes, Verified }
+@Serializable
+data class LibrarySavedViewAudit(val serial: Long, val manifest: LibrarySavedViewManifest,
+    val phase: LibrarySavedViewAuditPhase = LibrarySavedViewAuditPhase.Rows, val after: String? = null,
+    val items: Long = 0, val folders: Long = 0, val indexes: Long = 0, val digest: String = LibrarySavedViewManifest.initialDigest) {
+    fun validate(stamp: LibrarySavedViewStamp) {
+        manifest.validate()
+        if (serial != stamp.serial || items !in 0..manifest.items || folders !in 0..manifest.folders || indexes !in 0..manifest.indexes || !digest.matches(Regex("[0-9a-f]{64}"))) throw LibrarySyncFailure.InvalidReceipt
+        if (after != null && (after.toByteArray().size > 1024 || !after.startsWith(stamp.identity.key + ":"))) throw LibrarySyncFailure.InvalidReceipt
+        if (phase != LibrarySavedViewAuditPhase.Rows && (items != manifest.items || folders != manifest.folders || digest != manifest.digest)) throw LibrarySyncFailure.InvalidReceipt
+        if (phase == LibrarySavedViewAuditPhase.Verified && (indexes != manifest.indexes || after != null)) throw LibrarySyncFailure.InvalidReceipt
+    }
+}

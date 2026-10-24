@@ -39,5 +39,33 @@
   ],
   "identity": "1236b88ddddb12ddcb01a593c00f7f3c7ce23a8dfbb9a85cece7363c4eb3c04b:47fe5e6e0edf09a49205c3e88d0f703d2c9c306090766385058bc2db0cfa000e:e9a6e1dc3b5501507b7cb0561a568750a6311f0b719ad37862d9ec987c04bfe0:view",
   "rank": "bf4e6b7fffffffff:7461726765742dcea9",
-  "prefix": "1236b88ddddb12ddcb01a593c00f7f3c7ce23a8dfbb9a85cece7363c4eb3c04b:47fe5e6e0edf09a49205c3e88d0f703d2c9c306090766385058bc2db0cfa000e:e9a6e1dc3b5501507b7cb0561a568750a6311f0b719ad37862d9ec987c04bfe0:view:q:350b78bf4846382a128a3c5194254c86f85977df701efc7b738c9b45d03b57ac:"
+  "prefix": "1236b88ddddb12ddcb01a593c00f7f3c7ce23a8dfbb9a85cece7363c4eb3c04b:47fe5e6e0edf09a49205c3e88d0f703d2c9c306090766385058bc2db0cfa000e:e9a6e1dc3b5501507b7cb0561a568750a6311f0b719ad37862d9ec987c04bfe0:view:q:350b78bf4846382a128a3c5194254c86f85977df701efc7b738c9b45d03b57ac:",
+  "manifestSource": {
+    "items": [
+      {
+        "value": {
+          "hadithId": "target-\u03a9",
+          "createdAt": 1,
+          "updatedAt": 4500.5,
+          "bookmarkCreatedAt": 1,
+          "folderId": "folder",
+          "folderUpdatedAt": 2
+        },
+        "collectionSlug": "bukhari"
+      }
+    ],
+    "folders": [
+      {
+        "_id": "folder",
+        "name": "\u039f\u03a3",
+        "createdAt": 123.5
+      }
+    ]
+  },
+  "manifest": {
+    "items": 1,
+    "folders": 1,
+    "indexes": 10,
+    "digest": "5b9b7b5676c84b45dc3e61e35198aa11b15d34b12f8dd9ddcb96822493455520"
+  }
 }
