@@ -254,7 +254,7 @@ class GuestMergeRaceTest {
             assertEquals(active, recovered.activeSavedGeneration(owner)); assertTrue(recovered.activeSavedPage(active, null).done)
             recovered.validateOutcomeExport(fence)
             sql(directory) { db ->
-                assertEquals(8, db.version)
+                assertEquals(9, db.version)
                 db.rawQuery("SELECT active,retiring FROM saved_assemblies", null).use { assertTrue(it.moveToFirst()); assertEquals(before, listOf(it.getString(0), it.getString(1))) }
                 db.rawQuery("SELECT artifact_id FROM export_artifacts", null).use { assertTrue(it.moveToFirst()); assertEquals(artifact.id, it.getString(0)) }
             }
@@ -354,7 +354,7 @@ class GuestMergeRaceTest {
             val recovered = reopen(); assertEquals(state, recovered.syncPartition(owner)); assertEquals(active, recovered.activeSavedGeneration(owner)); recovered.validateOutcomeExport(fence)
             assertEquals(LibraryDeletionPhase.SERVER_PENDING, recovered.deletionPhase("deleted-subject", owner.namespace)); assertEquals("ready", phase(directory))
             sql(directory) { db ->
-                assertEquals(8, db.version)
+                assertEquals(9, db.version)
                 db.rawQuery("SELECT row_mode FROM saved_assemblies", null).use { assertTrue(it.moveToFirst()); assertEquals(0, it.getInt(0)) }
                 db.rawQuery("SELECT erasing FROM export_clocks WHERE subject=?", arrayOf("deleted-subject")).use { assertTrue(it.moveToFirst()); assertEquals(1, it.getInt(0)) }
             }
@@ -469,6 +469,126 @@ class GuestMergeRaceTest {
             assertEquals(1, count(directory, "saved_view_rows")); db.close()
         }
     }
+    private fun viewFacts(state: LibraryPartitionState): List<SavedFact> {
+        val snapshot = state.savedSnapshot!!
+        return snapshot.folders.mapIndexed { i, folder -> SavedFact.Folder(folder._id, i.toDouble(), folder) } + snapshot.items.mapIndexed { i, row -> SavedFact.Item(row.hadithId, (snapshot.folders.size + i).toDouble(), SavedPrivateItem(row.hadithId, row.createdAt, row.updatedAt, row.bookmarkCreatedAt, row.favoriteCreatedAt, row.noteContent, row.noteCreatedAt, row.noteUpdatedAt, row.folderId)) }
+    }
+    @Test fun viewBuildCompilesPrivateGenerationCatchesUpUndoAndResumesWithoutPublishing() = runBlocking {
+        isolated { store, reopen, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
+            val state = viewState(owner, 2_001); store.cacheSavedSnapshot(state.savedSnapshot!!, owner)
+            val lease = store.beginSavedAssembly(owner); prepareSaved(store, lease, viewFacts(state))
+            val deletion = LibraryLocalChange(SyncCommand.FolderDelete(SyncFolderReference.Server("folder-1")), 5_000.0, LibraryLocalSource.Account(null))
+            store.enqueueSyncChange(deletion, owner)
+            store.enqueueSyncChange(LibraryLocalChange(SyncCommand.MembershipPut("target-1999", SyncFolderReference.Server("folder-4")), 6_000.0, LibraryLocalSource.Account(null)), owner)
+            var db = journal(directory); var session = db.beginSavedViewBuild(lease); var record = db.savedViewBuildProgress(session).second
+            while (record.phase != LibrarySavedBuildPhase.Items) record = db.advanceSavedViewBuild(session)
+            repeat(3) { record = db.advanceSavedViewBuild(session) }
+            store.enqueueSyncChange(LibraryLocalChange(SyncCommand.FolderRestore(deletion.operation.id, "Folder 1", emptyList()), 7_000.0, LibraryLocalSource.Account(null)), owner)
+            store.enqueueSyncChange(LibraryLocalChange(SyncCommand.NotePut("new-target", "Accepted during build", 8_000.0, 8_000.0), 8_000.0, LibraryLocalSource.Account(null)), owner)
+            store.enqueueSyncChange(LibraryLocalChange(SyncCommand.BookmarkRemove("target-0"), 9_000.0, LibraryLocalSource.Account(null)), owner)
+            store.enqueueSyncChange(LibraryLocalChange(SyncCommand.FacetRestore("target-0", "original", SyncCommandFacetRestoreValue.Bookmark(1_000.0)), 10_000.0, LibraryLocalSource.Account(null)), owner)
+            try { db.advanceSavedViewBuild(session); fail("Old account source continued") } catch (_: LibrarySavedBuildChanged) { }
+            session = db.captureSavedViewBuild(session.identity); record = db.savedViewBuildProgress(session).second; assertEquals(LibrarySavedBuildPhase.FolderCommands, record.phase)
+            var steps = 0
+            while (record.phase != LibrarySavedBuildPhase.Prepared) {
+                record = db.advanceSavedViewBuild(session); steps++
+                if (steps % 43 == 0) { db.close(); db = journal(directory); session = db.captureSavedViewBuild(session.identity) }
+                assertTrue(steps < 2_000)
+            }
+            val stamp = db.savedViewBuildProgress(session).first
+            val current = reopen().syncPartition(owner)!!; val expected = LibrarySavedViewPolicy.captureLegacy(current, owner, observation(current))
+            val actual = mutableListOf<LibrarySavedViewItem>(); var ticket: LibrarySavedViewTicket? = null
+            do { val page = db.draftSavedViewPage(stamp, LibrarySavedViewSelection(), ticket); actual.addAll(page.items); ticket = page.next } while (ticket != null)
+            assertEquals(expected.items, actual); assertEquals(2_002, actual.size)
+            assertEquals("folder-4", db.draftSavedViewItem(stamp, "target-1999")!!.value.folderId)
+            assertEquals(1_000.0, db.draftSavedViewItem(stamp, "target-0")!!.value.createdAt, 0.0)
+            assertEquals(LibrarySavedViewAuditPhase.Verified, db.savedViewAudit(stamp)!!.phase)
+            assertNull(store.activeSavedGeneration(owner)); assertEquals(6, current.pending.size)
+            // Even a fully prepared build remains draft-only until atomic runtime publication.
+            sql(directory) { sql -> sql.rawQuery("SELECT row_mode FROM saved_assemblies", null).use { it.moveToFirst(); assertEquals(0, it.getInt(0)) } }
+            db.close()
+        }
+    }
+    @Test fun viewBuildUsesActualPrivateVersionAndRefreshesNeutralQueueChangesButRejectsRebase() = runBlocking {
+        isolated { store, _, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
+            val legacy = viewState(owner, 1); store.cacheSavedSnapshot(legacy.savedSnapshot!!.copy(version = 999.0), owner)
+            val lease = store.beginSavedAssembly(owner); prepareSaved(store, lease, emptyList())
+            val db = journal(directory)
+            db.mutateLocalAccount(owner) { _, state -> state.confirmed = listOf(
+                LibraryConfirmedChange(LibraryLocalChange(SyncCommand.NotePut("covered", "Already observed", 1.0, 1.0), 1.0, LibraryLocalSource.Account(null)), SyncOutcome.Preserved, 9.0),
+                LibraryConfirmedChange(LibraryLocalChange(SyncCommand.NotePut("not-covered", "Retain me", 2.0, 2.0), 2.0, LibraryLocalSource.Account(null)), SyncOutcome.Preserved, 10.0)) }
+            store.enqueueSyncChange(LibraryLocalChange(SyncCommand.BookmarkAdd("pending", 3.0), 3.0, LibraryLocalSource.Account(null)), owner)
+            val old = db.beginSavedViewBuild(lease); db.advanceSavedViewBuild(old); store.freezeSyncFrame(owner)
+            try { db.advanceSavedViewBuild(old); fail("Stale revision continued") } catch (_: LibrarySavedBuildChanged) { }
+            val session = db.captureSavedViewBuild(old.identity)
+            var record = db.savedViewBuildProgress(session).second
+            while (record.phase != LibrarySavedBuildPhase.Prepared) record = db.advanceSavedViewBuild(session)
+            val stamp = db.savedViewBuildProgress(session).first
+            assertNull(db.draftSavedViewItem(stamp, "covered")); assertNull(db.draftSavedViewItem(stamp, "target-0"))
+            assertEquals("Retain me", db.draftSavedViewItem(stamp, "not-covered")!!.value.noteContent); assertNotNull(db.draftSavedViewItem(stamp, "pending"))
+            db.mutateLocalAccount(owner) { _, state -> state.folderMappings = mapOf("new-alias" to "server-folder") }
+            try { db.captureSavedViewBuild(old.identity); fail("Changed alias cut reused") } catch (_: LibrarySavedBuildChanged) { }
+            assertNotNull(db.draftSavedViewItem(stamp, "pending")); assertEquals(1, store.syncPartition(owner)!!.frozen!!.changes.size); db.close()
+        }
+    }
+    @Test fun viewBuildCursorRowsIndexesAndClockRollbackTogether() = runBlocking {
+        isolated { store, _, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner)
+            val lease = store.beginSavedAssembly(owner); prepareSaved(store, lease, listOf(SavedFact.Folder("folder", 0.0, SyncFolderRow("folder", "Private folder", 1.0))))
+            val active = activateSaved(store, lease); store.beginSavedAssembly(owner)
+            assertEquals(active, store.activeSavedGeneration(owner))
+            store.enqueueSyncChange(LibraryLocalChange(SyncCommand.FolderDelete(SyncFolderReference.Server("folder")), 2.0, LibraryLocalSource.Account(null)), owner)
+            val db = journal(directory); val session = db.beginSavedViewBuild(lease); val before = db.savedViewBuildProgress(session)
+            val fence = store.prepareOutcomeExport(owner) { true }
+            sql(directory) { it.execSQL("CREATE TRIGGER refuse_build_checkpoint BEFORE UPDATE OF build ON saved_view_heads BEGIN SELECT RAISE(ABORT, 'injected build failure'); END") }
+            try { db.advanceSavedViewBuild(session); fail("Failed build advanced") } catch (_: android.database.sqlite.SQLiteException) { }
+            assertEquals(before, db.savedViewBuildProgress(session)); assertEquals(0, count(directory, "saved_view_rows")); assertEquals(0, count(directory, "saved_view_indexes")); store.validateOutcomeExport(fence)
+            sql(directory) { it.execSQL("DROP TRIGGER refuse_build_checkpoint") }; db.advanceSavedViewBuild(session)
+            assertEquals(1, count(directory, "saved_view_rows")); assertEquals(2, count(directory, "saved_view_indexes"))
+            val stale = db.captureSavedViewBuild(session.identity)
+            val base = db.savedViewBuildProgress(session); val checkpointFence = store.prepareOutcomeExport(owner) { true }
+            sql(directory) { it.execSQL("CREATE TRIGGER refuse_binding_checkpoint BEFORE UPDATE OF build ON saved_view_heads BEGIN SELECT RAISE(ABORT, 'injected binding failure'); END") }
+            try { db.advanceSavedViewBuild(session); fail("Failed binding advanced") } catch (_: android.database.sqlite.SQLiteException) { }
+            assertEquals(base, db.savedViewBuildProgress(session)); assertTrue(session.bindings.isEmpty()); assertEquals(1, count(directory, "saved_view_rows")); assertEquals(2, count(directory, "saved_view_indexes")); store.validateOutcomeExport(checkpointFence)
+            sql(directory) { it.execSQL("DROP TRIGGER refuse_binding_checkpoint") }
+            // Steps use only the captured cut plus account revision, never a joined-payload decode.
+            val original = sqlPayloadForBuildTest(directory, owner)
+            sql(directory) { it.execSQL("UPDATE local_accounts SET payload=X'00' WHERE key=?", arrayOf(owner.storageKey)) }
+            try { db.advanceSavedViewBuild(session) } finally { sql(directory) { it.execSQL("UPDATE local_accounts SET payload=? WHERE key=?", arrayOf(original, owner.storageKey)) } }
+            assertEquals(1, session.bindings.size); assertEquals(0, count(directory, "saved_view_rows"))
+            try { db.advanceSavedViewBuild(stale); fail("Stale folder cache continued") } catch (_: LibrarySavedBuildChanged) { }
+            db.advanceSavedViewBuild(db.captureSavedViewBuild(stale.identity)); db.close()
+        }
+    }
+    @Test fun viewBuildV8UpgradePreservesExistingDraftRowsAndExportFence() = runBlocking {
+        isolated { store, _, directory ->
+            val owner = LibrarySyncOwner("owner-a", "subject-a"); store.claimGuestForSync(owner); val scope = store.beginSavedAssembly(owner)
+            var db = journal(directory)
+            val item = LibrarySavedViewItem(SavedPrivateItem("target", 1.0, 2.0, noteContent = "Preserved draft original", noteCreatedAt = 1.0, noteUpdatedAt = 2.0))
+            val stamp = db.writeSavedViewRows(db.createSavedViewRows(scope), listOf(item)); db.close()
+            val fence = store.prepareOutcomeExport(owner) { true }; val account = store.syncPartition(owner)
+            sql(directory) { old ->
+                old.beginTransaction()
+                try {
+                    old.execSQL("ALTER TABLE saved_view_heads RENAME TO saved_view_heads_v9")
+                    old.execSQL("CREATE TABLE saved_view_heads (key TEXT PRIMARY KEY NOT NULL, scope_key TEXT NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, identity_data TEXT NOT NULL, serial INTEGER NOT NULL, audit TEXT, retiring INTEGER NOT NULL DEFAULT 0)")
+                    old.execSQL("INSERT INTO saved_view_heads SELECT key,scope_key,subject,namespace,owner_key,identity_data,serial,audit,retiring FROM saved_view_heads_v9")
+                    old.execSQL("DROP TABLE saved_view_heads_v9"); old.execSQL("CREATE INDEX saved_view_heads_scope ON saved_view_heads(scope_key,key)")
+                    old.execSQL("CREATE INDEX saved_view_heads_owner ON saved_view_heads(subject,namespace,owner_key,key)")
+                    old.version = 8; old.setTransactionSuccessful()
+                } finally { old.endTransaction() }
+            }
+            db = journal(directory); assertEquals(stamp, db.draftSavedViewStamp(stamp.identity)); assertEquals(item, db.draftSavedViewItem(stamp, "target")); assertNull(db.savedViewAudit(stamp)); store.validateOutcomeExport(fence)
+            assertEquals(account, store.syncPartition(owner)); sql(directory) { sql -> assertEquals(9, sql.version); sql.rawQuery("SELECT build FROM saved_view_heads", null).use { assertTrue(it.moveToFirst()); assertTrue(it.isNull(0)) } }; db.close()
+        }
+    }
+    private fun sqlPayloadForBuildTest(directory: File, owner: LibrarySyncOwner): ByteArray {
+        var result = byteArrayOf()
+        sql(directory) { db -> db.rawQuery("SELECT payload FROM local_accounts WHERE key=?", arrayOf(owner.storageKey)).use { assertTrue(it.moveToFirst()); result = it.getBlob(0) } }
+        return result
+    }
     private fun viewState(owner: LibrarySyncOwner, count: Int): LibraryPartitionState {
         val folders = (0 until 70).map { SyncFolderRow("folder-$it", "Folder $it", 1_000.0 + it) }
         val items = (0 until count).map { i ->
@@ -512,6 +632,7 @@ class GuestMergeRaceTest {
         assertEquals((vectors.getValue("identity") as kotlinx.serialization.json.JsonPrimitive).content, identity.key)
         val source = Json.decodeFromString<LibrarySavedViewSnapshot>(vectors.getValue("manifestSource").toString())
         assertEquals(Json.decodeFromString<LibrarySavedViewManifest>(vectors.getValue("manifest").toString()), LibrarySavedViewManifest.make(identity, source))
+        try { LibrarySavedViewManifest(1, 0, 1, "0".repeat(64), Long.MAX_VALUE).validate(); fail("Overflow binding count accepted") } catch (_: LibrarySyncFailure) { }
         assertEquals((vectors.getValue("rank") as kotlinx.serialization.json.JsonPrimitive).content, LibrarySavedViewPolicy.rank(SavedPrivateItem("target-Ω", 1.0, 4500.5)))
         assertEquals((vectors.getValue("prefix") as kotlinx.serialization.json.JsonPrimitive).content, identity.queryPrefix(LibrarySavedViewSelection(LibrarySavedViewFacet.Bookmarks, LibrarySavedViewFolderSelection.Folder("folder"), "bukhari")))
     }
@@ -1018,7 +1139,7 @@ class GuestMergeRaceTest {
             val recovered = reopen(); assertEquals(before, recovered.savedCheckpoint(lease)); assertEquals(expected, recovered.preparedSavedPage(lease, null)); assertNull(recovered.activeSavedGeneration(owner))
             val active = activateSaved(recovered, lease); assertEquals(expected.rows, recovered.activeSavedPage(active, null).rows)
             assertEquals(active, reopen().activeSavedGeneration(owner))
-            android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { assertEquals(8, it.version) }
+            android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { assertEquals(9, it.version) }
         }
     }
     @Test fun savedRawAndReceiptWritesRollBackTogetherOnActualSqliteAbort() = runBlocking {
@@ -1141,7 +1262,7 @@ class GuestMergeRaceTest {
             }
             store.claimGuestForSync(owner); val lease = store.beginSavedAssembly(owner)
             android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, 0).use { db ->
-                assertEquals(8, db.version)
+                assertEquals(9, db.version)
                 db.rawQuery("EXPLAIN QUERY PLAN SELECT row_key FROM saved_projection WHERE collection_key=? AND row_key>? AND row_key<? ORDER BY row_key LIMIT 8", arrayOf(lease.collection, lease.collection + ":r:", lease.collection + ":r:~")).use {
                     assertTrue(it.moveToFirst()); assertTrue(it.getString(3).contains("saved_projection_collection")); assertTrue(it.getString(3).contains("SEARCH"))
                 }
@@ -1306,7 +1427,7 @@ class GuestMergeRaceTest {
                 } finally { fixture.sync.discardPreparedExport(prepared) }
                 assertFalse(prepared.file.exists())
                 android.database.sqlite.SQLiteDatabase.openDatabase(File(directory, "library_outcomes.db").path, null, android.database.sqlite.SQLiteDatabase.OPEN_READONLY).use { db ->
-                    assertEquals(8, db.version)
+                    assertEquals(9, db.version)
                     db.rawQuery("EXPLAIN QUERY PLAN SELECT collection_key FROM headers WHERE subject=? AND namespace=? AND collection_key>? ORDER BY collection_key LIMIT 50", arrayOf(owner.subject, owner.namespace, "")).use {
                         assertTrue(it.moveToFirst()); assertTrue(it.getString(3).contains("headers_export"))
                     }

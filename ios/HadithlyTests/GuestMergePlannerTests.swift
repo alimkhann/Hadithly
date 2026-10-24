@@ -257,6 +257,105 @@ final class GuestMergePlannerTests: XCTestCase {
         XCTAssertEqual(try store.savedViewAuditStep(empty).phase, .indexes); XCTAssertEqual(try store.savedViewAuditStep(empty).phase, .verified)
         XCTAssertEqual(try ModelContext(container).fetchCount(FetchDescriptor<GuestSavedViewRow>()), 1)
     }
+    private func viewFacts(_ state: LibraryPartitionState) throws -> [SavedFact] {
+        let snapshot = try XCTUnwrap(state.savedSnapshot)
+        return snapshot.folders.enumerated().map { i, folder in .folder(.init(sourceId: folder._id, ordinal: Double(i), value: folder)) } + snapshot.items.enumerated().map { i, row in .item(.init(sourceId: row.hadithId, ordinal: Double(snapshot.folders.count + i), value: .init(hadithId: row.hadithId, createdAt: row.createdAt, updatedAt: row.updatedAt, bookmarkCreatedAt: row.bookmarkCreatedAt, favoriteCreatedAt: row.favoriteCreatedAt, noteContent: row.noteContent, noteCreatedAt: row.noteCreatedAt, noteUpdatedAt: row.noteUpdatedAt, folderId: row.folderId, folderUpdatedAt: nil))) }
+    }
+    @MainActor func testViewBuildCompilesPrivateGenerationCatchesUpUndoAndResumesWithoutPublishing() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true); defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("builder.store"), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        var store = GuestDataStore(storeURL: url); try store.claimGuestForSync(owner); let state = viewState(owner, count: 2_001)
+        try store.cacheSavedSnapshot(XCTUnwrap(state.savedSnapshot), owner: owner)
+        let lease = try store.beginSavedAssembly(owner); try await prepareSaved(store, lease: lease, facts: viewFacts(state))
+        let deletion = LibraryLocalChange(command: .folderDelete(.init(folder: .server(.init(id: "folder-1")))), at: 5_000, source: .account(nil))
+        try store.enqueueSyncChange(deletion, owner: owner)
+        try store.enqueueSyncChange(.init(command: .membershipPut(.init(hadithId: "target-1999", folder: .server(.init(id: "folder-4")), mode: nil)), at: 6_000, source: .account(nil)), owner: owner)
+        var session = try store.beginSavedViewBuild(lease), record = try store.savedViewBuildProgress(session).1
+        while record.phase != .items { record = try store.advanceSavedViewBuild(session) }
+        for _ in 0..<3 { record = try store.advanceSavedViewBuild(session) }
+        try store.enqueueSyncChange(.init(command: .folderRestore(.init(deletionId: deletion.operation.id, name: "Folder 1", hadithIds: [])), at: 7_000, source: .account(nil)), owner: owner)
+        try store.enqueueSyncChange(.init(command: .notePut(.init(hadithId: "new-target", content: "Accepted during build", createdAt: 8_000, updatedAt: 8_000)), at: 8_000, source: .account(nil)), owner: owner)
+        try store.enqueueSyncChange(.init(command: .bookmarkRemove(.init(hadithId: "target-0")), at: 9_000, source: .account(nil)), owner: owner)
+        try store.enqueueSyncChange(.init(command: .facetRestore(.init(hadithId: "target-0", deletionId: "original", value: .bookmark(.init(createdAt: 1_000)))), at: 10_000, source: .account(nil)), owner: owner)
+        XCTAssertThrowsError(try store.advanceSavedViewBuild(session))
+        session = try store.captureSavedViewBuild(session.identity); record = try store.savedViewBuildProgress(session).1; XCTAssertEqual(record.phase, .folderCommands)
+        var steps = 0
+        while record.phase != .prepared {
+            record = try autoreleasepool { try store.advanceSavedViewBuild(session) }; steps += 1
+            if steps % 43 == 0 { store = GuestDataStore(storeURL: url); session = try store.captureSavedViewBuild(session.identity) }
+            guard steps < 2_000 else { return XCTFail("Builder did not finish") }
+        }
+        let stamp = try store.savedViewBuildProgress(session).0, current = try XCTUnwrap(store.syncPartition(owner))
+        let expected = try LibrarySavedViewPolicy.captureLegacy(current, owner: owner, observed: observation(current))
+        var actual: [LibrarySavedViewItem] = [], ticket: LibrarySavedViewTicket?
+        repeat { let page = try store.draftSavedViewPage(stamp, selection: .init(), ticket: ticket); actual.append(contentsOf: page.items); ticket = page.next } while ticket != nil
+        XCTAssertEqual(actual, expected.items); XCTAssertEqual(actual.count, 2_002)
+        XCTAssertEqual(try store.draftSavedViewItem(stamp, target: "target-1999")?.value.folderId, "folder-4")
+        XCTAssertEqual(try store.draftSavedViewItem(stamp, target: "target-0")?.value.createdAt, 1_000)
+        XCTAssertEqual(try store.savedViewAudit(stamp)?.phase, .verified); XCTAssertNil(try store.activeSavedGeneration(owner)); XCTAssertEqual(current.pending.count, 6)
+    }
+    @MainActor func testViewBuildUsesActualPrivateVersionAndRefreshesNeutralQueueChangesButRejectsRebase() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true); defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("cut.store"), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), store = GuestDataStore(storeURL: url)
+        try store.claimGuestForSync(owner); let legacy = try XCTUnwrap(viewState(owner, count: 1).savedSnapshot)
+        try store.cacheSavedSnapshot(.init(ownerKey: owner.key, version: 999, folders: legacy.folders, items: legacy.items), owner: owner)
+        let lease = try store.beginSavedAssembly(owner); try await prepareSaved(store, lease: lease, facts: [])
+        let container = try ModelContainer(for: GuestDataStore.schema, configurations: [ModelConfiguration(schema: GuestDataStore.schema, url: url)]), setup = ModelContext(container)
+        let row = try XCTUnwrap(setup.fetch(FetchDescriptor<GuestLibraryPartition>()).first); var state = try JSONDecoder().decode(LibraryPartitionState.self, from: row.stateData)
+        state.confirmed = [
+            .init(change: .init(command: .notePut(.init(hadithId: "covered", content: "Already observed", createdAt: 1, updatedAt: 1)), at: 1, source: .account(nil)), outcome: .preserved, version: 9),
+            .init(change: .init(command: .notePut(.init(hadithId: "not-covered", content: "Retain me", createdAt: 2, updatedAt: 2)), at: 2, source: .account(nil)), outcome: .preserved, version: 10)]
+        row.stateData = try JSONEncoder().encode(state); row.revision += 1; try setup.save()
+        try store.enqueueSyncChange(.init(command: .bookmarkAdd(.init(hadithId: "pending", createdAt: 3)), at: 3, source: .account(nil)), owner: owner)
+        let old = try store.beginSavedViewBuild(lease); _ = try store.advanceSavedViewBuild(old); _ = try store.freezeSyncFrame(owner)
+        XCTAssertThrowsError(try store.advanceSavedViewBuild(old)); let session = try store.captureSavedViewBuild(old.identity)
+        var record = try store.savedViewBuildProgress(session).1
+        while record.phase != .prepared { record = try store.advanceSavedViewBuild(session) }
+        let stamp = try store.savedViewBuildProgress(session).0
+        XCTAssertNil(try store.draftSavedViewItem(stamp, target: "covered")); XCTAssertNil(try store.draftSavedViewItem(stamp, target: "target-0"))
+        XCTAssertEqual(try store.draftSavedViewItem(stamp, target: "not-covered")?.value.noteContent, "Retain me"); XCTAssertNotNil(try store.draftSavedViewItem(stamp, target: "pending"))
+        let fresh = ModelContext(container), partition = try XCTUnwrap(fresh.fetch(FetchDescriptor<GuestLibraryPartition>()).first)
+        var changed = try JSONDecoder().decode(LibraryPartitionState.self, from: partition.stateData); changed.folderMappings = ["new-alias": "server-folder"]
+        partition.stateData = try JSONEncoder().encode(changed); partition.revision += 1; try fresh.save()
+        XCTAssertThrowsError(try store.captureSavedViewBuild(old.identity)); XCTAssertNotNil(try store.draftSavedViewItem(stamp, target: "pending")); XCTAssertEqual(try store.syncPartition(owner)?.frozen?.changes.count, 1)
+    }
+    @MainActor func testViewBuildCursorRowsIndexesAndClockRollbackTogether() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true); defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("rollback-build.store"), owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a"), store = GuestDataStore(storeURL: url)
+        try store.claimGuestForSync(owner); let lease = try store.beginSavedAssembly(owner)
+        try await prepareSaved(store, lease: lease, facts: [.folder(.init(sourceId: "folder", ordinal: 0, value: .init(_id: "folder", name: "Private folder", createdAt: 1)))])
+        let active = try await activateSaved(store, lease); _ = try store.beginSavedAssembly(owner)
+        XCTAssertEqual(try store.activeSavedGeneration(owner), active)
+        try store.enqueueSyncChange(.init(command: .folderDelete(.init(folder: .server(.init(id: "folder")))), at: 2, source: .account(nil)), owner: owner)
+        let session = try store.beginSavedViewBuild(lease), before = try store.savedViewBuildProgress(session)
+        let container = try ModelContainer(for: GuestDataStore.schema, configurations: [ModelConfiguration(schema: GuestDataStore.schema, url: url)]), setup = ModelContext(container)
+        let clock = try XCTUnwrap(setup.fetch(FetchDescriptor<GuestOutcomeClock>()).first), revision = clock.revision; clock.revision = 9_007_199_254_740_990; try setup.save()
+        let fence = try await store.prepareOutcomeExport(owner, isCurrent: { true })
+        XCTAssertThrowsError(try store.advanceSavedViewBuild(session)); XCTAssertEqual(try store.savedViewBuildProgress(session).0, before.0); XCTAssertEqual(try store.savedViewBuildProgress(session).1, before.1)
+        let read = ModelContext(container); XCTAssertEqual(try read.fetchCount(FetchDescriptor<GuestSavedViewRow>()), 0); XCTAssertEqual(try read.fetchCount(FetchDescriptor<GuestSavedViewIndex>()), 0); XCTAssertNoThrow(try store.validateOutcomeExport(fence))
+        clock.revision = revision; try setup.save(); _ = try store.advanceSavedViewBuild(session)
+        XCTAssertEqual(try ModelContext(container).fetchCount(FetchDescriptor<GuestSavedViewRow>()), 1)
+        let stale = try store.captureSavedViewBuild(session.identity)
+        let base = try store.savedViewBuildProgress(session)
+        clock.revision = 9_007_199_254_740_990; try setup.save()
+        let checkpointFence = try await store.prepareOutcomeExport(owner, isCurrent: { true })
+        XCTAssertThrowsError(try store.advanceSavedViewBuild(session)); XCTAssertEqual(try store.savedViewBuildProgress(session).0, base.0); XCTAssertEqual(try store.savedViewBuildProgress(session).1, base.1)
+        XCTAssertTrue(session.bindings.isEmpty); XCTAssertEqual(try ModelContext(container).fetchCount(FetchDescriptor<GuestSavedViewRow>()), 1); XCTAssertNoThrow(try store.validateOutcomeExport(checkpointFence))
+        clock.revision = revision; try setup.save()
+        let partition = try XCTUnwrap(setup.fetch(FetchDescriptor<GuestLibraryPartition>()).first), original = partition.stateData
+        partition.stateData = Data([0]); try setup.save()
+        do { _ = try store.advanceSavedViewBuild(session) } catch { partition.stateData = original; try setup.save(); throw error }
+        partition.stateData = original; try setup.save()
+        XCTAssertEqual(session.bindings.count, 1); XCTAssertEqual(try ModelContext(container).fetchCount(FetchDescriptor<GuestSavedViewRow>()), 0)
+        XCTAssertThrowsError(try store.advanceSavedViewBuild(stale)); _ = try store.advanceSavedViewBuild(store.captureSavedViewBuild(stale.identity))
+        let revisionBeforePoison = partition.revision; partition.revision = -1; try setup.save()
+        XCTAssertThrowsError(try store.enqueueSyncChange(.init(command: .bookmarkRemove(.init(hadithId: "unadmitted")), at: 3, source: .account(nil)), owner: owner))
+        XCTAssertEqual(try ModelContext(container).fetch(FetchDescriptor<GuestLibraryPartition>()).first?.stateData, original)
+        partition.revision = revisionBeforePoison; try setup.save()
+    }
     private func viewState(_ owner: LibrarySyncOwner, count: Int) -> LibraryPartitionState {
         let folders = (0..<70).map { SyncFolderRow(_id: "folder-\($0)", name: "Folder \($0)", createdAt: 1_000 + Double($0)) }
         let items = (0..<count).map { i -> SyncSavedItem in
@@ -301,6 +400,7 @@ final class GuestMergePlannerTests: XCTestCase {
         let identity = LibrarySavedViewIdentity(owner: .init(key: "owner-a", subject: "subject-a"), epoch: "epoch", generation: "generation")
         XCTAssertEqual(identity.key, vectors.identity)
         XCTAssertEqual(try LibrarySavedViewManifest.make(identity, source: vectors.manifestSource), vectors.manifest)
+        XCTAssertThrowsError(try LibrarySavedViewManifest(items: 1, folders: 0, indexes: 1, digest: String(repeating: "0", count: 64), bindings: Int.max).validate())
         let item = SavedPrivateItem(hadithId: "target-Ω", createdAt: 1, updatedAt: 4500.5, bookmarkCreatedAt: nil, favoriteCreatedAt: nil, noteContent: nil, noteCreatedAt: nil, noteUpdatedAt: nil, folderId: nil, folderUpdatedAt: nil)
         XCTAssertEqual(try LibrarySavedViewPolicy.rank(item), vectors.rank)
         XCTAssertEqual(identity.queryPrefix(.init(facet: .bookmarks, folder: .folder("folder"), collection: "bukhari")), vectors.prefix)

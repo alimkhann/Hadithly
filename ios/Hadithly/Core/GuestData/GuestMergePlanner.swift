@@ -262,6 +262,7 @@ enum LibraryLocalSource: Codable, Equatable, Sendable {
 struct LibraryLocalChange: Codable, Equatable, Sendable {
     let operation: SyncOperation
     let source: LibraryLocalSource
+    init(operation: SyncOperation, source: LibraryLocalSource) { self.operation = operation; self.source = source }
     init(command: SyncCommand, at: Double, source: LibraryLocalSource) {
         operation = SyncOperation(id: UUID().uuidString, revision: UUID().uuidString, at: at, command: command)
         self.source = source
@@ -1949,10 +1950,11 @@ struct LibrarySavedViewManifest: Codable, Equatable, Sendable {
     let folders: Int
     let indexes: Int
     let digest: String
+    var bindings: Int? = nil
     static var initialDigest: String { LibraryOutcomeBinding.hash(["saved-view-manifest-v1"]) }
     func validate() throws {
         guard [items, folders, indexes].allSatisfy({ (0...9_007_199_254_740_990).contains($0) }),
-              digest.count == 64, digest.allSatisfy({ "0123456789abcdef".contains($0) }), indexes <= items * 16 + folders * 2 else { throw LibrarySyncFailure.invalidReceipt }
+              digest.count == 64, digest.allSatisfy({ "0123456789abcdef".contains($0) }), (0...indexes).contains(bindings ?? 0), indexes <= items * 16 + folders * 2 + (bindings ?? 0) else { throw LibrarySyncFailure.invalidReceipt }
     }
     static func make(_ identity: LibrarySavedViewIdentity, source: LibrarySavedViewSnapshot) throws -> Self {
         var rows: [String: String] = [:], indexes = 0
@@ -1990,5 +1992,105 @@ struct LibrarySavedViewAudit: Codable, Equatable, Sendable {
               after.map({ $0.utf8.count <= 1024 && $0.hasPrefix(stamp.identity.key + ":") }) ?? true else { throw LibrarySyncFailure.invalidReceipt }
         if phase != .rows { guard items == manifest.items, folders == manifest.folders, digest == manifest.digest else { throw LibrarySyncFailure.invalidReceipt } }
         if phase == .verified { guard indexes == manifest.indexes, after == nil else { throw LibrarySyncFailure.invalidReceipt } }
+    }
+}
+
+
+struct LibrarySavedReplayEntry: Codable, Equatable, Sendable { let operation: SyncOperation; let outcome: SyncOutcome?; let route: String? }
+struct LibrarySavedReplayCut: Sendable {
+    let entries: [LibrarySavedReplayEntry]
+    let mappings: [String: String]
+    let routes: [String: String]
+    let prefixes: [String]
+    @MainActor init(_ state: LibraryPartitionState, source: LibrarySavedGenerationRecord) throws {
+        try source.validate(scope: source.lease, prepared: true)
+        guard let version = source.checkpoint.position?.version else { throw LibrarySyncFailure.invalidReceipt }
+        guard state.savedSnapshot == nil || state.savedSnapshot?.ownerKey == source.lease.owner.key else { throw LibrarySyncFailure.ownerMismatch }
+        let collecting = state.collectingOutcome
+        let frozen = (state.frozen?.changes ?? []).filter { change in
+            guard !change.operation.command.isPositionChange else { return false }
+            guard let collecting else { return true }
+            if case .folderDelete = change.operation.command { return version < collecting.committed.revision.saved }; return false
+        }
+        let changes: [(LibraryLocalChange, SyncOutcome?)] = state.confirmed.filter { !$0.change.operation.command.isPositionChange && $0.version > version }.map { ($0.change, $0.outcome) } + frozen.map { ($0, nil) } + state.pending.filter { !$0.operation.command.isPositionChange }.map { ($0, nil) }
+        entries = try changes.map { change, outcome in
+            guard LibrarySyncAdmission.accepts(change.operation.command, at: change.operation.at) else { throw LibrarySyncFailure.invalidChange }
+            let target = LibrarySavedViewPolicy.target(change.operation.command), reference = change.source.reference
+            return .init(operation: change.operation, outcome: outcome, route: reference?.hadithId == target ? reference?.collectionSlug : nil)
+        }
+        guard Set(entries.map { $0.operation.id }).count == entries.count else { throw LibrarySyncFailure.invalidReceipt }
+        mappings = state.folderMappings
+        var routes: [String: String] = [:]
+        for row in state.savedSnapshot?.items ?? [] where row.hadith._id == row.hadithId && !row.hadith.collectionSlug.isEmpty { routes[row.hadithId] = row.hadith.collectionSlug }
+        self.routes = routes
+        let mappingsDigest = try LibrarySemanticFingerprint.digest(mappings, domain: "saved-build-mappings-v1:"), routesDigest = try LibrarySemanticFingerprint.digest(routes, domain: "saved-build-routes-v1:")
+        var prefixes = [LibraryOutcomeBinding.hash(["saved-build-cut-v1", mappingsDigest, routesDigest])]
+        for entry in entries { prefixes.append(LibraryOutcomeBinding.hash([prefixes[prefixes.count - 1], try LibrarySemanticFingerprint.digest(entry, domain: "saved-build-entry-v1:")])) }
+        self.prefixes = prefixes
+    }
+    @MainActor func item(_ base: SavedPrivateItem?, target: String, bindings: [Int: String]) throws -> LibrarySavedViewItem? {
+        var value = base.map { LibrarySavedViewItem(value: $0, collectionSlug: routes[target]) }
+        for (index, entry) in entries.enumerated() {
+            let command = entry.operation.command, at = entry.operation.at
+            if LibrarySavedViewPolicy.target(command) == target {
+                value = try LibrarySavedViewPolicy.point(value, change: .init(operation: entry.operation, source: .account(nil)), outcome: entry.outcome, mappings: mappings, route: entry.route)
+            } else {
+                switch command {
+                case .folderDelete:
+                    guard let folder = bindings[index] else { throw LibrarySyncFailure.invalidReceipt }
+                    if let item = value, !folder.isEmpty, item.value.folderId == folder { value = LibrarySavedViewPolicy.deleted(item, operation: entry.operation.id, at: at) }
+                case .folderRestore(let command):
+                    guard let folder = bindings[index] else { throw LibrarySyncFailure.invalidReceipt }
+                    if let item = value {
+                        let matches: Bool
+                        if case .folderRestored(let result) = entry.outcome { matches = result.restored.contains(target) }
+                        else if command.hadithIds.isEmpty { matches = item.removedBy == command.deletionId && item.value.folderId == nil && item.mask != 0 }
+                        else { matches = command.hadithIds.contains(target) }
+                        if matches { value = LibrarySavedViewPolicy.restored(item, folder: folder, at: at) }
+                    }
+                default: break
+                }
+            }
+        }
+        return value
+    }
+}
+enum LibrarySavedBuildPhase: String, Codable, Sendable { case folders, folderCommands, items, pointTargets, manifest, audit, prepared }
+struct LibrarySavedBuildRecord: Codable, Equatable, Sendable {
+    let source: LibrarySavedGenerationRecord
+    var accountRevision: Int
+    var commandCount: Int
+    var cutDigest: String
+    var phase: LibrarySavedBuildPhase = .folders
+    var after: String?
+    var commandNext: Int = 0
+    var seen = LibrarySavedCounts()
+    var expected = LibrarySavedCounts()
+    var bindings: Int = 0
+    var manifest: LibrarySavedViewManifest?
+    func validate(_ identity: LibrarySavedViewIdentity) throws {
+        try source.validate(scope: source.lease, prepared: true)
+        guard source.lease.owner == identity.owner, source.lease.epoch == identity.epoch, (0...9_007_199_254_740_990).contains(accountRevision), commandCount >= 0, (0...commandCount).contains(commandNext), cutDigest.count == 64,
+              (0...source.checkpoint.counts.items).contains(seen.items), (0...source.checkpoint.counts.folders).contains(seen.folders), (0...9_007_199_254_740_990).contains(expected.items), (0...9_007_199_254_740_990).contains(expected.folders), (0...commandCount).contains(bindings) else { throw LibrarySyncFailure.invalidReceipt }
+        try manifest?.validate()
+    }
+}
+@MainActor final class LibrarySavedBuildSession {
+    let identity: LibrarySavedViewIdentity
+    let revision: Int
+    let cut: LibrarySavedReplayCut
+    var bindings: [Int: String]
+    init(identity: LibrarySavedViewIdentity, revision: Int, cut: LibrarySavedReplayCut, bindings: [Int: String]) { self.identity = identity; self.revision = revision; self.cut = cut; self.bindings = bindings }
+}
+enum LibrarySavedBuildChanged: Error { case sourceChanged }
+
+struct LibrarySavedBuildBinding: Codable, Sendable {
+    let folder: String
+    let digest: String
+    init(identity: LibrarySavedViewIdentity, index: Int, cut: LibrarySavedReplayCut, folder: String) {
+        self.folder = folder; digest = LibraryOutcomeBinding.hash([identity.key, String(index), cut.prefixes[index + 1], folder])
+    }
+    func validate(_ identity: LibrarySavedViewIdentity, index: Int, cut: LibrarySavedReplayCut) throws {
+        guard folder.utf8.count <= 128, digest == LibraryOutcomeBinding.hash([identity.key, String(index), cut.prefixes[index + 1], folder]) else { throw LibrarySyncFailure.invalidReceipt }
     }
 }

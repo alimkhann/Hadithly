@@ -308,6 +308,7 @@ final class GuestLibraryPartition {
     @Attribute(.unique) var ownerKey: String
     var subject: String
     var stateData: Data
+    var revision: Int = 0
     init(ownerKey: String, subject: String, stateData: Data) {
         self.ownerKey = ownerKey
         self.subject = subject
@@ -543,6 +544,7 @@ final class GuestSavedViewHead {
     var identityData: Data
     var serial: Int
     var auditData: Data? = nil
+    var buildData: Data? = nil
     var retiring: Bool = false
     init(_ identity: LibrarySavedViewIdentity) throws {
         key = identity.key; scopeKey = identity.scope; subject = identity.owner.subject; namespace = identity.owner.namespace; ownerKey = identity.owner.storageKey

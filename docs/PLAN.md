@@ -57,6 +57,18 @@ start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
 
+## A2 private-source build checkpoint, October 24
+
+Both native stores now compile an actual prepared private generation plus a bound
+Saved edit cut into resumable indexed drafts. Appended delete/Undo and point edits
+catch up after partial compilation and reopen; stale account revisions and changed
+non-prefix inputs reject. A 2,001-item source yields the expected 2,002 final rows
+without publishing. Full local checks pass 140 iOS, 129 Android connected and 212
+Android unit tests. See `docs/LIBRARY_SAVED_BUILD_VERIFICATION.md`. Final captured
+transport completion, atomic private/view/mode/queue publication, runtime scheduling
+and both UI switches remain next. Queue replay/bulk latency, device/deployment/
+scale/iOS save-failure and A1 gates stay open. Production row mode remains off.
+
 ## A2 draft integrity and discard checkpoint, October 24
 
 Both native stores now persist/resume a serial-bound integrity audit of a compiled

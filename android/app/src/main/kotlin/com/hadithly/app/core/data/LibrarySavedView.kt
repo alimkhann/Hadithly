@@ -78,11 +78,11 @@ object LibrarySavedViewPolicy {
         is SyncCommand.MembershipPut -> command.hadithId; is SyncCommand.FacetRestore -> command.hadithId
         is SyncCommand.FolderCreate, is SyncCommand.FolderDelete, is SyncCommand.FolderRestore, is SyncCommand.PositionPut, is SyncCommand.LegacyPositionPut -> null
     }
-    fun point(current: LibrarySavedViewItem?, change: LibraryLocalChange, outcome: SyncOutcome?, mappings: Map<String, String>): LibrarySavedViewItem? {
+    fun point(current: LibrarySavedViewItem?, change: LibraryLocalChange, outcome: SyncOutcome?, mappings: Map<String, String>, route: String? = change.source.reference?.takeIf { it.hadithId == target(change.operation.command) }?.collectionSlug?.takeIf { it.isNotEmpty() }): LibrarySavedViewItem? {
         val command = change.operation.command; val target = target(command) ?: throw LibrarySyncFailure.InvalidChange
         if (current != null && current.value.hadithId != target) throw LibrarySyncFailure.OwnerMismatch
         val at = change.operation.at
-        var item = current ?: LibrarySavedViewItem(SavedPrivateItem(target, at, at), change.source.reference?.takeIf { it.hadithId == target }?.collectionSlug?.takeIf { it.isNotEmpty() })
+        var item = current ?: LibrarySavedViewItem(SavedPrivateItem(target, at, at), route)
         val value = item.value
         fun folder(reference: SyncFolderReference): String? = when (reference) { SyncFolderReference.None -> null; is SyncFolderReference.Server -> reference.id; is SyncFolderReference.Local -> mappings[reference.key] ?: "local:${reference.key}" }
         item = when (command) {
@@ -158,9 +158,9 @@ data class LibrarySavedViewFolderPage(val stamp: LibrarySavedViewStamp, val fold
 
 /** Integrity of one compiled snapshot, never proof of current server/queue coverage. */
 @Serializable
-data class LibrarySavedViewManifest(val items: Long, val folders: Long, val indexes: Long, val digest: String) {
+data class LibrarySavedViewManifest(val items: Long, val folders: Long, val indexes: Long, val digest: String, val bindings: Long? = null) {
     fun validate() {
-        if (listOf(items, folders, indexes).any { it !in 0..9_007_199_254_740_990L } || !digest.matches(Regex("[0-9a-f]{64}")) || indexes > items * 16 + folders * 2) throw LibrarySyncFailure.InvalidReceipt
+        if (listOf(items, folders, indexes).any { it !in 0..9_007_199_254_740_990L } || !digest.matches(Regex("[0-9a-f]{64}")) || (bindings ?: 0) !in 0..indexes || indexes > items * 16 + folders * 2 + (bindings ?: 0)) throw LibrarySyncFailure.InvalidReceipt
     }
     companion object {
         val initialDigest: String get() = LibraryOutcomeBinding.hash(listOf("saved-view-manifest-v1"))
@@ -196,5 +196,85 @@ data class LibrarySavedViewAudit(val serial: Long, val manifest: LibrarySavedVie
         if (after != null && (after.toByteArray().size > 1024 || !after.startsWith(stamp.identity.key + ":"))) throw LibrarySyncFailure.InvalidReceipt
         if (phase != LibrarySavedViewAuditPhase.Rows && (items != manifest.items || folders != manifest.folders || digest != manifest.digest)) throw LibrarySyncFailure.InvalidReceipt
         if (phase == LibrarySavedViewAuditPhase.Verified && (indexes != manifest.indexes || after != null)) throw LibrarySyncFailure.InvalidReceipt
+    }
+}
+
+
+@Serializable
+data class LibrarySavedReplayEntry(val operation: SyncOperation, val outcome: SyncOutcome? = null, val route: String? = null)
+class LibrarySavedReplayCut internal constructor(val entries: List<LibrarySavedReplayEntry>, val mappings: Map<String, String>, val routes: Map<String, String>) {
+    val mappingDigest = librarySemanticDigest(kotlinx.serialization.json.Json.encodeToJsonElement(kotlinx.serialization.builtins.MapSerializer(kotlinx.serialization.serializer<String>(), kotlinx.serialization.serializer<String>()), mappings), "saved-build-mappings-v1:")
+    val routeDigest = librarySemanticDigest(kotlinx.serialization.json.Json.encodeToJsonElement(kotlinx.serialization.builtins.MapSerializer(kotlinx.serialization.serializer<String>(), kotlinx.serialization.serializer<String>()), routes), "saved-build-routes-v1:")
+    val prefixes: List<String> = buildList {
+        add(LibraryOutcomeBinding.hash(listOf("saved-build-cut-v1", mappingDigest, routeDigest)))
+        val json = kotlinx.serialization.json.Json { encodeDefaults = true; explicitNulls = false }
+        for (entry in entries) add(LibraryOutcomeBinding.hash(listOf(last(), librarySemanticDigest(json.encodeToJsonElement(LibrarySavedReplayEntry.serializer(), entry), "saved-build-entry-v1:"))))
+    }
+    companion object {
+        fun capture(state: LibraryPartitionState, source: LibrarySavedGenerationRecord): LibrarySavedReplayCut {
+            source.validate(source.lease, true); val version = source.checkpoint.position?.version ?: throw LibrarySyncFailure.InvalidReceipt
+            if (state.savedSnapshot?.ownerKey?.let { it != source.lease.owner.key } == true) throw LibrarySyncFailure.OwnerMismatch
+            val values = state.confirmed.filter { !it.change.operation.command.isPositionChange && it.version > version }.map { it.change to it.outcome } +
+                state.frozen?.changes.orEmpty().filter { !it.operation.command.isPositionChange && (state.collectingOutcome == null || it.operation.command is SyncCommand.FolderDelete && version < state.collectingOutcome!!.committed.revision.saved) }.map { it to null } +
+                state.pending.filter { !it.operation.command.isPositionChange }.map { it to null }
+            val entries = values.map { (change, outcome) ->
+                if (!LibrarySyncAdmission.accepts(change.operation.command, change.operation.at)) throw LibrarySyncFailure.InvalidChange
+                val target = LibrarySavedViewPolicy.target(change.operation.command)
+                LibrarySavedReplayEntry(change.operation, outcome, change.source.reference?.takeIf { it.hadithId == target }?.collectionSlug?.takeIf { it.isNotEmpty() })
+            }
+            if (entries.map { it.operation.id }.toSet().size != entries.size) throw LibrarySyncFailure.InvalidReceipt
+            val routes = state.savedSnapshot?.items.orEmpty().mapNotNull { row -> row.hadith.takeIf { it._id == row.hadithId && it.collectionSlug.isNotEmpty() }?.let { row.hadithId to it.collectionSlug } }.toMap()
+            return LibrarySavedReplayCut(entries, state.folderMappings.toMap(), routes)
+        }
+    }
+    fun item(base: SavedPrivateItem?, target: String, bindings: Map<Int, String>): LibrarySavedViewItem? {
+        var value = base?.let { LibrarySavedViewItem(it, routes[target]) }
+        for ((index, entry) in entries.withIndex()) {
+            val command = entry.operation.command; val at = entry.operation.at
+            if (LibrarySavedViewPolicy.target(command) == target) {
+                val change = LibraryLocalChange(entry.operation, LibraryLocalSource.Account(null))
+                value = LibrarySavedViewPolicy.point(value, change, entry.outcome, mappings, entry.route)
+            } else when (command) {
+                is SyncCommand.FolderDelete -> {
+                    val folder = bindings[index] ?: throw LibrarySyncFailure.InvalidReceipt
+                    value?.let { if (folder.isNotEmpty() && it.value.folderId == folder) value = LibrarySavedViewPolicy.deleted(it, entry.operation.id, at) }
+                }
+                is SyncCommand.FolderRestore -> {
+                    val folder = bindings[index] ?: throw LibrarySyncFailure.InvalidReceipt
+                    val result = entry.outcome as? SyncOutcome.FolderRestored
+                    value?.let { item ->
+                        val matches = if (result != null) target in result.restored else if (command.hadithIds.isEmpty()) item.removedBy == command.deletionId && item.value.folderId == null && item.mask != 0 else target in command.hadithIds
+                        if (matches) value = LibrarySavedViewPolicy.restored(item, folder, at)
+                    }
+                }
+                else -> Unit
+            }
+        }
+        return value
+    }
+}
+@Serializable
+enum class LibrarySavedBuildPhase { Folders, FolderCommands, Items, PointTargets, Manifest, Audit, Prepared }
+@Serializable
+data class LibrarySavedBuildRecord(val source: LibrarySavedGenerationRecord, val accountRevision: Long, val commandCount: Int, val cutDigest: String,
+    val phase: LibrarySavedBuildPhase = LibrarySavedBuildPhase.Folders, val after: String? = null, val commandNext: Int = 0,
+    val seen: LibrarySavedCounts = LibrarySavedCounts(), val expected: LibrarySavedCounts = LibrarySavedCounts(),
+    val bindings: Long = 0, val manifest: LibrarySavedViewManifest? = null) {
+    fun validate(identity: LibrarySavedViewIdentity) {
+        source.validate(source.lease, true)
+        if (source.lease.owner != identity.owner || source.lease.epoch != identity.epoch || accountRevision !in 0..9_007_199_254_740_990L || commandCount < 0 || commandNext !in 0..commandCount || cutDigest.length != 64 || seen.items !in 0..source.checkpoint.counts.items || seen.folders !in 0..source.checkpoint.counts.folders || expected.items !in 0..9_007_199_254_740_990L || expected.folders !in 0..9_007_199_254_740_990L || bindings !in 0..commandCount.toLong()) throw LibrarySyncFailure.InvalidReceipt
+        manifest?.validate()
+    }
+}
+class LibrarySavedBuildSession internal constructor(val identity: LibrarySavedViewIdentity, val revision: Long, val cut: LibrarySavedReplayCut, internal val bindings: MutableMap<Int, String>)
+class LibrarySavedBuildChanged : Exception()
+
+@Serializable
+internal data class LibrarySavedBuildBinding(val folder: String, val digest: String) {
+    fun validate(identity: LibrarySavedViewIdentity, index: Int, cut: LibrarySavedReplayCut) {
+        if (folder.toByteArray().size > 128 || digest != LibraryOutcomeBinding.hash(listOf(identity.key, index.toString(), cut.prefixes[index + 1], folder))) throw LibrarySyncFailure.InvalidReceipt
+    }
+    companion object {
+        fun make(identity: LibrarySavedViewIdentity, index: Int, cut: LibrarySavedReplayCut, folder: String) = LibrarySavedBuildBinding(folder, LibraryOutcomeBinding.hash(listOf(identity.key, index.toString(), cut.prefixes[index + 1], folder)))
     }
 }

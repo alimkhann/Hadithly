@@ -26,7 +26,9 @@ cutover design and concentrate remaining work into these delivery steps:
    with 134 iOS/123 Android tests; see `LIBRARY_SAVED_VIEW_DRAFT_VERIFICATION.md`.
    Compiled-input integrity and bounded draft discard now pass 137 iOS/126 Android
    checks; see `LIBRARY_SAVED_VIEW_INTEGRITY_VERIFICATION.md`. Bind a persisted build
-   to private/queue coverage, catch up accepted edits and publish atomically,
+   to private/queue coverage and catch up accepted edits. This builder now passes
+   140 iOS/129 Android checks; see `LIBRARY_SAVED_BUILD_VERIFICATION.md`. Complete
+   final transport validation, runtime scheduling and atomic publication,
    then connect both Saved/Reader surfaces and independent public hydration. Remove
    the old production joined-array authority. Draft storage is not published UI.
 3. Verify scale, installed/SDK compatibility and actual delivery in both directions,

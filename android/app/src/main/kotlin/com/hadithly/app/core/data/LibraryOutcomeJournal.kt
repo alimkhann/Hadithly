@@ -139,7 +139,7 @@ data class LibraryExportArtifact(val id: String, val directory: File)
 private val savedJournalJson = Json { encodeDefaults = true; explicitNulls = false }
 
 /** Shared transaction boundary for account state, retained page evidence and erase fences. */
-internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(context, File(context.filesDir, "library_outcomes.db").absolutePath, null, 8) {
+internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(context, File(context.filesDir, "library_outcomes.db").absolutePath, null, 9) {
     override fun onConfigure(db: SQLiteDatabase) { db.setForeignKeyConstraintsEnabled(true) }
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE scopes (scope_key TEXT PRIMARY KEY NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, generation TEXT NOT NULL)")
@@ -154,7 +154,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         createSavedViewSchema(db)
     }
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        if (oldVersion !in 1..7 || newVersion != 8) throw LibrarySyncFailure.StoreUnavailable
+        if (oldVersion !in 1..8 || newVersion != 9) throw LibrarySyncFailure.StoreUnavailable
         if (oldVersion == 1) createExportSchema(db, ready = false)
         if (oldVersion <= 2) createSavedSchema(db)
         else if (oldVersion <= 5) {
@@ -167,8 +167,11 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         if (oldVersion <= 4) createLocalStoreSchema(db)
         if (oldVersion <= 6) createSavedViewSchema(db)
         else {
-            db.execSQL("ALTER TABLE saved_view_heads ADD COLUMN audit TEXT")
-            db.execSQL("ALTER TABLE saved_view_heads ADD COLUMN retiring INTEGER NOT NULL DEFAULT 0")
+            if (oldVersion == 7) {
+                db.execSQL("ALTER TABLE saved_view_heads ADD COLUMN audit TEXT")
+                db.execSQL("ALTER TABLE saved_view_heads ADD COLUMN retiring INTEGER NOT NULL DEFAULT 0")
+            }
+            db.execSQL("ALTER TABLE saved_view_heads ADD COLUMN build TEXT")
         }
     }
     private fun createSavedSchema(db: SQLiteDatabase) {
@@ -922,7 +925,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
 
     // Derived draft storage. These reads do not certify completeness or publish a user library.
     private fun createSavedViewSchema(db: SQLiteDatabase) {
-        db.execSQL("CREATE TABLE saved_view_heads (key TEXT PRIMARY KEY NOT NULL, scope_key TEXT NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, identity_data TEXT NOT NULL, serial INTEGER NOT NULL, audit TEXT, retiring INTEGER NOT NULL DEFAULT 0)")
+        db.execSQL("CREATE TABLE saved_view_heads (key TEXT PRIMARY KEY NOT NULL, scope_key TEXT NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, identity_data TEXT NOT NULL, serial INTEGER NOT NULL, audit TEXT, retiring INTEGER NOT NULL DEFAULT 0, build TEXT)")
         db.execSQL("CREATE INDEX saved_view_heads_scope ON saved_view_heads(scope_key,key)")
         db.execSQL("CREATE TABLE saved_view_rows (key TEXT PRIMARY KEY NOT NULL, view_key TEXT NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, kind INTEGER NOT NULL, data TEXT NOT NULL, fingerprint TEXT NOT NULL)")
         db.execSQL("CREATE TABLE saved_view_indexes (key TEXT PRIMARY KEY NOT NULL, view_key TEXT NOT NULL, subject TEXT NOT NULL, namespace TEXT NOT NULL, owner_key TEXT NOT NULL, target_key TEXT NOT NULL)")
@@ -942,7 +945,8 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         }
     }
     internal fun draftSavedViewStamp(identity: LibrarySavedViewIdentity): LibrarySavedViewStamp = transaction { viewHead(it, identity) }
-    internal fun createSavedViewRows(privateScope: LibrarySavedLease): LibrarySavedViewStamp = transaction { db ->
+    internal fun createSavedViewRows(privateScope: LibrarySavedLease): LibrarySavedViewStamp = transaction { createViewRows(it, privateScope) }
+    private fun createViewRows(db: SQLiteDatabase, privateScope: LibrarySavedLease): LibrarySavedViewStamp {
         val identity = LibrarySavedViewIdentity(privateScope.owner, privateScope.epoch, java.util.UUID.randomUUID().toString())
         assertLocalOwner(db, identity.owner); LibrarySavedLease(identity.owner, identity.epoch, identity.generation).validate()
         val scope = currentSavedScope(db, identity.owner) ?: throw LibrarySyncFailure.StoreUnavailable
@@ -951,7 +955,7 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
         db.rawQuery("SELECT key FROM saved_view_heads WHERE scope_key=? LIMIT 3", arrayOf(identity.scope)).use { if (it.count >= 3) throw LibrarySyncFailure.StoreUnavailable }
         db.insertOrThrow("saved_view_heads", null, ContentValues().apply {
             put("key", identity.key); put("scope_key", identity.scope); put("subject", identity.owner.subject); put("namespace", identity.owner.namespace); put("owner_key", identity.owner.storageKey); put("identity_data", viewJson.encodeToString(identity)); put("serial", 0)
-        }); bumpClock(db, identity.owner.subject, identity.owner.namespace); LibrarySavedViewStamp(identity, 0)
+        }); bumpClock(db, identity.owner.subject, identity.owner.namespace); return LibrarySavedViewStamp(identity, 0)
     }
     private fun viewRow(db: SQLiteDatabase, identity: LibrarySavedViewIdentity, key: String, kind: Int): String? =
         db.rawQuery("SELECT view_key,subject,namespace,owner_key,kind,data,fingerprint FROM saved_view_rows WHERE key=?", arrayOf(key)).use {
@@ -974,7 +978,8 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
             put("key", key); put("view_key", identity.key); put("subject", identity.owner.subject); put("namespace", identity.owner.namespace); put("owner_key", identity.owner.storageKey); put("target_key", target)
         }, SQLiteDatabase.CONFLICT_REPLACE).also { if (it == -1L) throw LibrarySyncFailure.StoreUnavailable }
     }
-    internal fun writeSavedViewRows(stamp: LibrarySavedViewStamp, items: List<LibrarySavedViewItem>, folders: List<SyncFolderRow> = emptyList()): LibrarySavedViewStamp = transaction { db ->
+    internal fun writeSavedViewRows(stamp: LibrarySavedViewStamp, items: List<LibrarySavedViewItem>, folders: List<SyncFolderRow> = emptyList()): LibrarySavedViewStamp = transaction { writeViewRows(it, stamp, items, folders) }
+    private fun writeViewRows(db: SQLiteDatabase, stamp: LibrarySavedViewStamp, items: List<LibrarySavedViewItem>, folders: List<SyncFolderRow> = emptyList(), preserveBuild: Boolean = false): LibrarySavedViewStamp {
         val identity = stamp.identity
         if (viewHead(db, identity) != stamp) throw LibrarySavedViewChanged()
         if (stamp.serial >= 9_007_199_254_740_990L) throw LibrarySyncFailure.StoreUnavailable
@@ -1000,7 +1005,191 @@ internal class LibraryOutcomeJournal(context: Context) : SQLiteOpenHelper(contex
             for (prefix in listOf(identity.folderPrefix, identity.namePrefix(folder.name))) viewIndex(db, identity, prefix + LibrarySavedViewPolicy.folderRank(folder), key)
         }
         val next = stamp.copy(serial = stamp.serial + 1)
-        db.execSQL("UPDATE saved_view_heads SET serial=?,audit=NULL WHERE key=?", arrayOf<Any>(next.serial, identity.key)); bumpClock(db, identity.owner.subject, identity.owner.namespace); next
+        db.execSQL("UPDATE saved_view_heads SET serial=?,audit=NULL" + (if (preserveBuild) "" else ",build=NULL") + " WHERE key=?", arrayOf<Any>(next.serial, identity.key)); bumpClock(db, identity.owner.subject, identity.owner.namespace); return next
+    }
+    private fun buildRevision(db: SQLiteDatabase, owner: LibrarySyncOwner): Long {
+        assertLocalOwner(db, owner)
+        return db.rawQuery("SELECT revision FROM local_accounts WHERE key=?", arrayOf(owner.storageKey)).use {
+            if (!it.moveToFirst() || it.getType(0) != android.database.Cursor.FIELD_TYPE_INTEGER || it.getLong(0) !in 0..9_007_199_254_740_990L) throw LibrarySyncFailure.StoreUnavailable
+            it.getLong(0)
+        }
+    }
+    private fun buildSource(db: SQLiteDatabase, requested: LibrarySavedLease): LibrarySavedGenerationRecord {
+        assertLocalOwner(db, requested.owner)
+        val scope = currentSavedScope(db, requested.owner) ?: throw LibrarySavedBuildChanged()
+        if (scope.first == requested && scope.second.stage == LibrarySavedStage.Prepared) return LibrarySavedGenerationRecord(requested, scope.second)
+        val active = savedGenerations(db, scope.first, scope.second).first
+        if (active?.lease != requested) throw LibrarySavedBuildChanged()
+        return active
+    }
+    private fun buildRecord(db: SQLiteDatabase, identity: LibrarySavedViewIdentity): Pair<LibrarySavedViewStamp, LibrarySavedBuildRecord> {
+        val stamp = viewHead(db, identity)
+        val value = db.rawQuery("SELECT build FROM saved_view_heads WHERE key=?", arrayOf(identity.key)).use {
+            if (!it.moveToFirst() || it.isNull(0) || it.getString(0).toByteArray().size > 512 * 1024) throw LibrarySavedBuildChanged()
+            viewJson.decodeFromString<LibrarySavedBuildRecord>(it.getString(0))
+        }
+        value.validate(identity)
+        if (value.phase == LibrarySavedBuildPhase.Prepared) {
+            val audit = viewAudit(db, stamp) ?: throw LibrarySyncFailure.InvalidReceipt
+            if (audit.phase != LibrarySavedViewAuditPhase.Verified || audit.manifest != value.manifest) throw LibrarySyncFailure.InvalidReceipt
+        }
+        if (buildSource(db, value.source.lease) != value.source) throw LibrarySavedBuildChanged()
+        return stamp to value
+    }
+    private fun saveBuild(db: SQLiteDatabase, identity: LibrarySavedViewIdentity, value: LibrarySavedBuildRecord) {
+        value.validate(identity); val data = viewJson.encodeToString(value)
+        if (data.toByteArray().size > 512 * 1024) throw LibrarySyncFailure.StoreUnavailable
+        if (db.update("saved_view_heads", ContentValues().apply { put("build", data) }, "key=?", arrayOf(identity.key)) != 1) throw LibrarySyncFailure.SessionChanged
+        bumpClock(db, identity.owner.subject, identity.owner.namespace)
+    }
+    internal fun beginSavedViewBuild(source: LibrarySavedLease): LibrarySavedBuildSession = transaction { db ->
+        val record = buildSource(db, source); record.validate(source, true)
+        val revision = buildRevision(db, source.owner); val state = readLocalAccount(db, source.owner) ?: throw LibrarySyncFailure.SessionChanged
+        val cut = LibrarySavedReplayCut.capture(state, record); val stamp = createViewRows(db, source)
+        saveBuild(db, stamp.identity, LibrarySavedBuildRecord(record, revision, cut.entries.size, cut.prefixes.last()))
+        LibrarySavedBuildSession(stamp.identity, revision, cut, mutableMapOf())
+    }
+    internal fun captureSavedViewBuild(identity: LibrarySavedViewIdentity): LibrarySavedBuildSession = transaction { db ->
+        val (stamp, previous) = buildRecord(db, identity); val revision = buildRevision(db, identity.owner)
+        val cut = LibrarySavedReplayCut.capture(readLocalAccount(db, identity.owner) ?: throw LibrarySyncFailure.SessionChanged, previous.source)
+        if (previous.commandCount > cut.entries.size || cut.prefixes[previous.commandCount] != previous.cutDigest) throw LibrarySavedBuildChanged()
+        var next = previous.copy(accountRevision = revision, commandCount = cut.entries.size, cutDigest = cut.prefixes.last())
+        if (previous.commandCount != cut.entries.size && previous.phase !in listOf(LibrarySavedBuildPhase.Folders, LibrarySavedBuildPhase.FolderCommands)) {
+            next = next.copy(phase = LibrarySavedBuildPhase.FolderCommands, commandNext = previous.commandCount, after = null, seen = LibrarySavedCounts(), manifest = null)
+            db.execSQL("UPDATE saved_view_heads SET audit=NULL WHERE key=?", arrayOf(identity.key))
+        }
+        if (next != previous) saveBuild(db, identity, next)
+        val prefix = identity.key + ":b:"; var after: String? = null; val bindings = mutableMapOf<Int, String>()
+        while (true) {
+            val rows = viewIndexPage(db, identity, prefix, after, 128)
+            for ((key, target) in rows) {
+                val index = key.removePrefix(prefix).toIntOrNull(16) ?: throw LibrarySyncFailure.InvalidReceipt
+                if (index !in cut.entries.indices || key != bindingKey(identity, index) || LibrarySavedViewPolicy.target(cut.entries[index].operation.command) != null || cut.entries[index].operation.command.isPositionChange) throw LibrarySyncFailure.InvalidReceipt
+                if (target.toByteArray().size > 1024) throw LibrarySyncFailure.InvalidReceipt
+                val binding = viewJson.decodeFromString<LibrarySavedBuildBinding>(target); binding.validate(identity, index, cut)
+                bindings[index] = binding.folder
+            }
+            if (rows.size < 128) break
+            after = rows.last().first
+        }
+        if (bindings.size.toLong() != previous.bindings) throw LibrarySyncFailure.InvalidReceipt
+        LibrarySavedBuildSession(stamp.identity, revision, cut, bindings)
+    }
+    private fun bindingKey(identity: LibrarySavedViewIdentity, index: Int) = identity.key + ":b:" + index.toString(16).padStart(16, '0')
+    private fun checkBuild(db: SQLiteDatabase, session: LibrarySavedBuildSession): Pair<LibrarySavedViewStamp, LibrarySavedBuildRecord> {
+        val value = buildRecord(db, session.identity)
+        if (buildRevision(db, session.identity.owner) != session.revision || value.second.accountRevision != session.revision || value.second.commandCount != session.cut.entries.size || value.second.bindings != session.bindings.size.toLong() || value.second.cutDigest != session.cut.prefixes.last()) throw LibrarySavedBuildChanged()
+        return value
+    }
+    internal fun savedViewBuildProgress(session: LibrarySavedBuildSession): Pair<LibrarySavedViewStamp, LibrarySavedBuildRecord> = transaction { checkBuild(it, session) }
+    internal fun advanceSavedViewBuild(session: LibrarySavedBuildSession): LibrarySavedBuildRecord {
+        synchronized(session) {
+            val initial = transaction { checkBuild(it, session) }
+            if (initial.second.phase == LibrarySavedBuildPhase.Prepared) return initial.second
+            if (initial.second.phase == LibrarySavedBuildPhase.Audit) {
+                beginSavedViewAudit(initial.first, initial.second.manifest ?: throw LibrarySyncFailure.InvalidReceipt)
+                val audit = savedViewAuditStep(initial.first)
+                return transaction { db ->
+                    val (stamp, record) = checkBuild(db, session)
+                    if (stamp != initial.first) throw LibrarySavedBuildChanged()
+                    if (audit.phase != LibrarySavedViewAuditPhase.Verified) record else record.copy(phase = LibrarySavedBuildPhase.Prepared).also { saveBuild(db, session.identity, it) }
+                }
+            }
+            val updates = mutableMapOf<Int, String>()
+            val result = transaction { db ->
+                var (stamp, record) = checkBuild(db, session); val identity = session.identity; val cut = session.cut
+                fun put(item: LibrarySavedViewItem? = null, folder: SyncFolderRow? = null) {
+                    var expected = record.expected
+                    if (item != null) {
+                        val old = viewRow(db, identity, identity.itemKey(item.value.hadithId), 1)
+                        expected = expected.copy(items = expected.items + (if (item.mask != 0) 1 else 0) - (if (old != null) 1 else 0))
+                        stamp = writeViewRows(db, stamp, listOf(item), preserveBuild = true)
+                    } else if (folder != null) {
+                        if (viewRow(db, identity, identity.folderKey(folder._id), 0) == null) expected = expected.copy(folders = expected.folders + 1)
+                        stamp = writeViewRows(db, stamp, emptyList(), listOf(folder), preserveBuild = true)
+                    }
+                    record = record.copy(expected = expected)
+                }
+                fun folder(id: String): SyncFolderRow? = viewRow(db, identity, identity.folderKey(id), 0)?.let { viewJson.decodeFromString<SyncFolderRow>(it) }
+                when (record.phase) {
+                    LibrarySavedBuildPhase.Folders, LibrarySavedBuildPhase.Items -> {
+                        val phase = record.phase; val rows = savedProjectionRows(db, record.source.lease, record.after)
+                        for ((_, value) in rows) {
+                            record = record.copy(seen = record.seen.adding(value))
+                            if (phase == LibrarySavedBuildPhase.Folders && value is LibrarySavedProjection.Folder) put(folder = value.value)
+                            if (phase == LibrarySavedBuildPhase.Items && value is LibrarySavedProjection.Item) put(item = cut.item(value.value, value.value.hadithId, session.bindings))
+                        }
+                        record = record.copy(after = rows.lastOrNull()?.first ?: record.after)
+                        if (rows.size < savedStepLimit) {
+                            if (record.seen != record.source.checkpoint.counts) throw LibrarySyncFailure.InvalidReceipt
+                            record = record.copy(phase = if (phase == LibrarySavedBuildPhase.Folders) LibrarySavedBuildPhase.FolderCommands else LibrarySavedBuildPhase.PointTargets, after = null, commandNext = 0, seen = LibrarySavedCounts())
+                        }
+                    }
+                    LibrarySavedBuildPhase.FolderCommands -> {
+                        val end = record.commandNext + minOf(8, cut.entries.size - record.commandNext)
+                        for (index in record.commandNext until end) {
+                            val entry = cut.entries[index]; val command = entry.operation.command; val at = entry.operation.at
+                            val resolved: String = when (command) {
+                                is SyncCommand.FolderCreate -> {
+                                    val id = cut.mappings[command.key] ?: "local:${command.key}"; if (folder(id) == null) put(folder = SyncFolderRow(id, command.name, at)); id
+                                }
+                                is SyncCommand.FolderDelete -> {
+                                    val id = when (val ref = command.folder) { SyncFolderReference.None -> ""; is SyncFolderReference.Server -> ref.id; is SyncFolderReference.Local -> cut.mappings[ref.key] ?: "local:${ref.key}" }
+                                    if (id.isNotEmpty()) folder(id)?.let { old ->
+                                        for (prefix in listOf(identity.folderPrefix, identity.namePrefix(old.name))) db.delete("saved_view_indexes", "key=?", arrayOf(prefix + LibrarySavedViewPolicy.folderRank(old)))
+                                        db.delete("saved_view_rows", "key=?", arrayOf(identity.folderKey(id))); record = record.copy(expected = record.expected.copy(folders = record.expected.folders - 1))
+                                        if (stamp.serial >= 9_007_199_254_740_990L) throw LibrarySyncFailure.StoreUnavailable
+                                        stamp = stamp.copy(serial = stamp.serial + 1); db.execSQL("UPDATE saved_view_heads SET serial=?,audit=NULL WHERE key=?", arrayOf<Any>(stamp.serial, identity.key))
+                                    }; id
+                                }
+                                is SyncCommand.FolderRestore -> {
+                                    val result = entry.outcome as? SyncOutcome.FolderRestored
+                                    val match = viewIndexPage(db, identity, identity.namePrefix(command.name), null, 1).firstOrNull()?.second?.let { key -> viewRow(db, identity, key, 0)?.let { viewJson.decodeFromString<SyncFolderRow>(it) } }
+                                    val id = result?.folderId ?: match?._id ?: cut.mappings["restore:${command.deletionId}"] ?: "local:restore:${command.deletionId}"
+                                    if (folder(id) == null) put(folder = SyncFolderRow(id, command.name, at)); id
+                                }
+                                else -> continue
+                            }
+                            if (db.rawQuery("SELECT key FROM saved_view_indexes WHERE key=?", arrayOf(bindingKey(identity, index))).use { it.moveToFirst() }) throw LibrarySyncFailure.InvalidReceipt
+                            val binding = LibrarySavedBuildBinding.make(identity, index, cut, resolved); binding.validate(identity, index, cut)
+                            viewIndex(db, identity, bindingKey(identity, index), viewJson.encodeToString(binding)); updates[index] = resolved; record = record.copy(bindings = record.bindings + 1)
+                        }
+                        record = record.copy(commandNext = end)
+                        if (end == cut.entries.size) record = record.copy(phase = LibrarySavedBuildPhase.Items, commandNext = 0, after = null, seen = LibrarySavedCounts())
+                    }
+                    LibrarySavedBuildPhase.PointTargets -> {
+                        val end = record.commandNext + minOf(8, cut.entries.size - record.commandNext)
+                        for (index in record.commandNext until end) {
+                            val target = LibrarySavedViewPolicy.target(cut.entries[index].operation.command) ?: continue
+                            val base = savedProjection(db, record.source.lease, record.source.lease.collection + ":r:" + LibraryOutcomeBinding.hash(listOf("item", target)))
+                            if (base != null && base !is LibrarySavedProjection.Item) throw LibrarySyncFailure.InvalidReceipt
+                            put(item = cut.item((base as? LibrarySavedProjection.Item)?.value, target, session.bindings))
+                        }
+                        record = record.copy(commandNext = end)
+                        if (end == cut.entries.size) record = record.copy(phase = LibrarySavedBuildPhase.Manifest, after = null, manifest = LibrarySavedViewManifest(0, 0, record.bindings, LibrarySavedViewManifest.initialDigest, record.bindings))
+                    }
+                    LibrarySavedBuildPhase.Manifest -> {
+                        var manifest = record.manifest ?: throw LibrarySyncFailure.InvalidReceipt
+                        val prefix = identity.key + ":"; val rows = db.rawQuery("SELECT key,kind FROM saved_view_rows WHERE key>? AND key<? ORDER BY key LIMIT 8", arrayOf(record.after ?: prefix, prefix + "~")).use { cursor ->
+                            buildList { while (cursor.moveToNext()) { if (cursor.getType(1) != android.database.Cursor.FIELD_TYPE_INTEGER || cursor.getLong(1) !in 0..1L) throw LibrarySyncFailure.StoreUnavailable; add(cursor.getString(0) to cursor.getInt(1)) } }
+                        }
+                        for ((key, kind) in rows) {
+                            val data = viewRow(db, identity, key, kind) ?: throw LibrarySyncFailure.StoreUnavailable
+                            val indexes = if (kind == 1) LibrarySavedViewPolicy.indexKeys(identity, viewJson.decodeFromString<LibrarySavedViewItem>(data)).size else 2
+                            manifest = manifest.copy(items = manifest.items + if (kind == 1) 1 else 0, folders = manifest.folders + if (kind == 0) 1 else 0, indexes = manifest.indexes + indexes, digest = LibraryOutcomeBinding.hash(listOf(manifest.digest, key, librarySemanticDigest(viewJson.parseToJsonElement(data), "saved-view-row-v1:"))))
+                        }
+                        record = record.copy(after = rows.lastOrNull()?.first ?: record.after, manifest = manifest)
+                        if (rows.size < 8) {
+                            if (manifest.items != record.expected.items || manifest.folders != record.expected.folders) throw LibrarySyncFailure.InvalidReceipt
+                            record = record.copy(phase = LibrarySavedBuildPhase.Audit, after = null)
+                        }
+                    }
+                    else -> throw LibrarySyncFailure.InvalidChange
+                }
+                saveBuild(db, identity, record); record
+            }
+            session.bindings.putAll(updates); return result
+        }
     }
     private fun viewAudit(db: SQLiteDatabase, stamp: LibrarySavedViewStamp): LibrarySavedViewAudit? {
         if (viewHead(db, stamp.identity) != stamp) throw LibrarySavedViewChanged()
