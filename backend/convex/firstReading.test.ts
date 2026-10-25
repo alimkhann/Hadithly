@@ -3,7 +3,7 @@ import { convexTest } from "convex-test";
 import { makeFunctionReference } from "convex/server";
 import { afterEach, expect, test, vi } from "vitest";
 import schema from "./schema";
-import { internal } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import { fixture, passes, reviewClaim } from "../test/evidenceFixtures";
 import type { Id } from "./_generated/dataModel";
 import type { FirstReadingResult, FirstReadingSource } from "./lib/firstReadingPolicy";
@@ -248,4 +248,35 @@ test("an exact-text incident block covers Daily and prepared references without 
   await f.t.run(ctx => ctx.db.patch(badId, { content: "Different exact text version" }));
   await expect(f.t.mutation(internal.firstReading.blockTranslation, args)).rejects.toThrow("TEXT_CHANGED");
   expect(await f.t.query(get, { translationLocale: "kk", timezone })).toMatchObject({ kind: "ready", origin: "daily" });
+});
+
+test("a known meaning reversal is unavailable through ordinary reader, cache and publication reads", async () => {
+  const f = await setup(), hadithId = await f.hadith("18");
+  const translationId = await f.translated(hadithId, "kk");
+  const ref = { provider: "sunnah_now", collectionSlug: "bukhari", providerHadithId: "18", language: "kk" } as const;
+  expect(await f.t.query(api.translations.getDefaultForProviderRef, ref)).toMatchObject({ _id: translationId });
+  const before = await f.t.run(ctx => ctx.db.get(translationId));
+  if (!before) throw new Error("Missing incident fixture");
+  await f.t.mutation(internal.firstReading.blockTranslation, { translationId, contentSha256: await textDigest(before.content), reason: "meaning_reversal" });
+  expect(await f.t.query(api.translations.getDefaultForProviderRef, ref)).toBeNull();
+  expect(await f.t.query(api.translations.getReaderDefaults, { hadithInternalIds: ["sunnah_now:bukhari:18"], language: "kk" })).toEqual([
+    { hadithInternalId: "sunnah_now:bukhari:18", translation: null },
+  ]);
+  expect(await f.t.query(internal.translations.getDefaultForHadithLanguage, { hadithId, language: "kk" })).toBeNull();
+  expect(await f.t.query(internal.translations.listLiveDefaultsForHadithLanguage, { hadithId, language: "kk" })).toEqual([]);
+  expect(await f.t.query(api.translations.watchPublications, { translationIds: [translationId] })).toEqual([
+    { translationId, available: false, validUntil: null },
+  ]);
+  expect(await f.t.run(ctx => ctx.db.get(translationId))).toEqual(before);
+  await f.t.run(ctx => ctx.db.patch(translationId, { content: "Corrected exact text version" }));
+  expect(await f.t.query(api.translations.getDefaultForProviderRef, ref)).toMatchObject({ _id: translationId, content: "Corrected exact text version" });
+});
+
+test("a standalone first-reading exclusion does not suppress an ordinary reader translation", async () => {
+  const f = await setup(), hadithId = await f.hadith("264");
+  const translationId = await f.translated(hadithId, "kk");
+  const row = await f.t.run(ctx => ctx.db.get(translationId));
+  if (!row) throw new Error("Missing standalone fixture");
+  await f.t.mutation(internal.firstReading.blockTranslation, { translationId, contentSha256: await textDigest(row.content), reason: "unsuitable_standalone" });
+  expect(await f.t.query(api.translations.getDefaultForProviderRef, { provider: "sunnah_now", collectionSlug: "bukhari", providerHadithId: "264", language: "kk" })).toMatchObject({ _id: translationId });
 });

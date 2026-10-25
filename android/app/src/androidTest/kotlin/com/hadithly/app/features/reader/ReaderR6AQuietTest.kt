@@ -1,8 +1,14 @@
 package com.hadithly.app.features.reader
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertHasClickAction
+import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
@@ -114,7 +120,31 @@ class ReaderR6AQuietTest {
         compose.onNodeWithTag("reader.hadithLabel").performClick()
         compose.onNodeWithTag("reader.sourceSheet").assertIsDisplayed()
         compose.onNodeWithText("Prepared reference").assertIsDisplayed()
+        compose.onNodeWithText("Prepared reference").assertHasClickAction()
         compose.onNodeWithTag("translation.sources.ai").assertIsDisplayed()
+        val context = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().targetContext
+        java.io.File(context.cacheDir, "a3-reader-sources.png").outputStream().use {
+            compose.onNodeWithTag("reader.sourceSheet").captureToImage().asAndroidBitmap().compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it)
+        }
+    }
+
+    @Test fun translationWithoutCitationsDoesNotClaimExternalGrounding() {
+        val translation = com.hadithly.app.core.data.ReaderTranslation("uncited", "Prepared uncited translation", source = "gemini_ai", sourceLabel = "AI translation", aiModel = "Prepared model", sourceReferenceUrl = "https://example.org/original")
+        var opened: String? = null
+        var noSources = ""
+        var reference = ""
+        val handler = object : UriHandler { override fun openUri(uri: String) { opened = uri } }
+        compose.setContent {
+            noSources = com.hadithly.app.core.preferences.nativeText("No external sources were cited for this translation.")
+            reference = com.hadithly.app.core.preferences.nativeText("Reference: %1\$s", "https://example.org/original")
+            CompositionLocalProvider(LocalUriHandler provides handler) { HadithlyTheme { TranslationSourceDetails(translation) } }
+        }
+        compose.onNodeWithText(noSources).assertIsDisplayed()
+        compose.onNodeWithText(reference).assertHasClickAction()
+        compose.onNodeWithText("grounded in cited sources", substring = true).assertDoesNotExist()
+        compose.onNodeWithTag("translation.sources.ai").assertIsDisplayed()
+        compose.onNodeWithText(reference).performClick()
+        assertEquals("https://example.org/original", opened)
     }
 
     @Test

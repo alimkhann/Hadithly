@@ -8,6 +8,7 @@ import { normalizeHadith } from "./lib/sunnahNow";
 import { generationIdentity, generationLanguage, LEASE_MS, rollingAllowance, tokenCostMicroUsd, WINDOW_MS } from "./lib/generationPolicy";
 import { validPlayIntegrity } from "./lib/playIntegrity";
 import { allowUnattestedDevelopment } from "./generationIntegrity";
+import { textDigest } from "./lib/evidenceReviewPolicy";
 
 const provider = vi.hoisted(() => vi.fn());
 vi.mock("@google/genai", async importOriginal => {
@@ -17,6 +18,28 @@ vi.mock("@google/genai", async importOriginal => {
 const modules = import.meta.glob("./**/*.ts");
 const telemetry = { inputTokens: 2000, outputTokens: 500, thinkingTokens: 0, tokenUsageKnown: true, durationMs: 100 };
 const output = { translation: "Faithful fixture translation", confidence: 0.9, riskFlags: [] };
+
+test.each(["free", "pro"])("%s generation cannot republish an exact known meaning reversal or consume allowance", async tier => {
+  const f = await fixture();
+  if (tier === "pro") {
+    const ticket = await f.t.mutation(internal.subscriptions.beginRefresh, { clerkId: "q1-owner", deny: false, ownershipConflict: false });
+    if (!ticket) throw new Error("Missing subscription fixture");
+    await f.t.mutation(internal.subscriptions.applySnapshot, { ...ticket, observedAt: Date.now(), ownershipConflict: false,
+      purchases: [{ productId: "com.hadithly.app.pro.monthly", store: "app_store", paidUntil: Date.now() + WINDOW_MS, until: Date.now() + WINDOW_MS, phase: "paid" }] });
+  }
+  const limit = tier === "pro" ? 100 : 5;
+  expect(await f.owner.query(api.quotas.getTranslationAllowance, {})).toMatchObject({ limit, remaining: limit });
+  const contentSha256 = await textDigest(output.translation);
+  await f.t.run(ctx => ctx.db.insert("firstReadingBlockedTexts", { locale: "ru", canonicalId: "sunnah_now:bukhari:1", contentSha256, reason: "meaning_reversal", createdAt: Date.now() }));
+  const claim = await f.admit();
+  if (claim.kind !== "claimed") throw new Error("Missing generation claim");
+  expect(await f.t.mutation(internal.quotas.finish, { jobId: claim.jobId, attempt: claim.attempt, telemetry, output })).toBeNull();
+  expect(await f.owner.query(api.quotas.getTranslationAllowance, {})).toMatchObject({ limit, used: 0, reserved: 0, remaining: limit });
+  expect(await f.t.run(ctx => ctx.db.query("aiUsageEvents").collect())).toEqual([]);
+  expect(await f.t.run(ctx => ctx.db.query("aiUsageCharges").collect())).toEqual([]);
+  expect(await f.t.run(ctx => ctx.db.query("translations").collect())).toEqual([]);
+  expect(await f.t.run(ctx => ctx.db.query("aiCostEvents").collect())).toMatchObject([{ outcome: "failed", inputTokens: 2000 }]);
+});
 
 async function fixture(count = 8) {
   const t = convexTest(schema, modules);

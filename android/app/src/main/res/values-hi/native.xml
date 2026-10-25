@@ -172,4 +172,6 @@
     <string name="native_4ba5c6645965" formatted="false">अनुवाद का स्रोत</string>
     <string name="native_b36c60cec0e0" formatted="false">पहला पाठ</string>
     <string name="native_cb3d1f6647e3" formatted="false">आज की हदीस</string>
+    <string name="native_f911dbe90e58" formatted="false">इस अनुवाद के लिए किसी बाहरी स्रोत का उल्लेख नहीं किया गया।</string>
+    <string name="native_a6e3a22758a8" formatted="false">यह अनुवाद AI (%s) ने बनाया है। यह प्रमाणिक रूप नहीं है; महत्वपूर्ण अर्थों को योग्य स्रोत से जाँचें।</string>
 </resources>

@@ -83,6 +83,23 @@ physical-device, content and release gates remain recorded on their own tracks.
 After this bounded wrap-up, prioritize A3 grounding/source quality and the
 user-facing reader/localization defects in `docs/PRODUCT_PROGRAM.md`.
 
+## A3 translation trust repair, October 25
+
+The code trace confirms ordinary free and Pro generation uses the same provider
+path without external search. Android's unconditional grounding claim and inert
+source rows are repaired locally to match iOS's disclosure and working links.
+Existing iOS copy is reused as fifteen-locale Android drafts, with native review
+still pending. A shared exact-text meaning-reversal check now covers ordinary
+reader/cache/publication reads and rejects the same bad output before publication
+or allowance consumption. First-reading-only suitability exclusions stay scoped.
+See `docs/A3_GROUNDING_VERIFICATION.md` for evidence and remaining work.
+
+This is the first bounded A3 repair, not completed grounding. No provider call,
+new source permission, backend deployment or live-content change was performed.
+A2's pending development sync approval and its live gate remain separate. Continue
+with exact, authorized reference retrieval and source relevance before making any
+claim that ordinary generation is externally grounded.
+
 ## A2 coherent publication checkpoint, October 24
 
 Both native stores now atomically publish actual private/view pointers, row mode,

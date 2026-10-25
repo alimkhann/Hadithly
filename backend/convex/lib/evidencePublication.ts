@@ -18,6 +18,14 @@ export class PublicationReadBudget {
   }
 }
 
+export async function knownMeaningReversal(ctx: QueryCtx | MutationCtx, hadith: Doc<"hadiths">, language: string, content: string): Promise<boolean> {
+  const contentSha256 = await textDigest(content);
+  const incident = await ctx.db.query("firstReadingBlockedTexts").withIndex("by_exact_text", q =>
+    q.eq("locale", language).eq("canonicalId", `${hadith.provider}:${hadith.collectionSlug}:${hadith.providerHadithId}`)
+      .eq("contentSha256", contentSha256)).unique();
+  return incident?.reason === "meaning_reversal";
+}
+
 export async function currentPublicationPermissions(ctx: QueryCtx | MutationCtx, revision: Doc<"evidencePublicationRevisions"> | null, use: "comparison" | "offline" | "display", budget?: PublicationReadBudget) {
   const bindings = [];
   let valid = revision?.status === "published" && !!revision.permissionDependencies?.length;
@@ -41,11 +49,16 @@ export async function currentPublicationPermissions(ctx: QueryCtx | MutationCtx,
 
 export async function publicTranslationAvailable(ctx: QueryCtx | MutationCtx, row: Doc<"translations"> | null, visited: ReadonlySet<string> = new Set(), budget?: PublicationReadBudget): Promise<boolean> {
   if (!row || row.status !== "live") return false;
+  if (budget && !budget.spend(2)) return false;
+  const hadith = await ctx.db.get(row.hadithId);
+  if (!hadith) return false;
+  // Standalone suitability affects first reading only; a known meaning reversal
+  // must also disappear from ordinary reader, cache and publication reads.
+  if (await knownMeaningReversal(ctx, hadith, row.language, row.content)) return false;
   if (row.source === "gemini_ai" && row.generationKey) {
-    if (budget && !budget.spend(2)) return false;
-    const hadith = await ctx.db.get(row.hadithId);
-    const license = hadith?.licenseRecordId ? await ctx.db.get(hadith.licenseRecordId) : null;
-    if (!hadith || row.generationKey !== (await generationIdentity(hadith, row.language)).generationKey ||
+    if (budget && !budget.spend(1)) return false;
+    const license = hadith.licenseRecordId ? await ctx.db.get(hadith.licenseRecordId) : null;
+    if (row.generationKey !== (await generationIdentity(hadith, row.language)).generationKey ||
       license?.terms.kind !== "verified" || !license.terms.permitsDisplay) return false;
   }
   if (!row.evidencePublicationId) return row.source !== "community";

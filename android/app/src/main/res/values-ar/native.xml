@@ -172,4 +172,6 @@
     <string name="native_4ba5c6645965" formatted="false">مصدر الترجمة</string>
     <string name="native_b36c60cec0e0" formatted="false">قراءة أولى</string>
     <string name="native_cb3d1f6647e3" formatted="false">حديث اليوم</string>
+    <string name="native_f911dbe90e58" formatted="false">لم تُذكر مصادر خارجية لهذه الترجمة.</string>
+    <string name="native_a6e3a22758a8" formatted="false">أُنشئت هذه الترجمة بواسطة الذكاء الاصطناعي (%s). وليست ترجمة موثوقة؛ تحقّق من المعاني المهمة لدى مصدر مؤهل.</string>
 </resources>

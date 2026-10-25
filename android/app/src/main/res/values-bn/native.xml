@@ -172,4 +172,6 @@
     <string name="native_4ba5c6645965" formatted="false">অনুবাদের উৎস</string>
     <string name="native_b36c60cec0e0" formatted="false">প্রথম পাঠ</string>
     <string name="native_cb3d1f6647e3" formatted="false">আজকের হাদিস</string>
+    <string name="native_f911dbe90e58" formatted="false">এই অনুবাদের জন্য কোনো বাহ্যিক উৎস উল্লেখ করা হয়নি।</string>
+    <string name="native_a6e3a22758a8" formatted="false">এই অনুবাদটি AI (%s) তৈরি করেছে। এটি প্রামাণিক রূপ নয়; গুরুত্বপূর্ণ অর্থ যোগ্য উৎসের সঙ্গে যাচাই করুন।</string>
 </resources>

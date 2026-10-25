@@ -68,6 +68,13 @@ references. It does not suppress ordinary-reader rows or establish semantic
 quality for new text versions. A3 must address those records and the generation/review path.
 The original source URL is not evidence that the AI performed retrieval.
 
+October 25 local A3 repair: the shared public availability check now rejects exact
+`meaning_reversal` incidents outside first reading too. Generation completion
+rejects that same known text without publishing it or consuming reader allowance.
+`unsuitable_standalone` remains a first-reading-only exclusion. This code is not
+deployed; the earlier live-state statement above remains true until rollout.
+See `A3_GROUNDING_VERIFICATION.md`.
+
 ## Verification evidence
 
 - Backend typecheck passes. Full backend suite: 364 tests in 32 files pass in

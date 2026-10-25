@@ -38,6 +38,12 @@ These are rough focused-work estimates, not completion promises. External approv
 account, language-review and device waits are additional. The earlier A2 estimate
 assumed the now-deferred storage cutover and is withdrawn.
 
+A3 is now active while A2 awaits live development verification. The first local
+repair removes Android's unsupported grounding claim, makes source rows usable,
+and suppresses exact known meaning reversals across reader/cache/publication and
+generation completion without charging allowance. See `A3_GROUNDING_VERIFICATION.md`.
+Actual relevant-reference retrieval and semantic-quality proof remain open.
+
 | Stage | Remaining rough budget |
 | --- | --- |
 | A1 first-reading content | 1–2 days plus language review |

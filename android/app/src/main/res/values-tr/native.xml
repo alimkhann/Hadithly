@@ -172,4 +172,6 @@
     <string name="native_4ba5c6645965" formatted="false">Çeviri kaynağı</string>
     <string name="native_b36c60cec0e0" formatted="false">İlk okuma</string>
     <string name="native_cb3d1f6647e3" formatted="false">Günün hadisi</string>
+    <string name="native_f911dbe90e58" formatted="false">Bu çeviri için harici kaynak belirtilmedi.</string>
+    <string name="native_a6e3a22758a8" formatted="false">Bu çeviri AI (%s) tarafından oluşturuldu. Yetkili bir çeviri değildir; önemli anlamları nitelikli bir kaynakla doğrulayın.</string>
 </resources>

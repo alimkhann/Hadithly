@@ -11,6 +11,7 @@ ROOT=Path(__file__).resolve().parents[1]
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--check',action='store_true')
 parser.add_argument('--source',default='docs/ui-polish-copy.json')
+parser.add_argument('--android-only', action='store_true', help='Reuse existing iOS copy without writing its catalog')
 args=parser.parse_args()
 check=args.check
 source=json.loads((ROOT/args.source).read_text())
@@ -52,7 +53,8 @@ for i,key in enumerate(keys):
     else:
         insertion=after_la2_prefix(text)
         text=text[:insertion]+quoted+' : '+value+',\n    '+text[insertion:]
-json.loads(text);output(catalog,text)
+json.loads(text)
+if not args.android_only: output(catalog,text)
 
 folders={'en':'values','es-419':'values-b+es+419','pt-BR':'values-pt-rBR'}
 for locale,values in locales.items():

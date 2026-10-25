@@ -172,4 +172,6 @@
     <string name="native_4ba5c6645965" formatted="false">Аударма дереккөзі</string>
     <string name="native_b36c60cec0e0" formatted="false">Алғашқы оқу</string>
     <string name="native_cb3d1f6647e3" formatted="false">Бүгінгі хадис</string>
+    <string name="native_f911dbe90e58" formatted="false">Бұл аудармаға сыртқы дереккөздер келтірілмеген.</string>
+    <string name="native_a6e3a22758a8" formatted="false">Бұл аударманы AI (%s) жасады. Бұл ресми аударма емес; маңызды мағыналарды білікті дереккөзбен тексеріңіз.</string>
 </resources>

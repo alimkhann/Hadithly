@@ -82,6 +82,15 @@ performed. A3 grounding/quality and later program units remain pending in
 `PRODUCT_PROGRAM.md`. These checkpoints close no physical-device, store,
 localization, production or release gate listed above.
 
+## A3 local checkpoint, October 25
+
+October 25 A3 checkpoint: Android source disclosure/links and the shared exact
+meaning-reversal read/publication guard pass local verification. See
+`A3_GROUNDING_VERIFICATION.md`. Ordinary generation still performs no external
+retrieval for either tier. Authorized relevant-reference retrieval, independent
+semantic quality, native-copy approval and live rollout remain open. These repairs
+do not close A2's live cross-device gate.
+
 ## App-wide operation rule
 
 The sole operator must not be required to approve routine content or clear a

@@ -1,9 +1,7 @@
 /**
- * Gemini grounding helpers, ported from legacy apps/web/lib/translation-grounding.
- *
- * Gemini's Google Search grounding tool cannot be combined with structured
- * JSON output (responseSchema), so the model returns an inline JSON object
- * and we parse it defensively here.
+ * Provider prompt boundaries, translation payload parsing and source links.
+ * Ordinary generation does not request external retrieval. A reference URL is
+ * not evidence that the model consulted that page.
  */
 
 export type Citation = {

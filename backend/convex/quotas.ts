@@ -4,7 +4,7 @@ import type { Doc, Id } from "./_generated/dataModel";
 import { v } from "convex/values";
 import { requireIdentity } from "./lib/identity";
 import { availableDefault } from "./translations";
-import { publicTranslationAvailable } from "./lib/evidencePublication";
+import { knownMeaningReversal, publicTranslationAvailable } from "./lib/evidencePublication";
 import { GENERATION_MODEL, GENERATION_PROMPT_VERSION, LEASE_MS, PRICING_VERSION, WINDOW_MS,
   generationIdentity, generationLanguage, generationLimit, generationSourceAllowed, monthlyGenerationSpendPolicy, rollingAllowance, telemetryValidator, tokenCostMicroUsd } from "./lib/generationPolicy";
 
@@ -169,18 +169,20 @@ export const finish = internalMutation({
         const text = args.output.translation.trim();
         if (!text || text.length > 24_000 || !Number.isFinite(args.output.confidence) || args.output.confidence < 0 || args.output.confidence > 1 || args.output.riskFlags.length > 30)
           throw new Error("INVALID_GENERATION_OUTPUT");
-        for (const row of await ctx.db.query("translations").withIndex("by_hadith_language_default", q => q.eq("hadithId", hadith._id).eq("language", job.language).eq("isDefault", true)).collect())
-          await ctx.db.patch(row._id, { isDefault: false });
-        const user = job.userId ? await ctx.db.get(job.userId) : null;
-        const translationId = await ctx.db.insert("translations", { hadithId: job.hadithId, language: job.language,
-          content: text, source: "gemini_ai", sourceLabel: "AI", aiModel: GENERATION_MODEL, aiPromptVersion: GENERATION_PROMPT_VERSION,
-          generationKey: job.generationKey, sourceDigest: job.sourceDigest, generatedByUserId: user?._id, status: "live", isDefault: true,
-          confidence: args.output.confidence, riskFlags: args.output.riskFlags, groundingUsed: false, citations: [], sourceReferenceUrl: args.output.sourceReferenceUrl,
-          createdAt: now, updatedAt: now });
-        const eventId = await ctx.db.insert("aiUsageEvents", { generationKey: job.generationKey, translationId, createdAt: now });
-        if (user) await ctx.db.insert("aiUsageCharges", { userId: user._id, eventId, createdAt: now });
-        translation = await ctx.db.get(translationId);
-        outcome = "published";
+        if (!await knownMeaningReversal(ctx, hadith, job.language, text)) {
+          for (const row of await ctx.db.query("translations").withIndex("by_hadith_language_default", q => q.eq("hadithId", hadith._id).eq("language", job.language).eq("isDefault", true)).collect())
+            await ctx.db.patch(row._id, { isDefault: false });
+          const user = job.userId ? await ctx.db.get(job.userId) : null;
+          const translationId = await ctx.db.insert("translations", { hadithId: job.hadithId, language: job.language,
+            content: text, source: "gemini_ai", sourceLabel: "AI", aiModel: GENERATION_MODEL, aiPromptVersion: GENERATION_PROMPT_VERSION,
+            generationKey: job.generationKey, sourceDigest: job.sourceDigest, generatedByUserId: user?._id, status: "live", isDefault: true,
+            confidence: args.output.confidence, riskFlags: args.output.riskFlags, groundingUsed: false, citations: [], sourceReferenceUrl: args.output.sourceReferenceUrl,
+            createdAt: now, updatedAt: now });
+          const eventId = await ctx.db.insert("aiUsageEvents", { generationKey: job.generationKey, translationId, createdAt: now });
+          if (user) await ctx.db.insert("aiUsageCharges", { userId: user._id, eventId, createdAt: now });
+          translation = await ctx.db.get(translationId);
+          outcome = "published";
+        }
       }
     }
     await ctx.db.insert("aiCostEvents", { ...args.telemetry, jobId: job._id, attempt: args.attempt, model: GENERATION_MODEL,

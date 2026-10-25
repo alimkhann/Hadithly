@@ -172,4 +172,6 @@
     <string name="native_4ba5c6645965" formatted="false">Chanzo cha tafsiri</string>
     <string name="native_b36c60cec0e0" formatted="false">Usomaji wa kwanza</string>
     <string name="native_cb3d1f6647e3" formatted="false">Hadithi ya leo</string>
+    <string name="native_f911dbe90e58" formatted="false">Hakuna vyanzo vya nje vilivyotajwa kwa tafsiri hii.</string>
+    <string name="native_a6e3a22758a8" formatted="false">Tafsiri hii ilitengenezwa na AI (%s). Si tafsiri yenye mamlaka; thibitisha maana muhimu kwa chanzo chenye sifa.</string>
 </resources>

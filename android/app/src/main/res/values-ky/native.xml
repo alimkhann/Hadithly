@@ -172,4 +172,6 @@
     <string name="native_4ba5c6645965" formatted="false">Котормонун булагы</string>
     <string name="native_b36c60cec0e0" formatted="false">Алгачкы окуу</string>
     <string name="native_cb3d1f6647e3" formatted="false">Бүгүнкү хадис</string>
+    <string name="native_f911dbe90e58" formatted="false">Бул котормого тышкы булактар келтирилген эмес.</string>
+    <string name="native_a6e3a22758a8" formatted="false">Бул котормону AI (%s) түздү. Бул расмий котормо эмес; маанилүү мағыналарды квалификациялуу булак менен текшериңиз.</string>
 </resources>
