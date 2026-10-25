@@ -44,6 +44,11 @@ repair removes Android's unsupported grounding claim, makes source rows usable,
 and suppresses exact known meaning reversals across reader/cache/publication and
 generation completion without charging allowance. See `A3_GROUNDING_VERIFICATION.md`.
 Actual relevant-reference retrieval and semantic-quality proof remain open.
+The unfinished reference selector/provider integration is saved separately in
+stash `035861f8d29985290a27bae6f32ecf69ec197830`; restore it for the next A3 unit.
+Exact citation/context identity still needs repair before that component can
+ship. The resume instructions and local evidence are in
+`A3_GROUNDING_VERIFICATION.md`. It was excluded from the A2 rollout.
 
 | Stage | Remaining rough budget |
 | --- | --- |

@@ -99,3 +99,29 @@ these A3 changes have no live rollout evidence. Native copy, physical-device,
 content rights and release gates stay open.
 Previously downloaded translation text and old installed-client invalidation still
 need their own readback. No offline artifact was rebuilt or claimed repaired.
+
+## October 26 reference-retrieval work checkpoint
+
+Before the A2 deployment approval arrived, local work added a bounded selector
+for up to three published non-AI comparisons, shared by free, Pro and service
+generation. It reuses current comparison/model-processing permissions, sends
+references as untrusted data, validates declared reference IDs, rechecks rights
+before publication and exposes reference expiry to the existing native watchers.
+The actual Convex/provider-boundary fixtures pass 536 backend tests in 44 files
+and strict typecheck. Evidence: `/tmp/hadithly-a3-references-full.log` and
+`/tmp/hadithly-a3-references-typecheck.log`. Provider calls in these tests are
+controlled responses; no paid generation or live reference rollout occurred.
+
+The unfinished implementation is preserved separately from A2 in Git stash
+`035861f8d29985290a27bae6f32ecf69ec197830`. Restore with
+`git stash apply 035861f8d29985290a27bae6f32ecf69ec197830`.
+It includes only the eight modified backend files and two new reference files.
+The incoming iOS project/scheme/catalog edits are outside that checkpoint.
+
+Before committing or deploying this component, bind the exact citation snapshot
+as well as text, and include comparison context in new generation identities
+without invalidating unrelated legacy cached text. Add regression coverage for
+changed reference citation/context and replacement after withdrawal. Keep the
+existing one-success-per-generation-key and free cache reuse contracts. The
+current prototype is not ready for rollout. A2's live verification and Android
+preference repair are committed separately as `77b1155`.
