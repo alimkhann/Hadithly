@@ -1,4 +1,5 @@
 import XCTest
+import ClerkKit
 import Combine
 import SwiftData
 import SQLite3
@@ -3286,4 +3287,152 @@ final class GuestMergePlannerTests: XCTestCase {
         textReply = try JSONDecoder().decode(SavedTextReply.self, from: Data(LibrarySavedReadsParityVector.textJSON.utf8))
     }
     func start() async throws { await sync.activate(try XCTUnwrap(session)) }
+}
+
+
+@MainActor
+final class A2LiveLibraryTests: XCTestCase {
+    private struct Configuration: Decodable {
+        let phase: String, runId: String, email: String, password: String
+        let secondEmail: String, secondPassword: String
+        let hadithId: String, collectionName: String, referenceDisplay: String, volumeId: String, providerHadithId: String
+        let expiresAt: Double
+    }
+
+    private func wait(_ label: String, _ condition: () throws -> Bool) async throws {
+        print("A2 live check: \(label)")
+        for _ in 0..<300 {
+            if try condition() { return }
+            try await Task.sleep(for: .milliseconds(100))
+        }
+        throw NSError(domain: "A2Live", code: 1, userInfo: [NSLocalizedDescriptionKey: label])
+    }
+
+    private func authenticate(email: String, password: String, create: Bool) async throws {
+        guard email.hasSuffix("+clerk_test@example.com") else { throw NSError(domain: "A2Live", code: 5) }
+        if Clerk.shared.session != nil {
+            guard Clerk.shared.user?.primaryEmailAddress?.emailAddress == email else {
+                throw NSError(domain: "A2Live", code: 2, userInfo: [NSLocalizedDescriptionKey: "Refusing to replace another account session"])
+            }
+            return
+        }
+        var stage = "start"
+        do {
+            let sessionId: String?
+            if create {
+                stage = "create"
+                let signUp = try await Clerk.shared.auth.signUp(emailAddress: email, password: password, username: String(email.prefix(while: { $0 != "+" })))
+                if signUp.status == .complete { sessionId = signUp.createdSessionId }
+                else {
+                    stage = "prepare-code"
+                    let prepared = try await signUp.sendEmailCode()
+                    stage = "verify-code"
+                    sessionId = try await prepared.verifyEmailCode("424242").createdSessionId
+                }
+            } else {
+                stage = "prepare-email-sign-in"
+                let pending = try await Clerk.shared.auth.signInWithEmailCode(emailAddress: email)
+                stage = "verify-email-sign-in"
+                let signIn = try await pending.verifyCode("424242")
+                sessionId = signIn.createdSessionId
+            }
+            guard let sessionId else { throw NSError(domain: "A2Live", code: 3) }
+            try await Clerk.shared.auth.setActive(sessionId: sessionId)
+        } catch {
+            if create, (error as? ClerkAPIError)?.code == "form_identifier_exists" {
+                try await authenticate(email: email, password: password, create: false)
+                return
+            }
+            let code = (error as? ClerkAPIError)?.code ?? "sdk_error"
+            throw NSError(domain: "A2Live", code: 4, userInfo: [NSLocalizedDescriptionKey: "Development test authentication failed at \(stage): \(code); credentials redacted"])
+        }
+        try await wait("Development account did not become active") { Clerk.shared.user?.primaryEmailAddress?.emailAddress == email }
+    }
+
+    private func activate(_ environment: AppEnvironment) async throws {
+        _ = await environment.convex.loginFromCache()
+        await environment.completeSignIn()
+        try await wait("Authenticated production library did not become ready") {
+            environment.librarySync.owner != nil && environment.library.loadState == .ready
+        }
+    }
+
+    private func settled(_ environment: AppEnvironment, hadithId: String, content: String) async throws {
+        try await wait("Actual owned server snapshot did not receive the private note") {
+            guard let owner = environment.librarySync.owner,
+                  let partition = try environment.guestData.syncPartition(owner) else { return false }
+            return partition.pending.isEmpty && partition.frozen == nil && partition.acknowledgement == nil &&
+                partition.savedSnapshot?.items.contains(where: { $0.hadithId == hadithId && $0.noteContent == content }) == true
+        }
+    }
+
+    func testDevelopmentCrossDeviceLibraryPhase() async throws {
+        let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("a2-live-config.json")
+        guard FileManager.default.fileExists(atPath: url.path) else { throw XCTSkip("Opt-in A2 live development verification") }
+        let config = try JSONDecoder().decode(Configuration.self, from: Data(contentsOf: url))
+        guard config.expiresAt > Date.now.timeIntervalSince1970, config.phase.hasPrefix("ios-") else { throw XCTSkip("No current iOS live phase") }
+        try await wait("Clerk did not load") { Clerk.shared.isLoaded }
+        let environment = try XCTUnwrap(AppEnvironment.activeForStoreVerification)
+        guard ["festive-cobra-664.convex.cloud", "festive-cobra-664.eu-west-1.convex.cloud"].contains(URL(string: environment.config.convexURL)?.host ?? ""),
+              environment.config.clerkPublishableKey.hasPrefix("pk_test_") else { throw NSError(domain: "A2Live", code: 6) }
+        let secondAccountPhase = config.phase == "ios-second-account"
+        if !secondAccountPhase, Clerk.shared.user?.primaryEmailAddress?.emailAddress == config.secondEmail {
+            try await Clerk.shared.auth.signOut(); environment.handleSignOut()
+        }
+        try await authenticate(email: secondAccountPhase ? config.secondEmail : config.email, password: secondAccountPhase ? config.secondPassword : config.password, create: config.phase == "ios-write")
+        try await activate(environment)
+        let model = environment.library
+        let ref = HadithRef(hadithId: config.hadithId, collectionSlug: "bukhari", collectionName: config.collectionName,
+                            volumeId: config.volumeId, hadithNumber: config.providerHadithId, arabicText: "", englishText: nil, referenceDisplay: config.referenceDisplay)
+        if config.phase == "ios-write" {
+            XCTAssertFalse(model.isBookmarked(hadithId: ref.hadithId))
+            XCTAssertTrue(model.toggleBookmark(ref)); XCTAssertTrue(model.toggleFavorite(ref))
+            XCTAssertTrue(model.saveNote(ref, content: "A2 iOS " + config.runId))
+            model.createFolder(name: "A2 study " + config.runId, scope: model.actionScope)
+            try await wait("New test folder did not appear") { model.folders.contains { $0.name == "A2 study " + config.runId } }
+            let folder = try XCTUnwrap(model.folders.first { $0.name == "A2 study " + config.runId })
+            model.assignFolder(hadithId: ref.hadithId, folderId: folder.id, scope: model.actionScope)
+            let position = try XCTUnwrap(ReadingPosition.legacy(collectionSlug: "bukhari", providerHadithId: config.providerHadithId, volumeId: config.volumeId, updatedAt: Date.now.timeIntervalSince1970 * 1000))
+            model.saveProgress(position, ref: ref)
+            try await settled(environment, hadithId: ref.hadithId, content: "A2 iOS " + config.runId)
+            try await wait("Owned server membership and reading position did not arrive") {
+                guard let owner = environment.librarySync.owner, let state = try environment.guestData.syncPartition(owner) else { return false }
+                return state.savedSnapshot?.items.first(where: { $0.hadithId == ref.hadithId })?.folderId != nil && state.positionsSnapshot?.rows.isEmpty == false
+            }
+        } else if config.phase == "ios-read-and-signout" {
+            try await settled(environment, hadithId: ref.hadithId, content: "A2 Android " + config.runId)
+            try await wait("Android reading position did not reach iOS") {
+                guard let owner = environment.librarySync.owner, let state = try environment.guestData.syncPartition(owner) else { return false }
+                return state.positionsSnapshot?.rows.first?.position?.normalizedOffset == 0.5
+            }
+            if !model.isBookmarked(hadithId: ref.hadithId) {
+                XCTAssertTrue(model.toggleBookmark(ref))
+                try await settled(environment, hadithId: ref.hadithId, content: "A2 Android " + config.runId)
+            }
+            XCTAssertTrue(model.isBookmarked(hadithId: ref.hadithId)); XCTAssertTrue(model.isFavorite(hadithId: ref.hadithId))
+            XCTAssertNotNil(model.savedItems.first { $0.hadithId == ref.hadithId }?.folderId)
+            let scope = model.actionScope, created = try XCTUnwrap(model.bookmarks.first?.createdAt)
+            XCTAssertTrue(model.removeBookmark(ref, scope: scope))
+            try await wait("Bookmark removal did not reach the owned server snapshot") {
+                guard let owner = environment.librarySync.owner, let state = try environment.guestData.syncPartition(owner) else { return false }
+                return state.savedSnapshot?.items.first(where: { $0.hadithId == ref.hadithId })?.bookmarkCreatedAt == nil && state.pending.isEmpty && state.frozen == nil
+            }
+            try await Clerk.shared.auth.signOut(); environment.handleSignOut()
+            model.restoreBookmark(ref, createdAt: created)
+            model.assignFolder(hadithId: ref.hadithId, folderId: nil, scope: scope)
+            UserDefaults.standard.set(scope.uuidString, forKey: "a2.live.previousScope")
+            XCTAssertTrue(model.savedItems.isEmpty)
+        } else if secondAccountPhase {
+            let scope = try XCTUnwrap(UserDefaults.standard.string(forKey: "a2.live.previousScope").flatMap(UUID.init(uuidString:)))
+            model.assignFolder(hadithId: ref.hadithId, folderId: nil, scope: scope)
+            try await Task.sleep(for: .milliseconds(500))
+            XCTAssertTrue(model.savedItems.isEmpty)
+            let secondOwner = try XCTUnwrap(environment.librarySync.owner)
+            let secondState = try XCTUnwrap(environment.guestData.syncPartition(secondOwner))
+            XCTAssertTrue(secondState.pending.isEmpty); XCTAssertNil(secondState.frozen)
+            XCTAssertTrue(secondState.savedSnapshot?.items.isEmpty == true)
+            try await Clerk.shared.auth.signOut(); environment.handleSignOut()
+            XCTAssertTrue(model.savedItems.isEmpty)
+        } else { XCTFail("Unknown opt-in iOS phase") }
+    }
 }

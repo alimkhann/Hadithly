@@ -20,9 +20,10 @@ The compiled/indexed storage components remain tested but unused by product call
 Their runtime/UI cutover, further point-admission machinery, 501-/2,001-item scale
 work and injected recoverable iOS disk-save failure are deferred follow-ups.
 
-The focused native normal-use smoke checks pass. A2 implementation is wrapped;
-the remaining acceptance work is an approved development rollout and actual
-authenticated sync readback in both directions. See `A2_WRAP_UP.md`.
+October 26: A2's normal-use development sync gate is complete. The approved
+deployment and actual authenticated native readbacks pass in both directions.
+The live check also found and fixed Android's preference-schema numeric decoder.
+See `A2_WRAP_UP.md` for the exact account-switch scope and separate auth limits.
 Normal use covers bookmarks, favorites, notes, a folder, Undo, reading position,
 offline restart and account switching. Fix reproduced failures in that path only.
 Record an unavailable live check separately instead of restarting architecture work
@@ -38,7 +39,7 @@ These are rough focused-work estimates, not completion promises. External approv
 account, language-review and device waits are additional. The earlier A2 estimate
 assumed the now-deferred storage cutover and is withdrawn.
 
-A3 is now active while A2 awaits live development verification. The first local
+A3 is now active after A2's development synchronization verification. The first local
 repair removes Android's unsupported grounding claim, makes source rows usable,
 and suppresses exact known meaning reversals across reader/cache/publication and
 generation completion without charging allowance. See `A3_GROUNDING_VERIFICATION.md`.
@@ -47,7 +48,7 @@ Actual relevant-reference retrieval and semantic-quality proof remain open.
 | Stage | Remaining rough budget |
 | --- | --- |
 | A1 first-reading content | 1–2 days plus language review |
-| A2 normal-use wrap-up and live sync check | About half a day, plus approval/account waits |
+| A2 normal-use wrap-up and live sync check | Complete for development; release/auth limits remain separate |
 | A3 grounding/source quality | 2–4 days |
 | A4 fifteen-language localization | 3–5 days plus language review |
 | A5 remaining core bugs/UX | 2–3 days |
@@ -82,10 +83,12 @@ activation, or user-study participant cannot be silently represented as verified
   - [ ] A1. Guest first reading delivers actual exact-locale text and provenance,
     including when today's exact-locale translation is absent. Daily identity stays
     canonical. No hidden provider call or quota bypass on opening onboarding.
-  - [ ] A2. Reproduce and repair Saved, notes, folders, and reading-position sync;
+  - [x] A2. Reproduce and repair Saved, notes, folders, and reading-position sync;
     prove iOS → Android and Android → iOS, including sign-out/account changes.
-    Normal-use implementation is complete locally. The October 25 wrap-up retains
-    the live development check separately and defers the large-library cutover.
+    October 26 normal-use development acceptance passes. iOS account isolation
+    includes sign-out and second-account readback after relaunch; Android also
+    passes same-process switching. The direct iOS SDK re-login lane and physical/
+    hosted-auth matrix remain separate. The large-library cutover stays deferred.
     See `A2_WRAP_UP.md` for current evidence and remaining acceptance work.
   - [ ] A3. Improve real grounding and citation provenance for both free and paid
     generation; verify exact identity, relevance, failures, shared caching, rights,

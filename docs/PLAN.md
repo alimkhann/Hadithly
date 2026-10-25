@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-10-25. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-10-26. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
 D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its
 simulator/emulator and unit gates; its physical-device gate is open. R4's
@@ -59,6 +59,13 @@ product.
 
 ## A2 scope reset, October 25
 
+October 26 result: A2's agreed normal-use development synchronization gate passed.
+The owner approved the rollout and isolated writes. Snapshot `e657024` is deployed
+to development, and real native SDK/coordinator readbacks prove both directions,
+Undo, progress, sign-out and account isolation. Android's live sign-in exposed and
+repaired integral-number preference decoding. See `docs/A2_WRAP_UP.md` for exact
+phase evidence and the separate iOS direct-SDK auth limitation. A3 is next.
+
 The owner explicitly asked to finish A2 promptly and stop spending time on
 extreme folder/library sizes. This instruction supersedes the cutover work listed
 as "next" in the historical checkpoints below and their linked design records.
@@ -71,8 +78,8 @@ completed components without expanding or activating them during this wrap-up.
 The focused normal-use checks now pass on both platforms, including bookmarks,
 favorites, notes, a folder, Undo, reading position, offline restart, account
 switching and native Saved interactions. Normal-use implementation is wrapped;
-see `docs/A2_WRAP_UP.md`. Run the actual authenticated iOS-to-Android and Android-to-iOS development
-sync check if the requested action-time deployment/test-write approval arrives.
+see `docs/A2_WRAP_UP.md`. The approved authenticated iOS-to-Android and Android-to-iOS
+development checks are now executed and pass within the scope recorded there.
 Controlled transports are not live cross-device proof. Fix reproduced normal-use
 failures only; do not start another storage redesign.
 
@@ -96,7 +103,8 @@ See `docs/A3_GROUNDING_VERIFICATION.md` for evidence and remaining work.
 
 This is the first bounded A3 repair, not completed grounding. No provider call,
 new source permission, backend deployment or live-content change was performed.
-A2's pending development sync approval and its live gate remain separate. Continue
+A2's approved development sync gate is now passed; its release/auth limits remain
+separate. Continue
 with exact, authorized reference retrieval and source relevance before making any
 claim that ordinary generation is externally grounded.
 

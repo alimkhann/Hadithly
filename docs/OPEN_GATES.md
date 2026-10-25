@@ -1,6 +1,6 @@
 # Open gates
 
-Updated 2026-10-25 for the owner's A2 scope reduction. The external dashboard
+Updated 2026-10-26 for A2's normal-use development acceptance. The external dashboard
 facts below remain from the October 14 LA3/LA4 records.
 This is a record of outstanding proof, not a fresh production dashboard audit.
 Later session records take precedence over older unchecked boxes and summaries.
@@ -15,7 +15,7 @@ Later session records take precedence over older unchecked boxes and summaries.
 | F3 | Production fallback deployment/readback and release Android App Links verification. | Native routing and local fallback tests passed. The record still carries the live fallback deployment handoff; D3G supplies the Play signing fingerprint. |
 | R3 | Reader direction, paging, long-content, boundary, and accessibility matrix on physical iPhone and Android. | Simulator/emulator matrices passed. Later reader work continued under the owner's exceptions. |
 | F2 / R4 | Physical-device confirmation of preferences, typography, visibility, RTL, and accessibility through D4. | Native unit and simulator/emulator checks passed. R4's named review passed. |
-| H3 / private sync follow-up | The reported missing cross-device Saved/progress sync must be reproduced, repaired if needed, and proved in both directions. | H3's native migration and interaction checks passed. The separate 2026-09-30 sync report remains unresolved in the plan. |
+| H3 / private sync follow-up | Physical/production and installed release compatibility remain open; iOS direct-SDK re-login and the hosted-auth matrix remain on LA2/A5. | A2's October 26 approved development rollout and real native two-way Saved/progress, Undo, sign-out and scoped-account readbacks pass. See `A2_WRAP_UP.md` for the iOS relaunch limit. |
 | O1 | Production-grade confirmation of content permission scope, including adaptation and redistribution where used. | Licensed development dumps and checksum/schema tests passed. The earlier MIT/local-use wording is not treated as blanket rights for every later use. |
 | O2 | Translation packs need a versioned per-entry rights, attribution, and citations format before export, plus a real download/read/update/rollback proof. Version 1 pack generation is now blocked by E3 licensing checks; base dumps remain available. | Base collection downloads, offline reading, corruption/rollback fixtures, and physical iOS stalled-network recovery passed. |
 | N1 | Physical locale/timezone/DST, retry, stale-target, selected-language, receipt, and exact-open matrix; physical Android FCM retest. | The development APNs request was Apple-accepted. Owner receipt/exact-open confirmation and the broader device matrix remain open. |
@@ -56,9 +56,10 @@ must be replaced by evidence-pipeline checks, not used to revive that workflow.
 
 ## Product program local checkpoints, October 19
 
-October 25 scope correction supersedes this section's former A2 prerequisites.
-Normal-use implementation is wrapped locally; live authenticated development
-delivery in both directions remains unverified and approval is pending. See
+October 26 supersedes this section's former A2 prerequisites. Normal-use
+development synchronization passed the approved deployment and actual native
+delivery in both directions. The direct iOS SDK re-login/hosted-auth limits remain
+separate and explicit. See
 `A2_WRAP_UP.md`. The large-library row-store runtime/UI cutover, 501-/2,001-item
 scale work and injected recoverable iOS save failure are deferred follow-ups.
 Account-deletion SDK/propagation, retention, installed-client compatibility and
@@ -89,7 +90,7 @@ meaning-reversal read/publication guard pass local verification. See
 `A3_GROUNDING_VERIFICATION.md`. Ordinary generation still performs no external
 retrieval for either tier. Authorized relevant-reference retrieval, independent
 semantic quality, native-copy approval and live rollout remain open. These repairs
-do not close A2's live cross-device gate.
+do not close the remaining release/auth gates after A2's development sync pass.
 
 ## App-wide operation rule
 

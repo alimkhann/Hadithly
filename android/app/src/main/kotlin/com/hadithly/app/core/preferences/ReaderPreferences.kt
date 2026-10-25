@@ -116,8 +116,21 @@ sealed class PreferencesException(message: String) : Exception(message) {
         PreferencesException("VISIBILITY_ALL_HIDDEN: Arabic and translation visibility cannot both be disabled")
 }
 
+object ReaderPreferencesVersionSerializer : KSerializer<Int> {
+    override val descriptor = PrimitiveSerialDescriptor("ReaderPreferencesVersion", PrimitiveKind.INT)
+    override fun deserialize(decoder: Decoder): Int {
+        val value = decoder.decodeDouble()
+        if (!value.isFinite() || value % 1.0 != 0.0 || value < Int.MIN_VALUE || value > Int.MAX_VALUE) {
+            throw kotlinx.serialization.SerializationException("Preference schema version must be an integral 32-bit number")
+        }
+        return value.toInt()
+    }
+    override fun serialize(encoder: Encoder, value: Int) = encoder.encodeInt(value)
+}
+
 @Serializable
 data class ReaderPreferences(
+    @Serializable(with = ReaderPreferencesVersionSerializer::class)
     val schemaVersion: Int = SCHEMA_VERSION,
     val uiLocale: String = "en",
     val translationLocale: String = "en",

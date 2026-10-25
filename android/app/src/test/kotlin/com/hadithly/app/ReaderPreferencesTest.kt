@@ -16,6 +16,18 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ReaderPreferencesTest {
+    @org.junit.Test fun ownedPreferenceReadAcceptsIntegralConvexNumbersWithoutTruncatingVersions() {
+        val decoder = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
+        val integer = """{"readerPreferences":{"schemaVersion":2}}"""
+        val decimal = """{"readerPreferences":{"schemaVersion":2.0}}"""
+        val expected = decoder.decodeFromString<com.hadithly.app.core.data.UserPreferencesResult>(integer)
+        org.junit.Assert.assertEquals(expected, decoder.decodeFromString<com.hadithly.app.core.data.UserPreferencesResult>(decimal))
+        for (value in listOf("2.5", "2147483648.0", "-2147483649.0")) {
+            org.junit.Assert.assertThrows(kotlinx.serialization.SerializationException::class.java) {
+                decoder.decodeFromString<com.hadithly.app.core.data.UserPreferencesResult>("""{"readerPreferences":{"schemaVersion":$value}}""")
+            }
+        }
+    }
 
     @Test
     fun `defaults match the contract`() {
