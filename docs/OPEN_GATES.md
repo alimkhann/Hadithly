@@ -1,7 +1,7 @@
 # Open gates
 
-Updated 2026-10-14 from the current plan, LA3 approved development/live proof,
-and the LA4 pre-launch deferral.
+Updated 2026-10-25 for the owner's A2 scope reduction. The external dashboard
+facts below remain from the October 14 LA3/LA4 records.
 This is a record of outstanding proof, not a fresh production dashboard audit.
 Later session records take precedence over older unchecked boxes and summaries.
 
@@ -56,6 +56,16 @@ must be replaced by evidence-pipeline checks, not used to revive that workflow.
 
 ## Product program local checkpoints, October 19
 
+October 25 scope correction supersedes this section's former A2 prerequisites.
+Normal-use implementation is wrapped locally; live authenticated development
+delivery in both directions remains unverified and approval is pending. See
+`A2_WRAP_UP.md`. The large-library row-store runtime/UI cutover, 501-/2,001-item
+scale work and injected recoverable iOS save failure are deferred follow-ups.
+Account-deletion SDK/propagation, retention, installed-client compatibility and
+physical/release evidence remain on their respective tracks. None is passed by
+the normal-use fixtures. Do not reopen storage design to finish these external
+checks.
+
 This addition does not refresh the external dashboard facts above. A1's approved
 development first-reading boundary has four readable locales; eleven locales,
 maintenance and semantic/native-copy review remain open. A2 production caller
@@ -63,7 +73,8 @@ integration, local pending/recovery export, persistent deletion retry and a serv
 recreation guard have local evidence. See `LIBRARY_SYNC_INTEGRATION_VERIFICATION.md`,
 `LIBRARY_SYNC_EXPORT_VERIFICATION.md` and `LIBRARY_SYNC_DELETION_VERIFICATION.md`.
 
-A2 still requires final independent review, real SDK and two-device delivery,
+At that historical checkpoint, A2 still required final independent review, real
+SDK and two-device delivery,
 other-device local erasure propagation, marker/authorization retention and cleanup,
 scale/large folders/vanished anchors, installed-schema/process/cancellation proof,
 and deployment/private test-write approval. No A2 deployment was authorized or

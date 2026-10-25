@@ -10,45 +10,38 @@ Their checksums and every research URL are recorded in
 
 ## Current stage and rough time budget
 
-October 24 checkpoint: **A2 is active**. Android shared guest/account storage and
-the matching iOS account/journal/clock transaction boundary are implemented locally.
-Both native exporters now retain strict local fences and retry a transient change
-at most three times. See `LIBRARY_ACCOUNT_TRANSACTIONS_VERIFICATION.md`.
+October 25 owner correction: **wrap up A2 around normal use**. Stop expanding the
+storage design for thousands of items. This replaces the prior instruction to
+complete the row-store cutover before moving on.
 
-The owner asked to wrap up A2 as quickly as possible. Use the already selected
-cutover design and concentrate remaining work into these delivery steps:
+Keep the implemented production coordinator, durable account queues, account
+isolation and existing shared Saved presentation. Production row mode remains off.
+The compiled/indexed storage components remain tested but unused by product callers.
+Their runtime/UI cutover, further point-admission machinery, 501-/2,001-item scale
+work and injected recoverable iOS disk-save failure are deferred follow-ups.
 
-1. [x] All four private Saved observation consumers now require store-selected,
-   owner-bound authority through every receipt/cache/projection caller. Forced
-   row-mode and migration checks pass 129 iOS/118 Android tests; see
-   `LIBRARY_SAVED_OBSERVATION_VERIFICATION.md`. Production row mode remains off.
-2. The draft compiler/index/query component now passes 2,001-row native checks,
-   with 134 iOS/123 Android tests; see `LIBRARY_SAVED_VIEW_DRAFT_VERIFICATION.md`.
-   Compiled-input integrity and bounded draft discard now pass 137 iOS/126 Android
-   checks; see `LIBRARY_SAVED_VIEW_INTEGRITY_VERIFICATION.md`. Bind a persisted build
-   to private/queue coverage and catch up accepted edits. This builder now passes
-   140 iOS/129 Android checks; see `LIBRARY_SAVED_BUILD_VERIFICATION.md`. Atomic
-   publication and final-reply guards now pass 143 iOS/134 Android checks; see
-   `LIBRARY_SAVED_PUBLICATION_VERIFICATION.md`.
-   Wire point admission, actual binding/runtime scheduling and both Saved/Reader
-   surfaces with independent public hydration. Remove
-   the old production joined-array authority. Draft storage is not published UI.
-3. Verify scale, installed/SDK compatibility and actual delivery in both directions,
-   with sign-out/account switches. Complete an authorized development rollout when
-   the code is reviewable. Keep unavailable external/device gates explicit.
+The focused native normal-use smoke checks pass. A2 implementation is wrapped;
+the remaining acceptance work is an approved development rollout and actual
+authenticated sync readback in both directions. See `A2_WRAP_UP.md`.
+Normal use covers bookmarks, favorites, notes, a folder, Undo, reading position,
+offline restart and account switching. Fix reproduced failures in that path only.
+Record an unavailable live check separately instead of restarting architecture work
+or claiming controlled fixtures prove cross-device delivery.
 
-Actual recoverable iOS save failure, storage/export scale and A1 content dependencies
-remain open. This checkpoint does not move the program to A3 or claim A2 complete.
+Account-deletion, physical-device, content and release gates keep their existing
+records. They are not silently closed by this scope reduction. Once the bounded
+A2 wrap-up is recorded, prioritize A3 grounding and the visible reader/localization
+issues. Historical checkpoints below retain their evidence; their former "next"
+steps do not override this owner instruction.
 
-These are remaining focused-work-day estimates at the pace observed October 18–22,
-not measured hours or completion promises. External review/account/device waits are
-additional; some observation can overlap later work. Re-estimate after the production A2
-read/UI cutover, rather than interpreting a test count as a percentage complete.
+These are rough focused-work estimates, not completion promises. External approval,
+account, language-review and device waits are additional. The earlier A2 estimate
+assumed the now-deferred storage cutover and is withdrawn.
 
 | Stage | Remaining rough budget |
 | --- | --- |
 | A1 first-reading content | 1–2 days plus language review |
-| A2 sync/storage/cross-device verification | 3–6 days |
+| A2 normal-use wrap-up and live sync check | About half a day, plus approval/account waits |
 | A3 grounding/source quality | 2–4 days |
 | A4 fifteen-language localization | 3–5 days plus language review |
 | A5 remaining core bugs/UX | 2–3 days |
@@ -85,6 +78,9 @@ activation, or user-study participant cannot be silently represented as verified
     canonical. No hidden provider call or quota bypass on opening onboarding.
   - [ ] A2. Reproduce and repair Saved, notes, folders, and reading-position sync;
     prove iOS → Android and Android → iOS, including sign-out/account changes.
+    Normal-use implementation is complete locally. The October 25 wrap-up retains
+    the live development check separately and defers the large-library cutover.
+    See `A2_WRAP_UP.md` for current evidence and remaining acceptance work.
   - [ ] A3. Improve real grounding and citation provenance for both free and paid
     generation; verify exact identity, relevance, failures, shared caching, rights,
     and bounded cost. Do not fill citation counts with unrelated URLs.
@@ -132,10 +128,12 @@ activation, or user-study participant cannot be silently represented as verified
 - [ ] Audit the full objective requirement by requirement, review the decision
   trail independently, commit finished units, and report remaining gates honestly.
 
-## Active unit
+## Historical implementation checkpoints
 
-A2 sync implementation is active, with A1 content and maintenance dependencies
-still open. A1's cache-only boundary is implemented and deployed to the
+The following checkpoints preserve the implementation history. Their proposed
+next steps are superseded by the October 25 scope reset above. A1 content and
+maintenance dependencies remain open. A1's cache-only boundary is implemented and
+deployed to the
 approved development deployment. Exact public readback is available in English,
 Arabic, Russian and Kazakh, with three prepared references each. Eleven locales,
 automatic reference maintenance, semantic-quality safeguards and the complete

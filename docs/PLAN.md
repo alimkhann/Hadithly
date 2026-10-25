@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-10-24. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-10-25. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
 D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its
 simulator/emulator and unit gates; its physical-device gate is open. R4's
@@ -56,6 +56,32 @@ Do not
 start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
+
+## A2 scope reset, October 25
+
+The owner explicitly asked to finish A2 promptly and stop spending time on
+extreme folder/library sizes. This instruction supersedes the cutover work listed
+as "next" in the historical checkpoints below and their linked design records.
+
+Keep the existing production sync integration and shared Saved presentation.
+Defer the unfinished row-store runtime/UI cutover, point-admission expansion and
+501-/2,001-item performance work. Production row mode stays off. Preserve the
+completed components without expanding or activating them during this wrap-up.
+
+The focused normal-use checks now pass on both platforms, including bookmarks,
+favorites, notes, a folder, Undo, reading position, offline restart, account
+switching and native Saved interactions. Normal-use implementation is wrapped;
+see `docs/A2_WRAP_UP.md`. Run the actual authenticated iOS-to-Android and Android-to-iOS development
+sync check if the requested action-time deployment/test-write approval arrives.
+Controlled transports are not live cross-device proof. Fix reproduced normal-use
+failures only; do not start another storage redesign.
+
+Separate implementation completion from the remaining live acceptance check.
+Large-library scale and injected recoverable iOS disk-save failure are deferred
+follow-ups, not new A2 implementation prerequisites. Existing account-deletion,
+physical-device, content and release gates remain recorded on their own tracks.
+After this bounded wrap-up, prioritize A3 grounding/source quality and the
+user-facing reader/localization defects in `docs/PRODUCT_PROGRAM.md`.
 
 ## A2 coherent publication checkpoint, October 24
 
