@@ -22,6 +22,8 @@ final class ReaderR5UITests: XCTestCase {
         XCTAssertTrue(element("reader.contents.chapter.1.1", in: app).waitForExistence(timeout: timeout))
         XCTAssertTrue(element("reader.contents.chapter.1.6", in: app).exists)
         XCTAssertTrue(app.staticTexts["كتاب بدء الوحي"].exists)
+        XCTAssertTrue(app.staticTexts["1. Revelation"].exists)
+        XCTAssertFalse(app.buttons["Open from the start"].exists)
         // Volume 2 has no chapters entry content: it renders as a plain
         // volume row exactly like the pre-R5 sheet.
         XCTAssertTrue(element("reader.volume.2", in: app).waitForExistence(timeout: timeout))
@@ -56,6 +58,27 @@ final class ReaderR5UITests: XCTestCase {
         XCTAssertTrue(chapter.waitForExistence(timeout: timeout))
         chapter.tap()
         XCTAssertTrue(element("r5.dismissed", in: app).waitForExistence(timeout: timeout))
+    }
+
+    func testContentsVolumeNameOpensWithoutExtraStartRow() {
+        let app = launchContentsFixture()
+        let volume = app.buttons.matching(identifier: "reader.volume.1").firstMatch
+        XCTAssertTrue(volume.waitForExistence(timeout: timeout))
+        volume.tap()
+        XCTAssertTrue(element("r5.dismissed", in: app).waitForExistence(timeout: timeout))
+    }
+
+    func testContentsKeepsSourceNumbersAndDoesNotRepeatLocalizedGenericTitle() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-R5ContentsFixture"]
+        app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "R5_SPARSE_VOLUMES": "1", "R5_ARABIC_ONLY": "1"]
+        app.launch()
+        let source = app.buttons.matching(identifier: "reader.volume.3").firstMatch
+        XCTAssertTrue(source.waitForExistence(timeout: timeout))
+        XCTAssertTrue(source.label.contains("\(3.formatted(.number.locale(Locale(identifier: "ar")))). Prayer"))
+        let generic = app.buttons.matching(identifier: "reader.volume.7").firstMatch
+        XCTAssertTrue(generic.exists)
+        XCTAssertFalse(generic.label.contains(". "), "The localized generic title already includes its source number")
     }
 
     // MARK: - Live: real reader against development Convex

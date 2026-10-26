@@ -2921,6 +2921,7 @@ internal fun ContentsSheet(
 ) {
     val colors = LocalHadithlyColors.current
     var expandedVolumeId by remember(selectedVolumeId) { mutableStateOf(selectedVolumeId) }
+    val locale = LocalConfiguration.current.locales[0]
     var jumpInput by remember { mutableStateOf("") }
     var jumpError by remember { mutableStateOf<String?>(null) }
 
@@ -3007,22 +3008,19 @@ internal fun ContentsSheet(
             val selected = volume.volumeId == selectedVolumeId
             val expanded = expandedVolumeId == volume.volumeId
             Column(modifier = Modifier.fillMaxWidth()) {
-                val subtitle = volume.firstChapterTitle?.trim()
-                    ?.takeIf { it.isNotEmpty() && it != volume.title }
-                    ?: "${volume.hadithCount.toInt()} hadiths"
+                val name = volumeHeaderTitle(volume)
+                val number = volumeHeaderNumber(volume)?.takeIf { it > 0 }
+                val title = if (ReaderViewModel.volumeTitleNumber(name) != null || number == null) name
+                    else "${java.text.NumberFormat.getIntegerInstance(locale).format(number)}. $name"
                 ListItem(
                     headlineContent = {
                         Text(
-                            text = volume.title,
+                            text = title,
                             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
                             color = if (selected) colors.interactive else colors.textPrimary,
-                            maxLines = 1,
+                            maxLines = 2,
                             overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                         )
-                    },
-                    supportingContent = {
-                        Text(subtitle, color = colors.textSecondary, maxLines = 1,
-                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                     },
                     trailingContent = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -3046,7 +3044,7 @@ internal fun ContentsSheet(
                     colors = ListItemDefaults.colors(
                         containerColor = if (selected) colors.interactiveSoft else Color.Transparent,
                     ),
-                    modifier = Modifier.fillMaxWidth().clickable { onSelect(volume.volumeId) },
+                    modifier = Modifier.fillMaxWidth().testTag("reader.contents.volume.${volume.volumeId}").clickable { onSelect(volume.volumeId) },
                 )
                 if (expanded) {
                     for (chapter in volume.chapters) {

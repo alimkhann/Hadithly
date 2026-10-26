@@ -33,6 +33,37 @@ import kotlin.math.abs
 class NativePolishTest {
     @get:Rule val compose = createComposeRule()
 
+    @Test fun dailyCardFollowsAppAppearanceWithSeparateReaderTheme() {
+        val preferences = com.hadithly.app.HadithlyApplication.instance().preferences
+        val original = preferences.preferences.value
+        var appTheme by mutableStateOf(ReaderTheme.LIGHT)
+        try {
+            preferences.setTheme(ReaderTheme.LIGHT)
+            preferences.setSeparateReaderTheme(true)
+            preferences.setReaderTheme(ReaderTheme.DARK)
+            compose.setContent {
+                HadithlyTheme(appTheme) { com.hadithly.app.features.today.TodayScreen({}, previewState = "ready") }
+            }
+            for ((home, reader) in listOf(ReaderTheme.LIGHT to ReaderTheme.DARK, ReaderTheme.DARK to ReaderTheme.LIGHT)) {
+                compose.runOnIdle {
+                    appTheme = home
+                    preferences.setTheme(home)
+                    preferences.setReaderTheme(reader)
+                }
+                compose.waitForIdle()
+                val bitmap = compose.onNodeWithTag("today.dailyCard").captureToImage().asAndroidBitmap()
+                capture("daily-app-$home-reader-$reader", bitmap)
+                val red = Color.red(bitmap.getPixel((bitmap.width * 0.85).toInt(), 8))
+                if (home == ReaderTheme.LIGHT) assertTrue("Daily follows the light app", red > 180)
+                else assertTrue("Daily follows the dark app", red < 100)
+            }
+        } finally {
+            preferences.setTheme(original.appTheme)
+            preferences.setReaderTheme(original.readerTheme)
+            preferences.setSeparateReaderTheme(original.usesSeparateReaderTheme)
+        }
+    }
+
     @Test fun readerManualChoicePersistsAndHintOnlyAppearsOnce() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val defaults = context.getSharedPreferences("reader-experience-test", android.content.Context.MODE_PRIVATE)

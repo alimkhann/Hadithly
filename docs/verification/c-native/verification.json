@@ -1,0 +1,96 @@
+{
+  "ios": {
+    "runs": [
+      {
+        "bundle": "hadithly-c-baseline-ios.xcresult",
+        "startTime": 1793057673.216,
+        "result": "Passed",
+        "passedTests": 4,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-c-daily-contents-ios.xcresult",
+        "startTime": 1793058045.071,
+        "result": "Failed",
+        "passedTests": 5,
+        "failedTests": 2,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-c-contents-fixed-ios.xcresult",
+        "startTime": 1793058286.916,
+        "result": "Failed",
+        "passedTests": 4,
+        "failedTests": 1,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-c-volume-tap-ios.xcresult",
+        "startTime": 1793058462.85,
+        "result": "Passed",
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-c-source-numbers-ios.xcresult",
+        "startTime": 1793058676.009,
+        "result": "Passed",
+        "passedTests": 3,
+        "failedTests": 0,
+        "skippedTests": 0
+      }
+    ],
+    "latestCases": {
+      "HadithlyUITests/NativeFinishingUITests/testAnnualPricingPrototypeShowsMonthlyEquivalentAndNativeSelection()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-baseline-ios.xcresult"
+      },
+      "HadithlyUITests/NativeFinishingUITests/testNativeReaderSheetGalleryAndGlassControlSize()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-daily-contents-ios.xcresult"
+      },
+      "HadithlyUITests/NativeFinishingUITests/testReaderFocusRemovesGlassControlsAndSystemStatusBar()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-baseline-ios.xcresult"
+      },
+      "HadithlyUITests/NativeFinishingUITests/testSettingsSignInUsesNativeNavigationAndCancelRestoresTheTab()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-baseline-ios.xcresult"
+      },
+      "HadithlyUITests/ReaderR5UITests/testContentsChapterTapDismisses()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-contents-fixed-ios.xcresult"
+      },
+      "HadithlyUITests/ReaderR5UITests/testContentsJumpAcceptsWellFormedInput()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-contents-fixed-ios.xcresult"
+      },
+      "HadithlyUITests/ReaderR5UITests/testContentsJumpRejectsMalformedInputInline()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-contents-fixed-ios.xcresult"
+      },
+      "HadithlyUITests/ReaderR5UITests/testContentsShowsChaptersAndJumpField()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-source-numbers-ios.xcresult"
+      },
+      "HadithlyUITests/ReaderR5UITests/testContentsVolumeNameOpensWithoutExtraStartRow()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-source-numbers-ios.xcresult"
+      },
+      "HadithlyUITests/VisualPolishUITests/testDailyCardFollowsAppAppearanceWithSeparateReaderTheme()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-daily-contents-ios.xcresult"
+      },
+      "HadithlyUITests/ReaderR5UITests/testContentsKeepsSourceNumbersAndDoesNotRepeatLocalizedGenericTitle()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-source-numbers-ios.xcresult"
+      }
+    },
+    "latestCounts": {
+      "Passed": 11
+    }
+  },
+  "android": {}
+}

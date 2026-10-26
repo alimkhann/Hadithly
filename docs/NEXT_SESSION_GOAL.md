@@ -13,6 +13,10 @@ access limits. Read `docs/product-program/research-decisions.md`, then continue
 C1–C8 and D before A4–A7. No blocked resource is counted as read, and no retention,
 release or content gate is closed by the research.
 
+C5/C6 checkpoint: Daily appearance and numbered Contents are repaired and locally
+verified on both apps. Read `C_NATIVE_REFINEMENTS.md` and continue C4/C8 plus the
+remaining C checks before D. Preserve the incoming five Xcode/catalog files.
+
 ## Working style and boundaries
 
 Work fast on normal reading, saving, translation and return journeys. Choose the

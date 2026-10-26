@@ -115,7 +115,7 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit, previewState: String? 
     val summaries by libraryModel.summaries.collectAsStateWithLifecycle()
     val progressLoading by libraryModel.loading.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val readerColors = ReaderPalettes.resolved(if (preferences.usesSeparateReaderTheme) preferences.readerTheme else preferences.appTheme, androidx.compose.foundation.isSystemInDarkTheme())
+    val dailyColors = ReaderPalettes.resolved(preferences.appTheme, androidx.compose.foundation.isSystemInDarkTheme())
     var daily by remember { mutableStateOf<DailyHadith?>(null) }
     var loading by remember { mutableStateOf(true) }
     var failed by remember { mutableStateOf(false) }
@@ -195,7 +195,7 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit, previewState: String? 
         Crossfade(targetState = dailyPresentation, animationSpec = tween(com.hadithly.app.core.theme.InterfaceMotion.REVEAL),
             label = "Daily content reveal", modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) { presentation ->
             when (presentation) {
-                is DailyPresentation.Ready -> DailyCard(presentation.hadith, preferences, readerColors, offline, app.library, onOpenTarget)
+                is DailyPresentation.Ready -> DailyCard(presentation.hadith, preferences, dailyColors, offline, app.library, onOpenTarget)
                 DailyPresentation.Loading -> CardShell(homeColors) {
                     com.hadithly.app.core.theme.ContentSkeleton(com.hadithly.app.core.theme.SkeletonKind.Daily,
                         label = nativeText("Bringing today's hadith…"), modifier = Modifier.testTag("today.dailyLoading"))

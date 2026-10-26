@@ -162,9 +162,11 @@ activation, or user-study participant cannot be silently represented as verified
     use simple colored icons and no cards. Verify both platforms visually.
   - [ ] C3. Smooth focus entry and exit; thin progress bars remain in focus mode.
   - [ ] C4. Liquid glass menu elements remain visually separate without fusing.
-  - [ ] C5. Daily hadith cards follow app appearance, independently of reader theme.
-  - [ ] C6. Contents uses real volume names preceded by their numbers and removes
+  - [x] C5. Daily hadith cards follow app appearance, independently of reader theme.
+  - [x] C6. Contents uses real volume names preceded by their numbers and removes
     Open from start. Preserve jump and navigation behavior.
+    October 27 local native evidence and source-number limits are recorded in
+    `C_NATIVE_REFINEMENTS.md`. The other C requirements remain active.
   - [ ] C7. Native glass page-switching controls on supported systems, with fitting
     accessible fallbacks elsewhere.
   - [ ] C8. Coherent onboarding/auth with the official Google brand asset. Use

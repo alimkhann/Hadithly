@@ -2,6 +2,26 @@ import XCTest
 import UIKit
 
 final class VisualPolishUITests: XCTestCase {
+    func testDailyCardFollowsAppAppearanceWithSeparateReaderTheme() {
+        for (appTheme, readerTheme) in [("light", "dark"), ("dark", "light")] {
+            let app = XCUIApplication()
+            app.launchArguments = ["-NativePolishFixture"]
+            app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "POLISH_SCREEN": "today-ready",
+                "POLISH_THEME": appTheme, "POLISH_READER_THEME": readerTheme]
+            app.launch()
+            let card = element("today.dailyCard", app)
+            XCTAssertTrue(card.waitForExistence(timeout: 10))
+            let color = pixel(in: app, at: CGPoint(x: card.frame.minX + card.frame.width * 0.85, y: card.frame.minY + 8))
+            capture("daily-app-\(appTheme)-reader-\(readerTheme)", app)
+            if appTheme == "light" {
+                XCTAssertGreaterThan(Int(color[0]), 180, "Daily follows the light app, independently of the dark reader")
+            } else {
+                XCTAssertLessThan(Int(color[0]), 100, "Daily follows the dark app, independently of the light reader")
+            }
+            app.terminate()
+        }
+    }
+
     func testPageHandoffKeepsIncomingTextGeometry() {
         var positions: [CGFloat] = []
         for renderer in ["neighbor", "active"] {

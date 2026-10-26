@@ -57,6 +57,17 @@ start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
 
+## C Daily and Contents checkpoint, October 27
+
+C5 and C6 now pass their local native checks. Daily appearance is independent of
+the reader theme on both apps. Contents uses numbered source names, removes iOS's
+extra start row and preserves volume/chapter/jump navigation. Independent review
+found source-number and Arabic generic-title cases; both are repaired with native
+coverage. See `C_NATIVE_REFINEMENTS.md` for captures, reruns and limits.
+Continue C4/C8 and the remaining C checks before D. Existing content, auth,
+physical-device, purchase, annual-total prototype and release gates remain open.
+The incoming Xcode/catalog edits remain preserved and excluded from this unit.
+
 ## B research checkpoint, October 27
 
 B's available-source pass is complete. All 34 named videos have complete available

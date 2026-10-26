@@ -52,16 +52,18 @@ class ReaderR5SheetTest {
 
     @Composable
     private fun sheet(
+        outline: List<OutlineVolume> = volumes,
+        onSelect: (String) -> Unit = {},
         onSelectChapter: (String, OutlineChapter) -> Unit = { _, _ -> },
         onJumpToReference: (String) -> Boolean = { true },
         onDismiss: () -> Unit = {},
     ) {
         HadithlyTheme {
             ContentsSheet(
-                volumes = volumes,
+                volumes = outline,
                 selectedVolumeId = "1",
                 arabicVisible = true,
-                onSelect = {},
+                onSelect = onSelect,
                 onSelectChapter = onSelectChapter,
                 onJumpToReference = onJumpToReference,
                 onDismiss = onDismiss,
@@ -76,9 +78,30 @@ class ReaderR5SheetTest {
         compose.onNodeWithText("Revelation").assertIsDisplayed()
         compose.onNodeWithText("الوحي").assertIsDisplayed()
         compose.onNodeWithText("Belief").assertIsDisplayed()
+        val locale = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+            .targetContext.resources.configuration.locales[0]
+        val number = java.text.NumberFormat.getIntegerInstance(locale).format(1)
+        compose.onNodeWithText("$number. Revelation").assertIsDisplayed()
         compose.onNodeWithText("Volume 2").assertIsDisplayed()
         compose.onNodeWithTag("reader.contents.chapter.1.1").assertIsDisplayed()
         compose.onNodeWithTag("reader.contents.chapter.1.8").assertIsDisplayed()
+    }
+
+    @Test fun volumeNameSelectsItsVolumeDirectly() {
+        var selected: String? = null
+        compose.setContent { sheet(onSelect = { selected = it }) }
+        compose.onNodeWithTag("reader.contents.volume.1").performClick()
+        assertEquals("1", selected)
+    }
+
+    @Test fun contentsKeepsNoncontiguousSourceVolumeNumbers() {
+        compose.setContent {
+            sheet(outline = listOf(volumes[0], OutlineVolume(volumeId = "3", title = "Volume 3", firstChapterTitle = "Prayer", hadithCount = 44.0)))
+        }
+        val locale = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+            .targetContext.resources.configuration.locales[0]
+        val number = java.text.NumberFormat.getIntegerInstance(locale).format(3)
+        compose.onNodeWithText("$number. Prayer").assertIsDisplayed()
     }
 
     @Test

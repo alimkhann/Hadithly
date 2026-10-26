@@ -100,7 +100,7 @@ struct TodayView: View {
 
     private var preferences: ReaderPreferences { environment.preferences.preferences }
     private var readerPalette: ReaderPalette {
-        ReaderPalette.resolved(preferences.theme, systemDark: systemColorScheme == .dark)
+        ReaderPalette.resolved(preferences.appTheme, systemDark: systemColorScheme == .dark)
     }
 
     var body: some View {
@@ -167,7 +167,7 @@ struct TodayView: View {
             if let dailyHadith {
                 HadithSourceSheet(hadith: dailyHadith.readerHadith)
                     .environment(\.readerPalette, readerPalette)
-                    .environment(\.readerTheme, preferences.theme)
+                    .environment(\.readerTheme, preferences.appTheme)
                     .presentationDetents([.medium])
             }
         }

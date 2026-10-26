@@ -2216,10 +2216,13 @@ extension ReaderTranslation: Identifiable {
 /// backend-backed R2 target path, proven live elsewhere).
 struct ReaderContentsTestFixtureView: View {
     @Environment(\.readerPalette) private var palette
+    @Environment(\.locale) private var locale
+    @Environment(\.layoutDirection) private var layoutDirection
     @State private var model: ReaderModel
     @State private var showSheet = true
 
     init() {
+        let sparse = ProcessInfo.processInfo.environment["R5_SPARSE_VOLUMES"] == "1"
         let provider = ClerkConvexAuthProvider()
         let convex = ConvexClientWithAuth(
             deploymentUrl: "https://example.invalid",
@@ -2256,11 +2259,12 @@ struct ReaderContentsTestFixtureView: View {
                     ]
                 ),
                 OutlineVolume(
-                    volumeId: "2",
-                    title: "Volume 2",
+                    volumeId: sparse ? "3" : "2",
+                    title: sparse ? "Volume 3" : "Volume 2",
+                    firstChapterTitle: sparse ? "Prayer" : nil,
                     hadithCount: 51
                 ),
-            ],
+            ] + (sparse ? [OutlineVolume(volumeId: "7", title: "Volume 7", hadithCount: 12)] : []),
             selectedVolumeId: "1"
         )
         _model = State(initialValue: seeded)
@@ -2282,7 +2286,10 @@ struct ReaderContentsTestFixtureView: View {
         .environment(\.readerPalette, palette)
         .environment(\.readerTheme, ReaderTheme.dark)
         .sheet(isPresented: $showSheet) {
-            CollectionOutlineSheet(model: model, arabicVisible: true)
+            let arabicOnly = ProcessInfo.processInfo.environment["R5_ARABIC_ONLY"] == "1"
+            CollectionOutlineSheet(model: model, arabicVisible: true, translationVisible: !arabicOnly)
+                .environment(\.locale, arabicOnly ? Locale(identifier: "ar") : locale)
+                .environment(\.layoutDirection, arabicOnly ? .rightToLeft : layoutDirection)
         }
     }
 }

@@ -41,6 +41,10 @@ struct NativePolishFixtureView: View {
             if values["POLISH_RESET_HINT"] == "1" { environment.readerExperience.resetHintForUITest() }
             environment.preferences.setTheme(theme)
             environment.preferences.setSeparateReaderTheme(false)
+            if let raw = values["POLISH_READER_THEME"], let readerTheme = ReaderTheme(rawValue: raw) {
+                environment.preferences.setReaderTheme(readerTheme)
+                environment.preferences.setSeparateReaderTheme(true)
+            }
             environment.preferences.setUILocale(values["POLISH_LOCALE"] ?? "en")
             environment.preferences.setTranslationLocale("en")
             environment.preferences.setReadingDirection(ReadingDirection(rawValue: values["POLISH_DIRECTION"] ?? "auto") ?? .auto)

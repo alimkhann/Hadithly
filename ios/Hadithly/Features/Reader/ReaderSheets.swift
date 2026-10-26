@@ -81,6 +81,7 @@ struct CollectionOutlineSheet: View {
     var translationVisible: Bool = true
     @Environment(\.dismiss) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var reducedMotion
+    @Environment(\.locale) private var locale
     @State private var expandedVolumes: Set<String> = []
     @State private var jumpText = ""
     @State private var jumpError: String?
@@ -185,16 +186,15 @@ struct CollectionOutlineSheet: View {
     /// the source provided them — Hadithly never synthesizes one.
     private func volumeDisclosure(_ volume: OutlineVolume, chapters: [OutlineChapter]) -> some View {
         DisclosureGroup(isExpanded: expansionBinding(for: volume.volumeId)) {
+            ForEach(chapters) { chapter in chapterRow(volume: volume, chapter: chapter) }
+        } label: {
             Button {
                 model.selectVolume(volume.volumeId); dismiss()
             } label: {
-                Label("Open from the start", systemImage: "book")
+                volumeLabel(volume, isSelected: volume.volumeId == model.selectedVolumeId)
             }
+            .buttonStyle(.borderless)
             .accessibilityIdentifier("reader.volume.\(volume.volumeId)")
-            ForEach(chapters) { chapter in chapterRow(volume: volume, chapter: chapter) }
-        } label: {
-            volumeLabel(volume, isSelected: volume.volumeId == model.selectedVolumeId)
-                .accessibilityIdentifier("reader.contents.volume.\(volume.volumeId)")
         }
         .tint(palette.interactive)
     }
@@ -235,18 +235,18 @@ struct CollectionOutlineSheet: View {
     }
 
     private func volumeLabel(_ volume: OutlineVolume, isSelected: Bool, showsChevron: Bool = false) -> some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 3) {
-                Text(localizedVolumeTitle(volume.title, preferences: prefs))
+        let sourceName = ReaderVolumeHeaderTitle.actualTitle(volume: volume,
+            arabicVisible: arabicVisible, translationVisible: translationVisible)
+        let name = localizedVolumeTitle(sourceName, preferences: prefs)
+        let number = ReaderVolumeTitle.volumeNumber(in: volume.title) ?? Int(volume.volumeId)
+        let title: String
+        if let number, number > 0, ReaderVolumeTitle.volumeNumber(in: sourceName) == nil {
+            title = "\(number.formatted(.number.locale(locale))). \(name)"
+        } else { title = name }
+        return HStack {
+                Text(title)
                     .font(.subheadline.weight(isSelected ? .semibold : .regular))
                     .foregroundStyle(palette.textPrimary)
-                if let chapter = volume.firstChapterTitle, !chapter.isEmpty {
-                    Text(chapter)
-                        .font(.caption)
-                        .foregroundStyle(palette.textSecondary)
-                        .lineLimit(1)
-                }
-            }
             Spacer()
             Text("\(volume.hadithCount)")
                 .font(.caption.monospacedDigit())
