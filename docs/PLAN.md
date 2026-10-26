@@ -83,12 +83,24 @@ development checks are now executed and pass within the scope recorded there.
 Controlled transports are not live cross-device proof. Fix reproduced normal-use
 failures only; do not start another storage redesign.
 
-Separate implementation completion from the remaining live acceptance check.
+Keep the remaining release/auth acceptance checks separate from A2's completed
+development synchronization check.
 Large-library scale and injected recoverable iOS disk-save failure are deferred
 follow-ups, not new A2 implementation prerequisites. Existing account-deletion,
 physical-device, content and release gates remain recorded on their own tracks.
 After this bounded wrap-up, prioritize A3 grounding/source quality and the
 user-facing reader/localization defects in `docs/PRODUCT_PROGRAM.md`.
+
+## A3 reference integration, October 26
+
+Authorized comparison retrieval is implemented locally for free, Pro and service
+generation. Exact language/text/citation context binds publication and new cache
+identity; legacy cache identities stay valid. Expiry and attribution reach first
+reading and existing native watchers. Guessed cross-provider URLs are removed.
+545 backend checks and two expiry/revocation cases per platform pass. See
+`docs/A3_GROUNDING_VERIFICATION.md`. No A3 rollout or paid model call is authorized
+or claimed. Next is an approved development rollout, eligible-content inventory
+and bounded provider/semantic readback, without inventing permission grants.
 
 ## A3 translation trust repair, October 25
 

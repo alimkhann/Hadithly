@@ -1,7 +1,6 @@
 /**
- * Provider prompt boundaries, translation payload parsing and source links.
- * Ordinary generation does not request external retrieval. A reference URL is
- * not evidence that the model consulted that page.
+ * Provider prompt boundaries and translation payload parsing. Comparison
+ * citations come from the retained, authorized context rather than model URLs.
  */
 
 export type Citation = {
@@ -15,6 +14,7 @@ export type TranslationPayload = {
   confidence: number;
   riskFlags: string[];
   glossaryNotes: string[];
+  usedReferenceIds: string[];
 };
 
 export function untrustedProviderDataBlock(input: {
@@ -54,6 +54,8 @@ export function parseTranslationPayload(raw: string): TranslationPayload | null 
     const parsed: unknown = JSON.parse(json);
     if (!isRecord(parsed)) return null;
     if (typeof parsed.translation !== "string") return null;
+    if (parsed.usedReferenceIds !== undefined && (!Array.isArray(parsed.usedReferenceIds) ||
+      !parsed.usedReferenceIds.every((id: unknown) => typeof id === "string"))) return null;
     const confidence =
       typeof parsed.confidence === "number"
         ? Math.min(1, Math.max(0, parsed.confidence))
@@ -63,6 +65,7 @@ export function parseTranslationPayload(raw: string): TranslationPayload | null 
       confidence,
       riskFlags: stringArray(parsed.riskFlags),
       glossaryNotes: stringArray(parsed.glossaryNotes),
+      usedReferenceIds: stringArray(parsed.usedReferenceIds),
     };
   } catch {
     return null;
@@ -108,27 +111,4 @@ export function extractCitations(
     });
   }
   return citations;
-}
-
-function lastNumber(value?: string | null): string | undefined {
-  if (!value) return undefined;
-  const matches = value.match(/\d+/g);
-  return matches ? matches[matches.length - 1] : undefined;
-}
-
-/**
- * Best-effort canonical hadith URL, used as the "source link" when grounding
- * returns no usable citations. sunnah.com accepts `collection:number` paths.
- */
-export function deriveSourceReferenceUrl(input: {
-  collectionSlug?: string;
-  providerHadithId?: string;
-  referenceDisplay?: string;
-}): string | undefined {
-  const slug = input.collectionSlug?.trim();
-  if (!slug) return undefined;
-  const num =
-    lastNumber(input.providerHadithId) ?? lastNumber(input.referenceDisplay);
-  if (!num) return undefined;
-  return `https://sunnah.com/${slug}:${num}`;
 }

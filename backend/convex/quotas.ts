@@ -5,8 +5,9 @@ import { v } from "convex/values";
 import { requireIdentity } from "./lib/identity";
 import { availableDefault } from "./translations";
 import { knownMeaningReversal, publicTranslationAvailable } from "./lib/evidencePublication";
-import { GENERATION_MODEL, GENERATION_PROMPT_VERSION, LEASE_MS, PRICING_VERSION, WINDOW_MS,
+import { GENERATION_MODEL, GENERATION_PROMPT_VERSION, GENERATION_COMPARISON_VERSION, LEASE_MS, PRICING_VERSION, WINDOW_MS,
   generationIdentity, generationLanguage, generationLimit, generationSourceAllowed, monthlyGenerationSpendPolicy, rollingAllowance, telemetryValidator, tokenCostMicroUsd } from "./lib/generationPolicy";
+import { currentGenerationReferences, referencesForGeneration, type GenerationReference } from "./lib/generationReferences";
 
 export async function allowanceFor(ctx: QueryCtx | MutationCtx, user: Doc<"users">, now: number) {
   const charges = await ctx.db.query("aiUsageCharges").withIndex("by_user_time", q =>
@@ -42,7 +43,7 @@ type Admission =
   | { kind: "cached"; translation: Doc<"translations"> }
   | { kind: "busy"; retryAt: number }
   | { kind: "rejected"; code: string; retryAt: number | null }
-  | { kind: "claimed"; jobId: Id<"aiGenerationJobs">; attempt: number; hadith: Doc<"hadiths"> };
+  | { kind: "claimed"; jobId: Id<"aiGenerationJobs">; attempt: number; hadith: Doc<"hadiths">; references: GenerationReference[] };
 
 export const admit = internalMutation({
   args: { hadithId: v.id("hadiths"), language: v.string(), clerkId: v.optional(v.string()),
@@ -54,9 +55,11 @@ export const admit = internalMutation({
     if (!hadith) return { kind: "rejected", code: "UNKNOWN_HADITH", retryAt: null };
     const cached = await availableDefault(ctx, hadith, language);
     if (cached) return { kind: "cached", translation: cached };
-    const identity = await generationIdentity(hadith, language);
-    if (args.verifiedGenerationKey && args.verifiedGenerationKey !== identity.generationKey)
+    const sourceIdentity = await generationIdentity(hadith, language);
+    if (args.verifiedGenerationKey && args.verifiedGenerationKey !== sourceIdentity.generationKey)
       return { kind: "rejected", code: "AI_INTEGRITY_REJECTED", retryAt: null };
+    const references = await referencesForGeneration(ctx, hadith, language);
+    const identity = await generationIdentity(hadith, language, references.map(reference => reference.binding));
     const job = await ctx.db.query("aiGenerationJobs").withIndex("by_key", q => q.eq("generationKey", identity.generationKey)).unique();
     if (job?.status === "pending" && job.expiresAt > now) return { kind: "busy", retryAt: job.expiresAt };
     // A withdrawn result must not be recreated under an already-successful key.
@@ -90,12 +93,12 @@ export const admit = internalMutation({
     await admitDailySpend(ctx, now, true);
     await admitRate(ctx, "generation:global", 60);
     const attempt = (job?.attempt ?? 0) + 1;
-    const fields = { ...identity, hadithId: hadith._id, language, userId: user?._id,
+    const fields = { ...identity, referenceBindings: references.map(reference => reference.binding), hadithId: hadith._id, language, userId: user?._id,
       origin: user ? "user" : "service", status: "pending", attempt, expiresAt: now + LEASE_MS, createdAt: now, translationId: undefined } satisfies Omit<Doc<"aiGenerationJobs">, "_id" | "_creationTime">;
     const jobId = job ? job._id : await ctx.db.insert("aiGenerationJobs", fields);
     if (job) await ctx.db.patch(job._id, fields);
     await ctx.db.insert("aiSpendReservations", { jobId, attempt, monthKey: spend.monthKey, reservedMicroUsd: spend.reservedMicroUsd, freePool, settled: false });
-    return { kind: "claimed", jobId, attempt, hadith };
+    return { kind: "claimed", jobId, attempt, hadith, references };
   },
 });
 
@@ -134,7 +137,7 @@ async function reserveMonthlySpend(ctx: MutationCtx, now: number, freePool: bool
 
 export const finish = internalMutation({
   args: { jobId: v.id("aiGenerationJobs"), attempt: v.number(), telemetry: telemetryValidator,
-    output: v.optional(v.object({ translation: v.string(), confidence: v.number(), riskFlags: v.array(v.string()), sourceReferenceUrl: v.optional(v.string()) })) },
+    output: v.optional(v.object({ translation: v.string(), confidence: v.number(), riskFlags: v.array(v.string()), sourceReferenceUrl: v.optional(v.string()), usedReferenceIds: v.optional(v.array(v.string())) })) },
   handler: async (ctx, args) => {
     const now = Date.now(), job = await ctx.db.get(args.jobId);
     if (!job) throw new Error("UNKNOWN_GENERATION");
@@ -158,10 +161,11 @@ export const finish = internalMutation({
     const stale = job.status !== "pending" || job.attempt !== args.attempt || job.expiresAt <= now;
     const hadith = await ctx.db.get(job.hadithId);
     const license = hadith?.licenseRecordId ? await ctx.db.get(hadith.licenseRecordId) : null;
-    const sourceChanged = !hadith || (await generationIdentity(hadith, job.language)).sourceDigest !== job.sourceDigest ||
+    const sourceChanged = !hadith || (await generationIdentity(hadith, job.language, job.referenceBindings ?? [])).generationKey !== job.generationKey ||
       license?.terms.kind !== "verified" || !license.terms.permitsDisplay;
     let outcome: "published" | "cached" | "failed" | "stale" = stale || sourceChanged ? "stale" : "failed";
     let translation: Doc<"translations"> | null = null;
+    let groundingUsed = false;
     if (!stale && !sourceChanged && hadith) {
       translation = await availableDefault(ctx, hadith, job.language);
       if (translation) outcome = "cached";
@@ -169,14 +173,21 @@ export const finish = internalMutation({
         const text = args.output.translation.trim();
         if (!text || text.length > 24_000 || !Number.isFinite(args.output.confidence) || args.output.confidence < 0 || args.output.confidence > 1 || args.output.riskFlags.length > 30)
           throw new Error("INVALID_GENERATION_OUTPUT");
-        if (!await knownMeaningReversal(ctx, hadith, job.language, text)) {
+        const references = await currentGenerationReferences(ctx, hadith, job.referenceBindings ?? []);
+        const usedIds = args.output.usedReferenceIds ?? [];
+        const validIds = references && usedIds.length <= 3 && new Set(usedIds).size === usedIds.length &&
+          usedIds.every(id => references.some((_, index) => id === `reference:${index}`));
+        if (references && validIds && !await knownMeaningReversal(ctx, hadith, job.language, text)) {
+          const used = references.filter((_, index) => usedIds.includes(`reference:${index}`));
+          groundingUsed = used.length > 0;
           for (const row of await ctx.db.query("translations").withIndex("by_hadith_language_default", q => q.eq("hadithId", hadith._id).eq("language", job.language).eq("isDefault", true)).collect())
             await ctx.db.patch(row._id, { isDefault: false });
           const user = job.userId ? await ctx.db.get(job.userId) : null;
           const translationId = await ctx.db.insert("translations", { hadithId: job.hadithId, language: job.language,
-            content: text, source: "gemini_ai", sourceLabel: "AI", aiModel: GENERATION_MODEL, aiPromptVersion: GENERATION_PROMPT_VERSION,
+            content: text, source: "gemini_ai", sourceLabel: "AI", aiModel: GENERATION_MODEL, aiPromptVersion: references.length ? `${GENERATION_PROMPT_VERSION}+${GENERATION_COMPARISON_VERSION}` : GENERATION_PROMPT_VERSION,
             generationKey: job.generationKey, sourceDigest: job.sourceDigest, generatedByUserId: user?._id, status: "live", isDefault: true,
-            confidence: args.output.confidence, riskFlags: args.output.riskFlags, groundingUsed: false, citations: [], sourceReferenceUrl: args.output.sourceReferenceUrl,
+            confidence: args.output.confidence, riskFlags: args.output.riskFlags, groundingUsed, groundingSourceCount: used.length,
+            generationReferences: references.map(reference => reference.binding), citations: used.map(reference => reference.citation),
             createdAt: now, updatedAt: now });
           const eventId = await ctx.db.insert("aiUsageEvents", { generationKey: job.generationKey, translationId, createdAt: now });
           if (user) await ctx.db.insert("aiUsageCharges", { userId: user._id, eventId, createdAt: now });
@@ -186,7 +197,7 @@ export const finish = internalMutation({
       }
     }
     await ctx.db.insert("aiCostEvents", { ...args.telemetry, jobId: job._id, attempt: args.attempt, model: GENERATION_MODEL,
-      pricingVersion: PRICING_VERSION, estimatedMicroUsd, groundingUsed: false, outcome, createdAt: now });
+      pricingVersion: PRICING_VERSION, estimatedMicroUsd, groundingUsed, outcome, createdAt: now });
     if (!stale) await ctx.db.patch(job._id, { status: translation ? "completed" : "failed", translationId: translation?._id, expiresAt: now });
     return translation ? { translation, cached: outcome === "cached" } : null;
   },

@@ -15,7 +15,7 @@ class EvidenceE4Test {
         assertFalse(EvidenceAppealState(true, 100.0, "processing").canRequest(99))
     }
     @Test fun revocationAndDifferentDeadlinesRemoveLoadedTextAndCitations() {
-        val original = mapOf("one" to TranslationUiState.Loaded(ReaderTranslation("first", "Test one", source = "community", sourceLabel = "Community")), "two" to TranslationUiState.Loaded(ReaderTranslation("second", "Test two", source = "community", sourceLabel = "Community")))
+        val original = mapOf("one" to TranslationUiState.Loaded(ReaderTranslation("first", "Test one", source = "gemini_ai", sourceLabel = "AI translation", groundingUsed = true, citations = listOf(com.hadithly.app.core.data.ReaderCitation("https://example.org", "Test", "example.org")))), "two" to TranslationUiState.Loaded(ReaderTranslation("second", "Test two", source = "community", sourceLabel = "Community")))
         val statuses = listOf(PublicationAvailability("first", true, 100.0), PublicationAvailability("second", true, 200.0))
         val first = keepAvailableTranslations(original, statuses, 100)
         assertFalse(first.containsKey("one"))

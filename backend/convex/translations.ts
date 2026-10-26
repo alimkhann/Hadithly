@@ -2,7 +2,7 @@ import { internalQuery, query } from "./_generated/server";
 import { v } from "convex/values";
 import type { Doc } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
-import { publicTranslationAvailable, publicationExpiry } from "./lib/evidencePublication";
+import { publicTranslationAvailable, translationExpiry } from "./lib/evidencePublication";
 import { generationIdentity, generationLanguage } from "./lib/generationPolicy";
 import { canonicalizeLocaleTag } from "./lib/preferences";
 
@@ -12,7 +12,8 @@ export async function availableDefault(ctx: QueryCtx | MutationCtx, hadith: Doc<
   const key = (await generationIdentity(hadith, language)).generationKey;
   rows.sort((a, b) => Number(a.source === "gemini_ai") - Number(b.source === "gemini_ai"));
   for (const row of rows) {
-    if (row.source === "gemini_ai" && row.generationKey && row.generationKey !== key) continue;
+    if (row.source === "gemini_ai" && row.generationKey && row.generationKey !== (row.generationReferences?.length ?
+      (await generationIdentity(hadith, language, row.generationReferences)).generationKey : key)) continue;
     if (await publicTranslationAvailable(ctx, row)) return row;
   }
   return null;
@@ -59,7 +60,7 @@ export const watchPublications = query({
     if (args.translationIds.length > 40) throw new Error("Too many loaded translations");
     return Promise.all([...new Set(args.translationIds)].map(async translationId => {
       const row = await ctx.db.get(translationId);
-      return { translationId, available: await publicTranslationAvailable(ctx, row), validUntil: row?.evidencePublicationId ? await publicationExpiry(ctx, row.evidencePublicationId) : null };
+      return { translationId, available: await publicTranslationAvailable(ctx, row), validUntil: await translationExpiry(ctx, row) };
     }));
   },
 });

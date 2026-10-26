@@ -6,7 +6,7 @@ import { READER_COLLECTIONS } from "./lib/contentPolicy";
 import { PROVIDER_HADITH_ID_PATTERN } from "./lib/canonicalLinks";
 import { generationIdentity } from "./lib/generationPolicy";
 import { textDigest } from "./lib/evidenceReviewPolicy";
-import { PublicationReadBudget, publicTranslationAvailable, publicationExpiry } from "./lib/evidencePublication";
+import { PublicationReadBudget, publicTranslationAvailable, translationExpiry } from "./lib/evidencePublication";
 import { firstReadingLocale, firstReadingPublicUrl, firstReadingSource } from "./lib/firstReadingPolicy";
 import type { FirstReadingLocale, FirstReadingSource, FirstReadingResult, FirstReadingDocument, FirstReadingDailySummary, FirstReadingCredit } from "./lib/firstReadingPolicy";
 
@@ -43,7 +43,7 @@ async function resolve(ctx: Context, hadithId: Id<"hadiths">, source: FirstReadi
   const blocked = await ctx.db.query("firstReadingBlockedTexts").withIndex("by_exact_text", q =>
     q.eq("locale", locale).eq("canonicalId", canonicalId).eq("contentSha256", digest)).unique();
   if (blocked) return null;
-  if (source.kind === "ai_translation" && (row.source !== "gemini_ai" || !row.generationKey || row.generationKey !== (await generationIdentity(hadith, locale)).generationKey)) return null;
+  if (source.kind === "ai_translation" && (row.source !== "gemini_ai" || !row.generationKey || row.generationKey !== (await generationIdentity(hadith, locale, row.generationReferences ?? [])).generationKey)) return null;
   if (source.kind === "published_translation" && !row.evidencePublicationId) return null;
   let sourceUrl = row.citations?.map(citation => firstReadingPublicUrl(citation.url)).find(url => url !== null) ?? null;
   let directExpiry: number | null = null;
@@ -60,9 +60,9 @@ async function resolve(ctx: Context, hadithId: Id<"hadiths">, source: FirstReadi
       url: firstReadingPublicUrl(permission.permissionUrl) });
   }
   if (!await publicTranslationAvailable(ctx, row, new Set(), budget)) return null;
-  if (row.evidencePublicationId) {
+  for (const publicationId of [...new Set([...(row.evidencePublicationId ? [row.evidencePublicationId] : []), ...(row.generationReferences?.map(reference => reference.publicationId) ?? [])])]) {
     if (!budget.spend(1)) return null;
-    const revision = await ctx.db.get(row.evidencePublicationId);
+    const revision = await ctx.db.get(publicationId);
     if (!revision?.permissions?.length || revision.permissions.length > 8) return null;
     for (const permission of revision.permissions) {
       credits.push({ scope: "translation", attribution: permission.attribution, licenseName: permission.licenseName,
@@ -70,7 +70,7 @@ async function resolve(ctx: Context, hadithId: Id<"hadiths">, source: FirstReadi
     }
   }
   if (credits.some(credit => !credit.attribution.trim() || !credit.licenseName.trim())) return null;
-  const publicationDeadline = row.evidencePublicationId ? await publicationExpiry(ctx, row.evidencePublicationId, new Set(), budget) : null;
+  const publicationDeadline = await translationExpiry(ctx, row, budget);
   const deadlines = [directExpiry, publicationDeadline].filter((value): value is number => value !== null);
   const validUntil = deadlines.length ? Math.min(...deadlines) : null;
   if (validUntil !== null && (!Number.isFinite(validUntil) || validUntil <= Date.now())) return null;

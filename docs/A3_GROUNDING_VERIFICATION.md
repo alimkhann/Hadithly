@@ -1,127 +1,122 @@
-# A3 translation trust repair
+# A3 reference retrieval and translation trust
 
-October 25, 2026. First bounded A3 repair after the A2 normal-use wrap-up.
-A2 live development delivery and the full A3 grounding gate remain open.
+October 26, 2026. The local reference integration is implemented and verified.
+A3 remains open for development rollout, real eligible-content inventory, provider
+readback and semantic-quality review. The deployed development backend is still
+A2 snapshot `e657024`; this document does not claim the A3 code is live.
 
-## What the code actually does
+## Result
 
-`backend/convex/actions/ai.ts` sends provider Arabic, optional English, narrator and
-reference text to one structured-output generation path. It configures no search
-or external retrieval tool. Free and Pro use this same path; their allowance and
-budget pools differ. `quotas.finish` records `groundingUsed: false` and empty
-citations. The derived original-reference URL does not prove the model visited it.
-Older cached translations may retain citations from earlier generation paths.
+Free, Pro and internal service generation share one selector for up to three
+English or related-language comparison translations of the same canonical hadith.
+It selects existing published, non-AI comparisons. It checks the exact translation,
+publication, originating submission, language, text hash, current comparison/model
+permissions, publication validity and retained scans/access dependencies. Unknown,
+revoked, expired, unsuitable or oversized comparisons are omitted. No source policy
+or permission is created by retrieval.
 
-The earlier Q1 prompt explicitly removed ordinary web grounding to bound cost.
-The owner's A3 request asks for stronger grounding, but no new paid retrieval,
-provider call or reuse permission is authorized by this local repair. Filling a
-source list with unrelated links would not satisfy that request.
+The existing E3 publication pipeline remains responsible for approving comparison
+content. Ordinary AI output still uses the quota-controlled AI publication path;
+a sourced comparison does not make the new output independently reviewed or
+semantically approved. Model confidence and declared reference use are self-reports.
 
-## Repairs
+The provider receives source text and comparisons in separate untrusted JSON data
+blocks. It returns `usedReferenceIds`, not arbitrary URLs. Only known, unique IDs
+can become citations. The server rechecks the captured context before publication.
+A mismatch or permission loss prevents publication and releases reader allowance;
+actual provider cost is still recorded without prompts, text, identity or URLs.
 
-Android previously claimed every AI translation was grounded in cited sources,
-even for an empty citation list. It now uses the existing iOS disclosure, shows
-when no external sources were cited, and provides tappable HTTPS reference and
-citation rows. Invalid/non-HTTPS links are disabled. The combined hadith-header
-source sheet remains the entry point; a redundant English-only inner heading is
-removed. iOS already has the disclosure and working
-source buttons; its rendered source-sheet and publication-invalidation checks are
-no-change parity verification.
+Each captured reference binds its translation/publication IDs and one digest of
+the exact language, text and effective citation. New generation keys include the
+ordered comparison context and comparison policy version. A replaced reference
+can produce a new generation; unchanged results are globally reusable without
+another provider call or reader charge. Legacy AI entries without comparisons
+retain their original identity and honest existing grounding metadata.
 
-The two reused copy entries are resource-backed across English, Arabic, Russian,
-Kazakh, Kyrgyz, Uzbek, Turkish, Indonesian, Urdu, French, Spanish Latin America,
-Brazilian Portuguese, Swahili, Hindi and Bengali. Their existing `needs_review`
-status remains. They are drafts, not native-copy approval. Regenerate/check Android
-without modifying the incoming iOS catalog with:
+All supplied comparisons remain internal publication dependencies, even when the
+model declares none used. Only declared used comparisons appear as citations or
+count toward `groundingSourceCount`. This preserves input rights and cache identity
+without padding the displayed source list.
 
-```sh
-python3 scripts/generate-ui-polish-copy.py --android-only --check
-```
+The visible citation includes its retained source location, attribution and license
+name. Duplicate source URLs are skipped. Comparison text is capped at 6,000 UTF-8
+bytes per reference and the complete serialized comparison block at 24,000 bytes.
+Private/capability-bearing links are rejected using the existing public-URL guard.
 
-The known Kazakh Bukhari 18 meaning reversal was excluded from first reading but
-still returned by ordinary public reads. The shared availability check now rejects
-an exact recorded `meaning_reversal` by canonical hadith, locale and content hash.
-This covers reader defaults, cached-generation lookups, notification candidates
-and publication invalidation on both apps. It preserves the underlying row and
-allows a changed text version. `unsuitable_standalone` exclusions still apply only
-to first reading.
+New AI output no longer invents a Sunnah.com URL from a different provider's number.
+The old derivation helper is removed. In-flight older actions can still finish,
+but their optional guessed reference URL is not published. Existing cached legacy
+citation/reference metadata has not been migrated or independently audited.
 
-A new generation could otherwise return that exact bad text again. Completion now
-checks the same incident before changing defaults, inserting a translation or
-creating a success/allowance charge. It records provider cost as a failed attempt
-and releases the allowance reservation. This rejects known exact text only; it
-cannot establish that an unseen paraphrase is semantically sound.
+## Expiry and native parity
 
-## Verification
+The shared public availability check now validates captured comparison context.
+Reader defaults, cached-generation reads and publication watches reject stale or
+withdrawn context. The watch returns the earliest permission deadline, including
+comparison dependencies. First reading uses that same deadline and retains
+comparison attribution/license credits. It cannot keep a newly grounded starter
+indefinitely after its source permission expires.
 
-- The ordinary-reader regression failed before the shared read check, returning
-  the blocked text. Evidence: `/tmp/hadithly-a3-incident-red.log`.
-- Both free and Pro completion regressions failed before the output check because
-  the same blocked text was published. Evidence: `/tmp/hadithly-a3-output-red.log`.
-- Android native regressions failed on missing no-citation disclosure and inert
-  citation rows. Evidence: `/tmp/hadithly-a3-source-ui-red.log`.
-- The focused final backend group passes 54 tests, including both paid/free
-  allowance preservation cases. Evidence: `/tmp/hadithly-a3-output-focused.log`.
-- Final backend strict typecheck and 528 tests in 43 files pass. Evidence:
-  `/tmp/hadithly-a3-final-typecheck.log`, `/tmp/hadithly-a3-final-backend.log`.
-- Android's two native source cases pass, including the actual URI-handler action.
-  Evidence: `/tmp/hadithly-a3-source-ui-final.log`.
-  The rendered component capture is `/tmp/hadithly-a3-reader-sources.png`.
-  A separate direct instrumentation run uses the same verification runner because
-  Gradle's completed run removes the installed test app and its cached screenshot.
-- iOS's combined source-sheet UI and publication-invalidation cases both pass.
-  Evidence: `/tmp/hadithly-a3-source-ios.log` and `.xcresult`. The exported actual
-  Paper source-sheet capture is
-  `/tmp/hadithly-a3-ios-captures/2FC8176D-7653-4F9C-AFD3-FB83FACA805C.png`.
-- Android copy generation check and scoped whitespace checks pass.
+Both native readers already watch every loaded translation ID and remove its text
+and citations at the returned deadline. The iOS and Android policy tests now cover
+mixed AI/community results. The public response fields remain compatible; internal
+reference bindings are not exposed as consumer API fields. No native screen or
+new operator panel was added for this component.
 
-The first Android follow-up used an English literal while the native host selected
-localized resources. The final assertion resolves the selected resource and still
-requires the no-citation state and absence of the old grounding claim. The test
-also taps the reference through the actual native URI handler boundary using a
-controlled handler, without opening a browser or making network requests.
+The earlier Android source-disclosure repair, tappable source rows and fifteen-
+locale disclosure drafts remain at `13d0199`. Those drafts still need native-copy
+review. Their existing rendered fixtures are in `/tmp/hadithly-a3-reader-sources.png`
+and `/tmp/hadithly-a3-ios-captures/2FC8176D-7653-4F9C-AFD3-FB83FACA805C.png`.
 
-## Still open
+## Executed evidence
 
-Ordinary generation still performs no external retrieval. Next, select a small set
-of exact-hadith comparison references whose recorded permissions allow model
-processing and display. Bind actual retrieved references to canonical identity,
-source revision and exact translation language; keep paid and free quality equal
-and retain single-flight/cache reuse and bounded cost. Verify relevance and failed
-retrieval rather than requiring an arbitrary number of citations. Current model
-confidence is self-reported and is not independent semantic review.
+| Check | Result | Evidence |
+| --- | --- | --- |
+| Citation-change and replacement-context regressions before their fixes | Both fail on the actual generation/completion paths | `/tmp/hadithly-a3-context-red.log` |
+| Final backend strict typecheck | Pass | `/tmp/hadithly-a3-retrieval-complete-typecheck.log` |
+| Final full backend suite | 545 tests in 44 files pass | `/tmp/hadithly-a3-retrieval-complete-backend.log` |
+| iOS mixed AI/community expiry and revocation | Two tests pass | `/tmp/hadithly-a3-native-expiry-ios.log`, `.xcresult` |
+| Android mixed AI/community expiry and revocation | Two tests pass | `/tmp/hadithly-a3-native-expiry-android.log` |
+| Scoped whitespace and staged credential checks | Pass at commit | Git checks |
 
-Known source-link derivation is best-effort and still needs an identity audit.
-The live bad-text record is not modified or suppressed until this code is deployed.
-No deployment, private account write, source-policy change, paid generation or
-production operation was performed. A2's pending deployment approval is separate;
-these A3 changes have no live rollout evidence. Native copy, physical-device,
-content rights and release gates stay open.
-Previously downloaded translation text and old installed-client invalidation still
-need their own readback. No offline artifact was rebuilt or claimed repaired.
+The backend fixtures use actual local Convex functions, real native DTO shapes and
+an E3-published source fixture. Provider responses are controlled. They cover free/
+Pro parity, one provider call, global cache reuse, unused references, invented and
+duplicate IDs, in-flight revocation/citation changes, replacement context, expiry,
+first-reading credits/deadlines, legacy cache identity, source-language retagging,
+prompt bounds, private links and compatibility with an older action's URL field.
+They are not live paid-model, rights-owner, language-quality or native cloud proof.
 
-## October 26 reference-retrieval work checkpoint
+## Cost and source-policy readback
 
-Before the A2 deployment approval arrived, local work added a bounded selector
-for up to three published non-AI comparisons, shared by free, Pro and service
-generation. It reuses current comparison/model-processing permissions, sends
-references as untrusted data, validates declared reference IDs, rechecks rights
-before publication and exposes reference expiry to the existing native watchers.
-The actual Convex/provider-boundary fixtures pass 536 backend tests in 44 files
-and strict typecheck. Evidence: `/tmp/hadithly-a3-references-full.log` and
-`/tmp/hadithly-a3-references-typecheck.log`. Provider calls in these tests are
-controlled responses; no paid generation or live reference rollout occurred.
+The implementation adds no web fetch, Google Search tool or extra model round trip.
+Existing rolling allowances, single-flight, timeout, one-attempt HTTP policy and
+monthly/daily budget controls remain in place. Numeric provider token usage still
+settles the existing reservation.
 
-The unfinished implementation is preserved separately from A2 in Git stash
-`035861f8d29985290a27bae6f32ecf69ec197830`. Restore with
-`git stash apply 035861f8d29985290a27bae6f32ecf69ec197830`.
-It includes only the eight modified backend files and two new reference files.
-The incoming iOS project/scheme/catalog edits are outside that checkpoint.
+Google's [official Gemini API pricing](https://ai.google.dev/gemini-api/docs/pricing#gemini-2.5-flash-lite),
+checked October 26, lists standard paid text rates of $0.10 input and $0.40 output
+per million tokens for the pinned Flash-Lite model. These match the existing code;
+no pricing or billing setting was changed.
 
-Before committing or deploying this component, bind the exact citation snapshot
-as well as text, and include comparison context in new generation identities
-without invalidating unrelated legacy cached text. Add regression coverage for
-changed reference citation/context and replacement after withdrawal. Keep the
-existing one-success-per-generation-key and free cache reuse contracts. The
-current prototype is not ready for rollout. A2's live verification and Android
-preference repair are committed separately as `77b1155`.
+[Sunnah.now's official documentation](https://docs.sunnah.now/) describes its API
+project as MIT-licensed. That statement alone does not satisfy the app's exact-text
+comparison/model-processing permission fields. No additional content rights were
+inferred or granted from it.
+
+## Remaining gate
+
+Deploy the tested code to development only with action-time approval. Inspect the
+actual eligible comparison inventory before spending model calls. If none exists,
+record the missing authorized content rather than fabricate citations or permissions.
+Then verify provider output IDs, provenance and meaningful translation samples with
+bounded live calls and inspect the resulting native source display. Retain the
+existing original-source, historical-citation and independent semantic-review gaps.
+
+No A3 deployment, permission change, private-account write, paid generation or
+production operation was performed in this local integration. A2's prior approval
+covered its own deployment and isolated sync tests, not these A3 actions.
+
+The earlier WIP stash `035861f8d29985290a27bae6f32ecf69ec197830` is retained only as
+historical recovery. It has been restored and superseded by this implementation;
+do not reapply it over the finished reference integration.

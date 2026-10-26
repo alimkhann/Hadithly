@@ -4,6 +4,7 @@ import { canonicalJson } from "./offlineDumps";
 import { textDigest, pathWithinPolicy } from "./evidenceReviewPolicy";
 import { storageHashMatches } from "../evidence";
 import { generationIdentity } from "./generationPolicy";
+import { currentGenerationReferences } from "./generationReferences";
 
 export class PublicationReadBudget {
   private failed = false;
@@ -55,10 +56,12 @@ export async function publicTranslationAvailable(ctx: QueryCtx | MutationCtx, ro
   // Standalone suitability affects first reading only; a known meaning reversal
   // must also disappear from ordinary reader, cache and publication reads.
   if (await knownMeaningReversal(ctx, hadith, row.language, row.content)) return false;
+  if (row.generationReferences?.length && (row.source !== "gemini_ai" ||
+    !await currentGenerationReferences(ctx, hadith, row.generationReferences, budget))) return false;
   if (row.source === "gemini_ai" && row.generationKey) {
     if (budget && !budget.spend(1)) return false;
     const license = hadith.licenseRecordId ? await ctx.db.get(hadith.licenseRecordId) : null;
-    if (row.generationKey !== (await generationIdentity(hadith, row.language)).generationKey ||
+    if (row.generationKey !== (await generationIdentity(hadith, row.language, row.generationReferences ?? [])).generationKey ||
       license?.terms.kind !== "verified" || !license.terms.permitsDisplay) return false;
   }
   if (!row.evidencePublicationId) return row.source !== "community";
@@ -117,6 +120,16 @@ export async function publicationExpiry(ctx: QueryCtx | MutationCtx, id: Id<"evi
   }
   for (const comparisonId of revision.comparisonPublicationIds ?? []) {
     const deadline = await publicationExpiry(ctx, comparisonId, new Set([...visited, id]), budget);
+    if (deadline !== null) deadlines.push(deadline);
+  }
+  return deadlines.length ? Math.min(...deadlines) : null;
+}
+
+export async function translationExpiry(ctx: QueryCtx | MutationCtx, row: Doc<"translations"> | null, budget?: PublicationReadBudget): Promise<number | null> {
+  const publications = [...new Set([...(row?.evidencePublicationId ? [row.evidencePublicationId] : []), ...(row?.generationReferences?.map(reference => reference.publicationId) ?? [])])];
+  const deadlines: number[] = [];
+  for (const id of publications) {
+    const deadline = await publicationExpiry(ctx, id, new Set(), budget);
     if (deadline !== null) deadlines.push(deadline);
   }
   return deadlines.length ? Math.min(...deadlines) : null;

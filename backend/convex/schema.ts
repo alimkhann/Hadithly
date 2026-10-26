@@ -13,6 +13,7 @@ import { permissionGrant, publicCitation, reviewPass, sourcePolicy } from "./lib
 import { caseReason, caseState } from "./lib/evidenceCasePolicy";
 import { supportFields, noticeKind } from "./lib/supportPolicy";
 import { firstReadingSource } from "./lib/firstReadingPolicy";
+import { generationReferenceBinding } from "./lib/generationPolicy";
 
 const authenticityGrade = v.union(
   v.literal("sahih"),
@@ -98,6 +99,7 @@ export default defineSchema({
     .index("by_receipt", ["receiptId"]).index("by_user", ["userId"]),
 
   aiGenerationJobs: defineTable({
+    referenceBindings: v.optional(v.array(generationReferenceBinding)),
     generationKey: v.string(), sourceDigest: v.string(), hadithId: v.id("hadiths"), language: v.string(),
     userId: v.optional(v.id("users")), origin: v.union(v.literal("user"), v.literal("service")),
     status: v.union(v.literal("pending"), v.literal("completed"), v.literal("failed")),
@@ -115,7 +117,7 @@ export default defineSchema({
     pricingVersion: v.string(), inputTokens: v.number(), outputTokens: v.number(), thinkingTokens: v.number(),
     estimatedMicroUsd: v.number(), tokenUsageKnown: v.boolean(), durationMs: v.number(),
     outcome: v.union(v.literal("published"), v.literal("cached"), v.literal("failed"), v.literal("stale")),
-    groundingUsed: v.literal(false), createdAt: v.number(),
+    groundingUsed: v.boolean(), createdAt: v.number(),
   }).index("by_job_attempt", ["jobId", "attempt"]).index("by_time", ["createdAt"]),
   aiRateLimits: defineTable({ key: v.string(), userId: v.optional(v.id("users")), startedAt: v.number(), count: v.number() })
     .index("by_key", ["key"]).index("by_user", ["userId"]),
@@ -274,6 +276,7 @@ export default defineSchema({
     riskFlags: v.optional(v.array(v.string())),
     groundingUsed: v.boolean(),
     groundingSourceCount: v.optional(v.number()),
+    generationReferences: v.optional(v.array(generationReferenceBinding)),
     citations: v.optional(
       v.array(
         v.object({

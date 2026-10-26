@@ -1,5 +1,6 @@
 import { subscriptionAccess, type SubscriptionFields } from "./revenueCat";
 import { v } from "convex/values";
+import type { Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { canonicalizeLocaleTag } from "./preferences";
 import { textDigest } from "./evidenceReviewPolicy";
@@ -7,10 +8,21 @@ import { untrustedProviderDataBlock } from "./grounding";
 
 export const GENERATION_MODEL = "gemini-2.5-flash-lite";
 export const GENERATION_PROMPT_VERSION = "q1-v2";
+export const GENERATION_COMPARISON_VERSION = "comparisons-v1";
 export const WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 export const LEASE_MS = 120_000;
 export const PROVIDER_TIMEOUT_MS = 40_000;
 export const PRICING_VERSION = "gemini-2026-10-12";
+
+export const generationReferenceBinding = v.object({
+  translationId: v.id("translations"), publicationId: v.id("evidencePublicationRevisions"), contextSha256: v.string(),
+});
+export type GenerationReferenceBinding = Infer<typeof generationReferenceBinding>;
+
+export const RELATED_TRANSLATION_LANGUAGES: Readonly<Record<string, readonly string[]>> = {
+  kk: ["ky", "uz", "tr"], ky: ["kk", "uz", "tr"], uz: ["kk", "ky", "tr"], tr: ["kk", "ky", "uz"],
+  ur: ["fa", "hi"], fa: ["ur"], hi: ["ur", "bn"], bn: ["hi"], id: ["ms"], ms: ["id"], ru: ["uk"], uk: ["ru"], "es-419": ["pt-BR"], "pt-BR": ["es-419"],
+};
 
 export function monthlyGenerationSpendPolicy(now: number) {
   const date = new Date(now), start = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1);
@@ -36,11 +48,13 @@ export function generationLanguage(value: string): string {
   return language;
 }
 
-export async function generationIdentity(hadith: Doc<"hadiths">, language: string) {
+export async function generationIdentity(hadith: Doc<"hadiths">, language: string, references: GenerationReferenceBinding[] = []) {
   const sourceDigest = await textDigest(JSON.stringify([hadith.arabicText, hadith.englishText ?? null,
     hadith.narrator ?? null, hadith.referenceDisplay]));
   const canonicalId = `${hadith.provider}:${hadith.collectionSlug}:${hadith.providerHadithId}`;
-  const generationKey = await textDigest(JSON.stringify([canonicalId, language, sourceDigest, GENERATION_MODEL, GENERATION_PROMPT_VERSION]));
+  const baseKey = await textDigest(JSON.stringify([canonicalId, language, sourceDigest, GENERATION_MODEL, GENERATION_PROMPT_VERSION]));
+  const generationKey = references.length ? await textDigest(JSON.stringify([baseKey, GENERATION_COMPARISON_VERSION,
+    references.map(reference => [reference.translationId, reference.publicationId, reference.contextSha256])])) : baseKey;
   return { generationKey, sourceDigest };
 }
 

@@ -87,9 +87,11 @@ localization, production or release gate listed above.
 
 October 25 A3 checkpoint: Android source disclosure/links and the shared exact
 meaning-reversal read/publication guard pass local verification. See
-`A3_GROUNDING_VERIFICATION.md`. Ordinary generation still performs no external
-retrieval for either tier. Authorized relevant-reference retrieval, independent
-semantic quality, native-copy approval and live rollout remain open. These repairs
+`A3_GROUNDING_VERIFICATION.md`. The October 26 local integration retrieves existing
+authorized published comparisons for both tiers; the deployed A2 backend still
+has no such retrieval. Actual eligible-content inventory, provider readback,
+independent semantic quality, native-copy approval and live rollout remain open.
+These repairs
 do not close the remaining release/auth gates after A2's development sync pass.
 
 ## App-wide operation rule

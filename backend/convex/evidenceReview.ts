@@ -12,12 +12,9 @@ import { canonicalJson } from "./lib/offlineDumps";
 import { APPEAL_WINDOW_MS, DAY_MS, sampleAudit } from "./lib/evidenceCasePolicy";
 import { appendEvidenceAudit, automatedActor } from "./lib/evidenceAudit";
 import { finishEvidenceCase, queueEvidenceCase, revokeEvidencePublication } from "./evidenceCases";
+import { RELATED_TRANSLATION_LANGUAGES } from "./lib/generationPolicy";
 
 export const CONSENT_VERSION = "e3-contribution-v1";
-const RELATED: Readonly<Record<string, readonly string[]>> = {
-  kk: ["ky", "uz", "tr"], ky: ["kk", "uz", "tr"], uz: ["kk", "ky", "tr"], tr: ["kk", "ky", "uz"],
-  ur: ["fa", "hi"], fa: ["ur"], hi: ["ur", "bn"], bn: ["hi"], id: ["ms"], ms: ["id"], ru: ["uk"], uk: ["ru"], "es-419": ["pt-BR"], "pt-BR": ["es-419"],
-};
 const SUNNAH_COM_COLLECTIONS: Readonly<Record<string, string>> = {
   "abu-dawood": "abudawud", "sunan-nasai": "nasai", "ibn-majah": "ibnmajah", "mishkat-al-masabih": "mishkat",
   bukhari: "bukhari", muslim: "muslim", abu_dawood: "abudawud", sunan_nasai: "nasai", tirmidhi: "tirmidhi", ibn_majah: "ibnmajah", mishkat: "mishkat",
@@ -137,7 +134,7 @@ async function snapshotFor(ctx: Ctx, submission: Doc<"communitySubmissions">) {
     if (english.grant) retain(english, "comparison");
     bindings.push({ english });
   }
-  for (const language of [...new Set([submission.language, ...(RELATED[submission.language] ?? [])])]) {
+  for (const language of [...new Set([submission.language, ...(RELATED_TRANSLATION_LANGUAGES[submission.language] ?? [])])]) {
     const candidates = await ctx.db.query("translations").withIndex("by_hadith_language_default", q => q.eq("hadithId", hadith._id).eq("language", language).eq("isDefault", true)).take(10);
     for (const candidate of candidates) {
       if (candidate.status !== "live" || candidate.legacyEvidenceMissing || sources.length >= 12) continue;
