@@ -117,6 +117,11 @@ No A3 deployment, permission change, private-account write, paid generation or
 production operation was performed in this local integration. A2's prior approval
 covered its own deployment and isolated sync tests, not these A3 actions.
 
+Action-time approval has been requested for development commit `73a520e`, existing
+authorized-reference inventory and up to four generation checks within a $0.10
+total model budget. It is pending. The request excludes production, real-user
+writes, new source permissions, subscription changes and public synthetic content.
+
 The earlier WIP stash `035861f8d29985290a27bae6f32ecf69ec197830` is retained only as
 historical recovery. It has been restored and superseded by this implementation;
 do not reapply it over the finished reference integration.

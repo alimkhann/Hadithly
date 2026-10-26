@@ -52,6 +52,16 @@ tests per native platform. `A3_GROUNDING_VERIFICATION.md` records evidence and t
 remaining development/provider/content-quality gates. The old WIP stash is
 historical only. A3 was excluded from the A2 rollout and is not deployed yet.
 
+While the A3 action-time approval is pending, the read-only A4 audit found five
+fresh iOS keys with no locale values: crash consent, analytics consent, export
+detail, the Today empty state and the Undo message. That is 75 missing catalog
+units across the 15 locales. The audit also omitted Android's `native.xml`; its
+read-only scan now covers all string/plural XML files, 315 resources instead of
+144. It reports 1,374 English-identical candidates, not a finding that every
+candidate needs translation. The incoming iOS catalog remains untouched. Evidence:
+`/tmp/hadithly-a4-audit-complete.log`; a temporary fixture reproduced and verified
+the Android coverage fix. Runtime copy repairs and native review are still open.
+
 | Stage | Remaining rough budget |
 | --- | --- |
 | A1 first-reading content | 1–2 days plus language review |

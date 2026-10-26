@@ -279,8 +279,13 @@ def audit_android(allow_drafts: bool) -> tuple[int, int, list[str], Counter[str]
     generated = 0
     category_counts: Counter[str] = Counter()
     total = 0
-    for filename in ANDROID_RESOURCE_FILES:
-        base_strings, base_plurals = android_nodes(ANDROID_RES / "values" / filename)
+    for base_path in sorted((ANDROID_RES / "values").glob("*.xml")):
+        filename = base_path.name
+        base_strings, base_plurals = android_nodes(base_path)
+        base_strings = {name: node for name, node in base_strings.items() if node.attrib.get("translatable") != "false"}
+        base_plurals = {name: node for name, node in base_plurals.items() if node.attrib.get("translatable") != "false"}
+        if not base_strings and not base_plurals:
+            continue
         total += len(base_strings) + len(base_plurals)
         for locale in WAVE1[1:]:
             path = ANDROID_RES / android_qualifier(locale) / filename
