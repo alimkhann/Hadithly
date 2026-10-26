@@ -57,6 +57,20 @@ start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
 
+## Owner priority and fresh-session handoff, October 26
+
+The owner now requests B research, then C native refinements, then D website
+redesign, **before resuming A4–A7 and the remaining readiness work**. This overrides
+the older gaps-first order below. A2's agreed normal-use development scope is
+complete. A3 backend snapshot `73a520e` is now deployed to development
+`festive-cobra-664`; the live inventory has no published comparison candidates.
+No A3 model call was made and approved model spend remains $0 of $0.10.
+Retain A1/A3 content and release gates without blocking B on them.
+
+Read `docs/NEXT_SESSION_GOAL.md` for the continuation prompt and current worktree
+limits. Work quickly on normal reading, saving and return journeys. Keep large
+library/storage redesign deferred. The next session starts with B, not A2 or A4.
+
 ## A2 scope reset, October 25
 
 October 26 result: A2's agreed normal-use development synchronization gate passed.
@@ -98,9 +112,10 @@ generation. Exact language/text/citation context binds publication and new cache
 identity; legacy cache identities stay valid. Expiry and attribution reach first
 reading and existing native watchers. Guessed cross-provider URLs are removed.
 545 backend checks and two expiry/revocation cases per platform pass. See
-`docs/A3_GROUNDING_VERIFICATION.md`. No A3 rollout or paid model call is authorized
-or claimed. Next is an approved development rollout, eligible-content inventory
-and bounded provider/semantic readback, without inventing permission grants.
+`docs/A3_GROUNDING_VERIFICATION.md`. The owner approved and the development
+rollout is complete. Live inventory found 53 translations, no non-AI defaults and
+no published evidence revisions. No model call was justified or made. Provider
+and semantic readback remain open pending eligible authorized content.
 
 ## A3 translation trust repair, October 25
 

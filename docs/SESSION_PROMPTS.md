@@ -4,6 +4,14 @@ Paste one prompt into a fresh task. Use the named model and effort when it is
 available. Each prompt is self-contained and authorizes only its named session.
 Never use Relay.
 
+## Product continuation: B research, C native refinements, D website
+
+The owner's October 26 priority overrides the older product gaps-first order.
+Use `docs/NEXT_SESSION_GOAL.md` as the next session's goal prompt. Read the current
+`docs/PLAN.md` and `docs/PRODUCT_PROGRAM.md` first. Keep A2 wrapped and resume
+A4–A7 after B, C and D. The historical D0/D1 release-session IDs below are distinct
+from the product program's D website track.
+
 ## D0: restore browser control
 
 Model: GPT-5.6 Sol, high. Run locally in Codex with the Chrome plugin and

@@ -1,9 +1,9 @@
 # A3 reference retrieval and translation trust
 
 October 26, 2026. The local reference integration is implemented and verified.
-A3 remains open for development rollout, real eligible-content inventory, provider
-readback and semantic-quality review. The deployed development backend is still
-A2 snapshot `e657024`; this document does not claim the A3 code is live.
+Approved backend snapshot `73a520e` is deployed to development `festive-cobra-664`.
+A3 remains open for eligible authorized content, provider readback and semantic
+quality review. Production was not changed.
 
 ## Result
 
@@ -104,23 +104,35 @@ project as MIT-licensed. That statement alone does not satisfy the app's exact-t
 comparison/model-processing permission fields. No additional content rights were
 inferred or granted from it.
 
-## Remaining gate
+## Development rollout and remaining gate
 
-Deploy the tested code to development only with action-time approval. Inspect the
-actual eligible comparison inventory before spending model calls. If none exists,
-record the missing authorized content rather than fabricate citations or permissions.
-Then verify provider output IDs, provenance and meaningful translation samples with
-bounded live calls and inspect the resulting native source display. Retain the
-existing original-source, historical-citation and independent semantic-review gaps.
+The owner approved deployment of `73a520e`, inspection of existing authorized
+comparison records and up to four generation checks with a $0.10 total model
+budget. Approval excludes production, real-user writes, new permissions,
+subscription changes and public synthetic content.
 
-No A3 deployment, permission change, private-account write, paid generation or
-production operation was performed in this local integration. A2's prior approval
-covered its own deployment and isolated sync tests, not these A3 actions.
+The deployment completed successfully with `npx convex dev --once` from `backend/`.
+The exact backend diff against `73a520e` was empty before deployment, and the
+configured target was checked as `dev:festive-cobra-664`. The initial command from
+the repository root failed for missing package.json before deployment; the
+corrected command exited 0 and reported Convex functions ready.
 
-Action-time approval has been requested for development commit `73a520e`, existing
-authorized-reference inventory and up to four generation checks within a $0.10
-total model budget. It is pending. The request excludes production, real-user
-writes, new source permissions, subscription changes and public synthetic content.
+A subsequent read-only query against the explicitly named development deployment
+returned all 53 translations, 0 non-AI defaults, 2 evidence publication revisions
+and 0 published revisions. The 1,000-row bounds were not reached. There were
+44 generation jobs, none with nonempty comparison bindings. With no published
+comparison candidates, there is no eligible inventory to exercise this path.
+No admission, generation or model call was made; provider checks remain 0 of 4,
+and model spend remains $0 of $0.10. No permission grant or synthetic publication
+was created to manufacture evidence.
+
+Local evidence: `/tmp/hadithly-a3-dev-deploy-corrected.log`,
+`/tmp/hadithly-a3-live-inventory.json`. The latter contains aggregate counts only.
+A successful deployment and inventory do not prove real provider grounding.
+Once eligible authorized comparisons exist, verify provider IDs, provenance and
+meaningful samples within the approved bounds. Retain original-source rights,
+historical citations, independent semantic review and native source-display gates.
+The owner now prioritizes B, C and D before resuming the remaining A work.
 
 The earlier WIP stash `035861f8d29985290a27bae6f32ecf69ec197830` is retained only as
 historical recovery. It has been restored and superseded by this implementation;

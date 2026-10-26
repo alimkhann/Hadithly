@@ -8,6 +8,24 @@ for this program, not session names supplied by the owner.
 Their checksums and every research URL are recorded in
 `product-program/research-manifest.json`. No later phase replaces unfinished work.
 
+## Current owner order, October 26
+
+Start the next session with **B research → C native refinements → D website**.
+Resume A4–A7 and the other remaining readiness work afterward. Keep E Linear
+pending in the full program; it does not become an extra prerequisite to B–D.
+This instruction supersedes the older gaps-first order in this document.
+
+A2 is complete for the agreed normal-use development scope. A3 `73a520e` is now
+live on development `festive-cobra-664`. Inventory found 53 translations, no
+non-AI defaults and no published evidence revisions. No model calls were made;
+0 of 4 checks and $0 of the approved $0.10 budget are consumed. A1/A3 content and
+semantic gates remain open. See `A3_GROUNDING_VERIFICATION.md`.
+
+Use `NEXT_SESSION_GOAL.md` as the continuation prompt. Favor small, visible,
+verified improvements for ordinary readers. Keep the thousands-of-items storage
+work deferred. The existing rough estimates below are historical allowances,
+not permission to spend days expanding each stage.
+
 ## Current stage and rough time budget
 
 October 25 owner correction: **wrap up A2 around normal use**. Stop expanding the
@@ -50,15 +68,19 @@ cache reuse, retains attribution and propagates expiry to first reading and both
 native readers. The full backend suite passes 545 tests, with two expiry/revocation
 tests per native platform. `A3_GROUNDING_VERIFICATION.md` records evidence and the
 remaining development/provider/content-quality gates. The old WIP stash is
-historical only. A3 was excluded from the A2 rollout and is not deployed yet.
+historical only. A3 was excluded from the A2 rollout, then separately approved
+and deployed on October 26 as recorded above.
 
-While the A3 action-time approval is pending, the read-only A4 audit found five
+Before A3 approval arrived, the read-only A4 audit found five
 fresh iOS keys with no locale values: crash consent, analytics consent, export
 detail, the Today empty state and the Undo message. That is 75 missing catalog
 units across the 15 locales. The audit also omitted Android's `native.xml`; its
 read-only scan now covers all string/plural XML files, 315 resources instead of
 144. It reports 1,374 English-identical candidates, not a finding that every
-candidate needs translation. The incoming iOS catalog remains untouched. Evidence:
+candidate needs translation. Five-key iOS draft copy edits are now left in the
+worktree, uncommitted and unverified; one targets an unused Today key. Preserve
+the incoming catalog changes and read `NEXT_SESSION_GOAL.md` before resuming A4.
+Evidence:
 `/tmp/hadithly-a4-audit-complete.log`; a temporary fixture reproduced and verified
 the Android coverage fix. Runtime copy repairs and native review are still open.
 
@@ -88,8 +110,8 @@ Completion requires running the real journeys, reviewing rendered results, and
 recording evidence for every requirement below. A build, a draft translation, a
 manifest entry, or a proposed external change is not completion.
 
-The owner explicitly requests the previously found gaps first. Research and the
-later redesigns remain pending while that work proceeds. External dependencies
+The owner's October 26 instruction moves B, C and D ahead of the remaining A
+work. Keep the unresolved readiness gaps recorded while executing that order. External dependencies
 stay visible. A missing account, legal approval, physical device, paid-provider
 activation, or user-study participant cannot be silently represented as verified.
 
@@ -328,9 +350,10 @@ publication. Its next prerequisite is Android account-partition migration with
 crash-safe guest transfer, followed by the coordinated four-consumer/read/UI cutover.
 The old joined production path is still active. No deployment or full A2 gate closes.
 
-Continue A2 integration while retaining A1's content dependencies. No paid
-generation or production change has been approved. Research, later native redesign, website and Linear remain
-pending in the owner's requested order.
+Historical checkpoint only: A2 integration is now wrapped for the agreed
+normal-use development scope. A3 development rollout and bounded checks received
+separate approval. Current execution order is B → C → D, then remaining A work;
+production changes remain unapproved.
 
 The principles shaping this sequence are Experience First (actual readable text),
 Model the Domain (separate a first reading from a canonical Daily selection),
