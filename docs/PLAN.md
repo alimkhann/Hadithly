@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-10-26. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-10-27. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
 D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its
 simulator/emulator and unit gates; its physical-device gate is open. R4's
@@ -56,6 +56,23 @@ Do not
 start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
+
+## B research checkpoint, October 27
+
+B's available-source pass is complete. All 34 named videos have complete available
+English caption reviews and inspected selected actual frames, with timestamped
+findings and apply/reject decisions. The 26 resource links retain 7 reviewed,
+12 partial and 7 blocked statuses. Missing/paywalled material was not counted as
+read. See `product-program/research-decisions.md` and the updated manifest.
+Raw captions and frames are archived locally outside git. No Pi provider session,
+paid inference, tracking, cloud change or publication was used.
+
+The synthesis prioritizes useful reading, clear translation states, native control
+continuity and honest website examples. It establishes no retention uplift or
+release readiness. Independent GPT-family review found collector rerun issues;
+the repairs and final coverage checks are recorded with the research evidence.
+Continue C1–C8, then D, before A4–A7. Preserve the incoming Xcode/catalog edits
+and the monthly-equivalent-only paywall prototype's annual-total release gate.
 
 ## Owner priority and fresh-session handoff, October 26
 

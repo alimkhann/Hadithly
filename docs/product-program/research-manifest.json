@@ -5,406 +5,851 @@
     {
       "id": "TsYgtI-b6n8",
       "url": "https://www.youtube.com/watch?v=TsYgtI-b6n8",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/TsYgtI-b6n8/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/TsYgtI-b6n8/frame-00010.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/TsYgtI-b6n8/frame-00180.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/TsYgtI-b6n8/frame-00260.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/TsYgtI-b6n8/frame-00310.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/TsYgtI-b6n8/frame-00360.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/TsYgtI-b6n8/frame-00600.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/TsYgtI-b6n8/frame-00650.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/TsYgtI-b6n8/frame-00780.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/TsYgtI-b6n8/frame-00890.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/TsYgtI-b6n8/frame-00960.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-01-and-04.md",
+      "title": "I Built A New App In 1 Week",
+      "channel": "Chris Raroque",
+      "duration_seconds": 1009,
+      "transcript_sha256": "227537f7a9093050f9b3156f5448d3f3ca46580b59698d216468b52b52b73a62",
+      "caption_kind": "automatic",
+      "caption_events": 576,
+      "caption_end_seconds": 1004.181,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "kLEM58wpbmo",
       "url": "https://www.youtube.com/watch?v=kLEM58wpbmo",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/kLEM58wpbmo/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/kLEM58wpbmo/frame-00095.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/kLEM58wpbmo/frame-00932.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-02-12.md",
+      "title": "How My App Is Doing (Kind of Stuck)",
+      "channel": "Chris Raroque",
+      "duration_seconds": 1060,
+      "transcript_sha256": "0cd660563938fd66b0951eee733756ef01b0524ea4ff6ba0c66b0a311fdf2b36",
+      "caption_kind": "automatic",
+      "caption_events": 595,
+      "caption_end_seconds": 1059.857,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "MXLF8b15GhQ",
       "url": "https://www.youtube.com/watch?v=MXLF8b15GhQ",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/MXLF8b15GhQ/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/MXLF8b15GhQ/frame-00107.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/MXLF8b15GhQ/frame-00115.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/MXLF8b15GhQ/frame-00628.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-02-12.md",
+      "title": "How I Make Apps FEEL Premium (5 examples)",
+      "channel": "Chris Raroque",
+      "duration_seconds": 851,
+      "transcript_sha256": "e9be828deaa4076dd52cd19a7da53e24e0f6cc8385610180b6c2cadc1e4290a1",
+      "caption_kind": "automatic",
+      "caption_events": 485,
+      "caption_end_seconds": 848.944,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "oNRrjbKiF04",
       "url": "https://www.youtube.com/watch?v=oNRrjbKiF04",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/oNRrjbKiF04/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/oNRrjbKiF04/frame-00020.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/oNRrjbKiF04/frame-00380.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/oNRrjbKiF04/frame-00620.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/oNRrjbKiF04/frame-00790.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/oNRrjbKiF04/frame-00885.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-01-and-04.md",
+      "title": "I Built An App (But Users KEEP dropping off)",
+      "channel": "Chris Raroque",
+      "duration_seconds": 950,
+      "transcript_sha256": "f81febe4ec68bb70e646b8fb4b7ee6a6e11501f5fc16f5d79e16beefb0329315",
+      "caption_kind": "automatic",
+      "caption_events": 516,
+      "caption_end_seconds": 945.885,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "xlOyK8Pt3WQ",
       "url": "https://www.youtube.com/watch?v=xlOyK8Pt3WQ",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/xlOyK8Pt3WQ/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/xlOyK8Pt3WQ/frame-01230.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/xlOyK8Pt3WQ/frame-01505.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-02-12.md",
+      "title": "I asked SF founders: should I keep bootstrapping?",
+      "channel": "Chris Raroque",
+      "duration_seconds": 2912,
+      "transcript_sha256": "3dc8c95a94912d1eb5368ef210e008aa7d451661ea6e3a52f0aa4f7838239439",
+      "caption_kind": "automatic",
+      "caption_events": 1701,
+      "caption_end_seconds": 2911.563,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "yj33J3f2Zgk",
       "url": "https://www.youtube.com/watch?v=yj33J3f2Zgk",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/yj33J3f2Zgk/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/yj33J3f2Zgk/frame-00450.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/yj33J3f2Zgk/frame-00530.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-02-12.md",
+      "title": "How My App Is Doing (4 Month Update)",
+      "channel": "Chris Raroque",
+      "duration_seconds": 790,
+      "transcript_sha256": "13474636a28a3cbd3ae81cc815d392426797495b8b593547c5f6079612fd0912",
+      "caption_kind": "automatic",
+      "caption_events": 474,
+      "caption_end_seconds": 787.373,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "l763SzomQN0",
       "url": "https://www.youtube.com/watch?v=l763SzomQN0",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/l763SzomQN0/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/l763SzomQN0/frame-00211.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/l763SzomQN0/frame-00235.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/l763SzomQN0/frame-00569.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-02-12.md",
+      "title": "How My App Is Doing (Not Good)",
+      "channel": "Chris Raroque",
+      "duration_seconds": 819,
+      "transcript_sha256": "c4f26105573e8f5e9ab7a62c34378949c44f194f1b77af091778c540df99403b",
+      "caption_kind": "automatic",
+      "caption_events": 486,
+      "caption_end_seconds": 815.539,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "4Ayyp8ewEzI",
       "url": "https://www.youtube.com/watch?v=4Ayyp8ewEzI",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/4Ayyp8ewEzI/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/4Ayyp8ewEzI/frame-00455.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/4Ayyp8ewEzI/frame-00560.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-02-12.md",
+      "title": "How My App Is Doing (2 Month Update)",
+      "channel": "Chris Raroque",
+      "duration_seconds": 664,
+      "transcript_sha256": "ce2fb5e6da523376569f8cc578141452da0920c03bb2ebaa139f314119da6074",
+      "caption_kind": "automatic",
+      "caption_events": 389,
+      "caption_end_seconds": 662.922,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "x-XIo_RyMek",
       "url": "https://www.youtube.com/watch?v=x-XIo_RyMek",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/x-XIo_RyMek/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/x-XIo_RyMek/frame-00275.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/x-XIo_RyMek/frame-00287.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/x-XIo_RyMek/frame-00560.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-02-12.md",
+      "title": "My App Hit $1000/mo (But We Have A Problem)",
+      "channel": "Chris Raroque",
+      "duration_seconds": 714,
+      "transcript_sha256": "8251383320456a172e1b699b72c5394b60f6f8e6c10c29c12ff7e5a11498bdaa",
+      "caption_kind": "automatic",
+      "caption_events": 425,
+      "caption_end_seconds": 715.323,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "6YFT7CwHvLk",
       "url": "https://www.youtube.com/watch?v=6YFT7CwHvLk",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/6YFT7CwHvLk/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/6YFT7CwHvLk/frame-00115.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/6YFT7CwHvLk/frame-00138.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/6YFT7CwHvLk/frame-00501.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-02-12.md",
+      "title": "My app's first week (what actually happened)",
+      "channel": "Chris Raroque",
+      "duration_seconds": 590,
+      "transcript_sha256": "f186b6889b6aa6b85e93a810363422ce192f2b01c9c39a9321df123d88876dd0",
+      "caption_kind": "automatic",
+      "caption_events": 351,
+      "caption_end_seconds": 587.399,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "tg6Vmi2LFb4",
       "url": "https://www.youtube.com/watch?v=tg6Vmi2LFb4",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/tg6Vmi2LFb4/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/tg6Vmi2LFb4/frame-00177.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/tg6Vmi2LFb4/frame-00379.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-02-12.md",
+      "title": "My New App Is FINALLY Live",
+      "channel": "Chris Raroque",
+      "duration_seconds": 498,
+      "transcript_sha256": "62e616d98b8100403ce9083042996b6661f23fdaf3379a15252dc80516fc3f24",
+      "caption_kind": "automatic",
+      "caption_events": 303,
+      "caption_end_seconds": 495.0,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "ghxgQaxZ9Kw",
       "url": "https://www.youtube.com/watch?v=ghxgQaxZ9Kw",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/ghxgQaxZ9Kw/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/ghxgQaxZ9Kw/frame-00185.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/ghxgQaxZ9Kw/frame-00397.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-02-12.md",
+      "title": "We Built An App And Got 100 Users!",
+      "channel": "Chris Raroque",
+      "duration_seconds": 532,
+      "transcript_sha256": "02d8bc3b8154f0e9030fda07e0dd67072bb743c7d15020cdcc91a11222351816",
+      "caption_kind": "automatic",
+      "caption_events": 336,
+      "caption_end_seconds": 529.956,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "sWs_qAgEEdI",
       "url": "https://www.youtube.com/watch?v=sWs_qAgEEdI",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/sWs_qAgEEdI/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/sWs_qAgEEdI/frame-00195.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/sWs_qAgEEdI/frame-00431.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/sWs_qAgEEdI/frame-00607.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-13-23.md",
+      "title": "I Got My First 10 Users (And What I Did Next)",
+      "channel": "Chris Raroque",
+      "duration_seconds": 678,
+      "transcript_sha256": "ecdad9d8990bccdf8d5763c4cf6c0e998190d4e1e1e48515f25de9d4d59818da",
+      "caption_kind": "automatic",
+      "caption_events": 422,
+      "caption_end_seconds": 675.367,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "8mMH6Pq8qnE",
       "url": "https://www.youtube.com/watch?v=8mMH6Pq8qnE",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/8mMH6Pq8qnE/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/8mMH6Pq8qnE/frame-00094.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/8mMH6Pq8qnE/frame-00210.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/8mMH6Pq8qnE/frame-00497.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-13-23.md",
+      "title": "How I Make Apps FEEL 10x Better (5 Design Secrets)",
+      "channel": "Chris Raroque",
+      "duration_seconds": 698,
+      "transcript_sha256": "dae0f52d1b048aa966afcf5369ea115d6c77bc9d14866dc6ea948f64aff7d357",
+      "caption_kind": "automatic",
+      "caption_events": 404,
+      "caption_end_seconds": 700.089,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "JDwxt9fHofk",
       "url": "https://www.youtube.com/watch?v=JDwxt9fHofk",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/JDwxt9fHofk/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/JDwxt9fHofk/frame-00085.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/JDwxt9fHofk/frame-00333.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/JDwxt9fHofk/frame-00766.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-13-23.md",
+      "title": "App Branding Masterclass",
+      "channel": "Chris Raroque",
+      "duration_seconds": 971,
+      "transcript_sha256": "7c3556e03cdb3b2fe6609110369906b00c693309adcfc79de85b5b8df4c2eef7",
+      "caption_kind": "automatic",
+      "caption_events": 546,
+      "caption_end_seconds": 972.639,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "H0czeRyXPxA",
       "url": "https://www.youtube.com/watch?v=H0czeRyXPxA",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/H0czeRyXPxA/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/H0czeRyXPxA/frame-00269.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/H0czeRyXPxA/frame-00316.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/H0czeRyXPxA/frame-00542.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-13-23.md",
+      "title": "My App Design Process: What Took Me 5 Years to Learn in 10 Minutes",
+      "channel": "Chris Raroque",
+      "duration_seconds": 611,
+      "transcript_sha256": "19e3be5c5bce872cec52bec6b7e41c2bc789338ef90619fa82b47d2fb23c49cc",
+      "caption_kind": "automatic",
+      "caption_events": 379,
+      "caption_end_seconds": 612.289,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "Cufn-fjnVCE",
       "url": "https://www.youtube.com/watch?v=Cufn-fjnVCE",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/Cufn-fjnVCE/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/Cufn-fjnVCE/frame-00195.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/Cufn-fjnVCE/frame-00475.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/Cufn-fjnVCE/frame-00533.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-13-23.md",
+      "title": "I built 3 apps - Here’s how I pick winning ideas",
+      "channel": "Chris Raroque",
+      "duration_seconds": 668,
+      "transcript_sha256": "9e02fe5748a625a979052ffabfad7f4284d4619aba1764965c30631d4c7b8b2e",
+      "caption_kind": "automatic",
+      "caption_events": 388,
+      "caption_end_seconds": 667.279,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "Et45hFGwSqQ",
       "url": "https://www.youtube.com/watch?v=Et45hFGwSqQ",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/Et45hFGwSqQ/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/Et45hFGwSqQ/frame-00150.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/Et45hFGwSqQ/frame-00581.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/Et45hFGwSqQ/frame-00750.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-13-23.md",
+      "title": "How I'm Rebuilding My App for the AI Era",
+      "channel": "Chris Raroque",
+      "duration_seconds": 862,
+      "transcript_sha256": "251266c6de877b90e4cf0327ae7f544fd0d364384ab00b94fd518fdd047d0138",
+      "caption_kind": "automatic",
+      "caption_events": 478,
+      "caption_end_seconds": 857.0,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "94-6eA0LK6k",
       "url": "https://www.youtube.com/watch?v=94-6eA0LK6k",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/94-6eA0LK6k/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/94-6eA0LK6k/frame-00282.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/94-6eA0LK6k/frame-00500.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/94-6eA0LK6k/frame-00916.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-13-23.md",
+      "title": "My AI app has an accuracy problem (and how I fixed it)",
+      "channel": "Chris Raroque",
+      "duration_seconds": 1138,
+      "transcript_sha256": "a9ddb1a74e8f28055b862cdda60679d2fd2cc355dd4b087c07e743720113ea44",
+      "caption_kind": "automatic",
+      "caption_events": 630,
+      "caption_end_seconds": 1135.0,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "cXIWx1eYA9w",
       "url": "https://www.youtube.com/watch?v=cXIWx1eYA9w",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/cXIWx1eYA9w/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/cXIWx1eYA9w/frame-00690.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/cXIWx1eYA9w/frame-00785.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/cXIWx1eYA9w/frame-00959.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-13-23.md",
+      "title": "How To Build An App In 2026 (Complete Guide)",
+      "channel": "Chris Raroque",
+      "duration_seconds": 1153,
+      "transcript_sha256": "708a8de98c1015eeea900a77fb108548293d0a58de43711b4321e4c0d1d990c2",
+      "caption_kind": "automatic",
+      "caption_events": 673,
+      "caption_end_seconds": 1150.12,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "Di973jC2Jio",
       "url": "https://www.youtube.com/watch?v=Di973jC2Jio",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/Di973jC2Jio/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/Di973jC2Jio/frame-00135.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/Di973jC2Jio/frame-00284.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/Di973jC2Jio/frame-00536.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-13-23.md",
+      "title": "The Onboarding Behind My $40K/Month App (Full Breakdown)",
+      "channel": "Starter Story Build",
+      "duration_seconds": 791,
+      "transcript_sha256": "b228acdda5da71eacad1bc318cdd990001e7d39a6b2dff1d050dc78cce7c1b6b",
+      "caption_kind": "automatic",
+      "caption_events": 400,
+      "caption_end_seconds": 787.839,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "UCIrcq8kfMI",
       "url": "https://www.youtube.com/watch?v=UCIrcq8kfMI",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/UCIrcq8kfMI/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/UCIrcq8kfMI/frame-01145.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/UCIrcq8kfMI/frame-01945.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/UCIrcq8kfMI/frame-02865.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-13-23.md",
+      "title": "Fixing Your App's Onboarding: Live Teardown",
+      "channel": "Ariel from Appfigures",
+      "duration_seconds": 3978,
+      "transcript_sha256": "7fb3085c9e18868e4f5852df35468c3651a6a85ef3d277d7b55b11ac5c459c60",
+      "caption_kind": "automatic",
+      "caption_events": 1769,
+      "caption_end_seconds": 3945.96,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "YT161Uv-AOM",
       "url": "https://www.youtube.com/watch?v=YT161Uv-AOM",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/YT161Uv-AOM/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/YT161Uv-AOM/frame-00873.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/YT161Uv-AOM/frame-01480.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/YT161Uv-AOM/frame-03300.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-13-23.md",
+      "title": "Why Your App Downloads Aren't Making You Enough Money w/ Nicole Weiss",
+      "channel": "Ariel from Appfigures",
+      "duration_seconds": 3702,
+      "transcript_sha256": "d27c3df48372b092a48ea1f2baafd0530af53e90e8ab253ea6f5458a3933bf5a",
+      "caption_kind": "automatic",
+      "caption_events": 1701,
+      "caption_end_seconds": 3690.8,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "EyoYQU6JyV8",
       "url": "https://www.youtube.com/watch?v=EyoYQU6JyV8",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/EyoYQU6JyV8/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/EyoYQU6JyV8/frame-01530.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/EyoYQU6JyV8/frame-03245.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-24-31.md",
+      "title": "Why 90% of their paid traffic goes to a quiz, not the App Store",
+      "channel": "Sub Club by RevenueCat",
+      "duration_seconds": 3578,
+      "transcript_sha256": "81d9924596373803d6741c024cd20c9b2cf98a3fd4323d5b3baf972db02249cf",
+      "caption_kind": "automatic",
+      "caption_events": 1663,
+      "caption_end_seconds": 3578.361,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "Wg70HlO-5gY",
       "url": "https://www.youtube.com/watch?v=Wg70HlO-5gY",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/Wg70HlO-5gY/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/Wg70HlO-5gY/frame-00790.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/Wg70HlO-5gY/frame-02895.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/Wg70HlO-5gY/frame-03065.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-24-31.md",
+      "title": "$6.7M ARR, No Paid Ads, and an Exit to Quizlet in 2 Years – Brett Bauman & Zack Hargett, Coconote",
+      "channel": "Sub Club by RevenueCat",
+      "duration_seconds": 3928,
+      "transcript_sha256": "eeac8fdf7526496d5353360c5daeb2b0ebd95c2058f4f2cd0159ab6ae01a5288",
+      "caption_kind": "manual",
+      "caption_events": 765,
+      "caption_end_seconds": 3925.52,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "UYIgu02h8cs",
       "url": "https://www.youtube.com/watch?v=UYIgu02h8cs",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/UYIgu02h8cs/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/UYIgu02h8cs/frame-00570.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/UYIgu02h8cs/frame-01745.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/UYIgu02h8cs/frame-03735.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-24-31.md",
+      "title": "The AI Growth Playbook for Subscription Apps – Phil Carter, Elemental Growth",
+      "channel": "Sub Club by RevenueCat",
+      "duration_seconds": 4014,
+      "transcript_sha256": "aee3392ef78b847b4120a91c4f38f9a486d65464e0475c58ec610219ce512680",
+      "caption_kind": "automatic",
+      "caption_events": 1981,
+      "caption_end_seconds": 4010.76,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "-GHpDJm8MgY",
       "url": "https://www.youtube.com/watch?v=-GHpDJm8MgY",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/-GHpDJm8MgY/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/-GHpDJm8MgY/frame-00950.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/-GHpDJm8MgY/frame-01570.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/-GHpDJm8MgY/frame-02315.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-24-31.md",
+      "title": "Optimizing Funnels, Pricing, and Retention at Zumba — Nicole Page & Lucy Levy, Zumba",
+      "channel": "Sub Club by RevenueCat",
+      "duration_seconds": 2861,
+      "transcript_sha256": "c56085e3ddb493fa1a62719a08830e35685845ed02f655ee31a727b3db3920f8",
+      "caption_kind": "automatic",
+      "caption_events": 1368,
+      "caption_end_seconds": 2861.239,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "G0FpB7uD1hw",
       "url": "https://www.youtube.com/watch?v=G0FpB7uD1hw",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/G0FpB7uD1hw/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/G0FpB7uD1hw/frame-01360.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/G0FpB7uD1hw/frame-02350.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/G0FpB7uD1hw/frame-02825.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-24-31.md",
+      "title": "Paywall Roast I with Vahe Baghdasaryan | Sub Club Live",
+      "channel": "Sub Club by RevenueCat",
+      "duration_seconds": 3247,
+      "transcript_sha256": "206ca8c5682e0e6f4865456074ccc3d9b194bae24f96789ed659e75acbd09bd5",
+      "caption_kind": "automatic",
+      "caption_events": 1405,
+      "caption_end_seconds": 3247.0,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "24QMRDXck70",
       "url": "https://www.youtube.com/watch?v=24QMRDXck70",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/24QMRDXck70/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/24QMRDXck70/frame-00670.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/24QMRDXck70/frame-01695.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/24QMRDXck70/frame-02000.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-24-31.md",
+      "title": "Our No-Code Apps Made $50M Using THIS Paywall",
+      "channel": "Superwall",
+      "duration_seconds": 2583,
+      "transcript_sha256": "0231a3c9c70116f523d91883c513bba0b7f6ee1e4264ba91dfdbcb5784ca2bcd",
+      "caption_kind": "automatic",
+      "caption_events": 1136,
+      "caption_end_seconds": 2584.88,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "cYcU4_HQdIk",
       "url": "https://www.youtube.com/watch?v=cYcU4_HQdIk",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/cYcU4_HQdIk/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/cYcU4_HQdIk/frame-01285.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/cYcU4_HQdIk/frame-01525.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/cYcU4_HQdIk/frame-01545.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-24-31.md",
+      "title": "I Built a $30k/mo App That Helps You Quit Smoking",
+      "channel": "Superwall",
+      "duration_seconds": 1934,
+      "transcript_sha256": "37716ce3c45dfae54175a104d776b34fc37ab85366017902c533ff6e4290d8d8",
+      "caption_kind": "automatic",
+      "caption_events": 1196,
+      "caption_end_seconds": 1935.76,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "PdudtXwEsOQ",
       "url": "https://www.youtube.com/watch?v=PdudtXwEsOQ",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/PdudtXwEsOQ/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/PdudtXwEsOQ/frame-01010.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/PdudtXwEsOQ/frame-02965.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/PdudtXwEsOQ/frame-03375.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-24-31.md",
+      "title": "Our App Makes $30K/Month Profit Using This Simple Strategy (copy us)",
+      "channel": "Superwall",
+      "duration_seconds": 3952,
+      "transcript_sha256": "25bc0d73d20641addfd94c78e59dadf3ebf7ed960d504271c91283e8079d8459",
+      "caption_kind": "automatic",
+      "caption_events": 1877,
+      "caption_end_seconds": 3953.52,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "OUM6XmhViN4",
       "url": "https://www.youtube.com/watch?v=OUM6XmhViN4",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/OUM6XmhViN4/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/OUM6XmhViN4/frame-00395.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/OUM6XmhViN4/frame-00407.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/OUM6XmhViN4/frame-00575.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/OUM6XmhViN4/frame-00585.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/OUM6XmhViN4/frame-01030.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/OUM6XmhViN4/frame-01045.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/OUM6XmhViN4/frame-01130.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-32-34.md",
+      "title": "I Redesigned the ENTIRE YouTube UI from Scratch",
+      "channel": "Juxtopposed",
+      "duration_seconds": 1150,
+      "transcript_sha256": "d27a995a822635c9ae57d1636b69166e90224cc4fd6250ce3cb154679669edf7",
+      "caption_kind": "manual",
+      "caption_events": 226,
+      "caption_end_seconds": 1149.56,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "mR9d0EEodEI",
       "url": "https://www.youtube.com/watch?v=mR9d0EEodEI",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/mR9d0EEodEI/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/mR9d0EEodEI/frame-00130.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/mR9d0EEodEI/frame-00725.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/mR9d0EEodEI/frame-01040.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/mR9d0EEodEI/frame-01260.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-32-34.md",
+      "title": "Thomas Petit: You're Paying Meta to Find Users Who Will Never Convert - Here's the Fix",
+      "channel": "Paddle",
+      "duration_seconds": 1513,
+      "transcript_sha256": "8272df72ce983002e31b2dd9d56b55171acef43766c9d2a4e24b88b3bd7b2f32",
+      "caption_kind": "automatic",
+      "caption_events": 821,
+      "caption_end_seconds": 1512.467,
+      "review_method": "complete available English captions and inspected selected actual frames"
     },
     {
       "id": "iD_YbEW0Y3w",
       "url": "https://www.youtube.com/watch?v=iD_YbEW0Y3w",
-      "status": "pending",
-      "transcript": null,
-      "frames": [],
-      "analysis": null
+      "status": "reviewed",
+      "transcript": "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/iD_YbEW0Y3w/transcript.txt",
+      "frames": [
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/iD_YbEW0Y3w/frame-00200.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/iD_YbEW0Y3w/frame-01110.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/iD_YbEW0Y3w/frame-02205.jpg",
+        "/Users/alim/Documents/Codex/2026-10-27/hadithly-product-research/iD_YbEW0Y3w/frame-02950.jpg"
+      ],
+      "analysis": "docs/product-program/research-videos-32-34.md",
+      "title": "S07, E30: MDM Mailbag #8 (with Thomas Petit)",
+      "channel": "Mobile Dev Memo",
+      "duration_seconds": 3287,
+      "transcript_sha256": "dc097b4bf3f79c8b9f5e35c9bcaf5c8ac608df8d69953e0006611b67e7f29a28",
+      "caption_kind": "automatic",
+      "caption_events": 1698,
+      "caption_end_seconds": 3278.367,
+      "review_method": "complete available English captions and inspected selected actual frames"
     }
   ],
   "resources": [
     {
       "url": "https://www.youtube.com/@SubClubPodcast",
-      "status": "pending",
-      "evidence": null
+      "status": "partial",
+      "evidence": "docs/product-program/research-resources.md",
+      "resource_id": "R01"
     },
     {
       "url": "https://www.youtube.com/@Superwall",
-      "status": "pending",
-      "evidence": null
+      "status": "partial",
+      "evidence": "docs/product-program/research-resources.md",
+      "resource_id": "R02"
     },
     {
       "url": "https://www.youtube.com/@appfigures",
-      "status": "pending",
-      "evidence": null
+      "status": "partial",
+      "evidence": "docs/product-program/research-resources.md",
+      "resource_id": "R03"
     },
     {
       "url": "https://www.youtube.com/@StarterStoryBuild",
-      "status": "pending",
-      "evidence": null
+      "status": "blocked",
+      "evidence": "docs/product-program/research-resources.md",
+      "resource_id": "R04"
     },
     {
       "url": "https://www.youtube.com/@juxtopposed",
-      "status": "pending",
-      "evidence": null
+      "status": "blocked",
+      "evidence": "docs/product-program/research-resources.md",
+      "resource_id": "R05"
     },
     {
       "url": "https://www.youtube.com/@femkedesign",
-      "status": "pending",
-      "evidence": null
+      "status": "blocked",
+      "evidence": "docs/product-program/research-resources.md",
+      "resource_id": "R06"
     },
     {
       "url": "https://www.youtube.com/@Mizko",
-      "status": "pending",
-      "evidence": null
+      "status": "blocked",
+      "evidence": "docs/product-program/research-resources.md",
+      "resource_id": "R07"
     },
     {
       "url": "https://x.com/drbarnard",
-      "status": "pending",
-      "evidence": null
+      "status": "partial",
+      "evidence": "docs/product-program/research-resources.md",
+      "resource_id": "R08"
     },
     {
       "url": "https://x.com/ElenaVerna",
-      "status": "pending",
-      "evidence": null
+      "status": "partial",
+      "evidence": "docs/product-program/research-resources.md",
+      "resource_id": "R09"
     },
     {
       "url": "https://x.com/vahebagdasar",
-      "status": "pending",
-      "evidence": null
+      "status": "blocked",
+      "evidence": "docs/product-program/research-resources.md",
+      "resource_id": "R10"
     },
     {
       "url": "https://x.com/brian_lovin",
-      "status": "pending",
-      "evidence": null
+      "status": "partial",
+      "evidence": "docs/product-program/research-resources.md",
+      "resource_id": "R11"
     },
     {
       "url": "https://x.com/jeiting",
-      "status": "pending",
-      "evidence": null
+      "status": "partial",
+      "evidence": "docs/product-program/research-resources.md",
+      "resource_id": "R12"
     },
     {
       "url": "https://growth.design/case-studies",
-      "status": "pending",
-      "evidence": null
+      "status": "partial",
+      "evidence": "docs/product-program/research-resources.md",
+      "resource_id": "R13"
     },
     {
       "url": "https://growth.design/case-studies/duolingo-user-retention",
-      "status": "pending",
-      "evidence": null
+      "status": "reviewed",
+      "evidence": "docs/product-program/research-resources.md",
+      "resource_id": "R14"
     },
     {
       "url": "https://growth.design/case-studies/headspace-user-onboarding",
-      "status": "pending",
-      "evidence": null
+      "status": "reviewed",
+      "evidence": "docs/product-program/research-resources.md",
+      "resource_id": "R15"
     },
     {
       "url": "https://mobbin.com/",
-      "status": "pending",
-      "evidence": null
+      "status": "partial",
+      "evidence": "docs/product-program/research-resources.md",
+      "resource_id": "R16"
     },
     {
       "url": "https://pageflows.com/",
-      "status": "pending",
-      "evidence": null
+      "status": "blocked",
+      "evidence": "docs/product-program/research-resources.md",
+      "resource_id": "R17"
     },
     {
       "url": "https://pageflows.com/post/ios/onboarding/strava/1d9cd9fa-888d-4915-ad1d-a13113e5ecfd/",
-      "status": "pending",
-      "evidence": null
+      "status": "blocked",
+      "evidence": "docs/product-program/research-resources.md",
+      "resource_id": "R18"
     },
     {
       "url": "https://growthgems.co/",
-      "status": "pending",
-      "evidence": null
+      "status": "partial",
+      "evidence": "docs/product-program/research-resources.md",
+      "resource_id": "R19"
     },
     {
       "url": "https://www.useronboard.com/",
-      "status": "pending",
-      "evidence": null
+      "status": "reviewed",
+      "evidence": "docs/product-program/research-resources.md",
+      "resource_id": "R20"
     },
     {
       "url": "https://www.goodui.org/",
-      "status": "pending",
-      "evidence": null
+      "status": "partial",
+      "evidence": "docs/product-program/research-resources.md",
+      "resource_id": "R21"
     },
     {
       "url": "https://blog.duolingo.com/growth-model-duolingo/",
-      "status": "pending",
-      "evidence": null
+      "status": "reviewed",
+      "evidence": "docs/product-program/research-resources.md",
+      "resource_id": "R22"
     },
     {
       "url": "https://www.revenuecat.com/blog/growth/zumba-perceptycs-growth-case-study",
-      "status": "pending",
-      "evidence": null
+      "status": "reviewed",
+      "evidence": "docs/product-program/research-resources.md",
+      "resource_id": "R23"
     },
     {
       "url": "https://www.elenaverna.com/archive",
-      "status": "pending",
-      "evidence": null
+      "status": "partial",
+      "evidence": "docs/product-program/research-resources.md",
+      "resource_id": "R24"
     },
     {
       "url": "https://www.reddit.com/r/UXDesign/comments/1wmkbbb/is_fewer_steps_better_onboarding_overrated/",
-      "status": "pending",
-      "evidence": null
+      "status": "reviewed",
+      "evidence": "docs/product-program/research-resources.md",
+      "resource_id": "R25"
     },
     {
       "url": "https://www.reddit.com/r/UXDesign/comments/1itc5h3",
-      "status": "pending",
-      "evidence": null
+      "status": "reviewed",
+      "evidence": "docs/product-program/research-resources.md",
+      "resource_id": "R26"
     }
-  ]
+  ],
+  "reviewed_at": "2026-10-27",
+  "synthesis": "docs/product-program/research-decisions.md",
+  "review_limits": "Caption and sampled-frame review, not continuous viewing. Resource directories, partial and blocked material remain explicitly limited. No Hadithly causal uplift established."
 }

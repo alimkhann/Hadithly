@@ -143,13 +143,16 @@ activation, or user-study participant cannot be silently represented as verified
   - [ ] A7. Establish honest activation/return/conversion evidence through a
     privacy-preserving measurement plan and consented reader sessions. Current
     clipped analytics totals are not cohort retention.
-- [ ] Review the complete research set after the gaps.
-  - [ ] B1. All 34 videos have full available transcripts, relevant visual frames,
+- [x] Review available research and record inaccessible material before C/D.
+  - [x] B1. All 34 videos have full available transcripts, relevant visual frames,
     timestamped findings, evidence-quality notes, and an application/rejection
     decision. Missing media is explicit, never counted as watched.
-  - [ ] B2. Review substantive resources, named case studies, channels, practitioner
+  - [x] B2. Review substantive resources, named case studies, channels, practitioner
     accounts and discussions from the pasted text. Separate verified findings from
     self-reported results, paywalled material, and opinion.
+    October 27: 7 resources reviewed, 12 partial and 7 blocked. Directories and
+    inaccessible content are not counted as fully read. See
+    `product-program/research-decisions.md` and the per-source manifest.
 - [ ] Apply the research to the requested native experience.
   - [ ] C1. Simplified paywall with background imagery, hero/subtext, two options,
     clear actual annual billing total plus monthly equivalent, and recommended /

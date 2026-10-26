@@ -7,6 +7,12 @@ and other unfinished readiness work**. Keep E Linear in the program, without
 making it a prerequisite to B–D. Start useful B work immediately after the brief
 context check. A2 is wrapped. Do not restart its storage project.
 
+October 27 checkpoint: B's available-source review is complete. The manifest has
+34 reviewed caption/frame video records and 26 resource records with their exact
+access limits. Read `docs/product-program/research-decisions.md`, then continue
+C1–C8 and D before A4–A7. No blocked resource is counted as read, and no retention,
+release or content gate is closed by the research.
+
 ## Working style and boundaries
 
 Work fast on normal reading, saving, translation and return journeys. Choose the
