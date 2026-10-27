@@ -1,0 +1,47 @@
+{
+  "package": "/Users/alim/Downloads/hadithly-redesign-package.zip",
+  "packageSha256": "0d935293663a0b0ca5e6645a0fb9cc54f8be0cbb430fc778d959b2633e790d26",
+  "screenshots": "Actual iOS development app, guest journey; Bukhari 13 reader from final keyboard-submit run. No package concept text used.",
+  "assets": [
+    {
+      "file": "site/assets/logo-black.svg",
+      "sha256": "14eed232151da690b71cf7a79cad88c404d06091f1f904a625964beea95fe2c4",
+      "bytes": 385
+    },
+    {
+      "file": "site/assets/logo-white.svg",
+      "sha256": "620ab71eeefc92639b19bbd3ca0f539ce9474bf778b6f4677b9f250291f52ea3",
+      "bytes": 385
+    },
+    {
+      "file": "site/assets/product-library.jpg",
+      "sha256": "ca551ea3f8d68d788e4ddc1732a73366761a8475d382934389548e7fb02ddb03",
+      "bytes": 385163
+    },
+    {
+      "file": "site/assets/product-reader.jpg",
+      "sha256": "5a66100e9a8b90ade89d4da3df8da3feb840515e473f8de6103a71366396b599",
+      "bytes": 302058
+    },
+    {
+      "file": "site/assets/product-saved.jpg",
+      "sha256": "e15a964e0b302f1a8454c7576c5f02849e360057b4719a05ab014c8ea90685d2",
+      "bytes": 93939
+    },
+    {
+      "file": "site/assets/product-today.jpg",
+      "sha256": "22a4e4d4e6bbe64d57757a0c8d5ef23713bd527b0521ed10fe7654f9a50e7239",
+      "bytes": 239612
+    },
+    {
+      "file": "site/assets/sky-blue.jpg",
+      "sha256": "a567a835e1048233ec6110c5bf2663bfebf2c910a82ac07ba3a7e912c2b462ce",
+      "bytes": 316436
+    },
+    {
+      "file": "site/assets/sky-violet.jpg",
+      "sha256": "2966f187d71165919aa25803ef94a8518fcb372650cab23ff93fde94dacd3b11",
+      "bytes": 321417
+    }
+  ]
+}

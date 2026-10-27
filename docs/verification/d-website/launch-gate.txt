@@ -1,0 +1,1 @@
+Android asset links remain blocked until a Play App Signing certificate exists.

@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 """Run through with_server.py against the local static site. Only synthetic data."""
+import argparse
 import json
 from pathlib import Path
 from playwright.sync_api import sync_playwright, expect
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE = "http://127.0.0.1:8766"
-OUT = ROOT / "evidence/la3"
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--base", default="http://127.0.0.1:8766")
+parser.add_argument("--output", type=Path, default=ROOT / "evidence/la3")
+args = parser.parse_args()
+BASE = args.base.rstrip("/")
+OUT = args.output
 OUT.mkdir(parents=True, exist_ok=True)
 with sync_playwright() as p:
     browser = p.chromium.launch(headless=True, channel="chrome")

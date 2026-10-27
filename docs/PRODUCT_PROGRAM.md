@@ -178,9 +178,12 @@ activation, or user-study participant cannot be silently represented as verified
     `C_NATIVE_REFINEMENTS.md`. Older OS/device and assistive-technology acceptance
     remain separate. External
     OAuth/account acceptance and copy review remain on their existing gates.
-- [ ] D1. Inspect the Hadithly redesign package in Downloads; use website assets
+- [x] D1. Inspect the Hadithly redesign package in Downloads; use website assets
   only. Redesign the website and its other pages; verify responsive rendering,
   routes, forms, accessibility, legal links, and content/source claims.
+  October 27: local redesign and Chrome checks pass; actual native captures and
+  scope limits are in `D_WEBSITE_REDESIGN.md`. Publication and existing release,
+  asset/content rights and LA4 gates remain separate.
 - [ ] E1. Configure Linear as the hub for agents, plans, issues, bugs and docs.
   Link implementation and verification evidence. Confirm actual workspace readback;
   a local proposal does not count as a configured hub.

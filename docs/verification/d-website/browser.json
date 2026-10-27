@@ -1,0 +1,150 @@
+{
+  "results": [
+    {
+      "width": 1440,
+      "path": "/",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "path": "/privacy/",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "path": "/terms/",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "path": "/support/",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "path": "/delete-account/",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "path": "/status/",
+      "result": "passed"
+    },
+    {
+      "width": 1440,
+      "path": "/hadith/",
+      "result": "passed"
+    },
+    {
+      "width": 768,
+      "path": "/",
+      "result": "passed"
+    },
+    {
+      "width": 768,
+      "path": "/privacy/",
+      "result": "passed"
+    },
+    {
+      "width": 768,
+      "path": "/terms/",
+      "result": "passed"
+    },
+    {
+      "width": 768,
+      "path": "/support/",
+      "result": "passed"
+    },
+    {
+      "width": 768,
+      "path": "/delete-account/",
+      "result": "passed"
+    },
+    {
+      "width": 768,
+      "path": "/status/",
+      "result": "passed"
+    },
+    {
+      "width": 768,
+      "path": "/hadith/",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "path": "/",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "path": "/privacy/",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "path": "/terms/",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "path": "/support/",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "path": "/delete-account/",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "path": "/status/",
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "path": "/hadith/",
+      "result": "passed"
+    },
+    {
+      "width": 320,
+      "path": "/",
+      "result": "passed"
+    },
+    {
+      "width": 320,
+      "path": "/privacy/",
+      "result": "passed"
+    },
+    {
+      "width": 320,
+      "path": "/terms/",
+      "result": "passed"
+    },
+    {
+      "width": 320,
+      "path": "/support/",
+      "result": "passed"
+    },
+    {
+      "width": 320,
+      "path": "/delete-account/",
+      "result": "passed"
+    },
+    {
+      "width": 320,
+      "path": "/status/",
+      "result": "passed"
+    },
+    {
+      "width": 320,
+      "path": "/hadith/",
+      "result": "passed"
+    }
+  ],
+  "keyboard": "passed",
+  "navigation": "passed",
+  "consentControl": "passed",
+  "reducedMotion": "passed",
+  "textScaling": "passed",
+  "pageErrors": []
+}

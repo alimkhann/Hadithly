@@ -1,34 +1,52 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Hadithly is a quiet native reader for the major hadith collections.">
-    <title>Hadithly</title>
-    <link rel="stylesheet" href="/styles.css">
-  </head>
-  <body>
-    <div class="shell">
-      <header>
-        <a class="brand" href="/">Hadithly</a>
-        <nav aria-label="Legal and support">
-          <a href="/privacy/">Privacy</a>
-          <a href="/support/">Support</a>
-        </nav>
-      </header>
-      <main>
-        <p class="eyebrow">Read quietly</p>
-        <h1>Hadiths in your language.</h1>
-        <p class="lede">Read the seven major hadith collections in Arabic and your preferred translation language. Accounts are optional. Reading progress and saved items stay private.</p>
-        <div class="actions">
-          <a class="button primary" href="/support/">Get support</a>
-          <a class="button" href="/privacy/">Read the privacy policy</a>
-        </div>
-      </main>
-      <footer>
-        <span>© 2026 Hadithly</span>
-        <span><a href="/terms/">Terms</a> · <a href="/delete-account/">Delete an account</a></span>
-      </footer>
-    </div>
-  </body>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A quiet native hadith reader. Browse collections, keep private bookmarks and notes, and read Arabic alongside a translation.">
+  <title>Hadithly · Read hadiths in your language</title>
+  <link rel="icon" href="/assets/logo-black.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="shell">
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Hadithly home"><img src="/assets/logo-black.svg" alt="" width="28" height="28">Hadithly</a>
+      <nav aria-label="Main navigation"><a href="#collections">Features</a><a href="/support/">Support</a><a class="button primary" href="#availability">App availability <span aria-hidden="true">↗</span></a></nav>
+    </header>
+    <main tabindex="-1" id="main" class="landing">
+      <section class="hero" aria-labelledby="hero-title">
+        <p class="eyebrow">A quiet native reader</p>
+        <h1 id="hero-title">Read hadiths in your language.</h1>
+        <p class="lede">Browse collections, save hadiths, and pick up where you left off.</p>
+        <div class="actions"><a class="button primary" href="#availability">App availability <span aria-hidden="true">↗</span></a><a class="button" href="#collections">Explore Hadithly</a></div>
+        <figure class="hero-figure">
+          <div class="hero-stage sky-violet">
+            <div class="phone"><img src="/assets/product-today.jpg" width="1206" height="2622" alt="The native Today screen showing Arabic and an English translation" fetchpriority="high"></div>
+            <div class="phone"><img src="/assets/product-library.jpg" width="1206" height="2622" alt="Hadithly's native collection library"></div>
+          </div>
+          <figcaption>Development app screenshots. Translation availability varies by hadith and language.</figcaption>
+        </figure>
+      </section>
+      <section class="feature" id="collections" aria-labelledby="collections-title">
+        <div class="feature-copy"><p class="eyebrow">The library</p><h2 id="collections-title">Explore the<br>collections.</h2><p>Browse Sahih al-Bukhari, Sahih Muslim, and other hadith collections. Open a volume, find a chapter, or return to your reading position.</p><a class="text-link" href="#saved">Keep something for later <span aria-hidden="true">→</span></a></div>
+        <figure class="feature-figure sky-blue"><div class="phone"><img src="/assets/product-library.jpg" width="1206" height="2622" alt="The collection covers and navigation in the native library" loading="lazy"></div></figure>
+      </section>
+      <section class="feature reverse" id="saved" aria-labelledby="saved-title">
+        <div class="feature-copy"><p class="eyebrow">Your own space</p><h2 id="saved-title">Save hadiths<br>for later.</h2><p>Keep bookmarks, favorites, and notes together. Use folders to organize what you save. Your reading and saved items stay private.</p><a class="text-link" href="#reading">See the reading view <span aria-hidden="true">→</span></a></div>
+        <figure class="feature-figure sky-violet"><div class="phone"><img src="/assets/product-saved.jpg" width="1206" height="2622" alt="The Saved screen in a fresh guest session, before adding personal items" loading="lazy"></div></figure>
+      </section>
+      <section class="feature" id="reading" aria-labelledby="reading-title">
+        <div class="feature-copy"><p class="eyebrow">Room to read</p><h2 id="reading-title">Arabic and a<br>translation, together.</h2><p>Choose a reading theme and text size that suit you. Open a hadith's reference to see its source details, then return to the text.</p><p class="meta">AI translations are labeled and can contain mistakes. Available text and source information differ by hadith and language.</p><a class="text-link" href="#availability">About the apps <span aria-hidden="true">→</span></a></div>
+        <figure class="feature-figure sky-blue"><div class="phone"><img src="/assets/product-reader.jpg" width="1206" height="2622" alt="Sahih al-Bukhari 13 in the native reader, showing Arabic and its English translation" loading="lazy"></div></figure>
+      </section>
+      <section class="availability sky-violet" id="availability" aria-labelledby="availability-title">
+        <div><p class="eyebrow">For iOS and Android</p><h2 id="availability-title">A quieter way<br>to keep reading.</h2><p>Hadithly is in development. Public App Store and Google Play links will appear here when the apps are available.</p><a class="button primary" href="/support/">Contact support <span aria-hidden="true">↗</span></a></div>
+        <div class="phone"><img src="/assets/product-library.jpg" width="1206" height="2622" alt="" loading="lazy"></div>
+      </section>
+    </main>
+    <footer class="site-footer"><a class="brand" href="/"><img src="/assets/logo-black.svg" width="24" height="24" alt="">Hadithly</a><nav aria-label="Legal and support"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="/support/">Support</a><a href="/status/">Status</a><a href="/delete-account/">Delete an account</a></nav><span class="copyright">© 2026 Hadithly</span></footer>
+  </div>
+</body>
 </html>

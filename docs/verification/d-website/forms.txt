@@ -1,0 +1,1 @@
+LA3 website: disabled fallback, form serialization, receipt, limits, preserved text, five components, synthetic incident, stale state, escaped content, outage and narrow viewport passed. External providers were test doubles.

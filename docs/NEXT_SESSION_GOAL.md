@@ -22,6 +22,20 @@ browser explanation now pass local native checks. Continue C1 and C2/C3/C7
 verification before D. C8 adds only one scoped catalog entry, preserving all
 incoming catalog bytes. External OAuth and native-copy approval remain open.
 
+## D local website checkpoint, October 27
+
+The supplied redesign is implemented across the static website. Actual native
+screens replace illustrative concept text; all seven pages pass 28 Chrome
+route/viewport checks, keyboard/consent/reduced-motion and 200% text-size checks.
+Support/status regression checks pass with external test doubles. Legal bodies,
+behavior scripts and routing/configuration remain preserved. See
+`D_WEBSITE_REDESIGN.md`. Nothing is published; LA4, content/asset rights, Android
+asset links, accounts, stores and other release gates remain open.
+
+This checkpoint wraps D's local implementation. Resume A4–A7.
+Retain the live Contents Go-tap attempt as an A5 follow-up; keyboard submission
+passed. Preserve the incoming project/scheme and catalog changes.
+
 ## C local refinements checkpoint, October 27
 
 C1–C8 now have local native implementation and verification records in

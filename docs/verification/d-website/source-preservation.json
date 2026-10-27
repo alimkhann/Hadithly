@@ -1,0 +1,61 @@
+{
+  "base": "a1226ff",
+  "checks": {
+    "site/privacy/index.html": {
+      "mainInnerUnchanged": true,
+      "sha256": "4147838b27217a31f95d9201242bc1765d71201f718b19c14c599a70d0d7118a"
+    },
+    "site/delete-account/index.html": {
+      "mainInnerUnchanged": true,
+      "sha256": "60829a7a6d14ac34bbd13acb3d039a9d3b656623d8c189de3963e827323da97d"
+    },
+    "site/terms/index.html": {
+      "mainInnerUnchanged": true,
+      "sha256": "d8bf9e08f94db7fc74aa6a48f5ee0a264f60594a82f5155f9cf43c0a58f40573"
+    },
+    "site/status/index.html": {
+      "mainInnerUnchanged": true,
+      "sha256": "bde5ebabfaf7ea0dbb52c34731120fecfa73f14d237c2957e8706114d34e1bb4"
+    },
+    "site/hadith/index.html": {
+      "mainInnerUnchanged": true,
+      "sha256": "22f5d5b0b7f29904abc4f011487995309c30a3951fde742db1e85196773b405e"
+    },
+    "site/support/index.html": {
+      "mainInnerUnchanged": true,
+      "sha256": "7af9c924b7a1d1aeddc5b19725573aae92ceb27efb5b9339981f2120b64fbcbd"
+    },
+    "site/support.js": {
+      "unchanged": true,
+      "sha256": "a71c90f240cb7e54ce84087fd8375ea4ebe7958c7acd80bf42a3f110cbdb0556"
+    },
+    "site/status.js": {
+      "unchanged": true,
+      "sha256": "a99677af2ba246be1e998bb70d3e1184d37ceb65e2ec9ff9a3c3e5db129034f6"
+    },
+    "site/canonical.js": {
+      "unchanged": true,
+      "sha256": "58ba547b6d26ab24ea57eb532a02efa15a0d595aa0e1a6afe247161765dac648"
+    },
+    "site/diagnostics.js": {
+      "unchanged": true,
+      "sha256": "b620ba5c2ad80ecced4166651aba7784e6cec461010f883fae7d496a3092e924"
+    },
+    "site/operations-config.js": {
+      "unchanged": true,
+      "sha256": "97f1c90d795f760fb943dbd02b41c80883d140afd6615fa68d9b4e237dc29398"
+    },
+    "site/convex-config.js": {
+      "unchanged": true,
+      "sha256": "5b2554313f0dd51474c4f81671404554c132d74dfdd39487826e356f63c4f63e"
+    },
+    "site/diagnostics-config.js": {
+      "unchanged": true,
+      "sha256": "96a5e4d28eb32fccf7f57c9eccfd8cfd72e759e049fab3625c6c2f801dd5dc3d"
+    },
+    "site/vercel.json": {
+      "unchanged": true,
+      "sha256": "01b4e0f97402497723dad640fe19b47581908df9f00d76834259acb3f74df6ee"
+    }
+  }
+}

@@ -60,10 +60,31 @@ final class OnboardingLA2UITests: XCTestCase {
         let choice = XCTAttachment(screenshot: app.screenshot()); choice.name = "LA2 account choice"; choice.lifetime = .keepAlways; add(choice)
         guest.tap()
         XCTAssertTrue(app.tabBars.firstMatch.waitForExistence(timeout: 10))
+        let daily = app.descendants(matching: .any).matching(identifier: "today.dailyCard").firstMatch
+        if daily.waitForExistence(timeout: 10) { captureWebsite("today", app) }
+        app.tabBars.buttons["Saved"].tap()
+        captureWebsite("saved", app)
         app.tabBars.buttons["Library"].tap()
         let collection = app.buttons["library.collection.bukhari"]
-        XCTAssertTrue(collection.waitForExistence(timeout: 20)); collection.tap()
+        XCTAssertTrue(collection.waitForExistence(timeout: 20))
+        captureWebsite("library", app)
+        collection.tap()
         XCTAssertTrue(app.buttons["reader.hadithLabel"].firstMatch.waitForExistence(timeout: 30))
+        if app.buttons["Dismiss hint"].waitForExistence(timeout: 2) { app.buttons["Dismiss hint"].tap() }
+        let menu = app.buttons["reader.menu"]
+        if !menu.waitForExistence(timeout: 1) { app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap() }
+        XCTAssertTrue(menu.waitForExistence(timeout: 5))
+        menu.tap()
+        app.buttons["reader.menu.contents"].tap()
+        let jump = app.textFields["reader.contents.jump"]
+        XCTAssertTrue(jump.waitForExistence(timeout: 5))
+        jump.tap(); jump.typeText("13\n")
+        let reference = app.buttons.matching(identifier: "reader.hadithLabel").matching(NSPredicate(format: "label CONTAINS %@", "13")).firstMatch
+        XCTAssertTrue(reference.waitForExistence(timeout: 20))
+        let translation = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "brother")).firstMatch
+        XCTAssertTrue(translation.waitForExistence(timeout: 10))
+        XCTAssertTrue(translation.isHittable, "The website capture must show the actual translation")
+        captureWebsite("reader", app)
         app.swipeUp()
         Thread.sleep(forTimeInterval: 1)
         XCUIDevice.shared.press(.home)
@@ -72,6 +93,13 @@ final class OnboardingLA2UITests: XCTestCase {
         app.terminate(); app.launch()
         XCTAssertTrue(app.tabBars.firstMatch.waitForExistence(timeout: 10))
         XCTAssertFalse(app.buttons["onboarding.getStarted"].exists)
+    }
+
+    private func captureWebsite(_ name: String, _ app: XCUIApplication) {
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = "website-product-" + name
+        attachment.lifetime = .keepAlways
+        add(attachment)
     }
 
     @discardableResult
