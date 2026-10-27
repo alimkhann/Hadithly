@@ -175,4 +175,6 @@
     <string name="native_f911dbe90e58" formatted="false">Bu tarjima uchun tashqi manbalar keltirilmagan.</string>
     <string name="native_a6e3a22758a8" formatted="false">Bu tarjima AI (%s) tomonidan yaratilgan. Bu vakolatli tarjima emas; muhim maʼnolarni malakali manba bilan tekshiring.</string>
     <string name="native_da68e1baec08" formatted="false">Google orqali kirish brauzerda ochiladi, keyin shu yerga qaytasiz.</string>
+    <string name="native_459d0f50351d" formatted="false">Kundalik mutolaangiz</string>
+    <string name="native_7e4dd3540ed0" formatted="false">Bugungi hadis hali mavjud emas. O‘qishni davom ettirish uchun quyidan to‘plamni tanlang.</string>
 </resources>

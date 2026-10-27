@@ -175,4 +175,6 @@
     <string name="native_f911dbe90e58" formatted="false">Для этого перевода не указаны внешние источники.</string>
     <string name="native_a6e3a22758a8" formatted="false">Этот перевод создан ИИ (%s). Это не авторитетный перевод; проверяйте важный смысл по квалифицированному источнику.</string>
     <string name="native_da68e1baec08" formatted="false">Вход через Google откроется в браузере, после чего вы вернётесь сюда.</string>
+    <string name="native_459d0f50351d" formatted="false">Ваше ежедневное чтение</string>
+    <string name="native_7e4dd3540ed0" formatted="false">Сегодняшний хадис пока недоступен. Выберите сборник ниже, чтобы продолжить чтение.</string>
 </resources>

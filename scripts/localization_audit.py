@@ -37,7 +37,7 @@ ANDROID_QUALIFIERS = {
     "pt-BR": "values-pt-rBR",
 }
 
-PLACEHOLDER_RE = re.compile(r"%(?:\d+\$)?(?:@|lld|d|f|s)")
+PLACEHOLDER_RE = re.compile(r"%%|%(?:(\d+)\$)?(@|lld|d|f|s)")
 SWIFT_LITERAL_RE = re.compile(
     r"(?:Text|Label|Button|navigationTitle|accessibilityLabel|alert)\(\"([^\"]+)\""
 )
@@ -230,7 +230,23 @@ def write_android_drafts() -> tuple[int, int]:
 
 
 def placeholders(text: str) -> tuple[str, ...]:
-    return tuple(sorted(PLACEHOLDER_RE.findall(text)))
+    arguments = []
+    implicit_index = 1
+    for match in PLACEHOLDER_RE.finditer(text):
+        if match.group(0) == "%%":
+            continue
+        index = int(match.group(1)) if match.group(1) else implicit_index
+        if match.group(1) is None:
+            implicit_index += 1
+        arguments.append(f"%{index}${match.group(2)}")
+    return tuple(sorted(arguments))
+
+
+def ios_units(entry: dict) -> dict[str, dict]:
+    if "stringUnit" in entry:
+        return {"string": entry["stringUnit"]}
+    return {quantity: value.get("stringUnit", {})
+            for quantity, value in entry.get("variations", {}).get("plural", {}).items()}
 
 
 def audit_ios(allow_drafts: bool) -> tuple[int, int, list[str], Counter[str]]:
@@ -240,34 +256,30 @@ def audit_ios(allow_drafts: bool) -> tuple[int, int, list[str], Counter[str]]:
     category_counts: Counter[str] = Counter()
     for key, entry in catalog["strings"].items():
         source = catalog_source_value(entry, key)
-        source_placeholder_set = set(token for text in catalog_texts(source) for token in placeholders(text))
+        source_units = ios_units(source)
         for locale in WAVE1:
             localization = entry.get("localizations", {}).get(locale)
             if localization is None:
                 missing.append(f"ios:{locale}:{key}")
                 continue
-            if any(
-                token not in source_placeholder_set
-                for text in catalog_texts(localization)
-                for token in placeholders(text)
-            ):
-                missing.append(f"ios-placeholder:{locale}:{key}")
-            if not allow_drafts:
-                source_texts = catalog_texts(source)
-                target_texts = catalog_texts(localization)
-                if any(
-                    unit.get("state") == "needs_review" and unit.get("value") in source_texts
-                    for unit in [localization.get("stringUnit", {})]
-                    + list(localization.get("variations", {}).get("plural", {}).values())
-                    if isinstance(unit, dict)
-                ):
-                    missing.append(f"ios-untranslated-draft:{locale}:{key}")
-            if any(
-                unit.get("state") == "needs_review"
-                for unit in [localization.get("stringUnit", {})]
-                + list(localization.get("variations", {}).get("plural", {}).values())
-                if isinstance(unit, dict)
-            ):
+            target_units = ios_units(localization)
+            required = "string" if "string" in source_units else "other"
+            if required not in target_units:
+                missing.append(f"ios-unit:{locale}:{key}:{required}")
+            for quantity, target in target_units.items():
+                expected = source_units.get(quantity, source_units.get("other"))
+                if expected is None:
+                    missing.append(f"ios-unit-shape:{locale}:{key}:{quantity}")
+                    continue
+                source_text = expected.get("value", "")
+                target_text = target.get("value", "")
+                if source_text.strip() and not target_text.strip():
+                    missing.append(f"ios-empty:{locale}:{key}:{quantity}")
+                if placeholders(target_text) != placeholders(source_text):
+                    missing.append(f"ios-placeholder:{locale}:{key}:{quantity}")
+                if not allow_drafts and target.get("state") == "needs_review" and target_text == source_text:
+                    missing.append(f"ios-untranslated-draft:{locale}:{key}:{quantity}")
+            if any(unit.get("state") == "needs_review" for unit in target_units.values()):
                 generated += 1
         category_counts[category_for(key)] += 1
     return len(catalog["strings"]), generated, missing, category_counts
@@ -326,6 +338,14 @@ def audit_android(allow_drafts: bool) -> tuple[int, int, list[str], Counter[str]
                         generated += 1
                         if not allow_drafts:
                             missing.append(f"android-untranslated-draft:{locale}:{name}:{quantity}")
+                for quantity, item in target_items.items():
+                    if not (item.text or "").strip():
+                        missing.append(f"android-plural-empty:{locale}:{name}:{quantity}")
+                    source_item = source.find(f"item[@quantity='{quantity}']")
+                    if source_item is None:
+                        source_item = source.find("item[@quantity='other']")
+                    if source_item is not None and placeholders(item.text or "") != placeholders(source_item.text or ""):
+                        missing.append(f"android-placeholder:{locale}:{name}:{quantity}")
                 category_counts[category_for(name)] += 1
     return total, generated, missing, category_counts
 
@@ -429,7 +449,7 @@ def main() -> int:
     ios_keys, ios_drafts, ios_missing, ios_categories = audit_ios(args.allow_drafts)
     android_keys, android_drafts, android_missing, android_categories = audit_android(args.allow_drafts)
     swift, kotlin = find_hardcoded()
-    print(f"iOS: {ios_keys} keys, {ios_drafts} draft units, {len(ios_missing)} failures")
+    print(f"iOS: {ios_keys} keys, {ios_drafts} draft locale entries, {len(ios_missing)} failures")
     print(f"Android: {android_keys} resources, {android_drafts} English-copy drafts, {len(android_missing)} failures")
     print(f"hardcoded candidates: Swift {len(swift)}, Kotlin {len(kotlin)}")
     if swift:

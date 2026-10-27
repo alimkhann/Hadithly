@@ -69,6 +69,19 @@ final class VisualPolishUITests: XCTestCase {
         }
     }
 
+    func testDailyEmptyStateLocalizesItsActualTitleAndCollectionGuidance() {
+        for (locale, title, guidance) in [("ar", "قراءتك اليومية", "اختر مجموعة"),
+            ("ru", "Ваше ежедневное чтение", "Выберите сборник"),
+            ("kk", "Күнделікті оқуыңыз", "жинақты таңдаңыз"),
+            ("en", "Your daily reading", "Choose a collection below")] {
+            let app = launchPolish("today-empty", locale: locale)
+            XCTAssertTrue(app.staticTexts[title].waitForExistence(timeout: 10))
+            XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", guidance)).firstMatch.exists)
+            capture("daily-empty-" + locale, app)
+            app.terminate()
+        }
+    }
+
     func testDailyCardFollowsAppAppearanceWithSeparateReaderTheme() {
         for (appTheme, readerTheme) in [("light", "dark"), ("dark", "light")] {
             let app = XCUIApplication()

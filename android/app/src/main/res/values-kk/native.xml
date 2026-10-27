@@ -175,4 +175,6 @@
     <string name="native_f911dbe90e58" formatted="false">Бұл аудармаға сыртқы дереккөздер келтірілмеген.</string>
     <string name="native_a6e3a22758a8" formatted="false">Бұл аударманы AI (%s) жасады. Бұл ресми аударма емес; маңызды мағыналарды білікті дереккөзбен тексеріңіз.</string>
     <string name="native_da68e1baec08" formatted="false">Google арқылы кіру браузерде ашылады, содан кейін осында қайтасыз.</string>
+    <string name="native_459d0f50351d" formatted="false">Күнделікті оқуыңыз</string>
+    <string name="native_7e4dd3540ed0" formatted="false">Бүгінгі хадис әзірге қолжетімсіз. Оқуды жалғастыру үшін төменнен жинақты таңдаңыз.</string>
 </resources>

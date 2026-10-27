@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuites tests="1" failures="0" errors="0" skipped="0" time="21.907" timestamp="2026-10-27T12:06:38" hostname="localhost">
+  <testsuite name="com.hadithly.app.core.theme.NativeFinishingTest" tests="1" failures="0" errors="0" skipped="0" time="15.58" timestamp="2026-10-27T12:06:38" hostname="localhost">
+    <properties>
+      <property name="device" value="hadithly(AVD) - 16" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="dailyEmptyStateLocalizesItsActualTitleAndCollectionGuidance" classname="com.hadithly.app.core.theme.NativeFinishingTest" time="15.58" />
+  </testsuite>
+</testsuites>

@@ -1,0 +1,59 @@
+FFFFF
+======================================================================
+FAIL: test_android_checks_each_plural_quantity (__main__.PlaceholderAuditTests.test_android_checks_each_plural_quantity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alim/Developer/Projects/Apps/Hadithly/scripts/test_localization_audit.py", line 44, in test_android_checks_each_plural_quantity
+    self.assertTrue(any('placeholder' in failure for failure in failures), failures)
+AssertionError: False is not true : []
+
+======================================================================
+FAIL: test_ios_rejects_dropped_argument (__main__.PlaceholderAuditTests.test_ios_rejects_dropped_argument)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alim/Developer/Projects/Apps/Hadithly/scripts/test_localization_audit.py", line 23, in test_ios_rejects_dropped_argument
+    self.assertTrue(self.ios_failures('%@ of %@', '%@'))
+AssertionError: [] is not true
+
+======================================================================
+FAIL: test_ios_rejects_extra_duplicate_argument (__main__.PlaceholderAuditTests.test_ios_rejects_extra_duplicate_argument)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alim/Developer/Projects/Apps/Hadithly/scripts/test_localization_audit.py", line 26, in test_ios_rejects_extra_duplicate_argument
+    self.assertTrue(self.ios_failures('%1$@', '%1$@ %1$@'))
+AssertionError: [] is not true
+
+======================================================================
+FAIL: test_numbered_reordering_keeps_the_same_arguments (__main__.PlaceholderAuditTests.test_numbered_reordering_keeps_the_same_arguments)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alim/Developer/Projects/Apps/Hadithly/scripts/test_localization_audit.py", line 29, in test_numbered_reordering_keeps_the_same_arguments
+    self.assertEqual(self.ios_failures('%@ of %@', '%2$@ / %1$@'), [])
+AssertionError: Lists differ: ['ios-placeholder:ar:message'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'ios-placeholder:ar:message'
+
+- ['ios-placeholder:ar:message']
++ []
+
+======================================================================
+FAIL: test_percent_escape_is_not_a_formatter_argument (__main__.PlaceholderAuditTests.test_percent_escape_is_not_a_formatter_argument)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alim/Developer/Projects/Apps/Hadithly/scripts/test_localization_audit.py", line 32, in test_percent_escape_is_not_a_formatter_argument
+    self.assertEqual(audit.placeholders('%%d and %d'), audit.placeholders('%d'))
+AssertionError: Tuples differ: ('%d', '%d') != ('%d',)
+
+First tuple contains 1 additional elements.
+First extra element 1:
+'%d'
+
+- ('%d', '%d')
++ ('%d',)
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.004s
+
+FAILED (failures=5)

@@ -29,6 +29,24 @@ import java.io.File
 class NativeFinishingTest {
     @get:Rule val compose = createComposeRule()
 
+    @Test fun dailyEmptyStateLocalizesItsActualTitleAndCollectionGuidance() {
+        var locale by mutableStateOf("ar")
+        compose.setContent { LocalizedPreview(ReaderTheme.LIGHT, locale) {
+            com.hadithly.app.features.today.TodayScreen({}, previewState = "empty")
+        } }
+        for ((language, title, guidance) in listOf(
+            Triple("ar", "قراءتك اليومية", "اختر مجموعة"),
+            Triple("ru", "Ваше ежедневное чтение", "Выберите сборник"),
+            Triple("kk", "Күнделікті оқуыңыз", "жинақты таңдаңыз"),
+            Triple("en", "Your daily reading", "Choose a collection below"),
+        )) {
+            compose.runOnIdle { locale = language }
+            compose.onNodeWithText(title).assertIsDisplayed()
+            compose.onNodeWithText(guidance, substring = true).assertIsDisplayed()
+            capture("daily-empty-" + language)
+        }
+    }
+
     @Test fun freshStoreAndLightWelcomeUseDeviceDefaults() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val defaults = context.getSharedPreferences("native-finishing-first-launch", 0)

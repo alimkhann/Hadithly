@@ -1,0 +1,13 @@
+.F....
+======================================================================
+FAIL: test_android_rejects_empty_plural_without_formatter (__main__.PlaceholderAuditTests.test_android_rejects_empty_plural_without_formatter)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alim/Developer/Projects/Apps/Hadithly/scripts/test_localization_audit.py", line 43, in test_android_rejects_empty_plural_without_formatter
+    self.assertTrue(any('empty' in failure for failure in failures), failures)
+AssertionError: False is not true : []
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.006s
+
+FAILED (failures=1)

@@ -17,6 +17,7 @@ struct NativePolishFixtureView: View {
                     switch screen {
                     case "today-loading": TodayView(previewState: "loading")
                     case "today-ready": TodayView(previewState: "ready")
+                    case "today-empty": TodayView(previewState: "empty")
                     case "today-failure": TodayView(previewState: "failure")
                     case "library-loading": LibraryView(previewLoading: true)
                     case "library-ready": LibraryView(previewLoading: false)

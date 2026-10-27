@@ -1,0 +1,52 @@
+failures:
+ios-placeholder:ar:%lld languages available:two
+ios-placeholder:ar:%lld languages available:zero
+android-placeholder:ar:settings_languages_available:zero
+android-placeholder:ar:settings_languages_available:two
+android-placeholder:ar:reader_hadith_count:zero
+android-placeholder:ar:reader_hadith_count:two
+iOS: 303 keys, 4378 draft locale entries, 2 failures
+Android: 318 resources, 1374 English-copy drafts, 4 failures
+hardcoded candidates: Swift 280, Kotlin 240
+Swift candidates:
+  ios/Hadithly/Core/Theme/NativeFinishingFixtureView.swift:Change fixture language
+  ios/Hadithly/Core/Theme/NativeFinishingFixtureView.swift:Choose language
+  ios/Hadithly/Core/Theme/NativeFinishingFixtureView.swift:Library
+  ios/Hadithly/Core/Theme/NativeFinishingFixtureView.swift:Reading is ready
+  ios/Hadithly/Core/Theme/NativeFinishingFixtureView.swift:Saved
+  ios/Hadithly/Core/Theme/NativeFinishingFixtureView.swift:Settings
+  ios/Hadithly/Core/Theme/NativeFinishingFixtureView.swift:Today
+  ios/Hadithly/Core/Theme/NativeFinishingFixtureView.swift:Withdraw fixture
+  ios/Hadithly/Core/Theme/NativePolishFixtureView.swift:Reading is ready
+  ios/Hadithly/Core/Theme/TranslationReveal.swift:Preparing translation…
+  ios/Hadithly/Features/Auth/SignInView.swift:Back
+  ios/Hadithly/Features/Auth/SignInView.swift:Carry your bookmarks and notes across devices.
+  ios/Hadithly/Features/Auth/SignInView.swift:Check your email
+  ios/Hadithly/Features/Auth/SignInView.swift:Choose a new password
+  ios/Hadithly/Features/Auth/SignInView.swift:Close
+  ios/Hadithly/Features/Auth/SignInView.swift:Continue with email
+  ios/Hadithly/Features/Auth/SignInView.swift:Create account
+  ios/Hadithly/Features/Auth/SignInView.swift:Create your account
+  ios/Hadithly/Features/Auth/SignInView.swift:Enter the code sent to \(email) and your new password.
+  ios/Hadithly/Features/Auth/SignInView.swift:Enter the code we sent to \(email).
+Kotlin candidates:
+  android/app/src/main/kotlin/com/hadithly/app/core/session/SessionManager.kt:Saved items could not load
+  android/app/src/main/kotlin/com/hadithly/app/core/theme/LoadingPresentation.kt:Loading…
+  android/app/src/main/kotlin/com/hadithly/app/core/theme/LoadingPresentation.kt:Preparing translation…
+  android/app/src/main/kotlin/com/hadithly/app/core/theme/LoadingPresentation.kt:loading shimmer
+  android/app/src/main/kotlin/com/hadithly/app/core/theme/LoadingPresentation.kt:shimmer position
+  android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt:Back
+  android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt:Carry your bookmarks and notes across devices.
+  android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt:Check your email
+  android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt:Choose a new password
+  android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt:Close
+  android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt:Continue with Google
+  android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt:Continue with email
+  android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt:Create account
+  android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt:Create your account
+  android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt:Enter the code sent to ${state.email} and your new password.
+  android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt:Enter the code we sent to ${state.email}.
+  android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt:Forgot password?
+  android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt:Google sign-in opens in your browser and returns here.
+  android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt:Passwords do not match.
+  android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt:Resend code

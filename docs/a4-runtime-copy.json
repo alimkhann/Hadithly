@@ -1,0 +1,69 @@
+{
+  "native_review": "pending",
+  "keys": [
+    "Your daily reading",
+    "Today’s hadith is not available yet. Choose a collection below to keep reading."
+  ],
+  "locales": {
+    "en": [
+      "Your daily reading",
+      "Today’s hadith is not available yet. Choose a collection below to keep reading."
+    ],
+    "ar": [
+      "قراءتك اليومية",
+      "حديث اليوم غير متاح بعد. اختر مجموعة أدناه لمتابعة القراءة."
+    ],
+    "ru": [
+      "Ваше ежедневное чтение",
+      "Сегодняшний хадис пока недоступен. Выберите сборник ниже, чтобы продолжить чтение."
+    ],
+    "kk": [
+      "Күнделікті оқуыңыз",
+      "Бүгінгі хадис әзірге қолжетімсіз. Оқуды жалғастыру үшін төменнен жинақты таңдаңыз."
+    ],
+    "ky": [
+      "Күнүмдүк окууңуз",
+      "Бүгүнкү хадис азырынча жеткиликсиз. Окууну улантуу үчүн төмөндөн жыйнак тандаңыз."
+    ],
+    "uz": [
+      "Kundalik mutolaangiz",
+      "Bugungi hadis hali mavjud emas. O‘qishni davom ettirish uchun quyidan to‘plamni tanlang."
+    ],
+    "tr": [
+      "Günlük okumanız",
+      "Bugünün hadisi henüz mevcut değil. Okumaya devam etmek için aşağıdan bir koleksiyon seçin."
+    ],
+    "id": [
+      "Bacaan harian Anda",
+      "Hadis hari ini belum tersedia. Pilih koleksi di bawah untuk melanjutkan membaca."
+    ],
+    "ur": [
+      "آپ کا روزانہ مطالعہ",
+      "آج کی حدیث ابھی دستیاب نہیں ہے۔ پڑھنا جاری رکھنے کے لیے نیچے کوئی مجموعہ منتخب کریں۔"
+    ],
+    "fr": [
+      "Votre lecture du jour",
+      "Le hadith du jour n’est pas encore disponible. Choisissez un recueil ci-dessous pour continuer à lire."
+    ],
+    "es-419": [
+      "Tu lectura diaria",
+      "El hadiz de hoy aún no está disponible. Elige una colección abajo para seguir leyendo."
+    ],
+    "pt-BR": [
+      "Sua leitura diária",
+      "O hadith de hoje ainda não está disponível. Escolha uma coleção abaixo para continuar a leitura."
+    ],
+    "sw": [
+      "Usomaji wako wa kila siku",
+      "Hadithi ya leo bado haipatikani. Chagua mkusanyiko hapa chini ili kuendelea kusoma."
+    ],
+    "hi": [
+      "आपका दैनिक पठन",
+      "आज की हदीस अभी उपलब्ध नहीं है। पढ़ना जारी रखने के लिए नीचे कोई संग्रह चुनें।"
+    ],
+    "bn": [
+      "আপনার দৈনিক পাঠ",
+      "আজকের হাদিস এখনও উপলব্ধ নয়। পড়া চালিয়ে যেতে নিচে একটি সংকলন বেছে নিন।"
+    ]
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "ios": {
+    "runs": [
+      {
+        "bundle": "hadithly-a4-empty-red-ios.xcresult",
+        "startTime": 1793102613.702,
+        "result": "Failed",
+        "passedTests": 0,
+        "failedTests": 1,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-empty-green-ios.xcresult",
+        "startTime": 1793102751.633,
+        "result": "Passed",
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0
+      }
+    ],
+    "latestCases": {
+      "HadithlyUITests/VisualPolishUITests/testDailyEmptyStateLocalizesItsActualTitleAndCollectionGuidance()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-empty-green-ios.xcresult"
+      }
+    },
+    "latestCounts": {
+      "Passed": 1
+    }
+  },
+  "android": {
+    "ui": {
+      "counts": {
+        "Passed": 1
+      },
+      "cases": {
+        "com.hadithly.app.core.theme.NativeFinishingTest/dailyEmptyStateLocalizesItsActualTitleAndCollectionGuidance": "Passed"
+      },
+      "reports": [
+        {
+          "file": "TEST-hadithly(AVD) - 16-_app-.xml",
+          "sha256": "f3ab3d85b3ecdfb179ff1d8784d069884059b1fb394d500829e441f3f8415866"
+        }
+      ]
+    }
+  }
+}

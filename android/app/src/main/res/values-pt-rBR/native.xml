@@ -175,4 +175,6 @@
     <string name="native_f911dbe90e58" formatted="false">Nenhuma fonte externa foi citada para esta tradução.</string>
     <string name="native_a6e3a22758a8" formatted="false">Esta tradução foi gerada por IA (%s). Não é uma versão autorizada; verifique significados importantes com uma fonte qualificada.</string>
     <string name="native_da68e1baec08" formatted="false">O login com o Google abre no navegador e depois você volta para cá.</string>
+    <string name="native_459d0f50351d" formatted="false">Sua leitura diária</string>
+    <string name="native_7e4dd3540ed0" formatted="false">O hadith de hoje ainda não está disponível. Escolha uma coleção abaixo para continuar a leitura.</string>
 </resources>

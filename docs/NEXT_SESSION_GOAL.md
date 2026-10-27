@@ -22,6 +22,17 @@ browser explanation now pass local native checks. Continue C1 and C2/C3/C7
 verification before D. C8 adds only one scoped catalog entry, preserving all
 incoming catalog bytes. External OAuth and native-copy approval remain open.
 
+## A4 runtime copy checkpoint, October 27
+
+A4 is active after B/C/D local commits. The actual Today empty-state title and
+full collection guidance now have fifteen-locale drafts on both apps; Arabic,
+Russian, Kazakh and English render checks pass after reproducing the missing-key
+failure. Placeholder multiplicity checks now catch dropped/duplicated arguments
+and inspect plural units. Six Arabic zero/dual forms remain explicit review
+findings, and the old hardcoded scan still needs candidate classification.
+See `A4_RUNTIME_LOCALIZATION.md`. Full runtime coverage, native review and A4–A7/E
+remain open. Incoming project/catalog work remains preserved.
+
 ## D local website checkpoint, October 27
 
 The supplied redesign is implemented across the static website. Actual native
