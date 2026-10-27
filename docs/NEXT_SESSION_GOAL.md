@@ -22,6 +22,15 @@ browser explanation now pass local native checks. Continue C1 and C2/C3/C7
 verification before D. C8 adds only one scoped catalog entry, preserving all
 incoming catalog bytes. External OAuth and native-copy approval remain open.
 
+## C1 paywall checkpoint, October 27
+
+The native artwork, simplified heading, two plan choices and floating badges now
+pass local light/dark and large RTL checks. Quota context and free reading remain
+clear. Seven Android quota-message locale mixups are repaired using existing iOS
+drafts. See `C_NATIVE_REFINEMENTS.md`. This remains the approved monthly-equivalent
+prototype; actual annual total and store receipts stay open. Continue C2/C3/C7,
+then D before A4–A7. Incoming project/catalog edits remain preserved.
+
 ## Working style and boundaries
 
 Work fast on normal reading, saving, translation and return journeys. Choose the

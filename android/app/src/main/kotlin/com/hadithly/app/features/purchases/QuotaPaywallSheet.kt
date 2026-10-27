@@ -20,8 +20,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -35,6 +37,7 @@ import com.hadithly.app.R
 import com.hadithly.app.core.analytics.AnalyticsMetric
 import com.hadithly.app.core.purchases.PurchaseManager
 import com.hadithly.app.core.theme.LocalHadithlyColors
+import com.hadithly.app.core.theme.EntryArtworkBackdrop
 import com.revenuecat.purchases.PackageType
 import java.util.Locale
 
@@ -116,80 +119,80 @@ fun QuotaPaywallSheet(purchases: PurchaseManager, onDismiss: () -> Unit, onUnloc
     }
 
     ModalBottomSheet(onDismissRequest = { if (!state.purchasing) dismissMeasured() }, containerColor = colors.background) {
-        Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(24.dp).testTag("paywall.quota"),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
-                Box {
-                    IconButton(onClick = { moreMenuExpanded = true }, modifier = Modifier.testTag("paywall.more")) {
-                        Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.q2_more), tint = colors.textPrimary)
-                    }
-                    DropdownMenu(expanded = moreMenuExpanded, onDismissRequest = { moreMenuExpanded = false }) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.la2_restore)) },
-                            onClick = { moreMenuExpanded = false; restorePurchases() },
-                            enabled = !state.purchasing,
-                            modifier = Modifier.testTag("paywall.restore"),
-                        )
-                        DropdownMenuItem(text = { Text(stringResource(R.string.la2_privacy)) }, onClick = {
-                            moreMenuExpanded = false
-                            uri.openUri(BuildConfig.PRIVACY_POLICY_URL)
-                        })
-                        DropdownMenuItem(text = { Text(stringResource(R.string.la2_terms)) }, onClick = {
-                            moreMenuExpanded = false
-                            uri.openUri(BuildConfig.TERMS_OF_USE_URL)
-                        })
-                    }
-                }
-                TextButton(onClick = ::dismissMeasured) { Text(stringResource(R.string.la2_close), color = colors.textPrimary) }
-            }
-            Text(stringResource(R.string.la2_more_translations), style = MaterialTheme.typography.headlineLarge, color = colors.textPrimary, textAlign = TextAlign.Center)
-            Text(stringResource(R.string.q1_quota_exhausted), style = MaterialTheme.typography.bodyLarge, color = colors.textSecondary, textAlign = TextAlign.Center)
-            Text(stringResource(R.string.la2_reading_free), style = MaterialTheme.typography.titleSmall, color = colors.textPrimary)
-            Text(stringResource(R.string.la2_allowance), style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary, textAlign = TextAlign.Center)
-            Text(stringResource(R.string.q2_devices), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary, textAlign = TextAlign.Center)
-            when {
-                state.hasProEntitlement -> Text(nativeText("Hadithly Pro is active"), color = colors.textPrimary)
-                state.loading -> CircularProgressIndicator(color = colors.textSecondary)
-                else -> {
-                    displayPackages.sortedByDescending { it.packageType == PackageType.ANNUAL }.forEach { option ->
-                        val isAnnual = option.packageType == PackageType.ANNUAL
-                        val isSelected = selected == option.identifier
-                        val price = if (isAnnual) PaywallPricing.localizedAnnualMonthlyEquivalent(option.product, appLocale) else option.product.price.formatted
-                        if (price != null) PaywallPlanOption(isAnnual, isSelected, price, annualSavings, !state.purchasing) {
-                            selected = option.identifier
-                            analytics.record(if (isAnnual) AnalyticsMetric.paywallResultSelectedAnnual else AnalyticsMetric.paywallResultSelectedMonthly)
+        Box(Modifier.fillMaxWidth()) {
+            EntryArtworkBackdrop(modifier = Modifier.matchParentSize())
+            Column(
+                Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(24.dp).testTag("paywall.quota"),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+                    Box {
+                        IconButton(onClick = { moreMenuExpanded = true }, modifier = Modifier.testTag("paywall.more")) {
+                            Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.q2_more), tint = colors.textPrimary)
+                        }
+                        DropdownMenu(expanded = moreMenuExpanded, onDismissRequest = { moreMenuExpanded = false }) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.la2_restore)) },
+                                onClick = { moreMenuExpanded = false; restorePurchases() },
+                                enabled = !state.purchasing,
+                                modifier = Modifier.testTag("paywall.restore"),
+                            )
+                            DropdownMenuItem(text = { Text(stringResource(R.string.la2_privacy)) }, onClick = {
+                                moreMenuExpanded = false
+                                uri.openUri(BuildConfig.PRIVACY_POLICY_URL)
+                            })
+                            DropdownMenuItem(text = { Text(stringResource(R.string.la2_terms)) }, onClick = {
+                                moreMenuExpanded = false
+                                uri.openUri(BuildConfig.TERMS_OF_USE_URL)
+                            })
                         }
                     }
-                    val packageToBuy = displayPackages.firstOrNull { it.identifier == selected }
-                    if (packageToBuy != null) Button(enabled = !state.purchasing && activity != null,
-                        colors = ButtonDefaults.buttonColors(containerColor = colors.interactive, contentColor = colors.onInteractive),
-                        onClick = {
-                            attemptedRevision = purchases.operationRevision
-                            attemptedUnlock = true
-                            analytics.record(AnalyticsMetric.paywallResultPurchaseStarted)
-                            activity?.let { purchases.purchase(it, packageToBuy) { if (!didUnlock && attemptedRevision == purchases.operationRevision) { didUnlock = true; analytics.record(AnalyticsMetric.paywallResultConfirmed); onUnlocked(); onDismiss() } } }
-                        }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("paywall.subscribe")) {
-                        Text(stringResource(if (packageToBuy.packageType == PackageType.ANNUAL) R.string.la2_subscribe_annual else R.string.la2_subscribe_monthly))
+                    TextButton(onClick = ::dismissMeasured) { Text(stringResource(R.string.la2_close), color = colors.textPrimary) }
+                }
+                PaywallHeading()
+                Text(stringResource(R.string.q2_devices), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary, textAlign = TextAlign.Center)
+                when {
+                    state.hasProEntitlement -> Text(nativeText("Hadithly Pro is active"), color = colors.textPrimary)
+                    state.loading -> CircularProgressIndicator(color = colors.textSecondary)
+                    else -> {
+                        displayPackages.sortedByDescending { it.packageType == PackageType.ANNUAL }.forEach { option ->
+                            val isAnnual = option.packageType == PackageType.ANNUAL
+                            val isSelected = selected == option.identifier
+                            val price = if (isAnnual) PaywallPricing.localizedAnnualMonthlyEquivalent(option.product, appLocale) else option.product.price.formatted
+                            if (price != null) PaywallPlanOption(isAnnual, isSelected, price, annualSavings, !state.purchasing) {
+                                selected = option.identifier
+                                analytics.record(if (isAnnual) AnalyticsMetric.paywallResultSelectedAnnual else AnalyticsMetric.paywallResultSelectedMonthly)
+                            }
+                        }
+                        val packageToBuy = displayPackages.firstOrNull { it.identifier == selected }
+                        if (packageToBuy != null) Button(enabled = !state.purchasing && activity != null,
+                            colors = ButtonDefaults.buttonColors(containerColor = colors.interactive, contentColor = colors.onInteractive),
+                            onClick = {
+                                attemptedRevision = purchases.operationRevision
+                                attemptedUnlock = true
+                                analytics.record(AnalyticsMetric.paywallResultPurchaseStarted)
+                                activity?.let { purchases.purchase(it, packageToBuy) { if (!didUnlock && attemptedRevision == purchases.operationRevision) { didUnlock = true; analytics.record(AnalyticsMetric.paywallResultConfirmed); onUnlocked(); onDismiss() } } }
+                            }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("paywall.subscribe")) {
+                            Text(stringResource(if (packageToBuy.packageType == PackageType.ANNUAL) R.string.la2_subscribe_annual else R.string.la2_subscribe_monthly))
+                        }
                     }
                 }
+                if (state.purchasing) { CircularProgressIndicator(color = colors.textSecondary); Text(stringResource(R.string.la2_checking), color = colors.textPrimary) }
+                when (state.outcome) {
+                    PurchaseManager.Outcome.CANCELLED -> Text(stringResource(R.string.la2_cancelled), color = colors.textSecondary)
+                    PurchaseManager.Outcome.PENDING -> Text(stringResource(R.string.la2_pending), color = colors.textSecondary)
+                    PurchaseManager.Outcome.SYNCING -> Text(stringResource(R.string.q2_wait), color = colors.textSecondary)
+                    else -> state.errorMessage?.let { Text(it, color = colors.textSecondary, textAlign = TextAlign.Center) }
+                }
+                if (!state.loading && displayPackages.isEmpty()) TextButton(onClick = { purchases.loadOffering() }, modifier = Modifier.testTag("paywall.retryPlans")) {
+                    Text(stringResource(R.string.la2_retry))
+                }
+                TextButton(onClick = ::dismissMeasured, modifier = Modifier.testTag("paywall.keepReading")) {
+                    Text(stringResource(R.string.la2_keep_reading), color = colors.textPrimary)
+                }
+                PaywallRenewalNotice()
             }
-            if (state.purchasing) { CircularProgressIndicator(color = colors.textSecondary); Text(stringResource(R.string.la2_checking), color = colors.textPrimary) }
-            when (state.outcome) {
-                PurchaseManager.Outcome.CANCELLED -> Text(stringResource(R.string.la2_cancelled), color = colors.textSecondary)
-                PurchaseManager.Outcome.PENDING -> Text(stringResource(R.string.la2_pending), color = colors.textSecondary)
-                PurchaseManager.Outcome.SYNCING -> Text(stringResource(R.string.q2_wait), color = colors.textSecondary)
-                else -> state.errorMessage?.let { Text(it, color = colors.textSecondary, textAlign = TextAlign.Center) }
-            }
-            if (!state.loading && displayPackages.isEmpty()) TextButton(onClick = { purchases.loadOffering() }, modifier = Modifier.testTag("paywall.retryPlans")) {
-                Text(stringResource(R.string.la2_retry))
-            }
-            TextButton(onClick = ::dismissMeasured, modifier = Modifier.testTag("paywall.keepReading")) {
-                Text(stringResource(R.string.la2_keep_reading), color = colors.textPrimary)
-            }
-            Text(stringResource(R.string.la2_renewal), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary, textAlign = TextAlign.Center)
         }
     }
 }
@@ -198,6 +201,27 @@ private tailrec fun Context.findActivity(): Activity? = when (this) {
     is Activity -> this
     is ContextWrapper -> baseContext.findActivity()
     else -> null
+}
+
+@Composable
+internal fun PaywallHeading() {
+    val colors = LocalHadithlyColors.current
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(stringResource(R.string.la2_more_translations), style = MaterialTheme.typography.headlineLarge,
+            color = colors.textPrimary, textAlign = TextAlign.Center)
+        Text(stringResource(R.string.q1_quota_exhausted), style = MaterialTheme.typography.bodyMedium,
+            color = colors.textSecondary, textAlign = TextAlign.Center, modifier = Modifier.testTag("paywall.quotaReason"))
+        Text(stringResource(R.string.la2_allowance), style = MaterialTheme.typography.bodyMedium,
+            color = colors.textSecondary, textAlign = TextAlign.Center)
+    }
+}
+
+@Composable
+internal fun PaywallRenewalNotice() {
+    val colors = LocalHadithlyColors.current
+    Text(stringResource(R.string.la2_renewal), style = MaterialTheme.typography.bodySmall,
+        color = colors.textSecondary, textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth().background(colors.background.copy(alpha = .94f)).padding(10.dp))
 }
 
 /** Actual native pricing choice; fixtures supply sample store amounts. */
@@ -211,38 +235,52 @@ internal fun PaywallPlanOption(
     onSelect: () -> Unit,
 ) {
     val colors = LocalHadithlyColors.current
-                        Column(
-                            Modifier.fillMaxWidth()
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(if (isSelected) colors.surfaceElevated else colors.surface)
-                                .border(if (isSelected) 1.5.dp else 1.dp, if (isSelected) colors.interactive else colors.divider, RoundedCornerShape(14.dp))
-                                .selectable(selected = isSelected, role = Role.RadioButton, enabled = enabled, onClick = onSelect)
-                                .padding(14.dp)
-                                .testTag(if (annual) "paywall.annual" else "paywall.monthly"),
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                RadioButton(selected = isSelected, onClick = null)
-                                Text(stringResource(if (annual) R.string.la2_annual else R.string.la2_monthly),
-                                    style = MaterialTheme.typography.titleMedium, color = colors.textPrimary, modifier = Modifier.weight(1f))
-                            }
-                            if (annual) {
-                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(start = 48.dp)) {
-                                    Text(stringResource(R.string.q2_recommended), style = MaterialTheme.typography.labelSmall, color = colors.onInteractive,
-                                        modifier = Modifier.clip(RoundedCornerShape(50.dp)).background(colors.interactive).padding(horizontal = 8.dp, vertical = 5.dp))
-                                    if (savingsPercent != null) Text(stringResource(R.string.q2_savings_percent, savingsPercent),
-                                        style = MaterialTheme.typography.labelSmall, color = colors.textPrimary)
-                                }
-                            }
-                            Row(Modifier.fillMaxWidth().padding(start = 48.dp), verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                                Text(price, style = MaterialTheme.typography.titleMedium, color = colors.textPrimary)
-                                Text(stringResource(R.string.q2_per_month), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
-                                if (annual) {
-                                    Spacer(Modifier.weight(1f))
-                                    Text(stringResource(R.string.q2_billed_yearly), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
-                                }
-                            }
-                        }
+    val largeText = LocalDensity.current.fontScale > 1.5f
+    Column(Modifier.fillMaxWidth()) {
+        if (annual) {
+            FlowRow(Modifier.fillMaxWidth().padding(horizontal = 10.dp).offset(y = 10.dp).zIndex(1f),
+                horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.End),
+                verticalArrangement = Arrangement.spacedBy(4.dp)) { PaywallBadges(savingsPercent) }
+        }
+        Column(
+            Modifier.fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .background(if (isSelected) colors.surfaceElevated else colors.surface)
+                .border(if (isSelected) 1.5.dp else 1.dp, if (isSelected) colors.interactive else colors.divider, RoundedCornerShape(14.dp))
+                .selectable(selected = isSelected, role = Role.RadioButton, enabled = enabled, onClick = onSelect)
+                .padding(14.dp).padding(top = if (annual) 12.dp else 0.dp)
+                .testTag(if (annual) "paywall.annual" else "paywall.monthly"),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                RadioButton(selected = isSelected, onClick = null)
+                Text(stringResource(if (annual) R.string.la2_annual else R.string.la2_monthly),
+                    style = MaterialTheme.typography.titleMedium, color = colors.textPrimary, modifier = Modifier.weight(1f))
+            }
+            if (largeText) {
+                Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Text(price, style = MaterialTheme.typography.titleMedium, color = colors.textPrimary)
+                    Text(stringResource(R.string.q2_per_month), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+                    if (annual) Text(stringResource(R.string.q2_billed_yearly), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+                }
+            } else Row(Modifier.fillMaxWidth().padding(start = 48.dp), verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                Text(price, style = MaterialTheme.typography.titleMedium, color = colors.textPrimary)
+                Text(stringResource(R.string.q2_per_month), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+                if (annual) {
+                    Spacer(Modifier.weight(1f))
+                    Text(stringResource(R.string.q2_billed_yearly), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PaywallBadges(savingsPercent: Int?) {
+    val colors = LocalHadithlyColors.current
+    val badge = Modifier.clip(RoundedCornerShape(50.dp)).background(colors.interactive).padding(horizontal = 8.dp, vertical = 4.dp)
+    Text(stringResource(R.string.q2_recommended), style = MaterialTheme.typography.labelSmall, color = colors.onInteractive, modifier = badge)
+    if (savingsPercent != null) Text(stringResource(R.string.q2_savings_percent, savingsPercent),
+        style = MaterialTheme.typography.labelSmall, color = colors.onInteractive, modifier = badge)
 }

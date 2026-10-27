@@ -185,6 +185,7 @@ final class NativeFinishingUITests: XCTestCase {
             let annual = app.buttons["paywall.annual"]
             XCTAssertTrue(annual.waitForExistence(timeout: 10))
             XCTAssertTrue(annual.isSelected)
+            XCTAssertTrue(app.staticTexts["paywall.quotaReason"].exists)
             XCTAssertTrue(app.staticTexts["$2.08"].exists)
             XCTAssertFalse(app.staticTexts["$24.99"].exists)
             app.buttons["paywall.monthly"].tap()
@@ -193,6 +194,26 @@ final class NativeFinishingUITests: XCTestCase {
             capture("paywall-prototype-" + theme, app)
             app.terminate()
         }
+    }
+
+    func testPaywallPrototypeKeepsPricesReadableAtLargeRTLSize() {
+        let app = launch("paywall", theme: "light", large: true, locale: "ar")
+        let annualPrice = app.staticTexts["$2.08"]
+        XCTAssertTrue(annualPrice.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "وفّر")).firstMatch.exists)
+        let readableViewport = app.frame.insetBy(dx: 0, dy: 70)
+        for _ in 0..<6 where !readableViewport.contains(annualPrice.frame) { app.swipeUp() }
+        XCTAssertTrue(readableViewport.contains(annualPrice.frame))
+        capture("paywall-prototype-large-rtl-annual", app)
+        let monthly = app.buttons["paywall.monthly"]
+        for _ in 0..<6 where !monthly.isHittable { app.swipeUp() }
+        monthly.tap()
+        XCTAssertTrue(monthly.isSelected)
+        let monthlyPrice = app.staticTexts["$2.99"]
+        for _ in 0..<6 where !readableViewport.contains(monthlyPrice.frame) { app.swipeUp() }
+        XCTAssertTrue(readableViewport.contains(monthlyPrice.frame))
+        XCTAssertFalse(app.staticTexts["$24.99"].exists)
+        capture("paywall-prototype-large-rtl-monthly", app)
     }
 
     func testAuthPreviewStatesAndKeyboard() {

@@ -150,15 +150,14 @@ private struct FinishingPaywallOptions: View {
     @State private var annual = true
     @Environment(\.readerPalette) private var palette
     var body: some View {
-        VStack(spacing: 20) {
-            Text("la2.more_translations").font(.largeTitle.bold()).multilineTextAlignment(.center)
-            Text("la2.allowance").font(.subheadline).foregroundStyle(palette.textSecondary).multilineTextAlignment(.center)
+        ScrollView { VStack(spacing: 20) {
+            PaywallHeading()
             PaywallPlanOption(annual: true, isSelected: annual, price: "$2.08", savingsPercent: 30) { annual = true }
             PaywallPlanOption(annual: false, isSelected: !annual, price: "$2.99", savingsPercent: nil) { annual = false }
             OnboardingPrimaryButton(annual ? "la2.subscribe_annual" : "la2.subscribe_monthly") {}.disabled(true)
-            Text("la2.renewal").font(.footnote).foregroundStyle(palette.textSecondary).multilineTextAlignment(.center)
-        }.padding(24).foregroundStyle(palette.textPrimary)
-            .frame(maxWidth: .infinity, maxHeight: .infinity).background(palette.background.ignoresSafeArea())
+            PaywallRenewalNotice()
+        }.padding(24).foregroundStyle(palette.textPrimary) }
+            .frame(maxWidth: .infinity, maxHeight: .infinity).background { EntryArtworkBackdrop() }
     }
 }
 

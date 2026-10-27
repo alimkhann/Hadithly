@@ -154,9 +154,11 @@ activation, or user-study participant cannot be silently represented as verified
     inaccessible content are not counted as fully read. See
     `product-program/research-decisions.md` and the per-source manifest.
 - [ ] Apply the research to the requested native experience.
-  - [ ] C1. Simplified paywall with background imagery, hero/subtext, two options,
+  - [x] C1. Simplified paywall with background imagery, hero/subtext, two options,
     clear actual annual billing total plus monthly equivalent, and recommended /
     savings badges extending from the option's top-right edge.
+    October 27: local prototype presentation passes; the owner's monthly-equivalent-only
+    exception is retained. Actual annual total remains a store-readiness gate.
   - [ ] C2. Custom, restrained translation reveal that feels rewarding and remains
     interruptible, accessible, and fast. Centered missing/retry/failure/limit states
     use simple colored icons and no cards. Verify both platforms visually.

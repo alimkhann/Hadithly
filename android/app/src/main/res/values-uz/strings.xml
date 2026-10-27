@@ -79,7 +79,7 @@
     <string name="q1_generate">AI অনুবাদ তৈরি করুন</string>
     <string name="q1_remaining">Seven-day allowance: %1$d of %2$d left</string>
     <string name="q1_retry_at">Available again %1$s</string>
-    <string name="q1_quota_exhausted">আপনার সাত দিনের সীমা শেষ হয়েছে। পড়া এবং বিদ্যমান অনুবাদ বিনামূল্যে থাকবে।</string>
+    <string name="q1_quota_exhausted">Yetti kunlik harakatlanuvchi limitingiz ishlatildi. Mavjud tarjimalar va o‘qish bepul qoladi.</string>
     <string name="app_today">Bugun</string>
     <string name="app_library">Kutubxona</string>
     <string name="app_saved">Saqlanganlar</string>

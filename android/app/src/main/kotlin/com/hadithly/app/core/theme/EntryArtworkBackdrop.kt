@@ -13,10 +13,10 @@ import androidx.compose.ui.res.painterResource
 import com.hadithly.app.R
 
 @Composable
-fun EntryArtworkBackdrop(dimmed: Boolean = false) {
+fun EntryArtworkBackdrop(dimmed: Boolean = false, modifier: Modifier = Modifier) {
     val colors = LocalHadithlyColors.current
     val quiet = dimmed || LocalDensity.current.fontScale > 1.5f
-    Box(Modifier.fillMaxSize()) {
+    Box(modifier.fillMaxSize()) {
         Image(painterResource(if (colors.background == ReaderPalettes.dark.background) R.drawable.onboarding_book else R.drawable.onboarding_book_light), contentDescription = null,
             contentScale = ContentScale.Crop, modifier = Modifier.matchParentSize())
         if (quiet) Box(Modifier.matchParentSize().background(colors.background.copy(alpha = .9f)))

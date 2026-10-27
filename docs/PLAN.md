@@ -57,6 +57,15 @@ start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
 
+## C1 paywall checkpoint, October 27
+
+The native artwork, simplified heading, two plan choices and floating badges now
+pass local light/dark and large RTL checks. Quota context and free reading remain
+clear. Seven Android quota-message locale mixups are repaired using existing iOS
+drafts. See `C_NATIVE_REFINEMENTS.md`. This remains the approved monthly-equivalent
+prototype; actual annual total and store receipts stay open. Continue C2/C3/C7,
+then D before A4–A7. Incoming project/catalog edits remain preserved.
+
 ## C glass and auth checkpoint, October 27
 
 C4's native glass fusion is reproduced and repaired without changing control

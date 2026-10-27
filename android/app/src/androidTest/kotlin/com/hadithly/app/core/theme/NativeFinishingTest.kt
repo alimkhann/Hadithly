@@ -2,6 +2,7 @@ package com.hadithly.app.core.theme
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -239,28 +240,57 @@ class NativeFinishingTest {
         var theme by mutableStateOf(ReaderTheme.LIGHT)
         compose.setContent { LocalizedPreview(theme) {
             var annual by remember { mutableStateOf(true) }
-            Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                androidx.compose.material3.Text(androidx.compose.ui.res.stringResource(com.hadithly.app.R.string.la2_more_translations),
-                    style = androidx.compose.material3.MaterialTheme.typography.headlineLarge, color = LocalHadithlyColors.current.textPrimary)
-                androidx.compose.material3.Text(androidx.compose.ui.res.stringResource(com.hadithly.app.R.string.la2_allowance),
-                    style = androidx.compose.material3.MaterialTheme.typography.bodyMedium, color = LocalHadithlyColors.current.textSecondary)
-                com.hadithly.app.features.purchases.PaywallPlanOption(true, annual, "$2.08", 30) { annual = true }
-                com.hadithly.app.features.purchases.PaywallPlanOption(false, !annual, "$2.99", null) { annual = false }
-                androidx.compose.material3.Button(onClick = {}, enabled = false, modifier = Modifier.fillMaxWidth()) {
-                    androidx.compose.material3.Text(androidx.compose.ui.res.stringResource(if (annual) com.hadithly.app.R.string.la2_subscribe_annual else com.hadithly.app.R.string.la2_subscribe_monthly))
+            Box(Modifier.fillMaxSize()) {
+                EntryArtworkBackdrop()
+                Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()
+                    .verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                    com.hadithly.app.features.purchases.PaywallHeading()
+                    com.hadithly.app.features.purchases.PaywallPlanOption(true, annual, "$2.08", 30) { annual = true }
+                    com.hadithly.app.features.purchases.PaywallPlanOption(false, !annual, "$2.99", null) { annual = false }
+                    androidx.compose.material3.Button(onClick = {}, enabled = false, modifier = Modifier.fillMaxWidth()) {
+                        androidx.compose.material3.Text(androidx.compose.ui.res.stringResource(if (annual) com.hadithly.app.R.string.la2_subscribe_annual else com.hadithly.app.R.string.la2_subscribe_monthly))
+                    }
+                    com.hadithly.app.features.purchases.PaywallRenewalNotice()
                 }
-                androidx.compose.material3.Text(androidx.compose.ui.res.stringResource(com.hadithly.app.R.string.la2_renewal),
-                    style = androidx.compose.material3.MaterialTheme.typography.bodySmall, color = LocalHadithlyColors.current.textSecondary)
             }
         } }
         compose.onNodeWithTag("paywall.annual").assertIsSelected()
+        compose.onNodeWithTag("paywall.quotaReason").assertExists()
         compose.onNodeWithText("$2.08").assertIsDisplayed()
         compose.onNodeWithText("$24.99").assertDoesNotExist()
         compose.onNodeWithTag("paywall.monthly").performClick().assertIsSelected()
         compose.onNodeWithTag("paywall.annual").performClick()
+        compose.onNodeWithText("More AI translations").performScrollTo()
         capture("paywall-prototype-light")
         compose.runOnIdle { theme = ReaderTheme.DARK }
         capture("paywall-prototype-dark")
+    }
+
+    @Test fun paywallPrototypeKeepsPricesReadableAtLargeRTLSize() {
+        var annual by mutableStateOf(true)
+        compose.setContent { LocalizedPreview(ReaderTheme.LIGHT, "ar") {
+            CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, 2f),
+                LocalLayoutDirection provides LayoutDirection.Rtl) {
+                Box(Modifier.fillMaxSize()) {
+                    EntryArtworkBackdrop()
+                    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()
+                        .verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(24.dp),
+                        verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                        com.hadithly.app.features.purchases.PaywallHeading()
+                        com.hadithly.app.features.purchases.PaywallPlanOption(true, annual, "$2.08", 30) { annual = true }
+                        com.hadithly.app.features.purchases.PaywallPlanOption(false, !annual, "$2.99", null) { annual = false }
+                        com.hadithly.app.features.purchases.PaywallRenewalNotice()
+                    }
+                }
+            }
+        } }
+        compose.onNodeWithTag("paywall.quotaReason").assertTextContains("استخدمت", substring = true)
+        compose.onNodeWithText("$2.08").performScrollTo().assertIsDisplayed()
+        capture("paywall-prototype-large-rtl-annual")
+        compose.onNodeWithTag("paywall.monthly").performScrollTo().performClick().assertIsSelected()
+        compose.onNodeWithText("$2.99").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("$24.99").assertDoesNotExist()
+        capture("paywall-prototype-large-rtl-monthly")
     }
 
     @Test fun smallLargeTextAuthRemainsScrollable() {

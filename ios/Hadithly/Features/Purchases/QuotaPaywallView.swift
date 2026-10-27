@@ -36,12 +36,7 @@ struct QuotaPaywallView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 18) {
-                    VStack(spacing: 10) {
-                        Text("la2.more_translations").font(.title.bold())
-                        Text("q1.quota_exhausted").font(.body).foregroundStyle(palette.textSecondary)
-                        Text("la2.reading_free").font(.subheadline.weight(.medium))
-                    }.multilineTextAlignment(.center)
-                    Text("la2.allowance").font(.subheadline).foregroundStyle(palette.textSecondary).multilineTextAlignment(.center)
+                    PaywallHeading()
                     Text("q2.devices").font(.footnote).foregroundStyle(palette.textSecondary).multilineTextAlignment(.center)
                     if environment.purchases.isLoading { ProgressView() }
                     else if environment.purchases.hasProEntitlement {
@@ -79,9 +74,9 @@ struct QuotaPaywallView: View {
                     }
                     Button("la2.keep_reading") { environment.analytics.record(.paywallResultDismissed); dismiss() }
                         .frame(minHeight: 44).accessibilityIdentifier("paywall.keepReading")
-                    Text("la2.renewal").font(.footnote).foregroundStyle(palette.textSecondary).multilineTextAlignment(.center)
+                    PaywallRenewalNotice()
                 }.padding(24).foregroundStyle(palette.textPrimary)
-            }.background(palette.background.ignoresSafeArea())
+            }.background { EntryArtworkBackdrop() }
                 .toolbar { ToolbarItemGroup(placement: .topBarTrailing) {
                     Menu {
                         Button("la2.restore", action: restorePurchases)
@@ -172,6 +167,27 @@ struct QuotaPaywallView: View {
 }
 
 /// The production pricing choice, also rendered by the native prototype fixture.
+struct PaywallHeading: View {
+    @Environment(\.readerPalette) private var palette
+    var body: some View {
+        VStack(spacing: 10) {
+            Text("la2.more_translations").font(.title.bold()).foregroundStyle(palette.textPrimary)
+            Text("q1.quota_exhausted").font(.subheadline).foregroundStyle(palette.textSecondary)
+                .accessibilityIdentifier("paywall.quotaReason")
+            Text("la2.allowance").font(.subheadline).foregroundStyle(palette.textSecondary)
+        }.multilineTextAlignment(.center)
+    }
+}
+
+struct PaywallRenewalNotice: View {
+    @Environment(\.readerPalette) private var palette
+    var body: some View {
+        Text("la2.renewal").font(.footnote).foregroundStyle(palette.textSecondary)
+            .multilineTextAlignment(.center).padding(10).frame(maxWidth: .infinity)
+            .background(palette.background.opacity(0.94))
+    }
+}
+
 struct PaywallPlanOption: View {
     let annual: Bool
     let isSelected: Bool
@@ -181,44 +197,64 @@ struct PaywallPlanOption: View {
     let onSelect: () -> Void
     @Environment(\.readerPalette) private var palette
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         Button(action: onSelect) {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(spacing: 8) {
-                    Image(systemName: isSelected ? "largecircle.fill.circle" : "circle").accessibilityHidden(true)
-                    Text(annual ? "la2.annual" : "la2.monthly").font(.headline)
-                    Spacer()
-                }
+            VStack(alignment: .trailing, spacing: 0) {
                 if annual {
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: 6) { badges }.fixedSize()
+                        VStack(alignment: .trailing, spacing: 4) { badges }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .padding(.horizontal, 10).offset(y: 10).zIndex(1)
+                    .allowsHitTesting(false)
+                }
+                VStack(alignment: .leading, spacing: 10) {
                     HStack(spacing: 8) {
-                        Text("q2.recommended")
-                            .font(.caption.weight(.semibold))
-                            .padding(.horizontal, 8).padding(.vertical, 4)
-                            .background(palette.interactiveSoft, in: Capsule())
-                        if let savings = savingsPercent {
-                            Text(String(format: String(localized: "q2.savings_percent", locale: locale), savings))
-                                .font(.caption.weight(.semibold))
-                                .monospacedDigit()
+                        Image(systemName: isSelected ? "largecircle.fill.circle" : "circle").accessibilityHidden(true)
+                        Text(annual ? "la2.annual" : "la2.monthly").font(.headline)
+                        Spacer()
+                    }
+                    if typeSize.isAccessibilitySize {
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(price).font(.title3.weight(.semibold)).monospacedDigit()
+                            Text("q2.per_month").font(.caption).foregroundStyle(palette.textSecondary)
+                            if annual { Text("q2.billed_yearly").font(.caption).foregroundStyle(palette.textSecondary) }
+                        }
+                    } else { HStack(alignment: .firstTextBaseline, spacing: 5) {
+                        Text(price).font(.title3.weight(.semibold)).monospacedDigit()
+                        Text("q2.per_month").font(.caption).foregroundStyle(palette.textSecondary)
+                        if annual {
+                            Spacer()
+                            Text("q2.billed_yearly").font(.caption).foregroundStyle(palette.textSecondary)
                         }
                     }
+                    .padding(.leading, 28) }
                 }
-                HStack(alignment: .firstTextBaseline, spacing: 5) {
-                    Text(price).font(.title3.weight(.semibold)).monospacedDigit()
-                    Text("q2.per_month").font(.caption).foregroundStyle(palette.textSecondary)
-                    if annual {
-                        Spacer()
-                        Text("q2.billed_yearly").font(.caption).foregroundStyle(palette.textSecondary)
-                    }
-                }
-                .padding(.leading, 28)
+                .padding(14)
+                .padding(.top, annual ? 12 : 0)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(isSelected ? palette.surfaceElevated : palette.surface, in: RoundedRectangle(cornerRadius: 14))
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(isSelected ? palette.interactive : palette.divider, lineWidth: isSelected ? 1.5 : 1))
             }
-            .padding(14)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(isSelected ? palette.surfaceElevated : palette.surface, in: RoundedRectangle(cornerRadius: 14))
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(isSelected ? palette.interactive : palette.divider, lineWidth: isSelected ? 1.5 : 1))
         }
         .buttonStyle(.plain).disabled(!enabled)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
         .accessibilityIdentifier(annual ? "paywall.annual" : "paywall.monthly")
+    }
+
+    @ViewBuilder private var badges: some View {
+        badge(Text("q2.recommended"))
+        if let savings = savingsPercent {
+            badge(Text(String(format: AppLocalization.string("q2.savings_percent", locale: locale), locale: locale, savings)))
+        }
+    }
+
+    private func badge(_ text: Text) -> some View {
+        text.font(.caption2.weight(.semibold)).monospacedDigit()
+            .foregroundStyle(palette.onInteractive)
+            .padding(.horizontal, 8).padding(.vertical, 4)
+            .background(palette.interactive, in: Capsule())
     }
 }

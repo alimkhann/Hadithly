@@ -7,7 +7,7 @@ physical-device, auth, purchase and release gates remain open.
 
 | Requirement | Current result |
 | --- | --- |
-| C1 paywall | Existing monthly-equivalent prototype retained. Current visual/interaction audit remains; actual annual total remains a release requirement. |
+| C1 paywall | Local prototype presentation and interaction pass on both apps, including large RTL text. Actual annual total remains a release requirement. |
 | C2 translation reveal and states | Existing native implementation retained; current state, interruption and reduced-motion verification remains. |
 | C3 focus and thin progress | Current focus baseline passes on iOS; remaining combined visual/interaction check stays open. |
 | C4 separate glass elements | iOS fusion reproduced and repaired; sampled rendered gaps and Android Material parity pass. |
@@ -128,3 +128,37 @@ Independent GPT-6.1 Terra review found no actionable regression in this unit.
 No new hosted Motion Agent credit was used. The prior authorized run and native
 motion references remain recorded in `NATIVE_READER_REFINEMENT.md`. Continue C1
 and the remaining C2/C3/C7 verification before D.
+
+## Paywall prototype
+
+C1 reuses the native entry artwork behind a simpler heading and two native plan
+choices. The annual recommendation and savings labels overlap the option's upper
+edge, wrapping naturally when larger text needs more space. Accessibility sizes
+stack the price and billing labels. The renewal text has an opaque-enough reader
+background to remain readable over the artwork. Selection, price calculation,
+purchase, restore and entitlement logic are unchanged.
+
+Independent GPT-family review caught the missing explanation for the rejected
+request. The shared heading now retains the existing seven-day exhaustion message
+and free-reading assurance. Visual review then found Bengali text incorrectly
+copied into seven Android locales. `scripts/sync-paywall-quota-copy.py` reuses this
+single message's existing iOS drafts across all fifteen Android locales, with a
+rerunnable parity check. These remain drafts awaiting native review.
+
+The two iOS checks in `/tmp/hadithly-c-paywall-reason-ios.xcresult` pass. They
+exercise light/dark selection and full price visibility at large Arabic Dynamic
+Type, including the Arabic savings label. Android's final copy rerun is recorded
+in `verification/c-native/paywall/verification.json`. Earlier layout checks also
+passed, but the earlier Android Arabic capture revealed the copy defect and is
+superseded. A separate real Android sheet check with an empty purchase API key
+passed the existing finite allowance, account explanation, restore guard and close
+journey. No store request or receipt is proved by these fixtures.
+
+| iOS prototype | Android prototype |
+| --- | --- |
+| ![Light native paywall](verification/c-native/paywall/ios-light.png) | ![Dark native paywall](verification/c-native/paywall/android-dark.png) |
+
+Prices are prepared samples. The owner-approved monthly-equivalent-only prototype
+is retained. The missing actual annual total is an explicit store-readiness gate;
+this unit does not approve the paywall for release. Large RTL captures demonstrate
+scrollable access to both complete prices, not native-copy approval.

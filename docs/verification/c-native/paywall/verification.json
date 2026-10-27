@@ -1,0 +1,44 @@
+{
+  "ios": {
+    "runs": [
+      {
+        "bundle": "hadithly-c-paywall-reason-ios.xcresult",
+        "startTime": 1793061367.982,
+        "result": "Passed",
+        "passedTests": 2,
+        "failedTests": 0,
+        "skippedTests": 0
+      }
+    ],
+    "latestCases": {
+      "HadithlyUITests/NativeFinishingUITests/testAnnualPricingPrototypeShowsMonthlyEquivalentAndNativeSelection()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-paywall-reason-ios.xcresult"
+      },
+      "HadithlyUITests/NativeFinishingUITests/testPaywallPrototypeKeepsPricesReadableAtLargeRTLSize()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-paywall-reason-ios.xcresult"
+      }
+    },
+    "latestCounts": {
+      "Passed": 2
+    }
+  },
+  "android": {
+    "ui": {
+      "counts": {
+        "Passed": 2
+      },
+      "cases": {
+        "com.hadithly.app.core.theme.NativeFinishingTest/annualPricingPrototypeShowsMonthlyEquivalentAndNativeSelection": "Passed",
+        "com.hadithly.app.core.theme.NativeFinishingTest/paywallPrototypeKeepsPricesReadableAtLargeRTLSize": "Passed"
+      },
+      "reports": [
+        {
+          "file": "TEST-hadithly(AVD) - 16-_app-.xml",
+          "sha256": "73644b46bb5617337a0a564935da347249749b3a9f7982bec94ce1f8b9292cc0"
+        }
+      ]
+    }
+  }
+}

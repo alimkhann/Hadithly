@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuites tests="2" failures="0" errors="0" skipped="0" time="49.907" timestamp="2026-10-27T00:39:31" hostname="localhost">
+  <testsuite name="com.hadithly.app.core.theme.NativeFinishingTest" tests="2" failures="0" errors="0" skipped="0" time="41.66" timestamp="2026-10-27T00:39:31" hostname="localhost">
+    <properties>
+      <property name="device" value="hadithly(AVD) - 16" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="annualPricingPrototypeShowsMonthlyEquivalentAndNativeSelection" classname="com.hadithly.app.core.theme.NativeFinishingTest" time="22.795" />
+    <testcase name="paywallPrototypeKeepsPricesReadableAtLargeRTLSize" classname="com.hadithly.app.core.theme.NativeFinishingTest" time="18.865" />
+  </testsuite>
+</testsuites>
