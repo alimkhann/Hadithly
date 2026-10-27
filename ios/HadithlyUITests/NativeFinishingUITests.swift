@@ -196,9 +196,12 @@ final class NativeFinishingUITests: XCTestCase {
     }
 
     func testAuthPreviewStatesAndKeyboard() {
-        for screen in ["auth-code", "auth-reset", "auth-signup"] {
+        for screen in ["auth-methods", "auth-code", "auth-reset", "auth-signup"] {
             let app = launch(screen, theme: "light")
             XCTAssertTrue(app.buttons["signin.close"].waitForExistence(timeout: 10))
+            if screen == "auth-methods" {
+                XCTAssertTrue(app.staticTexts["Google sign-in opens in your browser and returns here."].isHittable)
+            }
             capture(screen, app)
             if screen == "auth-signup" {
                 app.textFields["signup.email.field"].tap()

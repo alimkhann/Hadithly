@@ -161,7 +161,7 @@ activation, or user-study participant cannot be silently represented as verified
     interruptible, accessible, and fast. Centered missing/retry/failure/limit states
     use simple colored icons and no cards. Verify both platforms visually.
   - [ ] C3. Smooth focus entry and exit; thin progress bars remain in focus mode.
-  - [ ] C4. Liquid glass menu elements remain visually separate without fusing.
+  - [x] C4. Liquid glass menu elements remain visually separate without fusing.
   - [x] C5. Daily hadith cards follow app appearance, independently of reader theme.
   - [x] C6. Contents uses real volume names preceded by their numbers and removes
     Open from start. Preserve jump and navigation behavior.
@@ -169,9 +169,11 @@ activation, or user-study participant cannot be silently represented as verified
     `C_NATIVE_REFINEMENTS.md`. The other C requirements remain active.
   - [ ] C7. Native glass page-switching controls on supported systems, with fitting
     accessible fallbacks elsewhere.
-  - [ ] C8. Coherent onboarding/auth with the official Google brand asset. Use
+  - [x] C8. Coherent onboarding/auth with the official Google brand asset. Use
     Clerk's native flows where supported and a minimal, explained hosted handoff
     where required. Preserve actual sign-in, cancellation, recovery and account state.
+    October 27: C4/C8 local native presentation and route checks pass. External
+    OAuth/account acceptance and copy review remain on their existing gates.
 - [ ] D1. Inspect the Hadithly redesign package in Downloads; use website assets
   only. Redesign the website and its other pages; verify responsive rendering,
   routes, forms, accessibility, legal links, and content/source claims.

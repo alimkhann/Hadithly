@@ -40,6 +40,22 @@
         "passedTests": 3,
         "failedTests": 0,
         "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-c-glass-auth-ios.xcresult",
+        "startTime": 1793059204.885,
+        "result": "Passed",
+        "passedTests": 4,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-c-browser-hint-ios.xcresult",
+        "startTime": 1793059476.066,
+        "result": "Passed",
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0
       }
     ],
     "latestCases": {
@@ -57,7 +73,7 @@
       },
       "HadithlyUITests/NativeFinishingUITests/testSettingsSignInUsesNativeNavigationAndCancelRestoresTheTab()": {
         "result": "Passed",
-        "bundle": "hadithly-c-baseline-ios.xcresult"
+        "bundle": "hadithly-c-glass-auth-ios.xcresult"
       },
       "HadithlyUITests/ReaderR5UITests/testContentsChapterTapDismisses()": {
         "result": "Passed",
@@ -86,10 +102,22 @@
       "HadithlyUITests/ReaderR5UITests/testContentsKeepsSourceNumbersAndDoesNotRepeatLocalizedGenericTitle()": {
         "result": "Passed",
         "bundle": "hadithly-c-source-numbers-ios.xcresult"
+      },
+      "HadithlyUITests/NativeFinishingUITests/testAuthPreviewStatesAndKeyboard()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-browser-hint-ios.xcresult"
+      },
+      "HadithlyUITests/NativeFinishingUITests/testFirstInstallAndAccountRoutes()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-glass-auth-ios.xcresult"
+      },
+      "HadithlyUITests/VisualPolishUITests/testReaderMenuKeepsVisibleGapsBetweenGlassControls()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-glass-auth-ios.xcresult"
       }
     },
     "latestCounts": {
-      "Passed": 11
+      "Passed": 14
     }
   },
   "android": {}

@@ -2,6 +2,35 @@ import XCTest
 import UIKit
 
 final class VisualPolishUITests: XCTestCase {
+    func testReaderMenuKeepsVisibleGapsBetweenGlassControls() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-NativePolishFixture"]
+        app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "POLISH_SCREEN": "reader",
+            "POLISH_THEME": "paper", "PAGING_RENDER": "interactive"]
+        app.launch()
+        let menu = app.buttons["reader.menu"]
+        XCTAssertTrue(element("reader.page", app).waitForExistence(timeout: 10))
+        if !menu.waitForExistence(timeout: 1) {
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        }
+        XCTAssertTrue(menu.waitForExistence(timeout: 5))
+        let underlying = app.screenshot().image.cgImage!
+        menu.tap()
+        let contents = app.buttons["reader.menu.contents"]
+        XCTAssertTrue(contents.waitForExistence(timeout: 5))
+        capture("reader-menu-glass-gaps", app)
+        let pairs = [(contents, app.buttons["reader.menu.saved"]),
+                     (app.buttons["reader.menu.saved"], app.buttons["reader.menu.settings"])]
+        for (upper, lower) in pairs {
+            let point = CGPoint(x: upper.frame.midX, y: (upper.frame.maxY + lower.frame.minY) / 2)
+            let before = pixel(in: app, at: point, from: underlying)
+            let after = pixel(in: app, at: point)
+            let difference = zip(before.prefix(3), after.prefix(3)).map { abs(Int($0) - Int($1)) }.reduce(0, +) / 3
+            print("Reader menu gap average channel difference: \(difference)")
+            XCTAssertLessThan(difference, 20, "Separate menu surfaces must leave the underlying reader visible through the gap")
+        }
+    }
+
     func testDailyCardFollowsAppAppearanceWithSeparateReaderTheme() {
         for (appTheme, readerTheme) in [("light", "dark"), ("dark", "light")] {
             let app = XCUIApplication()
@@ -291,8 +320,8 @@ final class VisualPolishUITests: XCTestCase {
         return Double(stride(from: 0, to: rgba.count, by: 4).filter { Int(rgba[$0]) + Int(rgba[$0 + 1]) + Int(rgba[$0 + 2]) < 450 }.count) / (64 * 24)
     }
 
-    private func pixel(in app: XCUIApplication, at point: CGPoint) -> [UInt8] {
-        let image = app.screenshot().image.cgImage!
+    private func pixel(in app: XCUIApplication, at point: CGPoint, from screenshot: CGImage? = nil) -> [UInt8] {
+        let image = screenshot ?? app.screenshot().image.cgImage!
         let scale = CGFloat(image.width) / app.frame.width
         let sample = image.cropping(to: CGRect(x: point.x * scale, y: point.y * scale, width: 1, height: 1))!
         var rgba = [UInt8](repeating: 0, count: 4)

@@ -179,6 +179,11 @@ struct SignInView: View {
                 )
                 .accessibilityIdentifier("signin.google")
 
+                Text("Google sign-in opens in your browser and returns here.")
+                    .font(.caption)
+                    .foregroundStyle(palette.textSecondary)
+                    .multilineTextAlignment(.center)
+
                 HStack(spacing: 12) {
                     Rectangle().fill(palette.surfaceElevated).frame(height: 1)
                     Text("or")
@@ -1074,26 +1079,10 @@ private struct LegalText: View {
 
 private struct GoogleBrandMark: View {
     var body: some View {
-        Canvas { context, size in
-            let stroke = size.width * 0.2
-            let radius = (size.width - stroke) / 2
-            let center = CGPoint(x: size.width / 2, y: size.height / 2)
-            let segments: [(Color, Double, Double)] = [
-                (Color(red: 0.26, green: 0.52, blue: 0.96), -45, 60),
-                (Color(red: 0.20, green: 0.66, blue: 0.33), 60, 155),
-                (Color(red: 0.98, green: 0.74, blue: 0.02), 155, 250),
-                (Color(red: 0.92, green: 0.26, blue: 0.21), 250, 315),
-            ]
-            for (color, start, end) in segments {
-                var path = Path()
-                path.addArc(center: center, radius: radius, startAngle: .degrees(start), endAngle: .degrees(end), clockwise: false)
-                context.stroke(path, with: .color(color), lineWidth: stroke)
-            }
-            var crossbar = Path()
-            crossbar.move(to: CGPoint(x: center.x, y: center.y))
-            crossbar.addLine(to: CGPoint(x: size.width - stroke / 2, y: center.y))
-            context.stroke(crossbar, with: .color(Color(red: 0.26, green: 0.52, blue: 0.96)), style: StrokeStyle(lineWidth: stroke, lineCap: .round))
-        }
-        .accessibilityHidden(true)
+        Image("GoogleG")
+            .renderingMode(.original)
+            .resizable()
+            .scaledToFit()
+            .accessibilityHidden(true)
     }
 }

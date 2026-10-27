@@ -17,6 +17,11 @@ C5/C6 checkpoint: Daily appearance and numbered Contents are repaired and locall
 verified on both apps. Read `C_NATIVE_REFINEMENTS.md` and continue C4/C8 plus the
 remaining C checks before D. Preserve the incoming five Xcode/catalog files.
 
+C4/C8 checkpoint: separate glass menu controls, official Google artwork and the
+browser explanation now pass local native checks. Continue C1 and C2/C3/C7
+verification before D. C8 adds only one scoped catalog entry, preserving all
+incoming catalog bytes. External OAuth and native-copy approval remain open.
+
 ## Working style and boundaries
 
 Work fast on normal reading, saving, translation and return journeys. Choose the

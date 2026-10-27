@@ -15,6 +15,8 @@ import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
+import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
@@ -288,15 +290,17 @@ class ReaderR6Round3Test {
     fun menuFollowsVideoOrderWithNoExcess() {
         compose.setContent {
             HadithlyTheme {
-                ReaderMenuStack(
-                    positionedReference = "Sahih al-Bukhari · Hadith 57",
-                    isPositionedBookmarked = false,
-                    onContents = {},
-                    onSaved = {},
-                    onSettings = {},
-                    onBookmark = {},
-                    onSearch = {},
-                )
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    ReaderMenuStack(
+                        positionedReference = "Sahih al-Bukhari · Hadith 57",
+                        isPositionedBookmarked = false,
+                        onContents = {},
+                        onSaved = {},
+                        onSettings = {},
+                        onBookmark = {},
+                        onSearch = {},
+                    )
+                }
             }
         }
 
@@ -324,6 +328,14 @@ class ReaderR6Round3Test {
             compose.onNodeWithTag("reader.menu.search").fetchSemanticsNode().positionInRoot.y,
         )
         assertEquals(tops.sorted(), tops)
+        val instrumentation = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+        val context = instrumentation.targetContext
+        val bitmap = compose.onNodeWithTag("reader.menu").captureToImage().asAndroidBitmap()
+        val file = java.io.File(context.getExternalFilesDir(null), "c-reader-menu.png")
+        file.outputStream().use {
+            bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it)
+        }
+        instrumentation.uiAutomation.executeShellCommand("cp ${file.absolutePath} /sdcard/Pictures/c-reader-menu.png").close()
     }
 
     @Test

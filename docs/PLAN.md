@@ -57,6 +57,16 @@ start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
 
+## C glass and auth checkpoint, October 27
+
+C4's native glass fusion is reproduced and repaired without changing control
+sizes. C8 uses the official Google asset and explains the existing browser handoff
+in scoped fifteen-locale drafts. Native entry, cancellation, recovery and keyboard
+checks pass on both platforms; external OAuth/account acceptance remains separate.
+See `C_NATIVE_REFINEMENTS.md`. Only the new hint entry is added to the catalog;
+incoming catalog and project edits remain preserved. Continue C1 and C2/C3/C7
+verification before D, then A4–A7. No release or external-service gate closes here.
+
 ## C Daily and Contents checkpoint, October 27
 
 C5 and C6 now pass their local native checks. Daily appearance is independent of

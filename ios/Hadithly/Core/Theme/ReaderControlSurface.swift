@@ -27,7 +27,7 @@ extension View {
 struct ReaderGlassGroup<Content: View>: View {
     @ViewBuilder var content: () -> Content
     @ViewBuilder var body: some View {
-        if #available(iOS 26.0, *) { GlassEffectContainer(spacing: 12, content: content) }
+        if #available(iOS 26.0, *) { GlassEffectContainer(spacing: 0, content: content) }
         else { content() }
     }
 }

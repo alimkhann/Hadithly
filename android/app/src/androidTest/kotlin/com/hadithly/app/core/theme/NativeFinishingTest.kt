@@ -176,8 +176,11 @@ class NativeFinishingTest {
             SideEffect { imeVisible = imeBottom > 0 }
             key(mode) { SignInScreen({}, {}, previewMode = mode) }
         } }
-        for (entry in listOf(SignInMode.CODE_ENTRY, SignInMode.RESET_PASSWORD, SignInMode.SIGN_UP)) {
+        for (entry in listOf(SignInMode.METHODS, SignInMode.CODE_ENTRY, SignInMode.RESET_PASSWORD, SignInMode.SIGN_UP)) {
             compose.runOnIdle { mode = entry }
+            if (entry == SignInMode.METHODS) {
+                compose.onNodeWithText("Google sign-in opens in your browser and returns here.").assertIsDisplayed()
+            }
             compose.waitUntil(10_000) { compose.onAllNodesWithTag("signin.screen.${entry.name.lowercase()}").fetchSemanticsNodes().isNotEmpty() }
             capture("auth-${entry.name.lowercase()}")
         }

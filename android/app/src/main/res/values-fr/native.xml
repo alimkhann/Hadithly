@@ -174,4 +174,5 @@
     <string name="native_cb3d1f6647e3" formatted="false">Le hadith du jour</string>
     <string name="native_f911dbe90e58" formatted="false">Aucune source externe n’a été citée pour cette traduction.</string>
     <string name="native_a6e3a22758a8" formatted="false">Cette traduction a été générée par IA (%s). Ce n’est pas une version faisant autorité ; vérifiez les sens importants auprès d’une source qualifiée.</string>
+    <string name="native_da68e1baec08" formatted="false">La connexion avec Google s’ouvre dans votre navigateur, puis vous revenez ici.</string>
 </resources>

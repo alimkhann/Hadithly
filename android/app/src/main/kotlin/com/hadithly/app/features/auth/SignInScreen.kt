@@ -3,7 +3,7 @@ package com.hadithly.app.features.auth
 import com.hadithly.app.core.preferences.nativeText
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.heightIn
@@ -47,7 +47,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.painterResource
+import com.hadithly.app.R
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -241,6 +242,9 @@ private fun MethodsScreen(
                 googleMark = true,
                 onClick = onGoogle,
             )
+            Text(nativeText("Google sign-in opens in your browser and returns here."),
+                fontSize = 12.sp, color = colors.textSecondary,
+                textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Spacing.md),
@@ -705,18 +709,8 @@ private fun ProviderButton(
 
 @Composable
 private fun GoogleMark() {
-    Canvas(Modifier.size(20.dp)) {
-        val stroke = size.minDimension * .19f
-        val inset = stroke / 2
-        val arcSize = androidx.compose.ui.geometry.Size(size.width - stroke, size.height - stroke)
-        val topLeft = androidx.compose.ui.geometry.Offset(inset, inset)
-        drawArc(Color(0xFF4285F4), -45f, 105f, false, topLeft, arcSize, style = Stroke(stroke))
-        drawArc(Color(0xFF34A853), 60f, 95f, false, topLeft, arcSize, style = Stroke(stroke))
-        drawArc(Color(0xFFFBBC05), 155f, 95f, false, topLeft, arcSize, style = Stroke(stroke))
-        drawArc(Color(0xFFEA4335), 250f, 65f, false, topLeft, arcSize, style = Stroke(stroke))
-        drawLine(Color(0xFF4285F4), androidx.compose.ui.geometry.Offset(size.width * .50f, size.height * .50f),
-            androidx.compose.ui.geometry.Offset(size.width * .94f, size.height * .50f), stroke, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-    }
+    Image(painter = painterResource(R.drawable.google_g), contentDescription = null,
+        modifier = Modifier.size(20.dp))
 }
 
 @Composable

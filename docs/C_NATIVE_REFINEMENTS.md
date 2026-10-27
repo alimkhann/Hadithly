@@ -10,11 +10,11 @@ physical-device, auth, purchase and release gates remain open.
 | C1 paywall | Existing monthly-equivalent prototype retained. Current visual/interaction audit remains; actual annual total remains a release requirement. |
 | C2 translation reveal and states | Existing native implementation retained; current state, interruption and reduced-motion verification remains. |
 | C3 focus and thin progress | Current focus baseline passes on iOS; remaining combined visual/interaction check stays open. |
-| C4 separate glass elements | Current native render and glass blending threshold still need the focused pass. |
+| C4 separate glass elements | iOS fusion reproduced and repaired; sampled rendered gaps and Android Material parity pass. |
 | C5 Daily appearance | Reproduced and fixed on both apps. Daily and its source presentation use app appearance, independent of the reader theme. |
 | C6 Contents names and navigation | Source names now carry their actual source volume numbers. iOS removes the extra start row and opens the volume from its name. Direct volume, chapter and jump paths pass locally. |
 | C7 page controls | Current native/fallback rendering and paging verification remains. |
-| C8 onboarding/auth | Current asset and entry audit remains. Existing Clerk flows and external acceptance limits remain. |
+| C8 onboarding/auth | Official Google artwork and a contextual browser hint are implemented. Entry, cancellation, recovery and keyboard checks pass locally. External OAuth/account acceptance limits remain. |
 
 ## Daily appearance and Contents
 
@@ -77,7 +77,54 @@ dismissed. Its obscured screenshot is excluded from the rendered evidence below.
 | Contents baseline obscured by the system overlay is excluded. | ![Numbered source name in native Contents](verification/c-native/contents-android-after.png) |
 
 Prepared interface text is labeled in the captures. It is not offered as a real
-hadith or as semantic/content-availability proof. Five incoming Xcode/catalog
-files remain byte-for-byte unchanged against the C snapshot. No project
+hadith or as semantic/content-availability proof. At this checkpoint, five incoming
+Xcode/catalog files remained byte-for-byte unchanged against the C snapshot. No project
 regeneration, deployment, paid provider request, billing change or publication
-occurred. C4/C8 and the remaining C checks continue next.
+occurred.
+
+## Separate glass controls and coherent auth
+
+C4's production-reader fixture reproduced visible fusion between menu cards. The
+container's 12-point blending distance exceeded the six-point visual gaps. Setting
+the blending distance to zero preserves the existing sizes, gaps and native glass
+while keeping each control separate. The rendered gap test failed with an average
+RGB-channel difference of 25 from the underlying reader, then passed at 2 and 3.
+The first diagnostic attempt merely started focused and did not find the menu;
+it is not counted as reproduction of the glass defect. Android retains native
+Material surfaces, with passing order/size checks and a rendered parity capture.
+
+C8 replaces the hand-drawn Google mark with the unmodified official
+[Google G asset](https://developers.google.com/static/identity/images/g-logo.png),
+linked from [Google's branding guidance](https://developers.google.com/identity/branding-guidelines).
+Both native resource files have SHA-256
+`d1ce9c2af0b10a7333abc99bc706f9a6a199e5b65bf3e3009624f076b8638e6a`.
+They preserve its color and aspect ratio. The nearby hint explains the existing
+browser handoff. Apple and email flows, Clerk calls, identity resolution,
+cancellation/recovery handling and billing are unchanged.
+
+The hint uses `c-native-copy.json` and the existing scoped copy generator. All 15
+locale entries are present; non-English copy remains draft/needs_review. The full
+A4 sweep and native-speaker approval are still open. Removing exactly this new
+catalog entry restores every byte of the incoming catalog snapshot. Only this
+entry is staged for C8; the four incoming project/scheme files remain untouched.
+
+Four iOS checks pass in `/tmp/hadithly-c-glass-auth-ios.xcresult`, covering the
+glass gap, auth previews/keyboard, first-install route and Settings cancellation.
+The final hint render also passes in `/tmp/hadithly-c-browser-hint-ios.xcresult`.
+Android's three auth/entry checks pass in `/tmp/hadithly-c-auth-android.log`, its
+final hint/keyboard check in `/tmp/hadithly-c-browser-hint-android.log`, and both
+menu parity checks in `/tmp/hadithly-c-menu-android.log`. These are local native
+checks. They do not prove an external OAuth round trip or an account/store receipt.
+Independent GPT-6.1 Terra review found no actionable regression in this unit.
+
+| Fused menu before | Separate native controls after |
+| --- | --- |
+| ![Glass menu cards fused across their gaps](verification/c-native/menu-ios-before.png) | ![Each native glass menu control stays separate](verification/c-native/menu-ios-after.png) |
+
+| iOS Google handoff | Android Google handoff |
+| --- | --- |
+| ![Official Google artwork and browser explanation on iOS](verification/c-native/auth-ios.png) | ![Official Google artwork and browser explanation on Android](verification/c-native/auth-android.png) |
+
+No new hosted Motion Agent credit was used. The prior authorized run and native
+motion references remain recorded in `NATIVE_READER_REFINEMENT.md`. Continue C1
+and the remaining C2/C3/C7 verification before D.

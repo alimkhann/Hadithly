@@ -174,4 +174,5 @@
     <string name="native_cb3d1f6647e3" formatted="false">Бүгүнкү хадис</string>
     <string name="native_f911dbe90e58" formatted="false">Бул котормого тышкы булактар келтирилген эмес.</string>
     <string name="native_a6e3a22758a8" formatted="false">Бул котормону AI (%s) түздү. Бул расмий котормо эмес; маанилүү мағыналарды квалификациялуу булак менен текшериңиз.</string>
+    <string name="native_da68e1baec08" formatted="false">Google аркылуу кирүү браузерде ачылат, андан кийин бул жерге кайтасыз.</string>
 </resources>
