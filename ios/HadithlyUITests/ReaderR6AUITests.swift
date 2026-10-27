@@ -144,6 +144,11 @@ final class ReaderR6AUITests: XCTestCase {
         XCTAssertGreaterThanOrEqual(previous.frame.height, 44)
         XCTAssertGreaterThanOrEqual(next.frame.height, 44)
 
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = "native-page-controls"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+
         // Volume 2 page 2: LEFT is the neighbor page, RIGHT names Volume 3.
         next.tap()
         XCTAssertEqual(app.buttons["reader.previousPage"].firstMatch.label, "Previous page, Page 1")
@@ -361,6 +366,7 @@ final class ReaderR6AUITests: XCTestCase {
     private func launchFixture(environment: [String: String] = [:]) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["-R6AReaderFixture"]
+        app.launchEnvironment["HADITHLY_UI_TESTING"] = "1"
         for (key, value) in environment {
             app.launchEnvironment[key] = value
         }

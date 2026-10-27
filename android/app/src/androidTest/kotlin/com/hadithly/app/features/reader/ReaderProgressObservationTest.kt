@@ -4,6 +4,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.toPixelMap
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertHeightIsEqualTo
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -17,6 +20,19 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class ReaderProgressObservationTest {
     @get:Rule val compose = createComposeRule()
+
+    @Test fun focusKeepsThinProgressAcrossToggleAndUnknownTotal() {
+        val chrome = mutableStateOf(true)
+        val progress = mutableStateOf(0 to 0.4f)
+        compose.setContent { HadithlyTheme(ReaderTheme.PAPER) {
+            Box { ReaderProgressHUD(progress, 0, null, 1, null, chrome.value, true) }
+        } }
+        compose.onNodeWithTag("reader.focusedPageBar").assertDoesNotExist()
+        compose.runOnIdle { chrome.value = false }
+        compose.onNodeWithTag("reader.focusedPageBar").assertIsDisplayed().assertHeightIsEqualTo(4.dp)
+        compose.runOnIdle { chrome.value = true }
+        compose.onNodeWithTag("reader.focusedPageBar").assertDoesNotExist()
+    }
 
     @Test fun scrollUpdatesTheRenderedHudWithoutRecomposingItsHost() {
         val progress = mutableStateOf(0 to 0f)

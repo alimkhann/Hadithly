@@ -86,6 +86,13 @@ final class TranslationQ1UITests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["reader.translationRetryAt"].exists)
     }
 
+    func testQuotaWithUnavailableAllowanceStillOffersAnExplicitPlanAction() {
+        let app = launch("quota-unknown")
+        XCTAssertTrue(app.buttons["reader.quotaPaywall"].waitForExistence(timeout: 10))
+        XCTAssertFalse(app.staticTexts["reader.translationAllowance"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["paywall.quota"].exists)
+    }
+
     func testRateFailureDoesNotOfferPaywall() {
         let app = launch("rate")
         XCTAssertTrue(app.buttons["reader.retryTranslation"].waitForExistence(timeout: 10))

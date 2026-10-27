@@ -159,22 +159,24 @@ activation, or user-study participant cannot be silently represented as verified
     savings badges extending from the option's top-right edge.
     October 27: local prototype presentation passes; the owner's monthly-equivalent-only
     exception is retained. Actual annual total remains a store-readiness gate.
-  - [ ] C2. Custom, restrained translation reveal that feels rewarding and remains
+  - [x] C2. Custom, restrained translation reveal that feels rewarding and remains
     interruptible, accessible, and fast. Centered missing/retry/failure/limit states
     use simple colored icons and no cards. Verify both platforms visually.
-  - [ ] C3. Smooth focus entry and exit; thin progress bars remain in focus mode.
+  - [x] C3. Smooth focus entry and exit; thin progress bars remain in focus mode.
   - [x] C4. Liquid glass menu elements remain visually separate without fusing.
   - [x] C5. Daily hadith cards follow app appearance, independently of reader theme.
   - [x] C6. Contents uses real volume names preceded by their numbers and removes
     Open from start. Preserve jump and navigation behavior.
     October 27 local native evidence and source-number limits are recorded in
     `C_NATIVE_REFINEMENTS.md`. The other C requirements remain active.
-  - [ ] C7. Native glass page-switching controls on supported systems, with fitting
+  - [x] C7. Native glass page-switching controls on supported systems, with fitting
     accessible fallbacks elsewhere.
   - [x] C8. Coherent onboarding/auth with the official Google brand asset. Use
     Clerk's native flows where supported and a minimal, explained hosted handoff
     where required. Preserve actual sign-in, cancellation, recovery and account state.
-    October 27: C4/C8 local native presentation and route checks pass. External
+    October 27: all C local native refinements now pass their recorded checks in
+    `C_NATIVE_REFINEMENTS.md`. Older OS/device and assistive-technology acceptance
+    remain separate. External
     OAuth/account acceptance and copy review remain on their existing gates.
 - [ ] D1. Inspect the Hadithly redesign package in Downloads; use website assets
   only. Redesign the website and its other pages; verify responsive rendering,

@@ -214,12 +214,14 @@ class NativePolishTest {
         val original = Settings.Global.getString(resolver, Settings.Global.ANIMATOR_DURATION_SCALE)
         shell("settings put global animator_duration_scale ${if (reduced) 0 else 1}")
         try {
+            assertEquals(if (reduced) 0f else 1f, Settings.Global.getFloat(resolver, Settings.Global.ANIMATOR_DURATION_SCALE), 0f)
+            compose.runOnIdle { assertEquals("Platform animation state", !reduced, android.animation.ValueAnimator.areAnimatorsEnabled()) }
             compose.mainClock.autoAdvance = false
             compose.setContent {
                 var ready by remember { mutableStateOf(false) }
                 HadithlyTheme(ReaderTheme.LIGHT) {
                     Surface(Modifier.fillMaxSize(), color = LocalHadithlyColors.current.background) {
-                        Column(Modifier.padding(24.dp)) {
+                        Column(Modifier.statusBarsPadding().navigationBarsPadding().padding(24.dp)) {
                             if (!ready) TranslationThinkingView()
                             else TranslationReveal(TranslationPresentationPhase.Available) { Text("Complete prepared translation", Modifier.testTag("result")) }
                             TextButton(onClick = { ready = true }, modifier = Modifier.testTag("finish")) { Text("Finish") }
@@ -228,9 +230,16 @@ class NativePolishTest {
                 }
             }
             compose.mainClock.advanceTimeBy(500)
-            val before = pixels(compose.onRoot().captureToImage().asAndroidBitmap())
+            compose.waitForIdle()
+            compose.onNodeWithTag("reader.translationLoading").assertIsDisplayed()
+            val beforeImage = captureWaitingIndicator()
+            capture("motion-before-$reduced", beforeImage)
+            val before = pixels(beforeImage)
             compose.mainClock.advanceTimeBy(350)
-            val after = pixels(compose.onRoot().captureToImage().asAndroidBitmap())
+            compose.waitForIdle()
+            val afterImage = captureWaitingIndicator()
+            capture("motion-after-$reduced", afterImage)
+            val after = pixels(afterImage)
             if (reduced) assertTrue("Reduced motion must be static", before.contentEquals(after))
             else assertFalse("The active request should animate", before.contentEquals(after))
             compose.onNodeWithTag("reader.translationLoading").assertIsDisplayed()
@@ -242,6 +251,10 @@ class NativePolishTest {
             shell(if (original == null) "settings delete global animator_duration_scale" else "settings put global animator_duration_scale $original")
             compose.mainClock.autoAdvance = true
         }
+    }
+
+    private fun captureWaitingIndicator(): Bitmap {
+        return compose.onNodeWithTag("reader.translationLoading").captureToImage().asAndroidBitmap()
     }
 
     private fun pixels(bitmap: Bitmap) = IntArray(bitmap.width * bitmap.height).also { bitmap.getPixels(it, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height) }

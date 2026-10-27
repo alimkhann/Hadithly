@@ -22,6 +22,17 @@ browser explanation now pass local native checks. Continue C1 and C2/C3/C7
 verification before D. C8 adds only one scoped catalog entry, preserving all
 incoming catalog bytes. External OAuth and native-copy approval remain open.
 
+## C local refinements checkpoint, October 27
+
+C1–C8 now have local native implementation and verification records in
+`C_NATIVE_REFINEMENTS.md`. C2 centers states without cards, keeps quota failures
+inline and respects reduced motion. C3 retains thin focus progress and text
+position. C7 uses native glass page controls with existing fallbacks; native
+paging/control checks pass. Continue D's local website redesign next, then A4–A7.
+Physical devices, older-OS runtime, full assistive-technology traversal, auth,
+content, native-copy approval, annual billing total and store/release gates remain
+open. The incoming project/catalog work remains preserved.
+
 ## C1 paywall checkpoint, October 27
 
 The native artwork, simplified heading, two plan choices and floating badges now

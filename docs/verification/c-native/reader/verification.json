@@ -1,0 +1,207 @@
+{
+  "ios": {
+    "runs": [
+      {
+        "bundle": "hadithly-c-motion-baseline-ios.xcresult",
+        "startTime": 1793061504.618,
+        "result": "Failed",
+        "passedTests": 0,
+        "failedTests": 1,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-c-inline-red-ios.xcresult",
+        "startTime": 1793061633.191,
+        "result": "Failed",
+        "passedTests": 0,
+        "failedTests": 1,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-c-reader-final-ios.xcresult",
+        "startTime": 1793061699.121,
+        "result": "Failed",
+        "passedTests": 14,
+        "failedTests": 3,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-c-controls-ios.xcresult",
+        "startTime": 1793098769.003,
+        "result": "Passed",
+        "passedTests": 3,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-c-states-final-ios.xcresult",
+        "startTime": 1793099149.512,
+        "result": "Passed",
+        "passedTests": 11,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-c-native-pills-ios.xcresult",
+        "startTime": 1793099532.037,
+        "result": "Passed",
+        "passedTests": 3,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-c-native-pills-capture-ios.xcresult",
+        "startTime": 1793099676.993,
+        "result": "Passed",
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-c-interrupt-ios.xcresult",
+        "startTime": 1793099754.013,
+        "result": "Passed",
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-c-native-pills-appearance-ios.xcresult",
+        "startTime": 1793100076.986,
+        "result": "Passed",
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-c-native-pills-appearance-order-ios.xcresult",
+        "startTime": 1793100219.789,
+        "result": "Passed",
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0
+      }
+    ],
+    "latestCases": {
+      "HadithlyUITests/VisualPolishUITests/testAIWaitingMotionAndReducedMotionThenCompletion()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-reader-final-ios.xcresult"
+      },
+      "HadithlyUITests/VisualPolishUITests/testProductionQuotaStaysInlineUntilPlansAreRequested()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-states-final-ios.xcresult"
+      },
+      "HadithlyUITests/ReaderR6AUITests/testAbsoluteEndsHaveNoOutwardPill()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-native-pills-ios.xcresult"
+      },
+      "HadithlyUITests/ReaderR6AUITests/testRTLPillsMirrorWithLogicalLabels()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-native-pills-ios.xcresult"
+      },
+      "HadithlyUITests/ReaderR6AUITests/testTwoPillsAtVolumeEdgeNameNeighborVolume()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-native-pills-appearance-order-ios.xcresult"
+      },
+      "HadithlyUITests/TranslationQ1UITests/testCachedExactLocaleRendersForGuest()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-states-final-ios.xcresult"
+      },
+      "HadithlyUITests/TranslationQ1UITests/testCooldownHasOneDateAndDisablesPrematureRetry()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-states-final-ios.xcresult"
+      },
+      "HadithlyUITests/TranslationQ1UITests/testElapsedQuotaAvailabilityOffersRetry()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-states-final-ios.xcresult"
+      },
+      "HadithlyUITests/TranslationQ1UITests/testOpeningAndPagingWaitForExplicitHadithAction()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-states-final-ios.xcresult"
+      },
+      "HadithlyUITests/TranslationQ1UITests/testProLimitHasAvailabilityWithoutAnotherUpgradeOffer()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-states-final-ios.xcresult"
+      },
+      "HadithlyUITests/TranslationQ1UITests/testQuotaShowsAllowanceRetryAndPlansOnlyForRejectedHadith()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-states-final-ios.xcresult"
+      },
+      "HadithlyUITests/TranslationQ1UITests/testRateFailureDoesNotOfferPaywall()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-states-final-ios.xcresult"
+      },
+      "HadithlyUITests/TranslationQ1UITests/testReaderStatusGalleryAcrossThemesAndArabic()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-states-final-ios.xcresult"
+      },
+      "HadithlyUITests/VisualPolishUITests/testPageHandoffKeepsIncomingTextGeometry()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-reader-final-ios.xcresult"
+      },
+      "HadithlyUITests/VisualPolishUITests/testProductionFocusRetainsThinProgressAndTextPosition()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-states-final-ios.xcresult"
+      },
+      "HadithlyUITests/VisualPolishUITests/testProductionReaderRTLSwipes()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-reader-final-ios.xcresult"
+      },
+      "HadithlyUITests/VisualPolishUITests/testProductionReaderSwipesAndHintDoesNotRepeat()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-reader-final-ios.xcresult"
+      },
+      "HadithlyUITests/TranslationQ1UITests/testQuotaWithUnavailableAllowanceStillOffersAnExplicitPlanAction()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-states-final-ios.xcresult"
+      },
+      "HadithlyUITests/VisualPolishUITests/testReaderCanPageWhileTranslationIsPreparing()": {
+        "result": "Passed",
+        "bundle": "hadithly-c-interrupt-ios.xcresult"
+      }
+    },
+    "latestCounts": {
+      "Passed": 19
+    }
+  },
+  "android": {
+    "ui": {
+      "counts": {
+        "Passed": 21
+      },
+      "cases": {
+        "com.hadithly.app.core.theme.NativePolishTest/disabledAnimationsKeepAIIndicatorStaticAndReadable": "Passed",
+        "com.hadithly.app.core.theme.NativePolishTest/activeAIIndicatorMovesAndRevealsTheFullResult": "Passed",
+        "com.hadithly.app.features.reader.DirectionAwareHorizontalPagerTest/cancelledSwipeDoesNotTurnPage": "Passed",
+        "com.hadithly.app.features.reader.DirectionAwareHorizontalPagerTest/fastShortSwipeUsesNativePagerVelocity": "Passed",
+        "com.hadithly.app.features.reader.DirectionAwareHorizontalPagerTest/firstOutwardSwipeAtTheLastPageReachesVolumeTurn": "Passed",
+        "com.hadithly.app.features.reader.DirectionAwareHorizontalPagerTest/ltrSwipeLeftMovesForwardOnOneLinePages": "Passed",
+        "com.hadithly.app.features.reader.DirectionAwareHorizontalPagerTest/firstAndLastBoundariesExposeLogicalAccessibilityControls": "Passed",
+        "com.hadithly.app.features.reader.DirectionAwareHorizontalPagerTest/appendedPagesDoNotInterruptAnActiveSwipe": "Passed",
+        "com.hadithly.app.features.reader.DirectionAwareHorizontalPagerTest/verticalScrollOnMultiScreenPageDoesNotTurnPage": "Passed",
+        "com.hadithly.app.features.reader.DirectionAwareHorizontalPagerTest/rtlSwipeLeftMovesBackwardOnOneLinePages": "Passed",
+        "com.hadithly.app.features.reader.TranslationQ1Test/onlyActualQuotaRejectionOffersPlans": "Passed",
+        "com.hadithly.app.features.reader.TranslationQ1Test/readerStatusGalleryAcrossThemes": "Passed",
+        "com.hadithly.app.features.reader.TranslationQ1Test/missingTranslationWaitsForOneExplicitHadithAction": "Passed",
+        "com.hadithly.app.features.reader.TranslationQ1Test/proLimitDoesNotOfferAnotherUpgradeAndElapsedLimitCanRetry": "Passed",
+        "com.hadithly.app.features.reader.TranslationQ1Test/cachedGuestTranslationRendersWithoutGenerateOrPaywall": "Passed",
+        "com.hadithly.app.features.reader.TranslationQ1Test/cooldownDisablesRetryAndShowsOneAvailabilityDate": "Passed",
+        "com.hadithly.app.features.reader.ReaderR6AQuietTest/pagePillsHideAbsoluteOutwardEdge": "Passed",
+        "com.hadithly.app.features.reader.ReaderR6AQuietTest/pagePillsKeepChevronsAdjacentAndNameVolumeAtEdge": "Passed",
+        "com.hadithly.app.features.reader.ReaderProgressObservationTest/focusKeepsThinProgressAcrossToggleAndUnknownTotal": "Passed",
+        "com.hadithly.app.features.reader.ReaderProgressObservationTest/scrollUpdatesTheRenderedHudWithoutRecomposingItsHost": "Passed",
+        "com.hadithly.app.features.reader.TranslationQ1Test/quotaWithUnavailableAllowanceStillOffersAnExplicitPlanAction": "Passed"
+      },
+      "reports": [
+        {
+          "file": "TEST-00-baseline.xml",
+          "sha256": "c1350a5c8c5d369f4e865a63105867527f12af8a954f0d1e6e12ffb53b8f0a11"
+        },
+        {
+          "file": "TEST-01-final.xml",
+          "sha256": "6e16d92f77118ba98734863050892e3f61350e88ef6c6fa18357ff3747bdd65e"
+        }
+      ]
+    }
+  }
+}

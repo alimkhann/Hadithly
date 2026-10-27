@@ -39,7 +39,6 @@ struct ReaderView: View {
     @State private var showSavedShortcut = false
     @State private var showBookmarkPlacement = false
     @State private var showQuotaPaywall = false
-    @State private var hasAutoPresentedQuotaPaywall = false
     @State private var pageDragOffset: CGFloat = 0
     @State private var pageSettling = false
     @State private var horizontalDragging = false
@@ -147,7 +146,6 @@ struct ReaderView: View {
         .onChange(of: clerk.user?.id) { _, _ in
             model?.resetTranslationRequestsForAccount()
             showQuotaPaywall = false
-            hasAutoPresentedQuotaPaywall = false
         }
         .onChange(of: scenePhase) { _, phase in
             if phase != .active { model?.saveCurrentProgress() }
@@ -222,11 +220,6 @@ struct ReaderView: View {
                 }
                 .presentationDetents([.large])
             }
-        }
-        .onChange(of: model?.hasQuotaFailure ?? false, initial: true) { _, exceeded in
-            guard exceeded, !hasAutoPresentedQuotaPaywall else { return }
-            hasAutoPresentedQuotaPaywall = true
-            showQuotaPaywall = true
         }
     }
 
@@ -1492,9 +1485,7 @@ struct ReaderVolumePills: View {
             .frame(maxWidth: .infinity, alignment: .center)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            .background(palette.surface.opacity(0.96))
-            .clipShape(Capsule())
-            .overlay(Capsule().strokeBorder(palette.divider, lineWidth: 1))
+            .readerControlSurface(in: Capsule())
         }
         .buttonStyle(.plain)
         .frame(maxWidth: .infinity, minHeight: 48)
@@ -1953,7 +1944,19 @@ private struct HadithBlock: View {
 
     private func translationStatus(at now: Date) -> some View {
         let waiting = translationRetryAt.map { $0 > now.timeIntervalSince1970 * 1000 } ?? false
-        return VStack(alignment: .leading, spacing: 8) {
+        let status: (symbol: String, color: Color) = switch translationState {
+        case .none: ("text.bubble", palette.textSecondary)
+        case .loading: ("", palette.textSecondary)
+        case .failed(.quotaExceeded): ("hourglass", Theme.bookmark)
+        case .failed(.requiresSignIn): ("person.crop.circle", palette.textSecondary)
+        case .failed: (waiting ? "clock" : "exclamationmark.circle", waiting ? Theme.bookmark : Theme.destructive)
+        case .loaded: ("", palette.textSecondary)
+        }
+        return VStack(spacing: 8) {
+            if !status.symbol.isEmpty {
+                Image(systemName: status.symbol).font(.title3).foregroundStyle(status.color)
+                    .accessibilityHidden(true)
+            }
             switch translationState {
             case .none:
                 Text("No translation yet").font(.subheadline.weight(.medium))
@@ -1990,7 +1993,7 @@ private struct HadithBlock: View {
             case .failed(.quotaExceeded):
                 if !waiting, translationRetryAt != nil {
                     translationAction("Try again", id: "reader.retryTranslation", action: onRetry)
-                } else if translationAllowance?.limit == 5 {
+                } else if translationAllowance == nil || translationAllowance?.limit == 5 {
                     translationAction("See plans", id: "reader.quotaPaywall", action: onShowPaywall)
                 } else if translationRetryAt == nil {
                     translationAction("Try again", id: "reader.retryTranslation", action: onRetry)
@@ -2001,9 +2004,9 @@ private struct HadithBlock: View {
             }
         }
         .foregroundStyle(palette.textPrimary)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
-        .background(palette.surface, in: RoundedRectangle(cornerRadius: 12))
+        .multilineTextAlignment(.center)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 16)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("reader.translationStatus")
     }
@@ -2778,6 +2781,8 @@ struct ReaderR6ATestFixtureView: View {
         switch environment["Q1_STATE"] {
         case "loading":
             seeded.seedQ1TranslationForUITest(id: "sunnah_now:bukhari:57", state: .loading, allowance: nil)
+        case "quota-unknown":
+            seeded.seedQ1TranslationForUITest(id: "sunnah_now:bukhari:57", state: .failed(.quotaExceeded), allowance: nil)
         case "quota":
             seeded.seedQ1TranslationForUITest(id: "sunnah_now:bukhari:57", state: .failed(.quotaExceeded),
                 allowance: TranslationAllowance(limit: 5, remaining: 0, retryAt: Date().timeIntervalSince1970 * 1000 + 60_000))
@@ -3089,6 +3094,7 @@ struct ReaderR6ATestFixtureView: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("r6a.page")
+        .nativeAppearanceBoundary()
         .environment(\.readerPalette, palette)
         .environment(\.readerTheme, preferences.theme)
         .preferredColorScheme(ReaderPalette.preferredColorScheme(for: preferences.theme))

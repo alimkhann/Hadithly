@@ -65,6 +65,11 @@ import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.HourglassEmpty
+import androidx.compose.material.icons.filled.PersonOutline
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Favorite
@@ -224,17 +229,6 @@ fun ReaderScreen(
     var showContents by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
     var showQuotaPaywall by remember { mutableStateOf(false) }
-    var hasAutoPresentedQuotaPaywall by remember { mutableStateOf(false) }
-
-    val hasQuotaFailure = state.translations.values.any { translationState ->
-        translationState is TranslationUiState.Failed && translationState.failure == TranslationFailure.QuotaExceeded
-    }
-    LaunchedEffect(hasQuotaFailure) {
-        if (hasQuotaFailure && !hasAutoPresentedQuotaPaywall) {
-            hasAutoPresentedQuotaPaywall = true
-            showQuotaPaywall = true
-        }
-    }
 
     fun closeReader() {
         viewModel.saveCurrentProgress()
@@ -2756,38 +2750,51 @@ internal fun TranslationSection(
     val waiting = retryAt != null && retryAt > now
     val uiDirection = if (LocalConfiguration.current.layoutDirection == android.view.View.LAYOUT_DIRECTION_RTL) LayoutDirection.Rtl else LayoutDirection.Ltr
     CompositionLocalProvider(LocalLayoutDirection provides uiDirection) {
-        Surface(color = colors.surface, shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth().testTag("reader.translationStatus")) {
-            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.fillMaxWidth().padding(vertical = 16.dp).testTag("reader.translationStatus"),
+            verticalArrangement = Arrangement.spacedBy(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                if (translationState != TranslationUiState.Loading) {
+                    val symbol = when (failure) {
+                        TranslationFailure.QuotaExceeded -> Icons.Default.HourglassEmpty
+                        TranslationFailure.RequiresSignIn -> Icons.Default.PersonOutline
+                        null -> Icons.Default.ChatBubbleOutline
+                        else -> if (waiting) Icons.Default.Schedule else Icons.Default.ErrorOutline
+                    }
+                    val tint = when {
+                        failure == TranslationFailure.QuotaExceeded || waiting -> colors.bookmark
+                        failure != null && failure != TranslationFailure.RequiresSignIn -> colors.destructive
+                        else -> colors.textSecondary
+                    }
+                    Icon(symbol, contentDescription = null, tint = tint, modifier = Modifier.size(24.dp))
+                }
                 when {
                     translationState == TranslationUiState.Loading -> com.hadithly.app.core.theme.TranslationThinkingView()
                     failure == TranslationFailure.RequiresSignIn -> {
-                        Text(nativeText("No translation yet"), style = MaterialTheme.typography.titleSmall, color = colors.textPrimary)
-                        Text(nativeText("Sign in from Settings to translate this hadith."), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+                        Text(nativeText("No translation yet"), textAlign = TextAlign.Center, style = MaterialTheme.typography.titleSmall, color = colors.textPrimary)
+                        Text(nativeText("Sign in from Settings to translate this hadith."), textAlign = TextAlign.Center, style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
                     }
                     failure == TranslationFailure.QuotaExceeded -> {
-                        Text(nativeText("Translation allowance used"), style = MaterialTheme.typography.titleSmall, color = colors.textPrimary)
-                        Text(nativeText("Existing translations are still available."), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+                        Text(nativeText("Translation allowance used"), textAlign = TextAlign.Center, style = MaterialTheme.typography.titleSmall, color = colors.textPrimary)
+                        Text(nativeText("Existing translations are still available."), textAlign = TextAlign.Center, style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
                     }
-                    failure != null -> Text(nativeText(if (waiting) "Translation temporarily unavailable" else "Translation couldn’t finish"), style = MaterialTheme.typography.titleSmall, color = colors.textPrimary)
-                    else -> Text(nativeText("No translation yet"), style = MaterialTheme.typography.titleSmall, color = colors.textPrimary)
+                    failure != null -> Text(nativeText(if (waiting) "Translation temporarily unavailable" else "Translation couldn’t finish"), textAlign = TextAlign.Center, style = MaterialTheme.typography.titleSmall, color = colors.textPrimary)
+                    else -> Text(nativeText("No translation yet"), textAlign = TextAlign.Center, style = MaterialTheme.typography.titleSmall, color = colors.textPrimary)
                 }
                 allowance?.let {
-                    Text(nativeText("%1$@ of %2$@ translations left", java.text.NumberFormat.getIntegerInstance(LocalConfiguration.current.locales[0]).format(it.remaining.toInt()), java.text.NumberFormat.getIntegerInstance(LocalConfiguration.current.locales[0]).format(it.limit.toInt())), style = MaterialTheme.typography.labelSmall, color = colors.textSecondary, modifier = Modifier.testTag("reader.translationAllowance"))
+                    Text(nativeText("%1$@ of %2$@ translations left", java.text.NumberFormat.getIntegerInstance(LocalConfiguration.current.locales[0]).format(it.remaining.toInt()), java.text.NumberFormat.getIntegerInstance(LocalConfiguration.current.locales[0]).format(it.limit.toInt())), textAlign = TextAlign.Center, style = MaterialTheme.typography.labelSmall, color = colors.textSecondary, modifier = Modifier.testTag("reader.translationAllowance"))
                 }
                 if (waiting) {
                     val date = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT, java.text.DateFormat.SHORT, LocalConfiguration.current.locales[0]).format(java.util.Date(retryAt.toLong()))
-                    Text(nativeText("Try again %@", date), style = MaterialTheme.typography.labelSmall, color = colors.textSecondary, modifier = Modifier.testTag("reader.translationRetryAt"))
+                    Text(nativeText("Try again %@", date), textAlign = TextAlign.Center, style = MaterialTheme.typography.labelSmall, color = colors.textSecondary, modifier = Modifier.testTag("reader.translationRetryAt"))
                 }
                 when {
                     translationState == null -> TranslationAction("Translate", "reader.generateTranslation", onClick = onRetry)
                     failure == TranslationFailure.QuotaExceeded -> {
                         if (!waiting && retryAt != null) TranslationAction("Try again", "reader.retryTranslation", onClick = onRetry)
-                        else if (allowance?.limit == 5.0) TranslationAction("See plans", "reader.quotaPaywall", onClick = onShowPaywall)
+                        else if (allowance == null || allowance.limit == 5.0) TranslationAction("See plans", "reader.quotaPaywall", onClick = onShowPaywall)
                         else if (retryAt == null) TranslationAction("Try again", "reader.retryTranslation", onClick = onRetry)
                     }
                     failure is TranslationFailure.Failed -> TranslationAction("Try again", "reader.retryTranslation", enabled = !waiting, onClick = onRetry)
                 }
-            }
         }
     }
 }

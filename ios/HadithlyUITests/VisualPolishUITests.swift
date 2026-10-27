@@ -2,6 +2,44 @@ import XCTest
 import UIKit
 
 final class VisualPolishUITests: XCTestCase {
+    func testProductionQuotaStaysInlineUntilPlansAreRequested() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-NativePolishFixture"]
+        app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "POLISH_SCREEN": "reader",
+            "POLISH_THEME": "light", "PAGING_RENDER": "interactive", "Q1_STATE": "quota", "Q1_LANGUAGE": "ru"]
+        app.launch()
+        XCTAssertTrue(element("reader.page", app).waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["reader.quotaPaywall"].firstMatch.waitForExistence(timeout: 5))
+        XCTAssertFalse(element("paywall.quota", app).exists, "A translation limit must not interrupt reading")
+        capture("quota-inline-production", app)
+    }
+
+    func testProductionFocusRetainsThinProgressAndTextPosition() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-NativePolishFixture"]
+        app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "POLISH_SCREEN": "reader",
+            "POLISH_THEME": "paper", "PAGING_RENDER": "interactive"]
+        app.launch()
+        XCTAssertTrue(element("reader.page", app).waitForExistence(timeout: 10))
+        let center = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        let menu = app.buttons["reader.menu"]
+        if !menu.waitForExistence(timeout: 1) { center.tap() }
+        XCTAssertTrue(menu.waitForExistence(timeout: 5))
+        let text = app.staticTexts["reader.arabic"].firstMatch
+        let textY = text.frame.minY
+        center.tap()
+        let progress = element("reader.focusedProgress", app)
+        XCTAssertTrue(progress.waitForExistence(timeout: 5))
+        XCTAssertLessThanOrEqual(progress.frame.height, 4)
+        XCTAssertFalse(menu.exists)
+        XCTAssertEqual(text.frame.minY, textY, accuracy: 1)
+        capture("production-reader-focused-progress", app)
+        center.tap()
+        XCTAssertTrue(menu.waitForExistence(timeout: 5))
+        XCTAssertEqual(text.frame.minY, textY, accuracy: 1)
+        capture("production-reader-controls-restored", app)
+    }
+
     func testReaderMenuKeepsVisibleGapsBetweenGlassControls() {
         let app = XCUIApplication()
         app.launchArguments = ["-NativePolishFixture"]
@@ -78,6 +116,21 @@ final class VisualPolishUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["reader.sourceSheet.name"].exists)
         XCTAssertTrue(element("translation.sources.ai", app).exists)
         capture("combined-reader-sources", app)
+    }
+
+    func testReaderCanPageWhileTranslationIsPreparing() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-NativePolishFixture"]
+        app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "POLISH_SCREEN": "reader", "POLISH_THEME": "light",
+            "PAGING_RENDER": "interactive", "Q1_STATE": "loading", "Q1_LANGUAGE": "ru"]
+        app.launch()
+        XCTAssertTrue(element("reader.translationLoading", app).waitForExistence(timeout: 10))
+        app.swipeLeft()
+        XCTAssertTrue(element("reader.volumeCorner", app).waitForExistence(timeout: 5))
+        app.swipeRight()
+        XCTAssertTrue(element("reader.volumeHeader", app).waitForExistence(timeout: 5))
+        XCTAssertTrue(element("reader.translationLoading", app).exists)
+        capture("reader-preparing-interrupted-by-paging", app)
     }
 
     func testProductionReaderSwipesAndHintDoesNotRepeat() {

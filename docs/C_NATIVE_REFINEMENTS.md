@@ -2,18 +2,18 @@
 
 October 27, 2026. B's findings are in
 [`product-program/research-decisions.md`](product-program/research-decisions.md).
-C remains active. Complete C before D, then return to A4–A7. Existing content,
+C local refinements are verified below. Continue D, then return to A4–A7. Existing content,
 physical-device, auth, purchase and release gates remain open.
 
 | Requirement | Current result |
 | --- | --- |
 | C1 paywall | Local prototype presentation and interaction pass on both apps, including large RTL text. Actual annual total remains a release requirement. |
-| C2 translation reveal and states | Existing native implementation retained; current state, interruption and reduced-motion verification remains. |
-| C3 focus and thin progress | Current focus baseline passes on iOS; remaining combined visual/interaction check stays open. |
+| C2 translation reveal and states | Centered states have simple icons and no cards. Limits stay inline until an explicit plan action; unknown allowance retains that action. Native reveal, interruption and reduced-motion checks pass. |
+| C3 focus and thin progress | Real iOS focus toggles retain text position and the thin progress strip. Android HUD updates and focus toggles retain the four-dp strip, including unknown totals. |
 | C4 separate glass elements | iOS fusion reproduced and repaired; sampled rendered gaps and Android Material parity pass. |
 | C5 Daily appearance | Reproduced and fixed on both apps. Daily and its source presentation use app appearance, independent of the reader theme. |
 | C6 Contents names and navigation | Source names now carry their actual source volume numbers. iOS removes the extra start row and opens the volume from its name. Direct volume, chapter and jump paths pass locally. |
-| C7 page controls | Current native/fallback rendering and paging verification remains. |
+| C7 page controls | iOS page-switching pills now use the shared glass control, including its Reduce Transparency and pre-iOS-26 fallbacks. Native labels, edges, LTR/RTL and Android Material pager checks pass locally; older-OS runtime remains a device gate. |
 | C8 onboarding/auth | Official Google artwork and a contextual browser hint are implemented. Entry, cancellation, recovery and keyboard checks pass locally. External OAuth/account acceptance limits remain. |
 
 ## Daily appearance and Contents
@@ -162,3 +162,65 @@ Prices are prepared samples. The owner-approved monthly-equivalent-only prototyp
 is retained. The missing actual annual total is an explicit store-readiness gate;
 this unit does not approve the paywall for release. Large RTL captures demonstrate
 scrollable access to both complete prices, not native-copy approval.
+
+## Translation state, focus and page controls
+
+C2 removes the card backgrounds and centers missing, sign-in, temporary failure
+and allowance states, with a small redundant icon. Existing exact-text reveal,
+manual translation, cache reads, allowance values and retry deadlines remain.
+A quota failure no longer opens a paywall over the reader. The user can choose
+See plans inline. Unknown allowance also retains that explicit action without
+inventing a tier or count; a known Pro limit offers no further upgrade.
+
+The production iOS quota fixture reproduced the automatic sheet interruption,
+then passed after removing the watcher. Both native watchers are removed; the
+explicit callbacks remain. Independent review caught the unknown-allowance edge
+case, now covered on both platforms.
+
+The iOS system Reduce Motion check reproduced a moving native spinner. The
+waiting view now uses a static hourglass when that setting is on. Android uses a
+restrained native glyph opacity pulse through the existing foreground/motion
+policy. The complete text appears without an artificial delay; its reveal remains
+400 ms, or no animation with reduced motion. An actual iOS reader test pages away
+and back while preparation continues, without losing access or state.
+
+Android's initial active-animation assertions failed because the test put the
+indicator behind the opaque system status bar. Animation-value probes advanced
+normally; a full device capture exposed the hidden row. The final fixture adds
+safe-area padding and waits for draw completion before comparing the rendered
+indicator itself. It checks enabled platform animation state, visible motion,
+static reduced motion and full-result completion. Temporary probes were removed.
+A cold-boot System UI ANR overlay was dismissed and its captures are excluded.
+The failing test attempts are retained as diagnostic history, not app defects.
+
+C3 preserves the actual iOS Arabic text position to within one point through
+focus entry and exit, hides controls and retains an 88-by-4-point progress strip.
+Android checks the visible four-dp strip with unknown totals, focus toggles and
+real fill updates without recomposing its host. C7 replaces the remaining painted
+iOS page capsules with the existing shared native glass modifier. The modifier
+already uses an opaque surface for Reduce Transparency and native thin material
+before iOS 26. Those branches compile; this run's actual iOS runtime is 27.
+Android retains Material controls. Current control labels, touch targets, absolute
+edges, adjacent volume names, LTR/RTL swipes, short-drag cancellation, vertical
+scroll arbitration and incoming-page geometry remain covered locally.
+
+The final native evidence has 19 distinct iOS and 21 Android passing cases.
+`verification/c-native/reader/verification.json` combines each case's latest result
+and retains the earlier failed iOS attempts. The three old R6A control tests first
+failed before opening their fixture because they omitted the now-required test
+opt-in; their helper is repaired and their final runs pass. The glass capture
+fixture also now receives its theme before the native appearance boundary, so its
+UIKit glass uses the same appearance as the real reader. Its initially mismatched
+light-glass-on-dark capture is superseded. These checks do not
+prove physical-device frame pacing, a full VoiceOver/TalkBack traversal, an older
+OS runtime, live generation or account/store acceptance.
+
+| Inline state without a card | Native page controls |
+| --- | --- |
+| ![Centered allowance state](verification/c-native/reader/ios-reader-status-quota-light-en.png) | ![Glass page-switching pills](verification/c-native/reader/ios-native-page-controls.png) |
+
+No deployment, paid provider request, new hosted Motion Agent credit, billing or
+publication occurred. The incoming four project/scheme files and every original
+catalog byte are still preserved. C8's single committed hint is the only catalog
+addition from this run. Continue D locally, then A4–A7; all recorded external,
+content, native-copy and release gates remain open.

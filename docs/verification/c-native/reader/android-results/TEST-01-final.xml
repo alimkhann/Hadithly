@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuites tests="11" failures="0" errors="0" skipped="0" time="236.124" timestamp="2026-10-27T11:18:42" hostname="localhost">
+  <testsuite name="com.hadithly.app.core.theme.NativePolishTest" tests="2" failures="0" errors="0" skipped="0" time="44.602" timestamp="2026-10-27T11:18:42" hostname="localhost">
+    <properties>
+      <property name="device" value="hadithly(AVD) - 16" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="disabledAnimationsKeepAIIndicatorStaticAndReadable" classname="com.hadithly.app.core.theme.NativePolishTest" time="17.068" />
+    <testcase name="activeAIIndicatorMovesAndRevealsTheFullResult" classname="com.hadithly.app.core.theme.NativePolishTest" time="27.534" />
+  </testsuite>
+  <testsuite name="com.hadithly.app.features.reader.ReaderProgressObservationTest" tests="2" failures="0" errors="0" skipped="0" time="31.951" timestamp="2026-10-27T11:18:42" hostname="localhost">
+    <properties>
+      <property name="device" value="hadithly(AVD) - 16" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="focusKeepsThinProgressAcrossToggleAndUnknownTotal" classname="com.hadithly.app.features.reader.ReaderProgressObservationTest" time="15.748" />
+    <testcase name="scrollUpdatesTheRenderedHudWithoutRecomposingItsHost" classname="com.hadithly.app.features.reader.ReaderProgressObservationTest" time="16.203" />
+  </testsuite>
+  <testsuite name="com.hadithly.app.features.reader.TranslationQ1Test" tests="7" failures="0" errors="0" skipped="0" time="144.446" timestamp="2026-10-27T11:18:42" hostname="localhost">
+    <properties>
+      <property name="device" value="hadithly(AVD) - 16" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="onlyActualQuotaRejectionOffersPlans" classname="com.hadithly.app.features.reader.TranslationQ1Test" time="10.455" />
+    <testcase name="readerStatusGalleryAcrossThemes" classname="com.hadithly.app.features.reader.TranslationQ1Test" time="19.183" />
+    <testcase name="missingTranslationWaitsForOneExplicitHadithAction" classname="com.hadithly.app.features.reader.TranslationQ1Test" time="42.537" />
+    <testcase name="quotaWithUnavailableAllowanceStillOffersAnExplicitPlanAction" classname="com.hadithly.app.features.reader.TranslationQ1Test" time="19.497" />
+    <testcase name="proLimitDoesNotOfferAnotherUpgradeAndElapsedLimitCanRetry" classname="com.hadithly.app.features.reader.TranslationQ1Test" time="20.489" />
+    <testcase name="cachedGuestTranslationRendersWithoutGenerateOrPaywall" classname="com.hadithly.app.features.reader.TranslationQ1Test" time="16.499" />
+    <testcase name="cooldownDisablesRetryAndShowsOneAvailabilityDate" classname="com.hadithly.app.features.reader.TranslationQ1Test" time="15.786" />
+  </testsuite>
+</testsuites>

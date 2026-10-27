@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuites tests="18" failures="1" errors="0" skipped="0" time="342.456" timestamp="2026-10-27T00:46:29" hostname="localhost">
+  <testsuite name="com.hadithly.app.core.theme.NativePolishTest" tests="2" failures="1" errors="0" skipped="0" time="49.735" timestamp="2026-10-27T00:46:29" hostname="localhost">
+    <properties>
+      <property name="device" value="hadithly(AVD) - 16" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="disabledAnimationsKeepAIIndicatorStaticAndReadable" classname="com.hadithly.app.core.theme.NativePolishTest" time="27.73" />
+    <testcase name="activeAIIndicatorMovesAndRevealsTheFullResult" classname="com.hadithly.app.core.theme.NativePolishTest" time="22.005">
+      <failure>java.lang.AssertionError: The active request should animate
+at org.junit.Assert.fail(Assert.java:89)
+at org.junit.Assert.assertTrue(Assert.java:42)
+at org.junit.Assert.assertFalse(Assert.java:65)
+at com.hadithly.app.core.theme.NativePolishTest.checkMotion(NativePolishTest.kt:235)
+at com.hadithly.app.core.theme.NativePolishTest.activeAIIndicatorMovesAndRevealsTheFullResult(NativePolishTest.kt:209)
+</failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="com.hadithly.app.features.reader.DirectionAwareHorizontalPagerTest" tests="8" failures="0" errors="0" skipped="0" time="125.855" timestamp="2026-10-27T00:46:29" hostname="localhost">
+    <properties>
+      <property name="device" value="hadithly(AVD) - 16" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="cancelledSwipeDoesNotTurnPage" classname="com.hadithly.app.features.reader.DirectionAwareHorizontalPagerTest" time="12.291" />
+    <testcase name="fastShortSwipeUsesNativePagerVelocity" classname="com.hadithly.app.features.reader.DirectionAwareHorizontalPagerTest" time="12.862" />
+    <testcase name="firstOutwardSwipeAtTheLastPageReachesVolumeTurn" classname="com.hadithly.app.features.reader.DirectionAwareHorizontalPagerTest" time="11.164" />
+    <testcase name="ltrSwipeLeftMovesForwardOnOneLinePages" classname="com.hadithly.app.features.reader.DirectionAwareHorizontalPagerTest" time="13.856" />
+    <testcase name="firstAndLastBoundariesExposeLogicalAccessibilityControls" classname="com.hadithly.app.features.reader.DirectionAwareHorizontalPagerTest" time="13.157" />
+    <testcase name="appendedPagesDoNotInterruptAnActiveSwipe" classname="com.hadithly.app.features.reader.DirectionAwareHorizontalPagerTest" time="25.56" />
+    <testcase name="verticalScrollOnMultiScreenPageDoesNotTurnPage" classname="com.hadithly.app.features.reader.DirectionAwareHorizontalPagerTest" time="21.302" />
+    <testcase name="rtlSwipeLeftMovesBackwardOnOneLinePages" classname="com.hadithly.app.features.reader.DirectionAwareHorizontalPagerTest" time="15.663" />
+  </testsuite>
+  <testsuite name="com.hadithly.app.features.reader.TranslationQ1Test" tests="6" failures="0" errors="0" skipped="0" time="109.829" timestamp="2026-10-27T00:46:29" hostname="localhost">
+    <properties>
+      <property name="device" value="hadithly(AVD) - 16" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="onlyActualQuotaRejectionOffersPlans" classname="com.hadithly.app.features.reader.TranslationQ1Test" time="14.451" />
+    <testcase name="readerStatusGalleryAcrossThemes" classname="com.hadithly.app.features.reader.TranslationQ1Test" time="19.83" />
+    <testcase name="missingTranslationWaitsForOneExplicitHadithAction" classname="com.hadithly.app.features.reader.TranslationQ1Test" time="24.259" />
+    <testcase name="proLimitDoesNotOfferAnotherUpgradeAndElapsedLimitCanRetry" classname="com.hadithly.app.features.reader.TranslationQ1Test" time="15.014" />
+    <testcase name="cachedGuestTranslationRendersWithoutGenerateOrPaywall" classname="com.hadithly.app.features.reader.TranslationQ1Test" time="21.567" />
+    <testcase name="cooldownDisablesRetryAndShowsOneAvailabilityDate" classname="com.hadithly.app.features.reader.TranslationQ1Test" time="14.708" />
+  </testsuite>
+  <testsuite name="com.hadithly.app.features.reader.ReaderR6AQuietTest" tests="2" failures="0" errors="0" skipped="0" time="49.413" timestamp="2026-10-27T00:46:29" hostname="localhost">
+    <properties>
+      <property name="device" value="hadithly(AVD) - 16" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="pagePillsHideAbsoluteOutwardEdge" classname="com.hadithly.app.features.reader.ReaderR6AQuietTest" time="25.579" />
+    <testcase name="pagePillsKeepChevronsAdjacentAndNameVolumeAtEdge" classname="com.hadithly.app.features.reader.ReaderR6AQuietTest" time="23.834" />
+  </testsuite>
+</testsuites>

@@ -62,6 +62,16 @@ class TranslationQ1Test {
         compose.runOnIdle { assertEquals(1, paywalls) }
     }
 
+    @Test fun quotaWithUnavailableAllowanceStillOffersAnExplicitPlanAction() {
+        var paywalls = 0
+        compose.setContent { ReaderTestTheme { TranslationSection(hadith,
+            TranslationUiState.Failed(TranslationFailure.QuotaExceeded), "ru", {}, { paywalls++ }, null) } }
+        compose.runOnIdle { assertEquals(0, paywalls) }
+        compose.onNodeWithTag("reader.translationAllowance").assertDoesNotExist()
+        compose.onNodeWithText("See plans").performClick()
+        compose.runOnIdle { assertEquals(1, paywalls) }
+    }
+
     @Test fun cachedGuestTranslationRendersWithoutGenerateOrPaywall() {
         compose.setContent { ReaderTestTheme { TranslationSection(hadith, TranslationUiState.Loaded(
             ReaderTranslation("cached", "Cached exact-locale text", source = "official", sourceLabel = "Official", cached = true)), "ru", {}, {}, TranslationAllowance(5.0, 3.0)) } }

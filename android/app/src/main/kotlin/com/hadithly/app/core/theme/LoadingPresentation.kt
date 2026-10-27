@@ -135,8 +135,10 @@ private fun SkeletonLines(widths: List<Float>, height: Dp, gap: Dp, progress: Fl
 fun TranslationThinkingView(modifier: Modifier = Modifier) {
     val colors = LocalHadithlyColors.current
     val label = nativeText("Preparing translation…")
+    val progress = shimmerProgress(animated = true, duration = InterfaceMotion.THINKING_PULSE)
+    val opacity = progress?.let { 0.6f + 0.4f * sin(it * Math.PI).toFloat() } ?: 1f
     Row(modifier.testTag("reader.translationLoading").clearAndSetSemantics { contentDescription = label }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        androidx.compose.material3.CircularProgressIndicator(Modifier.size(16.dp), color = colors.textSecondary, strokeWidth = 2.dp)
+        Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = colors.textSecondary.copy(alpha = opacity), modifier = Modifier.size(18.dp))
         Text(label, style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary)
     }
 }

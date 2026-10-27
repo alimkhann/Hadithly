@@ -142,10 +142,15 @@ struct ArticleLoadingView: View {
 
 struct TranslationThinkingView: View {
     @Environment(\.readerPalette) private var palette
+    @Environment(\.accessibilityReduceMotion) private var reducedMotion
 
     var body: some View {
         HStack(spacing: 10) {
-            ProgressView().controlSize(.small).tint(palette.textSecondary)
+            if reducedMotion {
+                Image(systemName: "hourglass").accessibilityHidden(true)
+            } else {
+                ProgressView().controlSize(.small).tint(palette.textSecondary)
+            }
             Text("Preparing translation…").font(.subheadline)
         }
         .foregroundStyle(palette.textSecondary)

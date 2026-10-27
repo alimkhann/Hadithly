@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuites tests="11" failures="1" errors="0" skipped="0" time="25.172" timestamp="2026-10-27T11:06:23" hostname="localhost">
+  <testsuite name="com.hadithly.app.core.theme.NativePolishTest" tests="2" failures="1" errors="0" skipped="0" time="8.63" timestamp="2026-10-27T11:06:23" hostname="localhost">
+    <properties>
+      <property name="device" value="hadithly(AVD) - 16" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="disabledAnimationsKeepAIIndicatorStaticAndReadable" classname="com.hadithly.app.core.theme.NativePolishTest" time="4.987" />
+    <testcase name="activeAIIndicatorMovesAndRevealsTheFullResult" classname="com.hadithly.app.core.theme.NativePolishTest" time="3.643">
+      <failure>java.lang.AssertionError: The active request should animate
+at org.junit.Assert.fail(Assert.java:89)
+at org.junit.Assert.assertTrue(Assert.java:42)
+at org.junit.Assert.assertFalse(Assert.java:65)
+at com.hadithly.app.core.theme.NativePolishTest.checkMotion(NativePolishTest.kt:237)
+at com.hadithly.app.core.theme.NativePolishTest.activeAIIndicatorMovesAndRevealsTheFullResult(NativePolishTest.kt:209)
+</failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="com.hadithly.app.features.reader.ReaderProgressObservationTest" tests="2" failures="0" errors="0" skipped="0" time="2.399" timestamp="2026-10-27T11:06:23" hostname="localhost">
+    <properties>
+      <property name="device" value="hadithly(AVD) - 16" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="focusKeepsThinProgressAcrossToggleAndUnknownTotal" classname="com.hadithly.app.features.reader.ReaderProgressObservationTest" time="1.265" />
+    <testcase name="scrollUpdatesTheRenderedHudWithoutRecomposingItsHost" classname="com.hadithly.app.features.reader.ReaderProgressObservationTest" time="1.134" />
+  </testsuite>
+  <testsuite name="com.hadithly.app.features.reader.TranslationQ1Test" tests="7" failures="0" errors="0" skipped="0" time="12.074" timestamp="2026-10-27T11:06:23" hostname="localhost">
+    <properties>
+      <property name="device" value="hadithly(AVD) - 16" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="onlyActualQuotaRejectionOffersPlans" classname="com.hadithly.app.features.reader.TranslationQ1Test" time="2.359" />
+    <testcase name="readerStatusGalleryAcrossThemes" classname="com.hadithly.app.features.reader.TranslationQ1Test" time="2.61" />
+    <testcase name="missingTranslationWaitsForOneExplicitHadithAction" classname="com.hadithly.app.features.reader.TranslationQ1Test" time="2.184" />
+    <testcase name="quotaWithUnavailableAllowanceStillOffersAnExplicitPlanAction" classname="com.hadithly.app.features.reader.TranslationQ1Test" time="1.451" />
+    <testcase name="proLimitDoesNotOfferAnotherUpgradeAndElapsedLimitCanRetry" classname="com.hadithly.app.features.reader.TranslationQ1Test" time="1.363" />
+    <testcase name="cachedGuestTranslationRendersWithoutGenerateOrPaywall" classname="com.hadithly.app.features.reader.TranslationQ1Test" time="1.221" />
+    <testcase name="cooldownDisablesRetryAndShowsOneAvailabilityDate" classname="com.hadithly.app.features.reader.TranslationQ1Test" time="0.886" />
+  </testsuite>
+</testsuites>
