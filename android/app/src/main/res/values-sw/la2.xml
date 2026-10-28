@@ -20,7 +20,7 @@
     <string name="la2_continue">Endelea</string>
     <string name="la2_back" formatted="false">Rudi</string>
     <string name="la2_skip">Ruka</string>
-    <string name="la2_usage">Shiriki takwimu za matumizi binafsi</string>
+    <string name="la2_usage" formatted="false">Shiriki takwimu za matumizi binafsi</string>
     <string name="la2_usage_explanation">Hushiriki matokeo yaliyokusanywa kupitia Convex na PostHog EU. Hakuna maandishi ya kusoma, lengwa, au utambulisho wa akaunti au kifaa unaotumwa. Kuzima hufuta takwimu zinazosubiri. Jumla zilizochapishwa haziwezi kukutambulisha.</string>
     <string name="la2_more_translations">Tafsiri zaidi za AI</string>
     <string name="la2_allowance">Tafsiri mpya 5 bila malipo au 100 ukiwa na Pro ndani ya siku 7 zinazosogea. Tafsiri zilizoidhinishwa na zilizohifadhiwa hubaki bila malipo.</string>

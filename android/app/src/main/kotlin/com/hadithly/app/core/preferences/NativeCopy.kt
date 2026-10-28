@@ -281,5 +281,13 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "Enter a hadith number like 57 or 4.5." -> R.string.native_c6e7ce247beb
     "Jump to a hadith number, e.g. 57." -> R.string.native_562f06676a2c
     "Volumes" -> R.string.native_53a480e304c0
+    "Share basic app statistics to help improve Hadithly. Your reading text, notes and account details are never included. Turning this off clears pending statistics." -> R.string.native_fba6263be0f6
+    "Crash reports help us fix problems. They never include your reading text, notes or account details. Turning this off clears pending reports on this device." -> R.string.native_ee2e3b7fe3e2
+    "Policies" -> R.string.native_d3ad1f1f8c9c
+    "Download your profile, settings, saved items, folders, reading progress and contributions. Guest data stays on this device." -> R.string.native_2ffb8f52f5a9
+    "la2.usage" -> R.string.la2_usage
+    "Privacy Policy" -> R.string.native_506ff3946215
+    "Terms of Use" -> R.string.native_12a0015fa322
+    "How deletion works" -> R.string.native_c79509dcb6e9
     else -> null
 }

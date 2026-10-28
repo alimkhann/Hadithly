@@ -188,4 +188,11 @@
     <string name="native_c6e7ce247beb" formatted="false">Saisissez un numéro de hadith comme 57 ou 4.5.</string>
     <string name="native_562f06676a2c" formatted="false">Aller au numéro de hadith, par exemple 57.</string>
     <string name="native_53a480e304c0" formatted="false">TOMES</string>
+    <string name="native_fba6263be0f6" formatted="false">Partagez des statistiques de base sur l’application pour aider à améliorer Hadithly. Le texte que vous lisez, vos notes et les détails de votre compte ne sont jamais inclus. La désactivation efface les statistiques en attente d’envoi.</string>
+    <string name="native_ee2e3b7fe3e2" formatted="false">Les rapports de plantage nous aident à corriger les problèmes. Ils ne contiennent jamais le texte que vous lisez, vos notes ni les détails de votre compte. La désactivation efface les rapports en attente sur cet appareil.</string>
+    <string name="native_d3ad1f1f8c9c" formatted="false">Politiques</string>
+    <string name="native_2ffb8f52f5a9" formatted="false">Téléchargez votre profil, vos réglages, vos éléments enregistrés, vos dossiers, votre progression de lecture et vos contributions. Les données du mode invité restent sur cet appareil.</string>
+    <string name="native_506ff3946215" formatted="false">Politique de confidentialité</string>
+    <string name="native_12a0015fa322" formatted="false">Conditions d’utilisation</string>
+    <string name="native_c79509dcb6e9" formatted="false">Fonctionnement de la suppression</string>
 </resources>

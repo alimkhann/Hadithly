@@ -396,8 +396,8 @@ def find_hardcoded() -> tuple[list[str], list[str]]:
 def runtime_literal_candidates(text: str, platform: str, keys: set[str], fixture: bool = False) -> list[dict]:
     """Classify lexical candidates; catalog presence never proves runtime lookup."""
     literal = r'"((?:\\.|[^"\\])*)"'
-    calls = (r'(Text|Label|Button|Toggle|Section|Picker|TextField|SecureField|navigationTitle|accessibilityLabel|accessibilityHint|alert|confirmationDialog|appNavigationTitle|ReaderSheetChrome|QuietEmptyState|AppLocalization\.string)\(\s*(?:title\s*:\s*)?' if platform == 'ios'
-             else r'(nativeText|Text)\(\s*(?:text\s*=\s*)?')
+    calls = (r'(Text|Label|Button|Toggle|Section|Picker|TextField|SecureField|navigationTitle|accessibilityLabel|accessibilityHint|alert|confirmationDialog|appNavigationTitle|ReaderSheetChrome|SettingsLinkRow|QuietEmptyState|AppLocalization\.string)\(\s*(?:title\s*:\s*)?' if platform == 'ios'
+             else r'(nativeText|Text|PolicyRow)\(\s*(?:(?:text|title)\s*=\s*)?')
     pattern = re.compile(calls + literal)
     debug_lines, stack = set(), []
     if platform == 'ios':
@@ -419,7 +419,7 @@ def runtime_literal_candidates(text: str, platform: str, keys: set[str], fixture
         if fixture or line in debug_lines: category = 'debug-fixture'
         elif dynamic: category = 'dynamic-review'
         elif value.startswith(('http://', 'https://')) or value.isdigit() or re.fullmatch(r'[^ @]+@[^ @]+', value): category = 'example-or-symbol-review'
-        elif platform == 'android' and call != 'nativeText': category = 'direct-literal-review'
+        elif platform == 'android' and call == 'Text': category = 'direct-literal-review'
         elif value not in keys: category = 'missing-catalog-key' if platform == 'ios' else 'missing-native-mapping'
         else: category = 'catalog-backed-runtime-unverified'
         rows.append({'line': line, 'call': call, 'value': value, 'category': category})

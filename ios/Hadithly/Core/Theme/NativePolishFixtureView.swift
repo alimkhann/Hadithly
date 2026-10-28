@@ -22,6 +22,7 @@ struct NativePolishFixtureView: View {
                     case "library-loading": LibraryView(previewLoading: true)
                     case "library-ready": LibraryView(previewLoading: false)
                     case "library-progress": LibraryView(previewLoading: false, progressExamples: true)
+                    case "privacy": PrivacyDataView(showSignIn: .constant(false))
                     case "saved-undo":
                         VStack {
                             SavedUndoBanner(notice: SavedUndoNotice(message: "Bookmark removed", undo: {}, deadline: .distantFuture))

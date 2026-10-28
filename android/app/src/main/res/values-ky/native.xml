@@ -188,4 +188,11 @@
     <string name="native_c6e7ce247beb" formatted="false">57 же 4.5 сыяктуу хадис номерин киргизиңиз.</string>
     <string name="native_562f06676a2c" formatted="false">Хадис номерине өтүңүз, мисалы 57.</string>
     <string name="native_53a480e304c0" formatted="false">ТОМДОР</string>
+    <string name="native_fba6263be0f6" formatted="false">Hadithly тиркемесин жакшыртуу үчүн колдонмонун негизги статистикасын бөлүшүңүз. Сиз окуган текст, жазууларыңыз жана каттоо эсебиңиздин маалыматы эч качан кошулбайт. Бул мүмкүнчүлүктү өчүрсөңүз, жөнөтүүнү күтүп турган статистика тазаланат.</string>
+    <string name="native_ee2e3b7fe3e2" formatted="false">Иштен чыгуу тууралуу отчеттор көйгөйлөрдү оңдоого жардам берет. Аларда сиз окуган текст, жазууларыңыз же каттоо эсебиңиздин маалыматы эч качан камтылбайт. Өчүрүү бул түзмөктөгү жөнөтүлө элек отчетторду тазалайт.</string>
+    <string name="native_d3ad1f1f8c9c" formatted="false">Саясаттар</string>
+    <string name="native_2ffb8f52f5a9" formatted="false">Профилиңизди, жөндөөлөрдү, сакталган нерселерди, папкаларды, окуу жүрүшүн жана кошкон материалдарыңызды жүктөп алыңыз. Коноктун дайындары ушул түзмөктө калат.</string>
+    <string name="native_506ff3946215" formatted="false">Купуялык саясаты</string>
+    <string name="native_12a0015fa322" formatted="false">Колдонуу шарттары</string>
+    <string name="native_c79509dcb6e9" formatted="false">Маалыматтарды өчүрүү тартиби</string>
 </resources>

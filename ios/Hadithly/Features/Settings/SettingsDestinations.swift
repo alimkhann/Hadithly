@@ -92,7 +92,7 @@ private struct SettingsToggleStyle: ToggleStyle {
 }
 
 private struct SettingsLinkRow: View {
-    let title: String
+    let title: LocalizedStringKey
     let subtitle: String?
     let systemImage: String
     let destination: URL
@@ -1004,7 +1004,7 @@ struct PrivacyDataView: View {
                     .accessibilityIdentifier("settings.crashReports")
                     .onChange(of: crashConsent) { _, enabled in CrashReporting.shared.setConsent(enabled) }
             } footer: {
-                Text("Crash reports help us fix problems. They never include your reading text, notes or account details. You can turn them off at any time.")
+                Text("Crash reports help us fix problems. They never include your reading text, notes or account details. Turning this off clears pending reports on this device.")
             }
             Section {
                 if clerk.session?.status == .active {

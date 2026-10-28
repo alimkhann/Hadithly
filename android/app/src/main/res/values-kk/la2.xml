@@ -20,7 +20,7 @@
     <string name="la2_continue">Жалғастыру</string>
     <string name="la2_back" formatted="false">Артқа</string>
     <string name="la2_skip">Өткізіп жіберу</string>
-    <string name="la2_usage">Жеке пайдалану статистикасын бөлісу</string>
+    <string name="la2_usage" formatted="false">Жеке пайдалану статистикасын бөлісу</string>
     <string name="la2_usage_explanation">Жинақталған нәтижелер Convex арқылы PostHog EU-ға жіберіледі. Мәтін, оқу нысанасы, тіркелгі не құрылғы сәйкестігі берілмейді. Өшіру күтудегі статистиканы жояды. Жарияланған жиынтық сізді анықтамайды.</string>
     <string name="la2_more_translations">Көбірек ЖИ аудармасы</string>
     <string name="la2_allowance">Соңғы 7 күнде 5 тегін немесе Pro-мен 100 жаңа аударма. Бекітілген және сақталған аудармалар тегін.</string>

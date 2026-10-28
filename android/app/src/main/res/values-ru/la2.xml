@@ -20,7 +20,7 @@
     <string name="la2_continue">Продолжить</string>
     <string name="la2_back" formatted="false">Назад</string>
     <string name="la2_skip">Пропустить</string>
-    <string name="la2_usage">Делиться обезличенной статистикой</string>
+    <string name="la2_usage" formatted="false">Делиться обезличенной статистикой</string>
     <string name="la2_usage_explanation">Общие результаты передаются через Convex в PostHog EU без текстов, ссылок на хадисы и идентификаторов аккаунта или устройства. Отключение удаляет ожидающую статистику. Опубликованные итоги не идентифицируют вас.</string>
     <string name="la2_more_translations">Больше переводов ИИ</string>
     <string name="la2_allowance">5 новых переводов бесплатно или 100 с Pro за скользящие 7 дней. Готовые и одобренные переводы бесплатны.</string>

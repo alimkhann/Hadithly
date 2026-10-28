@@ -1,0 +1,302 @@
+[
+  {
+    "platform": "ios",
+    "name": "privacy-policies-bn",
+    "sha256": "58800141abf39fcca990b499728845bcb0387dca06e8f8225bc9498ac5677e40"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-disclosures-bn",
+    "sha256": "58800141abf39fcca990b499728845bcb0387dca06e8f8225bc9498ac5677e40"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-policies-hi",
+    "sha256": "8ef35b453253514f6c7a0ec38b0cc4af71b677d7e885b11c089949d26e465d1f"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-disclosures-hi",
+    "sha256": "8ef35b453253514f6c7a0ec38b0cc4af71b677d7e885b11c089949d26e465d1f"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-policies-sw",
+    "sha256": "3150148a140e0f89698df302d168e7916dc8aede5a11164eb544a780fc28b523"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-disclosures-sw",
+    "sha256": "3150148a140e0f89698df302d168e7916dc8aede5a11164eb544a780fc28b523"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-policies-pt-BR",
+    "sha256": "5ebc8a3d733ccaca824836de2ecb6f633938909a0ebb50b1dbfb1fb222f8e413"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-disclosures-pt-BR",
+    "sha256": "5ebc8a3d733ccaca824836de2ecb6f633938909a0ebb50b1dbfb1fb222f8e413"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-policies-es-419",
+    "sha256": "60d4c74fb6a2d9fb39510a0969a67b02bd98febfd9538016436651c225d479db"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-disclosures-es-419",
+    "sha256": "60d4c74fb6a2d9fb39510a0969a67b02bd98febfd9538016436651c225d479db"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-policies-fr",
+    "sha256": "da5c3a21b60eabfdf06bac470af3ba57cb32f7b3821e307d7c79bf5d8787594e"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-disclosures-fr",
+    "sha256": "da5c3a21b60eabfdf06bac470af3ba57cb32f7b3821e307d7c79bf5d8787594e"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-policies-ur",
+    "sha256": "b925bc8481bde6622f05abfbcb160a3fe87ba7cbde45ec339af1f2d4f3cf1111"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-disclosures-ur",
+    "sha256": "b925bc8481bde6622f05abfbcb160a3fe87ba7cbde45ec339af1f2d4f3cf1111"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-policies-tr",
+    "sha256": "67ce57bf80fbaa39982f5117f7bed675bcc8eae3c8dfe4e128474defd6d71033"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-disclosures-tr",
+    "sha256": "67ce57bf80fbaa39982f5117f7bed675bcc8eae3c8dfe4e128474defd6d71033"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-policies-uz",
+    "sha256": "620890a68982177b9086dc0bdaacbe46593401500e2cfec5940e2e869b350dfb"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-disclosures-uz",
+    "sha256": "620890a68982177b9086dc0bdaacbe46593401500e2cfec5940e2e869b350dfb"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-policies-ky",
+    "sha256": "1627f90a57817d985dd7c941d321dd38ce9d4b9b139d48ed16dac4dbcecaef77"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-disclosures-ky",
+    "sha256": "1627f90a57817d985dd7c941d321dd38ce9d4b9b139d48ed16dac4dbcecaef77"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-policies-en",
+    "sha256": "9123dac69ef4c89a9e70a7a4508d021279c3a586b0fd429ed38d923327a71772"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-disclosures-en",
+    "sha256": "9123dac69ef4c89a9e70a7a4508d021279c3a586b0fd429ed38d923327a71772"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-policies-id",
+    "sha256": "994c8825ac420a1bc74e12cb3c7b9fa3eee61a3d62158283f812c66df32a2bd2"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-disclosures-id",
+    "sha256": "994c8825ac420a1bc74e12cb3c7b9fa3eee61a3d62158283f812c66df32a2bd2"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-policies-kk",
+    "sha256": "6f360b2c4864d5091243b509757ca9cb025e4a930ad9ed6eeaf3eda8098df7ee"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-disclosures-kk",
+    "sha256": "09ae01a456c110eebd04ab88b48d238879756e497204593b89a0a0ecb70bab34"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-policies-ru",
+    "sha256": "4b669c10f76eda21968883fab77566fa2b90b2fa4def678c09bad84f50dfe002"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-disclosures-ru",
+    "sha256": "4b669c10f76eda21968883fab77566fa2b90b2fa4def678c09bad84f50dfe002"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-policies-ar",
+    "sha256": "12ccd382ef2a207357545be9f2900103566d1164c4edefc9ca523fc2c824acba"
+  },
+  {
+    "platform": "ios",
+    "name": "privacy-disclosures-ar",
+    "sha256": "12ccd382ef2a207357545be9f2900103566d1164c4edefc9ca523fc2c824acba"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-disclosures-en",
+    "sha256": "be6c8a115ecfee05d618df9201b3978c43ab14df9fc8a49d4a7663d3a03e9357"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-policies-en",
+    "sha256": "be6c8a115ecfee05d618df9201b3978c43ab14df9fc8a49d4a7663d3a03e9357"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-disclosures-ar",
+    "sha256": "c4ca4d3dfba601fc493ba38b5197edd33c7f632c69b89fa221d0d3aef0342590"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-policies-ar",
+    "sha256": "c4ca4d3dfba601fc493ba38b5197edd33c7f632c69b89fa221d0d3aef0342590"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-disclosures-ru",
+    "sha256": "1d04ca6a5d079ce876c482e6e1db20419fe6640de594b14f183c022f090a4062"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-policies-ru",
+    "sha256": "cdb7cafd01ada366dbb90120a1080ca07afa4f9af684943575794d21bbb52175"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-disclosures-kk",
+    "sha256": "bd1a29cb70790f97b314935e346f8ea5074d6d8daf27fe0f0263513b51e33cba"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-policies-kk",
+    "sha256": "a61419ac704a0198c4a720e88e79e345249389315ef48b74a9f059850ad97257"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-disclosures-ky",
+    "sha256": "ceb3503e79b0aabd1410931fe121ccbc4d5e4ea31dc1c4da52c8c85ae12cc356"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-policies-ky",
+    "sha256": "dc95048b80aec64680868b1acac20ced3d46b5d371cd3eecf83fdd0859505c01"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-disclosures-uz",
+    "sha256": "3f99149a8e5289a4e9f4cdd3a49eeba0fa4ad38367d99676d5c02282679e5060"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-policies-uz",
+    "sha256": "80101cf67846082bca789144c3d2c33ee49c76411193b0f3119a2982241de515"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-disclosures-tr",
+    "sha256": "de56be211862c43b1a65140b1743249be9c8af1c76b1ef414e9e0437688cf8f6"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-policies-tr",
+    "sha256": "de56be211862c43b1a65140b1743249be9c8af1c76b1ef414e9e0437688cf8f6"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-disclosures-id",
+    "sha256": "ec2a4a1595e3d6e7aae75d23af9014bffc7aacf0cedd3d4e42d87644535084d6"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-policies-id",
+    "sha256": "bb9742ca6de60c6e57ec3f10ad8f5a186b121864ba407b104a3a794218dbb3ec"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-disclosures-ur",
+    "sha256": "76bcd10e26e510bef2273586e001840e9ebdadb5ddd13b7445ad5f30801ed978"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-policies-ur",
+    "sha256": "76bcd10e26e510bef2273586e001840e9ebdadb5ddd13b7445ad5f30801ed978"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-disclosures-fr",
+    "sha256": "58445c75d4526a6d77270884d73b5e61e39d0bd547955277a7c3f0765e011a3a"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-policies-fr",
+    "sha256": "5ec829b434f4e21c47cf3f41beadbe8f5645c1c41e7526dda6391dec058837a5"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-disclosures-es-419",
+    "sha256": "a2e1259e518beefae6baa7b27e00dcc6a37c3e68da1b70d2568c3a2cce0a5890"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-policies-es-419",
+    "sha256": "c39421c5c68021319a8d80e9625204e81492456e3ff2eb68e7d889324cf69deb"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-disclosures-pt-BR",
+    "sha256": "916564f17be5ec3fa03d141245f3e259f505bee2c08eff3d616a8c95d3e419b7"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-policies-pt-BR",
+    "sha256": "407dd55dcc636ccf9bfb04e403c1aa8fc3da3f9ab998f40ef6e200efeb189a13"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-disclosures-sw",
+    "sha256": "68f2a392fb4333766c5c8ba48c007b100dea0a3334662f3b27ff81363f909351"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-policies-sw",
+    "sha256": "a4cefb3534ee0b05bb2879feb2d4f7476560a60cd3ab3a3168e4647dc11fcb7d"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-disclosures-hi",
+    "sha256": "deca67b64dffe8140784a3983646c28b01f5014e76edcff9107ae99fc6311392"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-policies-hi",
+    "sha256": "deca67b64dffe8140784a3983646c28b01f5014e76edcff9107ae99fc6311392"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-disclosures-bn",
+    "sha256": "97f3c404064a60524fba1377542fc29db3f918293aa8474c525b997a94411e78"
+  },
+  {
+    "platform": "android",
+    "name": "privacy-policies-bn",
+    "sha256": "97f3c404064a60524fba1377542fc29db3f918293aa8474c525b997a94411e78"
+  }
+]

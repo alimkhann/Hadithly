@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-10-27. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-10-28. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
 D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its
 simulator/emulator and unit gates; its physical-device gate is open. R4's
@@ -56,6 +56,17 @@ Do not
 start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
+
+## A4 privacy copy checkpoint, October 28
+
+Privacy disclosures and policy links now resolve localized resources on both
+apps. All fifteen locales pass with consent states unchanged. Two earlier
+incoming analytics/export drafts are committed explicitly by key; other incoming
+bytes are preserved. See `A4_RUNTIME_LOCALIZATION.md`. Native-copy review,
+authenticated export/deletion, published-policy, device and release gates remain
+open. Continue the reader-settings caption on both platforms that still claims
+unconditional AI grounding, then appearance/auth/accessibility and the remaining
+A4–A7/E work. No telemetry configuration, account, paid call or publication changed.
 
 ## A4 Contents and Undo checkpoint, October 28
 

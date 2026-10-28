@@ -20,7 +20,7 @@
     <string name="la2_continue">Continuar</string>
     <string name="la2_back" formatted="false">Voltar</string>
     <string name="la2_skip">Pular</string>
-    <string name="la2_usage">Compartilhar estatísticas privadas de uso</string>
+    <string name="la2_usage" formatted="false">Compartilhar estatísticas privadas de uso</string>
     <string name="la2_usage_explanation">Compartilha resultados agrupados pelo Convex com o PostHog EU. Nenhum texto de leitura, destino ou identidade de conta ou dispositivo é enviado. Desativar remove as estatísticas pendentes. Os totais publicados não identificam você.</string>
     <string name="la2_more_translations">Mais traduções por IA</string>
     <string name="la2_allowance">5 novas traduções gratuitas ou 100 com Pro em 7 dias corridos. Traduções aprovadas e armazenadas em cache continuam gratuitas.</string>

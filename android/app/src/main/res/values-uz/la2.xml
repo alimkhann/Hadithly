@@ -20,7 +20,7 @@
     <string name="la2_continue">Davom etish</string>
     <string name="la2_back" formatted="false">Orqaga</string>
     <string name="la2_skip">O‘tkazib yuborish</string>
-    <string name="la2_usage">Shaxsiy foydalanish statistikasini ulashish</string>
+    <string name="la2_usage" formatted="false">Shaxsiy foydalanish statistikasini ulashish</string>
     <string name="la2_usage_explanation">Yig‘ma natijalar Convex orqali PostHog EU’ga yuboriladi. Matn, hadis manzili, hisob yoki qurilma identifikatori yuborilmaydi. O‘chirish kutilayotgan statistikani tozalaydi. Yig‘ma natijalar sizni aniqlamaydi.</string>
     <string name="la2_more_translations">Ko‘proq SI tarjimalari</string>
     <string name="la2_allowance">Oxirgi 7 kunda 5 bepul yoki Pro bilan 100 yangi tarjima. Tasdiqlangan va saqlangan tarjimalar bepul.</string>

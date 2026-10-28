@@ -31,6 +31,63 @@ import java.io.File
 class NativeFinishingTest {
     @get:Rule val compose = createComposeRule()
 
+    @Test fun privacyDisclosuresRenderInEveryLocaleWithoutChangingConsent() {
+        var locale by mutableStateOf("ar")
+        val app = InstrumentationRegistry.getInstrumentation().targetContext.applicationContext as com.hadithly.app.HadithlyApplication
+        val policyLabels = mapOf(
+            "en" to listOf("Privacy Policy", "Terms of Use", "How deletion works"),
+            "ar" to listOf("سياسة الخصوصية", "شروط الاستخدام", "كيفية حذف البيانات"),
+            "ru" to listOf("Политика конфиденциальности", "Условия использования", "Как удаляются данные"),
+            "kk" to listOf("Құпиялық саясаты", "Пайдалану шарттары", "Деректерді жою тәртібі"),
+            "ky" to listOf("Купуялык саясаты", "Колдонуу шарттары", "Маалыматтарды өчүрүү тартиби"),
+            "uz" to listOf("Maxfiylik siyosati", "Foydalanish shartlari", "Maʼlumotlar qanday oʻchiriladi"),
+            "tr" to listOf("Gizlilik Politikası", "Kullanım Koşulları", "Veriler nasıl silinir"),
+            "id" to listOf("Kebijakan Privasi", "Ketentuan Penggunaan", "Cara penghapusan data"),
+            "ur" to listOf("رازداری کی پالیسی", "استعمال کی شرائط", "ڈیٹا کیسے حذف ہوتا ہے"),
+            "fr" to listOf("Politique de confidentialité", "Conditions d’utilisation", "Fonctionnement de la suppression"),
+            "es-419" to listOf("Política de privacidad", "Términos de uso", "Cómo se eliminan los datos"),
+            "pt-BR" to listOf("Política de privacidade", "Termos de uso", "Como os dados são excluídos"),
+            "sw" to listOf("Sera ya faragha", "Masharti ya matumizi", "Jinsi data inavyofutwa"),
+            "hi" to listOf("निजता नीति", "उपयोग की शर्तें", "डेटा कैसे मिटाया जाता है"),
+            "bn" to listOf("গোপনীয়তা নীতি", "ব্যবহারের শর্তাবলি", "ডেটা কীভাবে মুছে ফেলা হয়")
+        )
+        val usageBefore = app.analytics.sharing.value
+        val crashBefore = com.hadithly.app.core.diagnostics.CrashReporting.hasConsent
+        compose.setContent { key(locale) { LocalizedPreview(ReaderTheme.LIGHT, locale) {
+            Box(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
+                com.hadithly.app.features.settings.PrivacyDataDestination({})
+            }
+        } } }
+        for ((language, analytics, crash) in listOf(
+            Triple("ar", "شارك إحصاءات أساسية عن التطبيق للمساعدة في تحسين Hadithly. لا تتضمن مطلقًا نصوص قراءتك أو ملاحظاتك أو تفاصيل حسابك. يؤدي إيقاف هذا الخيار إلى مسح الإحصاءات التي تنتظر الإرسال.", "تساعدنا تقارير الأعطال على إصلاح المشكلات. ولا تتضمن مطلقًا نصوص قراءتك أو ملاحظاتك أو تفاصيل حسابك. يؤدي إيقافها إلى مسح التقارير المعلّقة على هذا الجهاز."),
+            Triple("ru", "Делитесь базовой статистикой работы приложения, чтобы помочь улучшить Hadithly. Текст, который вы читаете, ваши заметки и данные аккаунта никогда не включаются. Отключение удаляет статистику, ожидающую отправки.", "Отчёты о сбоях помогают нам исправлять проблемы. Они никогда не содержат текст, который вы читаете, ваши заметки или данные аккаунта. Отключение удаляет ожидающие отправки отчёты на этом устройстве."),
+            Triple("kk", "Hadithly қолданбасын жақсартуға көмектесу үшін қолданбаның негізгі статистикасын бөлісіңіз. Оқитын мәтіндеріңіз, жазбаларыңыз және тіркелгі деректеріңіз ешқашан жіберілмейді. Бұл мүмкіндікті өшірсеңіз, жіберуді күтіп тұрған статистика жойылады.", "Істен шығу туралы есептер ақауларды түзетуге көмектеседі. Оларға сіз оқитын мәтіндер, жазбаларыңыз немесе тіркелгі деректеріңіз ешқашан кірмейді. Өшіру осы құрылғыдағы жіберілуді күтіп тұрған есептерді тазалайды."),
+            Triple("id", "Bagikan statistik dasar aplikasi untuk membantu meningkatkan Hadithly. Teks bacaan, catatan, dan detail akun Anda tidak pernah disertakan. Menonaktifkan opsi ini akan menghapus statistik yang menunggu untuk dikirim.", "Laporan kerusakan membantu kami memperbaiki masalah. Laporan ini tidak pernah menyertakan teks bacaan, catatan, atau detail akun Anda. Menonaktifkannya menghapus laporan yang menunggu dikirim di perangkat ini."),
+            Triple("en", "Share basic app statistics to help improve Hadithly. Your reading text, notes and account details are never included. Turning this off clears pending statistics.", "Crash reports help us fix problems. They never include your reading text, notes or account details. Turning this off clears pending reports on this device."),
+            Triple("ky", "Hadithly тиркемесин жакшыртуу үчүн колдонмонун негизги статистикасын бөлүшүңүз. Сиз окуган текст, жазууларыңыз жана каттоо эсебиңиздин маалыматы эч качан кошулбайт. Бул мүмкүнчүлүктү өчүрсөңүз, жөнөтүүнү күтүп турган статистика тазаланат.", "Иштен чыгуу тууралуу отчеттор көйгөйлөрдү оңдоого жардам берет. Аларда сиз окуган текст, жазууларыңыз же каттоо эсебиңиздин маалыматы эч качан камтылбайт. Өчүрүү бул түзмөктөгү жөнөтүлө элек отчетторду тазалайт."),
+            Triple("uz", "Hadithly ilovasini yaxshilashga yordam berish uchun ilovaning asosiy statistikasini ulashing. Siz oʻqiyotgan matn, qaydlaringiz va hisobingizga oid maʼlumotlar hech qachon kiritilmaydi. Bu imkoniyatni oʻchirish yuborilishni kutayotgan statistikani tozalaydi.", "Nosozlik hisobotlari muammolarni tuzatishimizga yordam beradi. Ularga siz oʻqiyotgan matn, qaydlaringiz yoki hisobingizga oid maʼlumotlar hech qachon kiritilmaydi. Buni oʻchirish ushbu qurilmadagi yuborilishini kutayotgan hisobotlarni tozalaydi."),
+            Triple("tr", "Hadithly uygulamasını iyileştirmeye yardımcı olmak için temel uygulama istatistiklerini paylaşın. Okuduğunuz metinler, notlarınız ve hesap bilgileriniz hiçbir zaman dahil edilmez. Bu seçeneği kapatmak gönderilmeyi bekleyen istatistikleri temizler.", "Çökme raporları sorunları gidermemize yardımcı olur. Okuduğunuz metinleri, notlarınızı veya hesap bilgilerinizi hiçbir zaman içermezler. Kapatıldığında bu cihazda gönderilmeyi bekleyen raporlar silinir."),
+            Triple("ur", "Hadithly کو بہتر بنانے میں مدد کے لیے ایپ کے بنیادی اعداد و شمار شیئر کریں۔ آپ کے پڑھے جانے والے متن، نوٹس اور اکاؤنٹ کی تفصیلات کبھی شامل نہیں ہوتیں۔ اسے بند کرنے سے بھیجے جانے کے منتظر اعداد و شمار صاف ہو جاتے ہیں۔", "کریش رپورٹس مسائل درست کرنے میں ہماری مدد کرتی ہیں۔ ان میں آپ کے پڑھے جانے والے متن، نوٹس یا اکاؤنٹ کی تفصیلات کبھی شامل نہیں ہوتیں۔ اسے بند کرنے سے اس آلے پر بھیجے جانے کے منتظر رپورٹس صاف ہو جاتی ہیں۔"),
+            Triple("fr", "Partagez des statistiques de base sur l’application pour aider à améliorer Hadithly. Le texte que vous lisez, vos notes et les détails de votre compte ne sont jamais inclus. La désactivation efface les statistiques en attente d’envoi.", "Les rapports de plantage nous aident à corriger les problèmes. Ils ne contiennent jamais le texte que vous lisez, vos notes ni les détails de votre compte. La désactivation efface les rapports en attente sur cet appareil."),
+            Triple("es-419", "Comparte estadísticas básicas de la app para ayudar a mejorar Hadithly. Nunca se incluyen el texto que lees, tus notas ni los datos de tu cuenta. Al desactivar esta opción, se borran las estadísticas pendientes de envío.", "Los informes de cierres inesperados nos ayudan a solucionar problemas. Nunca incluyen el texto que lees, tus notas ni los datos de tu cuenta. Desactivar esta opción borra los informes pendientes de este dispositivo."),
+            Triple("pt-BR", "Compartilhe estatísticas básicas do aplicativo para ajudar a melhorar o Hadithly. O texto que você lê, suas notas e os dados da sua conta nunca são incluídos. Desativar esta opção limpa as estatísticas pendentes de envio.", "Os relatórios de falhas nos ajudam a corrigir problemas. Eles nunca incluem o texto que você lê, suas notas ou os dados da sua conta. Desativar essa opção apaga os relatórios pendentes neste dispositivo."),
+            Triple("sw", "Shiriki takwimu za msingi za programu ili kusaidia kuboresha Hadithly. Maandishi unayosoma, madokezo yako na maelezo ya akaunti yako hayajumuishwi kamwe. Kuzima chaguo hili hufuta takwimu zinazosubiri kutumwa.", "Ripoti za hitilafu hutusaidia kurekebisha matatizo. Hazijumuishi kamwe maandishi unayosoma, madokezo yako au maelezo ya akaunti yako. Kuzima chaguo hili hufuta ripoti zinazosubiri kutumwa kwenye kifaa hiki."),
+            Triple("hi", "Hadithly को बेहतर बनाने में मदद के लिए ऐप के बुनियादी आँकड़े साझा करें। आपके पढ़े जाने वाले पाठ, नोट्स और खाते की जानकारी कभी शामिल नहीं होती। इसे बंद करने पर भेजे जाने की प्रतीक्षा कर रहे आँकड़े मिट जाते हैं।", "क्रैश रिपोर्ट हमें समस्याएँ ठीक करने में मदद करती हैं। इनमें आपके पढ़े जाने वाले पाठ, नोट्स या खाते की जानकारी कभी शामिल नहीं होती। इसे बंद करने से इस डिवाइस पर भेजे जाने की प्रतीक्षा कर रही रिपोर्ट मिट जाती हैं।"),
+            Triple("bn", "Hadithly উন্নত করতে সাহায্য করার জন্য অ্যাপের মৌলিক পরিসংখ্যান শেয়ার করুন। আপনি যে লেখা পড়ছেন, আপনার নোট ও অ্যাকাউন্টের তথ্য কখনো অন্তর্ভুক্ত হয় না। এটি বন্ধ করলে পাঠানোর অপেক্ষায় থাকা পরিসংখ্যান মুছে যায়।", "ক্র্যাশ রিপোর্ট আমাদের সমস্যা ঠিক করতে সাহায্য করে। এতে আপনি যে লেখা পড়ছেন, আপনার নোট বা অ্যাকাউন্টের তথ্য কখনো অন্তর্ভুক্ত হয় না। এটি বন্ধ করলে এই ডিভাইসে পাঠানোর অপেক্ষায় থাকা রিপোর্ট মুছে যায়।"),
+        )) {
+            compose.runOnIdle { locale = language }
+            compose.onNodeWithText(analytics).performScrollTo().assertIsDisplayed()
+            compose.onNodeWithText(crash).performScrollTo().assertIsDisplayed()
+            capture("privacy-disclosures-" + language)
+            for (title in policyLabels.getValue(language)) compose.onNodeWithText(title).performScrollTo().assertIsDisplayed().assertHeightIsAtLeast(48.dp)
+            capture("privacy-policies-" + language)
+        }
+        compose.runOnIdle {
+            assertEquals(usageBefore, app.analytics.sharing.value)
+            assertEquals(crashBefore, com.hadithly.app.core.diagnostics.CrashReporting.hasConsent)
+        }
+    }
+
     @Test fun contentsGuidanceAndValidationLocalizeAtRuntime() {
         var locale by mutableStateOf("ar")
         compose.setContent { key(locale) { LocalizedPreview(ReaderTheme.LIGHT, locale) {
@@ -482,8 +539,7 @@ private fun LocalizedPreview(theme: ReaderTheme, locale: String = "en", content:
     val context = androidx.compose.ui.platform.LocalContext.current
     val configuration = android.content.res.Configuration(androidx.compose.ui.platform.LocalConfiguration.current).apply { setLocale(java.util.Locale.forLanguageTag(locale)); setLayoutDirection(java.util.Locale.forLanguageTag(locale)) }
     val localized = context.createConfigurationContext(configuration)
-    CompositionLocalProvider(androidx.compose.ui.platform.LocalContext provides localized,
-        androidx.compose.ui.platform.LocalConfiguration provides configuration,
+    CompositionLocalProvider(androidx.compose.ui.platform.LocalConfiguration provides configuration,
         androidx.compose.ui.platform.LocalResources provides localized.resources,
         LocalLayoutDirection provides if (LocaleFallback.isRTL(locale)) LayoutDirection.Rtl else LayoutDirection.Ltr) { HadithlyTheme(theme, content) }
 }

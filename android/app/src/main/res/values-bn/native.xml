@@ -188,4 +188,11 @@
     <string name="native_c6e7ce247beb" formatted="false">57 বা 4.5-এর মতো হাদিস নম্বর লিখুন।</string>
     <string name="native_562f06676a2c" formatted="false">হাদিস নম্বরে যান, যেমন ৫৭।</string>
     <string name="native_53a480e304c0" formatted="false">খণ্ড</string>
+    <string name="native_fba6263be0f6" formatted="false">Hadithly উন্নত করতে সাহায্য করার জন্য অ্যাপের মৌলিক পরিসংখ্যান শেয়ার করুন। আপনি যে লেখা পড়ছেন, আপনার নোট ও অ্যাকাউন্টের তথ্য কখনো অন্তর্ভুক্ত হয় না। এটি বন্ধ করলে পাঠানোর অপেক্ষায় থাকা পরিসংখ্যান মুছে যায়।</string>
+    <string name="native_ee2e3b7fe3e2" formatted="false">ক্র্যাশ রিপোর্ট আমাদের সমস্যা ঠিক করতে সাহায্য করে। এতে আপনি যে লেখা পড়ছেন, আপনার নোট বা অ্যাকাউন্টের তথ্য কখনো অন্তর্ভুক্ত হয় না। এটি বন্ধ করলে এই ডিভাইসে পাঠানোর অপেক্ষায় থাকা রিপোর্ট মুছে যায়।</string>
+    <string name="native_d3ad1f1f8c9c" formatted="false">নীতিমালা</string>
+    <string name="native_2ffb8f52f5a9" formatted="false">আপনার প্রোফাইল, সেটিংস, সংরক্ষিত আইটেম, ফোল্ডার, পড়ার অগ্রগতি ও অবদান ডাউনলোড করুন। অতিথির ডেটা এই ডিভাইসেই থাকে।</string>
+    <string name="native_506ff3946215" formatted="false">গোপনীয়তা নীতি</string>
+    <string name="native_12a0015fa322" formatted="false">ব্যবহারের শর্তাবলি</string>
+    <string name="native_c79509dcb6e9" formatted="false">ডেটা কীভাবে মুছে ফেলা হয়</string>
 </resources>

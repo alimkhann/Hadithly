@@ -20,7 +20,7 @@
     <string name="la2_continue">Lanjutkan</string>
     <string name="la2_back" formatted="false">Kembali</string>
     <string name="la2_skip">Lewati</string>
-    <string name="la2_usage">Bagikan statistik penggunaan privat</string>
+    <string name="la2_usage" formatted="false">Bagikan statistik penggunaan privat</string>
     <string name="la2_usage_explanation">Hasil agregat dikirim melalui Convex ke PostHog EU. Tanpa teks bacaan, target, identitas akun atau perangkat. Menonaktifkan menghapus statistik tertunda. Total yang diterbitkan tidak mengidentifikasi Anda.</string>
     <string name="la2_more_translations">Lebih banyak terjemahan AI</string>
     <string name="la2_allowance">5 terjemahan baru gratis atau 100 dengan Pro dalam 7 hari berjalan. Terjemahan yang disetujui dan tersimpan tetap gratis.</string>

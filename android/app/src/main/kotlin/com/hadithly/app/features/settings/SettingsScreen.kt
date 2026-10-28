@@ -1009,7 +1009,7 @@ private fun SubscriptionDestination() {
 // ── Privacy & data (export + deletion) ─────────────────────────────────────
 
 @Composable
-private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
+internal fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
     val app = rememberApp()
     val colors = LocalHadithlyColors.current
     val uriHandler = LocalUriHandler.current
@@ -1076,11 +1076,11 @@ private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
                     .toggleable(value = usageSharing, role = androidx.compose.ui.semantics.Role.Switch,
                         onValueChange = { app.analytics.setSharing(it) }).testTag("settings.usageStatistics")) {
-                Text(nativeText("Share anonymous usage details"), modifier = Modifier.weight(1f), color = colors.textPrimary)
+                Text(stringResource(R.string.la2_usage), modifier = Modifier.weight(1f), color = colors.textPrimary)
                 Switch(checked = usageSharing, onCheckedChange = null,
                     colors = SwitchDefaults.colors(checkedTrackColor = colors.interactive))
             }
-            Text(nativeText("This helps us understand how the app is used. It does not include what you read or your account details. You can turn it off at any time."), color = colors.textSecondary)
+            Text(nativeText("Share basic app statistics to help improve Hadithly. Your reading text, notes and account details are never included. Turning this off clears pending statistics."), color = colors.textSecondary)
         }
         CardColumn {
             Row(verticalAlignment = Alignment.CenterVertically,
@@ -1094,12 +1094,12 @@ private fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
                 Switch(checked = crashConsent, onCheckedChange = null,
                     colors = SwitchDefaults.colors(checkedTrackColor = colors.interactive))
             }
-            Text(nativeText("Optional. Sends redacted crash details and app version so we can fix problems. Reports do not include reading text or account details. Turning this off clears reports waiting to send."), fontSize = 14.sp, color = colors.textSecondary)
+            Text(nativeText("Crash reports help us fix problems. They never include your reading text, notes or account details. Turning this off clears pending reports on this device."), fontSize = 14.sp, color = colors.textSecondary)
         }
         CardColumn {
             Text(nativeText("Your data"), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
             if (signedIn) {
-                Text(nativeText("Export your profile, preferences, Saved items, folders, reading progress, and your own contributions as a file."), fontSize = 14.sp, color = colors.textSecondary)
+                Text(nativeText("Download your profile, settings, saved items, folders, reading progress and contributions. Guest data stays on this device."), fontSize = 14.sp, color = colors.textSecondary)
                 Button(
                     enabled = !exporting,
                     onClick = {
@@ -1221,9 +1221,9 @@ private fun PolicyRow(title: String, onClick: () -> Unit, modifier: Modifier = M
     val colors = LocalHadithlyColors.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 8.dp),
+        modifier = modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(onClick = onClick).padding(vertical = 8.dp),
     ) {
-        Text(title, fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
+        Text(nativeText(title), fontSize = 14.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
         Icon(Icons.AutoMirrored.Filled.OpenInNew, null, tint = colors.textSecondary, modifier = Modifier.size(16.dp))
     }
 }

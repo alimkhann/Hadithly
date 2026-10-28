@@ -28,6 +28,12 @@ class PlaceholderAuditTests(unittest.TestCase):
         self.assertEqual([row['value'] for row in rows], ['Contents', 'Empty', 'Saved'])
         self.assertEqual([row['category'] for row in rows], ['missing-catalog-key', 'missing-catalog-key', 'catalog-backed-runtime-unverified'])
 
+    def test_runtime_inventory_includes_policy_link_wrappers(self):
+        swift = audit.runtime_literal_candidates('SettingsLinkRow(title: "Privacy Policy", subtitle: nil)', 'ios', {'Privacy Policy'})
+        kotlin = audit.runtime_literal_candidates('PolicyRow(title = "Privacy Policy", onClick = {})', 'android', {'Privacy Policy'})
+        self.assertEqual(swift[0]['category'], 'catalog-backed-runtime-unverified')
+        self.assertEqual(kotlin[0]['category'], 'catalog-backed-runtime-unverified')
+
     def ios_failures(self, english, arabic):
         with tempfile.TemporaryDirectory() as directory:
             catalog = Path(directory) / 'Localizable.xcstrings'

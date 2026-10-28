@@ -20,7 +20,7 @@
     <string name="la2_continue">جاری رکھیں</string>
     <string name="la2_back" formatted="false">واپس</string>
     <string name="la2_skip">چھوڑ دیں</string>
-    <string name="la2_usage">نجی استعمال کے اعدادوشمار شیئر کریں</string>
+    <string name="la2_usage" formatted="false">نجی استعمال کے اعدادوشمار شیئر کریں</string>
     <string name="la2_usage_explanation">مجموعی نتائج Convex کے ذریعے PostHog EU کو بھیجے جاتے ہیں۔ متن، حدیث کا ہدف، اکاؤنٹ یا آلے کی شناخت نہیں۔ بند کرنے سے زیر التوا اعدادوشمار مٹ جاتے ہیں۔ شائع شدہ مجموعے آپ کو شناخت نہیں کرتے۔</string>
     <string name="la2_more_translations">مزید AI ترجمے</string>
     <string name="la2_allowance">گزشتہ مسلسل 7 دنوں میں 5 مفت یا Pro کے ساتھ 100 نئے ترجمے۔ منظور شدہ اور محفوظ ترجمے مفت رہتے ہیں۔</string>

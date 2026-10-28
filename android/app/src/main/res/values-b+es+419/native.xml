@@ -188,4 +188,11 @@
     <string name="native_c6e7ce247beb" formatted="false">Ingresa un número de hadiz como 57 o 4.5.</string>
     <string name="native_562f06676a2c" formatted="false">Ir al número de hadiz, por ejemplo, 57.</string>
     <string name="native_53a480e304c0" formatted="false">VOLÚMENES</string>
+    <string name="native_fba6263be0f6" formatted="false">Comparte estadísticas básicas de la app para ayudar a mejorar Hadithly. Nunca se incluyen el texto que lees, tus notas ni los datos de tu cuenta. Al desactivar esta opción, se borran las estadísticas pendientes de envío.</string>
+    <string name="native_ee2e3b7fe3e2" formatted="false">Los informes de cierres inesperados nos ayudan a solucionar problemas. Nunca incluyen el texto que lees, tus notas ni los datos de tu cuenta. Desactivar esta opción borra los informes pendientes de este dispositivo.</string>
+    <string name="native_d3ad1f1f8c9c" formatted="false">Políticas</string>
+    <string name="native_2ffb8f52f5a9" formatted="false">Descarga tu perfil, configuración, elementos guardados, carpetas, progreso de lectura y contribuciones. Los datos de invitado permanecen en este dispositivo.</string>
+    <string name="native_506ff3946215" formatted="false">Política de privacidad</string>
+    <string name="native_12a0015fa322" formatted="false">Términos de uso</string>
+    <string name="native_c79509dcb6e9" formatted="false">Cómo se eliminan los datos</string>
 </resources>

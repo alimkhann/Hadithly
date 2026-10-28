@@ -20,7 +20,7 @@
     <string name="la2_continue">जारी रखें</string>
     <string name="la2_back" formatted="false">वापस</string>
     <string name="la2_skip">छोड़ें</string>
-    <string name="la2_usage">निजी उपयोग आँकड़े साझा करें</string>
+    <string name="la2_usage" formatted="false">निजी उपयोग आँकड़े साझा करें</string>
     <string name="la2_usage_explanation">Convex के माध्यम से PostHog EU के साथ समूहित परिणाम साझा करता है। पढ़ने का पाठ, लक्ष्य, खाता या उपकरण की पहचान नहीं भेजी जाती। बंद करने पर लंबित आँकड़े हट जाते हैं। प्रकाशित कुल आपको पहचान नहीं सकते।</string>
     <string name="la2_more_translations">और AI अनुवाद</string>
     <string name="la2_allowance">लगातार 7 दिनों में 5 नए अनुवाद मुफ़्त या Pro के साथ 100। स्वीकृत और कैश किए गए अनुवाद मुफ़्त रहते हैं।</string>

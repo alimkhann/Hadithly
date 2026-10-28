@@ -2,8 +2,8 @@
   "scope": "Lexical UI-call candidates only. Variable/conditional arguments, custom wrappers, String-backed models, resources and server text still require source and runtime review. Catalog-backed entries are not claimed localized.",
   "counts": {
     "debug-fixture": 23,
-    "catalog-backed-runtime-unverified": 465,
-    "missing-catalog-key": 50,
+    "catalog-backed-runtime-unverified": 477,
+    "missing-catalog-key": 52,
     "example-or-symbol-review": 6,
     "dynamic-review": 28,
     "direct-literal-review": 7,
@@ -77,7 +77,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Core/Theme/NativePolishFixtureView.swift",
-      "line": 33,
+      "line": 34,
       "call": "Text",
       "value": "Reading is ready",
       "category": "debug-fixture"
@@ -2695,7 +2695,7 @@
       "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
       "line": 1007,
       "call": "Text",
-      "value": "Crash reports help us fix problems. They never include your reading text, notes or account details. You can turn them off at any time.",
+      "value": "Crash reports help us fix problems. They never include your reading text, notes or account details. Turning this off clears pending reports on this device.",
       "category": "catalog-backed-runtime-unverified"
     },
     {
@@ -2736,7 +2736,31 @@
       "line": 1042,
       "call": "Section",
       "value": "Policies",
-      "category": "missing-catalog-key"
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1043,
+      "call": "SettingsLinkRow",
+      "value": "Privacy Policy",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1049,
+      "call": "SettingsLinkRow",
+      "value": "Terms of Use",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1055,
+      "call": "SettingsLinkRow",
+      "value": "How deletion works",
+      "category": "catalog-backed-runtime-unverified"
     },
     {
       "platform": "ios",
@@ -2817,6 +2841,30 @@
       "call": "Button",
       "value": "OK",
       "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1199,
+      "call": "SettingsLinkRow",
+      "value": "FAQ & guides",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1205,
+      "call": "SettingsLinkRow",
+      "value": "Contact support",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1212,
+      "call": "SettingsLinkRow",
+      "value": "Report a translation issue",
+      "category": "missing-catalog-key"
     },
     {
       "platform": "ios",
@@ -4445,26 +4493,18 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
-      "line": 1079,
-      "call": "nativeText",
-      "value": "Share anonymous usage details",
-      "category": "missing-native-mapping"
-    },
-    {
-      "platform": "android",
-      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
       "line": 1083,
       "call": "nativeText",
-      "value": "This helps us understand how the app is used. It does not include what you read or your account details. You can turn it off at any time.",
-      "category": "missing-native-mapping"
+      "value": "Share basic app statistics to help improve Hadithly. Your reading text, notes and account details are never included. Turning this off clears pending statistics.",
+      "category": "catalog-backed-runtime-unverified"
     },
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
       "line": 1097,
       "call": "nativeText",
-      "value": "Optional. Sends redacted crash details and app version so we can fix problems. Reports do not include reading text or account details. Turning this off clears reports waiting to send.",
-      "category": "missing-native-mapping"
+      "value": "Crash reports help us fix problems. They never include your reading text, notes or account details. Turning this off clears pending reports on this device.",
+      "category": "catalog-backed-runtime-unverified"
     },
     {
       "platform": "android",
@@ -4479,8 +4519,8 @@
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
       "line": 1102,
       "call": "nativeText",
-      "value": "Export your profile, preferences, Saved items, folders, reading progress, and your own contributions as a file.",
-      "category": "missing-native-mapping"
+      "value": "Download your profile, settings, saved items, folders, reading progress and contributions. Guest data stays on this device.",
+      "category": "catalog-backed-runtime-unverified"
     },
     {
       "platform": "android",
@@ -4496,6 +4536,30 @@
       "line": 1123,
       "call": "nativeText",
       "value": "Sign in",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1127,
+      "call": "PolicyRow",
+      "value": "Privacy Policy",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1128,
+      "call": "PolicyRow",
+      "value": "Terms of Use",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1129,
+      "call": "PolicyRow",
+      "value": "How deletion works",
       "category": "catalog-backed-runtime-unverified"
     },
     {
@@ -4573,10 +4637,42 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1240,
+      "call": "PolicyRow",
+      "value": "FAQ & guides",
+      "category": "missing-native-mapping"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1241,
+      "call": "PolicyRow",
+      "value": "Contact support",
+      "category": "missing-native-mapping"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1254,
+      "call": "PolicyRow",
+      "value": "Report a translation issue",
+      "category": "missing-native-mapping"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
       "line": 1265,
       "call": "nativeText",
       "value": "Include the collection and hadith number.",
       "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1266,
+      "call": "PolicyRow",
+      "value": "Share Hadithly",
+      "category": "missing-native-mapping"
     },
     {
       "platform": "android",
@@ -4600,6 +4696,22 @@
       "line": 1294,
       "call": "nativeText",
       "value": "A quiet reader for the seven major hadith collections. Arabic text is licensed from its sources; AI translations are always labeled.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1300,
+      "call": "PolicyRow",
+      "value": "Privacy Policy",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1301,
+      "call": "PolicyRow",
+      "value": "Terms of Use",
       "category": "catalog-backed-runtime-unverified"
     },
     {

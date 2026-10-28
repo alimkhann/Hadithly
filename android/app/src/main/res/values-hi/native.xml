@@ -188,4 +188,11 @@
     <string name="native_c6e7ce247beb" formatted="false">57 या 4.5 जैसा हदीस नंबर दर्ज करें।</string>
     <string name="native_562f06676a2c" formatted="false">हदीस संख्या पर जाएँ, जैसे 57।</string>
     <string name="native_53a480e304c0" formatted="false">खंड</string>
+    <string name="native_fba6263be0f6" formatted="false">Hadithly को बेहतर बनाने में मदद के लिए ऐप के बुनियादी आँकड़े साझा करें। आपके पढ़े जाने वाले पाठ, नोट्स और खाते की जानकारी कभी शामिल नहीं होती। इसे बंद करने पर भेजे जाने की प्रतीक्षा कर रहे आँकड़े मिट जाते हैं।</string>
+    <string name="native_ee2e3b7fe3e2" formatted="false">क्रैश रिपोर्ट हमें समस्याएँ ठीक करने में मदद करती हैं। इनमें आपके पढ़े जाने वाले पाठ, नोट्स या खाते की जानकारी कभी शामिल नहीं होती। इसे बंद करने से इस डिवाइस पर भेजे जाने की प्रतीक्षा कर रही रिपोर्ट मिट जाती हैं।</string>
+    <string name="native_d3ad1f1f8c9c" formatted="false">नीतियाँ</string>
+    <string name="native_2ffb8f52f5a9" formatted="false">अपनी प्रोफ़ाइल, सेटिंग्स, सहेजे गए आइटम, फ़ोल्डर, पढ़ने की प्रगति और योगदान डाउनलोड करें। अतिथि का डेटा इसी डिवाइस पर रहता है।</string>
+    <string name="native_506ff3946215" formatted="false">निजता नीति</string>
+    <string name="native_12a0015fa322" formatted="false">उपयोग की शर्तें</string>
+    <string name="native_c79509dcb6e9" formatted="false">डेटा कैसे मिटाया जाता है</string>
 </resources>

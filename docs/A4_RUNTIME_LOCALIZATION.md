@@ -175,3 +175,55 @@ auth field labels and remaining Saved/Reader accessibility labels. Some native
 mapper findings may be prepared examples or superseded text; inspect each caller
 before changing a content/provenance claim. The report is a candidate list, not
 an instruction to translate user notes, provider citations or source titles.
+
+## Privacy disclosures, October 28
+
+Android privacy source used unmapped English analytics/crash phrases and an
+unmapped authenticated-export description. Its label also said “anonymous usage” while iOS uses the existing private
+usage-statistics label. Android now resolves the same label and disclosure wording
+as iOS. Both crash footers explicitly retain the exclusion of reading text, notes
+and account details, and explain clearing pending reports on this device. The
+existing analytics and diagnostics implementations retain their defaults, consent
+setters, serialized allowlists, collection, queue and retention behavior.
+
+`a4-privacy-copy.json` contains seven scoped keys. Two are the earlier incoming
+analytics/export paragraph drafts, now explicitly staged by key without changing
+their working text. The crash paragraph, Policies heading and three policy-link labels are new
+local GPT-family drafts. `a4-privacy-aliases.json` reuses the indexed `la2.usage` copy for
+Android. The new paragraph avoids adding a server-retention claim. All non-English
+copy still requires native review. Other incoming catalog/project bytes remain
+preserved; the whole catalog is never staged.
+
+The Android missing-Arabic-disclosure check failed before the resource binding.
+Actual privacy pages now pass all fifteen locales on both platforms, including
+unchanged consent readbacks. The final policy-label reruns also check link
+reachability and Android touch height. Android's Contents test also passes all fifteen
+locales after the test-host correction. Evidence is in
+`verification/a4-localization/privacy.json`, selected captures and their complete
+60-capture manifest. No consent toggle, export, provider setting, publication or
+account action was performed. Authenticated export/deletion flows, live telemetry
+and published-policy acceptance remain their separate gates.
+
+Two fixture issues were corrected. Android's localized test wrapper replaced the
+Activity context with a configuration context, hiding the Activity Result owner
+needed to register the export launcher. It now follows MainActivity and overrides
+resources/configuration while retaining the real Activity. iOS XCTest rejects
+identifier-style queries over 128 characters; full paragraphs now use exact-label
+predicates. These failures are retained separately from the product lookup defect.
+
+The full audit still reports six Arabic zero/dual formatter findings. The next
+reader-settings pass must also remove the confirmed unconditional native reader-settings
+caption on both platforms claiming that AI translations are grounded in cited sources. The real A3
+path has no eligible published comparison content in the last verified development
+inventory. Keep source names/citations and prepared content distinct from UI copy.
+Continue appearance, auth, accessibility, widgets/notifications and the remaining
+A4–A7/E program. This unit closes no full localization, native-review, privacy,
+physical-device, content or release gate.
+
+Capture review found policy-link labels still in English because both shared link
+rows displayed plain title strings and the three labels had no catalog entries.
+iOS link titles now carry localized keys, while Android resolves them through
+`nativeText`. Their destinations remain the same. Android's policy rows also use
+the existing 48 dp minimum target convention. The final checks inspect all three
+labels without opening any URL. The lexical audit now recognizes these link-row
+wrappers so their remaining Help/About labels are not silently omitted.

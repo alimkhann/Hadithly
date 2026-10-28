@@ -20,7 +20,7 @@
     <string name="la2_continue">Devam edin</string>
     <string name="la2_back" formatted="false">Geri</string>
     <string name="la2_skip">Atlayın</string>
-    <string name="la2_usage">Özel kullanım istatistiklerini paylaş</string>
+    <string name="la2_usage" formatted="false">Özel kullanım istatistiklerini paylaş</string>
     <string name="la2_usage_explanation">Toplu sonuçlar Convex üzerinden PostHog EU ile paylaşılır. Okuma metni, hedefler, hesap veya cihaz kimliği gönderilmez. Kapatmak bekleyen istatistikleri siler. Yayımlanan toplamlar sizi tanımlamaz.</string>
     <string name="la2_more_translations">Daha fazla yapay zekâ çevirisi</string>
     <string name="la2_allowance">Son 7 günde ücretsiz 5 veya Pro ile 100 yeni çeviri. Onaylı ve önbellekteki çeviriler ücretsizdir.</string>

@@ -20,7 +20,7 @@
     <string name="la2_continue">চালিয়ে যান</string>
     <string name="la2_back" formatted="false">পিছনে</string>
     <string name="la2_skip">এড়িয়ে যান</string>
-    <string name="la2_usage">ব্যক্তিগত ব্যবহার পরিসংখ্যান শেয়ার করুন</string>
+    <string name="la2_usage" formatted="false">ব্যক্তিগত ব্যবহার পরিসংখ্যান শেয়ার করুন</string>
     <string name="la2_usage_explanation">Convex-এর মাধ্যমে PostHog EU-এর সঙ্গে সমষ্টিগত ফলাফল শেয়ার করে। পড়ার লেখা, লক্ষ্য, অ্যাকাউন্ট বা ডিভাইসের পরিচয় পাঠানো হয় না। বন্ধ করলে অপেক্ষমাণ পরিসংখ্যান মুছে যায়। প্রকাশিত মোট আপনাকে শনাক্ত করতে পারে না।</string>
     <string name="la2_more_translations">আরও AI অনুবাদ</string>
     <string name="la2_allowance">চলমান ৭ দিনে ৫টি নতুন অনুবাদ বিনামূল্যে, অথবা Pro-তে ১০০টি। অনুমোদিত ও ক্যাশ করা অনুবাদ বিনামূল্যে থাকে।</string>

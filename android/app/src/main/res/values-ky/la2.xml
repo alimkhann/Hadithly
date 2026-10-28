@@ -20,7 +20,7 @@
     <string name="la2_continue">Улантуу</string>
     <string name="la2_back" formatted="false">Артка</string>
     <string name="la2_skip">Өткөрүп жиберүү</string>
-    <string name="la2_usage">Жеке колдонуу статистикасын бөлүшүү</string>
+    <string name="la2_usage" formatted="false">Жеке колдонуу статистикасын бөлүшүү</string>
     <string name="la2_usage_explanation">Топтолгон жыйынтыктар Convex аркылуу PostHog EU менен бөлүшүлөт. Окуу тексти, максаттар, аккаунт же түзмөк аныктагычы жөнөтүлбөйт. Өчүрүү күтүлүп жаткан статистиканы тазалайт. Жарыяланган жыйынтыктар сизди аныктай албайт.</string>
     <string name="la2_more_translations">Көбүрөөк AI котормолору</string>
     <string name="la2_allowance">Жылып турган 7 күндө 5 жаңы котормо акысыз же Pro менен 100. Бекитилген жана кэштелген котормолор акысыз бойдон калат.</string>

@@ -1,0 +1,101 @@
+{
+  "ios": {
+    "runs": [
+      {
+        "bundle": "hadithly-a4-privacy-green-ios.xcresult",
+        "startTime": 1793189143.785,
+        "result": "Failed",
+        "passedTests": 0,
+        "failedTests": 1,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-privacy-final-ios.xcresult",
+        "startTime": 1793189281.874,
+        "result": "Passed",
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-privacy-policies-ios.xcresult",
+        "startTime": 1793189932.224,
+        "result": "Passed",
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0
+      }
+    ],
+    "latestCases": {
+      "HadithlyUITests/VisualPolishUITests/testPrivacyDisclosuresRenderInEveryLocaleWithoutChangingConsent()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-privacy-policies-ios.xcresult"
+      }
+    },
+    "latestCounts": {
+      "Passed": 1
+    }
+  },
+  "android": {
+    "ui": {
+      "counts": {
+        "Passed": 2
+      },
+      "cases": {
+        "com.hadithly.app.core.theme.NativeFinishingTest/contentsGuidanceAndValidationLocalizeAtRuntime": "Passed",
+        "com.hadithly.app.core.theme.NativeFinishingTest/privacyDisclosuresRenderInEveryLocaleWithoutChangingConsent": "Passed"
+      },
+      "runs": [
+        {
+          "phase": "disclosures-and-unchanged-Contents-regression",
+          "counts": {
+            "Passed": 2
+          },
+          "cases": {
+            "com.hadithly.app.core.theme.NativeFinishingTest/contentsGuidanceAndValidationLocalizeAtRuntime": "Passed",
+            "com.hadithly.app.core.theme.NativeFinishingTest/privacyDisclosuresRenderInEveryLocaleWithoutChangingConsent": "Passed"
+          },
+          "reports": [
+            {
+              "file": "TEST-hadithly(AVD) - 16-_app-.xml",
+              "sha256": "c8e6268857b09035a93ef1dcce76164ca9f4841f64e7181933fffab775f46902"
+            }
+          ]
+        },
+        {
+          "phase": "final-disclosures-and-policy-labels",
+          "counts": {
+            "Passed": 1
+          },
+          "cases": {
+            "com.hadithly.app.core.theme.NativeFinishingTest/privacyDisclosuresRenderInEveryLocaleWithoutChangingConsent": "Passed"
+          },
+          "reports": [
+            {
+              "file": "TEST-hadithly(AVD) - 16-_app-.xml",
+              "sha256": "f5a9ffc145fcbcd1652871693adc100a049f7b28a430eb95d280a44316359266"
+            }
+          ]
+        }
+      ]
+    },
+    "history": [
+      {
+        "label": "missing-Arabic-binding-before-repair",
+        "files": [
+          {
+            "file": "TEST-hadithly(AVD) - 16-_app-.xml",
+            "sha256": "f356c056d94286befd412ce48a416c8b5e46fa5bebb1df3056c2e7277442e5e8"
+          }
+        ],
+        "cases": [
+          {
+            "name": "privacyDisclosuresRenderInEveryLocaleWithoutChangingConsent",
+            "result": "Failed",
+            "message": ""
+          }
+        ]
+      }
+    ]
+  }
+}

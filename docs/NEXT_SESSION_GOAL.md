@@ -22,6 +22,17 @@ browser explanation now pass local native checks. Continue C1 and C2/C3/C7
 verification before D. C8 adds only one scoped catalog entry, preserving all
 incoming catalog bytes. External OAuth and native-copy approval remain open.
 
+## A4 privacy copy checkpoint, October 28
+
+Privacy disclosures and policy links now resolve localized resources on both
+apps. All fifteen locales pass with consent states unchanged. Two earlier
+incoming analytics/export drafts are committed explicitly by key; other incoming
+bytes are preserved. See `A4_RUNTIME_LOCALIZATION.md`. Native-copy review,
+authenticated export/deletion, published-policy, device and release gates remain
+open. Continue the reader-settings caption on both platforms that still claims
+unconditional AI grounding, then appearance/auth/accessibility and the remaining
+A4–A7/E work. No telemetry configuration, account, paid call or publication changed.
+
 ## A4 Contents and Undo checkpoint, October 28
 
 Contents guidance and inline validation now resolve localized keys on both apps.

@@ -20,7 +20,7 @@
     <string name="la2_continue">متابعة</string>
     <string name="la2_back" formatted="false">رجوع</string>
     <string name="la2_skip">تخطي</string>
-    <string name="la2_usage">مشاركة إحصاءات الاستخدام الخاصة</string>
+    <string name="la2_usage" formatted="false">مشاركة إحصاءات الاستخدام الخاصة</string>
     <string name="la2_usage_explanation">يشارك النتائج المجمّعة عبر Convex مع PostHog EU، دون نصوص القراءة أو المراجع أو هوية الحساب والجهاز. التعطيل يمسح الإحصاءات المعلّقة. المجاميع المنشورة لا تحدد هويتك.</string>
     <string name="la2_more_translations">المزيد من ترجمات الذكاء الاصطناعي</string>
     <string name="la2_allowance">5 ترجمات جديدة مجانًا أو 100 مع Pro خلال آخر 7 أيام. الترجمات المعتمدة والمخزنة تبقى مجانية.</string>
