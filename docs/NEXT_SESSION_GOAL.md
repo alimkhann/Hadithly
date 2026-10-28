@@ -22,6 +22,18 @@ browser explanation now pass local native checks. Continue C1 and C2/C3/C7
 verification before D. C8 adds only one scoped catalog entry, preserving all
 incoming catalog bytes. External OAuth and native-copy approval remain open.
 
+## A4 count and backend-notification checkpoint, October 29
+
+Both native count paths now render fifteen-locale drafts, including Arabic and
+Russian plural categories. iOS accessibility announces the correct singular.
+Three latest iOS and four Android cases pass, including 240 compiled iOS count
+comparisons and 32 Android Arabic/Russian boundary comparisons. The audit accepts
+only exact recorded Arabic implicit-count forms; with drafts allowed it reports
+zero structural failures. Native review and full A4 remain open. Backend
+notification review required no code change; 35 local tests pass without delivery.
+See `A4_RUNTIME_LOCALIZATION.md`. Next inspect dynamic templates, page-control
+labels and error copy, then A5–A7/E. Incoming bytes remain preserved.
+
 ## A4 widget and notification checkpoint, October 29
 
 Daily and Continue widget interface copy now has shared fifteen-locale drafts,

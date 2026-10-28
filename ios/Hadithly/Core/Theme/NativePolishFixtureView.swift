@@ -27,6 +27,7 @@ struct NativePolishFixtureView: View {
                     case "saved-audit": SavedCopyAuditFixture()
                     case "reader-translation-settings": ReaderPreferenceDetail(panel: .translation, prefix: "settings")
                     case "app-appearance": AppearanceView()
+                    case "app-language": AppLanguageView()
                     case "privacy": PrivacyDataView(showSignIn: .constant(false))
                     case "saved-undo":
                         VStack {

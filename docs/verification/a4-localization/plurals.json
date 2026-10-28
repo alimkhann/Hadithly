@@ -1,0 +1,66 @@
+{
+  "ios": {
+    "runs": [
+      {
+        "bundle": "hadithly-a4-count-red-ios.xcresult",
+        "startTime": 1793214794.22,
+        "result": "Failed",
+        "passedTests": 0,
+        "failedTests": 1,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-count-unit-ios.xcresult",
+        "startTime": 1793214907.459,
+        "result": "Passed",
+        "passedTests": 2,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-count-render-ios.xcresult",
+        "startTime": 1793215009.944,
+        "result": "Passed",
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0
+      }
+    ],
+    "latestCases": {
+      "HadithlyUITests/ReaderR6AUITests/testAbsoluteEndsHaveNoOutwardPill()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-count-unit-ios.xcresult"
+      },
+      "HadithlyTests/LocalizationCatalogTests/testCompiledCountCategoriesMatchScopedDraftsInEveryLocale()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-count-unit-ios.xcresult"
+      },
+      "HadithlyUITests/VisualPolishUITests/testReaderCountsAndLanguageTotalRenderInEveryLocale()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-count-render-ios.xcresult"
+      }
+    },
+    "latestCounts": {
+      "Passed": 3
+    }
+  },
+  "android": {
+    "ui": {
+      "counts": {
+        "Passed": 4
+      },
+      "cases": {
+        "com.hadithly.app.features.reader.ReaderR6AQuietTest/countCategoriesPreserveArabicDualAndRussianEndings": "Passed",
+        "com.hadithly.app.features.reader.ReaderR6AQuietTest/volumeCountsAndLanguageTotalsRenderInEveryLocale": "Passed",
+        "com.hadithly.app.features.reader.ReaderR6AQuietTest/volumeCountUsesRussianPluralForms": "Passed",
+        "com.hadithly.app.features.reader.ReaderR6AQuietTest/volumeHeaderShowsLocalizedCount": "Passed"
+      },
+      "reports": [
+        {
+          "file": "TEST-hadithly(AVD) - 16-_app-.xml",
+          "sha256": "f6082e2be9473b31ea137386c01a00233259cedfb8789995b705df4b3b5ae659"
+        }
+      ]
+    }
+  }
+}

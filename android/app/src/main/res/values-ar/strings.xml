@@ -50,21 +50,21 @@
     <string name="direction_left_to_right" formatted="false">من اليسار إلى اليمين</string>
     <plurals name="settings_languages_available">
         <item quantity="zero">لا توجد لغات متاحة</item>
-        <item quantity="one">%d language available</item>
+        <item quantity="one">%d لغة متاحة</item>
         <item quantity="two">لغتان متاحتان</item>
         <item quantity="few">%d لغات متاحة</item>
         <item quantity="many">%d لغة متاحة</item>
-        <item quantity="other">%d languages available</item>
+        <item quantity="other">%d لغة متاحة</item>
     </plurals>
     <string name="reader_volume_title">Volume %1$d</string>
     <string name="reader_volume_pill_suffix">volume</string>
     <plurals name="reader_hadith_count">
         <item quantity="zero">لا أحاديث</item>
-        <item quantity="one">%d hadith</item>
+        <item quantity="one">%d حديث</item>
         <item quantity="two">حديثان</item>
         <item quantity="few">%d أحاديث</item>
         <item quantity="many">%d حديثًا</item>
-        <item quantity="other">%d hadiths</item>
+        <item quantity="other">%d حديث</item>
     </plurals>
     <string name="e3_reviewing" formatted="false">جارٍ مراجعة الاقتراح</string>
     <string name="e3_published" formatted="false">نُشر الاقتراح</string>

@@ -1,0 +1,171 @@
+{
+  "scope": "Local backend notification helper and Convex-test paths only. No provider delivery, cloud readback or paid call.",
+  "command": "npx vitest run convex/lib/notificationLocalization.test.ts convex/lib/notifyContent.test.ts convex/dailyNotify.test.ts --reporter=json --outputFile=PATH",
+  "result": {
+    "numPassedTests": 35,
+    "numFailedTests": 0,
+    "numPendingTests": 0,
+    "success": true
+  },
+  "raw_report_sha256": "deefd6f30ab5066b29e4fb4625ead5c97ed5bb4af118b4a6d1a60fdfdd53f4d8",
+  "suites": [
+    {
+      "file": "dailyNotify.test.ts",
+      "status": "passed",
+      "tests": [
+        {
+          "name": "N1 push token registration stores IANA zone, locales, and the delivery bucket",
+          "status": "passed"
+        },
+        {
+          "name": "N1 push token registration rejects invalid zones and locales, keeps legacy offset working",
+          "status": "passed"
+        },
+        {
+          "name": "N1 push token registration re-registration clears retry state (convergent refresh)",
+          "status": "passed"
+        },
+        {
+          "name": "N1 daily notification preferences validates the time, recomputes the bucket, and re-arms today",
+          "status": "passed"
+        },
+        {
+          "name": "N1 bucket paging and retry bookkeeping listBucketPage serves only enabled rows in the bucket",
+          "status": "passed"
+        },
+        {
+          "name": "N1 bucket paging and retry bookkeeping markPushSent stamps the date; recordPushFailure bounds retries",
+          "status": "passed"
+        },
+        {
+          "name": "N1 migration fills buckets without inventing timezones; reruns are no-ops",
+          "status": "passed"
+        },
+        {
+          "name": "N1 cron loop sends English to a due device and never duplicates the local date",
+          "status": "passed"
+        },
+        {
+          "name": "N1 cron loop never sends Arabic-only or the wrong language as a silent fallback",
+          "status": "passed"
+        },
+        {
+          "name": "N1 cron loop prefers approved text over cached AI and labels AI bodies",
+          "status": "passed"
+        },
+        {
+          "name": "N1 cron loop labels cached AI text",
+          "status": "passed"
+        },
+        {
+          "name": "N1 cron loop deletes permanently dead tokens and retries transient failures",
+          "status": "passed"
+        },
+        {
+          "name": "N1 cron loop stops the run on provider backpressure",
+          "status": "passed"
+        },
+        {
+          "name": "N1 cron loop skips pre-N1 rows without a zone observably",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "notificationLocalization.test.ts",
+      "status": "passed",
+      "tests": [
+        {
+          "name": "Wave 1 push bodies label AI without changing the target or content locale",
+          "status": "passed"
+        },
+        {
+          "name": "AI notice uses exact, base and English UI fallback",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "notifyContent.test.ts",
+      "status": "passed",
+      "tests": [
+        {
+          "name": "normalizeDeliveryBucket floors to the 15-minute slot",
+          "status": "passed"
+        },
+        {
+          "name": "normalizeDeliveryBucket rejects malformed times",
+          "status": "passed"
+        },
+        {
+          "name": "normalizeDeliveryBucket covers all 96 slots",
+          "status": "passed"
+        },
+        {
+          "name": "IANA local clock resolves Almaty local date and minutes",
+          "status": "passed"
+        },
+        {
+          "name": "IANA local clock follows DST through the zone database",
+          "status": "passed"
+        },
+        {
+          "name": "IANA local clock throws on an invalid zone",
+          "status": "passed"
+        },
+        {
+          "name": "selectDueTokens marks a token due inside its window",
+          "status": "passed"
+        },
+        {
+          "name": "selectDueTokens skips outside the window and after it passes",
+          "status": "passed"
+        },
+        {
+          "name": "selectDueTokens prevents duplicate local-date delivery",
+          "status": "passed"
+        },
+        {
+          "name": "selectDueTokens skips tokens without an IANA zone instead of guessing",
+          "status": "passed"
+        },
+        {
+          "name": "selectDueTokens flags invalid zones and times observably",
+          "status": "passed"
+        },
+        {
+          "name": "selectDueTokens retries matured failures even outside the window, bounded",
+          "status": "passed"
+        },
+        {
+          "name": "selectDueTokens is idempotent: stamping lastSentDate removes the token",
+          "status": "passed"
+        },
+        {
+          "name": "retryDelayMs backs off exponentially with a cap",
+          "status": "passed"
+        },
+        {
+          "name": "classifyPushError treats dead tokens as permanent",
+          "status": "passed"
+        },
+        {
+          "name": "classifyPushError treats rate limits as backpressure",
+          "status": "passed"
+        },
+        {
+          "name": "classifyPushError treats the rest as transient",
+          "status": "passed"
+        },
+        {
+          "name": "buildNotificationPayload labels AI text and carries the exact target",
+          "status": "passed"
+        },
+        {
+          "name": "buildNotificationPayload truncates very long bodies",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}

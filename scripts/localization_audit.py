@@ -25,6 +25,7 @@ ANDROID_RES = ROOT / "android/app/src/main/res"
 ANDROID_RESOURCE_FILES = ("strings.xml", "la2.xml")
 LEDGER = ROOT / "docs/LOCALIZATION_WAVE1_REVIEW_LEDGER.tsv"
 DRAFTS_JSON = ROOT / "docs/localization/WAVE1_DRAFTS.json"
+PLURAL_COPY_JSON = ROOT / "docs/a4-plural-copy.json"
 
 WAVE1 = (
     "en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur",
@@ -250,6 +251,18 @@ def ios_units(entry: dict) -> dict[str, dict]:
             for quantity, value in entry.get("variations", {}).get("plural", {}).items()}
 
 
+def implicit_plural_count(key: str, locale: str, quantity: str, source: str, target: str) -> bool:
+    """Permit only exact, recorded Arabic zero/dual drafts with a single count."""
+    if locale != "ar" or quantity not in {"zero", "two"} or placeholders(source) not in {("%1$lld",), ("%1$d",)}:
+        return False
+    data = json.loads(PLURAL_COPY_JSON.read_text())
+    key = next((ios for ios, android in data["android_resources"].items() if android == key), key)
+    if quantity not in data.get("implicit_count_forms", {}).get(key, {}).get(locale, []):
+        return False
+    expected = data["ios_repairs"][key]["plural_localizations"][locale][quantity]
+    return bool(expected.strip()) and not placeholders(expected) and target == expected
+
+
 def audit_ios(allow_drafts: bool) -> tuple[int, int, list[str], Counter[str]]:
     catalog = json.loads(IOS_CATALOG.read_text())
     missing: list[str] = []
@@ -276,7 +289,7 @@ def audit_ios(allow_drafts: bool) -> tuple[int, int, list[str], Counter[str]]:
                 target_text = target.get("value", "")
                 if source_text.strip() and not target_text.strip():
                     missing.append(f"ios-empty:{locale}:{key}:{quantity}")
-                if placeholders(target_text) != placeholders(source_text):
+                if placeholders(target_text) != placeholders(source_text) and not implicit_plural_count(key, locale, quantity, source_text, target_text):
                     missing.append(f"ios-placeholder:{locale}:{key}:{quantity}")
                 if not allow_drafts and target.get("state") == "needs_review" and target_text == source_text:
                     missing.append(f"ios-untranslated-draft:{locale}:{key}:{quantity}")
@@ -345,7 +358,7 @@ def audit_android(allow_drafts: bool) -> tuple[int, int, list[str], Counter[str]
                     source_item = source.find(f"item[@quantity='{quantity}']")
                     if source_item is None:
                         source_item = source.find("item[@quantity='other']")
-                    if source_item is not None and placeholders(item.text or "") != placeholders(source_item.text or ""):
+                    if source_item is not None and placeholders(item.text or "") != placeholders(source_item.text or "") and not implicit_plural_count(name, locale, quantity, source_item.text or "", item.text or ""):
                         missing.append(f"android-placeholder:{locale}:{name}:{quantity}")
                 category_counts[category_for(name)] += 1
     return total, generated, missing, category_counts
@@ -396,7 +409,7 @@ def find_hardcoded() -> tuple[list[str], list[str]]:
 def runtime_literal_candidates(text: str, platform: str, keys: set[str], fixture: bool = False) -> list[dict]:
     """Classify lexical candidates; catalog presence never proves runtime lookup."""
     literal = r'"((?:\\.|[^"\\])*)"'
-    calls = (r'(Text|Label|Button|Toggle|Section|Picker|TextField|SecureField|navigationTitle|accessibilityLabel|accessibilityHint|alert|confirmationDialog|appNavigationTitle|ReaderSheetChrome|SettingsLinkRow|QuietEmptyState|AppLocalization\.string)\(\s*(?:title\s*:\s*)?' if platform == 'ios'
+    calls = (r'(Text|Label|Button|Toggle|Section|Picker|TextField|SecureField|navigationTitle|accessibilityLabel|accessibilityHint|alert|confirmationDialog|appNavigationTitle|ReaderSheetChrome|SettingsLinkRow|QuietEmptyState|AppLocalization\.(?:string|count))\(\s*(?:title\s*:\s*)?' if platform == 'ios'
              else r'(nativeText|Text|PolicyRow)\(\s*(?:(?:text|title)\s*=\s*)?')
     pattern = re.compile(calls + literal)
     debug_lines, stack = set(), []

@@ -101,12 +101,12 @@
     <string name="diagnostics_consent" formatted="false">Ката тууралуу отчетторду жөнөтүү</string>
     <string name="diagnostics_privacy" formatted="false">Ыктыярдуу. Жашырылган ката жана түзүлүш маалыматын Sentry’ге жөнөтөт. Окуу тексти же аккаунт маалыматы жок. Отчеттор 30 күндөн кийин бүтөт. Өчүрүү бул түзмөктөгү күтүлүп жаткан отчетторду тазалайт.</string>
     <plurals name="settings_languages_available">
-        <item quantity="one">%d language available</item>
-        <item quantity="other">%d languages available</item>
+        <item quantity="one">%d тил жеткиликтүү</item>
+        <item quantity="other">%d тил жеткиликтүү</item>
     </plurals>
     <plurals name="reader_hadith_count">
-        <item quantity="one">%d hadith</item>
-        <item quantity="other">%d hadiths</item>
+        <item quantity="one">%d хадис</item>
+        <item quantity="other">%d хадис</item>
     </plurals>
 <string name="q2_recommended">Сунушталат</string>
     <string name="q2_billed_yearly">Жыл сайын төлөнөт</string>

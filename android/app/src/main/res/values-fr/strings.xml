@@ -101,8 +101,8 @@
     <string name="diagnostics_consent" formatted="false">Envoyer les rapports de plantage</string>
     <string name="diagnostics_privacy" formatted="false">Facultatif. Envoie à Sentry les échecs et informations de build après suppression des données sensibles. Aucun texte de lecture ni détail de compte. Les rapports expirent après 30 jours. La désactivation efface les rapports en attente sur cet appareil.</string>
     <plurals name="settings_languages_available">
-        <item quantity="one">%d language available</item>
-        <item quantity="other">%d languages available</item>
+        <item quantity="one">%d langue disponible</item>
+        <item quantity="other">%d langues disponibles</item>
     </plurals>
     <plurals name="reader_hadith_count">
         <item quantity="one">%d hadith</item>

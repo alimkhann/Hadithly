@@ -1289,6 +1289,7 @@ private struct ReaderVolumeCornerLabel: View {
 /// from assistive tech so the header label keeps its stable
 /// "<title>, <count> hadiths" shape.
 private struct ReaderVolumeHeaderView: View {
+    @Environment(\.locale) private var locale
     let volume: OutlineVolume
     let palette: ReaderPalette
     var arabicVisible: Bool = true
@@ -1317,7 +1318,7 @@ private struct ReaderVolumeHeaderView: View {
     var body: some View {
         VStack(spacing: 6) {
             if let volumeNumber {
-                Text(String(localized: "Volume \(volumeNumber)"))
+                Text(AppLocalization.count("Volume %lld", count: volumeNumber, locale: locale))
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(palette.textSecondary.opacity(0.8))
                     .accessibilityHidden(true)
@@ -1326,14 +1327,14 @@ private struct ReaderVolumeHeaderView: View {
                 .font(.title2.weight(.semibold))
                 .foregroundStyle(palette.textPrimary)
                 .multilineTextAlignment(.center)
-            Text("\(volume.hadithCount) hadiths")
+            Text(AppLocalization.count("%lld hadiths", count: volume.hadithCount, locale: locale))
                 .font(.footnote)
                 .foregroundStyle(palette.textSecondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 8)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(title), \(volume.hadithCount) hadiths")
+        .accessibilityLabel(Text(verbatim: "\(title), \(AppLocalization.count("%lld hadiths", count: volume.hadithCount, locale: locale))"))
         .accessibilityIdentifier("reader.volumeHeader")
     }
 }

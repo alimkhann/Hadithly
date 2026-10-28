@@ -21851,10 +21851,70 @@
         }
       }
     },
-    "%lld hadiths": {
+    "%lld hadiths" : {
       "comment": "Volume header count line beneath the volume title, e.g. 10 hadiths.",
       "extractionState": "stale",
       "localizations": {
+        "ar": {
+          "variations": {
+            "plural": {
+              "zero": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "لا أحاديث"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld حديث"
+                }
+              },
+              "two": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "حديثان"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld أحاديث"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld حديثًا"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld حديث"
+                }
+              }
+            }
+          }
+        },
+        "bn": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld হাদিস"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld হাদিস"
+                }
+              }
+            }
+          }
+        },
         "en": {
           "variations": {
             "plural": {
@@ -21873,37 +21933,73 @@
             }
           }
         },
-        "ar": {
+        "es-419": {
           "variations": {
             "plural": {
               "one": {
                 "stringUnit": {
                   "state": "needs_review",
-                  "value": "%lld حديث"
+                  "value": "%lld hadiz"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "needs_review",
-                  "value": "%lld أحاديث"
+                  "value": "%lld hadices"
                 }
               }
             }
           }
         },
-        "ru": {
+        "fr": {
           "variations": {
             "plural": {
               "one": {
                 "stringUnit": {
                   "state": "needs_review",
-                  "value": "%lld хадис"
+                  "value": "%lld hadith"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "needs_review",
-                  "value": "%lld хадиса"
+                  "value": "%lld hadiths"
+                }
+              }
+            }
+          }
+        },
+        "hi": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld हदीस"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld हदीस"
+                }
+              }
+            }
+          }
+        },
+        "id": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld hadis"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld hadis"
                 }
               }
             }
@@ -21945,43 +22041,73 @@
             }
           }
         },
-        "uz": {
+        "pt-BR": {
           "variations": {
             "plural": {
               "one": {
                 "stringUnit": {
                   "state": "needs_review",
-                  "value": "%lld hadis"
+                  "value": "%lld hadith"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "needs_review",
-                  "value": "%lld hadis"
+                  "value": "%lld hadiths"
+                }
+              }
+            }
+          }
+        },
+        "ru": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld хадис"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld хадиса"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld хадисов"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld хадиса"
+                }
+              }
+            }
+          }
+        },
+        "sw": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld hadithi"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld hadithi"
                 }
               }
             }
           }
         },
         "tr": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "needs_review",
-                  "value": "%lld hadis"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "needs_review",
-                  "value": "%lld hadis"
-                }
-              }
-            }
-          }
-        },
-        "id": {
           "variations": {
             "plural": {
               "one": {
@@ -22017,91 +22143,66 @@
             }
           }
         },
-        "fr": {
+        "uz": {
           "variations": {
             "plural": {
               "one": {
                 "stringUnit": {
                   "state": "needs_review",
-                  "value": "%lld hadith"
+                  "value": "%lld hadis"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "needs_review",
-                  "value": "%lld hadiths"
+                  "value": "%lld hadis"
                 }
               }
             }
           }
-        },
-        "es-419": {
+        }
+      }
+    },
+    "%lld languages available" : {
+      "extractionState": "stale",
+      "localizations": {
+        "ar": {
           "variations": {
             "plural": {
+              "zero": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "لا توجد لغات متاحة"
+                }
+              },
               "one": {
                 "stringUnit": {
                   "state": "needs_review",
-                  "value": "%lld hadiz"
+                  "value": "%lld لغة متاحة"
+                }
+              },
+              "two": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "لغتان متاحتان"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld لغات متاحة"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld لغة متاحة"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "needs_review",
-                  "value": "%lld hadices"
-                }
-              }
-            }
-          }
-        },
-        "pt-BR": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "needs_review",
-                  "value": "%lld hadith"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "needs_review",
-                  "value": "%lld hadiths"
-                }
-              }
-            }
-          }
-        },
-        "sw": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "needs_review",
-                  "value": "%lld hadithi"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "needs_review",
-                  "value": "%lld hadithi"
-                }
-              }
-            }
-          }
-        },
-        "hi": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "needs_review",
-                  "value": "%lld हदीस"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "needs_review",
-                  "value": "%lld हदीस"
+                  "value": "%lld لغة متاحة"
                 }
               }
             }
@@ -22113,60 +22214,13 @@
               "one": {
                 "stringUnit": {
                   "state": "needs_review",
-                  "value": "%lld হাদিস"
+                  "value": "%lldটি ভাষা উপলব্ধ"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "needs_review",
-                  "value": "%lld হাদিস"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "%lld languages available": {
-      "extractionState": "stale",
-      "localizations": {
-        "ar": {
-          "variations": {
-            "plural": {
-              "few": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld لغات متاحة"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld لغة متاحة"
-                }
-              },
-              "one": {
-                "stringUnit": {
-                  "state": "needs_review",
-                  "value": "%lld لغة واحدة متاحة"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "needs_review",
-                  "value": "%lld لغة متاحة"
-                }
-              },
-              "two": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "لغتان متاحتان"
-                }
-              },
-              "zero": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "لا توجد لغات متاحة"
+                  "value": "%lldটি ভাষা উপলব্ধ"
                 }
               }
             }
@@ -22190,37 +22244,73 @@
             }
           }
         },
-        "ur": {
+        "es-419": {
           "variations": {
             "plural": {
               "one": {
                 "stringUnit": {
                   "state": "needs_review",
-                  "value": "%lld زبان دستیاب ہے"
+                  "value": "%lld idioma disponible"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "needs_review",
-                  "value": "%lld زبانیں دستیاب ہیں"
+                  "value": "%lld idiomas disponibles"
                 }
               }
             }
           }
         },
-        "ru": {
+        "fr": {
           "variations": {
             "plural": {
               "one": {
                 "stringUnit": {
                   "state": "needs_review",
-                  "value": "%lld язык доступен"
+                  "value": "%lld langue disponible"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "needs_review",
-                  "value": "%lld языков доступно"
+                  "value": "%lld langues disponibles"
+                }
+              }
+            }
+          }
+        },
+        "hi": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld भाषा उपलब्ध"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld भाषाएँ उपलब्ध"
+                }
+              }
+            }
+          }
+        },
+        "id": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld bahasa tersedia"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld bahasa tersedia"
                 }
               }
             }
@@ -22262,96 +22352,6 @@
             }
           }
         },
-        "uz": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "needs_review",
-                  "value": "%lld ta til mavjud"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "needs_review",
-                  "value": "%lld ta til mavjud"
-                }
-              }
-            }
-          }
-        },
-        "tr": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "needs_review",
-                  "value": "%lld dil kullanılabilir"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "needs_review",
-                  "value": "%lld dil kullanılabilir"
-                }
-              }
-            }
-          }
-        },
-        "id": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "needs_review",
-                  "value": "%lld bahasa tersedia"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "needs_review",
-                  "value": "%lld bahasa tersedia"
-                }
-              }
-            }
-          }
-        },
-        "fr": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "needs_review",
-                  "value": "%lld langue disponible"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "needs_review",
-                  "value": "%lld langues disponibles"
-                }
-              }
-            }
-          }
-        },
-        "es-419": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "needs_review",
-                  "value": "%lld idioma disponible"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "needs_review",
-                  "value": "%lld idiomas disponibles"
-                }
-              }
-            }
-          }
-        },
         "pt-BR": {
           "variations": {
             "plural": {
@@ -22365,6 +22365,36 @@
                 "stringUnit": {
                   "state": "needs_review",
                   "value": "%lld idiomas disponíveis"
+                }
+              }
+            }
+          }
+        },
+        "ru": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld язык доступен"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld языка доступны"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld языков доступно"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld языка доступны"
                 }
               }
             }
@@ -22388,37 +22418,55 @@
             }
           }
         },
-        "hi": {
+        "tr": {
           "variations": {
             "plural": {
               "one": {
                 "stringUnit": {
                   "state": "needs_review",
-                  "value": "%lld भाषा उपलब्ध"
+                  "value": "%lld dil kullanılabilir"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "needs_review",
-                  "value": "%lld भाषाएँ उपलब्ध"
+                  "value": "%lld dil kullanılabilir"
                 }
               }
             }
           }
         },
-        "bn": {
+        "ur": {
           "variations": {
             "plural": {
               "one": {
                 "stringUnit": {
                   "state": "needs_review",
-                  "value": "%lldটি ভাষা উপলব্ধ"
+                  "value": "%lld زبان دستیاب ہے"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "needs_review",
-                  "value": "%lldটি ভাষা উপলব্ধ"
+                  "value": "%lld زبانیں دستیاب ہیں"
+                }
+              }
+            }
+          }
+        },
+        "uz": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld ta til mavjud"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "needs_review",
+                  "value": "%lld ta til mavjud"
                 }
               }
             }

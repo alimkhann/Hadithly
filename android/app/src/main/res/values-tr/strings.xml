@@ -101,12 +101,12 @@
     <string name="diagnostics_consent" formatted="false">Çökme raporlarını gönder</string>
     <string name="diagnostics_privacy" formatted="false">İsteğe bağlı. Düzeltilmiş hata ve derleme bilgilerini Sentry’ye gönderir. Okuma metni veya hesap ayrıntıları gönderilmez. Raporlar 30 gün sonra sona erer. Kapatmak bu cihazdaki bekleyen raporları temizler.</string>
     <plurals name="settings_languages_available">
-        <item quantity="one">%d language available</item>
-        <item quantity="other">%d languages available</item>
+        <item quantity="one">%d dil kullanılabilir</item>
+        <item quantity="other">%d dil kullanılabilir</item>
     </plurals>
     <plurals name="reader_hadith_count">
-        <item quantity="one">%d hadith</item>
-        <item quantity="other">%d hadiths</item>
+        <item quantity="one">%d hadis</item>
+        <item quantity="other">%d hadis</item>
     </plurals>
 <string name="q2_recommended">Önerilen</string>
     <string name="q2_billed_yearly">Yıllık faturalandırılır</string>

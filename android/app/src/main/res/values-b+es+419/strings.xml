@@ -101,12 +101,12 @@
     <string name="diagnostics_consent" formatted="false">Enviar informes de fallos</string>
     <string name="diagnostics_privacy" formatted="false">Opcional. Envía a Sentry fallos y datos de compilación redactados. No incluye texto de lectura ni datos de la cuenta. Los informes vencen después de 30 días. Al desactivarlo se borran los informes pendientes de este dispositivo.</string>
     <plurals name="settings_languages_available">
-        <item quantity="one">%d language available</item>
-        <item quantity="other">%d languages available</item>
+        <item quantity="one">%d idioma disponible</item>
+        <item quantity="other">%d idiomas disponibles</item>
     </plurals>
     <plurals name="reader_hadith_count">
-        <item quantity="one">%d hadith</item>
-        <item quantity="other">%d hadiths</item>
+        <item quantity="one">%d hadiz</item>
+        <item quantity="other">%d hadices</item>
     </plurals>
 <string name="q2_recommended">Recomendado</string>
     <string name="q2_billed_yearly">Cobro anual</string>

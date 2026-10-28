@@ -1,0 +1,29 @@
+{
+  "scope": "Remove added key blocks and restore only the three deliberate repaired entry blocks, then compare every remaining original byte. Scoped index repairs independently enforce entry hashes and locale boundaries.",
+  "original_catalog_sha256": "034842c915b1fad8ab4474dd9f8fc48a1d92d25e811ccaf3ee660d21991231b7",
+  "normalized_catalog_sha256": "034842c915b1fad8ab4474dd9f8fc48a1d92d25e811ccaf3ee660d21991231b7",
+  "new_entries_removed": 122,
+  "deliberate_entry_repairs": [
+    "Share Hadithly",
+    "%lld hadiths",
+    "%lld languages available"
+  ],
+  "unchanged_project_files": {
+    "ios/Hadithly.xcodeproj/project.pbxproj": {
+      "sha256": "96350e43481804f2d09dfd0e09609f894d7eedcc6a5326a6cb63c16cb9992efb",
+      "unchanged": true
+    },
+    "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/Hadithly.xcscheme": {
+      "sha256": "4855a090d537eafb377cd99d70425fb44137ad64588059f01727ffbbd0fa95b6",
+      "unchanged": true
+    },
+    "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/LA2Verification.xcscheme": {
+      "sha256": "74eff6b5902f4989fcf1d4d5d17a9c1c65bb66571cde851e2b932bff7520bfed",
+      "unchanged": true
+    },
+    "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/Phase4Live.xcscheme": {
+      "sha256": "35c6cbf95690fc03a4497131c41eeb41983b35123116204af04dd0842baa982d",
+      "unchanged": true
+    }
+  }
+}

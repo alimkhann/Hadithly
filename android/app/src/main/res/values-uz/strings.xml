@@ -101,12 +101,12 @@
     <string name="diagnostics_consent" formatted="false">Nosozliklar haqida hisobot yuborish</string>
     <string name="diagnostics_privacy" formatted="false">Ixtiyoriy. Tahrirlangan nosozliklar va build maʼlumotlarini Sentry’ga yuboradi. O‘qish matni yoki hisob maʼlumotlari yuborilmaydi. Hisobotlar 30 kundan keyin tugaydi. O‘chirish ushbu qurilmadagi kutilayotgan hisobotlarni tozalaydi.</string>
     <plurals name="settings_languages_available">
-        <item quantity="one">%d language available</item>
-        <item quantity="other">%d languages available</item>
+        <item quantity="one">%d ta til mavjud</item>
+        <item quantity="other">%d ta til mavjud</item>
     </plurals>
     <plurals name="reader_hadith_count">
-        <item quantity="one">%d hadith</item>
-        <item quantity="other">%d hadiths</item>
+        <item quantity="one">%d hadis</item>
+        <item quantity="other">%d hadis</item>
     </plurals>
 <string name="q2_recommended">Tavsiya etiladi</string>
     <string name="q2_billed_yearly">Yiliga bir marta to‘lanadi</string>

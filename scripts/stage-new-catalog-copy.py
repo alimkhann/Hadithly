@@ -37,7 +37,14 @@ for key in sorted(keys, key=order.index, reverse=True):
                 raise SystemExit(f'Refusing to replace existing indexed key without its expected hash: {key}')
             expected = copy.deepcopy(base_entries[key])
             for locale in repair['locales']:
-                expected['localizations'][locale]['stringUnit']['value'] = source_data['locales'][locale][keys.index(key)]
+                if 'plural_localizations' in repair:
+                    values = repair['plural_localizations'][locale]
+                    expected['localizations'][locale] = {'variations': {'plural': {
+                        quantity: {'stringUnit': {'state': 'translated' if locale == 'en' else 'needs_review', 'value': value}}
+                        for quantity, value in values.items()
+                    }}}
+                else:
+                    expected['localizations'][locale]['stringUnit']['value'] = source_data['locales'][locale][keys.index(key)]
             if expected != work_entries[key]:
                 raise SystemExit(f'Refusing unrelated locale or metadata edits in: {key}')
             source = match(working, key)

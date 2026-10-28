@@ -101,8 +101,8 @@
     <string name="diagnostics_consent" formatted="false">Enviar relatórios de falhas</string>
     <string name="diagnostics_privacy" formatted="false">Opcional. Envia falhas e informações de compilação redigidas ao Sentry. Não inclui texto de leitura nem dados da conta. Os relatórios expiram após 30 dias. Desativar remove os relatórios pendentes deste dispositivo.</string>
     <plurals name="settings_languages_available">
-        <item quantity="one">%d language available</item>
-        <item quantity="other">%d languages available</item>
+        <item quantity="one">%d idioma disponível</item>
+        <item quantity="other">%d idiomas disponíveis</item>
     </plurals>
     <plurals name="reader_hadith_count">
         <item quantity="one">%d hadith</item>

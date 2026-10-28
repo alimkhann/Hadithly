@@ -69,6 +69,42 @@ final class VisualPolishUITests: XCTestCase {
         }
     }
 
+    func testReaderCountsAndLanguageTotalRenderInEveryLocale() {
+        for (locale, countTemplate, languagesTemplate) in [
+            ("en", "%lld hadiths", "%lld languages available"),
+            ("ar", "%lld أحاديث", "%lld لغة متاحة"),
+            ("ru", "%lld хадиса", "%lld языков доступно"),
+            ("kk", "%lld хадис", "%lld тіл қолжетімді"),
+            ("ky", "%lld хадис", "%lld тил жеткиликтүү"),
+            ("uz", "%lld hadis", "%lld ta til mavjud"),
+            ("tr", "%lld hadis", "%lld dil kullanılabilir"),
+            ("id", "%lld hadis", "%lld bahasa tersedia"),
+            ("ur", "%lld احادیث", "%lld زبانیں دستیاب ہیں"),
+            ("fr", "%lld hadiths", "%lld langues disponibles"),
+            ("es-419", "%lld hadices", "%lld idiomas disponibles"),
+            ("pt-BR", "%lld hadiths", "%lld idiomas disponíveis"),
+            ("sw", "%lld hadithi", "%lld lugha zinapatikana"),
+            ("hi", "%lld हदीस", "%lld भाषाएँ उपलब्ध"),
+            ("bn", "%lld হাদিস", "%lldটি ভাষা উপলব্ধ")
+        ] {
+            let value = Locale(identifier: locale)
+            let count = String(format: countTemplate, locale: value, arguments: [3])
+            let total = String(format: languagesTemplate, locale: value, arguments: [15])
+            let app = launchPolish("reader", locale: locale)
+            let header = element("reader.volumeHeader", app)
+            XCTAssertTrue(header.waitForExistence(timeout: 10))
+            XCTAssertTrue(withoutDirectionalMarks(header.label).hasSuffix(count), header.label)
+            capture("reader-count-" + locale, app)
+            app.terminate()
+            let settings = launchPolish("app-language", locale: locale)
+            let footer = settings.staticTexts.matching(NSPredicate(format: "label == %@", total)).firstMatch
+            if !footer.waitForExistence(timeout: 1) { settings.swipeUp() }
+            XCTAssertTrue(footer.waitForExistence(timeout: 5), total)
+            capture("language-count-" + locale, settings)
+            settings.terminate()
+        }
+    }
+
     func testSavedTimestampUsesTheSelectedUILocale() {
         for locale in ["ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn", "en"] {
             let formatter = RelativeDateTimeFormatter()

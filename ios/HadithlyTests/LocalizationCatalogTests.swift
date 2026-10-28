@@ -5,6 +5,32 @@ import XCTest
 /// exist with English, Arabic, and Urdu localizations, and the plural fixture
 /// carries the Arabic plural categories.
 final class LocalizationCatalogTests: XCTestCase {
+    func testCompiledCountCategoriesMatchScopedDraftsInEveryLocale() throws {
+        let source = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("docs/a4-plural-copy.json")
+        let data = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: source)) as? [String: Any])
+        let repairs = try XCTUnwrap(data["ios_repairs"] as? [String: [String: Any]])
+        let counts = [0, 1, 2, 3, 11, 21, 100, 102]
+        for (key, repair) in repairs {
+            let localizations = try XCTUnwrap(repair["plural_localizations"] as? [String: [String: String]])
+            for (tag, forms) in localizations {
+                let locale = Locale(identifier: tag)
+                for count in counts {
+                    let quantity: String
+                    switch tag {
+                    case "ar": quantity = count == 0 ? "zero" : count == 1 ? "one" : count == 2 ? "two" : (3...10).contains(count % 100) ? "few" : (11...99).contains(count % 100) ? "many" : "other"
+                    case "ru": quantity = count % 10 == 1 && count % 100 != 11 ? "one" : (2...4).contains(count % 10) && !(12...14).contains(count % 100) ? "few" : "many"
+                    case "fr", "pt-BR", "hi", "bn": quantity = count <= 1 ? "one" : "other"
+                    case "id": quantity = "other"
+                    default: quantity = count == 1 ? "one" : "other"
+                    }
+                    let template = try XCTUnwrap(forms[quantity], "\(tag):\(quantity)")
+                    let expected = String(format: template, locale: locale, arguments: [count])
+                    XCTAssertEqual(AppLocalization.count(key, count: count, locale: locale), expected, "\(key):\(tag):\(count)")
+                }
+            }
+        }
+    }
+
     func testFirstReadingDecodesTheActualBackendFixtures() throws {
         for name in ["starter-en", "starter-ru", "daily-ru", "original-ar"] {
             let outcome = try JSONDecoder().decode(FirstReadingResult.self, from: firstReadingFixture(name))

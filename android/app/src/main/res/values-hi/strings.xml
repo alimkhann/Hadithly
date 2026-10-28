@@ -101,12 +101,12 @@
     <string name="diagnostics_consent" formatted="false">क्रैश रिपोर्ट भेजें</string>
     <string name="diagnostics_privacy" formatted="false">वैकल्पिक। संशोधित त्रुटियाँ और बिल्ड जानकारी Sentry को भेजता है। पढ़ने का पाठ या खाते की जानकारी नहीं भेजी जाती। रिपोर्ट 30 दिनों बाद समाप्त होती हैं। बंद करने पर इस उपकरण की लंबित रिपोर्ट हट जाती हैं।</string>
     <plurals name="settings_languages_available">
-        <item quantity="one">%d language available</item>
-        <item quantity="other">%d languages available</item>
+        <item quantity="one">%d भाषा उपलब्ध</item>
+        <item quantity="other">%d भाषाएँ उपलब्ध</item>
     </plurals>
     <plurals name="reader_hadith_count">
-        <item quantity="one">%d hadith</item>
-        <item quantity="other">%d hadiths</item>
+        <item quantity="one">%d हदीस</item>
+        <item quantity="other">%d हदीस</item>
     </plurals>
 <string name="q2_recommended">सुझाया गया</string>
     <string name="q2_billed_yearly">सालाना बिल</string>

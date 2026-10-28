@@ -1,6 +1,14 @@
 package com.hadithly.app.features.reader
 
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
@@ -12,6 +20,7 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
@@ -288,6 +297,92 @@ class ReaderR6AQuietTest {
             }
         }
         compose.onNodeWithText("Volume 2: 58–101").assertIsDisplayed()
+    }
+
+    @Test fun volumeCountsAndLanguageTotalsRenderInEveryLocale() {
+        var locale by androidx.compose.runtime.mutableStateOf("en")
+        compose.setContent {
+            androidx.compose.runtime.key(locale) {
+                val context = androidx.compose.ui.platform.LocalContext.current
+                val config = android.content.res.Configuration(androidx.compose.ui.platform.LocalConfiguration.current).apply { setLocale(java.util.Locale.forLanguageTag(locale)) }
+                val resources = context.createConfigurationContext(config).resources
+                androidx.compose.runtime.CompositionLocalProvider(
+                    androidx.compose.ui.platform.LocalConfiguration provides config,
+                    androidx.compose.ui.platform.LocalResources provides resources,
+                    androidx.compose.ui.platform.LocalLayoutDirection provides if (com.hadithly.app.core.preferences.LocaleFallback.isRTL(locale)) androidx.compose.ui.unit.LayoutDirection.Rtl else androidx.compose.ui.unit.LayoutDirection.Ltr,
+                ) {
+                    HadithlyTheme {
+                        androidx.compose.foundation.layout.Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(16.dp)) {
+                            VolumeStartHeader(title = "Prepared volume", hadithCount = 3)
+                            androidx.compose.material3.Text(androidx.compose.ui.res.pluralStringResource(com.hadithly.app.R.plurals.settings_languages_available, 15, 15))
+                        }
+                    }
+                }
+            }
+        }
+        for ((tag, countTemplate, languagesTemplate) in listOf(
+            Triple("en", "%d hadiths", "%d languages available"),
+            Triple("ar", "%d أحاديث", "%d لغة متاحة"),
+            Triple("ru", "%d хадиса", "%d языков доступно"),
+            Triple("kk", "%d хадис", "%d тіл қолжетімді"),
+            Triple("ky", "%d хадис", "%d тил жеткиликтүү"),
+            Triple("uz", "%d hadis", "%d ta til mavjud"),
+            Triple("tr", "%d hadis", "%d dil kullanılabilir"),
+            Triple("id", "%d hadis", "%d bahasa tersedia"),
+            Triple("ur", "%d احادیث", "%d زبانیں دستیاب ہیں"),
+            Triple("fr", "%d hadiths", "%d langues disponibles"),
+            Triple("es-419", "%d hadices", "%d idiomas disponibles"),
+            Triple("pt-BR", "%d hadiths", "%d idiomas disponíveis"),
+            Triple("sw", "%d hadithi", "%d lugha zinapatikana"),
+            Triple("hi", "%d हदीस", "%d भाषाएँ उपलब्ध"),
+            Triple("bn", "%d হাদিস", "%dটি ভাষা উপলব্ধ")
+        )) {
+            compose.runOnIdle { locale = tag }
+            val value = java.util.Locale.forLanguageTag(tag)
+            compose.onNodeWithText(String.format(value, countTemplate, 3)).assertIsDisplayed()
+            compose.onNodeWithText(String.format(value, languagesTemplate, 15)).assertIsDisplayed()
+            val bitmap = compose.onRoot().captureToImage().asAndroidBitmap()
+            val instrumentation = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+            val output = java.io.File(instrumentation.targetContext.getExternalFilesDir(null), "plural-count-$tag.png")
+            output.outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+            bitmap.recycle()
+            android.os.ParcelFileDescriptor.AutoCloseInputStream(instrumentation.uiAutomation.executeShellCommand("cp ${output.absolutePath} /sdcard/Pictures/plural-count-$tag.png")).use { it.readBytes() }
+        }
+    }
+
+    @Test fun countCategoriesPreserveArabicDualAndRussianEndings() {
+        val context = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().targetContext
+        val counts = listOf(0, 1, 2, 3, 11, 21, 100, 102)
+        val expected = mapOf(
+            "ar" to listOf(
+                "لا أحاديث" to "لا توجد لغات متاحة", "%d حديث" to "%d لغة متاحة",
+                "حديثان" to "لغتان متاحتان", "%d أحاديث" to "%d لغات متاحة",
+                "%d حديثًا" to "%d لغة متاحة", "%d حديثًا" to "%d لغة متاحة",
+                "%d حديث" to "%d لغة متاحة", "%d حديث" to "%d لغة متاحة",
+            ),
+            "ru" to listOf(
+                "%d хадисов" to "%d языков доступно", "%d хадис" to "%d язык доступен",
+                "%d хадиса" to "%d языка доступны", "%d хадиса" to "%d языка доступны",
+                "%d хадисов" to "%d языков доступно", "%d хадис" to "%d язык доступен",
+                "%d хадисов" to "%d языков доступно", "%d хадиса" to "%d языка доступны",
+            ),
+        )
+        for ((tag, forms) in expected) {
+            val locale = java.util.Locale.forLanguageTag(tag)
+            val config = android.content.res.Configuration(context.resources.configuration).apply { setLocale(locale) }
+            val resources = context.createConfigurationContext(config).resources
+            for ((index, count) in counts.withIndex()) {
+                assertEquals("$tag:$count", String.format(locale, forms[index].first, count), resources.getQuantityString(com.hadithly.app.R.plurals.reader_hadith_count, count, count))
+                assertEquals("$tag:$count", String.format(locale, forms[index].second, count), resources.getQuantityString(com.hadithly.app.R.plurals.settings_languages_available, count, count))
+            }
+        }
+    }
+
+    @Test fun volumeCountUsesRussianPluralForms() {
+        val context = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().targetContext
+        val config = android.content.res.Configuration(context.resources.configuration).apply { setLocale(java.util.Locale.forLanguageTag("ru")) }
+        val resources = context.createConfigurationContext(config).resources
+        assertEquals("3 хадиса", resources.getQuantityString(com.hadithly.app.R.plurals.reader_hadith_count, 3, 3))
     }
 
     @Test

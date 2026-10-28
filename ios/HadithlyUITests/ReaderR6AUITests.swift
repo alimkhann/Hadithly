@@ -162,7 +162,7 @@ final class ReaderR6AUITests: XCTestCase {
         // First page of the first volume: no previous pill.
         let app = launchFixture(environment: ["R6A_START_VOLUME": "1"])
         XCTAssertTrue(element("reader.volumeHeader", in: app).waitForExistence(timeout: timeout))
-        XCTAssertEqual(element("reader.volumeHeader", in: app).label, "Volume 1, 1 hadiths")
+        XCTAssertEqual(element("reader.volumeHeader", in: app).label, "Volume 1, 1 hadith")
         XCTAssertFalse(app.buttons["reader.previousPage"].exists)
         XCTAssertEqual(app.buttons["reader.nextPage"].firstMatch.label, "Next page, Volume 2")
 
@@ -170,7 +170,7 @@ final class ReaderR6AUITests: XCTestCase {
         app.terminate()
         let last = launchFixture(environment: ["R6A_START_VOLUME": "3"])
         XCTAssertTrue(element("reader.volumeHeader", in: last).waitForExistence(timeout: timeout))
-        XCTAssertEqual(element("reader.volumeHeader", in: last).label, "Volume 3, 1 hadiths")
+        XCTAssertEqual(element("reader.volumeHeader", in: last).label, "Volume 3, 1 hadith")
         XCTAssertFalse(last.buttons["reader.nextPage"].exists)
         XCTAssertEqual(last.buttons["reader.previousPage"].firstMatch.label, "Previous page, Volume 2")
     }
@@ -204,7 +204,7 @@ final class ReaderR6AUITests: XCTestCase {
         app.buttons["reader.nextPage"].tap()
         let header = element("reader.volumeHeader", in: app)
         XCTAssertTrue(header.waitForExistence(timeout: timeout))
-        XCTAssertEqual(header.label, "Volume 3, 1 hadiths")
+        XCTAssertEqual(header.label, "Volume 3, 1 hadith")
         // Absolute end: no next pill; back names Volume 2 in full.
         XCTAssertFalse(app.buttons["reader.nextPage"].exists)
         XCTAssertEqual(app.buttons["reader.previousPage"].firstMatch.label, "Previous page, Volume 2")
@@ -256,7 +256,7 @@ final class ReaderR6AUITests: XCTestCase {
         app.buttons["reader.previousPage"].tap()
         let header = element("reader.volumeHeader", in: app)
         XCTAssertTrue(header.waitForExistence(timeout: timeout))
-        XCTAssertEqual(header.label, "Volume 1, 1 hadiths")
+        XCTAssertEqual(header.label, "Volume 1, 1 hadith")
         XCTAssertFalse(app.buttons["reader.previousPage"].exists)
         // The visited volume opens instantly on the way back: no loading.
         app.buttons["reader.nextPage"].tap()
@@ -273,7 +273,7 @@ final class ReaderR6AUITests: XCTestCase {
         app.swipeLeft()
         let volume3 = element("reader.volumeHeader", in: app)
         XCTAssertTrue(volume3.waitForExistence(timeout: timeout))
-        XCTAssertEqual(volume3.label, "Volume 3, 1 hadiths")
+        XCTAssertEqual(volume3.label, "Volume 3, 1 hadith")
         // Back across the boundary lands on Volume 2's last page.
         app.swipeRight()
         let corner = element("reader.volumeCorner", in: app)
@@ -288,7 +288,7 @@ final class ReaderR6AUITests: XCTestCase {
         app.swipeRight()
         let volume1 = element("reader.volumeHeader", in: app)
         XCTAssertTrue(volume1.waitForExistence(timeout: timeout))
-        XCTAssertEqual(volume1.label, "Volume 1, 1 hadiths")
+        XCTAssertEqual(volume1.label, "Volume 1, 1 hadith")
     }
 
     func testLoadingStateOnFirstVolumeVisit() {

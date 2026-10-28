@@ -44,6 +44,14 @@ class PlaceholderAuditTests(unittest.TestCase):
             with patch.object(audit, 'IOS_CATALOG', catalog), patch.object(audit, 'WAVE1', ('en', 'ar')):
                 return audit.audit_ios(True)[2]
 
+    def test_implicit_arabic_count_is_exact_and_never_hides_lost_other_arguments(self):
+        self.assertTrue(audit.implicit_plural_count('%lld hadiths', 'ar', 'two', '%lld hadiths', 'حديثان'))
+        self.assertTrue(audit.implicit_plural_count('reader_hadith_count', 'ar', 'zero', '%d hadiths', 'لا أحاديث'))
+        self.assertFalse(audit.implicit_plural_count('%lld hadiths', 'ar', 'other', '%lld hadiths', 'حديثان'))
+        self.assertFalse(audit.implicit_plural_count('%lld hadiths', 'ar', 'two', '%lld hadiths', 'Changed wording'))
+        self.assertFalse(audit.implicit_plural_count('%lld hadiths', 'ar', 'two', '%lld of %lld', 'حديثان'))
+        self.assertFalse(audit.implicit_plural_count('unrelated', 'ar', 'two', '%d items', 'حديثان'))
+
     def test_ios_rejects_dropped_argument(self):
         self.assertTrue(self.ios_failures('%@ of %@', '%@'))
 

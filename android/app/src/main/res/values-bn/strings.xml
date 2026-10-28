@@ -101,12 +101,12 @@
     <string name="diagnostics_consent" formatted="false">ক্র্যাশ রিপোর্ট পাঠান</string>
     <string name="diagnostics_privacy" formatted="false">ঐচ্ছিক। সংশোধিত ত্রুটি ও বিল্ড তথ্য Sentry-তে পাঠায়। পড়ার লেখা বা অ্যাকাউন্টের বিবরণ নেই। ৩০ দিন পর রিপোর্টের মেয়াদ শেষ হয়। বন্ধ করলে এই ডিভাইসের অপেক্ষমাণ রিপোর্ট মুছে যায়।</string>
     <plurals name="settings_languages_available">
-        <item quantity="one">%d language available</item>
-        <item quantity="other">%d languages available</item>
+        <item quantity="one">%dটি ভাষা উপলব্ধ</item>
+        <item quantity="other">%dটি ভাষা উপলব্ধ</item>
     </plurals>
     <plurals name="reader_hadith_count">
-        <item quantity="one">%d hadith</item>
-        <item quantity="other">%d hadiths</item>
+        <item quantity="one">%d হাদিস</item>
+        <item quantity="other">%d হাদিস</item>
     </plurals>
 <string name="q2_recommended">প্রস্তাবিত</string>
     <string name="q2_billed_yearly">বার্ষিক বিল</string>

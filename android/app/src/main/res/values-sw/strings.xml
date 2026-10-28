@@ -101,12 +101,12 @@
     <string name="diagnostics_consent" formatted="false">Tuma ripoti za hitilafu</string>
     <string name="diagnostics_privacy" formatted="false">Si lazima. Hutuma hitilafu zilizofichwa na maelezo ya ujenzi kwa Sentry. Hakuna maandishi ya kusoma au maelezo ya akaunti. Ripoti huisha baada ya siku 30. Kuzima hufuta ripoti zinazosubiri kwenye kifaa hiki.</string>
     <plurals name="settings_languages_available">
-        <item quantity="one">%d language available</item>
-        <item quantity="other">%d languages available</item>
+        <item quantity="one">%d lugha inapatikana</item>
+        <item quantity="other">%d lugha zinapatikana</item>
     </plurals>
     <plurals name="reader_hadith_count">
-        <item quantity="one">%d hadith</item>
-        <item quantity="other">%d hadiths</item>
+        <item quantity="one">%d hadithi</item>
+        <item quantity="other">%d hadithi</item>
     </plurals>
 <string name="q2_recommended">Inapendekezwa</string>
     <string name="q2_billed_yearly">Malipo ya kila mwaka</string>

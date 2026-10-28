@@ -101,12 +101,12 @@
     <string name="diagnostics_consent" formatted="false">Ақаулар туралы есептерді жіберу</string>
     <string name="diagnostics_privacy" formatted="false">Қосымша. Sentry қызметіне жасырындатылған ақау және құрастыру ақпаратын жібереді. Оқу мәтіні мен аккаунт деректері жіберілмейді. Есептер 30 күннен кейін өшеді. Өшіру осы құрылғыдағы күтілетін есептерді жояды.</string>
     <plurals name="settings_languages_available">
-        <item quantity="one">%d language available</item>
-        <item quantity="other">%d languages available</item>
+        <item quantity="one">%d тіл қолжетімді</item>
+        <item quantity="other">%d тіл қолжетімді</item>
     </plurals>
     <plurals name="reader_hadith_count">
-        <item quantity="one">%d hadith</item>
-        <item quantity="other">%d hadiths</item>
+        <item quantity="one">%d хадис</item>
+        <item quantity="other">%d хадис</item>
     </plurals>
 <string name="q2_recommended">Ұсынылады</string>
     <string name="q2_billed_yearly">Жыл сайын төленеді</string>

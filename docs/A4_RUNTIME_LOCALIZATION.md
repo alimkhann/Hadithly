@@ -425,3 +425,49 @@ sixteen-capture manifest and selected images are in `verification/a4-localizatio
 Native review, compact/large and locked states, physical devices, full VoiceOver
 and TalkBack traversal, W1/W2/N1/D4 and existing source/content/release gates stay
 open. The incoming catalog and project files are untouched by this unit.
+
+## Count categories and backend notifications, October 29
+
+Native red cases reproduced Android's Russian count as “3 hadiths” and iOS's
+accessible singular as “1 hadiths.” The two scoped count resources now share the
+existing iOS drafts, with corrected Arabic and Russian categories, on both apps.
+The iOS volume header resolves the selected UI-locale bundle before formatting;
+its visible and accessible count agree. The volume eyebrow uses the same locale.
+Source titles and numbering stay unchanged. The language-selector total retains
+its existing native plural call. All non-English wording still needs native review.
+
+`a4-plural-copy.json` records the exact two entries, draft forms and indexed-entry
+hashes. `sync-plural-copy.py` changes only their catalog blocks and Android plural
+blocks. The staging helper's explicit repair mode now supports scoped plural
+localizations; its real-Git regression rejects missing authorization flags, bad
+hashes and unrelated entry metadata, preserves incoming working bytes and remains
+idempotent. The generator regression checks surrounding-resource preservation and
+rejects a lost count before partial writes. `plural-preservation.json` verifies
+all remaining incoming catalog bytes and all four project/scheme fingerprints.
+The two count entries and the prior Arabic/Urdu Share repair are the only existing
+catalog entry exceptions in that byte comparison.
+
+The earlier six Arabic zero/dual formatter findings are resolved structurally.
+Those exact forms express zero/two in words, so the audit records their permitted
+implicit count instead of requiring an awkward number. It accepts only the exact
+manifest value, quantity and single integer argument; altered text, other
+quantities, unrelated keys and dropped additional arguments still fail. This
+structural exception does not grant native-copy approval. Twelve audit regressions
+pass. With drafts allowed, the full audit reports zero structural failures across
+422 iOS keys and 418 Android resources. It still reports 323 English-identical
+Android candidates and lexical/dynamic candidates for review.
+
+Latest native evidence is three iOS and four Android cases in `plurals.json`,
+including all fifteen rendered reader counts and language totals, 240 compiled
+iOS count/locale comparisons and 32 Android Arabic/Russian boundary comparisons.
+The red iOS result remains in the run history. The 45-capture manifest and selected
+images are in `plurals/`. Capture QA also confirms that dynamic page-control
+labels can still remain English; those labels and other dynamic/error templates
+remain next. These count checks do not imply complete runtime or assistive-tech
+coverage.
+
+Backend notification review found existing fifteen-locale AI labels and exact
+translation-locale payload binding. Thirty-five targeted local tests pass without
+backend changes, provider delivery or cloud access. `notification-review.json`
+records helper, due-token and payload tests. Actual notification delivery,
+physical devices, native-copy review, A1/A3 and A5–A7/E/release gates remain open.

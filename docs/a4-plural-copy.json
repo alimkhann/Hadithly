@@ -1,0 +1,204 @@
+{
+  "native_review": "pending",
+  "provenance": "Reuse existing iOS plural drafts for native parity. Correct Arabic count categories and Russian few/many forms. No source text or numbering changes. English forms are unchanged.",
+  "keys": [
+    "%lld hadiths",
+    "%lld languages available"
+  ],
+  "ios_repairs": {
+    "%lld hadiths": {
+      "expected_index_hash": "228923fcf9a6bda64aa9270f78d4bda79a6c861b80d37560d447327d47ba5e13",
+      "locales": [
+        "en",
+        "ar",
+        "ru",
+        "kk",
+        "ky",
+        "uz",
+        "tr",
+        "id",
+        "ur",
+        "fr",
+        "es-419",
+        "pt-BR",
+        "sw",
+        "hi",
+        "bn"
+      ],
+      "plural_localizations": {
+        "en": {
+          "one": "%lld hadith",
+          "other": "%lld hadiths"
+        },
+        "ar": {
+          "zero": "لا أحاديث",
+          "one": "%lld حديث",
+          "two": "حديثان",
+          "few": "%lld أحاديث",
+          "many": "%lld حديثًا",
+          "other": "%lld حديث"
+        },
+        "ru": {
+          "one": "%lld хадис",
+          "few": "%lld хадиса",
+          "many": "%lld хадисов",
+          "other": "%lld хадиса"
+        },
+        "kk": {
+          "one": "%lld хадис",
+          "other": "%lld хадис"
+        },
+        "ky": {
+          "one": "%lld хадис",
+          "other": "%lld хадис"
+        },
+        "uz": {
+          "one": "%lld hadis",
+          "other": "%lld hadis"
+        },
+        "tr": {
+          "one": "%lld hadis",
+          "other": "%lld hadis"
+        },
+        "id": {
+          "one": "%lld hadis",
+          "other": "%lld hadis"
+        },
+        "ur": {
+          "one": "%lld حدیث",
+          "other": "%lld احادیث"
+        },
+        "fr": {
+          "one": "%lld hadith",
+          "other": "%lld hadiths"
+        },
+        "es-419": {
+          "one": "%lld hadiz",
+          "other": "%lld hadices"
+        },
+        "pt-BR": {
+          "one": "%lld hadith",
+          "other": "%lld hadiths"
+        },
+        "sw": {
+          "one": "%lld hadithi",
+          "other": "%lld hadithi"
+        },
+        "hi": {
+          "one": "%lld हदीस",
+          "other": "%lld हदीस"
+        },
+        "bn": {
+          "one": "%lld হাদিস",
+          "other": "%lld হাদিস"
+        }
+      }
+    },
+    "%lld languages available": {
+      "expected_index_hash": "a91eca8ab0d7ca2d95c12896343c0c338f8d6878c09c121bec96e7a5dc4abfda",
+      "locales": [
+        "en",
+        "ar",
+        "ru",
+        "kk",
+        "ky",
+        "uz",
+        "tr",
+        "id",
+        "ur",
+        "fr",
+        "es-419",
+        "pt-BR",
+        "sw",
+        "hi",
+        "bn"
+      ],
+      "plural_localizations": {
+        "en": {
+          "one": "%lld language available",
+          "other": "%lld languages available"
+        },
+        "ar": {
+          "zero": "لا توجد لغات متاحة",
+          "one": "%lld لغة متاحة",
+          "two": "لغتان متاحتان",
+          "few": "%lld لغات متاحة",
+          "many": "%lld لغة متاحة",
+          "other": "%lld لغة متاحة"
+        },
+        "ru": {
+          "one": "%lld язык доступен",
+          "few": "%lld языка доступны",
+          "many": "%lld языков доступно",
+          "other": "%lld языка доступны"
+        },
+        "kk": {
+          "one": "%lld тіл қолжетімді",
+          "other": "%lld тіл қолжетімді"
+        },
+        "ky": {
+          "one": "%lld тил жеткиликтүү",
+          "other": "%lld тил жеткиликтүү"
+        },
+        "uz": {
+          "one": "%lld ta til mavjud",
+          "other": "%lld ta til mavjud"
+        },
+        "tr": {
+          "one": "%lld dil kullanılabilir",
+          "other": "%lld dil kullanılabilir"
+        },
+        "id": {
+          "one": "%lld bahasa tersedia",
+          "other": "%lld bahasa tersedia"
+        },
+        "ur": {
+          "one": "%lld زبان دستیاب ہے",
+          "other": "%lld زبانیں دستیاب ہیں"
+        },
+        "fr": {
+          "one": "%lld langue disponible",
+          "other": "%lld langues disponibles"
+        },
+        "es-419": {
+          "one": "%lld idioma disponible",
+          "other": "%lld idiomas disponibles"
+        },
+        "pt-BR": {
+          "one": "%lld idioma disponível",
+          "other": "%lld idiomas disponíveis"
+        },
+        "sw": {
+          "one": "%lld lugha inapatikana",
+          "other": "%lld lugha zinapatikana"
+        },
+        "hi": {
+          "one": "%lld भाषा उपलब्ध",
+          "other": "%lld भाषाएँ उपलब्ध"
+        },
+        "bn": {
+          "one": "%lldটি ভাষা উপলব্ধ",
+          "other": "%lldটি ভাষা উপলব্ধ"
+        }
+      }
+    }
+  },
+  "android_resources": {
+    "%lld hadiths": "reader_hadith_count",
+    "%lld languages available": "settings_languages_available"
+  },
+  "implicit_count_forms": {
+    "%lld hadiths": {
+      "ar": [
+        "zero",
+        "two"
+      ]
+    },
+    "%lld languages available": {
+      "ar": [
+        "zero",
+        "two"
+      ]
+    }
+  }
+}

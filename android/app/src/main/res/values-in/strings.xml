@@ -101,12 +101,12 @@
     <string name="diagnostics_consent" formatted="false">Kirim laporan kerusakan</string>
     <string name="diagnostics_privacy" formatted="false">Opsional. Mengirim kegagalan dan informasi build yang telah disamarkan ke Sentry. Tidak ada teks bacaan atau detail akun. Laporan kedaluwarsa setelah 30 hari. Menonaktifkan fitur ini menghapus laporan yang menunggu di perangkat ini.</string>
     <plurals name="settings_languages_available">
-        <item quantity="one">%d language available</item>
-        <item quantity="other">%d languages available</item>
+        <item quantity="one">%d bahasa tersedia</item>
+        <item quantity="other">%d bahasa tersedia</item>
     </plurals>
     <plurals name="reader_hadith_count">
-        <item quantity="one">%d hadith</item>
-        <item quantity="other">%d hadiths</item>
+        <item quantity="one">%d hadis</item>
+        <item quantity="other">%d hadis</item>
     </plurals>
 <string name="q2_recommended">Direkomendasikan</string>
     <string name="q2_billed_yearly">Ditagih tahunan</string>

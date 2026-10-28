@@ -61,6 +61,34 @@ class CatalogStagingTests(unittest.TestCase):
             self.assertEqual(run(['--repair-existing']).returncode, 0)
             self.assertEqual(git('show', ':' + CATALOG), staged_bytes)
 
+            forms = {'one': '%lld حديث', 'two': 'حديثان', 'other': '%lld حديث'}
+            source['ios_repairs']['message']['expected_index_hash'] = hashlib.sha256(
+                json.dumps(staged['strings']['message'], sort_keys=True, ensure_ascii=False).encode()
+            ).hexdigest()
+            source['ios_repairs']['message']['plural_localizations'] = {'ar': forms}
+            source_path.write_text(json.dumps(source))
+            work['strings']['message']['localizations']['ar'] = {'variations': {'plural': {
+                quantity: {'stringUnit': {'state': 'needs_review', 'value': value}}
+                for quantity, value in forms.items()
+            }}}
+            path.write_text(json.dumps(work, indent=2)); incoming_bytes = path.read_bytes()
+            self.assertNotEqual(run().returncode, 0)
+            self.assertEqual(git('show', ':' + CATALOG), staged_bytes)
+            work['strings']['message']['comment'] = 'unrelated metadata'
+            path.write_text(json.dumps(work, indent=2))
+            self.assertNotEqual(run(['--repair-existing']).returncode, 0)
+            self.assertEqual(git('show', ':' + CATALOG), staged_bytes)
+            work['strings']['message']['comment'] = 'keep metadata'
+            path.write_bytes(incoming_bytes)
+            result = run(['--repair-existing']); self.assertEqual(result.returncode, 0, result.stderr)
+            staged = json.loads(git('show', ':' + CATALOG))
+            self.assertEqual(staged['strings']['message'], work['strings']['message'])
+            self.assertEqual(staged['strings']['unrelated'], base['strings']['unrelated'])
+            self.assertEqual(path.read_bytes(), incoming_bytes)
+            staged_bytes = git('show', ':' + CATALOG)
+            self.assertEqual(run(['--repair-existing']).returncode, 0)
+            self.assertEqual(git('show', ':' + CATALOG), staged_bytes)
+
 
 if __name__ == '__main__':
     unittest.main()

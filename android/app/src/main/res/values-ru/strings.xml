@@ -101,12 +101,16 @@
     <string name="diagnostics_consent" formatted="false">Отправлять отчёты о сбоях</string>
     <string name="diagnostics_privacy" formatted="false">Необязательно. Отправляет в Sentry обезличенные сведения о сбоях и сборке. Текст чтения и данные аккаунта не передаются. Отчёты удаляются через 30 дней. При отключении ожидающие отчёты на этом устройстве удаляются.</string>
     <plurals name="settings_languages_available">
-        <item quantity="one">%d language available</item>
-        <item quantity="other">%d languages available</item>
+        <item quantity="one">%d язык доступен</item>
+        <item quantity="few">%d языка доступны</item>
+        <item quantity="many">%d языков доступно</item>
+        <item quantity="other">%d языка доступны</item>
     </plurals>
     <plurals name="reader_hadith_count">
-        <item quantity="one">%d hadith</item>
-        <item quantity="other">%d hadiths</item>
+        <item quantity="one">%d хадис</item>
+        <item quantity="few">%d хадиса</item>
+        <item quantity="many">%d хадисов</item>
+        <item quantity="other">%d хадиса</item>
     </plurals>
 <string name="q2_recommended">Рекомендуем</string>
     <string name="q2_billed_yearly">Оплата раз в год</string>

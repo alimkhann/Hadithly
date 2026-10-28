@@ -49,14 +49,14 @@
     <string name="direction_right_to_left" formatted="false">دائیں سے بائیں</string>
     <string name="direction_left_to_right" formatted="false">بائیں سے دائیں</string>
     <plurals name="settings_languages_available">
-        <item quantity="one">%d language available</item>
-        <item quantity="other">%d languages available</item>
+        <item quantity="one">%d زبان دستیاب ہے</item>
+        <item quantity="other">%d زبانیں دستیاب ہیں</item>
     </plurals>
     <string name="reader_volume_title">Volume %1$d</string>
     <string name="reader_volume_pill_suffix">volume</string>
     <plurals name="reader_hadith_count">
-        <item quantity="one">%d hadith</item>
-        <item quantity="other">%d hadiths</item>
+        <item quantity="one">%d حدیث</item>
+        <item quantity="other">%d احادیث</item>
     </plurals>
     <string name="e3_reviewing" formatted="false">تجویز کا جائزہ جاری ہے</string>
     <string name="e3_published" formatted="false">تجویز شائع ہو گئی</string>
