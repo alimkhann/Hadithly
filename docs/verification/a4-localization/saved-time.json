@@ -1,0 +1,198 @@
+{
+  "ios": {
+    "runs": [
+      {
+        "bundle": "hadithly-a4-saved-time-red-ios.xcresult",
+        "startTime": 1793196729.235,
+        "result": "Failed",
+        "passedTests": 0,
+        "failedTests": 1,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-saved-time-green-ios.xcresult",
+        "startTime": 1793196914.854,
+        "result": "Failed",
+        "passedTests": 33,
+        "failedTests": 1,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult",
+        "startTime": 1793211216.257,
+        "result": "Passed",
+        "passedTests": 33,
+        "failedTests": 0,
+        "skippedTests": 0
+      }
+    ],
+    "latestCases": {
+      "HadithlyUITests/VisualPolishUITests/testSavedTimestampUsesTheSelectedUILocale()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-green-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testAdjacentVolumesAreNearestFirstAndBounded()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testChapterDisplayUsesArabicTitleInArabicOnlyMode()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testCommitDragOffsetRevealsNeighborAndRejectsEdges()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testConfirmedTapWithinMovementAndDuration()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testDragSwipeOrHoldNeverConfirms()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testEntryTargetNeedsProgressWithHadith()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testHapticDispatcherReachesInjectedPlayer()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testHapticStylesAreRestrained()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testLockDeclaresDominantAxis()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testLockIsStickyMidGesture()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testLockStaysUndecidedBelowTravelThreshold()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testManualPageTurnsAlwaysResetToTheirHeader()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testMixedAndTranslationOnlyKeepEnglishNarrator()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testNarratorArDecodesTolerantly()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testNarratorArShowsInArabicOnlyMode()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testNarratorHidesInArabicOnlyModeWhenArAbsent()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testNoteMarkerRendersAfterFavorite()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testPageFractionIsPageWithinVolume()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testPillFillsMirrorAndroid()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testPlacementResolvesToPageStartOrPositioned()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testRelativeTimeBuckets()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testRelativeTimeLocalePluralAndBucketBoundaries()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testReleaseCommitsOnlyWhenHorizontallyLocked()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testReleaseRespectsReadingDirection()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testScrollFractionFillsWithPageScroll()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testSearchRowsMapAndDropUnnavigable()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testSourceLabelsRenderAsReturned()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testStripSlotsMirrorInRTL()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testVolumeFractionFollowsOutlineOrder()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testVolumeHeaderTitlePrefersActualName()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testVolumeNumberParsesOnlyVolumeN()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testVolumePositionFollowsOutlineOrder()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      },
+      "HadithlyTests/ReaderR6Round3Tests/testVolumeTitleLocalizesOnlyInArabicOnlyMode()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-saved-time-final-ios.xcresult"
+      }
+    },
+    "latestCounts": {
+      "Passed": 34
+    }
+  },
+  "android": {
+    "ui": {
+      "counts": {
+        "Passed": 5
+      },
+      "cases": {
+        "com.hadithly.app.core.theme.NativeFinishingTest/savedRelativeTimeLocalePluralAndBucketBoundaries": "Passed",
+        "com.hadithly.app.core.theme.NativeFinishingTest/savedTimestampUsesTheSelectedUILocale": "Passed",
+        "com.hadithly.app.features.saved.SavedItemRowTest/previewAndActionMenuDoNotNavigate": "Passed",
+        "com.hadithly.app.features.saved.SavedItemRowTest/moveRemainsAvailableOnlyThroughContextMenu": "Passed",
+        "com.hadithly.app.features.saved.SavedItemRowTest/guestPreviewLoadsBothTextsWithoutNavigating": "Passed"
+      },
+      "reports": [
+        {
+          "file": "TEST-hadithly(AVD) - 16-_app-.xml",
+          "sha256": "3693aed5f445c0b20bcd05ff3691a944895cb7e3f0e76b1abcc2d08c0ae9fc02"
+        }
+      ]
+    },
+    "history": [
+      {
+        "case": "savedTimestampUsesTheSelectedUILocale",
+        "result": "Failed",
+        "message": ""
+      }
+    ]
+  }
+}

@@ -110,6 +110,7 @@ struct SharedSavedItemRow: View {
     let onSuggestTranslation: (HadithRef) -> Void
 
     @Environment(\.readerPalette) private var palette
+    @Environment(\.locale) private var locale
     @State private var expanded = false
     @Environment(\.accessibilityReduceMotion) private var reducedMotion
 
@@ -125,7 +126,7 @@ struct SharedSavedItemRow: View {
                                 if item.bookmarkCreatedAt != nil { Image(systemName: "bookmark.fill").foregroundStyle(Theme.bookmark).accessibilityLabel("Bookmarked") }
                                 if item.favoriteCreatedAt != nil { Image(systemName: "heart.fill").foregroundStyle(Theme.favorite).accessibilityLabel("Favorited") }
                                 if item.noteContent != nil { Image(systemName: "note.text").foregroundStyle(palette.textPrimary).accessibilityLabel("Has note") }
-                                Text(SavedRelativeTime.string(since: item.sortDate))
+                                Text(SavedRelativeTime.string(since: item.sortDate, locale: locale))
                             }.font(.caption).foregroundStyle(palette.textSecondary)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)

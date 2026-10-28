@@ -535,22 +535,47 @@ final class ReaderR6Round3Tests: XCTestCase {
 
     // MARK: - 10. Relative-time rows
 
+    func testRelativeTimeLocalePluralAndBucketBoundaries() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let samples: [(TimeInterval, DateComponents)] = [
+            (-60, DateComponents(second: 0)), (0, DateComponents(second: 0)), (59, DateComponents(second: 0)),
+            (60, DateComponents(minute: -1)), (119, DateComponents(minute: -1)), (120, DateComponents(minute: -2)),
+            (3_599, DateComponents(minute: -59)), (3_600, DateComponents(hour: -1)), (86_399, DateComponents(hour: -23)),
+            (86_400, DateComponents(day: -1)), (6 * 86_400, DateComponents(day: -6)),
+            (7 * 86_400, DateComponents(weekOfMonth: -1)), (29 * 86_400, DateComponents(weekOfMonth: -4)),
+            (30 * 86_400, DateComponents(month: -1)), (60 * 86_400, DateComponents(month: -2)),
+            (364 * 86_400, DateComponents(month: -12)), (365 * 86_400, DateComponents(year: -1)), (400 * 86_400, DateComponents(year: -1)),
+        ]
+        for language in ["en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn"] {
+            let locale = Locale(identifier: language)
+            let formatter = RelativeDateTimeFormatter()
+            formatter.locale = locale
+            formatter.unitsStyle = .full
+            for (elapsed, components) in samples {
+                formatter.dateTimeStyle = components.second == 0 ? .named : .numeric
+                let expected = formatter.localizedString(from: components)
+                XCTAssertFalse(expected.isEmpty)
+                XCTAssertEqual(SavedRelativeTime.string(since: now.addingTimeInterval(-elapsed), now: now, locale: locale), expected, "\(language): \(elapsed)")
+            }
+        }
+    }
+
     func testRelativeTimeBuckets() {
         let now = Date(timeIntervalSince1970: 1_800_000_000)
-        XCTAssertEqual(SavedRelativeTime.string(since: now.addingTimeInterval(-10), now: now), "just now")
-        XCTAssertEqual(SavedRelativeTime.string(since: now.addingTimeInterval(-90), now: now), "1 minute ago")
-        XCTAssertEqual(SavedRelativeTime.string(since: now.addingTimeInterval(-300), now: now), "5 minutes ago")
+        XCTAssertEqual(SavedRelativeTime.string(since: now.addingTimeInterval(-10), now: now, locale: Locale(identifier: "en")), "now")
+        XCTAssertEqual(SavedRelativeTime.string(since: now.addingTimeInterval(-90), now: now, locale: Locale(identifier: "en")), "1 minute ago")
+        XCTAssertEqual(SavedRelativeTime.string(since: now.addingTimeInterval(-300), now: now, locale: Locale(identifier: "en")), "5 minutes ago")
         XCTAssertEqual(
-            SavedRelativeTime.string(since: now.addingTimeInterval(-3_600), now: now), "1 hour ago"
+            SavedRelativeTime.string(since: now.addingTimeInterval(-3_600), now: now, locale: Locale(identifier: "en")), "1 hour ago"
         )
         XCTAssertEqual(
-            SavedRelativeTime.string(since: now.addingTimeInterval(-2 * 86_400), now: now), "2 days ago"
+            SavedRelativeTime.string(since: now.addingTimeInterval(-2 * 86_400), now: now, locale: Locale(identifier: "en")), "2 days ago"
         )
         XCTAssertEqual(
-            SavedRelativeTime.string(since: now.addingTimeInterval(-60 * 86_400), now: now), "2 months ago"
+            SavedRelativeTime.string(since: now.addingTimeInterval(-60 * 86_400), now: now, locale: Locale(identifier: "en")), "2 months ago"
         )
         XCTAssertEqual(
-            SavedRelativeTime.string(since: now.addingTimeInterval(-400 * 86_400), now: now), "1 year ago"
+            SavedRelativeTime.string(since: now.addingTimeInterval(-400 * 86_400), now: now, locale: Locale(identifier: "en")), "1 year ago"
         )
     }
 

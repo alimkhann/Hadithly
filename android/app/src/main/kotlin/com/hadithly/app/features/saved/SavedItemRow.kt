@@ -94,7 +94,7 @@ fun SharedSavedItemRow(
                     if (item.bookmarkCreatedAt != null) Icon(Icons.Filled.Bookmark, null, Modifier.size(12.dp), tint = colors.bookmark)
                     if (item.favoriteCreatedAt != null) Icon(Icons.Filled.Favorite, null, Modifier.size(12.dp), tint = colors.favorite)
                     if (item.noteContent != null) Icon(Icons.Filled.EditNote, null, Modifier.size(12.dp), tint = colors.interactive)
-                    Text(relativeSavedTime(item.sortDate), fontSize = 12.sp, color = colors.textSecondary)
+                    Text(relativeSavedTime(item.sortDate, System.currentTimeMillis().toDouble(), androidx.compose.ui.platform.LocalConfiguration.current.locales[0]), fontSize = 12.sp, color = colors.textSecondary)
                 }
             }
             IconButton(onClick = { menuOpen = true }, modifier = Modifier.testTag("saved.actions.${item.hadithId}")) { Icon(Icons.Filled.MoreHoriz, nativeText("Saved item actions"), tint = colors.textSecondary) }
@@ -126,12 +126,17 @@ fun SharedSavedItemRow(
     }
 }
 
-private fun relativeSavedTime(timestamp: Double): String {
-    val minutes = ((System.currentTimeMillis() - timestamp).coerceAtLeast(0.0) / 60_000).toLong()
-    return when {
-        minutes < 1 -> "Added just now"
-        minutes < 60 -> "Added ${minutes}m ago"
-        minutes < 1_440 -> "Added ${minutes / 60}h ago"
-        else -> "Added ${minutes / 1_440}d ago"
+internal fun relativeSavedTime(timestamp: Double, now: Double, locale: java.util.Locale): String {
+    val seconds = ((now - timestamp).coerceAtLeast(0.0) / 1000).toLong()
+    val formatter = android.icu.text.RelativeDateTimeFormatter.getInstance(locale)
+    if (seconds < 60) return formatter.format(android.icu.text.RelativeDateTimeFormatter.Direction.PLAIN, android.icu.text.RelativeDateTimeFormatter.AbsoluteUnit.NOW)
+    val (quantity, unit) = when {
+        seconds < 3_600 -> seconds / 60 to android.icu.text.RelativeDateTimeFormatter.RelativeUnit.MINUTES
+        seconds < 86_400 -> seconds / 3_600 to android.icu.text.RelativeDateTimeFormatter.RelativeUnit.HOURS
+        seconds < 7 * 86_400 -> seconds / 86_400 to android.icu.text.RelativeDateTimeFormatter.RelativeUnit.DAYS
+        seconds < 30 * 86_400 -> seconds / (7 * 86_400) to android.icu.text.RelativeDateTimeFormatter.RelativeUnit.WEEKS
+        seconds < 365 * 86_400 -> seconds / (30 * 86_400) to android.icu.text.RelativeDateTimeFormatter.RelativeUnit.MONTHS
+        else -> seconds / (365 * 86_400) to android.icu.text.RelativeDateTimeFormatter.RelativeUnit.YEARS
     }
+    return formatter.format(quantity.toDouble(), android.icu.text.RelativeDateTimeFormatter.Direction.LAST, unit)
 }

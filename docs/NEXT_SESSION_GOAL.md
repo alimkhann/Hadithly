@@ -22,6 +22,17 @@ browser explanation now pass local native checks. Continue C1 and C2/C3/C7
 verification before D. C8 adds only one scoped catalog entry, preserving all
 incoming catalog bytes. External OAuth and native-copy approval remain open.
 
+## A4 native timestamp checkpoint, October 28
+
+Saved relative timestamps now use native UI-locale formatting on both apps, with
+unchanged stored data and sorting. Fifteen-locale UI and eighteen-sample boundary
+matrices pass after correcting iOS relative-week components: 34 iOS and five
+Android latest cases. See `A4_RUNTIME_LOCALIZATION.md`.
+Next repair widget copy parity, the Kazakh offline wording, gallery metadata and
+notification fallback/channel labels; continue dynamic/count/plural review. Full
+A4/native review, device/auth/content and remaining A4–A7/E/release gates stay open.
+No provider, deployment, account or paid generation action was used.
+
 ## A4 auth and Saved copy checkpoint, October 28
 
 All seven auth preview states and the linked sentence now pass fifteen-locale

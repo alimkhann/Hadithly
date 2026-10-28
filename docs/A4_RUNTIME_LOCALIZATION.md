@@ -331,3 +331,42 @@ with dynamic errors/counts, notification/widget coverage, fallback/plural checks
 and critical-copy/native review. The six Arabic zero/dual formatter findings remain
 open. No backend/schema, provider, paid generation, deployment or publication change
 was performed. A1/A3, full A4, A5–A7/E and existing release gates remain in scope.
+
+## Native Saved timestamps, October 28
+
+Both Saved rows now format elapsed time using the selected UI locale instead of
+building English phrases. The output is a standalone relative value. Stored
+created/updated timestamps, sort order, note/folder data and reading positions
+are unchanged. Android now shares the existing iOS week/month/year grouping
+instead of showing every old item as an unbounded day count. Future clock skew
+still clamps to the current-time label.
+
+The native formatter supplies language, number and singular/dual/plural forms:
+[Foundation RelativeDateTimeFormatter](https://developer.apple.com/documentation/foundation/relativedatetimeformatter)
+and [Android ICU RelativeDateTimeFormatter](https://developer.android.google.cn/reference/kotlin/android/icu/text/RelativeDateTimeFormatter).
+The Android formatter is available from API 24, below the app's minimum API 26,
+as verified in the installed SDK API-version metadata. No new translation draft,
+backend payload, timer, data migration or provider action is introduced.
+
+The actual Arabic Saved row failed before the repair on both platforms. Native UI
+checks now pass all fifteen locales. Boundary tests compare eighteen explicit
+elapsed-time/component pairs in every locale, including future time, zero,
+singular/dual quantities and minute/hour/day/week/month/year transitions.
+Existing reader round-3 logic and native Saved row tests also pass: 34 latest iOS
+cases and five Android cases, with no skipped pass claim. Evidence and the
+30-capture manifest are in `verification/a4-localization/saved-time.json` and
+`verification/a4-localization/saved-time/`.
+
+The first consolidated iOS run exposed blank output for `weekOfYear` components,
+even though the current-time UI check passed. A direct formatter probe and the
+native rerun show that this API expects `weekOfMonth` for the relative-week unit.
+That correction passes all fifteen-locale boundary cases. The failed run remains
+in the evidence history. The earlier commentary that all boundaries passed was
+premature and is corrected by this record.
+
+Widget review found additional work: Android's Daily/Continue copy still falls
+back to English outside Arabic/Urdu; iOS Continue progress/empty/lock coverage is
+partial; the iOS Kazakh offline label incorrectly says online. Widget-gallery
+metadata and Android notification fallback/channel labels also need coverage.
+These findings, dynamic/count copy, six Arabic manual plural findings, native
+review and the remaining A4–A7/E and release gates stay open.

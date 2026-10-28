@@ -480,32 +480,22 @@ enum ReaderProgressBars {
 // MARK: - 10. Relative-time rows
 
 enum SavedRelativeTime {
-    /// Compact relative stamp for reader shortcut rows (`2 months ago`).
-    /// Pure calendar buckets so the rows are unit-pinned; the sheet keeps
-    /// the full date in accessibility labels.
-    static func string(since date: Date, now: Date = Date()) -> String {
+    static func string(since date: Date, now: Date = Date(), locale: Locale) -> String {
         let seconds = max(0, Int(now.timeIntervalSince(date)))
+        let formatter = RelativeDateTimeFormatter()
+        formatter.locale = locale
+        formatter.unitsStyle = .full
+        formatter.dateTimeStyle = seconds < 60 ? .named : .numeric
+        let components: DateComponents
         switch seconds {
-        case 0..<60:
-            return "just now"
-        case 60..<3_600:
-            let minutes = seconds / 60
-            return minutes == 1 ? "1 minute ago" : "\(minutes) minutes ago"
-        case 3_600..<86_400:
-            let hours = seconds / 3_600
-            return hours == 1 ? "1 hour ago" : "\(hours) hours ago"
-        case 86_400..<7 * 86_400:
-            let days = seconds / 86_400
-            return days == 1 ? "1 day ago" : "\(days) days ago"
-        case 7 * 86_400..<30 * 86_400:
-            let weeks = seconds / (7 * 86_400)
-            return weeks == 1 ? "1 week ago" : "\(weeks) weeks ago"
-        case 30 * 86_400..<365 * 86_400:
-            let months = seconds / (30 * 86_400)
-            return months == 1 ? "1 month ago" : "\(months) months ago"
-        default:
-            let years = seconds / (365 * 86_400)
-            return years == 1 ? "1 year ago" : "\(years) years ago"
+        case 0..<60: components = DateComponents(second: 0)
+        case 60..<3_600: components = DateComponents(minute: -(seconds / 60))
+        case 3_600..<86_400: components = DateComponents(hour: -(seconds / 3_600))
+        case 86_400..<7 * 86_400: components = DateComponents(day: -(seconds / 86_400))
+        case 7 * 86_400..<30 * 86_400: components = DateComponents(weekOfMonth: -(seconds / (7 * 86_400)))
+        case 30 * 86_400..<365 * 86_400: components = DateComponents(month: -(seconds / (30 * 86_400)))
+        default: components = DateComponents(year: -(seconds / (365 * 86_400)))
         }
+        return formatter.localizedString(from: components)
     }
 }

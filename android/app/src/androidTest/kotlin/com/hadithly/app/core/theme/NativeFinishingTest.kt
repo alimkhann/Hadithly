@@ -31,6 +31,52 @@ import java.io.File
 class NativeFinishingTest {
     @get:Rule val compose = createComposeRule()
 
+    @Test fun savedRelativeTimeLocalePluralAndBucketBoundaries() {
+        val now = 1_800_000_000_000.0
+        val minutes = android.icu.text.RelativeDateTimeFormatter.RelativeUnit.MINUTES
+        val hours = android.icu.text.RelativeDateTimeFormatter.RelativeUnit.HOURS
+        val days = android.icu.text.RelativeDateTimeFormatter.RelativeUnit.DAYS
+        val weeks = android.icu.text.RelativeDateTimeFormatter.RelativeUnit.WEEKS
+        val months = android.icu.text.RelativeDateTimeFormatter.RelativeUnit.MONTHS
+        val years = android.icu.text.RelativeDateTimeFormatter.RelativeUnit.YEARS
+        val samples: List<Triple<Long, Long, android.icu.text.RelativeDateTimeFormatter.RelativeUnit?>> = listOf(
+            Triple(-60L, 0L, null), Triple(0L, 0L, null), Triple(59L, 0L, null),
+            Triple(60L, 1L, minutes), Triple(119L, 1L, minutes), Triple(120L, 2L, minutes), Triple(3_599L, 59L, minutes),
+            Triple(3_600L, 1L, hours), Triple(86_399L, 23L, hours), Triple(86_400L, 1L, days), Triple(6 * 86_400L, 6L, days),
+            Triple(7 * 86_400L, 1L, weeks), Triple(29 * 86_400L, 4L, weeks), Triple(30 * 86_400L, 1L, months),
+            Triple(60 * 86_400L, 2L, months), Triple(364 * 86_400L, 12L, months), Triple(365 * 86_400L, 1L, years), Triple(400 * 86_400L, 1L, years),
+        )
+        for (language in listOf("en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn")) {
+            val locale = java.util.Locale.forLanguageTag(language)
+            val formatter = android.icu.text.RelativeDateTimeFormatter.getInstance(locale)
+            for ((elapsed, quantity, unit) in samples) {
+                val expected = if (unit == null) formatter.format(android.icu.text.RelativeDateTimeFormatter.Direction.PLAIN, android.icu.text.RelativeDateTimeFormatter.AbsoluteUnit.NOW)
+                    else formatter.format(quantity.toDouble(), android.icu.text.RelativeDateTimeFormatter.Direction.LAST, unit)
+                assertTrue(expected.isNotEmpty())
+                assertEquals(language + ":" + elapsed, expected, com.hadithly.app.features.saved.relativeSavedTime(now - elapsed * 1000, now, locale))
+            }
+        }
+    }
+
+    @Test fun savedTimestampUsesTheSelectedUILocale() {
+        var locale by mutableStateOf("ar")
+        compose.setContent { key(locale) { LocalizedPreview(ReaderTheme.LIGHT, locale) {
+            val ref = com.hadithly.app.core.data.HadithRef("audit-time", "fixture", "Source collection", "1", "1", "Prepared text", "Prepared text", "Source reference")
+            val now = System.currentTimeMillis().toDouble()
+            val item = com.hadithly.app.core.data.SavedItemEntry(ref.hadithId, now, now, bookmarkCreatedAt = now, hadith = ref)
+            Box(Modifier.fillMaxSize().statusBarsPadding().padding(20.dp)) {
+                com.hadithly.app.features.saved.SharedSavedItemRow(item, emptyList(), false, {}, { _, _, _ -> }, {}, {}, {}, {})
+            }
+        } } }
+        for (language in listOf("ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn", "en")) {
+            compose.runOnIdle { locale = language }
+            val formatter = android.icu.text.RelativeDateTimeFormatter.getInstance(java.util.Locale.forLanguageTag(language))
+            val expected = formatter.format(android.icu.text.RelativeDateTimeFormatter.Direction.PLAIN, android.icu.text.RelativeDateTimeFormatter.AbsoluteUnit.NOW)
+            compose.onNodeWithText(expected).assertIsDisplayed()
+            capture("saved-time-" + language)
+        }
+    }
+
     @Test fun helpLabelsAndShareRepairRenderInEveryLocale() {
         var locale by mutableStateOf("ar")
         compose.setContent { key(locale) { LocalizedPreview(ReaderTheme.LIGHT, locale) {

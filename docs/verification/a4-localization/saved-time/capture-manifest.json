@@ -1,0 +1,152 @@
+[
+  {
+    "platform": "ios",
+    "name": "saved-time-en",
+    "sha256": "6283b9cabc30a734e37f64be028e47ded74cfad3b8ed16907fa11b841971e8f6"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-time-bn",
+    "sha256": "1bf7304050efbe6ee9c13e3db9f87421590e1efc6342e298761f2b82ecd6c37a"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-time-hi",
+    "sha256": "2a0b858af682c06ab4fd7beef7377dc7adddd3293b74857f07bf42618ce83e88"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-time-sw",
+    "sha256": "67f1591493aafd309c0463428e02d97407e4ec15297703085083d45411ea012a"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-time-pt-BR",
+    "sha256": "d86a083ef11c83f48182cfe110ca286704227681e1271ff046c5f707a8bcc072"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-time-es-419",
+    "sha256": "7f66dec83eaae625768e361c8f5717937f1169afc421645aa6b6ff9e6b2dd2b0"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-time-fr",
+    "sha256": "a8bd0913f174e377f2f5320c659f1a0e7d06942f40458ca663524bbdd6c3b623"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-time-ur",
+    "sha256": "f71373b02512d136c7008f68f97a65260e42fc35a0789d59f53a6794dbdac718"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-time-id",
+    "sha256": "d713d3e6c5092c2afb08d9c7ff32097923d57c2633919c0c1c92251b9076ec63"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-time-tr",
+    "sha256": "c6fab87a1797557f750f5a5cb2dcdaae77727bc6e183555dc46b995da9caf3ee"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-time-uz",
+    "sha256": "d4f9bd072968b9ae69f333d7d6385edff5d4ed072f02a92348a8282f01e1ed15"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-time-ky",
+    "sha256": "be0c2ee3f1fba671f76e14dcd6a8b6bf59193b199923d0b38ffddb790126ea85"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-time-kk",
+    "sha256": "e9b4bdc6b68f2bf57da557cb3edf329f0709db33a0adc4f0506bccc7e608b83d"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-time-ru",
+    "sha256": "442c720c8653c28a96cbf883f587b6d3aa857d60a9c931a7cad24700f9150435"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-time-ar",
+    "sha256": "ccb5902dec2b03c05a7963668b0e8f983546888d3b664e7693d1291ca6ff4c6f"
+  },
+  {
+    "platform": "android",
+    "name": "saved-time-en",
+    "sha256": "786bd422c7d25d586b099824dbfe6458625e15f64c043e97168da8011c0a2ce7"
+  },
+  {
+    "platform": "android",
+    "name": "saved-time-ar",
+    "sha256": "0e370c173c346e305abcca49e741e868f2b55cb06d8b0d457f740ba73f146452"
+  },
+  {
+    "platform": "android",
+    "name": "saved-time-ru",
+    "sha256": "7e44f6efd483c97e8c1f84e89c3611297647648631ecb4f54ce71272cd0b5b48"
+  },
+  {
+    "platform": "android",
+    "name": "saved-time-kk",
+    "sha256": "5eea872c3e3fe5ab2d3d1e06ef2d8012bd12f884d9ebb1bfea1841137b0a36d2"
+  },
+  {
+    "platform": "android",
+    "name": "saved-time-ky",
+    "sha256": "6bbbc52523badb389d2fff170ecc18b0078c448df91dff2bedf09af8d72d8fd2"
+  },
+  {
+    "platform": "android",
+    "name": "saved-time-uz",
+    "sha256": "30b1a3eeb448144dab2f457910443a72da50ab98802cf58c6397cd44403b7b21"
+  },
+  {
+    "platform": "android",
+    "name": "saved-time-tr",
+    "sha256": "8d08e65bf76a55c154f61dce963beeefc990c6d05b8d4138d6794a33a7ffbd7e"
+  },
+  {
+    "platform": "android",
+    "name": "saved-time-id",
+    "sha256": "32ac7aa2e0424d7d440e4130193a4f6edcf6431a73e7e4225266da16a971e9cd"
+  },
+  {
+    "platform": "android",
+    "name": "saved-time-ur",
+    "sha256": "864ef67a8f5a1a6f9f8f404d76f4f46d7ea8399ca6637319d55a1fc81f15d7df"
+  },
+  {
+    "platform": "android",
+    "name": "saved-time-fr",
+    "sha256": "b4be55d355619d1cd8473acb38fc1d3613f133006fe5d3fd65460daaaffbc99c"
+  },
+  {
+    "platform": "android",
+    "name": "saved-time-es-419",
+    "sha256": "dac772beb5480d4b86de1d1cd70b0aeddf2f7945f9bfa05ea91be754bb23d96a"
+  },
+  {
+    "platform": "android",
+    "name": "saved-time-pt-BR",
+    "sha256": "d1c63525d382b3e34035d4a27c0c9add144eed8d73416257e99366a6a895b5ab"
+  },
+  {
+    "platform": "android",
+    "name": "saved-time-sw",
+    "sha256": "43834de51e919505010d212afef891a2686f9df7795283c1c2ea227a939ffa59"
+  },
+  {
+    "platform": "android",
+    "name": "saved-time-hi",
+    "sha256": "fd70f64f70261fc324cbd71f9cb42078af6b5955b560b423b54eeeaf0ef8849f"
+  },
+  {
+    "platform": "android",
+    "name": "saved-time-bn",
+    "sha256": "90a6b273098fe12eb64220c834eaea168b801f950ba7c27fab75c8a7e2db4b31"
+  }
+]

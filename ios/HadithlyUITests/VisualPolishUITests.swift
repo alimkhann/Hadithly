@@ -69,6 +69,22 @@ final class VisualPolishUITests: XCTestCase {
         }
     }
 
+    func testSavedTimestampUsesTheSelectedUILocale() {
+        for locale in ["ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn", "en"] {
+            let formatter = RelativeDateTimeFormatter()
+            formatter.locale = Locale(identifier: locale)
+            formatter.dateTimeStyle = .named
+            formatter.unitsStyle = .full
+            let expected = formatter.localizedString(from: DateComponents(second: 0))
+            let app = launchPolish("saved-audit", locale: locale)
+            let open = app.buttons["saved.open.audit-saved"]
+            XCTAssertTrue(open.waitForExistence(timeout: 10))
+            XCTAssertTrue(open.label.contains(expected), open.label)
+            capture("saved-time-" + locale, app)
+            app.terminate()
+        }
+    }
+
     func testHelpLabelsAndShareRepairRenderInEveryLocale() {
         for (locale, share, guides, contact, report) in [
             ("ar", "مشاركة Hadithly", "الأسئلة الشائعة والأدلة", "التواصل مع الدعم", "الإبلاغ عن مشكلة في الترجمة"),
