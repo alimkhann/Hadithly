@@ -393,6 +393,58 @@ def find_hardcoded() -> tuple[list[str], list[str]]:
     return sorted(set(swift)), sorted(set(kotlin))
 
 
+def runtime_literal_candidates(text: str, platform: str, keys: set[str], fixture: bool = False) -> list[dict]:
+    """Classify lexical candidates; catalog presence never proves runtime lookup."""
+    literal = r'"((?:\\.|[^"\\])*)"'
+    calls = (r'(Text|Label|Button|Toggle|Section|Picker|TextField|SecureField|navigationTitle|accessibilityLabel|accessibilityHint|alert|confirmationDialog|appNavigationTitle|ReaderSheetChrome|QuietEmptyState|AppLocalization\.string)\(\s*(?:title\s*:\s*)?' if platform == 'ios'
+             else r'(nativeText|Text)\(\s*(?:text\s*=\s*)?')
+    pattern = re.compile(calls + literal)
+    debug_lines, stack = set(), []
+    if platform == 'ios':
+        for number, line in enumerate(text.splitlines(), 1):
+            directive = line.strip()
+            if directive.startswith('#if '): stack.append(True if directive == '#if DEBUG' else False if directive == '#if !DEBUG' else None)
+            elif directive == '#else' and stack and stack[-1] is not None: stack[-1] = not stack[-1]
+            elif directive == '#endif' and stack: stack.pop()
+            if any(stack): debug_lines.add(number)
+    rows = []
+    for match in pattern.finditer(text):
+        line = text.count('\n', 0, match.start()) + 1
+        call, value = match.groups()
+        dynamic = '\\(' in value if platform == 'ios' else bool(re.search(r'(?<!\\)\$(?:[A-Za-z_]|\{)', value))
+        if not dynamic:
+            try: value = json.loads(chr(34) + value.replace(r'\$', '$') + chr(34))
+            except json.JSONDecodeError: pass
+        if not value: continue
+        if fixture or line in debug_lines: category = 'debug-fixture'
+        elif dynamic: category = 'dynamic-review'
+        elif value.startswith(('http://', 'https://')) or value.isdigit() or re.fullmatch(r'[^ @]+@[^ @]+', value): category = 'example-or-symbol-review'
+        elif platform == 'android' and call != 'nativeText': category = 'direct-literal-review'
+        elif value not in keys: category = 'missing-catalog-key' if platform == 'ios' else 'missing-native-mapping'
+        else: category = 'catalog-backed-runtime-unverified'
+        rows.append({'line': line, 'call': call, 'value': value, 'category': category})
+    return rows
+
+
+def write_runtime_report(path: Path) -> None:
+    keys = source_keys()
+    helper = (ROOT / 'android/app/src/main/kotlin/com/hadithly/app/core/preferences/NativeCopy.kt').read_text()
+    android_keys = set()
+    for quoted in re.findall(r'^\s*("(?:\\.|[^"\\])*")\s*->\s*R\.string\.', helper, re.M):
+        android_keys.add(json.loads(quoted.replace(r'\$', '$')))
+    rows = []
+    for platform, directory, suffix, known in [('ios', ROOT / 'ios/Hadithly', '*.swift', keys),
+                                               ('android', ROOT / 'android/app/src/main/kotlin', '*.kt', android_keys)]:
+        for source in sorted(directory.rglob(suffix)):
+            for row in runtime_literal_candidates(source.read_text(), platform, known, 'Fixture' in source.name):
+                rows.append({'platform': platform, 'file': str(source.relative_to(ROOT)), **row})
+    report = {'scope': 'Lexical UI-call candidates only. Variable/conditional arguments, custom wrappers, String-backed models, resources and server text still require source and runtime review. Catalog-backed entries are not claimed localized.',
+              'counts': dict(Counter(row['category'] for row in rows)), 'candidates': rows}
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
+    print('runtime candidate classification:', json.dumps(report['counts']))
+
+
 def write_ledger() -> None:
     ios_catalog = json.loads(IOS_CATALOG.read_text())["strings"]
     android_strings, android_plurals = android_nodes(ANDROID_RES / "values/strings.xml")
@@ -432,7 +484,10 @@ def main() -> int:
     parser.add_argument("--ledger", action="store_true", help="write the review ledger")
     parser.add_argument("--allow-drafts", action="store_true", help="check resource structure while allowing untranslated drafts")
     parser.add_argument("--strict", action="store_true", help="fail on hardcoded native UI literals")
+    parser.add_argument("--runtime-report", type=Path, help="write classified lexical candidates without treating resource presence as runtime proof")
     args = parser.parse_args()
+    if args.runtime_report:
+        write_runtime_report(args.runtime_report)
 
     if args.write:
         ios_keys, ios_generated = write_ios_drafts()

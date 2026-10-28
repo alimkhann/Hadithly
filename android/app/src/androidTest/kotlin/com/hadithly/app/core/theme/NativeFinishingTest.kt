@@ -31,6 +31,68 @@ import java.io.File
 class NativeFinishingTest {
     @get:Rule val compose = createComposeRule()
 
+    @Test fun contentsGuidanceAndValidationLocalizeAtRuntime() {
+        var locale by mutableStateOf("ar")
+        compose.setContent { key(locale) { LocalizedPreview(ReaderTheme.LIGHT, locale) {
+            Box(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
+                com.hadithly.app.features.reader.ContentsSheet(
+                    volumes = listOf(com.hadithly.app.core.data.OutlineVolume(volumeId = "1", title = "Volume 1", hadithCount = 7.0)),
+                    selectedVolumeId = null, collectionName = "Sahih al-Bukhari", arabicVisible = true,
+                    onSelect = {}, onSelectChapter = { _, _ -> }, onJumpToReference = { false }, onDismiss = {},
+                )
+            }
+        } } }
+        for ((language, hint, error) in listOf(
+            Triple("ar", "انتقل إلى رقم حديث، مثل 57.", "أدخل رقم حديث مثل 57 أو 4.5."),
+            Triple("ru", "Перейти к номеру хадиса, например 57.", "Введите номер хадиса, например 57 или 4.5."),
+            Triple("kk", "Хадис нөміріне өту, мысалы 57.", "57 немесе 4.5 сияқты хадис нөмірін енгізіңіз."),
+            Triple("id", "Lompat ke nomor hadis, misalnya 57.", "Masukkan nomor hadis seperti 57 atau 4.5."),
+            Triple("en", "Jump to a hadith number, e.g. 57.", "Enter a hadith number like 57 or 4.5."),
+            Triple("ky", "Хадис номерине өтүңүз, мисалы 57.", "57 же 4.5 сыяктуу хадис номерин киргизиңиз."),
+            Triple("uz", "Hadis raqamiga o‘ting, masalan 57.", "57 yoki 4.5 kabi hadis raqamini kiriting."),
+            Triple("tr", "Hadis numarasına git, örneğin 57.", "57 veya 4.5 gibi bir hadis numarası girin."),
+            Triple("ur", "حدیث نمبر پر جائیں، مثلاً 57۔", "57 یا 4.5 جیسا حدیث نمبر درج کریں۔"),
+            Triple("fr", "Aller au numéro de hadith, par exemple 57.", "Saisissez un numéro de hadith comme 57 ou 4.5."),
+            Triple("es-419", "Ir al número de hadiz, por ejemplo, 57.", "Ingresa un número de hadiz como 57 o 4.5."),
+            Triple("pt-BR", "Ir para o número do hadith, por exemplo, 57.", "Digite um número de hadith como 57 ou 4.5."),
+            Triple("sw", "Nenda kwenye nambari ya hadithi, kwa mfano 57.", "Weka nambari ya hadithi kama 57 au 4.5."),
+            Triple("hi", "हदीस संख्या पर जाएँ, जैसे 57।", "57 या 4.5 जैसा हदीस नंबर दर्ज करें।"),
+            Triple("bn", "হাদিস নম্বরে যান, যেমন ৫৭।", "57 বা 4.5-এর মতো হাদিস নম্বর লিখুন।"),
+        )) {
+            compose.runOnIdle { locale = language }
+            compose.onNodeWithText(hint).assertIsDisplayed()
+            compose.onNodeWithTag("reader.contents.jump").performTextInput("abc")
+            compose.onNodeWithTag("reader.contents.jump").performImeAction()
+            compose.onNodeWithText(error).assertIsDisplayed()
+            capture("contents-validation-" + language)
+        }
+    }
+
+    @Test fun savedFolderNoticeResourcesKeepInterpolatedNames() {
+        val base = InstrumentationRegistry.getInstrumentation().targetContext
+        for ((language, expected) in listOf(
+            "ar" to "تم حذف المجلد My folder",
+            "ru" to "Папка My folder удалена",
+            "kk" to "My folder қалтасы жойылды",
+            "id" to "Folder My folder dihapus",
+            "en" to "Folder My folder deleted",
+            "ky" to "My folder папкасы өчүрүлдү",
+            "uz" to "My folder jildi o‘chirildi",
+            "tr" to "My folder klasörü silindi",
+            "ur" to "فولڈر My folder حذف کر دیا گیا",
+            "fr" to "Dossier My folder supprimé",
+            "es-419" to "Carpeta My folder eliminada",
+            "pt-BR" to "Pasta My folder excluída",
+            "sw" to "Folda My folder imefutwa",
+            "hi" to "फ़ोल्डर My folder मिटाया गया",
+            "bn" to "My folder ফোল্ডার মুছে ফেলা হয়েছে",
+        )) {
+            val config = android.content.res.Configuration(base.resources.configuration).apply { setLocale(java.util.Locale.forLanguageTag(language)) }
+            val context = base.createConfigurationContext(config)
+            assertEquals(language, expected, context.getString(com.hadithly.app.R.string.saved_folder_deleted, "My folder"))
+        }
+    }
+
     @Test fun nativeCopyKeepsNumericFormatArgumentsTyped() {
         val base = InstrumentationRegistry.getInstrumentation().targetContext
         for (language in listOf("en", "ar")) {

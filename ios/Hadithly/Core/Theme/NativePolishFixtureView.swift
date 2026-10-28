@@ -22,6 +22,11 @@ struct NativePolishFixtureView: View {
                     case "library-loading": LibraryView(previewLoading: true)
                     case "library-ready": LibraryView(previewLoading: false)
                     case "library-progress": LibraryView(previewLoading: false, progressExamples: true)
+                    case "saved-undo":
+                        VStack {
+                            SavedUndoBanner(notice: SavedUndoNotice(message: "Bookmark removed", undo: {}, deadline: .distantFuture))
+                            SavedUndoBanner(notice: SavedUndoNotice(message: "Folder \("My folder") deleted", undo: {}, deadline: .distantFuture))
+                        }
                     case "saved-loading": SavedView(previewState: .loading)
                     case "saved-failure": SavedView(previewState: .failed)
                     case "onboarding":

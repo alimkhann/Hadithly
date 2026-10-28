@@ -18,7 +18,7 @@
     <string name="la2_guest">مہمان کے طور پر جاری رکھیں</string>
     <string name="la2_reading_free">پڑھنا مفت رہتا ہے۔</string>
     <string name="la2_continue">جاری رکھیں</string>
-    <string name="la2_back">واپس</string>
+    <string name="la2_back" formatted="false">واپس</string>
     <string name="la2_skip">چھوڑ دیں</string>
     <string name="la2_usage">نجی استعمال کے اعدادوشمار شیئر کریں</string>
     <string name="la2_usage_explanation">مجموعی نتائج Convex کے ذریعے PostHog EU کو بھیجے جاتے ہیں۔ متن، حدیث کا ہدف، اکاؤنٹ یا آلے کی شناخت نہیں۔ بند کرنے سے زیر التوا اعدادوشمار مٹ جاتے ہیں۔ شائع شدہ مجموعے آپ کو شناخت نہیں کرتے۔</string>
@@ -31,11 +31,12 @@
     <string name="la2_keep_reading">مفت پڑھنا جاری رکھیں</string>
     <string name="la2_restore">خریداری بحال کریں</string>
     <string name="la2_retry">دوبارہ کوشش کریں</string>
-    <string name="la2_close">بند کریں</string>
+    <string name="la2_close" formatted="false">بند کریں</string>
     <string name="la2_privacy">رازداری</string>
     <string name="la2_terms">شرائط</string>
     <string name="la2_renewal">سبسکرپشن خود بخود تجدید ہوتی ہے۔ اپنے اسٹور اکاؤنٹ میں اس کا نظم کریں یا منسوخ کریں۔</string>
     <string name="la2_checking">Pro رسائی کی جانچ…</string>
     <string name="la2_cancelled">خریداری منسوخ۔ آپ پڑھنا جاری رکھ سکتے ہیں۔</string>
     <string name="la2_pending">ادائیگی زیر التوا ہے۔ اسٹور کی تصدیق پر Pro کھلے گا۔</string>
+    <!-- UI-polish locale entries are generated drafts; native review pending. -->
 </resources>

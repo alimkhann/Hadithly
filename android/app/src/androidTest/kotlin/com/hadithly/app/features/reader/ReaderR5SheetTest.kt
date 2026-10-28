@@ -1,5 +1,6 @@
 package com.hadithly.app.features.reader
 
+import com.hadithly.app.core.preferences.nativeText
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -134,7 +135,8 @@ class ReaderR5SheetTest {
         compose.onNodeWithTag("reader.contents.jump").performTextInput("abc")
         compose.onNodeWithTag("reader.contents.jump").performImeAction()
 
-        compose.onNodeWithText("Enter a hadith number like 57 or 4.5.").assertIsDisplayed()
+        val context = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().targetContext
+        compose.onNodeWithText(context.nativeText("Enter a hadith number like 57 or 4.5.")).assertIsDisplayed()
         assertEquals(1, jumps)
         assertTrue(!dismissed)
         compose.onNodeWithTag("reader.contents.sheet").assertIsDisplayed()

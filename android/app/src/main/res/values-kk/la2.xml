@@ -18,7 +18,7 @@
     <string name="la2_guest">Қонақ ретінде жалғастыру</string>
     <string name="la2_reading_free">Оқу тегін болып қалады.</string>
     <string name="la2_continue">Жалғастыру</string>
-    <string name="la2_back">Артқа</string>
+    <string name="la2_back" formatted="false">Артқа</string>
     <string name="la2_skip">Өткізіп жіберу</string>
     <string name="la2_usage">Жеке пайдалану статистикасын бөлісу</string>
     <string name="la2_usage_explanation">Жинақталған нәтижелер Convex арқылы PostHog EU-ға жіберіледі. Мәтін, оқу нысанасы, тіркелгі не құрылғы сәйкестігі берілмейді. Өшіру күтудегі статистиканы жояды. Жарияланған жиынтық сізді анықтамайды.</string>
@@ -31,11 +31,12 @@
     <string name="la2_keep_reading">Тегін оқуды жалғастыру</string>
     <string name="la2_restore">Сатып алуды қалпына келтіру</string>
     <string name="la2_retry">Қайталау</string>
-    <string name="la2_close">Жабу</string>
+    <string name="la2_close" formatted="false">Жабу</string>
     <string name="la2_privacy">Құпиялылық</string>
     <string name="la2_terms">Шарттар</string>
     <string name="la2_renewal">Жазылым автоматты түрде жаңартылады. Оны дүкендегі аккаунтыңыздан басқаруға немесе тоқтатуға болады.</string>
     <string name="la2_checking">Pro қолжетімділігі тексерілуде…</string>
     <string name="la2_cancelled">Сатып алу тоқтатылды. Оқуды жалғастыра аласыз.</string>
     <string name="la2_pending">Төлем күтілуде. Pro дүкен растағаннан кейін ашылады.</string>
+    <!-- UI-polish locale entries are generated drafts; native review pending. -->
 </resources>

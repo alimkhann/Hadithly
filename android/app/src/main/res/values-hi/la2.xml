@@ -18,7 +18,7 @@
     <string name="la2_guest">अतिथि के रूप में जारी रखें</string>
     <string name="la2_reading_free">पढ़ना मुफ़्त रहेगा।</string>
     <string name="la2_continue">जारी रखें</string>
-    <string name="la2_back">वापस</string>
+    <string name="la2_back" formatted="false">वापस</string>
     <string name="la2_skip">छोड़ें</string>
     <string name="la2_usage">निजी उपयोग आँकड़े साझा करें</string>
     <string name="la2_usage_explanation">Convex के माध्यम से PostHog EU के साथ समूहित परिणाम साझा करता है। पढ़ने का पाठ, लक्ष्य, खाता या उपकरण की पहचान नहीं भेजी जाती। बंद करने पर लंबित आँकड़े हट जाते हैं। प्रकाशित कुल आपको पहचान नहीं सकते।</string>
@@ -31,11 +31,12 @@
     <string name="la2_keep_reading">मुफ़्त पढ़ना जारी रखें</string>
     <string name="la2_restore">खरीदारियाँ पुनर्स्थापित करें</string>
     <string name="la2_retry">फिर कोशिश करें</string>
-    <string name="la2_close">बंद करें</string>
+    <string name="la2_close" formatted="false">बंद करें</string>
     <string name="la2_privacy">गोपनीयता</string>
     <string name="la2_terms">शर्तें</string>
     <string name="la2_renewal">सदस्यता अपने आप नवीनीकृत होती है। अपने स्टोर खाते में इसे प्रबंधित या रद्द करें।</string>
     <string name="la2_checking">Pro पहुँच जाँची जा रही है…</string>
     <string name="la2_cancelled">खरीद रद्द हो गई। आप पढ़ना जारी रख सकते हैं।</string>
     <string name="la2_pending">भुगतान लंबित है। स्टोर की पुष्टि के बाद Pro खुलेगा।</string>
+    <!-- UI-polish locale entries are generated drafts; native review pending. -->
 </resources>

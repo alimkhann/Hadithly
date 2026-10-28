@@ -57,6 +57,18 @@ start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
 
+## A4 Contents and Undo checkpoint, October 28
+
+Contents guidance and inline validation now resolve localized keys on both apps.
+iOS Undo notices preserve localized templates and verbatim folder names. Forty-two
+missing catalog keys and Android aliases now have scoped fifteen-locale drafts;
+five iOS and four Android native cases pass, with all fifteen locales covered in
+the changed Contents and iOS Undo paths. See `A4_RUNTIME_LOCALIZATION.md`.
+The new classified source inventory retains further auth/accessibility/settings
+and dynamic-string gaps. A4, native review, physical devices and A5–A7/E remain
+open. The live Contents Go-tap follow-up remains separate from fixture dismissal
+checks. Incoming project/catalog bytes remain preserved.
+
 ## A4 shared copy checkpoint, October 28
 
 Today-empty and Library-progress runtime checks pass in all fifteen locales on

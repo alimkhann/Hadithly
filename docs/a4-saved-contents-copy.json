@@ -1,0 +1,1078 @@
+{
+  "native_review": "pending",
+  "provenance": "Eleven local GPT-family drafts; other keys reuse complete existing Android drafts from a5c2407. No native-speaker approval.",
+  "reused_android": {
+    "Add image or PDF": {
+      "file": "native.xml",
+      "name": "native_6aeba22b0308"
+    },
+    "Add link": {
+      "file": "native.xml",
+      "name": "native_dfe9ca4d0f96"
+    },
+    "Back": {
+      "file": "la2.xml",
+      "name": "la2_back"
+    },
+    "Cancel upload": {
+      "file": "native.xml",
+      "name": "native_326d9c957d5a"
+    },
+    "Clear temporary cache": {
+      "file": "native.xml",
+      "name": "native_3bad88c3376c"
+    },
+    "Close": {
+      "file": "la2.xml",
+      "name": "la2_close"
+    },
+    "Delete account and data": {
+      "file": "native.xml",
+      "name": "native_7b503321357a"
+    },
+    "Delete draft": {
+      "file": "native.xml",
+      "name": "native_46495379257b"
+    },
+    "Done": {
+      "file": "native.xml",
+      "name": "native_11a6767d5674"
+    },
+    "Download": {
+      "file": "native.xml",
+      "name": "native_d6eafe823591"
+    },
+    "Download translation": {
+      "file": "native.xml",
+      "name": "native_e05372bd9e28"
+    },
+    "End of page": {
+      "file": "native.xml",
+      "name": "native_63624455a1b0"
+    },
+    "Forgot password?": {
+      "file": "native.xml",
+      "name": "native_30c1d8d3e912"
+    },
+    "Go": {
+      "file": "native.xml",
+      "name": "native_6cc8519b9158"
+    },
+    "How offline works": {
+      "file": "native.xml",
+      "name": "native_892ffa345a39"
+    },
+    "Note": {
+      "file": "native.xml",
+      "name": "native_d8da2c49df39"
+    },
+    "OK": {
+      "file": "native.xml",
+      "name": "native_565339bc4d33"
+    },
+    "Pause": {
+      "file": "native.xml",
+      "name": "native_858e4ba7a29f"
+    },
+    "Report translation": {
+      "file": "native.xml",
+      "name": "native_f038ae10080f"
+    },
+    "Resend code": {
+      "file": "native.xml",
+      "name": "native_b97457409ab5"
+    },
+    "Resume": {
+      "file": "native.xml",
+      "name": "native_d640c7421da0"
+    },
+    "Retry": {
+      "file": "native.xml",
+      "name": "native_942087cc2d41"
+    },
+    "Save": {
+      "file": "native.xml",
+      "name": "native_1509f561f241"
+    },
+    "Select again": {
+      "file": "native.xml",
+      "name": "native_5474755405da"
+    },
+    "Sign in with a code instead": {
+      "file": "native.xml",
+      "name": "native_d9a85e0a70d8"
+    },
+    "Start a new suggestion": {
+      "file": "native.xml",
+      "name": "native_03c47f10db6d"
+    },
+    "Suggest a translation": {
+      "file": "native.xml",
+      "name": "native_71223a24948d"
+    },
+    "Update": {
+      "file": "native.xml",
+      "name": "native_c1c1009d3f37"
+    },
+    "Hadith number": {
+      "file": "native.xml",
+      "name": "native_bdd5c6b7f515"
+    },
+    "Contents": {
+      "file": "native.xml",
+      "name": "native_437aea62a5bd"
+    },
+    "Volumes": {
+      "file": "native.xml",
+      "name": "native_258de606097f"
+    }
+  },
+  "keys": [
+    "Cancel",
+    "Create",
+    "Create saved folder",
+    "Folder name",
+    "New folder",
+    "Saved folders",
+    "Remove bookmark",
+    "Remove favorite",
+    "Folder %@ deleted",
+    "Jump to hadith number",
+    "Enter a hadith number like 57 or 4.5.",
+    "Add image or PDF",
+    "Add link",
+    "Back",
+    "Cancel upload",
+    "Clear temporary cache",
+    "Close",
+    "Delete account and data",
+    "Delete draft",
+    "Done",
+    "Download",
+    "Download translation",
+    "End of page",
+    "Forgot password?",
+    "Go",
+    "How offline works",
+    "Note",
+    "OK",
+    "Pause",
+    "Report translation",
+    "Resend code",
+    "Resume",
+    "Retry",
+    "Save",
+    "Select again",
+    "Sign in with a code instead",
+    "Start a new suggestion",
+    "Suggest a translation",
+    "Update",
+    "Hadith number",
+    "Contents",
+    "Volumes"
+  ],
+  "locales": {
+    "en": [
+      "Cancel",
+      "Create",
+      "Create saved folder",
+      "Folder name",
+      "New folder",
+      "Saved folders",
+      "Remove bookmark",
+      "Remove favorite",
+      "Folder %@ deleted",
+      "Jump to hadith number",
+      "Enter a hadith number like 57 or 4.5.",
+      "Add image or PDF",
+      "Add link",
+      "Back",
+      "Cancel upload",
+      "Clear temporary cache",
+      "Close",
+      "Delete account and data",
+      "Delete draft",
+      "Done",
+      "Download",
+      "Download translation",
+      "End of page",
+      "Forgot password?",
+      "Go",
+      "How offline works",
+      "Note",
+      "OK",
+      "Pause",
+      "Report translation",
+      "Resend code",
+      "Resume",
+      "Retry",
+      "Save",
+      "Select again",
+      "Sign in with a code instead",
+      "Start a new suggestion",
+      "Suggest a translation",
+      "Update",
+      "Hadith number",
+      "Contents",
+      "Volumes"
+    ],
+    "ar": [
+      "إلغاء",
+      "إنشاء",
+      "إنشاء مجلد للمحفوظات",
+      "اسم المجلد",
+      "مجلد جديد",
+      "مجلدات المحفوظات",
+      "إزالة الإشارة المرجعية",
+      "إزالة من المفضلة",
+      "تم حذف المجلد %@",
+      "الانتقال إلى رقم حديث",
+      "أدخل رقم حديث مثل 57 أو 4.5.",
+      "إضافة صورة أو PDF",
+      "إضافة رابط",
+      "رجوع",
+      "إلغاء الرفع",
+      "مسح ذاكرة التخزين المؤقت المؤقتة",
+      "إغلاق",
+      "حذف الحساب والبيانات",
+      "حذف المسودة",
+      "تم",
+      "تنزيل",
+      "تنزيل الترجمة",
+      "نهاية الصفحة",
+      "هل نسيت كلمة المرور؟",
+      "انتقال",
+      "كيف تعمل ميزة عدم الاتصال",
+      "ملاحظة",
+      "حسنًا",
+      "إيقاف مؤقت",
+      "الإبلاغ عن الترجمة",
+      "إعادة إرسال الرمز",
+      "استئناف",
+      "إعادة المحاولة",
+      "حفظ",
+      "اختيار مجددًا",
+      "استخدم رمزًا لتسجيل الدخول بدلًا من ذلك",
+      "ابدأ اقتراحًا جديدًا",
+      "اقتراح ترجمة",
+      "تحديث",
+      "رقم الحديث",
+      "المحتويات",
+      "المجلدات"
+    ],
+    "ru": [
+      "Отмена",
+      "Создать",
+      "Создать папку для сохранённого",
+      "Название папки",
+      "Новая папка",
+      "Папки сохранённого",
+      "Убрать закладку",
+      "Убрать из избранного",
+      "Папка %@ удалена",
+      "Перейти к номеру хадиса",
+      "Введите номер хадиса, например 57 или 4.5.",
+      "Добавить изображение или PDF",
+      "Добавить ссылку",
+      "Назад",
+      "Отменить загрузку",
+      "Очистить временный кэш",
+      "Закрыть",
+      "Удалить аккаунт и данные",
+      "Удалить черновик",
+      "Готово",
+      "Загрузить",
+      "Загрузить перевод",
+      "Конец страницы",
+      "Забыли пароль?",
+      "Перейти",
+      "Как работает офлайн-режим",
+      "Заметка",
+      "ОК",
+      "Пауза",
+      "Пожаловаться на перевод",
+      "Отправить код снова",
+      "Продолжить",
+      "Повторить",
+      "Сохранить",
+      "Выбрать снова",
+      "Войти с помощью кода",
+      "Начать новое предложение",
+      "Предложить перевод",
+      "Обновить",
+      "Номер хадиса",
+      "Содержание",
+      "ТОМА"
+    ],
+    "kk": [
+      "Бас тарту",
+      "Жасау",
+      "Сақталғандар үшін қалта жасау",
+      "Қалта атауы",
+      "Жаңа қалта",
+      "Сақталған қалталар",
+      "Бетбелгіні алып тастау",
+      "Таңдаулылардан алып тастау",
+      "%@ қалтасы жойылды",
+      "Хадис нөміріне өту",
+      "57 немесе 4.5 сияқты хадис нөмірін енгізіңіз.",
+      "Сурет немесе PDF қосу",
+      "Сілтеме қосу",
+      "Артқа",
+      "Жүктеп салуды тоқтату",
+      "Уақытша кэшті тазалау",
+      "Жабу",
+      "Есептік жазба мен деректерді жою",
+      "Нобайды жою",
+      "Дайын",
+      "Жүктеу",
+      "Аударманы жүктеу",
+      "Беттің соңы",
+      "Құпиясөзді ұмыттыңыз ба?",
+      "Өту",
+      "Офлайн режимі қалай жұмыс істейді",
+      "Жазба",
+      "Жарайды",
+      "Кідірту",
+      "Аудармаға шағымдану",
+      "Кодты қайта жіберу",
+      "Жалғастыру",
+      "Қайталау",
+      "Сақтау",
+      "Қайта таңдау",
+      "Оның орнына кодпен кіру",
+      "Жаңа ұсынысты бастау",
+      "Аударма ұсыну",
+      "Жаңарту",
+      "Хадис нөмірі",
+      "Мазмұны",
+      "ТОМДАР"
+    ],
+    "ky": [
+      "Жокко чыгаруу",
+      "Түзүү",
+      "Сакталгандар үчүн папка түзүү",
+      "Папканын аты",
+      "Жаңы папка",
+      "Сакталган папкалар",
+      "Кыстарманы алып салуу",
+      "Тандалмалардан алып салуу",
+      "%@ папкасы өчүрүлдү",
+      "Хадис номерине өтүү",
+      "57 же 4.5 сыяктуу хадис номерин киргизиңиз.",
+      "Сүрөт же PDF кошуу",
+      "Шилтеме кошуу",
+      "Артка",
+      "Жүктөөнү токтотуу",
+      "Убактылуу кэшти тазалоо",
+      "Жабуу",
+      "Каттоо эсебин жана дайындарды өчүрүү",
+      "Долбоорду өчүрүү",
+      "Даяр",
+      "Жүктөө",
+      "Котормону жүктөө",
+      "Барактын аягы",
+      "Сырсөздү унуттуңузбу?",
+      "Өтүү",
+      "Офлайн режим кантип иштейт",
+      "Жазуу",
+      "Макул",
+      "Тындыруу",
+      "Котормо тууралуу билдирүү",
+      "Кодду кайра жөнөтүү",
+      "Улантуу",
+      "Кайра аракет кылуу",
+      "Сактоо",
+      "Кайра тандоо",
+      "Анын ордуна код менен кирүү",
+      "Жаңы сунушту баштоо",
+      "Котормо сунуштоо",
+      "Жаңыртуу",
+      "Хадистин номери",
+      "Мазмун",
+      "ТОМДОР"
+    ],
+    "uz": [
+      "Bekor qilish",
+      "Yaratish",
+      "Saqlanganlar uchun jild yaratish",
+      "Jild nomi",
+      "Yangi jild",
+      "Saqlangan jildlar",
+      "Xatcho‘pni olib tashlash",
+      "Sevimlilardan olib tashlash",
+      "%@ jildi o‘chirildi",
+      "Hadis raqamiga o‘tish",
+      "57 yoki 4.5 kabi hadis raqamini kiriting.",
+      "Rasm yoki PDF qo‘shish",
+      "Havola qo‘shish",
+      "Orqaga",
+      "Yuklashni bekor qilish",
+      "Vaqtinchalik keshni tozalash",
+      "Yopish",
+      "Hisob va ma’lumotlarni o‘chirish",
+      "Qoralamani o‘chirish",
+      "Tayyor",
+      "Yuklab olish",
+      "Tarjimani yuklab olish",
+      "Sahifa oxiri",
+      "Parolni unutdingizmi?",
+      "O‘tish",
+      "Oflayn rejim qanday ishlaydi",
+      "Qayd",
+      "Mayli",
+      "To‘xtatish",
+      "Tarjima haqida xabar berish",
+      "Kodni qayta yuborish",
+      "Davom etish",
+      "Qayta urinish",
+      "Saqlash",
+      "Qayta tanlash",
+      "Buning o‘rniga kod bilan kirish",
+      "Yangi taklif boshlash",
+      "Tarjima taklif qilish",
+      "Yangilash",
+      "Hadis raqami",
+      "Mundarija",
+      "JILDLAR"
+    ],
+    "tr": [
+      "İptal",
+      "Oluştur",
+      "Kaydedilenler için klasör oluştur",
+      "Klasör adı",
+      "Yeni klasör",
+      "Kaydedilen klasörler",
+      "Yer imini kaldır",
+      "Favorilerden kaldır",
+      "%@ klasörü silindi",
+      "Hadis numarasına git",
+      "57 veya 4.5 gibi bir hadis numarası girin.",
+      "Görsel veya PDF ekle",
+      "Bağlantı ekle",
+      "Geri",
+      "Yüklemeyi iptal et",
+      "Geçici önbelleği temizle",
+      "Kapat",
+      "Hesabı ve verileri sil",
+      "Taslağı sil",
+      "Bitti",
+      "İndir",
+      "Çeviriyi indir",
+      "Sayfanın sonu",
+      "Şifrenizi mi unuttunuz?",
+      "Git",
+      "Çevrimdışı çalışma şekli",
+      "Not",
+      "Tamam",
+      "Duraklat",
+      "Çeviriyi bildir",
+      "Kodu yeniden gönder",
+      "Sürdür",
+      "Tekrar dene",
+      "Kaydet",
+      "Tekrar seç",
+      "Bunun yerine kodla giriş yap",
+      "Yeni öneri başlat",
+      "Çeviri öner",
+      "Güncelle",
+      "Hadis numarası",
+      "İçindekiler",
+      "CİLTLER"
+    ],
+    "id": [
+      "Batal",
+      "Buat",
+      "Buat folder tersimpan",
+      "Nama folder",
+      "Folder baru",
+      "Folder tersimpan",
+      "Hapus penanda",
+      "Hapus dari favorit",
+      "Folder %@ dihapus",
+      "Lompat ke nomor hadis",
+      "Masukkan nomor hadis seperti 57 atau 4.5.",
+      "Tambahkan gambar atau PDF",
+      "Tambahkan tautan",
+      "Kembali",
+      "Batalkan unggahan",
+      "Hapus cache sementara",
+      "Tutup",
+      "Hapus akun dan data",
+      "Hapus draf",
+      "Selesai",
+      "Unduh",
+      "Unduh terjemahan",
+      "Akhir halaman",
+      "Lupa kata sandi?",
+      "Buka",
+      "Cara kerja offline",
+      "Catatan",
+      "Oke",
+      "Jeda",
+      "Laporkan terjemahan",
+      "Kirim ulang kode",
+      "Lanjutkan",
+      "Coba lagi",
+      "Simpan",
+      "Pilih lagi",
+      "Masuk dengan kode",
+      "Mulai saran baru",
+      "Sarankan terjemahan",
+      "Perbarui",
+      "Nomor hadis",
+      "Daftar isi",
+      "VOLUME"
+    ],
+    "ur": [
+      "منسوخ کریں",
+      "بنائیں",
+      "محفوظ کردہ مواد کے لیے فولڈر بنائیں",
+      "فولڈر کا نام",
+      "نیا فولڈر",
+      "محفوظ کردہ فولڈرز",
+      "بُک مارک ہٹائیں",
+      "پسندیدہ سے ہٹائیں",
+      "فولڈر %@ حذف کر دیا گیا",
+      "حدیث نمبر پر جائیں",
+      "57 یا 4.5 جیسا حدیث نمبر درج کریں۔",
+      "تصویر یا PDF شامل کریں",
+      "لنک شامل کریں",
+      "واپس",
+      "اپ لوڈ منسوخ کریں",
+      "عارضی کیش صاف کریں",
+      "بند کریں",
+      "اکاؤنٹ اور ڈیٹا حذف کریں",
+      "مسودہ حذف کریں",
+      "مکمل",
+      "ڈاؤن لوڈ کریں",
+      "ترجمہ ڈاؤن لوڈ کریں",
+      "صفحے کا اختتام",
+      "پاس ورڈ بھول گئے؟",
+      "جائیں",
+      "آف لائن کیسے کام کرتا ہے",
+      "نوٹ",
+      "ٹھیک ہے",
+      "روکیں",
+      "ترجمے کی رپورٹ کریں",
+      "کوڈ دوبارہ بھیجیں",
+      "جاری رکھیں",
+      "دوبارہ کوشش کریں",
+      "محفوظ کریں",
+      "دوبارہ منتخب کریں",
+      "اس کے بجائے کوڈ سے سائن اِن کریں",
+      "نئی تجویز شروع کریں",
+      "ترجمہ تجویز کریں",
+      "اپ ڈیٹ کریں",
+      "حدیث نمبر",
+      "فہرستِ مضامین",
+      "جلدیں"
+    ],
+    "fr": [
+      "Annuler",
+      "Créer",
+      "Créer un dossier pour les éléments enregistrés",
+      "Nom du dossier",
+      "Nouveau dossier",
+      "Dossiers enregistrés",
+      "Retirer le marque-page",
+      "Retirer des favoris",
+      "Dossier %@ supprimé",
+      "Aller au numéro de hadith",
+      "Saisissez un numéro de hadith comme 57 ou 4.5.",
+      "Ajouter une image ou un PDF",
+      "Ajouter un lien",
+      "Retour",
+      "Annuler l’envoi",
+      "Vider le cache temporaire",
+      "Fermer",
+      "Supprimer le compte et les données",
+      "Supprimer le brouillon",
+      "Terminé",
+      "Télécharger",
+      "Télécharger la traduction",
+      "Fin de la page",
+      "Mot de passe oublié ?",
+      "Ouvrir",
+      "Fonctionnement hors ligne",
+      "Remarque",
+      "D’accord",
+      "Mettre en pause",
+      "Signaler la traduction",
+      "Renvoyer le code",
+      "Reprendre",
+      "Réessayer",
+      "Enregistrer",
+      "Sélectionner à nouveau",
+      "Se connecter avec un code",
+      "Commencer une nouvelle suggestion",
+      "Suggérer une traduction",
+      "Mettre à jour",
+      "Numéro du hadith",
+      "Sommaire",
+      "TOMES"
+    ],
+    "es-419": [
+      "Cancelar",
+      "Crear",
+      "Crear carpeta de guardados",
+      "Nombre de la carpeta",
+      "Nueva carpeta",
+      "Carpetas guardadas",
+      "Quitar marcador",
+      "Quitar de favoritos",
+      "Carpeta %@ eliminada",
+      "Ir al número de hadiz",
+      "Ingresa un número de hadiz como 57 o 4.5.",
+      "Agregar imagen o PDF",
+      "Agregar enlace",
+      "Atrás",
+      "Cancelar carga",
+      "Borrar caché temporal",
+      "Cerrar",
+      "Eliminar cuenta y datos",
+      "Eliminar borrador",
+      "Listo",
+      "Descargar",
+      "Descargar traducción",
+      "Fin de la página",
+      "¿Olvidaste tu contraseña?",
+      "Ir",
+      "Cómo funciona sin conexión",
+      "Nota",
+      "Aceptar",
+      "Pausar",
+      "Reportar traducción",
+      "Reenviar código",
+      "Reanudar",
+      "Reintentar",
+      "Guardar",
+      "Seleccionar de nuevo",
+      "Iniciar sesión con un código",
+      "Iniciar una sugerencia nueva",
+      "Sugerir una traducción",
+      "Actualizar",
+      "Número del hadiz",
+      "Contenido",
+      "VOLÚMENES"
+    ],
+    "pt-BR": [
+      "Cancelar",
+      "Criar",
+      "Criar pasta de salvos",
+      "Nome da pasta",
+      "Nova pasta",
+      "Pastas salvas",
+      "Remover marcador",
+      "Remover dos favoritos",
+      "Pasta %@ excluída",
+      "Ir para o número do hadith",
+      "Digite um número de hadith como 57 ou 4.5.",
+      "Adicionar imagem ou PDF",
+      "Adicionar link",
+      "Voltar",
+      "Cancelar envio",
+      "Limpar cache temporário",
+      "Fechar",
+      "Excluir conta e dados",
+      "Excluir rascunho",
+      "Concluído",
+      "Baixar",
+      "Baixar tradução",
+      "Fim da página",
+      "Esqueceu a senha?",
+      "Ir",
+      "Como funciona offline",
+      "Nota",
+      "Certo",
+      "Pausar",
+      "Denunciar tradução",
+      "Reenviar código",
+      "Retomar",
+      "Tentar novamente",
+      "Salvar",
+      "Selecionar novamente",
+      "Entrar com um código",
+      "Iniciar uma nova sugestão",
+      "Sugerir tradução",
+      "Atualizar",
+      "Número do hadith",
+      "Conteúdo",
+      "TOMOS"
+    ],
+    "sw": [
+      "Ghairi",
+      "Unda",
+      "Unda folda ya vilivyohifadhiwa",
+      "Jina la folda",
+      "Folda mpya",
+      "Folda zilizohifadhiwa",
+      "Ondoa alamisho",
+      "Ondoa kwenye vipendwa",
+      "Folda %@ imefutwa",
+      "Nenda kwenye nambari ya hadithi",
+      "Weka nambari ya hadithi kama 57 au 4.5.",
+      "Ongeza picha au PDF",
+      "Ongeza kiungo",
+      "Rudi",
+      "Ghairi upakiaji",
+      "Futa akiba ya muda",
+      "Funga",
+      "Futa akaunti na data",
+      "Futa rasimu",
+      "Imekamilika",
+      "Pakua",
+      "Pakua tafsiri",
+      "Mwisho wa ukurasa",
+      "Umesahau nenosiri?",
+      "Nenda",
+      "Jinsi hali ya nje ya mtandao inavyofanya kazi",
+      "Dokezo",
+      "Sawa",
+      "Sitisha",
+      "Ripoti tafsiri",
+      "Tuma msimbo tena",
+      "Endelea",
+      "Jaribu tena",
+      "Hifadhi",
+      "Chagua tena",
+      "Ingia kwa msimbo badala yake",
+      "Anza pendekezo jipya",
+      "Pendekeza tafsiri",
+      "Sasisha",
+      "Nambari ya hadithi",
+      "Yaliyomo",
+      "JUZUU"
+    ],
+    "hi": [
+      "रद्द करें",
+      "बनाएँ",
+      "सहेजे गए आइटम के लिए फ़ोल्डर बनाएँ",
+      "फ़ोल्डर का नाम",
+      "नया फ़ोल्डर",
+      "सहेजे गए फ़ोल्डर",
+      "बुकमार्क हटाएँ",
+      "पसंदीदा से हटाएँ",
+      "फ़ोल्डर %@ मिटाया गया",
+      "हदीस नंबर पर जाएँ",
+      "57 या 4.5 जैसा हदीस नंबर दर्ज करें।",
+      "चित्र या PDF जोड़ें",
+      "लिंक जोड़ें",
+      "वापस",
+      "अपलोड रद्द करें",
+      "अस्थायी कैश साफ़ करें",
+      "बंद करें",
+      "खाता और डेटा मिटाएँ",
+      "ड्राफ़्ट मिटाएँ",
+      "हो गया",
+      "डाउनलोड करें",
+      "अनुवाद डाउनलोड करें",
+      "पृष्ठ का अंत",
+      "पासवर्ड भूल गए?",
+      "जाएँ",
+      "ऑफ़लाइन कैसे काम करता है",
+      "नोट",
+      "ठीक है",
+      "रोकें",
+      "अनुवाद की रिपोर्ट करें",
+      "कोड फिर भेजें",
+      "फिर शुरू करें",
+      "फिर कोशिश करें",
+      "सहेजें",
+      "फिर से चुनें",
+      "इसके बजाय कोड से साइन इन करें",
+      "नया सुझाव शुरू करें",
+      "अनुवाद सुझाएँ",
+      "अपडेट करें",
+      "हदीस संख्या",
+      "विषय-सूची",
+      "खंड"
+    ],
+    "bn": [
+      "বাতিল করুন",
+      "তৈরি করুন",
+      "সংরক্ষিত বিষয়ের ফোল্ডার তৈরি করুন",
+      "ফোল্ডারের নাম",
+      "নতুন ফোল্ডার",
+      "সংরক্ষিত ফোল্ডার",
+      "বুকমার্ক সরান",
+      "পছন্দের তালিকা থেকে সরান",
+      "%@ ফোল্ডার মুছে ফেলা হয়েছে",
+      "হাদিস নম্বরে যান",
+      "57 বা 4.5-এর মতো হাদিস নম্বর লিখুন।",
+      "ছবি বা PDF যোগ করুন",
+      "লিংক যোগ করুন",
+      "পিছনে",
+      "আপলোড বাতিল করুন",
+      "অস্থায়ী ক্যাশে পরিষ্কার করুন",
+      "বন্ধ করুন",
+      "অ্যাকাউন্ট ও ডেটা মুছুন",
+      "খসড়া মুছুন",
+      "সম্পন্ন",
+      "ডাউনলোড করুন",
+      "অনুবাদ ডাউনলোড করুন",
+      "পাতার শেষ",
+      "পাসওয়ার্ড ভুলে গেছেন?",
+      "যান",
+      "অফলাইনে কীভাবে কাজ করে",
+      "নোট",
+      "ঠিক আছে",
+      "বিরতি দিন",
+      "অনুবাদ রিপোর্ট করুন",
+      "কোড আবার পাঠান",
+      "চালিয়ে যান",
+      "আবার চেষ্টা করুন",
+      "সংরক্ষণ করুন",
+      "আবার নির্বাচন করুন",
+      "এর পরিবর্তে কোড দিয়ে সাইন ইন করুন",
+      "নতুন প্রস্তাব শুরু করুন",
+      "অনুবাদ প্রস্তাব করুন",
+      "আপডেট করুন",
+      "হাদিস নম্বর",
+      "সূচিপত্র",
+      "খণ্ড"
+    ]
+  },
+  "android_resources": {
+    "Cancel": [
+      {
+        "file": "native.xml",
+        "name": "native_19766ed6ccb2"
+      },
+      {
+        "file": "strings.xml",
+        "name": "saved_cancel"
+      }
+    ],
+    "Create": [
+      {
+        "file": "strings.xml",
+        "name": "saved_create"
+      }
+    ],
+    "Create saved folder": [
+      {
+        "file": "strings.xml",
+        "name": "saved_create_folder"
+      }
+    ],
+    "Folder name": [
+      {
+        "file": "strings.xml",
+        "name": "saved_folder_name"
+      }
+    ],
+    "New folder": [
+      {
+        "file": "strings.xml",
+        "name": "saved_new_folder"
+      }
+    ],
+    "Remove bookmark": [
+      {
+        "file": "strings.xml",
+        "name": "saved_remove_bookmark"
+      }
+    ],
+    "Remove favorite": [
+      {
+        "file": "strings.xml",
+        "name": "saved_remove_favorite"
+      }
+    ],
+    "Add image or PDF": [
+      {
+        "file": "native.xml",
+        "name": "native_6aeba22b0308"
+      }
+    ],
+    "Add link": [
+      {
+        "file": "native.xml",
+        "name": "native_dfe9ca4d0f96"
+      }
+    ],
+    "Back": [
+      {
+        "file": "la2.xml",
+        "name": "la2_back"
+      },
+      {
+        "file": "native.xml",
+        "name": "native_76900f1bfd16"
+      }
+    ],
+    "Cancel upload": [
+      {
+        "file": "native.xml",
+        "name": "native_326d9c957d5a"
+      }
+    ],
+    "Clear temporary cache": [
+      {
+        "file": "native.xml",
+        "name": "native_3bad88c3376c"
+      }
+    ],
+    "Close": [
+      {
+        "file": "la2.xml",
+        "name": "la2_close"
+      },
+      {
+        "file": "native.xml",
+        "name": "native_7d9eb7acb13e"
+      }
+    ],
+    "Delete account and data": [
+      {
+        "file": "native.xml",
+        "name": "native_7b503321357a"
+      }
+    ],
+    "Delete draft": [
+      {
+        "file": "native.xml",
+        "name": "native_46495379257b"
+      }
+    ],
+    "Done": [
+      {
+        "file": "native.xml",
+        "name": "native_11a6767d5674"
+      }
+    ],
+    "Download": [
+      {
+        "file": "native.xml",
+        "name": "native_d6eafe823591"
+      }
+    ],
+    "Download translation": [
+      {
+        "file": "native.xml",
+        "name": "native_e05372bd9e28"
+      }
+    ],
+    "End of page": [
+      {
+        "file": "native.xml",
+        "name": "native_63624455a1b0"
+      }
+    ],
+    "Forgot password?": [
+      {
+        "file": "native.xml",
+        "name": "native_30c1d8d3e912"
+      }
+    ],
+    "Go": [
+      {
+        "file": "native.xml",
+        "name": "native_6cc8519b9158"
+      }
+    ],
+    "How offline works": [
+      {
+        "file": "native.xml",
+        "name": "native_892ffa345a39"
+      }
+    ],
+    "Note": [
+      {
+        "file": "native.xml",
+        "name": "native_d8da2c49df39"
+      }
+    ],
+    "OK": [
+      {
+        "file": "native.xml",
+        "name": "native_565339bc4d33"
+      }
+    ],
+    "Pause": [
+      {
+        "file": "native.xml",
+        "name": "native_858e4ba7a29f"
+      }
+    ],
+    "Report translation": [
+      {
+        "file": "native.xml",
+        "name": "native_f038ae10080f"
+      }
+    ],
+    "Resend code": [
+      {
+        "file": "native.xml",
+        "name": "native_b97457409ab5"
+      }
+    ],
+    "Resume": [
+      {
+        "file": "native.xml",
+        "name": "native_d640c7421da0"
+      }
+    ],
+    "Retry": [
+      {
+        "file": "native.xml",
+        "name": "native_942087cc2d41"
+      }
+    ],
+    "Save": [
+      {
+        "file": "native.xml",
+        "name": "native_1509f561f241"
+      }
+    ],
+    "Select again": [
+      {
+        "file": "native.xml",
+        "name": "native_5474755405da"
+      }
+    ],
+    "Sign in with a code instead": [
+      {
+        "file": "native.xml",
+        "name": "native_d9a85e0a70d8"
+      }
+    ],
+    "Start a new suggestion": [
+      {
+        "file": "native.xml",
+        "name": "native_03c47f10db6d"
+      }
+    ],
+    "Suggest a translation": [
+      {
+        "file": "native.xml",
+        "name": "native_71223a24948d"
+      }
+    ],
+    "Update": [
+      {
+        "file": "native.xml",
+        "name": "native_c1c1009d3f37"
+      }
+    ],
+    "Hadith number": [
+      {
+        "file": "native.xml",
+        "name": "native_bdd5c6b7f515"
+      }
+    ],
+    "Folder %@ deleted": [
+      {
+        "file": "strings.xml",
+        "name": "saved_folder_deleted"
+      }
+    ],
+    "Contents": [
+      {
+        "file": "native.xml",
+        "name": "native_437aea62a5bd"
+      }
+    ]
+  }
+}

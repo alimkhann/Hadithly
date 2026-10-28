@@ -21,8 +21,8 @@
     <string name="saved_all_folders" formatted="false">Folda zote</string>
     <string name="saved_move_folder" formatted="false">Hamisha kwenye folda</string>
     <string name="saved_no_folder" formatted="false">Hakuna folda</string>
-    <string name="saved_remove_bookmark">Remove bookmark</string>
-    <string name="saved_remove_favorite">Remove favorite</string>
+    <string name="saved_remove_bookmark" formatted="false">Ondoa alamisho</string>
+    <string name="saved_remove_favorite" formatted="false">Ondoa kwenye vipendwa</string>
     <string name="saved_delete_note" formatted="false">Futa dokezo</string>
     <string name="saved_copy" formatted="false">Nakili</string>
     <string name="saved_share" formatted="false">Shiriki</string>
@@ -36,15 +36,15 @@
     <string name="saved_remove_dont_ask" formatted="false">Ondoa na usiulize tena</string>
     <string name="saved_undo" formatted="false">Tendua</string>
     <string name="saved_title" formatted="false">Vilivyohifadhiwa</string>
-    <string name="saved_create_folder">Create saved folder</string>
-    <string name="saved_new_folder">New folder</string>
-    <string name="saved_folder_name">Folder name</string>
-    <string name="saved_create">Create</string>
-    <string name="saved_cancel">Cancel</string>
+    <string name="saved_create_folder" formatted="false">Unda folda ya vilivyohifadhiwa</string>
+    <string name="saved_new_folder" formatted="false">Folda mpya</string>
+    <string name="saved_folder_name" formatted="false">Jina la folda</string>
+    <string name="saved_create" formatted="false">Unda</string>
+    <string name="saved_cancel" formatted="false">Ghairi</string>
     <string name="saved_empty_title">Nothing saved yet</string>
     <string name="saved_empty_message" formatted="false">Ongeza alamisho, kipendwa au dokezo unaposoma ili kuweka hadithi hapa.</string>
     <string name="saved_delete_folder" formatted="false">Futa folda</string>
-    <string name="saved_folder_deleted">Folder %1$s deleted</string>
+    <string name="saved_folder_deleted" formatted="false">Folda %s imefutwa</string>
     <string name="saved_removal_undo_message">You can undo this action for five seconds from the message at the bottom.</string>
     <string name="saved_bookmark_removed" formatted="false">Alamisho limeondolewa</string>
     <string name="saved_favorite_removed" formatted="false">Kipendwa kimeondolewa</string>

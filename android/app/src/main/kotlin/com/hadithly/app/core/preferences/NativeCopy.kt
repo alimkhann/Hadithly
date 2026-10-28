@@ -84,14 +84,14 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "or" -> R.string.native_7175517a370b
     "At least one text layer stays visible." -> R.string.native_71c7158ec4ea
     "Settings" -> R.string.native_74a883a037bc
-    "Back" -> R.string.native_76900f1bfd16
+    "Back" -> R.string.la2_back
     "HTTPS source link" -> R.string.native_76a282009ba8
     "Bookmarks & Notes" -> R.string.native_77889b3bab7e
     "Create account" -> R.string.native_798ca2ce18bf
     "Last name" -> R.string.native_7b4888049459
     "Delete account and data" -> R.string.native_7b503321357a
     "Write a private note…" -> R.string.native_7d94fc6f0852
-    "Close" -> R.string.native_7d9eb7acb13e
+    "Close" -> R.string.la2_close
     "Open a collection in the Library and Today will prepare one from verified content." -> R.string.native_82095f5cb9a4
     "Evidence received; awaiting checks." -> R.string.native_82c66ec1be55
     "Choose location" -> R.string.native_83bbbb83cfbe
@@ -269,5 +269,17 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "q2.manage" -> R.string.q2_manage
     "q2.quota" -> R.string.q2_quota
     "q2.wait" -> R.string.q2_wait
+    "Create" -> R.string.saved_create
+    "Create saved folder" -> R.string.saved_create_folder
+    "Folder name" -> R.string.saved_folder_name
+    "New folder" -> R.string.saved_new_folder
+    "Saved folders" -> R.string.native_c3f1f692d679
+    "Remove bookmark" -> R.string.saved_remove_bookmark
+    "Remove favorite" -> R.string.saved_remove_favorite
+    "Folder %@ deleted" -> R.string.saved_folder_deleted
+    "Jump to hadith number" -> R.string.native_235f71ee67ab
+    "Enter a hadith number like 57 or 4.5." -> R.string.native_c6e7ce247beb
+    "Jump to a hadith number, e.g. 57." -> R.string.native_562f06676a2c
+    "Volumes" -> R.string.native_53a480e304c0
     else -> null
 }

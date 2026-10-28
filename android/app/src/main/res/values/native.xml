@@ -181,4 +181,9 @@
     <string name="native_fefb28790fd7" formatted="false">Position unavailable</string>
     <string name="native_563b460c3f26" formatted="false">Progress unavailable</string>
     <string name="native_66e7853ca34f" formatted="false">Continue reading</string>
+    <string name="native_c3f1f692d679" formatted="false">Saved folders</string>
+    <string name="native_235f71ee67ab" formatted="false">Jump to hadith number</string>
+    <string name="native_c6e7ce247beb" formatted="false">Enter a hadith number like 57 or 4.5.</string>
+    <string name="native_562f06676a2c" formatted="false">Jump to a hadith number, e.g. 57.</string>
+    <string name="native_53a480e304c0" formatted="false">Volumes</string>
 </resources>

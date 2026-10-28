@@ -112,7 +112,7 @@ struct CollectionOutlineSheet: View {
                         Section {
                             jumpField.listRowBackground(palette.surface)
                         } footer: {
-                            Text(jumpError ?? "Jump to a hadith number, e.g. 57.")
+                            Text(LocalizedStringKey(jumpError ?? "Jump to a hadith number, e.g. 57."))
                                 .accessibilityIdentifier(jumpError == nil ? "reader.contents.jumpHint" : "reader.contents.jumpError")
                         }
                         Section("Volumes") {

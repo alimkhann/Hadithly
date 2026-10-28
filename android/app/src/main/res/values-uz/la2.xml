@@ -18,7 +18,7 @@
     <string name="la2_guest">Mehmon sifatida davom etish</string>
     <string name="la2_reading_free">O‘qish bepul qoladi.</string>
     <string name="la2_continue">Davom etish</string>
-    <string name="la2_back">Orqaga</string>
+    <string name="la2_back" formatted="false">Orqaga</string>
     <string name="la2_skip">O‘tkazib yuborish</string>
     <string name="la2_usage">Shaxsiy foydalanish statistikasini ulashish</string>
     <string name="la2_usage_explanation">Yig‘ma natijalar Convex orqali PostHog EU’ga yuboriladi. Matn, hadis manzili, hisob yoki qurilma identifikatori yuborilmaydi. O‘chirish kutilayotgan statistikani tozalaydi. Yig‘ma natijalar sizni aniqlamaydi.</string>
@@ -31,11 +31,12 @@
     <string name="la2_keep_reading">Bepul o‘qishni davom ettirish</string>
     <string name="la2_restore">Xaridlarni tiklash</string>
     <string name="la2_retry">Qayta urinish</string>
-    <string name="la2_close">Yopish</string>
+    <string name="la2_close" formatted="false">Yopish</string>
     <string name="la2_privacy">Maxfiylik</string>
     <string name="la2_terms">Shartlar</string>
     <string name="la2_renewal">Obuna avtomatik yangilanadi. Uni do‘kondagi hisobingizdan boshqarishingiz yoki bekor qilishingiz mumkin.</string>
     <string name="la2_checking">Pro huquqi tekshirilmoqda…</string>
     <string name="la2_cancelled">Xarid bekor qilindi. O‘qishni davom ettirishingiz mumkin.</string>
     <string name="la2_pending">To‘lov kutilmoqda. Do‘kon tasdiqlagach Pro ochiladi.</string>
+    <!-- UI-polish locale entries are generated drafts; native review pending. -->
 </resources>

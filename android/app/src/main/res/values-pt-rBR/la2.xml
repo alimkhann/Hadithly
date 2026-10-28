@@ -18,7 +18,7 @@
     <string name="la2_guest">Continuar como convidado</string>
     <string name="la2_reading_free">A leitura continua gratuita.</string>
     <string name="la2_continue">Continuar</string>
-    <string name="la2_back">Voltar</string>
+    <string name="la2_back" formatted="false">Voltar</string>
     <string name="la2_skip">Pular</string>
     <string name="la2_usage">Compartilhar estatísticas privadas de uso</string>
     <string name="la2_usage_explanation">Compartilha resultados agrupados pelo Convex com o PostHog EU. Nenhum texto de leitura, destino ou identidade de conta ou dispositivo é enviado. Desativar remove as estatísticas pendentes. Os totais publicados não identificam você.</string>
@@ -31,11 +31,12 @@
     <string name="la2_keep_reading">Continuar lendo gratuitamente</string>
     <string name="la2_restore">Restaurar compras</string>
     <string name="la2_retry">Tentar novamente</string>
-    <string name="la2_close">Fechar</string>
+    <string name="la2_close" formatted="false">Fechar</string>
     <string name="la2_privacy">Privacidade</string>
     <string name="la2_terms">Termos</string>
     <string name="la2_renewal">As assinaturas são renovadas automaticamente. Gerencie ou cancele na sua conta da loja.</string>
     <string name="la2_checking">Verificando o acesso ao Pro…</string>
     <string name="la2_cancelled">Compra cancelada. Você pode continuar lendo.</string>
     <string name="la2_pending">O pagamento está pendente. O Pro será liberado quando a loja confirmar.</string>
+    <!-- UI-polish locale entries are generated drafts; native review pending. -->
 </resources>

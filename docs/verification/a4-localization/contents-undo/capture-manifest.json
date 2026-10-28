@@ -1,0 +1,232 @@
+[
+  {
+    "platform": "ios",
+    "name": "contents-validation-bn",
+    "sha256": "eb1bef6790dfb40fb918126ebd13deb136a283435f9b31d1f18bd40859e37758"
+  },
+  {
+    "platform": "ios",
+    "name": "contents-validation-hi",
+    "sha256": "3b4b0fda2a674dd6d02bfdd5ded1aead410ff3b155cb0b4c812bdc3193c878f9"
+  },
+  {
+    "platform": "ios",
+    "name": "contents-validation-sw",
+    "sha256": "69f56da1396d94ce7fb64d3e1d8537e16d32673f0cb311019ec204b399857061"
+  },
+  {
+    "platform": "ios",
+    "name": "contents-validation-pt-BR",
+    "sha256": "903362ad9a83b1f5a6789b8ccf75d55e7fcf4a6a6b32ad701666df83a2017e6b"
+  },
+  {
+    "platform": "ios",
+    "name": "contents-validation-es-419",
+    "sha256": "24760e4735a285c0daac794ee2ff86e0dcf920a92cf487f3f97db54dec7a5fbf"
+  },
+  {
+    "platform": "ios",
+    "name": "contents-validation-fr",
+    "sha256": "007cff893fb945bba12a1d4e9eddc55a4a822574ec8c6341740bfd5413445622"
+  },
+  {
+    "platform": "ios",
+    "name": "contents-validation-ur",
+    "sha256": "a76c89d06312c6e56011f15f606c412a9e53df4dca6314b10d05cc3d26622a30"
+  },
+  {
+    "platform": "ios",
+    "name": "contents-validation-tr",
+    "sha256": "7887eae47a2f00287c3d2f08c98caae0c68c8acb961fa275e1730aeb026a89c6"
+  },
+  {
+    "platform": "ios",
+    "name": "contents-validation-uz",
+    "sha256": "992cc69fdc7ce922ed1d1629b070948077d8d179a49ff4607b978a0cb5cc2ed2"
+  },
+  {
+    "platform": "ios",
+    "name": "contents-validation-ky",
+    "sha256": "6a9274816192994f8a7161ea862eb73386aa7b53546186953fc985d1887525ba"
+  },
+  {
+    "platform": "ios",
+    "name": "contents-validation-en",
+    "sha256": "b227e079d6d9f1667a606e9b938e92b2aedb6b7c5ee39aa7eb6bfae9133b0b0e"
+  },
+  {
+    "platform": "ios",
+    "name": "contents-validation-id",
+    "sha256": "94ce2f1e2d3f9c634f02c0961869b471fedc9974250bbafa520e618bfc7d04f4"
+  },
+  {
+    "platform": "ios",
+    "name": "contents-validation-kk",
+    "sha256": "d6cef26d90474deb34536518dcb328bacbe0eab26d9c5cd255be95f311f3a8c5"
+  },
+  {
+    "platform": "ios",
+    "name": "contents-validation-ru",
+    "sha256": "dc21cbcfca0f5b71bf0ffa7c721f6fd99f726bc64cb15edeb47a65dc26679e69"
+  },
+  {
+    "platform": "ios",
+    "name": "contents-validation-ar",
+    "sha256": "b89f49d28a34329b7cd8fb911e77c743140a856c92c6daf696dd7a456712b944"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-undo-safe-area",
+    "sha256": "f58a557770956eee62766c334c092f18ca86c583f999024c7ea969e8fa3f5b78"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-undo-bn",
+    "sha256": "6fa45231c986b63525223b6808da9531cca116f1eb5df13ae7bcdd9968fd654f"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-undo-hi",
+    "sha256": "23bf5a78f53398435999869f3ae23a97ad7889091a0da60d3790667144fea166"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-undo-sw",
+    "sha256": "d7232a8a803a76d292c6698c1a429e375590146b11738a5384755b7971a6290e"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-undo-pt-BR",
+    "sha256": "bb0fa332bb75a1159bee411dbc1ce20083786b349550b6b471307d784d1197e1"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-undo-es-419",
+    "sha256": "3f45ec6d4f861d1f6974156e82d91bd7994d64ddb51b07a63c7db2f264aaf043"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-undo-fr",
+    "sha256": "3a1cd9ffa8cf149bf6494202cd58fd098a1e44fd8f09cb2ca5a6a1ff73215836"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-undo-ur",
+    "sha256": "8ac6cc226dbd83023776e15706eeb78fa51711bcccb1111df362705d69fbfef1"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-undo-tr",
+    "sha256": "9b9671265dc53fb01675c6d36d804b71bbdb1aaf5f9f98d43e232851e09063c6"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-undo-uz",
+    "sha256": "d39a44dda7f6da2f8ba8130f776c40b5b8b54cb4b4158040dc49376f061156b4"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-undo-ky",
+    "sha256": "d171c556f11eb2135a8fb7131aa25fd2b73fd7ab2c481cbbd724eddf08fd7aab"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-undo-en",
+    "sha256": "571bbb74f9583808374f487f1ed22f02f713e578c4b11fbb8b372d186d37519b"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-undo-id",
+    "sha256": "8464b7f39b51ef7e740ab57653ff49432f53a7b7dfd3db82ec65882f6cec5cd2"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-undo-kk",
+    "sha256": "0105b4a6f471915638c23ce88607157a8e262b97e27fd6b17db9844cc15e92fe"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-undo-ru",
+    "sha256": "07a4a78fd146a6a8ab2b40cebfeb81455ff6eeaf1310224353d0c204d6fc7aca"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-undo-ar",
+    "sha256": "f0aa64ea245712dbd18b67881736ff553627497bb41ac6265cdb497a852d3786"
+  },
+  {
+    "platform": "android",
+    "name": "contents-validation-en",
+    "sha256": "00772824309aa7ab5bb2ba51b72b0466f7d040c243b622ddb731bd33f2ef61ca"
+  },
+  {
+    "platform": "android",
+    "name": "contents-validation-ar",
+    "sha256": "35a8f2dab1d45a319d261a6e013864b58179845a963258648996c0698bacd5c0"
+  },
+  {
+    "platform": "android",
+    "name": "contents-validation-ru",
+    "sha256": "89ea510184519bca377d85b422c8df89e66c1a64d2db9e21ea07bf45f16d3baf"
+  },
+  {
+    "platform": "android",
+    "name": "contents-validation-kk",
+    "sha256": "0223e2b93717523795ac5a56c5cddb974b2fb4e2ec6d5b75670fea285c2c226b"
+  },
+  {
+    "platform": "android",
+    "name": "contents-validation-ky",
+    "sha256": "9b4e68dc2ac1d91f2e76fb9e6cadc6a322daa4f77472d2f199e86d1d70fc558d"
+  },
+  {
+    "platform": "android",
+    "name": "contents-validation-uz",
+    "sha256": "95fcaedf60f1b8547c5cfe3372f1c55be35a9b9f8656d21ed0aaf1df7fd00aa1"
+  },
+  {
+    "platform": "android",
+    "name": "contents-validation-tr",
+    "sha256": "a00c8ba27d2fd53a9a1577cbd6285042250fd106366a3a205edaac11a41662f0"
+  },
+  {
+    "platform": "android",
+    "name": "contents-validation-id",
+    "sha256": "1e18e320b2525f08e6108e8136be4fe137857fdbf40c056e595a6233c8bcc8b3"
+  },
+  {
+    "platform": "android",
+    "name": "contents-validation-ur",
+    "sha256": "8845c076ffb1238fbb80645aba6be3e1a2b0483c85f70ad86ccbaecb54788a85"
+  },
+  {
+    "platform": "android",
+    "name": "contents-validation-fr",
+    "sha256": "7fb6c8483ea76ad1b60e64e6083620e3f16115bec0aa60b21b86d7c7c37ed25d"
+  },
+  {
+    "platform": "android",
+    "name": "contents-validation-es-419",
+    "sha256": "8f9c3531a14855fce7c2078abb161a5683f1fc9cc99b6bb4a0f409e77a0fedd8"
+  },
+  {
+    "platform": "android",
+    "name": "contents-validation-pt-BR",
+    "sha256": "3fa3f413130f01e5623665363b4c975abaf1740fd29657205ed310b44db0c010"
+  },
+  {
+    "platform": "android",
+    "name": "contents-validation-sw",
+    "sha256": "295a4060deab34928bb48c03a5f829b326802ea7b26526be2eec93a5b03badb1"
+  },
+  {
+    "platform": "android",
+    "name": "contents-validation-hi",
+    "sha256": "193db7fd69060a7f1659231ba404f2b8749d7dc8ab6c0627c489b47ca3805783"
+  },
+  {
+    "platform": "android",
+    "name": "contents-validation-bn",
+    "sha256": "bdbec6015f6fb031c75aab1b9e4c50c873fcfc1cbbe2f99c7dca5ceca24d4c81"
+  }
+]

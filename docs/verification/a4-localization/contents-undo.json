@@ -1,0 +1,154 @@
+{
+  "ios": {
+    "runs": [
+      {
+        "bundle": "hadithly-a4-runtime-undo-red-ios.xcresult",
+        "startTime": 1793186820.541,
+        "result": "Failed",
+        "passedTests": 0,
+        "failedTests": 2,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-runtime-undo-green-ios.xcresult",
+        "startTime": 1793186948.761,
+        "result": "Failed",
+        "passedTests": 3,
+        "failedTests": 1,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-runtime-undo-final-ios.xcresult",
+        "startTime": 1793187326.761,
+        "result": "Passed",
+        "passedTests": 2,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-runtime-headings-ios.xcresult",
+        "startTime": 1793187786.322,
+        "result": "Passed",
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0
+      }
+    ],
+    "latestCases": {
+      "HadithlyUITests/ReaderR5UITests/testContentsGuidanceAndValidationLocalizeAtRuntime()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-runtime-headings-ios.xcresult"
+      },
+      "HadithlyUITests/VisualPolishUITests/testSavedUndoNoticesResolveLocalizedKeysAndKeepFolderNames()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-runtime-undo-final-ios.xcresult"
+      },
+      "HadithlyUITests/ReaderR5UITests/testContentsJumpAcceptsWellFormedInput()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-runtime-undo-green-ios.xcresult"
+      },
+      "HadithlyUITests/ReaderR5UITests/testContentsJumpRejectsMalformedInputInline()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-runtime-undo-green-ios.xcresult"
+      },
+      "HadithlyUITests/NativeFinishingUITests/testReaderUndoStaysAboveBottomControlsAndRestoresBookmark()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-runtime-undo-final-ios.xcresult"
+      }
+    },
+    "latestCounts": {
+      "Passed": 5
+    }
+  },
+  "android": {
+    "unit": {
+      "counts": {
+        "Passed": 5
+      },
+      "cases": {
+        "com.hadithly.app.LocalizationResourcesTest/English foundations exist with the plural fixture": "Passed",
+        "com.hadithly.app.LocalizationResourcesTest/Arabic foundations carry every key and the full plural set": "Passed",
+        "com.hadithly.app.LocalizationResourcesTest/Arabic and Urdu navigation uses translated app labels": "Passed",
+        "com.hadithly.app.LocalizationResourcesTest/Urdu foundations carry every key and the plural set": "Passed",
+        "com.hadithly.app.LocalizationResourcesTest/Wave 1 resource directories contain every English resource": "Passed"
+      },
+      "reports": [
+        {
+          "file": "TEST-com.hadithly.app.LocalizationResourcesTest.xml",
+          "sha256": "db170b9684f83891c6bfe557186d5004fa333bc1cedf8fd3ca0d8f1a8d89b463"
+        }
+      ]
+    },
+    "ui": {
+      "counts": {
+        "Passed": 4
+      },
+      "cases": {
+        "com.hadithly.app.core.theme.NativeFinishingTest/contentsGuidanceAndValidationLocalizeAtRuntime": "Passed",
+        "com.hadithly.app.core.theme.NativeFinishingTest/savedFolderNoticeResourcesKeepInterpolatedNames": "Passed",
+        "com.hadithly.app.features.reader.ReaderR5SheetTest/malformedJumpShowsInlineErrorAndKeepsSheetOpen": "Passed",
+        "com.hadithly.app.features.reader.ReaderR5SheetTest/wellFormedJumpDismissesSheet": "Passed"
+      },
+      "reports": [
+        {
+          "file": "TEST-hadithly(AVD) - 16-_app-.xml",
+          "sha256": "240f76e0524b3836f345defb88e3cf3ae8783f75eba21ab81984c284308d548c"
+        }
+      ]
+    },
+    "history": [
+      {
+        "label": "before-repair",
+        "cases": [
+          {
+            "name": "contentsGuidanceAndValidationLocalizeAtRuntime",
+            "result": "Failed",
+            "message": ""
+          },
+          {
+            "name": "savedFolderNoticeResourcesKeepInterpolatedNames",
+            "result": "Failed",
+            "message": ""
+          }
+        ],
+        "files": [
+          {
+            "file": "TEST-hadithly(AVD) - 16-_app-.xml",
+            "sha256": "cd8fc4a5beeeecb048d0a3bfa3236d744870c9d43f1a8d376d6044160912020c"
+          }
+        ]
+      },
+      {
+        "label": "english-expectation-fixture-failure",
+        "cases": [
+          {
+            "name": "contentsGuidanceAndValidationLocalizeAtRuntime",
+            "result": "Passed",
+            "message": ""
+          },
+          {
+            "name": "savedFolderNoticeResourcesKeepInterpolatedNames",
+            "result": "Passed",
+            "message": ""
+          },
+          {
+            "name": "malformedJumpShowsInlineErrorAndKeepsSheetOpen",
+            "result": "Failed",
+            "message": ""
+          },
+          {
+            "name": "wellFormedJumpDismissesSheet",
+            "result": "Passed",
+            "message": ""
+          }
+        ],
+        "files": [
+          {
+            "file": "TEST-hadithly(AVD) - 16-_app-.xml",
+            "sha256": "2b0347f5a46046495caa2f31ff42975808728d629366dd77d079d8bd7edf88ab"
+          }
+        ]
+      }
+    ]
+  }
+}

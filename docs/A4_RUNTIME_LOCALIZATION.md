@@ -112,3 +112,66 @@ English strings, and several folder/action/VoiceOver labels lack catalog entries
 or bypass lookup through conditional expressions. These findings take priority
 over the crude scanner's raw candidate totals. Android's folder/removal/Cancel
 resources are still English-identical and cannot supply translated drafts.
+
+## Contents, Undo and missing controls, October 28
+
+Native red checks reproduced two lookup failures. The Contents footer passed a
+conditional `String` directly to `Text` on iOS and directly to Material `Text` on
+Android. Both now resolve their guidance/error keys. iOS Undo notices now carry
+`LocalizedStringKey`, preserving folder-name interpolation and allowing the banner
+to resolve the selected UI language. The existing five-second lifetime, action and
+restoration paths are unchanged.
+
+`a4-saved-contents-copy.json` adds forty-two missing iOS catalog keys across all fifteen
+locales and updates their Android resource aliases. Eleven are new GPT-family
+drafts for folder actions, jump accessibility/validation and folder-deletion
+notices. Thirty-one reuse complete existing Android drafts from `a5c2407`, with
+source resource names retained in the JSON. None is native-speaker approval.
+`a4-contents-hint-alias.json` reuses the indexed iOS hint for Android without
+writing the catalog. The same generator and precise catalog staging helper remain
+in use. Full resource audit findings remain the six Arabic zero/dual forms;
+English-identical Android candidates fall from 493 to 367.
+
+The Contents guidance/invalid-input paths pass all fifteen locales on both apps.
+The well-formed/invalid Go checks retain their normal dismissal/inline behavior.
+iOS's separate real reader interaction removes a bookmark and restores it through
+Undo. The final fifteen-locale Undo and consolidated Android reruns pass. The combined
+record has five latest iOS cases, four Android UI cases and five Android
+resource unit cases; no skipped case is counted
+as passed. `verification/a4-localization/contents-undo.json` retains red runs and
+the corrected-fixture reruns. Selected captures and the complete 31-iOS/15-Android
+capture manifest are in `verification/a4-localization/contents-undo/`.
+
+Two verification corrections are explicit. SwiftUI surrounds an interpolated
+English folder name with directional isolates in Arabic; the exact-text check
+ignores only directional formatting marks and still requires every translated
+word and the unchanged name. The earlier Android malformed-jump check hardcoded
+an English expectation despite inheriting the Arabic device locale. It now expects
+the current locale's actual resource. These are test corrections, distinct from
+the production lookup fixes.
+
+`localization_audit.py --runtime-report PATH` now exports source/line candidates
+classified as missing keys/mappings, dynamic/direct-string review, examples,
+DEBUG fixtures or catalog-backed but runtime-unverified. The lexical report
+explicitly excludes any claim of comprehensive Swift/Kotlin dataflow analysis.
+It exposes further auth, accessibility, settings and conditional/wrapper gaps;
+resource presence never counts as rendered localization. Ten Python audit
+regressions plus the isolated generator fixture pass.
+
+The remaining full A4 runtime/accessibility, native-review, widget/notification,
+critical-copy and release gates remain open. Continue those repairs before the
+remaining A5–A7/E work. No deployment, paid call, publication or account change was
+performed.
+
+Capture review found two further missing iOS keys behind the custom sheet-title
+wrapper: Contents and Volumes. Both now reuse existing Android drafts, with an
+explicit new resource for the title-case Volumes key so Android's existing
+uppercase heading stays unchanged. The final iOS Contents rerun asserts both
+headings in every locale. The lexical inventory now also recognizes the custom
+sheet and navigation-title wrappers. Chapter/source names remain verbatim.
+
+The next source priorities include unbound Android privacy/appearance wording,
+auth field labels and remaining Saved/Reader accessibility labels. Some native
+mapper findings may be prepared examples or superseded text; inspect each caller
+before changing a content/provenance claim. The report is a candidate list, not
+an instruction to translate user notes, provider citations or source titles.

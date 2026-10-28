@@ -2290,9 +2290,10 @@ struct ReaderContentsTestFixtureView: View {
         .environment(\.readerTheme, ReaderTheme.dark)
         .sheet(isPresented: $showSheet) {
             let arabicOnly = ProcessInfo.processInfo.environment["R5_ARABIC_ONLY"] == "1"
+            let testLocale = ProcessInfo.processInfo.environment["R5_LOCALE"].map { Locale(identifier: $0) }
             CollectionOutlineSheet(model: model, arabicVisible: true, translationVisible: !arabicOnly)
-                .environment(\.locale, arabicOnly ? Locale(identifier: "ar") : locale)
-                .environment(\.layoutDirection, arabicOnly ? .rightToLeft : layoutDirection)
+                .environment(\.locale, testLocale ?? (arabicOnly ? Locale(identifier: "ar") : locale))
+                .environment(\.layoutDirection, testLocale.map { LocaleFallback.isRTL($0.identifier) ? LayoutDirection.rightToLeft : .leftToRight } ?? (arabicOnly ? .rightToLeft : layoutDirection))
         }
     }
 }

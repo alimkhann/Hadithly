@@ -18,7 +18,7 @@
     <string name="la2_guest">Конок катары улантуу</string>
     <string name="la2_reading_free">Окуу акысыз бойдон калат.</string>
     <string name="la2_continue">Улантуу</string>
-    <string name="la2_back">Артка</string>
+    <string name="la2_back" formatted="false">Артка</string>
     <string name="la2_skip">Өткөрүп жиберүү</string>
     <string name="la2_usage">Жеке колдонуу статистикасын бөлүшүү</string>
     <string name="la2_usage_explanation">Топтолгон жыйынтыктар Convex аркылуу PostHog EU менен бөлүшүлөт. Окуу тексти, максаттар, аккаунт же түзмөк аныктагычы жөнөтүлбөйт. Өчүрүү күтүлүп жаткан статистиканы тазалайт. Жарыяланган жыйынтыктар сизди аныктай албайт.</string>
@@ -31,11 +31,12 @@
     <string name="la2_keep_reading">Акысыз окууну улантуу</string>
     <string name="la2_restore">Сатып алууларды калыбына келтирүү</string>
     <string name="la2_retry">Кайра аракет кылуу</string>
-    <string name="la2_close">Жабуу</string>
+    <string name="la2_close" formatted="false">Жабуу</string>
     <string name="la2_privacy">Купуялуулук</string>
     <string name="la2_terms">Шарттар</string>
     <string name="la2_renewal">Жазылуу автоматтык түрдө узартылат. Аны дүкөндөгү аккаунтуңуздан башкарып же токтото аласыз.</string>
     <string name="la2_checking">Pro мүмкүнчүлүгү текшерилүүдө…</string>
     <string name="la2_cancelled">Сатып алуу жокко чыгарылды. Окууну уланта аласыз.</string>
     <string name="la2_pending">Төлөм күтүлүүдө. Дүкөн ырастагандан кийин Pro ачылат.</string>
+    <!-- UI-polish locale entries are generated drafts; native review pending. -->
 </resources>

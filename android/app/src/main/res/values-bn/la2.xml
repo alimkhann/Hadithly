@@ -18,7 +18,7 @@
     <string name="la2_guest">অতিথি হিসেবে চালিয়ে যান</string>
     <string name="la2_reading_free">পড়া বিনামূল্যেই থাকবে।</string>
     <string name="la2_continue">চালিয়ে যান</string>
-    <string name="la2_back">পিছনে</string>
+    <string name="la2_back" formatted="false">পিছনে</string>
     <string name="la2_skip">এড়িয়ে যান</string>
     <string name="la2_usage">ব্যক্তিগত ব্যবহার পরিসংখ্যান শেয়ার করুন</string>
     <string name="la2_usage_explanation">Convex-এর মাধ্যমে PostHog EU-এর সঙ্গে সমষ্টিগত ফলাফল শেয়ার করে। পড়ার লেখা, লক্ষ্য, অ্যাকাউন্ট বা ডিভাইসের পরিচয় পাঠানো হয় না। বন্ধ করলে অপেক্ষমাণ পরিসংখ্যান মুছে যায়। প্রকাশিত মোট আপনাকে শনাক্ত করতে পারে না।</string>
@@ -31,11 +31,12 @@
     <string name="la2_keep_reading">বিনামূল্যে পড়া চালিয়ে যান</string>
     <string name="la2_restore">কেনাকাটা পুনরুদ্ধার করুন</string>
     <string name="la2_retry">আবার চেষ্টা করুন</string>
-    <string name="la2_close">বন্ধ করুন</string>
+    <string name="la2_close" formatted="false">বন্ধ করুন</string>
     <string name="la2_privacy">গোপনীয়তা</string>
     <string name="la2_terms">শর্তাবলি</string>
     <string name="la2_renewal">সাবস্ক্রিপশন স্বয়ংক্রিয়ভাবে নবায়ন হয়। আপনার স্টোর অ্যাকাউন্ট থেকে পরিচালনা বা বাতিল করুন।</string>
     <string name="la2_checking">Pro অ্যাক্সেস পরীক্ষা হচ্ছে…</string>
     <string name="la2_cancelled">কেনাকাটা বাতিল হয়েছে। আপনি পড়া চালিয়ে যেতে পারেন।</string>
     <string name="la2_pending">পেমেন্ট অপেক্ষমাণ। স্টোর নিশ্চিত করার পর Pro চালু হবে।</string>
+    <!-- UI-polish locale entries are generated drafts; native review pending. -->
 </resources>

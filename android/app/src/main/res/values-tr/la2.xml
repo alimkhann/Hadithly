@@ -18,7 +18,7 @@
     <string name="la2_guest">Misafir olarak devam edin</string>
     <string name="la2_reading_free">Okumak ücretsiz kalır.</string>
     <string name="la2_continue">Devam edin</string>
-    <string name="la2_back">Geri</string>
+    <string name="la2_back" formatted="false">Geri</string>
     <string name="la2_skip">Atlayın</string>
     <string name="la2_usage">Özel kullanım istatistiklerini paylaş</string>
     <string name="la2_usage_explanation">Toplu sonuçlar Convex üzerinden PostHog EU ile paylaşılır. Okuma metni, hedefler, hesap veya cihaz kimliği gönderilmez. Kapatmak bekleyen istatistikleri siler. Yayımlanan toplamlar sizi tanımlamaz.</string>
@@ -31,11 +31,12 @@
     <string name="la2_keep_reading">Ücretsiz okumaya devam edin</string>
     <string name="la2_restore">Satın alımları geri yükle</string>
     <string name="la2_retry">Tekrar deneyin</string>
-    <string name="la2_close">Kapat</string>
+    <string name="la2_close" formatted="false">Kapat</string>
     <string name="la2_privacy">Gizlilik</string>
     <string name="la2_terms">Koşullar</string>
     <string name="la2_renewal">Abonelikler otomatik yenilenir. Mağaza hesabınızdan yönetebilir veya iptal edebilirsiniz.</string>
     <string name="la2_checking">Pro erişimi kontrol ediliyor…</string>
     <string name="la2_cancelled">Satın alma iptal edildi. Okumaya devam edebilirsiniz.</string>
     <string name="la2_pending">Ödeme bekliyor. Mağaza onayından sonra Pro açılır.</string>
+    <!-- UI-polish locale entries are generated drafts; native review pending. -->
 </resources>

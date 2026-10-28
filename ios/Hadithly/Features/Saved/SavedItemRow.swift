@@ -27,7 +27,7 @@ enum SavedFacetRemoval: Identifiable {
 
 struct SavedUndoNotice: Identifiable {
     var id = UUID()
-    let message: String
+    let message: LocalizedStringKey
     let undo: () -> Void
     var deadline = Date.now.addingTimeInterval(SavedUndoDeadline.duration)
 }
@@ -173,6 +173,6 @@ struct SharedSavedItemRow: View {
                 if item.noteContent != nil { Button("Delete note", role: .destructive) { onRemove(.note(item, ref)) } }
                 Button("Copy") { UIPasteboard.general.string = [ref.arabicText, ref.englishText, ref.referenceDisplay].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: "\n\n") }
                 if let url = URL(string: "https://hadithly.app/hadith/\(ref.collectionSlug)/\(ref.hadithNumber ?? "")") { ShareLink(item: url) { Text("Share") } }
-                Button("Suggest Translation") { onSuggestTranslation(ref) }
+                Button("Suggest a translation") { onSuggestTranslation(ref) }
     }
 }

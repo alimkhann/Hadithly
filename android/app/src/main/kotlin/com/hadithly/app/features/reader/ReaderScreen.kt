@@ -2995,7 +2995,7 @@ internal fun ContentsSheet(
                     }
                 }
                 Text(
-                    text = jumpError ?: "Jump to a hadith number, e.g. 57.",
+                    text = nativeText(jumpError ?: "Jump to a hadith number, e.g. 57."),
                     fontSize = 12.sp,
                     color = colors.textSecondary,
                     modifier = Modifier.padding(top = 4.dp),

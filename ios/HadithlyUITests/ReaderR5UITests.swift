@@ -13,6 +13,45 @@ final class ReaderR5UITests: XCTestCase {
 
     // MARK: - Fixture: chapters render from source-provided data
 
+    func testContentsGuidanceAndValidationLocalizeAtRuntime() {
+        for (locale, hint, error, title, volumes) in [
+            ("ar", "انتقل إلى رقم حديث، مثل 57.", "أدخل رقم حديث مثل 57 أو 4.5.", "المحتويات", "المجلدات"),
+            ("ru", "Перейти к номеру хадиса, например 57.", "Введите номер хадиса, например 57 или 4.5.", "Содержание", "ТОМА"),
+            ("kk", "Хадис нөміріне өту, мысалы 57.", "57 немесе 4.5 сияқты хадис нөмірін енгізіңіз.", "Мазмұны", "ТОМДАР"),
+            ("id", "Lompat ke nomor hadis, misalnya 57.", "Masukkan nomor hadis seperti 57 atau 4.5.", "Daftar isi", "VOLUME"),
+            ("en", "Jump to a hadith number, e.g. 57.", "Enter a hadith number like 57 or 4.5.", "Contents", "Volumes"),
+            ("ky", "Хадис номерине өтүңүз, мисалы 57.", "57 же 4.5 сыяктуу хадис номерин киргизиңиз.", "Мазмун", "ТОМДОР"),
+            ("uz", "Hadis raqamiga o‘ting, masalan 57.", "57 yoki 4.5 kabi hadis raqamini kiriting.", "Mundarija", "JILDLAR"),
+            ("tr", "Hadis numarasına git, örneğin 57.", "57 veya 4.5 gibi bir hadis numarası girin.", "İçindekiler", "CİLTLER"),
+            ("ur", "حدیث نمبر پر جائیں، مثلاً 57۔", "57 یا 4.5 جیسا حدیث نمبر درج کریں۔", "فہرستِ مضامین", "جلدیں"),
+            ("fr", "Aller au numéro de hadith, par exemple 57.", "Saisissez un numéro de hadith comme 57 ou 4.5.", "Sommaire", "TOMES"),
+            ("es-419", "Ir al número de hadiz, por ejemplo, 57.", "Ingresa un número de hadiz como 57 o 4.5.", "Contenido", "VOLÚMENES"),
+            ("pt-BR", "Ir para o número do hadith, por exemplo, 57.", "Digite um número de hadith como 57 ou 4.5.", "Conteúdo", "TOMOS"),
+            ("sw", "Nenda kwenye nambari ya hadithi, kwa mfano 57.", "Weka nambari ya hadithi kama 57 au 4.5.", "Yaliyomo", "JUZUU"),
+            ("hi", "हदीस संख्या पर जाएँ, जैसे 57।", "57 या 4.5 जैसा हदीस नंबर दर्ज करें।", "विषय-सूची", "खंड"),
+            ("bn", "হাদিস নম্বরে যান, যেমন ৫৭।", "57 বা 4.5-এর মতো হাদিস নম্বর লিখুন।", "সূচিপত্র", "খণ্ড")
+        ] {
+            let app = XCUIApplication()
+            app.launchArguments = ["-R5ContentsFixture"]
+            app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "R5_LOCALE": locale]
+            app.launch()
+            XCTAssertTrue(app.staticTexts[hint].waitForExistence(timeout: timeout))
+            XCTAssertEqual(element("reader.contents.title", in: app).label, title)
+            XCTAssertTrue(app.staticTexts[volumes].exists)
+            let jump = field("reader.contents.jump", in: app)
+            jump.tap()
+            jump.typeText("abc")
+            element("reader.contents.jumpGo", in: app).tap()
+            XCTAssertTrue(app.staticTexts[error].waitForExistence(timeout: timeout))
+            XCTAssertTrue(jump.exists)
+            let attachment = XCTAttachment(screenshot: app.screenshot())
+            attachment.name = "contents-validation-" + locale
+            attachment.lifetime = .keepAlways
+            add(attachment)
+            app.terminate()
+        }
+    }
+
     func testContentsShowsChaptersAndJumpField() {
         let app = launchContentsFixture()
         XCTAssertTrue(field("reader.contents.jump", in: app).waitForExistence(timeout: timeout))

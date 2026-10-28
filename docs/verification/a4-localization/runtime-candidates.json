@@ -1,0 +1,4758 @@
+{
+  "scope": "Lexical UI-call candidates only. Variable/conditional arguments, custom wrappers, String-backed models, resources and server text still require source and runtime review. Catalog-backed entries are not claimed localized.",
+  "counts": {
+    "debug-fixture": 23,
+    "catalog-backed-runtime-unverified": 465,
+    "missing-catalog-key": 50,
+    "example-or-symbol-review": 6,
+    "dynamic-review": 28,
+    "direct-literal-review": 7,
+    "missing-native-mapping": 14
+  },
+  "candidates": [
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Core/Theme/NativeFinishingFixtureView.swift",
+      "line": 26,
+      "call": "Text",
+      "value": "Reading is ready",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Core/Theme/NativeFinishingFixtureView.swift",
+      "line": 82,
+      "call": "Button",
+      "value": "Withdraw fixture",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Core/Theme/NativeFinishingFixtureView.swift",
+      "line": 83,
+      "call": "Button",
+      "value": "Change fixture language",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Core/Theme/NativeFinishingFixtureView.swift",
+      "line": 87,
+      "call": "Text",
+      "value": "Choose language",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Core/Theme/NativeFinishingFixtureView.swift",
+      "line": 142,
+      "call": "Label",
+      "value": "Today",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Core/Theme/NativeFinishingFixtureView.swift",
+      "line": 143,
+      "call": "Label",
+      "value": "Library",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Core/Theme/NativeFinishingFixtureView.swift",
+      "line": 144,
+      "call": "Label",
+      "value": "Saved",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Core/Theme/NativeFinishingFixtureView.swift",
+      "line": 145,
+      "call": "Label",
+      "value": "Settings",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Core/Theme/NativePolishFixtureView.swift",
+      "line": 33,
+      "call": "Text",
+      "value": "Reading is ready",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Core/Theme/TranslationReveal.swift",
+      "line": 154,
+      "call": "Text",
+      "value": "Preparing translation…",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Core/Theme/TranslationReveal.swift",
+      "line": 158,
+      "call": "accessibilityLabel",
+      "value": "Preparing translation…",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 95,
+      "call": "Text",
+      "value": "Create account",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 95,
+      "call": "Text",
+      "value": "Reset password",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 95,
+      "call": "Text",
+      "value": "Sign in",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 102,
+      "call": "Button",
+      "value": "Back",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 107,
+      "call": "Button",
+      "value": "Close",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 146,
+      "call": "Text",
+      "value": "la2.account_title",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 149,
+      "call": "Text",
+      "value": "la2.account_body",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 160,
+      "call": "Button",
+      "value": "Continue with Apple",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 174,
+      "call": "Button",
+      "value": "Continue with Google",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 182,
+      "call": "Text",
+      "value": "Google sign-in opens in your browser and returns here.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 189,
+      "call": "Text",
+      "value": "or",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 201,
+      "call": "Text",
+      "value": "Continue with email",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 213,
+      "call": "Button",
+      "value": "Create account",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 238,
+      "call": "Button",
+      "value": "Keep reading as a guest",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 254,
+      "call": "Text",
+      "value": "Welcome back",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 257,
+      "call": "Text",
+      "value": "Sign in with your email or username.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 263,
+      "call": "TextField",
+      "value": "Email or username",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 274,
+      "call": "SecureField",
+      "value": "Password",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 293,
+      "call": "Text",
+      "value": "Sign in",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 308,
+      "call": "Button",
+      "value": "Forgot password?",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 317,
+      "call": "Button",
+      "value": "Sign in with a code instead",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 343,
+      "call": "Text",
+      "value": "Create your account",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 346,
+      "call": "Text",
+      "value": "Carry your bookmarks and notes across devices.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 353,
+      "call": "TextField",
+      "value": "you@example.com",
+      "category": "example-or-symbol-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 364,
+      "call": "SecureField",
+      "value": "Password",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 374,
+      "call": "SecureField",
+      "value": "Repeat password",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 385,
+      "call": "Text",
+      "value": "Passwords do not match.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 399,
+      "call": "Text",
+      "value": "Create account",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 441,
+      "call": "Text",
+      "value": "What's your email?",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 444,
+      "call": "Text",
+      "value": "We'll send a six-digit sign-in code.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 450,
+      "call": "TextField",
+      "value": "you@example.com",
+      "category": "example-or-symbol-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 471,
+      "call": "Text",
+      "value": "Send code",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 503,
+      "call": "Text",
+      "value": "Check your email",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 506,
+      "call": "Text",
+      "value": "Enter the code we sent to \\(email).",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 513,
+      "call": "TextField",
+      "value": "000000",
+      "category": "example-or-symbol-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 537,
+      "call": "Text",
+      "value": "Verify",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 552,
+      "call": "Button",
+      "value": "Resend code",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 577,
+      "call": "Text",
+      "value": "Reset your password",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 580,
+      "call": "Text",
+      "value": "We'll send a code to your email address.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 586,
+      "call": "TextField",
+      "value": "you@example.com",
+      "category": "example-or-symbol-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 606,
+      "call": "Text",
+      "value": "Send code",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 635,
+      "call": "Text",
+      "value": "Choose a new password",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 638,
+      "call": "Text",
+      "value": "Enter the code sent to \\(email) and your new password.",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 645,
+      "call": "TextField",
+      "value": "000000",
+      "category": "example-or-symbol-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 659,
+      "call": "SecureField",
+      "value": "New password",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "line": 678,
+      "call": "Text",
+      "value": "Set new password",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Main/MainTabsView.swift",
+      "line": 38,
+      "call": "Label",
+      "value": "Today",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Main/MainTabsView.swift",
+      "line": 44,
+      "call": "Label",
+      "value": "Library",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Main/MainTabsView.swift",
+      "line": 50,
+      "call": "Label",
+      "value": "Saved",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Main/MainTabsView.swift",
+      "line": 62,
+      "call": "Label",
+      "value": "Settings",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Onboarding/LanguagePickerView.swift",
+      "line": 59,
+      "call": "Text",
+      "value": "la2.language",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Onboarding/LanguagePickerView.swift",
+      "line": 64,
+      "call": "Text",
+      "value": "la2.suggested",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Onboarding/OnboardingFlowView.swift",
+      "line": 24,
+      "call": "Label",
+      "value": "la2.back",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Onboarding/OnboardingFlowView.swift",
+      "line": 49,
+      "call": "Text",
+      "value": "la2.account_title",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Onboarding/OnboardingFlowView.swift",
+      "line": 52,
+      "call": "Text",
+      "value": "la2.account_body",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Onboarding/OnboardingFlowView.swift",
+      "line": 98,
+      "call": "Button",
+      "value": "la2.sign_in",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Onboarding/OnboardingFlowView.swift",
+      "line": 105,
+      "call": "Text",
+      "value": "la2.guest",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Onboarding/OnboardingFlowView.swift",
+      "line": 310,
+      "call": "Text",
+      "value": "la2.demo_title",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Onboarding/OnboardingFlowView.swift",
+      "line": 315,
+      "call": "Text",
+      "value": "Reading could not load",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Onboarding/OnboardingFlowView.swift",
+      "line": 316,
+      "call": "Button",
+      "value": "Try again",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Onboarding/OnboardingFlowView.swift",
+      "line": 318,
+      "call": "Text",
+      "value": "No reading in this language is available yet.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Onboarding/OnboardingFlowView.swift",
+      "line": 320,
+      "call": "Button",
+      "value": "Choose another language",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Onboarding/OnboardingFlowView.swift",
+      "line": 348,
+      "call": "Text",
+      "value": "AI translation",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Onboarding/OnboardingFlowView.swift",
+      "line": 350,
+      "call": "accessibilityLabel",
+      "value": "Translation source",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Onboarding/WelcomeView.swift",
+      "line": 10,
+      "call": "Text",
+      "value": "Hadithly",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Onboarding/WelcomeView.swift",
+      "line": 11,
+      "call": "Text",
+      "value": "la2.welcome",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Purchases/QuotaPaywallView.swift",
+      "line": 40,
+      "call": "Text",
+      "value": "q2.devices",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Purchases/QuotaPaywallView.swift",
+      "line": 43,
+      "call": "Text",
+      "value": "Hadithly Pro is active",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Purchases/QuotaPaywallView.swift",
+      "line": 63,
+      "call": "Text",
+      "value": "la2.checking",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Purchases/QuotaPaywallView.swift",
+      "line": 71,
+      "call": "Button",
+      "value": "la2.retry",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Purchases/QuotaPaywallView.swift",
+      "line": 75,
+      "call": "Button",
+      "value": "la2.keep_reading",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Purchases/QuotaPaywallView.swift",
+      "line": 82,
+      "call": "Button",
+      "value": "la2.restore",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Purchases/QuotaPaywallView.swift",
+      "line": 92,
+      "call": "Label",
+      "value": "q2.more",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Purchases/QuotaPaywallView.swift",
+      "line": 97,
+      "call": "Button",
+      "value": "la2.close",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Purchases/QuotaPaywallView.swift",
+      "line": 108,
+      "call": "Text",
+      "value": "la2.cancelled",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Purchases/QuotaPaywallView.swift",
+      "line": 109,
+      "call": "Text",
+      "value": "la2.pending",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Purchases/QuotaPaywallView.swift",
+      "line": 110,
+      "call": "Text",
+      "value": "q2.wait",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Purchases/QuotaPaywallView.swift",
+      "line": 174,
+      "call": "Text",
+      "value": "la2.more_translations",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Purchases/QuotaPaywallView.swift",
+      "line": 175,
+      "call": "Text",
+      "value": "q1.quota_exhausted",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Purchases/QuotaPaywallView.swift",
+      "line": 177,
+      "call": "Text",
+      "value": "la2.allowance",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Purchases/QuotaPaywallView.swift",
+      "line": 185,
+      "call": "Text",
+      "value": "la2.renewal",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Purchases/QuotaPaywallView.swift",
+      "line": 222,
+      "call": "Text",
+      "value": "q2.per_month",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Purchases/QuotaPaywallView.swift",
+      "line": 223,
+      "call": "Text",
+      "value": "q2.billed_yearly",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Purchases/QuotaPaywallView.swift",
+      "line": 227,
+      "call": "Text",
+      "value": "q2.per_month",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Purchases/QuotaPaywallView.swift",
+      "line": 230,
+      "call": "Text",
+      "value": "q2.billed_yearly",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Purchases/QuotaPaywallView.swift",
+      "line": 248,
+      "call": "Text",
+      "value": "q2.recommended",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Purchases/QuotaPaywallView.swift",
+      "line": 250,
+      "call": "AppLocalization.string",
+      "value": "q2.savings_percent",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 22,
+      "call": "accessibilityLabel",
+      "value": "Processing evidence",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 23,
+      "call": "Text",
+      "value": "Evidence received; awaiting checks.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 24,
+      "call": "Text",
+      "value": "Processing evidence. Your suggestion stays private and has not been reviewed or published.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 29,
+      "call": "accessibilityLabel",
+      "value": "e3.reviewing",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 32,
+      "call": "Text",
+      "value": "Evidence checks complete",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 33,
+      "call": "Text",
+      "value": "e3.waiting",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 39,
+      "call": "Text",
+      "value": "Your suggestion remains private. Withdraw it and submit different evidence if needed.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 45,
+      "call": "Text",
+      "value": "Retry evidence",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 52,
+      "call": "Text",
+      "value": "e3.sources",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 66,
+      "call": "Text",
+      "value": "Withdraw suggestion",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 110,
+      "call": "Text",
+      "value": "e4.appeal_window",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 111,
+      "call": "TextField",
+      "value": "e4.appeal_reason",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 114,
+      "call": "Text",
+      "value": "e4.appeal",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 150,
+      "call": "Button",
+      "value": "Translation sources",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 282,
+      "call": "Text",
+      "value": "Sign in from Settings to suggest a translation with evidence.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 288,
+      "call": "Text",
+      "value": "Evidence expired",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 290,
+      "call": "Text",
+      "value": "The private files were removed before processing. You can start a new suggestion.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 292,
+      "call": "Button",
+      "value": "Start a new suggestion",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 303,
+      "call": "navigationTitle",
+      "value": "Suggest a translation",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 307,
+      "call": "Button",
+      "value": "Done",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 348,
+      "call": "Text",
+      "value": "Add one to three public source links or files. Evidence stays private while checked.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 356,
+      "call": "accessibilityLabel",
+      "value": "Proposed translation",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 360,
+      "call": "TextField",
+      "value": "https://source.example/page",
+      "category": "example-or-symbol-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 366,
+      "call": "Button",
+      "value": "Add link",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 370,
+      "call": "Button",
+      "value": "Add image or PDF",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 381,
+      "call": "Button",
+      "value": "Remove",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 383,
+      "call": "accessibilityLabel",
+      "value": "Remove \\(item.label)",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 394,
+      "call": "Text",
+      "value": "\\(item.displayName ?? item.url ?? ",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 397,
+      "call": "Button",
+      "value": "Select again",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 408,
+      "call": "accessibilityLabel",
+      "value": "Evidence upload progress",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 409,
+      "call": "Text",
+      "value": "\\(Int(progress * 100)) percent",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 417,
+      "call": "Button",
+      "value": "Cancel upload",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 422,
+      "call": "Button",
+      "value": "Delete draft",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 433,
+      "call": "Text",
+      "value": "e3.consent",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/LibraryView.swift",
+      "line": 54,
+      "call": "appNavigationTitle",
+      "value": "Library",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/LibraryView.swift",
+      "line": 93,
+      "call": "accessibilityLabel",
+      "value": "\\(position). \\(name)",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/LibraryView.swift",
+      "line": 113,
+      "call": "accessibilityLabel",
+      "value": "\\(position). \\(name)",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/LibraryView.swift",
+      "line": 129,
+      "call": "AppLocalization.string",
+      "value": "Not started",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/LibraryView.swift",
+      "line": 132,
+      "call": "AppLocalization.string",
+      "value": "Hadith %1$@ of %2$@",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/LibraryView.swift",
+      "line": 134,
+      "call": "AppLocalization.string",
+      "value": "Continue reading",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/LibraryView.swift",
+      "line": 135,
+      "call": "AppLocalization.string",
+      "value": "Complete",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/LibraryView.swift",
+      "line": 136,
+      "call": "AppLocalization.string",
+      "value": "Position unavailable",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/LibraryView.swift",
+      "line": 137,
+      "call": "AppLocalization.string",
+      "value": "Progress unavailable",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/LibraryView.swift",
+      "line": 175,
+      "call": "Text",
+      "value": "\\(number)",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 42,
+      "call": "Button",
+      "value": "Done",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 97,
+      "call": "ReaderSheetChrome",
+      "value": "Contents",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 118,
+      "call": "Section",
+      "value": "Volumes",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 146,
+      "call": "TextField",
+      "value": "Hadith number",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 149,
+      "call": "accessibilityLabel",
+      "value": "Jump to hadith number",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 152,
+      "call": "Button",
+      "value": "Go",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 216,
+      "call": "Text",
+      "value": "\\(chapter.hadithCount)",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 251,
+      "call": "Text",
+      "value": "\\(volume.hadithCount)",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 294,
+      "call": "Button",
+      "value": "Done",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 310,
+      "call": "navigationTitle",
+      "value": "Sources",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 312,
+      "call": "Button",
+      "value": "Done",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 348,
+      "call": "Text",
+      "value": "No external sources were cited for this translation.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 358,
+      "call": "Text",
+      "value": "This translation was generated by AI (\\(translation.aiModel ?? ",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 364,
+      "call": "Text",
+      "value": "e3.community_sources_message",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 378,
+      "call": "Text",
+      "value": "\\(index)",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 428,
+      "call": "Text",
+      "value": "Report sent privately",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 431,
+      "call": "Text",
+      "value": "e3.report_saved_detail",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 442,
+      "call": "Text",
+      "value": "Describe a meaning, wording, or attribution concern. Reports are private and are not votes or ratings.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 480,
+      "call": "navigationTitle",
+      "value": "Report translation",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 539,
+      "call": "ReaderSheetChrome",
+      "value": "Search",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 587,
+      "call": "accessibilityLabel",
+      "value": "\\(result.referenceDisplay), Sunnah.now English text",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 590,
+      "call": "Text",
+      "value": "Sunnah.now English (\\(results.count))",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 601,
+      "call": "QuietEmptyState",
+      "value": "Search this collection",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 605,
+      "call": "QuietEmptyState",
+      "value": "No results",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 610,
+      "call": "QuietEmptyState",
+      "value": "Search is unavailable",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 611,
+      "call": "Button",
+      "value": "Try again",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 681,
+      "call": "ReaderSheetChrome",
+      "value": "Bookmarks & Notes",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 699,
+      "call": "Text",
+      "value": "Saved items could not load",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 700,
+      "call": "Button",
+      "value": "Retry",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 736,
+      "call": "confirmationDialog",
+      "value": "Remove saved item?",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 738,
+      "call": "Button",
+      "value": "Remove",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 739,
+      "call": "Button",
+      "value": "Remove and don't ask again",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 741,
+      "call": "Button",
+      "value": "Cancel",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 748,
+      "call": "Picker",
+      "value": "Folder",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 749,
+      "call": "Text",
+      "value": "All folders",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 803,
+      "call": "confirmationDialog",
+      "value": "Add bookmark",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 805,
+      "call": "Button",
+      "value": "Start of page",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 807,
+      "call": "Button",
+      "value": "Current hadith \\(positioned.referenceDisplay)",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 808,
+      "call": "Button",
+      "value": "Cancel",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 248,
+      "call": "Text",
+      "value": "Could not open this collection",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 311,
+      "call": "Text",
+      "value": "Touch and hold a hadith to bookmark, add a note or share.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 314,
+      "call": "accessibilityLabel",
+      "value": "Dismiss hint",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 677,
+      "call": "Text",
+      "value": "\\(ReaderRenderProbe.rootEvaluations):\\(progress.fraction)",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 1329,
+      "call": "Text",
+      "value": "\\(volume.hadithCount) hadiths",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 1336,
+      "call": "accessibilityLabel",
+      "value": "\\(title), \\(volume.hadithCount) hadiths",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 1636,
+      "call": "confirmationDialog",
+      "value": "Remove saved item?",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 1637,
+      "call": "Button",
+      "value": "Remove",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 1638,
+      "call": "Button",
+      "value": "Remove and don't ask again",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 1639,
+      "call": "Button",
+      "value": "Cancel",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 1712,
+      "call": "accessibilityLabel",
+      "value": "\\(ReaderSourceLabel.text(for: hadith)), \\(kind.accessibilityName)",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 1713,
+      "call": "accessibilityHint",
+      "value": "Shows source details",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 1743,
+      "call": "accessibilityLabel",
+      "value": "Bookmarked",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 1749,
+      "call": "accessibilityLabel",
+      "value": "Favorited",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 1755,
+      "call": "accessibilityLabel",
+      "value": "Has note",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 1827,
+      "call": "Label",
+      "value": "Copy",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 1833,
+      "call": "Label",
+      "value": "Share",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 1844,
+      "call": "Label",
+      "value": "Report Translation",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 1852,
+      "call": "Label",
+      "value": "Suggest Translation",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 1962,
+      "call": "Text",
+      "value": "No translation yet",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 1966,
+      "call": "Text",
+      "value": "No translation yet",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 1967,
+      "call": "Text",
+      "value": "Sign in from Settings to translate this hadith.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 1970,
+      "call": "Text",
+      "value": "Translation allowance used",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 1971,
+      "call": "Text",
+      "value": "Existing translations are still available.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 1980,
+      "call": "AppLocalization.string",
+      "value": "%1$@ of %2$@ translations left",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 1985,
+      "call": "AppLocalization.string",
+      "value": "Try again %@",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 2033,
+      "call": "Text",
+      "value": "· \\(note)",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 2118,
+      "call": "Text",
+      "value": "Translation sources",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 2130,
+      "call": "Button",
+      "value": "Done",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 2176,
+      "call": "Text",
+      "value": "Try again",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 2180,
+      "call": "navigationTitle",
+      "value": "Note",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 2184,
+      "call": "Button",
+      "value": "Cancel",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 2188,
+      "call": "Button",
+      "value": "Save",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 2280,
+      "call": "Text",
+      "value": "Sheet open",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 2284,
+      "call": "Text",
+      "value": "Sheet dismissed",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 2350,
+      "call": "Text",
+      "value": "Page \\(pageIndex + 1) of \\(pageCount)",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 2364,
+      "call": "Text",
+      "value": "Page \\(pageIndex + 1)",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 2378,
+      "call": "Text",
+      "value": "إنما الأعمال بالنيات",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 2405,
+      "call": "Text",
+      "value": "Long page line \\(line)",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 2412,
+      "call": "Text",
+      "value": "End of page",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/ContinueReadingRail.swift",
+      "line": 14,
+      "call": "Text",
+      "value": "Continue reading",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedFilterBar.swift",
+      "line": 30,
+      "call": "Picker",
+      "value": "Saved filter",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedItemRow.swift",
+      "line": 54,
+      "call": "Text",
+      "value": "Undo",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedItemRow.swift",
+      "line": 125,
+      "call": "accessibilityLabel",
+      "value": "Bookmarked",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedItemRow.swift",
+      "line": 126,
+      "call": "accessibilityLabel",
+      "value": "Favorite",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedItemRow.swift",
+      "line": 127,
+      "call": "accessibilityLabel",
+      "value": "Has note",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedItemRow.swift",
+      "line": 134,
+      "call": "accessibilityHint",
+      "value": "Opens this hadith in the reader",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedItemRow.swift",
+      "line": 139,
+      "call": "accessibilityLabel",
+      "value": "Saved item actions",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedItemRow.swift",
+      "line": 170,
+      "call": "Button",
+      "value": "No folder",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedItemRow.swift",
+      "line": 171,
+      "call": "Button",
+      "value": "Remove bookmark",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedItemRow.swift",
+      "line": 172,
+      "call": "Button",
+      "value": "Remove favorite",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedItemRow.swift",
+      "line": 173,
+      "call": "Button",
+      "value": "Delete note",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedItemRow.swift",
+      "line": 174,
+      "call": "Button",
+      "value": "Copy",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedItemRow.swift",
+      "line": 175,
+      "call": "Text",
+      "value": "Share",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedItemRow.swift",
+      "line": 176,
+      "call": "Button",
+      "value": "Suggest a translation",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedView.swift",
+      "line": 50,
+      "call": "Label",
+      "value": "Saved items could not load",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedView.swift",
+      "line": 52,
+      "call": "Button",
+      "value": "Try again",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedView.swift",
+      "line": 88,
+      "call": "appNavigationTitle",
+      "value": "Saved",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedView.swift",
+      "line": 94,
+      "call": "Button",
+      "value": "New folder",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedView.swift",
+      "line": 94,
+      "call": "accessibilityLabel",
+      "value": "Create saved folder",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedView.swift",
+      "line": 106,
+      "call": "confirmationDialog",
+      "value": "Remove saved item?",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedView.swift",
+      "line": 108,
+      "call": "Button",
+      "value": "Remove",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedView.swift",
+      "line": 109,
+      "call": "Button",
+      "value": "Remove and don't ask again",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedView.swift",
+      "line": 111,
+      "call": "Button",
+      "value": "Cancel",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedView.swift",
+      "line": 112,
+      "call": "Text",
+      "value": "You can undo this action from the message below.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedView.swift",
+      "line": 113,
+      "call": "alert",
+      "value": "New folder",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedView.swift",
+      "line": 114,
+      "call": "TextField",
+      "value": "Folder name",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedView.swift",
+      "line": 115,
+      "call": "Button",
+      "value": "Cancel",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedView.swift",
+      "line": 116,
+      "call": "Button",
+      "value": "Create",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedView.swift",
+      "line": 117,
+      "call": "Text",
+      "value": "Folders are private and can contain saved hadiths.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedView.swift",
+      "line": 124,
+      "call": "Button",
+      "value": "All folders",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedView.swift",
+      "line": 134,
+      "call": "Button",
+      "value": "Delete folder",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedView.swift",
+      "line": 143,
+      "call": "accessibilityHint",
+      "value": "Opens this folder. Long press for folder actions.",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Saved/SavedView.swift",
+      "line": 146,
+      "call": "accessibilityLabel",
+      "value": "Saved folders",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
+      "line": 18,
+      "call": "Section",
+      "value": "Reader settings",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
+      "line": 25,
+      "call": "Toggle",
+      "value": "Arabic",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
+      "line": 26,
+      "call": "Toggle",
+      "value": "Translation",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
+      "line": 28,
+      "call": "Text",
+      "value": "Show on page",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
+      "line": 30,
+      "call": "Text",
+      "value": "At least one text layer stays visible.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
+      "line": 34,
+      "call": "Toggle",
+      "value": "Automatic translation",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
+      "line": 41,
+      "call": "Text",
+      "value": "Translate missing text automatically, within your allowance. Turn off to translate on request.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
+      "line": 98,
+      "call": "Section",
+      "value": "Reader appearance",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
+      "line": 109,
+      "call": "Section",
+      "value": "Preview",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
+      "line": 110,
+      "call": "Text",
+      "value": "إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
+      "line": 115,
+      "call": "accessibilityLabel",
+      "value": "Arabic type preview",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
+      "line": 124,
+      "call": "accessibilityLabel",
+      "value": "Arabic type size",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
+      "line": 128,
+      "call": "Section",
+      "value": "Arabic font",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
+      "line": 136,
+      "call": "Section",
+      "value": "Preview",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
+      "line": 137,
+      "call": "Text",
+      "value": "Actions are judged by intentions.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
+      "line": 146,
+      "call": "accessibilityLabel",
+      "value": "Translation type size",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
+      "line": 159,
+      "call": "Text",
+      "value": "Language",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
+      "line": 161,
+      "call": "Text",
+      "value": "AI translations are labeled and grounded in cited sources.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
+      "line": 172,
+      "call": "Text",
+      "value": "Text size",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
+      "line": 173,
+      "call": "Text",
+      "value": "\\(Int(size)) pt",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
+      "line": 211,
+      "call": "Button",
+      "value": "Open reader settings",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 153,
+      "call": "Text",
+      "value": "Avatar is set by your sign-in method.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 174,
+      "call": "Section",
+      "value": "Name",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 175,
+      "call": "TextField",
+      "value": "First name",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 176,
+      "call": "TextField",
+      "value": "Last name",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 183,
+      "call": "Text",
+      "value": "Save name",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 191,
+      "call": "TextField",
+      "value": "Username",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 197,
+      "call": "Text",
+      "value": "Save username",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 202,
+      "call": "Text",
+      "value": "Username",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 204,
+      "call": "Text",
+      "value": "Start with a letter; use letters, numbers, and underscores.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 322,
+      "call": "Section",
+      "value": "App appearance",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 323,
+      "call": "Picker",
+      "value": "App appearance",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 330,
+      "call": "Toggle",
+      "value": "Use a separate reader appearance",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 334,
+      "call": "Section",
+      "value": "Reader appearance",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 335,
+      "call": "Picker",
+      "value": "Reader appearance",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 374,
+      "call": "Text",
+      "value": "\\(language.flag)  \\(language.name)",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 424,
+      "call": "Section",
+      "value": "Reading direction",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 425,
+      "call": "Picker",
+      "value": "Reading direction",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 429,
+      "call": "Text",
+      "value": "Automatic",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 430,
+      "call": "Text",
+      "value": "Right to left",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 431,
+      "call": "Text",
+      "value": "Left to right",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 436,
+      "call": "Section",
+      "value": "Saved",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 442,
+      "call": "Text",
+      "value": "Confirm before removing",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 443,
+      "call": "Text",
+      "value": "Ask before removing saved items",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 475,
+      "call": "Toggle",
+      "value": "Wi-Fi only",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 480,
+      "call": "Button",
+      "value": "How offline works",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 495,
+      "call": "Text",
+      "value": "Offline collections",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 497,
+      "call": "Text",
+      "value": "Base Arabic files plus a translation pack for your language. Every file is checksummed and licensed before it activates. The previous copy stays readable until the replacement and your saved positions check out.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 500,
+      "call": "Section",
+      "value": "Collections",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 514,
+      "call": "Button",
+      "value": "Clear temporary cache",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 524,
+      "call": "Text",
+      "value": "Temporary cache",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 526,
+      "call": "Text",
+      "value": "Clearing never deletes bookmarks, favorites, notes, reading progress, or downloaded collections.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 530,
+      "call": "Button",
+      "value": "Open app settings",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 537,
+      "call": "Text",
+      "value": "See Hadithly's total device storage from the system settings page.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 548,
+      "call": "Text",
+      "value": "Hadithly ships versioned offline collections: a base Arabic dump plus translation packs, each checksummed and licensed. Downloads validate before activating and keep your Saved items and reading positions intact.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 549,
+      "call": "Text",
+      "value": "Deleting a download removes files only. Your bookmarks, notes, and positions stay.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 556,
+      "call": "navigationTitle",
+      "value": "How offline works",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 679,
+      "call": "Button",
+      "value": "Download",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 685,
+      "call": "Button",
+      "value": "Pause",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 687,
+      "call": "Button",
+      "value": "Cancel",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 692,
+      "call": "Button",
+      "value": "Resume",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 694,
+      "call": "Button",
+      "value": "Cancel",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 698,
+      "call": "Text",
+      "value": "Checking…",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 703,
+      "call": "Button",
+      "value": "Retry",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 705,
+      "call": "Button",
+      "value": "Cancel",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 711,
+      "call": "Button",
+      "value": "Update",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 716,
+      "call": "Button",
+      "value": "Download translation",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 762,
+      "call": "Text",
+      "value": "Daily hadith",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 776,
+      "call": "Picker",
+      "value": "Time",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 788,
+      "call": "Text",
+      "value": "One quiet reminder with the selected translation.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 792,
+      "call": "Text",
+      "value": "Sign in to receive the daily hadith on this device.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 899,
+      "call": "Text",
+      "value": "Subscription details could not load",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 900,
+      "call": "Button",
+      "value": "Try again",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 911,
+      "call": "Label",
+      "value": "Pro is active for this account",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 915,
+      "call": "Text",
+      "value": "q2.quota",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 932,
+      "call": "Text",
+      "value": "q2.manage",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 938,
+      "call": "Text",
+      "value": "Sign in to see your subscription. Purchases stay attached to your Hadithly account across devices.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 998,
+      "call": "Toggle",
+      "value": "la2.usage",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1001,
+      "call": "Text",
+      "value": "Share basic app statistics to help improve Hadithly. Your reading text, notes and account details are never included. Turning this off clears pending statistics.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1003,
+      "call": "Toggle",
+      "value": "Send crash reports",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1007,
+      "call": "Text",
+      "value": "Crash reports help us fix problems. They never include your reading text, notes or account details. You can turn them off at any time.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1023,
+      "call": "Label",
+      "value": "Share export file",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1033,
+      "call": "Button",
+      "value": "Sign in",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1037,
+      "call": "Text",
+      "value": "Your data",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1039,
+      "call": "Text",
+      "value": "Download your profile, settings, saved items, folders, reading progress and contributions. Guest data stays on this device.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1042,
+      "call": "Section",
+      "value": "Policies",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1073,
+      "call": "Text",
+      "value": "Delete account",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1089,
+      "call": "confirmationDialog",
+      "value": "Export your data?",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1094,
+      "call": "Button",
+      "value": "Export after device check",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1099,
+      "call": "Button",
+      "value": "Cancel",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1101,
+      "call": "Text",
+      "value": "The file contains only your portable data. Confirm with Face ID, Touch ID, or your device passcode when asked.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1108,
+      "call": "Button",
+      "value": "Delete account and data",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1113,
+      "call": "Button",
+      "value": "Cancel",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1115,
+      "call": "Text",
+      "value": "\\(SettingsDeletionCopy.message) \\(SettingsDeletionCopy.subscriptionWarning)",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1117,
+      "call": "alert",
+      "value": "Account deletion failed",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1124,
+      "call": "Button",
+      "value": "OK",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1223,
+      "call": "Text",
+      "value": "Share Hadithly",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1244,
+      "call": "Text",
+      "value": "A quiet reader for the seven major hadith collections. Arabic text is licensed from its sources; AI translations are always labeled.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1248,
+      "call": "Text",
+      "value": "Hadithly",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1251,
+      "call": "Section",
+      "value": "Legal",
+      "category": "missing-catalog-key"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsView.swift",
+      "line": 50,
+      "call": "Text",
+      "value": "Sign in",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsView.swift",
+      "line": 51,
+      "call": "Text",
+      "value": "Sync bookmarks and notes across devices.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsView.swift",
+      "line": 62,
+      "call": "Section",
+      "value": "Reading",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsView.swift",
+      "line": 75,
+      "call": "Section",
+      "value": "Library",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsView.swift",
+      "line": 84,
+      "call": "Section",
+      "value": "Support",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsView.swift",
+      "line": 99,
+      "call": "Text",
+      "value": "Sign out",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsView.swift",
+      "line": 132,
+      "call": "appNavigationTitle",
+      "value": "Settings",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Today/TodayView.swift",
+      "line": 125,
+      "call": "appNavigationTitle",
+      "value": "Today",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Today/TodayView.swift",
+      "line": 185,
+      "call": "Text",
+      "value": "As-salamu alaykum, \\(username)",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Today/TodayView.swift",
+      "line": 187,
+      "call": "Text",
+      "value": "As-salamu alaykum",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Today/TodayView.swift",
+      "line": 214,
+      "call": "Text",
+      "value": "Today's hadith could not load",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Today/TodayView.swift",
+      "line": 214,
+      "call": "Text",
+      "value": "Pull down to try again.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Today/TodayView.swift",
+      "line": 216,
+      "call": "QuietEmptyState",
+      "value": "Your daily reading",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Today/TodayView.swift",
+      "line": 266,
+      "call": "AppLocalization.string",
+      "value": "Hadith %1$@ of %2$@",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Today/TodayView.swift",
+      "line": 268,
+      "call": "Text",
+      "value": "Not started",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Today/TodayView.swift",
+      "line": 391,
+      "call": "confirmationDialog",
+      "value": "Remove saved item?",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Today/TodayView.swift",
+      "line": 392,
+      "call": "Button",
+      "value": "Remove",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Today/TodayView.swift",
+      "line": 393,
+      "call": "Button",
+      "value": "Remove and don't ask again",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Today/TodayView.swift",
+      "line": 394,
+      "call": "Button",
+      "value": "Cancel",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Today/TodayView.swift",
+      "line": 409,
+      "call": "Text",
+      "value": "Offline",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Today/TodayView.swift",
+      "line": 426,
+      "call": "Text",
+      "value": "No \\(preferences.translationLocale) translation is available yet.",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Today/TodayView.swift",
+      "line": 435,
+      "call": "Label",
+      "value": "Copy",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Today/TodayView.swift",
+      "line": 436,
+      "call": "Label",
+      "value": "Share",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Today/TodayView.swift",
+      "line": 438,
+      "call": "Label",
+      "value": "Suggest Translation",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Today/TodayView.swift",
+      "line": 452,
+      "call": "navigationTitle",
+      "value": "Note",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Today/TodayView.swift",
+      "line": 452,
+      "call": "Button",
+      "value": "Cancel",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Today/TodayView.swift",
+      "line": 452,
+      "call": "Button",
+      "value": "Save",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/core/session/SessionManager.kt",
+      "line": 98,
+      "call": "nativeText",
+      "value": "Saved items could not load",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/core/theme/LoadingPresentation.kt",
+      "line": 89,
+      "call": "nativeText",
+      "value": "Loading…",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/core/theme/LoadingPresentation.kt",
+      "line": 137,
+      "call": "nativeText",
+      "value": "Preparing translation…",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt",
+      "line": 117,
+      "call": "nativeText",
+      "value": "Back",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt",
+      "line": 120,
+      "call": "nativeText",
+      "value": "Close",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt",
+      "line": 245,
+      "call": "nativeText",
+      "value": "Google sign-in opens in your browser and returns here.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt",
+      "line": 254,
+      "call": "nativeText",
+      "value": "or",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt",
+      "line": 263,
+      "call": "nativeText",
+      "value": "Create account",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt",
+      "line": 328,
+      "call": "nativeText",
+      "value": "Forgot password?",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt",
+      "line": 331,
+      "call": "nativeText",
+      "value": "Sign in with a code instead",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt",
+      "line": 398,
+      "call": "nativeText",
+      "value": "Passwords do not match.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt",
+      "line": 507,
+      "call": "nativeText",
+      "value": "Resend code",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt",
+      "line": 510,
+      "call": "nativeText",
+      "value": "Use a different email",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/library/LibraryScreen.kt",
+      "line": 161,
+      "call": "nativeText",
+      "value": "Not started",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/library/LibraryScreen.kt",
+      "line": 163,
+      "call": "nativeText",
+      "value": "Hadith %1$@ of %2$@",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/library/LibraryScreen.kt",
+      "line": 164,
+      "call": "nativeText",
+      "value": "Continue reading",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/library/LibraryScreen.kt",
+      "line": 165,
+      "call": "nativeText",
+      "value": "Complete",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/library/LibraryScreen.kt",
+      "line": 166,
+      "call": "nativeText",
+      "value": "Position unavailable",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/library/LibraryScreen.kt",
+      "line": 167,
+      "call": "nativeText",
+      "value": "Progress unavailable",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/onboarding/OnboardingScreens.kt",
+      "line": 162,
+      "call": "Text",
+      "value": "Hadithly",
+      "category": "direct-literal-review"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/onboarding/OnboardingScreens.kt",
+      "line": 239,
+      "call": "nativeText",
+      "value": "Loading…",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/onboarding/OnboardingScreens.kt",
+      "line": 241,
+      "call": "nativeText",
+      "value": "Reading could not load",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/onboarding/OnboardingScreens.kt",
+      "line": 242,
+      "call": "nativeText",
+      "value": "Try again",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/onboarding/OnboardingScreens.kt",
+      "line": 246,
+      "call": "nativeText",
+      "value": "No reading in this language is available yet.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/onboarding/OnboardingScreens.kt",
+      "line": 247,
+      "call": "nativeText",
+      "value": "Choose another language",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/onboarding/OnboardingScreens.kt",
+      "line": 262,
+      "call": "nativeText",
+      "value": "Arabic",
+      "category": "missing-native-mapping"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/onboarding/OnboardingScreens.kt",
+      "line": 266,
+      "call": "nativeText",
+      "value": "AI translation",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/onboarding/OnboardingScreens.kt",
+      "line": 270,
+      "call": "nativeText",
+      "value": "Original source",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/onboarding/OnboardingScreens.kt",
+      "line": 273,
+      "call": "nativeText",
+      "value": "Sources",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/purchases/QuotaPaywallSheet.kt",
+      "line": 156,
+      "call": "nativeText",
+      "value": "Hadithly Pro is active",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/EvidenceSubmissionSheet.kt",
+      "line": 84,
+      "call": "nativeText",
+      "value": "Evidence received; awaiting checks.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/EvidenceSubmissionSheet.kt",
+      "line": 85,
+      "call": "nativeText",
+      "value": "Processing evidence. Your suggestion stays private and has not been reviewed or published.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/EvidenceSubmissionSheet.kt",
+      "line": 107,
+      "call": "nativeText",
+      "value": "Evidence checks complete",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/EvidenceSubmissionSheet.kt",
+      "line": 112,
+      "call": "nativeText",
+      "value": "Your suggestion remains private. Withdraw it and submit different evidence if needed.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/EvidenceSubmissionSheet.kt",
+      "line": 115,
+      "call": "nativeText",
+      "value": "Retry evidence",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/EvidenceSubmissionSheet.kt",
+      "line": 322,
+      "call": "nativeText",
+      "value": "Suggest a translation",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/EvidenceSubmissionSheet.kt",
+      "line": 323,
+      "call": "nativeText",
+      "value": "Done",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/EvidenceSubmissionSheet.kt",
+      "line": 326,
+      "call": "nativeText",
+      "value": "Sign in from Settings to suggest a translation with evidence.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/EvidenceSubmissionSheet.kt",
+      "line": 328,
+      "call": "nativeText",
+      "value": "Evidence expired",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/EvidenceSubmissionSheet.kt",
+      "line": 329,
+      "call": "nativeText",
+      "value": "The private files were removed before processing. You can start a new suggestion.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/EvidenceSubmissionSheet.kt",
+      "line": 338,
+      "call": "nativeText",
+      "value": "Start a new suggestion",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/EvidenceSubmissionSheet.kt",
+      "line": 370,
+      "call": "nativeText",
+      "value": "Withdraw suggestion",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/EvidenceSubmissionSheet.kt",
+      "line": 374,
+      "call": "nativeText",
+      "value": "Add one to three source links or files. Evidence stays private while checked.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/EvidenceSubmissionSheet.kt",
+      "line": 377,
+      "call": "nativeText",
+      "value": "HTTPS source link",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/EvidenceSubmissionSheet.kt",
+      "line": 382,
+      "call": "nativeText",
+      "value": "Add link",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/EvidenceSubmissionSheet.kt",
+      "line": 384,
+      "call": "nativeText",
+      "value": "Add image or PDF",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/EvidenceSubmissionSheet.kt",
+      "line": 388,
+      "call": "nativeText",
+      "value": "Remove",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/EvidenceSubmissionSheet.kt",
+      "line": 393,
+      "call": "Text",
+      "value": "${item.displayName ?: item.url ?: ",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/EvidenceSubmissionSheet.kt",
+      "line": 398,
+      "call": "nativeText",
+      "value": "Select again",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/EvidenceSubmissionSheet.kt",
+      "line": 408,
+      "call": "nativeText",
+      "value": "Cancel upload",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/EvidenceSubmissionSheet.kt",
+      "line": 420,
+      "call": "nativeText",
+      "value": "Delete draft",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderContributionSheets.kt",
+      "line": 67,
+      "call": "nativeText",
+      "value": "Report translation",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderContributionSheets.kt",
+      "line": 77,
+      "call": "nativeText",
+      "value": "Report sent privately",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderContributionSheets.kt",
+      "line": 82,
+      "call": "nativeText",
+      "value": "Describe a meaning, wording, or attribution concern. Reports are private and are not votes or ratings.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderContributionSheets.kt",
+      "line": 86,
+      "call": "nativeText",
+      "value": "Private reason",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 337,
+      "call": "nativeText",
+      "value": "Opening %1$s…",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 350,
+      "call": "nativeText",
+      "value": "Could not open this collection",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 803,
+      "call": "nativeText",
+      "value": "Touch and hold a hadith to bookmark, add a note or share.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 804,
+      "call": "nativeText",
+      "value": "Dismiss hint",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 981,
+      "call": "nativeText",
+      "value": "Search",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 1382,
+      "call": "nativeText",
+      "value": "Loading page",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 1968,
+      "call": "Text",
+      "value": " ",
+      "category": "direct-literal-review"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 2065,
+      "call": "Text",
+      "value": " ",
+      "category": "direct-literal-review"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 2074,
+      "call": "Text",
+      "value": " ",
+      "category": "direct-literal-review"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 2081,
+      "call": "Text",
+      "value": " ",
+      "category": "direct-literal-review"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 2406,
+      "call": "nativeText",
+      "value": "Remove saved item?",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 2406,
+      "call": "nativeText",
+      "value": "Remove",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 2406,
+      "call": "nativeText",
+      "value": "Remove and don't ask again",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 2406,
+      "call": "nativeText",
+      "value": "Cancel",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 2582,
+      "call": "nativeText",
+      "value": "Translation sources",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 2772,
+      "call": "nativeText",
+      "value": "No translation yet",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 2773,
+      "call": "nativeText",
+      "value": "Sign in from Settings to translate this hadith.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 2776,
+      "call": "nativeText",
+      "value": "Translation allowance used",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 2777,
+      "call": "nativeText",
+      "value": "Existing translations are still available.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 2780,
+      "call": "nativeText",
+      "value": "No translation yet",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 2783,
+      "call": "nativeText",
+      "value": "%1$@ of %2$@ translations left",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 2787,
+      "call": "nativeText",
+      "value": "Try again %@",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 2831,
+      "call": "Text",
+      "value": "· $note",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 2913,
+      "call": "nativeText",
+      "value": "EDIT",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 2914,
+      "call": "nativeText",
+      "value": "Done",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 2964,
+      "call": "nativeText",
+      "value": "Hadith number",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 2990,
+      "call": "nativeText",
+      "value": "Go",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 3007,
+      "call": "nativeText",
+      "value": "VOLUMES",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 3148,
+      "call": "nativeText",
+      "value": "Reference: %1$s",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 3152,
+      "call": "nativeText",
+      "value": "No external sources were cited for this translation.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 3164,
+      "call": "nativeText",
+      "value": "This translation was generated by AI (%@). It is not an authoritative rendering; verify important meanings against a qualified source.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 3201,
+      "call": "nativeText",
+      "value": "Note",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 3205,
+      "call": "nativeText",
+      "value": "Write a private note…",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 3219,
+      "call": "nativeText",
+      "value": "Try again",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 3221,
+      "call": "nativeText",
+      "value": "Cancel",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 3232,
+      "call": "nativeText",
+      "value": "Save",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 3267,
+      "call": "nativeText",
+      "value": "Bookmark",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 3385,
+      "call": "nativeText",
+      "value": "Search English text",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 3409,
+      "call": "nativeText",
+      "value": "Searching…",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 3417,
+      "call": "nativeText",
+      "value": "Search is unavailable offline.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 3462,
+      "call": "nativeText",
+      "value": "Sunnah.now English text",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 3557,
+      "call": "nativeText",
+      "value": "Saved items could not load",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 3558,
+      "call": "nativeText",
+      "value": "Retry",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 3568,
+      "call": "nativeText",
+      "value": "Remove saved item?",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 3568,
+      "call": "nativeText",
+      "value": "Remove",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 3568,
+      "call": "nativeText",
+      "value": "Remove and don't ask again",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "line": 3568,
+      "call": "nativeText",
+      "value": "Cancel",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderTypographicFixture.kt",
+      "line": 93,
+      "call": "nativeText",
+      "value": "Page %1$s of %2$s",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderTypographicFixture.kt",
+      "line": 123,
+      "call": "nativeText",
+      "value": "Page %1$s",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderTypographicFixture.kt",
+      "line": 135,
+      "call": "Text",
+      "value": "إنما الأعمال بالنيات",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderTypographicFixture.kt",
+      "line": 174,
+      "call": "nativeText",
+      "value": "End of page",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/saved/SavedItemRow.kt",
+      "line": 94,
+      "call": "nativeText",
+      "value": "Saved item actions",
+      "category": "missing-native-mapping"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/saved/SavedScreen.kt",
+      "line": 151,
+      "call": "nativeText",
+      "value": "Saved items could not load",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/saved/SavedScreen.kt",
+      "line": 152,
+      "call": "nativeText",
+      "value": "Try again",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/ReaderPreferenceContent.kt",
+      "line": 54,
+      "call": "nativeText",
+      "value": "Back",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/ReaderPreferenceContent.kt",
+      "line": 59,
+      "call": "nativeText",
+      "value": "Done",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/ReaderPreferenceContent.kt",
+      "line": 76,
+      "call": "nativeText",
+      "value": "At least one text layer stays visible.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/ReaderPreferenceContent.kt",
+      "line": 80,
+      "call": "nativeText",
+      "value": "Translate missing text automatically, within your allowance. Turn off to translate on request.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/ReaderPreferenceContent.kt",
+      "line": 90,
+      "call": "Text",
+      "value": "إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ",
+      "category": "direct-literal-review"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/ReaderPreferenceContent.kt",
+      "line": 99,
+      "call": "nativeText",
+      "value": "Actions are judged by intentions.",
+      "category": "missing-native-mapping"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/ReaderPreferenceContent.kt",
+      "line": 105,
+      "call": "nativeText",
+      "value": "AI translations are labeled and grounded in cited sources.",
+      "category": "missing-native-mapping"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/ReaderPreferenceContent.kt",
+      "line": 147,
+      "call": "nativeText",
+      "value": "Text size",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/ReaderPreferenceContent.kt",
+      "line": 147,
+      "call": "nativeText",
+      "value": "%1$s pt",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/ReaderPreferenceContent.kt",
+      "line": 149,
+      "call": "nativeText",
+      "value": "Smaller type",
+      "category": "missing-native-mapping"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/ReaderPreferenceContent.kt",
+      "line": 150,
+      "call": "nativeText",
+      "value": "Larger type",
+      "category": "missing-native-mapping"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 146,
+      "call": "nativeText",
+      "value": "Back",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 218,
+      "call": "nativeText",
+      "value": "Sign in",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 219,
+      "call": "nativeText",
+      "value": "Sync bookmarks and notes across devices.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 259,
+      "call": "nativeText",
+      "value": "Sign out",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 359,
+      "call": "nativeText",
+      "value": "Avatar is set by your sign-in method.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 365,
+      "call": "nativeText",
+      "value": "Name",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 366,
+      "call": "nativeText",
+      "value": "First name",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 367,
+      "call": "nativeText",
+      "value": "Last name",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 379,
+      "call": "nativeText",
+      "value": "Save name",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 382,
+      "call": "nativeText",
+      "value": "Username",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 383,
+      "call": "nativeText",
+      "value": "Usernames start with a letter and use letters, numbers, and underscores.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 384,
+      "call": "nativeText",
+      "value": "Username",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 396,
+      "call": "nativeText",
+      "value": "Save username",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 427,
+      "call": "nativeText",
+      "value": "App appearance",
+      "category": "missing-native-mapping"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 428,
+      "call": "nativeText",
+      "value": "Choose the appearance used throughout the app.",
+      "category": "missing-native-mapping"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 450,
+      "call": "nativeText",
+      "value": "Separate reader appearance",
+      "category": "missing-native-mapping"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 451,
+      "call": "nativeText",
+      "value": "When off, the reader follows app appearance.",
+      "category": "missing-native-mapping"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 462,
+      "call": "nativeText",
+      "value": "Reader appearance",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 593,
+      "call": "nativeText",
+      "value": "Offline collections",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 595,
+      "call": "nativeText",
+      "value": "Downloads: %1$s · Free: %2$s",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 600,
+      "call": "nativeText",
+      "value": "Wi-Fi only",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 610,
+      "call": "nativeText",
+      "value": "How offline works",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 614,
+      "call": "nativeText",
+      "value": "Base Arabic files plus a translation pack for your language. Every file is checksummed and licensed before it activates. The previous copy stays readable until the replacement and your saved positions check out.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 620,
+      "call": "nativeText",
+      "value": "Collections",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 636,
+      "call": "nativeText",
+      "value": "Temporary cache",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 648,
+      "call": "nativeText",
+      "value": "Clear temporary cache",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 650,
+      "call": "nativeText",
+      "value": "Clearing never deletes bookmarks, favorites, notes, reading progress, or downloaded collections.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 665,
+      "call": "nativeText",
+      "value": "Open device storage",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 666,
+      "call": "nativeText",
+      "value": "See Hadithly's total device storage from the system settings page.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 674,
+      "call": "nativeText",
+      "value": "How offline works",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 676,
+      "call": "nativeText",
+      "value": "Hadithly ships versioned offline collections: a base Arabic dump plus translation packs, each checksummed and licensed. Downloads validate before activating and keep your Saved items and reading positions intact. Deleting a download removes files only — your bookmarks, notes, and positions stay.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 678,
+      "call": "nativeText",
+      "value": "Done",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 725,
+      "call": "nativeText",
+      "value": "Download",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 731,
+      "call": "nativeText",
+      "value": "Pause",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 735,
+      "call": "nativeText",
+      "value": "Cancel",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 741,
+      "call": "nativeText",
+      "value": "Resume",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 745,
+      "call": "nativeText",
+      "value": "Cancel",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 748,
+      "call": "nativeText",
+      "value": "Checking…",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 754,
+      "call": "nativeText",
+      "value": "Retry",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 758,
+      "call": "nativeText",
+      "value": "Cancel",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 765,
+      "call": "nativeText",
+      "value": "Update",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 777,
+      "call": "nativeText",
+      "value": "Download translation",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 877,
+      "call": "nativeText",
+      "value": "Sign in to receive the daily hadith on this device.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 881,
+      "call": "nativeText",
+      "value": "Send me a hadith every day",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 912,
+      "call": "nativeText",
+      "value": "Time",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 930,
+      "call": "nativeText",
+      "value": "Done",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 932,
+      "call": "nativeText",
+      "value": "Cancel",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 969,
+      "call": "nativeText",
+      "value": "Sign in to see your subscription. Purchases stay attached to your Hadithly account across devices.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 974,
+      "call": "nativeText",
+      "value": "Subscription details could not load",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 975,
+      "call": "nativeText",
+      "value": "Try again",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 980,
+      "call": "nativeText",
+      "value": "Active",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 999,
+      "call": "nativeText",
+      "value": "Manage subscription",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1079,
+      "call": "nativeText",
+      "value": "Share anonymous usage details",
+      "category": "missing-native-mapping"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1083,
+      "call": "nativeText",
+      "value": "This helps us understand how the app is used. It does not include what you read or your account details. You can turn it off at any time.",
+      "category": "missing-native-mapping"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1097,
+      "call": "nativeText",
+      "value": "Optional. Sends redacted crash details and app version so we can fix problems. Reports do not include reading text or account details. Turning this off clears reports waiting to send.",
+      "category": "missing-native-mapping"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1100,
+      "call": "nativeText",
+      "value": "Your data",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1102,
+      "call": "nativeText",
+      "value": "Export your profile, preferences, Saved items, folders, reading progress, and your own contributions as a file.",
+      "category": "missing-native-mapping"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1117,
+      "call": "nativeText",
+      "value": "Sign in to export your synced data. Guest data never leaves this device.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1123,
+      "call": "nativeText",
+      "value": "Sign in",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1153,
+      "call": "nativeText",
+      "value": "Export your data?",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1154,
+      "call": "nativeText",
+      "value": "The file contains only your portable data. You must be signed in; an expired session signs you in again first.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1168,
+      "call": "nativeText",
+      "value": "Choose location",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1171,
+      "call": "nativeText",
+      "value": "Cancel",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1180,
+      "call": "Text",
+      "value": "${SettingsDeletionCopy.MESSAGE} ${SettingsDeletionCopy.SUBSCRIPTION_WARNING}",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1198,
+      "call": "nativeText",
+      "value": "Delete account and data",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1202,
+      "call": "nativeText",
+      "value": "Cancel",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1211,
+      "call": "nativeText",
+      "value": "Account deletion failed",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1213,
+      "call": "nativeText",
+      "value": "OK",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1265,
+      "call": "nativeText",
+      "value": "Include the collection and hadith number.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1290,
+      "call": "Text",
+      "value": "Hadithly",
+      "category": "direct-literal-review"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1291,
+      "call": "Text",
+      "value": "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
+      "category": "dynamic-review"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1294,
+      "call": "nativeText",
+      "value": "A quiet reader for the seven major hadith collections. Arabic text is licensed from its sources; AI translations are always labeled.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
+      "line": 201,
+      "call": "nativeText",
+      "value": "Bringing today's hadith…",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
+      "line": 205,
+      "call": "nativeText",
+      "value": "Today's hadith could not load",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
+      "line": 206,
+      "call": "nativeText",
+      "value": "Try again",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
+      "line": 245,
+      "call": "nativeText",
+      "value": "Hadith %1$@ of %2$@",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
+      "line": 246,
+      "call": "nativeText",
+      "value": "Continue reading",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
+      "line": 247,
+      "call": "nativeText",
+      "value": "Not started",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
+      "line": 285,
+      "call": "nativeText",
+      "value": "Offline",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
+      "line": 300,
+      "call": "nativeText",
+      "value": "No %1$s translation is available yet.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
+      "line": 315,
+      "call": "nativeText",
+      "value": "Copy",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
+      "line": 316,
+      "call": "nativeText",
+      "value": "Share",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
+      "line": 317,
+      "call": "nativeText",
+      "value": "Suggest translation",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
+      "line": 320,
+      "call": "nativeText",
+      "value": "Remove saved item?",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
+      "line": 320,
+      "call": "nativeText",
+      "value": "You can undo this action from the message at the top.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
+      "line": 320,
+      "call": "nativeText",
+      "value": "Remove",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
+      "line": 320,
+      "call": "nativeText",
+      "value": "Remove and don't ask again",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
+      "line": 320,
+      "call": "nativeText",
+      "value": "Cancel",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
+      "line": 330,
+      "call": "nativeText",
+      "value": "Note",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
+      "line": 330,
+      "call": "nativeText",
+      "value": "Save",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
+      "line": 330,
+      "call": "nativeText",
+      "value": "Cancel",
+      "category": "catalog-backed-runtime-unverified"
+    }
+  ]
+}

@@ -69,6 +69,35 @@ final class VisualPolishUITests: XCTestCase {
         }
     }
 
+    func testSavedUndoNoticesResolveLocalizedKeysAndKeepFolderNames() {
+        for (locale, bookmark, folder) in [
+            ("ar", "تمت إزالة الإشارة المرجعية", "تم حذف المجلد My folder"),
+            ("ru", "Закладка удалена", "Папка My folder удалена"),
+            ("kk", "Бетбелгі жойылды", "My folder қалтасы жойылды"),
+            ("id", "Penanda dihapus", "Folder My folder dihapus"),
+            ("en", "Bookmark removed", "Folder My folder deleted"),
+            ("ky", "Кыстарма өчүрүлдү", "My folder папкасы өчүрүлдү"),
+            ("uz", "Xatcho‘p olib tashlandi", "My folder jildi o‘chirildi"),
+            ("tr", "Yer imi kaldırıldı", "My folder klasörü silindi"),
+            ("ur", "بک مارک ہٹا دیا گیا", "فولڈر My folder حذف کر دیا گیا"),
+            ("fr", "Signet supprimé", "Dossier My folder supprimé"),
+            ("es-419", "Marcador eliminado", "Carpeta My folder eliminada"),
+            ("pt-BR", "Marcador removido", "Pasta My folder excluída"),
+            ("sw", "Alamisho limeondolewa", "Folda My folder imefutwa"),
+            ("hi", "बुकमार्क हटाया गया", "फ़ोल्डर My folder मिटाया गया"),
+            ("bn", "বুকমার্ক সরানো হয়েছে", "My folder ফোল্ডার মুছে ফেলা হয়েছে")
+        ] {
+            let app = launchPolish("saved-undo", locale: locale)
+            XCTAssertTrue(app.staticTexts[bookmark].waitForExistence(timeout: 10))
+            let labels = app.staticTexts.allElementsBoundByIndex.map(\.label)
+            if locale == "ar" { print("A4 Undo labels: " + labels.map(\.debugDescription).joined(separator: " | ")) }
+            let directionalMarks = "[\u{200e}\u{200f}\u{061c}\u{2066}-\u{2069}]"
+            XCTAssertTrue(labels.contains { $0.replacingOccurrences(of: directionalMarks, with: "", options: .regularExpression) == folder }, labels.debugDescription)
+            capture("saved-undo-" + locale, app)
+            app.terminate()
+        }
+    }
+
     func testReadingProgressLabelsUseLocalizedWordsAndNumbers() {
         for (locale, unopened, complete, unavailable, positionUnavailable, word) in [
             ("en", "Not started", "Complete", "Progress unavailable", "Position unavailable", "Hadith"),

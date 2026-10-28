@@ -9,6 +9,25 @@ import localization_audit as audit
 
 
 class PlaceholderAuditTests(unittest.TestCase):
+    def test_runtime_candidates_distinguish_missing_keys_and_debug_fixtures(self):
+        rows = audit.runtime_literal_candidates('Text("Saved")\nButton("Missing") {}\n#if DEBUG\nText("Preview")\n#endif', 'ios', {'Saved'})
+        self.assertEqual([row['category'] for row in rows], ['catalog-backed-runtime-unverified', 'missing-catalog-key', 'debug-fixture'])
+
+    def test_runtime_candidates_keep_dynamic_and_direct_text_for_review(self):
+        rows = audit.runtime_literal_candidates('Text("Page \\(number)")', 'ios', set())
+        self.assertEqual(rows[0]['category'], 'dynamic-review')
+        rows = audit.runtime_literal_candidates('nativeText("Known")\nnativeText("Missing")\nText(text = "English")', 'android', {'Known'})
+        self.assertEqual([row['category'] for row in rows], ['catalog-backed-runtime-unverified', 'missing-native-mapping', 'direct-literal-review'])
+
+    def test_non_debug_conditional_else_stays_in_review(self):
+        rows = audit.runtime_literal_candidates('#if os(iOS)\nText("First")\n#else\nText("Second")\n#endif', 'ios', set())
+        self.assertEqual([row['category'] for row in rows], ['missing-catalog-key', 'missing-catalog-key'])
+
+    def test_runtime_inventory_includes_custom_title_wrappers(self):
+        rows = audit.runtime_literal_candidates('ReaderSheetChrome(title: "Contents", palette: palette) {}\nQuietEmptyState(title: "Empty", message: "Details")\n.appNavigationTitle("Saved")', 'ios', {'Saved'})
+        self.assertEqual([row['value'] for row in rows], ['Contents', 'Empty', 'Saved'])
+        self.assertEqual([row['category'] for row in rows], ['missing-catalog-key', 'missing-catalog-key', 'catalog-backed-runtime-unverified'])
+
     def ios_failures(self, english, arabic):
         with tempfile.TemporaryDirectory() as directory:
             catalog = Path(directory) / 'Localizable.xcstrings'
