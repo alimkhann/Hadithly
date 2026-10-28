@@ -48,7 +48,7 @@
     <string name="native_ee5ef73aae18">Verileriniz</string>
     <string name="native_f5a77522b1ba">Çevrimdışı koleksiyonlar</string>
     <string name="native_fa8a45b3662d">Okumak için gereken her şey hesap olmadan çalışır. Yer imlerinizi, favorilerinizi ve notlarınızı cihazlar arasında taşımak için giriş yapın.</string>
-    <string name="native_ff6c3270c09d">Tüm uygulama için geçerlidir. Okuyucu her temayı canlı olarak önizler.</string>
+    <string name="native_ff6c3270c09d" formatted="false">Tüm uygulama için geçerlidir. Okuyucu her temayı canlı olarak önizler.</string>
 
     <string name="native_03c47f10db6d" formatted="false">Yeni öneri başlat</string>
     <string name="native_099cd53b4147">Profilinizi, tercihlerinizi, kaydedilen öğeleri, klasörleri, okuma ilerlemesini ve kendi katkılarınızı JSON olarak dışa aktarın.</string>
@@ -108,7 +108,7 @@
     <string name="native_942087cc2d41" formatted="false">Tekrar dene</string>
     <string name="native_9449e60a6bd1">Koleksiyonu ve hadis numarasını ekleyin.</string>
     <string name="native_96b3b31d45ab">Cihaz depolamasını aç</string>
-    <string name="native_96be15d18327">Arapça türü</string>
+    <string name="native_96be15d18327" formatted="false">Arapça metin</string>
     <string name="native_98770753608c" formatted="false">Evidence checks complete</string>
     <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
     <string name="native_9f9feade761d">Koleksiyonlar</string>
@@ -195,4 +195,20 @@
     <string name="native_506ff3946215" formatted="false">Gizlilik Politikası</string>
     <string name="native_12a0015fa322" formatted="false">Kullanım Koşulları</string>
     <string name="native_c79509dcb6e9" formatted="false">Veriler nasıl silinir</string>
+    <string name="native_1023845bcf1b" formatted="false">Yapay zekâ çevirileri etiketlenir ve hata içerebilir. Kaynak bilgileri mevcut olduğunda gösterilir.</string>
+    <string name="native_b079c84f2b8b" formatted="false">Okuma ayarları</string>
+    <string name="native_bafb66f32cd7" formatted="false">Arapça</string>
+    <string name="native_c0de41db567b" formatted="false">Arapça yazı tipi</string>
+    <string name="native_c74978a37927" formatted="false">Arapça yazı tipi önizlemesi</string>
+    <string name="native_a3d74fbb5612" formatted="false">Çeviri metni boyutu</string>
+    <string name="native_00b394d2c9c4" formatted="false">Okuma için ayrı bir görünüm kullan</string>
+    <string name="native_b5e18946b85c" formatted="false">Kapalıyken okuma görünümü uygulama görünümünü izler.</string>
+    <string name="native_7947ab560e18" formatted="false">Metni küçült</string>
+    <string name="native_479286af6c73" formatted="false">Metni büyüt</string>
+    <string name="native_6725e7bbcd28" formatted="false">Sistem</string>
+    <string name="native_dbcd5e7bb7a0" formatted="false">Açık</string>
+    <string name="native_60acc53f13a5" formatted="false">Koyu</string>
+    <string name="native_35045eff549e" formatted="false">Kâğıt</string>
+    <string name="native_46821f0b7acc" formatted="false">Uygulama görünümü</string>
+    <string name="native_2ccb1be6d319" formatted="false">%s nk</string>
 </resources>

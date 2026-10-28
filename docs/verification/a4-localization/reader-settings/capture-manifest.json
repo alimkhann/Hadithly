@@ -1,0 +1,452 @@
+[
+  {
+    "platform": "ios",
+    "name": "app-appearance-bn",
+    "sha256": "7a835a2dd8173bfc52068562d559a523e648ca66b38e7e84df461e4a82c98d86"
+  },
+  {
+    "platform": "ios",
+    "name": "app-appearance-hi",
+    "sha256": "70a57185c4875fed498c4bdb3144c397ce52b91c5f42c3e7a5d37b9a96b0c650"
+  },
+  {
+    "platform": "ios",
+    "name": "app-appearance-sw",
+    "sha256": "60e53fd9cb0134e8d6c79de44f88faeb0989ca66d7e92acbc343282561053dc4"
+  },
+  {
+    "platform": "ios",
+    "name": "app-appearance-pt-BR",
+    "sha256": "252165b5a532c82a2058c850125802ad1e2eb2728484f39cb1fb25d40d921ef9"
+  },
+  {
+    "platform": "ios",
+    "name": "app-appearance-es-419",
+    "sha256": "e5aabbe1528a5ebac8ebbe32633991e3ca1b4a3814ecac8454e00bfcbd9c0def"
+  },
+  {
+    "platform": "ios",
+    "name": "app-appearance-fr",
+    "sha256": "a6b8fedb3ed093278e4a68d7c0c2f6f0527927b94ccc3e108a91708a0aa45a1d"
+  },
+  {
+    "platform": "ios",
+    "name": "app-appearance-ur",
+    "sha256": "adbb6880ca8aedcfe05f5bf5ec981b5ca2dc361a0dd51ca71faede6accf08e4c"
+  },
+  {
+    "platform": "ios",
+    "name": "app-appearance-tr",
+    "sha256": "52688b946954174843a5b5d5381b4849786079e782b3cce5dd406aab8baf45f0"
+  },
+  {
+    "platform": "ios",
+    "name": "app-appearance-uz",
+    "sha256": "483b9e8b14efba72b36a254b22ee0172ecd6c8e721c5d21a664eda742f93c872"
+  },
+  {
+    "platform": "ios",
+    "name": "app-appearance-ky",
+    "sha256": "034553bdb20dc0a75f35cd826cd1b8b85493d3eeb9b7a2640f34f778d4470ebd"
+  },
+  {
+    "platform": "ios",
+    "name": "app-appearance-en",
+    "sha256": "b7259594bcf998036d22a1f6b8c94e06221c68b26438931884851854c698a738"
+  },
+  {
+    "platform": "ios",
+    "name": "app-appearance-id",
+    "sha256": "cdcc69ba66836f6c00caf41f26a41f652be6f300bfdf46491e29cc9547782bae"
+  },
+  {
+    "platform": "ios",
+    "name": "app-appearance-kk",
+    "sha256": "496541a5dfb25abc99fd79faa025f7675391a7d60142df23e0663b5e6639385b"
+  },
+  {
+    "platform": "ios",
+    "name": "app-appearance-ru",
+    "sha256": "253a29a49c0a4cfbd3c50ba11ed8e79901bfaabb932602088e968fe73038b4d3"
+  },
+  {
+    "platform": "ios",
+    "name": "app-appearance-ar",
+    "sha256": "dacf2773ef724be9cfbba623f4103f1e09fb834e31fca40a113546eb06ebda25"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-disclosure-bn",
+    "sha256": "e7610a799e5aaccde7ca846c7c0c56375f3720c320fbd236fb974c0dad8f9ffe"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-preview-bn",
+    "sha256": "b5d8c3ce51660927c64b877e830915eaaf31c0c2263ec61f1e06f6c68e6c6875"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-disclosure-hi",
+    "sha256": "55c52d441e4660a98fb8f9a13e7c9e75010652d331036da72ac82e652873ed4d"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-preview-hi",
+    "sha256": "dd8d981ef2be4a4370bf7547c3b05dc710f0ea6119102ab3762135d4264ab0dd"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-disclosure-sw",
+    "sha256": "326b0962159c35d9a932a2487dccce5cfd6090462d9c3b9ea0970a2d5fa1711b"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-preview-sw",
+    "sha256": "4f6d313e03fde6d90d3052fe296ea22df55c085b1626553e2bbc3eefccc78501"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-disclosure-pt-BR",
+    "sha256": "358ff8c262cfce3b734edbbc84d77de23bdc68c83f999b20e9b9e4fb23fd6b47"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-preview-pt-BR",
+    "sha256": "764a463e6db7f6acd41be56180b1c9c8835fa14985b83fe255aca48b90926b0e"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-disclosure-es-419",
+    "sha256": "284b698aa3c2195b6fe496be95316f962a09a8986ec9e4908cf25f025b026308"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-preview-es-419",
+    "sha256": "3a5df3ce6e9bf8ec741bdb1ad89f73dca4b634a0126b5ce492f754faaff0128c"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-disclosure-fr",
+    "sha256": "f5251e51887e6adff6313bc8c58a3816be00bc8159d520155f4817501ec06814"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-preview-fr",
+    "sha256": "8f97bdd7c7fa1a4d4e341febcce7c4642ea931aa890ca46d1bf0f7d59565b593"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-disclosure-ur",
+    "sha256": "dc7b1c48c47d22fabec39dc903d578578dbc3896b0653bc320c2b37750c76d85"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-preview-ur",
+    "sha256": "31a5b1ede213017ca31a2ece002006006c4dddd7f377985defabeb33bb994a2b"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-disclosure-tr",
+    "sha256": "a51234b3f71cf417069b000be75397054d22bb179ac87f18dd08a2388d7ee3eb"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-preview-tr",
+    "sha256": "d45ea8d976b6b147b2e4ac65099c1a1cb993965d235f9d51b2656098afdd991f"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-disclosure-uz",
+    "sha256": "05a292e7b410410bdcaeab62a26645962a82882e156e92666672dcc551473b88"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-preview-uz",
+    "sha256": "3ba9656b99bf1084c22070b28ed2c2a684bc39e491e642a219bb2b18068c437e"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-disclosure-ky",
+    "sha256": "867af23452248385c355365877033668c47514f16b8a08a6648946434962e2dc"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-preview-ky",
+    "sha256": "c141ab68abcc19f443472768b4830118b74ca32d7bec15d717ce2467778f3130"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-disclosure-en",
+    "sha256": "0b97ae836d1c9934d8f75292bca89a75c2b304ad5609d8ea33d46d383cc32b9f"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-preview-en",
+    "sha256": "280bc2c201f7170dfff9c1d72733c59d66610b4140c49ba4cd914443947342c9"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-disclosure-id",
+    "sha256": "467ad88dceb28045d4c202192ecbadc0e3f039942123ae2174e2d625c1667f3a"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-preview-id",
+    "sha256": "098b63b936b3bf64a67e2fb68b2c8c94f86ef7bd7bb23e0823b74239d9785af3"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-disclosure-kk",
+    "sha256": "ac31907c8791d426789bc734c6ef1fce17ffde8e2f242d686ae0c7851388fc58"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-preview-kk",
+    "sha256": "d6fa3c8766ccc3a639439ccff84406894d3f1d7a4bf52bf406183fade4fa8f43"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-disclosure-ru",
+    "sha256": "f236b932440814c396923c5e409a3f419eeb8aecfa03b6fb1d91a752aa3729d0"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-preview-ru",
+    "sha256": "23f0b51ef03995e84f5e87a8b3ac30a7a918de111f39b5d4d3d9670b69472552"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-disclosure-ar",
+    "sha256": "24d933e9415a813a61d53e596336da1c3907bcae06e8cb477c1aa0a1541c3cd1"
+  },
+  {
+    "platform": "ios",
+    "name": "reader-translation-preview-ar",
+    "sha256": "3264c62a2ab990930e5d33e12d331b030d522bab44fbb6e96e8a874babbe9ae4"
+  },
+  {
+    "platform": "android",
+    "name": "app-appearance-en",
+    "sha256": "0f1328e7f5fc8ff3e46f7bf313734fa0d307054459760491cbbd4943bd3ca973"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-preview-en",
+    "sha256": "408283383d46427f861f3a098289cf0fbe7431befcf44ac0c44f17f2b5ae807c"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-disclosure-en",
+    "sha256": "8807e35bc56b519630258d34f7c3d2b031fb899b273e616a864e75a243c57d55"
+  },
+  {
+    "platform": "android",
+    "name": "app-appearance-ar",
+    "sha256": "231a264ee0849fc130832630acd16f930d89b4e60743f6a4468354a14e2826ed"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-preview-ar",
+    "sha256": "ac4b6ff14eccfb26939208b0d9da679f021b5af9828242529b67c599d81c2bee"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-disclosure-ar",
+    "sha256": "56536acd68d19f2e510047b725fc01d0760c27e2452961013cb27b35b00fa63e"
+  },
+  {
+    "platform": "android",
+    "name": "app-appearance-ru",
+    "sha256": "1470c5a657bb426346b78bdc8ad38e9af52d28dca53b6176b2d55d5c9f71ab06"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-preview-ru",
+    "sha256": "0ce4f8070abdd7b78328f0bf0fa2bb9604ab4068e19fd29d0c2246618eadf30a"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-disclosure-ru",
+    "sha256": "66217fc3da3611c8927bdb24ad69227297bb2e4e691fabb69f3196233939e301"
+  },
+  {
+    "platform": "android",
+    "name": "app-appearance-kk",
+    "sha256": "122375bab0e6c8e48dc258355b00e7e13beade4725dcd0d31884f2982565e2d7"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-preview-kk",
+    "sha256": "589f079be1f8b6e3605a32cacfd8c95c94bd5637e4e19cca6df1ce355f08c5cb"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-disclosure-kk",
+    "sha256": "248ae9fe6d463e2cb12b7201099834a2f57f1bed3976167be66378fa50180c1f"
+  },
+  {
+    "platform": "android",
+    "name": "app-appearance-ky",
+    "sha256": "4f930feebb7dd2ddde52707f2b8f57d85aea618e79b93469b5e68fd671e1af82"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-preview-ky",
+    "sha256": "a8200cb426250b769c9466d61db92d4eca9c266a2cd96b6111cc6f6cc811427b"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-disclosure-ky",
+    "sha256": "2a04e03c5faf45c9bd634995633fd5f209dcd4e6707b26a59cd8687bdc79705f"
+  },
+  {
+    "platform": "android",
+    "name": "app-appearance-uz",
+    "sha256": "3434550d91ff37eaa5873dc87490dff8ab20ec1ff785e49a1fb047eb28aede4b"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-preview-uz",
+    "sha256": "01457d0fd3751bc0fc61a6330402cf720f64843196c0f75389bfa524e440fb0d"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-disclosure-uz",
+    "sha256": "868baf364d05289549a4e005e83ee3c9e0dae57c1f36fed6d2a7ba6f1cb6e16f"
+  },
+  {
+    "platform": "android",
+    "name": "app-appearance-tr",
+    "sha256": "cf1108f8ba0628ef33fc82aee6068bbf2306d673b51859b6d50debf40b5a8a84"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-preview-tr",
+    "sha256": "9c1a5fe40dcd891bda29ed7b07fdd1a498b1f282472b88b037bf993fecc5f997"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-disclosure-tr",
+    "sha256": "39e7bffd11e45aa4750fc0d1fd4133e0e961275cf59592cc60fe7a9a243df614"
+  },
+  {
+    "platform": "android",
+    "name": "app-appearance-id",
+    "sha256": "ead5d44e9e96621d4128714e0ef9a682e582c6aacab2b48b11bc8e2586429f82"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-preview-id",
+    "sha256": "b47e02ce7b891377f7ab2d9a7bacc03f5b08615955f67fd0d10d02060e61baad"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-disclosure-id",
+    "sha256": "3a547a2527e1ae9ec51adafec8397b272c681c6fc1febf6ef169205259142faf"
+  },
+  {
+    "platform": "android",
+    "name": "app-appearance-ur",
+    "sha256": "679930bc95fe2679a210b2bb8068ae0dba4a4ae78a88e333c9add0b695c1228e"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-preview-ur",
+    "sha256": "8a3ca4a1bb212054681e48511cd801eef6ccc5c5e1714e58cc1145d7a425309a"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-disclosure-ur",
+    "sha256": "9b0fa046692d96fe5e97ef6c9245ed744a3ccc821d11aa84f6881dbb60ee76be"
+  },
+  {
+    "platform": "android",
+    "name": "app-appearance-fr",
+    "sha256": "197cd8138ac7bace2bcc1bc168e760247253ebdb5512645868bb303c99ff7ae7"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-preview-fr",
+    "sha256": "31e5a26cf773f93b12c828c10e230e54b080b0eb7e864d674609b7fd0ad62515"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-disclosure-fr",
+    "sha256": "93a54cf945e1b3f5b0c0fadc9a8e36f36f805eef1194da681d03f1ff94b59bdd"
+  },
+  {
+    "platform": "android",
+    "name": "app-appearance-es-419",
+    "sha256": "14350ab17dc595e3418665dd231ea2818372f266ec8451b1940dca2de5c4d6e1"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-preview-es-419",
+    "sha256": "9c22a4141df2f2c8c79cc048e424eab8ffa12fafabb8f6e3dfa5f0c9797c9c7f"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-disclosure-es-419",
+    "sha256": "a8b72d2d4d18d767b95c47325cc2b734570d14d3a18e95cbf7bb87160ca72db2"
+  },
+  {
+    "platform": "android",
+    "name": "app-appearance-pt-BR",
+    "sha256": "24c70fe3b57dabf5eed4e3a700fc0b52810ab4d0f0261919fb04e1e30c425c96"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-preview-pt-BR",
+    "sha256": "935b48610cb8446d16d5119438124e8e784bef17b4a4f4d69dc231d00b7158e9"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-disclosure-pt-BR",
+    "sha256": "dc974bce7a374c3de8509b9f35e2f99b1a51cd67a72d34a726a78c9d8a8c1298"
+  },
+  {
+    "platform": "android",
+    "name": "app-appearance-sw",
+    "sha256": "7e2cde0a5f0dbcf1ec78e2a984284bc780bac6d051df022b1f45ec31992fbe63"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-preview-sw",
+    "sha256": "fe377d859678b5bdf283fc14f703b646d4d58c44ca662b262e32a58d9f88c64a"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-disclosure-sw",
+    "sha256": "bf2edc611adaada7db43cd8aef7547220b12ca0c492d554e645d3afe33bb0520"
+  },
+  {
+    "platform": "android",
+    "name": "app-appearance-hi",
+    "sha256": "dba16d4fadd2f1e6779c794f572453cb3d7328966f06eb56bf537862b3743e38"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-preview-hi",
+    "sha256": "cde8696a798a1635cd5c09cbcd6022011fa21ad1367171e47dc7bdcb0f075426"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-disclosure-hi",
+    "sha256": "8e2679c2e1059f6234cc3252a589acc34f1fdaca5c8f89f03f3fa0d2f62fb6d5"
+  },
+  {
+    "platform": "android",
+    "name": "app-appearance-bn",
+    "sha256": "2cb64ca94ec32d454d8c9bd5119e690458db4e206ee2228b9f6773f4707803ba"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-preview-bn",
+    "sha256": "7c5123309a3da84b267745bee6b7a53c58d012a998123f603b10822299e2a58e"
+  },
+  {
+    "platform": "android",
+    "name": "reader-translation-disclosure-bn",
+    "sha256": "bbe49b7c1ce1c30491ce965766e320d56df4e7e9b14b4e1b49206a5f976234ec"
+  }
+]

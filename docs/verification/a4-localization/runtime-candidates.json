@@ -2,12 +2,12 @@
   "scope": "Lexical UI-call candidates only. Variable/conditional arguments, custom wrappers, String-backed models, resources and server text still require source and runtime review. Catalog-backed entries are not claimed localized.",
   "counts": {
     "debug-fixture": 23,
-    "catalog-backed-runtime-unverified": 477,
-    "missing-catalog-key": 52,
+    "catalog-backed-runtime-unverified": 490,
+    "missing-catalog-key": 46,
     "example-or-symbol-review": 6,
-    "dynamic-review": 28,
-    "direct-literal-review": 7,
-    "missing-native-mapping": 14
+    "dynamic-review": 27,
+    "direct-literal-review": 6,
+    "missing-native-mapping": 5
   },
   "candidates": [
     {
@@ -77,7 +77,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Core/Theme/NativePolishFixtureView.swift",
-      "line": 34,
+      "line": 36,
       "call": "Text",
       "value": "Reading is ready",
       "category": "debug-fixture"
@@ -2053,23 +2053,23 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
-      "line": 18,
+      "line": 19,
       "call": "Section",
       "value": "Reader settings",
-      "category": "missing-catalog-key"
-    },
-    {
-      "platform": "ios",
-      "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
-      "line": 25,
-      "call": "Toggle",
-      "value": "Arabic",
-      "category": "missing-catalog-key"
+      "category": "catalog-backed-runtime-unverified"
     },
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
       "line": 26,
+      "call": "Toggle",
+      "value": "Arabic",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
+      "line": 27,
       "call": "Toggle",
       "value": "Translation",
       "category": "catalog-backed-runtime-unverified"
@@ -2077,7 +2077,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
-      "line": 28,
+      "line": 29,
       "call": "Text",
       "value": "Show on page",
       "category": "catalog-backed-runtime-unverified"
@@ -2085,7 +2085,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
-      "line": 30,
+      "line": 31,
       "call": "Text",
       "value": "At least one text layer stays visible.",
       "category": "catalog-backed-runtime-unverified"
@@ -2093,7 +2093,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
-      "line": 34,
+      "line": 35,
       "call": "Toggle",
       "value": "Automatic translation",
       "category": "catalog-backed-runtime-unverified"
@@ -2101,7 +2101,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
-      "line": 41,
+      "line": 42,
       "call": "Text",
       "value": "Translate missing text automatically, within your allowance. Turn off to translate on request.",
       "category": "catalog-backed-runtime-unverified"
@@ -2109,7 +2109,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
-      "line": 98,
+      "line": 100,
       "call": "Section",
       "value": "Reader appearance",
       "category": "catalog-backed-runtime-unverified"
@@ -2117,7 +2117,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
-      "line": 109,
+      "line": 111,
       "call": "Section",
       "value": "Preview",
       "category": "catalog-backed-runtime-unverified"
@@ -2125,23 +2125,15 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
-      "line": 110,
-      "call": "Text",
-      "value": "إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ",
+      "line": 117,
+      "call": "accessibilityLabel",
+      "value": "Arabic type preview",
       "category": "catalog-backed-runtime-unverified"
     },
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
-      "line": 115,
-      "call": "accessibilityLabel",
-      "value": "Arabic type preview",
-      "category": "missing-catalog-key"
-    },
-    {
-      "platform": "ios",
-      "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
-      "line": 124,
+      "line": 126,
       "call": "accessibilityLabel",
       "value": "Arabic type size",
       "category": "catalog-backed-runtime-unverified"
@@ -2149,15 +2141,15 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
-      "line": 128,
+      "line": 130,
       "call": "Section",
       "value": "Arabic font",
-      "category": "missing-catalog-key"
+      "category": "catalog-backed-runtime-unverified"
     },
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
-      "line": 136,
+      "line": 138,
       "call": "Section",
       "value": "Preview",
       "category": "catalog-backed-runtime-unverified"
@@ -2165,23 +2157,15 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
-      "line": 137,
-      "call": "Text",
-      "value": "Actions are judged by intentions.",
+      "line": 150,
+      "call": "accessibilityLabel",
+      "value": "Translation type size",
       "category": "catalog-backed-runtime-unverified"
     },
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
-      "line": 146,
-      "call": "accessibilityLabel",
-      "value": "Translation type size",
-      "category": "missing-catalog-key"
-    },
-    {
-      "platform": "ios",
-      "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
-      "line": 159,
+      "line": 163,
       "call": "Text",
       "value": "Language",
       "category": "catalog-backed-runtime-unverified"
@@ -2189,15 +2173,15 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
-      "line": 161,
+      "line": 165,
       "call": "Text",
-      "value": "AI translations are labeled and grounded in cited sources.",
+      "value": "AI translations are labeled and may contain errors. Source details appear when available.",
       "category": "catalog-backed-runtime-unverified"
     },
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
-      "line": 172,
+      "line": 176,
       "call": "Text",
       "value": "Text size",
       "category": "catalog-backed-runtime-unverified"
@@ -2205,15 +2189,15 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
-      "line": 173,
-      "call": "Text",
-      "value": "\\(Int(size)) pt",
-      "category": "dynamic-review"
+      "line": 203,
+      "call": "AppLocalization.string",
+      "value": "%@ pt",
+      "category": "catalog-backed-runtime-unverified"
     },
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/ReaderPreferenceViews.swift",
-      "line": 211,
+      "line": 219,
       "call": "Button",
       "value": "Open reader settings",
       "category": "debug-fixture"
@@ -2312,7 +2296,7 @@
       "line": 330,
       "call": "Toggle",
       "value": "Use a separate reader appearance",
-      "category": "missing-catalog-key"
+      "category": "catalog-backed-runtime-unverified"
     },
     {
       "platform": "ios",
@@ -3320,7 +3304,7 @@
       "line": 262,
       "call": "nativeText",
       "value": "Arabic",
-      "category": "missing-native-mapping"
+      "category": "catalog-backed-runtime-unverified"
     },
     {
       "platform": "android",
@@ -4021,31 +4005,15 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/ReaderPreferenceContent.kt",
-      "line": 90,
-      "call": "Text",
-      "value": "إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ",
-      "category": "direct-literal-review"
-    },
-    {
-      "platform": "android",
-      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/ReaderPreferenceContent.kt",
-      "line": 99,
+      "line": 106,
       "call": "nativeText",
-      "value": "Actions are judged by intentions.",
-      "category": "missing-native-mapping"
+      "value": "AI translations are labeled and may contain errors. Source details appear when available.",
+      "category": "catalog-backed-runtime-unverified"
     },
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/ReaderPreferenceContent.kt",
-      "line": 105,
-      "call": "nativeText",
-      "value": "AI translations are labeled and grounded in cited sources.",
-      "category": "missing-native-mapping"
-    },
-    {
-      "platform": "android",
-      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/ReaderPreferenceContent.kt",
-      "line": 147,
+      "line": 148,
       "call": "nativeText",
       "value": "Text size",
       "category": "catalog-backed-runtime-unverified"
@@ -4053,26 +4021,26 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/ReaderPreferenceContent.kt",
-      "line": 147,
+      "line": 150,
       "call": "nativeText",
-      "value": "%1$s pt",
+      "value": "Smaller type",
       "category": "catalog-backed-runtime-unverified"
     },
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/ReaderPreferenceContent.kt",
-      "line": 149,
+      "line": 151,
       "call": "nativeText",
-      "value": "Smaller type",
-      "category": "missing-native-mapping"
+      "value": "Larger type",
+      "category": "catalog-backed-runtime-unverified"
     },
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/ReaderPreferenceContent.kt",
-      "line": 150,
+      "line": 159,
       "call": "nativeText",
-      "value": "Larger type",
-      "category": "missing-native-mapping"
+      "value": "%@ pt",
+      "category": "catalog-backed-runtime-unverified"
     },
     {
       "platform": "android",
@@ -4184,23 +4152,23 @@
       "line": 427,
       "call": "nativeText",
       "value": "App appearance",
-      "category": "missing-native-mapping"
+      "category": "catalog-backed-runtime-unverified"
     },
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
       "line": 428,
       "call": "nativeText",
-      "value": "Choose the appearance used throughout the app.",
-      "category": "missing-native-mapping"
+      "value": "Applies across the app. The reader previews each theme live.",
+      "category": "catalog-backed-runtime-unverified"
     },
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
       "line": 450,
       "call": "nativeText",
-      "value": "Separate reader appearance",
-      "category": "missing-native-mapping"
+      "value": "Use a separate reader appearance",
+      "category": "catalog-backed-runtime-unverified"
     },
     {
       "platform": "android",
@@ -4208,7 +4176,7 @@
       "line": 451,
       "call": "nativeText",
       "value": "When off, the reader follows app appearance.",
-      "category": "missing-native-mapping"
+      "category": "catalog-backed-runtime-unverified"
     },
     {
       "platform": "android",

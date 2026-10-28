@@ -36,6 +36,7 @@ final class ReaderSettingsUITests: XCTestCase {
             app.steppers["\(prefix).translationSize"].buttons["\(prefix).translationSize-Increment"].tap()
             XCTAssertTrue(app.staticTexts["18 pt"].exists)
             app.buttons["\(prefix).language.ru"].tap()
+            XCTAssertEqual(app.staticTexts["\(prefix).translationPreview"].label, "Читайте оригинал и понимайте его смысл на своём языке.")
             screenshot("\(context)-translation")
             app.navigationBars["Translation"].buttons.element(boundBy: 0).tap()
             XCTAssertTrue(app.staticTexts["RU · 18 pt"].exists)

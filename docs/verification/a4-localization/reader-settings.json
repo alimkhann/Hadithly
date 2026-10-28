@@ -1,0 +1,100 @@
+{
+  "ios": {
+    "runs": [
+      {
+        "bundle": "hadithly-a4-reader-settings-red-ios.xcresult",
+        "startTime": 1793191307.907,
+        "result": "Failed",
+        "passedTests": 0,
+        "failedTests": 2,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-reader-settings-final-ios.xcresult",
+        "startTime": 1793191717.647,
+        "result": "Passed",
+        "passedTests": 4,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-reader-settings-reactivity-ios.xcresult",
+        "startTime": 1793192260.126,
+        "result": "Passed",
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0
+      }
+    ],
+    "latestCases": {
+      "HadithlyUITests/VisualPolishUITests/testAppAppearanceLabelsLocalizeWithoutMergingReaderChoices()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-reader-settings-final-ios.xcresult"
+      },
+      "HadithlyUITests/VisualPolishUITests/testReaderTranslationPreviewAndDisclosureUseSelectedLanguages()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-reader-settings-final-ios.xcresult"
+      },
+      "HadithlyUITests/ReaderSettingsUITests/testBothEntryPointsKeepSettingsAndNativeNavigation()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-reader-settings-reactivity-ios.xcresult"
+      },
+      "HadithlyUITests/ReaderSettingsUITests/testMainAppearanceKeepsAppToggleAndReaderInSeparateGroups()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-reader-settings-final-ios.xcresult"
+      }
+    },
+    "latestCounts": {
+      "Passed": 4
+    },
+    "buildFinding": {
+      "phase": "first-resource-build",
+      "result": "Failed before tests",
+      "error": "%1$@ pt generates the same symbol as %@ pt",
+      "repair": "Removed the new duplicate and reused the existing indexed %@ pt key. xcstringstool symbol generation and the native rerun pass."
+    }
+  },
+  "android": {
+    "ui": {
+      "counts": {
+        "Passed": 5
+      },
+      "cases": {
+        "com.hadithly.app.core.theme.NativeFinishingTest/readerTranslationPreviewAndDisclosureUseSelectedLanguages": "Passed",
+        "com.hadithly.app.core.theme.NativeFinishingTest/appAppearanceLabelsLocalizeWithoutMergingReaderChoices": "Passed",
+        "com.hadithly.app.features.settings.ReaderPreferenceContentTest/readerControlsPreserveSelectionsSizesAndLastVisibleLayer": "Passed",
+        "com.hadithly.app.features.settings.ReaderPreferenceContentTest/globalControlsPreserveSelectionsSizesAndLastVisibleLayer": "Passed",
+        "com.hadithly.app.features.settings.AppearanceOptionsTest/readerThemeChoicesAreASeparateConditionalGroup": "Passed"
+      },
+      "reports": [
+        {
+          "file": "TEST-hadithly(AVD) - 16-_app-.xml",
+          "sha256": "1b75aa5d52c48d865fee00b9a21836d1be7b7b11b81a218fd11973b286473f50"
+        }
+      ]
+    },
+    "history": [
+      {
+        "label": "before-labels-and-language-preview-repair",
+        "files": [
+          {
+            "file": "TEST-hadithly(AVD) - 16-_app-.xml",
+            "sha256": "6e2b4ba3c9187b1219e3b05a1efe190cabce48e9fe20af9654b322385207790e"
+          }
+        ],
+        "cases": [
+          {
+            "name": "readerTranslationPreviewAndDisclosureUseSelectedLanguages",
+            "result": "Failed",
+            "message": ""
+          },
+          {
+            "name": "appAppearanceLabelsLocalizeWithoutMergingReaderChoices",
+            "result": "Failed",
+            "message": ""
+          }
+        ]
+      }
+    ]
+  }
+}

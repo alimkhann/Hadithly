@@ -48,7 +48,7 @@
     <string name="native_ee5ef73aae18">Дайындарыңыз</string>
     <string name="native_f5a77522b1ba">Офлайн жыйнактар</string>
     <string name="native_fa8a45b3662d">Окуу үчүн керектүүнүн баары аккаунтсуз иштейт. Кыстармаларды, сүйүктүүлөрдү жана жазмаларды түзмөктөр арасында алып жүрүү үчүн кириңиз.</string>
-    <string name="native_ff6c3270c09d">Бүт колдонмого тиешелүү. Окугуч ар бир теманы түз көрсөтөт.</string>
+    <string name="native_ff6c3270c09d" formatted="false">Бүт колдонмого тиешелүү. Окугуч ар бир теманы түз көрсөтөт.</string>
 
     <string name="native_03c47f10db6d" formatted="false">Жаңы сунушту баштоо</string>
     <string name="native_099cd53b4147">Профилиңизди, жөндөөлөрүңүздү, сакталган нерселерди, папкаларды, окуу жүрүшүн жана өз салымдарыңызды JSON катары экспорттоо.</string>
@@ -108,7 +108,7 @@
     <string name="native_942087cc2d41" formatted="false">Кайра аракет кылуу</string>
     <string name="native_9449e60a6bd1">Жыйнакты жана хадистин номерин кошуңуз.</string>
     <string name="native_96b3b31d45ab">Түзмөктүн сактагычын ачуу</string>
-    <string name="native_96be15d18327">Арабча түрү</string>
+    <string name="native_96be15d18327" formatted="false">Арабча текст</string>
     <string name="native_98770753608c" formatted="false">Evidence checks complete</string>
     <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
     <string name="native_9f9feade761d">Жыйнактар</string>
@@ -195,4 +195,20 @@
     <string name="native_506ff3946215" formatted="false">Купуялык саясаты</string>
     <string name="native_12a0015fa322" formatted="false">Колдонуу шарттары</string>
     <string name="native_c79509dcb6e9" formatted="false">Маалыматтарды өчүрүү тартиби</string>
+    <string name="native_1023845bcf1b" formatted="false">ЖИ котормолору белгиленет жана каталарды камтышы мүмкүн. Булак маалыматы бар болсо көрсөтүлөт.</string>
+    <string name="native_b079c84f2b8b" formatted="false">Окуу жөндөөлөрү</string>
+    <string name="native_bafb66f32cd7" formatted="false">Арабча</string>
+    <string name="native_c0de41db567b" formatted="false">Арабча шрифт</string>
+    <string name="native_c74978a37927" formatted="false">Арабча шрифтти алдын ала көрүү</string>
+    <string name="native_a3d74fbb5612" formatted="false">Котормо текстинин өлчөмү</string>
+    <string name="native_00b394d2c9c4" formatted="false">Окуу үчүн өзүнчө көрүнүштү колдонуу</string>
+    <string name="native_b5e18946b85c" formatted="false">Өчүрүлгөндө, окуу көрүнүшү колдонмонун көрүнүшүнө шайкеш болот.</string>
+    <string name="native_7947ab560e18" formatted="false">Текстти кичирейтүү</string>
+    <string name="native_479286af6c73" formatted="false">Текстти чоңойтуу</string>
+    <string name="native_6725e7bbcd28" formatted="false">Тутумдук</string>
+    <string name="native_dbcd5e7bb7a0" formatted="false">Жарык</string>
+    <string name="native_60acc53f13a5" formatted="false">Караңгы</string>
+    <string name="native_35045eff549e" formatted="false">Кагаз</string>
+    <string name="native_46821f0b7acc" formatted="false">Колдонмонун көрүнүшү</string>
+    <string name="native_2ccb1be6d319" formatted="false">%s пт</string>
 </resources>

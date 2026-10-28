@@ -11,14 +11,15 @@ struct ReaderPreferenceSections: View {
     var onLanguage: (String) -> Void = { _ in }
     @Environment(AppEnvironment.self) private var environment
     @Environment(\.readerPalette) private var palette
+    @Environment(\.locale) private var locale
 
     private var store: PreferencesStore { environment.preferences }
 
     var body: some View {
         Section("Reader settings") {
-            link(.arabic, value: "\(store.preferences.arabicFont.displayName) · \(Int(store.preferences.arabicFontSize)) pt")
-            link(.translation, value: "\(store.preferences.translationLocale.uppercased()) · \(Int(store.preferences.translationFontSize)) pt")
-            link(.appearance, value: store.preferences.theme.rawValue.capitalized)
+            link(.arabic, value: "\(AppLocalization.string(store.preferences.arabicFont.displayName, locale: locale)) · \(localizedReaderTypeSize(store.preferences.arabicFontSize, locale: locale))")
+            link(.translation, value: "\(store.preferences.translationLocale.uppercased()) · \(localizedReaderTypeSize(store.preferences.translationFontSize, locale: locale))")
+            link(.appearance, value: AppLocalization.string(store.preferences.theme.rawValue.capitalized, locale: locale))
         }
         .listRowBackground(palette.surface)
         Section {
@@ -87,6 +88,7 @@ struct ReaderPreferenceDetail: View {
     var onLanguage: (String) -> Void = { _ in }
     @Environment(AppEnvironment.self) private var environment
     @Environment(\.readerPalette) private var palette
+    @Environment(\.locale) private var locale
 
     private var store: PreferencesStore { environment.preferences }
     private var preferences: ReaderPreferences { store.preferences }
@@ -107,7 +109,7 @@ struct ReaderPreferenceDetail: View {
                 .listRowBackground(palette.surface)
             case .arabic:
                 Section("Preview") {
-                    Text("إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ")
+                    Text(verbatim: PreparedTranslationExample.arabic)
                         .font(Theme.arabic(preferences.arabicFontSize, preferences.arabicFont))
                         .multilineTextAlignment(.center)
                         .frame(maxWidth: .infinity)
@@ -134,7 +136,9 @@ struct ReaderPreferenceDetail: View {
                 .listRowBackground(palette.surface)
             case .translation:
                 Section("Preview") {
-                    Text("Actions are judged by intentions.")
+                    Text(verbatim: LocaleFallback.fallbackChain(for: preferences.translationLocale).lazy.compactMap { PreparedTranslationExample.translations[$0] }.first ?? PreparedTranslationExample.translations["en"]!)
+                        .environment(\.layoutDirection, LocaleFallback.isRTL(preferences.translationLocale) ? .rightToLeft : .leftToRight)
+                        .accessibilityIdentifier("\(prefix).translationPreview")
                         .font(.system(size: preferences.translationFontSize))
                         .padding(.vertical, 8)
                     Stepper(value: Binding(
@@ -158,7 +162,7 @@ struct ReaderPreferenceDetail: View {
                 } header: {
                     Text("Language")
                 } footer: {
-                    Text("AI translations are labeled and grounded in cited sources.")
+                    Text("AI translations are labeled and may contain errors. Source details appear when available.")
                 }
                 .listRowBackground(palette.surface)
             }
@@ -170,7 +174,7 @@ struct ReaderPreferenceDetail: View {
     private func sizeLabel(_ size: Double) -> some View {
         HStack {
             Text("Text size")
-            Text("\(Int(size)) pt").foregroundStyle(palette.textSecondary)
+            Text(verbatim: localizedReaderTypeSize(size, locale: locale)).foregroundStyle(palette.textSecondary)
         }
     }
 
@@ -193,6 +197,10 @@ struct ReaderPreferenceDetail: View {
         .accessibilityAddTraits(selected ? .isSelected : [])
         .accessibilityIdentifier(identifier)
     }
+}
+
+private func localizedReaderTypeSize(_ size: Double, locale: Locale) -> String {
+    String(format: AppLocalization.string("%@ pt", locale: locale), locale: locale, Int(size).formatted(.number.locale(locale)))
 }
 
 #if DEBUG

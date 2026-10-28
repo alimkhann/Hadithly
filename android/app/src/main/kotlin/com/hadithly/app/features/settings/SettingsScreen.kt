@@ -425,10 +425,10 @@ internal fun AppearanceOptions(
     ScrollColumn {
         CardColumn {
             Text(nativeText("App appearance"), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
-            Text(nativeText("Choose the appearance used throughout the app."), fontSize = 12.sp, color = colors.textSecondary)
+            Text(nativeText("Applies across the app. The reader previews each theme live."), fontSize = 12.sp, color = colors.textSecondary)
             ReaderTheme.entries.forEach { theme ->
                 SettingsSingleChoiceRow(
-                    label = themeLabel(theme),
+                    label = nativeText(themeLabel(theme)),
                     selected = theme == preferences.appTheme,
                     onClick = { onAppTheme(theme) },
                     modifier = Modifier.testTag("settings.appearance.${theme.wire}"),
@@ -447,7 +447,7 @@ internal fun AppearanceOptions(
                     .testTag("settings.appearance.separateReader"),
             ) {
                 Column(Modifier.weight(1f).padding(end = 12.dp)) {
-                    Text(nativeText("Separate reader appearance"), color = colors.textPrimary)
+                    Text(nativeText("Use a separate reader appearance"), color = colors.textPrimary)
                     Text(nativeText("When off, the reader follows app appearance."), fontSize = 12.sp, color = colors.textSecondary)
                 }
                 Switch(
@@ -462,7 +462,7 @@ internal fun AppearanceOptions(
                 Text(nativeText("Reader appearance"), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
                 ReaderTheme.entries.forEach { theme ->
                     SettingsSingleChoiceRow(
-                        label = themeLabel(theme),
+                        label = nativeText(themeLabel(theme)),
                         selected = theme == preferences.readerTheme,
                         onClick = { onReaderTheme(theme) },
                         modifier = Modifier.testTag("settings.appearance.reader.${theme.wire}"),

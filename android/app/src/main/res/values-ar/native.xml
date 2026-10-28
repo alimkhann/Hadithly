@@ -48,7 +48,7 @@
     <string name="native_ee5ef73aae18">بياناتك</string>
     <string name="native_f5a77522b1ba">مجموعات دون اتصال</string>
     <string name="native_fa8a45b3662d">يمكنك القراءة دون حساب. سجّل الدخول لمزامنة إشاراتك المرجعية ومفضلاتك وملاحظاتك بين أجهزتك.</string>
-    <string name="native_ff6c3270c09d">ينطبق على التطبيق كله. يعرض القارئ معاينة كل سمة مباشرة.</string>
+    <string name="native_ff6c3270c09d" formatted="false">ينطبق على التطبيق كله. يعرض القارئ معاينة كل سمة مباشرة.</string>
 
     <string name="native_03c47f10db6d" formatted="false">ابدأ اقتراحًا جديدًا</string>
     <string name="native_099cd53b4147">صدّر ملفك الشخصي وتفضيلاتك والعناصر المحفوظة والمجلدات وتقدم القراءة وإسهاماتك كملف JSON.</string>
@@ -108,7 +108,7 @@
     <string name="native_942087cc2d41" formatted="false">إعادة المحاولة</string>
     <string name="native_9449e60a6bd1">أدرج المجموعة ورقم الحديث.</string>
     <string name="native_96b3b31d45ab">فتح مساحة تخزين الجهاز</string>
-    <string name="native_96be15d18327">نوع العربية</string>
+    <string name="native_96be15d18327" formatted="false">الخط العربي</string>
     <string name="native_98770753608c" formatted="false">Evidence checks complete</string>
     <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
     <string name="native_9f9feade761d">المجموعات</string>
@@ -195,4 +195,20 @@
     <string name="native_506ff3946215" formatted="false">سياسة الخصوصية</string>
     <string name="native_12a0015fa322" formatted="false">شروط الاستخدام</string>
     <string name="native_c79509dcb6e9" formatted="false">كيفية حذف البيانات</string>
+    <string name="native_1023845bcf1b" formatted="false">تُميَّز ترجمات الذكاء الاصطناعي وقد تحتوي على أخطاء. تظهر تفاصيل المصادر عند توفرها.</string>
+    <string name="native_b079c84f2b8b" formatted="false">إعدادات القارئ</string>
+    <string name="native_bafb66f32cd7" formatted="false">العربية</string>
+    <string name="native_c0de41db567b" formatted="false">الخط العربي</string>
+    <string name="native_c74978a37927" formatted="false">معاينة الخط العربي</string>
+    <string name="native_a3d74fbb5612" formatted="false">حجم خط الترجمة</string>
+    <string name="native_00b394d2c9c4" formatted="false">استخدام مظهر منفصل للقارئ</string>
+    <string name="native_b5e18946b85c" formatted="false">عند إيقافه، يتبع القارئ مظهر التطبيق.</string>
+    <string name="native_7947ab560e18" formatted="false">تصغير الخط</string>
+    <string name="native_479286af6c73" formatted="false">تكبير الخط</string>
+    <string name="native_6725e7bbcd28" formatted="false">النظام</string>
+    <string name="native_dbcd5e7bb7a0" formatted="false">فاتح</string>
+    <string name="native_60acc53f13a5" formatted="false">داكن</string>
+    <string name="native_35045eff549e" formatted="false">ورقي</string>
+    <string name="native_46821f0b7acc" formatted="false">مظهر التطبيق</string>
+    <string name="native_2ccb1be6d319" formatted="false">%s نقطة</string>
 </resources>

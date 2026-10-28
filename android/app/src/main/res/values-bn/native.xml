@@ -48,7 +48,7 @@
     <string name="native_ee5ef73aae18">আপনার ডেটা</string>
     <string name="native_f5a77522b1ba">অফলাইন সংগ্রহ</string>
     <string name="native_fa8a45b3662d">অ্যাকাউন্ট ছাড়াই পড়ার সব সুবিধা চলে। ডিভাইসগুলোর মধ্যে বুকমার্ক, পছন্দের ও নোট নিতে সাইন ইন করুন।</string>
-    <string name="native_ff6c3270c09d">পুরো অ্যাপে প্রযোজ্য। পাঠক প্রতিটি থিমের লাইভ পূর্বরূপ দেখায়।</string>
+    <string name="native_ff6c3270c09d" formatted="false">পুরো অ্যাপে প্রযোজ্য। পাঠক প্রতিটি থিমের লাইভ পূর্বরূপ দেখায়।</string>
 
     <string name="native_03c47f10db6d" formatted="false">নতুন প্রস্তাব শুরু করুন</string>
     <string name="native_099cd53b4147">আপনার প্রোফাইল, পছন্দ, সংরক্ষিত আইটেম, ফোল্ডার, পড়ার অগ্রগতি এবং নিজের অবদান JSON হিসেবে রপ্তানি করুন।</string>
@@ -108,7 +108,7 @@
     <string name="native_942087cc2d41" formatted="false">আবার চেষ্টা করুন</string>
     <string name="native_9449e60a6bd1">সংকলন ও হাদিস নম্বর অন্তর্ভুক্ত করুন।</string>
     <string name="native_96b3b31d45ab">ডিভাইস স্টোরেজ খুলুন</string>
-    <string name="native_96be15d18327">আরবি ধরন</string>
+    <string name="native_96be15d18327" formatted="false">আরবি লেখা</string>
     <string name="native_98770753608c" formatted="false">Evidence checks complete</string>
     <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
     <string name="native_9f9feade761d">সংকলন</string>
@@ -195,4 +195,20 @@
     <string name="native_506ff3946215" formatted="false">গোপনীয়তা নীতি</string>
     <string name="native_12a0015fa322" formatted="false">ব্যবহারের শর্তাবলি</string>
     <string name="native_c79509dcb6e9" formatted="false">ডেটা কীভাবে মুছে ফেলা হয়</string>
+    <string name="native_1023845bcf1b" formatted="false">AI অনুবাদ চিহ্নিত থাকে এবং এতে ভুল থাকতে পারে। উৎসের বিবরণ পাওয়া গেলে দেখানো হয়।</string>
+    <string name="native_b079c84f2b8b" formatted="false">পড়ার সেটিংস</string>
+    <string name="native_bafb66f32cd7" formatted="false">আরবি</string>
+    <string name="native_c0de41db567b" formatted="false">আরবি ফন্ট</string>
+    <string name="native_c74978a37927" formatted="false">আরবি ফন্টের পূর্বরূপ</string>
+    <string name="native_a3d74fbb5612" formatted="false">অনুবাদের লেখার আকার</string>
+    <string name="native_00b394d2c9c4" formatted="false">পড়ার জন্য আলাদা চেহারা ব্যবহার করুন</string>
+    <string name="native_b5e18946b85c" formatted="false">বন্ধ থাকলে পড়ার চেহারা অ্যাপের চেহারা অনুসরণ করে।</string>
+    <string name="native_7947ab560e18" formatted="false">লেখা ছোট করুন</string>
+    <string name="native_479286af6c73" formatted="false">লেখা বড় করুন</string>
+    <string name="native_6725e7bbcd28" formatted="false">সিস্টেম</string>
+    <string name="native_dbcd5e7bb7a0" formatted="false">হালকা</string>
+    <string name="native_60acc53f13a5" formatted="false">গাঢ়</string>
+    <string name="native_35045eff549e" formatted="false">কাগজ</string>
+    <string name="native_46821f0b7acc" formatted="false">অ্যাপের চেহারা</string>
+    <string name="native_2ccb1be6d319" formatted="false">%s পয়েন্ট</string>
 </resources>

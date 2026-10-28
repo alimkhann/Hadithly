@@ -342,7 +342,7 @@ struct AppearanceView: View {
         }
     }
 
-    private static func label(_ theme: ReaderTheme) -> String {
+    private static func label(_ theme: ReaderTheme) -> LocalizedStringKey {
         switch theme {
         case .system: "System"
         case .light: "Light"

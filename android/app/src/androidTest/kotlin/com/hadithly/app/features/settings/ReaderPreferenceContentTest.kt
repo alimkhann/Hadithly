@@ -40,6 +40,12 @@ class ReaderPreferenceContentTest {
     private fun verifyControls(prefix: String, fontScale: Float = 1f) {
         compose.setContent {
             var preferences by remember { mutableStateOf(ReaderPreferences(appTheme = ReaderTheme.DARK)) }
+            val baseContext = androidx.compose.ui.platform.LocalContext.current
+            val config = android.content.res.Configuration(androidx.compose.ui.platform.LocalConfiguration.current).apply { setLocale(java.util.Locale.ENGLISH) }
+            val resources = baseContext.createConfigurationContext(config).resources
+            CompositionLocalProvider(androidx.compose.ui.platform.LocalConfiguration provides config,
+                androidx.compose.ui.platform.LocalResources provides resources,
+                androidx.compose.ui.platform.LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Ltr) {
             HadithlyTheme(theme = if (preferences.usesSeparateReaderTheme) preferences.readerTheme else preferences.appTheme) {
                 CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale)) {
                 Surface(modifier = Modifier.fillMaxSize(), color = LocalHadithlyColors.current.background) {
@@ -60,6 +66,7 @@ class ReaderPreferenceContentTest {
                 }
                 }
             }
+            }
         }
         compose.onNodeWithTag("$prefix.settings.title").assertIsDisplayed()
         compose.onNodeWithTag("$prefix.visibility.arabic").performScrollTo().performClick().assertIsOff()
@@ -78,6 +85,7 @@ class ReaderPreferenceContentTest {
         compose.onNodeWithTag("$prefix.translationSize.larger").performClick()
         compose.onNodeWithText("18", substring = true).assertIsDisplayed()
         compose.onNodeWithTag("$prefix.language.ru").performScrollTo().performClick().assertIsSelected()
+        compose.onNodeWithTag("$prefix.translationPreview").performScrollTo().assertTextEquals(com.hadithly.app.features.onboarding.PreparedTranslationExample.translations.getValue("ru"))
         compose.onNodeWithTag("$prefix.settings.back").performClick()
         compose.onNodeWithText("RU · 18 pt").assertIsDisplayed()
         compose.onNodeWithTag("$prefix.settings.appearance").performClick()

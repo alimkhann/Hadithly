@@ -193,4 +193,20 @@
     <string name="native_506ff3946215" formatted="false">Privacy Policy</string>
     <string name="native_12a0015fa322" formatted="false">Terms of Use</string>
     <string name="native_c79509dcb6e9" formatted="false">How deletion works</string>
+    <string name="native_1023845bcf1b" formatted="false">AI translations are labeled and may contain errors. Source details appear when available.</string>
+    <string name="native_b079c84f2b8b" formatted="false">Reader settings</string>
+    <string name="native_bafb66f32cd7" formatted="false">Arabic</string>
+    <string name="native_c0de41db567b" formatted="false">Arabic font</string>
+    <string name="native_c74978a37927" formatted="false">Arabic type preview</string>
+    <string name="native_a3d74fbb5612" formatted="false">Translation type size</string>
+    <string name="native_00b394d2c9c4" formatted="false">Use a separate reader appearance</string>
+    <string name="native_b5e18946b85c" formatted="false">When off, the reader follows app appearance.</string>
+    <string name="native_7947ab560e18" formatted="false">Smaller type</string>
+    <string name="native_479286af6c73" formatted="false">Larger type</string>
+    <string name="native_6725e7bbcd28" formatted="false">System</string>
+    <string name="native_dbcd5e7bb7a0" formatted="false">Light</string>
+    <string name="native_60acc53f13a5" formatted="false">Dark</string>
+    <string name="native_35045eff549e" formatted="false">Paper</string>
+    <string name="native_46821f0b7acc" formatted="false">App appearance</string>
+    <string name="native_2ccb1be6d319" formatted="false">%s pt</string>
 </resources>

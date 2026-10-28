@@ -22,6 +22,8 @@ struct NativePolishFixtureView: View {
                     case "library-loading": LibraryView(previewLoading: true)
                     case "library-ready": LibraryView(previewLoading: false)
                     case "library-progress": LibraryView(previewLoading: false, progressExamples: true)
+                    case "reader-translation-settings": ReaderPreferenceDetail(panel: .translation, prefix: "settings")
+                    case "app-appearance": AppearanceView()
                     case "privacy": PrivacyDataView(showSignIn: .constant(false))
                     case "saved-undo":
                         VStack {
@@ -54,7 +56,8 @@ struct NativePolishFixtureView: View {
                 environment.preferences.setSeparateReaderTheme(true)
             }
             environment.preferences.setUILocale(values["POLISH_LOCALE"] ?? "en")
-            environment.preferences.setTranslationLocale("en")
+            environment.preferences.setTranslationLocale(values["POLISH_TRANSLATION_LOCALE"] ?? "en")
+            if screen == "reader-translation-settings" { environment.preferences.setTranslationFontSize(16) }
             environment.preferences.setReadingDirection(ReadingDirection(rawValue: values["POLISH_DIRECTION"] ?? "auto") ?? .auto)
             UserDefaults.standard.set(0, forKey: "onboarding.la2.step")
             UserDefaults.standard.set(0, forKey: "onboarding.la2.visited")

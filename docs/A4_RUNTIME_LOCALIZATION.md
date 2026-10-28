@@ -227,3 +227,53 @@ iOS link titles now carry localized keys, while Android resolves them through
 the existing 48 dp minimum target convention. The final checks inspect all three
 labels without opening any URL. The lexical audit now recognizes these link-row
 wrappers so their remaining Help/About labels are not silently omitted.
+
+## Reader settings, previews and appearance, October 28
+
+Both reader-settings captions now say AI translations may contain errors and that
+source details appear when available. The earlier unconditional grounding claim
+is absent from the active native call sites. Its unused legacy catalog entry is
+not current product copy. This wording repair makes no new A3 retrieval, rights,
+semantic-quality or provider-readback claim and makes no model call.
+
+Arabic and translation type previews reuse the existing prepared interface
+example instead of a fixed English hadith fragment. The translation preview
+follows the selected translation language, using the existing exact/base/English
+fallback chain. These are generic interface examples, not live first-reading
+content. User reading text, provider source names and citations are unchanged.
+
+Fifteen new keys in `a4-reader-settings-copy.json` cover the disclosure, reader/type
+labels, theme names, separate appearance control and smaller/larger accessibility
+labels in all fifteen locales. `a4-appearance-aliases.json` reuses three indexed
+iOS entries for Android, including the existing type-size formatter. New copy is
+local GPT-family draft text; native review remains pending.
+
+Theme labels now resolve localized keys in both native appearance lists. Reader
+summary values localize theme/font labels and format type sizes using the UI
+locale. Existing iOS and Android defaults may select different numbering systems;
+the native locale formatter remains the authority. Reader theme separation, size
+bounds, language selection and the last-visible-layer safeguard stay in place.
+
+Native red checks reproduced missing appearance labels and the fixed English
+preview. The fifteen-locale appearance and preview/disclosure checks now pass on
+both platforms. Existing app/reader theme separation, Paper rendering, font-size
+and last-visible-layer checks pass too. The final iOS live preview-update assertion passes its targeted rerun in both
+entry points. The combined latest results are four iOS and five Android cases. Evidence is in
+`verification/a4-localization/reader-settings.json` and selected captures, with a
+90-capture manifest. No paid call, generation, backend/schema, credential or
+publication change was used.
+
+The iOS compiler caught a new numbered type-size key that would generate the same
+Swift symbol as the existing `%@ pt` key. The duplicate was removed from the index,
+working catalog, Android resources and mapper; callers now reuse the existing
+indexed formatter. Direct string-symbol generation and native compilation pass.
+The older Android control fixture also assumed English text while inheriting the
+Arabic device locale. It now explicitly supplies English resources/configuration
+while retaining its Activity, matching the locale scope of those assertions.
+Separate fifteen-locale cases retain coverage of the other locales.
+
+The full resource audit still has the same six Arabic zero/dual formatter findings.
+Critical-copy/native review, full runtime and assistive-technology coverage,
+physical devices, first-reading content, A3 grounding and A5–A7/E remain open.
+Next, finish auth and Saved/Reader accessibility copy, inspect the remaining
+wrapper/dynamic-string findings, and retain widget/notification and external gates.

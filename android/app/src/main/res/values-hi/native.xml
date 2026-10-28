@@ -48,7 +48,7 @@
     <string name="native_ee5ef73aae18">आपका डेटा</string>
     <string name="native_f5a77522b1ba">ऑफ़लाइन संग्रह</string>
     <string name="native_fa8a45b3662d">पढ़ने के लिए ज़रूरी सब कुछ बिना खाते के चलता है। उपकरणों के बीच बुकमार्क, पसंदीदा और नोट्स ले जाने के लिए साइन इन करें।</string>
-    <string name="native_ff6c3270c09d">पूरे ऐप पर लागू। रीडर हर थीम का लाइव पूर्वावलोकन दिखाता है।</string>
+    <string name="native_ff6c3270c09d" formatted="false">पूरे ऐप पर लागू। रीडर हर थीम का लाइव पूर्वावलोकन दिखाता है।</string>
 
     <string name="native_03c47f10db6d" formatted="false">नया सुझाव शुरू करें</string>
     <string name="native_099cd53b4147">अपनी प्रोफ़ाइल, प्राथमिकताएँ, सहेजे गए आइटम, फ़ोल्डर, पढ़ने की प्रगति और अपने योगदान को JSON के रूप में निर्यात करें।</string>
@@ -108,7 +108,7 @@
     <string name="native_942087cc2d41" formatted="false">फिर कोशिश करें</string>
     <string name="native_9449e60a6bd1">संग्रह और हदीस संख्या शामिल करें।</string>
     <string name="native_96b3b31d45ab">डिवाइस स्टोरेज खोलें</string>
-    <string name="native_96be15d18327">अरबी प्रकार</string>
+    <string name="native_96be15d18327" formatted="false">अरबी पाठ</string>
     <string name="native_98770753608c" formatted="false">Evidence checks complete</string>
     <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
     <string name="native_9f9feade761d">संग्रह</string>
@@ -195,4 +195,20 @@
     <string name="native_506ff3946215" formatted="false">निजता नीति</string>
     <string name="native_12a0015fa322" formatted="false">उपयोग की शर्तें</string>
     <string name="native_c79509dcb6e9" formatted="false">डेटा कैसे मिटाया जाता है</string>
+    <string name="native_1023845bcf1b" formatted="false">AI अनुवाद चिह्नित होते हैं और उनमें त्रुटियाँ हो सकती हैं। स्रोतों का विवरण उपलब्ध होने पर दिखाया जाता है।</string>
+    <string name="native_b079c84f2b8b" formatted="false">पठन सेटिंग्स</string>
+    <string name="native_bafb66f32cd7" formatted="false">अरबी</string>
+    <string name="native_c0de41db567b" formatted="false">अरबी फ़ॉन्ट</string>
+    <string name="native_c74978a37927" formatted="false">अरबी फ़ॉन्ट का पूर्वावलोकन</string>
+    <string name="native_a3d74fbb5612" formatted="false">अनुवादित पाठ का आकार</string>
+    <string name="native_00b394d2c9c4" formatted="false">पढ़ने के लिए अलग रूप इस्तेमाल करें</string>
+    <string name="native_b5e18946b85c" formatted="false">बंद होने पर पठन का रूप ऐप के रूप के अनुसार रहता है।</string>
+    <string name="native_7947ab560e18" formatted="false">पाठ छोटा करें</string>
+    <string name="native_479286af6c73" formatted="false">पाठ बड़ा करें</string>
+    <string name="native_6725e7bbcd28" formatted="false">सिस्टम</string>
+    <string name="native_dbcd5e7bb7a0" formatted="false">हल्का</string>
+    <string name="native_60acc53f13a5" formatted="false">गहरा</string>
+    <string name="native_35045eff549e" formatted="false">काग़ज़</string>
+    <string name="native_46821f0b7acc" formatted="false">ऐप का रूप</string>
+    <string name="native_2ccb1be6d319" formatted="false">%s पॉइंट</string>
 </resources>

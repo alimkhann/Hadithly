@@ -289,5 +289,21 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "Privacy Policy" -> R.string.native_506ff3946215
     "Terms of Use" -> R.string.native_12a0015fa322
     "How deletion works" -> R.string.native_c79509dcb6e9
+    "AI translations are labeled and may contain errors. Source details appear when available." -> R.string.native_1023845bcf1b
+    "Reader settings" -> R.string.native_b079c84f2b8b
+    "Arabic" -> R.string.native_bafb66f32cd7
+    "Arabic font" -> R.string.native_c0de41db567b
+    "Arabic type preview" -> R.string.native_c74978a37927
+    "Translation type size" -> R.string.native_a3d74fbb5612
+    "Use a separate reader appearance" -> R.string.native_00b394d2c9c4
+    "When off, the reader follows app appearance." -> R.string.native_b5e18946b85c
+    "Smaller type" -> R.string.native_7947ab560e18
+    "Larger type" -> R.string.native_479286af6c73
+    "System" -> R.string.native_6725e7bbcd28
+    "Light" -> R.string.native_dbcd5e7bb7a0
+    "Dark" -> R.string.native_60acc53f13a5
+    "Paper" -> R.string.native_35045eff549e
+    "App appearance" -> R.string.native_46821f0b7acc
+    "%@ pt" -> R.string.native_2ccb1be6d319
     else -> null
 }

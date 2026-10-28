@@ -22,6 +22,17 @@ browser explanation now pass local native checks. Continue C1 and C2/C3/C7
 verification before D. C8 adds only one scoped catalog entry, preserving all
 incoming catalog bytes. External OAuth and native-copy approval remain open.
 
+## A4 reader settings checkpoint, October 28
+
+Both native reader-settings captions now acknowledge possible AI errors and show
+source details conditionally. Prepared type previews follow the selected language;
+theme/type labels and size formatting are localized. Fifteen-locale appearance
+and preview/disclosure checks pass on both apps, with four iOS and five Android
+latest cases including existing control safeguards. See `A4_RUNTIME_LOCALIZATION.md`.
+Native-copy review, full A4 runtime/accessibility coverage, A1/A3 content and all
+release gates stay open. Continue auth and Saved/Reader accessibility copy, then
+the remaining A4–A7/E work. Incoming project/catalog bytes remain preserved.
+
 ## A4 privacy copy checkpoint, October 28
 
 Privacy disclosures and policy links now resolve localized resources on both

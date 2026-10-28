@@ -64,10 +64,10 @@ internal fun ReaderPreferenceContent(
         when (panel) {
             null -> {
                 PreferenceSection("Reader settings") {
-                    PreferenceLink("Arabic type", "${readerFontLabel(preferences.arabicFont)} · ${preferences.arabicFontSize.toInt()} pt", "$prefix.settings.arabic") { panel = "Arabic type" }
-                    PreferenceLink("Translation", "${preferences.translationLocale.uppercase()} · ${preferences.translationFontSize.toInt()} pt", "$prefix.settings.translation") { panel = "Translation" }
+                    PreferenceLink("Arabic type", "${nativeText(readerFontLabel(preferences.arabicFont))} · ${readerTypeSizeLabel(preferences.arabicFontSize)}", "$prefix.settings.arabic") { panel = "Arabic type" }
+                    PreferenceLink("Translation", "${preferences.translationLocale.uppercase()} · ${readerTypeSizeLabel(preferences.translationFontSize)}", "$prefix.settings.translation") { panel = "Translation" }
                     val theme = if (preferences.usesSeparateReaderTheme) preferences.readerTheme else preferences.appTheme
-                    PreferenceLink("Appearance", theme.wire.replaceFirstChar { it.uppercase() }, "$prefix.settings.appearance") { panel = "Appearance" }
+                    PreferenceLink("Appearance", nativeText(theme.wire.replaceFirstChar { it.uppercase() }), "$prefix.settings.appearance") { panel = "Appearance" }
                 }
                 PreferenceSection("Show on page") {
                     PreferenceSwitch("Arabic", preferences.arabicVisible, "$prefix.visibility.arabic") { onVisibility(it, null) }
@@ -87,7 +87,7 @@ internal fun ReaderPreferenceContent(
             }
             "Arabic type" -> {
                 PreferenceSection("Preview") {
-                    Text("إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ", fontSize = preferences.arabicFontSize.sp, fontFamily = ArabicTypefaces.forFont(preferences.arabicFont), lineHeight = (preferences.arabicFontSize * 1.75).sp, textAlign = TextAlign.Center, color = colors.textPrimary, modifier = Modifier.fillMaxWidth().padding(16.dp).testTag("$prefix.typePreview"))
+                    Text(com.hadithly.app.features.onboarding.PreparedTranslationExample.arabic, fontSize = preferences.arabicFontSize.sp, fontFamily = ArabicTypefaces.forFont(preferences.arabicFont), lineHeight = (preferences.arabicFontSize * 1.75).sp, textAlign = TextAlign.Center, color = colors.textPrimary, modifier = Modifier.fillMaxWidth().padding(16.dp).testTag("$prefix.typePreview"))
                     PreferenceSize(preferences.arabicFontSize, preferences.arabicFontSize > 18f, preferences.arabicFontSize < 40f, "$prefix.arabicSize", { onArabicFontSize(ArabicTypeSize.stepDown(preferences.arabicFontSize)) }, { onArabicFontSize(ArabicTypeSize.stepUp(preferences.arabicFontSize)) })
                 }
                 PreferenceSection("Arabic font") {
@@ -96,13 +96,14 @@ internal fun ReaderPreferenceContent(
             }
             "Translation" -> {
                 PreferenceSection("Preview") {
-                    Text(nativeText("Actions are judged by intentions."), fontSize = preferences.translationFontSize.sp, color = colors.textPrimary, modifier = Modifier.padding(16.dp))
+                    Text(LocaleFallback.fallbackChain(preferences.translationLocale).firstNotNullOfOrNull { com.hadithly.app.features.onboarding.PreparedTranslationExample.translations[it] }
+                        ?: com.hadithly.app.features.onboarding.PreparedTranslationExample.translations.getValue("en"), fontSize = preferences.translationFontSize.sp, color = colors.textPrimary, modifier = Modifier.padding(16.dp).testTag("$prefix.translationPreview"))
                     PreferenceSize(preferences.translationFontSize, preferences.translationFontSize > 14f, preferences.translationFontSize < 22f, "$prefix.translationSize", { onTranslationFontSize(preferences.translationFontSize - 2f) }, { onTranslationFontSize(preferences.translationFontSize + 2f) })
                 }
                 PreferenceSection("Language") {
                     SupportedLanguages.all.forEach { (code, name) -> PreferenceChoice(name, preferences.translationLocale == code, "$prefix.language.$code", flag = SupportedLanguages.flag(code)) { onLanguage(code) } }
                 }
-                Text(nativeText("AI translations are labeled and grounded in cited sources."), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary, modifier = Modifier.padding(top = 6.dp, start = 16.dp))
+                Text(nativeText("AI translations are labeled and may contain errors. Source details appear when available."), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary, modifier = Modifier.padding(top = 6.dp, start = 16.dp))
             }
         }
         }
@@ -144,12 +145,18 @@ private fun PreferenceChoice(title: String, selected: Boolean, tag: String, flag
 @Composable
 private fun PreferenceSize(value: Float, canDecrease: Boolean, canIncrease: Boolean, tag: String, decrease: () -> Unit, increase: () -> Unit) {
     val colors = LocalHadithlyColors.current
-    ListItem(headlineContent = { Text(nativeText("Text size"), color = colors.textPrimary) }, supportingContent = { Text(nativeText("%1\$s pt", value.toInt()), color = colors.textSecondary) }, trailingContent = {
+    ListItem(headlineContent = { Text(nativeText("Text size"), color = colors.textPrimary) }, supportingContent = { Text(readerTypeSizeLabel(value), color = colors.textSecondary) }, trailingContent = {
         Row {
             IconButton(onClick = decrease, enabled = canDecrease, modifier = Modifier.testTag("$tag.smaller")) { Icon(Icons.Filled.Remove, nativeText("Smaller type"), tint = if (canDecrease) colors.textPrimary else colors.textSecondary) }
             IconButton(onClick = increase, enabled = canIncrease, modifier = Modifier.testTag("$tag.larger")) { Icon(Icons.Filled.Add, nativeText("Larger type"), tint = if (canIncrease) colors.textPrimary else colors.textSecondary) }
         }
     }, colors = ListItemDefaults.colors(containerColor = colors.surface))
+}
+
+@Composable
+private fun readerTypeSizeLabel(value: Float): String {
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+    return nativeText("%@ pt", java.text.NumberFormat.getIntegerInstance(locale).format(value.toInt()))
 }
 
 private fun readerFontLabel(font: ArabicFont): String = when (font) {

@@ -48,7 +48,7 @@
     <string name="native_ee5ef73aae18">Data yako</string>
     <string name="native_f5a77522b1ba">Mikusanyo ya nje ya mtandao</string>
     <string name="native_fa8a45b3662d">Kila kitu unachohitaji kusoma hufanya kazi bila akaunti. Ingia ili kubeba alamisho, vipendwa na madokezo kati ya vifaa.</string>
-    <string name="native_ff6c3270c09d">Hutumika kwenye programu yote. Msomaji huonyesha kila mandhari moja kwa moja.</string>
+    <string name="native_ff6c3270c09d" formatted="false">Hutumika kwenye programu yote. Msomaji huonyesha kila mandhari moja kwa moja.</string>
 
     <string name="native_03c47f10db6d" formatted="false">Anza pendekezo jipya</string>
     <string name="native_099cd53b4147">Hamisha wasifu, mapendeleo, vipengee vilivyohifadhiwa, folda, maendeleo ya kusoma na michango yako kama JSON.</string>
@@ -108,7 +108,7 @@
     <string name="native_942087cc2d41" formatted="false">Jaribu tena</string>
     <string name="native_9449e60a6bd1">Jumuisha mkusanyo na nambari ya hadithi.</string>
     <string name="native_96b3b31d45ab">Fungua hifadhi ya kifaa</string>
-    <string name="native_96be15d18327">Aina ya Kiarabu</string>
+    <string name="native_96be15d18327" formatted="false">Maandishi ya Kiarabu</string>
     <string name="native_98770753608c" formatted="false">Evidence checks complete</string>
     <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
     <string name="native_9f9feade761d">Mikusanyo</string>
@@ -195,4 +195,20 @@
     <string name="native_506ff3946215" formatted="false">Sera ya faragha</string>
     <string name="native_12a0015fa322" formatted="false">Masharti ya matumizi</string>
     <string name="native_c79509dcb6e9" formatted="false">Jinsi data inavyofutwa</string>
+    <string name="native_1023845bcf1b" formatted="false">Tafsiri za AI zinawekewa alama na zinaweza kuwa na makosa. Maelezo ya vyanzo huonekana yanapopatikana.</string>
+    <string name="native_b079c84f2b8b" formatted="false">Mipangilio ya usomaji</string>
+    <string name="native_bafb66f32cd7" formatted="false">Kiarabu</string>
+    <string name="native_c0de41db567b" formatted="false">Fonti ya Kiarabu</string>
+    <string name="native_c74978a37927" formatted="false">Hakikisho la fonti ya Kiarabu</string>
+    <string name="native_a3d74fbb5612" formatted="false">Ukubwa wa maandishi ya tafsiri</string>
+    <string name="native_00b394d2c9c4" formatted="false">Tumia mwonekano tofauti wa usomaji</string>
+    <string name="native_b5e18946b85c" formatted="false">Ikizimwa, usomaji hufuata mwonekano wa programu.</string>
+    <string name="native_7947ab560e18" formatted="false">Punguza maandishi</string>
+    <string name="native_479286af6c73" formatted="false">Ongeza maandishi</string>
+    <string name="native_6725e7bbcd28" formatted="false">Mfumo</string>
+    <string name="native_dbcd5e7bb7a0" formatted="false">Angavu</string>
+    <string name="native_60acc53f13a5" formatted="false">Giza</string>
+    <string name="native_35045eff549e" formatted="false">Karatasi</string>
+    <string name="native_46821f0b7acc" formatted="false">Mwonekano wa programu</string>
+    <string name="native_2ccb1be6d319" formatted="false">%s pt</string>
 </resources>

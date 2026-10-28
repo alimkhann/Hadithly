@@ -69,6 +69,67 @@ final class VisualPolishUITests: XCTestCase {
         }
     }
 
+    func testReaderTranslationPreviewAndDisclosureUseSelectedLanguages() {
+        for (locale, preview, disclosure) in [
+            ("ar", "اقرأ النص الأصلي، وافهم معناه بلغتك.", "تُميَّز ترجمات الذكاء الاصطناعي وقد تحتوي على أخطاء. تظهر تفاصيل المصادر عند توفرها."),
+            ("ru", "Читайте оригинал и понимайте его смысл на своём языке.", "Переводы ИИ помечены и могут содержать ошибки. Сведения об источниках показываются при наличии."),
+            ("kk", "Түпнұсқа мәтінді оқып, мағынасын өз тіліңізде түсініңіз.", "ЖИ аудармалары белгіленеді және қателер болуы мүмкін. Дереккөз мәліметтері бар болса көрсетіледі."),
+            ("id", "Baca teks asli dan pahami maknanya dalam bahasa Anda.", "Terjemahan AI diberi label dan dapat mengandung kesalahan. Detail sumber ditampilkan jika tersedia."),
+            ("en", "Read the original text and understand its meaning in your language.", "AI translations are labeled and may contain errors. Source details appear when available."),
+            ("ky", "Түп нуска текстти окуп, маанисин өз тилиңизде түшүнүңүз.", "ЖИ котормолору белгиленет жана каталарды камтышы мүмкүн. Булак маалыматы бар болсо көрсөтүлөт."),
+            ("uz", "Asl matnni o‘qing va ma’nosini o‘z tilingizda tushuning.", "SI tarjimalari belgilangan va xatolarni oʻz ichiga olishi mumkin. Manba tafsilotlari mavjud boʻlsa koʻrsatiladi."),
+            ("tr", "Özgün metni okuyun ve anlamını kendi dilinizde anlayın.", "Yapay zekâ çevirileri etiketlenir ve hata içerebilir. Kaynak bilgileri mevcut olduğunda gösterilir."),
+            ("ur", "اصل متن پڑھیں اور اس کا مطلب اپنی زبان میں سمجھیں۔", "AI تراجم کی نشاندہی کی جاتی ہے اور ان میں غلطیاں ہو سکتی ہیں۔ ذرائع کی تفصیلات دستیاب ہونے پر دکھائی جاتی ہیں۔"),
+            ("fr", "Lisez le texte original et comprenez-en le sens dans votre langue.", "Les traductions par IA sont signalées et peuvent contenir des erreurs. Les sources sont détaillées lorsqu’elles sont disponibles."),
+            ("es-419", "Lee el texto original y entiende su significado en tu idioma.", "Las traducciones con IA están identificadas y pueden contener errores. Los detalles de las fuentes aparecen cuando están disponibles."),
+            ("pt-BR", "Leia o texto original e entenda seu significado no seu idioma.", "As traduções por IA são identificadas e podem conter erros. Os detalhes das fontes aparecem quando disponíveis."),
+            ("sw", "Soma maandishi ya asili na uelewe maana yake kwa lugha yako.", "Tafsiri za AI zinawekewa alama na zinaweza kuwa na makosa. Maelezo ya vyanzo huonekana yanapopatikana."),
+            ("hi", "मूल पाठ पढ़ें और उसका अर्थ अपनी भाषा में समझें।", "AI अनुवाद चिह्नित होते हैं और उनमें त्रुटियाँ हो सकती हैं। स्रोतों का विवरण उपलब्ध होने पर दिखाया जाता है।"),
+            ("bn", "মূল পাঠ পড়ুন এবং আপনার ভাষায় এর অর্থ বুঝুন।", "AI অনুবাদ চিহ্নিত থাকে এবং এতে ভুল থাকতে পারে। উৎসের বিবরণ পাওয়া গেলে দেখানো হয়।")
+        ] {
+            let app = launchPolish("reader-translation-settings", locale: locale, translationLocale: locale)
+            let example = app.staticTexts.matching(NSPredicate(format: "label == %@", preview)).firstMatch
+            XCTAssertTrue(example.waitForExistence(timeout: 10))
+            capture("reader-translation-preview-" + locale, app)
+            let footer = app.staticTexts.matching(NSPredicate(format: "label == %@", disclosure)).firstMatch
+            for _ in 0..<8 where !footer.isHittable { app.swipeUp() }
+            XCTAssertTrue(footer.isHittable)
+            capture("reader-translation-disclosure-" + locale, app)
+            app.terminate()
+        }
+    }
+
+    func testAppAppearanceLabelsLocalizeWithoutMergingReaderChoices() {
+        for (locale, title, separate, system, light) in [
+            ("ar", "مظهر التطبيق", "استخدام مظهر منفصل للقارئ", "النظام", "فاتح"),
+            ("ru", "Внешний вид приложения", "Использовать отдельное оформление для чтения", "Как в системе", "Светлая"),
+            ("kk", "Қолданба көрінісі", "Оқу үшін бөлек көріністі пайдалану", "Жүйелік", "Ашық"),
+            ("id", "Tampilan aplikasi", "Gunakan tampilan pembaca terpisah", "Sistem", "Terang"),
+            ("en", "App appearance", "Use a separate reader appearance", "System", "Light"),
+            ("ky", "Колдонмонун көрүнүшү", "Окуу үчүн өзүнчө көрүнүштү колдонуу", "Тутумдук", "Жарык"),
+            ("uz", "Ilova ko‘rinishi", "Oʻqish uchun alohida koʻrinishdan foydalanish", "Tizim", "Yorugʻ"),
+            ("tr", "Uygulama görünümü", "Okuma için ayrı bir görünüm kullan", "Sistem", "Açık"),
+            ("ur", "ایپ کی ظاہری شکل", "مطالعے کے لیے الگ ظاہری شکل استعمال کریں", "سسٹم", "روشن"),
+            ("fr", "Apparence de l’application", "Utiliser une apparence de lecture distincte", "Système", "Clair"),
+            ("es-419", "Apariencia de la app", "Usar una apariencia de lectura independiente", "Sistema", "Claro"),
+            ("pt-BR", "Aparência do app", "Usar aparência de leitura separada", "Sistema", "Claro"),
+            ("sw", "Mwonekano wa programu", "Tumia mwonekano tofauti wa usomaji", "Mfumo", "Angavu"),
+            ("hi", "ऐप का रूप", "पढ़ने के लिए अलग रूप इस्तेमाल करें", "सिस्टम", "हल्का"),
+            ("bn", "অ্যাপের চেহারা", "পড়ার জন্য আলাদা চেহারা ব্যবহার করুন", "সিস্টেম", "হালকা")
+        ] {
+            let app = launchPolish("app-appearance", locale: locale)
+            let toggle = app.switches["settings.appearance.separateReader"]
+            XCTAssertTrue(toggle.waitForExistence(timeout: 10))
+            XCTAssertTrue(toggle.label.contains(separate))
+            XCTAssertTrue(app.staticTexts[title].exists)
+            XCTAssertTrue(element("settings.appearance.system", app).label.contains(system))
+            XCTAssertTrue(element("settings.appearance.light", app).label.contains(light))
+            XCTAssertFalse(element("settings.readerAppearance.system", app).exists)
+            capture("app-appearance-" + locale, app)
+            app.terminate()
+        }
+    }
+
     func testPrivacyDisclosuresRenderInEveryLocaleWithoutChangingConsent() {
         for (locale, usage, analytics, crash, policies, download, privacy, terms, deletion) in [
             ("ar", "مشاركة إحصاءات الاستخدام الخاصة", "شارك إحصاءات أساسية عن التطبيق للمساعدة في تحسين Hadithly. لا تتضمن مطلقًا نصوص قراءتك أو ملاحظاتك أو تفاصيل حسابك. يؤدي إيقاف هذا الخيار إلى مسح الإحصاءات التي تنتظر الإرسال.", "تساعدنا تقارير الأعطال على إصلاح المشكلات. ولا تتضمن مطلقًا نصوص قراءتك أو ملاحظاتك أو تفاصيل حسابك. يؤدي إيقافها إلى مسح التقارير المعلّقة على هذا الجهاز.", "السياسات", "نزّل ملفك الشخصي وإعداداتك والعناصر المحفوظة والمجلدات وتقدّم القراءة ومساهماتك. تبقى بيانات الضيف على هذا الجهاز.", "سياسة الخصوصية", "شروط الاستخدام", "كيفية حذف البيانات"),
@@ -454,13 +515,14 @@ final class VisualPolishUITests: XCTestCase {
         return original
     }
 
-    private func launchPolish(_ screen: String, theme: String = "light", reduced: Bool = false, locale: String = "en", large: Bool = false) -> XCUIApplication {
+    private func launchPolish(_ screen: String, theme: String = "light", reduced: Bool = false, locale: String = "en", large: Bool = false, translationLocale: String? = nil) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["-NativePolishFixture"]
         if large { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
         app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "POLISH_SCREEN": screen, "POLISH_THEME": theme,
             "POLISH_LOCALE": locale, "POLISH_REDUCE_MOTION": reduced ? "1" : "0", "Q1_STATE": "loading", "Q1_LANGUAGE": "ru",
             "POLISH_INTERACTIVE": "1", "R6A_LOADING_FIXTURE": screen == "reader-loading" ? "true" : "false"]
+        if let translationLocale { app.launchEnvironment["POLISH_TRANSLATION_LOCALE"] = translationLocale }
         app.launch()
         return app
     }

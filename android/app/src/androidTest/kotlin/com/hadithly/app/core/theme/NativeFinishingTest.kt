@@ -31,6 +31,81 @@ import java.io.File
 class NativeFinishingTest {
     @get:Rule val compose = createComposeRule()
 
+    @Test fun readerTranslationPreviewAndDisclosureUseSelectedLanguages() {
+        var locale by mutableStateOf("ar")
+        compose.setContent { key(locale) { LocalizedPreview(ReaderTheme.LIGHT, locale) {
+            var prefs by remember { mutableStateOf(com.hadithly.app.core.preferences.ReaderPreferences(appTheme = ReaderTheme.LIGHT, translationLocale = locale)) }
+            Box(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
+                com.hadithly.app.features.settings.ReaderPreferenceContent(
+                    preferences = prefs, prefix = "settings", onLanguage = { prefs = prefs.copy(translationLocale = it) },
+                    onArabicFontSize = { prefs = prefs.copy(arabicFontSize = it) }, onTranslationFontSize = { prefs = prefs.copy(translationFontSize = it) },
+                    onTheme = { prefs = prefs.copy(readerTheme = it, usesSeparateReaderTheme = true) }, onArabicFont = { prefs = prefs.copy(arabicFont = it) },
+                    onVisibility = { _, _ -> }, onDismiss = {},
+                )
+            }
+        } } }
+        for ((language, preview, disclosure) in listOf(
+            Triple("ar", "اقرأ النص الأصلي، وافهم معناه بلغتك.", "تُميَّز ترجمات الذكاء الاصطناعي وقد تحتوي على أخطاء. تظهر تفاصيل المصادر عند توفرها."),
+            Triple("ru", "Читайте оригинал и понимайте его смысл на своём языке.", "Переводы ИИ помечены и могут содержать ошибки. Сведения об источниках показываются при наличии."),
+            Triple("kk", "Түпнұсқа мәтінді оқып, мағынасын өз тіліңізде түсініңіз.", "ЖИ аудармалары белгіленеді және қателер болуы мүмкін. Дереккөз мәліметтері бар болса көрсетіледі."),
+            Triple("id", "Baca teks asli dan pahami maknanya dalam bahasa Anda.", "Terjemahan AI diberi label dan dapat mengandung kesalahan. Detail sumber ditampilkan jika tersedia."),
+            Triple("en", "Read the original text and understand its meaning in your language.", "AI translations are labeled and may contain errors. Source details appear when available."),
+            Triple("ky", "Түп нуска текстти окуп, маанисин өз тилиңизде түшүнүңүз.", "ЖИ котормолору белгиленет жана каталарды камтышы мүмкүн. Булак маалыматы бар болсо көрсөтүлөт."),
+            Triple("uz", "Asl matnni o‘qing va ma’nosini o‘z tilingizda tushuning.", "SI tarjimalari belgilangan va xatolarni oʻz ichiga olishi mumkin. Manba tafsilotlari mavjud boʻlsa koʻrsatiladi."),
+            Triple("tr", "Özgün metni okuyun ve anlamını kendi dilinizde anlayın.", "Yapay zekâ çevirileri etiketlenir ve hata içerebilir. Kaynak bilgileri mevcut olduğunda gösterilir."),
+            Triple("ur", "اصل متن پڑھیں اور اس کا مطلب اپنی زبان میں سمجھیں۔", "AI تراجم کی نشاندہی کی جاتی ہے اور ان میں غلطیاں ہو سکتی ہیں۔ ذرائع کی تفصیلات دستیاب ہونے پر دکھائی جاتی ہیں۔"),
+            Triple("fr", "Lisez le texte original et comprenez-en le sens dans votre langue.", "Les traductions par IA sont signalées et peuvent contenir des erreurs. Les sources sont détaillées lorsqu’elles sont disponibles."),
+            Triple("es-419", "Lee el texto original y entiende su significado en tu idioma.", "Las traducciones con IA están identificadas y pueden contener errores. Los detalles de las fuentes aparecen cuando están disponibles."),
+            Triple("pt-BR", "Leia o texto original e entenda seu significado no seu idioma.", "As traduções por IA são identificadas e podem conter erros. Os detalhes das fontes aparecem quando disponíveis."),
+            Triple("sw", "Soma maandishi ya asili na uelewe maana yake kwa lugha yako.", "Tafsiri za AI zinawekewa alama na zinaweza kuwa na makosa. Maelezo ya vyanzo huonekana yanapopatikana."),
+            Triple("hi", "मूल पाठ पढ़ें और उसका अर्थ अपनी भाषा में समझें।", "AI अनुवाद चिह्नित होते हैं और उनमें त्रुटियाँ हो सकती हैं। स्रोतों का विवरण उपलब्ध होने पर दिखाया जाता है।"),
+            Triple("bn", "মূল পাঠ পড়ুন এবং আপনার ভাষায় এর অর্থ বুঝুন।", "AI অনুবাদ চিহ্নিত থাকে এবং এতে ভুল থাকতে পারে। উৎসের বিবরণ পাওয়া গেলে দেখানো হয়।"),
+        )) {
+            compose.runOnIdle { locale = language }
+            compose.onNodeWithTag("settings.settings.translation").performClick()
+            compose.onNodeWithText(preview).assertIsDisplayed()
+            capture("reader-translation-preview-" + language)
+            compose.onNodeWithText(disclosure).performScrollTo().assertIsDisplayed()
+            capture("reader-translation-disclosure-" + language)
+        }
+    }
+
+    @Test fun appAppearanceLabelsLocalizeWithoutMergingReaderChoices() {
+        var locale by mutableStateOf("ar")
+        compose.setContent { key(locale) { LocalizedPreview(ReaderTheme.LIGHT, locale) {
+            var prefs by remember { mutableStateOf(com.hadithly.app.core.preferences.ReaderPreferences(appTheme = ReaderTheme.LIGHT)) }
+            Box(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
+                com.hadithly.app.features.settings.AppearanceOptions(prefs,
+                    onAppTheme = { prefs = prefs.copy(appTheme = it) }, onSeparateReaderTheme = { prefs = prefs.copy(usesSeparateReaderTheme = it) }, onReaderTheme = { prefs = prefs.copy(readerTheme = it) })
+            }
+        } } }
+        for ((language, labels) in listOf(
+            "ar" to listOf("مظهر التطبيق", "استخدام مظهر منفصل للقارئ", "النظام", "فاتح"),
+            "ru" to listOf("Внешний вид приложения", "Использовать отдельное оформление для чтения", "Как в системе", "Светлая"),
+            "kk" to listOf("Қолданба көрінісі", "Оқу үшін бөлек көріністі пайдалану", "Жүйелік", "Ашық"),
+            "id" to listOf("Tampilan aplikasi", "Gunakan tampilan pembaca terpisah", "Sistem", "Terang"),
+            "en" to listOf("App appearance", "Use a separate reader appearance", "System", "Light"),
+            "ky" to listOf("Колдонмонун көрүнүшү", "Окуу үчүн өзүнчө көрүнүштү колдонуу", "Тутумдук", "Жарык"),
+            "uz" to listOf("Ilova ko‘rinishi", "Oʻqish uchun alohida koʻrinishdan foydalanish", "Tizim", "Yorugʻ"),
+            "tr" to listOf("Uygulama görünümü", "Okuma için ayrı bir görünüm kullan", "Sistem", "Açık"),
+            "ur" to listOf("ایپ کی ظاہری شکل", "مطالعے کے لیے الگ ظاہری شکل استعمال کریں", "سسٹم", "روشن"),
+            "fr" to listOf("Apparence de l’application", "Utiliser une apparence de lecture distincte", "Système", "Clair"),
+            "es-419" to listOf("Apariencia de la app", "Usar una apariencia de lectura independiente", "Sistema", "Claro"),
+            "pt-BR" to listOf("Aparência do app", "Usar aparência de leitura separada", "Sistema", "Claro"),
+            "sw" to listOf("Mwonekano wa programu", "Tumia mwonekano tofauti wa usomaji", "Mfumo", "Angavu"),
+            "hi" to listOf("ऐप का रूप", "पढ़ने के लिए अलग रूप इस्तेमाल करें", "सिस्टम", "हल्का"),
+            "bn" to listOf("অ্যাপের চেহারা", "পড়ার জন্য আলাদা চেহারা ব্যবহার করুন", "সিস্টেম", "হালকা"),
+        )) {
+            compose.runOnIdle { locale = language }
+            compose.onNodeWithText(labels[0]).assertIsDisplayed()
+            compose.onNodeWithText(labels[1]).performScrollTo().assertIsDisplayed()
+            compose.onNodeWithTag("settings.appearance.system").assertTextContains(labels[2])
+            compose.onNodeWithTag("settings.appearance.light").assertTextContains(labels[3]).assertIsSelected()
+            compose.onNodeWithTag("settings.appearance.reader.system").assertDoesNotExist()
+            capture("app-appearance-" + language)
+        }
+    }
+
     @Test fun privacyDisclosuresRenderInEveryLocaleWithoutChangingConsent() {
         var locale by mutableStateOf("ar")
         val app = InstrumentationRegistry.getInstrumentation().targetContext.applicationContext as com.hadithly.app.HadithlyApplication
