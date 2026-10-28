@@ -1,105 +1,105 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">Hadithly</string>
-    <string name="onboarding_choose_language_title">Choose your language</string>
-    <string name="onboarding_choose_language_subtitle">You can change this any time in Settings.</string>
-    <string name="action_continue">Continue</string>
-    <string name="settings_reading">Reading</string>
-    <string name="settings_arabic_type_size">Arabic type size</string>
+    <string name="onboarding_choose_language_title" formatted="false">আপনার ভাষা বেছে নিন</string>
+    <string name="onboarding_choose_language_subtitle" formatted="false">সেটিংসে এটি যেকোনো সময় বদলাতে পারেন।</string>
+    <string name="action_continue" formatted="false">চালিয়ে যান</string>
+    <string name="settings_reading" formatted="false">পড়া</string>
+    <string name="settings_arabic_type_size" formatted="false">আরবি ফন্টের আকার</string>
     <string name="settings_app_language">অ্যাপের ভাষা</string>
     <string name="settings_hadith_translation">হাদিসের অনুবাদ</string>
-    <string name="settings_reading_direction">Reading direction</string>
-    <string name="settings_visibility_arabic">Arabic text</string>
-    <string name="settings_visibility_translation">Translation</string>
-    <string name="direction_automatic">Automatic</string>
-    <string name="direction_right_to_left">Right to left</string>
-    <string name="direction_left_to_right">Left to right</string>
+    <string name="settings_reading_direction" formatted="false">পড়ার দিক</string>
+    <string name="settings_visibility_arabic" formatted="false">আরবি লেখা</string>
+    <string name="settings_visibility_translation" formatted="false">অনুবাদ</string>
+    <string name="direction_automatic" formatted="false">স্বয়ংক্রিয়</string>
+    <string name="direction_right_to_left" formatted="false">ডান থেকে বামে</string>
+    <string name="direction_left_to_right" formatted="false">বাম থেকে ডানে</string>
     <string name="saved_all">All</string>
     <string name="saved_bookmarks">Bookmarks</string>
     <string name="saved_favorites">Favorites</string>
     <string name="saved_notes">Notes</string>
-    <string name="saved_all_folders">All folders</string>
-    <string name="saved_move_folder">Move to folder</string>
-    <string name="saved_no_folder">No folder</string>
+    <string name="saved_all_folders" formatted="false">সব ফোল্ডার</string>
+    <string name="saved_move_folder" formatted="false">ফোল্ডারে সরান</string>
+    <string name="saved_no_folder" formatted="false">কোনো ফোল্ডার নেই</string>
     <string name="saved_remove_bookmark">Remove bookmark</string>
     <string name="saved_remove_favorite">Remove favorite</string>
-    <string name="saved_delete_note">Delete note</string>
-    <string name="saved_copy">Copy</string>
-    <string name="saved_share">Share</string>
+    <string name="saved_delete_note" formatted="false">নোট মুছুন</string>
+    <string name="saved_copy" formatted="false">কপি করুন</string>
+    <string name="saved_share" formatted="false">শেয়ার করুন</string>
     <string name="saved_suggest_translation">Suggest translation</string>
     <string name="saved_preview_retry">Preview unavailable. Tap to retry.</string>
-    <string name="saved_show_preview">Show hadith preview</string>
-    <string name="saved_hide_preview">Hide hadith preview</string>
-    <string name="saved_confirm_removal">Confirm before removing saved items</string>
-    <string name="saved_remove_title">Remove saved item?</string>
-    <string name="saved_remove">Remove</string>
-    <string name="saved_remove_dont_ask">Remove and don\'t ask again</string>
-    <string name="saved_undo">Undo</string>
-    <string name="saved_title">Saved</string>
+    <string name="saved_show_preview" formatted="false">হাদিসের পূর্বরূপ দেখান</string>
+    <string name="saved_hide_preview" formatted="false">হাদিসের পূর্বরূপ লুকান</string>
+    <string name="saved_confirm_removal" formatted="false">সংরক্ষিত জিনিস সরানোর আগে নিশ্চিত করুন</string>
+    <string name="saved_remove_title" formatted="false">সংরক্ষিত জিনিস সরাবেন?</string>
+    <string name="saved_remove" formatted="false">সরান</string>
+    <string name="saved_remove_dont_ask" formatted="false">সরিয়ে আবার জিজ্ঞেস করবেন না</string>
+    <string name="saved_undo" formatted="false">পূর্বাবস্থায় ফেরান</string>
+    <string name="saved_title" formatted="false">সংরক্ষিত</string>
     <string name="saved_create_folder">Create saved folder</string>
     <string name="saved_new_folder">New folder</string>
     <string name="saved_folder_name">Folder name</string>
     <string name="saved_create">Create</string>
     <string name="saved_cancel">Cancel</string>
     <string name="saved_empty_title">Nothing saved yet</string>
-    <string name="saved_empty_message">Bookmark, favorite, or add a note while reading to keep a hadith here.</string>
-    <string name="saved_delete_folder">Delete folder</string>
+    <string name="saved_empty_message" formatted="false">পড়ার সময় বুকমার্ক, পছন্দের বা নোট যোগ করে হাদিসটি এখানে রাখুন।</string>
+    <string name="saved_delete_folder" formatted="false">ফোল্ডার মুছুন</string>
     <string name="saved_folder_deleted">Folder %1$s deleted</string>
     <string name="saved_removal_undo_message">You can undo this action for five seconds from the message at the bottom.</string>
-    <string name="saved_bookmark_removed">Bookmark removed</string>
-    <string name="saved_favorite_removed">Favorite removed</string>
-    <string name="saved_note_deleted">Note deleted</string>
+    <string name="saved_bookmark_removed" formatted="false">বুকমার্ক সরানো হয়েছে</string>
+    <string name="saved_favorite_removed" formatted="false">পছন্দের সরানো হয়েছে</string>
+    <string name="saved_note_deleted" formatted="false">নোট মুছে ফেলা হয়েছে</string>
     <string name="reader_volume_title">Volume %1$d</string>
     <string name="reader_volume_pill_suffix">volume</string>
-    <string name="e3_reviewing">Reviewing suggestion</string>
-    <string name="e3_published">Suggestion published</string>
-    <string name="e3_exception">Suggestion needs review</string>
-    <string name="e3_rejected">Suggestion was not published</string>
-    <string name="e3_unavailable">Review unavailable</string>
-    <string name="e3_reviewing_message">We are checking the meaning and sources of your suggestion.</string>
-    <string name="e3_published_message">Your translation is now available in the reader. Your contribution status stays private.</string>
-    <string name="e3_exception_message">Your suggestion stays private while source permissions or supporting evidence need another check.</string>
-    <string name="e3_rejected_message">The checks did not support publication. Your suggestion remains private.</string>
-    <string name="e3_unavailable_message">Your suggestion remains private. Withdraw it and try again later if needed.</string>
-    <string name="e3_waiting">Your suggestion stays private while waiting for review.</string>
+    <string name="e3_reviewing" formatted="false">প্রস্তাব পর্যালোচনা হচ্ছে</string>
+    <string name="e3_published" formatted="false">প্রস্তাব প্রকাশিত হয়েছে</string>
+    <string name="e3_exception" formatted="false">প্রস্তাবটি পর্যালোচনা করা দরকার</string>
+    <string name="e3_rejected" formatted="false">প্রস্তাব প্রকাশিত হয়নি</string>
+    <string name="e3_unavailable" formatted="false">পর্যালোচনা উপলব্ধ নয়</string>
+    <string name="e3_reviewing_message" formatted="false">আমরা আপনার প্রস্তাবের অর্থ ও উৎস পরীক্ষা করছি।</string>
+    <string name="e3_published_message" formatted="false">আপনার অনুবাদ এখন পাঠকে উপলব্ধ। আপনার অবদানের অবস্থা ব্যক্তিগত থাকে।</string>
+    <string name="e3_exception_message" formatted="false">উৎসের অনুমতি বা সহায়ক প্রমাণ আবার পরীক্ষা করা দরকার বলে আপনার প্রস্তাব ব্যক্তিগত থাকে।</string>
+    <string name="e3_rejected_message" formatted="false">পরীক্ষাগুলো প্রকাশনাকে সমর্থন করেনি। আপনার প্রস্তাব ব্যক্তিগত থাকে।</string>
+    <string name="e3_unavailable_message" formatted="false">আপনার প্রস্তাব ব্যক্তিগত থাকে। প্রয়োজন হলে এটি প্রত্যাহার করে পরে আবার চেষ্টা করুন।</string>
+    <string name="e3_waiting" formatted="false">পর্যালোচনার অপেক্ষায় আপনার প্রস্তাব ব্যক্তিগত থাকে।</string>
     <string name="e3_sources">Sources</string>
-    <string name="e3_consent">By submitting, you allow Hadithly to review and publish your suggestion. Evidence sources still require permission.</string>
+    <string name="e3_consent" formatted="false">জমা দিয়ে আপনি Hadithly-কে আপনার প্রস্তাব পর্যালোচনা ও প্রকাশের অনুমতি দেন। প্রমাণের উৎসের জন্য এখনও অনুমতি দরকার।</string>
     <string name="e3_translation_sources">Translation sources</string>
-    <string name="e3_community_sources_message">A contributor suggested this translation. Automated reviews checked it against the cited evidence. It is not an authoritative rendering.</string>
-    <string name="e3_contributor_label">· contributor translation</string>
-    <string name="e3_report_saved_detail">Reports are saved privately. You can keep reading.</string>
-    <string name="e4_appeal">Request an appeal</string>
-    <string name="e4_appeal_reason">Explain what should be checked again</string>
-    <string name="e4_appeal_window">You can request one automatic appeal within 30 days. It does not extend evidence retention.</string>
-    <string name="e4_appeal_processing">Your appeal is being checked automatically.</string>
-    <string name="e4_appeal_resolved">Your appeal is complete. The suggestion status shows the result.</string>
-    <string name="e4_appeal_error">The appeal could not be requested. Check the window and try again when connected.</string>
-    <string name="e4_revoked">Publication withdrawn</string>
-    <string name="e4_revoked_message">This suggestion is private while its publication is reassessed.</string>
-    <string name="q1_generate">AI অনুবাদ তৈরি করুন</string>
-    <string name="q1_remaining">Seven-day allowance: %1$d of %2$d left</string>
-    <string name="q1_retry_at">Available again %1$s</string>
+    <string name="e3_community_sources_message" formatted="false">একজন অবদানকারী এই অনুবাদ প্রস্তাব করেছেন। স্বয়ংক্রিয় পর্যালোচনা উদ্ধৃত প্রমাণের সঙ্গে এটি মিলিয়েছে। এটি প্রামাণ্য অনুবাদ নয়।</string>
+    <string name="e3_contributor_label" formatted="false">· অবদানকারীর অনুবাদ</string>
+    <string name="e3_report_saved_detail" formatted="false">রিপোর্ট ব্যক্তিগতভাবে সংরক্ষিত হয়। আপনি পড়া চালিয়ে যেতে পারেন।</string>
+    <string name="e4_appeal" formatted="false">আপিলের অনুরোধ করুন</string>
+    <string name="e4_appeal_reason" formatted="false">কী আবার পরীক্ষা করা উচিত তা ব্যাখ্যা করুন</string>
+    <string name="e4_appeal_window" formatted="false">৩০ দিনের মধ্যে একটি স্বয়ংক্রিয় আপিলের অনুরোধ করতে পারেন। এতে প্রমাণ সংরক্ষণের সময় বাড়ে না।</string>
+    <string name="e4_appeal_processing" formatted="false">আপনার আপিল স্বয়ংক্রিয়ভাবে পরীক্ষা করা হচ্ছে।</string>
+    <string name="e4_appeal_resolved" formatted="false">আপনার আপিল শেষ হয়েছে। ফলাফল প্রস্তাবের অবস্থায় দেখা যায়।</string>
+    <string name="e4_appeal_error" formatted="false">আপিলের অনুরোধ করা যায়নি। সময়সীমা পরীক্ষা করে সংযোগ থাকলে আবার চেষ্টা করুন।</string>
+    <string name="e4_revoked" formatted="false">প্রকাশনা প্রত্যাহার করা হয়েছে</string>
+    <string name="e4_revoked_message" formatted="false">প্রকাশনা পুনর্মূল্যায়ন চলাকালীন এই প্রস্তাব ব্যক্তিগত থাকে।</string>
+    <string name="q1_generate" formatted="false">AI অনুবাদ তৈরি করুন</string>
+    <string name="q1_remaining" formatted="false">সাত দিনের সীমা: %2$dটির মধ্যে %1$dটি বাকি</string>
+    <string name="q1_retry_at" formatted="false">আবার পাওয়া যাবে %1$s</string>
     <string name="q1_quota_exhausted">আপনার সাত দিনের সীমা শেষ হয়েছে। পড়া এবং বিদ্যমান অনুবাদ বিনামূল্যে থাকবে।</string>
     <string name="app_today">আজ</string>
     <string name="app_library">লাইব্রেরি</string>
     <string name="app_saved">সংরক্ষিত</string>
     <string name="app_settings">সেটিংস</string>
-    <string name="app_daily_hadith">Daily hadith</string>
-    <string name="settings_profile">Profile</string>
-    <string name="settings_appearance">Appearance</string>
-    <string name="settings_reading_type">Reading &amp; type</string>
-    <string name="settings_offline_storage">Offline storage</string>
-    <string name="settings_notifications">Notifications</string>
-    <string name="settings_subscription">Subscription</string>
-    <string name="settings_privacy_data">Privacy &amp; data</string>
-    <string name="settings_help_support">Help &amp; support</string>
-    <string name="settings_about_legal">About &amp; legal</string>
-    <string name="q2_quota">Free includes 5 new AI translations in any 7 days; Pro includes 100. Cached translations use no allowance. Reading and saved items stay free. New AI translations may be temporarily unavailable.</string>
-    <string name="q2_devices">Use Pro on your own iOS and Android devices with the same Hadithly account. Family Sharing is off.</string>
-    <string name="q2_manage">Manage billing in the store where you purchased. Restore with your original Hadithly account. Pro works on your own iOS and Android devices; Family Sharing is off.</string>
-    <string name="q2_wait">Your Pro allowance returns as earlier translations leave the 7-day window. Cached translations and reading stay available.</string>
-    <string name="diagnostics_consent">Send crash reports</string>
-    <string name="diagnostics_privacy">Optional. Sends redacted failures and build information to Sentry. No reading text or account details. Reports expire after 30 days. Turning off clears pending reports on this device.</string>
+    <string name="app_daily_hadith" formatted="false">দৈনিক হাদিস</string>
+    <string name="settings_profile" formatted="false">প্রোফাইল</string>
+    <string name="settings_appearance" formatted="false">চেহারা</string>
+    <string name="settings_reading_type" formatted="false">পড়া ও টাইপ</string>
+    <string name="settings_offline_storage" formatted="false">অফলাইন স্টোরেজ</string>
+    <string name="settings_notifications" formatted="false">বিজ্ঞপ্তি</string>
+    <string name="settings_subscription" formatted="false">সাবস্ক্রিপশন</string>
+    <string name="settings_privacy_data" formatted="false">গোপনীয়তা ও ডেটা</string>
+    <string name="settings_help_support" formatted="false">সহায়তা ও সমর্থন</string>
+    <string name="settings_about_legal" formatted="false">পরিচিতি ও আইনি তথ্য</string>
+    <string name="q2_quota" formatted="false">বিনামূল্যের প্ল্যানে যেকোনো ৭ দিনে ৫টি নতুন AI অনুবাদ আছে; Pro-তে ১০০টি। ক্যাশ করা অনুবাদ সীমা কমায় না। পড়া ও সংরক্ষিত জিনিস বিনামূল্যে থাকে। নতুন AI অনুবাদ সাময়িকভাবে অনুপলব্ধ হতে পারে।</string>
+    <string name="q2_devices" formatted="false">একই Hadithly অ্যাকাউন্ট দিয়ে নিজের iOS ও Android ডিভাইসে Pro ব্যবহার করুন। Family Sharing বন্ধ।</string>
+    <string name="q2_manage" formatted="false">যে স্টোরে কিনেছেন সেখানে বিলিং পরিচালনা করুন। মূল Hadithly অ্যাকাউন্ট দিয়ে পুনরুদ্ধার করুন। Pro আপনার iOS ও Android ডিভাইসে কাজ করে; Family Sharing বন্ধ।</string>
+    <string name="q2_wait" formatted="false">আগের অনুবাদগুলো ৭ দিনের সময়সীমা থেকে বের হলে আপনার Pro সীমা ফিরে আসে। ক্যাশ করা অনুবাদ ও পড়া চালু থাকে।</string>
+    <string name="diagnostics_consent" formatted="false">ক্র্যাশ রিপোর্ট পাঠান</string>
+    <string name="diagnostics_privacy" formatted="false">ঐচ্ছিক। সংশোধিত ত্রুটি ও বিল্ড তথ্য Sentry-তে পাঠায়। পড়ার লেখা বা অ্যাকাউন্টের বিবরণ নেই। ৩০ দিন পর রিপোর্টের মেয়াদ শেষ হয়। বন্ধ করলে এই ডিভাইসের অপেক্ষমাণ রিপোর্ট মুছে যায়।</string>
     <plurals name="settings_languages_available">
         <item quantity="one">%d language available</item>
         <item quantity="other">%d languages available</item>
@@ -113,4 +113,5 @@
     <string name="q2_savings_percent">%1$d%% সাশ্রয়</string>
     <string name="q2_per_month">প্রতি মাসে</string>
     <string name="q2_more">আরও</string>
+    <!-- UI-polish locale entries are generated drafts; native review pending. -->
 </resources>

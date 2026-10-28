@@ -22,6 +22,17 @@ browser explanation now pass local native checks. Continue C1 and C2/C3/C7
 verification before D. C8 adds only one scoped catalog entry, preserving all
 incoming catalog bytes. External OAuth and native-copy approval remain open.
 
+## A4 shared copy checkpoint, October 28
+
+Today-empty and Library-progress runtime checks pass in all fifteen locales on
+both apps. Reading progress is localized, Android reuses indexed iOS drafts for
+82 shared keys, numeric formatter arguments retain their types, and Indonesian
+resources now use the working Android qualifier. See `A4_RUNTIME_LOCALIZATION.md`.
+Native review, full runtime coverage and the six Arabic zero/dual formatter
+findings remain open. Continue the actual Contents guidance, Saved undo messages,
+missing action/folder labels and accessibility copy before A5–A7/E. Preserve the
+incoming project/catalog edits; nothing was deployed or published.
+
 ## A4 runtime copy checkpoint, October 27
 
 A4 is active after B/C/D local commits. The actual Today empty-state title and

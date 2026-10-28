@@ -1,0 +1,117 @@
+{
+  "native_review": "pending",
+  "keys": [
+    "Not started",
+    "Hadith %1$@ of %2$@",
+    "Complete",
+    "Position unavailable",
+    "Progress unavailable"
+  ],
+  "locales": {
+    "en": [
+      "Not started",
+      "Hadith %1$@ of %2$@",
+      "Complete",
+      "Position unavailable",
+      "Progress unavailable"
+    ],
+    "ar": [
+      "لم يبدأ بعد",
+      "الحديث %1$@ من %2$@",
+      "مكتمل",
+      "موضع القراءة غير متاح",
+      "تقدم القراءة غير متاح"
+    ],
+    "ru": [
+      "Не начато",
+      "Хадис %1$@ из %2$@",
+      "Прочитано",
+      "Позиция чтения недоступна",
+      "Прогресс чтения недоступен"
+    ],
+    "kk": [
+      "Басталмаған",
+      "%2$@ хадистің %1$@-і",
+      "Оқылды",
+      "Оқу орны қолжетімсіз",
+      "Оқу барысы қолжетімсіз"
+    ],
+    "ky": [
+      "Баштала элек",
+      "%2$@ хадистин %1$@-и",
+      "Окулду",
+      "Окуу орду жеткиликсиз",
+      "Окуу жүрүшү жеткиликсиз"
+    ],
+    "uz": [
+      "Boshlanmagan",
+      "%2$@ tadan %1$@-hadis",
+      "O‘qib bo‘lingan",
+      "O‘qish o‘rni mavjud emas",
+      "O‘qish jarayoni mavjud emas"
+    ],
+    "tr": [
+      "Başlanmadı",
+      "%2$@ hadisten %1$@. hadis",
+      "Tamamlandı",
+      "Okuma konumu kullanılamıyor",
+      "Okuma ilerlemesi kullanılamıyor"
+    ],
+    "id": [
+      "Belum dimulai",
+      "Hadis %1$@ dari %2$@",
+      "Selesai",
+      "Posisi membaca tidak tersedia",
+      "Kemajuan membaca tidak tersedia"
+    ],
+    "ur": [
+      "ابھی شروع نہیں کیا",
+      "%2$@ میں سے حدیث %1$@",
+      "مکمل",
+      "مطالعے کا مقام دستیاب نہیں",
+      "مطالعے کی پیش رفت دستیاب نہیں"
+    ],
+    "fr": [
+      "Pas encore commencé",
+      "Hadith %1$@ sur %2$@",
+      "Terminé",
+      "Position de lecture indisponible",
+      "Progression de lecture indisponible"
+    ],
+    "es-419": [
+      "Sin empezar",
+      "Hadiz %1$@ de %2$@",
+      "Completado",
+      "Posición de lectura no disponible",
+      "Progreso de lectura no disponible"
+    ],
+    "pt-BR": [
+      "Não iniciado",
+      "Hadith %1$@ de %2$@",
+      "Concluído",
+      "Posição de leitura indisponível",
+      "Progresso de leitura indisponível"
+    ],
+    "sw": [
+      "Bado haijaanza",
+      "Hadithi ya %1$@ kati ya %2$@",
+      "Imekamilika",
+      "Sehemu ya kusoma haipatikani",
+      "Maendeleo ya usomaji hayapatikani"
+    ],
+    "hi": [
+      "अभी शुरू नहीं किया",
+      "%2$@ में से हदीस %1$@",
+      "पूरा हुआ",
+      "पढ़ने का स्थान उपलब्ध नहीं है",
+      "पढ़ने की प्रगति उपलब्ध नहीं है"
+    ],
+    "bn": [
+      "শুরু করা হয়নি",
+      "%2$@টির মধ্যে হাদিস %1$@",
+      "সম্পূর্ণ",
+      "পড়ার অবস্থান উপলব্ধ নয়",
+      "পড়ার অগ্রগতি উপলব্ধ নয়"
+    ]
+  }
+}

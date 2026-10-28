@@ -1,105 +1,105 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">Hadithly</string>
-    <string name="onboarding_choose_language_title">Choose your language</string>
-    <string name="onboarding_choose_language_subtitle">You can change this any time in Settings.</string>
-    <string name="action_continue">Continue</string>
-    <string name="settings_reading">Reading</string>
-    <string name="settings_arabic_type_size">Arabic type size</string>
+    <string name="onboarding_choose_language_title" formatted="false">Tilingizni tanlang</string>
+    <string name="onboarding_choose_language_subtitle" formatted="false">Buni Sozlamalarda istalgan vaqtda o‘zgartirishingiz mumkin.</string>
+    <string name="action_continue" formatted="false">Davom etish</string>
+    <string name="settings_reading" formatted="false">O‘qish</string>
+    <string name="settings_arabic_type_size" formatted="false">Arabcha matn o‘lchami</string>
     <string name="settings_app_language">Ilova tili</string>
     <string name="settings_hadith_translation">Hadis tarjimasi</string>
-    <string name="settings_reading_direction">Reading direction</string>
-    <string name="settings_visibility_arabic">Arabic text</string>
-    <string name="settings_visibility_translation">Translation</string>
-    <string name="direction_automatic">Automatic</string>
-    <string name="direction_right_to_left">Right to left</string>
-    <string name="direction_left_to_right">Left to right</string>
+    <string name="settings_reading_direction" formatted="false">O‘qish yo‘nalishi</string>
+    <string name="settings_visibility_arabic" formatted="false">Arabcha matn</string>
+    <string name="settings_visibility_translation" formatted="false">Tarjima</string>
+    <string name="direction_automatic" formatted="false">Avtomatik</string>
+    <string name="direction_right_to_left" formatted="false">O‘ngdan chapga</string>
+    <string name="direction_left_to_right" formatted="false">Chapdan o‘ngga</string>
     <string name="saved_all">All</string>
     <string name="saved_bookmarks">Bookmarks</string>
     <string name="saved_favorites">Favorites</string>
     <string name="saved_notes">Notes</string>
-    <string name="saved_all_folders">All folders</string>
-    <string name="saved_move_folder">Move to folder</string>
-    <string name="saved_no_folder">No folder</string>
+    <string name="saved_all_folders" formatted="false">Barcha papkalar</string>
+    <string name="saved_move_folder" formatted="false">Papkaga ko‘chirish</string>
+    <string name="saved_no_folder" formatted="false">Papka yo‘q</string>
     <string name="saved_remove_bookmark">Remove bookmark</string>
     <string name="saved_remove_favorite">Remove favorite</string>
-    <string name="saved_delete_note">Delete note</string>
-    <string name="saved_copy">Copy</string>
-    <string name="saved_share">Share</string>
+    <string name="saved_delete_note" formatted="false">Qaydni o‘chirish</string>
+    <string name="saved_copy" formatted="false">Nusxalash</string>
+    <string name="saved_share" formatted="false">Ulashish</string>
     <string name="saved_suggest_translation">Suggest translation</string>
     <string name="saved_preview_retry">Preview unavailable. Tap to retry.</string>
-    <string name="saved_show_preview">Show hadith preview</string>
-    <string name="saved_hide_preview">Hide hadith preview</string>
-    <string name="saved_confirm_removal">Confirm before removing saved items</string>
-    <string name="saved_remove_title">Remove saved item?</string>
-    <string name="saved_remove">Remove</string>
-    <string name="saved_remove_dont_ask">Remove and don\'t ask again</string>
-    <string name="saved_undo">Undo</string>
-    <string name="saved_title">Saved</string>
+    <string name="saved_show_preview" formatted="false">Hadis ko‘rinishini ko‘rsatish</string>
+    <string name="saved_hide_preview" formatted="false">Hadis ko‘rinishini yashirish</string>
+    <string name="saved_confirm_removal" formatted="false">Saqlangan narsalarni olib tashlashdan oldin tasdiqlash</string>
+    <string name="saved_remove_title" formatted="false">Saqlangan element olib tashlansinmi?</string>
+    <string name="saved_remove" formatted="false">Olib tashlash</string>
+    <string name="saved_remove_dont_ask" formatted="false">Olib tashlash va boshqa so‘ramaslik</string>
+    <string name="saved_undo" formatted="false">Bekor qilish</string>
+    <string name="saved_title" formatted="false">Saqlanganlar</string>
     <string name="saved_create_folder">Create saved folder</string>
     <string name="saved_new_folder">New folder</string>
     <string name="saved_folder_name">Folder name</string>
     <string name="saved_create">Create</string>
     <string name="saved_cancel">Cancel</string>
     <string name="saved_empty_title">Nothing saved yet</string>
-    <string name="saved_empty_message">Bookmark, favorite, or add a note while reading to keep a hadith here.</string>
-    <string name="saved_delete_folder">Delete folder</string>
+    <string name="saved_empty_message" formatted="false">Hadisni shu yerda saqlash uchun o‘qish paytida xatcho‘p, sevimli yoki qayd qo‘shing.</string>
+    <string name="saved_delete_folder" formatted="false">Papka o‘chirish</string>
     <string name="saved_folder_deleted">Folder %1$s deleted</string>
     <string name="saved_removal_undo_message">You can undo this action for five seconds from the message at the bottom.</string>
-    <string name="saved_bookmark_removed">Bookmark removed</string>
-    <string name="saved_favorite_removed">Favorite removed</string>
-    <string name="saved_note_deleted">Note deleted</string>
+    <string name="saved_bookmark_removed" formatted="false">Xatcho‘p olib tashlandi</string>
+    <string name="saved_favorite_removed" formatted="false">Sevimli olib tashlandi</string>
+    <string name="saved_note_deleted" formatted="false">Qayd o‘chirildi</string>
     <string name="reader_volume_title">Volume %1$d</string>
     <string name="reader_volume_pill_suffix">volume</string>
-    <string name="e3_reviewing">Reviewing suggestion</string>
-    <string name="e3_published">Suggestion published</string>
-    <string name="e3_exception">Suggestion needs review</string>
-    <string name="e3_rejected">Suggestion was not published</string>
-    <string name="e3_unavailable">Review unavailable</string>
-    <string name="e3_reviewing_message">We are checking the meaning and sources of your suggestion.</string>
-    <string name="e3_published_message">Your translation is now available in the reader. Your contribution status stays private.</string>
-    <string name="e3_exception_message">Your suggestion stays private while source permissions or supporting evidence need another check.</string>
-    <string name="e3_rejected_message">The checks did not support publication. Your suggestion remains private.</string>
-    <string name="e3_unavailable_message">Your suggestion remains private. Withdraw it and try again later if needed.</string>
-    <string name="e3_waiting">Your suggestion stays private while waiting for review.</string>
+    <string name="e3_reviewing" formatted="false">Taklif tekshirilmoqda</string>
+    <string name="e3_published" formatted="false">Taklif nashr qilindi</string>
+    <string name="e3_exception" formatted="false">Taklif tekshiruvni talab qiladi</string>
+    <string name="e3_rejected" formatted="false">Taklif nashr qilinmadi</string>
+    <string name="e3_unavailable" formatted="false">Tekshiruv mavjud emas</string>
+    <string name="e3_reviewing_message" formatted="false">Taklifingizning maʼnosi va manbalarini tekshiryapmiz.</string>
+    <string name="e3_published_message" formatted="false">Tarjimangiz endi o‘quvchida mavjud. Hissangiz holati maxfiy qoladi.</string>
+    <string name="e3_exception_message" formatted="false">Manba ruxsatlari yoki tasdiqlovchi dalillar yana tekshirilishi kerak bo‘lgani uchun taklifingiz maxfiy qoladi.</string>
+    <string name="e3_rejected_message" formatted="false">Tekshiruvlar nashrni qo‘llab-quvvatlamadi. Taklifingiz maxfiy qoladi.</string>
+    <string name="e3_unavailable_message" formatted="false">Taklifingiz maxfiy qoladi. Zarur bo‘lsa, uni qaytarib olib keyinroq qayta urinib ko‘ring.</string>
+    <string name="e3_waiting" formatted="false">Tekshiruvni kutayotgan paytda taklifingiz maxfiy qoladi.</string>
     <string name="e3_sources">Sources</string>
-    <string name="e3_consent">By submitting, you allow Hadithly to review and publish your suggestion. Evidence sources still require permission.</string>
+    <string name="e3_consent" formatted="false">Taklif yuborish orqali Hadithly’ga uni tekshirish va nashr qilishga ruxsat berasiz. Dalil manbalari uchun baribir ruxsat kerak.</string>
     <string name="e3_translation_sources">Translation sources</string>
-    <string name="e3_community_sources_message">A contributor suggested this translation. Automated reviews checked it against the cited evidence. It is not an authoritative rendering.</string>
-    <string name="e3_contributor_label">· contributor translation</string>
-    <string name="e3_report_saved_detail">Reports are saved privately. You can keep reading.</string>
-    <string name="e4_appeal">Request an appeal</string>
-    <string name="e4_appeal_reason">Explain what should be checked again</string>
-    <string name="e4_appeal_window">You can request one automatic appeal within 30 days. It does not extend evidence retention.</string>
-    <string name="e4_appeal_processing">Your appeal is being checked automatically.</string>
-    <string name="e4_appeal_resolved">Your appeal is complete. The suggestion status shows the result.</string>
-    <string name="e4_appeal_error">The appeal could not be requested. Check the window and try again when connected.</string>
-    <string name="e4_revoked">Publication withdrawn</string>
-    <string name="e4_revoked_message">This suggestion is private while its publication is reassessed.</string>
-    <string name="q1_generate">AI অনুবাদ তৈরি করুন</string>
-    <string name="q1_remaining">Seven-day allowance: %1$d of %2$d left</string>
-    <string name="q1_retry_at">Available again %1$s</string>
+    <string name="e3_community_sources_message" formatted="false">Hissa qo‘shuvchi bu tarjimani taklif qildi. Avtomatik tekshiruvlar uni keltirilgan dalillar bilan solishtirdi. Bu vakolatli tarjima emas.</string>
+    <string name="e3_contributor_label" formatted="false">· hissa qo‘shuvchining tarjimasi</string>
+    <string name="e3_report_saved_detail" formatted="false">Hisobotlar maxfiy saqlanadi. O‘qishni davom ettirishingiz mumkin.</string>
+    <string name="e4_appeal" formatted="false">Apellyatsiya so‘rash</string>
+    <string name="e4_appeal_reason" formatted="false">Qayta tekshirilishi kerak bo‘lgan narsani tushuntiring</string>
+    <string name="e4_appeal_window" formatted="false">30 kun ichida bitta avtomatik apellyatsiya so‘rashingiz mumkin. Bu dalillarni saqlash muddatini uzaytirmaydi.</string>
+    <string name="e4_appeal_processing" formatted="false">Apellyatsiyangiz avtomatik tekshirilmoqda.</string>
+    <string name="e4_appeal_resolved" formatted="false">Apellyatsiya yakunlandi. Natija taklif holatida ko‘rsatiladi.</string>
+    <string name="e4_appeal_error" formatted="false">Apellyatsiya so‘rab bo‘lmadi. Muddatni tekshiring va ulanish mavjud bo‘lganda qayta urinib ko‘ring.</string>
+    <string name="e4_revoked" formatted="false">Nashr bekor qilindi</string>
+    <string name="e4_revoked_message" formatted="false">Nashri qayta ko‘rib chiqilayotgan paytda bu taklif maxfiy qoladi.</string>
+    <string name="q1_generate" formatted="false">SI tarjimasini yaratish</string>
+    <string name="q1_remaining" formatted="false">Yetti kunlik limit: %2$d tadan %1$d tasi qoldi</string>
+    <string name="q1_retry_at" formatted="false">Qayta mavjud: %1$s</string>
     <string name="q1_quota_exhausted">Yetti kunlik harakatlanuvchi limitingiz ishlatildi. Mavjud tarjimalar va o‘qish bepul qoladi.</string>
     <string name="app_today">Bugun</string>
     <string name="app_library">Kutubxona</string>
     <string name="app_saved">Saqlanganlar</string>
     <string name="app_settings">Sozlamalar</string>
-    <string name="app_daily_hadith">Daily hadith</string>
-    <string name="settings_profile">Profile</string>
-    <string name="settings_appearance">Appearance</string>
-    <string name="settings_reading_type">Reading &amp; type</string>
-    <string name="settings_offline_storage">Offline storage</string>
-    <string name="settings_notifications">Notifications</string>
-    <string name="settings_subscription">Subscription</string>
-    <string name="settings_privacy_data">Privacy &amp; data</string>
-    <string name="settings_help_support">Help &amp; support</string>
-    <string name="settings_about_legal">About &amp; legal</string>
-    <string name="q2_quota">Free includes 5 new AI translations in any 7 days; Pro includes 100. Cached translations use no allowance. Reading and saved items stay free. New AI translations may be temporarily unavailable.</string>
-    <string name="q2_devices">Use Pro on your own iOS and Android devices with the same Hadithly account. Family Sharing is off.</string>
-    <string name="q2_manage">Manage billing in the store where you purchased. Restore with your original Hadithly account. Pro works on your own iOS and Android devices; Family Sharing is off.</string>
-    <string name="q2_wait">Your Pro allowance returns as earlier translations leave the 7-day window. Cached translations and reading stay available.</string>
-    <string name="diagnostics_consent">Send crash reports</string>
-    <string name="diagnostics_privacy">Optional. Sends redacted failures and build information to Sentry. No reading text or account details. Reports expire after 30 days. Turning off clears pending reports on this device.</string>
+    <string name="app_daily_hadith" formatted="false">Kunlik hadis</string>
+    <string name="settings_profile" formatted="false">Profil</string>
+    <string name="settings_appearance" formatted="false">Ko‘rinish</string>
+    <string name="settings_reading_type" formatted="false">O‘qish va shrift</string>
+    <string name="settings_offline_storage" formatted="false">Oflayn saqlash</string>
+    <string name="settings_notifications" formatted="false">Bildirishnomalar</string>
+    <string name="settings_subscription" formatted="false">Obuna</string>
+    <string name="settings_privacy_data" formatted="false">Maxfiylik va maʼlumotlar</string>
+    <string name="settings_help_support" formatted="false">Yordam va qo‘llab-quvvatlash</string>
+    <string name="settings_about_legal" formatted="false">Ilova haqida va huquqiy maʼlumotlar</string>
+    <string name="q2_quota" formatted="false">Bepul reja istalgan 7 kunda 5 ta yangi AI tarjimasini, Pro esa 100 tasini o‘z ichiga oladi. Keshlangan tarjimalar limitni sarflamaydi. O‘qish va saqlangan narsalar bepul qoladi. Yangi AI tarjimalari vaqtincha mavjud bo‘lmasligi mumkin.</string>
+    <string name="q2_devices" formatted="false">Pro’dan o‘z iOS va Android qurilmalaringizda bir xil Hadithly hisobi bilan foydalaning. Family Sharing o‘chirilgan.</string>
+    <string name="q2_manage" formatted="false">To‘lovni xarid qilgan do‘koningizda boshqaring. Asl Hadithly hisobingiz bilan tiklang. Pro o‘z iOS va Android qurilmalaringizda ishlaydi; Family Sharing o‘chirilgan.</string>
+    <string name="q2_wait" formatted="false">Avvalgi tarjimalar 7 kunlik oynadan chiqqanda Pro limitingiz qaytadi. Keshlangan tarjimalar va o‘qish mavjud bo‘lib qoladi.</string>
+    <string name="diagnostics_consent" formatted="false">Nosozliklar haqida hisobot yuborish</string>
+    <string name="diagnostics_privacy" formatted="false">Ixtiyoriy. Tahrirlangan nosozliklar va build maʼlumotlarini Sentry’ga yuboradi. O‘qish matni yoki hisob maʼlumotlari yuborilmaydi. Hisobotlar 30 kundan keyin tugaydi. O‘chirish ushbu qurilmadagi kutilayotgan hisobotlarni tozalaydi.</string>
     <plurals name="settings_languages_available">
         <item quantity="one">%d language available</item>
         <item quantity="other">%d languages available</item>
@@ -113,4 +113,5 @@
     <string name="q2_savings_percent">%1$d%% tejang</string>
     <string name="q2_per_month">oyiga</string>
     <string name="q2_more">Yana</string>
+    <!-- UI-polish locale entries are generated drafts; native review pending. -->
 </resources>

@@ -54,7 +54,7 @@ class LocalizationResourcesTest {
     fun `Wave 1 resource directories contain every English resource`() {
         val locales = mapOf(
             "ar" to "values-ar", "ru" to "values-ru", "kk" to "values-kk", "ky" to "values-ky",
-            "uz" to "values-uz", "tr" to "values-tr", "id" to "values-id", "ur" to "values-ur",
+            "uz" to "values-uz", "tr" to "values-tr", "id" to "values-in", "ur" to "values-ur",
             "fr" to "values-fr", "es-419" to "values-b+es+419", "pt-BR" to "values-pt-rBR",
             "sw" to "values-sw", "hi" to "values-hi", "bn" to "values-bn",
         )

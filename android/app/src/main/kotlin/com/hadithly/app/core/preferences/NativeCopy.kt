@@ -17,7 +17,7 @@ private fun android.content.res.Resources.nativeText(source: String, vararg argu
     if (arguments.isEmpty()) return getString(resource)
     val locale = configuration.locales[0]
     val bidi = BidiFormatter.getInstance(locale)
-    return getString(resource, *arguments.map { bidi.unicodeWrap(it.toString()) }.toTypedArray())
+    return getString(resource, *arguments.map { if (it is CharSequence) bidi.unicodeWrap(it.toString()) else it }.toTypedArray())
 }
 
 private fun nativeCopyResource(source: String): Int? = when (source) {
@@ -38,7 +38,7 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "Private reason" -> R.string.native_1ddc2d9a1a21
     "Avatar is set by your sign-in method." -> R.string.native_21d749165449
     "VOLUMES" -> R.string.native_258de606097f
-    "Share" -> R.string.native_29887a5ff984
+    "Share" -> R.string.saved_share
     "Processing evidence. Your suggestion stays private and has not been reviewed or published." -> R.string.native_2f4412f8bb6a
     "Send me a hadith every day" -> R.string.native_30b8238e7f5b
     "Forgot password?" -> R.string.native_30c1d8d3e912
@@ -129,7 +129,7 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "Sign in" -> R.string.native_bfd402b2f6f3
     "Update" -> R.string.native_c1c1009d3f37
     "Searching…" -> R.string.native_c31723ab3302
-    "Remove" -> R.string.native_c3812fc4acb8
+    "Remove" -> R.string.saved_remove
     "Grounding citations" -> R.string.native_c4bbcbb7a6a7
     "Wi-Fi only" -> R.string.native_ca99bb9196aa
     "Sources" -> R.string.native_caf85b0888d7
@@ -141,11 +141,11 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "See Hadithly's total device storage from the system settings page." -> R.string.native_d96ad3ca286c
     "Sign in with a code instead" -> R.string.native_d9a85e0a70d8
     "Name" -> R.string.native_dcd1d5223f73
-    "Remove saved item?" -> R.string.native_dddd7b14feda
+    "Remove saved item?" -> R.string.saved_remove_title
     "%1\$s pt" -> R.string.native_de60e9e3043d
     "Add link" -> R.string.native_dfe9ca4d0f96
     "Download translation" -> R.string.native_e05372bd9e28
-    "Copy" -> R.string.native_e21f935f11d7
+    "Copy" -> R.string.saved_copy
     "Username" -> R.string.native_e3b89e9d33f8
     "Reading as a guest" -> R.string.native_e820440bb043
     "Temporary cache" -> R.string.native_ec0c8dea1a19
@@ -196,5 +196,78 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "Google sign-in opens in your browser and returns here." -> R.string.native_da68e1baec08
     "Your daily reading" -> R.string.native_459d0f50351d
     "Today’s hadith is not available yet. Choose a collection below to keep reading." -> R.string.native_7e4dd3540ed0
+    "Not started" -> R.string.native_ba35f0c47d86
+    "Hadith %1\$@ of %2\$@" -> R.string.native_60e6d46736d7
+    "Complete" -> R.string.native_143b270a3260
+    "Position unavailable" -> R.string.native_fefb28790fd7
+    "Progress unavailable" -> R.string.native_563b460c3f26
+    "About & legal" -> R.string.settings_about_legal
+    "All folders" -> R.string.saved_all_folders
+    "Appearance" -> R.string.settings_appearance
+    "Arabic text" -> R.string.settings_visibility_arabic
+    "Arabic type size" -> R.string.settings_arabic_type_size
+    "Automatic" -> R.string.direction_automatic
+    "Bookmark removed" -> R.string.saved_bookmark_removed
+    "Bookmark, favorite, or add a note while reading to keep a hadith here." -> R.string.saved_empty_message
+    "Choose your language" -> R.string.onboarding_choose_language_title
+    "Confirm before removing saved items" -> R.string.saved_confirm_removal
+    "Continue" -> R.string.action_continue
+    "Continue reading" -> R.string.native_66e7853ca34f
+    "Daily hadith" -> R.string.app_daily_hadith
+    "Delete folder" -> R.string.saved_delete_folder
+    "Delete note" -> R.string.saved_delete_note
+    "Favorite removed" -> R.string.saved_favorite_removed
+    "Help & support" -> R.string.settings_help_support
+    "Hide hadith preview" -> R.string.saved_hide_preview
+    "Left to right" -> R.string.direction_left_to_right
+    "Move to folder" -> R.string.saved_move_folder
+    "No folder" -> R.string.saved_no_folder
+    "Note deleted" -> R.string.saved_note_deleted
+    "Notifications" -> R.string.settings_notifications
+    "Offline storage" -> R.string.settings_offline_storage
+    "Optional. Sends redacted failures and build information to Sentry. No reading text or account details. Reports expire after 30 days. Turning off clears pending reports on this device." -> R.string.diagnostics_privacy
+    "Privacy & data" -> R.string.settings_privacy_data
+    "Profile" -> R.string.settings_profile
+    "Reading" -> R.string.settings_reading
+    "Reading & type" -> R.string.settings_reading_type
+    "Reading direction" -> R.string.settings_reading_direction
+    "Right to left" -> R.string.direction_right_to_left
+    "Saved" -> R.string.saved_title
+    "Send crash reports" -> R.string.diagnostics_consent
+    "Show hadith preview" -> R.string.saved_show_preview
+    "Subscription" -> R.string.settings_subscription
+    "Translation" -> R.string.settings_visibility_translation
+    "Undo" -> R.string.saved_undo
+    "You can change this any time in Settings." -> R.string.onboarding_choose_language_subtitle
+    "e3.community_sources_message" -> R.string.e3_community_sources_message
+    "e3.consent" -> R.string.e3_consent
+    "e3.contributor_label" -> R.string.e3_contributor_label
+    "e3.exception" -> R.string.e3_exception
+    "e3.exception_message" -> R.string.e3_exception_message
+    "e3.published" -> R.string.e3_published
+    "e3.published_message" -> R.string.e3_published_message
+    "e3.rejected" -> R.string.e3_rejected
+    "e3.rejected_message" -> R.string.e3_rejected_message
+    "e3.report_saved_detail" -> R.string.e3_report_saved_detail
+    "e3.reviewing" -> R.string.e3_reviewing
+    "e3.reviewing_message" -> R.string.e3_reviewing_message
+    "e3.unavailable" -> R.string.e3_unavailable
+    "e3.unavailable_message" -> R.string.e3_unavailable_message
+    "e3.waiting" -> R.string.e3_waiting
+    "e4.appeal" -> R.string.e4_appeal
+    "e4.appeal_error" -> R.string.e4_appeal_error
+    "e4.appeal_processing" -> R.string.e4_appeal_processing
+    "e4.appeal_reason" -> R.string.e4_appeal_reason
+    "e4.appeal_resolved" -> R.string.e4_appeal_resolved
+    "e4.appeal_window" -> R.string.e4_appeal_window
+    "e4.revoked" -> R.string.e4_revoked
+    "e4.revoked_message" -> R.string.e4_revoked_message
+    "q1.generate" -> R.string.q1_generate
+    "q1.remaining" -> R.string.q1_remaining
+    "q1.retry_at" -> R.string.q1_retry_at
+    "q2.devices" -> R.string.q2_devices
+    "q2.manage" -> R.string.q2_manage
+    "q2.quota" -> R.string.q2_quota
+    "q2.wait" -> R.string.q2_wait
     else -> null
 }

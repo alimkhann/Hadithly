@@ -21,6 +21,7 @@ struct NativePolishFixtureView: View {
                     case "today-failure": TodayView(previewState: "failure")
                     case "library-loading": LibraryView(previewLoading: true)
                     case "library-ready": LibraryView(previewLoading: false)
+                    case "library-progress": LibraryView(previewLoading: false, progressExamples: true)
                     case "saved-loading": SavedView(previewState: .loading)
                     case "saved-failure": SavedView(previewState: .failed)
                     case "onboarding":

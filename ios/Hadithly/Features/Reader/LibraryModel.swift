@@ -20,12 +20,18 @@ final class LibraryModel {
     private var cancellables: Set<AnyCancellable> = []
 
 #if DEBUG
-    func seedPreview(loading: Bool) {
+    func seedPreview(loading: Bool, progressExamples: Bool = false) {
         isLoading = loading
         if !loading {
             progressSummaries = Dictionary(uniqueKeysWithValues: ReaderModels.collections.map {
                 ($0.slug, ProgressSummary(collectionSlug: $0.slug, state: "unopened", totalHadiths: nil, readOrdinal: nil))
             })
+            if progressExamples {
+                progressSummaries["bukhari"] = ProgressSummary(collectionSlug: "bukhari", state: "in_progress", totalHadiths: 10, readOrdinal: 3)
+                progressSummaries["sunan-nasai"] = ProgressSummary(collectionSlug: "sunan-nasai", state: "completed", totalHadiths: 10, readOrdinal: 10)
+                progressSummaries["abu-dawood"] = ProgressSummary(collectionSlug: "abu-dawood", state: "stale", totalHadiths: nil, readOrdinal: nil)
+                progressSummaries.removeValue(forKey: "tirmidhi")
+            }
         }
     }
 #endif

@@ -57,6 +57,17 @@ start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
 
+## A4 shared copy checkpoint, October 28
+
+Today-empty and Library-progress runtime checks pass in all fifteen locales on
+both apps. Reading progress is localized, Android reuses indexed iOS drafts for
+82 shared keys, numeric formatter arguments retain their types, and Indonesian
+resources now use the working Android qualifier. See `A4_RUNTIME_LOCALIZATION.md`.
+Native review, full runtime coverage and the six Arabic zero/dual formatter
+findings remain open. Continue the actual Contents guidance, Saved undo messages,
+missing action/folder labels and accessibility copy before A5–A7/E. Preserve the
+incoming project/catalog edits; nothing was deployed or published.
+
 ## A4 runtime copy checkpoint, October 27
 
 A4 is active after B/C/D local commits. The actual Today empty-state title and

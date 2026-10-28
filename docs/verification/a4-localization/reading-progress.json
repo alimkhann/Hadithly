@@ -1,0 +1,105 @@
+{
+  "ios": {
+    "runs": [
+      {
+        "bundle": "hadithly-a4-progress-red-ios.xcresult",
+        "startTime": 1793105444.225,
+        "result": "Failed",
+        "passedTests": 0,
+        "failedTests": 1,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-progress-green-ios.xcresult",
+        "startTime": 1793105636.443,
+        "result": "Passed",
+        "passedTests": 2,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-progress-all15-ios.xcresult",
+        "startTime": 1793185749.981,
+        "result": "Passed",
+        "passedTests": 2,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-progress-final15-ios.xcresult",
+        "startTime": 1793186184.181,
+        "result": "Passed",
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0
+      }
+    ],
+    "latestCases": {
+      "HadithlyUITests/VisualPolishUITests/testReadingProgressLabelsUseLocalizedWordsAndNumbers()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-progress-final15-ios.xcresult"
+      },
+      "HadithlyUITests/VisualPolishUITests/testDailyEmptyStateLocalizesItsActualTitleAndCollectionGuidance()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-progress-all15-ios.xcresult"
+      }
+    },
+    "latestCounts": {
+      "Passed": 2
+    }
+  },
+  "android": {
+    "unit": {
+      "counts": {
+        "Passed": 5
+      },
+      "cases": {
+        "com.hadithly.app.LocalizationResourcesTest/English foundations exist with the plural fixture": "Passed",
+        "com.hadithly.app.LocalizationResourcesTest/Arabic foundations carry every key and the full plural set": "Passed",
+        "com.hadithly.app.LocalizationResourcesTest/Arabic and Urdu navigation uses translated app labels": "Passed",
+        "com.hadithly.app.LocalizationResourcesTest/Urdu foundations carry every key and the plural set": "Passed",
+        "com.hadithly.app.LocalizationResourcesTest/Wave 1 resource directories contain every English resource": "Passed"
+      },
+      "reports": [
+        {
+          "file": "TEST-com.hadithly.app.LocalizationResourcesTest.xml",
+          "sha256": "5f171b4c4313e848d4306d537cf0df57c287275247aea0c0a24f925ba589ddfc"
+        }
+      ]
+    },
+    "ui": {
+      "counts": {
+        "Passed": 3
+      },
+      "cases": {
+        "com.hadithly.app.core.theme.NativeFinishingTest/readingProgressLabelsUseLocalizedWordsAndNumbers": "Passed",
+        "com.hadithly.app.core.theme.NativeFinishingTest/dailyEmptyStateLocalizesItsActualTitleAndCollectionGuidance": "Passed",
+        "com.hadithly.app.core.theme.NativeFinishingTest/nativeCopyKeepsNumericFormatArgumentsTyped": "Passed"
+      },
+      "reports": [
+        {
+          "file": "TEST-hadithly(AVD) - 16-_app-.xml",
+          "sha256": "d622a3d3f123f52e26d733d53cc2ae4277ccadfb461d08314d1526a49b3f67cd"
+        }
+      ]
+    },
+    "previousAllLocaleRun": {
+      "reports": [
+        {
+          "file": "TEST-hadithly(AVD) - 16-_app-.xml",
+          "sha256": "3cb4d230a752c847e09befb73e64a5df29ae8e8a70d1b30e2a9c45593a59eab4"
+        }
+      ],
+      "failures": [
+        {
+          "case": "readingProgressLabelsUseLocalizedWordsAndNumbers",
+          "message": ""
+        },
+        {
+          "case": "dailyEmptyStateLocalizesItsActualTitleAndCollectionGuidance",
+          "message": ""
+        }
+      ]
+    }
+  }
+}

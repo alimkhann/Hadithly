@@ -7,6 +7,7 @@ struct LibraryView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(UserLibraryModel.self) private var library
     @Environment(\.accessibilityReduceMotion) private var reducedMotion
+    @Environment(\.locale) private var locale
 
     @State private var openTarget: ReaderOpenTarget?
     @State private var presentation: Presentation = .grid
@@ -14,10 +15,10 @@ struct LibraryView: View {
 
 #if DEBUG
     private var isPreview = false
-    init(previewLoading: Bool? = nil) {
+    init(previewLoading: Bool? = nil, progressExamples: Bool = false) {
         isPreview = previewLoading != nil
         let preview = LibraryModel()
-        if let previewLoading { preview.seedPreview(loading: previewLoading) }
+        if let previewLoading { preview.seedPreview(loading: previewLoading, progressExamples: progressExamples) }
         _model = State(initialValue: preview)
     }
 #endif
@@ -125,14 +126,15 @@ struct LibraryView: View {
 
     private func progressSlot(_ summary: LibraryModel.ProgressSummary?) -> some View {
         let label: String = switch summary?.state {
-        case "unopened": "Not started"
+        case "unopened": AppLocalization.string("Not started", locale: locale)
         case "in_progress":
             if let read = summary?.readOrdinal, let total = summary?.totalHadiths, total > 0 {
-                "Hadith \(Int(read)) of \(Int(total))"
-            } else { "Continue reading" }
-        case "completed": "Complete"
-        case "stale": "Position unavailable"
-        default: "Progress unavailable"
+                String(format: AppLocalization.string("Hadith %1$@ of %2$@", locale: locale), locale: locale,
+                       Int(read).formatted(.number.locale(locale)), Int(total).formatted(.number.locale(locale)))
+            } else { AppLocalization.string("Continue reading", locale: locale) }
+        case "completed": AppLocalization.string("Complete", locale: locale)
+        case "stale": AppLocalization.string("Position unavailable", locale: locale)
+        default: AppLocalization.string("Progress unavailable", locale: locale)
         }
         return VStack(alignment: .leading, spacing: 4) {
             if summary == nil && model.isLoading {

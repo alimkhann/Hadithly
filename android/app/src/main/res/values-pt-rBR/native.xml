@@ -3,7 +3,7 @@
     <string name="native_19766ed6ccb2">Cancel</string>
     <string name="native_29887a5ff984">Compartilhar</string>
     <string name="native_3c707d34de67">Suggest translation</string>
-    <string name="native_4fa960716706">Remove and don\'t ask again</string>
+    <string name="native_4fa960716706" formatted="false">Remover e não perguntar novamente</string>
     <string name="native_74a883a037bc">Ajustes</string>
     <string name="native_76900f1bfd16">Voltar</string>
     <string name="native_798ca2ce18bf">Criar conta</string>
@@ -54,14 +54,14 @@
     <string name="native_099cd53b4147">Exporte seu perfil, preferências, itens salvos, pastas, progresso de leitura e suas próprias contribuições como JSON.</string>
     <string name="native_0ab48e787f8a">Adicione de um a três links ou arquivos de fontes. As evidências permanecem privadas enquanto são verificadas.</string>
     <string name="native_0ccfef828950">Fechar ajustes</string>
-    <string name="native_102b5d6815d5">Entre em Ajustes para sugerir uma tradução com evidências.</string>
+    <string name="native_102b5d6815d5" formatted="false">Sign in from Settings to suggest a translation with evidence.</string>
     <string name="native_11a6767d5674">Concluído</string>
     <string name="native_1509f561f241">Salvar</string>
-    <string name="native_161faa795821">Os arquivos privados foram removidos antes do processamento. Você pode iniciar uma nova sugestão.</string>
+    <string name="native_161faa795821" formatted="false">The private files were removed before processing. You can start a new suggestion.</string>
     <string name="native_1bac4007880b">Favorito</string>
     <string name="native_1ddc2d9a1a21">Motivo privado</string>
     <string name="native_258de606097f">TOMOS</string>
-    <string name="native_2f4412f8bb6a">Processando evidências. Sua sugestão permanece privada e ainda não foi analisada nem publicada.</string>
+    <string name="native_2f4412f8bb6a" formatted="false">Processing evidence. Your suggestion stays private and has not been reviewed or published.</string>
     <string name="native_30b8238e7f5b">Envie-me um hadith todos os dias</string>
     <string name="native_30c1d8d3e912">Esqueceu a senha?</string>
     <string name="native_326d9c957d5a">Cancelar envio</string>
@@ -75,7 +75,7 @@
     <string name="native_49103f50966a">Ainda não há tradução em %1$s.</string>
     <string name="native_49c266baaaa7">Buscar</string>
     <string name="native_4dc42835fbc3">Referência: %1$s</string>
-    <string name="native_51da6060f286">A evidência expirou</string>
+    <string name="native_51da6060f286" formatted="false">Evidence expired</string>
     <string name="native_540ec6e92d83">Nenhuma correspondência no texto em inglês do Sunnah.now.</string>
     <string name="native_5474755405da">Selecionar novamente</string>
     <string name="native_565339bc4d33">Certo</string>
@@ -95,7 +95,7 @@
     <string name="native_7b4888049459">Sobrenome</string>
     <string name="native_7b503321357a">Excluir conta e dados</string>
     <string name="native_7d94fc6f0852">Escreva uma nota privada…</string>
-    <string name="native_82c66ec1be55">Evidência recebida; aguardando verificações.</string>
+    <string name="native_82c66ec1be55" formatted="false">Evidence received; awaiting checks.</string>
     <string name="native_83bbbb83cfbe">Escolher local</string>
     <string name="native_858e4ba7a29f">Pausar</string>
     <string name="native_892ffa345a39">Como funciona offline</string>
@@ -109,16 +109,16 @@
     <string name="native_9449e60a6bd1">Inclua a coleção e o número do hadith.</string>
     <string name="native_96b3b31d45ab">Abrir armazenamento do dispositivo</string>
     <string name="native_96be15d18327">Tipo de árabe</string>
-    <string name="native_98770753608c">Verificações de evidências concluídas</string>
-    <string name="native_9c2816aadb36">Tentar evidência novamente</string>
+    <string name="native_98770753608c" formatted="false">Evidence checks complete</string>
+    <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
     <string name="native_9f9feade761d">Coleções</string>
     <string name="native_a1a6ea9533fa">A busca não está disponível offline.</string>
     <string name="native_b01111be1821">Buscar texto em inglês</string>
     <string name="native_b67dee925588">Texto em inglês do Sunnah.now</string>
     <string name="native_b7337027ef1f">Usar outro e-mail</string>
-    <string name="native_b7bd92f57552">Retirar sugestão</string>
+    <string name="native_b7bd92f57552" formatted="false">Withdraw suggestion</string>
     <string name="native_b97457409ab5">Reenviar código</string>
-    <string name="native_b9c98d6ecdf1">Sua sugestão permanece privada. Retire-a e envie evidências diferentes, se necessário.</string>
+    <string name="native_b9c98d6ecdf1" formatted="false">Your suggestion remains private. Withdraw it and submit different evidence if needed.</string>
     <string name="native_bdd5c6b7f515">Número do hadith</string>
     <string name="native_bf948705a783">O Hadithly oferece coleções offline versionadas: um conjunto árabe base e pacotes de tradução, cada um com checksum e licença. Os downloads são validados antes da ativação e mantêm seus itens salvos e posições de leitura. Excluir um download remove apenas os arquivos — seus favoritos, notas e posições permanecem.</string>
     <string name="native_c1c1009d3f37">Atualizar</string>
@@ -177,4 +177,10 @@
     <string name="native_da68e1baec08" formatted="false">O login com o Google abre no navegador e depois você volta para cá.</string>
     <string name="native_459d0f50351d" formatted="false">Sua leitura diária</string>
     <string name="native_7e4dd3540ed0" formatted="false">O hadith de hoje ainda não está disponível. Escolha uma coleção abaixo para continuar a leitura.</string>
+    <string name="native_ba35f0c47d86" formatted="false">Não iniciado</string>
+    <string name="native_60e6d46736d7" formatted="false">Hadith %1$s de %2$s</string>
+    <string name="native_143b270a3260" formatted="false">Concluído</string>
+    <string name="native_fefb28790fd7" formatted="false">Posição de leitura indisponível</string>
+    <string name="native_563b460c3f26" formatted="false">Progresso de leitura indisponível</string>
+    <string name="native_66e7853ca34f" formatted="false">Continuar lendo</string>
 </resources>

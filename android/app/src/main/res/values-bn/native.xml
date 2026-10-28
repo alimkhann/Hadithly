@@ -3,7 +3,7 @@
     <string name="native_19766ed6ccb2">Cancel</string>
     <string name="native_29887a5ff984">শেয়ার করুন</string>
     <string name="native_3c707d34de67">Suggest translation</string>
-    <string name="native_4fa960716706">Remove and don\'t ask again</string>
+    <string name="native_4fa960716706" formatted="false">সরিয়ে আবার জিজ্ঞেস করবেন না</string>
     <string name="native_74a883a037bc">সেটিংস</string>
     <string name="native_76900f1bfd16">পিছনে</string>
     <string name="native_798ca2ce18bf">অ্যাকাউন্ট তৈরি করুন</string>
@@ -54,14 +54,14 @@
     <string name="native_099cd53b4147">আপনার প্রোফাইল, পছন্দ, সংরক্ষিত আইটেম, ফোল্ডার, পড়ার অগ্রগতি এবং নিজের অবদান JSON হিসেবে রপ্তানি করুন।</string>
     <string name="native_0ab48e787f8a">এক থেকে তিনটি উৎসের লিংক বা ফাইল যোগ করুন। পরীক্ষা চলাকালে প্রমাণ ব্যক্তিগত থাকে।</string>
     <string name="native_0ccfef828950">সেটিংস বন্ধ করুন</string>
-    <string name="native_102b5d6815d5">প্রমাণসহ অনুবাদ প্রস্তাব করতে সেটিংস থেকে সাইন ইন করুন।</string>
+    <string name="native_102b5d6815d5" formatted="false">Sign in from Settings to suggest a translation with evidence.</string>
     <string name="native_11a6767d5674">সম্পন্ন</string>
     <string name="native_1509f561f241">সংরক্ষণ করুন</string>
-    <string name="native_161faa795821">প্রক্রিয়াকরণের আগে ব্যক্তিগত ফাইলগুলো সরানো হয়েছে। আপনি নতুন প্রস্তাব শুরু করতে পারেন।</string>
+    <string name="native_161faa795821" formatted="false">The private files were removed before processing. You can start a new suggestion.</string>
     <string name="native_1bac4007880b">বুকমার্ক</string>
     <string name="native_1ddc2d9a1a21">ব্যক্তিগত কারণ</string>
     <string name="native_258de606097f">খণ্ড</string>
-    <string name="native_2f4412f8bb6a">প্রমাণ প্রক্রিয়াকরণ হচ্ছে। আপনার প্রস্তাব ব্যক্তিগত এবং এখনও পর্যালোচনা বা প্রকাশ করা হয়নি।</string>
+    <string name="native_2f4412f8bb6a" formatted="false">Processing evidence. Your suggestion stays private and has not been reviewed or published.</string>
     <string name="native_30b8238e7f5b">প্রতিদিন আমাকে একটি হাদিস পাঠান</string>
     <string name="native_30c1d8d3e912">পাসওয়ার্ড ভুলে গেছেন?</string>
     <string name="native_326d9c957d5a">আপলোড বাতিল করুন</string>
@@ -75,7 +75,7 @@
     <string name="native_49103f50966a">%1$s অনুবাদ এখনও পাওয়া যায়নি।</string>
     <string name="native_49c266baaaa7">অনুসন্ধান</string>
     <string name="native_4dc42835fbc3">রেফারেন্স: %1$s</string>
-    <string name="native_51da6060f286">প্রমাণের মেয়াদ শেষ হয়েছে</string>
+    <string name="native_51da6060f286" formatted="false">Evidence expired</string>
     <string name="native_540ec6e92d83">Sunnah.now-এর ইংরেজি লেখায় কোনো মিল নেই।</string>
     <string name="native_5474755405da">আবার নির্বাচন করুন</string>
     <string name="native_565339bc4d33">ঠিক আছে</string>
@@ -95,7 +95,7 @@
     <string name="native_7b4888049459">নামের শেষ অংশ</string>
     <string name="native_7b503321357a">অ্যাকাউন্ট ও ডেটা মুছুন</string>
     <string name="native_7d94fc6f0852">একটি ব্যক্তিগত নোট লিখুন…</string>
-    <string name="native_82c66ec1be55">প্রমাণ পাওয়া গেছে; পরীক্ষার অপেক্ষায়।</string>
+    <string name="native_82c66ec1be55" formatted="false">Evidence received; awaiting checks.</string>
     <string name="native_83bbbb83cfbe">অবস্থান বেছে নিন</string>
     <string name="native_858e4ba7a29f">বিরতি দিন</string>
     <string name="native_892ffa345a39">অফলাইনে কীভাবে কাজ করে</string>
@@ -109,16 +109,16 @@
     <string name="native_9449e60a6bd1">সংকলন ও হাদিস নম্বর অন্তর্ভুক্ত করুন।</string>
     <string name="native_96b3b31d45ab">ডিভাইস স্টোরেজ খুলুন</string>
     <string name="native_96be15d18327">আরবি ধরন</string>
-    <string name="native_98770753608c">প্রমাণ পরীক্ষা সম্পন্ন</string>
-    <string name="native_9c2816aadb36">প্রমাণ আবার চেষ্টা করুন</string>
+    <string name="native_98770753608c" formatted="false">Evidence checks complete</string>
+    <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
     <string name="native_9f9feade761d">সংকলন</string>
     <string name="native_a1a6ea9533fa">অফলাইনে অনুসন্ধান পাওয়া যায় না।</string>
     <string name="native_b01111be1821">ইংরেজি লেখা অনুসন্ধান করুন</string>
     <string name="native_b67dee925588">Sunnah.now-এর ইংরেজি লেখা</string>
     <string name="native_b7337027ef1f">অন্য ইমেল ব্যবহার করুন</string>
-    <string name="native_b7bd92f57552">প্রস্তাব প্রত্যাহার করুন</string>
+    <string name="native_b7bd92f57552" formatted="false">Withdraw suggestion</string>
     <string name="native_b97457409ab5">কোড আবার পাঠান</string>
-    <string name="native_b9c98d6ecdf1">আপনার প্রস্তাব ব্যক্তিগত থাকে। প্রয়োজন হলে এটি প্রত্যাহার করে ভিন্ন প্রমাণ জমা দিন।</string>
+    <string name="native_b9c98d6ecdf1" formatted="false">Your suggestion remains private. Withdraw it and submit different evidence if needed.</string>
     <string name="native_bdd5c6b7f515">হাদিস নম্বর</string>
     <string name="native_bf948705a783">Hadithly সংস্করণযুক্ত অফলাইন সংকলন পাঠায়: একটি মূল আরবি ডাম্প এবং অনুবাদ প্যাক, প্রতিটির চেকসাম ও লাইসেন্স আছে। সক্রিয় করার আগে ডাউনলোড যাচাই হয় এবং সংরক্ষিত আইটেম ও পড়ার অবস্থান অক্ষুণ্ণ থাকে। ডাউনলোড মুছলে শুধু ফাইল মুছে যায় — বুকমার্ক, নোট ও অবস্থান থাকে।</string>
     <string name="native_c1c1009d3f37">আপডেট করুন</string>
@@ -177,4 +177,10 @@
     <string name="native_da68e1baec08" formatted="false">Google দিয়ে সাইন ইন আপনার ব্রাউজারে খুলবে, তারপর আপনি এখানে ফিরে আসবেন।</string>
     <string name="native_459d0f50351d" formatted="false">আপনার দৈনিক পাঠ</string>
     <string name="native_7e4dd3540ed0" formatted="false">আজকের হাদিস এখনও উপলব্ধ নয়। পড়া চালিয়ে যেতে নিচে একটি সংকলন বেছে নিন।</string>
+    <string name="native_ba35f0c47d86" formatted="false">শুরু করা হয়নি</string>
+    <string name="native_60e6d46736d7" formatted="false">%2$sটির মধ্যে হাদিস %1$s</string>
+    <string name="native_143b270a3260" formatted="false">সম্পূর্ণ</string>
+    <string name="native_fefb28790fd7" formatted="false">পড়ার অবস্থান উপলব্ধ নয়</string>
+    <string name="native_563b460c3f26" formatted="false">পড়ার অগ্রগতি উপলব্ধ নয়</string>
+    <string name="native_66e7853ca34f" formatted="false">পড়া চালিয়ে যান</string>
 </resources>

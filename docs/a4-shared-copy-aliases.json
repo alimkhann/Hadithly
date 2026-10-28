@@ -1,0 +1,604 @@
+{
+  "native_review": "pending",
+  "provenance": "Reuse only complete, explicitly indexed iOS copy. Existing uncommitted catalog entries with missing locales are excluded. Target list records actual Android differences at this checkpoint.",
+  "reuse_indexed_ios": true,
+  "keys": [
+    "About & legal",
+    "All folders",
+    "Appearance",
+    "Arabic text",
+    "Arabic type size",
+    "Automatic",
+    "Bookmark removed",
+    "Bookmark, favorite, or add a note while reading to keep a hadith here.",
+    "Choose your language",
+    "Confirm before removing saved items",
+    "Continue",
+    "Continue reading",
+    "Copy",
+    "Daily hadith",
+    "Delete folder",
+    "Delete note",
+    "Evidence checks complete",
+    "Evidence expired",
+    "Evidence received; awaiting checks.",
+    "Favorite removed",
+    "Help & support",
+    "Hide hadith preview",
+    "Left to right",
+    "Move to folder",
+    "No folder",
+    "Note deleted",
+    "Notifications",
+    "Offline storage",
+    "Optional. Sends redacted failures and build information to Sentry. No reading text or account details. Reports expire after 30 days. Turning off clears pending reports on this device.",
+    "Privacy & data",
+    "Processing evidence. Your suggestion stays private and has not been reviewed or published.",
+    "Profile",
+    "Reading",
+    "Reading & type",
+    "Reading direction",
+    "Remove",
+    "Remove and don't ask again",
+    "Remove saved item?",
+    "Retry evidence",
+    "Right to left",
+    "Saved",
+    "Send crash reports",
+    "Share",
+    "Show hadith preview",
+    "Sign in from Settings to suggest a translation with evidence.",
+    "Subscription",
+    "The private files were removed before processing. You can start a new suggestion.",
+    "Translation",
+    "Undo",
+    "Withdraw suggestion",
+    "You can change this any time in Settings.",
+    "Your suggestion remains private. Withdraw it and submit different evidence if needed.",
+    "e3.community_sources_message",
+    "e3.consent",
+    "e3.contributor_label",
+    "e3.exception",
+    "e3.exception_message",
+    "e3.published",
+    "e3.published_message",
+    "e3.rejected",
+    "e3.rejected_message",
+    "e3.report_saved_detail",
+    "e3.reviewing",
+    "e3.reviewing_message",
+    "e3.unavailable",
+    "e3.unavailable_message",
+    "e3.waiting",
+    "e4.appeal",
+    "e4.appeal_error",
+    "e4.appeal_processing",
+    "e4.appeal_reason",
+    "e4.appeal_resolved",
+    "e4.appeal_window",
+    "e4.revoked",
+    "e4.revoked_message",
+    "q1.generate",
+    "q1.remaining",
+    "q1.retry_at",
+    "q2.devices",
+    "q2.manage",
+    "q2.quota",
+    "q2.wait"
+  ],
+  "locales": [
+    "en",
+    "ar",
+    "ru",
+    "kk",
+    "ky",
+    "uz",
+    "tr",
+    "id",
+    "ur",
+    "fr",
+    "es-419",
+    "pt-BR",
+    "sw",
+    "hi",
+    "bn"
+  ],
+  "android_resources": {
+    "Sign in from Settings to suggest a translation with evidence.": [
+      {
+        "name": "native_102b5d6815d5",
+        "file": "native.xml"
+      }
+    ],
+    "The private files were removed before processing. You can start a new suggestion.": [
+      {
+        "name": "native_161faa795821",
+        "file": "native.xml"
+      }
+    ],
+    "Processing evidence. Your suggestion stays private and has not been reviewed or published.": [
+      {
+        "name": "native_2f4412f8bb6a",
+        "file": "native.xml"
+      }
+    ],
+    "Remove and don't ask again": [
+      {
+        "name": "native_4fa960716706",
+        "file": "native.xml"
+      },
+      {
+        "name": "saved_remove_dont_ask",
+        "file": "strings.xml"
+      }
+    ],
+    "Evidence expired": [
+      {
+        "name": "native_51da6060f286",
+        "file": "native.xml"
+      }
+    ],
+    "Evidence received; awaiting checks.": [
+      {
+        "name": "native_82c66ec1be55",
+        "file": "native.xml"
+      }
+    ],
+    "Evidence checks complete": [
+      {
+        "name": "native_98770753608c",
+        "file": "native.xml"
+      }
+    ],
+    "Retry evidence": [
+      {
+        "name": "native_9c2816aadb36",
+        "file": "native.xml"
+      }
+    ],
+    "Withdraw suggestion": [
+      {
+        "name": "native_b7bd92f57552",
+        "file": "native.xml"
+      }
+    ],
+    "Your suggestion remains private. Withdraw it and submit different evidence if needed.": [
+      {
+        "name": "native_b9c98d6ecdf1",
+        "file": "native.xml"
+      }
+    ],
+    "Choose your language": [
+      {
+        "name": "onboarding_choose_language_title",
+        "file": "strings.xml"
+      }
+    ],
+    "You can change this any time in Settings.": [
+      {
+        "name": "onboarding_choose_language_subtitle",
+        "file": "strings.xml"
+      }
+    ],
+    "Continue": [
+      {
+        "name": "action_continue",
+        "file": "strings.xml"
+      }
+    ],
+    "Reading": [
+      {
+        "name": "settings_reading",
+        "file": "strings.xml"
+      }
+    ],
+    "Arabic type size": [
+      {
+        "name": "settings_arabic_type_size",
+        "file": "strings.xml"
+      }
+    ],
+    "Reading direction": [
+      {
+        "name": "settings_reading_direction",
+        "file": "strings.xml"
+      }
+    ],
+    "Arabic text": [
+      {
+        "name": "settings_visibility_arabic",
+        "file": "strings.xml"
+      }
+    ],
+    "Translation": [
+      {
+        "name": "settings_visibility_translation",
+        "file": "strings.xml"
+      }
+    ],
+    "Automatic": [
+      {
+        "name": "direction_automatic",
+        "file": "strings.xml"
+      }
+    ],
+    "Right to left": [
+      {
+        "name": "direction_right_to_left",
+        "file": "strings.xml"
+      }
+    ],
+    "Left to right": [
+      {
+        "name": "direction_left_to_right",
+        "file": "strings.xml"
+      }
+    ],
+    "All folders": [
+      {
+        "name": "saved_all_folders",
+        "file": "strings.xml"
+      }
+    ],
+    "Move to folder": [
+      {
+        "name": "saved_move_folder",
+        "file": "strings.xml"
+      }
+    ],
+    "No folder": [
+      {
+        "name": "saved_no_folder",
+        "file": "strings.xml"
+      }
+    ],
+    "Delete note": [
+      {
+        "name": "saved_delete_note",
+        "file": "strings.xml"
+      }
+    ],
+    "Copy": [
+      {
+        "name": "saved_copy",
+        "file": "strings.xml"
+      }
+    ],
+    "Share": [
+      {
+        "name": "saved_share",
+        "file": "strings.xml"
+      }
+    ],
+    "Show hadith preview": [
+      {
+        "name": "saved_show_preview",
+        "file": "strings.xml"
+      }
+    ],
+    "Hide hadith preview": [
+      {
+        "name": "saved_hide_preview",
+        "file": "strings.xml"
+      }
+    ],
+    "Confirm before removing saved items": [
+      {
+        "name": "saved_confirm_removal",
+        "file": "strings.xml"
+      }
+    ],
+    "Remove saved item?": [
+      {
+        "name": "saved_remove_title",
+        "file": "strings.xml"
+      }
+    ],
+    "Remove": [
+      {
+        "name": "saved_remove",
+        "file": "strings.xml"
+      }
+    ],
+    "Undo": [
+      {
+        "name": "saved_undo",
+        "file": "strings.xml"
+      }
+    ],
+    "Saved": [
+      {
+        "name": "saved_title",
+        "file": "strings.xml"
+      }
+    ],
+    "Bookmark, favorite, or add a note while reading to keep a hadith here.": [
+      {
+        "name": "saved_empty_message",
+        "file": "strings.xml"
+      }
+    ],
+    "Delete folder": [
+      {
+        "name": "saved_delete_folder",
+        "file": "strings.xml"
+      }
+    ],
+    "Bookmark removed": [
+      {
+        "name": "saved_bookmark_removed",
+        "file": "strings.xml"
+      }
+    ],
+    "Favorite removed": [
+      {
+        "name": "saved_favorite_removed",
+        "file": "strings.xml"
+      }
+    ],
+    "Note deleted": [
+      {
+        "name": "saved_note_deleted",
+        "file": "strings.xml"
+      }
+    ],
+    "e3.reviewing": [
+      {
+        "name": "e3_reviewing",
+        "file": "strings.xml"
+      }
+    ],
+    "e3.published": [
+      {
+        "name": "e3_published",
+        "file": "strings.xml"
+      }
+    ],
+    "e3.exception": [
+      {
+        "name": "e3_exception",
+        "file": "strings.xml"
+      }
+    ],
+    "e3.rejected": [
+      {
+        "name": "e3_rejected",
+        "file": "strings.xml"
+      }
+    ],
+    "e3.unavailable": [
+      {
+        "name": "e3_unavailable",
+        "file": "strings.xml"
+      }
+    ],
+    "e3.reviewing_message": [
+      {
+        "name": "e3_reviewing_message",
+        "file": "strings.xml"
+      }
+    ],
+    "e3.published_message": [
+      {
+        "name": "e3_published_message",
+        "file": "strings.xml"
+      }
+    ],
+    "e3.exception_message": [
+      {
+        "name": "e3_exception_message",
+        "file": "strings.xml"
+      }
+    ],
+    "e3.rejected_message": [
+      {
+        "name": "e3_rejected_message",
+        "file": "strings.xml"
+      }
+    ],
+    "e3.unavailable_message": [
+      {
+        "name": "e3_unavailable_message",
+        "file": "strings.xml"
+      }
+    ],
+    "e3.waiting": [
+      {
+        "name": "e3_waiting",
+        "file": "strings.xml"
+      }
+    ],
+    "e3.consent": [
+      {
+        "name": "e3_consent",
+        "file": "strings.xml"
+      }
+    ],
+    "e3.community_sources_message": [
+      {
+        "name": "e3_community_sources_message",
+        "file": "strings.xml"
+      }
+    ],
+    "e3.contributor_label": [
+      {
+        "name": "e3_contributor_label",
+        "file": "strings.xml"
+      }
+    ],
+    "e3.report_saved_detail": [
+      {
+        "name": "e3_report_saved_detail",
+        "file": "strings.xml"
+      }
+    ],
+    "e4.appeal": [
+      {
+        "name": "e4_appeal",
+        "file": "strings.xml"
+      }
+    ],
+    "e4.appeal_reason": [
+      {
+        "name": "e4_appeal_reason",
+        "file": "strings.xml"
+      }
+    ],
+    "e4.appeal_window": [
+      {
+        "name": "e4_appeal_window",
+        "file": "strings.xml"
+      }
+    ],
+    "e4.appeal_processing": [
+      {
+        "name": "e4_appeal_processing",
+        "file": "strings.xml"
+      }
+    ],
+    "e4.appeal_resolved": [
+      {
+        "name": "e4_appeal_resolved",
+        "file": "strings.xml"
+      }
+    ],
+    "e4.appeal_error": [
+      {
+        "name": "e4_appeal_error",
+        "file": "strings.xml"
+      }
+    ],
+    "e4.revoked": [
+      {
+        "name": "e4_revoked",
+        "file": "strings.xml"
+      }
+    ],
+    "e4.revoked_message": [
+      {
+        "name": "e4_revoked_message",
+        "file": "strings.xml"
+      }
+    ],
+    "q1.generate": [
+      {
+        "name": "q1_generate",
+        "file": "strings.xml"
+      }
+    ],
+    "q1.remaining": [
+      {
+        "name": "q1_remaining",
+        "file": "strings.xml"
+      }
+    ],
+    "q1.retry_at": [
+      {
+        "name": "q1_retry_at",
+        "file": "strings.xml"
+      }
+    ],
+    "Daily hadith": [
+      {
+        "name": "app_daily_hadith",
+        "file": "strings.xml"
+      }
+    ],
+    "Profile": [
+      {
+        "name": "settings_profile",
+        "file": "strings.xml"
+      }
+    ],
+    "Appearance": [
+      {
+        "name": "settings_appearance",
+        "file": "strings.xml"
+      }
+    ],
+    "Reading & type": [
+      {
+        "name": "settings_reading_type",
+        "file": "strings.xml"
+      }
+    ],
+    "Offline storage": [
+      {
+        "name": "settings_offline_storage",
+        "file": "strings.xml"
+      }
+    ],
+    "Notifications": [
+      {
+        "name": "settings_notifications",
+        "file": "strings.xml"
+      }
+    ],
+    "Subscription": [
+      {
+        "name": "settings_subscription",
+        "file": "strings.xml"
+      }
+    ],
+    "Privacy & data": [
+      {
+        "name": "settings_privacy_data",
+        "file": "strings.xml"
+      }
+    ],
+    "Help & support": [
+      {
+        "name": "settings_help_support",
+        "file": "strings.xml"
+      }
+    ],
+    "About & legal": [
+      {
+        "name": "settings_about_legal",
+        "file": "strings.xml"
+      }
+    ],
+    "q2.quota": [
+      {
+        "name": "q2_quota",
+        "file": "strings.xml"
+      }
+    ],
+    "q2.devices": [
+      {
+        "name": "q2_devices",
+        "file": "strings.xml"
+      }
+    ],
+    "q2.manage": [
+      {
+        "name": "q2_manage",
+        "file": "strings.xml"
+      }
+    ],
+    "q2.wait": [
+      {
+        "name": "q2_wait",
+        "file": "strings.xml"
+      }
+    ],
+    "Send crash reports": [
+      {
+        "name": "diagnostics_consent",
+        "file": "strings.xml"
+      }
+    ],
+    "Optional. Sends redacted failures and build information to Sentry. No reading text or account details. Reports expire after 30 days. Turning off clears pending reports on this device.": [
+      {
+        "name": "diagnostics_privacy",
+        "file": "strings.xml"
+      }
+    ],
+    "Continue reading": [
+      {
+        "name": "native_66e7853ca34f",
+        "file": "native.xml"
+      }
+    ]
+  }
+}

@@ -35,6 +35,7 @@ ANDROID_QUALIFIERS = {
     "en": "values",
     "es-419": "values-b+es+419",
     "pt-BR": "values-pt-rBR",
+    "id": "values-in",
 }
 
 PLACEHOLDER_RE = re.compile(r"%%|%(?:(\d+)\$)?(@|lld|d|f|s)")

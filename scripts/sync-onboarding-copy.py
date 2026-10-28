@@ -14,7 +14,7 @@ args = parser.parse_args()
 catalog = json.loads((ROOT / "ios/Hadithly/Localizable.xcstrings").read_text())["strings"]
 failures = []
 for locale in LOCALES:
-    directory = {"en": "values", "es-419": "values-b+es+419", "pt-BR": "values-pt-rBR"}.get(locale, "values-" + locale)
+    directory = {"en": "values", "es-419": "values-b+es+419", "pt-BR": "values-pt-rBR", "id": "values-in"}.get(locale, "values-" + locale)
     path = ROOT / "android/app/src/main/res" / directory / "la2.xml"
     expected = {"la2_" + key[4:]: value["localizations"][locale]["stringUnit"]["value"] for key, value in catalog.items() if key.startswith("la2.")}
     if args.write:

@@ -1,5 +1,7 @@
 package com.hadithly.app.core.theme
 
+import com.hadithly.app.core.preferences.nativeText
+
 import android.graphics.Bitmap
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.verticalScroll
@@ -29,16 +31,61 @@ import java.io.File
 class NativeFinishingTest {
     @get:Rule val compose = createComposeRule()
 
+    @Test fun nativeCopyKeepsNumericFormatArgumentsTyped() {
+        val base = InstrumentationRegistry.getInstrumentation().targetContext
+        for (language in listOf("en", "ar")) {
+            val config = android.content.res.Configuration(base.resources.configuration).apply { setLocale(java.util.Locale.forLanguageTag(language)) }
+            val context = base.createConfigurationContext(config)
+            assertEquals(context.getString(com.hadithly.app.R.string.q1_remaining, 3, 5), context.nativeText("q1.remaining", 3, 5))
+        }
+    }
+
+    @Test fun readingProgressLabelsUseLocalizedWordsAndNumbers() {
+        var locale by mutableStateOf("ar")
+        compose.setContent { LocalizedPreview(ReaderTheme.LIGHT, locale) {
+            Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(24.dp)) {
+                for (state in listOf("in_progress", "unopened", "completed", "stale")) {
+                    com.hadithly.app.features.library.ProgressSlot(com.hadithly.app.core.data.CollectionProgressSummary("bukhari", state, 10.0, 3.0), false)
+                }
+                com.hadithly.app.features.library.ProgressSlot(null, false)
+            }
+        } }
+        for ((language, title) in listOf("en" to "Not started", "ar" to "لم يبدأ بعد", "ru" to "Не начато", "kk" to "Басталмаған", "ky" to "Баштала элек", "uz" to "Boshlanmagan", "tr" to "Başlanmadı", "id" to "Belum dimulai", "ur" to "ابھی شروع نہیں کیا", "fr" to "Pas encore commencé", "es-419" to "Sin empezar", "pt-BR" to "Não iniciado", "sw" to "Bado haijaanza", "hi" to "अभी शुरू नहीं किया", "bn" to "শুরু করা হয়নি", "ar-u-nu-arab" to "لم يبدأ بعد")) {
+            compose.runOnIdle { locale = language }
+            compose.onNodeWithText(title).assertIsDisplayed()
+            if (language.startsWith("ar")) {
+                val number = java.text.NumberFormat.getIntegerInstance(java.util.Locale.forLanguageTag(language))
+                compose.onNodeWithText("الحديث", substring = true).assertTextContains(number.format(3), substring = true).assertTextContains(number.format(10), substring = true)
+                if (language == "ar-u-nu-arab") {
+                    compose.onNodeWithText("الحديث", substring = true).assertTextContains("٣", substring = true).assertTextContains("١٠", substring = true)
+                }
+                compose.onNodeWithText("تقدم القراءة غير متاح").assertIsDisplayed()
+            }
+            capture("reading-progress-" + language)
+        }
+    }
+
     @Test fun dailyEmptyStateLocalizesItsActualTitleAndCollectionGuidance() {
         var locale by mutableStateOf("ar")
         compose.setContent { LocalizedPreview(ReaderTheme.LIGHT, locale) {
             com.hadithly.app.features.today.TodayScreen({}, previewState = "empty")
         } }
         for ((language, title, guidance) in listOf(
-            Triple("ar", "قراءتك اليومية", "اختر مجموعة"),
-            Triple("ru", "Ваше ежедневное чтение", "Выберите сборник"),
-            Triple("kk", "Күнделікті оқуыңыз", "жинақты таңдаңыз"),
-            Triple("en", "Your daily reading", "Choose a collection below"),
+            Triple("en", "Your daily reading", "Today’s hadith is not available yet. Choose a collection below to keep reading."),
+            Triple("ar", "قراءتك اليومية", "حديث اليوم غير متاح بعد. اختر مجموعة أدناه لمتابعة القراءة."),
+            Triple("ru", "Ваше ежедневное чтение", "Сегодняшний хадис пока недоступен. Выберите сборник ниже, чтобы продолжить чтение."),
+            Triple("kk", "Күнделікті оқуыңыз", "Бүгінгі хадис әзірге қолжетімсіз. Оқуды жалғастыру үшін төменнен жинақты таңдаңыз."),
+            Triple("ky", "Күнүмдүк окууңуз", "Бүгүнкү хадис азырынча жеткиликсиз. Окууну улантуу үчүн төмөндөн жыйнак тандаңыз."),
+            Triple("uz", "Kundalik mutolaangiz", "Bugungi hadis hali mavjud emas. O‘qishni davom ettirish uchun quyidan to‘plamni tanlang."),
+            Triple("tr", "Günlük okumanız", "Bugünün hadisi henüz mevcut değil. Okumaya devam etmek için aşağıdan bir koleksiyon seçin."),
+            Triple("id", "Bacaan harian Anda", "Hadis hari ini belum tersedia. Pilih koleksi di bawah untuk melanjutkan membaca."),
+            Triple("ur", "آپ کا روزانہ مطالعہ", "آج کی حدیث ابھی دستیاب نہیں ہے۔ پڑھنا جاری رکھنے کے لیے نیچے کوئی مجموعہ منتخب کریں۔"),
+            Triple("fr", "Votre lecture du jour", "Le hadith du jour n’est pas encore disponible. Choisissez un recueil ci-dessous pour continuer à lire."),
+            Triple("es-419", "Tu lectura diaria", "El hadiz de hoy aún no está disponible. Elige una colección abajo para seguir leyendo."),
+            Triple("pt-BR", "Sua leitura diária", "O hadith de hoje ainda não está disponível. Escolha uma coleção abaixo para continuar a leitura."),
+            Triple("sw", "Usomaji wako wa kila siku", "Hadithi ya leo bado haipatikani. Chagua mkusanyiko hapa chini ili kuendelea kusoma."),
+            Triple("hi", "आपका दैनिक पठन", "आज की हदीस अभी उपलब्ध नहीं है। पढ़ना जारी रखने के लिए नीचे कोई संग्रह चुनें।"),
+            Triple("bn", "আপনার দৈনিক পাঠ", "আজকের হাদিস এখনও উপলব্ধ নয়। পড়া চালিয়ে যেতে নিচে একটি সংকলন বেছে নিন।"),
         )) {
             compose.runOnIdle { locale = language }
             compose.onNodeWithText(title).assertIsDisplayed()

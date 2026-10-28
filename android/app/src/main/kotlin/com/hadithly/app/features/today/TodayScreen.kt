@@ -240,10 +240,11 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit, previewState: String? 
         Box(Modifier.fillMaxWidth().height(3.dp).background(colors.surfaceElevated, RoundedCornerShape(99.dp))) {
             if (fraction != null) Box(Modifier.fillMaxWidth(fraction.toFloat()).height(3.dp).background(colors.accent, RoundedCornerShape(99.dp)))
         }
+        val number = java.text.NumberFormat.getIntegerInstance(androidx.compose.ui.platform.LocalConfiguration.current.locales[0])
         val label = if (summary?.state == "in_progress") {
-            if (summary.readOrdinal != null && (summary.totalHadiths ?: 0.0) > 0.0) "Hadith ${summary.readOrdinal.toInt()} of ${summary.totalHadiths?.toInt()}"
-            else "Continue reading"
-        } else "Not started"
+            if (summary.readOrdinal != null && (summary.totalHadiths ?: 0.0) > 0.0) nativeText("Hadith %1$@ of %2$@", number.format(summary.readOrdinal.toInt()), number.format(summary.totalHadiths?.toInt()))
+            else nativeText("Continue reading")
+        } else nativeText("Not started")
         Text(label, fontSize = 11.sp, color = colors.textSecondary, maxLines = 1)
     }
 }

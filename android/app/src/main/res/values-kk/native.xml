@@ -3,7 +3,7 @@
     <string name="native_19766ed6ccb2">Cancel</string>
     <string name="native_29887a5ff984">Бөлісу</string>
     <string name="native_3c707d34de67">Suggest translation</string>
-    <string name="native_4fa960716706">Remove and don\'t ask again</string>
+    <string name="native_4fa960716706" formatted="false">Жою және қайта сұрамау</string>
     <string name="native_74a883a037bc">Баптаулар</string>
     <string name="native_76900f1bfd16">Артқа</string>
     <string name="native_798ca2ce18bf">Тіркелу</string>
@@ -54,14 +54,14 @@
     <string name="native_099cd53b4147">Профильді, параметрлерді, сақталған элементтерді, бумаларды, оқу барысын және өз үлестеріңізді JSON ретінде экспорттау.</string>
     <string name="native_0ab48e787f8a">Бірден үшке дейін дереккөз сілтемесін немесе файл қосыңыз. Тексеру кезінде дәлелдер құпия сақталады.</string>
     <string name="native_0ccfef828950">Параметрлерді жабу</string>
-    <string name="native_102b5d6815d5">Дәлелдермен аударма ұсыну үшін Параметрлерден кіріңіз.</string>
+    <string name="native_102b5d6815d5" formatted="false">Sign in from Settings to suggest a translation with evidence.</string>
     <string name="native_11a6767d5674">Дайын</string>
     <string name="native_1509f561f241">Сақтау</string>
-    <string name="native_161faa795821">Жеке файлдар өңдеуге дейін жойылды. Жаңа ұсыныс бастай аласыз.</string>
+    <string name="native_161faa795821" formatted="false">The private files were removed before processing. You can start a new suggestion.</string>
     <string name="native_1bac4007880b">Бетбелгі</string>
     <string name="native_1ddc2d9a1a21">Жеке себеп</string>
     <string name="native_258de606097f">ТОМДАР</string>
-    <string name="native_2f4412f8bb6a">Дәлел өңделуде. Ұсынысыңыз құпия күйде, әлі тексерілген немесе жарияланған жоқ.</string>
+    <string name="native_2f4412f8bb6a" formatted="false">Processing evidence. Your suggestion stays private and has not been reviewed or published.</string>
     <string name="native_30b8238e7f5b">Маған күн сайын хадис жіберу</string>
     <string name="native_30c1d8d3e912">Құпиясөзді ұмыттыңыз ба?</string>
     <string name="native_326d9c957d5a">Жүктеп салуды тоқтату</string>
@@ -75,7 +75,7 @@
     <string name="native_49103f50966a">%1$s аудармасы әлі қолжетімді емес.</string>
     <string name="native_49c266baaaa7">Іздеу</string>
     <string name="native_4dc42835fbc3">Сілтеме: %1$s</string>
-    <string name="native_51da6060f286">Дәлелдің мерзімі өтті</string>
+    <string name="native_51da6060f286" formatted="false">Evidence expired</string>
     <string name="native_540ec6e92d83">Sunnah.now ағылшын мәтінінен сәйкестік табылмады.</string>
     <string name="native_5474755405da">Қайта таңдау</string>
     <string name="native_565339bc4d33">Жарайды</string>
@@ -95,7 +95,7 @@
     <string name="native_7b4888049459">Тегі</string>
     <string name="native_7b503321357a">Есептік жазба мен деректерді жою</string>
     <string name="native_7d94fc6f0852">Жеке жазба жазыңыз…</string>
-    <string name="native_82c66ec1be55">Дәлел алынды; тексерулер күтілуде.</string>
+    <string name="native_82c66ec1be55" formatted="false">Evidence received; awaiting checks.</string>
     <string name="native_83bbbb83cfbe">Орналасқан жерді таңдау</string>
     <string name="native_858e4ba7a29f">Кідірту</string>
     <string name="native_892ffa345a39">Офлайн режимі қалай жұмыс істейді</string>
@@ -109,16 +109,16 @@
     <string name="native_9449e60a6bd1">Жинақ пен хадис нөмірін қосыңыз.</string>
     <string name="native_96b3b31d45ab">Құрылғы қоймасын ашу</string>
     <string name="native_96be15d18327">Арабша түрі</string>
-    <string name="native_98770753608c">Дәлел тексерулері аяқталды</string>
-    <string name="native_9c2816aadb36">Дәлелді қайта тексеру</string>
+    <string name="native_98770753608c" formatted="false">Evidence checks complete</string>
+    <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
     <string name="native_9f9feade761d">Жинақтар</string>
     <string name="native_a1a6ea9533fa">Офлайн іздеу қолжетімсіз.</string>
     <string name="native_b01111be1821">Ағылшын мәтінінен іздеу</string>
     <string name="native_b67dee925588">Sunnah.now ағылшын мәтіні</string>
     <string name="native_b7337027ef1f">Басқа электрондық поштаны пайдалану</string>
-    <string name="native_b7bd92f57552">Ұсынысты қайтарып алу</string>
+    <string name="native_b7bd92f57552" formatted="false">Withdraw suggestion</string>
     <string name="native_b97457409ab5">Кодты қайта жіберу</string>
-    <string name="native_b9c98d6ecdf1">Ұсынысыңыз құпия күйде қалады. Қажет болса, оны қайтарып алып, басқа дәлел жіберіңіз.</string>
+    <string name="native_b9c98d6ecdf1" formatted="false">Your suggestion remains private. Withdraw it and submit different evidence if needed.</string>
     <string name="native_bdd5c6b7f515">Хадис нөмірі</string>
     <string name="native_bf948705a783">Hadithly нұсқаланған офлайн жинақтарды ұсынады: негізгі арабша дамп және аударма пакеттері. Әрқайсысы бақылау сомасы мен лицензия арқылы тексеріледі. Жүктеулер іске қосылғанға дейін тексеріліп, сақталған элементтер мен оқу орындары сақталады. Жүктеуді жою тек файлдарды өшіреді — бетбелгілер, жазбалар және орындар қалады.</string>
     <string name="native_c1c1009d3f37">Жаңарту</string>
@@ -177,4 +177,10 @@
     <string name="native_da68e1baec08" formatted="false">Google арқылы кіру браузерде ашылады, содан кейін осында қайтасыз.</string>
     <string name="native_459d0f50351d" formatted="false">Күнделікті оқуыңыз</string>
     <string name="native_7e4dd3540ed0" formatted="false">Бүгінгі хадис әзірге қолжетімсіз. Оқуды жалғастыру үшін төменнен жинақты таңдаңыз.</string>
+    <string name="native_ba35f0c47d86" formatted="false">Басталмаған</string>
+    <string name="native_60e6d46736d7" formatted="false">%2$s хадистің %1$s-і</string>
+    <string name="native_143b270a3260" formatted="false">Оқылды</string>
+    <string name="native_fefb28790fd7" formatted="false">Оқу орны қолжетімсіз</string>
+    <string name="native_563b460c3f26" formatted="false">Оқу барысы қолжетімсіз</string>
+    <string name="native_66e7853ca34f" formatted="false">Оқуды жалғастыру</string>
 </resources>

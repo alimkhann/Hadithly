@@ -69,11 +69,57 @@ final class VisualPolishUITests: XCTestCase {
         }
     }
 
+    func testReadingProgressLabelsUseLocalizedWordsAndNumbers() {
+        for (locale, unopened, complete, unavailable, positionUnavailable, word) in [
+            ("en", "Not started", "Complete", "Progress unavailable", "Position unavailable", "Hadith"),
+            ("ar", "لم يبدأ بعد", "مكتمل", "تقدم القراءة غير متاح", "موضع القراءة غير متاح", "الحديث"),
+            ("ru", "Не начато", "Прочитано", "Прогресс чтения недоступен", "Позиция чтения недоступна", "Хадис"),
+            ("kk", "Басталмаған", "Оқылды", "Оқу барысы қолжетімсіз", "Оқу орны қолжетімсіз", "хадистің"),
+            ("ky", "Баштала элек", "Окулду", "Окуу жүрүшү жеткиликсиз", "Окуу орду жеткиликсиз", "хадистин"),
+            ("uz", "Boshlanmagan", "O‘qib bo‘lingan", "O‘qish jarayoni mavjud emas", "O‘qish o‘rni mavjud emas", "tadan"),
+            ("tr", "Başlanmadı", "Tamamlandı", "Okuma ilerlemesi kullanılamıyor", "Okuma konumu kullanılamıyor", "hadisten"),
+            ("id", "Belum dimulai", "Selesai", "Kemajuan membaca tidak tersedia", "Posisi membaca tidak tersedia", "Hadis"),
+            ("ur", "ابھی شروع نہیں کیا", "مکمل", "مطالعے کی پیش رفت دستیاب نہیں", "مطالعے کا مقام دستیاب نہیں", "میں"),
+            ("fr", "Pas encore commencé", "Terminé", "Progression de lecture indisponible", "Position de lecture indisponible", "Hadith"),
+            ("es-419", "Sin empezar", "Completado", "Progreso de lectura no disponible", "Posición de lectura no disponible", "Hadiz"),
+            ("pt-BR", "Não iniciado", "Concluído", "Progresso de leitura indisponível", "Posição de leitura indisponível", "Hadith"),
+            ("sw", "Bado haijaanza", "Imekamilika", "Maendeleo ya usomaji hayapatikani", "Sehemu ya kusoma haipatikani", "Hadithi ya"),
+            ("hi", "अभी शुरू नहीं किया", "पूरा हुआ", "पढ़ने की प्रगति उपलब्ध नहीं है", "पढ़ने का स्थान उपलब्ध नहीं है", "में"),
+            ("bn", "শুরু করা হয়নি", "সম্পূর্ণ", "পড়ার অগ্রগতি উপলব্ধ নয়", "পড়ার অবস্থান উপলব্ধ নয়", "টির")
+        ] {
+            let app = launchPolish("library-progress", locale: locale)
+            XCTAssertTrue(app.staticTexts[unopened].firstMatch.waitForExistence(timeout: 10))
+            let count = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", word)).firstMatch
+            XCTAssertTrue(count.exists)
+            if locale == "ar" { XCTAssertTrue(count.label.contains("٣")); XCTAssertTrue(count.label.contains("١٠")) }
+            XCTAssertTrue(app.staticTexts[complete].firstMatch.exists)
+            capture("library-progress-count-" + locale, app)
+            app.swipeUp()
+            XCTAssertTrue(app.staticTexts[positionUnavailable].firstMatch.exists)
+            XCTAssertTrue(app.staticTexts[unavailable].firstMatch.waitForExistence(timeout: 5))
+            capture("library-progress-" + locale, app)
+            app.terminate()
+        }
+    }
+
     func testDailyEmptyStateLocalizesItsActualTitleAndCollectionGuidance() {
-        for (locale, title, guidance) in [("ar", "قراءتك اليومية", "اختر مجموعة"),
-            ("ru", "Ваше ежедневное чтение", "Выберите сборник"),
-            ("kk", "Күнделікті оқуыңыз", "жинақты таңдаңыз"),
-            ("en", "Your daily reading", "Choose a collection below")] {
+        for (locale, title, guidance) in [
+            ("en", "Your daily reading", "Today’s hadith is not available yet. Choose a collection below to keep reading."),
+            ("ar", "قراءتك اليومية", "حديث اليوم غير متاح بعد. اختر مجموعة أدناه لمتابعة القراءة."),
+            ("ru", "Ваше ежедневное чтение", "Сегодняшний хадис пока недоступен. Выберите сборник ниже, чтобы продолжить чтение."),
+            ("kk", "Күнделікті оқуыңыз", "Бүгінгі хадис әзірге қолжетімсіз. Оқуды жалғастыру үшін төменнен жинақты таңдаңыз."),
+            ("ky", "Күнүмдүк окууңуз", "Бүгүнкү хадис азырынча жеткиликсиз. Окууну улантуу үчүн төмөндөн жыйнак тандаңыз."),
+            ("uz", "Kundalik mutolaangiz", "Bugungi hadis hali mavjud emas. O‘qishni davom ettirish uchun quyidan to‘plamni tanlang."),
+            ("tr", "Günlük okumanız", "Bugünün hadisi henüz mevcut değil. Okumaya devam etmek için aşağıdan bir koleksiyon seçin."),
+            ("id", "Bacaan harian Anda", "Hadis hari ini belum tersedia. Pilih koleksi di bawah untuk melanjutkan membaca."),
+            ("ur", "آپ کا روزانہ مطالعہ", "آج کی حدیث ابھی دستیاب نہیں ہے۔ پڑھنا جاری رکھنے کے لیے نیچے کوئی مجموعہ منتخب کریں۔"),
+            ("fr", "Votre lecture du jour", "Le hadith du jour n’est pas encore disponible. Choisissez un recueil ci-dessous pour continuer à lire."),
+            ("es-419", "Tu lectura diaria", "El hadiz de hoy aún no está disponible. Elige una colección abajo para seguir leyendo."),
+            ("pt-BR", "Sua leitura diária", "O hadith de hoje ainda não está disponível. Escolha uma coleção abaixo para continuar a leitura."),
+            ("sw", "Usomaji wako wa kila siku", "Hadithi ya leo bado haipatikani. Chagua mkusanyiko hapa chini ili kuendelea kusoma."),
+            ("hi", "आपका दैनिक पठन", "आज की हदीस अभी उपलब्ध नहीं है। पढ़ना जारी रखने के लिए नीचे कोई संग्रह चुनें।"),
+            ("bn", "আপনার দৈনিক পাঠ", "আজকের হাদিস এখনও উপলব্ধ নয়। পড়া চালিয়ে যেতে নিচে একটি সংকলন বেছে নিন।")
+        ] {
             let app = launchPolish("today-empty", locale: locale)
             XCTAssertTrue(app.staticTexts[title].waitForExistence(timeout: 10))
             XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", guidance)).firstMatch.exists)

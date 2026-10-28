@@ -261,8 +261,12 @@ struct TodayView: View {
                 Capsule().fill(Theme.surfaceElevated)
                 if let fraction { Capsule().fill(Theme.accent).frame(width: proxy.size.width * fraction) }
             }.frame(height: 3)
-            Text(fraction == nil ? "Not started" : "Hadith \(Int(read!)) of \(Int(total!))")
-                .font(.caption2).foregroundStyle(Theme.textSecondary).lineLimit(1)
+            Group {
+                if fraction != nil, let read, let total {
+                    Text(String(format: AppLocalization.string("Hadith %1$@ of %2$@", locale: locale), locale: locale,
+                                Int(read).formatted(.number.locale(locale)), Int(total).formatted(.number.locale(locale))))
+                } else { Text("Not started") }
+            }.font(.caption2).foregroundStyle(Theme.textSecondary).lineLimit(1)
             }
         }
     }

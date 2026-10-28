@@ -3,7 +3,7 @@
     <string name="native_19766ed6ccb2">Cancel</string>
     <string name="native_29887a5ff984">شیئر کریں</string>
     <string name="native_3c707d34de67">Suggest translation</string>
-    <string name="native_4fa960716706">Remove and don\'t ask again</string>
+    <string name="native_4fa960716706" formatted="false">ہٹائیں اور دوبارہ نہ پوچھیں</string>
     <string name="native_74a883a037bc">ترتیبات</string>
     <string name="native_76900f1bfd16">واپس</string>
     <string name="native_798ca2ce18bf">اکاؤنٹ بنائیں</string>
@@ -54,14 +54,14 @@
     <string name="native_099cd53b4147">اپنا پروفائل، ترجیحات، محفوظ کردہ اشیا، فولڈرز، پڑھنے کی پیش رفت اور اپنی شراکتیں JSON کے طور پر برآمد کریں۔</string>
     <string name="native_0ab48e787f8a">ایک سے تین ماخذ لنکس یا فائلیں شامل کریں۔ جانچ کے دوران ثبوت نجی رہتا ہے۔</string>
     <string name="native_0ccfef828950">ترتیبات بند کریں</string>
-    <string name="native_102b5d6815d5">ثبوت کے ساتھ ترجمہ تجویز کرنے کے لیے ترتیبات سے سائن اِن کریں۔</string>
+    <string name="native_102b5d6815d5" formatted="false">Sign in from Settings to suggest a translation with evidence.</string>
     <string name="native_11a6767d5674">مکمل</string>
     <string name="native_1509f561f241">محفوظ کریں</string>
-    <string name="native_161faa795821">نجی فائلیں کارروائی سے پہلے ہٹا دی گئیں۔ آپ نئی تجویز شروع کر سکتے ہیں۔</string>
+    <string name="native_161faa795821" formatted="false">The private files were removed before processing. You can start a new suggestion.</string>
     <string name="native_1bac4007880b">بُک مارک</string>
     <string name="native_1ddc2d9a1a21">نجی وجہ</string>
     <string name="native_258de606097f">جلدیں</string>
-    <string name="native_2f4412f8bb6a">ثبوت پر کارروائی ہو رہی ہے۔ آپ کی تجویز نجی ہے اور ابھی اس کا جائزہ یا اشاعت نہیں ہوئی۔</string>
+    <string name="native_2f4412f8bb6a" formatted="false">Processing evidence. Your suggestion stays private and has not been reviewed or published.</string>
     <string name="native_30b8238e7f5b">مجھے ہر روز ایک حدیث بھیجیں</string>
     <string name="native_30c1d8d3e912">پاس ورڈ بھول گئے؟</string>
     <string name="native_326d9c957d5a">اپ لوڈ منسوخ کریں</string>
@@ -75,7 +75,7 @@
     <string name="native_49103f50966a">%1$s ترجمہ ابھی دستیاب نہیں۔</string>
     <string name="native_49c266baaaa7">تلاش</string>
     <string name="native_4dc42835fbc3">حوالہ: %1$s</string>
-    <string name="native_51da6060f286">ثبوت کی میعاد ختم ہو گئی</string>
+    <string name="native_51da6060f286" formatted="false">Evidence expired</string>
     <string name="native_540ec6e92d83">Sunnah.now کے انگریزی متن میں کوئی مماثلت نہیں۔</string>
     <string name="native_5474755405da">دوبارہ منتخب کریں</string>
     <string name="native_565339bc4d33">ٹھیک ہے</string>
@@ -95,7 +95,7 @@
     <string name="native_7b4888049459">آخری نام</string>
     <string name="native_7b503321357a">اکاؤنٹ اور ڈیٹا حذف کریں</string>
     <string name="native_7d94fc6f0852">نجی نوٹ لکھیں…</string>
-    <string name="native_82c66ec1be55">ثبوت موصول ہو گیا؛ جانچ کا انتظار ہے۔</string>
+    <string name="native_82c66ec1be55" formatted="false">Evidence received; awaiting checks.</string>
     <string name="native_83bbbb83cfbe">مقام منتخب کریں</string>
     <string name="native_858e4ba7a29f">روکیں</string>
     <string name="native_892ffa345a39">آف لائن کیسے کام کرتا ہے</string>
@@ -109,16 +109,16 @@
     <string name="native_9449e60a6bd1">مجموعہ اور حدیث نمبر شامل کریں۔</string>
     <string name="native_96b3b31d45ab">آلے کی اسٹوریج کھولیں</string>
     <string name="native_96be15d18327">عربی قسم</string>
-    <string name="native_98770753608c">ثبوت کی جانچ مکمل ہو گئی</string>
-    <string name="native_9c2816aadb36">ثبوت دوبارہ آزمائیں</string>
+    <string name="native_98770753608c" formatted="false">Evidence checks complete</string>
+    <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
     <string name="native_9f9feade761d">مجموعے</string>
     <string name="native_a1a6ea9533fa">آف لائن تلاش دستیاب نہیں۔</string>
     <string name="native_b01111be1821">انگریزی متن تلاش کریں</string>
     <string name="native_b67dee925588">Sunnah.now کا انگریزی متن</string>
     <string name="native_b7337027ef1f">مختلف ای میل استعمال کریں</string>
-    <string name="native_b7bd92f57552">تجویز واپس لیں</string>
+    <string name="native_b7bd92f57552" formatted="false">Withdraw suggestion</string>
     <string name="native_b97457409ab5">کوڈ دوبارہ بھیجیں</string>
-    <string name="native_b9c98d6ecdf1">آپ کی تجویز نجی رہتی ہے۔ ضرورت ہو تو اسے واپس لے کر مختلف ثبوت جمع کریں۔</string>
+    <string name="native_b9c98d6ecdf1" formatted="false">Your suggestion remains private. Withdraw it and submit different evidence if needed.</string>
     <string name="native_bdd5c6b7f515">حدیث نمبر</string>
     <string name="native_bf948705a783">Hadithly ورژن شدہ آف لائن مجموعے فراہم کرتا ہے: بنیادی عربی ڈمپ اور ترجمہ پیک، ہر ایک کی چیک سم اور لائسنس کے ساتھ۔ ڈاؤن لوڈز فعال ہونے سے پہلے جانچے جاتے ہیں اور آپ کی محفوظ اشیا اور پڑھنے کی جگہیں برقرار رہتی ہیں۔ ڈاؤن لوڈ حذف کرنے سے صرف فائلیں حذف ہوتی ہیں — بُک مارکس، نوٹس اور جگہیں رہتی ہیں۔</string>
     <string name="native_c1c1009d3f37">اپ ڈیٹ کریں</string>
@@ -177,4 +177,10 @@
     <string name="native_da68e1baec08" formatted="false">Google سے سائن ان آپ کے براؤزر میں کھلے گا، پھر آپ یہاں واپس آ جائیں گے۔</string>
     <string name="native_459d0f50351d" formatted="false">آپ کا روزانہ مطالعہ</string>
     <string name="native_7e4dd3540ed0" formatted="false">آج کی حدیث ابھی دستیاب نہیں ہے۔ پڑھنا جاری رکھنے کے لیے نیچے کوئی مجموعہ منتخب کریں۔</string>
+    <string name="native_ba35f0c47d86" formatted="false">ابھی شروع نہیں کیا</string>
+    <string name="native_60e6d46736d7" formatted="false">%2$s میں سے حدیث %1$s</string>
+    <string name="native_143b270a3260" formatted="false">مکمل</string>
+    <string name="native_fefb28790fd7" formatted="false">مطالعے کا مقام دستیاب نہیں</string>
+    <string name="native_563b460c3f26" formatted="false">مطالعے کی پیش رفت دستیاب نہیں</string>
+    <string name="native_66e7853ca34f" formatted="false">مطالعہ جاری رکھیں</string>
 </resources>

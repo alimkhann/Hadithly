@@ -1,5 +1,7 @@
 package com.hadithly.app.features.library
 
+import com.hadithly.app.core.preferences.nativeText
+
 import com.hadithly.app.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
@@ -148,20 +150,21 @@ private fun ListCollection(position: Int, name: String, loading: Boolean, summar
 }
 
 @Composable
-private fun ProgressSlot(summary: CollectionProgressSummary?, loading: Boolean) {
+internal fun ProgressSlot(summary: CollectionProgressSummary?, loading: Boolean) {
+    val number = java.text.NumberFormat.getIntegerInstance(androidx.compose.ui.platform.LocalConfiguration.current.locales[0])
     if (summary == null && loading) {
         com.hadithly.app.core.theme.ContentSkeleton(com.hadithly.app.core.theme.SkeletonKind.Compact, label = "Loading reading progress")
         return
     }
     val colors = LocalHadithlyColors.current
     val label = when (summary?.state) {
-        "unopened" -> "Not started"
+        "unopened" -> nativeText("Not started")
         "in_progress" -> if (summary.readOrdinal != null && (summary.totalHadiths ?: 0.0) > 0.0) {
-            "Hadith ${summary.readOrdinal.toInt()} of ${summary.totalHadiths?.toInt()}"
-        } else "Continue reading"
-        "completed" -> "Complete"
-        "stale" -> "Position unavailable"
-        else -> "Progress unavailable"
+            nativeText("Hadith %1$@ of %2$@", number.format(summary.readOrdinal.toInt()), number.format(summary.totalHadiths?.toInt()))
+        } else nativeText("Continue reading")
+        "completed" -> nativeText("Complete")
+        "stale" -> nativeText("Position unavailable")
+        else -> nativeText("Progress unavailable")
     }
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Box(Modifier.fillMaxWidth().height(3.dp).background(colors.surfaceElevated, androidx.compose.foundation.shape.RoundedCornerShape(99.dp))) {

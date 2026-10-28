@@ -11,7 +11,7 @@ parser.add_argument('--check', action='store_true')
 args = parser.parse_args()
 root = Path(__file__).resolve().parents[1]
 locales = json.loads((root / 'ios/Hadithly/Localizable.xcstrings').read_text())['strings']['q1.quota_exhausted']['localizations']
-folders = {'en': 'values', 'es-419': 'values-b+es+419', 'pt-BR': 'values-pt-rBR'}
+folders = {'en': 'values', 'es-419': 'values-b+es+419', 'pt-BR': 'values-pt-rBR', 'id': 'values-in'}
 pattern = re.compile(r'(<string name="q1_quota_exhausted">).*?(</string>)')
 changed = []
 for locale, entry in locales.items():
