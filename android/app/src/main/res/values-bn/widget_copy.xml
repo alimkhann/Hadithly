@@ -1,0 +1,9 @@
+<resources>
+    <!-- Generated interface drafts; native review pending. -->
+    <string name="widget_daily_title">আজকের হাদিস</string>
+    <string name="widget_daily_description">সঞ্চিত কপি থেকে আজকের পড়ার ব্যক্তিগত স্মরণিকা।</string>
+    <string name="widget_continue_title">পড়া চালিয়ে যান</string>
+    <string name="widget_continue_description">আপনার ব্যক্তিগত পড়ার অবস্থান থেকে চালিয়ে যান।</string>
+    <string name="notification_daily_channel_title">আজকের হাদিস</string>
+    <string name="notification_daily_channel_description">দৈনিক হাদিসের স্মরণিকা</string>
+</resources>

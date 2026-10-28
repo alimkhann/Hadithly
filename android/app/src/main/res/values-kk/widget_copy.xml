@@ -1,0 +1,9 @@
+<resources>
+    <!-- Generated interface drafts; native review pending. -->
+    <string name="widget_daily_title">Бүгінгі хадис</string>
+    <string name="widget_daily_description">Бүгінгі оқуға арналған жеке, сақталған еске салғыш.</string>
+    <string name="widget_continue_title">Оқуды жалғастыру</string>
+    <string name="widget_continue_description">Жеке оқу орныңыздан жалғастырыңыз.</string>
+    <string name="notification_daily_channel_title">Бүгінгі хадис</string>
+    <string name="notification_daily_channel_description">Күнделікті хадис еске салғышы</string>
+</resources>

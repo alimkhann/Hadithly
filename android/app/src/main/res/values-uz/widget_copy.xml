@@ -1,0 +1,9 @@
+<resources>
+    <!-- Generated interface drafts; native review pending. -->
+    <string name="widget_daily_title">Bugungi hadis</string>
+    <string name="widget_daily_description">Bugungi oʻqish uchun shaxsiy, saqlangan eslatma.</string>
+    <string name="widget_continue_title">O‘qishni davom ettirish</string>
+    <string name="widget_continue_description">Shaxsiy oʻqish joyingizdan davom eting.</string>
+    <string name="notification_daily_channel_title">Bugungi hadis</string>
+    <string name="notification_daily_channel_description">Kundalik hadis eslatmasi</string>
+</resources>

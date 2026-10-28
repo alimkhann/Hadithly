@@ -1,0 +1,9 @@
+<resources>
+    <!-- Generated interface drafts; native review pending. -->
+    <string name="widget_daily_title">آج کی حدیث</string>
+    <string name="widget_daily_description">آج کے مطالعے کی محفوظ نقل سے نجی یاد دہانی۔</string>
+    <string name="widget_continue_title">مطالعہ جاری رکھیں</string>
+    <string name="widget_continue_description">اپنے ذاتی مطالعے کے مقام سے جاری رکھیں۔</string>
+    <string name="notification_daily_channel_title">آج کی حدیث</string>
+    <string name="notification_daily_channel_description">روزانہ حدیث کی یاد دہانی</string>
+</resources>

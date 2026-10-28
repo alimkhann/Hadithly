@@ -1,0 +1,9 @@
+<resources>
+    <!-- Generated interface drafts; native review pending. -->
+    <string name="widget_daily_title">आज की हदीस</string>
+    <string name="widget_daily_description">सहेजी गई प्रति से आज पढ़ने का निजी रिमाइंडर।</string>
+    <string name="widget_continue_title">पढ़ना जारी रखें</string>
+    <string name="widget_continue_description">अपने निजी पठन स्थान से जारी रखें।</string>
+    <string name="notification_daily_channel_title">आज की हदीस</string>
+    <string name="notification_daily_channel_description">दैनिक हदीस का रिमाइंडर</string>
+</resources>

@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-10-28. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-10-29. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
 D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its
 simulator/emulator and unit gates; its physical-device gate is open. R4's
@@ -56,6 +56,18 @@ Do not
 start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
+
+## A4 widget and notification checkpoint, October 29
+
+Daily and Continue widget interface copy now has shared fifteen-locale drafts,
+including the corrected Kazakh offline label. Source references remain verbatim.
+Actual Android RemoteViews checks cover all fifteen locales at a medium size,
+including visible excerpts, untruncated status metadata and locale alignment.
+A real iOS English gallery install/open also passes: fifteen iOS, eleven Android
+unit and two Android instrumentation cases. See `A4_RUNTIME_LOCALIZATION.md`.
+Compact/large, locked, physical-device, native-copy review and full widget gates
+remain open. Next continue dynamic/count/plural and backend notification copy,
+then A5–A7/E. No provider, paid call, deployment or notification delivery was used.
 
 ## A4 native timestamp checkpoint, October 28
 

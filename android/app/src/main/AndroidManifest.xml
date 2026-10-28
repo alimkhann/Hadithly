@@ -46,11 +46,11 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
-        <receiver android:name=".features.widgets.DailyHadithWidgetReceiver" android:exported="true">
+        <receiver android:name=".features.widgets.DailyHadithWidgetReceiver" android:label="@string/widget_daily_title" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/daily_hadith_widget_info" />
         </receiver>
-        <receiver android:name=".features.widgets.ContinueReadingWidgetReceiver" android:exported="true">
+        <receiver android:name=".features.widgets.ContinueReadingWidgetReceiver" android:label="@string/widget_continue_title" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/continue_reading_widget_info" />
         </receiver>

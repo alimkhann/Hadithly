@@ -1,0 +1,9 @@
+<resources>
+    <!-- Generated interface drafts; native review pending. -->
+    <string name="widget_daily_title">Hadiz del día</string>
+    <string name="widget_daily_description">Un recordatorio privado de lectura del día desde una copia guardada.</string>
+    <string name="widget_continue_title">Continuar leyendo</string>
+    <string name="widget_continue_description">Retoma tu posición de lectura privada.</string>
+    <string name="notification_daily_channel_title">Hadiz del día</string>
+    <string name="notification_daily_channel_description">El recordatorio del hadiz del día</string>
+</resources>

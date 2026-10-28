@@ -1,0 +1,132 @@
+{
+  "ios": {
+    "runs": [
+      {
+        "bundle": "hadithly-a4-widget-unit-ios.xcresult",
+        "startTime": 1793212520.509,
+        "result": "Passed",
+        "passedTests": 14,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-widget-gallery-ios.xcresult",
+        "startTime": 1793212961.406,
+        "result": "Passed",
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0
+      }
+    ],
+    "latestCases": {
+      "HadithlyTests/ContinueWidgetRouteTests/testGenericWidgetRequestPrefersTheNewestSyncedPosition()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-widget-unit-ios.xcresult"
+      },
+      "HadithlyTests/ContinueWidgetRouteTests/testGenericWidgetRequestUsesCurrentLibraryPosition()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-widget-unit-ios.xcresult"
+      },
+      "HadithlyTests/WidgetSnapshotTests/testAllWidgetLocalesHaveNativeCopyAndPreserveReferences()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-widget-unit-ios.xcresult"
+      },
+      "HadithlyTests/WidgetSnapshotTests/testContinuePresentationKeepsOnlyOneReferenceAndSemanticProgress()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-widget-unit-ios.xcresult"
+      },
+      "HadithlyTests/WidgetSnapshotTests/testContinuePresentationMirrorsUrdu()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-widget-unit-ios.xcresult"
+      },
+      "HadithlyTests/WidgetSnapshotTests/testContinueProgressUsesOrdinalWhenTotalIsUnavailable()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-widget-unit-ios.xcresult"
+      },
+      "HadithlyTests/WidgetSnapshotTests/testContinueSnapshotContainsPresentationOnly()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-widget-unit-ios.xcresult"
+      },
+      "HadithlyTests/WidgetSnapshotTests/testDailyPayloadDoesNotContainPrivateReadingFields()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-widget-unit-ios.xcresult"
+      },
+      "HadithlyTests/WidgetSnapshotTests/testDailySnapshotIsStaleAfterItsLocalDayChanges()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-widget-unit-ios.xcresult"
+      },
+      "HadithlyTests/WidgetSnapshotTests/testNativeGaugeHasNoValueWhenProgressIsUnavailable()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-widget-unit-ios.xcresult"
+      },
+      "HadithlyTests/WidgetSnapshotTests/testNativeGaugeReceivesAClampedRoundedFraction()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-widget-unit-ios.xcresult"
+      },
+      "HadithlyTests/WidgetSnapshotTests/testSnapshotAtRefreshBudgetIsFresh()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-widget-unit-ios.xcresult"
+      },
+      "HadithlyTests/WidgetSnapshotTests/testSnapshotBeyondRefreshBudgetIsStale()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-widget-unit-ios.xcresult"
+      },
+      "HadithlyTests/WidgetSnapshotTests/testWidgetEmptyCopyUsesSelectedLocale()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-widget-unit-ios.xcresult"
+      },
+      "HadithlyUITests/W2WidgetGalleryUITests/testContinueReadingCanBePlacedAndOpenedFromHome()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-widget-gallery-ios.xcresult"
+      }
+    },
+    "latestCounts": {
+      "Passed": 15
+    }
+  },
+  "android": {
+    "unit": {
+      "counts": {
+        "Passed": 11
+      },
+      "cases": {
+        "com.hadithly.app.ContinueWidgetRouteTest/generic widget request uses current library position": "Passed",
+        "com.hadithly.app.ContinueWidgetRouteTest/generic widget request prefers the newest synced position": "Passed",
+        "com.hadithly.app.ContinueWidgetRouteTest/generic widget request does nothing without current progress": "Passed",
+        "com.hadithly.app.WidgetRefreshPolicyTest/cache beyond budget is marked stale": "Passed",
+        "com.hadithly.app.WidgetRefreshPolicyTest/widget empty copy follows the app locale": "Passed",
+        "com.hadithly.app.WidgetRefreshPolicyTest/fresh widget cache is not marked stale": "Passed",
+        "com.hadithly.app.WidgetRefreshPolicyTest/continue presentation keeps one reference and semantic progress": "Passed",
+        "com.hadithly.app.WidgetRefreshPolicyTest/continue snapshot contains presentation only": "Passed",
+        "com.hadithly.app.WidgetRefreshPolicyTest/continue widget chooses compact medium and large layouts": "Passed",
+        "com.hadithly.app.WidgetRefreshPolicyTest/allWidgetLocalesHaveCopyAndPreserveReferences": "Passed",
+        "com.hadithly.app.WidgetRefreshPolicyTest/offline daily cache is visibly stale": "Passed"
+      },
+      "reports": [
+        {
+          "file": "TEST-com.hadithly.app.ContinueWidgetRouteTest.xml",
+          "sha256": "d2ca9028f0b1b684ce7eaa05adf73bdd4625e21fefd0785e6ed98b64d6b89317"
+        },
+        {
+          "file": "TEST-com.hadithly.app.WidgetRefreshPolicyTest.xml",
+          "sha256": "5994f59ba70ba11eabd37425db9432404779750af631a0142478c4822b19cd8f"
+        }
+      ]
+    },
+    "ui": {
+      "counts": {
+        "Passed": 2
+      },
+      "cases": {
+        "com.hadithly.app.features.widgets.WidgetNotificationCopyTest/channelAndFallbackLocalizeWithoutChangingProviderTextOrChannelIdentity": "Passed",
+        "com.hadithly.app.features.widgets.WidgetCopyHostTest/realRemoteViewsRenderLocalizedCopyForEverySupportedLocale": "Passed"
+      },
+      "reports": [
+        {
+          "file": "TEST-hadithly(AVD) - 16-_app-.xml",
+          "sha256": "fadf48dd14de44e13eaa9353de22118744b57bbee17e38feb2076a5618c15170"
+        }
+      ]
+    }
+  }
+}

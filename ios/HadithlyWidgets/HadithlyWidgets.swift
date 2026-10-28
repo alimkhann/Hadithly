@@ -34,8 +34,8 @@ struct DailyHadithWidget: Widget {
         StaticConfiguration(kind: "DailyHadithWidget", provider: DailyProvider()) { entry in
             DailyWidgetView(entry: entry)
         }
-        .configurationDisplayName("Daily Hadith")
-        .description("A private, cached reading prompt for today.")
+        .configurationDisplayName(Text(verbatim: WidgetCopy.text(.dailyTitle, locale: WidgetSnapshotStore.uiLocale())))
+        .description(Text(verbatim: WidgetCopy.text(.dailyGalleryDescription, locale: WidgetSnapshotStore.uiLocale())))
         .supportedFamilies([
             .systemSmall, .systemMedium, .systemLarge,
             .accessoryInline, .accessoryRectangular, .accessoryCircular,
@@ -52,10 +52,10 @@ private struct DailyWidgetView: View {
     var body: some View {
         ZStack {
             if redactionReasons.contains(.privacy) {
-                Text(DailyWidgetCopy.locked(locale))
+                Text(WidgetCopy.text(.dailyLocked, locale: locale))
                     .font(.subheadline)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                    .accessibilityLabel(DailyWidgetCopy.locked(locale))
+                    .accessibilityLabel(WidgetCopy.text(.dailyLocked, locale: locale))
             } else if let snapshot = entry.snapshot {
                 Link(destination: canonicalURL(snapshot)) {
                     DailyWidgetReading(snapshot: snapshot, family: family)
@@ -65,7 +65,7 @@ private struct DailyWidgetView: View {
                 .accessibilityLabel(accessibilityLabel(for: snapshot))
                 .privacySensitive()
             } else {
-                Text(DailyWidgetCopy.empty(locale))
+                Text(WidgetCopy.text(.dailyEmpty, locale: locale))
                     .font(.subheadline)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
             }
@@ -83,9 +83,9 @@ private struct DailyWidgetView: View {
     }
 
     private func accessibilityLabel(for snapshot: WidgetDailySnapshot) -> String {
-        var label = "\(DailyWidgetCopy.title(snapshot.locale)), \(snapshot.reference), \(snapshot.sourceScope)"
-        if snapshot.isAI { label += ", \(DailyWidgetCopy.ai(snapshot.locale))" }
-        if WidgetRefreshPolicy.isStale(snapshot) { label += ", \(DailyWidgetCopy.stale(snapshot.locale))" }
+        var label = "\(WidgetCopy.text(.dailyTitle, locale: snapshot.locale)), \(snapshot.reference), \(snapshot.sourceScope)"
+        if snapshot.isAI { label += ", \(WidgetCopy.text(.dailyAI, locale: snapshot.locale))" }
+        if WidgetRefreshPolicy.isStale(snapshot) { label += ", \(WidgetCopy.text(.dailyStale, locale: snapshot.locale))" }
         return label
     }
 }
@@ -105,11 +105,11 @@ private struct DailyWidgetReading: View {
         case .systemExtraLarge:
             largeReading
         case .accessoryInline:
-            Text(DailyWidgetCopy.title(snapshot.locale)).lineLimit(1)
+            Text(WidgetCopy.text(.dailyTitle, locale: snapshot.locale)).lineLimit(1)
         case .accessoryRectangular:
             VStack(alignment: .leading, spacing: 2) {
                 Text(shortReference).font(.headline).lineLimit(1)
-                Text(DailyWidgetCopy.title(snapshot.locale)).font(.caption).lineLimit(1)
+                Text(WidgetCopy.text(.dailyTitle, locale: snapshot.locale)).font(.caption).lineLimit(1)
             }
         case .accessoryCircular:
             ZStack(alignment: .topTrailing) {
@@ -119,7 +119,7 @@ private struct DailyWidgetReading: View {
                     .font(.system(size: 11, weight: .semibold))
                     .padding(-2)
             }
-            .accessibilityLabel(DailyWidgetCopy.title(snapshot.locale))
+            .accessibilityLabel(WidgetCopy.text(.dailyTitle, locale: snapshot.locale))
         default:
             homeReading(previewLines: 3, referenceFont: .headline, spacing: 5)
         }
@@ -127,7 +127,7 @@ private struct DailyWidgetReading: View {
 
     private func homeReading(previewLines: Int, referenceFont: Font, spacing: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: spacing) {
-            Text(DailyWidgetCopy.title(snapshot.locale).uppercased()).font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
+            Text(WidgetCopy.text(.dailyTitle, locale: snapshot.locale).uppercased()).font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
             Text(snapshot.reference).font(referenceFont).lineLimit(1)
             if snapshot.arabicVisible && snapshot.translationVisible {
                 Text(snapshot.arabicText).font(.caption).lineLimit(1).multilineTextAlignment(.trailing).frame(maxWidth: .infinity, alignment: .trailing)
@@ -146,7 +146,7 @@ private struct DailyWidgetReading: View {
 
     private var largeReading: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(DailyWidgetCopy.title(snapshot.locale).uppercased()).font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
+            Text(WidgetCopy.text(.dailyTitle, locale: snapshot.locale).uppercased()).font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
             Text(snapshot.reference).font(.title3).lineLimit(1)
             if snapshot.arabicVisible && snapshot.translationVisible {
                 Text(snapshot.arabicText).font(.body).multilineTextAlignment(.trailing).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
@@ -163,9 +163,9 @@ private struct DailyWidgetReading: View {
 
     private var metadata: String {
         var parts = [snapshot.sourceScope]
-        if snapshot.isAI { parts.append(DailyWidgetCopy.ai(snapshot.locale)) }
-        if snapshot.isOffline { parts.append(DailyWidgetCopy.offline(snapshot.locale)) }
-        if WidgetRefreshPolicy.isStale(snapshot) { parts.append(DailyWidgetCopy.stale(snapshot.locale)) }
+        if snapshot.isAI { parts.append(WidgetCopy.text(.dailyAI, locale: snapshot.locale)) }
+        if snapshot.isOffline { parts.append(WidgetCopy.text(.dailyOffline, locale: snapshot.locale)) }
+        if WidgetRefreshPolicy.isStale(snapshot) { parts.append(WidgetCopy.text(.dailyStale, locale: snapshot.locale)) }
         return parts.joined(separator: " · ")
     }
 
@@ -186,8 +186,8 @@ struct ContinueReadingWidget: Widget {
         StaticConfiguration(kind: "ContinueReadingWidget", provider: ContinueProvider()) { entry in
             ContinueWidgetView(entry: entry)
         }
-        .configurationDisplayName("Continue Reading")
-        .description("Resume your private reading position.")
+        .configurationDisplayName(Text(verbatim: WidgetCopy.text(.continueTitle, locale: WidgetSnapshotStore.uiLocale())))
+        .description(Text(verbatim: WidgetCopy.text(.continueGalleryDescription, locale: WidgetSnapshotStore.uiLocale())))
         .supportedFamilies([
             .systemSmall, .systemMedium, .systemLarge,
             .systemExtraLarge,
@@ -218,7 +218,7 @@ private struct ContinueWidgetView: View {
                     .environment(\.locale, Locale(identifier: snapshot.locale))
                     .environment(\.layoutDirection, layoutDirection(for: snapshot.locale))
             }
-            .accessibilityLabel("\(copy.title), \(copy.localizedReference), \(copy.progressLabel)")
+            .accessibilityLabel("\(copy.title), \(copy.reference), \(copy.progressLabel)")
             .privacySensitive()
         } else {
             Text(copy.localizedEmptyMessage)
@@ -267,7 +267,7 @@ private struct ContinueWidgetReading: View {
     private func home(spacing: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: spacing) {
             Text(snapshot.presentation.title.uppercased()).font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
-            Text(snapshot.presentation.localizedReference)
+            Text(snapshot.presentation.reference)
                 .font(family == .systemSmall ? .subheadline.weight(.semibold) : .headline)
                 .lineLimit(2)
             if family == .systemSmall {
@@ -291,7 +291,7 @@ private struct ContinueWidgetReading: View {
     private var largeHome: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(snapshot.presentation.title.uppercased()).font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
-            Text(snapshot.presentation.localizedReference).font(.title3).lineLimit(2)
+            Text(snapshot.presentation.reference).font(.title3).lineLimit(2)
             Spacer(minLength: 0)
             HStack(spacing: 7) { progressGauge(size: 32); Text(snapshot.presentation.progressLabel).font(.caption).foregroundStyle(.secondary) }
             if WidgetRefreshPolicy.isStale(snapshot.updatedAt) {

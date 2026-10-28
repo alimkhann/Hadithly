@@ -1,0 +1,9 @@
+<resources>
+    <!-- Generated interface drafts; native review pending. -->
+    <string name="widget_daily_title">Hadithi ya leo</string>
+    <string name="widget_daily_description">Kikumbusho binafsi cha usomaji wa leo kutoka nakala iliyohifadhiwa.</string>
+    <string name="widget_continue_title">Endelea kusoma</string>
+    <string name="widget_continue_description">Endelea kutoka mahali pako binafsi pa kusoma.</string>
+    <string name="notification_daily_channel_title">Hadithi ya leo</string>
+    <string name="notification_daily_channel_description">Kikumbusho cha hadithi ya kila siku</string>
+</resources>

@@ -1,0 +1,9 @@
+<resources>
+    <!-- Generated interface drafts; native review pending. -->
+    <string name="widget_daily_title">Hadith du jour</string>
+    <string name="widget_daily_description">Un rappel de lecture privé pour aujourd’hui, conservé en cache.</string>
+    <string name="widget_continue_title">Continuer la lecture</string>
+    <string name="widget_continue_description">Reprenez votre position de lecture privée.</string>
+    <string name="notification_daily_channel_title">Hadith du jour</string>
+    <string name="notification_daily_channel_description">Le rappel du hadith du jour</string>
+</resources>

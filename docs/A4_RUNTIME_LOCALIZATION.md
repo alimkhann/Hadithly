@@ -370,3 +370,58 @@ partial; the iOS Kazakh offline label incorrectly says online. Widget-gallery
 metadata and Android notification fallback/channel labels also need coverage.
 These findings, dynamic/count copy, six Arabic manual plural findings, native
 review and the remaining A4–A7/E and release gates stay open.
+
+## Widget and notification interface copy, October 29
+
+Daily and Continue widgets now share seventeen interface keys across all fifteen
+locales. `a4-widget-copy.json` retains the drafts and their pending native-review
+status. Existing complete iOS Daily/title drafts and progress templates are reused;
+missing phrases are local GPT-family drafts. The Kazakh offline label now says
+“Желіден тыс сақталған көшірме” instead of describing an online copy. The generator
+updates both typed native tables and Android picker/channel resources; its isolated
+regression checks repeatability, surrounding-model preservation, the Indonesian
+resource qualifier and rejection of dropped formatter arguments before any write.
+
+Continue progress uses native locale number formatting. Source reference strings
+remain byte-for-byte intact rather than replacing the English word Hadith inside
+provider text. Snapshot schemas, raw-position exclusion, canonical Daily identity,
+exact-locale content requirements and generation behavior are unchanged. Gallery
+metadata and Android receiver labels resolve the same interface drafts. Both
+Android widget declarations now include Glance's required initial loading layout.
+
+Actual Android AppWidgetHost views render real Glance RemoteViews in all fifteen
+locales at 320 × 220 dp with 320 × 200 dp host options. Prepared interface examples
+exercise AI/offline/stale labels without generating or publishing content. The
+latest check asserts a visible translation excerpt, zero metadata ellipsis and
+locale-specific title alignment, independent of the emulator's Arabic host locale.
+The fixture restores its cached strings, temporary bind grant and own widget IDs.
+The initial binding failure was a test setup problem: explicit numeric Android
+user IDs are required here; `--user current` did not record the grant. Gradle also
+uninstalls the app after the test, so absent providers afterward are not a product
+failure.
+
+Capture review exposed truncated status metadata and then a blank excerpt, despite
+earlier text assertions passing. The blank-excerpt regression reproduces the
+failure. Daily now declares three responsive sizes; Glance's default Single mode
+kept LocalSize at the minimum widget size, so the larger rendered host still chose
+the compact branch. The [official Glance size guidance](https://developer.android.com/develop/ui/compose/glance/build-ui)
+confirms this distinction. Excerpts use the remaining space, status labels can
+wrap and full-width text alignment follows the locale. The latest medium-host run
+passes. Earlier captures are retained only in the local archive, not presented as
+final evidence. Compact and large layouts still need their complete native matrix.
+
+Android notification channel names/descriptions and missing-title fallback now
+follow the UI locale. The existing daily_hadith channel ID, importance and supplied
+provider title/body are preserved. Instrumentation reads back the actual channel
+in every locale and restores its original metadata. It does not post a notification
+or exercise provider delivery, permission prompts, tokens or account registration.
+Backend notification localization remains a separate review.
+
+Latest evidence totals are fifteen iOS cases, eleven Android unit cases and two
+Android instrumentation cases in `verification/a4-localization/widgets.json`.
+The iOS check installs and opens Continue Reading through the actual WidgetKit
+gallery in English. It does not prove fifteen-locale WidgetKit rendering. The
+sixteen-capture manifest and selected images are in `verification/a4-localization/widgets/`.
+Native review, compact/large and locked states, physical devices, full VoiceOver
+and TalkBack traversal, W1/W2/N1/D4 and existing source/content/release gates stay
+open. The incoming catalog and project files are untouched by this unit.

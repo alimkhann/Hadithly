@@ -1,0 +1,9 @@
+<resources>
+    <!-- Generated interface drafts; native review pending. -->
+    <string name="widget_daily_title">Günün hadisi</string>
+    <string name="widget_daily_description">Bugün için özel, önbelleğe alınmış bir okuma hatırlatıcısı.</string>
+    <string name="widget_continue_title">Okumaya devam et</string>
+    <string name="widget_continue_description">Kişisel okuma konumunuzdan devam edin.</string>
+    <string name="notification_daily_channel_title">Günün hadisi</string>
+    <string name="notification_daily_channel_description">Günlük hadis hatırlatıcısı</string>
+</resources>

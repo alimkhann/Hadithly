@@ -1,0 +1,98 @@
+[
+  {
+    "platform": "android",
+    "name": "android-host-en.png",
+    "sha256": "5e4170c8b5bf456d45bd4e2698f45a02b475ecfcca826eb08df5ed3dc77dccce",
+    "scope": "real Glance RemoteViews, medium host; synthetic public/example content"
+  },
+  {
+    "platform": "android",
+    "name": "android-host-ar.png",
+    "sha256": "5c7c850c253e48bf144dea2c9dd75e0dedd065496135cb967cbe92d81748ffa0",
+    "scope": "real Glance RemoteViews, medium host; synthetic public/example content"
+  },
+  {
+    "platform": "android",
+    "name": "android-host-ru.png",
+    "sha256": "54b33d12bcd843a479475ecdef92ab4fd36fd467eab8141e54a4e15f0be1b393",
+    "scope": "real Glance RemoteViews, medium host; synthetic public/example content"
+  },
+  {
+    "platform": "android",
+    "name": "android-host-kk.png",
+    "sha256": "5a928cfa14425f8a4670c6c56dcd36d0488b0628c8ef90e9281fe803842da36e",
+    "scope": "real Glance RemoteViews, medium host; synthetic public/example content"
+  },
+  {
+    "platform": "android",
+    "name": "android-host-ky.png",
+    "sha256": "01e79c24c46f4dce51099432d1de6a020447ed6e88eeafa3f38e8ab2bd60c5dc",
+    "scope": "real Glance RemoteViews, medium host; synthetic public/example content"
+  },
+  {
+    "platform": "android",
+    "name": "android-host-uz.png",
+    "sha256": "e9d6482d6aa86588dc601a9781db19a8819bd705f731cd9a4015db05aac84053",
+    "scope": "real Glance RemoteViews, medium host; synthetic public/example content"
+  },
+  {
+    "platform": "android",
+    "name": "android-host-tr.png",
+    "sha256": "6912edc587ec3bc9953d2cfc0b7c30ed5995aa87a23de911b0616ea12a0d4639",
+    "scope": "real Glance RemoteViews, medium host; synthetic public/example content"
+  },
+  {
+    "platform": "android",
+    "name": "android-host-id.png",
+    "sha256": "cbb72b4eb730cb7509d0ce62bbe5be157f260ca7a622d76782d84a7d63decfa0",
+    "scope": "real Glance RemoteViews, medium host; synthetic public/example content"
+  },
+  {
+    "platform": "android",
+    "name": "android-host-ur.png",
+    "sha256": "40b8292b5d41fd512b85767c34aa1e17f4cc43fbfa6d209340d7defbdc716577",
+    "scope": "real Glance RemoteViews, medium host; synthetic public/example content"
+  },
+  {
+    "platform": "android",
+    "name": "android-host-fr.png",
+    "sha256": "c9225b5f5a03a3f65bc5a80504e9c5aebc0b6f1783d82b571dce500a312b193d",
+    "scope": "real Glance RemoteViews, medium host; synthetic public/example content"
+  },
+  {
+    "platform": "android",
+    "name": "android-host-es-419.png",
+    "sha256": "52e623784e78bf60937da7ae2c02c47b40948578b0cc890e8568b3c586eb3e22",
+    "scope": "real Glance RemoteViews, medium host; synthetic public/example content"
+  },
+  {
+    "platform": "android",
+    "name": "android-host-pt-BR.png",
+    "sha256": "76114d56190da4a3f82b59d8731c6b79624690a9cecd76d7c8ebe8a82fec6f46",
+    "scope": "real Glance RemoteViews, medium host; synthetic public/example content"
+  },
+  {
+    "platform": "android",
+    "name": "android-host-sw.png",
+    "sha256": "258026efd1d18f13c3b23473142ab8b1dab49261f6fb9d49216c8c8d20c4561d",
+    "scope": "real Glance RemoteViews, medium host; synthetic public/example content"
+  },
+  {
+    "platform": "android",
+    "name": "android-host-hi.png",
+    "sha256": "b4facb1393e75f7772a6e2e6e6d75c62e582e4667222bcab5e3c6b7e822ebeaf",
+    "scope": "real Glance RemoteViews, medium host; synthetic public/example content"
+  },
+  {
+    "platform": "android",
+    "name": "android-host-bn.png",
+    "sha256": "8fa2cfac0265f6d523cabbb97dc5c5adf82e758e7fae78b0b62b570c4e825b45",
+    "scope": "real Glance RemoteViews, medium host; synthetic public/example content"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-continue-installed-en.png",
+    "sha256": "8e2ff1c123eb2becafe7eb7112f4a10c74e382f20b5f5fe71fad043d8c1608d7",
+    "scope": "real WidgetKit gallery installation and open; English simulator only"
+  }
+]

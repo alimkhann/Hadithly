@@ -1,0 +1,9 @@
+<resources>
+    <!-- Generated interface drafts; native review pending. -->
+    <string name="widget_daily_title">Hadith do dia</string>
+    <string name="widget_daily_description">Um lembrete privado de leitura do dia a partir de uma cópia salva.</string>
+    <string name="widget_continue_title">Continuar lendo</string>
+    <string name="widget_continue_description">Retome sua posição de leitura privada.</string>
+    <string name="notification_daily_channel_title">Hadith do dia</string>
+    <string name="notification_daily_channel_description">O lembrete do hadith do dia</string>
+</resources>

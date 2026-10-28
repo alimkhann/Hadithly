@@ -1,0 +1,9 @@
+<resources>
+    <!-- Generated interface drafts; native review pending. -->
+    <string name="widget_daily_title">Хадис дня</string>
+    <string name="widget_daily_description">Личное напоминание о чтении дня из сохранённой копии.</string>
+    <string name="widget_continue_title">Продолжить чтение</string>
+    <string name="widget_continue_description">Продолжайте с личной позиции чтения.</string>
+    <string name="notification_daily_channel_title">Хадис дня</string>
+    <string name="notification_daily_channel_description">Напоминание о хадисе дня</string>
+</resources>

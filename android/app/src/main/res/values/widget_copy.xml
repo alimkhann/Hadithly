@@ -1,0 +1,9 @@
+<resources>
+    <!-- Generated interface drafts; native review pending. -->
+    <string name="widget_daily_title">Daily Hadith</string>
+    <string name="widget_daily_description">A private, cached reading prompt for today.</string>
+    <string name="widget_continue_title">Continue Reading</string>
+    <string name="widget_continue_description">Resume your private reading position.</string>
+    <string name="notification_daily_channel_title">Daily Hadith</string>
+    <string name="notification_daily_channel_description">The daily hadith reminder</string>
+</resources>

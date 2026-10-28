@@ -1,0 +1,9 @@
+<resources>
+    <!-- Generated interface drafts; native review pending. -->
+    <string name="widget_daily_title">الحديث اليومي</string>
+    <string name="widget_daily_description">تذكير خاص بالقراءة اليومية من نسخة مخزنة.</string>
+    <string name="widget_continue_title">متابعة القراءة</string>
+    <string name="widget_continue_description">تابع القراءة من موضعك الخاص.</string>
+    <string name="notification_daily_channel_title">الحديث اليومي</string>
+    <string name="notification_daily_channel_description">تذكير الحديث اليومي</string>
+</resources>

@@ -1,0 +1,9 @@
+<resources>
+    <!-- Generated interface drafts; native review pending. -->
+    <string name="widget_daily_title">Hadis hari ini</string>
+    <string name="widget_daily_description">Pengingat bacaan pribadi hari ini dari salinan tersimpan.</string>
+    <string name="widget_continue_title">Lanjutkan membaca</string>
+    <string name="widget_continue_description">Lanjutkan dari posisi bacaan pribadi Anda.</string>
+    <string name="notification_daily_channel_title">Hadis hari ini</string>
+    <string name="notification_daily_channel_description">Pengingat hadis harian</string>
+</resources>

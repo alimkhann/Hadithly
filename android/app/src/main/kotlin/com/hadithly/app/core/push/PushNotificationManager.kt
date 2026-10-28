@@ -73,7 +73,7 @@ class PushNotificationManager(
             _state.value = PushRegistrationState.NotConfigured
             return
         }
-        ensureDailyNotificationChannel(appContext)
+        ensureDailyNotificationChannel(appContext, deviceProfile().uiLocale)
         _state.value = PushRegistrationState.Ready
         requestAndSaveToken()
     }
@@ -137,7 +137,8 @@ class HadithlyFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onMessageReceived(message: RemoteMessage) {
         val notification = message.notification ?: return
-        ensureDailyNotificationChannel(this)
+        val locale = HadithlyApplication.instance().preferences.preferences.value.uiLocale
+        ensureDailyNotificationChannel(this, locale)
         val manager = getSystemService(NotificationManager::class.java)
         val launchIntent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
@@ -151,7 +152,7 @@ class HadithlyFirebaseMessagingService : FirebaseMessagingService() {
         )
         val built = NotificationCompat.Builder(this, DAILY_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle(notification.title ?: "Hadith of the day")
+            .setContentTitle(notificationDisplayTitle(this, locale, notification.title))
             .setContentText(notification.body)
             .setStyle(NotificationCompat.BigTextStyle().bigText(notification.body))
             .setContentIntent(pendingIntent)
@@ -167,13 +168,22 @@ class HadithlyFirebaseMessagingService : FirebaseMessagingService() {
 
 private const val DAILY_CHANNEL_ID = "daily_hadith"
 
-private fun ensureDailyNotificationChannel(context: Context) {
+internal fun ensureDailyNotificationChannel(context: Context, locale: String) {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+    val resources = localizedNotificationResources(context, locale)
     context.getSystemService(NotificationManager::class.java).createNotificationChannel(
         NotificationChannel(
             DAILY_CHANNEL_ID,
-            "Daily hadith",
+            resources.getString(R.string.notification_daily_channel_title),
             NotificationManager.IMPORTANCE_DEFAULT,
-        ).apply { description = "The daily hadith reminder" },
+        ).apply { description = resources.getString(R.string.notification_daily_channel_description) },
     )
 }
+
+private fun localizedNotificationResources(context: Context, locale: String): android.content.res.Resources {
+    val configuration = android.content.res.Configuration(context.resources.configuration).apply { setLocale(java.util.Locale.forLanguageTag(locale.replace('_', '-'))) }
+    return context.createConfigurationContext(configuration).resources
+}
+
+internal fun notificationDisplayTitle(context: Context, locale: String, receivedTitle: String?): String =
+    receivedTitle ?: localizedNotificationResources(context, locale).getString(R.string.widget_daily_title)
