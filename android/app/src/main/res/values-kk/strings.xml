@@ -114,4 +114,5 @@
     <string name="q2_per_month">айына</string>
     <string name="q2_more">Тағы</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
+    <string name="saved_remove_message" formatted="false">Бұл әрекетті төмендегі хабарламадан кері қайтара аласыз.</string>
 </resources>

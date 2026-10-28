@@ -65,7 +65,7 @@
     <string name="native_30b8238e7f5b">Маған күн сайын хадис жіберу</string>
     <string name="native_30c1d8d3e912" formatted="false">Құпиясөзді ұмыттыңыз ба?</string>
     <string name="native_326d9c957d5a" formatted="false">Жүктеп салуды тоқтату</string>
-    <string name="native_33b93476cf59">Уақыт</string>
+    <string name="native_33b93476cf59" formatted="false">Уақыт</string>
     <string name="native_3bad88c3376c" formatted="false">Уақытша кэшті тазалау</string>
     <string name="native_437aea62a5bd" formatted="false">Мазмұны</string>
     <string name="native_46495379257b" formatted="false">Нобайды жою</string>
@@ -73,26 +73,26 @@
     <string name="native_482a6cdaa409">%1$s-бет</string>
     <string name="native_483dc4ca0c62">Файлда тек тасымалды деректеріңіз бар. Кіруіңіз керек; сессия мерзімі өтсе, алдымен қайта кіріңіз.</string>
     <string name="native_49103f50966a">%1$s аудармасы әлі қолжетімді емес.</string>
-    <string name="native_49c266baaaa7">Іздеу</string>
+    <string name="native_49c266baaaa7" formatted="false">Іздеу</string>
     <string name="native_4dc42835fbc3">Сілтеме: %1$s</string>
     <string name="native_51da6060f286" formatted="false">Evidence expired</string>
     <string name="native_540ec6e92d83">Sunnah.now ағылшын мәтінінен сәйкестік табылмады.</string>
     <string name="native_5474755405da" formatted="false">Қайта таңдау</string>
     <string name="native_565339bc4d33" formatted="false">Жарайды</string>
     <string name="native_5a22ad9780f1">%1$s ашылуда…</string>
-    <string name="native_5d69219595e8">Есептік жазбаны жою сәтсіз аяқталды</string>
+    <string name="native_5d69219595e8" formatted="false">Есептік жазбаны жою сәтсіз аяқталды</string>
     <string name="native_5f8fefc620cb">Мазмұнды жабу</string>
     <string name="native_63624455a1b0" formatted="false">Беттің соңы</string>
     <string name="native_657e34fbabb2">Пайдаланушы аты әріптен басталып, әріптерді, сандарды және төменгі сызықтарды қолданады.</string>
     <string name="native_6aeba22b0308" formatted="false">Сурет немесе PDF қосу</string>
     <string name="native_6cc8519b9158" formatted="false">Өту</string>
     <string name="native_6d5d90047973">Лицензиялар</string>
-    <string name="native_702ef921ed1d">Аты</string>
+    <string name="native_702ef921ed1d" formatted="false">Аты</string>
     <string name="native_709e31254bdd">Кемінде бір қабат көрініп тұрады.</string>
     <string name="native_71223a24948d" formatted="false">Аударма ұсыну</string>
     <string name="native_76a282009ba8">HTTPS дереккөз сілтемесі</string>
-    <string name="native_77889b3bab7e">Бетбелгілер мен жазбалар</string>
-    <string name="native_7b4888049459">Тегі</string>
+    <string name="native_77889b3bab7e" formatted="false">Бетбелгілер мен жазбалар</string>
+    <string name="native_7b4888049459" formatted="false">Тегі</string>
     <string name="native_7b503321357a" formatted="false">Есептік жазба мен деректерді жою</string>
     <string name="native_7d94fc6f0852">Жеке жазба жазыңыз…</string>
     <string name="native_82c66ec1be55" formatted="false">Evidence received; awaiting checks.</string>
@@ -111,7 +111,7 @@
     <string name="native_96be15d18327" formatted="false">Арабша мәтін</string>
     <string name="native_98770753608c" formatted="false">Evidence checks complete</string>
     <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
-    <string name="native_9f9feade761d">Жинақтар</string>
+    <string name="native_9f9feade761d" formatted="false">Жинақтар</string>
     <string name="native_a1a6ea9533fa">Офлайн іздеу қолжетімсіз.</string>
     <string name="native_b01111be1821">Ағылшын мәтінінен іздеу</string>
     <string name="native_b67dee925588">Sunnah.now ағылшын мәтіні</string>
@@ -124,17 +124,17 @@
     <string name="native_c1c1009d3f37" formatted="false">Жаңарту</string>
     <string name="native_c31723ab3302">Ізделуде…</string>
     <string name="native_c4bbcbb7a6a7">Негіздеме дәйексөздері</string>
-    <string name="native_ca99bb9196aa">Тек Wi-Fi</string>
+    <string name="native_ca99bb9196aa" formatted="false">Тек Wi-Fi</string>
     <string name="native_d0dc72eadb20">Ағылшын мәтінінен іздеу үшін жоғарыға жазыңыз.</string>
     <string name="native_d640c7421da0" formatted="false">Жалғастыру</string>
     <string name="native_d6eafe823591" formatted="false">Жүктеу</string>
     <string name="native_d8da2c49df39" formatted="false">Жазба</string>
     <string name="native_d9a85e0a70d8" formatted="false">Оның орнына кодпен кіру</string>
-    <string name="native_dcd1d5223f73">Аты-жөні</string>
+    <string name="native_dcd1d5223f73" formatted="false">Аты-жөні</string>
     <string name="native_de60e9e3043d">%1$s нүкте</string>
     <string name="native_dfe9ca4d0f96" formatted="false">Сілтеме қосу</string>
     <string name="native_e05372bd9e28" formatted="false">Аударманы жүктеу</string>
-    <string name="native_ecdba5aa3ba4">Деректерді экспорттау керек пе?</string>
+    <string name="native_ecdba5aa3ba4" formatted="false">Деректерді экспорттау керек пе?</string>
     <string name="native_f038ae10080f" formatted="false">Аудармаға шағымдану</string>
     <string name="native_ba3bbbe10d8b" formatted="false">Жүктелуде…</string>
     <string name="native_91bf928d3527" formatted="false">Бет жүктелуде</string>
@@ -211,4 +211,63 @@
     <string name="native_35045eff549e" formatted="false">Қағаз</string>
     <string name="native_46821f0b7acc" formatted="false">Қолданба көрінісі</string>
     <string name="native_2ccb1be6d319" formatted="false">%s пт</string>
+    <string name="native_63565c0485fe" formatted="false">Жазба қосу</string>
+    <string name="native_299e604ccff3" formatted="false">Жазбаны өңдеу</string>
+    <string name="native_4c546858a6a6" formatted="false">Оқу үшін ашу</string>
+    <string name="native_86524e24e26a" formatted="false">Кітапхананы тізім түрінде көрсету</string>
+    <string name="native_fea264d716d3" formatted="false">Кітапхананы тор түрінде көрсету</string>
+    <string name="native_aa69cfa701a6" formatted="false">Бетбелгі қойылған</string>
+    <string name="native_86f5562ff32e" formatted="false">Таңдаулыларға қосылған</string>
+    <string name="native_5bfefd244c17" formatted="false">Жазбасы бар</string>
+    <string name="native_47ce7f7fb0dd" formatted="false">Сақталғандарды сүзу</string>
+    <string name="native_642030cddde8" formatted="false">Сақталған элемент әрекеттері</string>
+    <string name="native_94be6a7413a9" formatted="false">Дереккөз мәліметтерін көрсетеді</string>
+    <string name="native_183b1d17b908" formatted="false">Бұл хадисті оқу үшін ашады</string>
+    <string name="native_cfca7a6fc552" formatted="false">Осы қалтаны ашады. Қалта әрекеттері үшін басып тұрыңыз.</string>
+    <string name="native_340ac4c3fd1f" formatted="false">Apple арқылы жалғастыру</string>
+    <string name="native_cce937e89144" formatted="false">Google арқылы жалғастыру</string>
+    <string name="native_e60c048be6a6" formatted="false">Қонақ ретінде оқуды жалғастыру</string>
+    <string name="native_2a347f1933d4" formatted="false">Электрондық пошта немесе пайдаланушы аты</string>
+    <string name="native_e7cf3ef4f17c" formatted="false">Құпиясөз</string>
+    <string name="native_b74070f90e8c" formatted="false">Құпиясөзді қайталау</string>
+    <string name="native_3dd9df4441fb" formatted="false">Жаңа құпиясөз</string>
+    <string name="native_a9ebb3cce9a6" formatted="false">Дәлелді жүктеу барысы</string>
+    <string name="native_c0c4fe024690" formatted="false">Дәлел өңделуде</string>
+    <string name="native_a2d52ca90888" formatted="false">Ұсынылған аударма</string>
+    <string name="native_d31378346c4b" formatted="false">Құрылғыны тексергеннен кейін экспорттау</string>
+    <string name="native_c00e66e2395d" formatted="false">Сұрақтар мен нұсқаулықтар</string>
+    <string name="native_814f4ed2d5bd" formatted="false">Қолдау қызметіне хабарласу</string>
+    <string name="native_5221d9b4843b" formatted="false">Аударма мәселесін хабарлау</string>
+    <string name="native_399914d1ad28" formatted="false">Hadithly бөлісу</string>
+    <string name="native_74ccd4330384" formatted="false">Қалта</string>
+    <string name="native_a43619f32117" formatted="false">Нәтиже жоқ</string>
+    <string name="native_ca3f2b79e2c1" formatted="false">Іздеу қолжетімсіз</string>
+    <string name="native_24987507acda" formatted="false">Осы жинақтан іздеу</string>
+    <string name="native_e1b6f1196ef1" formatted="false">Беттің басы</string>
+    <string name="native_df2cdb48632f" formatted="false">Қолданба параметрлерін ашу</string>
+    <string name="native_34afebd0f332" formatted="false">Бұл тіркелгі үшін Pro белсенді</string>
+    <string name="native_a8103c04d748" formatted="false">Экспорт файлын бөлісу</string>
+    <string name="native_4787eaf7c938" formatted="false">Құқықтық ақпарат</string>
+    <string name="native_33c8e8de41c3" formatted="false">Тексерілмеген</string>
+    <string name="native_969ccbd3cf63" formatted="false">Электрондық пошта</string>
+    <string name="native_3ee75029c70e" formatted="false">Растау коды</string>
+    <string name="native_7f3c0782afd7" formatted="false">Таңдаулыларға қосу</string>
+    <string name="native_legal_placeholder" formatted="false">Жалғастыру арқылы %1$s құжатын қабылдайсыз. %2$s құжатын оқыңыз.</string>
+    <string name="native_1d4f1035e674" formatted="false">Бетбелгілеріңіз бен жазбаларыңызды құрылғылар арасында алып жүріңіз.</string>
+    <string name="native_7732287944e2" formatted="false">Электрондық поштаңызды тексеріңіз</string>
+    <string name="native_833b8512168f" formatted="false">Жаңа құпиясөз таңдаңыз</string>
+    <string name="native_8c99a08652d2" formatted="false">Электрондық поштамен жалғастыру</string>
+    <string name="native_9e709348f582" formatted="false">Аккаунтыңызды жасаңыз</string>
+    <string name="native_59fa4379be1f" formatted="false">Құпиясөзді қалпына келтіру</string>
+    <string name="native_66a5b4090d14" formatted="false">Код жіберу</string>
+    <string name="native_6ee6d9db4278" formatted="false">Жаңа құпиясөз орнату</string>
+    <string name="native_a7b099976a02" formatted="false">Электрондық пошта немесе пайдаланушы атымен кіріңіз.</string>
+    <string name="native_eea2745e2867" formatted="false">Растау</string>
+    <string name="native_20643ec400c0" formatted="false">Кодыңызды электрондық пошта мекенжайыңызға жібереміз.</string>
+    <string name="native_fbb9f4cfc680" formatted="false">Алты таңбалы кіру кодын жібереміз.</string>
+    <string name="native_6621249514b7" formatted="false">Қайта қош келдіңіз</string>
+    <string name="native_71da039c290f" formatted="false">Электрондық поштаңыз қандай?</string>
+    <string name="native_ecf41b32aac1" formatted="false">%s мекенжайына жіберген кодты енгізіңіз.</string>
+    <string name="native_8983aa13bee3" formatted="false">%s мекенжайына жіберілген кодты және жаңа құпиясөзіңізді енгізіңіз.</string>
+    <string name="native_fad91b01d03b" formatted="false">Жинақ пен хадис нөмірін көрсетіңіз</string>
 </resources>

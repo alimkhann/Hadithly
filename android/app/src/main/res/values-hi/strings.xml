@@ -114,4 +114,5 @@
     <string name="q2_per_month">प्रति माह</string>
     <string name="q2_more">और</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
+    <string name="saved_remove_message" formatted="false">आप नीचे दिए गए संदेश से यह कार्रवाई पूर्ववत कर सकते हैं।</string>
 </resources>

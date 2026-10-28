@@ -65,7 +65,7 @@
     <string name="native_30b8238e7f5b">Kirimkan hadis setiap hari</string>
     <string name="native_30c1d8d3e912" formatted="false">Lupa kata sandi?</string>
     <string name="native_326d9c957d5a" formatted="false">Batalkan unggahan</string>
-    <string name="native_33b93476cf59">Waktu</string>
+    <string name="native_33b93476cf59" formatted="false">Waktu</string>
     <string name="native_3bad88c3376c" formatted="false">Hapus cache sementara</string>
     <string name="native_437aea62a5bd" formatted="false">Daftar isi</string>
     <string name="native_46495379257b" formatted="false">Hapus draf</string>
@@ -73,26 +73,26 @@
     <string name="native_482a6cdaa409">Halaman %1$s</string>
     <string name="native_483dc4ca0c62">File hanya berisi data portabel Anda. Anda harus masuk; jika sesi kedaluwarsa, masuk lagi terlebih dahulu.</string>
     <string name="native_49103f50966a">Terjemahan %1$s belum tersedia.</string>
-    <string name="native_49c266baaaa7">Cari</string>
+    <string name="native_49c266baaaa7" formatted="false">Cari</string>
     <string name="native_4dc42835fbc3">Referensi: %1$s</string>
     <string name="native_51da6060f286" formatted="false">Evidence expired</string>
     <string name="native_540ec6e92d83">Tidak ada kecocokan dalam teks bahasa Inggris Sunnah.now.</string>
     <string name="native_5474755405da" formatted="false">Pilih lagi</string>
     <string name="native_565339bc4d33" formatted="false">Oke</string>
     <string name="native_5a22ad9780f1">Membuka %1$s…</string>
-    <string name="native_5d69219595e8">Penghapusan akun gagal</string>
+    <string name="native_5d69219595e8" formatted="false">Penghapusan akun gagal</string>
     <string name="native_5f8fefc620cb">Tutup daftar isi</string>
     <string name="native_63624455a1b0" formatted="false">Akhir halaman</string>
     <string name="native_657e34fbabb2">Nama pengguna diawali huruf dan menggunakan huruf, angka, serta garis bawah.</string>
     <string name="native_6aeba22b0308" formatted="false">Tambahkan gambar atau PDF</string>
     <string name="native_6cc8519b9158" formatted="false">Buka</string>
     <string name="native_6d5d90047973">Lisensi</string>
-    <string name="native_702ef921ed1d">Nama depan</string>
+    <string name="native_702ef921ed1d" formatted="false">Nama depan</string>
     <string name="native_709e31254bdd">Setidaknya satu lapisan tetap terlihat.</string>
     <string name="native_71223a24948d" formatted="false">Sarankan terjemahan</string>
     <string name="native_76a282009ba8">Tautan sumber HTTPS</string>
-    <string name="native_77889b3bab7e">Bookmark &amp; Catatan</string>
-    <string name="native_7b4888049459">Nama belakang</string>
+    <string name="native_77889b3bab7e" formatted="false">Bookmark &amp; Catatan</string>
+    <string name="native_7b4888049459" formatted="false">Nama belakang</string>
     <string name="native_7b503321357a" formatted="false">Hapus akun dan data</string>
     <string name="native_7d94fc6f0852">Tulis catatan privat…</string>
     <string name="native_82c66ec1be55" formatted="false">Evidence received; awaiting checks.</string>
@@ -111,7 +111,7 @@
     <string name="native_96be15d18327" formatted="false">Teks Arab</string>
     <string name="native_98770753608c" formatted="false">Evidence checks complete</string>
     <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
-    <string name="native_9f9feade761d">Koleksi</string>
+    <string name="native_9f9feade761d" formatted="false">Koleksi</string>
     <string name="native_a1a6ea9533fa">Pencarian tidak tersedia offline.</string>
     <string name="native_b01111be1821">Cari teks bahasa Inggris</string>
     <string name="native_b67dee925588">Teks bahasa Inggris Sunnah.now</string>
@@ -124,17 +124,17 @@
     <string name="native_c1c1009d3f37" formatted="false">Perbarui</string>
     <string name="native_c31723ab3302">Mencari…</string>
     <string name="native_c4bbcbb7a6a7">Kutipan pendukung</string>
-    <string name="native_ca99bb9196aa">Hanya Wi-Fi</string>
+    <string name="native_ca99bb9196aa" formatted="false">Hanya Wi-Fi</string>
     <string name="native_d0dc72eadb20">Ketik di atas untuk mencari teks bahasa Inggris.</string>
     <string name="native_d640c7421da0" formatted="false">Lanjutkan</string>
     <string name="native_d6eafe823591" formatted="false">Unduh</string>
     <string name="native_d8da2c49df39" formatted="false">Catatan</string>
     <string name="native_d9a85e0a70d8" formatted="false">Masuk dengan kode</string>
-    <string name="native_dcd1d5223f73">Nama</string>
+    <string name="native_dcd1d5223f73" formatted="false">Nama</string>
     <string name="native_de60e9e3043d">%1$s poin</string>
     <string name="native_dfe9ca4d0f96" formatted="false">Tambahkan tautan</string>
     <string name="native_e05372bd9e28" formatted="false">Unduh terjemahan</string>
-    <string name="native_ecdba5aa3ba4">Ekspor data Anda?</string>
+    <string name="native_ecdba5aa3ba4" formatted="false">Ekspor data Anda?</string>
     <string name="native_f038ae10080f" formatted="false">Laporkan terjemahan</string>
     <string name="native_ba3bbbe10d8b" formatted="false">Memuat…</string>
     <string name="native_91bf928d3527" formatted="false">Memuat halaman</string>
@@ -211,4 +211,63 @@
     <string name="native_35045eff549e" formatted="false">Kertas</string>
     <string name="native_46821f0b7acc" formatted="false">Tampilan aplikasi</string>
     <string name="native_2ccb1be6d319" formatted="false">%s pt</string>
+    <string name="native_63565c0485fe" formatted="false">Tambah catatan</string>
+    <string name="native_299e604ccff3" formatted="false">Edit catatan</string>
+    <string name="native_4c546858a6a6" formatted="false">Buka di pembaca</string>
+    <string name="native_86524e24e26a" formatted="false">Tampilkan pustaka sebagai daftar</string>
+    <string name="native_fea264d716d3" formatted="false">Tampilkan pustaka sebagai kisi</string>
+    <string name="native_aa69cfa701a6" formatted="false">Ditandai</string>
+    <string name="native_86f5562ff32e" formatted="false">Ditambahkan ke favorit</string>
+    <string name="native_5bfefd244c17" formatted="false">Memiliki catatan</string>
+    <string name="native_47ce7f7fb0dd" formatted="false">Filter tersimpan</string>
+    <string name="native_642030cddde8" formatted="false">Tindakan item tersimpan</string>
+    <string name="native_94be6a7413a9" formatted="false">Menampilkan detail sumber</string>
+    <string name="native_183b1d17b908" formatted="false">Membuka hadis ini di pembaca</string>
+    <string name="native_cfca7a6fc552" formatted="false">Membuka folder ini. Tekan lama untuk tindakan folder.</string>
+    <string name="native_340ac4c3fd1f" formatted="false">Lanjutkan dengan Apple</string>
+    <string name="native_cce937e89144" formatted="false">Lanjutkan dengan Google</string>
+    <string name="native_e60c048be6a6" formatted="false">Lanjutkan membaca sebagai tamu</string>
+    <string name="native_2a347f1933d4" formatted="false">Email atau nama pengguna</string>
+    <string name="native_e7cf3ef4f17c" formatted="false">Kata sandi</string>
+    <string name="native_b74070f90e8c" formatted="false">Ulangi kata sandi</string>
+    <string name="native_3dd9df4441fb" formatted="false">Kata sandi baru</string>
+    <string name="native_a9ebb3cce9a6" formatted="false">Progres unggah bukti</string>
+    <string name="native_c0c4fe024690" formatted="false">Memproses bukti</string>
+    <string name="native_a2d52ca90888" formatted="false">Usulan terjemahan</string>
+    <string name="native_d31378346c4b" formatted="false">Ekspor setelah pemeriksaan perangkat</string>
+    <string name="native_c00e66e2395d" formatted="false">Pertanyaan dan panduan</string>
+    <string name="native_814f4ed2d5bd" formatted="false">Hubungi dukungan</string>
+    <string name="native_5221d9b4843b" formatted="false">Laporkan masalah terjemahan</string>
+    <string name="native_399914d1ad28" formatted="false">Bagikan Hadithly</string>
+    <string name="native_74ccd4330384" formatted="false">Folder</string>
+    <string name="native_a43619f32117" formatted="false">Tidak ada hasil</string>
+    <string name="native_ca3f2b79e2c1" formatted="false">Pencarian tidak tersedia</string>
+    <string name="native_24987507acda" formatted="false">Cari dalam koleksi ini</string>
+    <string name="native_e1b6f1196ef1" formatted="false">Awal halaman</string>
+    <string name="native_df2cdb48632f" formatted="false">Buka pengaturan aplikasi</string>
+    <string name="native_34afebd0f332" formatted="false">Pro aktif untuk akun ini</string>
+    <string name="native_a8103c04d748" formatted="false">Bagikan file ekspor</string>
+    <string name="native_4787eaf7c938" formatted="false">Informasi hukum</string>
+    <string name="native_33c8e8de41c3" formatted="false">Belum diverifikasi</string>
+    <string name="native_969ccbd3cf63" formatted="false">Email</string>
+    <string name="native_3ee75029c70e" formatted="false">Kode verifikasi</string>
+    <string name="native_7f3c0782afd7" formatted="false">Tambahkan ke favorit</string>
+    <string name="native_legal_placeholder" formatted="false">Dengan melanjutkan, Anda menyetujui %1$s. Baca %2$s.</string>
+    <string name="native_1d4f1035e674" formatted="false">Bawa penanda dan catatan Anda ke seluruh perangkat.</string>
+    <string name="native_7732287944e2" formatted="false">Periksa email Anda</string>
+    <string name="native_833b8512168f" formatted="false">Pilih kata sandi baru</string>
+    <string name="native_8c99a08652d2" formatted="false">Lanjutkan dengan email</string>
+    <string name="native_9e709348f582" formatted="false">Buat akun Anda</string>
+    <string name="native_59fa4379be1f" formatted="false">Atur ulang kata sandi</string>
+    <string name="native_66a5b4090d14" formatted="false">Kirim kode</string>
+    <string name="native_6ee6d9db4278" formatted="false">Atur kata sandi baru</string>
+    <string name="native_a7b099976a02" formatted="false">Masuk dengan email atau nama pengguna Anda.</string>
+    <string name="native_eea2745e2867" formatted="false">Verifikasi</string>
+    <string name="native_20643ec400c0" formatted="false">Kami akan mengirim kode ke alamat email Anda.</string>
+    <string name="native_fbb9f4cfc680" formatted="false">Kami akan mengirim kode masuk enam digit.</string>
+    <string name="native_6621249514b7" formatted="false">Selamat datang kembali</string>
+    <string name="native_71da039c290f" formatted="false">Apa email Anda?</string>
+    <string name="native_ecf41b32aac1" formatted="false">Masukkan kode yang kami kirim ke %s.</string>
+    <string name="native_8983aa13bee3" formatted="false">Masukkan kode yang dikirim ke %s dan kata sandi baru Anda.</string>
+    <string name="native_fad91b01d03b" formatted="false">Sertakan koleksi dan nomor hadis</string>
 </resources>

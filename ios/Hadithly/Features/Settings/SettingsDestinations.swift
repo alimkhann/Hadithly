@@ -1193,6 +1193,7 @@ struct PrivacyDataView: View {
 // MARK: - Help & support
 
 struct HelpSupportView: View {
+    @Environment(\.locale) private var locale
     var body: some View {
         SettingsList("Help & support") {
             Section {
@@ -1211,7 +1212,7 @@ struct HelpSupportView: View {
                 .accessibilityIdentifier("settings.help.contact")
                 SettingsLinkRow(
                     title: "Report a translation issue",
-                    subtitle: "Include the collection and hadith number",
+                    subtitle: AppLocalization.string("Include the collection and hadith number", locale: locale),
                     systemImage: "exclamationmark.bubble",
                     destination: URL(string: "mailto:\(SettingsLinks.supportEmail)?subject=Translation%20issue")!
                 )

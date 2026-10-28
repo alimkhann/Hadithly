@@ -1,0 +1,39 @@
+{
+  "native_review": "pending",
+  "reuse_indexed_ios": true,
+  "keys": [
+    "Carry your bookmarks and notes across devices.",
+    "Check your email",
+    "Choose a new password",
+    "Continue with email",
+    "Create your account",
+    "Reset your password",
+    "Send code",
+    "Set new password",
+    "Sign in with your email or username.",
+    "Verify",
+    "We'll send a code to your email address.",
+    "We'll send a six-digit sign-in code.",
+    "Welcome back",
+    "What's your email?",
+    "Enter the code we sent to %@.",
+    "Enter the code sent to %@ and your new password."
+  ],
+  "locales": [
+    "en",
+    "ar",
+    "ru",
+    "kk",
+    "ky",
+    "uz",
+    "tr",
+    "id",
+    "ur",
+    "fr",
+    "es-419",
+    "pt-BR",
+    "sw",
+    "hi",
+    "bn"
+  ]
+}

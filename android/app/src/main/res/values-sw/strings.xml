@@ -114,4 +114,5 @@
     <string name="q2_per_month">kwa mwezi</string>
     <string name="q2_more">Zaidi</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
+    <string name="saved_remove_message" formatted="false">Unaweza kutengua hatua hii kupitia ujumbe ulio hapa chini.</string>
 </resources>

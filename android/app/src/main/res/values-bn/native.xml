@@ -65,7 +65,7 @@
     <string name="native_30b8238e7f5b">প্রতিদিন আমাকে একটি হাদিস পাঠান</string>
     <string name="native_30c1d8d3e912" formatted="false">পাসওয়ার্ড ভুলে গেছেন?</string>
     <string name="native_326d9c957d5a" formatted="false">আপলোড বাতিল করুন</string>
-    <string name="native_33b93476cf59">সময়</string>
+    <string name="native_33b93476cf59" formatted="false">সময়</string>
     <string name="native_3bad88c3376c" formatted="false">অস্থায়ী ক্যাশে পরিষ্কার করুন</string>
     <string name="native_437aea62a5bd" formatted="false">সূচিপত্র</string>
     <string name="native_46495379257b" formatted="false">খসড়া মুছুন</string>
@@ -73,26 +73,26 @@
     <string name="native_482a6cdaa409">পৃষ্ঠা %1$s</string>
     <string name="native_483dc4ca0c62">ফাইলটিতে শুধু আপনার বহনযোগ্য ডেটা আছে। আপনাকে সাইন ইন করতে হবে; সেশন শেষ হলে আগে আবার সাইন ইন করুন।</string>
     <string name="native_49103f50966a">%1$s অনুবাদ এখনও পাওয়া যায়নি।</string>
-    <string name="native_49c266baaaa7">অনুসন্ধান</string>
+    <string name="native_49c266baaaa7" formatted="false">অনুসন্ধান</string>
     <string name="native_4dc42835fbc3">রেফারেন্স: %1$s</string>
     <string name="native_51da6060f286" formatted="false">Evidence expired</string>
     <string name="native_540ec6e92d83">Sunnah.now-এর ইংরেজি লেখায় কোনো মিল নেই।</string>
     <string name="native_5474755405da" formatted="false">আবার নির্বাচন করুন</string>
     <string name="native_565339bc4d33" formatted="false">ঠিক আছে</string>
     <string name="native_5a22ad9780f1">%1$s খোলা হচ্ছে…</string>
-    <string name="native_5d69219595e8">অ্যাকাউন্ট মুছতে ব্যর্থ হয়েছে</string>
+    <string name="native_5d69219595e8" formatted="false">অ্যাকাউন্ট মুছতে ব্যর্থ হয়েছে</string>
     <string name="native_5f8fefc620cb">সূচিপত্র বন্ধ করুন</string>
     <string name="native_63624455a1b0" formatted="false">পাতার শেষ</string>
     <string name="native_657e34fbabb2">ব্যবহারকারীর নাম একটি অক্ষর দিয়ে শুরু হয় এবং অক্ষর, সংখ্যা ও আন্ডারস্কোর ব্যবহার করে।</string>
     <string name="native_6aeba22b0308" formatted="false">ছবি বা PDF যোগ করুন</string>
     <string name="native_6cc8519b9158" formatted="false">যান</string>
     <string name="native_6d5d90047973">লাইসেন্স</string>
-    <string name="native_702ef921ed1d">নামের প্রথম অংশ</string>
+    <string name="native_702ef921ed1d" formatted="false">নামের প্রথম অংশ</string>
     <string name="native_709e31254bdd">অন্তত একটি স্তর দৃশ্যমান থাকে।</string>
     <string name="native_71223a24948d" formatted="false">অনুবাদ প্রস্তাব করুন</string>
     <string name="native_76a282009ba8">HTTPS উৎসের লিংক</string>
-    <string name="native_77889b3bab7e">বুকমার্ক ও নোট</string>
-    <string name="native_7b4888049459">নামের শেষ অংশ</string>
+    <string name="native_77889b3bab7e" formatted="false">বুকমার্ক ও নোট</string>
+    <string name="native_7b4888049459" formatted="false">নামের শেষ অংশ</string>
     <string name="native_7b503321357a" formatted="false">অ্যাকাউন্ট ও ডেটা মুছুন</string>
     <string name="native_7d94fc6f0852">একটি ব্যক্তিগত নোট লিখুন…</string>
     <string name="native_82c66ec1be55" formatted="false">Evidence received; awaiting checks.</string>
@@ -111,7 +111,7 @@
     <string name="native_96be15d18327" formatted="false">আরবি লেখা</string>
     <string name="native_98770753608c" formatted="false">Evidence checks complete</string>
     <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
-    <string name="native_9f9feade761d">সংকলন</string>
+    <string name="native_9f9feade761d" formatted="false">সংকলন</string>
     <string name="native_a1a6ea9533fa">অফলাইনে অনুসন্ধান পাওয়া যায় না।</string>
     <string name="native_b01111be1821">ইংরেজি লেখা অনুসন্ধান করুন</string>
     <string name="native_b67dee925588">Sunnah.now-এর ইংরেজি লেখা</string>
@@ -124,17 +124,17 @@
     <string name="native_c1c1009d3f37" formatted="false">আপডেট করুন</string>
     <string name="native_c31723ab3302">অনুসন্ধান করা হচ্ছে…</string>
     <string name="native_c4bbcbb7a6a7">ভিত্তির উদ্ধৃতি</string>
-    <string name="native_ca99bb9196aa">শুধু Wi-Fi</string>
+    <string name="native_ca99bb9196aa" formatted="false">শুধু Wi-Fi</string>
     <string name="native_d0dc72eadb20">ইংরেজি লেখায় অনুসন্ধান করতে উপরে লিখুন।</string>
     <string name="native_d640c7421da0" formatted="false">চালিয়ে যান</string>
     <string name="native_d6eafe823591" formatted="false">ডাউনলোড করুন</string>
     <string name="native_d8da2c49df39" formatted="false">নোট</string>
     <string name="native_d9a85e0a70d8" formatted="false">এর পরিবর্তে কোড দিয়ে সাইন ইন করুন</string>
-    <string name="native_dcd1d5223f73">নাম</string>
+    <string name="native_dcd1d5223f73" formatted="false">নাম</string>
     <string name="native_de60e9e3043d">%1$s পয়েন্ট</string>
     <string name="native_dfe9ca4d0f96" formatted="false">লিংক যোগ করুন</string>
     <string name="native_e05372bd9e28" formatted="false">অনুবাদ ডাউনলোড করুন</string>
-    <string name="native_ecdba5aa3ba4">আপনার ডেটা রপ্তানি করবেন?</string>
+    <string name="native_ecdba5aa3ba4" formatted="false">আপনার ডেটা রপ্তানি করবেন?</string>
     <string name="native_f038ae10080f" formatted="false">অনুবাদ রিপোর্ট করুন</string>
     <string name="native_ba3bbbe10d8b" formatted="false">লোড হচ্ছে…</string>
     <string name="native_91bf928d3527" formatted="false">পৃষ্ঠা লোড হচ্ছে</string>
@@ -211,4 +211,63 @@
     <string name="native_35045eff549e" formatted="false">কাগজ</string>
     <string name="native_46821f0b7acc" formatted="false">অ্যাপের চেহারা</string>
     <string name="native_2ccb1be6d319" formatted="false">%s পয়েন্ট</string>
+    <string name="native_63565c0485fe" formatted="false">নোট যোগ করুন</string>
+    <string name="native_299e604ccff3" formatted="false">নোট সম্পাদনা করুন</string>
+    <string name="native_4c546858a6a6" formatted="false">রিডারে খুলুন</string>
+    <string name="native_86524e24e26a" formatted="false">লাইব্রেরি তালিকা আকারে দেখান</string>
+    <string name="native_fea264d716d3" formatted="false">লাইব্রেরি ছক আকারে দেখান</string>
+    <string name="native_aa69cfa701a6" formatted="false">বুকমার্ক করা আছে</string>
+    <string name="native_86f5562ff32e" formatted="false">পছন্দের তালিকায় যোগ করা আছে</string>
+    <string name="native_5bfefd244c17" formatted="false">নোট আছে</string>
+    <string name="native_47ce7f7fb0dd" formatted="false">সংরক্ষিত বিষয়ের ফিল্টার</string>
+    <string name="native_642030cddde8" formatted="false">সংরক্ষিত বিষয়ের বিকল্প</string>
+    <string name="native_94be6a7413a9" formatted="false">উৎসের বিবরণ দেখায়</string>
+    <string name="native_183b1d17b908" formatted="false">এই হাদিস রিডারে খোলে</string>
+    <string name="native_cfca7a6fc552" formatted="false">এই ফোল্ডার খোলে। বিকল্পের জন্য চেপে ধরে রাখুন।</string>
+    <string name="native_340ac4c3fd1f" formatted="false">Apple দিয়ে চালিয়ে যান</string>
+    <string name="native_cce937e89144" formatted="false">Google দিয়ে চালিয়ে যান</string>
+    <string name="native_e60c048be6a6" formatted="false">অতিথি হিসেবে পড়া চালিয়ে যান</string>
+    <string name="native_2a347f1933d4" formatted="false">ইমেইল বা ব্যবহারকারীর নাম</string>
+    <string name="native_e7cf3ef4f17c" formatted="false">পাসওয়ার্ড</string>
+    <string name="native_b74070f90e8c" formatted="false">পাসওয়ার্ড আবার লিখুন</string>
+    <string name="native_3dd9df4441fb" formatted="false">নতুন পাসওয়ার্ড</string>
+    <string name="native_a9ebb3cce9a6" formatted="false">প্রমাণ আপলোডের অগ্রগতি</string>
+    <string name="native_c0c4fe024690" formatted="false">প্রমাণ প্রক্রিয়া করা হচ্ছে</string>
+    <string name="native_a2d52ca90888" formatted="false">প্রস্তাবিত অনুবাদ</string>
+    <string name="native_d31378346c4b" formatted="false">ডিভাইস যাচাইয়ের পর রপ্তানি করুন</string>
+    <string name="native_c00e66e2395d" formatted="false">প্রশ্ন ও নির্দেশিকা</string>
+    <string name="native_814f4ed2d5bd" formatted="false">সহায়তায় যোগাযোগ করুন</string>
+    <string name="native_5221d9b4843b" formatted="false">অনুবাদের সমস্যা জানান</string>
+    <string name="native_399914d1ad28" formatted="false">Hadithly শেয়ার করুন</string>
+    <string name="native_74ccd4330384" formatted="false">ফোল্ডার</string>
+    <string name="native_a43619f32117" formatted="false">কোনো ফলাফল নেই</string>
+    <string name="native_ca3f2b79e2c1" formatted="false">অনুসন্ধান উপলব্ধ নয়</string>
+    <string name="native_24987507acda" formatted="false">এই সংকলনে খুঁজুন</string>
+    <string name="native_e1b6f1196ef1" formatted="false">পৃষ্ঠার শুরু</string>
+    <string name="native_df2cdb48632f" formatted="false">অ্যাপের সেটিংস খুলুন</string>
+    <string name="native_34afebd0f332" formatted="false">এই অ্যাকাউন্টে Pro সক্রিয়</string>
+    <string name="native_a8103c04d748" formatted="false">রপ্তানি করা ফাইল শেয়ার করুন</string>
+    <string name="native_4787eaf7c938" formatted="false">আইনি তথ্য</string>
+    <string name="native_33c8e8de41c3" formatted="false">যাচাই করা হয়নি</string>
+    <string name="native_969ccbd3cf63" formatted="false">ইমেইল</string>
+    <string name="native_3ee75029c70e" formatted="false">যাচাইকরণ কোড</string>
+    <string name="native_7f3c0782afd7" formatted="false">পছন্দের তালিকায় যোগ করুন</string>
+    <string name="native_legal_placeholder" formatted="false">চালিয়ে গেলে আপনি আমাদের %1$s মেনে নিচ্ছেন। আমাদের %2$s পড়ুন।</string>
+    <string name="native_1d4f1035e674" formatted="false">ডিভাইসগুলোর মধ্যে বুকমার্ক ও নোট বহন করুন।</string>
+    <string name="native_7732287944e2" formatted="false">আপনার ইমেল দেখুন</string>
+    <string name="native_833b8512168f" formatted="false">নতুন পাসওয়ার্ড বেছে নিন</string>
+    <string name="native_8c99a08652d2" formatted="false">ইমেল দিয়ে চালিয়ে যান</string>
+    <string name="native_9e709348f582" formatted="false">আপনার অ্যাকাউন্ট তৈরি করুন</string>
+    <string name="native_59fa4379be1f" formatted="false">পাসওয়ার্ড রিসেট করুন</string>
+    <string name="native_66a5b4090d14" formatted="false">কোড পাঠান</string>
+    <string name="native_6ee6d9db4278" formatted="false">নতুন পাসওয়ার্ড সেট করুন</string>
+    <string name="native_a7b099976a02" formatted="false">ইমেল বা ব্যবহারকারীর নাম দিয়ে সাইন ইন করুন।</string>
+    <string name="native_eea2745e2867" formatted="false">যাচাই করুন</string>
+    <string name="native_20643ec400c0" formatted="false">আপনার ইমেল ঠিকানায় একটি কোড পাঠাব।</string>
+    <string name="native_fbb9f4cfc680" formatted="false">ছয় সংখ্যার সাইন-ইন কোড পাঠাব।</string>
+    <string name="native_6621249514b7" formatted="false">আবার স্বাগতম</string>
+    <string name="native_71da039c290f" formatted="false">আপনার ইমেল কী?</string>
+    <string name="native_ecf41b32aac1" formatted="false">%s-এ পাঠানো কোড লিখুন।</string>
+    <string name="native_8983aa13bee3" formatted="false">%s-এ পাঠানো কোড ও নতুন পাসওয়ার্ড লিখুন।</string>
+    <string name="native_fad91b01d03b" formatted="false">সংকলন ও হাদিস নম্বর উল্লেখ করুন</string>
 </resources>

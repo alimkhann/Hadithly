@@ -1231,7 +1231,7 @@ private fun PolicyRow(title: String, onClick: () -> Unit, modifier: Modifier = M
 // ── Help & support / About ─────────────────────────────────────────────────
 
 @Composable
-private fun HelpSupportDestination() {
+internal fun HelpSupportDestination() {
     val colors = LocalHadithlyColors.current
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current

@@ -1,5 +1,7 @@
 package com.hadithly.app.features.auth
 
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import com.hadithly.app.core.preferences.nativeText
 
 import androidx.compose.foundation.background
@@ -192,13 +194,13 @@ private fun AuthHeader(title: String, subtitle: String) {
     val colors = LocalHadithlyColors.current
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            text = title,
+            text = nativeText(title),
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
             color = colors.textPrimary,
         )
         Text(
-            text = subtitle,
+            text = nativeText(subtitle),
             fontSize = 15.sp,
             color = colors.textSecondary,
             textAlign = TextAlign.Center,
@@ -298,6 +300,7 @@ private fun PasswordSignInScreen(
 
         AuthTextField(
             value = state.identifier,
+            tag = "auth.field.identifier",
             onValueChange = onIdentifierChanged,
             placeholder = "Email or username",
             keyboardType = KeyboardType.Email,
@@ -308,6 +311,7 @@ private fun PasswordSignInScreen(
 
         AuthTextField(
             value = state.password,
+            tag = "auth.field.password",
             onValueChange = onPasswordChanged,
             placeholder = "Password",
             keyboardType = KeyboardType.Password,
@@ -365,8 +369,10 @@ private fun SignUpScreen(
 
         AuthTextField(
             value = state.email,
+            tag = "auth.field.email",
             onValueChange = onEmailChanged,
             placeholder = "you@example.com",
+            label = "Email",
             keyboardType = KeyboardType.Email,
             colors = colors,
         )
@@ -375,6 +381,7 @@ private fun SignUpScreen(
 
         AuthTextField(
             value = state.password,
+            tag = "auth.field.password",
             onValueChange = onPasswordChanged,
             placeholder = "Password",
             keyboardType = KeyboardType.Password,
@@ -386,6 +393,7 @@ private fun SignUpScreen(
 
         AuthTextField(
             value = state.confirmPassword,
+            tag = "auth.field.confirmPassword",
             onValueChange = onConfirmPasswordChanged,
             placeholder = "Repeat password",
             keyboardType = KeyboardType.Password,
@@ -442,8 +450,10 @@ private fun EmailEntryScreen(
 
         AuthTextField(
             value = state.email,
+            tag = "auth.field.email",
             onValueChange = onEmailChanged,
             placeholder = "you@example.com",
+            label = "Email",
             keyboardType = KeyboardType.Email,
             colors = colors,
         )
@@ -488,8 +498,10 @@ private fun CodeEntryScreen(
 
         AuthTextField(
             value = state.code,
+            tag = "auth.field.code",
             onValueChange = onCodeChanged,
             placeholder = "000000",
+            label = "Verification code",
             keyboardType = KeyboardType.NumberPassword,
             colors = colors,
         )
@@ -539,8 +551,10 @@ private fun ForgotPasswordScreen(
 
         AuthTextField(
             value = state.email,
+            tag = "auth.field.email",
             onValueChange = onEmailChanged,
             placeholder = "you@example.com",
+            label = "Email",
             keyboardType = KeyboardType.Email,
             colors = colors,
         )
@@ -580,15 +594,17 @@ private fun ResetPasswordScreen(
         Spacer(modifier = Modifier.height(Spacing.xl))
         AuthHeader(
             title = "Choose a new password",
-            subtitle = "Enter the code sent to ${state.email} and your new password.",
+            subtitle = nativeText("Enter the code sent to %@ and your new password.", state.email),
         )
 
         Spacer(modifier = Modifier.height(Spacing.xl))
 
         AuthTextField(
             value = state.code,
+            tag = "auth.field.code",
             onValueChange = onCodeChanged,
             placeholder = "000000",
+            label = "Verification code",
             keyboardType = KeyboardType.NumberPassword,
             colors = colors,
         )
@@ -597,6 +613,7 @@ private fun ResetPasswordScreen(
 
         AuthTextField(
             value = state.newPassword,
+            tag = "auth.field.newPassword",
             onValueChange = onNewPasswordChanged,
             placeholder = "New password",
             keyboardType = KeyboardType.Password,
@@ -632,20 +649,26 @@ private fun LegalLine(modifier: Modifier = Modifier) {
     val termsUrl = BuildConfig.TERMS_OF_USE_URL
     val privacyUrl = BuildConfig.PRIVACY_POLICY_URL
 
-    val annotated = remember(termsUrl, privacyUrl, colors) {
+    val templateResource = androidx.compose.ui.platform.LocalResources.current
+    val template = templateResource.getString(com.hadithly.app.R.string.native_legal_placeholder, "\uE000", "\uE001")
+    val termsLabel = nativeText("Terms of Use")
+    val privacyLabel = nativeText("Privacy Policy")
+    val annotated = remember(template, termsLabel, privacyLabel, termsUrl, privacyUrl, colors) {
         buildAnnotatedString {
-            append("By continuing, you agree to our ")
-            withLink(androidx.compose.ui.text.LinkAnnotation.Url(termsUrl,
-                androidx.compose.ui.text.TextLinkStyles(style = SpanStyle(color = colors.interactive)))) { append("Terms of Use") }
-            append(" and ")
-            withLink(androidx.compose.ui.text.LinkAnnotation.Url(privacyUrl,
-                androidx.compose.ui.text.TextLinkStyles(style = SpanStyle(color = colors.interactive)))) { append("Privacy Policy") }
-            append(".")
+            for (character in template) {
+                when (character) {
+                    '\uE000' -> withLink(androidx.compose.ui.text.LinkAnnotation.Url(termsUrl,
+                        androidx.compose.ui.text.TextLinkStyles(style = SpanStyle(color = colors.interactive)))) { append(termsLabel) }
+                    '\uE001' -> withLink(androidx.compose.ui.text.LinkAnnotation.Url(privacyUrl,
+                        androidx.compose.ui.text.TextLinkStyles(style = SpanStyle(color = colors.interactive)))) { append(privacyLabel) }
+                    else -> append(character)
+                }
+            }
         }
     }
     Text(annotated, color = colors.textSecondary,
         style = androidx.compose.ui.text.TextStyle(fontSize = 12.sp, textAlign = TextAlign.Center, lineHeight = 16.sp),
-        modifier = modifier.padding(horizontal = Spacing.sm))
+        modifier = modifier.padding(horizontal = Spacing.sm).testTag("signin.legal"))
 }
 
 @Composable
@@ -653,14 +676,17 @@ private fun AuthTextField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
+    tag: String,
     keyboardType: KeyboardType,
     colors: com.hadithly.app.core.theme.HadithlyColors,
     isPassword: Boolean = false,
+    label: String = placeholder,
 ) {
+    val accessibleName = nativeText(label)
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        placeholder = { Text(placeholder, color = colors.textSecondary) },
+        placeholder = { Text(nativeText(placeholder), color = colors.textSecondary) },
         singleLine = true,
         visualTransformation = if (isPassword) {
             PasswordVisualTransformation()
@@ -676,7 +702,7 @@ private fun AuthTextField(
             unfocusedTextColor = colors.textPrimary,
             cursorColor = colors.accent,
         ),
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().testTag(tag).semantics { contentDescription = accessibleName },
     )
 }
 
@@ -701,7 +727,7 @@ private fun ProviderButton(
         } else {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (googleMark) GoogleMark()
-                Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                Text(nativeText(title), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
             }
         }
     }
@@ -731,7 +757,7 @@ private fun AccentButton(
         if (busy) {
             CircularProgressIndicator(color = Color.Black, strokeWidth = 2.dp)
         } else {
-            Text(text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(nativeText(text), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
         }
     }
 }

@@ -1,0 +1,1352 @@
+[
+  {
+    "platform": "ios",
+    "name": "saved-accessibility-bn",
+    "sha256": "54594d86d07a968ce49595efa8fd4117ebb8c2ead275baa0d231f566b8ed416d"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-accessibility-hi",
+    "sha256": "54594d86d07a968ce49595efa8fd4117ebb8c2ead275baa0d231f566b8ed416d"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-accessibility-sw",
+    "sha256": "54594d86d07a968ce49595efa8fd4117ebb8c2ead275baa0d231f566b8ed416d"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-accessibility-pt-BR",
+    "sha256": "54594d86d07a968ce49595efa8fd4117ebb8c2ead275baa0d231f566b8ed416d"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-accessibility-es-419",
+    "sha256": "54594d86d07a968ce49595efa8fd4117ebb8c2ead275baa0d231f566b8ed416d"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-accessibility-fr",
+    "sha256": "874a35454c58967dfceedbdbfc03e4c06b49304ad67621dc301e48cfb118c361"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-accessibility-ur",
+    "sha256": "1a1cbb806579be0bf98e68e3261ecce1a4102056446bc3f84c42f37e9b079300"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-accessibility-tr",
+    "sha256": "874a35454c58967dfceedbdbfc03e4c06b49304ad67621dc301e48cfb118c361"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-accessibility-uz",
+    "sha256": "874a35454c58967dfceedbdbfc03e4c06b49304ad67621dc301e48cfb118c361"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-accessibility-ky",
+    "sha256": "874a35454c58967dfceedbdbfc03e4c06b49304ad67621dc301e48cfb118c361"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-accessibility-en",
+    "sha256": "874a35454c58967dfceedbdbfc03e4c06b49304ad67621dc301e48cfb118c361"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-accessibility-id",
+    "sha256": "874a35454c58967dfceedbdbfc03e4c06b49304ad67621dc301e48cfb118c361"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-accessibility-kk",
+    "sha256": "874a35454c58967dfceedbdbfc03e4c06b49304ad67621dc301e48cfb118c361"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-accessibility-ru",
+    "sha256": "6f07de7425b269725c7e445b56c48b324fcddabbcd17631907bb0535ab24ad0f"
+  },
+  {
+    "platform": "ios",
+    "name": "saved-accessibility-ar",
+    "sha256": "6708cd85722cd1fbeb438799a09870806fb0033881dc935a8604ce83d604bde7"
+  },
+  {
+    "platform": "ios",
+    "name": "help-share-bn",
+    "sha256": "bd88af827e0792eb0e276dc47785fd0b5b8b4978d24333260c60307aaa5709d8"
+  },
+  {
+    "platform": "ios",
+    "name": "help-share-hi",
+    "sha256": "dea41d02d245b95989c04f0df3b62e431c1bd7f515616b0bc718f5704a36d70c"
+  },
+  {
+    "platform": "ios",
+    "name": "help-share-sw",
+    "sha256": "39c9d83f06d27c92249371a66662a412f61bd4a7d8709a3f9cbad47d7f0a3c00"
+  },
+  {
+    "platform": "ios",
+    "name": "help-share-pt-BR",
+    "sha256": "518b80982bee36f6b4fd24941a35c9eaf8ac2240c21d277017da1a73036006fc"
+  },
+  {
+    "platform": "ios",
+    "name": "help-share-es-419",
+    "sha256": "51eebcb974abcc50a772069235fccbaf2b0391bfa45e4fe6b408d6558888003b"
+  },
+  {
+    "platform": "ios",
+    "name": "help-share-fr",
+    "sha256": "d8033346d27be4203a79b575c7468d5c1cf7cb8e33f4531506d6eed8095abd45"
+  },
+  {
+    "platform": "ios",
+    "name": "help-share-ur",
+    "sha256": "5b1f6cffd67c5bdc290ff2c311d04e7712965e2145fdbd2872dd36bc3682863c"
+  },
+  {
+    "platform": "ios",
+    "name": "help-share-tr",
+    "sha256": "ba682aa975d1f46af70dbd64b05432bf3cf4daf72a42230e0a98d0cec20f1542"
+  },
+  {
+    "platform": "ios",
+    "name": "help-share-uz",
+    "sha256": "24c41a2a902b685aa23a0d678e60be6f0d090492eea64710bec6aba658d60d1a"
+  },
+  {
+    "platform": "ios",
+    "name": "help-share-ky",
+    "sha256": "e93b5309178a5699bd60cacdf604241b91eeb583328524ebc146e8e3608d5147"
+  },
+  {
+    "platform": "ios",
+    "name": "help-share-en",
+    "sha256": "427f866d4ebcd146185471c127940e4ab8590e96fa5051a92baa482b7f1ed0c9"
+  },
+  {
+    "platform": "ios",
+    "name": "help-share-id",
+    "sha256": "9b4c108fc6e5d4884dba9cd0cac4b0b73f797d2203db32173cf1ab2365ae03ee"
+  },
+  {
+    "platform": "ios",
+    "name": "help-share-kk",
+    "sha256": "36d8db075734cf2bdf01dce76c26af31f25794d29b3916746b1d03cc358c31ee"
+  },
+  {
+    "platform": "ios",
+    "name": "help-share-ru",
+    "sha256": "313684b8815a2374ed7af87d24b23a90a1882f82f1a47b962a78c625b489276a"
+  },
+  {
+    "platform": "ios",
+    "name": "help-share-ar",
+    "sha256": "357a23bf345996582b2a90c80c5bf3be823da9ce1ca234f650d954f9997eb0ce"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-reset-bn",
+    "sha256": "69b96a9c7bef1fa2de62ddbb643fbf746b990bdd9fc9e1321727ec7572277851"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-code-bn",
+    "sha256": "17861b8395577309ff279212e2385fd5c395402606b32f84d307a373837c5adc"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-forgot-bn",
+    "sha256": "9655f4526b7714afbb86d174267c602186c810b5cfa05c26569aea0e65b23cfe"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-email-bn",
+    "sha256": "4559563e33dda03c96207cbd6d73a18fce3b8e18653a764beda20faf48ad4d80"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-signup-bn",
+    "sha256": "3a93580ea8c6ee52622f1b283cd6ad9c1c50fce1e5afb7a224c4e682135897aa"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-password-bn",
+    "sha256": "61cb8a4ae7fd1db9f04ec465741041d5c5af60eff28720f819ff86798660db9f"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-methods-bn",
+    "sha256": "871aead5b0fa36c2d93634f344ce3ddd1a9641fe7868b5c71407ec918ce89c38"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-reset-hi",
+    "sha256": "2d38fde23ed171bc968ae7115b691ff1401d7a1e80b9e155ba888ac2368405f2"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-code-hi",
+    "sha256": "f2da85d018bf591a5f6c7e95007dbb8e24c421dbeea49b2de282f070d8dbd424"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-forgot-hi",
+    "sha256": "266e9a8e37bf85436e73ef6b993101d81025a2e5fa8d57b51a6a78fe8bfc5ed4"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-email-hi",
+    "sha256": "78033c13a353ca7cdd6c271a40812d8ed57ccc0b025c7f13755e82b6fa5fd173"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-signup-hi",
+    "sha256": "d48e6ff2ca10d2ad4e7ab45fc7e48d66a6f4fd8f402e366d6953fd56092497c6"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-password-hi",
+    "sha256": "6650e5743ef091485b15f450a1666e2638ac1154841a0e4e28698c1e633fa9f3"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-methods-hi",
+    "sha256": "76c84f74233e173193688889591b58a1b3111b9358246fa53c807e80398e489b"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-reset-sw",
+    "sha256": "100d2df77e5922bcbe34100a82f1c272bdecc8f79e02e78827f4ed0069d6d068"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-code-sw",
+    "sha256": "316bb9885a1d96cca259e00570c771ff0c42275993cd9bd1f3ba51682e6000d4"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-forgot-sw",
+    "sha256": "190f235e628b938821f1f8a3b45ce0bdcf8e0d75253dbca47bc21d91e45cd206"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-email-sw",
+    "sha256": "23da792809df7237fee5c727a4b4781dcf28112de3be7cc8b47bff9b615b7926"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-signup-sw",
+    "sha256": "db74c092924b285bcf1a484e3da9f89243f892e64fed2201a6c1113d1191853d"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-password-sw",
+    "sha256": "99c22d4adcb6e860a08c0a07f4b5e191166cff58c640f2c8b423317d512e7d81"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-methods-sw",
+    "sha256": "3f4d1178ac089ff85b0bcd10b3cc0fa39802c82e1a500385c62ce10381ffe036"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-reset-pt-BR",
+    "sha256": "c3baea3f59ceb57bd43c5eae1456f4b044e5ba26a584be19ee7ed1a8ae5d3b36"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-code-pt-BR",
+    "sha256": "8dab4c46302b7f12d72966119ae41a120f68f3bd345093154d7e7e0f806548de"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-forgot-pt-BR",
+    "sha256": "5ff9adc3cf28a9d3a53dacc4d8178d8378a7097caa45494094d686eec3337450"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-email-pt-BR",
+    "sha256": "42de8259037bd52e16d729f7e831a0c6deaab49f37172b85258ebaf7dbb0dc2d"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-signup-pt-BR",
+    "sha256": "c38ce32fb09dc724ea337cf35352f85df7bf03b49e54884f5da4e7030b7738fb"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-password-pt-BR",
+    "sha256": "4dab76c5ae43f14b0326f918b3db24a06fd5051c34f2a09f5ea72177481bdc16"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-methods-pt-BR",
+    "sha256": "0de4da8fbb68fab0df74ccfc4d96813036837e44613ae22d211709d3a65cee61"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-reset-es-419",
+    "sha256": "fa79ff9f5d74af46c80b0fc640cc1c697652a9d63f2adcdbbd79c751eb70c8c1"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-code-es-419",
+    "sha256": "782d22573a3a967ea19ffa7d58d2d75f82c7a8595e56406ff11570b88bf2b1ae"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-forgot-es-419",
+    "sha256": "2b77015d8528512c7ee4ca1bf3351394ab9a4f422e1119e19017a7a58f4313d0"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-email-es-419",
+    "sha256": "9deda05c9c55de46ede90b73a230c5712c81f075931a84f9c4e3fe02d7f0c2f5"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-signup-es-419",
+    "sha256": "b8025e7c4c609de9dd7d7d749a88b59338ff6e6f6fb1d516503dfd8144c4509e"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-password-es-419",
+    "sha256": "d4935ca81d77b6476f882bf8b309259ad920f3a4733e3e86bcad2e01e6902101"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-methods-es-419",
+    "sha256": "b1a5c70a979f3e5b889683b292f0935ce45fe7d5988eb14d076fa6550b39c4ee"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-reset-fr",
+    "sha256": "463536234f6254eb6de62f01b221d23cf7a7e43b7cc48b6d6ec97dbe5dd9284e"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-code-fr",
+    "sha256": "de1df098ab92410e1ce7875553f2dae97b54f920514b9a6cd90c23be84818704"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-forgot-fr",
+    "sha256": "ec534393709ce3061baef2c032b28671a74a1ca5e0adc31d574e25716fe9ea68"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-email-fr",
+    "sha256": "63005c721cb3c81b90962bb5717ed76b8755bcacabb1863fe2d412a587f49c74"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-signup-fr",
+    "sha256": "375cda9aa9c7ac41c64c45372e1d537a28d5066cd430a7a590a60c570beec97e"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-password-fr",
+    "sha256": "46ea839bda66ff5d4ca00a02efde8b2f83fedcdd09641f9e4275dc1ee53a73ef"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-methods-fr",
+    "sha256": "bf9dfc2154528b9e106eb4aa93e7e1689c379151c728ad24612a2606dbe1619c"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-reset-ur",
+    "sha256": "f3e966fa62d1a618b6dc718c03c9a214c48b5359166dd2ebd8db3d84e59c901a"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-code-ur",
+    "sha256": "814dda8f41500e3ee044cdcd0f360ee35d444eef95aae2d9d4de0fa380a99576"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-forgot-ur",
+    "sha256": "d842ec5eeaef129333dfdf12ed9ad63a7115d6877219426f5a0922cc9185a960"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-email-ur",
+    "sha256": "1eea1005a77d14b6847bca0800239e934cc6052e485a35df570b1d0293bc842c"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-signup-ur",
+    "sha256": "f04a2ae48ad75cbd604c572728048770871086ef655676a2e7a959165f8c6bb4"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-password-ur",
+    "sha256": "2ff344436c606085a1f5d40dd42643881d6aef5cf977d73827807ae7682f8c53"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-methods-ur",
+    "sha256": "2595e114d8b29b7846773ecb0432e106af03e81677dab3104912c1fa02f323e2"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-reset-tr",
+    "sha256": "e36d20b61f45e95d7b19ee9d7d4b7b41faef7e426c489d3d7815e7eaccfa78b2"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-code-tr",
+    "sha256": "a2ee8e9efc59542f649ece1fd7445120472252c8811649afddbe10d0e1d2d432"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-forgot-tr",
+    "sha256": "8f0d2231771152679b77e8be9dd2ce0ad8544d807f0b291e7aa9946302882d80"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-email-tr",
+    "sha256": "a37510aedef0e2a36fee2fc40b37632da5fccf59584871588f3eff4d2452b182"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-signup-tr",
+    "sha256": "79d7da6fae5acffa2d2581947a416e1eff9bbbfa10d59bef26302468cf93f041"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-password-tr",
+    "sha256": "374224f26db365e7a054900698fc52249b0621c6d23294b4e565117fbe0ad849"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-methods-tr",
+    "sha256": "a929ae885040c8e4100f84cf76f5803a04413744996cf3bbae97857c18358d62"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-reset-uz",
+    "sha256": "8c3b7a60d20b9b8a60934dd147fc71f150bd3ad72b10d48fc6023a26a953411e"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-code-uz",
+    "sha256": "310f72b8046f22b1cd433b8c6b29f057b4e2589967cec8048e0eb0335675b7ae"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-forgot-uz",
+    "sha256": "24c3256cfa73fbf307f111130f3d5e332defd7c8e942cd485846eef98a5d6ab2"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-email-uz",
+    "sha256": "d01c82a7c4dd9d333f92c895f7fa59f69f9e2b112f092601ff639e3c869b831b"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-signup-uz",
+    "sha256": "e7b220a37dab573bfb44bc1bd3322bb560b2ebecad7928d69c9f634e06d23393"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-password-uz",
+    "sha256": "dd8d5ad0a15d8adf1a8f1f0eb391dfbdba08bb39e6b4d01d07b662f8cbe63127"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-methods-uz",
+    "sha256": "f29acea7d085009843531643b24bc9a47d6f3bc5cc6fd9829b4badad5ed802d0"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-reset-ky",
+    "sha256": "3c1b45d730af580122dfca8dae76152b30a220aab81e512e79bb8193e269aa49"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-code-ky",
+    "sha256": "fbc2468bb1e398ac44a28e0cb2d0dbee05e29543d58e2ae85106becbace31361"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-forgot-ky",
+    "sha256": "c64aceb8c729f3255e830b26ec5836f45570dd6d647652b50a35902011ddfde7"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-email-ky",
+    "sha256": "134f420220a4054b7fef120de80727d6d682854fc44aa39aa61b2d8fabb01920"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-signup-ky",
+    "sha256": "c563acad1da60fd5a95463032f876191815dfe0d0e6240473f8314438211fe28"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-password-ky",
+    "sha256": "5e1c47567a32821deff72b364242f60ae8aa73a0c8ef6f8a53fe22923960b76c"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-methods-ky",
+    "sha256": "330a4fae96df33dd09bce1d94e82167535e51b7473ed0fc7679678db49e1fc2c"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-reset-en",
+    "sha256": "bd2c5048f30efe61551cc01dd935ed46eddb4514531763529c9f4821a012024f"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-code-en",
+    "sha256": "71bf74785129d0d8093a60ba94aac31ea159f5ef6ac9abf76f14d7d84b4548d2"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-forgot-en",
+    "sha256": "a33198a90619b5f4d9949f98208869a97084428c45ceee31bc02ed615c6f9e69"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-email-en",
+    "sha256": "6f435230f8397e8ebdfe1bc79fb2825475cf82d3750b4151abfe155b41f790ca"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-signup-en",
+    "sha256": "038e25fa67b0450beeb95e48ee942cdb252c3ac3787ee7fe26a7fdbf1d0c1e71"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-password-en",
+    "sha256": "429a8f65328fe72ca0d26d57b51ce6f2c1279bc995c0bbdb15bd3d3a061bddac"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-methods-en",
+    "sha256": "3c2fc6b664bc1743687071b9a3d6c52acf892fef72c8452267518b7dab5aa982"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-reset-id",
+    "sha256": "8786fb3969acfc25cc17ca101c056962eeb66f9d4e1e7a5110d9dd7847ea259f"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-code-id",
+    "sha256": "c1ea07da4af98c5304dc1843906dd181f0d020f7b72924afedfbcb4f9fea74cd"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-forgot-id",
+    "sha256": "f5e40bc29331c64dd6cabece152b33e340f90f4773d0e1cb13221e9628aa8f10"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-email-id",
+    "sha256": "ccd7ff4c63b861303414ea33cd848bf0b9cc5b51766d0657fad4bc4e18ca6423"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-signup-id",
+    "sha256": "f8ce9550925e522d201e474ae76ca6b0afb5a4f52a6b3c2bdf208abbc8481ce4"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-password-id",
+    "sha256": "d9a14962b20bb1ad82435083b7b1add7befaf3cd483b4c4f5083e594da37b92d"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-methods-id",
+    "sha256": "d2b619a3451f21cdcf20fda8ea3d53ededb9d2105c0414c7fa31107b2a81ba60"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-reset-kk",
+    "sha256": "c9a74837a3adf5ad92ae663cd6a47a8d582742a212b64b868aa40aab632930f6"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-code-kk",
+    "sha256": "4ea0507e478554ec5cd18a97bb0b106dd32c7dd17dd86cfc27496ae1958c21dd"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-forgot-kk",
+    "sha256": "1f63291cccdca5a1f6c8f8d88c0a1743b537e099c17cd638246387797fb9f0bd"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-email-kk",
+    "sha256": "958b5fced56273b70a7fbcfad5f193e4ed85283574b21e111f3940b6f939b2c1"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-signup-kk",
+    "sha256": "91c988ca13442a2c5649add9327b72ce2706be6f25bc353b5a012b5a02320695"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-password-kk",
+    "sha256": "081abf0fa4d183e05712d8c19bab3116695db2b62059892e9c39c6d7662a0f1a"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-methods-kk",
+    "sha256": "45cf0ca16cc4c4087f5a4b16990e8194eb60ec3c9ff786322d5be760d294a727"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-reset-ru",
+    "sha256": "2739c0032a8ffb44d29e52341744c16d6673f1d75028fdc8ce5b8726750ce63f"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-code-ru",
+    "sha256": "1f0736db8297b4085a4321e59261de2136eb766a795400aeb7a236dfdc24ad0c"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-forgot-ru",
+    "sha256": "98a59b39417fcc2a99116ce60a262898db369f74e354d005d98a2e85af31d1fd"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-email-ru",
+    "sha256": "b8197d4b8094e8a9ed924754495bca1e7ba59eded43f1d12267f23d7b3a304a1"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-signup-ru",
+    "sha256": "14c5d6927052dc03e5ceb9ffa8d27c49aaf616f72cd4d12e80143dc66fba7453"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-password-ru",
+    "sha256": "a6485e84859ffb0d18d73fe084d181dbe0fe52a11ddb403c745a96b17ba3f576"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-methods-ru",
+    "sha256": "d4f9e0f2d1130012caf2c3bcb5bf61357f5104d75266341cfe4d115677553974"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-reset-ar",
+    "sha256": "11c43ff1d1e48bceffd8aee6661d05cdd1a8dd2a33dfa388fad424c10d92a5f9"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-code-ar",
+    "sha256": "6195c567d95fc73443715fd97b8c3e974333851db7406dcfb247d352b5ec35fd"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-forgot-ar",
+    "sha256": "3c0f8906b0480e8c781a0eaf494e7211e29687c7a728c9b0eb82beb49b51eaa8"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-email-ar",
+    "sha256": "4ecc503ccc3ff9c8596868071f8a7ee60329a25a8239941f41f22e883245db24"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-signup-ar",
+    "sha256": "474518401d29a3db530d3579cb7d7273c30ca82960ceae30e08bf74f2b090ff4"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-password-ar",
+    "sha256": "4f8a3eacf7977264de68fab5ce8cd73f4ca2adf1d595eb715438c1244b866693"
+  },
+  {
+    "platform": "ios",
+    "name": "auth-methods-ar",
+    "sha256": "82ea52fb777e180eb0ddd095975ad6e1fd2de57a3ac47ebfc855f183e9d42a69"
+  },
+  {
+    "platform": "android",
+    "name": "auth-methods-en",
+    "sha256": "5ce857335f0006b34e96b077ccc7177db75b18960a762c78e60c34acec4f0e72"
+  },
+  {
+    "platform": "android",
+    "name": "auth-password-en",
+    "sha256": "02d56c7b7f1574eca919353647606f526ff7f6d4e7ec56d59393b611522d53c5"
+  },
+  {
+    "platform": "android",
+    "name": "auth-signup-en",
+    "sha256": "7fff5dadcb77f63e161d21df8aa448061a1cfccce0d5d1dd8046cf7881e4e298"
+  },
+  {
+    "platform": "android",
+    "name": "auth-email-en",
+    "sha256": "254cea25adc392c4f793fa21eff6b045e4b58b3bbf31631bc6f6f96f960216cd"
+  },
+  {
+    "platform": "android",
+    "name": "auth-forgot-en",
+    "sha256": "c2d8cf9d4a02b43c4574a06e13e3a157c27db4b8fa67c47789ac58c5ae94d4c3"
+  },
+  {
+    "platform": "android",
+    "name": "auth-code-en",
+    "sha256": "cfdd7609df3dbf2e65ede7bc66da64bc025ab2de5a083c95538237003a68c848"
+  },
+  {
+    "platform": "android",
+    "name": "auth-reset-en",
+    "sha256": "36e78d1a21533b76e15531ab81813acb8c753a4c0453afaabed5a0701bd5de9b"
+  },
+  {
+    "platform": "android",
+    "name": "saved-accessibility-en",
+    "sha256": "0e6e16784f7ee11e562044beecf02ec1f69d23acf1010b5c48030c300f0e9481"
+  },
+  {
+    "platform": "android",
+    "name": "help-share-en",
+    "sha256": "f2cb40398650e9d9577e5d6b77118f6337907363eef221c133645dd023b79a14"
+  },
+  {
+    "platform": "android",
+    "name": "auth-methods-ar",
+    "sha256": "3ad287285d55e4d4f41bf48ff3c105914056ef5b3652bc4dce02291780da6082"
+  },
+  {
+    "platform": "android",
+    "name": "auth-password-ar",
+    "sha256": "416d3a9ef199a84ccdabda2dbf061c28dc5cdeffb93e86ff4e8feaf37ea9e815"
+  },
+  {
+    "platform": "android",
+    "name": "auth-signup-ar",
+    "sha256": "a904caea0a6bb95dc8a8ad763fc730249c60d75cde0d04dfba9e2afdce8f7e33"
+  },
+  {
+    "platform": "android",
+    "name": "auth-email-ar",
+    "sha256": "23444c1ffca53eefe5a0316c98b984a79fab59251a00e520b927639e66b13c16"
+  },
+  {
+    "platform": "android",
+    "name": "auth-forgot-ar",
+    "sha256": "5e51dd14557c3030f3a49d21077eaa53f514956959c8a9db2be67d83fc47f988"
+  },
+  {
+    "platform": "android",
+    "name": "auth-code-ar",
+    "sha256": "e23bdb6d97570e10664ffcee8d1bc0fd5c11fb641dede6fc8625a6be27b19c04"
+  },
+  {
+    "platform": "android",
+    "name": "auth-reset-ar",
+    "sha256": "ded18776871f4f5e2aa61ebb1d6c2e0a72853b678d4d52634e7b6db2823d812f"
+  },
+  {
+    "platform": "android",
+    "name": "saved-accessibility-ar",
+    "sha256": "6552f105b037a54e96dd60784a7453666f0d47dec710cbfab2e20a22ef3ea029"
+  },
+  {
+    "platform": "android",
+    "name": "help-share-ar",
+    "sha256": "aed8eb05cf699362507cf32122b72a5c6b07875cd740ab223813329b91623c64"
+  },
+  {
+    "platform": "android",
+    "name": "auth-methods-ru",
+    "sha256": "761a19f90981f44ebded9e713ee80a1043fd3e2f61e4a20f9c554016ca6bb741"
+  },
+  {
+    "platform": "android",
+    "name": "auth-password-ru",
+    "sha256": "7141785683932ac3ebda466c3cbd087962afe2c9c33e78ffb8bd885a1933ba65"
+  },
+  {
+    "platform": "android",
+    "name": "auth-signup-ru",
+    "sha256": "a722dc1b7fdddd445eb5fdfad661870bf840e7377a50194327ac76e0f45418a3"
+  },
+  {
+    "platform": "android",
+    "name": "auth-email-ru",
+    "sha256": "b699bb31a1d69481ac6d90ff5453c98eb4649c2bb30439dc4692715e5f289cb7"
+  },
+  {
+    "platform": "android",
+    "name": "auth-forgot-ru",
+    "sha256": "4f5954fd424421f672a7e5cd9fb59a682568c5c7d1d1fbc17515d419b13f2897"
+  },
+  {
+    "platform": "android",
+    "name": "auth-code-ru",
+    "sha256": "6ca4f3301fbeb69efd3cf3301aa2686ba352ef422305f8ccf39335d5381a4dbd"
+  },
+  {
+    "platform": "android",
+    "name": "auth-reset-ru",
+    "sha256": "93952a07a97f4661ce3787f621cc0444cbb590f419e6b164d7abb8f8d03ffd51"
+  },
+  {
+    "platform": "android",
+    "name": "saved-accessibility-ru",
+    "sha256": "0e6e16784f7ee11e562044beecf02ec1f69d23acf1010b5c48030c300f0e9481"
+  },
+  {
+    "platform": "android",
+    "name": "help-share-ru",
+    "sha256": "bc7df57f4b259fd1c9e3f3d1b5da562a4c2a0cf97cdbd8ee02cfad5d29b7619a"
+  },
+  {
+    "platform": "android",
+    "name": "auth-methods-kk",
+    "sha256": "707b1882c21b103617b313d87f9af14abb9d62575ad13b5ee53d77b0c56797ea"
+  },
+  {
+    "platform": "android",
+    "name": "auth-password-kk",
+    "sha256": "55ae1e56facf01d79f4537b746fea7c8e3ee0145ce01c0fe286e04455f437f91"
+  },
+  {
+    "platform": "android",
+    "name": "auth-signup-kk",
+    "sha256": "afa03a77fd29e6df00e07ff5557fefaa291837c665f5a6cbe6d09d73bf3c9820"
+  },
+  {
+    "platform": "android",
+    "name": "auth-email-kk",
+    "sha256": "0eebb7b6882f081c4dde1f8c9faeffc8e1727c9bb27fda15560046df3013e4b3"
+  },
+  {
+    "platform": "android",
+    "name": "auth-forgot-kk",
+    "sha256": "31853cbf9e65ba591aa4f553edc7f2eb71e2de69fae1bbee8d8213344b65ea88"
+  },
+  {
+    "platform": "android",
+    "name": "auth-code-kk",
+    "sha256": "a7fe503bf1552490ba3cc0493210681132e11d2ffb3e6e9e7757b2fd0470ba7e"
+  },
+  {
+    "platform": "android",
+    "name": "auth-reset-kk",
+    "sha256": "03d61cf605493650fde54b9f8641b2193c20d3480608808586040e73ece3a073"
+  },
+  {
+    "platform": "android",
+    "name": "saved-accessibility-kk",
+    "sha256": "0e6e16784f7ee11e562044beecf02ec1f69d23acf1010b5c48030c300f0e9481"
+  },
+  {
+    "platform": "android",
+    "name": "help-share-kk",
+    "sha256": "6747b5f8f74d6868c2adc20b6878329c3fe911b4abfa92e223a67378d333504c"
+  },
+  {
+    "platform": "android",
+    "name": "auth-methods-ky",
+    "sha256": "bc3ed51816b1ef55404c0606d792053614e0526d2bad108ef8e68f96532050ed"
+  },
+  {
+    "platform": "android",
+    "name": "auth-password-ky",
+    "sha256": "ea048039154e1f2a5b12ed188041de3f69b0332d67229e17765126e9de286c1d"
+  },
+  {
+    "platform": "android",
+    "name": "auth-signup-ky",
+    "sha256": "e6d89be78ad6a8ea77161d1e9664660cd82d935d95bf5881825033147046d09e"
+  },
+  {
+    "platform": "android",
+    "name": "auth-email-ky",
+    "sha256": "179c07cd6df08db4022f0d7cfac8785231ca01e1b703aa130143df30f8dab892"
+  },
+  {
+    "platform": "android",
+    "name": "auth-forgot-ky",
+    "sha256": "bd7e1915eec2225765c4382350961d783f6d7b3830b2596e8d9463d2e7ffe041"
+  },
+  {
+    "platform": "android",
+    "name": "auth-code-ky",
+    "sha256": "5dd8b3258b9f304ce553d77ac2ef1de24aefdb3ce4eb036b8b0ae4b7f6a802b9"
+  },
+  {
+    "platform": "android",
+    "name": "auth-reset-ky",
+    "sha256": "9f3e0178e1d450ceb8cd9542b030d4ce28c26b2be22c8faa28361c20cd9364d5"
+  },
+  {
+    "platform": "android",
+    "name": "saved-accessibility-ky",
+    "sha256": "0e6e16784f7ee11e562044beecf02ec1f69d23acf1010b5c48030c300f0e9481"
+  },
+  {
+    "platform": "android",
+    "name": "help-share-ky",
+    "sha256": "e9f6e1108c686a377dc003ae52b72b9be5aea10ecff53879c36b4845823a746a"
+  },
+  {
+    "platform": "android",
+    "name": "auth-methods-uz",
+    "sha256": "ef503f73bc3ed6d73ceb872f1cefc3786704d8b0d8e6f10c8fd8392df5678553"
+  },
+  {
+    "platform": "android",
+    "name": "auth-password-uz",
+    "sha256": "51c390856e30f4eff069434a120dae9a8354158368b96ec052903f8809d61463"
+  },
+  {
+    "platform": "android",
+    "name": "auth-signup-uz",
+    "sha256": "497532985396387814934cb2843b64fc1714206df61871141fa711c84f36e31e"
+  },
+  {
+    "platform": "android",
+    "name": "auth-email-uz",
+    "sha256": "0ae87f9d0143f5eb07951cff71662678d53481a64f4bb288aaba7f4681241026"
+  },
+  {
+    "platform": "android",
+    "name": "auth-forgot-uz",
+    "sha256": "5dc9208d3567d0921a0b44527faec0b4c96b82447a16990fcefbb8e244332e1d"
+  },
+  {
+    "platform": "android",
+    "name": "auth-code-uz",
+    "sha256": "22a994e9933cca30c843fadb913ad3afaead8eaedcf8a0fe6a01dc9699d70122"
+  },
+  {
+    "platform": "android",
+    "name": "auth-reset-uz",
+    "sha256": "719f1fb078c0d80448a2ba782a6d45e2e5855e16ee13e91826c4fe278942c024"
+  },
+  {
+    "platform": "android",
+    "name": "saved-accessibility-uz",
+    "sha256": "0e6e16784f7ee11e562044beecf02ec1f69d23acf1010b5c48030c300f0e9481"
+  },
+  {
+    "platform": "android",
+    "name": "help-share-uz",
+    "sha256": "492184659341609ef749df7d23fe267d566e5864982755437d1333a11e42732c"
+  },
+  {
+    "platform": "android",
+    "name": "auth-methods-tr",
+    "sha256": "4987145e0a2bbf9bada45e2d9d2467ec86d172b4f2be1e7ecb6b7dd4dccaf2a5"
+  },
+  {
+    "platform": "android",
+    "name": "auth-password-tr",
+    "sha256": "4c13b89e47af4e020dde08ae0ee9ba408521856413dffd497e1c90213cbb2355"
+  },
+  {
+    "platform": "android",
+    "name": "auth-signup-tr",
+    "sha256": "f21d8e3900d1d646e8ae750d172a15d685c13e82fb24ec2691d125db21329ab4"
+  },
+  {
+    "platform": "android",
+    "name": "auth-email-tr",
+    "sha256": "20a205f0584425bb370bb7cb2cd71da606808f33a98a87f1177dba19fc8e6e99"
+  },
+  {
+    "platform": "android",
+    "name": "auth-forgot-tr",
+    "sha256": "1da4ad6806d941962e4ffbc216500eb9a6557e5a9d46be7fd8295a943a5d3928"
+  },
+  {
+    "platform": "android",
+    "name": "auth-code-tr",
+    "sha256": "f66353c519a03a201f18e3fbcc81ad1fa6ffd0190d3df6fe765bc2f46b7407bc"
+  },
+  {
+    "platform": "android",
+    "name": "auth-reset-tr",
+    "sha256": "fd79bdf01bd6baaa3cfa9b49e23dd3119f55e67377f221fa52a9c10efe53136f"
+  },
+  {
+    "platform": "android",
+    "name": "saved-accessibility-tr",
+    "sha256": "0e6e16784f7ee11e562044beecf02ec1f69d23acf1010b5c48030c300f0e9481"
+  },
+  {
+    "platform": "android",
+    "name": "help-share-tr",
+    "sha256": "101c5def57acba13dd39a4f345af0c74ddc4eb85cafa96e29d3978aae9663706"
+  },
+  {
+    "platform": "android",
+    "name": "auth-methods-id",
+    "sha256": "c9873fd0937d8b8978fb118f978bdc9485a6105c73cf87dae9c166eca56ae85e"
+  },
+  {
+    "platform": "android",
+    "name": "auth-password-id",
+    "sha256": "3c3c131a3aea9045ab7f546c8006542cf52b93110adf60eb9a60b9d01dbcaf2f"
+  },
+  {
+    "platform": "android",
+    "name": "auth-signup-id",
+    "sha256": "9eeda8ace6ce3436c06de58b901561ce9642f488baa890879935597c540e5448"
+  },
+  {
+    "platform": "android",
+    "name": "auth-email-id",
+    "sha256": "518a5c5685a2789e5745ad095d83295ea736026aa361668b9bf093d567661be5"
+  },
+  {
+    "platform": "android",
+    "name": "auth-forgot-id",
+    "sha256": "d8e87c98d1a7c9891b7c50fab6c0e7b4baad9139d52a451c05f80b92dd392a50"
+  },
+  {
+    "platform": "android",
+    "name": "auth-code-id",
+    "sha256": "6cf7ea95c15b002bc4a0c75a2eb116d8c77682aa857dd387ebf1ff2ea9117de8"
+  },
+  {
+    "platform": "android",
+    "name": "auth-reset-id",
+    "sha256": "a60f6f117b9371bb1ac5bcfc50ad1f7b3397fdd415c01d6fd56fa0b276920597"
+  },
+  {
+    "platform": "android",
+    "name": "saved-accessibility-id",
+    "sha256": "0e6e16784f7ee11e562044beecf02ec1f69d23acf1010b5c48030c300f0e9481"
+  },
+  {
+    "platform": "android",
+    "name": "help-share-id",
+    "sha256": "f2cca9c83d2f7b686cbc383a28bcbcc39555e0f50b077f794db722a9ce6e6773"
+  },
+  {
+    "platform": "android",
+    "name": "auth-methods-ur",
+    "sha256": "a8fe65aa233e8ef6f90ea38502548338b14258056c3147d87887b0ed62204b14"
+  },
+  {
+    "platform": "android",
+    "name": "auth-password-ur",
+    "sha256": "9a602b9007e2d5855dc28f98a0743b0c5365faaffb44875d9c6aa14f451dc1ee"
+  },
+  {
+    "platform": "android",
+    "name": "auth-signup-ur",
+    "sha256": "ba4d8a833c80ed9cef95ab214cdeca49506a6503a78488bd0f833c202eaf7666"
+  },
+  {
+    "platform": "android",
+    "name": "auth-email-ur",
+    "sha256": "6e842a6c72f725f0af07e0f4a0f5a6f6d498cc152d41850d19cea534101bca88"
+  },
+  {
+    "platform": "android",
+    "name": "auth-forgot-ur",
+    "sha256": "eb9dbf26ab2dd0745d74f48846b15402f1b8468d889d2decd1579117e6591ca4"
+  },
+  {
+    "platform": "android",
+    "name": "auth-code-ur",
+    "sha256": "0faa6d62316ed3dfa56094420ab529b2e3b33a5f3d6932bf64f93fd8d9b9f497"
+  },
+  {
+    "platform": "android",
+    "name": "auth-reset-ur",
+    "sha256": "a5931bb70d997cd32384ac69b2975b5f68947ae3de6e5075f136ae5bb6505d21"
+  },
+  {
+    "platform": "android",
+    "name": "saved-accessibility-ur",
+    "sha256": "6552f105b037a54e96dd60784a7453666f0d47dec710cbfab2e20a22ef3ea029"
+  },
+  {
+    "platform": "android",
+    "name": "help-share-ur",
+    "sha256": "c776798b68c0cd216c9548da43f5fbec0cf2cf1f8161c5a36630e144ecd646ef"
+  },
+  {
+    "platform": "android",
+    "name": "auth-methods-fr",
+    "sha256": "d9739a10e399e545620facbaf7fa0843e9e9ba16f48673bd17752a9977167d57"
+  },
+  {
+    "platform": "android",
+    "name": "auth-password-fr",
+    "sha256": "e583366106013b1a176b5e2211875e1fe923ab3995ab2e58b12b956564bba106"
+  },
+  {
+    "platform": "android",
+    "name": "auth-signup-fr",
+    "sha256": "6933f89cd13eabfe51e8f0afa143a74b6de7c50f0d414d1fbc34679ac9968431"
+  },
+  {
+    "platform": "android",
+    "name": "auth-email-fr",
+    "sha256": "c8d05bbc0e16a73bdaacda44f7d39e381243e13f60ab38fa1c0b09d802292bb3"
+  },
+  {
+    "platform": "android",
+    "name": "auth-forgot-fr",
+    "sha256": "7077ba586dd26ec5d31d1948b54ee678645a10c43adf56ed0f5fc9c550a52c3f"
+  },
+  {
+    "platform": "android",
+    "name": "auth-code-fr",
+    "sha256": "442dd7aab9bcb4866b0b6b4059e5942990873e8fb35955907e248e1a2ff570c7"
+  },
+  {
+    "platform": "android",
+    "name": "auth-reset-fr",
+    "sha256": "0ab78ff5d57a32175cfe960d6d2b313e547560a2fd8c5596b21f610dbbb24304"
+  },
+  {
+    "platform": "android",
+    "name": "saved-accessibility-fr",
+    "sha256": "0e6e16784f7ee11e562044beecf02ec1f69d23acf1010b5c48030c300f0e9481"
+  },
+  {
+    "platform": "android",
+    "name": "help-share-fr",
+    "sha256": "bae9c2e46356442ee20dbc41c1c5fb6205e37c93221204a07a0e9b0dd7085ce3"
+  },
+  {
+    "platform": "android",
+    "name": "auth-methods-es-419",
+    "sha256": "db658a52621e99c06616ee179a014b518c8774a90457160e5b62b9c17e289284"
+  },
+  {
+    "platform": "android",
+    "name": "auth-password-es-419",
+    "sha256": "bdaf9d678ec89affaae47ee06fc1245a3512532eefe69e74a5597a2568132762"
+  },
+  {
+    "platform": "android",
+    "name": "auth-signup-es-419",
+    "sha256": "7c23616cfd3f0b5d00fa7a2bd3cdfa1fb1bff8a78b3a59f6279486667240fd19"
+  },
+  {
+    "platform": "android",
+    "name": "auth-email-es-419",
+    "sha256": "11b21e6f3ae1261ef8ce13be1dadbaf6423479a426ab49ff0f3f0ab4653efa18"
+  },
+  {
+    "platform": "android",
+    "name": "auth-forgot-es-419",
+    "sha256": "ea070fce04f4c9c7286d127efc5560548834c3e9c620f011fbf2498574fada05"
+  },
+  {
+    "platform": "android",
+    "name": "auth-code-es-419",
+    "sha256": "7b6b802b65535d6ad13307e4c92688b2459c85940d36a47c39f028a895b498b6"
+  },
+  {
+    "platform": "android",
+    "name": "auth-reset-es-419",
+    "sha256": "5187bfe9c09b0a0ca0cbd5344e28fb488bc8ce362833126330787baf0a96969e"
+  },
+  {
+    "platform": "android",
+    "name": "saved-accessibility-es-419",
+    "sha256": "0e6e16784f7ee11e562044beecf02ec1f69d23acf1010b5c48030c300f0e9481"
+  },
+  {
+    "platform": "android",
+    "name": "help-share-es-419",
+    "sha256": "7d7372cb9ecb03dc1b37d3f9c5f273863b74a274fc58120fd903e9a96e49fe7c"
+  },
+  {
+    "platform": "android",
+    "name": "auth-methods-pt-BR",
+    "sha256": "703473b7186f5e502661a499b9c87b0eea1974e9280efeb6886bef625e5ad652"
+  },
+  {
+    "platform": "android",
+    "name": "auth-password-pt-BR",
+    "sha256": "227f6c89173f13c0561610106a1a887871dec79390dde1cc14ab2d615cfe2427"
+  },
+  {
+    "platform": "android",
+    "name": "auth-signup-pt-BR",
+    "sha256": "63e6fbcf48e2c4d6afdf9bb8ba6cc7ec969df371f9f144ffb83acdde82878011"
+  },
+  {
+    "platform": "android",
+    "name": "auth-email-pt-BR",
+    "sha256": "bc244d6579999bb9ba2945ca6f7d1575012997e1df527c504f3d95a95fd7c6a8"
+  },
+  {
+    "platform": "android",
+    "name": "auth-forgot-pt-BR",
+    "sha256": "ec4c64544bbb64940393bdeb9f05c56e75743e568427fe7996e828f45624caca"
+  },
+  {
+    "platform": "android",
+    "name": "auth-code-pt-BR",
+    "sha256": "4f28ba9d5ed8637bf7c2c975c0da232b1762efa6f008ef6b4255b304b454a8c5"
+  },
+  {
+    "platform": "android",
+    "name": "auth-reset-pt-BR",
+    "sha256": "0d1214ac6cc8cfe30b4ad40a288804714fbbf5051a37552464034b9eb8a1688f"
+  },
+  {
+    "platform": "android",
+    "name": "saved-accessibility-pt-BR",
+    "sha256": "0e6e16784f7ee11e562044beecf02ec1f69d23acf1010b5c48030c300f0e9481"
+  },
+  {
+    "platform": "android",
+    "name": "help-share-pt-BR",
+    "sha256": "5970c099b695a6d3a6e8b8877694a9c925576fddab9a285cd5ff7f878f8070a0"
+  },
+  {
+    "platform": "android",
+    "name": "auth-methods-sw",
+    "sha256": "609fcb3bf871d25178246934d10496a52536370dd4829d9d1e55d808f681f730"
+  },
+  {
+    "platform": "android",
+    "name": "auth-password-sw",
+    "sha256": "29ceea512c44d24086149d09b936da472c9c4a26cb5a37407a86d20137f77118"
+  },
+  {
+    "platform": "android",
+    "name": "auth-signup-sw",
+    "sha256": "6438aa0f060b785d6af246bcc0f95783636b236526429d3ff624f0cd9bcaa49f"
+  },
+  {
+    "platform": "android",
+    "name": "auth-email-sw",
+    "sha256": "111db112ac04324a938759aa1178fa81eaa9e589a76dd13917db9871e40971a1"
+  },
+  {
+    "platform": "android",
+    "name": "auth-forgot-sw",
+    "sha256": "e5fff301fd12845af1034aaf4d597ec02b218c01b61c0e786bd9d1d6592c0a86"
+  },
+  {
+    "platform": "android",
+    "name": "auth-code-sw",
+    "sha256": "21a67b952df35610fd0fa2d36f2948694cedfb45c24c842dcf39538aadd0939e"
+  },
+  {
+    "platform": "android",
+    "name": "auth-reset-sw",
+    "sha256": "54ec93e428dab570ac493d0891042f6e05e19a31cd71347ccf658f70220a63c7"
+  },
+  {
+    "platform": "android",
+    "name": "saved-accessibility-sw",
+    "sha256": "0e6e16784f7ee11e562044beecf02ec1f69d23acf1010b5c48030c300f0e9481"
+  },
+  {
+    "platform": "android",
+    "name": "help-share-sw",
+    "sha256": "9fded3031f4f3c0a32c0d3f73a89d9b02a4db653194d81e33de62a3ed451499f"
+  },
+  {
+    "platform": "android",
+    "name": "auth-methods-hi",
+    "sha256": "bebdd2975eb26be61bb651115318397517d4413bea8cdb421ad039ddb6752d7b"
+  },
+  {
+    "platform": "android",
+    "name": "auth-password-hi",
+    "sha256": "85ca9cf784c247d9dc07012118015112df125d22c73d3298f61c5f471b0b2e11"
+  },
+  {
+    "platform": "android",
+    "name": "auth-signup-hi",
+    "sha256": "e1ed57b44c3b225ab29c360e60e055ff82a3d0456e55f0fa9f1d82dcb1d68535"
+  },
+  {
+    "platform": "android",
+    "name": "auth-email-hi",
+    "sha256": "0fa448964e9a7b3f83af0f6ca2e39a8f4cbc612cd755997fbe5288f875e70900"
+  },
+  {
+    "platform": "android",
+    "name": "auth-forgot-hi",
+    "sha256": "6026cca05adfb7a0507a2ce8b38fe0e7de27e716a190582facc354ffaf615f3a"
+  },
+  {
+    "platform": "android",
+    "name": "auth-code-hi",
+    "sha256": "54191249d5f90719d320a5d79b9059f82c21e68a9a5623ee7148c4aed48b401b"
+  },
+  {
+    "platform": "android",
+    "name": "auth-reset-hi",
+    "sha256": "bda236ec84707ef36587a265b6428dedad492916113a32e309c90aef2d70f64f"
+  },
+  {
+    "platform": "android",
+    "name": "saved-accessibility-hi",
+    "sha256": "0e6e16784f7ee11e562044beecf02ec1f69d23acf1010b5c48030c300f0e9481"
+  },
+  {
+    "platform": "android",
+    "name": "help-share-hi",
+    "sha256": "986d1abddb0f79712cd2334343c5c00b2b8ae10433b021c824b5a13df85ff305"
+  },
+  {
+    "platform": "android",
+    "name": "auth-methods-bn",
+    "sha256": "764027c2baccbc377c3f69e8ffaf4fc7d6eaee9c75a50734788d7139f238d1dc"
+  },
+  {
+    "platform": "android",
+    "name": "auth-password-bn",
+    "sha256": "cf93f00532ba3163db6601bb2a90b3285cdf8112bed98e2b72bb7dd9d338b09e"
+  },
+  {
+    "platform": "android",
+    "name": "auth-signup-bn",
+    "sha256": "fa6af7cfb991a4d1f75f3a349958dabe6b1c63c32a87489f024b8578a6534c6a"
+  },
+  {
+    "platform": "android",
+    "name": "auth-email-bn",
+    "sha256": "5e35c0962a0b579c45e50ed6ab57a2517c22280379ff14bdaa355ac67dd24ec6"
+  },
+  {
+    "platform": "android",
+    "name": "auth-forgot-bn",
+    "sha256": "4d305daa9351de665755fb156f615fabcd7cbf353471db357cf244fc6ef8fd38"
+  },
+  {
+    "platform": "android",
+    "name": "auth-code-bn",
+    "sha256": "5ccac8320a3a09d2bdfb08cc57932c47e8e874e7d12ae96eab7ae33a1578a436"
+  },
+  {
+    "platform": "android",
+    "name": "auth-reset-bn",
+    "sha256": "07a10e9be3220ff2f65288606c4c2c8bc8dad32a15f18050c306e311819ec587"
+  },
+  {
+    "platform": "android",
+    "name": "saved-accessibility-bn",
+    "sha256": "0e6e16784f7ee11e562044beecf02ec1f69d23acf1010b5c48030c300f0e9481"
+  },
+  {
+    "platform": "android",
+    "name": "help-share-bn",
+    "sha256": "4df3dca643101f2730bc747404ec43afd4311611fd0dfd201eda0671f7ae5d6c"
+  }
+]

@@ -114,4 +114,5 @@
     <string name="q2_per_month">aylık</string>
     <string name="q2_more">Diğer</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
+    <string name="saved_remove_message" formatted="false">Bu işlemi aşağıdaki mesajdan geri alabilirsiniz.</string>
 </resources>

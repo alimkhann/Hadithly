@@ -1,0 +1,63 @@
+{
+  "native_review": "pending",
+  "provenance": "Correct only Arabic/Urdu Share Hadithly values that incorrectly said Set new password. Other existing iOS locale values and metadata are preserved.",
+  "keys": [
+    "Share Hadithly"
+  ],
+  "locales": {
+    "en": [
+      "Share Hadithly"
+    ],
+    "ar": [
+      "مشاركة Hadithly"
+    ],
+    "ru": [
+      "Поделиться Hadithly"
+    ],
+    "kk": [
+      "Hadithly бөлісу"
+    ],
+    "ky": [
+      "Hadithly’ди бөлүшүү"
+    ],
+    "uz": [
+      "Hadithly’ni ulashish"
+    ],
+    "tr": [
+      "Hadithly’yi paylaş"
+    ],
+    "id": [
+      "Bagikan Hadithly"
+    ],
+    "ur": [
+      "Hadithly شیئر کریں"
+    ],
+    "fr": [
+      "Partager Hadithly"
+    ],
+    "es-419": [
+      "Compartir Hadithly"
+    ],
+    "pt-BR": [
+      "Compartilhar Hadithly"
+    ],
+    "sw": [
+      "Shiriki Hadithly"
+    ],
+    "hi": [
+      "Hadithly साझा करें"
+    ],
+    "bn": [
+      "Hadithly শেয়ার করুন"
+    ]
+  },
+  "ios_repairs": {
+    "Share Hadithly": {
+      "expected_index_hash": "758feac19f9967012bbe719bc21f992fe610d18f5b2d881e7c3191936431aa42",
+      "locales": [
+        "ar",
+        "ur"
+      ]
+    }
+  }
+}

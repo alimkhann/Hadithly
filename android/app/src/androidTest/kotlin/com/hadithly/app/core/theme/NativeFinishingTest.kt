@@ -31,6 +31,138 @@ import java.io.File
 class NativeFinishingTest {
     @get:Rule val compose = createComposeRule()
 
+    @Test fun helpLabelsAndShareRepairRenderInEveryLocale() {
+        var locale by mutableStateOf("ar")
+        compose.setContent { key(locale) { LocalizedPreview(ReaderTheme.LIGHT, locale) {
+            Box(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) { com.hadithly.app.features.settings.HelpSupportDestination() }
+        } } }
+        for ((language, labels) in listOf(
+            "ar" to listOf("مشاركة Hadithly", "الأسئلة الشائعة والأدلة", "التواصل مع الدعم", "الإبلاغ عن مشكلة في الترجمة"),
+            "ru" to listOf("Поделиться Hadithly", "Вопросы и руководства", "Связаться с поддержкой", "Сообщить об ошибке перевода"),
+            "kk" to listOf("Hadithly бөлісу", "Сұрақтар мен нұсқаулықтар", "Қолдау қызметіне хабарласу", "Аударма мәселесін хабарлау"),
+            "id" to listOf("Bagikan Hadithly", "Pertanyaan dan panduan", "Hubungi dukungan", "Laporkan masalah terjemahan"),
+            "en" to listOf("Share Hadithly", "FAQ & guides", "Contact support", "Report a translation issue"),
+            "ky" to listOf("Hadithly’ди бөлүшүү", "Суроолор жана колдонмолор", "Колдоо кызматына кайрылуу", "Котормодогу көйгөйдү билдирүү"),
+            "uz" to listOf("Hadithly’ni ulashish", "Savollar va qoʻllanmalar", "Yordam xizmatiga murojaat qilish", "Tarjima muammosi haqida xabar berish"),
+            "tr" to listOf("Hadithly’yi paylaş", "Sorular ve kılavuzlar", "Destekle iletişime geç", "Çeviri sorunu bildir"),
+            "ur" to listOf("Hadithly شیئر کریں", "سوالات اور رہنما", "سپورٹ سے رابطہ کریں", "ترجمے کا مسئلہ رپورٹ کریں"),
+            "fr" to listOf("Partager Hadithly", "Questions et guides", "Contacter l’assistance", "Signaler un problème de traduction"),
+            "es-419" to listOf("Compartir Hadithly", "Preguntas y guías", "Contactar a soporte", "Reportar un problema de traducción"),
+            "pt-BR" to listOf("Compartilhar Hadithly", "Perguntas e guias", "Falar com o suporte", "Relatar um problema na tradução"),
+            "sw" to listOf("Shiriki Hadithly", "Maswali na miongozo", "Wasiliana na usaidizi", "Ripoti tatizo la tafsiri"),
+            "hi" to listOf("Hadithly साझा करें", "प्रश्न और मार्गदर्शिकाएँ", "सहायता से संपर्क करें", "अनुवाद की समस्या बताएँ"),
+            "bn" to listOf("Hadithly শেয়ার করুন", "প্রশ্ন ও নির্দেশিকা", "সহায়তায় যোগাযোগ করুন", "অনুবাদের সমস্যা জানান"),
+        )) {
+            compose.runOnIdle { locale = language }
+            for (label in labels) compose.onNodeWithText(label).performScrollTo().assertIsDisplayed()
+            capture("help-share-" + language)
+        }
+    }
+
+    @Test fun authFieldsRetainLocalizedNamesAcrossPreviewStates() {
+        var locale by mutableStateOf("ar")
+        var mode by mutableStateOf(com.hadithly.app.features.auth.SignInMode.METHODS)
+        compose.setContent { key(locale, mode) { LocalizedPreview(ReaderTheme.LIGHT, locale) {
+            SignInScreen(onAuthenticated = {}, onDismiss = {}, previewMode = mode)
+        } } }
+        for ((language, labels) in listOf(
+            "ar" to listOf("البريد الإلكتروني أو اسم المستخدم", "كلمة المرور", "تأكيد كلمة المرور", "البريد الإلكتروني", "رمز التحقق", "كلمة مرور جديدة", "المتابعة باستخدام Google"),
+            "ru" to listOf("Почта или имя пользователя", "Пароль", "Повторите пароль", "Электронная почта", "Код подтверждения", "Новый пароль", "Продолжить с Google"),
+            "kk" to listOf("Электрондық пошта немесе пайдаланушы аты", "Құпиясөз", "Құпиясөзді қайталау", "Электрондық пошта", "Растау коды", "Жаңа құпиясөз", "Google арқылы жалғастыру"),
+            "id" to listOf("Email atau nama pengguna", "Kata sandi", "Ulangi kata sandi", "Email", "Kode verifikasi", "Kata sandi baru", "Lanjutkan dengan Google"),
+            "en" to listOf("Email or username", "Password", "Repeat password", "Email", "Verification code", "New password", "Continue with Google"),
+            "ky" to listOf("Электрондук почта же колдонуучу аты", "Сырсөз", "Сырсөздү кайталаңыз", "Электрондук почта", "Ырастоо коду", "Жаңы сырсөз", "Google аркылуу улантуу"),
+            "uz" to listOf("Elektron pochta yoki foydalanuvchi nomi", "Parol", "Parolni takrorlang", "Elektron pochta", "Tasdiqlash kodi", "Yangi parol", "Google orqali davom etish"),
+            "tr" to listOf("E-posta veya kullanıcı adı", "Parola", "Parolayı tekrarla", "E-posta", "Doğrulama kodu", "Yeni parola", "Google ile devam et"),
+            "ur" to listOf("ای میل یا صارف نام", "پاس ورڈ", "پاس ورڈ دوبارہ لکھیں", "ای میل", "تصدیقی کوڈ", "نیا پاس ورڈ", "Google کے ساتھ جاری رکھیں"),
+            "fr" to listOf("E-mail ou nom d’utilisateur", "Mot de passe", "Répéter le mot de passe", "E-mail", "Code de vérification", "Nouveau mot de passe", "Continuer avec Google"),
+            "es-419" to listOf("Correo o nombre de usuario", "Contraseña", "Repetir contraseña", "Correo electrónico", "Código de verificación", "Nueva contraseña", "Continuar con Google"),
+            "pt-BR" to listOf("E-mail ou nome de usuário", "Senha", "Repetir senha", "E-mail", "Código de verificação", "Nova senha", "Continuar com Google"),
+            "sw" to listOf("Barua pepe au jina la mtumiaji", "Nenosiri", "Rudia nenosiri", "Barua pepe", "Msimbo wa uthibitishaji", "Nenosiri jipya", "Endelea kwa Google"),
+            "hi" to listOf("ईमेल या उपयोगकर्ता नाम", "पासवर्ड", "पासवर्ड दोहराएँ", "ईमेल", "सत्यापन कोड", "नया पासवर्ड", "Google के साथ जारी रखें"),
+            "bn" to listOf("ইমেইল বা ব্যবহারকারীর নাম", "পাসওয়ার্ড", "পাসওয়ার্ড আবার লিখুন", "ইমেইল", "যাচাইকরণ কোড", "নতুন পাসওয়ার্ড", "Google দিয়ে চালিয়ে যান"),
+        )) {
+            compose.runOnIdle { locale = language; mode = com.hadithly.app.features.auth.SignInMode.METHODS }
+            compose.onNodeWithText(labels[6]).assertIsDisplayed()
+            val legalLines = mapOf(
+                "en" to "By continuing, you agree to our Terms of Use. Read our Privacy Policy.",
+                "ar" to "بالمتابعة، فإنك توافق على شروط الاستخدام. اقرأ سياسة الخصوصية.",
+                "ru" to "Продолжая, вы принимаете документ «Условия использования». Прочитайте документ «Политика конфиденциальности».",
+                "kk" to "Жалғастыру арқылы Пайдалану шарттары құжатын қабылдайсыз. Құпиялық саясаты құжатын оқыңыз.",
+                "ky" to "Улантуу менен Колдонуу шарттары документин кабыл аласыз. Купуялык саясаты документин окуңуз.",
+                "uz" to "Davom etish orqali Foydalanish shartlari hujjatiga rozilik bildirasiz. Maxfiylik siyosati hujjatini oʻqing.",
+                "tr" to "Devam ederek Kullanım Koşulları metnini kabul edersiniz. Gizlilik Politikası metnini okuyun.",
+                "id" to "Dengan melanjutkan, Anda menyetujui Ketentuan Penggunaan. Baca Kebijakan Privasi.",
+                "ur" to "جاری رکھنے سے آپ استعمال کی شرائط سے اتفاق کرتے ہیں۔ ہماری رازداری کی پالیسی پڑھیں۔",
+                "fr" to "En continuant, vous acceptez nos Conditions d’utilisation. Consultez notre Politique de confidentialité.",
+                "es-419" to "Al continuar, aceptas nuestros Términos de uso. Lee nuestra Política de privacidad.",
+                "pt-BR" to "Ao continuar, você aceita nossos Termos de uso. Leia nossa Política de privacidade.",
+                "sw" to "Kwa kuendelea, unakubali Masharti ya matumizi yetu. Soma Sera ya faragha yetu.",
+                "hi" to "जारी रखकर आप हमारी उपयोग की शर्तें स्वीकार करते हैं। हमारी निजता नीति पढ़ें।",
+                "bn" to "চালিয়ে গেলে আপনি আমাদের ব্যবহারের শর্তাবলি মেনে নিচ্ছেন। আমাদের গোপনীয়তা নীতি পড়ুন।"
+            )
+            compose.onNodeWithTag("signin.legal").assertTextEquals(legalLines.getValue(language))
+            capture("auth-methods-" + language)
+            compose.runOnIdle { mode = com.hadithly.app.features.auth.SignInMode.PASSWORD_SIGN_IN }
+            compose.onNodeWithContentDescription(labels[0]).assertExists()
+            compose.onNodeWithTag("auth.field.identifier").performTextInput("reader@example.org")
+            compose.onNodeWithContentDescription(labels[0]).assertExists()
+            compose.onNodeWithContentDescription(labels[1]).assertExists()
+            capture("auth-password-" + language)
+            compose.runOnIdle { mode = com.hadithly.app.features.auth.SignInMode.SIGN_UP }
+            compose.onNodeWithContentDescription(labels[3]).assertExists()
+            compose.onNodeWithContentDescription(labels[2]).assertExists()
+            capture("auth-signup-" + language)
+            compose.runOnIdle { mode = com.hadithly.app.features.auth.SignInMode.EMAIL_ENTRY }
+            compose.onNodeWithContentDescription(labels[3]).assertExists()
+            capture("auth-email-" + language)
+            compose.runOnIdle { mode = com.hadithly.app.features.auth.SignInMode.FORGOT_PASSWORD_ENTRY }
+            compose.onNodeWithContentDescription(labels[3]).assertExists()
+            capture("auth-forgot-" + language)
+            compose.runOnIdle { mode = com.hadithly.app.features.auth.SignInMode.CODE_ENTRY }
+            compose.onNodeWithContentDescription(labels[4]).assertExists()
+            capture("auth-code-" + language)
+            compose.runOnIdle { mode = com.hadithly.app.features.auth.SignInMode.RESET_PASSWORD }
+            compose.onNodeWithContentDescription(labels[5]).assertExists()
+            capture("auth-reset-" + language)
+        }
+    }
+
+    @Test fun savedRowAnnouncesLocalizedPrivateStatesAndActions() {
+        var locale by mutableStateOf("ar")
+        compose.setContent { key(locale) { LocalizedPreview(ReaderTheme.LIGHT, locale) {
+            val ref = com.hadithly.app.core.data.HadithRef("audit-saved", "fixture", "Source collection", "1", "1", com.hadithly.app.features.onboarding.PreparedTranslationExample.arabic, "Prepared text", "Source reference")
+            val item = com.hadithly.app.core.data.SavedItemEntry(ref.hadithId, 1.0, 1.0, bookmarkCreatedAt = 1.0, favoriteCreatedAt = 1.0, noteContent = "Private note", hadith = ref)
+            Box(Modifier.fillMaxSize().statusBarsPadding().padding(20.dp)) {
+                com.hadithly.app.features.saved.SharedSavedItemRow(item, emptyList(), false, {}, { _, _, _ -> }, {}, {}, {}, {})
+            }
+        } } }
+        for ((language, labels) in listOf(
+            "ar" to listOf("تم وضع إشارة مرجعية", "تمت الإضافة إلى المفضلة", "يتضمن ملاحظة", "إجراءات العنصر المحفوظ"),
+            "ru" to listOf("В закладках", "В избранном", "Есть заметка", "Действия с сохранённым"),
+            "kk" to listOf("Бетбелгі қойылған", "Таңдаулыларға қосылған", "Жазбасы бар", "Сақталған элемент әрекеттері"),
+            "id" to listOf("Ditandai", "Ditambahkan ke favorit", "Memiliki catatan", "Tindakan item tersimpan"),
+            "en" to listOf("Bookmarked", "Favorited", "Has note", "Saved item actions"),
+            "ky" to listOf("Кыстарма коюлган", "Тандалмаларга кошулган", "Жазуусу бар", "Сакталган нерсенин аракеттери"),
+            "uz" to listOf("Xatchoʻp qoʻyilgan", "Sevimlilarga qoʻshilgan", "Qaydi bor", "Saqlangan element amallari"),
+            "tr" to listOf("Yer imlerine eklendi", "Favorilere eklendi", "Notu var", "Kaydedilen öğe işlemleri"),
+            "ur" to listOf("بُک مارک کیا گیا", "پسندیدہ میں شامل ہے", "نوٹ موجود ہے", "محفوظ مواد کے اختیارات"),
+            "fr" to listOf("Marqué", "Ajouté aux favoris", "Contient une note", "Actions sur l’élément enregistré"),
+            "es-419" to listOf("Con marcador", "Agregado a favoritos", "Tiene una nota", "Acciones del elemento guardado"),
+            "pt-BR" to listOf("Com marcador", "Adicionado aos favoritos", "Tem uma nota", "Ações do item salvo"),
+            "sw" to listOf("Imewekewa alamisho", "Imeongezwa kwenye vipendwa", "Ina dokezo", "Vitendo vya kilichohifadhiwa"),
+            "hi" to listOf("बुकमार्क किया गया", "पसंदीदा में जोड़ा गया", "नोट है", "सहेजे गए आइटम की कार्रवाइयाँ"),
+            "bn" to listOf("বুকমার্ক করা আছে", "পছন্দের তালিকায় যোগ করা আছে", "নোট আছে", "সংরক্ষিত বিষয়ের বিকল্প"),
+        )) {
+            compose.runOnIdle { locale = language }
+            compose.onNodeWithTag("saved.open.audit-saved").assert(androidx.compose.ui.test.SemanticsMatcher.expectValue(androidx.compose.ui.semantics.SemanticsProperties.StateDescription, labels.take(3).joinToString(", ")))
+            compose.onNodeWithContentDescription(labels[3]).assertIsDisplayed()
+            compose.onNodeWithText("Source reference").assertExists()
+            compose.onNodeWithText("Private note").assertExists()
+            capture("saved-accessibility-" + language)
+        }
+    }
+
     @Test fun readerTranslationPreviewAndDisclosureUseSelectedLanguages() {
         var locale by mutableStateOf("ar")
         compose.setContent { key(locale) { LocalizedPreview(ReaderTheme.LIGHT, locale) {

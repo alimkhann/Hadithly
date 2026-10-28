@@ -1709,15 +1709,15 @@ private struct HadithBlock: View {
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier("reader.hadithLabel")
-            .accessibilityLabel("\(ReaderSourceLabel.text(for: hadith)), \(kind.accessibilityName)")
+            .accessibilityLabel("\(ReaderSourceLabel.text(for: hadith)), \(AppLocalization.string(kind.accessibilityName, locale: locale))")
             .accessibilityHint("Shows source details")
-            .accessibilityAction(named: bookmarked ? "Remove Bookmark" : "Bookmark") {
+            .accessibilityAction(named: bookmarked ? "Remove bookmark" : "Bookmark") {
                 requestBookmarkToggle()
             }
-            .accessibilityAction(named: favorited ? "Remove Favorite" : "Favorite") {
+            .accessibilityAction(named: favorited ? "Remove favorite" : "Add to favorites") {
                 requestFavoriteToggle()
             }
-            .accessibilityAction(named: model.noteContent(for: hadith) != nil ? "Edit Note" : "Add Note") {
+            .accessibilityAction(named: model.noteContent(for: hadith) != nil ? "Edit note" : "Add note") {
                 isEditingNote = true
             }
             .accessibilityAction(named: "Copy") {
@@ -1726,7 +1726,7 @@ private struct HadithBlock: View {
             .accessibilityAction(named: "Share") {
                 shareHadith()
             }
-            .accessibilityAction(named: "Suggest Translation") {
+            .accessibilityAction(named: "Suggest a translation") {
                 isSubmittingTranslation = true
             }
             .modifier(HadithReportAction(
@@ -1795,7 +1795,7 @@ private struct HadithBlock: View {
             requestBookmarkToggle()
         } label: {
             Label(
-                model.isBookmarked(hadith) ? "Remove Bookmark" : "Bookmark",
+                model.isBookmarked(hadith) ? "Remove bookmark" : "Bookmark",
                 systemImage: model.isBookmarked(hadith) ? "bookmark.fill" : "bookmark"
             )
         }
@@ -1805,7 +1805,7 @@ private struct HadithBlock: View {
             requestFavoriteToggle()
         } label: {
             Label(
-                model.isFavorite(hadith) ? "Remove Favorite" : "Favorite",
+                model.isFavorite(hadith) ? "Remove favorite" : "Add to favorites",
                 systemImage: model.isFavorite(hadith) ? "heart.fill" : "heart"
             )
         }
@@ -1815,7 +1815,7 @@ private struct HadithBlock: View {
             isEditingNote = true
         } label: {
             Label(
-                model.noteContent(for: hadith) != nil ? "Edit Note" : "Add Note",
+                model.noteContent(for: hadith) != nil ? "Edit note" : "Add note",
                 systemImage: "square.and.pencil"
             )
         }
@@ -1841,7 +1841,7 @@ private struct HadithBlock: View {
             Button {
                 reportedTranslation = translation
             } label: {
-                Label("Report Translation", systemImage: "flag")
+                Label("Report translation", systemImage: "flag")
             }
             .accessibilityIdentifier("reader.reportTranslation")
         }
@@ -1849,7 +1849,7 @@ private struct HadithBlock: View {
         Button {
             isSubmittingTranslation = true
         } label: {
-            Label("Suggest Translation", systemImage: "text.bubble")
+            Label("Suggest a translation", systemImage: "text.bubble")
         }
         .accessibilityIdentifier("reader.suggestTranslation")
     }
@@ -2060,7 +2060,7 @@ private struct HadithReportAction: ViewModifier {
 
     func body(content: Content) -> some View {
         if let translation {
-            content.accessibilityAction(named: "Report Translation") {
+            content.accessibilityAction(named: "Report translation") {
                 reportedTranslation = translation
             }
         } else {

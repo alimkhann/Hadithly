@@ -1,0 +1,134 @@
+{
+  "ios": {
+    "runs": [
+      {
+        "bundle": "hadithly-a4-auth-saved-red-ios.xcresult",
+        "startTime": 1793194293.408,
+        "result": "Failed",
+        "passedTests": 0,
+        "failedTests": 2,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-auth-saved-green-ios.xcresult",
+        "startTime": 1793194808.378,
+        "result": "Passed",
+        "passedTests": 2,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-auth-saved-final-ios.xcresult",
+        "startTime": 1793195395.814,
+        "result": "Failed",
+        "passedTests": 2,
+        "failedTests": 1,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-auth-saved-legal-ios.xcresult",
+        "startTime": 1793195652.323,
+        "result": "Passed",
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0
+      }
+    ],
+    "latestCases": {
+      "HadithlyUITests/VisualPolishUITests/testAuthFieldsRetainLocalizedNamesAcrossAllPreviewStates()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-auth-saved-legal-ios.xcresult"
+      },
+      "HadithlyUITests/VisualPolishUITests/testSavedRowAnnouncesLocalizedPrivateStatesAndActions()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-auth-saved-green-ios.xcresult"
+      },
+      "HadithlyUITests/NativeFinishingUITests/testReaderUndoStaysAboveBottomControlsAndRestoresBookmark()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-auth-saved-final-ios.xcresult"
+      },
+      "HadithlyUITests/VisualPolishUITests/testHelpLabelsAndShareRepairRenderInEveryLocale()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-auth-saved-final-ios.xcresult"
+      }
+    },
+    "latestCounts": {
+      "Passed": 4
+    }
+  },
+  "android": {
+    "ui": {
+      "counts": {
+        "Passed": 6
+      },
+      "cases": {
+        "com.hadithly.app.core.theme.NativeFinishingTest/authFieldsRetainLocalizedNamesAcrossPreviewStates": "Passed",
+        "com.hadithly.app.core.theme.NativeFinishingTest/savedRowAnnouncesLocalizedPrivateStatesAndActions": "Passed",
+        "com.hadithly.app.core.theme.NativeFinishingTest/helpLabelsAndShareRepairRenderInEveryLocale": "Passed",
+        "com.hadithly.app.features.saved.SavedItemRowTest/previewAndActionMenuDoNotNavigate": "Passed",
+        "com.hadithly.app.features.saved.SavedItemRowTest/moveRemainsAvailableOnlyThroughContextMenu": "Passed",
+        "com.hadithly.app.features.saved.SavedItemRowTest/guestPreviewLoadsBothTextsWithoutNavigating": "Passed"
+      },
+      "runs": [
+        {
+          "phase": "initial-auth-and-Saved-semantics",
+          "counts": {
+            "Passed": 2
+          },
+          "cases": {
+            "com.hadithly.app.core.theme.NativeFinishingTest/authFieldsRetainLocalizedNamesAcrossPreviewStates": "Passed",
+            "com.hadithly.app.core.theme.NativeFinishingTest/savedRowAnnouncesLocalizedPrivateStatesAndActions": "Passed"
+          },
+          "reports": [
+            {
+              "file": "TEST-hadithly(AVD) - 16-_app-.xml",
+              "sha256": "d496e491080d6d3d07a4a4e054552c4366ecf3274eb1f7d4831569a4723deb7c"
+            }
+          ]
+        },
+        {
+          "phase": "all-seven-auth-states-Help-and-existing-Saved-regressions",
+          "counts": {
+            "Passed": 5
+          },
+          "cases": {
+            "com.hadithly.app.core.theme.NativeFinishingTest/helpLabelsAndShareRepairRenderInEveryLocale": "Passed",
+            "com.hadithly.app.core.theme.NativeFinishingTest/authFieldsRetainLocalizedNamesAcrossPreviewStates": "Passed",
+            "com.hadithly.app.features.saved.SavedItemRowTest/previewAndActionMenuDoNotNavigate": "Passed",
+            "com.hadithly.app.features.saved.SavedItemRowTest/moveRemainsAvailableOnlyThroughContextMenu": "Passed",
+            "com.hadithly.app.features.saved.SavedItemRowTest/guestPreviewLoadsBothTextsWithoutNavigating": "Passed"
+          },
+          "reports": [
+            {
+              "file": "TEST-hadithly(AVD) - 16-_app-.xml",
+              "sha256": "f3ec23656ec1e9e2b85989ce1f6c90ce18880dfc755eeb4c6df598f2f9877475"
+            }
+          ]
+        }
+      ]
+    },
+    "history": [
+      {
+        "phase": "before-label-and-state-repair",
+        "cases": [
+          {
+            "name": "authFieldsRetainLocalizedNamesAcrossPreviewStates",
+            "result": "Failed",
+            "message": ""
+          },
+          {
+            "name": "savedRowAnnouncesLocalizedPrivateStatesAndActions",
+            "result": "Failed",
+            "message": ""
+          }
+        ],
+        "reports": [
+          {
+            "file": "TEST-hadithly(AVD) - 16-_app-.xml",
+            "sha256": "0598eb4fb4dbae9e3ca2528fd9b7f346ffa3e4c8e0a8026493fcdf396981dc07"
+          }
+        ]
+      }
+    ]
+  }
+}

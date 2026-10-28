@@ -123,7 +123,7 @@ struct SharedSavedItemRow: View {
                                 .font(.subheadline.weight(.semibold)).foregroundStyle(palette.textPrimary).lineLimit(2)
                             HStack(spacing: 6) {
                                 if item.bookmarkCreatedAt != nil { Image(systemName: "bookmark.fill").foregroundStyle(Theme.bookmark).accessibilityLabel("Bookmarked") }
-                                if item.favoriteCreatedAt != nil { Image(systemName: "heart.fill").foregroundStyle(Theme.favorite).accessibilityLabel("Favorite") }
+                                if item.favoriteCreatedAt != nil { Image(systemName: "heart.fill").foregroundStyle(Theme.favorite).accessibilityLabel("Favorited") }
                                 if item.noteContent != nil { Image(systemName: "note.text").foregroundStyle(palette.textPrimary).accessibilityLabel("Has note") }
                                 Text(SavedRelativeTime.string(since: item.sortDate))
                             }.font(.caption).foregroundStyle(palette.textSecondary)
@@ -144,7 +144,7 @@ struct SharedSavedItemRow: View {
                         Image(systemName: expanded ? "chevron.up" : "chevron.down").frame(width: 44, height: 44)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel(expanded ? "Hide hadith preview" : "Show hadith preview")
+                    .accessibilityLabel(Text(LocalizedStringKey(expanded ? "Hide hadith preview" : "Show hadith preview")))
                     .accessibilityIdentifier("saved.preview.\(item.hadithId)")
                 }
 

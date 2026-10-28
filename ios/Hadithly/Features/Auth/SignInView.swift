@@ -261,6 +261,7 @@ struct SignInView: View {
             .padding(.top, 24)
 
             TextField("Email or username", text: $email)
+                .accessibilityLabel("Email or username")
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .font(.body)
@@ -272,6 +273,7 @@ struct SignInView: View {
                 .accessibilityIdentifier("signin.identifier.field")
 
             SecureField("Password", text: $password)
+                .accessibilityLabel("Password")
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .font(.body)
@@ -351,6 +353,7 @@ struct SignInView: View {
 
             VStack(spacing: 12) {
                     TextField("you@example.com", text: $email)
+                .accessibilityLabel("Email")
                         .textContentType(.emailAddress)
                         .keyboardType(.emailAddress)
                         .textInputAutocapitalization(.never)
@@ -362,6 +365,7 @@ struct SignInView: View {
                         .accessibilityIdentifier("signup.email.field")
 
                     SecureField("Password", text: $password)
+                .accessibilityLabel("Password")
                         .textContentType(.newPassword)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
@@ -372,6 +376,7 @@ struct SignInView: View {
                         .accessibilityIdentifier("signup.password.field")
 
                     SecureField("Repeat password", text: $confirmPassword)
+                .accessibilityLabel("Repeat password")
                         .textContentType(.newPassword)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
@@ -448,6 +453,7 @@ struct SignInView: View {
             .padding(.top, 24)
 
             TextField("you@example.com", text: $email)
+                .accessibilityLabel("Email")
                 .textContentType(.emailAddress)
                 .keyboardType(.emailAddress)
                 .textInputAutocapitalization(.never)
@@ -511,6 +517,7 @@ struct SignInView: View {
             .padding(.top, 24)
 
             TextField("000000", text: $code)
+                .accessibilityLabel("Verification code")
                 .textContentType(.oneTimeCode)
                 .keyboardType(.numberPad)
                 .multilineTextAlignment(.center)
@@ -584,6 +591,8 @@ struct SignInView: View {
             .padding(.top, 24)
 
             TextField("you@example.com", text: $email)
+                .accessibilityIdentifier("signin.forgotEmail.field")
+                .accessibilityLabel("Email")
                 .textContentType(.emailAddress)
                 .keyboardType(.emailAddress)
                 .textInputAutocapitalization(.never)
@@ -643,6 +652,8 @@ struct SignInView: View {
             .padding(.top, 24)
 
             TextField("000000", text: $code)
+                .accessibilityIdentifier("signin.resetCode.field")
+                .accessibilityLabel("Verification code")
                 .textContentType(.oneTimeCode)
                 .keyboardType(.numberPad)
                 .multilineTextAlignment(.center)
@@ -657,6 +668,8 @@ struct SignInView: View {
                 }
 
             SecureField("New password", text: $newPassword)
+                .accessibilityIdentifier("signin.newPassword.field")
+                .accessibilityLabel("New password")
                 .textContentType(.newPassword)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
@@ -734,7 +747,7 @@ struct SignInView: View {
                         .tint(foreground)
                 } else {
                     if showsGoogleMark { GoogleBrandMark().frame(width: 20, height: 20) }
-                    Text(title)
+                    Text(LocalizedStringKey(title))
                         .font(.headline)
                         .foregroundStyle(foreground)
                 }
@@ -791,7 +804,7 @@ struct SignInView: View {
                 if let icon {
                     Image(systemName: icon)
                 }
-                Text(title)
+                Text(LocalizedStringKey(title))
             }
             .font(.headline)
             .frame(maxWidth: .infinity)
@@ -1041,6 +1054,7 @@ private struct ErrorBanner: View {
 /// Policy are tappable links that open the public policy pages.
 private struct LegalText: View {
     @Environment(\.readerPalette) private var palette
+    @Environment(\.locale) private var locale
     let termsURL: URL?
     let privacyURL: URL?
 
@@ -1051,19 +1065,19 @@ private struct LegalText: View {
     }
 
     private func legalLine(terms: URL, privacy: URL) -> some View {
-        var text = AttributedString("By continuing, you agree to our ")
-        text.foregroundColor = palette.textSecondary
-        var termsPart = AttributedString("Terms of Use")
-        termsPart.link = terms
-        termsPart.foregroundColor = palette.interactive
-        var andPart = AttributedString(". Read our ")
-        andPart.foregroundColor = palette.textSecondary
-        var privacyPart = AttributedString("Privacy Policy")
-        privacyPart.link = privacy
-        privacyPart.foregroundColor = palette.interactive
-        var dotPart = AttributedString(".")
-        dotPart.foregroundColor = palette.textSecondary
-        return Text(text + termsPart + andPart + privacyPart + dotPart)
+        let template = String(format: AppLocalization.string("By continuing, you agree to our %1$@. Read our %2$@.", locale: locale), locale: locale, "\u{E000}", "\u{E001}")
+        var text = AttributedString()
+        for character in template {
+            let isTerms = character == "\u{E000}"
+            let isPrivacy = character == "\u{E001}"
+            var part = AttributedString(isTerms ? AppLocalization.string("Terms of Use", locale: locale) : isPrivacy ? AppLocalization.string("Privacy Policy", locale: locale) : String(character))
+            part.foregroundColor = isTerms || isPrivacy ? palette.interactive : palette.textSecondary
+            if isTerms { part.link = terms }
+            if isPrivacy { part.link = privacy }
+            text += part
+        }
+        return Text(text)
+            .accessibilityIdentifier("signin.legal")
             .font(.caption)
             .multilineTextAlignment(.center)
             .frame(maxWidth: .infinity)

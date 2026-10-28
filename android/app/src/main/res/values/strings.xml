@@ -113,4 +113,5 @@
     <string name="q2_savings_percent">Save %1$d%%</string>
     <string name="q2_per_month">per month</string>
     <string name="q2_more">More</string>
+    <string name="saved_remove_message" formatted="false">You can undo this action from the message below.</string>
 </resources>

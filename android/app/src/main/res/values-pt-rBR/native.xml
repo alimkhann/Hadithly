@@ -65,7 +65,7 @@
     <string name="native_30b8238e7f5b">Envie-me um hadith todos os dias</string>
     <string name="native_30c1d8d3e912" formatted="false">Esqueceu a senha?</string>
     <string name="native_326d9c957d5a" formatted="false">Cancelar envio</string>
-    <string name="native_33b93476cf59">Hora</string>
+    <string name="native_33b93476cf59" formatted="false">Hora</string>
     <string name="native_3bad88c3376c" formatted="false">Limpar cache temporário</string>
     <string name="native_437aea62a5bd" formatted="false">Conteúdo</string>
     <string name="native_46495379257b" formatted="false">Excluir rascunho</string>
@@ -73,26 +73,26 @@
     <string name="native_482a6cdaa409">Página %1$s</string>
     <string name="native_483dc4ca0c62">O arquivo contém apenas seus dados portáteis. Você precisa estar conectado; se a sessão expirou, entre novamente primeiro.</string>
     <string name="native_49103f50966a">Ainda não há tradução em %1$s.</string>
-    <string name="native_49c266baaaa7">Buscar</string>
+    <string name="native_49c266baaaa7" formatted="false">Buscar</string>
     <string name="native_4dc42835fbc3">Referência: %1$s</string>
     <string name="native_51da6060f286" formatted="false">Evidence expired</string>
     <string name="native_540ec6e92d83">Nenhuma correspondência no texto em inglês do Sunnah.now.</string>
     <string name="native_5474755405da" formatted="false">Selecionar novamente</string>
     <string name="native_565339bc4d33" formatted="false">Certo</string>
     <string name="native_5a22ad9780f1">Abrindo %1$s…</string>
-    <string name="native_5d69219595e8">Falha ao excluir a conta</string>
+    <string name="native_5d69219595e8" formatted="false">Falha ao excluir a conta</string>
     <string name="native_5f8fefc620cb">Fechar conteúdo</string>
     <string name="native_63624455a1b0" formatted="false">Fim da página</string>
     <string name="native_657e34fbabb2">Os nomes de usuário começam com uma letra e usam letras, números e sublinhados.</string>
     <string name="native_6aeba22b0308" formatted="false">Adicionar imagem ou PDF</string>
     <string name="native_6cc8519b9158" formatted="false">Ir</string>
     <string name="native_6d5d90047973">Licenças</string>
-    <string name="native_702ef921ed1d">Nome</string>
+    <string name="native_702ef921ed1d" formatted="false">Nome</string>
     <string name="native_709e31254bdd">Pelo menos uma camada permanece visível.</string>
     <string name="native_71223a24948d" formatted="false">Sugerir tradução</string>
     <string name="native_76a282009ba8">Link de fonte HTTPS</string>
-    <string name="native_77889b3bab7e">Favoritos e notas</string>
-    <string name="native_7b4888049459">Sobrenome</string>
+    <string name="native_77889b3bab7e" formatted="false">Favoritos e notas</string>
+    <string name="native_7b4888049459" formatted="false">Sobrenome</string>
     <string name="native_7b503321357a" formatted="false">Excluir conta e dados</string>
     <string name="native_7d94fc6f0852">Escreva uma nota privada…</string>
     <string name="native_82c66ec1be55" formatted="false">Evidence received; awaiting checks.</string>
@@ -111,7 +111,7 @@
     <string name="native_96be15d18327" formatted="false">Texto árabe</string>
     <string name="native_98770753608c" formatted="false">Evidence checks complete</string>
     <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
-    <string name="native_9f9feade761d">Coleções</string>
+    <string name="native_9f9feade761d" formatted="false">Coleções</string>
     <string name="native_a1a6ea9533fa">A busca não está disponível offline.</string>
     <string name="native_b01111be1821">Buscar texto em inglês</string>
     <string name="native_b67dee925588">Texto em inglês do Sunnah.now</string>
@@ -124,17 +124,17 @@
     <string name="native_c1c1009d3f37" formatted="false">Atualizar</string>
     <string name="native_c31723ab3302">Buscando…</string>
     <string name="native_c4bbcbb7a6a7">Citações de fundamentação</string>
-    <string name="native_ca99bb9196aa">Somente Wi-Fi</string>
+    <string name="native_ca99bb9196aa" formatted="false">Somente Wi-Fi</string>
     <string name="native_d0dc72eadb20">Digite acima para buscar no texto em inglês.</string>
     <string name="native_d640c7421da0" formatted="false">Retomar</string>
     <string name="native_d6eafe823591" formatted="false">Baixar</string>
     <string name="native_d8da2c49df39" formatted="false">Nota</string>
     <string name="native_d9a85e0a70d8" formatted="false">Entrar com um código</string>
-    <string name="native_dcd1d5223f73">Nome</string>
+    <string name="native_dcd1d5223f73" formatted="false">Nome</string>
     <string name="native_de60e9e3043d">%1$s pontos</string>
     <string name="native_dfe9ca4d0f96" formatted="false">Adicionar link</string>
     <string name="native_e05372bd9e28" formatted="false">Baixar tradução</string>
-    <string name="native_ecdba5aa3ba4">Exportar seus dados?</string>
+    <string name="native_ecdba5aa3ba4" formatted="false">Exportar seus dados?</string>
     <string name="native_f038ae10080f" formatted="false">Denunciar tradução</string>
     <string name="native_ba3bbbe10d8b" formatted="false">Carregando…</string>
     <string name="native_91bf928d3527" formatted="false">Carregando página</string>
@@ -211,4 +211,63 @@
     <string name="native_35045eff549e" formatted="false">Papel</string>
     <string name="native_46821f0b7acc" formatted="false">Aparência do app</string>
     <string name="native_2ccb1be6d319" formatted="false">%s pt</string>
+    <string name="native_63565c0485fe" formatted="false">Adicionar nota</string>
+    <string name="native_299e604ccff3" formatted="false">Editar nota</string>
+    <string name="native_4c546858a6a6" formatted="false">Abrir no leitor</string>
+    <string name="native_86524e24e26a" formatted="false">Mostrar biblioteca em lista</string>
+    <string name="native_fea264d716d3" formatted="false">Mostrar biblioteca em grade</string>
+    <string name="native_aa69cfa701a6" formatted="false">Com marcador</string>
+    <string name="native_86f5562ff32e" formatted="false">Adicionado aos favoritos</string>
+    <string name="native_5bfefd244c17" formatted="false">Tem uma nota</string>
+    <string name="native_47ce7f7fb0dd" formatted="false">Filtro de salvos</string>
+    <string name="native_642030cddde8" formatted="false">Ações do item salvo</string>
+    <string name="native_94be6a7413a9" formatted="false">Mostra os detalhes da fonte</string>
+    <string name="native_183b1d17b908" formatted="false">Abre este hadith no leitor</string>
+    <string name="native_cfca7a6fc552" formatted="false">Abre esta pasta. Toque e segure para ver as ações.</string>
+    <string name="native_340ac4c3fd1f" formatted="false">Continuar com Apple</string>
+    <string name="native_cce937e89144" formatted="false">Continuar com Google</string>
+    <string name="native_e60c048be6a6" formatted="false">Continuar lendo como visitante</string>
+    <string name="native_2a347f1933d4" formatted="false">E-mail ou nome de usuário</string>
+    <string name="native_e7cf3ef4f17c" formatted="false">Senha</string>
+    <string name="native_b74070f90e8c" formatted="false">Repetir senha</string>
+    <string name="native_3dd9df4441fb" formatted="false">Nova senha</string>
+    <string name="native_a9ebb3cce9a6" formatted="false">Progresso do envio de evidências</string>
+    <string name="native_c0c4fe024690" formatted="false">Processando evidências</string>
+    <string name="native_a2d52ca90888" formatted="false">Tradução proposta</string>
+    <string name="native_d31378346c4b" formatted="false">Exportar após verificar o dispositivo</string>
+    <string name="native_c00e66e2395d" formatted="false">Perguntas e guias</string>
+    <string name="native_814f4ed2d5bd" formatted="false">Falar com o suporte</string>
+    <string name="native_5221d9b4843b" formatted="false">Relatar um problema na tradução</string>
+    <string name="native_399914d1ad28" formatted="false">Compartilhar Hadithly</string>
+    <string name="native_74ccd4330384" formatted="false">Pasta</string>
+    <string name="native_a43619f32117" formatted="false">Nenhum resultado</string>
+    <string name="native_ca3f2b79e2c1" formatted="false">Busca indisponível</string>
+    <string name="native_24987507acda" formatted="false">Buscar nesta coleção</string>
+    <string name="native_e1b6f1196ef1" formatted="false">Início da página</string>
+    <string name="native_df2cdb48632f" formatted="false">Abrir ajustes do app</string>
+    <string name="native_34afebd0f332" formatted="false">Pro está ativo nesta conta</string>
+    <string name="native_a8103c04d748" formatted="false">Compartilhar arquivo exportado</string>
+    <string name="native_4787eaf7c938" formatted="false">Informações legais</string>
+    <string name="native_33c8e8de41c3" formatted="false">Não verificado</string>
+    <string name="native_969ccbd3cf63" formatted="false">E-mail</string>
+    <string name="native_3ee75029c70e" formatted="false">Código de verificação</string>
+    <string name="native_7f3c0782afd7" formatted="false">Adicionar aos favoritos</string>
+    <string name="native_legal_placeholder" formatted="false">Ao continuar, você aceita nossos %1$s. Leia nossa %2$s.</string>
+    <string name="native_1d4f1035e674" formatted="false">Leve seus marcadores e notas entre dispositivos.</string>
+    <string name="native_7732287944e2" formatted="false">Verifique seu e-mail</string>
+    <string name="native_833b8512168f" formatted="false">Escolha uma nova senha</string>
+    <string name="native_8c99a08652d2" formatted="false">Continuar com e-mail</string>
+    <string name="native_9e709348f582" formatted="false">Crie sua conta</string>
+    <string name="native_59fa4379be1f" formatted="false">Redefinir senha</string>
+    <string name="native_66a5b4090d14" formatted="false">Enviar código</string>
+    <string name="native_6ee6d9db4278" formatted="false">Definir nova senha</string>
+    <string name="native_a7b099976a02" formatted="false">Entre com seu e-mail ou nome de usuário.</string>
+    <string name="native_eea2745e2867" formatted="false">Verificar</string>
+    <string name="native_20643ec400c0" formatted="false">Enviaremos um código para seu endereço de e-mail.</string>
+    <string name="native_fbb9f4cfc680" formatted="false">Enviaremos um código de login de seis dígitos.</string>
+    <string name="native_6621249514b7" formatted="false">Bem-vindo de volta</string>
+    <string name="native_71da039c290f" formatted="false">Qual é seu e-mail?</string>
+    <string name="native_ecf41b32aac1" formatted="false">Digite o código que enviamos para %s.</string>
+    <string name="native_8983aa13bee3" formatted="false">Digite o código enviado para %s e sua nova senha.</string>
+    <string name="native_fad91b01d03b" formatted="false">Inclua a coleção e o número do hadith</string>
 </resources>

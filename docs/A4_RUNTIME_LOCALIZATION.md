@@ -277,3 +277,57 @@ Critical-copy/native review, full runtime and assistive-technology coverage,
 physical devices, first-reading content, A3 grounding and A5–A7/E remain open.
 Next, finish auth and Saved/Reader accessibility copy, inspect the remaining
 wrapper/dynamic-string findings, and retain widget/notification and external gates.
+
+## Auth, static copy and private Saved semantics, October 28
+
+The known lexical missing-key/mapping list is now clear after adding fifty-two
+static interface keys and reusing sixteen indexed auth entries for Android.
+`a4-auth-accessibility-copy.json` records the new local GPT-family drafts plus ten
+complete existing Android drafts. The new keys include auth fields, reader/Saved
+states and actions, search/profile/help/export labels. Resource compilation is
+not runtime proof of every authenticated or evidence-processing branch; those
+paths retain their existing gates. All non-English drafts need native review.
+
+The native auth wrappers now resolve their labels rather than rendering stored
+English strings. Email and verification-code fields have explicit accessible
+names independent of technical examples and current input. Password fields retain
+secure-entry semantics. The linked consent sentence is one localized template,
+so word order and both link spans follow the locale. It uses the existing iOS
+meaning: agreement to Terms and a separate instruction to read Privacy Policy.
+The URLs are unchanged. No link, auth submit, account creation, email, code request
+or share action is activated by the checks. This local interface draft is not a
+legal or published-policy approval.
+
+Private Saved rows now announce bookmark/favorite/note state on Android and use
+localized state/action labels on iOS. User notes, folders and source references
+remain verbatim. Native row roles and action callbacks remain intact; reader
+custom actions/menu labels use the same sentence case as their localized resources.
+The final active incoming Saved confirmation draft is committed explicitly via
+`a4-saved-confirmation-copy.json`; unused older incoming entries remain separate.
+
+Source review found an existing Share Hadithly entry whose Arabic and Urdu values
+incorrectly said Set new password. `a4-existing-copy-repairs.json` corrects only
+those two iOS values and records the expected indexed-entry hash. The other locale
+values and metadata remain identical. Android uses the corrected indexed wording.
+The catalog staging helper requires an explicit repair flag, expected hash and
+locale allowlist for an existing entry. A real temporary-Git regression verifies
+rejection without the flag/hash, rejection of unrelated locale edits, exact
+index-only changes, unchanged incoming working bytes and idempotence.
+
+Initial native failures reproduced auth/Saved label gaps. The expanded checks cover
+all seven auth preview states, persistent field names after entering a synthetic
+identifier, the complete linked sentence, private Saved semantics, and Help/Share
+labels in all fifteen locales. Auth is a preview-only component test; hosted/provider
+round trips remain open. Existing Saved row preview/menu/navigation checks and the
+reader Undo restoration check are included. The final iOS consent-line rerun passes. Latest combined results are four iOS
+and six Android cases. `verification/a4-localization/auth-saved.json` retains the
+runs; selected captures and the 270-capture manifest are in `auth-saved/`. Directional isolation marks in that exact-label check use the same
+normalization helper as the earlier folder-name check; words and links still match
+exactly. Full VoiceOver/TalkBack traversal is not inferred from these labels.
+
+The lexical report still has dynamic/direct-string candidates. Relative Saved
+timestamps are confirmed English-only on both platforms and remain next, together
+with dynamic errors/counts, notification/widget coverage, fallback/plural checks
+and critical-copy/native review. The six Arabic zero/dual formatter findings remain
+open. No backend/schema, provider, paid generation, deployment or publication change
+was performed. A1/A3, full A4, A5–A7/E and existing release gates remain in scope.

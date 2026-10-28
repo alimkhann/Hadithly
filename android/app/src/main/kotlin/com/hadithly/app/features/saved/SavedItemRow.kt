@@ -55,6 +55,12 @@ fun SharedSavedItemRow(
 ) {
     val ref = item.hadith ?: return
     val colors = LocalHadithlyColors.current
+    val savedStates = listOfNotNull(
+        if (item.bookmarkCreatedAt != null) nativeText("Bookmarked") else null,
+        if (item.favoriteCreatedAt != null) nativeText("Favorited") else null,
+        if (item.noteContent != null) nativeText("Has note") else null,
+    ).joinToString(", ")
+    val actionsLabel = nativeText("Saved item actions")
     val motionAllowed = rememberMotionAllowed()
     var expanded by remember(item.hadithId) { mutableStateOf(false) }
     var preview by remember(ref) { mutableStateOf(ref) }
@@ -82,7 +88,7 @@ fun SharedSavedItemRow(
         .animateContentSize(if (motionAllowed) tween(InterfaceMotion.STEP) else snap())
         .padding(12.dp).testTag("saved.row.${item.hadithId}")) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f).combinedClickable(onClick = { onOpen(ref) }, onLongClick = { menuOpen = true }).padding(vertical = 8.dp)) {
+            Column(Modifier.weight(1f).combinedClickable(role = androidx.compose.ui.semantics.Role.Button, onClick = { onOpen(ref) }, onLongClick = { menuOpen = true }, onLongClickLabel = actionsLabel).semantics { stateDescription = savedStates }.testTag("saved.open.${item.hadithId}").padding(vertical = 8.dp)) {
                 Text(ref.referenceDisplay.ifBlank { ref.collectionName }, fontWeight = FontWeight.SemiBold, color = colors.textPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                     if (item.bookmarkCreatedAt != null) Icon(Icons.Filled.Bookmark, null, Modifier.size(12.dp), tint = colors.bookmark)

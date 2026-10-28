@@ -1,0 +1,62 @@
+{
+  "native_review": "pending",
+  "provenance": "Earlier incoming local draft, now staged explicitly after native verification.",
+  "keys": [
+    "You can undo this action from the message below."
+  ],
+  "locales": {
+    "en": [
+      "You can undo this action from the message below."
+    ],
+    "ar": [
+      "يمكنك التراجع عن هذا الإجراء من الرسالة أدناه."
+    ],
+    "ru": [
+      "Вы можете отменить это действие в сообщении ниже."
+    ],
+    "kk": [
+      "Бұл әрекетті төмендегі хабарламадан кері қайтара аласыз."
+    ],
+    "ky": [
+      "Бул аракетти төмөнкү билдирүүдөн артка кайтара аласыз."
+    ],
+    "uz": [
+      "Bu amalni quyidagi xabardan bekor qilishingiz mumkin."
+    ],
+    "tr": [
+      "Bu işlemi aşağıdaki mesajdan geri alabilirsiniz."
+    ],
+    "id": [
+      "Anda dapat membatalkan tindakan ini melalui pesan di bawah."
+    ],
+    "ur": [
+      "آپ نیچے موجود پیغام سے یہ عمل واپس لے سکتے ہیں۔"
+    ],
+    "fr": [
+      "Vous pouvez annuler cette action depuis le message ci-dessous."
+    ],
+    "es-419": [
+      "Puedes deshacer esta acción desde el mensaje de abajo."
+    ],
+    "pt-BR": [
+      "Você pode desfazer esta ação pela mensagem abaixo."
+    ],
+    "sw": [
+      "Unaweza kutengua hatua hii kupitia ujumbe ulio hapa chini."
+    ],
+    "hi": [
+      "आप नीचे दिए गए संदेश से यह कार्रवाई पूर्ववत कर सकते हैं।"
+    ],
+    "bn": [
+      "নিচের বার্তা থেকে আপনি এই কাজটি পূর্বাবস্থায় ফিরিয়ে নিতে পারেন।"
+    ]
+  },
+  "android_resources": {
+    "You can undo this action from the message below.": [
+      {
+        "file": "strings.xml",
+        "name": "saved_remove_message"
+      }
+    ]
+  }
+}

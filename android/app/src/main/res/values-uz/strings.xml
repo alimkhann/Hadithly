@@ -114,4 +114,5 @@
     <string name="q2_per_month">oyiga</string>
     <string name="q2_more">Yana</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
+    <string name="saved_remove_message" formatted="false">Bu amalni quyidagi xabardan bekor qilishingiz mumkin.</string>
 </resources>

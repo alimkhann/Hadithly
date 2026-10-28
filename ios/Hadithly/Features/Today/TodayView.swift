@@ -394,9 +394,9 @@ private struct DailyHadithCard: View {
                 Button("Cancel", role: .cancel) {}
             }
             .accessibilityElement(children: .contain).accessibilityAction(named: "Open in reader") { onOpen() }
-            .accessibilityAction(named: isBookmarked ? "Remove Bookmark" : "Bookmark") { requestBookmark() }
-            .accessibilityAction(named: isFavorited ? "Remove Favorite" : "Favorite") { requestFavorite() }
-            .accessibilityAction(named: hasNote ? "Edit Note" : "Add Note") { onNote() }
+            .accessibilityAction(named: isBookmarked ? "Remove bookmark" : "Bookmark") { requestBookmark() }
+            .accessibilityAction(named: isFavorited ? "Remove favorite" : "Add to favorites") { requestFavorite() }
+            .accessibilityAction(named: hasNote ? "Edit note" : "Add note") { onNote() }
             .accessibilityAction(named: "Copy") { onCopy() }
     }
     private var readingUnit: some View {
@@ -429,13 +429,13 @@ private struct DailyHadithCard: View {
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
     @ViewBuilder private var menuContents: some View {
-        Button(action: requestBookmark) { Label(isBookmarked ? "Remove Bookmark" : "Bookmark", systemImage: isBookmarked ? "bookmark.fill" : "bookmark") }
-        Button(action: requestFavorite) { Label(isFavorited ? "Remove Favorite" : "Favorite", systemImage: isFavorited ? "heart.fill" : "heart") }
-        Button(action: onNote) { Label(hasNote ? "Edit Note" : "Add Note", systemImage: "square.and.pencil") }
+        Button(action: requestBookmark) { Label(isBookmarked ? "Remove bookmark" : "Bookmark", systemImage: isBookmarked ? "bookmark.fill" : "bookmark") }
+        Button(action: requestFavorite) { Label(isFavorited ? "Remove favorite" : "Add to favorites", systemImage: isFavorited ? "heart.fill" : "heart") }
+        Button(action: onNote) { Label(hasNote ? "Edit note" : "Add note", systemImage: "square.and.pencil") }
         Button(action: onCopy) { Label("Copy", systemImage: "doc.on.doc") }
         if let url = ReaderShare.canonicalURL(collectionSlug: hadith.collectionSlug, providerHadithId: hadith.providerHadithId) { ShareLink(item: url) { Label("Share", systemImage: "square.and.arrow.up") } }
         Divider()
-        Button(action: onSuggest) { Label("Suggest Translation", systemImage: "text.bubble") }
+        Button(action: onSuggest) { Label("Suggest a translation", systemImage: "text.bubble") }
     }
 
     private func requestBookmark() { if isBookmarked && environment.savedSafety.confirmsRemoval { pendingRemoval = "bookmark" } else { toggleBookmark() } }

@@ -22,6 +22,9 @@ struct NativePolishFixtureView: View {
                     case "library-loading": LibraryView(previewLoading: true)
                     case "library-ready": LibraryView(previewLoading: false)
                     case "library-progress": LibraryView(previewLoading: false, progressExamples: true)
+                    case "help-audit": HelpSupportView()
+                    case "auth-audit": AuthCopyAuditFixture()
+                    case "saved-audit": SavedCopyAuditFixture()
                     case "reader-translation-settings": ReaderPreferenceDetail(panel: .translation, prefix: "settings")
                     case "app-appearance": AppearanceView()
                     case "privacy": PrivacyDataView(showSignIn: .constant(false))
@@ -73,4 +76,27 @@ struct NativePolishFixtureView: View {
             referenceDisplay: "Prepared interface preview", authenticity: ReaderAuthenticity(kind: "unknown", normalizedGrade: nil, claimScope: "unknown", sourceLabel: "Prepared example", sourceName: "Interface preview", sourceUrl: "", verificationMethod: "unverified"))
     }
 }
+
+private struct AuthCopyAuditFixture: View {
+    @State private var mode = "methods"
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 4) {
+                ForEach(["methods", "password", "signup", "email", "code", "forgot", "reset"], id: \.self) { value in
+                    Button(value) { mode = value }.font(.caption2).accessibilityIdentifier("fixture.auth." + value)
+                }
+            }.buttonStyle(.plain).padding(.vertical, 6)
+            SignInView.preview(mode).id(mode)
+        }
+    }
+}
+
+private struct SavedCopyAuditFixture: View {
+    private let ref = HadithRef(hadithId: "audit-saved", collectionSlug: "fixture", collectionName: "Source collection", volumeId: "1", hadithNumber: "1", arabicText: PreparedTranslationExample.arabic, englishText: PreparedTranslationExample.translations["en"], referenceDisplay: "Source reference")
+    var body: some View {
+        SharedSavedItemRow(item: SavedItemEntry(hadithId: ref.hadithId, createdAt: .now, updatedAt: .now, bookmarkCreatedAt: .now, favoriteCreatedAt: .now, noteContent: "Private note", folderId: nil, hadith: ref), folders: [], folderName: nil, showsFolder: false,
+            onOpen: { _ in }, onRemove: { _ in }, onMove: { _ in }, onSuggestTranslation: { _ in }).padding()
+    }
+}
+
 #endif

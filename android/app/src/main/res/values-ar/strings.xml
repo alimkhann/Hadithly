@@ -122,4 +122,5 @@
     <string name="q2_per_month">شهريًا</string>
     <string name="q2_more">المزيد</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
+    <string name="saved_remove_message" formatted="false">يمكنك التراجع عن هذا الإجراء من الرسالة أدناه.</string>
 </resources>

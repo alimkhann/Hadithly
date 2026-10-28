@@ -305,5 +305,65 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "Paper" -> R.string.native_35045eff549e
     "App appearance" -> R.string.native_46821f0b7acc
     "%@ pt" -> R.string.native_2ccb1be6d319
+    "Add note" -> R.string.native_63565c0485fe
+    "Edit note" -> R.string.native_299e604ccff3
+    "Open in reader" -> R.string.native_4c546858a6a6
+    "Show Library list" -> R.string.native_86524e24e26a
+    "Show Library grid" -> R.string.native_fea264d716d3
+    "Bookmarked" -> R.string.native_aa69cfa701a6
+    "Favorited" -> R.string.native_86f5562ff32e
+    "Has note" -> R.string.native_5bfefd244c17
+    "Saved filter" -> R.string.native_47ce7f7fb0dd
+    "Saved item actions" -> R.string.native_642030cddde8
+    "Shows source details" -> R.string.native_94be6a7413a9
+    "Opens this hadith in the reader" -> R.string.native_183b1d17b908
+    "Opens this folder. Long press for folder actions." -> R.string.native_cfca7a6fc552
+    "Continue with Apple" -> R.string.native_340ac4c3fd1f
+    "Continue with Google" -> R.string.native_cce937e89144
+    "Keep reading as a guest" -> R.string.native_e60c048be6a6
+    "Email or username" -> R.string.native_2a347f1933d4
+    "Password" -> R.string.native_e7cf3ef4f17c
+    "Repeat password" -> R.string.native_b74070f90e8c
+    "New password" -> R.string.native_3dd9df4441fb
+    "Evidence upload progress" -> R.string.native_a9ebb3cce9a6
+    "Processing evidence" -> R.string.native_c0c4fe024690
+    "Proposed translation" -> R.string.native_a2d52ca90888
+    "Export after device check" -> R.string.native_d31378346c4b
+    "FAQ & guides" -> R.string.native_c00e66e2395d
+    "Contact support" -> R.string.native_814f4ed2d5bd
+    "Report a translation issue" -> R.string.native_5221d9b4843b
+    "Share Hadithly" -> R.string.native_399914d1ad28
+    "Folder" -> R.string.native_74ccd4330384
+    "No results" -> R.string.native_a43619f32117
+    "Search is unavailable" -> R.string.native_ca3f2b79e2c1
+    "Search this collection" -> R.string.native_24987507acda
+    "Start of page" -> R.string.native_e1b6f1196ef1
+    "Open app settings" -> R.string.native_df2cdb48632f
+    "Pro is active for this account" -> R.string.native_34afebd0f332
+    "Share export file" -> R.string.native_a8103c04d748
+    "Legal" -> R.string.native_4787eaf7c938
+    "Unverified" -> R.string.native_33c8e8de41c3
+    "Email" -> R.string.native_969ccbd3cf63
+    "Verification code" -> R.string.native_3ee75029c70e
+    "Add to favorites" -> R.string.native_7f3c0782afd7
+    "By continuing, you agree to our %1\$@. Read our %2\$@." -> R.string.native_legal_placeholder
+    "You can undo this action from the message below." -> R.string.saved_remove_message
+    "Carry your bookmarks and notes across devices." -> R.string.native_1d4f1035e674
+    "Check your email" -> R.string.native_7732287944e2
+    "Choose a new password" -> R.string.native_833b8512168f
+    "Continue with email" -> R.string.native_8c99a08652d2
+    "Create your account" -> R.string.native_9e709348f582
+    "Reset your password" -> R.string.native_59fa4379be1f
+    "Send code" -> R.string.native_66a5b4090d14
+    "Set new password" -> R.string.native_6ee6d9db4278
+    "Sign in with your email or username." -> R.string.native_a7b099976a02
+    "Verify" -> R.string.native_eea2745e2867
+    "We'll send a code to your email address." -> R.string.native_20643ec400c0
+    "We'll send a six-digit sign-in code." -> R.string.native_fbb9f4cfc680
+    "Welcome back" -> R.string.native_6621249514b7
+    "What's your email?" -> R.string.native_71da039c290f
+    "Enter the code we sent to %@." -> R.string.native_ecf41b32aac1
+    "Enter the code sent to %@ and your new password." -> R.string.native_8983aa13bee3
+    "Include the collection and hadith number" -> R.string.native_fad91b01d03b
     else -> null
 }

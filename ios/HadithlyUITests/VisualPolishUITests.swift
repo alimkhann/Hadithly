@@ -69,6 +69,136 @@ final class VisualPolishUITests: XCTestCase {
         }
     }
 
+    func testHelpLabelsAndShareRepairRenderInEveryLocale() {
+        for (locale, share, guides, contact, report) in [
+            ("ar", "مشاركة Hadithly", "الأسئلة الشائعة والأدلة", "التواصل مع الدعم", "الإبلاغ عن مشكلة في الترجمة"),
+            ("ru", "Поделиться Hadithly", "Вопросы и руководства", "Связаться с поддержкой", "Сообщить об ошибке перевода"),
+            ("kk", "Hadithly бөлісу", "Сұрақтар мен нұсқаулықтар", "Қолдау қызметіне хабарласу", "Аударма мәселесін хабарлау"),
+            ("id", "Bagikan Hadithly", "Pertanyaan dan panduan", "Hubungi dukungan", "Laporkan masalah terjemahan"),
+            ("en", "Share Hadithly", "FAQ & guides", "Contact support", "Report a translation issue"),
+            ("ky", "Hadithly’ди бөлүшүү", "Суроолор жана колдонмолор", "Колдоо кызматына кайрылуу", "Котормодогу көйгөйдү билдирүү"),
+            ("uz", "Hadithly’ni ulashish", "Savollar va qoʻllanmalar", "Yordam xizmatiga murojaat qilish", "Tarjima muammosi haqida xabar berish"),
+            ("tr", "Hadithly’yi paylaş", "Sorular ve kılavuzlar", "Destekle iletişime geç", "Çeviri sorunu bildir"),
+            ("ur", "Hadithly شیئر کریں", "سوالات اور رہنما", "سپورٹ سے رابطہ کریں", "ترجمے کا مسئلہ رپورٹ کریں"),
+            ("fr", "Partager Hadithly", "Questions et guides", "Contacter l’assistance", "Signaler un problème de traduction"),
+            ("es-419", "Compartir Hadithly", "Preguntas y guías", "Contactar a soporte", "Reportar un problema de traducción"),
+            ("pt-BR", "Compartilhar Hadithly", "Perguntas e guias", "Falar com o suporte", "Relatar um problema na tradução"),
+            ("sw", "Shiriki Hadithly", "Maswali na miongozo", "Wasiliana na usaidizi", "Ripoti tatizo la tafsiri"),
+            ("hi", "Hadithly साझा करें", "प्रश्न और मार्गदर्शिकाएँ", "सहायता से संपर्क करें", "अनुवाद की समस्या बताएँ"),
+            ("bn", "Hadithly শেয়ার করুন", "প্রশ্ন ও নির্দেশিকা", "সহায়তায় যোগাযোগ করুন", "অনুবাদের সমস্যা জানান")
+        ] {
+            let app = launchPolish("help-audit", locale: locale)
+            for label in [share, guides, contact, report] {
+                let value = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", label)).firstMatch
+                for _ in 0..<6 where !value.exists { app.swipeUp() }
+                XCTAssertTrue(value.exists, label)
+            }
+            capture("help-share-" + locale, app)
+            app.terminate()
+        }
+    }
+
+    func testAuthFieldsRetainLocalizedNamesAcrossAllPreviewStates() {
+        for (locale, identifier, password, repeatPassword, email, code, newPassword, google, guest) in [
+            ("ar", "البريد الإلكتروني أو اسم المستخدم", "كلمة المرور", "تأكيد كلمة المرور", "البريد الإلكتروني", "رمز التحقق", "كلمة مرور جديدة", "المتابعة باستخدام Google", "متابعة القراءة كضيف"),
+            ("ru", "Почта или имя пользователя", "Пароль", "Повторите пароль", "Электронная почта", "Код подтверждения", "Новый пароль", "Продолжить с Google", "Продолжить чтение без входа"),
+            ("kk", "Электрондық пошта немесе пайдаланушы аты", "Құпиясөз", "Құпиясөзді қайталау", "Электрондық пошта", "Растау коды", "Жаңа құпиясөз", "Google арқылы жалғастыру", "Қонақ ретінде оқуды жалғастыру"),
+            ("id", "Email atau nama pengguna", "Kata sandi", "Ulangi kata sandi", "Email", "Kode verifikasi", "Kata sandi baru", "Lanjutkan dengan Google", "Lanjutkan membaca sebagai tamu"),
+            ("en", "Email or username", "Password", "Repeat password", "Email", "Verification code", "New password", "Continue with Google", "Keep reading as a guest"),
+            ("ky", "Электрондук почта же колдонуучу аты", "Сырсөз", "Сырсөздү кайталаңыз", "Электрондук почта", "Ырастоо коду", "Жаңы сырсөз", "Google аркылуу улантуу", "Конок катары окууну улантуу"),
+            ("uz", "Elektron pochta yoki foydalanuvchi nomi", "Parol", "Parolni takrorlang", "Elektron pochta", "Tasdiqlash kodi", "Yangi parol", "Google orqali davom etish", "Mehmon sifatida oʻqishni davom ettirish"),
+            ("tr", "E-posta veya kullanıcı adı", "Parola", "Parolayı tekrarla", "E-posta", "Doğrulama kodu", "Yeni parola", "Google ile devam et", "Misafir olarak okumaya devam et"),
+            ("ur", "ای میل یا صارف نام", "پاس ورڈ", "پاس ورڈ دوبارہ لکھیں", "ای میل", "تصدیقی کوڈ", "نیا پاس ورڈ", "Google کے ساتھ جاری رکھیں", "مہمان کے طور پر پڑھنا جاری رکھیں"),
+            ("fr", "E-mail ou nom d’utilisateur", "Mot de passe", "Répéter le mot de passe", "E-mail", "Code de vérification", "Nouveau mot de passe", "Continuer avec Google", "Continuer la lecture sans compte"),
+            ("es-419", "Correo o nombre de usuario", "Contraseña", "Repetir contraseña", "Correo electrónico", "Código de verificación", "Nueva contraseña", "Continuar con Google", "Seguir leyendo como invitado"),
+            ("pt-BR", "E-mail ou nome de usuário", "Senha", "Repetir senha", "E-mail", "Código de verificação", "Nova senha", "Continuar com Google", "Continuar lendo como visitante"),
+            ("sw", "Barua pepe au jina la mtumiaji", "Nenosiri", "Rudia nenosiri", "Barua pepe", "Msimbo wa uthibitishaji", "Nenosiri jipya", "Endelea kwa Google", "Endelea kusoma kama mgeni"),
+            ("hi", "ईमेल या उपयोगकर्ता नाम", "पासवर्ड", "पासवर्ड दोहराएँ", "ईमेल", "सत्यापन कोड", "नया पासवर्ड", "Google के साथ जारी रखें", "अतिथि के रूप में पढ़ना जारी रखें"),
+            ("bn", "ইমেইল বা ব্যবহারকারীর নাম", "পাসওয়ার্ড", "পাসওয়ার্ড আবার লিখুন", "ইমেইল", "যাচাইকরণ কোড", "নতুন পাসওয়ার্ড", "Google দিয়ে চালিয়ে যান", "অতিথি হিসেবে পড়া চালিয়ে যান")
+        ] {
+            let app = launchPolish("auth-audit", locale: locale)
+            XCTAssertTrue(app.buttons["signin.google"].waitForExistence(timeout: 10))
+            XCTAssertTrue(app.buttons["signin.google"].label.contains(google))
+            XCTAssertTrue(app.buttons[guest].exists)
+            let legalLines = [
+                "en": "By continuing, you agree to our Terms of Use. Read our Privacy Policy.",
+                "ar": "بالمتابعة، فإنك توافق على شروط الاستخدام. اقرأ سياسة الخصوصية.",
+                "ru": "Продолжая, вы принимаете документ «Условия использования». Прочитайте документ «Политика конфиденциальности».",
+                "kk": "Жалғастыру арқылы Пайдалану шарттары құжатын қабылдайсыз. Құпиялық саясаты құжатын оқыңыз.",
+                "ky": "Улантуу менен Колдонуу шарттары документин кабыл аласыз. Купуялык саясаты документин окуңуз.",
+                "uz": "Davom etish orqali Foydalanish shartlari hujjatiga rozilik bildirasiz. Maxfiylik siyosati hujjatini oʻqing.",
+                "tr": "Devam ederek Kullanım Koşulları metnini kabul edersiniz. Gizlilik Politikası metnini okuyun.",
+                "id": "Dengan melanjutkan, Anda menyetujui Ketentuan Penggunaan. Baca Kebijakan Privasi.",
+                "ur": "جاری رکھنے سے آپ استعمال کی شرائط سے اتفاق کرتے ہیں۔ ہماری رازداری کی پالیسی پڑھیں۔",
+                "fr": "En continuant, vous acceptez nos Conditions d’utilisation. Consultez notre Politique de confidentialité.",
+                "es-419": "Al continuar, aceptas nuestros Términos de uso. Lee nuestra Política de privacidad.",
+                "pt-BR": "Ao continuar, você aceita nossos Termos de uso. Leia nossa Política de privacidade.",
+                "sw": "Kwa kuendelea, unakubali Masharti ya matumizi yetu. Soma Sera ya faragha yetu.",
+                "hi": "जारी रखकर आप हमारी उपयोग की शर्तें स्वीकार करते हैं। हमारी निजता नीति पढ़ें।",
+                "bn": "চালিয়ে গেলে আপনি আমাদের ব্যবহারের শর্তাবলি মেনে নিচ্ছেন। আমাদের গোপনীয়তা নীতি পড়ুন।"
+            ]
+            XCTAssertEqual(withoutDirectionalMarks(element("signin.legal", app).label), legalLines[locale])
+            capture("auth-methods-" + locale, app)
+            app.buttons["fixture.auth.password"].tap()
+            let field = app.textFields["signin.identifier.field"]
+            XCTAssertTrue(field.waitForExistence(timeout: 5))
+            XCTAssertEqual(field.label, identifier)
+            field.tap(); field.typeText("reader@example.org")
+            XCTAssertEqual(field.label, identifier)
+            XCTAssertEqual(app.secureTextFields["signin.password.field"].label, password)
+            capture("auth-password-" + locale, app)
+            app.buttons["fixture.auth.signup"].tap()
+            XCTAssertEqual(app.textFields["signup.email.field"].label, email)
+            XCTAssertEqual(app.secureTextFields["signup.confirmPassword.field"].label, repeatPassword)
+            capture("auth-signup-" + locale, app)
+            app.buttons["fixture.auth.email"].tap()
+            XCTAssertEqual(app.textFields["signin.email.field"].label, email)
+            capture("auth-email-" + locale, app)
+            app.buttons["fixture.auth.forgot"].tap()
+            XCTAssertEqual(app.textFields["signin.forgotEmail.field"].label, email)
+            capture("auth-forgot-" + locale, app)
+            app.buttons["fixture.auth.code"].tap()
+            XCTAssertEqual(app.textFields["signin.code.field"].label, code)
+            capture("auth-code-" + locale, app)
+            app.buttons["fixture.auth.reset"].tap()
+            XCTAssertEqual(app.textFields["signin.resetCode.field"].label, code)
+            XCTAssertEqual(app.secureTextFields["signin.newPassword.field"].label, newPassword)
+            capture("auth-reset-" + locale, app)
+            app.terminate()
+        }
+    }
+
+    func testSavedRowAnnouncesLocalizedPrivateStatesAndActions() {
+        for (locale, bookmark, favorite, note, actions) in [
+            ("ar", "تم وضع إشارة مرجعية", "تمت الإضافة إلى المفضلة", "يتضمن ملاحظة", "إجراءات العنصر المحفوظ"),
+            ("ru", "В закладках", "В избранном", "Есть заметка", "Действия с сохранённым"),
+            ("kk", "Бетбелгі қойылған", "Таңдаулыларға қосылған", "Жазбасы бар", "Сақталған элемент әрекеттері"),
+            ("id", "Ditandai", "Ditambahkan ke favorit", "Memiliki catatan", "Tindakan item tersimpan"),
+            ("en", "Bookmarked", "Favorited", "Has note", "Saved item actions"),
+            ("ky", "Кыстарма коюлган", "Тандалмаларга кошулган", "Жазуусу бар", "Сакталган нерсенин аракеттери"),
+            ("uz", "Xatchoʻp qoʻyilgan", "Sevimlilarga qoʻshilgan", "Qaydi bor", "Saqlangan element amallari"),
+            ("tr", "Yer imlerine eklendi", "Favorilere eklendi", "Notu var", "Kaydedilen öğe işlemleri"),
+            ("ur", "بُک مارک کیا گیا", "پسندیدہ میں شامل ہے", "نوٹ موجود ہے", "محفوظ مواد کے اختیارات"),
+            ("fr", "Marqué", "Ajouté aux favoris", "Contient une note", "Actions sur l’élément enregistré"),
+            ("es-419", "Con marcador", "Agregado a favoritos", "Tiene una nota", "Acciones del elemento guardado"),
+            ("pt-BR", "Com marcador", "Adicionado aos favoritos", "Tem uma nota", "Ações do item salvo"),
+            ("sw", "Imewekewa alamisho", "Imeongezwa kwenye vipendwa", "Ina dokezo", "Vitendo vya kilichohifadhiwa"),
+            ("hi", "बुकमार्क किया गया", "पसंदीदा में जोड़ा गया", "नोट है", "सहेजे गए आइटम की कार्रवाइयाँ"),
+            ("bn", "বুকমার্ক করা আছে", "পছন্দের তালিকায় যোগ করা আছে", "নোট আছে", "সংরক্ষিত বিষয়ের বিকল্প")
+        ] {
+            let app = launchPolish("saved-audit", locale: locale)
+            let open = app.buttons["saved.open.audit-saved"]
+            XCTAssertTrue(open.waitForExistence(timeout: 10))
+            for value in ["Source reference", bookmark, favorite, note] { XCTAssertTrue(open.label.contains(value), open.label) }
+            XCTAssertTrue(app.buttons[actions].exists)
+            XCTAssertTrue(app.staticTexts["Private note"].exists)
+            capture("saved-accessibility-" + locale, app)
+            app.buttons["saved.preview.audit-saved"].tap()
+            XCTAssertTrue(app.staticTexts["Private note"].exists)
+            app.terminate()
+        }
+    }
+
     func testReaderTranslationPreviewAndDisclosureUseSelectedLanguages() {
         for (locale, preview, disclosure) in [
             ("ar", "اقرأ النص الأصلي، وافهم معناه بلغتك.", "تُميَّز ترجمات الذكاء الاصطناعي وقد تحتوي على أخطاء. تظهر تفاصيل المصادر عند توفرها."),
@@ -198,8 +328,7 @@ final class VisualPolishUITests: XCTestCase {
             XCTAssertTrue(app.staticTexts[bookmark].waitForExistence(timeout: 10))
             let labels = app.staticTexts.allElementsBoundByIndex.map(\.label)
             if locale == "ar" { print("A4 Undo labels: " + labels.map(\.debugDescription).joined(separator: " | ")) }
-            let directionalMarks = "[\u{200e}\u{200f}\u{061c}\u{2066}-\u{2069}]"
-            XCTAssertTrue(labels.contains { $0.replacingOccurrences(of: directionalMarks, with: "", options: .regularExpression) == folder }, labels.debugDescription)
+            XCTAssertTrue(labels.contains { withoutDirectionalMarks($0) == folder }, labels.debugDescription)
             capture("saved-undo-" + locale, app)
             app.terminate()
         }
@@ -525,6 +654,10 @@ final class VisualPolishUITests: XCTestCase {
         if let translationLocale { app.launchEnvironment["POLISH_TRANSLATION_LOCALE"] = translationLocale }
         app.launch()
         return app
+    }
+
+    private func withoutDirectionalMarks(_ value: String) -> String {
+        value.replacingOccurrences(of: "[\u{200e}\u{200f}\u{061c}\u{2066}-\u{2069}]", with: "", options: .regularExpression)
     }
 
     private func element(_ id: String, _ app: XCUIApplication) -> XCUIElement {

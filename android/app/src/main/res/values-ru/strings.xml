@@ -114,4 +114,5 @@
     <string name="q2_per_month">в месяц</string>
     <string name="q2_more">Ещё</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
+    <string name="saved_remove_message" formatted="false">Вы можете отменить это действие в сообщении ниже.</string>
 </resources>

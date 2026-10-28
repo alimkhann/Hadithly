@@ -209,4 +209,63 @@
     <string name="native_35045eff549e" formatted="false">Paper</string>
     <string name="native_46821f0b7acc" formatted="false">App appearance</string>
     <string name="native_2ccb1be6d319" formatted="false">%s pt</string>
+    <string name="native_63565c0485fe" formatted="false">Add note</string>
+    <string name="native_299e604ccff3" formatted="false">Edit note</string>
+    <string name="native_4c546858a6a6" formatted="false">Open in reader</string>
+    <string name="native_86524e24e26a" formatted="false">Show Library list</string>
+    <string name="native_fea264d716d3" formatted="false">Show Library grid</string>
+    <string name="native_aa69cfa701a6" formatted="false">Bookmarked</string>
+    <string name="native_86f5562ff32e" formatted="false">Favorited</string>
+    <string name="native_5bfefd244c17" formatted="false">Has note</string>
+    <string name="native_47ce7f7fb0dd" formatted="false">Saved filter</string>
+    <string name="native_642030cddde8" formatted="false">Saved item actions</string>
+    <string name="native_94be6a7413a9" formatted="false">Shows source details</string>
+    <string name="native_183b1d17b908" formatted="false">Opens this hadith in the reader</string>
+    <string name="native_cfca7a6fc552" formatted="false">Opens this folder. Long press for folder actions.</string>
+    <string name="native_340ac4c3fd1f" formatted="false">Continue with Apple</string>
+    <string name="native_cce937e89144" formatted="false">Continue with Google</string>
+    <string name="native_e60c048be6a6" formatted="false">Keep reading as a guest</string>
+    <string name="native_2a347f1933d4" formatted="false">Email or username</string>
+    <string name="native_e7cf3ef4f17c" formatted="false">Password</string>
+    <string name="native_b74070f90e8c" formatted="false">Repeat password</string>
+    <string name="native_3dd9df4441fb" formatted="false">New password</string>
+    <string name="native_a9ebb3cce9a6" formatted="false">Evidence upload progress</string>
+    <string name="native_c0c4fe024690" formatted="false">Processing evidence</string>
+    <string name="native_a2d52ca90888" formatted="false">Proposed translation</string>
+    <string name="native_d31378346c4b" formatted="false">Export after device check</string>
+    <string name="native_c00e66e2395d" formatted="false">FAQ &amp; guides</string>
+    <string name="native_814f4ed2d5bd" formatted="false">Contact support</string>
+    <string name="native_5221d9b4843b" formatted="false">Report a translation issue</string>
+    <string name="native_399914d1ad28" formatted="false">Share Hadithly</string>
+    <string name="native_74ccd4330384" formatted="false">Folder</string>
+    <string name="native_a43619f32117" formatted="false">No results</string>
+    <string name="native_ca3f2b79e2c1" formatted="false">Search is unavailable</string>
+    <string name="native_24987507acda" formatted="false">Search this collection</string>
+    <string name="native_e1b6f1196ef1" formatted="false">Start of page</string>
+    <string name="native_df2cdb48632f" formatted="false">Open app settings</string>
+    <string name="native_34afebd0f332" formatted="false">Pro is active for this account</string>
+    <string name="native_a8103c04d748" formatted="false">Share export file</string>
+    <string name="native_4787eaf7c938" formatted="false">Legal</string>
+    <string name="native_33c8e8de41c3" formatted="false">Unverified</string>
+    <string name="native_969ccbd3cf63" formatted="false">Email</string>
+    <string name="native_3ee75029c70e" formatted="false">Verification code</string>
+    <string name="native_7f3c0782afd7" formatted="false">Add to favorites</string>
+    <string name="native_legal_placeholder" formatted="false">By continuing, you agree to our %1$s. Read our %2$s.</string>
+    <string name="native_1d4f1035e674" formatted="false">Carry your bookmarks and notes across devices.</string>
+    <string name="native_7732287944e2" formatted="false">Check your email</string>
+    <string name="native_833b8512168f" formatted="false">Choose a new password</string>
+    <string name="native_8c99a08652d2" formatted="false">Continue with email</string>
+    <string name="native_9e709348f582" formatted="false">Create your account</string>
+    <string name="native_59fa4379be1f" formatted="false">Reset your password</string>
+    <string name="native_66a5b4090d14" formatted="false">Send code</string>
+    <string name="native_6ee6d9db4278" formatted="false">Set new password</string>
+    <string name="native_a7b099976a02" formatted="false">Sign in with your email or username.</string>
+    <string name="native_eea2745e2867" formatted="false">Verify</string>
+    <string name="native_20643ec400c0" formatted="false">We\'ll send a code to your email address.</string>
+    <string name="native_fbb9f4cfc680" formatted="false">We\'ll send a six-digit sign-in code.</string>
+    <string name="native_6621249514b7" formatted="false">Welcome back</string>
+    <string name="native_71da039c290f" formatted="false">What\'s your email?</string>
+    <string name="native_ecf41b32aac1" formatted="false">Enter the code we sent to %s.</string>
+    <string name="native_8983aa13bee3" formatted="false">Enter the code sent to %s and your new password.</string>
+    <string name="native_fad91b01d03b" formatted="false">Include the collection and hadith number</string>
 </resources>

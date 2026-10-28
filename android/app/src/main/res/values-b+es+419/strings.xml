@@ -114,4 +114,5 @@
     <string name="q2_per_month">al mes</string>
     <string name="q2_more">Más</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
+    <string name="saved_remove_message" formatted="false">Puedes deshacer esta acción desde el mensaje de abajo.</string>
 </resources>

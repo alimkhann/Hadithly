@@ -57,6 +57,19 @@ start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
 
+## A4 auth and Saved copy checkpoint, October 28
+
+All seven auth preview states and the linked sentence now pass fifteen-locale
+checks on both apps. Saved private states and actions are localized, and Help
+labels render without activating their links. The Arabic/Urdu Share Hadithly
+mislabels are repaired through an explicit locale/hash guard. Four iOS and six
+Android latest cases pass. See `A4_RUNTIME_LOCALIZATION.md`.
+The known lexical missing-key list is clear, not full runtime localization proof.
+Next fix English-only Saved relative timestamps, classify dynamic/direct strings,
+and inspect widget/notification copy. Native review, full accessibility, real auth,
+A1/A3, release and remaining A4–A7/E gates stay open. Other incoming bytes remain
+preserved. No auth submit, paid call, deployment or publication was used.
+
 ## A4 reader settings checkpoint, October 28
 
 Both native reader-settings captions now acknowledge possible AI errors and show

@@ -114,4 +114,5 @@
     <string name="q2_per_month">ماہانہ</string>
     <string name="q2_more">مزید</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
+    <string name="saved_remove_message" formatted="false">آپ نیچے موجود پیغام سے یہ عمل واپس لے سکتے ہیں۔</string>
 </resources>
