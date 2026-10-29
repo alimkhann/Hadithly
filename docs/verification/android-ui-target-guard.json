@@ -1,0 +1,17 @@
+{
+  "regression_tests_passed": 4,
+  "live_emulator_cases_passed": 2,
+  "live_targets": [
+    "hadithly(AVD) - 16"
+  ],
+  "guarded_log_sha256": "6915f7059b5f76efd996419783a77457cddf5839793cae6e587c2e15c3f53585",
+  "selection": "Single emulator serial validated with adb -s and ro.kernel.qemu; ANDROID_SERIAL is overwritten for Gradle. Installed AGP 9.3.1 selection implementation was inspected.",
+  "physical_incident": {
+    "model": "SM-A325F",
+    "result": "failed; not device acceptance evidence",
+    "package_present_after_read_only_check": false,
+    "prior_install_and_local_data_state": "unknown",
+    "reinstall_or_recovery_attempted": false
+  },
+  "scope": "No physical identifiers or tokens retained. The phone state is not inferred from the emulator pass."
+}

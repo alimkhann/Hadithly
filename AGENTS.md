@@ -32,6 +32,12 @@ cd android
 ./gradlew testDebugUnitTest    # unit tests
 ```
 
+Run connected Android UI checks from the repository root with
+`python3 scripts/run-android-ui-tests.py --serial emulator-5554 --class package.Class#method`.
+The runner rejects physical targets and pins Gradle's serial. For physical-device
+work, follow that session's device gate and select the device explicitly. Never
+use an implicit all-devices run.
+
 ## Non-negotiable rules
 
 1. **No competition features.** No leaderboards, public votes or ratings,
