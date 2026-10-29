@@ -1,6 +1,1051 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Hide reader controls" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide reader controls"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "إخفاء عناصر التحكم في القارئ"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Скрыть элементы управления чтением"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Оқу басқару элементтерін жасыру"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Окуу башкарууларын жашыруу"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "O‘qish boshqaruvlarini yashirish"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Okuma kontrollerini gizle"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sembunyikan kontrol membaca"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "مطالعے کے کنٹرول چھپائیں"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Masquer les commandes de lecture"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ocultar los controles de lectura"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ocultar os controles de leitura"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ficha vidhibiti vya kusoma"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "पढ़ने के नियंत्रण छिपाएँ"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "পড়ার নিয়ন্ত্রণ লুকান"
+          }
+        }
+      }
+    },
+    "Show reader controls" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show reader controls"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "إظهار عناصر التحكم في القارئ"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Показать элементы управления чтением"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Оқу басқару элементтерін көрсету"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Окуу башкарууларын көрсөтүү"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "O‘qish boshqaruvlarini ko‘rsatish"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Okuma kontrollerini göster"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tampilkan kontrol membaca"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "مطالعے کے کنٹرول دکھائیں"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Afficher les commandes de lecture"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mostrar los controles de lectura"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mostrar os controles de leitura"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Onyesha vidhibiti vya kusoma"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "पढ़ने के नियंत्रण दिखाएँ"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "পড়ার নিয়ন্ত্রণ দেখান"
+          }
+        }
+      }
+    },
+    "Next page, %1$@" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next page, %1$@"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "الصفحة التالية، %1$@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Следующая страница, %1$@"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Келесі бет, %1$@"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Кийинки бет, %1$@"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Keyingi sahifa, %1$@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sonraki sayfa, %1$@"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Halaman berikutnya, %1$@"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "اگلا صفحہ، %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Page suivante, %1$@"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Página siguiente, %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Próxima página, %1$@"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ukurasa unaofuata, %1$@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "अगला पृष्ठ, %1$@"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "পরের পৃষ্ঠা, %1$@"
+          }
+        }
+      }
+    },
+    "Previous page, %1$@" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previous page, %1$@"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "الصفحة السابقة، %1$@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Предыдущая страница, %1$@"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Алдыңғы бет, %1$@"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Мурунку бет, %1$@"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Oldingi sahifa, %1$@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Önceki sayfa, %1$@"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Halaman sebelumnya, %1$@"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "پچھلا صفحہ، %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Page précédente, %1$@"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Página anterior, %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Página anterior, %1$@"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ukurasa uliotangulia, %1$@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "पिछला पृष्ठ, %1$@"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "আগের পৃষ্ঠা, %1$@"
+          }
+        }
+      }
+    },
+    "Next page" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next page"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "الصفحة التالية"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Следующая страница"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Келесі бет"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Кийинки бет"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Keyingi sahifa"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sonraki sayfa"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Halaman berikutnya"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "اگلا صفحہ"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Page suivante"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Página siguiente"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Próxima página"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ukurasa unaofuata"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "अगला पृष्ठ"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "পরের পৃষ্ঠা"
+          }
+        }
+      }
+    },
+    "Previous page" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previous page"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "الصفحة السابقة"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Предыдущая страница"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Алдыңғы бет"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Мурунку бет"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Oldingi sahifa"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Önceki sayfa"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Halaman sebelumnya"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "پچھلا صفحہ"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Page précédente"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Página anterior"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Página anterior"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ukurasa uliotangulia"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "पिछला पृष्ठ"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "আগের পৃষ্ঠা"
+          }
+        }
+      }
+    },
+    "Volume %1$@ of %2$@" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volume %1$@ of %2$@"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "المجلد %1$@ من %2$@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Том %1$@ из %2$@"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%2$@ томның %1$@-і"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%2$@ томдун %1$@-си"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%2$@ jilddan %1$@-jild"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cilt %1$@ / %2$@"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Jilid %1$@ dari %2$@"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "جلد %1$@ از %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Volume %1$@ sur %2$@"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tomo %1$@ de %2$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Volume %1$@ de %2$@"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Juzuu ya %1$@ kati ya %2$@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "खंड %1$@, कुल %2$@"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "খণ্ড %1$@ / %2$@"
+          }
+        }
+      }
+    },
+    "Page %1$@ of %2$@" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Page %1$@ of %2$@"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "الصفحة %1$@ من %2$@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Страница %1$@ из %2$@"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%1$@ / %2$@-бет"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%1$@ / %2$@-бет"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%1$@ / %2$@-sahifa"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%2$@ sayfadan %1$@. sayfa"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Halaman %1$@ dari %2$@"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%2$@ میں سے صفحہ %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Page %1$@ sur %2$@"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Página %1$@ de %2$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Página %1$@ de %2$@"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ukurasa %1$@ kati ya %2$@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%2$@ में से पृष्ठ %1$@"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%2$@-এর মধ্যে পৃষ্ঠা %1$@"
+          }
+        }
+      }
+    },
+    "Page %1$@" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Page %1$@"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "الصفحة %1$@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Страница %1$@"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%1$@-бет"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%1$@-бет"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%1$@-sahifa"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sayfa %1$@"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Halaman %1$@"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "صفحہ %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Page n° %1$@"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Página %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Página %1$@"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ukurasa %1$@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "पृष्ठ %1$@"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "পৃষ্ঠা %1$@"
+          }
+        }
+      }
+    },
+    "volume" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "volume"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "مجلد"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "том"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "том"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "том"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "jild"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "cilt"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "jilid"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "جلد"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "volume"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "tomo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "volume"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "juzuu"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "खंड"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "খণ্ড"
+          }
+        }
+      }
+    },
+    "page" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "page"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "صفحة"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "страница"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "бет"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "бет"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "sahifa"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "sayfa"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "halaman"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "صفحہ"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "page"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "página"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "página"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ukurasa"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "पृष्ठ"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "পৃষ্ঠা"
+          }
+        }
+      }
+    },
     "Include the collection and hadith number" : {
       "extractionState": "manual",
       "localizations": {

@@ -70,7 +70,7 @@
     <string name="native_437aea62a5bd" formatted="false">Содержание</string>
     <string name="native_46495379257b" formatted="false">Удалить черновик</string>
     <string name="native_4814c85aa23d">Текстовые слои</string>
-    <string name="native_482a6cdaa409">Страница %1$s</string>
+    <string name="native_482a6cdaa409" formatted="false">Страница %1$s</string>
     <string name="native_483dc4ca0c62">Файл содержит только ваши переносимые данные. Нужно войти; при истёкшей сессии сначала войдите снова.</string>
     <string name="native_49103f50966a">Перевод на %1$s пока недоступен.</string>
     <string name="native_49c266baaaa7" formatted="false">Поиск</string>
@@ -99,7 +99,7 @@
     <string name="native_83bbbb83cfbe">Выбрать расположение</string>
     <string name="native_858e4ba7a29f" formatted="false">Пауза</string>
     <string name="native_892ffa345a39" formatted="false">Как работает офлайн-режим</string>
-    <string name="native_8b9ffadf4985">Страница %1$s из %2$s</string>
+    <string name="native_8b9ffadf4985" formatted="false">Страница %1$s из %2$s</string>
     <string name="native_8ba1f434afb9">Войдите, чтобы экспортировать синхронизированные данные. Гостевые данные не покидают это устройство.</string>
     <string name="native_8f6ca5461ed2">Загрузки: %1$s · Свободно: %2$s</string>
     <string name="native_9041c6aa2c3d">Управлять подпиской</string>
@@ -270,4 +270,12 @@
     <string name="native_ecf41b32aac1" formatted="false">Введите код, отправленный на %s.</string>
     <string name="native_8983aa13bee3" formatted="false">Введите код, отправленный на %s, и новый пароль.</string>
     <string name="native_fad91b01d03b" formatted="false">Укажите сборник и номер хадиса</string>
+    <string name="native_3660315a9af3" formatted="false">страница</string>
+    <string name="native_2eb7a0c86071" formatted="false">Том %1$s из %2$s</string>
+    <string name="native_1208ec01f223" formatted="false">Предыдущая страница</string>
+    <string name="native_c08ac736a5e2" formatted="false">Следующая страница</string>
+    <string name="native_3fe5c60e33ce" formatted="false">Предыдущая страница, %1$s</string>
+    <string name="native_ead66af2903d" formatted="false">Следующая страница, %1$s</string>
+    <string name="native_2e0e724ea48c" formatted="false">Показать элементы управления чтением</string>
+    <string name="native_6f21989e4e53" formatted="false">Скрыть элементы управления чтением</string>
 </resources>

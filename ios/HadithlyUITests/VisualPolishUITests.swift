@@ -69,6 +69,92 @@ final class VisualPolishUITests: XCTestCase {
         }
     }
 
+    func testPageControlsUseSelectedLanguage() {
+        for (locale, pageTemplate, previousTemplate, nextTemplate) in [
+            ("en", "Page %1$@", "Previous page, %1$@", "Next page, %1$@"),
+            ("ar", "الصفحة %1$@", "الصفحة السابقة، %1$@", "الصفحة التالية، %1$@"),
+            ("ru", "Страница %1$@", "Предыдущая страница, %1$@", "Следующая страница, %1$@"),
+            ("kk", "%1$@-бет", "Алдыңғы бет, %1$@", "Келесі бет, %1$@"),
+            ("ky", "%1$@-бет", "Мурунку бет, %1$@", "Кийинки бет, %1$@"),
+            ("uz", "%1$@-sahifa", "Oldingi sahifa, %1$@", "Keyingi sahifa, %1$@"),
+            ("tr", "Sayfa %1$@", "Önceki sayfa, %1$@", "Sonraki sayfa, %1$@"),
+            ("id", "Halaman %1$@", "Halaman sebelumnya, %1$@", "Halaman berikutnya, %1$@"),
+            ("ur", "صفحہ %1$@", "پچھلا صفحہ، %1$@", "اگلا صفحہ، %1$@"),
+            ("fr", "Page n° %1$@", "Page précédente, %1$@", "Page suivante, %1$@"),
+            ("es-419", "Página %1$@", "Página anterior, %1$@", "Página siguiente, %1$@"),
+            ("pt-BR", "Página %1$@", "Página anterior, %1$@", "Próxima página, %1$@"),
+            ("sw", "Ukurasa %1$@", "Ukurasa uliotangulia, %1$@", "Ukurasa unaofuata, %1$@"),
+            ("hi", "पृष्ठ %1$@", "पिछला पृष्ठ, %1$@", "अगला पृष्ठ, %1$@"),
+            ("bn", "পৃষ্ঠা %1$@", "আগের পৃষ্ঠা, %1$@", "পরের পৃষ্ঠা, %1$@")
+        ] {
+            let value = Locale(identifier: locale)
+            let page = String(format: pageTemplate, locale: value, arguments: [2.formatted(.number.locale(value))])
+            for direction in ["ltr", "rtl"] {
+                let app = launchPolish("reader", locale: locale, readingDirection: direction)
+                let previous = app.buttons["reader.previousPage"].firstMatch
+                let next = app.buttons["reader.nextPage"].firstMatch
+                XCTAssertTrue(next.waitForExistence(timeout: 10))
+                XCTAssertEqual(withoutDirectionalMarks(previous.label), withoutDirectionalMarks(String(format: previousTemplate, locale: value, arguments: ["Volume 1"])))
+                XCTAssertEqual(withoutDirectionalMarks(next.label), withoutDirectionalMarks(String(format: nextTemplate, locale: value, arguments: [page])))
+                XCTAssertEqual(previous.frame.minX > next.frame.minX, direction == "rtl")
+                XCTAssertGreaterThanOrEqual(previous.frame.height, 44)
+                XCTAssertGreaterThanOrEqual(next.frame.height, 44)
+                capture("page-controls-" + locale + "-" + direction, app)
+                next.tap()
+                XCTAssertEqual(withoutDirectionalMarks(next.label), withoutDirectionalMarks(String(format: nextTemplate, locale: value, arguments: ["Volume 3"])))
+                previous.tap()
+                XCTAssertEqual(withoutDirectionalMarks(next.label), withoutDirectionalMarks(String(format: nextTemplate, locale: value, arguments: [page])))
+                app.terminate()
+            }
+        }
+    }
+
+    func testProductionProgressLabelsUseTheUILocale() {
+        for (locale, pageTemplate, volumeTemplate) in [
+            ("en", "Page %1$@", "Volume %1$@ of %2$@"),
+            ("ar", "الصفحة %1$@", "المجلد %1$@ من %2$@"),
+            ("ru", "Страница %1$@", "Том %1$@ из %2$@"),
+            ("kk", "%1$@-бет", "%2$@ томның %1$@-і"),
+            ("ky", "%1$@-бет", "%2$@ томдун %1$@-си"),
+            ("uz", "%1$@-sahifa", "%2$@ jilddan %1$@-jild"),
+            ("tr", "Sayfa %1$@", "Cilt %1$@ / %2$@"),
+            ("id", "Halaman %1$@", "Jilid %1$@ dari %2$@"),
+            ("ur", "صفحہ %1$@", "جلد %1$@ از %2$@"),
+            ("fr", "Page n° %1$@", "Volume %1$@ sur %2$@"),
+            ("es-419", "Página %1$@", "Tomo %1$@ de %2$@"),
+            ("pt-BR", "Página %1$@", "Volume %1$@ de %2$@"),
+            ("sw", "Ukurasa %1$@", "Juzuu ya %1$@ kati ya %2$@"),
+            ("hi", "पृष्ठ %1$@", "खंड %1$@, कुल %2$@"),
+            ("bn", "পৃষ্ঠা %1$@", "খণ্ড %1$@ / %2$@")
+        ] {
+            let value = Locale(identifier: locale)
+            let number = 1.formatted(.number.locale(value))
+            let page = String(format: pageTemplate, locale: value, arguments: [number])
+            let volume = String(format: volumeTemplate, locale: value, arguments: [number, number])
+            let app = launchPolish("reader", locale: locale, production: true)
+            XCTAssertTrue(element("reader.page", app).waitForExistence(timeout: 10))
+            if !app.buttons["reader.menu"].waitForExistence(timeout: 1) {
+                app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            }
+            let progress = element("reader.unfocusedProgress", app)
+            XCTAssertTrue(progress.waitForExistence(timeout: 5))
+            XCTAssertEqual(withoutDirectionalMarks(progress.label), withoutDirectionalMarks(page + ", " + volume))
+            capture("page-progress-" + locale, app)
+            app.terminate()
+        }
+    }
+
+    func testArabicOnlyVolumeNamesUseTheUILocale() {
+        for (locale, expected) in [("ru", "Предыдущая страница, Том 1"), ("ar", "الصفحة السابقة، المجلد 1")] {
+            let app = launchPolish("reader", locale: locale, arabicOnly: true)
+            let previous = app.buttons["reader.previousPage"].firstMatch
+            XCTAssertTrue(previous.waitForExistence(timeout: 10))
+            XCTAssertEqual(withoutDirectionalMarks(previous.label), expected)
+            capture("page-controls-arabic-only-" + locale, app)
+            app.terminate()
+        }
+    }
+
     func testReaderCountsAndLanguageTotalRenderInEveryLocale() {
         for (locale, countTemplate, languagesTemplate) in [
             ("en", "%lld hadiths", "%lld languages available"),
@@ -696,7 +782,7 @@ final class VisualPolishUITests: XCTestCase {
         return original
     }
 
-    private func launchPolish(_ screen: String, theme: String = "light", reduced: Bool = false, locale: String = "en", large: Bool = false, translationLocale: String? = nil) -> XCUIApplication {
+    private func launchPolish(_ screen: String, theme: String = "light", reduced: Bool = false, locale: String = "en", large: Bool = false, translationLocale: String? = nil, readingDirection: String? = nil, arabicOnly: Bool = false, production: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["-NativePolishFixture"]
         if large { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
@@ -704,6 +790,9 @@ final class VisualPolishUITests: XCTestCase {
             "POLISH_LOCALE": locale, "POLISH_REDUCE_MOTION": reduced ? "1" : "0", "Q1_STATE": "loading", "Q1_LANGUAGE": "ru",
             "POLISH_INTERACTIVE": "1", "R6A_LOADING_FIXTURE": screen == "reader-loading" ? "true" : "false"]
         if let translationLocale { app.launchEnvironment["POLISH_TRANSLATION_LOCALE"] = translationLocale }
+        if let readingDirection { app.launchEnvironment["R6A_PAGE_DIRECTION"] = readingDirection }
+        if arabicOnly { app.launchEnvironment["R6A_TRANSLATION_VISIBLE"] = "false" }
+        if production { app.launchEnvironment["PAGING_RENDER"] = "interactive" }
         app.launch()
         return app
     }

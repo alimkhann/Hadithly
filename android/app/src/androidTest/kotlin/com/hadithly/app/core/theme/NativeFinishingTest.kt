@@ -788,7 +788,7 @@ class NativeFinishingTest {
 }
 
 @Composable
-private fun LocalizedPreview(theme: ReaderTheme, locale: String = "en", content: @Composable () -> Unit) {
+internal fun LocalizedPreview(theme: ReaderTheme, locale: String = "en", content: @Composable () -> Unit) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val configuration = android.content.res.Configuration(androidx.compose.ui.platform.LocalConfiguration.current).apply { setLocale(java.util.Locale.forLanguageTag(locale)); setLayoutDirection(java.util.Locale.forLanguageTag(locale)) }
     val localized = context.createConfigurationContext(configuration)

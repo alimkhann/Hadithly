@@ -57,6 +57,18 @@ start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
 
+## A4 page-control checkpoint, October 29
+
+Native page controls now resolve scoped fifteen-locale drafts, with page numbers
+from typed destinations and source volume titles preserved. Android placement and
+chevrons follow the reading policy independently of UI language. Both platforms
+pass thirty locale/direction combinations; iOS production progress passes all
+fifteen locales. Latest evidence is seven iOS and six Android cases, including
+fallback, Arabic-only titles, focus and navigation safeguards. See
+`A4_RUNTIME_LOCALIZATION.md`. Next repair the confirmed English account-deletion
+and separate store-subscription warnings, then evidence/search/dynamic copy and
+A5–A7/E. Native review, full accessibility, device and release gates stay open.
+
 ## A4 count and backend-notification checkpoint, October 29
 
 Both native count paths now render fifteen-locale drafts, including Arabic and

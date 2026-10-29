@@ -70,7 +70,7 @@
     <string name="native_437aea62a5bd" formatted="false">Мазмұны</string>
     <string name="native_46495379257b" formatted="false">Нобайды жою</string>
     <string name="native_4814c85aa23d">Мәтін қабаттары</string>
-    <string name="native_482a6cdaa409">%1$s-бет</string>
+    <string name="native_482a6cdaa409" formatted="false">%1$s-бет</string>
     <string name="native_483dc4ca0c62">Файлда тек тасымалды деректеріңіз бар. Кіруіңіз керек; сессия мерзімі өтсе, алдымен қайта кіріңіз.</string>
     <string name="native_49103f50966a">%1$s аудармасы әлі қолжетімді емес.</string>
     <string name="native_49c266baaaa7" formatted="false">Іздеу</string>
@@ -99,7 +99,7 @@
     <string name="native_83bbbb83cfbe">Орналасқан жерді таңдау</string>
     <string name="native_858e4ba7a29f" formatted="false">Кідірту</string>
     <string name="native_892ffa345a39" formatted="false">Офлайн режимі қалай жұмыс істейді</string>
-    <string name="native_8b9ffadf4985">%1$s / %2$s-бет</string>
+    <string name="native_8b9ffadf4985" formatted="false">%1$s / %2$s-бет</string>
     <string name="native_8ba1f434afb9">Синхрондалған деректерді экспорттау үшін кіріңіз. Қонақ деректері бұл құрылғыдан шықпайды.</string>
     <string name="native_8f6ca5461ed2">Жүктеулер: %1$s · Бос: %2$s</string>
     <string name="native_9041c6aa2c3d">Жазылымды басқару</string>
@@ -270,4 +270,12 @@
     <string name="native_ecf41b32aac1" formatted="false">%s мекенжайына жіберген кодты енгізіңіз.</string>
     <string name="native_8983aa13bee3" formatted="false">%s мекенжайына жіберілген кодты және жаңа құпиясөзіңізді енгізіңіз.</string>
     <string name="native_fad91b01d03b" formatted="false">Жинақ пен хадис нөмірін көрсетіңіз</string>
+    <string name="native_3660315a9af3" formatted="false">бет</string>
+    <string name="native_2eb7a0c86071" formatted="false">%2$s томның %1$s-і</string>
+    <string name="native_1208ec01f223" formatted="false">Алдыңғы бет</string>
+    <string name="native_c08ac736a5e2" formatted="false">Келесі бет</string>
+    <string name="native_3fe5c60e33ce" formatted="false">Алдыңғы бет, %1$s</string>
+    <string name="native_ead66af2903d" formatted="false">Келесі бет, %1$s</string>
+    <string name="native_2e0e724ea48c" formatted="false">Оқу басқару элементтерін көрсету</string>
+    <string name="native_6f21989e4e53" formatted="false">Оқу басқару элементтерін жасыру</string>
 </resources>

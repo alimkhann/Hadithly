@@ -49,8 +49,8 @@
     <string name="saved_bookmark_removed" formatted="false">Кыстарма өчүрүлдү</string>
     <string name="saved_favorite_removed" formatted="false">Сүйүктүү өчүрүлдү</string>
     <string name="saved_note_deleted" formatted="false">Жазма өчүрүлдү</string>
-    <string name="reader_volume_title">Volume %1$d</string>
-    <string name="reader_volume_pill_suffix">volume</string>
+    <string name="reader_volume_title" formatted="false">Том %d</string>
+    <string name="reader_volume_pill_suffix" formatted="false">том</string>
     <string name="e3_reviewing" formatted="false">Сунуш текшерилүүдө</string>
     <string name="e3_published" formatted="false">Сунуш жарыяланды</string>
     <string name="e3_exception" formatted="false">Сунуш текшерүүнү талап кылат</string>

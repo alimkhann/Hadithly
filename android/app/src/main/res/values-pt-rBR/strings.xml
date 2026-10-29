@@ -49,8 +49,8 @@
     <string name="saved_bookmark_removed" formatted="false">Marcador removido</string>
     <string name="saved_favorite_removed" formatted="false">Favorito removido</string>
     <string name="saved_note_deleted" formatted="false">Nota excluída</string>
-    <string name="reader_volume_title">Volume %1$d</string>
-    <string name="reader_volume_pill_suffix">volume</string>
+    <string name="reader_volume_title" formatted="false">Volume %d</string>
+    <string name="reader_volume_pill_suffix" formatted="false">volume</string>
     <string name="e3_reviewing" formatted="false">Verificando sugestão</string>
     <string name="e3_published" formatted="false">Sugestão publicada</string>
     <string name="e3_exception" formatted="false">A sugestão precisa de revisão</string>

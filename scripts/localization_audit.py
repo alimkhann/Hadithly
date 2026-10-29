@@ -409,7 +409,7 @@ def find_hardcoded() -> tuple[list[str], list[str]]:
 def runtime_literal_candidates(text: str, platform: str, keys: set[str], fixture: bool = False) -> list[dict]:
     """Classify lexical candidates; catalog presence never proves runtime lookup."""
     literal = r'"((?:\\.|[^"\\])*)"'
-    calls = (r'(Text|Label|Button|Toggle|Section|Picker|TextField|SecureField|navigationTitle|accessibilityLabel|accessibilityHint|alert|confirmationDialog|appNavigationTitle|ReaderSheetChrome|SettingsLinkRow|QuietEmptyState|AppLocalization\.(?:string|count))\(\s*(?:title\s*:\s*)?' if platform == 'ios'
+    calls = (r'(Text|Label|Button|Toggle|Section|Picker|TextField|SecureField|navigationTitle|accessibilityLabel|accessibilityHint|alert|confirmationDialog|appNavigationTitle|ReaderSheetChrome|SettingsLinkRow|QuietEmptyState|AppLocalization\.(?:string|format))\(\s*(?:title\s*:\s*)?' if platform == 'ios'
              else r'(nativeText|Text|PolicyRow)\(\s*(?:(?:text|title)\s*=\s*)?')
     pattern = re.compile(calls + literal)
     debug_lines, stack = set(), []

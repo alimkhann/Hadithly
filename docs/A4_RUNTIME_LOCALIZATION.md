@@ -471,3 +471,53 @@ translation-locale payload binding. Thirty-five targeted local tests pass withou
 backend changes, provider delivery or cloud access. `notification-review.json`
 records helper, due-token and payload tests. Actual notification delivery,
 physical devices, native-copy review, A1/A3 and A5–A7/E/release gates remain open.
+
+## Page controls and reading direction, October 29
+
+Both native Russian controls reproduced the English accessible label “Next page,
+Page 2.” Eleven scoped keys now cover page/volume progress, destinations and reader
+control actions in fifteen locales. Page and page-total templates reuse existing
+Android drafts; the remaining phrases are local GPT-family drafts in
+`a4-page-control-copy.json`, with native review pending. Generic Arabic-only volume
+labels reuse the indexed iOS drafts through `a4-volume-label-parity.json`.
+Source-provided names remain verbatim in the existing display modes.
+
+The view derives a page label from its typed destination index. It does not parse
+the old English label. iOS's typed formatter replaces the count-only helper, with
+all callers migrated and the existing 240 plural comparisons retained. Android
+copy generation now converts Swift integer formatters to Android integer formats;
+the isolated generator regression covers numbered integer and string arguments.
+Both native formatter checks cover regional/base fallback, English fallback and
+opaque reference text containing formatter syntax. The source argument is retained.
+
+An Android native failure also proved that the previous pill stayed left for RTL
+reading in an English interface. The pill row now follows the reading policy,
+independently of UI language, and its chevrons avoid double mirroring. Target sizes,
+logical previous/next routing and source-title preservation pass in thirty
+locale/direction combinations on each platform. Android progress labels are
+combined for accessibility. iOS production progress labels render in all fifteen
+locales; focus/thin progress and cross-volume swipe checks still pass. Russian and
+Arabic Arabic-only volume-title checks pass on both apps.
+
+The first expanded checks exposed fixture issues: a direct iOS reader test inherited
+a saved Russian UI preference, and string comparisons differed in native direction
+marks. The English fixture now sets its existing UI-locale override explicitly.
+Comparisons normalize only direction-control marks and retain exact words, numbers
+and source references. An early Android test oracle also used Swift's formatter
+syntax and was corrected to Android syntax. Earlier failed iOS runs remain in the
+history; none are counted as green.
+
+Latest results are seven iOS and six Android cases in `page-controls.json`. The
+80-capture manifest and selected images are in `page-controls/`. The scoped staging
+helper adds only eleven new catalog entries; `page-preservation.json` confirms the
+remaining incoming catalog bytes and four project/scheme fingerprints. The audit
+with drafts allowed has zero structural failures across 433 iOS keys and 426
+Android resources, with 299 English-identical Android candidates still listed.
+This is not full runtime localization or assistive-technology traversal proof. Diff review restored unrelated Contents/search chevrons; the icon change stays scoped to page controls, and the final Android debug build passes.
+
+Source review confirms that account-deletion confirmation and separate App Store /
+Play Store subscription warnings still bypass localization on both platforms and
+lack catalog entries. Those critical disclosures are next, followed by remaining
+evidence/search/dynamic templates and the A5–A7/E work. Native review, authenticated
+and physical-device checks, A1/A3, full A4 and release gates remain open. No account,
+provider, paid generation, deployment or publication action was performed.

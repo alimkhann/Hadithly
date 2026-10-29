@@ -1,0 +1,234 @@
+{
+  "native_review": "pending",
+  "provenance": "Page/page-total templates reuse the existing Android native.xml drafts. Remaining words and accessible action templates are local GPT-family drafts. Source titles are verbatim; this does not translate hadith content.",
+  "keys": [
+    "page",
+    "volume",
+    "Page %1$@",
+    "Page %1$@ of %2$@",
+    "Volume %1$@ of %2$@",
+    "Previous page",
+    "Next page",
+    "Previous page, %1$@",
+    "Next page, %1$@",
+    "Show reader controls",
+    "Hide reader controls"
+  ],
+  "locales": {
+    "en": [
+      "page",
+      "volume",
+      "Page %1$@",
+      "Page %1$@ of %2$@",
+      "Volume %1$@ of %2$@",
+      "Previous page",
+      "Next page",
+      "Previous page, %1$@",
+      "Next page, %1$@",
+      "Show reader controls",
+      "Hide reader controls"
+    ],
+    "ar": [
+      "صفحة",
+      "مجلد",
+      "الصفحة %1$@",
+      "الصفحة %1$@ من %2$@",
+      "المجلد %1$@ من %2$@",
+      "الصفحة السابقة",
+      "الصفحة التالية",
+      "الصفحة السابقة، %1$@",
+      "الصفحة التالية، %1$@",
+      "إظهار عناصر التحكم في القارئ",
+      "إخفاء عناصر التحكم في القارئ"
+    ],
+    "ru": [
+      "страница",
+      "том",
+      "Страница %1$@",
+      "Страница %1$@ из %2$@",
+      "Том %1$@ из %2$@",
+      "Предыдущая страница",
+      "Следующая страница",
+      "Предыдущая страница, %1$@",
+      "Следующая страница, %1$@",
+      "Показать элементы управления чтением",
+      "Скрыть элементы управления чтением"
+    ],
+    "kk": [
+      "бет",
+      "том",
+      "%1$@-бет",
+      "%1$@ / %2$@-бет",
+      "%2$@ томның %1$@-і",
+      "Алдыңғы бет",
+      "Келесі бет",
+      "Алдыңғы бет, %1$@",
+      "Келесі бет, %1$@",
+      "Оқу басқару элементтерін көрсету",
+      "Оқу басқару элементтерін жасыру"
+    ],
+    "ky": [
+      "бет",
+      "том",
+      "%1$@-бет",
+      "%1$@ / %2$@-бет",
+      "%2$@ томдун %1$@-си",
+      "Мурунку бет",
+      "Кийинки бет",
+      "Мурунку бет, %1$@",
+      "Кийинки бет, %1$@",
+      "Окуу башкарууларын көрсөтүү",
+      "Окуу башкарууларын жашыруу"
+    ],
+    "uz": [
+      "sahifa",
+      "jild",
+      "%1$@-sahifa",
+      "%1$@ / %2$@-sahifa",
+      "%2$@ jilddan %1$@-jild",
+      "Oldingi sahifa",
+      "Keyingi sahifa",
+      "Oldingi sahifa, %1$@",
+      "Keyingi sahifa, %1$@",
+      "O‘qish boshqaruvlarini ko‘rsatish",
+      "O‘qish boshqaruvlarini yashirish"
+    ],
+    "tr": [
+      "sayfa",
+      "cilt",
+      "Sayfa %1$@",
+      "%2$@ sayfadan %1$@. sayfa",
+      "Cilt %1$@ / %2$@",
+      "Önceki sayfa",
+      "Sonraki sayfa",
+      "Önceki sayfa, %1$@",
+      "Sonraki sayfa, %1$@",
+      "Okuma kontrollerini göster",
+      "Okuma kontrollerini gizle"
+    ],
+    "id": [
+      "halaman",
+      "jilid",
+      "Halaman %1$@",
+      "Halaman %1$@ dari %2$@",
+      "Jilid %1$@ dari %2$@",
+      "Halaman sebelumnya",
+      "Halaman berikutnya",
+      "Halaman sebelumnya, %1$@",
+      "Halaman berikutnya, %1$@",
+      "Tampilkan kontrol membaca",
+      "Sembunyikan kontrol membaca"
+    ],
+    "ur": [
+      "صفحہ",
+      "جلد",
+      "صفحہ %1$@",
+      "%2$@ میں سے صفحہ %1$@",
+      "جلد %1$@ از %2$@",
+      "پچھلا صفحہ",
+      "اگلا صفحہ",
+      "پچھلا صفحہ، %1$@",
+      "اگلا صفحہ، %1$@",
+      "مطالعے کے کنٹرول دکھائیں",
+      "مطالعے کے کنٹرول چھپائیں"
+    ],
+    "fr": [
+      "page",
+      "volume",
+      "Page n° %1$@",
+      "Page %1$@ sur %2$@",
+      "Volume %1$@ sur %2$@",
+      "Page précédente",
+      "Page suivante",
+      "Page précédente, %1$@",
+      "Page suivante, %1$@",
+      "Afficher les commandes de lecture",
+      "Masquer les commandes de lecture"
+    ],
+    "es-419": [
+      "página",
+      "tomo",
+      "Página %1$@",
+      "Página %1$@ de %2$@",
+      "Tomo %1$@ de %2$@",
+      "Página anterior",
+      "Página siguiente",
+      "Página anterior, %1$@",
+      "Página siguiente, %1$@",
+      "Mostrar los controles de lectura",
+      "Ocultar los controles de lectura"
+    ],
+    "pt-BR": [
+      "página",
+      "volume",
+      "Página %1$@",
+      "Página %1$@ de %2$@",
+      "Volume %1$@ de %2$@",
+      "Página anterior",
+      "Próxima página",
+      "Página anterior, %1$@",
+      "Próxima página, %1$@",
+      "Mostrar os controles de leitura",
+      "Ocultar os controles de leitura"
+    ],
+    "sw": [
+      "ukurasa",
+      "juzuu",
+      "Ukurasa %1$@",
+      "Ukurasa %1$@ kati ya %2$@",
+      "Juzuu ya %1$@ kati ya %2$@",
+      "Ukurasa uliotangulia",
+      "Ukurasa unaofuata",
+      "Ukurasa uliotangulia, %1$@",
+      "Ukurasa unaofuata, %1$@",
+      "Onyesha vidhibiti vya kusoma",
+      "Ficha vidhibiti vya kusoma"
+    ],
+    "hi": [
+      "पृष्ठ",
+      "खंड",
+      "पृष्ठ %1$@",
+      "%2$@ में से पृष्ठ %1$@",
+      "खंड %1$@, कुल %2$@",
+      "पिछला पृष्ठ",
+      "अगला पृष्ठ",
+      "पिछला पृष्ठ, %1$@",
+      "अगला पृष्ठ, %1$@",
+      "पढ़ने के नियंत्रण दिखाएँ",
+      "पढ़ने के नियंत्रण छिपाएँ"
+    ],
+    "bn": [
+      "পৃষ্ঠা",
+      "খণ্ড",
+      "পৃষ্ঠা %1$@",
+      "%2$@-এর মধ্যে পৃষ্ঠা %1$@",
+      "খণ্ড %1$@ / %2$@",
+      "আগের পৃষ্ঠা",
+      "পরের পৃষ্ঠা",
+      "আগের পৃষ্ঠা, %1$@",
+      "পরের পৃষ্ঠা, %1$@",
+      "পড়ার নিয়ন্ত্রণ দেখান",
+      "পড়ার নিয়ন্ত্রণ লুকান"
+    ]
+  },
+  "android_resources": {
+    "Page %1$@": [
+      {
+        "name": "native_482a6cdaa409",
+        "file": "native.xml"
+      }
+    ],
+    "Page %1$@ of %2$@": [
+      {
+        "name": "native_8b9ffadf4985",
+        "file": "native.xml"
+      }
+    ],
+    "volume": [
+      {
+        "name": "reader_volume_pill_suffix",
+        "file": "strings.xml"
+      }
+    ]
+  }
+}

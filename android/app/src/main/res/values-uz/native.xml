@@ -70,7 +70,7 @@
     <string name="native_437aea62a5bd" formatted="false">Mundarija</string>
     <string name="native_46495379257b" formatted="false">Qoralamani o‘chirish</string>
     <string name="native_4814c85aa23d">Matn qatlamlari</string>
-    <string name="native_482a6cdaa409">%1$s-sahifa</string>
+    <string name="native_482a6cdaa409" formatted="false">%1$s-sahifa</string>
     <string name="native_483dc4ca0c62">Faylda faqat ko‘chma ma’lumotlaringiz bor. Tizimga kirishingiz kerak; sessiya tugagan bo‘lsa, avval qayta kiring.</string>
     <string name="native_49103f50966a">%1$s tarjimasi hali mavjud emas.</string>
     <string name="native_49c266baaaa7" formatted="false">Qidirish</string>
@@ -99,7 +99,7 @@
     <string name="native_83bbbb83cfbe">Joylashuvni tanlash</string>
     <string name="native_858e4ba7a29f" formatted="false">To‘xtatish</string>
     <string name="native_892ffa345a39" formatted="false">Oflayn rejim qanday ishlaydi</string>
-    <string name="native_8b9ffadf4985">%1$s / %2$s-sahifa</string>
+    <string name="native_8b9ffadf4985" formatted="false">%1$s / %2$s-sahifa</string>
     <string name="native_8ba1f434afb9">Sinxronlangan ma’lumotlarni eksport qilish uchun kiring. Mehmon ma’lumotlari bu qurilmadan chiqmaydi.</string>
     <string name="native_8f6ca5461ed2">Yuklamalar: %1$s · Bo‘sh: %2$s</string>
     <string name="native_9041c6aa2c3d">Obunani boshqarish</string>
@@ -270,4 +270,12 @@
     <string name="native_ecf41b32aac1" formatted="false">%s manziliga yuborgan kodni kiriting.</string>
     <string name="native_8983aa13bee3" formatted="false">%s manziliga yuborilgan kod va yangi parolingizni kiriting.</string>
     <string name="native_fad91b01d03b" formatted="false">Toʻplam va hadis raqamini kiriting</string>
+    <string name="native_3660315a9af3" formatted="false">sahifa</string>
+    <string name="native_2eb7a0c86071" formatted="false">%2$s jilddan %1$s-jild</string>
+    <string name="native_1208ec01f223" formatted="false">Oldingi sahifa</string>
+    <string name="native_c08ac736a5e2" formatted="false">Keyingi sahifa</string>
+    <string name="native_3fe5c60e33ce" formatted="false">Oldingi sahifa, %1$s</string>
+    <string name="native_ead66af2903d" formatted="false">Keyingi sahifa, %1$s</string>
+    <string name="native_2e0e724ea48c" formatted="false">O‘qish boshqaruvlarini ko‘rsatish</string>
+    <string name="native_6f21989e4e53" formatted="false">O‘qish boshqaruvlarini yashirish</string>
 </resources>

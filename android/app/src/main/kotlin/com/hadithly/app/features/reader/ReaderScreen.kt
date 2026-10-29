@@ -58,7 +58,8 @@ import androidx.compose.material.icons.automirrored.filled.Note
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.automirrored.filled.NavigateBefore
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.automirrored.filled.NavigateNext
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Bookmark
@@ -153,6 +154,7 @@ import com.hadithly.app.core.data.ReadingWidthClass
 import com.hadithly.app.core.data.TranslationFailure
 import com.hadithly.app.core.preferences.LocaleFallback
 import com.hadithly.app.core.preferences.ReaderPageTurn
+import com.hadithly.app.core.preferences.PageDirection
 import com.hadithly.app.core.preferences.ReaderPagingPolicy
 import com.hadithly.app.core.preferences.ReaderPreferences
 import com.hadithly.app.core.preferences.SwipeDirection
@@ -511,10 +513,13 @@ private fun ReadingView(
         return true
     }
 
+    val previousPageAction = nativeText("Previous page")
+    val nextPageAction = nativeText("Next page")
+    val controlsAction = nativeText(if (state.chromeVisible) "Hide reader controls" else "Show reader controls")
     val accessibilityActions = buildList {
         add(
             CustomAccessibilityAction(
-                if (state.chromeVisible) "Hide reader controls" else "Show reader controls",
+                controlsAction,
                 action = {
                     viewModel.toggleChrome()
                     true
@@ -522,10 +527,10 @@ private fun ReadingView(
             ),
         )
         if (viewModel.pagePills().previous != null) {
-            add(CustomAccessibilityAction("Previous page") { turnPage(ReaderPageTurn.PREVIOUS) })
+            add(CustomAccessibilityAction(previousPageAction) { turnPage(ReaderPageTurn.PREVIOUS) })
         }
         if (viewModel.pagePills().next != null) {
-            add(CustomAccessibilityAction("Next page") { turnPage(ReaderPageTurn.NEXT) })
+            add(CustomAccessibilityAction(nextPageAction) { turnPage(ReaderPageTurn.NEXT) })
         }
     }
 
@@ -891,16 +896,18 @@ internal fun ReaderProgressHUD(
                 modifier = Modifier.statusBarsPadding().padding(top = 6.dp),
             ) {
                 ReaderProgressPill(
-                    number = "${pageIndex + 1}",
-                    suffix = "page",
+                    number = java.text.NumberFormat.getIntegerInstance(LocalConfiguration.current.locales[0]).format(pageIndex + 1),
+                    suffix = nativeText("page"),
+                    accessibilityLabel = nativeText("Page %1$@", java.text.NumberFormat.getIntegerInstance(LocalConfiguration.current.locales[0]).format(pageIndex + 1)),
                     fraction = unfocusedPageFill.toDouble(),
                     testTag = "reader.unfocusedPageBar",
                     reduceMotion = reduceMotion,
                 )
                 if (unfocusedVolumeNumber != null) {
                     ReaderProgressPill(
-                        number = "$unfocusedVolumeNumber",
+                        number = java.text.NumberFormat.getIntegerInstance(LocalConfiguration.current.locales[0]).format(unfocusedVolumeNumber),
                         suffix = stringResource(R.string.reader_volume_pill_suffix),
+                        accessibilityLabel = nativeText("Volume %lld", unfocusedVolumeNumber),
                         fraction = unfocusedVolumeFill,
                         testTag = "reader.unfocusedVolumeBar",
                         reduceMotion = reduceMotion,
@@ -1499,6 +1506,7 @@ private fun ReaderPage(
                         policy = pagingPolicy,
                         state = pillState,
                         onFollow = onFollowPill,
+                        arabicOnly = preferences.arabicVisible && !preferences.translationVisible,
                     )
                 }
             }
@@ -1623,18 +1631,20 @@ internal fun ReaderVolumePills(
     policy: ReaderPagingPolicy,
     state: ReaderPagePills.State,
     onFollow: (ReaderPagePills.Pill) -> Unit,
+    arabicOnly: Boolean = false,
 ) {
-    val colors = LocalHadithlyColors.current
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 12.dp)
-            .testTag("reader.pagePills"),
-    ) {
-        state.previous?.let { PagePill(it, policy, onFollow, Modifier.weight(1f)) } ?: Spacer(Modifier.weight(1f))
-        state.next?.let { PagePill(it, policy, onFollow, Modifier.weight(1f)) } ?: Spacer(Modifier.weight(1f))
+    CompositionLocalProvider(LocalLayoutDirection provides if (policy.pageDirection == PageDirection.RTL) LayoutDirection.Rtl else LayoutDirection.Ltr) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp)
+                .testTag("reader.pagePills"),
+        ) {
+            state.previous?.let { PagePill(it, policy, onFollow, Modifier.weight(1f), arabicOnly) } ?: Spacer(Modifier.weight(1f))
+            state.next?.let { PagePill(it, policy, onFollow, Modifier.weight(1f), arabicOnly) } ?: Spacer(Modifier.weight(1f))
+        }
     }
 }
 
@@ -1644,8 +1654,16 @@ private fun PagePill(
     policy: ReaderPagingPolicy,
     onFollow: (ReaderPagePills.Pill) -> Unit,
     modifier: Modifier,
+    arabicOnly: Boolean,
 ) {
     val colors = LocalHadithlyColors.current
+    val numbers = java.text.NumberFormat.getIntegerInstance(LocalConfiguration.current.locales[0])
+    val resources = androidx.compose.ui.platform.LocalResources.current
+    val label = when (val target = pill.target) {
+        is ReaderPagePills.Target.Page -> nativeText("Page %1$@", numbers.format(target.index + 1))
+        is ReaderPagePills.Target.VolumeFirst, is ReaderPagePills.Target.VolumeLast -> volumeTitleForDisplay(pill.label, arabicOnly) { resources.getString(R.string.reader_volume_title, it) }
+    }
+    val accessibleLabel = nativeText(if (pill.turn == ReaderPageTurn.PREVIOUS) "Previous page, %1$@" else "Next page, %1$@", label)
     val pointsLeft = when (policy.pageDirection) {
         com.hadithly.app.core.preferences.PageDirection.LTR -> pill.turn == ReaderPageTurn.PREVIOUS
         com.hadithly.app.core.preferences.PageDirection.RTL -> pill.turn == ReaderPageTurn.NEXT
@@ -1659,19 +1677,13 @@ private fun PagePill(
             .clickable { onFollow(pill) }
             .padding(horizontal = 8.dp, vertical = 4.dp)
             .testTag(if (pill.turn == ReaderPageTurn.PREVIOUS) "reader.previousPage" else "reader.nextPage")
-            .semantics {
-                contentDescription = if (pill.turn == ReaderPageTurn.PREVIOUS) {
-                    "Previous page, ${pill.label}"
-                } else {
-                    "Next page, ${pill.label}"
-                }
-            },
+            .semantics { contentDescription = accessibleLabel },
     ) {
         if (pill.turn == ReaderPageTurn.PREVIOUS) {
             PagePillChevron(pointsLeft)
         }
         Text(
-            text = pill.label,
+            text = label,
             color = colors.textSecondary,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
@@ -1687,7 +1699,7 @@ private fun PagePill(
 private fun PagePillChevron(pointsLeft: Boolean) {
     val colors = LocalHadithlyColors.current
     Icon(
-        imageVector = if (pointsLeft) Icons.AutoMirrored.Filled.NavigateBefore else Icons.AutoMirrored.Filled.NavigateNext,
+        imageVector = if (pointsLeft) Icons.Filled.ChevronLeft else Icons.Filled.ChevronRight,
         contentDescription = null,
         tint = colors.textSecondary,
         modifier = Modifier.size(22.dp),
@@ -1700,7 +1712,7 @@ private fun PagePillChevron(pointsLeft: Boolean) {
  *
  * R6A end-of-page navigation: one centered cluster with the chevrons
  * immediately adjacent to the page pill (`‹ Page X of Y ›`). Direction-aware:
- * the chevron glyphs mirror with the layout direction (AutoMirrored) and the
+ * the chevron glyphs follow the explicit reading direction and the
  * logical previous/next order follows the paging policy. A missing
  * destination hides its chevron; the separated corner buttons are gone.
  */
@@ -1712,59 +1724,62 @@ internal fun ReaderEndNavigation(
     onTurn: (ReaderPageTurn) -> Unit,
 ) {
     val colors = LocalHadithlyColors.current
-    Row(
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 12.dp)
-            .testTag("reader.pageCluster")
-            .semantics(mergeDescendants = true) {},
-    ) {
-        val previous = policy.destination(currentPageIndex, pageCount, ReaderPageTurn.PREVIOUS)
-        val next = policy.destination(currentPageIndex, pageCount, ReaderPageTurn.NEXT)
-        // R6A fix: ONE tight pill — the chevrons sit snug against the label
-        // (a few dp inside one capsule), never at the outer corners. The
-        // volume pill stays text-only; no volume chevrons yet.
+    val numbers = java.text.NumberFormat.getIntegerInstance(LocalConfiguration.current.locales[0])
+    CompositionLocalProvider(LocalLayoutDirection provides if (policy.pageDirection == PageDirection.RTL) LayoutDirection.Rtl else LayoutDirection.Ltr) {
         Row(
+            horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier.background(colors.surface, RoundedCornerShape(50)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp)
+                .testTag("reader.pageCluster")
+                .semantics(mergeDescendants = true) {},
         ) {
-            if (previous != null) {
-                PageChevron(
-                    turn = ReaderPageTurn.PREVIOUS,
-                    destination = previous,
-                    pointsLeft = when (policy.pageDirection) {
-                        com.hadithly.app.core.preferences.PageDirection.LTR -> true
-                        com.hadithly.app.core.preferences.PageDirection.RTL -> false
+            val previous = policy.destination(currentPageIndex, pageCount, ReaderPageTurn.PREVIOUS)
+            val next = policy.destination(currentPageIndex, pageCount, ReaderPageTurn.NEXT)
+            // R6A fix: ONE tight pill — the chevrons sit snug against the label
+            // (a few dp inside one capsule), never at the outer corners. The
+            // volume pill stays text-only; no volume chevrons yet.
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier.background(colors.surface, RoundedCornerShape(50)),
+            ) {
+                if (previous != null) {
+                    PageChevron(
+                        turn = ReaderPageTurn.PREVIOUS,
+                        destination = previous,
+                        pointsLeft = when (policy.pageDirection) {
+                            com.hadithly.app.core.preferences.PageDirection.LTR -> true
+                            com.hadithly.app.core.preferences.PageDirection.RTL -> false
+                        },
+                        onTurn = onTurn,
+                    )
+                }
+                Text(
+                    text = if (pageCount > 0) {
+                        nativeText("Page %1$@ of %2$@", numbers.format(currentPageIndex + 1), numbers.format(pageCount))
+                    } else {
+                        nativeText("Page %1$@", numbers.format(currentPageIndex + 1))
                     },
-                    onTurn = onTurn,
+                    color = colors.textSecondary,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier
+                        .padding(horizontal = 8.dp, vertical = 10.dp)
+                        .testTag("reader.pagePill"),
                 )
-            }
-            Text(
-                text = if (pageCount > 0) {
-                    "Page ${currentPageIndex + 1} of $pageCount"
-                } else {
-                    "Page ${currentPageIndex + 1}"
-                },
-                color = colors.textSecondary,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier
-                    .padding(horizontal = 8.dp, vertical = 10.dp)
-                    .testTag("reader.pagePill"),
-            )
-            if (next != null) {
-                PageChevron(
-                    turn = ReaderPageTurn.NEXT,
-                    destination = next,
-                    pointsLeft = when (policy.pageDirection) {
-                        com.hadithly.app.core.preferences.PageDirection.LTR -> false
-                        com.hadithly.app.core.preferences.PageDirection.RTL -> true
-                    },
-                    onTurn = onTurn,
-                )
+                if (next != null) {
+                    PageChevron(
+                        turn = ReaderPageTurn.NEXT,
+                        destination = next,
+                        pointsLeft = when (policy.pageDirection) {
+                            com.hadithly.app.core.preferences.PageDirection.LTR -> false
+                            com.hadithly.app.core.preferences.PageDirection.RTL -> true
+                        },
+                        onTurn = onTurn,
+                    )
+                }
             }
         }
     }
@@ -1778,6 +1793,10 @@ private fun PageChevron(
     onTurn: (ReaderPageTurn) -> Unit,
 ) {
     val colors = LocalHadithlyColors.current
+    val number = java.text.NumberFormat.getIntegerInstance(LocalConfiguration.current.locales[0]).format(destination + 1)
+    val page = nativeText("Page %1$@", number)
+    val accessibleLabel = nativeText(if (turn == ReaderPageTurn.PREVIOUS) "Previous page, %1$@" else "Next page, %1$@", page)
+    val actionLabel = nativeText(if (turn == ReaderPageTurn.PREVIOUS) "Previous page" else "Next page")
     IconButton(
         onClick = { onTurn(turn) },
         modifier = Modifier
@@ -1790,14 +1809,10 @@ private fun PageChevron(
                 },
             )
             .semantics {
-                contentDescription = if (turn == ReaderPageTurn.PREVIOUS) {
-                    "Previous page, Page ${destination + 1}"
-                } else {
-                    "Next page, Page ${destination + 1}"
-                }
+                contentDescription = accessibleLabel
                 customActions = listOf(
                     CustomAccessibilityAction(
-                        if (turn == ReaderPageTurn.PREVIOUS) "Previous page" else "Next page",
+                        actionLabel,
                     ) {
                         onTurn(turn)
                         true
@@ -1807,9 +1822,9 @@ private fun PageChevron(
     ) {
         Icon(
             if (pointsLeft) {
-                Icons.AutoMirrored.Filled.NavigateBefore
+                Icons.Filled.ChevronLeft
             } else {
-                Icons.AutoMirrored.Filled.NavigateNext
+                Icons.Filled.ChevronRight
             },
             contentDescription = null,
             tint = colors.textSecondary,
@@ -1827,6 +1842,7 @@ private fun PageChevron(
 private fun ReaderProgressPill(
     number: String,
     suffix: String,
+    accessibilityLabel: String,
     fraction: Double,
     testTag: String,
     modifier: Modifier = Modifier,
@@ -1850,7 +1866,8 @@ private fun ReaderProgressPill(
                 androidx.compose.foundation.BorderStroke(0.5.dp, colors.divider.copy(alpha = 0.62f)),
                 RoundedCornerShape(50),
             )
-            .testTag(testTag),
+            .testTag(testTag)
+            .semantics(mergeDescendants = true) { contentDescription = accessibilityLabel },
     ) {
         // Round 8: the fill occupies the FULL pill height — no top/bottom
         // inset, only a small horizontal inset — clipped to the pill

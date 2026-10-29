@@ -350,7 +350,7 @@ struct ReaderView: View {
         // The visual reader has no permanent controls, so VoiceOver needs an
         // equally direct way to reveal close, contents, and type controls.
         .accessibilityAction(
-            named: model.chromeVisible ? "Hide reader controls" : "Show reader controls"
+            named: Text(LocalizedStringKey(model.chromeVisible ? "Hide reader controls" : "Show reader controls"))
         ) {
             toggleChrome(model)
         }
@@ -888,6 +888,7 @@ private struct ReaderFocusedProgressBar: View {
 /// no green, no full-width, never mid-screen. The container carries the
 /// accessible position; the pills themselves stay silent.
 private struct ReaderUnfocusedProgressPills: View {
+    @Environment(\.locale) private var locale
     let pageNumber: Int
     /// Intra-page scroll fraction (0 top, 1 bottom) behind the Page pill.
     let pageFill: Double
@@ -902,9 +903,9 @@ private struct ReaderUnfocusedProgressPills: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            progressPill(number: "\(pageNumber)", suffix: "page", fill: pageFill)
+            progressPill(number: pageNumber.formatted(.number.locale(locale)), suffix: AppLocalization.string("page", locale: locale), fill: pageFill)
             if let volumeNumber {
-                progressPill(number: "\(volumeNumber)", suffix: "volume", fill: volumeFill ?? 0)
+                progressPill(number: volumeNumber.formatted(.number.locale(locale)), suffix: AppLocalization.string("volume", locale: locale), fill: volumeFill ?? 0)
             }
         }
         .frame(maxWidth: .infinity, alignment: .center)
@@ -946,9 +947,9 @@ private struct ReaderUnfocusedProgressPills: View {
     }
 
     private var accessibilityText: String {
-        var parts: [String] = ["Page \(pageNumber)"]
+        var parts = [AppLocalization.format("Page %1$@", locale: locale, pageNumber.formatted(.number.locale(locale)))]
         if let volumeNumber, volumeCount > 0 {
-            parts.append("Volume \(volumeNumber) of \(volumeCount)")
+            parts.append(AppLocalization.format("Volume %1$@ of %2$@", locale: locale, volumeNumber.formatted(.number.locale(locale)), volumeCount.formatted(.number.locale(locale))))
         }
         return parts.joined(separator: ", ")
     }
@@ -980,6 +981,7 @@ private struct ReaderScrollStateKey: PreferenceKey {
 }
 
 struct ReaderPageView: View {
+    @Environment(\.locale) private var locale
     let model: ReaderModel
     let hadiths: [ReaderHadith]
     let arabicFontSize: Double
@@ -1025,7 +1027,7 @@ struct ReaderPageView: View {
     private var volumeCornerText: String? {
         guard let title = model.currentVolumeTitle else { return nil }
         return ReaderVolumeRange.cornerText(
-            volumeTitle: localizedVolumeTitle(title, preferences: preferences),
+            volumeTitle: localizedVolumeTitle(title, preferences: preferences, locale: locale),
             pages: model.pages
         )
     }
@@ -1311,14 +1313,14 @@ private struct ReaderVolumeHeaderView: View {
                 arabicVisible: arabicVisible,
                 translationVisible: translationVisible
             ),
-            preferences: prefs
+            preferences: prefs, locale: locale
         )
     }
 
     var body: some View {
         VStack(spacing: 6) {
             if let volumeNumber {
-                Text(AppLocalization.count("Volume %lld", count: volumeNumber, locale: locale))
+                Text(AppLocalization.format("Volume %lld", locale: locale, volumeNumber))
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(palette.textSecondary.opacity(0.8))
                     .accessibilityHidden(true)
@@ -1327,14 +1329,14 @@ private struct ReaderVolumeHeaderView: View {
                 .font(.title2.weight(.semibold))
                 .foregroundStyle(palette.textPrimary)
                 .multilineTextAlignment(.center)
-            Text(AppLocalization.count("%lld hadiths", count: volume.hadithCount, locale: locale))
+            Text(AppLocalization.format("%lld hadiths", locale: locale, volume.hadithCount))
                 .font(.footnote)
                 .foregroundStyle(palette.textSecondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 8)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(Text(verbatim: "\(title), \(AppLocalization.count("%lld hadiths", count: volume.hadithCount, locale: locale))"))
+        .accessibilityLabel(Text(verbatim: "\(title), \(AppLocalization.format("%lld hadiths", locale: locale, volume.hadithCount))"))
         .accessibilityIdentifier("reader.volumeHeader")
     }
 }
@@ -1363,13 +1365,13 @@ private struct ReaderVolumeHeaderPlaceholder: View {
 /// Volume titles follow the visible layers (R6 round 3): Arabic-only mode
 /// renders the localized volume name (`Volume %lld`) instead of the
 /// backend English title; every other mode keeps the outline title.
-func localizedVolumeTitle(_ title: String, preferences: ReaderPreferences) -> String {
+func localizedVolumeTitle(_ title: String, preferences: ReaderPreferences, locale: Locale) -> String {
     ReaderVolumeTitle.displayTitle(
         title: title,
         arabicVisible: preferences.arabicVisible,
         translationVisible: preferences.translationVisible
     ) { number in
-        String(localized: "Volume \(number)")
+        AppLocalization.format("Volume %lld", locale: locale, number)
     }
 }
 
@@ -1431,6 +1433,7 @@ private struct ReaderChapterHeader: View {
 /// volume edge the outward pill names the neighboring volume's full
 /// title and jumps across; the absolute ends show no outward pill.
 struct ReaderVolumePills: View {
+    @Environment(\.locale) private var locale
     let policy: ReaderPagingPolicy
     let state: ReaderPagePills.State
     let palette: ReaderPalette
@@ -1465,9 +1468,13 @@ struct ReaderVolumePills: View {
 
     private func pagePill(_ pill: ReaderPagePills.Pill) -> some View {
         let turn = pill.turn
-        let label = pill.crossesVolume
-            ? localizedVolumeTitle(pill.label, preferences: pillPreferences)
-            : pill.label
+        let label: String
+        switch pill.target {
+        case .page(let index):
+            label = AppLocalization.format("Page %1$@", locale: locale, (index + 1).formatted(.number.locale(locale)))
+        case .volumeFirst, .volumeLast:
+            label = localizedVolumeTitle(pill.label, preferences: pillPreferences, locale: locale)
+        }
         return Button {
             onFollow(pill)
         } label: {
@@ -1490,9 +1497,9 @@ struct ReaderVolumePills: View {
         }
         .buttonStyle(.plain)
         .frame(maxWidth: .infinity, minHeight: 48)
-        .accessibilityLabel(
-            turn == .previous ? "Previous page, \(label)" : "Next page, \(label)"
-        )
+        .accessibilityLabel(Text(verbatim: AppLocalization.format(
+            turn == .previous ? "Previous page, %1$@" : "Next page, %1$@", locale: locale, label
+        )))
         .accessibilityIdentifier(
             turn == .previous ? "reader.previousPage" : "reader.nextPage"
         )
@@ -3085,7 +3092,9 @@ struct ReaderR6ATestFixtureView: View {
                             policy: policy,
                             state: pillState,
                             palette: palette,
-                            onFollow: follow
+                            onFollow: follow,
+                            arabicVisible: preferences.arabicVisible,
+                            translationVisible: preferences.translationVisible
                         )
                     }
                     .padding(.horizontal, 22)

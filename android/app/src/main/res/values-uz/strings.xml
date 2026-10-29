@@ -49,8 +49,8 @@
     <string name="saved_bookmark_removed" formatted="false">Xatcho‘p olib tashlandi</string>
     <string name="saved_favorite_removed" formatted="false">Sevimli olib tashlandi</string>
     <string name="saved_note_deleted" formatted="false">Qayd o‘chirildi</string>
-    <string name="reader_volume_title">Volume %1$d</string>
-    <string name="reader_volume_pill_suffix">volume</string>
+    <string name="reader_volume_title" formatted="false">Jild %d</string>
+    <string name="reader_volume_pill_suffix" formatted="false">jild</string>
     <string name="e3_reviewing" formatted="false">Taklif tekshirilmoqda</string>
     <string name="e3_published" formatted="false">Taklif nashr qilindi</string>
     <string name="e3_exception" formatted="false">Taklif tekshiruvni talab qiladi</string>

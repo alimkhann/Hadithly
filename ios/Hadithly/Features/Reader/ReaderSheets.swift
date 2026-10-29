@@ -237,7 +237,7 @@ struct CollectionOutlineSheet: View {
     private func volumeLabel(_ volume: OutlineVolume, isSelected: Bool, showsChevron: Bool = false) -> some View {
         let sourceName = ReaderVolumeHeaderTitle.actualTitle(volume: volume,
             arabicVisible: arabicVisible, translationVisible: translationVisible)
-        let name = localizedVolumeTitle(sourceName, preferences: prefs)
+        let name = localizedVolumeTitle(sourceName, preferences: prefs, locale: locale)
         let number = ReaderVolumeTitle.volumeNumber(in: volume.title) ?? Int(volume.volumeId)
         let title: String
         if let number, number > 0, ReaderVolumeTitle.volumeNumber(in: sourceName) == nil {

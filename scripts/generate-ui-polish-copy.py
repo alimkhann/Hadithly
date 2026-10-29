@@ -72,6 +72,7 @@ for locale,values in locales.items():
     updates={}
     for i,key in enumerate(keys):
         android_value=re.sub(r'%(\d+\$)?@',lambda m:'%'+(m.group(1) or '')+'s',values[i])
+        android_value=re.sub(r'%(\d+\$)?lld',lambda m:'%'+(m.group(1) or '')+'d',android_value)
         raw=escape(android_value).replace("'",r"\'").replace('"',r'\"')
         for resource in targets[key]:
             path=ROOT/'android/app/src/main/res'/folders.get(locale,'values-'+locale)/resource['file']

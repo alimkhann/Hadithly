@@ -23,8 +23,8 @@ class IndexedCopyTests(unittest.TestCase):
             def git(*arguments):
                 return subprocess.run(['git', *arguments], cwd=root, check=True, capture_output=True, text=True)
             git('init', '-q')
-            key = 'Keep $amount and ${total}: %1$@'
-            catalog = {'strings': {key: {'localizations': {locale: {'stringUnit': {'value': locale + ' %1$@'}} for locale in LOCALES}}}}
+            key = 'Keep $amount and ${total}: %1$@ %2$lld'
+            catalog = {'strings': {key: {'localizations': {locale: {'stringUnit': {'value': locale + ' %1$@ %2$lld'}} for locale in LOCALES}}}}
             catalog_path = write('ios/Hadithly/Localizable.xcstrings', json.dumps(catalog))
             git('add', 'ios')
             catalog_path.write_text('{"incoming":"catalog bytes"}')
@@ -44,7 +44,7 @@ class IndexedCopyTests(unittest.TestCase):
                 for filename, name in [('strings.xml', 'first'), ('extra.xml', 'second')]:
                     xml = (root / 'android/app/src/main/res' / folder / filename).read_text()
                     self.assertIn('name="' + name + '"', xml)
-                    self.assertIn(locale + ' %1$s', xml)
+                    self.assertIn(locale + ' %1$s %2$d', xml)
             mapping = helper.read_text()
             self.assertEqual(mapping.count('R.string.first'), 1)
             self.assertNotIn('R.string.old', mapping)

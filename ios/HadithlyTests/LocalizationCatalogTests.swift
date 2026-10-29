@@ -5,6 +5,12 @@ import XCTest
 /// exist with English, Arabic, and Urdu localizations, and the plural fixture
 /// carries the Arabic plural categories.
 final class LocalizationCatalogTests: XCTestCase {
+    func testFormattedLabelsUseBaseLocaleFallbackAndPreserveSourceArguments() {
+        XCTAssertEqual(AppLocalization.format("Next page, %1$@", locale: Locale(identifier: "fr-CA"), "Source %lld %@"), "Page suivante, Source %lld %@")
+        XCTAssertEqual(AppLocalization.format("Next page, %1$@", locale: Locale(identifier: "zz-ZZ"), "Source %lld %@"), "Next page, Source %lld %@")
+        XCTAssertEqual(AppLocalization.string("page", locale: Locale(identifier: "id-ID")), "halaman")
+    }
+
     func testCompiledCountCategoriesMatchScopedDraftsInEveryLocale() throws {
         let source = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("docs/a4-plural-copy.json")
         let data = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: source)) as? [String: Any])
@@ -25,7 +31,7 @@ final class LocalizationCatalogTests: XCTestCase {
                     }
                     let template = try XCTUnwrap(forms[quantity], "\(tag):\(quantity)")
                     let expected = String(format: template, locale: locale, arguments: [count])
-                    XCTAssertEqual(AppLocalization.count(key, count: count, locale: locale), expected, "\(key):\(tag):\(count)")
+                    XCTAssertEqual(AppLocalization.format(key, locale: locale, count), expected, "\(key):\(tag):\(count)")
                 }
             }
         }

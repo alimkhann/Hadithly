@@ -49,8 +49,8 @@
     <string name="saved_bookmark_removed" formatted="false">Alamisho limeondolewa</string>
     <string name="saved_favorite_removed" formatted="false">Kipendwa kimeondolewa</string>
     <string name="saved_note_deleted" formatted="false">Dokezo limefutwa</string>
-    <string name="reader_volume_title">Volume %1$d</string>
-    <string name="reader_volume_pill_suffix">volume</string>
+    <string name="reader_volume_title" formatted="false">Juzuu %d</string>
+    <string name="reader_volume_pill_suffix" formatted="false">juzuu</string>
     <string name="e3_reviewing" formatted="false">Pendekezo linakaguliwa</string>
     <string name="e3_published" formatted="false">Pendekezo limechapishwa</string>
     <string name="e3_exception" formatted="false">Pendekezo linahitaji ukaguzi</string>

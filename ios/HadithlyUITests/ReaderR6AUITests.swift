@@ -367,6 +367,7 @@ final class ReaderR6AUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["-R6AReaderFixture"]
         app.launchEnvironment["HADITHLY_UI_TESTING"] = "1"
+        app.launchEnvironment["Q1_UI_LOCALE"] = "en"
         for (key, value) in environment {
             app.launchEnvironment[key] = value
         }

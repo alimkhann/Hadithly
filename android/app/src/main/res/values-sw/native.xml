@@ -70,7 +70,7 @@
     <string name="native_437aea62a5bd" formatted="false">Yaliyomo</string>
     <string name="native_46495379257b" formatted="false">Futa rasimu</string>
     <string name="native_4814c85aa23d">Tabaka za maandishi</string>
-    <string name="native_482a6cdaa409">Ukurasa %1$s</string>
+    <string name="native_482a6cdaa409" formatted="false">Ukurasa %1$s</string>
     <string name="native_483dc4ca0c62">Faili ina data yako ya kuhamishika pekee. Lazima uwe umeingia; kipindi kikiisha, ingia tena kwanza.</string>
     <string name="native_49103f50966a">Tafsiri ya %1$s bado haipatikani.</string>
     <string name="native_49c266baaaa7" formatted="false">Tafuta</string>
@@ -99,7 +99,7 @@
     <string name="native_83bbbb83cfbe">Chagua eneo</string>
     <string name="native_858e4ba7a29f" formatted="false">Sitisha</string>
     <string name="native_892ffa345a39" formatted="false">Jinsi hali ya nje ya mtandao inavyofanya kazi</string>
-    <string name="native_8b9ffadf4985">Ukurasa %1$s kati ya %2$s</string>
+    <string name="native_8b9ffadf4985" formatted="false">Ukurasa %1$s kati ya %2$s</string>
     <string name="native_8ba1f434afb9">Ingia ili kuhamisha data yako iliyosawazishwa. Data ya mgeni haiondoki kwenye kifaa hiki.</string>
     <string name="native_8f6ca5461ed2">Vipakuliwa: %1$s · Nafasi: %2$s</string>
     <string name="native_9041c6aa2c3d">Dhibiti usajili</string>
@@ -270,4 +270,12 @@
     <string name="native_ecf41b32aac1" formatted="false">Weka msimbo tuliotuma kwa %s.</string>
     <string name="native_8983aa13bee3" formatted="false">Weka msimbo uliotumwa kwa %s na nenosiri lako jipya.</string>
     <string name="native_fad91b01d03b" formatted="false">Jumuisha mkusanyiko na nambari ya hadithi</string>
+    <string name="native_3660315a9af3" formatted="false">ukurasa</string>
+    <string name="native_2eb7a0c86071" formatted="false">Juzuu ya %1$s kati ya %2$s</string>
+    <string name="native_1208ec01f223" formatted="false">Ukurasa uliotangulia</string>
+    <string name="native_c08ac736a5e2" formatted="false">Ukurasa unaofuata</string>
+    <string name="native_3fe5c60e33ce" formatted="false">Ukurasa uliotangulia, %1$s</string>
+    <string name="native_ead66af2903d" formatted="false">Ukurasa unaofuata, %1$s</string>
+    <string name="native_2e0e724ea48c" formatted="false">Onyesha vidhibiti vya kusoma</string>
+    <string name="native_6f21989e4e53" formatted="false">Ficha vidhibiti vya kusoma</string>
 </resources>

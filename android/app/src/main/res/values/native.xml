@@ -30,7 +30,7 @@
     <string name="native_437aea62a5bd" formatted="false">Contents</string>
     <string name="native_46495379257b" formatted="false">Delete draft</string>
     <string name="native_4814c85aa23d" formatted="false">Text layers</string>
-    <string name="native_482a6cdaa409">Page %1$s</string>
+    <string name="native_482a6cdaa409" formatted="false">Page %1$s</string>
     <string name="native_483dc4ca0c62" formatted="false">The file contains only your portable data. You must be signed in; an expired session signs you in again first.</string>
     <string name="native_48f0d3d397d4" formatted="false">Sign out</string>
     <string name="native_49103f50966a">No %1$s translation is available yet.</string>
@@ -77,7 +77,7 @@
     <string name="native_858e4ba7a29f" formatted="false">Pause</string>
     <string name="native_8809dd9048f8" formatted="false">Today\'s hadith could not load</string>
     <string name="native_892ffa345a39" formatted="false">How offline works</string>
-    <string name="native_8b9ffadf4985">Page %1$s of %2$s</string>
+    <string name="native_8b9ffadf4985" formatted="false">Page %1$s of %2$s</string>
     <string name="native_8ba1f434afb9" formatted="false">Sign in to export your synced data. Guest data never leaves this device.</string>
     <string name="native_8e3a83b3d254" formatted="false">You can undo this action from the message at the top.</string>
     <string name="native_8f6ca5461ed2">Downloads: %1$s · Free: %2$s</string>
@@ -268,4 +268,12 @@
     <string name="native_ecf41b32aac1" formatted="false">Enter the code we sent to %s.</string>
     <string name="native_8983aa13bee3" formatted="false">Enter the code sent to %s and your new password.</string>
     <string name="native_fad91b01d03b" formatted="false">Include the collection and hadith number</string>
+    <string name="native_3660315a9af3" formatted="false">page</string>
+    <string name="native_2eb7a0c86071" formatted="false">Volume %1$s of %2$s</string>
+    <string name="native_1208ec01f223" formatted="false">Previous page</string>
+    <string name="native_c08ac736a5e2" formatted="false">Next page</string>
+    <string name="native_3fe5c60e33ce" formatted="false">Previous page, %1$s</string>
+    <string name="native_ead66af2903d" formatted="false">Next page, %1$s</string>
+    <string name="native_2e0e724ea48c" formatted="false">Show reader controls</string>
+    <string name="native_6f21989e4e53" formatted="false">Hide reader controls</string>
 </resources>

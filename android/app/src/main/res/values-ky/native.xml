@@ -70,7 +70,7 @@
     <string name="native_437aea62a5bd" formatted="false">Мазмун</string>
     <string name="native_46495379257b" formatted="false">Долбоорду өчүрүү</string>
     <string name="native_4814c85aa23d">Текст катмарлары</string>
-    <string name="native_482a6cdaa409">%1$s-бет</string>
+    <string name="native_482a6cdaa409" formatted="false">%1$s-бет</string>
     <string name="native_483dc4ca0c62">Файлда көчүрүлмө дайындарыңыз гана бар. Киришиңиз керек; сессиянын мөөнөтү бүтсө, адегенде кайра кириңиз.</string>
     <string name="native_49103f50966a">%1$s тилиндеги котормо азырынча жеткиликтүү эмес.</string>
     <string name="native_49c266baaaa7" formatted="false">Издөө</string>
@@ -99,7 +99,7 @@
     <string name="native_83bbbb83cfbe">Жайгашкан жерди тандоо</string>
     <string name="native_858e4ba7a29f" formatted="false">Тындыруу</string>
     <string name="native_892ffa345a39" formatted="false">Офлайн режим кантип иштейт</string>
-    <string name="native_8b9ffadf4985">%1$s / %2$s-бет</string>
+    <string name="native_8b9ffadf4985" formatted="false">%1$s / %2$s-бет</string>
     <string name="native_8ba1f434afb9">Шайкештештирилген дайындарды экспорттоо үчүн кириңиз. Коноктун дайындары бул түзмөктөн чыкпайт.</string>
     <string name="native_8f6ca5461ed2">Жүктөөлөр: %1$s · Бош: %2$s</string>
     <string name="native_9041c6aa2c3d">Жазылууну башкаруу</string>
@@ -270,4 +270,12 @@
     <string name="native_ecf41b32aac1" formatted="false">%s дарегине жөнөткөн кодду киргизиңиз.</string>
     <string name="native_8983aa13bee3" formatted="false">%s дарегине жөнөтүлгөн кодду жана жаңы сырсөздү киргизиңиз.</string>
     <string name="native_fad91b01d03b" formatted="false">Жыйнакты жана хадис номерин көрсөтүңүз</string>
+    <string name="native_3660315a9af3" formatted="false">бет</string>
+    <string name="native_2eb7a0c86071" formatted="false">%2$s томдун %1$s-си</string>
+    <string name="native_1208ec01f223" formatted="false">Мурунку бет</string>
+    <string name="native_c08ac736a5e2" formatted="false">Кийинки бет</string>
+    <string name="native_3fe5c60e33ce" formatted="false">Мурунку бет, %1$s</string>
+    <string name="native_ead66af2903d" formatted="false">Кийинки бет, %1$s</string>
+    <string name="native_2e0e724ea48c" formatted="false">Окуу башкарууларын көрсөтүү</string>
+    <string name="native_6f21989e4e53" formatted="false">Окуу башкарууларын жашыруу</string>
 </resources>

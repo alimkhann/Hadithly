@@ -12,6 +12,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
+import com.hadithly.app.core.theme.LocalizedPreview
+import com.hadithly.app.core.preferences.nativeText
+import com.hadithly.app.core.preferences.ReaderTheme
+import androidx.compose.ui.test.assertHeightIsAtLeast
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onFirst
+import androidx.compose.foundation.layout.height
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertHasClickAction
@@ -443,11 +450,113 @@ class ReaderR6AQuietTest {
         compose.onAllNodesWithText("Belief").assertCountEquals(1)
     }
 
+    @Test fun arabicOnlyVolumeTitlesUseUILocaleAndPreserveSourceNames() {
+        var locale by androidx.compose.runtime.mutableStateOf("ru")
+        compose.setContent { androidx.compose.runtime.key(locale) { LocalizedPreview(ReaderTheme.LIGHT, locale) {
+            androidx.compose.foundation.layout.Column(Modifier.statusBarsPadding().padding(16.dp)) {
+                ReaderVolumePills(policy = ReaderPagingPolicy(PageDirection.LTR), arabicOnly = true,
+                    state = ReaderPagePills.State(
+                        ReaderPagePills.Pill("Volume 1", ReaderPagePills.Target.VolumeLast("1"), ReaderPageTurn.PREVIOUS, true),
+                        ReaderPagePills.Pill("Original source title", ReaderPagePills.Target.VolumeFirst("2"), ReaderPageTurn.NEXT, true)), onFollow = {})
+            }
+        } } }
+        for ((tag, expected) in listOf("ru" to "Том 1", "ar" to "المجلد 1")) {
+            compose.runOnIdle { locale = tag }
+            compose.onNodeWithText(expected).assertIsDisplayed()
+            compose.onNodeWithText("Original source title").assertIsDisplayed()
+        }
+    }
+
+    @Test fun formattedLabelsUseBaseLocaleFallbackAndPreserveSourceArguments() {
+        val context = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().targetContext
+        for ((tag, expected) in listOf("fr-CA" to "Page suivante, Source %lld %@", "zz-ZZ" to "Next page, Source %lld %@")) {
+            val configuration = android.content.res.Configuration(context.resources.configuration).apply { setLocale(java.util.Locale.forLanguageTag(tag)) }
+            assertEquals(expected, context.createConfigurationContext(configuration).nativeText("Next page, %1$@", "Source %lld %@"))
+        }
+    }
+
+    @Test fun pagePillsFollowReadingDirectionIndependentOfUILanguage() {
+        compose.setContent { LocalizedPreview(ReaderTheme.LIGHT, "en") {
+            ReaderVolumePills(policy = ReaderPagingPolicy(PageDirection.RTL),
+                state = ReaderPagePills.State(
+                    ReaderPagePills.Pill("Page 1", ReaderPagePills.Target.Page(0), ReaderPageTurn.PREVIOUS, false),
+                    ReaderPagePills.Pill("Page 3", ReaderPagePills.Target.Page(2), ReaderPageTurn.NEXT, false)), onFollow = {})
+        } }
+        val previous = compose.onNodeWithTag("reader.previousPage").fetchSemanticsNode().boundsInRoot
+        val next = compose.onNodeWithTag("reader.nextPage").fetchSemanticsNode().boundsInRoot
+        assertTrue("Previous must be on the right for RTL reading", previous.left > next.left)
+    }
+
+    @Test fun pageControlsUseSelectedLanguage() {
+        var locale by androidx.compose.runtime.mutableStateOf("en")
+        var direction by androidx.compose.runtime.mutableStateOf(PageDirection.LTR)
+        var followed: ReaderPagePills.Target? = null
+        compose.setContent { androidx.compose.runtime.key(locale, direction) { LocalizedPreview(ReaderTheme.LIGHT, locale) {
+            androidx.compose.foundation.layout.Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(16.dp)) {
+                androidx.compose.foundation.layout.Box(Modifier.height(120.dp)) {
+                    ReaderProgressHUD(androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(1 to 0.3f) }, 1, 3, 1, 0.5, true, true)
+                }
+                ReaderVolumePills(policy = ReaderPagingPolicy(direction),
+                    state = ReaderPagePills.State(
+                        ReaderPagePills.Pill("Original source: 57", ReaderPagePills.Target.VolumeLast("source"), ReaderPageTurn.PREVIOUS, true),
+                        ReaderPagePills.Pill("Ignored page text", ReaderPagePills.Target.Page(1), ReaderPageTurn.NEXT, false)),
+                    onFollow = { followed = it.target })
+                ReaderEndNavigation(ReaderPagingPolicy(direction), 1, 3, {})
+            }
+        } } }
+        for ((tag, pageTemplate, totalTemplate, previousTemplate, nextTemplate) in listOf(
+            listOf("en", "Page %1\$@", "Page %1\$@ of %2\$@", "Previous page, %1\$@", "Next page, %1\$@"),
+            listOf("ar", "الصفحة %1\$@", "الصفحة %1\$@ من %2\$@", "الصفحة السابقة، %1\$@", "الصفحة التالية، %1\$@"),
+            listOf("ru", "Страница %1\$@", "Страница %1\$@ из %2\$@", "Предыдущая страница, %1\$@", "Следующая страница, %1\$@"),
+            listOf("kk", "%1\$@-бет", "%1\$@ / %2\$@-бет", "Алдыңғы бет, %1\$@", "Келесі бет, %1\$@"),
+            listOf("ky", "%1\$@-бет", "%1\$@ / %2\$@-бет", "Мурунку бет, %1\$@", "Кийинки бет, %1\$@"),
+            listOf("uz", "%1\$@-sahifa", "%1\$@ / %2\$@-sahifa", "Oldingi sahifa, %1\$@", "Keyingi sahifa, %1\$@"),
+            listOf("tr", "Sayfa %1\$@", "%2\$@ sayfadan %1\$@. sayfa", "Önceki sayfa, %1\$@", "Sonraki sayfa, %1\$@"),
+            listOf("id", "Halaman %1\$@", "Halaman %1\$@ dari %2\$@", "Halaman sebelumnya, %1\$@", "Halaman berikutnya, %1\$@"),
+            listOf("ur", "صفحہ %1\$@", "%2\$@ میں سے صفحہ %1\$@", "پچھلا صفحہ، %1\$@", "اگلا صفحہ، %1\$@"),
+            listOf("fr", "Page n° %1\$@", "Page %1\$@ sur %2\$@", "Page précédente, %1\$@", "Page suivante, %1\$@"),
+            listOf("es-419", "Página %1\$@", "Página %1\$@ de %2\$@", "Página anterior, %1\$@", "Página siguiente, %1\$@"),
+            listOf("pt-BR", "Página %1\$@", "Página %1\$@ de %2\$@", "Página anterior, %1\$@", "Próxima página, %1\$@"),
+            listOf("sw", "Ukurasa %1\$@", "Ukurasa %1\$@ kati ya %2\$@", "Ukurasa uliotangulia, %1\$@", "Ukurasa unaofuata, %1\$@"),
+            listOf("hi", "पृष्ठ %1\$@", "%2\$@ में से पृष्ठ %1\$@", "पिछला पृष्ठ, %1\$@", "अगला पृष्ठ, %1\$@"),
+            listOf("bn", "পৃষ্ঠা %1\$@", "%2\$@-এর মধ্যে পৃষ্ঠা %1\$@", "আগের পৃষ্ঠা, %1\$@", "পরের পৃষ্ঠা, %1\$@")
+        )) {
+            for (readingDirection in listOf(PageDirection.LTR, PageDirection.RTL)) {
+                compose.runOnIdle { locale = tag; direction = readingDirection; followed = null }
+                val value = java.util.Locale.forLanguageTag(tag)
+                val number = java.text.NumberFormat.getIntegerInstance(value)
+                val page = String.format(value, pageTemplate.replace('@', 's'), number.format(2))
+                val previous = compose.onAllNodesWithTag("reader.previousPage").onFirst()
+                val next = compose.onAllNodesWithTag("reader.nextPage").onFirst()
+                assertEquals(String.format(value, previousTemplate.replace('@', 's'), "Original source: 57"), withoutDirectionalMarks(previous.fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.ContentDescription].single()))
+                assertEquals(String.format(value, nextTemplate.replace('@', 's'), page), withoutDirectionalMarks(next.fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.ContentDescription].single()))
+                val previousBounds = previous.fetchSemanticsNode().boundsInRoot
+                val nextBounds = next.fetchSemanticsNode().boundsInRoot
+                assertEquals(readingDirection == PageDirection.RTL, previousBounds.left > nextBounds.left)
+                previous.assertHeightIsAtLeast(48.dp); next.assertHeightIsAtLeast(48.dp)
+                val total = compose.onNodeWithTag("reader.pagePill", useUnmergedTree = true)
+                total.assertIsDisplayed()
+                assertEquals(String.format(value, totalTemplate.replace('@', 's'), number.format(2), number.format(3)), withoutDirectionalMarks(total.fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.Text].single().text))
+                compose.onNodeWithTag("reader.unfocusedPageBar").assertIsDisplayed()
+                assertEquals(page, withoutDirectionalMarks(compose.onNodeWithTag("reader.unfocusedPageBar").fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.ContentDescription].single()))
+                previous.performClick(); compose.runOnIdle { assertEquals(ReaderPagePills.Target.VolumeLast("source"), followed) }
+                next.performClick(); compose.runOnIdle { assertEquals(ReaderPagePills.Target.Page(1), followed) }
+                val bitmap = compose.onRoot().captureToImage().asAndroidBitmap()
+                val instrumentation = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                val output = java.io.File(instrumentation.targetContext.getExternalFilesDir(null), "page-controls-$tag-${readingDirection.name}.png")
+                output.outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }; bitmap.recycle()
+                android.os.ParcelFileDescriptor.AutoCloseInputStream(instrumentation.uiAutomation.executeShellCommand("cp ${output.absolutePath} /sdcard/Pictures/${output.name}")).use { it.readBytes() }
+            }
+        }
+    }
+
+    private fun withoutDirectionalMarks(value: String) = value.replace(Regex("[\u200e\u200f\u061c\u202a-\u202e\u2066-\u2069]"), "")
+
     @Test
     fun pagePillsKeepChevronsAdjacentAndNameVolumeAtEdge() {
         var followed: ReaderPagePills.Pill? = null
         compose.setContent {
-            HadithlyTheme {
+            LocalizedPreview(ReaderTheme.LIGHT, "en") {
                 ReaderVolumePills(
                     policy = ReaderPagingPolicy(PageDirection.LTR),
                     state = ReaderPagePills.State(

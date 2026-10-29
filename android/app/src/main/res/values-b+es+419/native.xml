@@ -70,7 +70,7 @@
     <string name="native_437aea62a5bd" formatted="false">Contenido</string>
     <string name="native_46495379257b" formatted="false">Eliminar borrador</string>
     <string name="native_4814c85aa23d">Capas de texto</string>
-    <string name="native_482a6cdaa409">Página %1$s</string>
+    <string name="native_482a6cdaa409" formatted="false">Página %1$s</string>
     <string name="native_483dc4ca0c62">El archivo contiene solo tus datos portátiles. Debes iniciar sesión; si la sesión venció, vuelve a iniciar sesión primero.</string>
     <string name="native_49103f50966a">Aún no hay una traducción en %1$s.</string>
     <string name="native_49c266baaaa7" formatted="false">Buscar</string>
@@ -99,7 +99,7 @@
     <string name="native_83bbbb83cfbe">Elegir ubicación</string>
     <string name="native_858e4ba7a29f" formatted="false">Pausar</string>
     <string name="native_892ffa345a39" formatted="false">Cómo funciona sin conexión</string>
-    <string name="native_8b9ffadf4985">Página %1$s de %2$s</string>
+    <string name="native_8b9ffadf4985" formatted="false">Página %1$s de %2$s</string>
     <string name="native_8ba1f434afb9">Inicia sesión para exportar tus datos sincronizados. Los datos de invitado nunca salen de este dispositivo.</string>
     <string name="native_8f6ca5461ed2">Descargas: %1$s · Libre: %2$s</string>
     <string name="native_9041c6aa2c3d">Administrar suscripción</string>
@@ -270,4 +270,12 @@
     <string name="native_ecf41b32aac1" formatted="false">Ingresa el código que enviamos a %s.</string>
     <string name="native_8983aa13bee3" formatted="false">Ingresa el código enviado a %s y tu nueva contraseña.</string>
     <string name="native_fad91b01d03b" formatted="false">Incluye la colección y el número de hadiz</string>
+    <string name="native_3660315a9af3" formatted="false">página</string>
+    <string name="native_2eb7a0c86071" formatted="false">Tomo %1$s de %2$s</string>
+    <string name="native_1208ec01f223" formatted="false">Página anterior</string>
+    <string name="native_c08ac736a5e2" formatted="false">Página siguiente</string>
+    <string name="native_3fe5c60e33ce" formatted="false">Página anterior, %1$s</string>
+    <string name="native_ead66af2903d" formatted="false">Página siguiente, %1$s</string>
+    <string name="native_2e0e724ea48c" formatted="false">Mostrar los controles de lectura</string>
+    <string name="native_6f21989e4e53" formatted="false">Ocultar los controles de lectura</string>
 </resources>

@@ -70,7 +70,7 @@
     <string name="native_437aea62a5bd" formatted="false">فہرستِ مضامین</string>
     <string name="native_46495379257b" formatted="false">مسودہ حذف کریں</string>
     <string name="native_4814c85aa23d">متن کی تہیں</string>
-    <string name="native_482a6cdaa409">صفحہ %1$s</string>
+    <string name="native_482a6cdaa409" formatted="false">صفحہ %1$s</string>
     <string name="native_483dc4ca0c62">فائل میں صرف آپ کا قابلِ منتقلی ڈیٹا ہے۔ آپ کا سائن اِن ہونا ضروری ہے؛ سیشن ختم ہو تو پہلے دوبارہ سائن اِن کریں۔</string>
     <string name="native_49103f50966a">%1$s ترجمہ ابھی دستیاب نہیں۔</string>
     <string name="native_49c266baaaa7" formatted="false">تلاش</string>
@@ -99,7 +99,7 @@
     <string name="native_83bbbb83cfbe">مقام منتخب کریں</string>
     <string name="native_858e4ba7a29f" formatted="false">روکیں</string>
     <string name="native_892ffa345a39" formatted="false">آف لائن کیسے کام کرتا ہے</string>
-    <string name="native_8b9ffadf4985">%2$s میں سے صفحہ %1$s</string>
+    <string name="native_8b9ffadf4985" formatted="false">%2$s میں سے صفحہ %1$s</string>
     <string name="native_8ba1f434afb9">اپنے ہم وقت شدہ ڈیٹا کو برآمد کرنے کے لیے سائن اِن کریں۔ مہمان کا ڈیٹا اس آلے سے باہر نہیں جاتا۔</string>
     <string name="native_8f6ca5461ed2">ڈاؤن لوڈز: %1$s · خالی: %2$s</string>
     <string name="native_9041c6aa2c3d">سبسکرپشن کا نظم کریں</string>
@@ -270,4 +270,12 @@
     <string name="native_ecf41b32aac1" formatted="false">%s پر بھیجا گیا کوڈ درج کریں۔</string>
     <string name="native_8983aa13bee3" formatted="false">%s پر بھیجا گیا کوڈ اور نیا پاس ورڈ درج کریں۔</string>
     <string name="native_fad91b01d03b" formatted="false">مجموعہ اور حدیث نمبر شامل کریں</string>
+    <string name="native_3660315a9af3" formatted="false">صفحہ</string>
+    <string name="native_2eb7a0c86071" formatted="false">جلد %1$s از %2$s</string>
+    <string name="native_1208ec01f223" formatted="false">پچھلا صفحہ</string>
+    <string name="native_c08ac736a5e2" formatted="false">اگلا صفحہ</string>
+    <string name="native_3fe5c60e33ce" formatted="false">پچھلا صفحہ، %1$s</string>
+    <string name="native_ead66af2903d" formatted="false">اگلا صفحہ، %1$s</string>
+    <string name="native_2e0e724ea48c" formatted="false">مطالعے کے کنٹرول دکھائیں</string>
+    <string name="native_6f21989e4e53" formatted="false">مطالعے کے کنٹرول چھپائیں</string>
 </resources>

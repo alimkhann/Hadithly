@@ -51,7 +51,6 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "Contents" -> R.string.native_437aea62a5bd
     "Delete draft" -> R.string.native_46495379257b
     "Text layers" -> R.string.native_4814c85aa23d
-    "Page %1\$s" -> R.string.native_482a6cdaa409
     "The file contains only your portable data. You must be signed in; an expired session signs you in again first." -> R.string.native_483dc4ca0c62
     "Sign out" -> R.string.native_48f0d3d397d4
     "No %1\$s translation is available yet." -> R.string.native_49103f50966a
@@ -98,7 +97,6 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "Pause" -> R.string.native_858e4ba7a29f
     "Today's hadith could not load" -> R.string.native_8809dd9048f8
     "How offline works" -> R.string.native_892ffa345a39
-    "Page %1\$s of %2\$s" -> R.string.native_8b9ffadf4985
     "Sign in to export your synced data. Guest data never leaves this device." -> R.string.native_8ba1f434afb9
     "You can undo this action from the message at the top." -> R.string.native_8e3a83b3d254
     "Downloads: %1\$s · Free: %2\$s" -> R.string.native_8f6ca5461ed2
@@ -365,5 +363,17 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "Enter the code we sent to %@." -> R.string.native_ecf41b32aac1
     "Enter the code sent to %@ and your new password." -> R.string.native_8983aa13bee3
     "Include the collection and hadith number" -> R.string.native_fad91b01d03b
+    "page" -> R.string.native_3660315a9af3
+    "volume" -> R.string.reader_volume_pill_suffix
+    "Page %1\$@" -> R.string.native_482a6cdaa409
+    "Page %1\$@ of %2\$@" -> R.string.native_8b9ffadf4985
+    "Volume %1\$@ of %2\$@" -> R.string.native_2eb7a0c86071
+    "Previous page" -> R.string.native_1208ec01f223
+    "Next page" -> R.string.native_c08ac736a5e2
+    "Previous page, %1\$@" -> R.string.native_3fe5c60e33ce
+    "Next page, %1\$@" -> R.string.native_ead66af2903d
+    "Show reader controls" -> R.string.native_2e0e724ea48c
+    "Hide reader controls" -> R.string.native_6f21989e4e53
+    "Volume %lld" -> R.string.reader_volume_title
     else -> null
 }

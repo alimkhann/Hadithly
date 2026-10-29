@@ -1,0 +1,32 @@
+{
+  "native_review": "pending",
+  "reuse_indexed_ios": true,
+  "keys": [
+    "Volume %lld"
+  ],
+  "locales": [
+    "en",
+    "ar",
+    "ru",
+    "kk",
+    "ky",
+    "uz",
+    "tr",
+    "id",
+    "ur",
+    "fr",
+    "es-419",
+    "pt-BR",
+    "sw",
+    "hi",
+    "bn"
+  ],
+  "android_resources": {
+    "Volume %lld": [
+      {
+        "name": "reader_volume_title",
+        "file": "strings.xml"
+      }
+    ]
+  }
+}
