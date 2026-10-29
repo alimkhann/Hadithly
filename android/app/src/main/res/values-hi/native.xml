@@ -278,4 +278,8 @@
     <string name="native_ead66af2903d" formatted="false">अगला पृष्ठ, %1$s</string>
     <string name="native_2e0e724ea48c" formatted="false">पढ़ने के नियंत्रण दिखाएँ</string>
     <string name="native_6f21989e4e53" formatted="false">पढ़ने के नियंत्रण छिपाएँ</string>
+    <string name="native_eeb9423c79ba" formatted="false">खाता हमेशा के लिए मिटाएँ?</string>
+    <string name="native_67b48f7a2b18" formatted="false">इससे आपके सिंक किए गए बुकमार्क, पसंदीदा, नोट्स, पढ़ने की प्रगति, भेजी गई सामग्री और साइन-इन की जानकारी मिट जाएगी। यह कार्रवाई वापस नहीं ली जा सकती।</string>
+    <string name="native_fd2c53986113" formatted="false">आपकी App Store सदस्यता अलग है: Hadithly खाता मिटाने से वह रद्द नहीं होती। यदि आप आगे भुगतान नहीं करना चाहते, तो पहले अपने Apple Account की सदस्यताओं में उसे प्रबंधित करें या रद्द करें।</string>
+    <string name="native_c569fb27d547" formatted="false">आपकी Play Store सदस्यता अलग है: Hadithly खाता मिटाने से वह रद्द नहीं होती। यदि आप आगे भुगतान नहीं करना चाहते, तो पहले Google Play की सदस्यताओं में उसे प्रबंधित करें या रद्द करें।</string>
 </resources>

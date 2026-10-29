@@ -1,0 +1,165 @@
+{
+  "native_review": "pending",
+  "provenance": "Existing English deletion and separate store-subscription wording is preserved. Non-English values are local GPT-family drafts. These are interface drafts, not legal, published-policy, account-deletion or store-readiness approval.",
+  "keys": [
+    "Delete account permanently?",
+    "This removes your synced bookmarks, favorites, notes, reading progress, submissions, and sign-in. It cannot be undone.",
+    "Your App Store subscription is separate: deleting your Hadithly account does not cancel it. Manage or cancel it in your Apple Account subscriptions first if you do not want to keep paying.",
+    "Your Play Store subscription is separate: deleting your Hadithly account does not cancel it. Manage or cancel it in your Google Play subscriptions first if you do not want to keep paying."
+  ],
+  "locales": {
+    "en": [
+      "Delete account permanently?",
+      "This removes your synced bookmarks, favorites, notes, reading progress, submissions, and sign-in. It cannot be undone.",
+      "Your App Store subscription is separate: deleting your Hadithly account does not cancel it. Manage or cancel it in your Apple Account subscriptions first if you do not want to keep paying.",
+      "Your Play Store subscription is separate: deleting your Hadithly account does not cancel it. Manage or cancel it in your Google Play subscriptions first if you do not want to keep paying."
+    ],
+    "ar": [
+      "حذف الحساب نهائيًا؟",
+      "سيؤدي هذا إلى إزالة بياناتك المتزامنة من الإشارات المرجعية والمفضلة والملاحظات وتقدم القراءة والمساهمات، وإلغاء تسجيل دخولك. لا يمكن التراجع عن ذلك.",
+      "اشتراكك في App Store منفصل: حذف حسابك في Hadithly لا يلغيه. إذا كنت لا تريد الاستمرار في الدفع، فأدر الاشتراك أو ألغِه أولًا من اشتراكات حسابك في Apple.",
+      "اشتراكك في Play Store منفصل: حذف حسابك في Hadithly لا يلغيه. إذا كنت لا تريد الاستمرار في الدفع، فأدر الاشتراك أو ألغِه أولًا من اشتراكات Google Play."
+    ],
+    "ru": [
+      "Удалить аккаунт навсегда?",
+      "При этом удаляются ваши синхронизированные закладки, избранное, заметки, прогресс чтения и отправленные материалы, а также данные для входа. Отменить это действие нельзя.",
+      "Подписка в App Store оформляется отдельно: удаление аккаунта Hadithly не отменяет её. Если вы не хотите продолжать платить, сначала настройте или отмените подписку в разделе подписок своей учётной записи Apple.",
+      "Подписка в Play Store оформляется отдельно: удаление аккаунта Hadithly не отменяет её. Если вы не хотите продолжать платить, сначала настройте или отмените подписку в разделе подписок Google Play."
+    ],
+    "kk": [
+      "Аккаунтты біржола жою керек пе?",
+      "Синхрондалған бетбелгілеріңіз, таңдаулыларыңыз, жазбаларыңыз, оқу барысыңыз, жіберген материалдарыңыз және жүйеге кіру деректеріңіз жойылады. Бұл әрекетті кері қайтару мүмкін емес.",
+      "App Store жазылымыңыз бөлек: Hadithly аккаунтын жою оны тоқтатпайды. Төлемді жалғастырғыңыз келмесе, алдымен Apple аккаунтыңыздың жазылымдар бөлімінде оны басқарыңыз немесе тоқтатыңыз.",
+      "Play Store жазылымыңыз бөлек: Hadithly аккаунтын жою оны тоқтатпайды. Төлемді жалғастырғыңыз келмесе, алдымен Google Play жазылымдары бөлімінде оны басқарыңыз немесе тоқтатыңыз."
+    ],
+    "ky": [
+      "Аккаунт биротоло өчүрүлсүнбү?",
+      "Шайкештештирилген кыстармаларыңыз, тандалмаларыңыз, жазууларыңыз, окуу жүрүшүңүз, жөнөткөн материалдарыңыз жана кирүү маалыматтарыңыз өчүрүлөт. Бул аракетти артка кайтаруу мүмкүн эмес.",
+      "App Store жазылууңуз өзүнчө: Hadithly аккаунтуңузду өчүрүү аны жокко чыгарбайт. Төлөөнү улантууну каалабасаңыз, адегенде Apple аккаунтуңуздун жазылуулар бөлүмүндө аны башкарыңыз же жокко чыгарыңыз.",
+      "Play Store жазылууңуз өзүнчө: Hadithly аккаунтуңузду өчүрүү аны жокко чыгарбайт. Төлөөнү улантууну каалабасаңыз, адегенде Google Play жазылуулар бөлүмүндө аны башкарыңыз же жокко чыгарыңыз."
+    ],
+    "uz": [
+      "Hisob butunlay o‘chirilsinmi?",
+      "Sinxronlangan xatcho‘plaringiz, sevimlilaringiz, qaydlaringiz, o‘qish jarayoningiz, yuborgan materiallaringiz va kirish ma’lumotlaringiz o‘chiriladi. Bu amalni ortga qaytarib bo‘lmaydi.",
+      "App Store obunangiz alohida: Hadithly hisobingizni o‘chirish uni bekor qilmaydi. To‘lashda davom etishni istamasangiz, avval Apple hisobingizning obunalar bo‘limida uni boshqaring yoki bekor qiling.",
+      "Play Store obunangiz alohida: Hadithly hisobingizni o‘chirish uni bekor qilmaydi. To‘lashda davom etishni istamasangiz, avval Google Play obunalari bo‘limida uni boshqaring yoki bekor qiling."
+    ],
+    "tr": [
+      "Hesap kalıcı olarak silinsin mi?",
+      "Senkronize yer işaretleriniz, favorileriniz, notlarınız, okuma ilerlemeniz, gönderimleriniz ve oturum açma bilgileriniz silinir. Bu işlem geri alınamaz.",
+      "App Store aboneliğiniz ayrıdır: Hadithly hesabınızı silmek aboneliği iptal etmez. Ödeme yapmaya devam etmek istemiyorsanız önce Apple Hesabı aboneliklerinizden aboneliğinizi yönetin veya iptal edin.",
+      "Play Store aboneliğiniz ayrıdır: Hadithly hesabınızı silmek aboneliği iptal etmez. Ödeme yapmaya devam etmek istemiyorsanız önce Google Play aboneliklerinizden aboneliğinizi yönetin veya iptal edin."
+    ],
+    "id": [
+      "Hapus akun secara permanen?",
+      "Tindakan ini menghapus penanda, favorit, catatan, progres membaca, kiriman, dan informasi masuk Anda yang tersinkron. Tindakan ini tidak dapat dibatalkan.",
+      "Langganan App Store Anda terpisah: menghapus akun Hadithly tidak membatalkannya. Jika Anda tidak ingin terus membayar, kelola atau batalkan terlebih dahulu di bagian langganan Akun Apple Anda.",
+      "Langganan Play Store Anda terpisah: menghapus akun Hadithly tidak membatalkannya. Jika Anda tidak ingin terus membayar, kelola atau batalkan terlebih dahulu di bagian langganan Google Play."
+    ],
+    "ur": [
+      "اکاؤنٹ مستقل طور پر حذف کریں؟",
+      "اس سے آپ کے مطابقت پذیر بُک مارکس، پسندیدہ مواد، نوٹس، مطالعے کی پیش رفت، بھیجا گیا مواد اور سائن اِن کی معلومات حذف ہو جائیں گی۔ یہ عمل واپس نہیں کیا جا سکتا۔",
+      "آپ کی App Store سبسکرپشن الگ ہے: Hadithly اکاؤنٹ حذف کرنے سے یہ منسوخ نہیں ہوتی۔ اگر آپ ادائیگی جاری نہیں رکھنا چاہتے تو پہلے اپنے Apple اکاؤنٹ کی سبسکرپشنز میں جا کر اسے منظم یا منسوخ کریں۔",
+      "آپ کی Play Store سبسکرپشن الگ ہے: Hadithly اکاؤنٹ حذف کرنے سے یہ منسوخ نہیں ہوتی۔ اگر آپ ادائیگی جاری نہیں رکھنا چاہتے تو پہلے Google Play کی سبسکرپشنز میں جا کر اسے منظم یا منسوخ کریں۔"
+    ],
+    "fr": [
+      "Supprimer définitivement le compte ?",
+      "Cette action supprime vos marque-pages, favoris, notes, progression de lecture, contributions et informations de connexion synchronisés. Elle est irréversible.",
+      "Votre abonnement App Store est distinct : supprimer votre compte Hadithly ne le résilie pas. Si vous ne souhaitez plus payer, gérez-le ou résiliez-le d’abord dans les abonnements de votre compte Apple.",
+      "Votre abonnement Play Store est distinct : supprimer votre compte Hadithly ne le résilie pas. Si vous ne souhaitez plus payer, gérez-le ou résiliez-le d’abord dans les abonnements Google Play."
+    ],
+    "es-419": [
+      "¿Eliminar la cuenta permanentemente?",
+      "Esto elimina tus marcadores, favoritos, notas, progreso de lectura, envíos e información de inicio de sesión sincronizados. Esta acción no se puede deshacer.",
+      "Tu suscripción de App Store es independiente: eliminar tu cuenta de Hadithly no la cancela. Si no quieres seguir pagando, primero adminístrala o cancélala en las suscripciones de tu cuenta de Apple.",
+      "Tu suscripción de Play Store es independiente: eliminar tu cuenta de Hadithly no la cancela. Si no quieres seguir pagando, primero adminístrala o cancélala en las suscripciones de Google Play."
+    ],
+    "pt-BR": [
+      "Excluir a conta permanentemente?",
+      "Isso exclui seus marcadores, favoritos, notas, progresso de leitura, envios e dados de login sincronizados. Essa ação não pode ser desfeita.",
+      "Sua assinatura da App Store é separada: excluir sua conta Hadithly não a cancela. Se não quiser continuar pagando, primeiro gerencie ou cancele a assinatura nas assinaturas da sua Conta Apple.",
+      "Sua assinatura da Play Store é separada: excluir sua conta Hadithly não a cancela. Se não quiser continuar pagando, primeiro gerencie ou cancele a assinatura nas assinaturas do Google Play."
+    ],
+    "sw": [
+      "Ufute akaunti kabisa?",
+      "Hii itaondoa alamisho, vipendwa, madokezo, maendeleo ya usomaji, michango na taarifa zako za kuingia zilizosawazishwa. Hatua hii haiwezi kutenduliwa.",
+      "Usajili wako wa App Store ni tofauti: kufuta akaunti yako ya Hadithly hakuughairi. Ikiwa hutaki kuendelea kulipa, kwanza udhibiti au ughairi katika sehemu ya usajili ya Akaunti yako ya Apple.",
+      "Usajili wako wa Play Store ni tofauti: kufuta akaunti yako ya Hadithly hakuughairi. Ikiwa hutaki kuendelea kulipa, kwanza udhibiti au ughairi katika sehemu ya usajili ya Google Play."
+    ],
+    "hi": [
+      "खाता हमेशा के लिए मिटाएँ?",
+      "इससे आपके सिंक किए गए बुकमार्क, पसंदीदा, नोट्स, पढ़ने की प्रगति, भेजी गई सामग्री और साइन-इन की जानकारी मिट जाएगी। यह कार्रवाई वापस नहीं ली जा सकती।",
+      "आपकी App Store सदस्यता अलग है: Hadithly खाता मिटाने से वह रद्द नहीं होती। यदि आप आगे भुगतान नहीं करना चाहते, तो पहले अपने Apple Account की सदस्यताओं में उसे प्रबंधित करें या रद्द करें।",
+      "आपकी Play Store सदस्यता अलग है: Hadithly खाता मिटाने से वह रद्द नहीं होती। यदि आप आगे भुगतान नहीं करना चाहते, तो पहले Google Play की सदस्यताओं में उसे प्रबंधित करें या रद्द करें।"
+    ],
+    "bn": [
+      "অ্যাকাউন্ট স্থায়ীভাবে মুছবেন?",
+      "এতে আপনার সিঙ্ক করা বুকমার্ক, পছন্দের তালিকা, নোট, পড়ার অগ্রগতি, জমা দেওয়া বিষয় এবং সাইন-ইন তথ্য মুছে যাবে। এই কাজ পূর্বাবস্থায় ফেরানো যাবে না।",
+      "আপনার App Store সাবস্ক্রিপশন আলাদা: Hadithly অ্যাকাউন্ট মুছে ফেললে সেটি বাতিল হয় না। টাকা দেওয়া চালিয়ে যেতে না চাইলে, আগে আপনার Apple Account-এর সাবস্ক্রিপশন বিভাগে সেটি পরিচালনা করুন বা বাতিল করুন।",
+      "আপনার Play Store সাবস্ক্রিপশন আলাদা: Hadithly অ্যাকাউন্ট মুছে ফেললে সেটি বাতিল হয় না। টাকা দেওয়া চালিয়ে যেতে না চাইলে, আগে Google Play-এর সাবস্ক্রিপশন বিভাগে সেটি পরিচালনা করুন বা বাতিল করুন।"
+    ]
+  },
+  "android_test_fixture_asset": "a4-deletion-copy.json",
+  "fixture_labels": {
+    "en": {
+      "cancel": "Cancel",
+      "confirm": "Delete account and data"
+    },
+    "ar": {
+      "cancel": "إلغاء",
+      "confirm": "حذف الحساب والبيانات"
+    },
+    "ru": {
+      "cancel": "Отмена",
+      "confirm": "Удалить аккаунт и данные"
+    },
+    "kk": {
+      "cancel": "Бас тарту",
+      "confirm": "Есептік жазба мен деректерді жою"
+    },
+    "ky": {
+      "cancel": "Жокко чыгаруу",
+      "confirm": "Каттоо эсебин жана дайындарды өчүрүү"
+    },
+    "uz": {
+      "cancel": "Bekor qilish",
+      "confirm": "Hisob va ma’lumotlarni o‘chirish"
+    },
+    "tr": {
+      "cancel": "İptal",
+      "confirm": "Hesabı ve verileri sil"
+    },
+    "id": {
+      "cancel": "Batal",
+      "confirm": "Hapus akun dan data"
+    },
+    "ur": {
+      "cancel": "منسوخ کریں",
+      "confirm": "اکاؤنٹ اور ڈیٹا حذف کریں"
+    },
+    "fr": {
+      "cancel": "Annuler",
+      "confirm": "Supprimer le compte et les données"
+    },
+    "es-419": {
+      "cancel": "Cancelar",
+      "confirm": "Eliminar cuenta y datos"
+    },
+    "pt-BR": {
+      "cancel": "Cancelar",
+      "confirm": "Excluir conta e dados"
+    },
+    "sw": {
+      "cancel": "Ghairi",
+      "confirm": "Futa akaunti na data"
+    },
+    "hi": {
+      "cancel": "रद्द करें",
+      "confirm": "खाता और डेटा मिटाएँ"
+    },
+    "bn": {
+      "cancel": "বাতিল করুন",
+      "confirm": "অ্যাকাউন্ট ও ডেটা মুছুন"
+    }
+  }
+}

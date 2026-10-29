@@ -9,6 +9,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Density
@@ -282,6 +283,73 @@ class NativeFinishingTest {
             compose.onNodeWithTag("settings.appearance.reader.system").assertDoesNotExist()
             capture("app-appearance-" + language)
         }
+    }
+
+    @Test fun deletionDisclosuresLocalizeAndCancelWithoutRequest() = verifyDeletionDisclosures(false)
+
+    @Test fun deletionDisclosuresRemainReadableWithSystemLargeText() = verifyDeletionDisclosures(true)
+
+    private fun verifyDeletionDisclosures(systemLargeText: Boolean) {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val copy = org.json.JSONObject(instrumentation.context.assets.open("a4-deletion-copy.json").bufferedReader().use { it.readText() }).getJSONObject("locales")
+        var locale by mutableStateOf("en")
+        var fontScale by mutableStateOf(1f)
+        var presented by mutableStateOf(false)
+        var deletionRequests = 0
+        compose.setContent { key(locale, fontScale) { LocalizedPreview(ReaderTheme.LIGHT, locale) {
+            CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale)) {
+                Surface(Modifier.fillMaxSize()) {
+                    Column(Modifier.statusBarsPadding().navigationBarsPadding().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(16.dp)) {
+                        com.hadithly.app.features.settings.AccountDeletionWarning(fontSize = androidx.compose.ui.unit.TextUnit.Unspecified)
+                        androidx.compose.material3.TextButton(onClick = { presented = true }, modifier = Modifier.testTag("deletionAudit.present")) { androidx.compose.material3.Text(nativeText("Delete account")) }
+                    }
+                    if (presented) com.hadithly.app.features.settings.AccountDeletionConfirmation(false, { presented = false }, { deletionRequests += 1 })
+                }
+            }
+        } } }
+        if (systemLargeText) assertTrue("The emulator must run at system font_scale=2.0", instrumentation.targetContext.resources.configuration.fontScale >= 1.99f)
+        val cases = if (systemLargeText) listOf("ar" to 2f, "ru" to 2f, "bn" to 2f)
+            else listOf("en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn").map { it to 1f }
+        for ((tag, scale) in cases) {
+            compose.runOnIdle { locale = tag; fontScale = scale; presented = false }
+            val expected = copy.getJSONArray(tag)
+            val footer = compose.onNodeWithTag("settings.deletionSubscriptionWarning")
+            footer.performScrollTo().assertIsDisplayed()
+            assertEquals(expected.getString(3), footer.fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.Text].single().text)
+            assertTrue(expected.getString(3).contains("Play Store")); assertFalse(expected.getString(3).contains("Apple"))
+            capture("deletion-warning-$tag" + if (scale > 1f) "-large" else "")
+            compose.onNodeWithTag("deletionAudit.present").performScrollTo().performClick()
+            compose.onNodeWithTag("settings.deletionTitle").assertIsDisplayed().assertTextEquals(expected.getString(0))
+            val message = compose.onNodeWithTag("settings.deletionMessage")
+            message.performScrollTo().assertIsDisplayed().assertTextEquals(expected.getString(1))
+            capture("deletion-message-$tag" + if (scale > 1f) "-large" else "")
+            val warning = compose.onNode(hasTestTag("settings.deletionSubscriptionWarning") and hasAnyAncestor(hasTestTag("settings.deletionDialogText")))
+            warning.performScrollTo().assertIsDisplayed().assertTextEquals(expected.getString(3))
+            for (action in listOf("settings.confirmDeletion", "settings.cancelDeletion")) {
+                val button = compose.onNodeWithTag(action).assertIsEnabled()
+                val bounds = button.fetchSemanticsNode().touchBoundsInRoot
+                val density = instrumentation.targetContext.resources.displayMetrics.density
+                assertTrue("$action touch height is ${bounds.height / density}dp", bounds.height / density >= 47.5f)
+                assertTrue("$action touch width is ${bounds.width / density}dp", bounds.width / density >= 47.5f)
+            }
+            capture("deletion-confirmation-$tag" + if (scale > 1f) "-large" else "")
+            compose.onNodeWithTag("settings.cancelDeletion").performClick()
+            compose.runOnIdle { assertEquals(0, deletionRequests) }
+            compose.onNodeWithTag("settings.deletionTitle").assertDoesNotExist()
+        }
+    }
+
+    @Test fun deletionConfirmationKeepsActionsDisabledDuringDeletion() {
+        var dismissed = 0
+        var deletionRequests = 0
+        compose.setContent { LocalizedPreview(ReaderTheme.LIGHT, "en") {
+            com.hadithly.app.features.settings.AccountDeletionConfirmation(true, { dismissed += 1 }, { deletionRequests += 1 })
+        } }
+        compose.onNodeWithTag("settings.confirmDeletion").assertIsNotEnabled()
+        compose.onNodeWithTag("settings.cancelDeletion").assertIsNotEnabled()
+        android.os.ParcelFileDescriptor.AutoCloseInputStream(InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand("input keyevent KEYCODE_BACK")).use { it.readBytes() }
+        compose.onNodeWithTag("settings.deletionTitle").assertIsDisplayed()
+        compose.runOnIdle { assertEquals(0, dismissed); assertEquals(0, deletionRequests) }
     }
 
     @Test fun privacyDisclosuresRenderInEveryLocaleWithoutChangingConsent() {

@@ -1,0 +1,8 @@
+{
+  "scope": "Controlled emulator only; the large-text test asserts real app resources at font scale >= 1.99. Parent-only density overrides were not treated as dialog large-text proof.",
+  "serial": "emulator-5554",
+  "original_font_scale": "1.0",
+  "stress_font_scale": "2.0",
+  "restored_font_scale": "1.0",
+  "restoration_verified": true
+}

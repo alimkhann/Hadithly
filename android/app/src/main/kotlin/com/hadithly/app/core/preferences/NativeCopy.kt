@@ -375,5 +375,9 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "Show reader controls" -> R.string.native_2e0e724ea48c
     "Hide reader controls" -> R.string.native_6f21989e4e53
     "Volume %lld" -> R.string.reader_volume_title
+    "Delete account permanently?" -> R.string.native_eeb9423c79ba
+    "This removes your synced bookmarks, favorites, notes, reading progress, submissions, and sign-in. It cannot be undone." -> R.string.native_67b48f7a2b18
+    "Your App Store subscription is separate: deleting your Hadithly account does not cancel it. Manage or cancel it in your Apple Account subscriptions first if you do not want to keep paying." -> R.string.native_fd2c53986113
+    "Your Play Store subscription is separate: deleting your Hadithly account does not cancel it. Manage or cancel it in your Google Play subscriptions first if you do not want to keep paying." -> R.string.native_c569fb27d547
     else -> null
 }

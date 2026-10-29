@@ -32,13 +32,15 @@ class IndexedCopyTests(unittest.TestCase):
             for locale in LOCALES:
                 folder = {'en': 'values', 'es-419': 'values-b+es+419', 'pt-BR': 'values-pt-rBR', 'id': 'values-in'}.get(locale, 'values-' + locale)
                 write('android/app/src/main/res/' + folder + '/strings.xml', '<resources>\n    <string name="untouched">Keep me</string>\n</resources>\n')
-            source = {'keys': [key], 'locales': LOCALES, 'reuse_indexed_ios': True, 'android_resources': {key: [{'name': 'first', 'file': 'strings.xml'}, {'name': 'second', 'file': 'extra.xml'}]}}
+            source = {'keys': [key], 'locales': LOCALES, 'reuse_indexed_ios': True, 'android_test_fixture_asset': 'copy.json', 'android_resources': {key: [{'name': 'first', 'file': 'strings.xml'}, {'name': 'second', 'file': 'extra.xml'}]}}
             write('copy.json', json.dumps(source))
             script = root / 'scripts/generate-ui-polish-copy.py'; script.parent.mkdir(); shutil.copy(SCRIPT, script)
             command = ['python3', str(script), '--source', 'copy.json', '--android-only']
             result = subprocess.run(command, cwd=root, capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(catalog_path.read_text(), '{"incoming":"catalog bytes"}')
+            fixture=json.loads((root/'android/app/src/androidTest/assets/copy.json').read_text())
+            self.assertEqual(fixture['locales']['fr'], ['fr %1$@ %2$lld'])
             for locale in LOCALES:
                 folder = {'en': 'values', 'es-419': 'values-b+es+419', 'pt-BR': 'values-pt-rBR', 'id': 'values-in'}.get(locale, 'values-' + locale)
                 for filename, name in [('strings.xml', 'first'), ('extra.xml', 'second')]:
@@ -51,6 +53,15 @@ class IndexedCopyTests(unittest.TestCase):
             self.assertIn('Keep \\$amount and \\${total}: %1\\$@', mapping)
             result = subprocess.run(command + ['--check'], cwd=root, capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)
+            before={p:p.read_bytes() for p in (root/'android').rglob('*') if p.is_file()}
+            catalog['strings'][key]['localizations']['fr']['stringUnit']['value']='Changed %1$@ %2$lld'
+            catalog_path.write_text(json.dumps(catalog)); git('add', 'ios')
+            catalog_path.write_text('{"incoming":"catalog bytes"}')
+            source['android_test_fixture_asset']='../invalid.json'
+            write('copy.json',json.dumps(source))
+            result=subprocess.run(command,cwd=root,capture_output=True,text=True)
+            self.assertNotEqual(result.returncode,0)
+            self.assertTrue(all(p.read_bytes()==raw for p,raw in before.items()))
 
 
 if __name__ == '__main__':

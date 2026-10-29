@@ -521,3 +521,54 @@ lack catalog entries. Those critical disclosures are next, followed by remaining
 evidence/search/dynamic templates and the A5–A7/E work. Native review, authenticated
 and physical-device checks, A1/A3, full A4 and release gates remain open. No account,
 provider, paid generation, deployment or publication action was performed.
+
+## Account-deletion disclosures, October 29
+
+Native Russian confirmation checks reproduced the English title on both apps.
+Four scoped keys now cover the title, deletion description and distinct App Store
+and Play Store subscription warnings in all fifteen locales. The original English
+constants are unchanged. `a4-deletion-copy.json` holds the local GPT-family drafts;
+`deletion-copy-contract.json` records the exact per-locale vectors and their pending
+native-review status. Store markers are checked independently. These drafts do not
+approve legal wording, published-policy consistency or actual deletion behavior.
+
+Production and controlled fixtures now share the native warning and confirmation
+presentation. Existing captured-session guards, deletion callbacks, destructive
+roles and Android's disabled/dismissal guard remain in the caller. The description
+and separate subscription warning stay distinct paragraphs; Android's text can
+scroll at large sizes. The generator bundles the source expectations only into the
+Android test APK, validates the fixture filename before writing, and preserves
+repeatability. Its isolated regression also checks rejection before partial writes.
+
+Latest results are two iOS, one Android unit and three Android UI cases in
+`verification/a4-localization/deletion.json`. Both apps render the complete strings
+in fifteen locales. Arabic, Russian and Bengali also pass large-text checks with
+upper/lower dialog captures. Every preview cancels or dismisses with zero deletion
+callbacks. Android's busy-state check keeps both actions disabled and ignores Back.
+No actual account, subscription management, deletion API or provider action is used.
+The authenticated deletion flow and backend/privacy gates remain open.
+
+The iOS runtime presents this fixture as a native popover; tests exercise outside-tap
+dismissal when Cancel is omitted, following [Apple's confirmation-dialog behavior](https://developer.apple.com/documentation/swiftui/view/confirmationDialog%28_%3AisPresented%3AtitleVisibility%3Aactions%3A%29).
+The first expanded test incorrectly required a visible Cancel button. A later
+large-text check also needed to scroll the fixture's offscreen request counter
+back into view after dismissal. Failed iOS runs remain in the evidence history.
+Large native popover text is scrolled through to the end before dismissal.
+
+The first Android size assertion measured the 40 dp painted button instead of its
+expanded touch bounds. The native check now verifies touch width and height of at
+least 48 dp, consistent with [Compose's touch-target guidance](https://developer.android.com/develop/ui/compose/accessibility/api-defaults).
+Capture review then showed that a parent-only density override did not enlarge the
+Dialog window. The three stress cases were rerun at the real emulator system font
+scale of 2.0, with an app-resource assertion. `deletion-font-scale.json` records the
+verified restoration to 1.0. Only those real system-scale captures count as Android
+dialog large-text evidence.
+
+The 93-capture manifest and selected images are in `verification/a4-localization/deletion/`.
+Only four new catalog entries are staged; `deletion-preservation.json` confirms the
+remaining incoming bytes and four project/scheme fingerprints. The audit with
+drafts allowed reports zero structural failures across 437 iOS keys and 430 Android
+resources. Native wording/policy review, full assistive-technology traversal,
+authenticated/physical-device and release checks remain open. Deletion error copy,
+evidence/search and the other dynamic strings are still part of A4, followed by
+A5–A7/E and the retained content, store and production gates.

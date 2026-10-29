@@ -17,6 +17,8 @@ args=parser.parse_args()
 check=args.check
 source=json.loads((ROOT/args.source).read_text())
 keys=source['keys']; locales=source['locales']
+asset_name=source.get('android_test_fixture_asset')
+if asset_name: assert Path(asset_name).name==asset_name and asset_name.endswith('.json')
 if source.get('reuse_indexed_ios'):
     assert args.android_only, 'Indexed iOS reuse must not write the catalog'
     indexed=json.loads(subprocess.check_output(['git','show',':ios/Hadithly/Localizable.xcstrings'],cwd=ROOT,text=True))['strings']
@@ -101,4 +103,8 @@ for key,name in ids.items():
     else:
         text=text.replace('    else -> null',row+'\n    else -> null')
 output(helper,text)
+if asset_name:
+    path=ROOT/'android/app/src/androidTest/assets'/asset_name
+    if not check: path.parent.mkdir(parents=True,exist_ok=True)
+    output(path,json.dumps({'source':args.source,'native_review':source.get('native_review','pending'),'locales':locales,'labels':source.get('fixture_labels',{})},ensure_ascii=False,indent=2)+'\n')
 print(f'UI-polish copy synchronized: {len(keys)} keys x {len(locales)} locales; native review pending.')

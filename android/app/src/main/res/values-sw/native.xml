@@ -278,4 +278,8 @@
     <string name="native_ead66af2903d" formatted="false">Ukurasa unaofuata, %1$s</string>
     <string name="native_2e0e724ea48c" formatted="false">Onyesha vidhibiti vya kusoma</string>
     <string name="native_6f21989e4e53" formatted="false">Ficha vidhibiti vya kusoma</string>
+    <string name="native_eeb9423c79ba" formatted="false">Ufute akaunti kabisa?</string>
+    <string name="native_67b48f7a2b18" formatted="false">Hii itaondoa alamisho, vipendwa, madokezo, maendeleo ya usomaji, michango na taarifa zako za kuingia zilizosawazishwa. Hatua hii haiwezi kutenduliwa.</string>
+    <string name="native_fd2c53986113" formatted="false">Usajili wako wa App Store ni tofauti: kufuta akaunti yako ya Hadithly hakuughairi. Ikiwa hutaki kuendelea kulipa, kwanza udhibiti au ughairi katika sehemu ya usajili ya Akaunti yako ya Apple.</string>
+    <string name="native_c569fb27d547" formatted="false">Usajili wako wa Play Store ni tofauti: kufuta akaunti yako ya Hadithly hakuughairi. Ikiwa hutaki kuendelea kulipa, kwanza udhibiti au ughairi katika sehemu ya usajili ya Google Play.</string>
 </resources>

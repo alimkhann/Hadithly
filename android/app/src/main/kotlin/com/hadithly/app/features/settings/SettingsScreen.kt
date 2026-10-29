@@ -1134,7 +1134,7 @@ internal fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
         }
         if (signedIn) {
             CardColumn {
-                Text(SettingsDeletionCopy.SUBSCRIPTION_WARNING, fontSize = 12.sp, color = colors.textSecondary)
+                AccountDeletionWarning(fontSize = 12.sp, color = colors.textSecondary)
                 TextButton(
                     enabled = !deletingAccount,
                     onClick = {
@@ -1174,35 +1174,23 @@ internal fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
         )
     }
     if (showDeleteConfirmation) {
-        AlertDialog(
-            onDismissRequest = { if (!deletingAccount) showDeleteConfirmation = false },
-            title = { Text(SettingsDeletionCopy.TITLE) },
-            text = { Text("${SettingsDeletionCopy.MESSAGE} ${SettingsDeletionCopy.SUBSCRIPTION_WARNING}") },
-            confirmButton = {
-                TextButton(
-                    enabled = !deletingAccount,
-                    onClick = {
-                        val captured = deletionSession ?: return@TextButton
-                        deletionSession = null
-                        deletingAccount = true
-                        scope.launch {
-                            app.session.deleteAccount(captured)
-                                .onSuccess { showDeleteConfirmation = false }
-                                .onFailure {
-                                    showDeleteConfirmation = false
-                                    deletionError = it.message ?: "Please try again."
-                                }
-                            deletingAccount = false
+        AccountDeletionConfirmation(
+            deleting = deletingAccount,
+            onDismiss = { showDeleteConfirmation = false },
+            onDelete = confirmDeletion@{
+                val captured = deletionSession ?: return@confirmDeletion
+                deletionSession = null
+                deletingAccount = true
+                scope.launch {
+                    app.session.deleteAccount(captured)
+                        .onSuccess { showDeleteConfirmation = false }
+                        .onFailure {
+                            showDeleteConfirmation = false
+                            deletionError = it.message ?: "Please try again."
                         }
-                    },
-                ) { Text(nativeText("Delete account and data"), color = Color(0xFFFF6B6B)) }
-            },
-            dismissButton = {
-                TextButton(enabled = !deletingAccount, onClick = { showDeleteConfirmation = false }) {
-                    Text(nativeText("Cancel"), color = colors.textSecondary)
+                    deletingAccount = false
                 }
             },
-            containerColor = colors.surface,
         )
     }
     deletionError?.let { message ->
@@ -1214,6 +1202,40 @@ internal fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
             containerColor = colors.surface,
         )
     }
+}
+
+@Composable
+internal fun AccountDeletionWarning(
+    fontSize: androidx.compose.ui.unit.TextUnit = androidx.compose.ui.unit.TextUnit.Unspecified,
+    color: Color = Color.Unspecified,
+) {
+    Text(nativeText(SettingsDeletionCopy.SUBSCRIPTION_WARNING), fontSize = fontSize, color = color, modifier = Modifier.testTag("settings.deletionSubscriptionWarning"))
+}
+
+@Composable
+internal fun AccountDeletionConfirmation(deleting: Boolean, onDismiss: () -> Unit, onDelete: () -> Unit) {
+    val colors = LocalHadithlyColors.current
+    AlertDialog(
+        onDismissRequest = { if (!deleting) onDismiss() },
+        title = { Text(nativeText(SettingsDeletionCopy.TITLE), modifier = Modifier.testTag("settings.deletionTitle")) },
+        text = {
+            Column(Modifier.testTag("settings.deletionDialogText").verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(nativeText(SettingsDeletionCopy.MESSAGE), modifier = Modifier.testTag("settings.deletionMessage"))
+                AccountDeletionWarning()
+            }
+        },
+        confirmButton = {
+            TextButton(enabled = !deleting, onClick = onDelete, modifier = Modifier.testTag("settings.confirmDeletion")) {
+                Text(nativeText("Delete account and data"), color = Color(0xFFFF6B6B))
+            }
+        },
+        dismissButton = {
+            TextButton(enabled = !deleting, onClick = onDismiss, modifier = Modifier.testTag("settings.cancelDeletion")) {
+                Text(nativeText("Cancel"), color = colors.textSecondary)
+            }
+        },
+        containerColor = colors.surface,
+    )
 }
 
 @Composable

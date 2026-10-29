@@ -278,4 +278,8 @@
     <string name="native_ead66af2903d" formatted="false">Página siguiente, %1$s</string>
     <string name="native_2e0e724ea48c" formatted="false">Mostrar los controles de lectura</string>
     <string name="native_6f21989e4e53" formatted="false">Ocultar los controles de lectura</string>
+    <string name="native_eeb9423c79ba" formatted="false">¿Eliminar la cuenta permanentemente?</string>
+    <string name="native_67b48f7a2b18" formatted="false">Esto elimina tus marcadores, favoritos, notas, progreso de lectura, envíos e información de inicio de sesión sincronizados. Esta acción no se puede deshacer.</string>
+    <string name="native_fd2c53986113" formatted="false">Tu suscripción de App Store es independiente: eliminar tu cuenta de Hadithly no la cancela. Si no quieres seguir pagando, primero adminístrala o cancélala en las suscripciones de tu cuenta de Apple.</string>
+    <string name="native_c569fb27d547" formatted="false">Tu suscripción de Play Store es independiente: eliminar tu cuenta de Hadithly no la cancela. Si no quieres seguir pagando, primero adminístrala o cancélala en las suscripciones de Google Play.</string>
 </resources>

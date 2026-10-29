@@ -278,4 +278,8 @@
     <string name="native_ead66af2903d" formatted="false">Следующая страница, %1$s</string>
     <string name="native_2e0e724ea48c" formatted="false">Показать элементы управления чтением</string>
     <string name="native_6f21989e4e53" formatted="false">Скрыть элементы управления чтением</string>
+    <string name="native_eeb9423c79ba" formatted="false">Удалить аккаунт навсегда?</string>
+    <string name="native_67b48f7a2b18" formatted="false">При этом удаляются ваши синхронизированные закладки, избранное, заметки, прогресс чтения и отправленные материалы, а также данные для входа. Отменить это действие нельзя.</string>
+    <string name="native_fd2c53986113" formatted="false">Подписка в App Store оформляется отдельно: удаление аккаунта Hadithly не отменяет её. Если вы не хотите продолжать платить, сначала настройте или отмените подписку в разделе подписок своей учётной записи Apple.</string>
+    <string name="native_c569fb27d547" formatted="false">Подписка в Play Store оформляется отдельно: удаление аккаунта Hadithly не отменяет её. Если вы не хотите продолжать платить, сначала настройте или отмените подписку в разделе подписок Google Play.</string>
 </resources>

@@ -278,4 +278,8 @@
     <string name="native_ead66af2903d" formatted="false">Keyingi sahifa, %1$s</string>
     <string name="native_2e0e724ea48c" formatted="false">O‘qish boshqaruvlarini ko‘rsatish</string>
     <string name="native_6f21989e4e53" formatted="false">O‘qish boshqaruvlarini yashirish</string>
+    <string name="native_eeb9423c79ba" formatted="false">Hisob butunlay o‘chirilsinmi?</string>
+    <string name="native_67b48f7a2b18" formatted="false">Sinxronlangan xatcho‘plaringiz, sevimlilaringiz, qaydlaringiz, o‘qish jarayoningiz, yuborgan materiallaringiz va kirish ma’lumotlaringiz o‘chiriladi. Bu amalni ortga qaytarib bo‘lmaydi.</string>
+    <string name="native_fd2c53986113" formatted="false">App Store obunangiz alohida: Hadithly hisobingizni o‘chirish uni bekor qilmaydi. To‘lashda davom etishni istamasangiz, avval Apple hisobingizning obunalar bo‘limida uni boshqaring yoki bekor qiling.</string>
+    <string name="native_c569fb27d547" formatted="false">Play Store obunangiz alohida: Hadithly hisobingizni o‘chirish uni bekor qilmaydi. To‘lashda davom etishni istamasangiz, avval Google Play obunalari bo‘limida uni boshqaring yoki bekor qiling.</string>
 </resources>

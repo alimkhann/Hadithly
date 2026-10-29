@@ -1,0 +1,521 @@
+[
+  {
+    "platform": "android",
+    "name": "android-deletion-confirmation-ar-large.png",
+    "sha256": "eac4f6bfe06504160df0f2ddba84d349c3376924cb6f81c03f0ba8a0a5763c37",
+    "system_font_scale": 2.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-confirmation-ar.png",
+    "sha256": "80fc5fd7eca879d5be91df74d4a52bdff1e6a6bc46768ffad19f05ae4b2afb26",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-confirmation-bn-large.png",
+    "sha256": "dd65ea00acc56eb4dc1298c0216172fcf4d8e3eb1444c4c8e990fb3c34ac6ef2",
+    "system_font_scale": 2.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-confirmation-bn.png",
+    "sha256": "5efc82386d1406a8eae681fda676b70ec470c59058b4261de986735f3f7b1b55",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-confirmation-en.png",
+    "sha256": "8e735b83a448f200fbee4ce2b6da3d97516431f2059135f0072a84862bc9f06d",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-confirmation-es-419.png",
+    "sha256": "fd4624ee00bd4330ce5457156eb0989091262b40080fc1b8c76d4e50979c6642",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-confirmation-fr.png",
+    "sha256": "21a9299ab3afecfa9f0c13941cecad9934f03d23cee2fc9051dcfcd3f84681c0",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-confirmation-hi.png",
+    "sha256": "8aa6c85aff3f00af58a04bc1b83dd1d4437e57e3db427728cb9fe7364a1159f0",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-confirmation-id.png",
+    "sha256": "f76a3a2bb7fcfd8bc3a635d9f91f89082a67b558fe5a3f1935de1efdbd51e6a8",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-confirmation-kk.png",
+    "sha256": "feee93ed669d6342aa999f2f3ed54b036fb843f60464ea132fc8bc66f8895e46",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-confirmation-ky.png",
+    "sha256": "60bd1ce2fbec596a3f9303ba578d27de7d9557e3d680e4f65b238ccda5457a89",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-confirmation-pt-BR.png",
+    "sha256": "4c87c9281a9c0f1915f9d3de6e8a560ce4cfd3c4302f128c6b0fa4da0394c5c4",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-confirmation-ru-large.png",
+    "sha256": "ddb59311933c307fb3e88a4d8e36964ca6e4f4552e7fb4e523a67a9c33fb2318",
+    "system_font_scale": 2.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-confirmation-ru.png",
+    "sha256": "addf0d8b067e91a673737ce5c03f62bd72cfa012b7fdd8550dd0b020c3a4cb20",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-confirmation-sw.png",
+    "sha256": "4e9160d2ca7ed9da26a20589c6e1ebb49d8a9b06f6a8a27caa7d8cf6eb66f44c",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-confirmation-tr.png",
+    "sha256": "9a23aa0aee3101249e8da3e336afa5bd4f822eee187e66e80015fd8e55655c60",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-confirmation-ur.png",
+    "sha256": "b826cc1da9e6e7ebcc8247b3d420c97a5d2e59efc47efff0f96956c778710a10",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-confirmation-uz.png",
+    "sha256": "4ef95f9d97694b66a5327ada108ae7462fc2bec7426767b4b66c04a379d20248",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-message-ar-large.png",
+    "sha256": "eac4f6bfe06504160df0f2ddba84d349c3376924cb6f81c03f0ba8a0a5763c37",
+    "system_font_scale": 2.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-message-ar.png",
+    "sha256": "80fc5fd7eca879d5be91df74d4a52bdff1e6a6bc46768ffad19f05ae4b2afb26",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-message-bn-large.png",
+    "sha256": "32a0b929b29f885e77c00b62c7e0efc27073ca9de31a2cb8958f951385108f23",
+    "system_font_scale": 2.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-message-bn.png",
+    "sha256": "5efc82386d1406a8eae681fda676b70ec470c59058b4261de986735f3f7b1b55",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-message-en.png",
+    "sha256": "8e735b83a448f200fbee4ce2b6da3d97516431f2059135f0072a84862bc9f06d",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-message-es-419.png",
+    "sha256": "fd4624ee00bd4330ce5457156eb0989091262b40080fc1b8c76d4e50979c6642",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-message-fr.png",
+    "sha256": "21a9299ab3afecfa9f0c13941cecad9934f03d23cee2fc9051dcfcd3f84681c0",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-message-hi.png",
+    "sha256": "8aa6c85aff3f00af58a04bc1b83dd1d4437e57e3db427728cb9fe7364a1159f0",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-message-id.png",
+    "sha256": "f76a3a2bb7fcfd8bc3a635d9f91f89082a67b558fe5a3f1935de1efdbd51e6a8",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-message-kk.png",
+    "sha256": "655078c80b20d23b719be04e1e21bf903001fce5cd3d88645019b8183dca6888",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-message-ky.png",
+    "sha256": "60bd1ce2fbec596a3f9303ba578d27de7d9557e3d680e4f65b238ccda5457a89",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-message-pt-BR.png",
+    "sha256": "4c87c9281a9c0f1915f9d3de6e8a560ce4cfd3c4302f128c6b0fa4da0394c5c4",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-message-ru-large.png",
+    "sha256": "94e3d82b8482f41800255dfc1fa89b163f903178bbe354b7e504d2993679d556",
+    "system_font_scale": 2.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-message-ru.png",
+    "sha256": "4e0f6fc67dcf5cc0a7a2c881107598d29d94e1df098608d267c16c3d5e575a8f",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-message-sw.png",
+    "sha256": "4e9160d2ca7ed9da26a20589c6e1ebb49d8a9b06f6a8a27caa7d8cf6eb66f44c",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-message-tr.png",
+    "sha256": "9a23aa0aee3101249e8da3e336afa5bd4f822eee187e66e80015fd8e55655c60",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-message-ur.png",
+    "sha256": "b826cc1da9e6e7ebcc8247b3d420c97a5d2e59efc47efff0f96956c778710a10",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-message-uz.png",
+    "sha256": "4ef95f9d97694b66a5327ada108ae7462fc2bec7426767b4b66c04a379d20248",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-warning-ar-large.png",
+    "sha256": "0ce2571bca6f426157b109e774cf877c32fd6d322d88e312507eecb0abbce4da",
+    "system_font_scale": 2.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-warning-ar.png",
+    "sha256": "6c0489ecaa49875aed1ca264b1d10238584711dd8c07f2406fe5aa6063b7752d",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-warning-bn-large.png",
+    "sha256": "90678a8d163f1a28df18af497a623883a4bf7e1001538906ea8872d68beb3285",
+    "system_font_scale": 2.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-warning-bn.png",
+    "sha256": "ccd0811c3a933bdf56a3f7ef348d73c6cc259dd4ca9033c2322b3a36680f2fee",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-warning-en.png",
+    "sha256": "cfd2f270a32628516af3791c752d713e7eba64618a9aa0e45135194df1d63a4d",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-warning-es-419.png",
+    "sha256": "b46ff26e9785d4393d4e061cbba07d148ce012fe986b6acd7ec796736c618838",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-warning-fr.png",
+    "sha256": "9519a42ac0aea0b633af3f42f561da67fc444a455b4e1768019f6618ded0b17c",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-warning-hi.png",
+    "sha256": "3e793dacbdf8378ae3afdc64c001964530ca2ac4446cb44c9a5da4c7a86a2d3b",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-warning-id.png",
+    "sha256": "ccbe51f7d4368eef5d5fbfa222793cc1dfa4cf8beb2a5d9ddff514ce9a4ef6d3",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-warning-kk.png",
+    "sha256": "f32709a1386703b6aeaeb8ae4fa9caef756cbf8febf1f62a5aeca68c673cd34a",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-warning-ky.png",
+    "sha256": "7c65d29394929169d0e778a35d6a3392ac076c41eb73ef088b6ab99ad8019205",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-warning-pt-BR.png",
+    "sha256": "321c47c2ed01ac4c51cb226db3fdd101919c5eeec46d243d7dfd8d7e96ab1cf2",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-warning-ru-large.png",
+    "sha256": "a95cb6f50e4ae6901a890db5966a595e35c67e8f376cb2f416f44c6cbfe407ce",
+    "system_font_scale": 2.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-warning-ru.png",
+    "sha256": "15b2fa276c1c21d52f84e9c7d3d3bc3b65605237ec003cea41128ad4893b8b80",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-warning-sw.png",
+    "sha256": "2094bea72c1916860efb575cf3d2bf8032bf4f721909d3002c7b2a2269ab40bc",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-warning-tr.png",
+    "sha256": "23a14a8b7890e47ca5246c1ecf2cb13855fcc6b1e0670ef046438fb5c1458bf8",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-warning-ur.png",
+    "sha256": "8f4c981fbe9d34b0697c71899cb7344cce62271316618ac47dd9e6a5942e6621",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "android",
+    "name": "android-deletion-warning-uz.png",
+    "sha256": "0e7d75e86db3dd6b52cc6b42bed4fdfce3e49f5c9689905a36ac0daf60bbda05",
+    "system_font_scale": 1.0
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-confirmation-ar-large-scrolled.png",
+    "sha256": "2a5e6f5012a91388b6361636d53a7528bafe0eff4abc2b05a1f293e2f228b956"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-confirmation-ar-large.png",
+    "sha256": "966b64a4899db9d49ee90cb39b66a367c5ba8df27d4a9383b5d4a8bfde67620e"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-confirmation-ar.png",
+    "sha256": "9ef310c68938e9d58f14475ac0d92afd3b849bcf611060596c8bbf87e61ec076"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-confirmation-bn-large-scrolled.png",
+    "sha256": "13ac085eb600415f1958343447ed35d4c2e1bd99a9e6dfc8a3de4a26e5661115"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-confirmation-bn-large.png",
+    "sha256": "369f439055c16b506355e8472f8c44096e1fc7f6633ee6841326f15082b7c0c7"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-confirmation-bn.png",
+    "sha256": "be1376a9721ecfedf20b91c184dfdb059bd091a7ccb45830a3f6604d5a95d262"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-confirmation-en.png",
+    "sha256": "3aaecdc0943eae52914d5fc2bf61f7b5058fc0cae18c6849f869a6db94557220"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-confirmation-es-419.png",
+    "sha256": "854d0b9dbd1e246a797a532a26bc641ea3cde87712386ea369fc66380e7d1ad7"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-confirmation-fr.png",
+    "sha256": "fa7515829453f0751d5203e9e66d3b415d8a02f8df7e51219f74ef81745df7e3"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-confirmation-hi.png",
+    "sha256": "ba3ce932c7a2b2105ac55c716bced1a24a0b146e084168152cabf25243c13ccb"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-confirmation-id.png",
+    "sha256": "037ebbbd88556f6d7211350f17c427ab07e466adc1360099df4aaf65ead241f1"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-confirmation-kk.png",
+    "sha256": "eac58774fcd434822b864113183aa3f626b6856456da9bb30e1e6e33e72297b1"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-confirmation-ky.png",
+    "sha256": "90647851ecff41eaa4146d161b75adedf086de16406b097825d2d7b05d74d5fb"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-confirmation-pt-BR.png",
+    "sha256": "5f642ec8a28d13a992cec846dbfc6e6df38d0f28c0f9e2984e3220ab801760aa"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-confirmation-ru-large-scrolled.png",
+    "sha256": "dddbff1bbf4bfd75d72cfa47b9cbafe220505a14b5afcf3e57b46d1842bb7b0b"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-confirmation-ru-large.png",
+    "sha256": "25e3e1a197fe65dd9d407855217a15561c0f38fa00d2f962ba323b1b3331a7c7"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-confirmation-ru.png",
+    "sha256": "de7bc8bf718cd346dabccfc62d2a9f3c58e927293a5c5484a461b0c68a7db09d"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-confirmation-sw.png",
+    "sha256": "a6c7a2adfa71655ced621c47699adb9992e0db6ad2059c3a7d3fc4b1d254595d"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-confirmation-tr.png",
+    "sha256": "7ecbcc0d3d10945ce991a9ba42087984e5a232e6d2ac11fcdf296cf92a76d6be"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-confirmation-ur.png",
+    "sha256": "6f8eedf09939638889cbf7b525edb7b3e61a61ec98e918734a66db6265cc23c7"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-confirmation-uz.png",
+    "sha256": "0315f0ffa5aeeef1e129514cc2eec92cf7758fcdddab679b073fd6ad6e7d41fe"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-warning-ar-large.png",
+    "sha256": "ae675d3adda1efb589f47e64e8438e19cb4f447d06a54021563db74aab651b80"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-warning-ar.png",
+    "sha256": "132e8e4c7140b1f3c5aa281111a87c1dcdf58cd68f11c4eb78254cf50b494489"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-warning-bn-large.png",
+    "sha256": "84937f346e1df0269855e1fc066b001f6ff6c7b00249c9ebfe0e17070cdc81f7"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-warning-bn.png",
+    "sha256": "ba867473fc1bdd532b0cc123a6796fa7baf185a6f974ee79c4b02550ce181639"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-warning-en.png",
+    "sha256": "4fcd998364326ffac13c235411cc5cbb55d1c64729548f302b59ab1df91b2bec"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-warning-es-419.png",
+    "sha256": "9a377c3926a9c641ed9f0ed34903146a05b2f39ad843cb9d7094df2405f2bc59"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-warning-fr.png",
+    "sha256": "ba1d49b0f8638f16f249f46962918cccba045d96d0ba614f0a8359329edb582e"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-warning-hi.png",
+    "sha256": "b9d8d911afc441edc273bebbfdfffddb9f50574f7385154f1aaaa69f1832742b"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-warning-id.png",
+    "sha256": "efbb901aa920eaf05fc2e9cd0ab2d779ae2ae485bb8d3a46cd538088aba4626b"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-warning-kk.png",
+    "sha256": "379a0f904b00439aced945c6fe1a7979cc64ab7e14ad6dade61b84da81006985"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-warning-ky.png",
+    "sha256": "19f3dbfd84827cec5024d0a5b4e5a7a6578ef25dd825a15efaccbad958c3889f"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-warning-pt-BR.png",
+    "sha256": "835b79402c40e4b732ceecebabde546a88a70f9cf71acca1b0efaf96030d2a05"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-warning-ru-large.png",
+    "sha256": "9a3e3dbf105db01af11f9978d50d7d66f682fdaf8b7a3b69228688f0a88867dd"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-warning-ru.png",
+    "sha256": "980257145c23a9d95c280ed1ecd784f83ea0b52a2675f7b5429f49557f1848ed"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-warning-sw.png",
+    "sha256": "7b79c17140b11ea0c2e2f9721988cd8a5c5d0ac17f3502a714832529f2aca894"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-warning-tr.png",
+    "sha256": "68d1a88b51a7bf4a17a42eb735fb4fe686825b6ff52de95f41506c0f97c1a42e"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-warning-ur.png",
+    "sha256": "402196c3c30cc5c811377f6f4d2b641f28ba41893115f713fcb83cab2e9698cd"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-deletion-warning-uz.png",
+    "sha256": "9a7374df2deeaccecfb64226870ced7d815172fcb93788c4957390653768afab"
+  }
+]

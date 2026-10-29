@@ -1,0 +1,97 @@
+{
+  "scope": "Existing English constants match all four source keys; full locale vectors retain distinct store markers. Hashes identify drafts for native review, not approval of meaning, policy or backend deletion behavior.",
+  "source_sha256": "e00a3f681dfb0fc31db07815148d8e3a2bd5f474be063232cd9a96a7047f4ea9",
+  "english_source_constants_match": true,
+  "locales": [
+    {
+      "locale": "en",
+      "native_review": "pending",
+      "exact_copy_sha256": "b34c02cfd236ab53a039d952964e4837301539044ea5ba86a9bc1038022a356a",
+      "store_ownership_markers": "pass"
+    },
+    {
+      "locale": "ar",
+      "native_review": "pending",
+      "exact_copy_sha256": "1947bf624eb973fb6622b824ad4ff03f354e3332213cb12ea266e907d83eca4e",
+      "store_ownership_markers": "pass"
+    },
+    {
+      "locale": "ru",
+      "native_review": "pending",
+      "exact_copy_sha256": "010a6821e24d80fdd8635c727c87901e7f0e84c0348028f46c335444f509bc60",
+      "store_ownership_markers": "pass"
+    },
+    {
+      "locale": "kk",
+      "native_review": "pending",
+      "exact_copy_sha256": "78b1596bb08aa05670cb950479a62e2591b64e7b9a68ec82f4c4738db3b83f6a",
+      "store_ownership_markers": "pass"
+    },
+    {
+      "locale": "ky",
+      "native_review": "pending",
+      "exact_copy_sha256": "e6eb67d5da1e53d7891a1b570590e15e3cff5d66293b7ef2b5464712a3942116",
+      "store_ownership_markers": "pass"
+    },
+    {
+      "locale": "uz",
+      "native_review": "pending",
+      "exact_copy_sha256": "aa362fb5c591ee51e219859e887fea2ca6bf9bc1db4769f3cb41d52e80c3c702",
+      "store_ownership_markers": "pass"
+    },
+    {
+      "locale": "tr",
+      "native_review": "pending",
+      "exact_copy_sha256": "6d72362032e60abc19a8be361290429cad2f6eccd5c7d4a11936a54d415122f1",
+      "store_ownership_markers": "pass"
+    },
+    {
+      "locale": "id",
+      "native_review": "pending",
+      "exact_copy_sha256": "67c4e9ba8a322c54fbfda818d8f1f117ff6bb403733a88c1b5b4ea2cfa5365d3",
+      "store_ownership_markers": "pass"
+    },
+    {
+      "locale": "ur",
+      "native_review": "pending",
+      "exact_copy_sha256": "ea308e1e14cca6c05e1b82db611816f5107a03ffc7f684a774cc6e30d7c9ed81",
+      "store_ownership_markers": "pass"
+    },
+    {
+      "locale": "fr",
+      "native_review": "pending",
+      "exact_copy_sha256": "dcb0d06a3e33a31c5befd9b4652b73e9bb41348304ee27722c444c2a77eedb1a",
+      "store_ownership_markers": "pass"
+    },
+    {
+      "locale": "es-419",
+      "native_review": "pending",
+      "exact_copy_sha256": "199a3e497e62855d7ffdcf64aeef20678eeba8ab747837468a820dd83b598797",
+      "store_ownership_markers": "pass"
+    },
+    {
+      "locale": "pt-BR",
+      "native_review": "pending",
+      "exact_copy_sha256": "d96d46c6220d055a7f96e13966404045490032d6bcfbad8aa19e979076110d41",
+      "store_ownership_markers": "pass"
+    },
+    {
+      "locale": "sw",
+      "native_review": "pending",
+      "exact_copy_sha256": "c59c94e858b924ebafebdcaa358bb326b83189482e145d02662ecc5248f34c1b",
+      "store_ownership_markers": "pass"
+    },
+    {
+      "locale": "hi",
+      "native_review": "pending",
+      "exact_copy_sha256": "4834c4d31a2341e54b8ee474908b64645ac703c41e7d4e6852ae6dd9fba308e1",
+      "store_ownership_markers": "pass"
+    },
+    {
+      "locale": "bn",
+      "native_review": "pending",
+      "exact_copy_sha256": "5067005ed6fe5a63b344f12ad7f7d3c86e39d90cca65c1052ab5512bd2d16a10",
+      "store_ownership_markers": "pass"
+    }
+  ]
+}

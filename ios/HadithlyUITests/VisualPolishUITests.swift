@@ -69,6 +69,51 @@ final class VisualPolishUITests: XCTestCase {
         }
     }
 
+    func testDeletionDisclosuresLocalizeAndCancelWithoutRequest() throws {
+        struct Copy: Decodable { let locales: [String: [String]]; let fixture_labels: [String: [String: String]] }
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let copy = try JSONDecoder().decode(Copy.self, from: Data(contentsOf: root.appendingPathComponent("docs/a4-deletion-copy.json")))
+        let cases = ["en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn"].map { ($0, false) } + [("ar", true), ("ru", true), ("bn", true)]
+        for (locale, large) in cases {
+            let values = try XCTUnwrap(copy.locales[locale])
+            let labels = try XCTUnwrap(copy.fixture_labels[locale])
+            let app = launchPolish("deletion-audit", locale: locale, large: large)
+            let warning = element("settings.deletionSubscriptionWarning", app)
+            XCTAssertTrue(warning.waitForExistence(timeout: 10))
+            XCTAssertEqual(warning.label, values[2])
+            XCTAssertTrue(warning.label.contains("App Store")); XCTAssertFalse(warning.label.contains("Google Play"))
+            capture("deletion-warning-" + locale + (large ? "-large" : ""), app)
+            let present = app.buttons["deletionAudit.present"]
+            for _ in 0..<5 { if !present.isHittable { app.swipeUp() } }
+            present.tap()
+            XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label == %@", values[0])).firstMatch.waitForExistence(timeout: 5))
+            let message = app.staticTexts.matching(NSPredicate(format: "label == %@", values[1] + "\n\n" + values[2])).firstMatch
+            XCTAssertTrue(message.exists, values[1])
+            let confirm = app.buttons[try XCTUnwrap(labels["confirm"])].firstMatch
+            let cancel = app.buttons[try XCTUnwrap(labels["cancel"])].firstMatch
+            XCTAssertTrue(confirm.exists)
+            if cancel.exists { XCTAssertGreaterThanOrEqual(cancel.frame.height, 44) }
+            capture("deletion-confirmation-" + locale + (large ? "-large" : ""), app)
+            if large {
+                let title = app.staticTexts.matching(NSPredicate(format: "label == %@", values[0])).firstMatch
+                let top = max(app.frame.minY + 70, title.frame.maxY + 15)
+                let bottom = confirm.frame.minY - 30
+                XCTAssertGreaterThan(bottom - top, 40)
+                let start = app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: app.frame.midX, dy: bottom))
+                let end = app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: app.frame.midX, dy: top))
+                for _ in 0..<4 { start.press(forDuration: 0.05, thenDragTo: end) }
+                capture("deletion-confirmation-" + locale + "-large-scrolled", app)
+            }
+            if cancel.exists { cancel.tap() }
+            else { app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.15)).tap() }
+            XCTAssertFalse(message.exists)
+            let requests = element("deletionAudit.requests", app)
+            for _ in 0..<5 { if !requests.exists { app.swipeUp() } }
+            XCTAssertEqual(requests.label, "0")
+            app.terminate()
+        }
+    }
+
     func testPageControlsUseSelectedLanguage() {
         for (locale, pageTemplate, previousTemplate, nextTemplate) in [
             ("en", "Page %1$@", "Previous page, %1$@", "Next page, %1$@"),

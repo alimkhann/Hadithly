@@ -1,0 +1,103 @@
+{
+  "ios": {
+    "runs": [
+      {
+        "bundle": "hadithly-a4-deletion-red-ios.xcresult",
+        "startTime": 1793268838.465,
+        "result": "Failed",
+        "passedTests": 0,
+        "failedTests": 1,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-deletion-green-ios.xcresult",
+        "startTime": 1793269136.262,
+        "result": "Passed",
+        "passedTests": 2,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-deletion-matrix-ios.xcresult",
+        "startTime": 1793269560.181,
+        "result": "Failed",
+        "passedTests": 1,
+        "failedTests": 1,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-deletion-matrix2-ios.xcresult",
+        "startTime": 1793278493.757,
+        "result": "Failed",
+        "passedTests": 1,
+        "failedTests": 1,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-deletion-matrix3-ios.xcresult",
+        "startTime": 1793278806.754,
+        "result": "Passed",
+        "passedTests": 2,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-deletion-matrix4-ios.xcresult",
+        "startTime": 1793279103.481,
+        "result": "Passed",
+        "passedTests": 2,
+        "failedTests": 0,
+        "skippedTests": 0
+      }
+    ],
+    "latestCases": {
+      "HadithlyUITests/VisualPolishUITests/testDeletionDisclosuresLocalizeAndCancelWithoutRequest()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-deletion-matrix4-ios.xcresult"
+      },
+      "HadithlyTests/SettingsS1Tests/testDeletionKeepsSeparateSubscriptionWarning()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-deletion-matrix4-ios.xcresult"
+      }
+    },
+    "latestCounts": {
+      "Passed": 2
+    }
+  },
+  "android": {
+    "unit": {
+      "counts": {
+        "Passed": 1
+      },
+      "cases": {
+        "com.hadithly.app.SettingsS1Test/deletionKeepsSeparateSubscriptionWarning": "Passed"
+      },
+      "reports": [
+        {
+          "file": "TEST-com.hadithly.app.SettingsS1Test.xml",
+          "sha256": "c8c885cb1a6ce5b1c27bcef298a8293b7ffba84621f6e2faeb1165e10c8e4037"
+        }
+      ]
+    },
+    "ui": {
+      "counts": {
+        "Passed": 3
+      },
+      "cases": {
+        "com.hadithly.app.core.theme.NativeFinishingTest/deletionDisclosuresLocalizeAndCancelWithoutRequest": "Passed",
+        "com.hadithly.app.core.theme.NativeFinishingTest/deletionConfirmationKeepsActionsDisabledDuringDeletion": "Passed",
+        "com.hadithly.app.core.theme.NativeFinishingTest/deletionDisclosuresRemainReadableWithSystemLargeText": "Passed"
+      },
+      "reports": [
+        {
+          "file": "TEST-initial.xml",
+          "sha256": "91eb10f3b63c7ff8c718279f12f93a28209b624d94d9d025a913efede9af68e4"
+        },
+        {
+          "file": "TEST-system-large.xml",
+          "sha256": "6a867853079c1109fd86a0b8988bdec6493a9ef3491c97bb068796f9e1a2a066"
+        }
+      ]
+    }
+  }
+}

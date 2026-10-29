@@ -276,4 +276,8 @@
     <string name="native_ead66af2903d" formatted="false">Next page, %1$s</string>
     <string name="native_2e0e724ea48c" formatted="false">Show reader controls</string>
     <string name="native_6f21989e4e53" formatted="false">Hide reader controls</string>
+    <string name="native_eeb9423c79ba" formatted="false">Delete account permanently?</string>
+    <string name="native_67b48f7a2b18" formatted="false">This removes your synced bookmarks, favorites, notes, reading progress, submissions, and sign-in. It cannot be undone.</string>
+    <string name="native_fd2c53986113" formatted="false">Your App Store subscription is separate: deleting your Hadithly account does not cancel it. Manage or cancel it in your Apple Account subscriptions first if you do not want to keep paying.</string>
+    <string name="native_c569fb27d547" formatted="false">Your Play Store subscription is separate: deleting your Hadithly account does not cancel it. Manage or cancel it in your Google Play subscriptions first if you do not want to keep paying.</string>
 </resources>

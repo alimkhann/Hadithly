@@ -1,10 +1,10 @@
 {
   "scope": "Lexical UI-call candidates only. Variable/conditional arguments, custom wrappers, String-backed models, resources and server text still require source and runtime review. Catalog-backed entries are not claimed localized.",
   "counts": {
-    "debug-fixture": 23,
+    "debug-fixture": 24,
     "catalog-backed-runtime-unverified": 580,
     "example-or-symbol-review": 6,
-    "dynamic-review": 25,
+    "dynamic-review": 23,
     "direct-literal-review": 6
   },
   "candidates": [
@@ -75,7 +75,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Core/Theme/NativePolishFixtureView.swift",
-      "line": 40,
+      "line": 41,
       "call": "Text",
       "value": "Reading is ready",
       "category": "debug-fixture"
@@ -2811,143 +2811,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 998,
-      "call": "Toggle",
-      "value": "la2.usage",
-      "category": "catalog-backed-runtime-unverified"
-    },
-    {
-      "platform": "ios",
-      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1001,
-      "call": "Text",
-      "value": "Share basic app statistics to help improve Hadithly. Your reading text, notes and account details are never included. Turning this off clears pending statistics.",
-      "category": "catalog-backed-runtime-unverified"
-    },
-    {
-      "platform": "ios",
-      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1003,
-      "call": "Toggle",
-      "value": "Send crash reports",
-      "category": "catalog-backed-runtime-unverified"
-    },
-    {
-      "platform": "ios",
-      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1007,
-      "call": "Text",
-      "value": "Crash reports help us fix problems. They never include your reading text, notes or account details. Turning this off clears pending reports on this device.",
-      "category": "catalog-backed-runtime-unverified"
-    },
-    {
-      "platform": "ios",
-      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1023,
-      "call": "Label",
-      "value": "Share export file",
-      "category": "catalog-backed-runtime-unverified"
-    },
-    {
-      "platform": "ios",
-      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1033,
-      "call": "Button",
-      "value": "Sign in",
-      "category": "catalog-backed-runtime-unverified"
-    },
-    {
-      "platform": "ios",
-      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1037,
-      "call": "Text",
-      "value": "Your data",
-      "category": "catalog-backed-runtime-unverified"
-    },
-    {
-      "platform": "ios",
-      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1039,
-      "call": "Text",
-      "value": "Download your profile, settings, saved items, folders, reading progress and contributions. Guest data stays on this device.",
-      "category": "catalog-backed-runtime-unverified"
-    },
-    {
-      "platform": "ios",
-      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1042,
-      "call": "Section",
-      "value": "Policies",
-      "category": "catalog-backed-runtime-unverified"
-    },
-    {
-      "platform": "ios",
-      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1043,
-      "call": "SettingsLinkRow",
-      "value": "Privacy Policy",
-      "category": "catalog-backed-runtime-unverified"
-    },
-    {
-      "platform": "ios",
-      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1049,
-      "call": "SettingsLinkRow",
-      "value": "Terms of Use",
-      "category": "catalog-backed-runtime-unverified"
-    },
-    {
-      "platform": "ios",
-      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1055,
-      "call": "SettingsLinkRow",
-      "value": "How deletion works",
-      "category": "catalog-backed-runtime-unverified"
-    },
-    {
-      "platform": "ios",
-      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1073,
-      "call": "Text",
-      "value": "Delete account",
-      "category": "catalog-backed-runtime-unverified"
-    },
-    {
-      "platform": "ios",
-      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1089,
-      "call": "confirmationDialog",
-      "value": "Export your data?",
-      "category": "catalog-backed-runtime-unverified"
-    },
-    {
-      "platform": "ios",
-      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1094,
-      "call": "Button",
-      "value": "Export after device check",
-      "category": "catalog-backed-runtime-unverified"
-    },
-    {
-      "platform": "ios",
-      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1099,
-      "call": "Button",
-      "value": "Cancel",
-      "category": "catalog-backed-runtime-unverified"
-    },
-    {
-      "platform": "ios",
-      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1101,
-      "call": "Text",
-      "value": "The file contains only your portable data. Confirm with Face ID, Touch ID, or your device passcode when asked.",
-      "category": "catalog-backed-runtime-unverified"
-    },
-    {
-      "platform": "ios",
-      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1108,
+      "line": 990,
       "call": "Button",
       "value": "Delete account and data",
       "category": "catalog-backed-runtime-unverified"
@@ -2955,7 +2819,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1113,
+      "line": 992,
       "call": "Button",
       "value": "Cancel",
       "category": "catalog-backed-runtime-unverified"
@@ -2963,15 +2827,151 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1115,
-      "call": "Text",
-      "value": "\\(SettingsDeletionCopy.message) \\(SettingsDeletionCopy.subscriptionWarning)",
-      "category": "dynamic-review"
+      "line": 1007,
+      "call": "Button",
+      "value": "Delete account",
+      "category": "debug-fixture"
     },
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1117,
+      "line": 1038,
+      "call": "Toggle",
+      "value": "la2.usage",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1041,
+      "call": "Text",
+      "value": "Share basic app statistics to help improve Hadithly. Your reading text, notes and account details are never included. Turning this off clears pending statistics.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1043,
+      "call": "Toggle",
+      "value": "Send crash reports",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1047,
+      "call": "Text",
+      "value": "Crash reports help us fix problems. They never include your reading text, notes or account details. Turning this off clears pending reports on this device.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1063,
+      "call": "Label",
+      "value": "Share export file",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1073,
+      "call": "Button",
+      "value": "Sign in",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1077,
+      "call": "Text",
+      "value": "Your data",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1079,
+      "call": "Text",
+      "value": "Download your profile, settings, saved items, folders, reading progress and contributions. Guest data stays on this device.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1082,
+      "call": "Section",
+      "value": "Policies",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1083,
+      "call": "SettingsLinkRow",
+      "value": "Privacy Policy",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1089,
+      "call": "SettingsLinkRow",
+      "value": "Terms of Use",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1095,
+      "call": "SettingsLinkRow",
+      "value": "How deletion works",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1113,
+      "call": "Text",
+      "value": "Delete account",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1129,
+      "call": "confirmationDialog",
+      "value": "Export your data?",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1134,
+      "call": "Button",
+      "value": "Export after device check",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1139,
+      "call": "Button",
+      "value": "Cancel",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1141,
+      "call": "Text",
+      "value": "The file contains only your portable data. Confirm with Face ID, Touch ID, or your device passcode when asked.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "line": 1148,
       "call": "alert",
       "value": "Account deletion failed",
       "category": "catalog-backed-runtime-unverified"
@@ -2979,7 +2979,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1124,
+      "line": 1155,
       "call": "Button",
       "value": "OK",
       "category": "catalog-backed-runtime-unverified"
@@ -2987,7 +2987,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1200,
+      "line": 1231,
       "call": "SettingsLinkRow",
       "value": "FAQ & guides",
       "category": "catalog-backed-runtime-unverified"
@@ -2995,7 +2995,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1206,
+      "line": 1237,
       "call": "SettingsLinkRow",
       "value": "Contact support",
       "category": "catalog-backed-runtime-unverified"
@@ -3003,7 +3003,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1213,
+      "line": 1244,
       "call": "SettingsLinkRow",
       "value": "Report a translation issue",
       "category": "catalog-backed-runtime-unverified"
@@ -3011,7 +3011,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1215,
+      "line": 1246,
       "call": "AppLocalization.string",
       "value": "Include the collection and hadith number",
       "category": "catalog-backed-runtime-unverified"
@@ -3019,7 +3019,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1224,
+      "line": 1255,
       "call": "Text",
       "value": "Share Hadithly",
       "category": "catalog-backed-runtime-unverified"
@@ -3027,7 +3027,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1245,
+      "line": 1276,
       "call": "Text",
       "value": "A quiet reader for the seven major hadith collections. Arabic text is licensed from its sources; AI translations are always labeled.",
       "category": "catalog-backed-runtime-unverified"
@@ -3035,7 +3035,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1249,
+      "line": 1280,
       "call": "Text",
       "value": "Hadithly",
       "category": "catalog-backed-runtime-unverified"
@@ -3043,7 +3043,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
-      "line": 1252,
+      "line": 1283,
       "call": "Section",
       "value": "Legal",
       "category": "catalog-backed-runtime-unverified"
@@ -3731,7 +3731,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 338,
+      "line": 339,
       "call": "nativeText",
       "value": "Opening %1$s…",
       "category": "catalog-backed-runtime-unverified"
@@ -3739,7 +3739,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 351,
+      "line": 352,
       "call": "nativeText",
       "value": "Could not open this collection",
       "category": "catalog-backed-runtime-unverified"
@@ -3747,7 +3747,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 515,
+      "line": 516,
       "call": "nativeText",
       "value": "Previous page",
       "category": "catalog-backed-runtime-unverified"
@@ -3755,7 +3755,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 516,
+      "line": 517,
       "call": "nativeText",
       "value": "Next page",
       "category": "catalog-backed-runtime-unverified"
@@ -3763,7 +3763,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 807,
+      "line": 808,
       "call": "nativeText",
       "value": "Touch and hold a hadith to bookmark, add a note or share.",
       "category": "catalog-backed-runtime-unverified"
@@ -3771,7 +3771,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 808,
+      "line": 809,
       "call": "nativeText",
       "value": "Dismiss hint",
       "category": "catalog-backed-runtime-unverified"
@@ -3779,7 +3779,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 899,
+      "line": 900,
       "call": "nativeText",
       "value": "page",
       "category": "catalog-backed-runtime-unverified"
@@ -3787,7 +3787,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 900,
+      "line": 901,
       "call": "nativeText",
       "value": "Page %1$@",
       "category": "catalog-backed-runtime-unverified"
@@ -3795,7 +3795,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 909,
+      "line": 910,
       "call": "nativeText",
       "value": "Volume %lld",
       "category": "catalog-backed-runtime-unverified"
@@ -3803,7 +3803,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 987,
+      "line": 988,
       "call": "nativeText",
       "value": "Search",
       "category": "catalog-backed-runtime-unverified"
@@ -3811,7 +3811,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 1388,
+      "line": 1389,
       "call": "nativeText",
       "value": "Loading page",
       "category": "catalog-backed-runtime-unverified"
@@ -3819,7 +3819,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 1662,
+      "line": 1663,
       "call": "nativeText",
       "value": "Page %1$@",
       "category": "catalog-backed-runtime-unverified"
@@ -3827,7 +3827,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 1760,
+      "line": 1761,
       "call": "nativeText",
       "value": "Page %1$@ of %2$@",
       "category": "catalog-backed-runtime-unverified"
@@ -3835,7 +3835,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 1762,
+      "line": 1763,
       "call": "nativeText",
       "value": "Page %1$@",
       "category": "catalog-backed-runtime-unverified"
@@ -3843,7 +3843,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 1796,
+      "line": 1797,
       "call": "nativeText",
       "value": "Page %1$@",
       "category": "catalog-backed-runtime-unverified"
@@ -3851,7 +3851,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 1984,
+      "line": 1985,
       "call": "Text",
       "value": " ",
       "category": "direct-literal-review"
@@ -3859,7 +3859,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 2081,
+      "line": 2082,
       "call": "Text",
       "value": " ",
       "category": "direct-literal-review"
@@ -3867,7 +3867,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 2090,
+      "line": 2091,
       "call": "Text",
       "value": " ",
       "category": "direct-literal-review"
@@ -3875,7 +3875,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 2097,
+      "line": 2098,
       "call": "Text",
       "value": " ",
       "category": "direct-literal-review"
@@ -3883,7 +3883,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 2422,
+      "line": 2423,
       "call": "nativeText",
       "value": "Remove saved item?",
       "category": "catalog-backed-runtime-unverified"
@@ -3891,7 +3891,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 2422,
+      "line": 2423,
       "call": "nativeText",
       "value": "Remove",
       "category": "catalog-backed-runtime-unverified"
@@ -3899,7 +3899,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 2422,
+      "line": 2423,
       "call": "nativeText",
       "value": "Remove and don't ask again",
       "category": "catalog-backed-runtime-unverified"
@@ -3907,7 +3907,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 2422,
+      "line": 2423,
       "call": "nativeText",
       "value": "Cancel",
       "category": "catalog-backed-runtime-unverified"
@@ -3915,7 +3915,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 2598,
+      "line": 2599,
       "call": "nativeText",
       "value": "Translation sources",
       "category": "catalog-backed-runtime-unverified"
@@ -3923,7 +3923,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 2788,
+      "line": 2789,
       "call": "nativeText",
       "value": "No translation yet",
       "category": "catalog-backed-runtime-unverified"
@@ -3931,7 +3931,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 2789,
+      "line": 2790,
       "call": "nativeText",
       "value": "Sign in from Settings to translate this hadith.",
       "category": "catalog-backed-runtime-unverified"
@@ -3939,7 +3939,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 2792,
+      "line": 2793,
       "call": "nativeText",
       "value": "Translation allowance used",
       "category": "catalog-backed-runtime-unverified"
@@ -3947,7 +3947,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 2793,
+      "line": 2794,
       "call": "nativeText",
       "value": "Existing translations are still available.",
       "category": "catalog-backed-runtime-unverified"
@@ -3955,7 +3955,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 2796,
+      "line": 2797,
       "call": "nativeText",
       "value": "No translation yet",
       "category": "catalog-backed-runtime-unverified"
@@ -3963,7 +3963,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 2799,
+      "line": 2800,
       "call": "nativeText",
       "value": "%1$@ of %2$@ translations left",
       "category": "catalog-backed-runtime-unverified"
@@ -3971,7 +3971,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 2803,
+      "line": 2804,
       "call": "nativeText",
       "value": "Try again %@",
       "category": "catalog-backed-runtime-unverified"
@@ -3979,7 +3979,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 2847,
+      "line": 2848,
       "call": "Text",
       "value": "· $note",
       "category": "dynamic-review"
@@ -3987,7 +3987,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 2929,
+      "line": 2930,
       "call": "nativeText",
       "value": "EDIT",
       "category": "catalog-backed-runtime-unverified"
@@ -3995,7 +3995,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 2930,
+      "line": 2931,
       "call": "nativeText",
       "value": "Done",
       "category": "catalog-backed-runtime-unverified"
@@ -4003,7 +4003,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 2980,
+      "line": 2981,
       "call": "nativeText",
       "value": "Hadith number",
       "category": "catalog-backed-runtime-unverified"
@@ -4011,7 +4011,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 3006,
+      "line": 3007,
       "call": "nativeText",
       "value": "Go",
       "category": "catalog-backed-runtime-unverified"
@@ -4019,7 +4019,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 3023,
+      "line": 3024,
       "call": "nativeText",
       "value": "VOLUMES",
       "category": "catalog-backed-runtime-unverified"
@@ -4027,7 +4027,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 3164,
+      "line": 3165,
       "call": "nativeText",
       "value": "Reference: %1$s",
       "category": "catalog-backed-runtime-unverified"
@@ -4035,7 +4035,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 3168,
+      "line": 3169,
       "call": "nativeText",
       "value": "No external sources were cited for this translation.",
       "category": "catalog-backed-runtime-unverified"
@@ -4043,7 +4043,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 3180,
+      "line": 3181,
       "call": "nativeText",
       "value": "This translation was generated by AI (%@). It is not an authoritative rendering; verify important meanings against a qualified source.",
       "category": "catalog-backed-runtime-unverified"
@@ -4051,7 +4051,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 3217,
+      "line": 3218,
       "call": "nativeText",
       "value": "Note",
       "category": "catalog-backed-runtime-unverified"
@@ -4059,7 +4059,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 3221,
+      "line": 3222,
       "call": "nativeText",
       "value": "Write a private note…",
       "category": "catalog-backed-runtime-unverified"
@@ -4067,7 +4067,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 3235,
+      "line": 3236,
       "call": "nativeText",
       "value": "Try again",
       "category": "catalog-backed-runtime-unverified"
@@ -4075,7 +4075,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 3237,
+      "line": 3238,
       "call": "nativeText",
       "value": "Cancel",
       "category": "catalog-backed-runtime-unverified"
@@ -4083,7 +4083,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 3248,
+      "line": 3249,
       "call": "nativeText",
       "value": "Save",
       "category": "catalog-backed-runtime-unverified"
@@ -4091,7 +4091,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 3283,
+      "line": 3284,
       "call": "nativeText",
       "value": "Bookmark",
       "category": "catalog-backed-runtime-unverified"
@@ -4099,7 +4099,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 3401,
+      "line": 3402,
       "call": "nativeText",
       "value": "Search English text",
       "category": "catalog-backed-runtime-unverified"
@@ -4107,7 +4107,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 3425,
+      "line": 3426,
       "call": "nativeText",
       "value": "Searching…",
       "category": "catalog-backed-runtime-unverified"
@@ -4115,7 +4115,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 3433,
+      "line": 3434,
       "call": "nativeText",
       "value": "Search is unavailable offline.",
       "category": "catalog-backed-runtime-unverified"
@@ -4123,7 +4123,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 3478,
+      "line": 3479,
       "call": "nativeText",
       "value": "Sunnah.now English text",
       "category": "catalog-backed-runtime-unverified"
@@ -4131,7 +4131,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 3573,
+      "line": 3574,
       "call": "nativeText",
       "value": "Saved items could not load",
       "category": "catalog-backed-runtime-unverified"
@@ -4139,7 +4139,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 3574,
+      "line": 3575,
       "call": "nativeText",
       "value": "Retry",
       "category": "catalog-backed-runtime-unverified"
@@ -4147,7 +4147,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 3584,
+      "line": 3585,
       "call": "nativeText",
       "value": "Remove saved item?",
       "category": "catalog-backed-runtime-unverified"
@@ -4155,7 +4155,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 3584,
+      "line": 3585,
       "call": "nativeText",
       "value": "Remove",
       "category": "catalog-backed-runtime-unverified"
@@ -4163,7 +4163,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 3584,
+      "line": 3585,
       "call": "nativeText",
       "value": "Remove and don't ask again",
       "category": "catalog-backed-runtime-unverified"
@@ -4171,7 +4171,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 3584,
+      "line": 3585,
       "call": "nativeText",
       "value": "Cancel",
       "category": "catalog-backed-runtime-unverified"
@@ -4859,31 +4859,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
-      "line": 1180,
-      "call": "Text",
-      "value": "${SettingsDeletionCopy.MESSAGE} ${SettingsDeletionCopy.SUBSCRIPTION_WARNING}",
-      "category": "dynamic-review"
-    },
-    {
-      "platform": "android",
-      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
-      "line": 1198,
-      "call": "nativeText",
-      "value": "Delete account and data",
-      "category": "catalog-backed-runtime-unverified"
-    },
-    {
-      "platform": "android",
-      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
-      "line": 1202,
-      "call": "nativeText",
-      "value": "Cancel",
-      "category": "catalog-backed-runtime-unverified"
-    },
-    {
-      "platform": "android",
-      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
-      "line": 1211,
+      "line": 1199,
       "call": "nativeText",
       "value": "Account deletion failed",
       "category": "catalog-backed-runtime-unverified"
@@ -4891,7 +4867,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
-      "line": 1213,
+      "line": 1201,
       "call": "nativeText",
       "value": "OK",
       "category": "catalog-backed-runtime-unverified"
@@ -4899,7 +4875,23 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
-      "line": 1240,
+      "line": 1229,
+      "call": "nativeText",
+      "value": "Delete account and data",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1234,
+      "call": "nativeText",
+      "value": "Cancel",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "line": 1262,
       "call": "PolicyRow",
       "value": "FAQ & guides",
       "category": "catalog-backed-runtime-unverified"
@@ -4907,7 +4899,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
-      "line": 1241,
+      "line": 1263,
       "call": "PolicyRow",
       "value": "Contact support",
       "category": "catalog-backed-runtime-unverified"
@@ -4915,7 +4907,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
-      "line": 1254,
+      "line": 1276,
       "call": "PolicyRow",
       "value": "Report a translation issue",
       "category": "catalog-backed-runtime-unverified"
@@ -4923,7 +4915,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
-      "line": 1265,
+      "line": 1287,
       "call": "nativeText",
       "value": "Include the collection and hadith number.",
       "category": "catalog-backed-runtime-unverified"
@@ -4931,7 +4923,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
-      "line": 1266,
+      "line": 1288,
       "call": "PolicyRow",
       "value": "Share Hadithly",
       "category": "catalog-backed-runtime-unverified"
@@ -4939,7 +4931,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
-      "line": 1290,
+      "line": 1312,
       "call": "Text",
       "value": "Hadithly",
       "category": "direct-literal-review"
@@ -4947,7 +4939,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
-      "line": 1291,
+      "line": 1313,
       "call": "Text",
       "value": "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
       "category": "dynamic-review"
@@ -4955,7 +4947,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
-      "line": 1294,
+      "line": 1316,
       "call": "nativeText",
       "value": "A quiet reader for the seven major hadith collections. Arabic text is licensed from its sources; AI translations are always labeled.",
       "category": "catalog-backed-runtime-unverified"
@@ -4963,7 +4955,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
-      "line": 1300,
+      "line": 1322,
       "call": "PolicyRow",
       "value": "Privacy Policy",
       "category": "catalog-backed-runtime-unverified"
@@ -4971,7 +4963,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
-      "line": 1301,
+      "line": 1323,
       "call": "PolicyRow",
       "value": "Terms of Use",
       "category": "catalog-backed-runtime-unverified"

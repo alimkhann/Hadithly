@@ -278,4 +278,8 @@
     <string name="native_ead66af2903d" formatted="false">Page suivante, %1$s</string>
     <string name="native_2e0e724ea48c" formatted="false">Afficher les commandes de lecture</string>
     <string name="native_6f21989e4e53" formatted="false">Masquer les commandes de lecture</string>
+    <string name="native_eeb9423c79ba" formatted="false">Supprimer définitivement le compte ?</string>
+    <string name="native_67b48f7a2b18" formatted="false">Cette action supprime vos marque-pages, favoris, notes, progression de lecture, contributions et informations de connexion synchronisés. Elle est irréversible.</string>
+    <string name="native_fd2c53986113" formatted="false">Votre abonnement App Store est distinct : supprimer votre compte Hadithly ne le résilie pas. Si vous ne souhaitez plus payer, gérez-le ou résiliez-le d’abord dans les abonnements de votre compte Apple.</string>
+    <string name="native_c569fb27d547" formatted="false">Votre abonnement Play Store est distinct : supprimer votre compte Hadithly ne le résilie pas. Si vous ne souhaitez plus payer, gérez-le ou résiliez-le d’abord dans les abonnements Google Play.</string>
 </resources>

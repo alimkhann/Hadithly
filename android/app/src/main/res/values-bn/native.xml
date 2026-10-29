@@ -278,4 +278,8 @@
     <string name="native_ead66af2903d" formatted="false">পরের পৃষ্ঠা, %1$s</string>
     <string name="native_2e0e724ea48c" formatted="false">পড়ার নিয়ন্ত্রণ দেখান</string>
     <string name="native_6f21989e4e53" formatted="false">পড়ার নিয়ন্ত্রণ লুকান</string>
+    <string name="native_eeb9423c79ba" formatted="false">অ্যাকাউন্ট স্থায়ীভাবে মুছবেন?</string>
+    <string name="native_67b48f7a2b18" formatted="false">এতে আপনার সিঙ্ক করা বুকমার্ক, পছন্দের তালিকা, নোট, পড়ার অগ্রগতি, জমা দেওয়া বিষয় এবং সাইন-ইন তথ্য মুছে যাবে। এই কাজ পূর্বাবস্থায় ফেরানো যাবে না।</string>
+    <string name="native_fd2c53986113" formatted="false">আপনার App Store সাবস্ক্রিপশন আলাদা: Hadithly অ্যাকাউন্ট মুছে ফেললে সেটি বাতিল হয় না। টাকা দেওয়া চালিয়ে যেতে না চাইলে, আগে আপনার Apple Account-এর সাবস্ক্রিপশন বিভাগে সেটি পরিচালনা করুন বা বাতিল করুন।</string>
+    <string name="native_c569fb27d547" formatted="false">আপনার Play Store সাবস্ক্রিপশন আলাদা: Hadithly অ্যাকাউন্ট মুছে ফেললে সেটি বাতিল হয় না। টাকা দেওয়া চালিয়ে যেতে না চাইলে, আগে Google Play-এর সাবস্ক্রিপশন বিভাগে সেটি পরিচালনা করুন বা বাতিল করুন।</string>
 </resources>

@@ -278,4 +278,8 @@
     <string name="native_ead66af2903d" formatted="false">Próxima página, %1$s</string>
     <string name="native_2e0e724ea48c" formatted="false">Mostrar os controles de leitura</string>
     <string name="native_6f21989e4e53" formatted="false">Ocultar os controles de leitura</string>
+    <string name="native_eeb9423c79ba" formatted="false">Excluir a conta permanentemente?</string>
+    <string name="native_67b48f7a2b18" formatted="false">Isso exclui seus marcadores, favoritos, notas, progresso de leitura, envios e dados de login sincronizados. Essa ação não pode ser desfeita.</string>
+    <string name="native_fd2c53986113" formatted="false">Sua assinatura da App Store é separada: excluir sua conta Hadithly não a cancela. Se não quiser continuar pagando, primeiro gerencie ou cancele a assinatura nas assinaturas da sua Conta Apple.</string>
+    <string name="native_c569fb27d547" formatted="false">Sua assinatura da Play Store é separada: excluir sua conta Hadithly não a cancela. Se não quiser continuar pagando, primeiro gerencie ou cancele a assinatura nas assinaturas do Google Play.</string>
 </resources>

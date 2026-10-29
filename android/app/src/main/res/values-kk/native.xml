@@ -278,4 +278,8 @@
     <string name="native_ead66af2903d" formatted="false">Келесі бет, %1$s</string>
     <string name="native_2e0e724ea48c" formatted="false">Оқу басқару элементтерін көрсету</string>
     <string name="native_6f21989e4e53" formatted="false">Оқу басқару элементтерін жасыру</string>
+    <string name="native_eeb9423c79ba" formatted="false">Аккаунтты біржола жою керек пе?</string>
+    <string name="native_67b48f7a2b18" formatted="false">Синхрондалған бетбелгілеріңіз, таңдаулыларыңыз, жазбаларыңыз, оқу барысыңыз, жіберген материалдарыңыз және жүйеге кіру деректеріңіз жойылады. Бұл әрекетті кері қайтару мүмкін емес.</string>
+    <string name="native_fd2c53986113" formatted="false">App Store жазылымыңыз бөлек: Hadithly аккаунтын жою оны тоқтатпайды. Төлемді жалғастырғыңыз келмесе, алдымен Apple аккаунтыңыздың жазылымдар бөлімінде оны басқарыңыз немесе тоқтатыңыз.</string>
+    <string name="native_c569fb27d547" formatted="false">Play Store жазылымыңыз бөлек: Hadithly аккаунтын жою оны тоқтатпайды. Төлемді жалғастырғыңыз келмесе, алдымен Google Play жазылымдары бөлімінде оны басқарыңыз немесе тоқтатыңыз.</string>
 </resources>

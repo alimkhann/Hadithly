@@ -278,4 +278,8 @@
     <string name="native_ead66af2903d" formatted="false">Кийинки бет, %1$s</string>
     <string name="native_2e0e724ea48c" formatted="false">Окуу башкарууларын көрсөтүү</string>
     <string name="native_6f21989e4e53" formatted="false">Окуу башкарууларын жашыруу</string>
+    <string name="native_eeb9423c79ba" formatted="false">Аккаунт биротоло өчүрүлсүнбү?</string>
+    <string name="native_67b48f7a2b18" formatted="false">Шайкештештирилген кыстармаларыңыз, тандалмаларыңыз, жазууларыңыз, окуу жүрүшүңүз, жөнөткөн материалдарыңыз жана кирүү маалыматтарыңыз өчүрүлөт. Бул аракетти артка кайтаруу мүмкүн эмес.</string>
+    <string name="native_fd2c53986113" formatted="false">App Store жазылууңуз өзүнчө: Hadithly аккаунтуңузду өчүрүү аны жокко чыгарбайт. Төлөөнү улантууну каалабасаңыз, адегенде Apple аккаунтуңуздун жазылуулар бөлүмүндө аны башкарыңыз же жокко чыгарыңыз.</string>
+    <string name="native_c569fb27d547" formatted="false">Play Store жазылууңуз өзүнчө: Hadithly аккаунтуңузду өчүрүү аны жокко чыгарбайт. Төлөөнү улантууну каалабасаңыз, адегенде Google Play жазылуулар бөлүмүндө аны башкарыңыз же жокко чыгарыңыз.</string>
 </resources>

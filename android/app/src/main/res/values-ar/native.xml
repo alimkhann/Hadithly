@@ -278,4 +278,8 @@
     <string name="native_ead66af2903d" formatted="false">الصفحة التالية، %1$s</string>
     <string name="native_2e0e724ea48c" formatted="false">إظهار عناصر التحكم في القارئ</string>
     <string name="native_6f21989e4e53" formatted="false">إخفاء عناصر التحكم في القارئ</string>
+    <string name="native_eeb9423c79ba" formatted="false">حذف الحساب نهائيًا؟</string>
+    <string name="native_67b48f7a2b18" formatted="false">سيؤدي هذا إلى إزالة بياناتك المتزامنة من الإشارات المرجعية والمفضلة والملاحظات وتقدم القراءة والمساهمات، وإلغاء تسجيل دخولك. لا يمكن التراجع عن ذلك.</string>
+    <string name="native_fd2c53986113" formatted="false">اشتراكك في App Store منفصل: حذف حسابك في Hadithly لا يلغيه. إذا كنت لا تريد الاستمرار في الدفع، فأدر الاشتراك أو ألغِه أولًا من اشتراكات حسابك في Apple.</string>
+    <string name="native_c569fb27d547" formatted="false">اشتراكك في Play Store منفصل: حذف حسابك في Hadithly لا يلغيه. إذا كنت لا تريد الاستمرار في الدفع، فأدر الاشتراك أو ألغِه أولًا من اشتراكات Google Play.</string>
 </resources>

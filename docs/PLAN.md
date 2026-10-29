@@ -57,6 +57,18 @@ start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
 
+## A4 deletion-disclosure checkpoint, October 29
+
+Deletion disclosures and separate App Store / Play Store subscription warnings
+now have scoped fifteen-locale drafts. Both native presentations pass all fifteen
+locales plus Arabic/Russian/Bengali large-text checks, with cancellation invoking
+no deletion callback. Android's actual system font-scale check passes and restores
+the emulator setting. Latest evidence: two iOS, one Android unit and three Android
+UI cases. See `A4_RUNTIME_LOCALIZATION.md`. English source constants, session guards
+and incoming work remain preserved. Native/policy review, authenticated deletion,
+physical/device/release and full A4 gates stay open. Continue evidence/search and
+other dynamic/error copy, then A5–A7/E. No account was deleted.
+
 ## A4 page-control checkpoint, October 29
 
 Native page controls now resolve scoped fifteen-locale drafts, with page numbers

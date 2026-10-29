@@ -973,6 +973,46 @@ struct SubscriptionView: View {
 
 // MARK: - Privacy & data (export + deletion)
 
+struct AccountDeletionWarning: View {
+    var body: some View {
+        Text(LocalizedStringKey(SettingsDeletionCopy.subscriptionWarning))
+            .accessibilityIdentifier("settings.deletionSubscriptionWarning")
+    }
+}
+
+struct AccountDeletionConfirmation: ViewModifier {
+    @Environment(\.locale) private var locale
+    @Binding var isPresented: Bool
+    let onDelete: () -> Void
+
+    func body(content: Content) -> some View {
+        content.confirmationDialog(LocalizedStringKey(SettingsDeletionCopy.title), isPresented: $isPresented, titleVisibility: .visible) {
+            Button("Delete account and data", role: .destructive, action: onDelete)
+                .accessibilityIdentifier("settings.confirmDeletion")
+            Button("Cancel", role: .cancel) {}
+                .accessibilityIdentifier("settings.cancelDeletion")
+        } message: {
+            Text(verbatim: AppLocalization.string(SettingsDeletionCopy.message, locale: locale) + "\n\n" + AppLocalization.string(SettingsDeletionCopy.subscriptionWarning, locale: locale))
+        }
+    }
+}
+
+#if DEBUG
+struct AccountDeletionCopyAuditFixture: View {
+    @State private var showConfirmation = false
+    @State private var deletionRequests = 0
+    var body: some View {
+        Form {
+            AccountDeletionWarning()
+            Button("Delete account") { showConfirmation = true }
+                .accessibilityIdentifier("deletionAudit.present")
+            Text(String(deletionRequests)).accessibilityIdentifier("deletionAudit.requests")
+        }
+        .modifier(AccountDeletionConfirmation(isPresented: $showConfirmation) { deletionRequests += 1 })
+    }
+}
+#endif
+
 struct PrivacyDataView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(Clerk.self) private var clerk
@@ -1077,7 +1117,7 @@ struct PrivacyDataView: View {
                     .disabled(isDeletingAccount)
                     .accessibilityIdentifier("settings.deleteAccount")
                 } footer: {
-                    Text(SettingsDeletionCopy.subscriptionWarning)
+                    AccountDeletionWarning()
                 }
             }
         }
@@ -1100,20 +1140,11 @@ struct PrivacyDataView: View {
         } message: {
             Text("The file contains only your portable data. Confirm with Face ID, Touch ID, or your device passcode when asked.")
         }
-        .confirmationDialog(
-            SettingsDeletionCopy.title,
-            isPresented: $showDeleteConfirmation,
-            titleVisibility: .visible
-        ) {
-            Button("Delete account and data", role: .destructive) {
-                guard let captured = pendingDeletionSession else { return }
-                pendingDeletionSession = nil
-                Task { await deleteAccount(captured) }
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("\(SettingsDeletionCopy.message) \(SettingsDeletionCopy.subscriptionWarning)")
-        }
+        .modifier(AccountDeletionConfirmation(isPresented: $showDeleteConfirmation) {
+            guard let captured = pendingDeletionSession else { return }
+            pendingDeletionSession = nil
+            Task { await deleteAccount(captured) }
+        })
         .alert(
             "Account deletion failed",
             isPresented: Binding(
