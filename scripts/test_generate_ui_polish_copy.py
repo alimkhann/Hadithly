@@ -12,6 +12,24 @@ LOCALES = ['en', 'ar', 'ru', 'kk', 'ky', 'uz', 'tr', 'id', 'ur', 'fr', 'es-419',
 
 
 class IndexedCopyTests(unittest.TestCase):
+    def test_existing_catalog_keeps_english_state_metadata_and_raw_bytes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)
+            def write(name,text):
+                path=root/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_text(text);return path
+            entry={'comment':'Keep metadata','localizations':{locale:{'stringUnit':{'state':'new' if locale=='en' else 'needs_review','value':'Existing' if locale=='en' else locale+' value'}} for locale in LOCALES}}
+            catalog=write('ios/Hadithly/Localizable.xcstrings',json.dumps({'strings':{'Existing':entry}},ensure_ascii=False,indent=2,separators=(',', ' : ')))
+            before=catalog.read_bytes()
+            for locale in LOCALES:
+                folder={'en':'values','es-419':'values-b+es+419','pt-BR':'values-pt-rBR','id':'values-in'}.get(locale,'values-'+locale)
+                write('android/app/src/main/res/'+folder+'/native.xml','<resources>\n</resources>\n')
+            write('android/app/src/main/kotlin/com/hadithly/app/core/preferences/NativeCopy.kt','when(source) {\n    else -> null\n}\n')
+            write('copy.json',json.dumps({'keys':['Existing'],'locales':{locale:[entry['localizations'][locale]['stringUnit']['value']] for locale in LOCALES}}))
+            script=write('scripts/generate-ui-polish-copy.py',SCRIPT.read_text())
+            result=subprocess.run(['python3',str(script),'--source','copy.json'],cwd=root,capture_output=True,text=True)
+            self.assertEqual(result.returncode,0,result.stderr)
+            self.assertEqual(catalog.read_bytes(),before)
+
     def test_reuse_preserves_working_catalog_updates_aliases_and_escapes_kotlin(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

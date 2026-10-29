@@ -7,11 +7,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertContentDescriptionEquals
+import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
@@ -414,6 +419,35 @@ class ReaderR6Round3Test {
             snippet = "…another passage…",
         ),
     )
+
+    @Test fun searchScopeAndCountLocalizeWithoutChangingTargets() {
+        val copy = org.json.JSONObject(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().context.assets.open("a4-evidence-copy.json").bufferedReader().use { it.readText() })
+        var locale by androidx.compose.runtime.mutableStateOf("en")
+        var navigated: EnglishSearchResult? = null
+        compose.setContent { androidx.compose.runtime.key(locale) { com.hadithly.app.core.theme.LocalizedPreview(com.hadithly.app.core.preferences.ReaderTheme.LIGHT, locale) {
+            ReaderSearchSheet(search = { searchHits }, onNavigate = { navigated = it })
+        } } }
+        for (tag in listOf("en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn")) {
+            compose.runOnIdle { locale = tag; navigated = null }
+            compose.onNodeWithTag("reader.search.field").performTextInput("mercy")
+            compose.mainClock.advanceTimeBy(1000); compose.waitForIdle()
+            val row = compose.onNodeWithTag("reader.search.result.sunnah_now:bukhari:57")
+            row.assertIsDisplayed()
+            val header = compose.onNodeWithTag("reader.search.section")
+            val value = java.util.Locale.forLanguageTag(tag)
+            val number = java.text.NumberFormat.getIntegerInstance(value).format(2)
+            val expected = String.format(value, copy.getJSONObject("search_count_labels").getString(tag).replace('@', 's'), number)
+            val actual = header.fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.Text].single().text
+            assertEquals(expected, actual.replace(Regex("[\u200e\u200f\u061c\u202a-\u202e\u2066-\u2069]"), ""))
+            compose.onAllNodesWithTag("reader.search.sourceLabel", useUnmergedTree = true).onFirst().assertTextEquals(copy.getJSONObject("locales").getJSONArray(tag).getString(10))
+            val bitmap = compose.onRoot().captureToImage().asAndroidBitmap()
+            val instrumentation = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+            val image = java.io.File(instrumentation.targetContext.getExternalFilesDir(null), "search-copy-$tag.png")
+            image.outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }; bitmap.recycle()
+            android.os.ParcelFileDescriptor.AutoCloseInputStream(instrumentation.uiAutomation.executeShellCommand("cp ${image.absolutePath} /sdcard/Pictures/search-copy-$tag.png")).use { it.readBytes() }
+            row.performClick(); compose.runOnIdle { assertEquals("57", navigated?.providerHadithId) }
+        }
+    }
 
     @Test
     fun searchFlowShowsLabeledResultsAndNavigates() {

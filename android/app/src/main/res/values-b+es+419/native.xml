@@ -75,7 +75,7 @@
     <string name="native_49103f50966a">Aún no hay una traducción en %1$s.</string>
     <string name="native_49c266baaaa7" formatted="false">Buscar</string>
     <string name="native_4dc42835fbc3">Referencia: %1$s</string>
-    <string name="native_51da6060f286" formatted="false">Evidence expired</string>
+    <string name="native_51da6060f286" formatted="false">La evidencia venció</string>
     <string name="native_540ec6e92d83">No hay coincidencias en el texto en inglés de Sunnah.now.</string>
     <string name="native_5474755405da" formatted="false">Seleccionar de nuevo</string>
     <string name="native_565339bc4d33" formatted="false">Aceptar</string>
@@ -109,12 +109,12 @@
     <string name="native_9449e60a6bd1">Incluye la colección y el número del hadiz.</string>
     <string name="native_96b3b31d45ab">Abrir almacenamiento del dispositivo</string>
     <string name="native_96be15d18327" formatted="false">Texto árabe</string>
-    <string name="native_98770753608c" formatted="false">Evidence checks complete</string>
+    <string name="native_98770753608c" formatted="false">Comprobaciones de la evidencia completas</string>
     <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
     <string name="native_9f9feade761d" formatted="false">Colecciones</string>
     <string name="native_a1a6ea9533fa">La búsqueda no está disponible sin conexión.</string>
     <string name="native_b01111be1821">Buscar texto en inglés</string>
-    <string name="native_b67dee925588">Texto en inglés de Sunnah.now</string>
+    <string name="native_b67dee925588" formatted="false">Texto en inglés de Sunnah.now</string>
     <string name="native_b7337027ef1f">Usar otro correo electrónico</string>
     <string name="native_b7bd92f57552" formatted="false">Withdraw suggestion</string>
     <string name="native_b97457409ab5" formatted="false">Reenviar código</string>
@@ -282,4 +282,18 @@
     <string name="native_67b48f7a2b18" formatted="false">Esto elimina tus marcadores, favoritos, notas, progreso de lectura, envíos e información de inicio de sesión sincronizados. Esta acción no se puede deshacer.</string>
     <string name="native_fd2c53986113" formatted="false">Tu suscripción de App Store es independiente: eliminar tu cuenta de Hadithly no la cancela. Si no quieres seguir pagando, primero adminístrala o cancélala en las suscripciones de tu cuenta de Apple.</string>
     <string name="native_c569fb27d547" formatted="false">Tu suscripción de Play Store es independiente: eliminar tu cuenta de Hadithly no la cancela. Si no quieres seguir pagando, primero adminístrala o cancélala en las suscripciones de Google Play.</string>
+    <string name="native_03867aea70ac" formatted="false">Evidencia</string>
+    <string name="native_b99e63e52398" formatted="false">Esperando la carga</string>
+    <string name="native_01f768539483" formatted="false">Verificando la carga</string>
+    <string name="native_21a6f4374e26" formatted="false">Esperando las comprobaciones de seguridad</string>
+    <string name="native_d95d127e8a1f" formatted="false">Esperando las comprobaciones de la fuente</string>
+    <string name="native_ad0033122f6d" formatted="false">Estado de la evidencia no disponible</string>
+    <string name="native_4761bd4f5310" formatted="false">No se puede usar esta evidencia</string>
+    <string name="native_6fa460e75faa" formatted="false">No se pudo procesar la evidencia</string>
+    <string name="native_86a053fe90ee" formatted="false">Quitar %1$s</string>
+    <string name="native_0ba76ea2a8ee" formatted="false">%1$s, Texto en inglés de Sunnah.now</string>
+    <string name="native_f722b046be62" formatted="false">Hadiz actual %1$s</string>
+    <string name="native_9bbe267eee43" formatted="false">modelo no disponible</string>
+    <string name="native_e03c8e3bc5f0" formatted="false">Hadiz actual</string>
+    <string name="native_f97dc29342bb" formatted="false">Texto en inglés de Sunnah.now (%s)</string>
 </resources>

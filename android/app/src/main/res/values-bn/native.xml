@@ -75,7 +75,7 @@
     <string name="native_49103f50966a">%1$s অনুবাদ এখনও পাওয়া যায়নি।</string>
     <string name="native_49c266baaaa7" formatted="false">অনুসন্ধান</string>
     <string name="native_4dc42835fbc3">রেফারেন্স: %1$s</string>
-    <string name="native_51da6060f286" formatted="false">Evidence expired</string>
+    <string name="native_51da6060f286" formatted="false">প্রমাণের মেয়াদ শেষ হয়েছে</string>
     <string name="native_540ec6e92d83">Sunnah.now-এর ইংরেজি লেখায় কোনো মিল নেই।</string>
     <string name="native_5474755405da" formatted="false">আবার নির্বাচন করুন</string>
     <string name="native_565339bc4d33" formatted="false">ঠিক আছে</string>
@@ -109,12 +109,12 @@
     <string name="native_9449e60a6bd1">সংকলন ও হাদিস নম্বর অন্তর্ভুক্ত করুন।</string>
     <string name="native_96b3b31d45ab">ডিভাইস স্টোরেজ খুলুন</string>
     <string name="native_96be15d18327" formatted="false">আরবি লেখা</string>
-    <string name="native_98770753608c" formatted="false">Evidence checks complete</string>
+    <string name="native_98770753608c" formatted="false">প্রমাণ যাচাই সম্পন্ন হয়েছে</string>
     <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
     <string name="native_9f9feade761d" formatted="false">সংকলন</string>
     <string name="native_a1a6ea9533fa">অফলাইনে অনুসন্ধান পাওয়া যায় না।</string>
     <string name="native_b01111be1821">ইংরেজি লেখা অনুসন্ধান করুন</string>
-    <string name="native_b67dee925588">Sunnah.now-এর ইংরেজি লেখা</string>
+    <string name="native_b67dee925588" formatted="false">Sunnah.now-এর ইংরেজি লেখা</string>
     <string name="native_b7337027ef1f">অন্য ইমেল ব্যবহার করুন</string>
     <string name="native_b7bd92f57552" formatted="false">Withdraw suggestion</string>
     <string name="native_b97457409ab5" formatted="false">কোড আবার পাঠান</string>
@@ -282,4 +282,18 @@
     <string name="native_67b48f7a2b18" formatted="false">এতে আপনার সিঙ্ক করা বুকমার্ক, পছন্দের তালিকা, নোট, পড়ার অগ্রগতি, জমা দেওয়া বিষয় এবং সাইন-ইন তথ্য মুছে যাবে। এই কাজ পূর্বাবস্থায় ফেরানো যাবে না।</string>
     <string name="native_fd2c53986113" formatted="false">আপনার App Store সাবস্ক্রিপশন আলাদা: Hadithly অ্যাকাউন্ট মুছে ফেললে সেটি বাতিল হয় না। টাকা দেওয়া চালিয়ে যেতে না চাইলে, আগে আপনার Apple Account-এর সাবস্ক্রিপশন বিভাগে সেটি পরিচালনা করুন বা বাতিল করুন।</string>
     <string name="native_c569fb27d547" formatted="false">আপনার Play Store সাবস্ক্রিপশন আলাদা: Hadithly অ্যাকাউন্ট মুছে ফেললে সেটি বাতিল হয় না। টাকা দেওয়া চালিয়ে যেতে না চাইলে, আগে Google Play-এর সাবস্ক্রিপশন বিভাগে সেটি পরিচালনা করুন বা বাতিল করুন।</string>
+    <string name="native_03867aea70ac" formatted="false">প্রমাণ</string>
+    <string name="native_b99e63e52398" formatted="false">আপলোডের অপেক্ষায়</string>
+    <string name="native_01f768539483" formatted="false">আপলোড যাচাই করা হচ্ছে</string>
+    <string name="native_21a6f4374e26" formatted="false">নিরাপত্তা যাচাইয়ের অপেক্ষায়</string>
+    <string name="native_d95d127e8a1f" formatted="false">উৎস যাচাইয়ের অপেক্ষায়</string>
+    <string name="native_ad0033122f6d" formatted="false">প্রমাণের অবস্থা পাওয়া যাচ্ছে না</string>
+    <string name="native_4761bd4f5310" formatted="false">প্রমাণ ব্যবহার করা যাবে না</string>
+    <string name="native_6fa460e75faa" formatted="false">প্রমাণ প্রক্রিয়াকরণ ব্যর্থ হয়েছে</string>
+    <string name="native_86a053fe90ee" formatted="false">%1$s সরান</string>
+    <string name="native_0ba76ea2a8ee" formatted="false">%1$s, Sunnah.now-এর ইংরেজি লেখা</string>
+    <string name="native_f722b046be62" formatted="false">বর্তমান হাদিস %1$s</string>
+    <string name="native_9bbe267eee43" formatted="false">মডেল পাওয়া যাচ্ছে না</string>
+    <string name="native_e03c8e3bc5f0" formatted="false">বর্তমান হাদিস</string>
+    <string name="native_f97dc29342bb" formatted="false">Sunnah.now ইংরেজি লেখা (%s)</string>
 </resources>

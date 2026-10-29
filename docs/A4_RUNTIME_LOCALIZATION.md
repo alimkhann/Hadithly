@@ -572,3 +572,57 @@ resources. Native wording/policy review, full assistive-technology traversal,
 authenticated/physical-device and release checks remain open. Deletion error copy,
 evidence/search and the other dynamic strings are still part of A4, followed by
 A5–A7/E and the retained content, store and production gates.
+
+## Evidence and search data-bound labels, October 29
+
+Native Russian evidence rows reproduced raw processing codes. Item display now
+maps the backend's ten known states to fixed localized keys; unknown states use
+an unavailable label. Ready means evidence checks completed, with publication
+status still separate. File names and URLs remain verbatim. Upload progress uses
+the UI locale and preserves the original whole-percent truncation; five explicit
+boundary pairs pass in each of fifteen locales on both native formatter paths.
+
+`a4-evidence-copy.json` holds seventeen scoped keys and pending native-review
+status. Fourteen are new catalog entries; the existing Evidence checks complete
+and Evidence expired English-only drafts are repaired through indexed hashes and
+fourteen-locale allowlists. Processing evidence reuses its indexed translations.
+Search-scope text reuses Android drafts, and `a4-search-scope-parity.json` binds the
+existing iOS count template to Android. iOS now formats the actual count through
+that template; Android also shows the count. Result labels, exact references and
+navigation callbacks pass all fifteen locale checks. Latest results are three iOS, one Android unit and two emulator UI cases. Controlled iOS snippets are
+explicit prepared examples rather than altered hadith quotations.
+
+The same change binds evidence removal accessibility names, the model-unavailable
+fallback and bookmark-placement titles, and formats Contents/citation numbers with
+the UI locale. These bindings have source/compile checks; their complete live
+submission, bookmark, citation and assistive-technology matrices are not inferred
+from the item/search fixtures. No evidence upload or publication path is exercised.
+
+The source generator now preserves existing English-unit states and unchanged raw
+entry bytes. Two isolated regressions cover indexed reuse, fixture generation,
+integer conversion, metadata/formatting preservation and rejection before partial
+writes. A nested iOS navigation fixture initially hid Search; verification now uses
+the existing direct search fixture and records the failed run in history.
+
+Native item-state and search checks cover all fifteen locales, including opaque
+filenames with formatter syntax, unknown states, localized percentages and exact
+result targets. Selected captures and the sixty-capture manifest are in
+`verification/a4-localization/evidence-search/`. `evidence-search.json` records the
+latest cases, and `evidence-preservation.json` records scoped payload checks.
+Additional working catalog ordering/extraction-state changes are present outside
+this unit. Full original byte normalization no longer matches; these differences
+are retained unstaged. Other original localization payloads and the four project /
+scheme fingerprints remain preserved. Only fourteen new keys and the two guarded
+repairs are included in this commit.
+
+An unscoped connected Android task also picked up a newly attached SM-A325F phone.
+Its failed run is not device acceptance evidence; a later read-only query found
+the app absent, with prior install/data state unknown. The owner was asked for
+context. `ANDROID_UI_TARGET_INCIDENT.md` and guard commit 9f5a7de record the incident
+and emulator-only runner. Subsequent passing Android evidence is emulator-only.
+The phone has not been reinstalled or accessed for recovery.
+
+The lexical report retains twelve dynamic candidates, several of which are user
+or source data rather than interface phrases. Greeting and public error/state
+wrappers still require review. Native wording approval, real processing/auth,
+physical devices, full A4 and A5–A7/E/content/store/release gates remain open.

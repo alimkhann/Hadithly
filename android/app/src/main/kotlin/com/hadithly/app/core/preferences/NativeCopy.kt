@@ -379,5 +379,19 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "This removes your synced bookmarks, favorites, notes, reading progress, submissions, and sign-in. It cannot be undone." -> R.string.native_67b48f7a2b18
     "Your App Store subscription is separate: deleting your Hadithly account does not cancel it. Manage or cancel it in your Apple Account subscriptions first if you do not want to keep paying." -> R.string.native_fd2c53986113
     "Your Play Store subscription is separate: deleting your Hadithly account does not cancel it. Manage or cancel it in your Google Play subscriptions first if you do not want to keep paying." -> R.string.native_c569fb27d547
+    "Evidence" -> R.string.native_03867aea70ac
+    "Waiting for upload" -> R.string.native_b99e63e52398
+    "Checking upload" -> R.string.native_01f768539483
+    "Waiting for safety checks" -> R.string.native_21a6f4374e26
+    "Waiting for source checks" -> R.string.native_d95d127e8a1f
+    "Evidence status unavailable" -> R.string.native_ad0033122f6d
+    "Evidence cannot be used" -> R.string.native_4761bd4f5310
+    "Evidence processing failed" -> R.string.native_6fa460e75faa
+    "Remove %1\$@" -> R.string.native_86a053fe90ee
+    "%1\$@, Sunnah.now English text" -> R.string.native_0ba76ea2a8ee
+    "Current hadith %1\$@" -> R.string.native_f722b046be62
+    "model unavailable" -> R.string.native_9bbe267eee43
+    "Current hadith" -> R.string.native_e03c8e3bc5f0
+    "Sunnah.now English (%@)" -> R.string.native_f97dc29342bb
     else -> null
 }

@@ -69,6 +69,65 @@ final class VisualPolishUITests: XCTestCase {
         }
     }
 
+    private struct EvidenceCopyExpectations: Decodable {
+        let keys: [String]
+        let locales: [String: [String]]
+        let state_keys: [String: String]
+        let search_count_labels: [String: String]
+    }
+    private func evidenceCopyExpectations() throws -> EvidenceCopyExpectations {
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        return try JSONDecoder().decode(EvidenceCopyExpectations.self, from: Data(contentsOf: root.appendingPathComponent("docs/a4-evidence-copy.json")))
+    }
+
+    func testEvidenceItemStatesUseSelectedLanguage() throws {
+        let copy = try evidenceCopyExpectations()
+        for locale in ["en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn"] {
+            let values = try XCTUnwrap(copy.locales[locale])
+            let app = launchPolish("evidence-copy-audit", locale: locale)
+            for state in ["reserved", "validating", "quarantined_unscanned", "pending_safe_fetch", "processing", "ready", "failed", "infected", "invalid", "expired", "future_state"] {
+                let key = try XCTUnwrap(copy.state_keys[state])
+                let expected = values[try XCTUnwrap(copy.keys.firstIndex(of: key))]
+                let row = element("submission.itemStatus." + state, app)
+                for _ in 0..<5 { if !row.exists { app.swipeUp() } }
+                XCTAssertTrue(row.waitForExistence(timeout: 5))
+                XCTAssertTrue(row.label.contains(expected), row.label)
+                XCTAssertTrue(row.label.contains("Original source %lld %@.pdf"), row.label)
+            }
+            let progress = element("submission.uploadProgress", app)
+            for _ in 0..<5 { if !progress.exists { app.swipeUp() } }
+            XCTAssertTrue(progress.exists)
+            XCTAssertEqual(progress.value as? String, 0.42.formatted(.percent.precision(.fractionLength(0)).locale(Locale(identifier: locale))))
+            capture("evidence-copy-" + locale, app)
+            app.terminate()
+        }
+    }
+
+    func testSearchScopeAndCountLocalizeWithoutChangingTargets() throws {
+        let copy = try evidenceCopyExpectations()
+        for locale in ["en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn"] {
+            let values = try XCTUnwrap(copy.locales[locale])
+            let value = Locale(identifier: locale)
+            let app = XCUIApplication()
+            app.launchArguments = ["-R6Round3Fixture"]
+            app.launchEnvironment = ["HADITHLY_UI_TESTING":"1", "R6_SCREEN":"search", "R6_SEARCH_STUB":"results", "R6_LOCALE":locale]
+            app.launch()
+            let field = app.searchFields.firstMatch
+            XCTAssertTrue(field.waitForExistence(timeout: 10))
+            field.tap(); field.typeText("mercy")
+            let row = element("reader.search.result.0", app)
+            XCTAssertTrue(row.waitForExistence(timeout: 10))
+            let expected = String(format: values[9], locale: value, arguments: ["Sahih al-Bukhari · Hadith 57"])
+            XCTAssertEqual(withoutDirectionalMarks(row.label), withoutDirectionalMarks(expected))
+            let header = element("reader.search.section", app)
+            XCTAssertEqual(withoutDirectionalMarks(header.label), withoutDirectionalMarks(String(format: try XCTUnwrap(copy.search_count_labels[locale]), locale: value, arguments: [2.formatted(.number.locale(value))])))
+            capture("search-copy-" + locale, app)
+            row.tap()
+            XCTAssertEqual(element("r6.opened", app).label, "Sahih al-Bukhari · Hadith 57")
+            app.terminate()
+        }
+    }
+
     func testDeletionDisclosuresLocalizeAndCancelWithoutRequest() throws {
         struct Copy: Decodable { let locales: [String: [String]]; let fixture_labels: [String: [String: String]] }
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
@@ -838,6 +897,7 @@ final class VisualPolishUITests: XCTestCase {
         if let readingDirection { app.launchEnvironment["R6A_PAGE_DIRECTION"] = readingDirection }
         if arabicOnly { app.launchEnvironment["R6A_TRANSLATION_VISIBLE"] = "false" }
         if production { app.launchEnvironment["PAGING_RENDER"] = "interactive" }
+        if screen == "search-copy-audit" { app.launchEnvironment["R6_SEARCH_STUB"] = "results" }
         app.launch()
         return app
     }

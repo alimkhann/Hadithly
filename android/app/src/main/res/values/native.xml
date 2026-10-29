@@ -280,4 +280,18 @@
     <string name="native_67b48f7a2b18" formatted="false">This removes your synced bookmarks, favorites, notes, reading progress, submissions, and sign-in. It cannot be undone.</string>
     <string name="native_fd2c53986113" formatted="false">Your App Store subscription is separate: deleting your Hadithly account does not cancel it. Manage or cancel it in your Apple Account subscriptions first if you do not want to keep paying.</string>
     <string name="native_c569fb27d547" formatted="false">Your Play Store subscription is separate: deleting your Hadithly account does not cancel it. Manage or cancel it in your Google Play subscriptions first if you do not want to keep paying.</string>
+    <string name="native_03867aea70ac" formatted="false">Evidence</string>
+    <string name="native_b99e63e52398" formatted="false">Waiting for upload</string>
+    <string name="native_01f768539483" formatted="false">Checking upload</string>
+    <string name="native_21a6f4374e26" formatted="false">Waiting for safety checks</string>
+    <string name="native_d95d127e8a1f" formatted="false">Waiting for source checks</string>
+    <string name="native_ad0033122f6d" formatted="false">Evidence status unavailable</string>
+    <string name="native_4761bd4f5310" formatted="false">Evidence cannot be used</string>
+    <string name="native_6fa460e75faa" formatted="false">Evidence processing failed</string>
+    <string name="native_86a053fe90ee" formatted="false">Remove %1$s</string>
+    <string name="native_0ba76ea2a8ee" formatted="false">%1$s, Sunnah.now English text</string>
+    <string name="native_f722b046be62" formatted="false">Current hadith %1$s</string>
+    <string name="native_9bbe267eee43" formatted="false">model unavailable</string>
+    <string name="native_e03c8e3bc5f0" formatted="false">Current hadith</string>
+    <string name="native_f97dc29342bb" formatted="false">Sunnah.now English (%s)</string>
 </resources>

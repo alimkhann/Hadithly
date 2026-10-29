@@ -4,6 +4,68 @@ import CryptoKit
 import SwiftUI
 import UniformTypeIdentifiers
 
+enum EvidenceItemCopy {
+    static func progressLabel(_ progress: Double, locale: Locale) -> String {
+        ((progress * 100).rounded(.towardZero) / 100).formatted(.percent.precision(.fractionLength(0)).locale(locale))
+    }
+    static func statusKey(_ state: String) -> String {
+        switch state {
+        case "reserved": "Waiting for upload"
+        case "validating": "Checking upload"
+        case "quarantined_unscanned": "Waiting for safety checks"
+        case "pending_safe_fetch": "Waiting for source checks"
+        case "processing": "Processing evidence"
+        case "ready": "Evidence checks complete"
+        case "failed": "Evidence processing failed"
+        case "infected", "invalid": "Evidence cannot be used"
+        case "expired": "Evidence expired"
+        default: "Evidence status unavailable"
+        }
+    }
+}
+
+struct EvidenceItemStatusLine: View {
+    let name: String?
+    let state: String
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(name ?? AppLocalization.string("Evidence", locale: locale))
+            Text(LocalizedStringKey(EvidenceItemCopy.statusKey(state)))
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("submission.itemStatus.\(state)")
+    }
+    @Environment(\.locale) private var locale
+}
+
+struct EvidenceUploadProgressView: View {
+    let progress: Double
+    @Environment(\.locale) private var locale
+    var body: some View {
+        ProgressView(value: progress)
+            .accessibilityLabel("Evidence upload progress")
+            .accessibilityValue(Text(EvidenceItemCopy.progressLabel(progress, locale: locale)))
+            .accessibilityIdentifier("submission.uploadProgress")
+    }
+}
+
+#if DEBUG
+struct EvidenceItemCopyAuditFixture: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                ForEach(["reserved", "validating", "quarantined_unscanned", "pending_safe_fetch", "processing", "ready", "failed", "infected", "invalid", "expired", "future_state"], id: \.self) { state in
+                    EvidenceItemStatusLine(name: "Original source %lld %@.pdf", state: state)
+                }
+                EvidenceItemStatusLine(name: nil, state: "future_state").accessibilityIdentifier("submission.itemStatus.noName")
+                EvidenceUploadProgressView(progress: 0.42)
+                EvidenceProcessingStatusView(status: "infected", retryItems: [], errorMessage: nil, onRetry: { _ in }, onWithdraw: {})
+            }.padding(20)
+        }
+    }
+}
+#endif
+
 struct EvidenceProcessingStatusView: View {
     @Environment(\.readerPalette) private var palette
     let status: String
@@ -34,7 +96,7 @@ struct EvidenceProcessingStatusView: View {
                     .font(.subheadline).foregroundStyle(palette.textSecondary)
             } else {
                 Image(systemName: "exclamationmark.circle").font(.largeTitle)
-                Text(status == "infected" ? "Evidence cannot be used" : "Evidence processing failed")
+                Text(LocalizedStringKey(status == "infected" ? "Evidence cannot be used" : "Evidence processing failed"))
                     .font(.headline).accessibilityIdentifier(status == "infected" ? "submission.infected" : "submission.failed")
                 Text("Your suggestion remains private. Withdraw it and submit different evidence if needed.")
                     .font(.subheadline).foregroundStyle(palette.textSecondary)
@@ -242,6 +304,7 @@ private final class EvidenceUploadProgress: NSObject, URLSessionTaskDelegate {
 
 /// Private evidence intake and coarse E2 processing status.
 struct TranslationSubmissionSheet: View {
+    @Environment(\.locale) private var locale
     @Environment(\.readerPalette) private var palette
     @Environment(\.readerTheme) private var readerTheme
     @Environment(AppEnvironment.self) private var environment
@@ -380,7 +443,7 @@ struct TranslationSubmissionSheet: View {
                     if draft == nil {
                         Button("Remove") { remove(item) }
                             .frame(minWidth: 44, minHeight: 44)
-                            .accessibilityLabel("Remove \(item.label)")
+                            .accessibilityLabel(Text(verbatim: AppLocalization.format("Remove %1$@", locale: locale, item.label)))
                     }
                 }
                 .font(.subheadline)
@@ -391,7 +454,7 @@ struct TranslationSubmissionSheet: View {
             if let draft {
                 ForEach(draft.items) { item in
                     HStack {
-                        Text("\(item.displayName ?? item.url ?? "Evidence"): \(item.state.replacingOccurrences(of: "_", with: " "))")
+                        EvidenceItemStatusLine(name: item.displayName ?? item.url, state: item.state)
                             .font(.caption).foregroundStyle(palette.textSecondary)
                         if item.kind == "file" && item.state != "quarantined_unscanned" && evidence.first(where: { $0.id == item.clientItemKey })?.fileURL.map({ !FileManager.default.fileExists(atPath: $0.path) }) != false {
                             Button("Select again") {
@@ -404,10 +467,7 @@ struct TranslationSubmissionSheet: View {
                 }
             }
             if isSubmitting {
-                ProgressView(value: progress)
-                    .accessibilityLabel("Evidence upload progress")
-                    .accessibilityValue(Text("\(Int(progress * 100)) percent"))
-                    .accessibilityIdentifier("submission.uploadProgress")
+                EvidenceUploadProgressView(progress: progress)
             }
             if let errorMessage {
                 Text(errorMessage).font(.caption).foregroundStyle(palette.textSecondary)

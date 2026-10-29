@@ -2596,7 +2596,7 @@ struct ReaderR6Round3FixtureView: View {
                 collectionSlug: "bukhari",
                 providerHadithId: "57",
                 referenceDisplay: "Sahih al-Bukhari · Hadith 57",
-                snippet: "Deeds are judged by \(text)."
+                snippet: "Prepared English search example: \(text)."
             ),
             EnglishSearchResult(
                 hadithId: "row-58",
@@ -2604,7 +2604,7 @@ struct ReaderR6Round3FixtureView: View {
                 collectionSlug: "bukhari",
                 providerHadithId: "58",
                 referenceDisplay: "Sahih al-Bukhari · Hadith 58",
-                snippet: "None of you believes until he loves for his brother what \(text)."
+                snippet: "Another prepared English search example: \(text)."
             ),
         ]
     }

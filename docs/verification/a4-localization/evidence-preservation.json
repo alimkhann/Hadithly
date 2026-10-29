@@ -1,0 +1,31 @@
+{
+  "scope": "Original localization payloads match except the five deliberate repairs across the goal. Full raw-byte normalization no longer matches: additional catalog ordering and extraction-state differences are present. These working changes are retained unstaged, not overwritten or included with this unit. Scoped staging independently checks all existing indexed entries.",
+  "unexpected_original_localization_changes": [],
+  "metadata_only_working_changes_against_head": [
+    "q1.generate",
+    "%@ %@",
+    "%@ hadiths",
+    "Actions are judged by intentions.",
+    "AI translation unavailable · retry",
+    "AI translation…",
+    "AI translations are labeled and grounded in cited sources.",
+    "App appearance",
+    "Applies across the app. The reader previews each theme live.",
+    "Arabic reading faces — Amiri, Scheherazade New, and Noto Naskh Arabic — are licensed under the SIL Open Font License 1.1 (https://openfontlicense.org). Full license records live in docs/FONT_LICENSES.md.",
+    "Export your profile, preferences, Saved items, folders, reading progress, and your own contributions as JSON. Guest data never leaves this device.",
+    "Hadith source identity, authenticity scope, and license records travel with every text. A technically accessible source is not automatically reusable.",
+    "Jump to a hadith number, e.g. 57.",
+    "Open %@ from the start",
+    "Sign-in lives on the Settings tab.",
+    "You can undo this action from the message at the top.",
+    "إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ",
+    "%@: %@"
+  ],
+  "full_original_byte_match": false,
+  "unchanged_project_fingerprints": {
+    "ios/Hadithly.xcodeproj/project.pbxproj": "96350e43481804f2d09dfd0e09609f894d7eedcc6a5326a6cb63c16cb9992efb",
+    "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/Hadithly.xcscheme": "4855a090d537eafb377cd99d70425fb44137ad64588059f01727ffbbd0fa95b6",
+    "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/LA2Verification.xcscheme": "74eff6b5902f4989fcf1d4d5d17a9c1c65bb66571cde851e2b932bff7520bfed",
+    "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/Phase4Live.xcscheme": "35c6cbf95690fc03a4497131c41eeb41983b35123116204af04dd0842baa982d"
+  }
+}

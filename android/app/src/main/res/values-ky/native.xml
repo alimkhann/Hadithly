@@ -75,7 +75,7 @@
     <string name="native_49103f50966a">%1$s тилиндеги котормо азырынча жеткиликтүү эмес.</string>
     <string name="native_49c266baaaa7" formatted="false">Издөө</string>
     <string name="native_4dc42835fbc3">Шилтеме: %1$s</string>
-    <string name="native_51da6060f286" formatted="false">Evidence expired</string>
+    <string name="native_51da6060f286" formatted="false">Далилдин мөөнөтү бүттү</string>
     <string name="native_540ec6e92d83">Sunnah.now англисче текстинен дал келген нерсе табылган жок.</string>
     <string name="native_5474755405da" formatted="false">Кайра тандоо</string>
     <string name="native_565339bc4d33" formatted="false">Макул</string>
@@ -109,12 +109,12 @@
     <string name="native_9449e60a6bd1">Жыйнакты жана хадистин номерин кошуңуз.</string>
     <string name="native_96b3b31d45ab">Түзмөктүн сактагычын ачуу</string>
     <string name="native_96be15d18327" formatted="false">Арабча текст</string>
-    <string name="native_98770753608c" formatted="false">Evidence checks complete</string>
+    <string name="native_98770753608c" formatted="false">Далилдин текшерүүлөрү аяктады</string>
     <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
     <string name="native_9f9feade761d" formatted="false">Жыйнактар</string>
     <string name="native_a1a6ea9533fa">Офлайн издөө жеткиликсиз.</string>
     <string name="native_b01111be1821">Англисче тексттен издөө</string>
-    <string name="native_b67dee925588">Sunnah.now англисче тексти</string>
+    <string name="native_b67dee925588" formatted="false">Sunnah.now англисче тексти</string>
     <string name="native_b7337027ef1f">Башка электрондук почтаны колдонуу</string>
     <string name="native_b7bd92f57552" formatted="false">Withdraw suggestion</string>
     <string name="native_b97457409ab5" formatted="false">Кодду кайра жөнөтүү</string>
@@ -282,4 +282,18 @@
     <string name="native_67b48f7a2b18" formatted="false">Шайкештештирилген кыстармаларыңыз, тандалмаларыңыз, жазууларыңыз, окуу жүрүшүңүз, жөнөткөн материалдарыңыз жана кирүү маалыматтарыңыз өчүрүлөт. Бул аракетти артка кайтаруу мүмкүн эмес.</string>
     <string name="native_fd2c53986113" formatted="false">App Store жазылууңуз өзүнчө: Hadithly аккаунтуңузду өчүрүү аны жокко чыгарбайт. Төлөөнү улантууну каалабасаңыз, адегенде Apple аккаунтуңуздун жазылуулар бөлүмүндө аны башкарыңыз же жокко чыгарыңыз.</string>
     <string name="native_c569fb27d547" formatted="false">Play Store жазылууңуз өзүнчө: Hadithly аккаунтуңузду өчүрүү аны жокко чыгарбайт. Төлөөнү улантууну каалабасаңыз, адегенде Google Play жазылуулар бөлүмүндө аны башкарыңыз же жокко чыгарыңыз.</string>
+    <string name="native_03867aea70ac" formatted="false">Далил</string>
+    <string name="native_b99e63e52398" formatted="false">Жүктөлүшүн күтүү</string>
+    <string name="native_01f768539483" formatted="false">Жүктөө текшерилүүдө</string>
+    <string name="native_21a6f4374e26" formatted="false">Коопсуздук текшерүүсүн күтүү</string>
+    <string name="native_d95d127e8a1f" formatted="false">Булак текшерүүсүн күтүү</string>
+    <string name="native_ad0033122f6d" formatted="false">Далилдин абалы жеткиликсиз</string>
+    <string name="native_4761bd4f5310" formatted="false">Далилди колдонууга болбойт</string>
+    <string name="native_6fa460e75faa" formatted="false">Далилди иштетүү ишке ашкан жок</string>
+    <string name="native_86a053fe90ee" formatted="false">%1$s алып салуу</string>
+    <string name="native_0ba76ea2a8ee" formatted="false">%1$s, Sunnah.now англисче тексти</string>
+    <string name="native_f722b046be62" formatted="false">Учурдагы хадис %1$s</string>
+    <string name="native_9bbe267eee43" formatted="false">модель жеткиликсиз</string>
+    <string name="native_e03c8e3bc5f0" formatted="false">Учурдагы хадис</string>
+    <string name="native_f97dc29342bb" formatted="false">Sunnah.now англисче тексти (%s)</string>
 </resources>

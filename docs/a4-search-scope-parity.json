@@ -1,0 +1,24 @@
+{
+  "native_review": "pending",
+  "reuse_indexed_ios": true,
+  "keys": [
+    "Sunnah.now English (%@)"
+  ],
+  "locales": [
+    "en",
+    "ar",
+    "ru",
+    "kk",
+    "ky",
+    "uz",
+    "tr",
+    "id",
+    "ur",
+    "fr",
+    "es-419",
+    "pt-BR",
+    "sw",
+    "hi",
+    "bn"
+  ]
+}

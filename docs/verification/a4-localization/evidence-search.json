@@ -1,0 +1,98 @@
+{
+  "ios": {
+    "runs": [
+      {
+        "bundle": "hadithly-a4-evidence-copy-red-ios.xcresult",
+        "startTime": 1793280850.725,
+        "result": "Failed",
+        "passedTests": 0,
+        "failedTests": 1,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-evidence-search-matrix-ios.xcresult",
+        "startTime": 1793281782.313,
+        "result": "Failed",
+        "passedTests": 1,
+        "failedTests": 1,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-search-matrix2-ios.xcresult",
+        "startTime": 1793282384.467,
+        "result": "Passed",
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-evidence-percent-ios.xcresult",
+        "startTime": 1793282805.975,
+        "result": "Passed",
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-search-final-ios.xcresult",
+        "startTime": 1793283428.367,
+        "result": "Passed",
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0
+      }
+    ],
+    "latestCases": {
+      "HadithlyUITests/VisualPolishUITests/testEvidenceItemStatesUseSelectedLanguage()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-evidence-search-matrix-ios.xcresult"
+      },
+      "HadithlyUITests/VisualPolishUITests/testSearchScopeAndCountLocalizeWithoutChangingTargets()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-search-final-ios.xcresult"
+      },
+      "HadithlyTests/EvidenceLocalDraftTests/testEvidenceProgressKeepsWholePercentTruncationInEveryLocale()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-evidence-percent-ios.xcresult"
+      }
+    },
+    "latestCounts": {
+      "Passed": 3
+    }
+  },
+  "android": {
+    "unit": {
+      "counts": {
+        "Passed": 1
+      },
+      "cases": {
+        "com.hadithly.app.EvidenceClientPolicyTest/progressKeepsWholePercentTruncationInEveryLocale": "Passed"
+      },
+      "reports": [
+        {
+          "file": "TEST-com.hadithly.app.EvidenceClientPolicyTest.xml",
+          "sha256": "f822f2da8c0a7ac6e1cd9c8ffd50f58d9fa21ea51fb5a24c325c7041f071789d"
+        }
+      ]
+    },
+    "ui": {
+      "counts": {
+        "Passed": 2
+      },
+      "cases": {
+        "com.hadithly.app.core.theme.NativeFinishingTest/evidenceItemStatesUseSelectedLanguage": "Passed",
+        "com.hadithly.app.features.reader.ReaderR6Round3Test/searchScopeAndCountLocalizeWithoutChangingTargets": "Passed"
+      },
+      "reports": [
+        {
+          "file": "TEST-emulator-0.xml",
+          "sha256": "c1ab3a9bff88241c08d305152bff67b095358f1babd3e5afb1a93bee70f07078"
+        },
+        {
+          "file": "TEST-search-capture-0.xml",
+          "sha256": "5d3dc0bca6eeed5af90d1df663199aa887168dd69dc16931ccab8b5b8909195d"
+        }
+      ]
+    }
+  }
+}

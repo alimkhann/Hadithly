@@ -75,7 +75,7 @@
     <string name="native_49103f50966a">Terjemahan %1$s belum tersedia.</string>
     <string name="native_49c266baaaa7" formatted="false">Cari</string>
     <string name="native_4dc42835fbc3">Referensi: %1$s</string>
-    <string name="native_51da6060f286" formatted="false">Evidence expired</string>
+    <string name="native_51da6060f286" formatted="false">Bukti kedaluwarsa</string>
     <string name="native_540ec6e92d83">Tidak ada kecocokan dalam teks bahasa Inggris Sunnah.now.</string>
     <string name="native_5474755405da" formatted="false">Pilih lagi</string>
     <string name="native_565339bc4d33" formatted="false">Oke</string>
@@ -109,12 +109,12 @@
     <string name="native_9449e60a6bd1">Sertakan koleksi dan nomor hadis.</string>
     <string name="native_96b3b31d45ab">Buka penyimpanan perangkat</string>
     <string name="native_96be15d18327" formatted="false">Teks Arab</string>
-    <string name="native_98770753608c" formatted="false">Evidence checks complete</string>
+    <string name="native_98770753608c" formatted="false">Pemeriksaan bukti selesai</string>
     <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
     <string name="native_9f9feade761d" formatted="false">Koleksi</string>
     <string name="native_a1a6ea9533fa">Pencarian tidak tersedia offline.</string>
     <string name="native_b01111be1821">Cari teks bahasa Inggris</string>
-    <string name="native_b67dee925588">Teks bahasa Inggris Sunnah.now</string>
+    <string name="native_b67dee925588" formatted="false">Teks bahasa Inggris Sunnah.now</string>
     <string name="native_b7337027ef1f">Gunakan email lain</string>
     <string name="native_b7bd92f57552" formatted="false">Withdraw suggestion</string>
     <string name="native_b97457409ab5" formatted="false">Kirim ulang kode</string>
@@ -282,4 +282,18 @@
     <string name="native_67b48f7a2b18" formatted="false">Tindakan ini menghapus penanda, favorit, catatan, progres membaca, kiriman, dan informasi masuk Anda yang tersinkron. Tindakan ini tidak dapat dibatalkan.</string>
     <string name="native_fd2c53986113" formatted="false">Langganan App Store Anda terpisah: menghapus akun Hadithly tidak membatalkannya. Jika Anda tidak ingin terus membayar, kelola atau batalkan terlebih dahulu di bagian langganan Akun Apple Anda.</string>
     <string name="native_c569fb27d547" formatted="false">Langganan Play Store Anda terpisah: menghapus akun Hadithly tidak membatalkannya. Jika Anda tidak ingin terus membayar, kelola atau batalkan terlebih dahulu di bagian langganan Google Play.</string>
+    <string name="native_03867aea70ac" formatted="false">Bukti</string>
+    <string name="native_b99e63e52398" formatted="false">Menunggu unggahan</string>
+    <string name="native_01f768539483" formatted="false">Memeriksa unggahan</string>
+    <string name="native_21a6f4374e26" formatted="false">Menunggu pemeriksaan keamanan</string>
+    <string name="native_d95d127e8a1f" formatted="false">Menunggu pemeriksaan sumber</string>
+    <string name="native_ad0033122f6d" formatted="false">Status bukti tidak tersedia</string>
+    <string name="native_4761bd4f5310" formatted="false">Bukti tidak dapat digunakan</string>
+    <string name="native_6fa460e75faa" formatted="false">Pemrosesan bukti gagal</string>
+    <string name="native_86a053fe90ee" formatted="false">Hapus %1$s</string>
+    <string name="native_0ba76ea2a8ee" formatted="false">%1$s, Teks bahasa Inggris Sunnah.now</string>
+    <string name="native_f722b046be62" formatted="false">Hadis saat ini %1$s</string>
+    <string name="native_9bbe267eee43" formatted="false">model tidak tersedia</string>
+    <string name="native_e03c8e3bc5f0" formatted="false">Hadis saat ini</string>
+    <string name="native_f97dc29342bb" formatted="false">Teks Inggris Sunnah.now (%s)</string>
 </resources>

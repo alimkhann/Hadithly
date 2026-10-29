@@ -75,7 +75,7 @@
     <string name="native_49103f50966a">%1$s çevirisi henüz kullanılamıyor.</string>
     <string name="native_49c266baaaa7" formatted="false">Ara</string>
     <string name="native_4dc42835fbc3">Referans: %1$s</string>
-    <string name="native_51da6060f286" formatted="false">Evidence expired</string>
+    <string name="native_51da6060f286" formatted="false">Kanıtın süresi doldu</string>
     <string name="native_540ec6e92d83">Sunnah.now İngilizce metninde eşleşme yok.</string>
     <string name="native_5474755405da" formatted="false">Tekrar seç</string>
     <string name="native_565339bc4d33" formatted="false">Tamam</string>
@@ -109,12 +109,12 @@
     <string name="native_9449e60a6bd1">Koleksiyonu ve hadis numarasını ekleyin.</string>
     <string name="native_96b3b31d45ab">Cihaz depolamasını aç</string>
     <string name="native_96be15d18327" formatted="false">Arapça metin</string>
-    <string name="native_98770753608c" formatted="false">Evidence checks complete</string>
+    <string name="native_98770753608c" formatted="false">Kanıt kontrolleri tamamlandı</string>
     <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
     <string name="native_9f9feade761d" formatted="false">Koleksiyonlar</string>
     <string name="native_a1a6ea9533fa">Çevrimdışı arama kullanılamıyor.</string>
     <string name="native_b01111be1821">İngilizce metinde ara</string>
-    <string name="native_b67dee925588">Sunnah.now İngilizce metni</string>
+    <string name="native_b67dee925588" formatted="false">Sunnah.now İngilizce metni</string>
     <string name="native_b7337027ef1f">Farklı bir e-posta kullan</string>
     <string name="native_b7bd92f57552" formatted="false">Withdraw suggestion</string>
     <string name="native_b97457409ab5" formatted="false">Kodu yeniden gönder</string>
@@ -282,4 +282,18 @@
     <string name="native_67b48f7a2b18" formatted="false">Senkronize yer işaretleriniz, favorileriniz, notlarınız, okuma ilerlemeniz, gönderimleriniz ve oturum açma bilgileriniz silinir. Bu işlem geri alınamaz.</string>
     <string name="native_fd2c53986113" formatted="false">App Store aboneliğiniz ayrıdır: Hadithly hesabınızı silmek aboneliği iptal etmez. Ödeme yapmaya devam etmek istemiyorsanız önce Apple Hesabı aboneliklerinizden aboneliğinizi yönetin veya iptal edin.</string>
     <string name="native_c569fb27d547" formatted="false">Play Store aboneliğiniz ayrıdır: Hadithly hesabınızı silmek aboneliği iptal etmez. Ödeme yapmaya devam etmek istemiyorsanız önce Google Play aboneliklerinizden aboneliğinizi yönetin veya iptal edin.</string>
+    <string name="native_03867aea70ac" formatted="false">Kanıt</string>
+    <string name="native_b99e63e52398" formatted="false">Yükleme bekleniyor</string>
+    <string name="native_01f768539483" formatted="false">Yükleme kontrol ediliyor</string>
+    <string name="native_21a6f4374e26" formatted="false">Güvenlik kontrolleri bekleniyor</string>
+    <string name="native_d95d127e8a1f" formatted="false">Kaynak kontrolleri bekleniyor</string>
+    <string name="native_ad0033122f6d" formatted="false">Kanıt durumu kullanılamıyor</string>
+    <string name="native_4761bd4f5310" formatted="false">Kanıt kullanılamaz</string>
+    <string name="native_6fa460e75faa" formatted="false">Kanıt işlenemedi</string>
+    <string name="native_86a053fe90ee" formatted="false">%1$s öğesini kaldır</string>
+    <string name="native_0ba76ea2a8ee" formatted="false">%1$s, Sunnah.now İngilizce metni</string>
+    <string name="native_f722b046be62" formatted="false">Geçerli hadis %1$s</string>
+    <string name="native_9bbe267eee43" formatted="false">model kullanılamıyor</string>
+    <string name="native_e03c8e3bc5f0" formatted="false">Geçerli hadis</string>
+    <string name="native_f97dc29342bb" formatted="false">Sunnah.now İngilizce metin (%s)</string>
 </resources>

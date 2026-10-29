@@ -30,6 +30,7 @@ struct NativePolishFixtureView: View {
                     case "app-language": AppLanguageView()
                     case "privacy": PrivacyDataView(showSignIn: .constant(false))
                     case "deletion-audit": AccountDeletionCopyAuditFixture()
+                    case "evidence-copy-audit": EvidenceItemCopyAuditFixture()
                     case "saved-undo":
                         VStack {
                             SavedUndoBanner(notice: SavedUndoNotice(message: "Bookmark removed", undo: {}, deadline: .distantFuture))

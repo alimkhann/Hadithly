@@ -36,6 +36,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -74,13 +75,49 @@ private fun evidenceError(failure: Throwable): String {
         ?.take(180) ?: "Evidence could not be submitted. Please retry."
 }
 
+internal fun evidenceItemStatusKey(state: String): String = when (state) {
+    "reserved" -> "Waiting for upload"
+    "validating" -> "Checking upload"
+    "quarantined_unscanned" -> "Waiting for safety checks"
+    "pending_safe_fetch" -> "Waiting for source checks"
+    "processing" -> "Processing evidence"
+    "ready" -> "Evidence checks complete"
+    "failed" -> "Evidence processing failed"
+    "infected", "invalid" -> "Evidence cannot be used"
+    "expired" -> "Evidence expired"
+    else -> "Evidence status unavailable"
+}
+
+@Composable
+internal fun EvidenceItemStatusLine(name: String?, state: String, modifier: Modifier = Modifier) {
+    val colors = LocalHadithlyColors.current
+    Column(modifier.testTag("submission.itemStatus.$state")) {
+        Text(name ?: nativeText("Evidence"), color = colors.textSecondary, fontSize = 12.sp)
+        Text(nativeText(evidenceItemStatusKey(state)), color = colors.textSecondary, fontSize = 12.sp)
+    }
+}
+
+internal fun evidenceUploadProgressLabel(progress: Double, locale: java.util.Locale): String =
+    java.text.NumberFormat.getPercentInstance(locale).apply { maximumFractionDigits = 0; roundingMode = java.math.RoundingMode.DOWN }.format(progress)
+
+@Composable
+internal fun EvidenceUploadProgress(progress: Double) {
+    val label = nativeText("Evidence upload progress")
+    val percent = evidenceUploadProgressLabel(progress, androidx.compose.ui.platform.LocalConfiguration.current.locales[0])
+    LinearProgressIndicator(progress = { progress.toFloat() }, modifier = Modifier.fillMaxWidth().semantics {
+        contentDescription = label
+        stateDescription = percent
+    }.testTag("submission.uploadProgress"))
+}
+
 @Composable
 internal fun EvidenceProcessingStatusContent(status: String, retryItems: List<String>, citations: List<EvidenceCitation> = emptyList(), appeal: EvidenceAppealState? = null, onAppeal: (String) -> Unit = {}, onRetry: (String) -> Unit) {
     val colors = LocalHadithlyColors.current
     val uriHandler = LocalUriHandler.current
+    val processingLabel = nativeText("Processing evidence")
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         if (status == "awaiting_processing") {
-            CircularProgressIndicator(modifier = Modifier.testTag("submission.processing").semantics { contentDescription = "Processing evidence" })
+            CircularProgressIndicator(modifier = Modifier.testTag("submission.processing").semantics { contentDescription = processingLabel })
             Text(nativeText("Evidence received; awaiting checks."), color = colors.textPrimary, fontSize = 18.sp)
             Text(nativeText("Processing evidence. Your suggestion stays private and has not been reviewed or published."), color = colors.textSecondary)
         } else if (status in setOf("under_review", "approved", "held", "rejected", "review_unavailable", "revoked")) {
@@ -107,7 +144,7 @@ internal fun EvidenceProcessingStatusContent(status: String, retryItems: List<St
             Text(nativeText("Evidence checks complete"), color = colors.textPrimary, fontSize = 18.sp, modifier = Modifier.testTag("submission.ready"))
             Text(stringResource(R.string.e3_waiting), color = colors.textSecondary)
         } else {
-            Text(if (status == "infected") "Evidence cannot be used" else "Evidence processing failed", color = colors.textPrimary, fontSize = 18.sp,
+            Text(nativeText(if (status == "infected") "Evidence cannot be used" else "Evidence processing failed"), color = colors.textPrimary, fontSize = 18.sp,
                 modifier = Modifier.testTag(if (status == "infected") "submission.infected" else "submission.failed"))
             Text(nativeText("Your suggestion remains private. Withdraw it and submit different evidence if needed."), color = colors.textSecondary)
         }
@@ -385,12 +422,15 @@ fun TranslationSubmissionSheet(
                 choices.forEach { choice ->
                     Row(modifier = Modifier.fillMaxWidth()) {
                         Text(choice.label, color = colors.textPrimary, modifier = Modifier.weight(1f))
-                        if (draft == null) TextButton(onClick = { choice.filePath?.let { File(it).delete() }; choices.remove(choice) }) { Text(nativeText("Remove")) }
+                        if (draft == null) {
+                            val removeLabel = nativeText("Remove %1$@", choice.label)
+                            TextButton(onClick = { choice.filePath?.let { File(it).delete() }; choices.remove(choice) }, modifier = Modifier.semantics { contentDescription = removeLabel }) { Text(nativeText("Remove")) }
+                        }
                     }
                 }
                 draft?.items?.forEach { item ->
                     Row(modifier = Modifier.fillMaxWidth()) {
-                        Text("${item.displayName ?: item.url ?: "Evidence"}: ${item.state.replace('_', ' ')}", color = colors.textSecondary, fontSize = 12.sp, modifier = Modifier.weight(1f))
+                        EvidenceItemStatusLine(item.displayName ?: item.url, item.state, Modifier.weight(1f))
                         if (item.kind == "file" && item.state != "quarantined_unscanned" && choices.firstOrNull { it.id == item.clientItemKey }?.filePath?.let { File(it).isFile } != true) {
                             TextButton(onClick = {
                                 replacingItemKey = item.clientItemKey
@@ -399,11 +439,7 @@ fun TranslationSubmissionSheet(
                         }
                     }
                 }
-                if (uploading) LinearProgressIndicator(
-                    progress = { progress.toFloat() },
-                    modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Evidence upload progress" }
-                        .testTag("submission.uploadProgress"),
-                )
+                if (uploading) EvidenceUploadProgress(progress)
                 error?.let { Text(it, color = colors.textSecondary, modifier = Modifier.testTag("submission.error")) }
                 if (uploading) TextButton(onClick = { uploadJob?.cancel() }, modifier = Modifier.testTag("submission.cancelUpload")) { Text(nativeText("Cancel upload")) }
                 if (draft != null && !uploading) TextButton(onClick = {

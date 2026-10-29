@@ -285,6 +285,35 @@ class NativeFinishingTest {
         }
     }
 
+    @Test fun evidenceItemStatesUseSelectedLanguage() {
+        val copy = org.json.JSONObject(InstrumentationRegistry.getInstrumentation().context.assets.open("a4-evidence-copy.json").bufferedReader().use { it.readText() })
+        val keys = copy.getJSONArray("keys")
+        val states = listOf("reserved", "validating", "quarantined_unscanned", "pending_safe_fetch", "processing", "ready", "failed", "infected", "invalid", "expired", "future_state")
+        var locale by mutableStateOf("en")
+        compose.setContent { key(locale) { LocalizedPreview(ReaderTheme.LIGHT, locale) {
+            Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(16.dp)) {
+                for (state in states) com.hadithly.app.features.reader.EvidenceItemStatusLine("Original source %lld %@.pdf", state)
+                com.hadithly.app.features.reader.EvidenceUploadProgress(0.42)
+                com.hadithly.app.features.reader.EvidenceProcessingStatusContent("infected", emptyList(), onRetry = {})
+            }
+        } } }
+        for (tag in listOf("en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn")) {
+            compose.runOnIdle { locale = tag }
+            val values = copy.getJSONObject("locales").getJSONArray(tag)
+            for (state in states) {
+                val key = copy.getJSONObject("state_keys").getString(state)
+                val index = (0 until keys.length()).first { keys.getString(it) == key }
+                compose.onNode(hasText(values.getString(index)) and hasAnyAncestor(hasTestTag("submission.itemStatus.$state")), useUnmergedTree = true).performScrollTo().assertIsDisplayed()
+                compose.onNode(hasText("Original source %lld %@.pdf") and hasAnyAncestor(hasTestTag("submission.itemStatus.$state")), useUnmergedTree = true).assertExists()
+            }
+            val progress = compose.onNodeWithTag("submission.uploadProgress")
+            progress.performScrollTo().assertIsDisplayed()
+            val expected = java.text.NumberFormat.getPercentInstance(java.util.Locale.forLanguageTag(tag)).apply { maximumFractionDigits = 0 }.format(0.42)
+            progress.assert(SemanticsMatcher.expectValue(androidx.compose.ui.semantics.SemanticsProperties.StateDescription, expected))
+            capture("evidence-copy-$tag")
+        }
+    }
+
     @Test fun deletionDisclosuresLocalizeAndCancelWithoutRequest() = verifyDeletionDisclosures(false)
 
     @Test fun deletionDisclosuresRemainReadableWithSystemLargeText() = verifyDeletionDisclosures(true)

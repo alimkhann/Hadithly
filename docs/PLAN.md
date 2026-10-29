@@ -57,6 +57,19 @@ start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
 
+## A4 evidence/search checkpoint, October 29
+
+Evidence item states now use fixed localized labels, with an unavailable fallback
+for unknown states and verbatim filenames/URLs. Search scope/count labels pass all
+fifteen locales while keeping references, snippets and navigation targets intact.
+Two indexed English-only evidence drafts are repaired by hash/locale guard; native
+review remains pending. Percentage boundaries retain truncation. See
+`A4_RUNTIME_LOCALIZATION.md` for exact native evidence and remaining bindings.
+An unscoped Android run also included a newly connected phone; its prior local
+state is unknown and no device gate passed. Read `ANDROID_UI_TARGET_INCIDENT.md`.
+Use the guarded emulator runner. Continue greeting/error and remaining runtime
+review, then A5–A7/E. Content, native-review, physical/store/release gates stay open.
+
 ## A4 deletion-disclosure checkpoint, October 29
 
 Deletion disclosures and separate App Store / Play Store subscription warnings
@@ -2648,6 +2661,9 @@ Collect these only when the matching session reaches the final action:
   screenshots.
 
 ## Mistakes that still matter
+
+- Connected Android tasks can install/remove packages on newly attached phones.
+  Use the guarded runner in AGENTS; see `ANDROID_UI_TARGET_INCIDENT.md`.
 
 - Swift and Kotlin numeric Convex arguments must use `Double` for `v.number()`.
 - Android Convex calls, including subscription collection, run on

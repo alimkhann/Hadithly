@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Synchronize the scoped UI-polish copy while preserving unrelated catalog content."""
 import hashlib
+import copy
 import json
 import re
 import argparse
@@ -56,11 +57,14 @@ for i,key in enumerate(keys if not args.android_only else []):
     quoted=json.dumps(key,ensure_ascii=False)
     match=re.search(r'^    '+re.escape(quoted)+r'\s*:\s*',text,re.M)
     entry,end=decoder.raw_decode(text,match.end()) if match else ({'extractionState':'manual','localizations':{}},0)
+    original_entry=copy.deepcopy(entry)
     for locale,values in locales.items():
         existing=entry.setdefault('localizations',{}).get(locale,{}).get('stringUnit',{})
+        if locale=='en' and existing.get('value')==values[i]: continue
         if existing.get('value') and existing['value']!=key and existing.get('state')=='translated':
             continue
         entry['localizations'][locale]={'stringUnit':{'state':'translated' if locale=='en' else 'needs_review','value':values[i]}}
+    if match and entry==original_entry: continue
     value=json.dumps(entry,ensure_ascii=False,indent=2).replace('\n','\n    ')
     if match: text=text[:match.end()]+value+text[end:]
     else:
@@ -106,5 +110,7 @@ output(helper,text)
 if asset_name:
     path=ROOT/'android/app/src/androidTest/assets'/asset_name
     if not check: path.parent.mkdir(parents=True,exist_ok=True)
-    output(path,json.dumps({'source':args.source,'native_review':source.get('native_review','pending'),'locales':locales,'labels':source.get('fixture_labels',{})},ensure_ascii=False,indent=2)+'\n')
+    fixture={'source':args.source,'native_review':source.get('native_review','pending'),'locales':locales,'labels':source.get('fixture_labels',{})}
+    if source.get('state_keys'): fixture.update({'keys':keys,'state_keys':source['state_keys'],'search_count_labels':source.get('search_count_labels',{})})
+    output(path,json.dumps(fixture,ensure_ascii=False,indent=2)+'\n')
 print(f'UI-polish copy synchronized: {len(keys)} keys x {len(locales)} locales; native review pending.')

@@ -2,6 +2,16 @@ import XCTest
 @testable import Hadithly
 
 final class EvidenceLocalDraftTests: XCTestCase {
+    func testEvidenceProgressKeepsWholePercentTruncationInEveryLocale() {
+        for tag in ["en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn"] {
+            let locale = Locale(identifier: tag)
+            for (value, percent) in [(0.0, 0), (0.001, 0), (0.429, 42), (0.999, 99), (1.0, 100)] {
+                let expected = (Double(percent) / 100).formatted(.percent.precision(.fractionLength(0)).locale(locale))
+                XCTAssertEqual(EvidenceItemCopy.progressLabel(value, locale: locale), expected)
+            }
+        }
+    }
+
     func testEvidencePreflightBoundaries() {
         XCTAssertFalse(EvidenceClientPolicy.acceptsFileSize(0))
         XCTAssertTrue(EvidenceClientPolicy.acceptsFileSize(10_000_000))
