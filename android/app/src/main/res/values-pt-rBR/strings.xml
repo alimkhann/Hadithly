@@ -26,7 +26,7 @@
     <string name="saved_delete_note" formatted="false">Excluir nota</string>
     <string name="saved_copy" formatted="false">Copiar</string>
     <string name="saved_share" formatted="false">Compartilhar</string>
-    <string name="saved_suggest_translation">Suggest translation</string>
+    <string name="saved_suggest_translation" formatted="false">Sugerir tradução</string>
     <string name="saved_preview_retry">Preview unavailable. Tap to retry.</string>
     <string name="saved_show_preview" formatted="false">Mostrar prévia do hadith</string>
     <string name="saved_hide_preview" formatted="false">Ocultar prévia do hadith</string>
@@ -62,9 +62,9 @@
     <string name="e3_rejected_message" formatted="false">As verificações não apoiaram a publicação. Sua sugestão continua privada.</string>
     <string name="e3_unavailable_message" formatted="false">Sua sugestão continua privada. Retire-a e tente novamente mais tarde, se necessário.</string>
     <string name="e3_waiting" formatted="false">Sua sugestão continua privada enquanto aguarda revisão.</string>
-    <string name="e3_sources">Sources</string>
+    <string name="e3_sources" formatted="false">Fontes</string>
     <string name="e3_consent" formatted="false">Ao enviar, você permite que a Hadithly revise e publique sua sugestão. As fontes das evidências ainda precisam de permissão.</string>
-    <string name="e3_translation_sources">Translation sources</string>
+    <string name="e3_translation_sources" formatted="false">Fontes da tradução</string>
     <string name="e3_community_sources_message" formatted="false">Um colaborador sugeriu esta tradução. As revisões automáticas a compararam com as evidências citadas. Ela não é uma tradução autorizada.</string>
     <string name="e3_contributor_label" formatted="false">· tradução de colaborador</string>
     <string name="e3_report_saved_detail" formatted="false">Os relatórios são salvos em privado. Você pode continuar lendo.</string>

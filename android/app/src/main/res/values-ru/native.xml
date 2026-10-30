@@ -2,7 +2,7 @@
 <resources>
     <string name="native_19766ed6ccb2" formatted="false">Отмена</string>
     <string name="native_29887a5ff984">Поделиться</string>
-    <string name="native_3c707d34de67">Suggest translation</string>
+    <string name="native_3c707d34de67" formatted="false">Предложить перевод</string>
     <string name="native_4fa960716706" formatted="false">Удалить и больше не спрашивать</string>
     <string name="native_74a883a037bc">Настройки</string>
     <string name="native_76900f1bfd16" formatted="false">Назад</string>
@@ -54,14 +54,14 @@
     <string name="native_099cd53b4147">Экспортировать профиль, настройки, сохранённые элементы, папки, прогресс чтения и собственные материалы в JSON.</string>
     <string name="native_0ab48e787f8a">Добавьте от одной до трёх ссылок на источники или файлов. Доказательства остаются приватными во время проверки.</string>
     <string name="native_0ccfef828950">Закрыть настройки</string>
-    <string name="native_102b5d6815d5" formatted="false">Sign in from Settings to suggest a translation with evidence.</string>
+    <string name="native_102b5d6815d5" formatted="false">Войдите в аккаунт в Настройках, чтобы предложить перевод с доказательствами.</string>
     <string name="native_11a6767d5674" formatted="false">Готово</string>
     <string name="native_1509f561f241" formatted="false">Сохранить</string>
-    <string name="native_161faa795821" formatted="false">The private files were removed before processing. You can start a new suggestion.</string>
+    <string name="native_161faa795821" formatted="false">Закрытые файлы были удалены до обработки. Вы можете начать новое предложение.</string>
     <string name="native_1bac4007880b">Закладка</string>
     <string name="native_1ddc2d9a1a21">Личная причина</string>
     <string name="native_258de606097f">ТОМА</string>
-    <string name="native_2f4412f8bb6a" formatted="false">Processing evidence. Your suggestion stays private and has not been reviewed or published.</string>
+    <string name="native_2f4412f8bb6a" formatted="false">Доказательства обрабатываются. Ваше предложение остаётся закрытым; оно ещё не проверено и не опубликовано.</string>
     <string name="native_30b8238e7f5b">Присылать мне хадис каждый день</string>
     <string name="native_30c1d8d3e912" formatted="false">Забыли пароль?</string>
     <string name="native_326d9c957d5a" formatted="false">Отменить загрузку</string>
@@ -95,7 +95,7 @@
     <string name="native_7b4888049459" formatted="false">Фамилия</string>
     <string name="native_7b503321357a" formatted="false">Удалить аккаунт и данные</string>
     <string name="native_7d94fc6f0852">Напишите личную заметку…</string>
-    <string name="native_82c66ec1be55" formatted="false">Evidence received; awaiting checks.</string>
+    <string name="native_82c66ec1be55" formatted="false">Доказательства получены; ожидаются проверки.</string>
     <string name="native_83bbbb83cfbe">Выбрать расположение</string>
     <string name="native_858e4ba7a29f" formatted="false">Пауза</string>
     <string name="native_892ffa345a39" formatted="false">Как работает офлайн-режим</string>
@@ -110,15 +110,15 @@
     <string name="native_96b3b31d45ab">Открыть хранилище устройства</string>
     <string name="native_96be15d18327" formatted="false">Арабский текст</string>
     <string name="native_98770753608c" formatted="false">Проверки доказательства завершены</string>
-    <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
+    <string name="native_9c2816aadb36" formatted="false">Повторить обработку доказательств</string>
     <string name="native_9f9feade761d" formatted="false">Сборники</string>
     <string name="native_a1a6ea9533fa">Поиск офлайн недоступен.</string>
     <string name="native_b01111be1821">Поиск по английскому тексту</string>
     <string name="native_b67dee925588" formatted="false">Английский текст Sunnah.now</string>
     <string name="native_b7337027ef1f">Использовать другой адрес электронной почты</string>
-    <string name="native_b7bd92f57552" formatted="false">Withdraw suggestion</string>
+    <string name="native_b7bd92f57552" formatted="false">Отозвать предложение</string>
     <string name="native_b97457409ab5" formatted="false">Отправить код снова</string>
-    <string name="native_b9c98d6ecdf1" formatted="false">Your suggestion remains private. Withdraw it and submit different evidence if needed.</string>
+    <string name="native_b9c98d6ecdf1" formatted="false">Ваше предложение остаётся закрытым. При необходимости отзовите его и отправьте другие доказательства.</string>
     <string name="native_bdd5c6b7f515" formatted="false">Номер хадиса</string>
     <string name="native_bf948705a783">Hadithly выпускает версионированные офлайн-сборники: базовый арабский набор и пакеты переводов, каждый с контрольной суммой и лицензией. Загрузки проверяются до активации, а сохранённые элементы и позиции чтения сохраняются. Удаление загрузки удаляет только файлы — закладки, заметки и позиции остаются.</string>
     <string name="native_c1c1009d3f37" formatted="false">Обновить</string>

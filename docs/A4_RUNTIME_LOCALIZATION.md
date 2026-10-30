@@ -685,3 +685,50 @@ with drafts allowed has zero failures across 465 iOS keys and 460 Android resour
 with 279 English-identical candidates still listed. `auth-error-preservation.json`
 records the scope: fourteen new keys, existing payloads reused, prior working
 metadata/order edits and project files left separate.
+
+## Evidence intake privacy and state copy, October 30
+
+Russian native checks reproduced the English sign-in guidance. Seven existing
+catalog entries are now repaired across fourteen non-English locales using exact
+indexed hashes and locale allowlists. They cover sign-in guidance, files removed
+before processing, private/unreviewed/unpublished processing guidance, received
+status, retry, withdrawal and private failure guidance. Existing English values,
+states, comments and other metadata are preserved. `a4-evidence-intake-copy.json`
+records the local GPT-family drafts and pending native-review status.
+
+Android's evidence suggestion and source-heading aliases now reuse the indexed
+Suggest a translation, Sources and Translation sources drafts. The saved-suggestion
+alias is aligned as well. No provider text, source title, citation location,
+processing rule, retry policy, review/publication decision or account data changes.
+`a4-evidence-intake-parity.json` records these exact resource targets.
+
+One iOS and one emulator Android case pass all fifteen locales. Each case covers
+waiting, processing failed and evidence checks complete as separate presentations;
+Retry invokes only a controlled callback and returns to waiting. Checks complete
+continues to show private/awaiting-review copy, with no approved status. The iOS
+fixture also checks the withdrawal label and verifies zero withdrawal callbacks.
+The Android production content component retains its existing parent-owned
+withdrawal control; this test does not claim a live withdrawal check. Source titles
+with formatter syntax remain verbatim and no source link is activated.
+
+The iOS fixture renders the actual EvidenceProcessingStatusView alongside direct
+resource-bound sign-in/file-removal notices. Its raw state selectors and numeric
+counters are debug-only controls, not consumer UI. Android renders the actual
+EvidenceProcessingStatusContent with the same notice resources. These controlled
+checks do not prove authenticated intake, scanning, publication, native-language
+approval or complete assistive-technology traversal. No upload, paid generation,
+external service, deployment or publication action is used.
+
+`verification/a4-localization/intake.json` retains the initial failed iOS result and
+latest passes. Ninety captures are archived, with the manifest and selected images
+in `intake/`. `intake-preservation.json` proves all seven repairs stay within their
+locale values and that the four incoming project/scheme files are unchanged.
+The catalog staging helper includes only the seven guarded entries. Prior catalog
+working metadata/order differences remain separate.
+
+Generator, guarded-staging and audit regressions pass. With drafts allowed, the
+structural audit has zero failures across 465 iOS keys and 460 Android resources;
+English-identical Android candidates fell from 279 to 126. Source review confirms
+remaining active English Saved filters, preview retry and removal guidance. Those
+and Settings/evidence error wrappers remain next. Full A4/native review, A5–A7/E,
+physical/auth/content/store/production/release gates remain open.

@@ -2,7 +2,7 @@
 <resources>
     <string name="native_19766ed6ccb2" formatted="false">Жокко чыгаруу</string>
     <string name="native_29887a5ff984">Бөлүшүү</string>
-    <string name="native_3c707d34de67">Suggest translation</string>
+    <string name="native_3c707d34de67" formatted="false">Котормо сунуштоо</string>
     <string name="native_4fa960716706" formatted="false">Өчүрүү жана кайра сурабоо</string>
     <string name="native_74a883a037bc">Жөндөөлөр</string>
     <string name="native_76900f1bfd16" formatted="false">Артка</string>
@@ -54,14 +54,14 @@
     <string name="native_099cd53b4147">Профилиңизди, жөндөөлөрүңүздү, сакталган нерселерди, папкаларды, окуу жүрүшүн жана өз салымдарыңызды JSON катары экспорттоо.</string>
     <string name="native_0ab48e787f8a">Бирден үчкө чейин булак шилтемесин же файл кошуңуз. Далилдер текшерилип жатканда купуя бойдон калат.</string>
     <string name="native_0ccfef828950">Жөндөөлөрдү жабуу</string>
-    <string name="native_102b5d6815d5" formatted="false">Sign in from Settings to suggest a translation with evidence.</string>
+    <string name="native_102b5d6815d5" formatted="false">Далилдер менен котормо сунуштоо үчүн Жөндөөлөрдөн аккаунтка кириңиз.</string>
     <string name="native_11a6767d5674" formatted="false">Даяр</string>
     <string name="native_1509f561f241" formatted="false">Сактоо</string>
-    <string name="native_161faa795821" formatted="false">The private files were removed before processing. You can start a new suggestion.</string>
+    <string name="native_161faa795821" formatted="false">Жеке файлдар иштетүүгө чейин өчүрүлдү. Жаңы сунуш баштасаңыз болот.</string>
     <string name="native_1bac4007880b">Кыстарма</string>
     <string name="native_1ddc2d9a1a21">Купуя себеп</string>
     <string name="native_258de606097f">ТОМДОР</string>
-    <string name="native_2f4412f8bb6a" formatted="false">Processing evidence. Your suggestion stays private and has not been reviewed or published.</string>
+    <string name="native_2f4412f8bb6a" formatted="false">Далилдер иштетилүүдө. Сунушуңуз купуя бойдон калат, ал азырынча карала же жарыялана элек.</string>
     <string name="native_30b8238e7f5b">Мага күн сайын хадис жөнөт</string>
     <string name="native_30c1d8d3e912" formatted="false">Сырсөздү унуттуңузбу?</string>
     <string name="native_326d9c957d5a" formatted="false">Жүктөөнү токтотуу</string>
@@ -95,7 +95,7 @@
     <string name="native_7b4888049459" formatted="false">Фамилиясы</string>
     <string name="native_7b503321357a" formatted="false">Каттоо эсебин жана дайындарды өчүрүү</string>
     <string name="native_7d94fc6f0852">Купуя жазуу жазыңыз…</string>
-    <string name="native_82c66ec1be55" formatted="false">Evidence received; awaiting checks.</string>
+    <string name="native_82c66ec1be55" formatted="false">Далилдер алынды; текшерүүлөр күтүлүүдө.</string>
     <string name="native_83bbbb83cfbe">Жайгашкан жерди тандоо</string>
     <string name="native_858e4ba7a29f" formatted="false">Тындыруу</string>
     <string name="native_892ffa345a39" formatted="false">Офлайн режим кантип иштейт</string>
@@ -110,15 +110,15 @@
     <string name="native_96b3b31d45ab">Түзмөктүн сактагычын ачуу</string>
     <string name="native_96be15d18327" formatted="false">Арабча текст</string>
     <string name="native_98770753608c" formatted="false">Далилдин текшерүүлөрү аяктады</string>
-    <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
+    <string name="native_9c2816aadb36" formatted="false">Далилдерди иштетүүнү кайталоо</string>
     <string name="native_9f9feade761d" formatted="false">Жыйнактар</string>
     <string name="native_a1a6ea9533fa">Офлайн издөө жеткиликсиз.</string>
     <string name="native_b01111be1821">Англисче тексттен издөө</string>
     <string name="native_b67dee925588" formatted="false">Sunnah.now англисче тексти</string>
     <string name="native_b7337027ef1f">Башка электрондук почтаны колдонуу</string>
-    <string name="native_b7bd92f57552" formatted="false">Withdraw suggestion</string>
+    <string name="native_b7bd92f57552" formatted="false">Сунушту кайтарып алуу</string>
     <string name="native_b97457409ab5" formatted="false">Кодду кайра жөнөтүү</string>
-    <string name="native_b9c98d6ecdf1" formatted="false">Your suggestion remains private. Withdraw it and submit different evidence if needed.</string>
+    <string name="native_b9c98d6ecdf1" formatted="false">Сунушуңуз купуя бойдон калат. Керек болсо, аны кайтарып алып, башка далилдерди жөнөтүңүз.</string>
     <string name="native_bdd5c6b7f515" formatted="false">Хадистин номери</string>
     <string name="native_bf948705a783">Hadithly версияланган офлайн жыйнактарды жөнөтөт: негизги арабча дамп жана котормо топтомдору. Ар биринин көзөмөл суммасы жана лицензиясы текшерилет. Жүктөөлөр иштетилгенге чейин текшерилип, сакталган нерселер менен окуу орундары сакталат. Жүктөөнү өчүрүү файлдарды гана өчүрөт — кыстармалар, жазуулар жана орундар калат.</string>
     <string name="native_c1c1009d3f37" formatted="false">Жаңыртуу</string>

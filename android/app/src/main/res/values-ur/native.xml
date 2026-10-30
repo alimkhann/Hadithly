@@ -2,7 +2,7 @@
 <resources>
     <string name="native_19766ed6ccb2" formatted="false">منسوخ کریں</string>
     <string name="native_29887a5ff984">شیئر کریں</string>
-    <string name="native_3c707d34de67">Suggest translation</string>
+    <string name="native_3c707d34de67" formatted="false">ترجمہ تجویز کریں</string>
     <string name="native_4fa960716706" formatted="false">ہٹائیں اور دوبارہ نہ پوچھیں</string>
     <string name="native_74a883a037bc">ترتیبات</string>
     <string name="native_76900f1bfd16" formatted="false">واپس</string>
@@ -54,14 +54,14 @@
     <string name="native_099cd53b4147">اپنا پروفائل، ترجیحات، محفوظ کردہ اشیا، فولڈرز، پڑھنے کی پیش رفت اور اپنی شراکتیں JSON کے طور پر برآمد کریں۔</string>
     <string name="native_0ab48e787f8a">ایک سے تین ماخذ لنکس یا فائلیں شامل کریں۔ جانچ کے دوران ثبوت نجی رہتا ہے۔</string>
     <string name="native_0ccfef828950">ترتیبات بند کریں</string>
-    <string name="native_102b5d6815d5" formatted="false">Sign in from Settings to suggest a translation with evidence.</string>
+    <string name="native_102b5d6815d5" formatted="false">ثبوت کے ساتھ ترجمہ تجویز کرنے کے لیے ترتیبات سے سائن اِن کریں۔</string>
     <string name="native_11a6767d5674" formatted="false">مکمل</string>
     <string name="native_1509f561f241" formatted="false">محفوظ کریں</string>
-    <string name="native_161faa795821" formatted="false">The private files were removed before processing. You can start a new suggestion.</string>
+    <string name="native_161faa795821" formatted="false">نجی فائلیں کارروائی سے پہلے ہٹا دی گئیں۔ آپ نئی تجویز شروع کر سکتے ہیں۔</string>
     <string name="native_1bac4007880b">بُک مارک</string>
     <string name="native_1ddc2d9a1a21">نجی وجہ</string>
     <string name="native_258de606097f">جلدیں</string>
-    <string name="native_2f4412f8bb6a" formatted="false">Processing evidence. Your suggestion stays private and has not been reviewed or published.</string>
+    <string name="native_2f4412f8bb6a" formatted="false">ثبوت پر کارروائی ہو رہی ہے۔ آپ کی تجویز نجی رہتی ہے اور ابھی اس کا جائزہ نہیں لیا گیا یا اسے شائع نہیں کیا گیا۔</string>
     <string name="native_30b8238e7f5b">مجھے ہر روز ایک حدیث بھیجیں</string>
     <string name="native_30c1d8d3e912" formatted="false">پاس ورڈ بھول گئے؟</string>
     <string name="native_326d9c957d5a" formatted="false">اپ لوڈ منسوخ کریں</string>
@@ -95,7 +95,7 @@
     <string name="native_7b4888049459" formatted="false">آخری نام</string>
     <string name="native_7b503321357a" formatted="false">اکاؤنٹ اور ڈیٹا حذف کریں</string>
     <string name="native_7d94fc6f0852">نجی نوٹ لکھیں…</string>
-    <string name="native_82c66ec1be55" formatted="false">Evidence received; awaiting checks.</string>
+    <string name="native_82c66ec1be55" formatted="false">ثبوت موصول ہو گیا؛ جانچ کا انتظار ہے۔</string>
     <string name="native_83bbbb83cfbe">مقام منتخب کریں</string>
     <string name="native_858e4ba7a29f" formatted="false">روکیں</string>
     <string name="native_892ffa345a39" formatted="false">آف لائن کیسے کام کرتا ہے</string>
@@ -110,15 +110,15 @@
     <string name="native_96b3b31d45ab">آلے کی اسٹوریج کھولیں</string>
     <string name="native_96be15d18327" formatted="false">عربی متن</string>
     <string name="native_98770753608c" formatted="false">ثبوت کی جانچ مکمل ہو گئی</string>
-    <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
+    <string name="native_9c2816aadb36" formatted="false">ثبوت پر کارروائی دوبارہ آزمائیں</string>
     <string name="native_9f9feade761d" formatted="false">مجموعے</string>
     <string name="native_a1a6ea9533fa">آف لائن تلاش دستیاب نہیں۔</string>
     <string name="native_b01111be1821">انگریزی متن تلاش کریں</string>
     <string name="native_b67dee925588" formatted="false">Sunnah.now کا انگریزی متن</string>
     <string name="native_b7337027ef1f">مختلف ای میل استعمال کریں</string>
-    <string name="native_b7bd92f57552" formatted="false">Withdraw suggestion</string>
+    <string name="native_b7bd92f57552" formatted="false">تجویز واپس لیں</string>
     <string name="native_b97457409ab5" formatted="false">کوڈ دوبارہ بھیجیں</string>
-    <string name="native_b9c98d6ecdf1" formatted="false">Your suggestion remains private. Withdraw it and submit different evidence if needed.</string>
+    <string name="native_b9c98d6ecdf1" formatted="false">آپ کی تجویز نجی رہتی ہے۔ ضرورت ہو تو اسے واپس لیں اور دوسرا ثبوت جمع کرائیں۔</string>
     <string name="native_bdd5c6b7f515" formatted="false">حدیث نمبر</string>
     <string name="native_bf948705a783">Hadithly ورژن شدہ آف لائن مجموعے فراہم کرتا ہے: بنیادی عربی ڈمپ اور ترجمہ پیک، ہر ایک کی چیک سم اور لائسنس کے ساتھ۔ ڈاؤن لوڈز فعال ہونے سے پہلے جانچے جاتے ہیں اور آپ کی محفوظ اشیا اور پڑھنے کی جگہیں برقرار رہتی ہیں۔ ڈاؤن لوڈ حذف کرنے سے صرف فائلیں حذف ہوتی ہیں — بُک مارکس، نوٹس اور جگہیں رہتی ہیں۔</string>
     <string name="native_c1c1009d3f37" formatted="false">اپ ڈیٹ کریں</string>

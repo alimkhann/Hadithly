@@ -1,0 +1,233 @@
+{
+  "source": "docs/a4-evidence-intake-copy.json",
+  "native_review": "pending",
+  "locales": {
+    "en": [
+      "Sign in from Settings to suggest a translation with evidence.",
+      "The private files were removed before processing. You can start a new suggestion.",
+      "Processing evidence. Your suggestion stays private and has not been reviewed or published.",
+      "Evidence received; awaiting checks.",
+      "Retry evidence",
+      "Withdraw suggestion",
+      "Your suggestion remains private. Withdraw it and submit different evidence if needed."
+    ],
+    "ar": [
+      "سجّل الدخول من الإعدادات لاقتراح ترجمة مع أدلة.",
+      "أُزيلت الملفات الخاصة قبل معالجتها. يمكنك بدء اقتراح جديد.",
+      "تجري معالجة الأدلة. يظل اقتراحك خاصًا ولم تتم مراجعته أو نشره.",
+      "تم استلام الأدلة؛ بانتظار الفحوص.",
+      "إعادة محاولة معالجة الأدلة",
+      "سحب الاقتراح",
+      "يظل اقتراحك خاصًا. اسحبه وقدّم أدلة مختلفة عند الحاجة."
+    ],
+    "ru": [
+      "Войдите в аккаунт в Настройках, чтобы предложить перевод с доказательствами.",
+      "Закрытые файлы были удалены до обработки. Вы можете начать новое предложение.",
+      "Доказательства обрабатываются. Ваше предложение остаётся закрытым; оно ещё не проверено и не опубликовано.",
+      "Доказательства получены; ожидаются проверки.",
+      "Повторить обработку доказательств",
+      "Отозвать предложение",
+      "Ваше предложение остаётся закрытым. При необходимости отзовите его и отправьте другие доказательства."
+    ],
+    "kk": [
+      "Дәлелмен бірге аударма ұсыну үшін Баптаулардан аккаунтқа кіріңіз.",
+      "Жеке файлдар өңдеуге дейін жойылды. Жаңа ұсыныс бастауға болады.",
+      "Дәлелдер өңделуде. Ұсынысыңыз жеке күйінде қалады, ол әлі қаралған немесе жарияланған жоқ.",
+      "Дәлелдер алынды; тексерістер күтілуде.",
+      "Дәлелдерді өңдеуді қайталау",
+      "Ұсынысты қайтарып алу",
+      "Ұсынысыңыз жеке күйінде қалады. Қажет болса, оны қайтарып алып, басқа дәлелдер жіберіңіз."
+    ],
+    "ky": [
+      "Далилдер менен котормо сунуштоо үчүн Жөндөөлөрдөн аккаунтка кириңиз.",
+      "Жеке файлдар иштетүүгө чейин өчүрүлдү. Жаңы сунуш баштасаңыз болот.",
+      "Далилдер иштетилүүдө. Сунушуңуз купуя бойдон калат, ал азырынча карала же жарыялана элек.",
+      "Далилдер алынды; текшерүүлөр күтүлүүдө.",
+      "Далилдерди иштетүүнү кайталоо",
+      "Сунушту кайтарып алуу",
+      "Сунушуңуз купуя бойдон калат. Керек болсо, аны кайтарып алып, башка далилдерди жөнөтүңүз."
+    ],
+    "uz": [
+      "Dalillar bilan tarjima taklif qilish uchun Sozlamalardan hisobga kiring.",
+      "Maxfiy fayllar qayta ishlanishidan oldin o‘chirildi. Yangi taklif boshlashingiz mumkin.",
+      "Dalillar qayta ishlanmoqda. Taklifingiz maxfiy qoladi; u hali ko‘rib chiqilmagan yoki e’lon qilinmagan.",
+      "Dalillar qabul qilindi; tekshiruvlar kutilmoqda.",
+      "Dalillarni qayta ishlashni takrorlash",
+      "Taklifni qaytarib olish",
+      "Taklifingiz maxfiy qoladi. Kerak bo‘lsa, uni qaytarib olib, boshqa dalillar yuboring."
+    ],
+    "tr": [
+      "Kanıtlarla çeviri önermek için Ayarlar’dan oturum açın.",
+      "Özel dosyalar işlenmeden önce kaldırıldı. Yeni bir öneri başlatabilirsiniz.",
+      "Kanıtlar işleniyor. Öneriniz gizli kalır; henüz incelenmedi veya yayımlanmadı.",
+      "Kanıtlar alındı; kontroller bekleniyor.",
+      "Kanıt işlemeyi yeniden dene",
+      "Öneriyi geri çek",
+      "Öneriniz gizli kalır. Gerekirse geri çekip farklı kanıtlar gönderin."
+    ],
+    "id": [
+      "Masuk dari Pengaturan untuk mengusulkan terjemahan dengan bukti.",
+      "Berkas pribadi dihapus sebelum diproses. Anda dapat memulai usulan baru.",
+      "Bukti sedang diproses. Usulan Anda tetap pribadi dan belum ditinjau atau diterbitkan.",
+      "Bukti diterima; menunggu pemeriksaan.",
+      "Coba proses bukti lagi",
+      "Tarik usulan",
+      "Usulan Anda tetap pribadi. Jika perlu, tarik usulan dan kirim bukti lain."
+    ],
+    "ur": [
+      "ثبوت کے ساتھ ترجمہ تجویز کرنے کے لیے ترتیبات سے سائن اِن کریں۔",
+      "نجی فائلیں کارروائی سے پہلے ہٹا دی گئیں۔ آپ نئی تجویز شروع کر سکتے ہیں۔",
+      "ثبوت پر کارروائی ہو رہی ہے۔ آپ کی تجویز نجی رہتی ہے اور ابھی اس کا جائزہ نہیں لیا گیا یا اسے شائع نہیں کیا گیا۔",
+      "ثبوت موصول ہو گیا؛ جانچ کا انتظار ہے۔",
+      "ثبوت پر کارروائی دوبارہ آزمائیں",
+      "تجویز واپس لیں",
+      "آپ کی تجویز نجی رہتی ہے۔ ضرورت ہو تو اسے واپس لیں اور دوسرا ثبوت جمع کرائیں۔"
+    ],
+    "fr": [
+      "Connectez-vous dans les Réglages pour proposer une traduction avec des pièces justificatives.",
+      "Les fichiers privés ont été supprimés avant leur traitement. Vous pouvez commencer une nouvelle proposition.",
+      "Traitement des pièces justificatives. Votre proposition reste privée et n’a pas encore été examinée ni publiée.",
+      "Pièces reçues ; vérifications en attente.",
+      "Réessayer le traitement des pièces",
+      "Retirer la proposition",
+      "Votre proposition reste privée. Si nécessaire, retirez-la et envoyez d’autres pièces justificatives."
+    ],
+    "es-419": [
+      "Inicia sesión desde Configuración para proponer una traducción con evidencia.",
+      "Los archivos privados se eliminaron antes de procesarlos. Puedes iniciar una nueva propuesta.",
+      "Procesando la evidencia. Tu propuesta sigue siendo privada y aún no se ha revisado ni publicado.",
+      "Evidencia recibida; esperando las comprobaciones.",
+      "Reintentar el procesamiento de la evidencia",
+      "Retirar la propuesta",
+      "Tu propuesta sigue siendo privada. Si es necesario, retírala y envía otra evidencia."
+    ],
+    "pt-BR": [
+      "Entre pela seção Configurações para sugerir uma tradução com evidências.",
+      "Os arquivos privados foram removidos antes do processamento. Você pode iniciar uma nova sugestão.",
+      "Processando as evidências. Sua sugestão continua privada e ainda não foi revisada nem publicada.",
+      "Evidências recebidas; aguardando as verificações.",
+      "Tentar processar as evidências novamente",
+      "Retirar a sugestão",
+      "Sua sugestão continua privada. Se necessário, retire-a e envie outras evidências."
+    ],
+    "sw": [
+      "Ingia kupitia Mipangilio ili kupendekeza tafsiri yenye ushahidi.",
+      "Faili za faragha ziliondolewa kabla ya kuchakatwa. Unaweza kuanza pendekezo jipya.",
+      "Ushahidi unachakatwa. Pendekezo lako linabaki la faragha na bado halijapitiwa wala kuchapishwa.",
+      "Ushahidi umepokelewa; ukaguzi unasubiriwa.",
+      "Jaribu kuchakata ushahidi tena",
+      "Ondoa pendekezo",
+      "Pendekezo lako linabaki la faragha. Ikihitajika, liondoe na uwasilishe ushahidi tofauti."
+    ],
+    "hi": [
+      "साक्ष्य के साथ अनुवाद सुझाने के लिए सेटिंग्स से साइन इन करें।",
+      "निजी फ़ाइलें प्रक्रिया शुरू होने से पहले हटा दी गई थीं। आप नया सुझाव शुरू कर सकते हैं।",
+      "साक्ष्य पर प्रक्रिया हो रही है। आपका सुझाव निजी रहता है और अभी उसकी समीक्षा या प्रकाशन नहीं हुआ है।",
+      "साक्ष्य मिल गया; जाँचों की प्रतीक्षा है।",
+      "साक्ष्य पर प्रक्रिया फिर से आज़माएँ",
+      "सुझाव वापस लें",
+      "आपका सुझाव निजी रहता है। ज़रूरत हो तो उसे वापस लें और दूसरा साक्ष्य भेजें।"
+    ],
+    "bn": [
+      "প্রমাণসহ অনুবাদ প্রস্তাব করতে সেটিংস থেকে সাইন ইন করুন।",
+      "প্রক্রিয়াকরণের আগে ব্যক্তিগত ফাইলগুলো সরানো হয়েছে। আপনি নতুন প্রস্তাব শুরু করতে পারেন।",
+      "প্রমাণ প্রক্রিয়াকরণ হচ্ছে। আপনার প্রস্তাব ব্যক্তিগত থাকে এবং এখনো পর্যালোচনা বা প্রকাশ করা হয়নি।",
+      "প্রমাণ পাওয়া গেছে; যাচাইয়ের অপেক্ষায়।",
+      "প্রমাণ প্রক্রিয়াকরণ আবার চেষ্টা করুন",
+      "প্রস্তাব প্রত্যাহার করুন",
+      "আপনার প্রস্তাব ব্যক্তিগত থাকে। প্রয়োজন হলে সেটি প্রত্যাহার করে অন্য প্রমাণ জমা দিন।"
+    ]
+  },
+  "labels": {
+    "en": {
+      "Evidence checks complete": "Evidence checks complete",
+      "e3.waiting": "Your suggestion stays private while waiting for review.",
+      "Sources": "Sources",
+      "e3.published": "Suggestion published"
+    },
+    "ar": {
+      "Evidence checks complete": "اكتملت فحوص الدليل",
+      "e3.waiting": "يبقى اقتراحك خاصًا في انتظار المراجعة.",
+      "Sources": "المصادر",
+      "e3.published": "نُشر الاقتراح"
+    },
+    "ru": {
+      "Evidence checks complete": "Проверки доказательства завершены",
+      "e3.waiting": "Ваше предложение остаётся приватным в ожидании проверки.",
+      "Sources": "Источники",
+      "e3.published": "Предложение опубликовано"
+    },
+    "kk": {
+      "Evidence checks complete": "Дәлел тексерістері аяқталды",
+      "e3.waiting": "Тексеруді күтіп тұрған кезде ұсынысыңыз жеке күйде қалады.",
+      "Sources": "Дереккөздер",
+      "e3.published": "Ұсыныс жарияланды"
+    },
+    "ky": {
+      "Evidence checks complete": "Далилдин текшерүүлөрү аяктады",
+      "e3.waiting": "Текшерүүнү күтүп жатканда сунушуңуз жеке бойдон калат.",
+      "Sources": "Булактар",
+      "e3.published": "Сунуш жарыяланды"
+    },
+    "uz": {
+      "Evidence checks complete": "Dalil tekshiruvlari tugadi",
+      "e3.waiting": "Tekshiruvni kutayotgan paytda taklifingiz maxfiy qoladi.",
+      "Sources": "Manbalar",
+      "e3.published": "Taklif nashr qilindi"
+    },
+    "tr": {
+      "Evidence checks complete": "Kanıt kontrolleri tamamlandı",
+      "e3.waiting": "İnceleme beklenirken öneriniz gizli kalır.",
+      "Sources": "Kaynaklar",
+      "e3.published": "Öneri yayımlandı"
+    },
+    "id": {
+      "Evidence checks complete": "Pemeriksaan bukti selesai",
+      "e3.waiting": "Usulan Anda tetap pribadi sambil menunggu pemeriksaan.",
+      "Sources": "Sumber",
+      "e3.published": "Usulan diterbitkan"
+    },
+    "ur": {
+      "Evidence checks complete": "ثبوت کی جانچ مکمل ہو گئی",
+      "e3.waiting": "جائزے کے انتظار میں آپ کی تجویز نجی رہتی ہے۔",
+      "Sources": "ماخذ",
+      "e3.published": "تجویز شائع ہو گئی"
+    },
+    "fr": {
+      "Evidence checks complete": "Vérifications de la pièce terminées",
+      "e3.waiting": "Votre proposition reste privée en attendant la vérification.",
+      "Sources": "Sources",
+      "e3.published": "Proposition publiée"
+    },
+    "es-419": {
+      "Evidence checks complete": "Comprobaciones de la evidencia completas",
+      "e3.waiting": "Tu propuesta sigue siendo privada mientras espera revisión.",
+      "Sources": "Fuentes",
+      "e3.published": "Propuesta publicada"
+    },
+    "pt-BR": {
+      "Evidence checks complete": "Verificações da evidência concluídas",
+      "e3.waiting": "Sua sugestão continua privada enquanto aguarda revisão.",
+      "Sources": "Fontes",
+      "e3.published": "Sugestão publicada"
+    },
+    "sw": {
+      "Evidence checks complete": "Ukaguzi wa ushahidi umekamilika",
+      "e3.waiting": "Pendekezo lako linabaki la faragha likisubiri ukaguzi.",
+      "Sources": "Vyanzo",
+      "e3.published": "Pendekezo limechapishwa"
+    },
+    "hi": {
+      "Evidence checks complete": "साक्ष्य की जाँचें पूरी हो गईं",
+      "e3.waiting": "समीक्षा की प्रतीक्षा करते हुए आपका सुझाव निजी रहेगा।",
+      "Sources": "स्रोत",
+      "e3.published": "सुझाव प्रकाशित हुआ"
+    },
+    "bn": {
+      "Evidence checks complete": "প্রমাণ যাচাই সম্পন্ন হয়েছে",
+      "e3.waiting": "পর্যালোচনার অপেক্ষায় আপনার প্রস্তাব ব্যক্তিগত থাকে।",
+      "Sources": "উৎস",
+      "e3.published": "প্রস্তাব প্রকাশিত হয়েছে"
+    }
+  }
+}

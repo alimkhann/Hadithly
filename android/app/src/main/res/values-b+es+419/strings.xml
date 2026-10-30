@@ -26,7 +26,7 @@
     <string name="saved_delete_note" formatted="false">Eliminar nota</string>
     <string name="saved_copy" formatted="false">Copiar</string>
     <string name="saved_share" formatted="false">Compartir</string>
-    <string name="saved_suggest_translation">Suggest translation</string>
+    <string name="saved_suggest_translation" formatted="false">Sugerir una traducción</string>
     <string name="saved_preview_retry">Preview unavailable. Tap to retry.</string>
     <string name="saved_show_preview" formatted="false">Mostrar vista previa del hadiz</string>
     <string name="saved_hide_preview" formatted="false">Ocultar vista previa del hadiz</string>
@@ -62,9 +62,9 @@
     <string name="e3_rejected_message" formatted="false">Las comprobaciones no respaldaron la publicación. Tu propuesta sigue siendo privada.</string>
     <string name="e3_unavailable_message" formatted="false">Tu propuesta sigue siendo privada. Retírala y vuelve a intentarlo más tarde si hace falta.</string>
     <string name="e3_waiting" formatted="false">Tu propuesta sigue siendo privada mientras espera revisión.</string>
-    <string name="e3_sources">Sources</string>
+    <string name="e3_sources" formatted="false">Fuentes</string>
     <string name="e3_consent" formatted="false">Al enviar la propuesta, permites que Hadithly la revise y publique. Las fuentes de las pruebas aún requieren permiso.</string>
-    <string name="e3_translation_sources">Translation sources</string>
+    <string name="e3_translation_sources" formatted="false">Fuentes de traducción</string>
     <string name="e3_community_sources_message" formatted="false">Un colaborador propuso esta traducción. Las revisiones automáticas la compararon con las pruebas citadas. No es una versión autorizada.</string>
     <string name="e3_contributor_label" formatted="false">· traducción de un colaborador</string>
     <string name="e3_report_saved_detail" formatted="false">Los informes se guardan de forma privada. Puedes seguir leyendo.</string>

@@ -1,7 +1,7 @@
 {
   "scope": "Lexical UI-call candidates only. Variable/conditional arguments, custom wrappers, String-backed models, resources and server text still require source and runtime review. Catalog-backed entries are not claimed localized.",
   "counts": {
-    "debug-fixture": 24,
+    "debug-fixture": 26,
     "catalog-backed-runtime-unverified": 596,
     "example-or-symbol-review": 6,
     "dynamic-review": 11,
@@ -75,7 +75,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Core/Theme/NativePolishFixtureView.swift",
-      "line": 43,
+      "line": 44,
       "call": "Text",
       "value": "Reading is ready",
       "category": "debug-fixture"
@@ -915,7 +915,23 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 84,
+      "line": 59,
+      "call": "Text",
+      "value": "Sign in from Settings to suggest a translation with evidence.",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 61,
+      "call": "Text",
+      "value": "The private files were removed before processing. You can start a new suggestion.",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "line": 111,
       "call": "accessibilityLabel",
       "value": "Processing evidence",
       "category": "catalog-backed-runtime-unverified"
@@ -923,7 +939,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 85,
+      "line": 112,
       "call": "Text",
       "value": "Evidence received; awaiting checks.",
       "category": "catalog-backed-runtime-unverified"
@@ -931,7 +947,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 86,
+      "line": 113,
       "call": "Text",
       "value": "Processing evidence. Your suggestion stays private and has not been reviewed or published.",
       "category": "catalog-backed-runtime-unverified"
@@ -939,7 +955,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 91,
+      "line": 118,
       "call": "accessibilityLabel",
       "value": "e3.reviewing",
       "category": "catalog-backed-runtime-unverified"
@@ -947,7 +963,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 94,
+      "line": 121,
       "call": "Text",
       "value": "Evidence checks complete",
       "category": "catalog-backed-runtime-unverified"
@@ -955,7 +971,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 95,
+      "line": 122,
       "call": "Text",
       "value": "e3.waiting",
       "category": "catalog-backed-runtime-unverified"
@@ -963,7 +979,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 101,
+      "line": 128,
       "call": "Text",
       "value": "Your suggestion remains private. Withdraw it and submit different evidence if needed.",
       "category": "catalog-backed-runtime-unverified"
@@ -971,7 +987,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 107,
+      "line": 134,
       "call": "Text",
       "value": "Retry evidence",
       "category": "catalog-backed-runtime-unverified"
@@ -979,7 +995,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 114,
+      "line": 141,
       "call": "Text",
       "value": "e3.sources",
       "category": "catalog-backed-runtime-unverified"
@@ -987,7 +1003,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 128,
+      "line": 155,
       "call": "Text",
       "value": "Withdraw suggestion",
       "category": "catalog-backed-runtime-unverified"
@@ -995,7 +1011,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 172,
+      "line": 199,
       "call": "Text",
       "value": "e4.appeal_window",
       "category": "catalog-backed-runtime-unverified"
@@ -1003,7 +1019,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 173,
+      "line": 200,
       "call": "TextField",
       "value": "e4.appeal_reason",
       "category": "catalog-backed-runtime-unverified"
@@ -1011,7 +1027,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 176,
+      "line": 203,
       "call": "Text",
       "value": "e4.appeal",
       "category": "catalog-backed-runtime-unverified"
@@ -1019,7 +1035,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 212,
+      "line": 239,
       "call": "Button",
       "value": "Translation sources",
       "category": "debug-fixture"
@@ -1027,7 +1043,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 345,
+      "line": 372,
       "call": "Text",
       "value": "Sign in from Settings to suggest a translation with evidence.",
       "category": "catalog-backed-runtime-unverified"
@@ -1035,7 +1051,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 351,
+      "line": 378,
       "call": "Text",
       "value": "Evidence expired",
       "category": "catalog-backed-runtime-unverified"
@@ -1043,7 +1059,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 353,
+      "line": 380,
       "call": "Text",
       "value": "The private files were removed before processing. You can start a new suggestion.",
       "category": "catalog-backed-runtime-unverified"
@@ -1051,7 +1067,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 355,
+      "line": 382,
       "call": "Button",
       "value": "Start a new suggestion",
       "category": "catalog-backed-runtime-unverified"
@@ -1059,7 +1075,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 366,
+      "line": 393,
       "call": "navigationTitle",
       "value": "Suggest a translation",
       "category": "catalog-backed-runtime-unverified"
@@ -1067,7 +1083,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 370,
+      "line": 397,
       "call": "Button",
       "value": "Done",
       "category": "catalog-backed-runtime-unverified"
@@ -1075,7 +1091,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 411,
+      "line": 438,
       "call": "Text",
       "value": "Add one to three public source links or files. Evidence stays private while checked.",
       "category": "catalog-backed-runtime-unverified"
@@ -1083,7 +1099,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 419,
+      "line": 446,
       "call": "accessibilityLabel",
       "value": "Proposed translation",
       "category": "catalog-backed-runtime-unverified"
@@ -1091,7 +1107,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 423,
+      "line": 450,
       "call": "TextField",
       "value": "https://source.example/page",
       "category": "example-or-symbol-review"
@@ -1099,7 +1115,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 429,
+      "line": 456,
       "call": "Button",
       "value": "Add link",
       "category": "catalog-backed-runtime-unverified"
@@ -1107,7 +1123,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 433,
+      "line": 460,
       "call": "Button",
       "value": "Add image or PDF",
       "category": "catalog-backed-runtime-unverified"
@@ -1115,7 +1131,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 444,
+      "line": 471,
       "call": "Button",
       "value": "Remove",
       "category": "catalog-backed-runtime-unverified"
@@ -1123,7 +1139,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 446,
+      "line": 473,
       "call": "AppLocalization.format",
       "value": "Remove %1$@",
       "category": "catalog-backed-runtime-unverified"
@@ -1131,7 +1147,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 460,
+      "line": 487,
       "call": "Button",
       "value": "Select again",
       "category": "catalog-backed-runtime-unverified"
@@ -1139,7 +1155,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 477,
+      "line": 504,
       "call": "Button",
       "value": "Cancel upload",
       "category": "catalog-backed-runtime-unverified"
@@ -1147,7 +1163,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 482,
+      "line": 509,
       "call": "Button",
       "value": "Delete draft",
       "category": "catalog-backed-runtime-unverified"
@@ -1155,7 +1171,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
-      "line": 493,
+      "line": 520,
       "call": "Text",
       "value": "e3.consent",
       "category": "catalog-backed-runtime-unverified"

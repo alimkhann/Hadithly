@@ -26,7 +26,7 @@
     <string name="saved_delete_note" formatted="false">Жазбаны жою</string>
     <string name="saved_copy" formatted="false">Көшіру</string>
     <string name="saved_share" formatted="false">Бөлісу</string>
-    <string name="saved_suggest_translation">Suggest translation</string>
+    <string name="saved_suggest_translation" formatted="false">Аударма ұсыну</string>
     <string name="saved_preview_retry">Preview unavailable. Tap to retry.</string>
     <string name="saved_show_preview" formatted="false">Хадис алдын ала қарауын көрсету</string>
     <string name="saved_hide_preview" formatted="false">Хадис алдын ала қарауын жасыру</string>
@@ -62,9 +62,9 @@
     <string name="e3_rejected_message" formatted="false">Тексерулер жариялауды қолдамады. Ұсынысыңыз жеке күйде қалады.</string>
     <string name="e3_unavailable_message" formatted="false">Ұсынысыңыз жеке күйде қалады. Қажет болса, оны қайтарып алып, кейінірек қайталап көріңіз.</string>
     <string name="e3_waiting" formatted="false">Тексеруді күтіп тұрған кезде ұсынысыңыз жеке күйде қалады.</string>
-    <string name="e3_sources">Sources</string>
+    <string name="e3_sources" formatted="false">Дереккөздер</string>
     <string name="e3_consent" formatted="false">Ұсынысты жіберу арқылы Hadithly-ге оны тексеруге және жариялауға рұқсат бересіз. Дәлел дереккөздеріне бәрібір рұқсат қажет.</string>
-    <string name="e3_translation_sources">Translation sources</string>
+    <string name="e3_translation_sources" formatted="false">Аударма дереккөздері</string>
     <string name="e3_community_sources_message" formatted="false">Қатысушы бұл аударманы ұсынды. Автоматты тексерулер оны келтірілген дәлелдермен салыстырды. Бұл беделді аударма емес.</string>
     <string name="e3_contributor_label" formatted="false">· қатысушы аудармасы</string>
     <string name="e3_report_saved_detail" formatted="false">Есептер жеке сақталады. Оқуды жалғастыра аласыз.</string>

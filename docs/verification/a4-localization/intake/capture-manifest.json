@@ -1,0 +1,452 @@
+[
+  {
+    "platform": "ios",
+    "name": "ios-intake-ready-bn.png",
+    "sha256": "98c68bd9b253ddcad2039db40c3f957737b65c80e10112d2b63e11ecfe3d4b19"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-failed-bn.png",
+    "sha256": "48feebad7dc953ef132b5584580fa449f633a43cb3105884f7770e634e776138"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-waiting-bn.png",
+    "sha256": "03cd8d79ce293438ba45fdaad6b109d515569ca9a425b3e0dc81e1ff05f90fd4"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-ready-hi.png",
+    "sha256": "e65640c6ef4342abed2c6f0e18b498942d5a3e9790342b79fa15062cf812b452"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-failed-hi.png",
+    "sha256": "a4924eb77c9ff2d850ccba1cbe5d0e72b47392c00d7f88f7ab11125ac2ee02d0"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-waiting-hi.png",
+    "sha256": "26d45650cda36afbf6182c24e8f6982f86dff9b1c89751dd97e401d81bd8bc0b"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-ready-sw.png",
+    "sha256": "ea661a53918851c18545a8b3557ad865e7d86a891d39fa83c59fa94d465c246c"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-failed-sw.png",
+    "sha256": "6431060a04dde12236d788318a30806b320d588ff4276f2d89597678b4cf75a5"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-waiting-sw.png",
+    "sha256": "a65f850cd24bdea00cdd08533bf25761ca230fe5f286c9df69538a5ef2e6b66e"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-ready-pt-BR.png",
+    "sha256": "93b8b9706baeb3434beb64ecab0b5a1e0d958e59e000cac078f5604e688d7140"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-failed-pt-BR.png",
+    "sha256": "6614b64c3664682a27682ccdd0aaba2f30caa7478533992f30c3ffe022f59bcf"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-waiting-pt-BR.png",
+    "sha256": "e18a1b938d74c7ee97b69ab34e84534854cbbe5500093eef0e71c8e7cfc14fc4"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-ready-es-419.png",
+    "sha256": "3afe31fdab37c0a69a1e2388a0662d7a4aa96d39a8ef6491c7cb6f3e9f10c3f4"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-failed-es-419.png",
+    "sha256": "3e7559daad09725e19b81a2ce65523cc1a07cf93ecac243b4b02f7437434c754"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-waiting-es-419.png",
+    "sha256": "d73e2c40813f54c251c3df6764122048a110ecb13d4c3605259ba0c7ab30f228"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-ready-fr.png",
+    "sha256": "119a12e284f50d929e3fa1ab024029e7cc72c4d8ff4be40a33fb5b5c816c0167"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-failed-fr.png",
+    "sha256": "947116eef5b2e80e38a9c332b3f5704ebb97f1b128d3fb9bc80212a0d40ec9b9"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-waiting-fr.png",
+    "sha256": "02960a9da11f74077eb1a9a7f9f1a3a42185e3d567941e767cd815daa60d16d7"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-ready-ur.png",
+    "sha256": "fac9000dd8ae1b6dafbfca92037f4932df6a31d0c3550a622482fe44b0b8ac22"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-failed-ur.png",
+    "sha256": "de1832b7fd8c31de388d265f4df576eac4e1601a1856e5090f03524334e361c9"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-waiting-ur.png",
+    "sha256": "5d0b4924d3c505b9b11d983d9a686234ebd5d5cc85f7e70f2c83448f571d6964"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-ready-id.png",
+    "sha256": "0d9b18ec4e4abc673faa16c45143c016c38c9ed265e0facd10f50a2e7ca8c091"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-failed-id.png",
+    "sha256": "9cd55b73ce73e0f012d748f7a6e3ce92803454f3fb8f3d427807512ff063ac97"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-waiting-id.png",
+    "sha256": "8e4dc017793b37052edb066a4a403226753eb922b5a9b0f6c8b983540b436ffe"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-ready-tr.png",
+    "sha256": "bc95bb59828e8eb0a6ed6beae2df80ff97b7e416ee02b7596b18607eb6c6739a"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-failed-tr.png",
+    "sha256": "7c3fdb9fdaefeca7ec2a8624ddcc7383c20f3c068a584faf9c50ab74dc17da90"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-waiting-tr.png",
+    "sha256": "a4213fab8fde3ed9f35f40ba263864518b768891d74692273c12a647b308f844"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-ready-uz.png",
+    "sha256": "4321f16bbd8324f60a061a23ba0d4077d575a4761355c03f448e10ae25978a89"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-failed-uz.png",
+    "sha256": "680e414567deae09eae213ed0b2f04926eb16c80a3285e9337d156e6af24cb42"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-waiting-uz.png",
+    "sha256": "e26833fd9412980f7396c17c8d9174087f701560f1cbad768af1f0cef88e57de"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-ready-ky.png",
+    "sha256": "2566574dd4c7e0b9dbcee4563ce428299381059a1816a083632dcb5f789f43c6"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-failed-ky.png",
+    "sha256": "3dbee304c4d31942191be7a27113cfffa2ad26d2b1c468dda57c1e579ebce926"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-waiting-ky.png",
+    "sha256": "78b2aabb1424e19d21b5012b8927060eb4174b4fe55aec0bd04812dd6c1895b4"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-ready-kk.png",
+    "sha256": "d8306ecf13584f62383db27152cc3bf8845d1d4fb80470159625db9de05d46c6"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-failed-kk.png",
+    "sha256": "1ad09ca19cf5c97264ef63bff217f9f85ea96c561bed3400fe9b876e7b20ea30"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-waiting-kk.png",
+    "sha256": "35098bbaea39652aff46abd345f104bedb9c021de4610d3b3e6a9ebd8a252f21"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-ready-ru.png",
+    "sha256": "d4e10d89900a5deed90407d14bcfa53e745a069220c2c533e2fe4641525d160f"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-failed-ru.png",
+    "sha256": "89c4b55dff7088e8ebf2c5e8322351ebe8f4705fd192c2ee5a52d76e2bd13864"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-waiting-ru.png",
+    "sha256": "cc6aed5f9349ec4ade9651aa96898daa32e5315a2ee6901f560ca96bfab48327"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-ready-ar.png",
+    "sha256": "31f5d086b7ed35f4042fe9098af87f36d57ffe418a08c1f6b9c531bd26fe8aa0"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-failed-ar.png",
+    "sha256": "0e4fbcebe73e6b20239a7f10eea6d0a2ce7db61134a6babb8ff7d4903ebbdca1"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-waiting-ar.png",
+    "sha256": "8a772259d000e56ee85fea2e74c550f51c58d839bef8db3b45adced7a82ac368"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-ready-en.png",
+    "sha256": "af958599583c3692af39252ec15382f59f98e94de57ca180120a2a39bd5cddf9"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-failed-en.png",
+    "sha256": "41f791420233371d1bf0060d6af8e9f8578605ac0f002273bf325cd664197f13"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-intake-waiting-en.png",
+    "sha256": "e6ebf00273cc070d7c40b473aafbda88986fad0ad6659fe77d5fba173952b0b3"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-waiting-en.png",
+    "sha256": "b56fed541c5f913158a9c42ad5fc57af53b52cd65546f3bf0f857b9577a7deac"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-failed-en.png",
+    "sha256": "7b91bf6a46ec45529638cbef39ce02637f4a3fc1cfb585a1d375e97d02d0ffe5"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-ready-en.png",
+    "sha256": "c5fb0c6f879f775012b7da42879eb9067edb28656aa2bed18247facab0083c7d"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-waiting-ar.png",
+    "sha256": "7e650bf8b9789a4a2f5a593670f24a0822b047f285aa51ca0bd929fb86b12908"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-failed-ar.png",
+    "sha256": "5f72bb3c76ad74e2dbf637dbe2ffde16210567fd401b4d352de9479e6c925226"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-ready-ar.png",
+    "sha256": "da6880611b5d27a11435ddfa0a48b0a1a8f1af365992e998330b3f2eefc2a025"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-waiting-ru.png",
+    "sha256": "7a7442bf1521ae1f80e63061b6a0d1ec855bfbc189c0e8bf241c17a1d3077c02"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-failed-ru.png",
+    "sha256": "af7d53501133c295d55115833489375ba94bc25dcbe0afc924683736ac77dbc4"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-ready-ru.png",
+    "sha256": "3d0233cdcc95b0250c551051292a3e032eed097f90af9becca3f0cfce1707c93"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-waiting-kk.png",
+    "sha256": "c064cab4e6201b641915679a2e52548d566cf6c51bd55fc9871bbc97fe43dfa3"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-failed-kk.png",
+    "sha256": "30993876ec6dbc59e2b544dab6f286694ce7a706d991dbf9fb78e64f0c864bd6"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-ready-kk.png",
+    "sha256": "b0e4488a497dfd98708870764b6b71e7e77ab6bbf5ec8d32f87bfcec3b6da66e"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-waiting-ky.png",
+    "sha256": "5912c74cf9221a7fab5aedda9ce1d5f7fee78011476d2df041215fef44ff4d63"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-failed-ky.png",
+    "sha256": "a5e3ed390f1f497a56391912a23d7a5249529390b5542f26e5166e0329310603"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-ready-ky.png",
+    "sha256": "27ac79e60e31ef7b4c3c722e826ff4f0ed84fff080d5706eecefe918dbe60228"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-waiting-uz.png",
+    "sha256": "7d5383aedf94614e0bc000475ba985808bb685d88c7df13e24301540f0218e1e"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-failed-uz.png",
+    "sha256": "2ce348277fc536c73541e7811467d50bf598fbd93e9438cf46b067f01c67b92d"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-ready-uz.png",
+    "sha256": "2eb101aa739f6c330e8077fb3d3fdf2d205d64be670010bc6e67d9ff06b78f50"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-waiting-tr.png",
+    "sha256": "cbfe6daa921d32beb4d142bcce71b5b57ac30ffa2ffa4782a51103298b8a0a9a"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-failed-tr.png",
+    "sha256": "dbb6234513857da31b692b7a09dfc97935df73e04f6db5453ae44b53368eff6e"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-ready-tr.png",
+    "sha256": "6425405d7a2d63ce7470e79242d4bb86f7c38e093e56571851673588935513de"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-waiting-id.png",
+    "sha256": "9f09f8588e403ca2f33884632dbfb28c903aeaac42405a9a5e69d29d7c4a195b"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-failed-id.png",
+    "sha256": "237407dea4aae41368694302a870a6a1f90759d1aed3ae415876e123e019ddb8"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-ready-id.png",
+    "sha256": "2a0f1a84c8c85258589b204e9845ccbe90b491137c5e2bbf72ddb1c57ae09860"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-waiting-ur.png",
+    "sha256": "0fa6ef8b83f3b79ff0938cfb418f1ff674e3ef69405920d41f527491231d5c5a"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-failed-ur.png",
+    "sha256": "cc2106452ae7d54f7727ac156fc73514cd6bd056fac6e75628622655d7815a97"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-ready-ur.png",
+    "sha256": "811a54a3ec89f1fbaf42d95fa012550855df55af219e420c7cf954a1020b530c"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-waiting-fr.png",
+    "sha256": "5607b344f2efac189f7d5bff82eb2c3cfda30e4eb12fb74397c5a52b3ed02413"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-failed-fr.png",
+    "sha256": "f2edc261edc0d9872b96ab48f3b3efd087c06bdf27a39e9d2ca5bfcccfdc7083"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-ready-fr.png",
+    "sha256": "3deddd05a6be0f4c52314e3cbd5cdb538955008d516f3daab4ff4e5a77d54726"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-waiting-es-419.png",
+    "sha256": "d3616d1b0b8bf3601a3dd9e4bf251e06181d811c26f81002b444eeeda3d94eb2"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-failed-es-419.png",
+    "sha256": "2f4364f2574a3ae3f469885c9794eebce26114c5633f8d70c797f3b6b14e7d2c"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-ready-es-419.png",
+    "sha256": "498caaecc698e1816aac57b837a3923d3320c827cbbcd66312c7d0e62ab0e4c4"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-waiting-pt-BR.png",
+    "sha256": "8e2c4742aed47c621950ef838e769bad043890ee7e23e9fa3742b271cf4a90cd"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-failed-pt-BR.png",
+    "sha256": "266a747fdde30d9bc5e8080e8b55bc7c0bcd48dcfe67cec6e8c39e52646da526"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-ready-pt-BR.png",
+    "sha256": "a3349c18b1bdc74acc39c54a3f88baaf8b331fd21177061b809887cdf7bd8ec6"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-waiting-sw.png",
+    "sha256": "39bfea8cc672574607316fdef41a73b01d97b5e1e827332dbd95395ee518a173"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-failed-sw.png",
+    "sha256": "f8043fb0b584c2c68b5009cbdf867f40a7a7ee2158212ceb26f71553eb94d50e"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-ready-sw.png",
+    "sha256": "dd8143ac0161d6f2073314aca210b8352b8426e67cd60b3f163b349e79913b27"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-waiting-hi.png",
+    "sha256": "28695a5049cabd8cb934210bd52a164c9bc0c82e30605737a234f615970f5bfc"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-failed-hi.png",
+    "sha256": "187dac8be404396cf343049ab4fa9d5c51f91e339ba8bf39e770a5374e55970b"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-ready-hi.png",
+    "sha256": "0403d488bc1f46dd0fe6e5c30aa7187977a1eab22987bbdda432adb23aee5c6e"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-waiting-bn.png",
+    "sha256": "c9862f663feb5bb0759658f627599569dc50fe5d73b514ac3a39765c54807a28"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-failed-bn.png",
+    "sha256": "67fcf38f3090d14832e77e0f51336489358d3f381a0c9b2f3060dfbcddef4532"
+  },
+  {
+    "platform": "android",
+    "name": "android-intake-ready-bn.png",
+    "sha256": "24680bf89acbfa137c38783f2f0f43f1c501ff61b9744d5ade31b92cd8df0221"
+  }
+]

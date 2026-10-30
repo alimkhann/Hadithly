@@ -1,0 +1,47 @@
+{
+  "ios": {
+    "runs": [
+      {
+        "bundle": "hadithly-a4-intake-red-ios.xcresult",
+        "startTime": 1793373395.649,
+        "result": "Failed",
+        "passedTests": 0,
+        "failedTests": 1,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-intake-matrix-ios.xcresult",
+        "startTime": 1793373521.961,
+        "result": "Passed",
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0
+      }
+    ],
+    "latestCases": {
+      "HadithlyUITests/VisualPolishUITests/testEvidenceIntakeKeepsPrivateProcessingCopyLocalized()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-intake-matrix-ios.xcresult"
+      }
+    },
+    "latestCounts": {
+      "Passed": 1
+    }
+  },
+  "android": {
+    "ui": {
+      "counts": {
+        "Passed": 1
+      },
+      "cases": {
+        "com.hadithly.app.core.theme.NativeFinishingTest/evidenceIntakeKeepsPrivateProcessingCopyLocalized": "Passed"
+      },
+      "reports": [
+        {
+          "file": "TEST-hadithly(AVD) - 16-_app-.xml",
+          "sha256": "fa1570d3a27678deb74cefa7d3e09284f7934bcc0f2abedd0ad3918e56f0f917"
+        }
+      ]
+    }
+  }
+}

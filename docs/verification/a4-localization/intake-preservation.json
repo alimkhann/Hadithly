@@ -1,0 +1,159 @@
+{
+  "native_review": "pending",
+  "scope": "Seven exact catalog entry repairs limited to fourteen non-English values per key. Existing English, comments and extraction/state metadata retained. Other incoming catalog metadata/order differences remain outside the scoped index.",
+  "catalog_repairs": [
+    {
+      "key": "Sign in from Settings to suggest a translation with evidence.",
+      "expected_index_hash": "eb18f8acf5a26d871152dd2ac51aff960b30f14c05c220732cec3b1df8808e8c",
+      "english_state_and_metadata_preserved": true,
+      "changed_locales": [
+        "ar",
+        "ru",
+        "kk",
+        "ky",
+        "uz",
+        "tr",
+        "id",
+        "ur",
+        "fr",
+        "es-419",
+        "pt-BR",
+        "sw",
+        "hi",
+        "bn"
+      ]
+    },
+    {
+      "key": "The private files were removed before processing. You can start a new suggestion.",
+      "expected_index_hash": "6e906a13eeaee12544b6553b7b219fe72007e8a79c35e4e72c2c907aec4ac10e",
+      "english_state_and_metadata_preserved": true,
+      "changed_locales": [
+        "ar",
+        "ru",
+        "kk",
+        "ky",
+        "uz",
+        "tr",
+        "id",
+        "ur",
+        "fr",
+        "es-419",
+        "pt-BR",
+        "sw",
+        "hi",
+        "bn"
+      ]
+    },
+    {
+      "key": "Processing evidence. Your suggestion stays private and has not been reviewed or published.",
+      "expected_index_hash": "9e752c402c43238902174f55e8b4299fd20072a82fe338b5d9c11d4d0085aef0",
+      "english_state_and_metadata_preserved": true,
+      "changed_locales": [
+        "ar",
+        "ru",
+        "kk",
+        "ky",
+        "uz",
+        "tr",
+        "id",
+        "ur",
+        "fr",
+        "es-419",
+        "pt-BR",
+        "sw",
+        "hi",
+        "bn"
+      ]
+    },
+    {
+      "key": "Evidence received; awaiting checks.",
+      "expected_index_hash": "19c62f6d0d5de3007ee5b020073bb20e385e1d74b04b6e7804e85b65c04fe5fd",
+      "english_state_and_metadata_preserved": true,
+      "changed_locales": [
+        "ar",
+        "ru",
+        "kk",
+        "ky",
+        "uz",
+        "tr",
+        "id",
+        "ur",
+        "fr",
+        "es-419",
+        "pt-BR",
+        "sw",
+        "hi",
+        "bn"
+      ]
+    },
+    {
+      "key": "Retry evidence",
+      "expected_index_hash": "cedeaeec243bc9ef1323bb8cb5e337a074a1a72f99eff4c4d37bfa865460ba02",
+      "english_state_and_metadata_preserved": true,
+      "changed_locales": [
+        "ar",
+        "ru",
+        "kk",
+        "ky",
+        "uz",
+        "tr",
+        "id",
+        "ur",
+        "fr",
+        "es-419",
+        "pt-BR",
+        "sw",
+        "hi",
+        "bn"
+      ]
+    },
+    {
+      "key": "Withdraw suggestion",
+      "expected_index_hash": "3193d77f120dab898a3a40cb99aaecfb90cb8e9d646217e883f21c53d7069489",
+      "english_state_and_metadata_preserved": true,
+      "changed_locales": [
+        "ar",
+        "ru",
+        "kk",
+        "ky",
+        "uz",
+        "tr",
+        "id",
+        "ur",
+        "fr",
+        "es-419",
+        "pt-BR",
+        "sw",
+        "hi",
+        "bn"
+      ]
+    },
+    {
+      "key": "Your suggestion remains private. Withdraw it and submit different evidence if needed.",
+      "expected_index_hash": "230c5ffd3e447b4da6f3a1bc13fc0e59e81d90e6af7ce4eddeb1dcef308908e7",
+      "english_state_and_metadata_preserved": true,
+      "changed_locales": [
+        "ar",
+        "ru",
+        "kk",
+        "ky",
+        "uz",
+        "tr",
+        "id",
+        "ur",
+        "fr",
+        "es-419",
+        "pt-BR",
+        "sw",
+        "hi",
+        "bn"
+      ]
+    }
+  ],
+  "unchanged_project_fingerprints": {
+    "ios/Hadithly.xcodeproj/project.pbxproj": "96350e43481804f2d09dfd0e09609f894d7eedcc6a5326a6cb63c16cb9992efb",
+    "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/Hadithly.xcscheme": "4855a090d537eafb377cd99d70425fb44137ad64588059f01727ffbbd0fa95b6",
+    "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/LA2Verification.xcscheme": "74eff6b5902f4989fcf1d4d5d17a9c1c65bb66571cde851e2b932bff7520bfed",
+    "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/Phase4Live.xcscheme": "35c6cbf95690fc03a4497131c41eeb41983b35123116204af04dd0842baa982d"
+  }
+}

@@ -26,7 +26,7 @@
     <string name="saved_delete_note" formatted="false">नोट हटाएँ</string>
     <string name="saved_copy" formatted="false">कॉपी करें</string>
     <string name="saved_share" formatted="false">साझा करें</string>
-    <string name="saved_suggest_translation">Suggest translation</string>
+    <string name="saved_suggest_translation" formatted="false">अनुवाद सुझाएँ</string>
     <string name="saved_preview_retry">Preview unavailable. Tap to retry.</string>
     <string name="saved_show_preview" formatted="false">हदीस का पूर्वावलोकन दिखाएँ</string>
     <string name="saved_hide_preview" formatted="false">हदीस का पूर्वावलोकन छिपाएँ</string>
@@ -62,9 +62,9 @@
     <string name="e3_rejected_message" formatted="false">जाँचों ने प्रकाशन का समर्थन नहीं किया। आपका सुझाव निजी रहेगा।</string>
     <string name="e3_unavailable_message" formatted="false">आपका सुझाव निजी रहेगा। ज़रूरत हो तो इसे वापस लेकर बाद में फिर कोशिश करें।</string>
     <string name="e3_waiting" formatted="false">समीक्षा की प्रतीक्षा करते हुए आपका सुझाव निजी रहेगा।</string>
-    <string name="e3_sources">Sources</string>
+    <string name="e3_sources" formatted="false">स्रोत</string>
     <string name="e3_consent" formatted="false">सबमिट करके आप Hadithly को अपने सुझाव की समीक्षा और प्रकाशन की अनुमति देते हैं। साक्ष्य स्रोतों के लिए अब भी अनुमति चाहिए।</string>
-    <string name="e3_translation_sources">Translation sources</string>
+    <string name="e3_translation_sources" formatted="false">अनुवाद के स्रोत</string>
     <string name="e3_community_sources_message" formatted="false">एक योगदानकर्ता ने यह अनुवाद सुझाया। स्वचालित जाँचों ने इसे उद्धृत साक्ष्य से मिलाया। यह प्रामाणिक अनुवाद नहीं है।</string>
     <string name="e3_contributor_label" formatted="false">· योगदानकर्ता का अनुवाद</string>
     <string name="e3_report_saved_detail" formatted="false">रिपोर्ट निजी रूप से सहेजी जाती हैं। आप पढ़ना जारी रख सकते हैं।</string>

@@ -26,7 +26,7 @@
     <string name="saved_delete_note" formatted="false">Qaydni o‘chirish</string>
     <string name="saved_copy" formatted="false">Nusxalash</string>
     <string name="saved_share" formatted="false">Ulashish</string>
-    <string name="saved_suggest_translation">Suggest translation</string>
+    <string name="saved_suggest_translation" formatted="false">Tarjima taklif qilish</string>
     <string name="saved_preview_retry">Preview unavailable. Tap to retry.</string>
     <string name="saved_show_preview" formatted="false">Hadis ko‘rinishini ko‘rsatish</string>
     <string name="saved_hide_preview" formatted="false">Hadis ko‘rinishini yashirish</string>
@@ -62,9 +62,9 @@
     <string name="e3_rejected_message" formatted="false">Tekshiruvlar nashrni qo‘llab-quvvatlamadi. Taklifingiz maxfiy qoladi.</string>
     <string name="e3_unavailable_message" formatted="false">Taklifingiz maxfiy qoladi. Zarur bo‘lsa, uni qaytarib olib keyinroq qayta urinib ko‘ring.</string>
     <string name="e3_waiting" formatted="false">Tekshiruvni kutayotgan paytda taklifingiz maxfiy qoladi.</string>
-    <string name="e3_sources">Sources</string>
+    <string name="e3_sources" formatted="false">Manbalar</string>
     <string name="e3_consent" formatted="false">Taklif yuborish orqali Hadithly’ga uni tekshirish va nashr qilishga ruxsat berasiz. Dalil manbalari uchun baribir ruxsat kerak.</string>
-    <string name="e3_translation_sources">Translation sources</string>
+    <string name="e3_translation_sources" formatted="false">Tarjima manbalari</string>
     <string name="e3_community_sources_message" formatted="false">Hissa qo‘shuvchi bu tarjimani taklif qildi. Avtomatik tekshiruvlar uni keltirilgan dalillar bilan solishtirdi. Bu vakolatli tarjima emas.</string>
     <string name="e3_contributor_label" formatted="false">· hissa qo‘shuvchining tarjimasi</string>
     <string name="e3_report_saved_detail" formatted="false">Hisobotlar maxfiy saqlanadi. O‘qishni davom ettirishingiz mumkin.</string>

@@ -50,6 +50,33 @@ struct EvidenceUploadProgressView: View {
 }
 
 #if DEBUG
+struct EvidenceIntakeCopyAuditFixture: View {
+    @State private var status = "awaiting_processing"
+    @State private var retries = 0
+    @State private var withdrawals = 0
+    var body: some View {
+        VStack {
+            Text("Sign in from Settings to suggest a translation with evidence.")
+                .accessibilityIdentifier("intakeAudit.signIn")
+            Text("The private files were removed before processing. You can start a new suggestion.")
+                .accessibilityIdentifier("intakeAudit.filesRemoved")
+            HStack {
+                ForEach(["awaiting_processing", "processing_failed", "evidence_ready"], id: \.self) { value in
+                    Button(value) { status = value }.accessibilityIdentifier("intakeAudit.state." + value)
+                }
+            }
+            Text(String(retries)).accessibilityIdentifier("intakeAudit.retries")
+            Text(String(withdrawals)).accessibilityIdentifier("intakeAudit.withdrawals")
+            EvidenceProcessingStatusView(status: status, retryItems: ["prepared-item"], errorMessage: nil,
+                onRetry: { _ in retries += 1; status = "awaiting_processing" },
+                onWithdraw: { withdrawals += 1 },
+                citations: [EvidenceCitation(url: "https://example.org/prepared", title: "Original source %lld %@", location: "p. 1")])
+        }.padding(16)
+    }
+}
+#endif
+
+#if DEBUG
 struct EvidenceItemCopyAuditFixture: View {
     var body: some View {
         ScrollView {

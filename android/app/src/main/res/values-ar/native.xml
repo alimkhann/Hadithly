@@ -2,7 +2,7 @@
 <resources>
     <string name="native_19766ed6ccb2" formatted="false">إلغاء</string>
     <string name="native_29887a5ff984">مشاركة</string>
-    <string name="native_3c707d34de67">Suggest translation</string>
+    <string name="native_3c707d34de67" formatted="false">اقتراح ترجمة</string>
     <string name="native_4fa960716706" formatted="false">إزالة وعدم السؤال مرة أخرى</string>
     <string name="native_74a883a037bc">الإعدادات</string>
     <string name="native_76900f1bfd16" formatted="false">رجوع</string>
@@ -54,14 +54,14 @@
     <string name="native_099cd53b4147">صدّر ملفك الشخصي وتفضيلاتك والعناصر المحفوظة والمجلدات وتقدم القراءة وإسهاماتك كملف JSON.</string>
     <string name="native_0ab48e787f8a">أضف رابطًا أو ثلاثة روابط أو ملفات. تبقى الأدلة خاصة أثناء التحقق منها.</string>
     <string name="native_0ccfef828950">إغلاق الإعدادات</string>
-    <string name="native_102b5d6815d5" formatted="false">Sign in from Settings to suggest a translation with evidence.</string>
+    <string name="native_102b5d6815d5" formatted="false">سجّل الدخول من الإعدادات لاقتراح ترجمة مع أدلة.</string>
     <string name="native_11a6767d5674" formatted="false">تم</string>
     <string name="native_1509f561f241" formatted="false">حفظ</string>
-    <string name="native_161faa795821" formatted="false">The private files were removed before processing. You can start a new suggestion.</string>
+    <string name="native_161faa795821" formatted="false">أُزيلت الملفات الخاصة قبل معالجتها. يمكنك بدء اقتراح جديد.</string>
     <string name="native_1bac4007880b">إشارة مرجعية</string>
     <string name="native_1ddc2d9a1a21">السبب الخاص</string>
     <string name="native_258de606097f">المجلدات</string>
-    <string name="native_2f4412f8bb6a" formatted="false">Processing evidence. Your suggestion stays private and has not been reviewed or published.</string>
+    <string name="native_2f4412f8bb6a" formatted="false">تجري معالجة الأدلة. يظل اقتراحك خاصًا ولم تتم مراجعته أو نشره.</string>
     <string name="native_30b8238e7f5b">أرسل إليّ حديثًا كل يوم</string>
     <string name="native_30c1d8d3e912" formatted="false">هل نسيت كلمة المرور؟</string>
     <string name="native_326d9c957d5a" formatted="false">إلغاء الرفع</string>
@@ -95,7 +95,7 @@
     <string name="native_7b4888049459" formatted="false">اسم العائلة</string>
     <string name="native_7b503321357a" formatted="false">حذف الحساب والبيانات</string>
     <string name="native_7d94fc6f0852">اكتب ملاحظة خاصة…</string>
-    <string name="native_82c66ec1be55" formatted="false">Evidence received; awaiting checks.</string>
+    <string name="native_82c66ec1be55" formatted="false">تم استلام الأدلة؛ بانتظار الفحوص.</string>
     <string name="native_83bbbb83cfbe">اختيار الموقع</string>
     <string name="native_858e4ba7a29f" formatted="false">إيقاف مؤقت</string>
     <string name="native_892ffa345a39" formatted="false">كيف تعمل ميزة عدم الاتصال</string>
@@ -110,15 +110,15 @@
     <string name="native_96b3b31d45ab">فتح مساحة تخزين الجهاز</string>
     <string name="native_96be15d18327" formatted="false">الخط العربي</string>
     <string name="native_98770753608c" formatted="false">اكتملت فحوص الدليل</string>
-    <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
+    <string name="native_9c2816aadb36" formatted="false">إعادة محاولة معالجة الأدلة</string>
     <string name="native_9f9feade761d" formatted="false">المجموعات</string>
     <string name="native_a1a6ea9533fa">البحث غير متاح دون اتصال.</string>
     <string name="native_b01111be1821">البحث في النص الإنجليزي</string>
     <string name="native_b67dee925588" formatted="false">النص الإنجليزي على Sunnah.now</string>
     <string name="native_b7337027ef1f">استخدم بريدًا إلكترونيًا مختلفًا</string>
-    <string name="native_b7bd92f57552" formatted="false">Withdraw suggestion</string>
+    <string name="native_b7bd92f57552" formatted="false">سحب الاقتراح</string>
     <string name="native_b97457409ab5" formatted="false">إعادة إرسال الرمز</string>
-    <string name="native_b9c98d6ecdf1" formatted="false">Your suggestion remains private. Withdraw it and submit different evidence if needed.</string>
+    <string name="native_b9c98d6ecdf1" formatted="false">يظل اقتراحك خاصًا. اسحبه وقدّم أدلة مختلفة عند الحاجة.</string>
     <string name="native_bdd5c6b7f515" formatted="false">رقم الحديث</string>
     <string name="native_bf948705a783">يشحن Hadithly مجموعات دون اتصال بإصدارات محددة: تفريغًا عربيًا أساسيًا وحزم ترجمة، لكل منها بصمة وترخيص. تتحقق التنزيلات قبل التفعيل وتحافظ على عناصرك المحفوظة ومواضع القراءة. حذف التنزيل يزيل الملفات فقط، وتبقى إشاراتك المرجعية وملاحظاتك ومواضعك.</string>
     <string name="native_c1c1009d3f37" formatted="false">تحديث</string>

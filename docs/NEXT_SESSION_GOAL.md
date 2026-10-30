@@ -22,6 +22,18 @@ browser explanation now pass local native checks. Continue C1 and C2/C3/C7
 verification before D. C8 adds only one scoped catalog entry, preserving all
 incoming catalog bytes. External OAuth and native-copy approval remain open.
 
+## A4 evidence-intake checkpoint, October 30
+
+Seven existing English-clone intake entries now have scoped fifteen-locale drafts;
+Android evidence suggestion/source aliases reuse indexed translations. Both apps
+pass waiting, failed and checks-complete presentation plus local Retry in all
+fifteen locales. No withdrawal, evidence upload or publication is performed. See
+`A4_RUNTIME_LOCALIZATION.md` and `verification/a4-localization/intake.json`.
+Native review remains pending. The structural audit has 126 English-identical
+Android candidates, including confirmed active Saved filters, preview retry and
+removal text. Repair those and remaining error wrappers next, then A5–A7/E.
+Incoming project/catalog work and content/device/store/release gates stay separate.
+
 ## A4 auth-error and greeting checkpoint, October 30
 
 Auth failures now select fixed interface messages from installed Clerk error codes

@@ -2,7 +2,7 @@
 <resources>
     <string name="native_19766ed6ccb2" formatted="false">Batal</string>
     <string name="native_29887a5ff984">Bagikan</string>
-    <string name="native_3c707d34de67">Suggest translation</string>
+    <string name="native_3c707d34de67" formatted="false">Sarankan terjemahan</string>
     <string name="native_4fa960716706" formatted="false">Hapus dan jangan tanya lagi</string>
     <string name="native_74a883a037bc">Pengaturan</string>
     <string name="native_76900f1bfd16" formatted="false">Kembali</string>
@@ -54,14 +54,14 @@
     <string name="native_099cd53b4147">Ekspor profil, preferensi, item Tersimpan, folder, kemajuan membaca, dan kontribusi Anda sendiri sebagai JSON.</string>
     <string name="native_0ab48e787f8a">Tambahkan satu hingga tiga tautan atau file sumber. Bukti tetap privat saat diperiksa.</string>
     <string name="native_0ccfef828950">Tutup pengaturan</string>
-    <string name="native_102b5d6815d5" formatted="false">Sign in from Settings to suggest a translation with evidence.</string>
+    <string name="native_102b5d6815d5" formatted="false">Masuk dari Pengaturan untuk mengusulkan terjemahan dengan bukti.</string>
     <string name="native_11a6767d5674" formatted="false">Selesai</string>
     <string name="native_1509f561f241" formatted="false">Simpan</string>
-    <string name="native_161faa795821" formatted="false">The private files were removed before processing. You can start a new suggestion.</string>
+    <string name="native_161faa795821" formatted="false">Berkas pribadi dihapus sebelum diproses. Anda dapat memulai usulan baru.</string>
     <string name="native_1bac4007880b">Penanda</string>
     <string name="native_1ddc2d9a1a21">Alasan privat</string>
     <string name="native_258de606097f">VOLUME</string>
-    <string name="native_2f4412f8bb6a" formatted="false">Processing evidence. Your suggestion stays private and has not been reviewed or published.</string>
+    <string name="native_2f4412f8bb6a" formatted="false">Bukti sedang diproses. Usulan Anda tetap pribadi dan belum ditinjau atau diterbitkan.</string>
     <string name="native_30b8238e7f5b">Kirimkan hadis setiap hari</string>
     <string name="native_30c1d8d3e912" formatted="false">Lupa kata sandi?</string>
     <string name="native_326d9c957d5a" formatted="false">Batalkan unggahan</string>
@@ -95,7 +95,7 @@
     <string name="native_7b4888049459" formatted="false">Nama belakang</string>
     <string name="native_7b503321357a" formatted="false">Hapus akun dan data</string>
     <string name="native_7d94fc6f0852">Tulis catatan privat…</string>
-    <string name="native_82c66ec1be55" formatted="false">Evidence received; awaiting checks.</string>
+    <string name="native_82c66ec1be55" formatted="false">Bukti diterima; menunggu pemeriksaan.</string>
     <string name="native_83bbbb83cfbe">Pilih lokasi</string>
     <string name="native_858e4ba7a29f" formatted="false">Jeda</string>
     <string name="native_892ffa345a39" formatted="false">Cara kerja offline</string>
@@ -110,15 +110,15 @@
     <string name="native_96b3b31d45ab">Buka penyimpanan perangkat</string>
     <string name="native_96be15d18327" formatted="false">Teks Arab</string>
     <string name="native_98770753608c" formatted="false">Pemeriksaan bukti selesai</string>
-    <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
+    <string name="native_9c2816aadb36" formatted="false">Coba proses bukti lagi</string>
     <string name="native_9f9feade761d" formatted="false">Koleksi</string>
     <string name="native_a1a6ea9533fa">Pencarian tidak tersedia offline.</string>
     <string name="native_b01111be1821">Cari teks bahasa Inggris</string>
     <string name="native_b67dee925588" formatted="false">Teks bahasa Inggris Sunnah.now</string>
     <string name="native_b7337027ef1f">Gunakan email lain</string>
-    <string name="native_b7bd92f57552" formatted="false">Withdraw suggestion</string>
+    <string name="native_b7bd92f57552" formatted="false">Tarik usulan</string>
     <string name="native_b97457409ab5" formatted="false">Kirim ulang kode</string>
-    <string name="native_b9c98d6ecdf1" formatted="false">Your suggestion remains private. Withdraw it and submit different evidence if needed.</string>
+    <string name="native_b9c98d6ecdf1" formatted="false">Usulan Anda tetap pribadi. Jika perlu, tarik usulan dan kirim bukti lain.</string>
     <string name="native_bdd5c6b7f515" formatted="false">Nomor hadis</string>
     <string name="native_bf948705a783">Hadithly menyediakan koleksi offline berversi: dump bahasa Arab dasar dan paket terjemahan, masing-masing dengan checksum dan lisensi. Unduhan divalidasi sebelum diaktifkan dan item Tersimpan serta posisi membaca tetap terjaga. Menghapus unduhan hanya menghapus file — bookmark, catatan, dan posisi Anda tetap ada.</string>
     <string name="native_c1c1009d3f37" formatted="false">Perbarui</string>

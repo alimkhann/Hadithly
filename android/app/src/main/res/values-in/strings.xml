@@ -26,7 +26,7 @@
     <string name="saved_delete_note" formatted="false">Hapus catatan</string>
     <string name="saved_copy" formatted="false">Salin</string>
     <string name="saved_share" formatted="false">Bagikan</string>
-    <string name="saved_suggest_translation">Suggest translation</string>
+    <string name="saved_suggest_translation" formatted="false">Sarankan terjemahan</string>
     <string name="saved_preview_retry">Preview unavailable. Tap to retry.</string>
     <string name="saved_show_preview" formatted="false">Tampilkan pratinjau hadis</string>
     <string name="saved_hide_preview" formatted="false">Sembunyikan pratinjau hadis</string>
@@ -62,9 +62,9 @@
     <string name="e3_rejected_message" formatted="false">Pemeriksaan tidak mendukung publikasi. Usulan Anda tetap pribadi.</string>
     <string name="e3_unavailable_message" formatted="false">Usulan Anda tetap pribadi. Tarik dan coba lagi nanti jika diperlukan.</string>
     <string name="e3_waiting" formatted="false">Usulan Anda tetap pribadi sambil menunggu pemeriksaan.</string>
-    <string name="e3_sources">Sources</string>
+    <string name="e3_sources" formatted="false">Sumber</string>
     <string name="e3_consent" formatted="false">Dengan mengirimkan usulan, Anda mengizinkan Hadithly memeriksa dan menerbitkannya. Sumber bukti tetap memerlukan izin.</string>
-    <string name="e3_translation_sources">Translation sources</string>
+    <string name="e3_translation_sources" formatted="false">Sumber terjemahan</string>
     <string name="e3_community_sources_message" formatted="false">Seorang kontributor mengusulkan terjemahan ini. Pemeriksaan otomatis membandingkannya dengan bukti yang dikutip. Ini bukan terjemahan otoritatif.</string>
     <string name="e3_contributor_label" formatted="false">· terjemahan kontributor</string>
     <string name="e3_report_saved_detail" formatted="false">Laporan disimpan secara pribadi. Anda dapat terus membaca.</string>

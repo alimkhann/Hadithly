@@ -26,7 +26,7 @@
     <string name="saved_delete_note" formatted="false">Futa dokezo</string>
     <string name="saved_copy" formatted="false">Nakili</string>
     <string name="saved_share" formatted="false">Shiriki</string>
-    <string name="saved_suggest_translation">Suggest translation</string>
+    <string name="saved_suggest_translation" formatted="false">Pendekeza tafsiri</string>
     <string name="saved_preview_retry">Preview unavailable. Tap to retry.</string>
     <string name="saved_show_preview" formatted="false">Onyesha hakikisho la hadithi</string>
     <string name="saved_hide_preview" formatted="false">Ficha hakikisho la hadithi</string>
@@ -62,9 +62,9 @@
     <string name="e3_rejected_message" formatted="false">Ukaguzi haukuunga mkono uchapishaji. Pendekezo lako linabaki la faragha.</string>
     <string name="e3_unavailable_message" formatted="false">Pendekezo lako linabaki la faragha. Liondoe na ujaribu tena baadaye ikihitajika.</string>
     <string name="e3_waiting" formatted="false">Pendekezo lako linabaki la faragha likisubiri ukaguzi.</string>
-    <string name="e3_sources">Sources</string>
+    <string name="e3_sources" formatted="false">Vyanzo</string>
     <string name="e3_consent" formatted="false">Kwa kuwasilisha, unaruhusu Hadithly kukagua na kuchapisha pendekezo lako. Vyanzo vya ushahidi bado vinahitaji ruhusa.</string>
-    <string name="e3_translation_sources">Translation sources</string>
+    <string name="e3_translation_sources" formatted="false">Vyanzo vya tafsiri</string>
     <string name="e3_community_sources_message" formatted="false">Mchangiaji alipendekeza tafsiri hii. Ukaguzi wa kiotomatiki uliilinganisha na ushahidi uliotajwa. Si tafsiri yenye mamlaka.</string>
     <string name="e3_contributor_label" formatted="false">· tafsiri ya mchangiaji</string>
     <string name="e3_report_saved_detail" formatted="false">Ripoti huhifadhiwa kwa faragha. Unaweza kuendelea kusoma.</string>

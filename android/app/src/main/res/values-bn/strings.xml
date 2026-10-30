@@ -26,7 +26,7 @@
     <string name="saved_delete_note" formatted="false">নোট মুছুন</string>
     <string name="saved_copy" formatted="false">কপি করুন</string>
     <string name="saved_share" formatted="false">শেয়ার করুন</string>
-    <string name="saved_suggest_translation">Suggest translation</string>
+    <string name="saved_suggest_translation" formatted="false">অনুবাদ প্রস্তাব করুন</string>
     <string name="saved_preview_retry">Preview unavailable. Tap to retry.</string>
     <string name="saved_show_preview" formatted="false">হাদিসের পূর্বরূপ দেখান</string>
     <string name="saved_hide_preview" formatted="false">হাদিসের পূর্বরূপ লুকান</string>
@@ -62,9 +62,9 @@
     <string name="e3_rejected_message" formatted="false">পরীক্ষাগুলো প্রকাশনাকে সমর্থন করেনি। আপনার প্রস্তাব ব্যক্তিগত থাকে।</string>
     <string name="e3_unavailable_message" formatted="false">আপনার প্রস্তাব ব্যক্তিগত থাকে। প্রয়োজন হলে এটি প্রত্যাহার করে পরে আবার চেষ্টা করুন।</string>
     <string name="e3_waiting" formatted="false">পর্যালোচনার অপেক্ষায় আপনার প্রস্তাব ব্যক্তিগত থাকে।</string>
-    <string name="e3_sources">Sources</string>
+    <string name="e3_sources" formatted="false">উৎস</string>
     <string name="e3_consent" formatted="false">জমা দিয়ে আপনি Hadithly-কে আপনার প্রস্তাব পর্যালোচনা ও প্রকাশের অনুমতি দেন। প্রমাণের উৎসের জন্য এখনও অনুমতি দরকার।</string>
-    <string name="e3_translation_sources">Translation sources</string>
+    <string name="e3_translation_sources" formatted="false">অনুবাদের উৎস</string>
     <string name="e3_community_sources_message" formatted="false">একজন অবদানকারী এই অনুবাদ প্রস্তাব করেছেন। স্বয়ংক্রিয় পর্যালোচনা উদ্ধৃত প্রমাণের সঙ্গে এটি মিলিয়েছে। এটি প্রামাণ্য অনুবাদ নয়।</string>
     <string name="e3_contributor_label" formatted="false">· অবদানকারীর অনুবাদ</string>
     <string name="e3_report_saved_detail" formatted="false">রিপোর্ট ব্যক্তিগতভাবে সংরক্ষিত হয়। আপনি পড়া চালিয়ে যেতে পারেন।</string>

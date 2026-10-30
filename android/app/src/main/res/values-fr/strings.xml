@@ -26,7 +26,7 @@
     <string name="saved_delete_note" formatted="false">Supprimer la note</string>
     <string name="saved_copy" formatted="false">Copier</string>
     <string name="saved_share" formatted="false">Partager</string>
-    <string name="saved_suggest_translation">Suggest translation</string>
+    <string name="saved_suggest_translation" formatted="false">Suggérer une traduction</string>
     <string name="saved_preview_retry">Preview unavailable. Tap to retry.</string>
     <string name="saved_show_preview" formatted="false">Afficher l’aperçu du hadith</string>
     <string name="saved_hide_preview" formatted="false">Masquer l’aperçu du hadith</string>
@@ -62,9 +62,9 @@
     <string name="e3_rejected_message" formatted="false">Les vérifications ne permettent pas la publication. Votre proposition reste privée.</string>
     <string name="e3_unavailable_message" formatted="false">Votre proposition reste privée. Retirez-la et réessayez plus tard si nécessaire.</string>
     <string name="e3_waiting" formatted="false">Votre proposition reste privée en attendant la vérification.</string>
-    <string name="e3_sources">Sources</string>
+    <string name="e3_sources" formatted="false">Sources</string>
     <string name="e3_consent" formatted="false">En envoyant votre proposition, vous autorisez Hadithly à la vérifier et à la publier. Les sources des preuves nécessitent toujours une autorisation.</string>
-    <string name="e3_translation_sources">Translation sources</string>
+    <string name="e3_translation_sources" formatted="false">Sources de traduction</string>
     <string name="e3_community_sources_message" formatted="false">Un contributeur a proposé cette traduction. Les vérifications automatiques l’ont comparée aux preuves citées. Ce n’est pas une traduction faisant autorité.</string>
     <string name="e3_contributor_label" formatted="false">· traduction d’un contributeur</string>
     <string name="e3_report_saved_detail" formatted="false">Les signalements sont enregistrés en privé. Vous pouvez continuer à lire.</string>

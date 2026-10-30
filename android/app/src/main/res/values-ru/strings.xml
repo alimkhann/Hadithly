@@ -26,7 +26,7 @@
     <string name="saved_delete_note" formatted="false">Удалить заметку</string>
     <string name="saved_copy" formatted="false">Копировать</string>
     <string name="saved_share" formatted="false">Поделиться</string>
-    <string name="saved_suggest_translation">Suggest translation</string>
+    <string name="saved_suggest_translation" formatted="false">Предложить перевод</string>
     <string name="saved_preview_retry">Preview unavailable. Tap to retry.</string>
     <string name="saved_show_preview" formatted="false">Показать предпросмотр хадиса</string>
     <string name="saved_hide_preview" formatted="false">Скрыть предпросмотр хадиса</string>
@@ -62,9 +62,9 @@
     <string name="e3_rejected_message" formatted="false">Проверки не подтвердили возможность публикации. Ваше предложение остаётся приватным.</string>
     <string name="e3_unavailable_message" formatted="false">Ваше предложение остаётся приватным. При необходимости отзовите его и повторите попытку позже.</string>
     <string name="e3_waiting" formatted="false">Ваше предложение остаётся приватным в ожидании проверки.</string>
-    <string name="e3_sources">Sources</string>
+    <string name="e3_sources" formatted="false">Источники</string>
     <string name="e3_consent" formatted="false">Отправляя предложение, вы разрешаете Hadithly проверить и опубликовать его. Для источников доказательств по-прежнему требуется разрешение.</string>
-    <string name="e3_translation_sources">Translation sources</string>
+    <string name="e3_translation_sources" formatted="false">Источники перевода</string>
     <string name="e3_community_sources_message" formatted="false">Участник предложил этот перевод. Автоматические проверки сопоставили его с указанными доказательствами. Это не авторитетный перевод.</string>
     <string name="e3_contributor_label" formatted="false">· перевод участника</string>
     <string name="e3_report_saved_detail" formatted="false">Жалобы сохраняются приватно. Вы можете продолжить чтение.</string>

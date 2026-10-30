@@ -285,6 +285,46 @@ class NativeFinishingTest {
         }
     }
 
+    @Test fun evidenceIntakeKeepsPrivateProcessingCopyLocalized() {
+        val copy = org.json.JSONObject(InstrumentationRegistry.getInstrumentation().context.assets.open("a4-evidence-intake-copy.json").bufferedReader().use { it.readText() })
+        var locale by mutableStateOf("en")
+        var status by mutableStateOf("awaiting_processing")
+        var retries = 0
+        compose.setContent { key(locale) { LocalizedPreview(ReaderTheme.LIGHT, locale) {
+            Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                androidx.compose.material3.Text(nativeText("Sign in from Settings to suggest a translation with evidence."), modifier = Modifier.testTag("intakeAudit.signIn"))
+                androidx.compose.material3.Text(nativeText("The private files were removed before processing. You can start a new suggestion."), modifier = Modifier.testTag("intakeAudit.filesRemoved"))
+                com.hadithly.app.features.reader.EvidenceProcessingStatusContent(status, listOf("prepared-item"),
+                    citations = listOf(com.hadithly.app.core.data.EvidenceCitation("https://example.org/prepared", "Original source %lld %@", "p. 1")),
+                    onRetry = { retries += 1; status = "awaiting_processing" })
+            }
+        } } }
+        for (tag in listOf("en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn")) {
+            compose.runOnIdle { locale = tag; status = "awaiting_processing"; retries = 0 }
+            val values = copy.getJSONObject("locales").getJSONArray(tag)
+            val labels = copy.getJSONObject("labels").getJSONObject(tag)
+            compose.onNodeWithTag("intakeAudit.signIn").performScrollTo().assertIsDisplayed().assertTextEquals(values.getString(0))
+            compose.onNodeWithTag("intakeAudit.filesRemoved").assertTextEquals(values.getString(1))
+            compose.onNodeWithText(values.getString(3)).performScrollTo().assertIsDisplayed()
+            compose.onNodeWithText(values.getString(2)).performScrollTo().assertIsDisplayed()
+            capture("intake-waiting-$tag")
+            compose.runOnIdle { status = "processing_failed" }
+            compose.onNodeWithText(values.getString(6)).performScrollTo().assertIsDisplayed()
+            compose.onNodeWithTag("submission.retryProcessing").assertTextEquals(values.getString(4))
+            compose.onNodeWithTag("submission.approved").assertDoesNotExist()
+            capture("intake-failed-$tag")
+            compose.onNodeWithTag("submission.retryProcessing").performScrollTo().performClick()
+            compose.runOnIdle { assertEquals(1, retries); status = "evidence_ready" }
+            compose.onNodeWithTag("submission.ready").performScrollTo().assertIsDisplayed().assertTextEquals(labels.getString("Evidence checks complete"))
+            compose.onNodeWithText(labels.getString("e3.waiting")).assertExists()
+            compose.onNodeWithTag("submission.approved").assertDoesNotExist()
+            compose.onNodeWithTag("submission.retryProcessing").assertDoesNotExist()
+            compose.onNodeWithTag("submission.citation.0").performScrollTo().assertIsDisplayed()
+            compose.onNodeWithText("Original source %lld %@", useUnmergedTree = true).assertExists()
+            capture("intake-ready-$tag")
+        }
+    }
+
     @Test fun authFailureUsesSelectedLanguage() {
         val copy = org.json.JSONObject(InstrumentationRegistry.getInstrumentation().context.assets.open("a4-auth-failure-copy.json").bufferedReader().use { it.readText() })
         var locale by mutableStateOf("en")

@@ -79,7 +79,7 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "No eligible hadith is cached yet" -> R.string.native_6ef998ee12f7
     "First name" -> R.string.native_702ef921ed1d
     "At least one layer stays visible." -> R.string.native_709e31254bdd
-    "Suggest a translation" -> R.string.native_71223a24948d
+    "Suggest a translation" -> R.string.native_3c707d34de67
     "or" -> R.string.native_7175517a370b
     "At least one text layer stays visible." -> R.string.native_71c7158ec4ea
     "Settings" -> R.string.native_74a883a037bc
@@ -130,7 +130,7 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "Remove" -> R.string.saved_remove
     "Grounding citations" -> R.string.native_c4bbcbb7a6a7
     "Wi-Fi only" -> R.string.native_ca99bb9196aa
-    "Sources" -> R.string.native_caf85b0888d7
+    "Sources" -> R.string.e3_sources
     "Type above to search the English text." -> R.string.native_d0dc72eadb20
     "Resume" -> R.string.native_d640c7421da0
     "Download" -> R.string.native_d6eafe823591
@@ -169,7 +169,7 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "Touch and hold a hadith to bookmark, add a note or share." -> R.string.native_fa05769818e1
     "Dismiss hint" -> R.string.native_279166910494
     "Sync bookmarks and notes across devices." -> R.string.native_9ad22124e012
-    "Translation sources" -> R.string.native_43b0446666d2
+    "Translation sources" -> R.string.e3_translation_sources
     "No translation yet" -> R.string.native_4a4cd514fe4b
     "Translation couldn’t finish" -> R.string.native_2f5022ad8edc
     "Translation temporarily unavailable" -> R.string.native_ca64b6451ae0

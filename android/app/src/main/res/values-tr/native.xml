@@ -2,7 +2,7 @@
 <resources>
     <string name="native_19766ed6ccb2" formatted="false">İptal</string>
     <string name="native_29887a5ff984">Paylaş</string>
-    <string name="native_3c707d34de67">Suggest translation</string>
+    <string name="native_3c707d34de67" formatted="false">Çeviri öner</string>
     <string name="native_4fa960716706" formatted="false">Kaldır ve bir daha sorma</string>
     <string name="native_74a883a037bc">Ayarlar</string>
     <string name="native_76900f1bfd16" formatted="false">Geri</string>
@@ -54,14 +54,14 @@
     <string name="native_099cd53b4147">Profilinizi, tercihlerinizi, kaydedilen öğeleri, klasörleri, okuma ilerlemesini ve kendi katkılarınızı JSON olarak dışa aktarın.</string>
     <string name="native_0ab48e787f8a">Bir ila üç kaynak bağlantısı veya dosya ekleyin. Kanıtlar kontrol edilirken gizli kalır.</string>
     <string name="native_0ccfef828950">Ayarları kapat</string>
-    <string name="native_102b5d6815d5" formatted="false">Sign in from Settings to suggest a translation with evidence.</string>
+    <string name="native_102b5d6815d5" formatted="false">Kanıtlarla çeviri önermek için Ayarlar’dan oturum açın.</string>
     <string name="native_11a6767d5674" formatted="false">Bitti</string>
     <string name="native_1509f561f241" formatted="false">Kaydet</string>
-    <string name="native_161faa795821" formatted="false">The private files were removed before processing. You can start a new suggestion.</string>
+    <string name="native_161faa795821" formatted="false">Özel dosyalar işlenmeden önce kaldırıldı. Yeni bir öneri başlatabilirsiniz.</string>
     <string name="native_1bac4007880b">Yer işareti</string>
     <string name="native_1ddc2d9a1a21">Özel neden</string>
     <string name="native_258de606097f">CİLTLER</string>
-    <string name="native_2f4412f8bb6a" formatted="false">Processing evidence. Your suggestion stays private and has not been reviewed or published.</string>
+    <string name="native_2f4412f8bb6a" formatted="false">Kanıtlar işleniyor. Öneriniz gizli kalır; henüz incelenmedi veya yayımlanmadı.</string>
     <string name="native_30b8238e7f5b">Bana her gün bir hadis gönder</string>
     <string name="native_30c1d8d3e912" formatted="false">Şifrenizi mi unuttunuz?</string>
     <string name="native_326d9c957d5a" formatted="false">Yüklemeyi iptal et</string>
@@ -95,7 +95,7 @@
     <string name="native_7b4888049459" formatted="false">Soyad</string>
     <string name="native_7b503321357a" formatted="false">Hesabı ve verileri sil</string>
     <string name="native_7d94fc6f0852">Özel bir not yazın…</string>
-    <string name="native_82c66ec1be55" formatted="false">Evidence received; awaiting checks.</string>
+    <string name="native_82c66ec1be55" formatted="false">Kanıtlar alındı; kontroller bekleniyor.</string>
     <string name="native_83bbbb83cfbe">Konum seç</string>
     <string name="native_858e4ba7a29f" formatted="false">Duraklat</string>
     <string name="native_892ffa345a39" formatted="false">Çevrimdışı çalışma şekli</string>
@@ -110,15 +110,15 @@
     <string name="native_96b3b31d45ab">Cihaz depolamasını aç</string>
     <string name="native_96be15d18327" formatted="false">Arapça metin</string>
     <string name="native_98770753608c" formatted="false">Kanıt kontrolleri tamamlandı</string>
-    <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
+    <string name="native_9c2816aadb36" formatted="false">Kanıt işlemeyi yeniden dene</string>
     <string name="native_9f9feade761d" formatted="false">Koleksiyonlar</string>
     <string name="native_a1a6ea9533fa">Çevrimdışı arama kullanılamıyor.</string>
     <string name="native_b01111be1821">İngilizce metinde ara</string>
     <string name="native_b67dee925588" formatted="false">Sunnah.now İngilizce metni</string>
     <string name="native_b7337027ef1f">Farklı bir e-posta kullan</string>
-    <string name="native_b7bd92f57552" formatted="false">Withdraw suggestion</string>
+    <string name="native_b7bd92f57552" formatted="false">Öneriyi geri çek</string>
     <string name="native_b97457409ab5" formatted="false">Kodu yeniden gönder</string>
-    <string name="native_b9c98d6ecdf1" formatted="false">Your suggestion remains private. Withdraw it and submit different evidence if needed.</string>
+    <string name="native_b9c98d6ecdf1" formatted="false">Öneriniz gizli kalır. Gerekirse geri çekip farklı kanıtlar gönderin.</string>
     <string name="native_bdd5c6b7f515" formatted="false">Hadis numarası</string>
     <string name="native_bf948705a783">Hadithly sürümlü çevrimdışı koleksiyonlar sunar: temel Arapça döküm ve çeviri paketleri. Her biri sağlama ve lisans kontrolünden geçer. İndirmeler etkinleştirilmeden doğrulanır; kayıtlı öğeleriniz ve okuma konumlarınız korunur. İndirmeyi silmek yalnızca dosyaları kaldırır — yer işaretleriniz, notlarınız ve konumlarınız kalır.</string>
     <string name="native_c1c1009d3f37" formatted="false">Güncelle</string>

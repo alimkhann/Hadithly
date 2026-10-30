@@ -69,6 +69,50 @@ final class VisualPolishUITests: XCTestCase {
         }
     }
 
+    func testEvidenceIntakeKeepsPrivateProcessingCopyLocalized() throws {
+        struct Copy: Decodable { let locales: [String: [String]]; let fixture_labels: [String: [String: String]] }
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let copy = try JSONDecoder().decode(Copy.self, from: Data(contentsOf: root.appendingPathComponent("docs/a4-evidence-intake-copy.json")))
+        for locale in ["en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn"] {
+            let values = try XCTUnwrap(copy.locales[locale])
+            let labels = try XCTUnwrap(copy.fixture_labels[locale])
+            let app = launchPolish("evidence-intake-audit", locale: locale)
+            let signIn = element("intakeAudit.signIn", app)
+            XCTAssertTrue(signIn.waitForExistence(timeout: 10))
+            XCTAssertEqual(signIn.label, values[0])
+            XCTAssertEqual(element("intakeAudit.filesRemoved", app).label, values[1])
+            let received = element("submission.confirmation", app)
+            XCTAssertTrue(received.waitForExistence(timeout: 5)); XCTAssertEqual(received.label, values[3])
+            let privacy = app.staticTexts.matching(NSPredicate(format: "label == %@", values[2])).firstMatch
+            XCTAssertTrue(privacy.exists)
+            capture("intake-waiting-" + locale, app)
+            app.buttons["intakeAudit.state.processing_failed"].tap()
+            let retry = app.buttons["submission.retryProcessing"]
+            XCTAssertTrue(retry.waitForExistence(timeout: 5)); XCTAssertEqual(retry.label, values[4])
+            let failure = app.staticTexts.matching(NSPredicate(format: "label == %@", values[6])).firstMatch
+            XCTAssertTrue(failure.exists)
+            let withdraw = app.buttons["submission.deleteDraft"]
+            XCTAssertTrue(withdraw.exists); XCTAssertEqual(withdraw.label, values[5])
+            XCTAssertFalse(element("submission.approved", app).exists)
+            capture("intake-failed-" + locale, app)
+            retry.tap()
+            XCTAssertTrue(received.waitForExistence(timeout: 5))
+            XCTAssertEqual(element("intakeAudit.retries", app).label, "1")
+            app.buttons["intakeAudit.state.evidence_ready"].tap()
+            let ready = element("submission.ready", app)
+            XCTAssertTrue(ready.waitForExistence(timeout: 5)); XCTAssertEqual(ready.label, labels["Evidence checks complete"])
+            XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label == %@", try XCTUnwrap(labels["e3.waiting"]))).firstMatch.exists)
+            XCTAssertFalse(element("submission.approved", app).exists)
+            XCTAssertFalse(retry.exists)
+            let citation = element("submission.citation.0", app)
+            XCTAssertTrue(citation.exists)
+            XCTAssertTrue(citation.label.contains("Original source %lld %@"))
+            XCTAssertEqual(element("intakeAudit.withdrawals", app).label, "0")
+            capture("intake-ready-" + locale, app)
+            app.terminate()
+        }
+    }
+
     func testAuthFailureUsesSelectedLanguage() throws {
         struct Copy: Decodable { let locales: [String: [String]]; let fixture_labels: [String: [String: String]] }
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()

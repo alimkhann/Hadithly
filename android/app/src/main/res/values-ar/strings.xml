@@ -17,7 +17,7 @@
     <string name="saved_delete_note" formatted="false">حذف الملاحظة</string>
     <string name="saved_copy" formatted="false">نسخ</string>
     <string name="saved_share" formatted="false">مشاركة</string>
-    <string name="saved_suggest_translation">Suggest translation</string>
+    <string name="saved_suggest_translation" formatted="false">اقتراح ترجمة</string>
     <string name="saved_show_preview" formatted="false">عرض معاينة الحديث</string>
     <string name="saved_hide_preview" formatted="false">إخفاء معاينة الحديث</string>
     <string name="saved_title" formatted="false">المحفوظات</string>
@@ -77,9 +77,9 @@
     <string name="e3_rejected_message" formatted="false">لم تدعم نتائج التحقق النشر. يبقى اقتراحك خاصًا.</string>
     <string name="e3_unavailable_message" formatted="false">يبقى اقتراحك خاصًا. يمكنك سحبه والمحاولة لاحقًا عند الحاجة.</string>
     <string name="e3_waiting" formatted="false">يبقى اقتراحك خاصًا في انتظار المراجعة.</string>
-    <string name="e3_sources">Sources</string>
+    <string name="e3_sources" formatted="false">المصادر</string>
     <string name="e3_consent" formatted="false">بإرسال اقتراحك، تسمح لـ Hadithly بمراجعته ونشره. ولا تزال مصادر الأدلة تتطلب إذنًا.</string>
-    <string name="e3_translation_sources">Translation sources</string>
+    <string name="e3_translation_sources" formatted="false">مصادر الترجمة</string>
     <string name="e3_community_sources_message" formatted="false">اقترح أحد المساهمين هذه الترجمة، وتحققت المراجعات الآلية منها بمقارنتها بالأدلة المذكورة. وهي ليست ترجمة معتمدة.</string>
     <string name="e3_contributor_label" formatted="false">· ترجمة مساهم</string>
     <string name="e3_report_saved_detail" formatted="false">تُحفظ البلاغات بشكل خاص. يمكنك متابعة القراءة.</string>

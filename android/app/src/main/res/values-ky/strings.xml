@@ -26,7 +26,7 @@
     <string name="saved_delete_note" formatted="false">Жазманы өчүрүү</string>
     <string name="saved_copy" formatted="false">Көчүрүү</string>
     <string name="saved_share" formatted="false">Бөлүшүү</string>
-    <string name="saved_suggest_translation">Suggest translation</string>
+    <string name="saved_suggest_translation" formatted="false">Котормо сунуштоо</string>
     <string name="saved_preview_retry">Preview unavailable. Tap to retry.</string>
     <string name="saved_show_preview" formatted="false">Хадистин алдын ала көрүнүшүн көрсөтүү</string>
     <string name="saved_hide_preview" formatted="false">Хадистин алдын ала көрүнүшүн жашыруу</string>
@@ -62,9 +62,9 @@
     <string name="e3_rejected_message" formatted="false">Текшерүүлөр жарыялоону колдогон жок. Сунушуңуз жеке бойдон калат.</string>
     <string name="e3_unavailable_message" formatted="false">Сунушуңуз жеке бойдон калат. Зарыл болсо, аны кайтарып алып кийин кайра аракет кылыңыз.</string>
     <string name="e3_waiting" formatted="false">Текшерүүнү күтүп жатканда сунушуңуз жеке бойдон калат.</string>
-    <string name="e3_sources">Sources</string>
+    <string name="e3_sources" formatted="false">Булактар</string>
     <string name="e3_consent" formatted="false">Жөнөтүү менен Hadithly’ге сунушуңузду текшерүүгө жана жарыялоого уруксат бересиз. Далил булактарына дагы уруксат керек.</string>
-    <string name="e3_translation_sources">Translation sources</string>
+    <string name="e3_translation_sources" formatted="false">Котормонун булактары</string>
     <string name="e3_community_sources_message" formatted="false">Катышуучу бул котормону сунуштады. Автоматтык текшерүүлөр аны келтирилген далилдер менен салыштырды. Бул расмий котормо эмес.</string>
     <string name="e3_contributor_label" formatted="false">· катышуучунун котормосу</string>
     <string name="e3_report_saved_detail" formatted="false">Отчеттор жеке сакталат. Окууну уланта аласыз.</string>

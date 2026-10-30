@@ -40668,660 +40668,660 @@
         }
       }
     },
-    "Evidence received; awaiting checks.": {
+    "Evidence received; awaiting checks." : {
       "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "تم استلام الأدلة؛ بانتظار الفحوص."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "প্রমাণ পাওয়া গেছে; যাচাইয়ের অপেক্ষায়।"
+          }
+        },
         "en": {
           "stringUnit": {
             "state": "new",
             "value": "Evidence received; awaiting checks."
           }
         },
-        "ar": {
+        "es-419": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Evidence received; awaiting checks."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Evidence received; awaiting checks."
-          }
-        },
-        "kk": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Evidence received; awaiting checks."
-          }
-        },
-        "ky": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Evidence received; awaiting checks."
-          }
-        },
-        "uz": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Evidence received; awaiting checks."
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Evidence received; awaiting checks."
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Evidence received; awaiting checks."
-          }
-        },
-        "ur": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Evidence received; awaiting checks."
+            "value": "Evidencia recibida; esperando las comprobaciones."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Evidence received; awaiting checks."
-          }
-        },
-        "es-419": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Evidence received; awaiting checks."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Evidence received; awaiting checks."
-          }
-        },
-        "sw": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Evidence received; awaiting checks."
+            "value": "Pièces reçues ; vérifications en attente."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Evidence received; awaiting checks."
+            "value": "साक्ष्य मिल गया; जाँचों की प्रतीक्षा है।"
           }
         },
-        "bn": {
+        "id": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Evidence received; awaiting checks."
+            "value": "Bukti diterima; menunggu pemeriksaan."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Дәлелдер алынды; тексерістер күтілуде."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Далилдер алынды; текшерүүлөр күтүлүүдө."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Evidências recebidas; aguardando as verificações."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Доказательства получены; ожидаются проверки."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ushahidi umepokelewa; ukaguzi unasubiriwa."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Kanıtlar alındı; kontroller bekleniyor."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ثبوت موصول ہو گیا؛ جانچ کا انتظار ہے۔"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Dalillar qabul qilindi; tekshiruvlar kutilmoqda."
           }
         }
       }
     },
-    "Processing evidence. Your suggestion stays private and has not been reviewed or published.": {
+    "Processing evidence. Your suggestion stays private and has not been reviewed or published." : {
       "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "تجري معالجة الأدلة. يظل اقتراحك خاصًا ولم تتم مراجعته أو نشره."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "প্রমাণ প্রক্রিয়াকরণ হচ্ছে। আপনার প্রস্তাব ব্যক্তিগত থাকে এবং এখনো পর্যালোচনা বা প্রকাশ করা হয়নি।"
+          }
+        },
         "en": {
           "stringUnit": {
             "state": "new",
             "value": "Processing evidence. Your suggestion stays private and has not been reviewed or published."
           }
         },
-        "ar": {
+        "es-419": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Processing evidence. Your suggestion stays private and has not been reviewed or published."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Processing evidence. Your suggestion stays private and has not been reviewed or published."
-          }
-        },
-        "kk": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Processing evidence. Your suggestion stays private and has not been reviewed or published."
-          }
-        },
-        "ky": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Processing evidence. Your suggestion stays private and has not been reviewed or published."
-          }
-        },
-        "uz": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Processing evidence. Your suggestion stays private and has not been reviewed or published."
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Processing evidence. Your suggestion stays private and has not been reviewed or published."
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Processing evidence. Your suggestion stays private and has not been reviewed or published."
-          }
-        },
-        "ur": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Processing evidence. Your suggestion stays private and has not been reviewed or published."
+            "value": "Procesando la evidencia. Tu propuesta sigue siendo privada y aún no se ha revisado ni publicado."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Processing evidence. Your suggestion stays private and has not been reviewed or published."
-          }
-        },
-        "es-419": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Processing evidence. Your suggestion stays private and has not been reviewed or published."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Processing evidence. Your suggestion stays private and has not been reviewed or published."
-          }
-        },
-        "sw": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Processing evidence. Your suggestion stays private and has not been reviewed or published."
+            "value": "Traitement des pièces justificatives. Votre proposition reste privée et n’a pas encore été examinée ni publiée."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Processing evidence. Your suggestion stays private and has not been reviewed or published."
+            "value": "साक्ष्य पर प्रक्रिया हो रही है। आपका सुझाव निजी रहता है और अभी उसकी समीक्षा या प्रकाशन नहीं हुआ है।"
           }
         },
-        "bn": {
+        "id": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Processing evidence. Your suggestion stays private and has not been reviewed or published."
+            "value": "Bukti sedang diproses. Usulan Anda tetap pribadi dan belum ditinjau atau diterbitkan."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Дәлелдер өңделуде. Ұсынысыңыз жеке күйінде қалады, ол әлі қаралған немесе жарияланған жоқ."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Далилдер иштетилүүдө. Сунушуңуз купуя бойдон калат, ал азырынча карала же жарыялана элек."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Processando as evidências. Sua sugestão continua privada e ainda não foi revisada nem publicada."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Доказательства обрабатываются. Ваше предложение остаётся закрытым; оно ещё не проверено и не опубликовано."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ushahidi unachakatwa. Pendekezo lako linabaki la faragha na bado halijapitiwa wala kuchapishwa."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Kanıtlar işleniyor. Öneriniz gizli kalır; henüz incelenmedi veya yayımlanmadı."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ثبوت پر کارروائی ہو رہی ہے۔ آپ کی تجویز نجی رہتی ہے اور ابھی اس کا جائزہ نہیں لیا گیا یا اسے شائع نہیں کیا گیا۔"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Dalillar qayta ishlanmoqda. Taklifingiz maxfiy qoladi; u hali ko‘rib chiqilmagan yoki e’lon qilinmagan."
           }
         }
       }
     },
-    "Retry evidence": {
+    "Retry evidence" : {
       "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "إعادة محاولة معالجة الأدلة"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "প্রমাণ প্রক্রিয়াকরণ আবার চেষ্টা করুন"
+          }
+        },
         "en": {
           "stringUnit": {
             "state": "new",
             "value": "Retry evidence"
           }
         },
-        "ar": {
+        "es-419": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Retry evidence"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Retry evidence"
-          }
-        },
-        "kk": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Retry evidence"
-          }
-        },
-        "ky": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Retry evidence"
-          }
-        },
-        "uz": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Retry evidence"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Retry evidence"
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Retry evidence"
-          }
-        },
-        "ur": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Retry evidence"
+            "value": "Reintentar el procesamiento de la evidencia"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Retry evidence"
-          }
-        },
-        "es-419": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Retry evidence"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Retry evidence"
-          }
-        },
-        "sw": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Retry evidence"
+            "value": "Réessayer le traitement des pièces"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Retry evidence"
+            "value": "साक्ष्य पर प्रक्रिया फिर से आज़माएँ"
           }
         },
-        "bn": {
+        "id": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Retry evidence"
+            "value": "Coba proses bukti lagi"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Дәлелдерді өңдеуді қайталау"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Далилдерди иштетүүнү кайталоо"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tentar processar as evidências novamente"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Повторить обработку доказательств"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Jaribu kuchakata ushahidi tena"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Kanıt işlemeyi yeniden dene"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ثبوت پر کارروائی دوبارہ آزمائیں"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Dalillarni qayta ishlashni takrorlash"
           }
         }
       }
     },
-    "Sign in from Settings to suggest a translation with evidence.": {
+    "Sign in from Settings to suggest a translation with evidence." : {
       "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "سجّل الدخول من الإعدادات لاقتراح ترجمة مع أدلة."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "প্রমাণসহ অনুবাদ প্রস্তাব করতে সেটিংস থেকে সাইন ইন করুন।"
+          }
+        },
         "en": {
           "stringUnit": {
             "state": "new",
             "value": "Sign in from Settings to suggest a translation with evidence."
           }
         },
-        "ar": {
+        "es-419": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Sign in from Settings to suggest a translation with evidence."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Sign in from Settings to suggest a translation with evidence."
-          }
-        },
-        "kk": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Sign in from Settings to suggest a translation with evidence."
-          }
-        },
-        "ky": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Sign in from Settings to suggest a translation with evidence."
-          }
-        },
-        "uz": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Sign in from Settings to suggest a translation with evidence."
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Sign in from Settings to suggest a translation with evidence."
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Sign in from Settings to suggest a translation with evidence."
-          }
-        },
-        "ur": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Sign in from Settings to suggest a translation with evidence."
+            "value": "Inicia sesión desde Configuración para proponer una traducción con evidencia."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Sign in from Settings to suggest a translation with evidence."
-          }
-        },
-        "es-419": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Sign in from Settings to suggest a translation with evidence."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Sign in from Settings to suggest a translation with evidence."
-          }
-        },
-        "sw": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Sign in from Settings to suggest a translation with evidence."
+            "value": "Connectez-vous dans les Réglages pour proposer une traduction avec des pièces justificatives."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Sign in from Settings to suggest a translation with evidence."
+            "value": "साक्ष्य के साथ अनुवाद सुझाने के लिए सेटिंग्स से साइन इन करें।"
           }
         },
-        "bn": {
+        "id": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Sign in from Settings to suggest a translation with evidence."
+            "value": "Masuk dari Pengaturan untuk mengusulkan terjemahan dengan bukti."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Дәлелмен бірге аударма ұсыну үшін Баптаулардан аккаунтқа кіріңіз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Далилдер менен котормо сунуштоо үчүн Жөндөөлөрдөн аккаунтка кириңиз."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Entre pela seção Configurações para sugerir uma tradução com evidências."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Войдите в аккаунт в Настройках, чтобы предложить перевод с доказательствами."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ingia kupitia Mipangilio ili kupendekeza tafsiri yenye ushahidi."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Kanıtlarla çeviri önermek için Ayarlar’dan oturum açın."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ثبوت کے ساتھ ترجمہ تجویز کرنے کے لیے ترتیبات سے سائن اِن کریں۔"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Dalillar bilan tarjima taklif qilish uchun Sozlamalardan hisobga kiring."
           }
         }
       }
     },
-    "The private files were removed before processing. You can start a new suggestion.": {
+    "The private files were removed before processing. You can start a new suggestion." : {
       "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "أُزيلت الملفات الخاصة قبل معالجتها. يمكنك بدء اقتراح جديد."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "প্রক্রিয়াকরণের আগে ব্যক্তিগত ফাইলগুলো সরানো হয়েছে। আপনি নতুন প্রস্তাব শুরু করতে পারেন।"
+          }
+        },
         "en": {
           "stringUnit": {
             "state": "new",
             "value": "The private files were removed before processing. You can start a new suggestion."
           }
         },
-        "ar": {
+        "es-419": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "The private files were removed before processing. You can start a new suggestion."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "The private files were removed before processing. You can start a new suggestion."
-          }
-        },
-        "kk": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "The private files were removed before processing. You can start a new suggestion."
-          }
-        },
-        "ky": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "The private files were removed before processing. You can start a new suggestion."
-          }
-        },
-        "uz": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "The private files were removed before processing. You can start a new suggestion."
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "The private files were removed before processing. You can start a new suggestion."
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "The private files were removed before processing. You can start a new suggestion."
-          }
-        },
-        "ur": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "The private files were removed before processing. You can start a new suggestion."
+            "value": "Los archivos privados se eliminaron antes de procesarlos. Puedes iniciar una nueva propuesta."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "The private files were removed before processing. You can start a new suggestion."
-          }
-        },
-        "es-419": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "The private files were removed before processing. You can start a new suggestion."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "The private files were removed before processing. You can start a new suggestion."
-          }
-        },
-        "sw": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "The private files were removed before processing. You can start a new suggestion."
+            "value": "Les fichiers privés ont été supprimés avant leur traitement. Vous pouvez commencer une nouvelle proposition."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "The private files were removed before processing. You can start a new suggestion."
+            "value": "निजी फ़ाइलें प्रक्रिया शुरू होने से पहले हटा दी गई थीं। आप नया सुझाव शुरू कर सकते हैं।"
           }
         },
-        "bn": {
+        "id": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "The private files were removed before processing. You can start a new suggestion."
+            "value": "Berkas pribadi dihapus sebelum diproses. Anda dapat memulai usulan baru."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жеке файлдар өңдеуге дейін жойылды. Жаңа ұсыныс бастауға болады."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жеке файлдар иштетүүгө чейин өчүрүлдү. Жаңы сунуш баштасаңыз болот."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Os arquivos privados foram removidos antes do processamento. Você pode iniciar uma nova sugestão."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Закрытые файлы были удалены до обработки. Вы можете начать новое предложение."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Faili za faragha ziliondolewa kabla ya kuchakatwa. Unaweza kuanza pendekezo jipya."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Özel dosyalar işlenmeden önce kaldırıldı. Yeni bir öneri başlatabilirsiniz."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "نجی فائلیں کارروائی سے پہلے ہٹا دی گئیں۔ آپ نئی تجویز شروع کر سکتے ہیں۔"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Maxfiy fayllar qayta ishlanishidan oldin o‘chirildi. Yangi taklif boshlashingiz mumkin."
           }
         }
       }
     },
-    "Withdraw suggestion": {
+    "Withdraw suggestion" : {
       "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "سحب الاقتراح"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "প্রস্তাব প্রত্যাহার করুন"
+          }
+        },
         "en": {
           "stringUnit": {
             "state": "new",
             "value": "Withdraw suggestion"
           }
         },
-        "ar": {
+        "es-419": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Withdraw suggestion"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Withdraw suggestion"
-          }
-        },
-        "kk": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Withdraw suggestion"
-          }
-        },
-        "ky": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Withdraw suggestion"
-          }
-        },
-        "uz": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Withdraw suggestion"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Withdraw suggestion"
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Withdraw suggestion"
-          }
-        },
-        "ur": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Withdraw suggestion"
+            "value": "Retirar la propuesta"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Withdraw suggestion"
-          }
-        },
-        "es-419": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Withdraw suggestion"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Withdraw suggestion"
-          }
-        },
-        "sw": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Withdraw suggestion"
+            "value": "Retirer la proposition"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Withdraw suggestion"
+            "value": "सुझाव वापस लें"
           }
         },
-        "bn": {
+        "id": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Withdraw suggestion"
+            "value": "Tarik usulan"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ұсынысты қайтарып алу"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Сунушту кайтарып алуу"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Retirar a sugestão"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Отозвать предложение"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ondoa pendekezo"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Öneriyi geri çek"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "تجویز واپس لیں"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Taklifni qaytarib olish"
           }
         }
       }
     },
-    "Your suggestion remains private. Withdraw it and submit different evidence if needed.": {
+    "Your suggestion remains private. Withdraw it and submit different evidence if needed." : {
       "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "يظل اقتراحك خاصًا. اسحبه وقدّم أدلة مختلفة عند الحاجة."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "আপনার প্রস্তাব ব্যক্তিগত থাকে। প্রয়োজন হলে সেটি প্রত্যাহার করে অন্য প্রমাণ জমা দিন।"
+          }
+        },
         "en": {
           "stringUnit": {
             "state": "new",
             "value": "Your suggestion remains private. Withdraw it and submit different evidence if needed."
           }
         },
-        "ar": {
+        "es-419": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Your suggestion remains private. Withdraw it and submit different evidence if needed."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Your suggestion remains private. Withdraw it and submit different evidence if needed."
-          }
-        },
-        "kk": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Your suggestion remains private. Withdraw it and submit different evidence if needed."
-          }
-        },
-        "ky": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Your suggestion remains private. Withdraw it and submit different evidence if needed."
-          }
-        },
-        "uz": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Your suggestion remains private. Withdraw it and submit different evidence if needed."
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Your suggestion remains private. Withdraw it and submit different evidence if needed."
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Your suggestion remains private. Withdraw it and submit different evidence if needed."
-          }
-        },
-        "ur": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Your suggestion remains private. Withdraw it and submit different evidence if needed."
+            "value": "Tu propuesta sigue siendo privada. Si es necesario, retírala y envía otra evidencia."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Your suggestion remains private. Withdraw it and submit different evidence if needed."
-          }
-        },
-        "es-419": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Your suggestion remains private. Withdraw it and submit different evidence if needed."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Your suggestion remains private. Withdraw it and submit different evidence if needed."
-          }
-        },
-        "sw": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Your suggestion remains private. Withdraw it and submit different evidence if needed."
+            "value": "Votre proposition reste privée. Si nécessaire, retirez-la et envoyez d’autres pièces justificatives."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Your suggestion remains private. Withdraw it and submit different evidence if needed."
+            "value": "आपका सुझाव निजी रहता है। ज़रूरत हो तो उसे वापस लें और दूसरा साक्ष्य भेजें।"
           }
         },
-        "bn": {
+        "id": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Your suggestion remains private. Withdraw it and submit different evidence if needed."
+            "value": "Usulan Anda tetap pribadi. Jika perlu, tarik usulan dan kirim bukti lain."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ұсынысыңыз жеке күйінде қалады. Қажет болса, оны қайтарып алып, басқа дәлелдер жіберіңіз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Сунушуңуз купуя бойдон калат. Керек болсо, аны кайтарып алып, башка далилдерди жөнөтүңүз."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sua sugestão continua privada. Se necessário, retire-a e envie outras evidências."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ваше предложение остаётся закрытым. При необходимости отзовите его и отправьте другие доказательства."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Pendekezo lako linabaki la faragha. Ikihitajika, liondoe na uwasilishe ushahidi tofauti."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Öneriniz gizli kalır. Gerekirse geri çekip farklı kanıtlar gönderin."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "آپ کی تجویز نجی رہتی ہے۔ ضرورت ہو تو اسے واپس لیں اور دوسرا ثبوت جمع کرائیں۔"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Taklifingiz maxfiy qoladi. Kerak bo‘lsa, uni qaytarib olib, boshqa dalillar yuboring."
           }
         }
       }

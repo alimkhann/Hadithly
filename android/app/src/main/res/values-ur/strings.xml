@@ -17,7 +17,7 @@
     <string name="saved_delete_note" formatted="false">نوٹ حذف کریں</string>
     <string name="saved_copy" formatted="false">کاپی کریں</string>
     <string name="saved_share" formatted="false">شیئر کریں</string>
-    <string name="saved_suggest_translation">Suggest translation</string>
+    <string name="saved_suggest_translation" formatted="false">ترجمہ تجویز کریں</string>
     <string name="saved_show_preview" formatted="false">حدیث کا پیش منظر دکھائیں</string>
     <string name="saved_hide_preview" formatted="false">حدیث کا پیش منظر چھپائیں</string>
     <string name="saved_title" formatted="false">محفوظ کردہ</string>
@@ -69,9 +69,9 @@
     <string name="e3_rejected_message" formatted="false">جانچ کے نتائج اشاعت کے لیے کافی نہیں تھے۔ آپ کی تجویز نجی رہتی ہے۔</string>
     <string name="e3_unavailable_message" formatted="false">آپ کی تجویز نجی ہے۔ ضرورت ہو تو اسے واپس لیں اور بعد میں دوبارہ کوشش کریں۔</string>
     <string name="e3_waiting" formatted="false">جائزے کے انتظار میں آپ کی تجویز نجی رہتی ہے۔</string>
-    <string name="e3_sources">Sources</string>
+    <string name="e3_sources" formatted="false">ماخذ</string>
     <string name="e3_consent" formatted="false">تجویز بھیج کر آپ Hadithly کو اس کا جائزہ لینے اور شائع کرنے کی اجازت دیتے ہیں۔ ثبوت کے ذرائع کے لیے پھر بھی اجازت درکار ہے۔</string>
-    <string name="e3_translation_sources">Translation sources</string>
+    <string name="e3_translation_sources" formatted="false">ترجمے کے مصادر</string>
     <string name="e3_community_sources_message" formatted="false">ایک شراکت کنندہ نے یہ ترجمہ تجویز کیا۔ خودکار جائزوں نے اسے حوالہ دیے گئے ثبوت سے جانچا۔ یہ مستند ترجمہ نہیں ہے۔</string>
     <string name="e3_contributor_label" formatted="false">· شراکت کنندہ کا ترجمہ</string>
     <string name="e3_report_saved_detail" formatted="false">رپورٹس نجی طور پر محفوظ ہوتی ہیں۔ آپ پڑھنا جاری رکھ سکتے ہیں۔</string>

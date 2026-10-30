@@ -25,7 +25,7 @@
     <string name="saved_delete_note" formatted="false">Delete note</string>
     <string name="saved_copy" formatted="false">Copy</string>
     <string name="saved_share" formatted="false">Share</string>
-    <string name="saved_suggest_translation">Suggest translation</string>
+    <string name="saved_suggest_translation" formatted="false">Suggest a translation</string>
     <string name="saved_preview_retry">Preview unavailable. Tap to retry.</string>
     <string name="saved_show_preview" formatted="false">Show hadith preview</string>
     <string name="saved_hide_preview" formatted="false">Hide hadith preview</string>
@@ -69,9 +69,9 @@
     <string name="e3_rejected_message" formatted="false">The checks did not support publication. Your suggestion remains private.</string>
     <string name="e3_unavailable_message" formatted="false">Your suggestion remains private. Withdraw it and try again later if needed.</string>
     <string name="e3_waiting" formatted="false">Your suggestion stays private while waiting for review.</string>
-    <string name="e3_sources">Sources</string>
+    <string name="e3_sources" formatted="false">Sources</string>
     <string name="e3_consent" formatted="false">By submitting, you allow Hadithly to review and publish your suggestion. Evidence sources still require permission.</string>
-    <string name="e3_translation_sources">Translation sources</string>
+    <string name="e3_translation_sources" formatted="false">Translation sources</string>
     <string name="e3_community_sources_message" formatted="false">A contributor suggested this translation. Automated reviews checked it against the cited evidence. It is not an authoritative rendering.</string>
     <string name="e3_contributor_label" formatted="false">· contributor translation</string>
     <string name="e3_report_saved_detail" formatted="false">Reports are saved privately. You can keep reading.</string>

@@ -26,7 +26,7 @@
     <string name="saved_delete_note" formatted="false">Notu sil</string>
     <string name="saved_copy" formatted="false">Kopyala</string>
     <string name="saved_share" formatted="false">Paylaş</string>
-    <string name="saved_suggest_translation">Suggest translation</string>
+    <string name="saved_suggest_translation" formatted="false">Çeviri öner</string>
     <string name="saved_preview_retry">Preview unavailable. Tap to retry.</string>
     <string name="saved_show_preview" formatted="false">Hadis önizlemesini göster</string>
     <string name="saved_hide_preview" formatted="false">Hadis önizlemesini gizle</string>
@@ -62,9 +62,9 @@
     <string name="e3_rejected_message" formatted="false">Kontroller yayını desteklemedi. Öneriniz gizli kalır.</string>
     <string name="e3_unavailable_message" formatted="false">Öneriniz gizli kalır. Gerekirse geri çekip daha sonra tekrar deneyin.</string>
     <string name="e3_waiting" formatted="false">İnceleme beklenirken öneriniz gizli kalır.</string>
-    <string name="e3_sources">Sources</string>
+    <string name="e3_sources" formatted="false">Kaynaklar</string>
     <string name="e3_consent" formatted="false">Göndererek Hadithly’nin önerinizi incelemesine ve yayımlamasına izin verirsiniz. Kanıt kaynakları için yine de izin gerekir.</string>
-    <string name="e3_translation_sources">Translation sources</string>
+    <string name="e3_translation_sources" formatted="false">Çeviri kaynakları</string>
     <string name="e3_community_sources_message" formatted="false">Bir katkıda bulunan bu çeviriyi önerdi. Otomatik kontroller çeviriyi belirtilen kanıtlarla karşılaştırdı. Bu yetkili bir çeviri değildir.</string>
     <string name="e3_contributor_label" formatted="false">· katkıda bulunan çevirisi</string>
     <string name="e3_report_saved_detail" formatted="false">Raporlar gizli kaydedilir. Okumaya devam edebilirsiniz.</string>

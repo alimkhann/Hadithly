@@ -2,7 +2,7 @@
 <resources>
     <string name="native_19766ed6ccb2" formatted="false">Bekor qilish</string>
     <string name="native_29887a5ff984">Ulashish</string>
-    <string name="native_3c707d34de67">Suggest translation</string>
+    <string name="native_3c707d34de67" formatted="false">Tarjima taklif qilish</string>
     <string name="native_4fa960716706" formatted="false">Olib tashlash va boshqa so‘ramaslik</string>
     <string name="native_74a883a037bc">Sozlamalar</string>
     <string name="native_76900f1bfd16" formatted="false">Orqaga</string>
@@ -54,14 +54,14 @@
     <string name="native_099cd53b4147">Profilingiz, sozlamalaringiz, saqlangan narsalar, papkalar, o‘qish jarayoni va o‘zingiz yuborgan materiallarni JSON sifatida eksport qiling.</string>
     <string name="native_0ab48e787f8a">Birdan uchtagacha manba havolasi yoki fayl qo‘shing. Dalillar tekshirilguncha maxfiy qoladi.</string>
     <string name="native_0ccfef828950">Sozlamalarni yopish</string>
-    <string name="native_102b5d6815d5" formatted="false">Sign in from Settings to suggest a translation with evidence.</string>
+    <string name="native_102b5d6815d5" formatted="false">Dalillar bilan tarjima taklif qilish uchun Sozlamalardan hisobga kiring.</string>
     <string name="native_11a6767d5674" formatted="false">Tayyor</string>
     <string name="native_1509f561f241" formatted="false">Saqlash</string>
-    <string name="native_161faa795821" formatted="false">The private files were removed before processing. You can start a new suggestion.</string>
+    <string name="native_161faa795821" formatted="false">Maxfiy fayllar qayta ishlanishidan oldin o‘chirildi. Yangi taklif boshlashingiz mumkin.</string>
     <string name="native_1bac4007880b">Xatcho‘p</string>
     <string name="native_1ddc2d9a1a21">Maxfiy sabab</string>
     <string name="native_258de606097f">JILDLAR</string>
-    <string name="native_2f4412f8bb6a" formatted="false">Processing evidence. Your suggestion stays private and has not been reviewed or published.</string>
+    <string name="native_2f4412f8bb6a" formatted="false">Dalillar qayta ishlanmoqda. Taklifingiz maxfiy qoladi; u hali ko‘rib chiqilmagan yoki e’lon qilinmagan.</string>
     <string name="native_30b8238e7f5b">Menga har kuni hadis yuborilsin</string>
     <string name="native_30c1d8d3e912" formatted="false">Parolni unutdingizmi?</string>
     <string name="native_326d9c957d5a" formatted="false">Yuklashni bekor qilish</string>
@@ -95,7 +95,7 @@
     <string name="native_7b4888049459" formatted="false">Familiya</string>
     <string name="native_7b503321357a" formatted="false">Hisob va ma’lumotlarni o‘chirish</string>
     <string name="native_7d94fc6f0852">Maxfiy qayd yozing…</string>
-    <string name="native_82c66ec1be55" formatted="false">Evidence received; awaiting checks.</string>
+    <string name="native_82c66ec1be55" formatted="false">Dalillar qabul qilindi; tekshiruvlar kutilmoqda.</string>
     <string name="native_83bbbb83cfbe">Joylashuvni tanlash</string>
     <string name="native_858e4ba7a29f" formatted="false">To‘xtatish</string>
     <string name="native_892ffa345a39" formatted="false">Oflayn rejim qanday ishlaydi</string>
@@ -110,15 +110,15 @@
     <string name="native_96b3b31d45ab">Qurilma xotirasini ochish</string>
     <string name="native_96be15d18327" formatted="false">Arabcha matn</string>
     <string name="native_98770753608c" formatted="false">Dalil tekshiruvlari tugadi</string>
-    <string name="native_9c2816aadb36" formatted="false">Retry evidence</string>
+    <string name="native_9c2816aadb36" formatted="false">Dalillarni qayta ishlashni takrorlash</string>
     <string name="native_9f9feade761d" formatted="false">To‘plamlar</string>
     <string name="native_a1a6ea9533fa">Oflayn qidiruv mavjud emas.</string>
     <string name="native_b01111be1821">Inglizcha matndan qidirish</string>
     <string name="native_b67dee925588" formatted="false">Sunnah.now inglizcha matni</string>
     <string name="native_b7337027ef1f">Boshqa elektron pochta manzilidan foydalanish</string>
-    <string name="native_b7bd92f57552" formatted="false">Withdraw suggestion</string>
+    <string name="native_b7bd92f57552" formatted="false">Taklifni qaytarib olish</string>
     <string name="native_b97457409ab5" formatted="false">Kodni qayta yuborish</string>
-    <string name="native_b9c98d6ecdf1" formatted="false">Your suggestion remains private. Withdraw it and submit different evidence if needed.</string>
+    <string name="native_b9c98d6ecdf1" formatted="false">Taklifingiz maxfiy qoladi. Kerak bo‘lsa, uni qaytarib olib, boshqa dalillar yuboring.</string>
     <string name="native_bdd5c6b7f515" formatted="false">Hadis raqami</string>
     <string name="native_bf948705a783">Hadithly versiyalangan oflayn to‘plamlarni taqdim etadi: asosiy arabcha nusxa va tarjima paketlari. Har biri nazorat summasi va litsenziya bilan tekshiriladi. Yuklamalar faollashishidan oldin tekshiriladi va saqlangan narsalar hamda o‘qish joylari asrab qolinadi. Yuklamani o‘chirish faqat fayllarni olib tashlaydi — xatcho‘plar, qaydlar va joylar qoladi.</string>
     <string name="native_c1c1009d3f37" formatted="false">Yangilash</string>
