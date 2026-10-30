@@ -1,7 +1,8 @@
 # Focused continuation, October 31
 
 Continue Hadithly in `/Users/alim/Developer/Projects/Apps/Hadithly`.
-The persistent objective is still B → C → D → remaining A4–A7/readiness → E.
+The persistent objective is still B → C → D → remaining A4–A7/readiness → E,
+including unfinished A1/A3 evidence and the final full-objective audit.
 Use `PRODUCT_PROGRAM.md` as the scope authority. A2 is wrapped; row mode stays off.
 
 ## Read what the next decision needs
@@ -12,19 +13,24 @@ Check `git status`, the latest commits and the `PRODUCT_PROGRAM.md` checklist.
 Read the latest Saved handoff in `A4_RUNTIME_LOCALIZATION.md`. Open implementation
 and older evidence on demand; do not reload the research archive or previous chat.
 
-## Current owner override: discuss the workflow first
+## Current owner order: resume Saved, finish the original goal, then newer goals
 
-October 31: the workflow research and local setup pass takes priority. The Saved
-unit below and every newly reported product fix are explicitly deferred until
-the owner is ready to test the working method. Read `AGENT_WORKFLOW.md` and the
-current `PLAN.md` workflow checkpoint. Open `AGENT_SETUP_AUDIT.md` for setup details
-and `AGENT_WORKFLOW_VIDEO_RESEARCH.md` only when discussing its sources.
+October 31 follow-up: the owner resumes the previously deferred Saved unit for
+the next session. Finish its existing implementation, verify both native apps,
+refresh evidence and commit. This is the first bounded test of the new workflow.
+Read `AGENT_WORKFLOW.md` for that method; do not repeat the setup/video audit.
 
-Next discuss the proposed small workflow and choose one pilot. A suggested pilot
-is translation font-size diagnosis or Arabic → English Settings direction
-reproduction. Convex usage measurement is the highest-priority larger diagnostic.
-Neither suggestion authorizes implementation. Saved remains the existing bounded
-continuation when the owner elects to resume it. Keep its original checklist below.
+Then continue the original `PRODUCT_PROGRAM.md` objective in verifiable units:
+remaining A4, A5–A7/readiness, unfinished A1/A3 acceptance, E and the final
+requirement-by-requirement audit. Follow dependencies and retain all existing
+external gates. A2 stays wrapped; do not restart its deferred storage project.
+B/C/D's recorded local work stays complete without implying release acceptance.
+
+The newer owner goals and suggested preparation are in `POST_GOAL_BACKLOG.md`.
+They come after the original objective. Do not substitute a new font-size/RTL
+pilot, Convex optimization or redesign for finishing Saved and the original goal.
+If a reported symptom also blocks an original requirement, repair only that
+requirement's necessary scope and record the overlap without creating duplicate work.
 
 ## Workflow research completed, October 31
 
@@ -37,10 +43,11 @@ Model choices and pi's learning policy are preserved. No product fixes were made
 
 Restart clients and inspect the next session's actual skill/tool loading before
 claiming the new profile is effective. First-pilot behavior remains unverified.
-Discuss the proposed method with the owner; do not repeat the research archive
-or start the deferred backlog without their instruction.
+Use Saved as the authorized first pilot. Loading checks must stay brief and must
+not turn the next session into another configuration cleanup. The newer backlog
+remains deferred until the original objective is complete and its next unit is chosen.
 
-## Deferred task: finish the current Saved unit when resumed
+## Immediate bounded task: finish the current Saved unit
 
 Last implementation commit before this handoff is `7499548`. Saved changes are
 still uncommitted, with a partial scoped catalog patch already staged. Inspect

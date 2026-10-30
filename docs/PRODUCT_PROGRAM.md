@@ -8,7 +8,16 @@ for this program, not session names supplied by the owner.
 Their checksums and every research URL are recorded in
 `product-program/research-manifest.json`. No later phase replaces unfinished work.
 
-## Current owner order, October 26
+## Current owner continuation, October 31
+
+Resume the unfinished Saved localization unit using `NEXT_SESSION_PROMPT.md`.
+Then finish this original objective, including remaining A4–A7/readiness,
+unfinished A1/A3 acceptance, E and the final requirement audit. A2 remains wrapped;
+B/C/D's local completion records and all external gates remain intact. Only after
+this objective is complete, consider the newer goals in `POST_GOAL_BACKLOG.md`.
+Those goals must not replace original acceptance work or expand its scope.
+
+## Owner order, October 26
 
 Start the next session with **B research → C native refinements → D website**.
 Resume A4–A7 and the other remaining readiness work afterward. Keep E Linear

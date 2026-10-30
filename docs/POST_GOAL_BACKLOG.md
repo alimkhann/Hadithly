@@ -1,0 +1,60 @@
+# Goals after the original product program
+
+Owner reports received October 31, 2026. Finish the original objective in
+`PRODUCT_PROGRAM.md` and its final acceptance audit before starting this backlog.
+The next session first finishes the already-started Saved localization unit using
+`NEXT_SESSION_PROMPT.md`. This document preserves later work without adding it
+to the original completion criteria.
+
+The reports below are not yet reproduced findings. Existing cloud/account/model,
+device, rights and release gates still apply. If a symptom also blocks an original
+A5 requirement, fix only the original requirement's necessary scope and record
+the overlap. Avoid duplicate work or using overlap to authorize a broad redesign.
+An external gate that cannot yet pass remains open; it does not make the original
+objective complete or authorize skipping ahead to this backlog.
+
+## Suggested preparation
+
+These are agent recommendations for the later work, not new prerequisites that
+delay the original objective.
+
+1. Establish a read-only Convex cost baseline for cold launch, first reading and
+   ten page moves. Separate calls, reads, bytes, actions and paid-provider usage.
+   Prioritize measured waste while preserving correctness; estimate free-plan
+   capacity from real workload assumptions rather than promising unlimited use.
+2. Keep a repeatable reader performance workload, recording device, build,
+   collection, translation, text size and cache state. Use the same workload for
+   before/after scrolling and page-transition evidence.
+3. Add a small language-switch regression matrix covering Arabic → English,
+   same-process back navigation, Settings and restart. Compare meaning and copy
+   length across apps while allowing platform-appropriate layouts.
+4. Define a safe development entitlement/test-account contract for free/pro
+   testing. Preserve production quota enforcement and distinguish test overrides
+   from actual store/RevenueCat lifecycle proof.
+
+Use one bounded unit at a time. Suggested first priority after the original goal
+is Convex measurement, followed by functional reader defects and translation
+reliability, then broader native polish. No extra vendor, task database or large
+architecture rewrite is needed before a measured gap justifies it.
+
+## Owner goals and proposed first units
+
+| Priority proposal | Owner report or goal | First bounded unit |
+| --- | --- | --- |
+| 1 | Convex usage is far too high for one reader. Support many readers within the free plan where practical, using sound practices. | Measure the baseline above and trace the largest repeated work to its caller before proposing an optimization. |
+| 2 | Reader translation font size does not work. | Reproduce a size change on each native app and identify the actual text-style path. |
+| 2 | Switching Arabic → English and returning to Settings leaves it RTL/upside down. | Reproduce the exact same-process journey and separate layout direction, transition and persisted locale. |
+| 3 | Reader scrolling is laggy on iOS; Android performance is unknown. | Capture a repeatable iPhone trace when device work is authorized; verify Android separately. |
+| 3 | Page swipes have loading jerks and insufficient caching. | Measure transition latency, cache behavior and visible position under the same workload. |
+| 4 | Free-account AI translations have a low success rate and fail inconsistently. | Classify failures by quota, attestation/auth, provider, exact-locale content and cache, without unapproved paid probes. |
+| 4 | Make switching free/pro behavior easy for testing paid features and limits. | Design the explicit development-only test contract above; never create a production quota bypass. |
+| 5 | Android UI/UX looks poor, possibly because it copies iOS rather than fitting Android. | Review one reading journey against Android conventions; preserve capability, meaning and privacy while allowing different layouts. |
+| 5 | Android localization is too verbose and differs from the better iOS wording. | Compare selected exact messages and wrapping with iOS; retain separate native-speaker approval. |
+| 6 | The third onboarding screen's translation demo is too fast and its structure is wrong. Reuse the real reader UI inside a Daily Hadith card and slow the reveal enough to see it. | Review that contained-reader prototype, pacing and reduced motion; label demonstration behavior separately from live AI generation. |
+| 6 | Simplify sign-up, sign-in and provider-auth screens, spacing and sections. Keep users in native UI where supported, retaining browser handoffs where needed. | Map current native/hosted flows and vendor requirements, then propose one simpler screen and verify cancellation/recovery as well as success. |
+| Later, gated | Build a proper lightweight web reader. | Revisit LA4's existing rights, demand, privacy, accessibility and cost conditions before implementation. |
+| Separate maintenance | Clean up GitHub and maintain the repository to an open-source standard. | Audit README, contribution/security guidance, CI, licenses, content rights and artifact hygiene before remote or publication changes. |
+
+The order is a proposal. Choose each unit's observable result and acceptance
+evidence before implementation. This later backlog does not close Saved, A4,
+native review, content, physical-device, account, store or release gates.

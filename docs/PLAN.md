@@ -57,6 +57,18 @@ start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
 
+## Owner continuation order, October 31
+
+The owner has now resumed the deferred Saved unit for the next session. Finish
+that bounded unit, including both native checks, refreshed evidence and its
+commit. Then complete the original `PRODUCT_PROGRAM.md` objective: remaining A4,
+A5–A7/readiness, unfinished A1/A3 acceptance, E and the final full-objective audit.
+A2 stays wrapped; retain B/C/D's local completion and all external gates.
+The newer goals come afterward and are recorded in `POST_GOAL_BACKLOG.md`, with
+suggested preparation first. Read `NEXT_SESSION_PROMPT.md` for the exact Saved
+checklist. Use the new workflow without repeating the setup audit or starting
+an unrelated pilot. This order supersedes the temporary workflow pause below.
+
 ## Workflow checkpoint, October 31
 
 The owner explicitly deferred Saved completion and the newly reported product
@@ -65,8 +77,8 @@ local configuration cleanup and project procedures. See `AGENT_WORKFLOW.md`,
 `AGENT_SETUP_AUDIT.md` and `AGENT_WORKFLOW_VIDEO_RESEARCH.md` for the outcome.
 The Saved handoff below remains intact, including its staged/unstaged work and
 pending native reruns. No product, device, content, native-review, cloud, store
-or release gate is closed. Resume product work only after the owner's workflow
-discussion; retain the complete B/C/D/A4–A7/E program and LA4 deferral.
+or release gate is closed. The owner continuation order above now resumes Saved;
+retain the complete B/C/D/A4–A7/E program and LA4 deferral.
 
 ## A4 Saved handoff, October 31
 

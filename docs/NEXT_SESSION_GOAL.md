@@ -1,5 +1,11 @@
 # Next session goal
 
+October 31 latest owner order: resume and finish Saved using
+`NEXT_SESSION_PROMPT.md`, then finish the original `PRODUCT_PROGRAM.md` objective
+and its acceptance audit before the newer `POST_GOAL_BACKLOG.md` goals. Use
+bounded sessions and preserve every external gate. The checkpoints below are
+history where their next steps conflict with that current prompt.
+
 October 31: start with `NEXT_SESSION_PROMPT.md` for the focused continuation.
 B's available-source review, C's local refinements and D's local redesign are
 committed. A4 is active; the Saved copy/accessibility unit remains uncommitted

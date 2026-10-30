@@ -2,9 +2,9 @@
 
 Agreed direction proposed October 31, 2026: a small Matt Pocock workflow with
 selected pstack verification practices. Use Codex as the primary Hadithly agent.
-Keep one writer and one active product unit. The owner can revise this method
-before the first pilot. Saved completion and the reported product fixes remain
-deferred during that discussion.
+Keep one writer and one active product unit. The owner has chosen Saved as the
+first pilot. Finish the original product objective before the newer goals in
+[POST_GOAL_BACKLOG.md](POST_GOAL_BACKLOG.md).
 
 The five-video review, timestamps and source limitations are in
 [AGENT_WORKFLOW_VIDEO_RESEARCH.md](AGENT_WORKFLOW_VIDEO_RESEARCH.md). The local
@@ -87,47 +87,26 @@ candidate to inspect for a specific need, not a reason to install another entire
 catalog. The three project skills cover the immediate gaps without bringing
 generic growth/gamification or external-account workflows into Hadithly.
 
-## Deferred backlog and proposed order
+## Product order and later backlog
 
-These are owner reports and proposals, not reproduced findings or authorization
-to implement. The broader A1–A7/B/C/D/E program and every existing gate remain.
-
-| Order proposal | Reported need | First bounded unit after authorization |
-| --- | --- | --- |
-| 1 | Convex usage is too high for one reader | Read-only baseline for cold launch, first reading and ten page moves; separate calls, reads, bytes and actions |
-| 2 | Reader translation font size has no effect | Reproduce a size change and identify the actual text-style path on each app |
-| 2 | Arabic → English leaves Settings RTL/upside down | Same-process reproduction through back navigation; distinguish direction, transition and persisted locale |
-| 3 | iOS reader scrolling lags | Trace a repeatable collection, translation, text size and scroll sequence on the owner's device when authorized |
-| 3 | Page swipes jerk and load too often | Measure page transition, cache behavior and visible position under the same workload |
-| 4 | Free translation success is low | Classify failures by quota, attestation/auth, provider, exact-locale content and cache; no paid probes without approval |
-| 4 | Need easy free/pro testing | Design an explicit development-only entitlement/test-account workflow that preserves production quota enforcement |
-| 5 | Android UI feels poor and iOS-like | Audit one reading journey against Android conventions; preserve capability and meaning rather than matching layouts |
-| 5 | Android localization is too verbose | Compare selected exact messages and wrapping with iOS; native review remains separate |
-| 6 | Onboarding translation demo is too fast and poorly structured | Review a reader-in-daily-card prototype, pacing and reduced motion; distinguish demonstration from live AI generation |
-| 6 | Auth spacing, sections and provider handoffs feel awkward | Map current native/hosted flows, then propose a simpler screen; verify vendor/platform requirements before removing browser handoffs |
-| Later | Lightweight web reader | Revisit LA4's existing rights, demand, privacy, accessibility and cost gate; no implementation is authorized |
-| Separate maintenance | Open-source repository quality | Audit README, contribution/security guidance, CI, licenses, content rights and artifact hygiene without publishing or changing license terms |
-
-Saved is the already-started bounded unit and remains available to resume before
-those proposals if the owner prefers. Its staged catalog patch, pending reruns
-and stale aggregate evidence are preserved in NEXT_SESSION_PROMPT.md.
-
-Logical additions to the backlog are a repeatable reader performance baseline,
-a small language-switch regression matrix, a read-only cost budget per journey,
-and an explicit development entitlement contract. These help verify the reported
-problems. Do not add another observability vendor, task database or broad rewrite
-before finding a measured gap in the existing tools.
+The owner's October 31 follow-up resumes Saved first. Complete that bounded unit,
+then continue the original PRODUCT_PROGRAM.md objective and its final audit.
+The newer goals and suggested preparation are recorded once in
+[POST_GOAL_BACKLOG.md](POST_GOAL_BACKLOG.md). They come after the original objective.
+An unavailable external gate remains open; finish other authorized original work
+instead of treating a wait as permission to start the later backlog.
 
 ## Starting the next chat
 
-No install command is needed. Restart the agent clients so they load changed
-settings, then use a prompt like this after choosing the pilot:
+Restart the clients so changed settings can load. No installation command is
+needed. Paste the continuation prompt below. NEXT_SESSION_PROMPT.md contains
+its exact Saved verification/staging checklist and the current owner order.
 
-> Read the current Hadithly checkpoint and NEXT_SESSION_PROMPT. Diagnose only
-> [one symptom] using [one journey]. First produce reproduction and the smallest
-> evidence-backed repair proposal. Keep Saved and other backlog work deferred.
-> Stop before implementation or any external action unless I authorize it.
-
-When implementation is desired, replace the final sentence with the concrete
-scope, acceptance check and commit requirement. Keep the next chat bounded by
-that outcome, rather than asking it to continue the whole backlog indefinitely.
+> Continue Hadithly using docs/NEXT_SESSION_PROMPT.md. Read the current checkpoint
+> first. Resume the deferred Saved localization unit, verify both native apps,
+> refresh evidence and commit. Preserve the incoming staged/unstaged work and all
+> open gates. Use the bounded workflow; finish this unit and hand off the next
+> original-program task. The continuing objective is to finish PRODUCT_PROGRAM.md,
+> including unfinished A1/A3 acceptance, A4–A7/readiness, E and the final audit,
+> before starting POST_GOAL_BACKLOG.md. Do not repeat completed B/C/D work or the
+> workflow research. Keep GPT-only, no-Relay and action-time approval boundaries.

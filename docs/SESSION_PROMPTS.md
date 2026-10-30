@@ -6,11 +6,12 @@ Never use Relay.
 
 ## Product continuation: B research, C native refinements, D website
 
-The owner's October 26 priority overrides the older product gaps-first order.
-Use `docs/NEXT_SESSION_GOAL.md` as the next session's goal prompt. Read the current
-`docs/PLAN.md` and `docs/PRODUCT_PROGRAM.md` first. Keep A2 wrapped and resume
-A4–A7 after B, C and D. The historical D0/D1 release-session IDs below are distinct
-from the product program's D website track.
+Use `docs/NEXT_SESSION_PROMPT.md` for the current focused continuation. Read the
+current `docs/PLAN.md` and `docs/PRODUCT_PROGRAM.md` first. The owner's October 31
+order resumes Saved, then the remaining original program and final audit, before
+the newer goals in `docs/POST_GOAL_BACKLOG.md`. Keep A2 wrapped; B/C/D local work
+is recorded. The historical D0/D1 release-session IDs below are distinct from
+the product program's D website track.
 
 ## D0: restore browser control
 
