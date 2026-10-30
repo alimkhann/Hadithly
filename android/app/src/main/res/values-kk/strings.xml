@@ -14,10 +14,10 @@
     <string name="direction_automatic" formatted="false">Автоматты</string>
     <string name="direction_right_to_left" formatted="false">Оңнан солға</string>
     <string name="direction_left_to_right" formatted="false">Солдан оңға</string>
-    <string name="saved_all">All</string>
-    <string name="saved_bookmarks">Bookmarks</string>
-    <string name="saved_favorites">Favorites</string>
-    <string name="saved_notes">Notes</string>
+    <string name="saved_all" formatted="false">Барлығы</string>
+    <string name="saved_bookmarks" formatted="false">Бетбелгілер</string>
+    <string name="saved_favorites" formatted="false">Таңдаулылар</string>
+    <string name="saved_notes" formatted="false">Жазбалар</string>
     <string name="saved_all_folders" formatted="false">Барлық қалталар</string>
     <string name="saved_move_folder" formatted="false">Қалтаға жылжыту</string>
     <string name="saved_no_folder" formatted="false">Қалта жоқ</string>
@@ -27,7 +27,7 @@
     <string name="saved_copy" formatted="false">Көшіру</string>
     <string name="saved_share" formatted="false">Бөлісу</string>
     <string name="saved_suggest_translation" formatted="false">Аударма ұсыну</string>
-    <string name="saved_preview_retry">Preview unavailable. Tap to retry.</string>
+    <string name="saved_preview_retry" formatted="false">Алдын ала қарау қолжетімсіз. Қайталау үшін басыңыз.</string>
     <string name="saved_show_preview" formatted="false">Хадис алдын ала қарауын көрсету</string>
     <string name="saved_hide_preview" formatted="false">Хадис алдын ала қарауын жасыру</string>
     <string name="saved_confirm_removal" formatted="false">Сақталған элементтерді жоймас бұрын растау</string>
@@ -41,11 +41,11 @@
     <string name="saved_folder_name" formatted="false">Қалта атауы</string>
     <string name="saved_create" formatted="false">Жасау</string>
     <string name="saved_cancel" formatted="false">Бас тарту</string>
-    <string name="saved_empty_title">Nothing saved yet</string>
+    <string name="saved_empty_title" formatted="false">Әзірге ештеңе сақталмаған</string>
     <string name="saved_empty_message" formatted="false">Хадисті осында сақтау үшін оқу кезінде бетбелгі, таңдаулы немесе жазба қосыңыз.</string>
     <string name="saved_delete_folder" formatted="false">Қалтаны жою</string>
     <string name="saved_folder_deleted" formatted="false">%s қалтасы жойылды</string>
-    <string name="saved_removal_undo_message">You can undo this action for five seconds from the message at the bottom.</string>
+    <string name="saved_removal_undo_message" formatted="false">Экранның төменгі жағындағы хабар арқылы бұл әрекетті бес секунд ішінде кері қайтара аласыз.</string>
     <string name="saved_bookmark_removed" formatted="false">Бетбелгі жойылды</string>
     <string name="saved_favorite_removed" formatted="false">Таңдаулы жойылды</string>
     <string name="saved_note_deleted" formatted="false">Жазба жойылды</string>

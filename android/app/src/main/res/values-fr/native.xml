@@ -312,4 +312,13 @@
     <string name="native_ea0752e5687d" formatted="false">Ce code a déjà été utilisé. Demandez-en un nouveau.</string>
     <string name="native_0a5150029cc7" formatted="false">As-salamu alaykum</string>
     <string name="native_abbb755ac1ef" formatted="false">As-salamu alaykum, %s</string>
+    <string name="native_dac0e576bdef" formatted="false">Aucun marque-page pour le moment</string>
+    <string name="native_95c91385659e" formatted="false">Aucun favori pour le moment</string>
+    <string name="native_a092ad6b8be0" formatted="false">Aucune note pour le moment</string>
+    <string name="native_43fded2224ed" formatted="false">Maintenez un hadith pendant la lecture pour ajouter un marque-page, un favori ou une note.</string>
+    <string name="native_8d2542a48de4" formatted="false">Maintenez un hadith et choisissez Marque-page pour retrouver votre position ici.</string>
+    <string name="native_7dd1e36d2bc3" formatted="false">Maintenez un hadith et choisissez Favori pour le retrouver ici.</string>
+    <string name="native_117d7d125729" formatted="false">Maintenez un hadith et choisissez Ajouter une note pour conserver vos réflexions ici.</string>
+    <string name="native_3043f9fa4d31" formatted="false">Ce dossier est vide</string>
+    <string name="native_d251a8332a0e" formatted="false">Déplacez les hadiths enregistrés vers ce dossier depuis leur menu.</string>
 </resources>

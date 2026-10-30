@@ -1,8 +1,8 @@
 {
   "scope": "Lexical UI-call candidates only. Variable/conditional arguments, custom wrappers, String-backed models, resources and server text still require source and runtime review. Catalog-backed entries are not claimed localized.",
   "counts": {
-    "debug-fixture": 26,
-    "catalog-backed-runtime-unverified": 596,
+    "debug-fixture": 28,
+    "catalog-backed-runtime-unverified": 598,
     "example-or-symbol-review": 6,
     "dynamic-review": 11,
     "direct-literal-review": 6
@@ -75,9 +75,25 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Core/Theme/NativePolishFixtureView.swift",
-      "line": 44,
+      "line": 45,
       "call": "Text",
       "value": "Reading is ready",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Core/Theme/NativePolishFixtureView.swift",
+      "line": 107,
+      "call": "Button",
+      "value": "Folder fixture",
+      "category": "debug-fixture"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Core/Theme/NativePolishFixtureView.swift",
+      "line": 111,
+      "call": "Text",
+      "value": "You can undo this action for five seconds from the message at the bottom.",
       "category": "debug-fixture"
     },
     {
@@ -1507,7 +1523,15 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
-      "line": 750,
+      "line": 745,
+      "call": "Text",
+      "value": "You can undo this action for five seconds from the message at the bottom.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+      "line": 752,
       "call": "Picker",
       "value": "Folder",
       "category": "catalog-backed-runtime-unverified"
@@ -1515,7 +1539,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
-      "line": 751,
+      "line": 753,
       "call": "Text",
       "value": "All folders",
       "category": "catalog-backed-runtime-unverified"
@@ -1523,7 +1547,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
-      "line": 806,
+      "line": 807,
       "call": "confirmationDialog",
       "value": "Add bookmark",
       "category": "catalog-backed-runtime-unverified"
@@ -1531,7 +1555,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
-      "line": 808,
+      "line": 809,
       "call": "Button",
       "value": "Start of page",
       "category": "catalog-backed-runtime-unverified"
@@ -1539,7 +1563,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
-      "line": 811,
+      "line": 812,
       "call": "AppLocalization.format",
       "value": "Current hadith %1$@",
       "category": "catalog-backed-runtime-unverified"
@@ -1547,7 +1571,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderSheets.swift",
-      "line": 813,
+      "line": 814,
       "call": "Button",
       "value": "Cancel",
       "category": "catalog-backed-runtime-unverified"
@@ -1691,7 +1715,15 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 1720,
+      "line": 1649,
+      "call": "Text",
+      "value": "You can undo this action for five seconds from the message at the bottom.",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "line": 1722,
       "call": "accessibilityLabel",
       "value": "\\(ReaderSourceLabel.text(for: hadith)), \\(AppLocalization.string(kind.accessibilityName, locale: locale))",
       "category": "dynamic-review"
@@ -1699,7 +1731,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 1721,
+      "line": 1723,
       "call": "accessibilityHint",
       "value": "Shows source details",
       "category": "catalog-backed-runtime-unverified"
@@ -1707,7 +1739,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 1751,
+      "line": 1753,
       "call": "accessibilityLabel",
       "value": "Bookmarked",
       "category": "catalog-backed-runtime-unverified"
@@ -1715,7 +1747,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 1757,
+      "line": 1759,
       "call": "accessibilityLabel",
       "value": "Favorited",
       "category": "catalog-backed-runtime-unverified"
@@ -1723,7 +1755,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 1763,
+      "line": 1765,
       "call": "accessibilityLabel",
       "value": "Has note",
       "category": "catalog-backed-runtime-unverified"
@@ -1731,7 +1763,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 1835,
+      "line": 1837,
       "call": "Label",
       "value": "Copy",
       "category": "catalog-backed-runtime-unverified"
@@ -1739,7 +1771,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 1841,
+      "line": 1843,
       "call": "Label",
       "value": "Share",
       "category": "catalog-backed-runtime-unverified"
@@ -1747,7 +1779,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 1852,
+      "line": 1854,
       "call": "Label",
       "value": "Report translation",
       "category": "catalog-backed-runtime-unverified"
@@ -1755,7 +1787,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 1860,
+      "line": 1862,
       "call": "Label",
       "value": "Suggest a translation",
       "category": "catalog-backed-runtime-unverified"
@@ -1763,7 +1795,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 1970,
+      "line": 1972,
       "call": "Text",
       "value": "No translation yet",
       "category": "catalog-backed-runtime-unverified"
@@ -1771,7 +1803,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 1974,
+      "line": 1976,
       "call": "Text",
       "value": "No translation yet",
       "category": "catalog-backed-runtime-unverified"
@@ -1779,7 +1811,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 1975,
+      "line": 1977,
       "call": "Text",
       "value": "Sign in from Settings to translate this hadith.",
       "category": "catalog-backed-runtime-unverified"
@@ -1787,7 +1819,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 1978,
+      "line": 1980,
       "call": "Text",
       "value": "Translation allowance used",
       "category": "catalog-backed-runtime-unverified"
@@ -1795,7 +1827,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 1979,
+      "line": 1981,
       "call": "Text",
       "value": "Existing translations are still available.",
       "category": "catalog-backed-runtime-unverified"
@@ -1803,7 +1835,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 1988,
+      "line": 1990,
       "call": "AppLocalization.string",
       "value": "%1$@ of %2$@ translations left",
       "category": "catalog-backed-runtime-unverified"
@@ -1811,7 +1843,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 1993,
+      "line": 1995,
       "call": "AppLocalization.string",
       "value": "Try again %@",
       "category": "catalog-backed-runtime-unverified"
@@ -1819,7 +1851,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 2041,
+      "line": 2043,
       "call": "Text",
       "value": "· \\(note)",
       "category": "dynamic-review"
@@ -1827,7 +1859,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 2126,
+      "line": 2128,
       "call": "Text",
       "value": "Translation sources",
       "category": "catalog-backed-runtime-unverified"
@@ -1835,7 +1867,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 2138,
+      "line": 2140,
       "call": "Button",
       "value": "Done",
       "category": "catalog-backed-runtime-unverified"
@@ -1843,7 +1875,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 2184,
+      "line": 2186,
       "call": "Text",
       "value": "Try again",
       "category": "catalog-backed-runtime-unverified"
@@ -1851,7 +1883,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 2188,
+      "line": 2190,
       "call": "navigationTitle",
       "value": "Note",
       "category": "catalog-backed-runtime-unverified"
@@ -1859,7 +1891,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 2192,
+      "line": 2194,
       "call": "Button",
       "value": "Cancel",
       "category": "catalog-backed-runtime-unverified"
@@ -1867,7 +1899,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 2196,
+      "line": 2198,
       "call": "Button",
       "value": "Save",
       "category": "catalog-backed-runtime-unverified"
@@ -1875,7 +1907,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 2288,
+      "line": 2290,
       "call": "Text",
       "value": "Sheet open",
       "category": "debug-fixture"
@@ -1883,7 +1915,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 2292,
+      "line": 2294,
       "call": "Text",
       "value": "Sheet dismissed",
       "category": "debug-fixture"
@@ -1891,7 +1923,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 2358,
+      "line": 2360,
       "call": "Text",
       "value": "Page \\(pageIndex + 1) of \\(pageCount)",
       "category": "debug-fixture"
@@ -1899,7 +1931,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 2372,
+      "line": 2374,
       "call": "Text",
       "value": "Page \\(pageIndex + 1)",
       "category": "debug-fixture"
@@ -1907,7 +1939,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 2386,
+      "line": 2388,
       "call": "Text",
       "value": "إنما الأعمال بالنيات",
       "category": "debug-fixture"
@@ -1915,7 +1947,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 2413,
+      "line": 2415,
       "call": "Text",
       "value": "Long page line \\(line)",
       "category": "debug-fixture"
@@ -1923,7 +1955,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
-      "line": 2420,
+      "line": 2422,
       "call": "Text",
       "value": "End of page",
       "category": "debug-fixture"
@@ -2125,7 +2157,7 @@
       "file": "ios/Hadithly/Features/Saved/SavedView.swift",
       "line": 112,
       "call": "Text",
-      "value": "You can undo this action from the message below.",
+      "value": "You can undo this action for five seconds from the message at the bottom.",
       "category": "catalog-backed-runtime-unverified"
     },
     {
@@ -4179,7 +4211,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 3586,
+      "line": 3583,
       "call": "nativeText",
       "value": "Remove saved item?",
       "category": "catalog-backed-runtime-unverified"
@@ -4187,7 +4219,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 3586,
+      "line": 3583,
       "call": "nativeText",
       "value": "Remove",
       "category": "catalog-backed-runtime-unverified"
@@ -4195,7 +4227,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 3586,
+      "line": 3583,
       "call": "nativeText",
       "value": "Remove and don't ask again",
       "category": "catalog-backed-runtime-unverified"
@@ -4203,7 +4235,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
-      "line": 3586,
+      "line": 3583,
       "call": "nativeText",
       "value": "Cancel",
       "category": "catalog-backed-runtime-unverified"

@@ -152,10 +152,7 @@ fun SavedScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
                 TextButton(onClick = app.library::refresh) { Text(nativeText("Try again"), color = colors.interactive) }
             }
         } else if (visible.isEmpty()) {
-            com.hadithly.app.core.theme.QuietEmptyState(
-                title = if (folderId != null) "This folder is empty" else when (filter) { SavedFilter.All -> "Nothing saved yet"; SavedFilter.Bookmarks -> "No bookmarks yet"; SavedFilter.Favorites -> "No favorites yet"; SavedFilter.Notes -> "No notes yet" },
-                message = "Hold a hadith while reading to bookmark it, favorite it, or add a note.", icon = Icons.Filled.Bookmark,
-                modifier = Modifier.fillMaxSize())
+            SavedEmptyState(filter.ordinal, folderId != null, Icons.Filled.Bookmark, Modifier.fillMaxSize())
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxSize().testTag("saved.list")) {
                 items(visible, key = { it.hadithId }) { item -> androidx.compose.foundation.layout.Box(Modifier.animateItem()) { SharedSavedItemRow(item, folders, folderId == null, { ref -> onOpenTarget(ReaderOpenTarget(ref.collectionSlug, ref.collectionName, ref.volumeId, ref.hadithNumber, ReaderTargetSource.SAVED)) }, ::requestRemoval, { app.library.assignFolder(item.hadithId, it, actionScope) }, { ref -> (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText(ref.referenceDisplay, listOfNotNull(ref.arabicText, ref.englishText, ref.referenceDisplay).joinToString("\n\n"))) }, { ref -> context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "https://hadithly.app/hadith/${ref.collectionSlug}/${ref.hadithNumber}"), null)) }, { ref -> onOpenTarget(ReaderOpenTarget(ref.collectionSlug, ref.collectionName, ref.volumeId, ref.hadithNumber, ReaderTargetSource.SAVED)) }, { ref -> withContext(Dispatchers.IO) { app.repository.loadSavedPreview(ref) } }) } }

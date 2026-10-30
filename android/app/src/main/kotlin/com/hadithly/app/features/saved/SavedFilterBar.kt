@@ -1,5 +1,7 @@
 package com.hadithly.app.features.saved
 
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,6 +27,24 @@ import androidx.compose.ui.unit.dp
 import com.hadithly.app.R
 import com.hadithly.app.core.theme.QuietDestination
 import com.hadithly.app.core.theme.QuietNavigationBar
+
+internal fun savedEmptyMessage(filterIndex: Int): String = listOf(
+    "Hold a hadith while reading to bookmark it, favorite it, or add a note.",
+    "Hold a hadith and choose Bookmark to keep your place here.",
+    "Hold a hadith and choose Favorite to find it here.",
+    "Hold a hadith and choose Add note to keep your thoughts here.",
+)[filterIndex]
+
+@Composable
+internal fun SavedEmptyState(filterIndex: Int, isFolder: Boolean, icon: androidx.compose.ui.graphics.vector.ImageVector, modifier: Modifier = Modifier) {
+    val title = if (isFolder) "This folder is empty" else listOf("Nothing saved yet", "No bookmarks yet", "No favorites yet", "No notes yet")[filterIndex]
+    val message = if (isFolder) "Move saved hadiths into this folder from their menu." else savedEmptyMessage(filterIndex)
+    val large = androidx.compose.ui.platform.LocalDensity.current.fontScale >= 1.3f
+    androidx.compose.foundation.layout.BoxWithConstraints(modifier) {
+        val content = if (large && constraints.hasBoundedHeight) Modifier.verticalScroll(rememberScrollState()) else Modifier
+        com.hadithly.app.core.theme.QuietEmptyState(title, message, icon, content)
+    }
+}
 
 @Composable
 internal fun SavedFilterBar(

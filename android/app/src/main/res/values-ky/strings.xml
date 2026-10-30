@@ -14,10 +14,10 @@
     <string name="direction_automatic" formatted="false">Автоматтык</string>
     <string name="direction_right_to_left" formatted="false">Оңдон солго</string>
     <string name="direction_left_to_right" formatted="false">Солдон оңго</string>
-    <string name="saved_all">All</string>
-    <string name="saved_bookmarks">Bookmarks</string>
-    <string name="saved_favorites">Favorites</string>
-    <string name="saved_notes">Notes</string>
+    <string name="saved_all" formatted="false">Баары</string>
+    <string name="saved_bookmarks" formatted="false">Кыстармалар</string>
+    <string name="saved_favorites" formatted="false">Тандалмалар</string>
+    <string name="saved_notes" formatted="false">Жазуулар</string>
     <string name="saved_all_folders" formatted="false">Бардык папкалар</string>
     <string name="saved_move_folder" formatted="false">Папкага жылдыруу</string>
     <string name="saved_no_folder" formatted="false">Папка жок</string>
@@ -27,7 +27,7 @@
     <string name="saved_copy" formatted="false">Көчүрүү</string>
     <string name="saved_share" formatted="false">Бөлүшүү</string>
     <string name="saved_suggest_translation" formatted="false">Котормо сунуштоо</string>
-    <string name="saved_preview_retry">Preview unavailable. Tap to retry.</string>
+    <string name="saved_preview_retry" formatted="false">Алдын ала көрүү жеткиликсиз. Кайталоо үчүн басыңыз.</string>
     <string name="saved_show_preview" formatted="false">Хадистин алдын ала көрүнүшүн көрсөтүү</string>
     <string name="saved_hide_preview" formatted="false">Хадистин алдын ала көрүнүшүн жашыруу</string>
     <string name="saved_confirm_removal" formatted="false">Сакталган элементтерди өчүрүүдөн мурун ырастоо</string>
@@ -41,11 +41,11 @@
     <string name="saved_folder_name" formatted="false">Папканын аты</string>
     <string name="saved_create" formatted="false">Түзүү</string>
     <string name="saved_cancel" formatted="false">Жокко чыгаруу</string>
-    <string name="saved_empty_title">Nothing saved yet</string>
+    <string name="saved_empty_title" formatted="false">Азырынча эч нерсе сакталган жок</string>
     <string name="saved_empty_message" formatted="false">Хадисти бул жерде сактоо үчүн окуп жатканда кыстарма, сүйүктүү же жазма кошуңуз.</string>
     <string name="saved_delete_folder" formatted="false">Папканы өчүрүү</string>
     <string name="saved_folder_deleted" formatted="false">%s папкасы өчүрүлдү</string>
-    <string name="saved_removal_undo_message">You can undo this action for five seconds from the message at the bottom.</string>
+    <string name="saved_removal_undo_message" formatted="false">Экрандын ылдый жагындагы билдирүү аркылуу бул аракетти беш секунд ичинде артка кайтара аласыз.</string>
     <string name="saved_bookmark_removed" formatted="false">Кыстарма өчүрүлдү</string>
     <string name="saved_favorite_removed" formatted="false">Сүйүктүү өчүрүлдү</string>
     <string name="saved_note_deleted" formatted="false">Жазма өчүрүлдү</string>

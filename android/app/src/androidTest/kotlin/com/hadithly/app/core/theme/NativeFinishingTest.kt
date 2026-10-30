@@ -2,6 +2,7 @@ package com.hadithly.app.core.theme
 
 import com.hadithly.app.core.preferences.nativeText
 
+import androidx.compose.material.icons.filled.Bookmark
 import android.graphics.Bitmap
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.verticalScroll
@@ -282,6 +283,80 @@ class NativeFinishingTest {
             compose.onNodeWithTag("settings.appearance.light").assertTextContains(labels[3]).assertIsSelected()
             compose.onNodeWithTag("settings.appearance.reader.system").assertDoesNotExist()
             capture("app-appearance-" + language)
+        }
+    }
+
+    @Test fun savedFiltersUseSelectedLanguage() {
+        val copy = org.json.JSONObject(InstrumentationRegistry.getInstrumentation().context.assets.open("a4-saved-filter-copy.json").bufferedReader().use { it.readText() }).getJSONObject("locales")
+        var locale by mutableStateOf("en")
+        var selected by mutableIntStateOf(0)
+        var folder by mutableStateOf(false)
+        var loads = 0
+        var opens = 0
+        var removals = 0
+        compose.setContent { key(locale) { LocalizedPreview(ReaderTheme.LIGHT, locale) {
+            val ref = com.hadithly.app.core.data.HadithRef("audit-retry", "fixture", "Prepared example", "1", "1", "", null, "Original source reference %lld %@")
+            val item = com.hadithly.app.core.data.SavedItemEntry(ref.hadithId, 1.0, 1.0, bookmarkCreatedAt = 1.0, hadith = ref)
+            Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(16.dp)) {
+                com.hadithly.app.features.saved.SavedFilterBar(selected, { selected = it }, "saved.filter")
+                com.hadithly.app.features.saved.SavedEmptyState(selected, folder, androidx.compose.material.icons.Icons.Filled.Bookmark, Modifier.heightIn(min = 200.dp))
+                androidx.compose.material3.Text(androidx.compose.ui.res.stringResource(com.hadithly.app.R.string.saved_removal_undo_message), modifier = Modifier.testTag("savedAudit.removalMessage"))
+                com.hadithly.app.features.saved.SharedSavedItemRow(item, emptyList(), false, { opens += 1 }, { _, _, _ -> removals += 1 }, {}, {}, {}, {}, {
+                    loads += 1
+                    if (loads == 1) error("Synthetic preview failure")
+                    it.copy(arabicText = "Prepared Arabic preview", englishText = "Prepared interface preview")
+                })
+            }
+        } } }
+        for (tag in listOf("en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn")) {
+            compose.runOnIdle { locale = tag; selected = 0; loads = 0; opens = 0; removals = 0; folder = false }
+            val values = copy.getJSONArray(tag)
+            for ((index, filter) in listOf("all", "bookmarks", "favorites", "notes").withIndex()) {
+                val button = compose.onNodeWithTag("saved.filter.$filter")
+                button.performScrollTo().assertIsDisplayed().assertTextEquals(values.getString(index))
+                button.performClick().assertIsSelected()
+                compose.onNodeWithText(values.getString(5 + index)).performScrollTo().assertIsDisplayed()
+                compose.onNodeWithText(values.getString(9 + index)).performScrollTo().assertIsDisplayed()
+                compose.onNodeWithTag("savedAudit.removalMessage").performScrollTo().assertIsDisplayed().assertTextEquals(values.getString(14))
+                capture("saved-filter-$tag-$filter")
+            }
+            val all = compose.onNodeWithTag("saved.filter.all").fetchSemanticsNode().boundsInRoot
+            val notes = compose.onNodeWithTag("saved.filter.notes").fetchSemanticsNode().boundsInRoot
+            assertEquals(tag in listOf("ar", "ur"), all.left > notes.left)
+            compose.runOnIdle { folder = true }
+            compose.onNodeWithText(values.getString(15)).performScrollTo().assertIsDisplayed()
+            compose.onNodeWithText(values.getString(16)).performScrollTo().assertIsDisplayed()
+            capture("saved-folder-empty-$tag")
+            compose.onNodeWithTag("saved.preview.audit-retry").performScrollTo().performClick()
+            compose.onNodeWithTag("saved.preview.retry").performScrollTo().assertIsDisplayed().assertTextEquals(values.getString(13))
+            capture("saved-preview-retry-$tag")
+            compose.onNodeWithTag("saved.preview.retry").performClick()
+            compose.onNodeWithText("Prepared interface preview").performScrollTo().assertIsDisplayed()
+            compose.runOnIdle { assertEquals(2, loads); assertEquals(0, opens); assertEquals(0, removals) }
+        }
+    }
+
+    @Test fun savedEmptyGuidanceRemainsReachableAtLargeText() {
+        val copy = org.json.JSONObject(InstrumentationRegistry.getInstrumentation().context.assets.open("a4-saved-filter-copy.json").bufferedReader().use { it.readText() }).getJSONObject("locales")
+        var locale by mutableStateOf("ar")
+        var selected by mutableIntStateOf(1)
+        compose.setContent { key(locale) { LocalizedPreview(ReaderTheme.LIGHT, locale) {
+            CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, 2f)) {
+                Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(16.dp)) {
+                    com.hadithly.app.features.saved.SavedEmptyState(selected, false, androidx.compose.material.icons.Icons.Filled.Bookmark, Modifier.weight(1f))
+                    com.hadithly.app.features.saved.SavedFilterBar(selected, { selected = it }, "saved.filter")
+                }
+            }
+        } } }
+        for (tag in listOf("ar", "ru", "bn")) {
+            compose.runOnIdle { locale = tag; selected = 1 }
+            val values = copy.getJSONArray(tag)
+            compose.onNodeWithText(values.getString(6)).performScrollTo().assertIsDisplayed()
+            capture("saved-large-title-$tag")
+            compose.onNodeWithText(values.getString(10)).performScrollTo().assertIsDisplayed()
+            capture("saved-large-guidance-$tag")
+            compose.onNodeWithTag("saved.filter.notes").performClick().assertIsSelected()
+            compose.onNodeWithText(values.getString(12)).performScrollTo().assertIsDisplayed()
         }
     }
 
@@ -911,6 +986,9 @@ class NativeFinishingTest {
         compose.waitForIdle()
         Thread.sleep(350) // Native window presentation completes outside the Compose test clock.
         val instrumentation = InstrumentationRegistry.getInstrumentation()
+        compose.waitUntil(5_000) {
+            instrumentation.uiAutomation.rootInActiveWindow?.packageName?.toString() == instrumentation.targetContext.packageName
+        }
         val file = File(instrumentation.targetContext.getExternalFilesDir(null), "finishing-$name.png")
         instrumentation.uiAutomation.takeScreenshot().let { bitmap ->
             file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }; bitmap.recycle()

@@ -1,96 +1,73 @@
 # Focused continuation, October 31
 
 Continue Hadithly in `/Users/alim/Developer/Projects/Apps/Hadithly`.
-The persistent objective is still B → C → D → remaining A4–A7/readiness → E,
-including unfinished A1/A3 evidence and the final full-objective audit.
-Use `PRODUCT_PROGRAM.md` as the scope authority. A2 is wrapped; row mode stays off.
+Do one bounded A4 session, then hand off in a fresh chat. The continuing objective
+is `PRODUCT_PROGRAM.md`, including unfinished A1/A3 acceptance, remaining
+A4–A7/readiness, E and the final requirement-by-requirement audit. A2 stays wrapped;
+retain B/C/D's recorded local completion and every external gate. Row mode stays off.
+Only after that objective is complete may `POST_GOAL_BACKLOG.md` begin.
 
 ## Read what the next decision needs
 
-Start with `AGENTS.md`, `PLAN.md`, the Product continuation paragraph in
-`SESSION_PROMPTS.md`, and this file. Distinguish current checkpoints from history.
-Check `git status`, the latest commits and the `PRODUCT_PROGRAM.md` checklist.
-Read the latest Saved handoff in `A4_RUNTIME_LOCALIZATION.md`. Open implementation
-and older evidence on demand; do not reload the research archive or previous chat.
+Start with `AGENTS.md`, the current checkpoint and mistakes in `PLAN.md`, the
+Product continuation paragraph in `SESSION_PROMPTS.md`, and this file. Check
+`git status`, both index and worktree, recent commits and the product checklist.
+Read the latest Saved completion section in `A4_RUNTIME_LOCALIZATION.md`.
+Open implementation or older evidence only when it answers the next question.
 
-## Current owner order: resume Saved, finish the original goal, then newer goals
+Use `AGENT_WORKFLOW.md`'s bounded loop with one primary writer. The Saved pilot
+used the existing native harness and scoped staging; do not repeat the workflow
+research, setup audit, B/C/D work or the completed Saved matrix without a relevant
+change or failure. No broader client-settings or native-review acceptance is implied.
 
-October 31 follow-up: the owner resumes the previously deferred Saved unit for
-the next session. Finish its existing implementation, verify both native apps,
-refresh evidence and commit. This is the first bounded test of the new workflow.
-Read `AGENT_WORKFLOW.md` for that method; do not repeat the setup/video audit.
+## Next original-program task: A4 Settings profile notices
 
-Then continue the original `PRODUCT_PROGRAM.md` objective in verifiable units:
-remaining A4, A5–A7/readiness, unfinished A1/A3 acceptance, E and the final
-requirement-by-requirement audit. Follow dependencies and retain all existing
-external gates. A2 stays wrapped; do not restart its deferred storage project.
-B/C/D's recorded local work stays complete without implying release acceptance.
+Verify and repair the Settings profile name/username status notices on both apps.
+This is the next small part of the remaining Settings/evidence error-wrapper work.
 
-The newer owner goals and suggested preparation are in `POST_GOAL_BACKLOG.md`.
-They come after the original objective. Do not substitute a new font-size/RTL
-pilot, Convex optimization or redesign for finishing Saved and the original goal.
-If a reported symptom also blocks an original requirement, repair only that
-requirement's necessary scope and record the overlap without creating duplicate work.
+- Inspect `ios/Hadithly/Features/Settings/SettingsDestinations.swift` and
+  `android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt`.
+  iOS assigns English strings to dynamic notices. Android's name-save failure
+  can display Clerk's raw provider `errorMessage`; trace the actual rendering
+  before choosing the smallest repair.
+- Reproduce using controlled native fixtures, then route fixed success,
+  validation and failure notices through the selected UI locale. Reuse indexed
+  drafts where correct, preserve opaque user-entered names and existing account,
+  busy, cancellation and validation behavior. Unknown/provider diagnostics need
+  a bounded localized fallback, following the existing auth-error precedent.
+- Verify the changed presentation on both apps across all fifteen UI locales,
+  plus focused RTL/large-text checks and a local callback or state safeguard.
+  Do not save a real profile, sign in, submit credentials or call a provider.
+  Native-speaker approval remains pending against exact copy.
+- Refresh scoped evidence, generator/structural checks and preservation proof;
+  inspect staged and unstaged changes, commit the finished unit without pushing,
+  then stop. Hand off the next specific original-program unit. Do not expand this
+  session to purchase, notification, deletion or evidence wrappers merely because
+  they share the Settings/reader files.
 
-## Workflow research completed, October 31
+After profile notices, continue the remaining A4 Settings/evidence error wrappers
+and runtime review in verifiable units. Keep A4 finite and distinguish resource
+structure, controlled rendering, accessibility and native-language approval.
+Then follow the original A5–A7/readiness, A1/A3 and E dependencies and final audit.
+A5 includes the live Contents Go-tap navigation failure; A7 measurement and the
+actual E Linear hub remain unfinished.
 
-All five supplied videos have complete available caption reviews and ten sampled
-visual frames through pi's existing free extraction route. Timestamped findings
-and upstream source snapshots are in `AGENT_WORKFLOW_VIDEO_RESEARCH.md`.
-The selected local profile, rollback and limits are in `AGENT_SETUP_AUDIT.md`.
-Three narrow project skills and the bounded-session rules are implemented.
-Model choices and pi's learning policy are preserved. No product fixes were made.
+## Preserve incoming work and safeguards
 
-Restart clients and inspect the next session's actual skill/tool loading before
-claiming the new profile is effective. First-pilot behavior remains unverified.
-Use Saved as the authorized first pilot. Loading checks must stay brief and must
-not turn the next session into another configuration cleanup. The newer backlog
-remains deferred until the original objective is complete and its next unit is chosen.
-
-## Immediate bounded task: finish the current Saved unit
-
-Last implementation commit before this handoff is `7499548`. Saved changes are
-still uncommitted, with a partial scoped catalog patch already staged. Inspect
-both index and worktree before staging anything.
-
-- Source: `a4-saved-filter-copy.json`, now 17 keys in all 15 locales. Copies remain
-  drafts with native-speaker review pending. Both apps use shared empty states;
-  large text can scroll the guidance. Preview retry and five-second Undo copy are
-  included. The last two folder-empty keys and fixture branches have not been
-  rerun on native apps.
-- Rerun iOS `VisualPolishUITests/testSavedFiltersUseSelectedLanguage` and Android
-  `NativeFinishingTest#savedFiltersUseSelectedLanguage` after those final additions.
-  Retain the existing large-text, filter interaction, preview and Undo evidence.
-- Refresh `verification/a4-localization/saved-filters.json`, the preservation
-  report and selected captures. The current aggregate predates the final
-  large-text repair, and selected iOS large-text captures are stale. Earlier
-  obstructed Android captures are not rendering proof.
-- Final repair results remain at
-  `/tmp/hadithly-a4-saved-large-final-ios.xcresult` and
-  `/tmp/hadithly-a4-saved-large-final-android.log`. Reverify if unavailable.
-- Use `scripts/stage-new-catalog-copy.py` with the source, `--repair-existing`
-  and `--stage`. Expected scope is 16 new catalog keys and the guarded existing
-  `Saved filter` repair. Preserve incoming catalog/project/scheme work.
-- Run generator checks and the structural localization audit, inspect the staged
-  diff, update the verification record and commit this bounded unit. Exclude
-  `scripts/__pycache__`, build outputs, secrets and unrelated incoming work.
+The Saved session leaves incoming catalog formatting/extraction differences and
+the four project/scheme files outside its commit. Preserve those bytes. Inspect
+the actual next-session status instead of assuming a clean checkout. Keep
+`scripts/__pycache__`, secrets and build outputs out of commits. Use the guarded
+catalog staging helper for any new keys or explicit hash/locale repairs.
 
 Connected Android UI checks must use the root runner with explicit
 `--serial emulator-5554` and `--class`. Never use bare connected Gradle tests.
-The unresolved physical-phone incident is in `ANDROID_UI_TARGET_INCIDENT.md`;
+The physical-phone incident in `ANDROID_UI_TARGET_INCIDENT.md` remains unresolved;
 do not touch or claim recovery of that phone without a separate instruction.
 
-## Remaining program
-
-Continue A4's remaining Settings/evidence error wrappers and runtime review in
-small verifiable units, then A5–A7 and E. Do not expand localization indefinitely
-or treat drafts as approval. B available-source research, C local refinements and
-D local website work are committed. Device/auth/store, actual annual billing
-total, publication and native-review gates remain open. A5 includes the live
-Contents Go-tap navigation failure. A1 exact-locale content and A3 grounding still
-need evidence; A7 measurement and the actual E Linear hub are not complete.
-
-Commit finished work without pushing. Obtain action-time approval for cloud,
-account, credential, paid-model, deployment and publication changes. Keep a short
-handoff with the commit, evidence, exact next task and open gates. The broad goal
-is not complete merely because this bounded session ends.
+Keep GPT-only and no-Relay. Obtain action-time approval for cloud, account,
+credential, paid-model, deployment, migration and publication changes. Native-copy,
+full accessibility, authenticated/physical-device, content, store/purchase, actual
+annual billing total, production, backup/recovery, publication and LA4 gates stay
+open unless their own real evidence closes them. No Saved result completes A4 or
+the overall program.

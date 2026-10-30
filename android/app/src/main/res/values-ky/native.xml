@@ -219,7 +219,7 @@
     <string name="native_aa69cfa701a6" formatted="false">Кыстарма коюлган</string>
     <string name="native_86f5562ff32e" formatted="false">Тандалмаларга кошулган</string>
     <string name="native_5bfefd244c17" formatted="false">Жазуусу бар</string>
-    <string name="native_47ce7f7fb0dd" formatted="false">Сакталгандарды чыпкалоо</string>
+    <string name="native_47ce7f7fb0dd" formatted="false">Сакталган нерселердин чыпкасы</string>
     <string name="native_642030cddde8" formatted="false">Сакталган нерсенин аракеттери</string>
     <string name="native_94be6a7413a9" formatted="false">Булактын маалыматын көрсөтөт</string>
     <string name="native_183b1d17b908" formatted="false">Бул хадисти окуу үчүн ачат</string>
@@ -312,4 +312,13 @@
     <string name="native_ea0752e5687d" formatted="false">Бул код колдонулган. Жаңы код сураңыз.</string>
     <string name="native_0a5150029cc7" formatted="false">Ассаламу алейкум</string>
     <string name="native_abbb755ac1ef" formatted="false">Ассаламу алейкум, %s</string>
+    <string name="native_dac0e576bdef" formatted="false">Азырынча кыстармалар жок</string>
+    <string name="native_95c91385659e" formatted="false">Азырынча тандалмалар жок</string>
+    <string name="native_a092ad6b8be0" formatted="false">Азырынча жазуулар жок</string>
+    <string name="native_43fded2224ed" formatted="false">Окуп жатканда хадисти басып кармап, кыстарма коюңуз, тандалмаларга кошуңуз же жазуу жазыңыз.</string>
+    <string name="native_8d2542a48de4" formatted="false">Хадисти басып кармап, ордуңузду бул жерде сактоо үчүн Кыстарма дегенди тандаңыз.</string>
+    <string name="native_7dd1e36d2bc3" formatted="false">Хадисти басып кармап, аны бул жерден табуу үчүн Тандалмалар дегенди тандаңыз.</string>
+    <string name="native_117d7d125729" formatted="false">Хадисти басып кармап, ойлоруңузду бул жерде сактоо үчүн Жазуу кошуу дегенди тандаңыз.</string>
+    <string name="native_3043f9fa4d31" formatted="false">Бул папка бош</string>
+    <string name="native_d251a8332a0e" formatted="false">Сакталган хадистерди алардын менюсу аркылуу бул папкага жылдырыңыз.</string>
 </resources>

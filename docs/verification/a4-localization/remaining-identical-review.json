@@ -1,0 +1,266 @@
+{
+  "scope": "All 29 remaining Android English-identical units from the allow-drafts structural audit. Classification is source review only, not native-language approval or complete runtime coverage. Audit findings are retained, not filtered out.",
+  "units": [
+    {
+      "locale": "uz",
+      "file": "native.xml",
+      "resource": "native_2ccb1be6d319",
+      "quantity": "string",
+      "value": "%s pt",
+      "classification": "Point-unit formatting token; numeric value is supplied by the native formatter.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "id",
+      "file": "native.xml",
+      "resource": "native_a1794783aab7",
+      "quantity": "string",
+      "value": "Offline",
+      "classification": "Existing Indonesian draft uses a borrowed interface term; retain for native-language choice.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "id",
+      "file": "native.xml",
+      "resource": "native_2ccb1be6d319",
+      "quantity": "string",
+      "value": "%s pt",
+      "classification": "Point-unit formatting token; numeric value is supplied by the native formatter.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "id",
+      "file": "native.xml",
+      "resource": "native_74ccd4330384",
+      "quantity": "string",
+      "value": "Folder",
+      "classification": "Existing Indonesian draft uses a borrowed interface term; retain for native-language choice.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "id",
+      "file": "native.xml",
+      "resource": "native_969ccbd3cf63",
+      "quantity": "string",
+      "value": "Email",
+      "classification": "Existing Indonesian draft uses a borrowed interface term; retain for native-language choice.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "fr",
+      "file": "native.xml",
+      "resource": "native_caf85b0888d7",
+      "quantity": "string",
+      "value": "Sources",
+      "classification": "Existing draft uses a shared spelling, cognate or hadith transliteration; native review remains pending.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "fr",
+      "file": "native.xml",
+      "resource": "native_2ccb1be6d319",
+      "quantity": "string",
+      "value": "%s pt",
+      "classification": "Point-unit formatting token; numeric value is supplied by the native formatter.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "fr",
+      "file": "native.xml",
+      "resource": "native_3660315a9af3",
+      "quantity": "string",
+      "value": "page",
+      "classification": "Existing draft uses a shared spelling, cognate or hadith transliteration; native review remains pending.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "fr",
+      "file": "native.xml",
+      "resource": "native_0a5150029cc7",
+      "quantity": "string",
+      "value": "As-salamu alaykum",
+      "classification": "Indexed transliteration of the Arabic greeting; exact form still requires native review.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "fr",
+      "file": "native.xml",
+      "resource": "native_abbb755ac1ef",
+      "quantity": "string",
+      "value": "As-salamu alaykum, %s",
+      "classification": "Indexed transliteration of the Arabic greeting; exact form still requires native review.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "es-419",
+      "file": "native.xml",
+      "resource": "native_2ccb1be6d319",
+      "quantity": "string",
+      "value": "%s pt",
+      "classification": "Point-unit formatting token; numeric value is supplied by the native formatter.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "es-419",
+      "file": "native.xml",
+      "resource": "native_0a5150029cc7",
+      "quantity": "string",
+      "value": "As-salamu alaykum",
+      "classification": "Indexed transliteration of the Arabic greeting; exact form still requires native review.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "es-419",
+      "file": "native.xml",
+      "resource": "native_abbb755ac1ef",
+      "quantity": "string",
+      "value": "As-salamu alaykum, %s",
+      "classification": "Indexed transliteration of the Arabic greeting; exact form still requires native review.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "pt-BR",
+      "file": "native.xml",
+      "resource": "native_2ccb1be6d319",
+      "quantity": "string",
+      "value": "%s pt",
+      "classification": "Point-unit formatting token; numeric value is supplied by the native formatter.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "pt-BR",
+      "file": "native.xml",
+      "resource": "native_0a5150029cc7",
+      "quantity": "string",
+      "value": "As-salamu alaykum",
+      "classification": "Indexed transliteration of the Arabic greeting; exact form still requires native review.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "pt-BR",
+      "file": "native.xml",
+      "resource": "native_abbb755ac1ef",
+      "quantity": "string",
+      "value": "As-salamu alaykum, %s",
+      "classification": "Indexed transliteration of the Arabic greeting; exact form still requires native review.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "sw",
+      "file": "native.xml",
+      "resource": "native_2ccb1be6d319",
+      "quantity": "string",
+      "value": "%s pt",
+      "classification": "Point-unit formatting token; numeric value is supplied by the native formatter.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "sw",
+      "file": "native.xml",
+      "resource": "native_0a5150029cc7",
+      "quantity": "string",
+      "value": "As-salamu alaykum",
+      "classification": "Indexed transliteration of the Arabic greeting; exact form still requires native review.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "sw",
+      "file": "native.xml",
+      "resource": "native_abbb755ac1ef",
+      "quantity": "string",
+      "value": "As-salamu alaykum, %s",
+      "classification": "Indexed transliteration of the Arabic greeting; exact form still requires native review.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "fr",
+      "file": "strings.xml",
+      "resource": "saved_notes",
+      "quantity": "string",
+      "value": "Notes",
+      "classification": "Existing draft uses a shared spelling, cognate or hadith transliteration; native review remains pending.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "fr",
+      "file": "strings.xml",
+      "resource": "reader_volume_pill_suffix",
+      "quantity": "string",
+      "value": "volume",
+      "classification": "Existing draft uses a shared spelling, cognate or hadith transliteration; native review remains pending.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "fr",
+      "file": "strings.xml",
+      "resource": "reader_hadith_count",
+      "quantity": "one",
+      "value": "%d hadith",
+      "classification": "Existing draft uses a shared spelling, cognate or hadith transliteration; native review remains pending.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "fr",
+      "file": "strings.xml",
+      "resource": "reader_hadith_count",
+      "quantity": "other",
+      "value": "%d hadiths",
+      "classification": "Existing draft uses a shared spelling, cognate or hadith transliteration; native review remains pending.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "fr",
+      "file": "strings.xml",
+      "resource": "e3_sources",
+      "quantity": "string",
+      "value": "Sources",
+      "classification": "Existing draft uses a shared spelling, cognate or hadith transliteration; native review remains pending.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "fr",
+      "file": "strings.xml",
+      "resource": "settings_notifications",
+      "quantity": "string",
+      "value": "Notifications",
+      "classification": "Existing draft uses a shared spelling, cognate or hadith transliteration; native review remains pending.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "pt-BR",
+      "file": "strings.xml",
+      "resource": "reader_volume_title",
+      "quantity": "string",
+      "value": "Volume %d",
+      "classification": "Existing draft uses a shared spelling, cognate or hadith transliteration; native review remains pending.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "pt-BR",
+      "file": "strings.xml",
+      "resource": "reader_volume_pill_suffix",
+      "quantity": "string",
+      "value": "volume",
+      "classification": "Existing draft uses a shared spelling, cognate or hadith transliteration; native review remains pending.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "pt-BR",
+      "file": "strings.xml",
+      "resource": "reader_hadith_count",
+      "quantity": "one",
+      "value": "%d hadith",
+      "classification": "Existing draft uses a shared spelling, cognate or hadith transliteration; native review remains pending.",
+      "native_review": "pending"
+    },
+    {
+      "locale": "pt-BR",
+      "file": "strings.xml",
+      "resource": "reader_hadith_count",
+      "quantity": "other",
+      "value": "%d hadiths",
+      "classification": "Existing draft uses a shared spelling, cognate or hadith transliteration; native review remains pending.",
+      "native_review": "pending"
+    }
+  ]
+}

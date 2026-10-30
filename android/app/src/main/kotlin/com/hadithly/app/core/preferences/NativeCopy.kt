@@ -409,5 +409,21 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "This code was already used. Please request a new one." -> R.string.native_ea0752e5687d
     "As-salamu alaykum" -> R.string.native_0a5150029cc7
     "As-salamu alaykum, %@" -> R.string.native_abbb755ac1ef
+    "All" -> R.string.saved_all
+    "Bookmarks" -> R.string.saved_bookmarks
+    "Favorites" -> R.string.saved_favorites
+    "Notes" -> R.string.saved_notes
+    "Nothing saved yet" -> R.string.saved_empty_title
+    "No bookmarks yet" -> R.string.native_dac0e576bdef
+    "No favorites yet" -> R.string.native_95c91385659e
+    "No notes yet" -> R.string.native_a092ad6b8be0
+    "Hold a hadith while reading to bookmark it, favorite it, or add a note." -> R.string.native_43fded2224ed
+    "Hold a hadith and choose Bookmark to keep your place here." -> R.string.native_8d2542a48de4
+    "Hold a hadith and choose Favorite to find it here." -> R.string.native_7dd1e36d2bc3
+    "Hold a hadith and choose Add note to keep your thoughts here." -> R.string.native_117d7d125729
+    "Preview unavailable. Tap to retry." -> R.string.saved_preview_retry
+    "You can undo this action for five seconds from the message at the bottom." -> R.string.saved_removal_undo_message
+    "This folder is empty" -> R.string.native_3043f9fa4d31
+    "Move saved hadiths into this folder from their menu." -> R.string.native_d251a8332a0e
     else -> null
 }

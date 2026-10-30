@@ -5,10 +5,10 @@
     <string name="saved_remove" formatted="false">إزالة</string>
     <string name="saved_remove_dont_ask" formatted="false">إزالة وعدم السؤال مرة أخرى</string>
     <string name="saved_undo" formatted="false">تراجع</string>
-    <string name="saved_all">All</string>
-    <string name="saved_bookmarks">Bookmarks</string>
-    <string name="saved_favorites">Favorites</string>
-    <string name="saved_notes">Notes</string>
+    <string name="saved_all" formatted="false">الكل</string>
+    <string name="saved_bookmarks" formatted="false">الإشارات المرجعية</string>
+    <string name="saved_favorites" formatted="false">المفضلة</string>
+    <string name="saved_notes" formatted="false">الملاحظات</string>
     <string name="saved_all_folders" formatted="false">كل المجلدات</string>
     <string name="saved_move_folder" formatted="false">نقل إلى مجلد</string>
     <string name="saved_no_folder" formatted="false">بلا مجلد</string>
@@ -26,12 +26,12 @@
     <string name="saved_folder_name" formatted="false">اسم المجلد</string>
     <string name="saved_create" formatted="false">إنشاء</string>
     <string name="saved_cancel" formatted="false">إلغاء</string>
-    <string name="saved_empty_title">Nothing saved yet</string>
+    <string name="saved_empty_title" formatted="false">لا يوجد شيء محفوظ بعد</string>
     <string name="saved_empty_message" formatted="false">أضف إشارة مرجعية أو أضف إلى المفضلة أو اكتب ملاحظة أثناء القراءة للاحتفاظ بحديث هنا.</string>
     <string name="saved_delete_folder" formatted="false">حذف المجلد</string>
     <string name="saved_folder_deleted" formatted="false">تم حذف المجلد %s</string>
-    <string name="saved_preview_retry">Preview unavailable. Tap to retry.</string>
-    <string name="saved_removal_undo_message">You can undo this action for five seconds from the message at the bottom.</string>
+    <string name="saved_preview_retry" formatted="false">المعاينة غير متاحة. اضغط لإعادة المحاولة.</string>
+    <string name="saved_removal_undo_message" formatted="false">يمكنك التراجع عن هذا الإجراء خلال خمس ثوانٍ من الرسالة أسفل الشاشة.</string>
     <string name="saved_bookmark_removed" formatted="false">تمت إزالة الإشارة المرجعية</string>
     <string name="saved_favorite_removed" formatted="false">تمت الإزالة من المفضلة</string>
     <string name="saved_note_deleted" formatted="false">تم حذف الملاحظة</string>

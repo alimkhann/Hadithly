@@ -312,4 +312,13 @@
     <string name="native_ea0752e5687d" formatted="false">استُخدم هذا الرمز بالفعل. يرجى طلب رمز جديد.</string>
     <string name="native_0a5150029cc7" formatted="false">السلام عليكم</string>
     <string name="native_abbb755ac1ef" formatted="false">السلام عليكم، %s</string>
+    <string name="native_dac0e576bdef" formatted="false">لا توجد إشارات مرجعية بعد</string>
+    <string name="native_95c91385659e" formatted="false">لا توجد مفضلات بعد</string>
+    <string name="native_a092ad6b8be0" formatted="false">لا توجد ملاحظات بعد</string>
+    <string name="native_43fded2224ed" formatted="false">اضغط مطولًا على حديث أثناء القراءة لإضافة إشارة مرجعية أو إضافته إلى المفضلة أو كتابة ملاحظة.</string>
+    <string name="native_8d2542a48de4" formatted="false">اضغط مطولًا على حديث واختر إشارة مرجعية للاحتفاظ بموضعك هنا.</string>
+    <string name="native_7dd1e36d2bc3" formatted="false">اضغط مطولًا على حديث واختر المفضلة للعثور عليه هنا.</string>
+    <string name="native_117d7d125729" formatted="false">اضغط مطولًا على حديث واختر إضافة ملاحظة للاحتفاظ بأفكارك هنا.</string>
+    <string name="native_3043f9fa4d31" formatted="false">هذا المجلد فارغ</string>
+    <string name="native_d251a8332a0e" formatted="false">انقل الأحاديث المحفوظة إلى هذا المجلد من قائمة خياراتها.</string>
 </resources>

@@ -1,0 +1,1590 @@
+[
+  {
+    "platform": "android",
+    "name": "android-saved-filter-en-all.png",
+    "sha256": "512cef2c4800dc2bf71b369e147b92c11be24ef989b753b964fd3894f73e363f",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-en-bookmarks.png",
+    "sha256": "4c0a660bd07f3f6a336498ebed49d2719ad0c089de04b3c28eea87982fc22b18",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-en-favorites.png",
+    "sha256": "7c217759bfb7a9a8d85363eb52318ab617bee027112d65471d58044fbbf01721",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-en-notes.png",
+    "sha256": "de1c1ff0793746db93769f44c462fe5493f4754ec30025e601442dd1e86a445c",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-folder-empty-en.png",
+    "sha256": "c75a1af61ed894cb2e40db72e851a793ed7d6198ba889d21e04f9901ef14ba59",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-preview-retry-en.png",
+    "sha256": "7355e1d18ac204edf33e960904b9019a431714b8c545a2bf40aa112f421dc5da",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-ar-all.png",
+    "sha256": "008791d6fad8fac231c4eff5c8986b3e751f00ef9db8834da3de0df0cb33149f",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-ar-bookmarks.png",
+    "sha256": "b299d86177172c8c8e8634f4aac8bebad974c78bb97fd924790df12f74a85f91",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-ar-favorites.png",
+    "sha256": "d3965d4a593829962abfe80963e5c7b715714aeca10b20226919bd004406ed41",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-ar-notes.png",
+    "sha256": "5cfdf80eb0bfdf7b0ae3ccb2edb2a5e95be0425307592ab22bbb94a2328a7d5e",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": true
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-folder-empty-ar.png",
+    "sha256": "d4a49f5c84166796dca1082f2f15ef56aa8ec1039a4cb0bd19397e426a4d5e7c",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": true
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-preview-retry-ar.png",
+    "sha256": "925ff95165735eaea9a18246903ed016131f7a4d8f6b70a832efc514a032f644",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": true
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-ru-all.png",
+    "sha256": "908df759fa7d3f900f34b5edaff37820bbb1a6985193c18d6ae385071f54ab33",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-ru-bookmarks.png",
+    "sha256": "ee702986185c0a3757c96f3bd92656cd05f9c9bff0fae36349311cc6eba1dcf7",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-ru-favorites.png",
+    "sha256": "a39e21ff60df3c130051e89b4b2d446704630b8dd0c6965d834d71d4d223acbd",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-ru-notes.png",
+    "sha256": "7313ee8a02b9c64365d2a73a9a938eac625449eecda29b71879e0b936c2e69f0",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": true
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-folder-empty-ru.png",
+    "sha256": "cdf74bfec10b9aa492b11e560e91f941a4782549b9dd4b9e545807ddff426578",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": true
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-preview-retry-ru.png",
+    "sha256": "0852be5035cb57065e963a3a80b228c5ec2d6c202e06ecfca25b54274c35b3c7",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": true
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-kk-all.png",
+    "sha256": "18375779d30985e3006924f7fe9e26b713b18c5d3959ad76c1d8c751d42dec49",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-kk-bookmarks.png",
+    "sha256": "a49aa9ba5e314ee93ddac7ed1a1dd5996434f8f36e34b41d42ca3cb655381072",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-kk-favorites.png",
+    "sha256": "ba81bff5a4599dd4fe7cd22983631f09c98036143ba262f2057b910d6f9383d9",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-kk-notes.png",
+    "sha256": "311168debbe5ea0d86c726a45a19014b0593e56473e7498b7ce15532a629bc75",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-folder-empty-kk.png",
+    "sha256": "44dc392de69ffe49840ae4d4afe235eae568195fc799aa2472ffe4d0f186827e",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-preview-retry-kk.png",
+    "sha256": "c15eae3aa9365603d46c410844c3c88f167be3aa618004c3ac0d257e8d5eb236",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-ky-all.png",
+    "sha256": "3017f5f9b7d3b146aabc8f83b26f906bf9a2c4f022f97597ab515dd28c4eb747",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-ky-bookmarks.png",
+    "sha256": "4cdeb20140216b177903138d216b77c7f757a38f17cae4fb521d3dae46635263",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-ky-favorites.png",
+    "sha256": "4666f1fe0db28b258b862a6a24c929bafac4ebea9e838941d43c37c9eff57c77",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-ky-notes.png",
+    "sha256": "2ff2cd852456a9fbfd815fd05006ed3e57a3ed5fdc04b33787c0f669f9ec2d00",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-folder-empty-ky.png",
+    "sha256": "1e6165344478407d275966e46519e4c924aadd560983920fb688e746d62f48c9",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-preview-retry-ky.png",
+    "sha256": "ebb690f5bc5b5320207588d0a8432d791020349859922952552220bd45b6c1db",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-uz-all.png",
+    "sha256": "f8d6570423a9c990099be2b0c073002d9b7dc6f0e3f3cbb933c445484e6b3498",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-uz-bookmarks.png",
+    "sha256": "ee8209ebf39fd612520a1dfb14a169413139dc8ce9be04d3f8dc360de3e2b46c",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-uz-favorites.png",
+    "sha256": "f632e519641ea75537797cce2180266dba7f5668cb0274b355273c199b73a3d9",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-uz-notes.png",
+    "sha256": "7635e27b933dd293b0de2a97653d1b6ee5a2dc5c05e9f09cf4890f475143d46a",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-folder-empty-uz.png",
+    "sha256": "ab74e821d6398e32a9e825d982f9bb2a05cec7fcb30828a314f714eabba1904b",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-preview-retry-uz.png",
+    "sha256": "d5d25b45c986e83d72d53ef0b145297285b5fe1c095aea7fdee2f0269884cb59",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-tr-all.png",
+    "sha256": "b117d3a7d1f89d7d08e6baa60ad9c793c8ad1e058ce41d9de8058e6878de9f4e",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-tr-bookmarks.png",
+    "sha256": "b062ad3ee3ac7497df8657cf09f4c5e00718eacab72785480599fb5679bd9499",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-tr-favorites.png",
+    "sha256": "61ba33833a4ccc731d472bed84deb5ac1022747e97ff4a9800b721192fc4151f",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-tr-notes.png",
+    "sha256": "6a936862edec886994476a06872c0bf05d4fba61489232515f85578af50af754",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-folder-empty-tr.png",
+    "sha256": "728b54e328c098a90bbde13285b476e35e7a9f19cdffb09b62fd9770421bc1c1",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-preview-retry-tr.png",
+    "sha256": "effc64357f174b59fbdb1572198947386f66479414ce67fcb41cbfbe9df01167",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-id-all.png",
+    "sha256": "ae9228a9180cab8dc35e0f16e72f421bada86e19cf3a608dbf352c8f742e6580",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-id-bookmarks.png",
+    "sha256": "510a7e6eb661d55e306e66dcc90edcc5649bd21e769f4651fdd3e7f90736cbba",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-id-favorites.png",
+    "sha256": "2a3342a8e80c69a3433438832bf8167129b98404f77007ac4962b96df7cf004a",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-id-notes.png",
+    "sha256": "bbac47b7af06fd372691da502cf6848afc6baba6517978d62f03f261f22ebe6e",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-folder-empty-id.png",
+    "sha256": "cc07724aa6d08ff0fe9481ea389f94a0eaebaa1c38ce3a32b5803714b158330d",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-preview-retry-id.png",
+    "sha256": "a9d40699f9128d81110d4faa2f4d4ca74b22415f9808f976b6d52259cc847933",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-ur-all.png",
+    "sha256": "320c2bfb6a83ce6ff4dd947782284065f9798eda3d8c99dce7178099f3bdefb6",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-ur-bookmarks.png",
+    "sha256": "3d700e72a138d4258b484ae4919b901b90f2fac662dc9ec71d792c7da289e0b9",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-ur-favorites.png",
+    "sha256": "f4b4c77451dbd62d67527ff2d22933ea6bfaac009584a1f5ee50e4e20d91a8bf",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-ur-notes.png",
+    "sha256": "f4d370af66ce5289a0e1579fed5ae20e7bea6be9e0a42dfe95dd6ab76c47d7b6",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-folder-empty-ur.png",
+    "sha256": "507cc601fb87d7565e92b226b67d365381abfbe82bb44c3f58ce98e4b7a02bcc",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-preview-retry-ur.png",
+    "sha256": "3a60d3b5d87528bd30b6ed62b52a7a263b1a48f58641da8d34e415d228ec3909",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-fr-all.png",
+    "sha256": "091f602b93d04ff2735b2683c7d413e7fd5773fab71cadd56e137d14df39aa6a",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-fr-bookmarks.png",
+    "sha256": "6237b36d897e24e457319d1db49c98f804d81b4fbb5a26a4641912fed644a486",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-fr-favorites.png",
+    "sha256": "efd59fa40dd157d1208839b38826143dd595d9fcc161688b29806b3e210914a4",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-fr-notes.png",
+    "sha256": "89e1d8110a4449835093a11782059c5c825848739346d1e37955b070f13a6be7",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-folder-empty-fr.png",
+    "sha256": "6f3e67740c83a80e95f3acec90cb6d5fb5583371e1a08b7794fb7cf1e6fb391c",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-preview-retry-fr.png",
+    "sha256": "59def901e862ca4669ef9742eeeff02c1c355b4b2318004862b93bb0a21bb2ba",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-es-419-all.png",
+    "sha256": "fe945b9f5afc3bf35ebf028ea73aea2fe2e4695707b646ed1abb9e539f8ca42a",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-es-419-bookmarks.png",
+    "sha256": "0b5e6591f75b3cd45516baf181d861870fc3b61f40a7b1c692da192ed8b051a2",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-es-419-favorites.png",
+    "sha256": "a4d886f3e20eaceaa8b36d6d6884082c9d07fa8a914d510b31a0970dd6d58684",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-es-419-notes.png",
+    "sha256": "35830bdf5e686d26ea955d34114b9f7307731eb6f97f9b287236c2e5932c313a",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-folder-empty-es-419.png",
+    "sha256": "4ad12ed9f5d2d461836d3e5deb3eee39d43bd2856361f2a8dd3b747f1e157406",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-preview-retry-es-419.png",
+    "sha256": "1268faad7516a763725eebe91435e44c1f7de5497fd020a76727150570464c7e",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-pt-BR-all.png",
+    "sha256": "f9a19efc856e3e410b314675bf945a174a5cf84d9f7f111f0c68e07f0549d794",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-pt-BR-bookmarks.png",
+    "sha256": "3567ecab86515ca504d51850a100774b2b1e69ddb5a2d210d65fbc67ce0c268f",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-pt-BR-favorites.png",
+    "sha256": "ee395006bdcbe73ef7603f88f50a605a49e8b3a89a1c0de591761d568a5234f3",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-pt-BR-notes.png",
+    "sha256": "5bc1453e627a42b6959bebdd0c4e3209755aa1e910295bb10b9814161f7368e2",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-folder-empty-pt-BR.png",
+    "sha256": "42ce14efae72573f95beb2e26c0bc98d80041e3c66df8f5eb34fdc7ed9d71a9e",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-preview-retry-pt-BR.png",
+    "sha256": "bb78a05b4ad28ad3fd5730fea55f126c6ff31fa69fc41e3888937b0080627a0f",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-sw-all.png",
+    "sha256": "575fb1564060f818d7f8c5a4b78a67049d2376b146867aa4edbd62295c6dc1e8",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-sw-bookmarks.png",
+    "sha256": "44580f1a3855286a4289577348992acd712e67a3e35260b767560a03abcb6bc5",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-sw-favorites.png",
+    "sha256": "e6736ddc8f17310a7193f2dfcb38a4acce83cd20a5e5ff82f4e82f2d0687810f",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-sw-notes.png",
+    "sha256": "ad2362d1c74417ab31592aff1ad492b83d27eff2541eeeba70a7e14b6f42e4a3",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-folder-empty-sw.png",
+    "sha256": "013e85fada9607c27cb6e33152407ad0d90492be4d2a947b25024a70eb94408c",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-preview-retry-sw.png",
+    "sha256": "d162dffeedbe2aff2b03247fccc29e3f79de353ff56613ed517f308533e2b24d",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-hi-all.png",
+    "sha256": "360a948efd7ce3ef242ba6bf65d356bd77a54609b473bf42ab75fd652848c1b4",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-hi-bookmarks.png",
+    "sha256": "be5264ec5367778257b947d62845756b106e9100420a774074abe5a7bb91744b",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-hi-favorites.png",
+    "sha256": "60ddf33a1ab2ca604f47926dcd8efd9a42f819fb20616fd94206938da1780750",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-hi-notes.png",
+    "sha256": "0e1cd319d7d088f93fa994ab884e868d6cc73efef04eeba94d811326266b76b2",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-folder-empty-hi.png",
+    "sha256": "4eb699359e479454f5f73200bc357e8fe59f2af0c1c9b69ae016df045e309d2c",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-preview-retry-hi.png",
+    "sha256": "5746b408f0160840762ab42652ab3fdf40293f72457b017ca3b535a25937e819",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-bn-all.png",
+    "sha256": "c256a0db42462e1ec372306ca869fa99e3d6063aa5f7bc319c3fa8432af27b35",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-bn-bookmarks.png",
+    "sha256": "1a784eae0314cc2bbe25a1963e18c4c9e716c1c883c34743db1b95e553137d32",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-bn-favorites.png",
+    "sha256": "479a408391b20d7bfe34386cda8b9a56afa61d732d10be64cb1faf85bfdb2653",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": false
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-filter-bn-notes.png",
+    "sha256": "e50b688856e9c3649f3ea11ac25bb6891adbad674d1e2b2b410dd41db0faffde",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": true
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-folder-empty-bn.png",
+    "sha256": "bbbe1cf79e2de6bb64bf60f9e897fcea67121e536b61fd4e63434314d71a9b8c",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": true
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-preview-retry-bn.png",
+    "sha256": "7b9e36bb291da5764b7f5e687d21a3188dcccae0a9478465fe304e375f2d8f82",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": true
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-large-title-ar.png",
+    "sha256": "7e976168be14fc663434d9f6fccca1d9d2bcc128e9129bfcf308d4e743a961bf",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": true
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-large-guidance-ar.png",
+    "sha256": "7e976168be14fc663434d9f6fccca1d9d2bcc128e9129bfcf308d4e743a961bf",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": true
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-large-title-ru.png",
+    "sha256": "e069c48f5442c280f6cf0aff742fe941b354ad57a97f02929727db106b8455e2",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": true
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-large-guidance-ru.png",
+    "sha256": "e069c48f5442c280f6cf0aff742fe941b354ad57a97f02929727db106b8455e2",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": true
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-large-title-bn.png",
+    "sha256": "361a14898d105894b90afae0fc159a3028bb4ea9e6a203588c9bc1b9789122a8",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": true
+  },
+  {
+    "platform": "android",
+    "name": "android-saved-large-guidance-bn.png",
+    "sha256": "361a14898d105894b90afae0fc159a3028bb4ea9e6a203588c9bc1b9789122a8",
+    "source": "saved-final emulator-5554 run, 2026-10-31",
+    "scope": "Production components in controlled fixture; target app foreground checked before capture",
+    "selected": true
+  },
+  {
+    "platform": "ios",
+    "name": "ios-finishing-reader-undo-safe-area.png",
+    "sha256": "afccf44c90a2dbacdfbc77b539a242e8e009abe51e8adfde93b2273ce981024e",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "2B6FE207-BF2E-4F22-B31B-55077CC37C03.png",
+    "test": "NativeFinishingUITests/testReaderUndoStaysAboveBottomControlsAndRestoresBookmark()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": true
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-menu-scrolled-bn.png",
+    "sha256": "385a447e98554173d718dc3a5e3a28eff33e526cd4a03e55d8660f64af26e236",
+    "source": "saved-full-guidance-ios.xcresult",
+    "attachment": "17EA9E2A-1CF1-4692-A861-B1EB1548E156.png",
+    "test": "VisualPolishUITests/testSavedFilterMenuLocalizesAtAccessibilityTextSizes()",
+    "scope": "Top capture before scrolling; scrolled capture asserts both guidance edges inside production ScrollView viewport",
+    "selected": true
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-menu-bn.png",
+    "sha256": "b54fc7f4369140d100eee53864a2995fcfd2423df015ef3e9cae031599f4fc9d",
+    "source": "saved-full-guidance-ios.xcresult",
+    "attachment": "ABF600A8-CCD1-4612-BFDC-2A57DC7A1512.png",
+    "test": "VisualPolishUITests/testSavedFilterMenuLocalizesAtAccessibilityTextSizes()",
+    "scope": "Top capture before scrolling; scrolled capture asserts both guidance edges inside production ScrollView viewport",
+    "selected": true
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-menu-scrolled-ru.png",
+    "sha256": "1a1db6fd23ada2f74092f990d8f0266b8e5e51a86dea3ea1b919bf470c87276f",
+    "source": "saved-full-guidance-ios.xcresult",
+    "attachment": "AAC28945-2F1D-4B8F-BFB4-12372046A872.png",
+    "test": "VisualPolishUITests/testSavedFilterMenuLocalizesAtAccessibilityTextSizes()",
+    "scope": "Top capture before scrolling; scrolled capture asserts both guidance edges inside production ScrollView viewport",
+    "selected": true
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-menu-ru.png",
+    "sha256": "99051a439998c0396f9094bbb9ef29e5a9c3a80989b0f2b5df4290a51e5494fd",
+    "source": "saved-full-guidance-ios.xcresult",
+    "attachment": "7D20531E-6F14-447A-ADE5-196816C05E49.png",
+    "test": "VisualPolishUITests/testSavedFilterMenuLocalizesAtAccessibilityTextSizes()",
+    "scope": "Top capture before scrolling; scrolled capture asserts both guidance edges inside production ScrollView viewport",
+    "selected": true
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-menu-scrolled-ar.png",
+    "sha256": "72d511789a029b8ac3cd1c7b73644451390e8a49c190acad5e954243a094ef2a",
+    "source": "saved-full-guidance-ios.xcresult",
+    "attachment": "1023725C-9C55-4905-AE81-8315607D7B54.png",
+    "test": "VisualPolishUITests/testSavedFilterMenuLocalizesAtAccessibilityTextSizes()",
+    "scope": "Top capture before scrolling; scrolled capture asserts both guidance edges inside production ScrollView viewport",
+    "selected": true
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-menu-ar.png",
+    "sha256": "4f3567473afae49cf2fea7367eac5fae68f64497b86c0c122f0daa10069154c3",
+    "source": "saved-full-guidance-ios.xcresult",
+    "attachment": "36A5802B-91B7-417F-B6DB-2133CA43CE21.png",
+    "test": "VisualPolishUITests/testSavedFilterMenuLocalizesAtAccessibilityTextSizes()",
+    "scope": "Top capture before scrolling; scrolled capture asserts both guidance edges inside production ScrollView viewport",
+    "selected": true
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-folder-empty-bn.png",
+    "sha256": "bf4b2b066b8f7eda8776b43862ef978c38c1094747602c89d1a7d2a9bf4a9d79",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "E6165728-341F-4B5F-AE0A-DAB75625050E.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": true
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-bn-notes.png",
+    "sha256": "a33fdc91f8334d8234ecebbaed4796cc252ec6fd94c60b7052f5668b0275423a",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "564B5B9D-BE13-4D95-AF53-47D1F3923C50.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": true
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-bn-favorites.png",
+    "sha256": "ac447f2d2ee624f05c535becc6b616807807090c7778a0553d49f4591170a1cd",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "0B5850B5-2588-490F-9A75-862331ADCBB9.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-bn-bookmarks.png",
+    "sha256": "1f907ab823d397d6113aebd1c2aacbc01f0d0e950c7c5b418361702f443e03b9",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "C745B6A5-EFC2-46D7-B7FD-51EB4D42D762.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-bn-all.png",
+    "sha256": "2faafe6f8cdeeab9e8e35a4096bfff7d6f4ce21dfe7487cf047ede05d617a7bc",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "56807E57-3440-40F2-BBB2-EBFBC989AADD.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-folder-empty-hi.png",
+    "sha256": "c9e65d41525d222aef94bf96023e9eebc0083cd0c7cc21833c3600e9da7a24b0",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "F0525D3D-62DE-463E-B636-7D8957E502F5.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-hi-notes.png",
+    "sha256": "1127f9e52deda84de61686710e6ca2189e7155012f2f63001bfa2d24cf97bebd",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "4EDBBDE9-F873-41EB-AE84-6AAC32486E12.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-hi-favorites.png",
+    "sha256": "95b4bd1470d09d9c5ed2bc47e819059c9a078d0a929e5b49212319744cf467a1",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "6FA50167-CF40-4E96-8A99-0A8592EA60F4.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-hi-bookmarks.png",
+    "sha256": "a01c21086b61054b0bfc7cd00e54b9294621826e29391ec9d4f82848bfcbc4d6",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "E9CF72AD-B36B-4FD4-94FA-776CF418294F.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-hi-all.png",
+    "sha256": "cb7836cb25c8183aab5b1e45265c077dc4a8fb0bfa1211a41ebde47338dff53f",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "9A902C4B-3CF5-49C0-AE1E-D29A4BABCF28.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-folder-empty-sw.png",
+    "sha256": "4f912e800f3206d0dba45597266b46ffcabdbe522c1fd9dad325280f792f3051",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "57FD5F5B-353C-456D-8F28-189680B492BE.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-sw-notes.png",
+    "sha256": "a2023366f3f477f627a06d0b9002a1b87f3037ece2598ad5b2f34c2ea46e2e9e",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "2AA6577C-147F-4F73-8462-2B7AFB0CC199.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-sw-favorites.png",
+    "sha256": "8235ac44a80daa2905a30ac32c5f5d391d61a7028e41706190b27ae336789b39",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "9FDF30F1-56BC-4751-9D5C-E724010F1AC9.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-sw-bookmarks.png",
+    "sha256": "b6627ed279453f4e49d58c75ca029bd13a8749510349c5f4a18af706d149f44b",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "E2FD3AF7-5C89-4935-9733-39F7B68A61C5.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-sw-all.png",
+    "sha256": "192257e7f6d55b8e7391b32e862d15577b35fb7e0dcdefb73c7c9ac66d00ff56",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "B8CE4B06-1535-4744-BD72-706470686DF1.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-folder-empty-pt-BR.png",
+    "sha256": "4bc9d19a4d0e5b7062eebdf8ed43d78ccad0799289ef1894b6d38e963fccd4b6",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "3498BC1C-EECD-4FAA-B0A6-065D06EA6E69.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-pt-BR-notes.png",
+    "sha256": "df752d1eb6588706cff08af2b96e27434b7aba4bf78e324a17db6e226877f89e",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "70A72B4D-941F-41E4-A537-812C52A77683.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-pt-BR-favorites.png",
+    "sha256": "4ad9e3dc38fe8d14484278ca00db9d092505d0305eefb61067c88d531ca40cad",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "AD6AC80A-6C80-4DDB-9699-25BAE4A9773D.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-pt-BR-bookmarks.png",
+    "sha256": "a0ef90ee86bb1ab13e86266b24ae5cd21055b4cfd9514fa1a52486ffa8b9262a",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "643ACAB4-4977-4FD4-9FA9-67803DE56BEE.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-pt-BR-all.png",
+    "sha256": "83cd6cc0ade50a84dc12ac1ed444435a053fda41daa2c7e9b60049c13d39d553",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "5729EBDA-CC2F-4195-ACB6-4A086581EA71.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-folder-empty-es-419.png",
+    "sha256": "4d6d94f1acf0df5c6903dfd6f96bb022861a8cb3ca84405b7eea2dd09c30a1da",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "F5C2CE2C-2C96-4CFD-BAFC-E96A809EF966.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-es-419-notes.png",
+    "sha256": "527dc0b61224f750aa05eaa5a56f7a8fe1f9ebfe70bd27a1708b7cb7202384cc",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "607C3A3B-EE8A-46CF-B3A5-4E63DF9235CD.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-es-419-favorites.png",
+    "sha256": "9ac3b5ac803e1ef2d06cb9798bfe06123d4a0c7482162ddb7dde3a415e458d03",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "9784C32B-53DA-468A-A73C-B7A1255B93F3.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-es-419-bookmarks.png",
+    "sha256": "8318499390cf10ad149bad7f0ed12da5f9e650400ee39f868c6e9f4b7cf683d5",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "CE14A454-1FAF-4A3A-A02D-A8DA6A854EC2.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-es-419-all.png",
+    "sha256": "fafffbf807b58fb673a41fdcbb76440d65b671e4ff3bad5dc2486688762ed73d",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "9DC66380-E870-4E6A-BE53-0F7DFD73C03B.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-folder-empty-fr.png",
+    "sha256": "ef05f6786993299d88b42c25d406e283e6d113261e1c5f3867e400b89177aa0e",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "1DAD6FFD-51F4-4CF3-97FD-2490F40201EA.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-fr-notes.png",
+    "sha256": "74e0f4f63d521fbb1b51963602a1faff628b7082326b844c5b1a48384db238ed",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "50036359-146F-4571-997A-798F2F895A86.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-fr-favorites.png",
+    "sha256": "81b7fc3f17109c98bf9765def8cb12c25d99e48d74deb5aede59b06ffa12383f",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "92ABD7AC-7133-419A-9A78-DF4C9F48D80D.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-fr-bookmarks.png",
+    "sha256": "500f4e42a0e3a688d6970d74128307087627cd350558883e867b24ca0378d4be",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "86A121A2-FB0E-46C8-824E-1FC4893A8A6C.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-fr-all.png",
+    "sha256": "716edc4fce5b0558d8da0381941ef175c3dfd1127d9cba1596191802b1b970b9",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "EAE0DF0E-DBF1-44D1-8D18-6E25E2140141.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-folder-empty-ur.png",
+    "sha256": "2fa523b6aa6f1097814eb000a29ef1e2cc8435a5d55e24cbab1c16f43e25fe2d",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "EE06D641-7CF6-4B34-8D9D-08896F939418.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-ur-notes.png",
+    "sha256": "0fe099466dde9e40464f30b6af37497f15987d1f46e298fd3ff97f17a02dd1bd",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "0DD480E4-712E-4356-819C-CF46E8C06860.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-ur-favorites.png",
+    "sha256": "b5438d0bf00517a4bc4966a97bb7afa53e0948281ef5b8dd842e0a479e0cd09d",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "572FCC88-BFE6-46FC-A238-E004E4FA9468.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-ur-bookmarks.png",
+    "sha256": "454b6e9545858ce73b8b62b79dcb9ef1d7633eb2362206da9071e6ef3da7558d",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "AB396E61-F32D-4E2B-B4D9-AE63D60542AE.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-ur-all.png",
+    "sha256": "0ce3eda47138ed9268058ac1f54b91faac33147f0c3ec3bd1fd16d869f52f8b2",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "19EB5514-EDBD-42FA-BA65-987B73770A12.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-folder-empty-id.png",
+    "sha256": "be9d4edd4a1166e2c2ae0f6f0cb6cb0034ddb86b3eb0ffa50deaa3600ad9fac5",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "4E84FE58-DC94-4486-8588-F5BD7AC694FF.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-id-notes.png",
+    "sha256": "a115dff99107cb312520401aa0b83b1124528997cea8c725f1cea95612d3649e",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "C995ED62-8BF8-4A51-87CC-60D161074732.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-id-favorites.png",
+    "sha256": "57bbe25b87b6f36e3cd8ecf66f3df016663bf5fdcb8285edbd63538bba05454d",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "C43C0391-61C9-45A4-8256-45AD1055894E.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-id-bookmarks.png",
+    "sha256": "eccfd6c7d247932b432b7bfd8a000bcdadec0679fa4097a60dc45cd87ffa04b1",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "AC5153AB-D994-4D3F-BFA6-7EF30CEECFBA.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-id-all.png",
+    "sha256": "61973018fa6b2c045eaa16595c89f57d58b685f28101c9498c2fd2965a76e26b",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "3A62DAFB-ACD7-4037-8918-534517CC4BDD.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-folder-empty-tr.png",
+    "sha256": "8c62f1f5cc0c08ec1bd21a4ab9aefe325d94c8b64a08c34bc1a6931c5bc86414",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "BE18EFF5-1855-4ABC-B282-EF932E6A1203.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-tr-notes.png",
+    "sha256": "a0844f92d849b34bca05e81bd065865050c7f73e08bc3800b19147b7770eeef8",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "7DCFC020-4013-47F4-8963-A07EFD291B0A.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-tr-favorites.png",
+    "sha256": "4427ad482c09f89a42597c2387ae2349f369aaca675ca766c59f4b97f07a37f3",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "E259548E-F6F9-44E2-98AF-B086900D8F10.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-tr-bookmarks.png",
+    "sha256": "c8ea5d656a1b5f6e47ef1a0ebf459a34d9fc69d039c76737a61ca4bccddc4d8f",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "25A6E2B7-452B-4282-83F0-A7F3927796C5.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-tr-all.png",
+    "sha256": "f4d027382b4463c5a6946fd8d72d0b9f80c17058a72ed3697cece764464355e1",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "87E2DD50-96D9-4E2B-BDF0-F1A13B6FB41C.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-folder-empty-uz.png",
+    "sha256": "f771301f406c5ae0a31dbd5f687ae0d0e143759982dec1d2abc8ec9900d61ca4",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "1C0B4256-58D6-462B-BAC9-6F164BF21A45.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-uz-notes.png",
+    "sha256": "0edfe9d26489513b13810eb719cf9f65c5b78d09d874c8de62afc52a16ed16fe",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "5770F847-B721-4A21-9598-B6827F9A4886.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-uz-favorites.png",
+    "sha256": "c3adb38b270311945b7351ab01d22b89a0f4e416962cde391130fca9c01bad60",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "409AB7F0-9BEC-41D2-A659-0C83E1FCD103.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-uz-bookmarks.png",
+    "sha256": "1ac21e396a54dc367b25a31b461d5e2113584a2436c3968aed4437f3f6a39ad5",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "CC6BC455-981A-48BB-8437-3C1498EC044F.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-uz-all.png",
+    "sha256": "7f129a44b9e16fd620b4e9980db47e1d44e63f61d832d678e8d9e434fd054176",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "84850C9E-7AD7-46D7-B6DC-8A1FFBB0BA1F.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-folder-empty-ky.png",
+    "sha256": "e020b20835025efce13da8bf88478a6e458a2f1372fdb77e4bf6acac7c41eab1",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "BA1A276A-0517-494A-8B3D-9131A70E5684.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-ky-notes.png",
+    "sha256": "c6943d4c0eb1c056d1d8d1921fc821a4ad3980a5ccbe791848908d873ab6479a",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "D6DAB5DB-8DB0-4B3D-96C2-7AFCED04262D.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-ky-favorites.png",
+    "sha256": "d85d8b621e6c10a9ccbae3f380820f27e21152041f5b42332912377026d81145",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "8209B065-8B62-49F9-9228-6660D474DCC7.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-ky-bookmarks.png",
+    "sha256": "7301304b597d4d81a128380354612444edf3279dba8d4b76eecbf960be84cb6c",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "FAF12B7E-A437-4FEA-A296-2EEFC7D6EC76.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-ky-all.png",
+    "sha256": "32ff6f116cd0eb4a4d35ca893ec167383a4164a059843f44309d63c360d8742e",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "C7BF3C19-E96B-45A8-BF2E-3B0DB12C916C.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-folder-empty-kk.png",
+    "sha256": "0d756df8070844e0192a2cb897b0a23bd541a95f043ff50e23c26fa351f041d7",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "3E87B347-2102-478D-8BA0-4DF7AD3D29F1.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-kk-notes.png",
+    "sha256": "7ab6a0e1cc5091080fdeb8d6fc201fbf1514fc12cbe111131dffe48f87e8b5d3",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "5E1B1B16-0A47-45BF-B431-F4C7D27BA63E.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-kk-favorites.png",
+    "sha256": "ac122296a8a930d1233105e9a31f8148447f508fca1e0a7e6c8193fe05551282",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "6879BFC1-427B-476B-B2F4-CAD59AE790FD.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-kk-bookmarks.png",
+    "sha256": "7af097ca2ffe475be207d129e46bf2503ecc2a94b29337d3628b142cd4e7662a",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "45279663-0703-44DE-B8A6-DBE80E2C8EA6.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-kk-all.png",
+    "sha256": "ae5d1e4b57c99ac5599f232406f1b38fa9a38701a2204fa49dad74488344ee04",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "8DEBEC56-81F1-4D95-881F-78A815E380AD.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-folder-empty-ru.png",
+    "sha256": "f17f64ae9634cf33bfd2a91800cfd1ace5e860b84be9a7e34737089a47523365",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "C7C328EB-E3FF-45C4-9E30-D3D84F9E85AF.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": true
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-ru-notes.png",
+    "sha256": "bfd88d23438bf4a7fbff2e9d28de3eae9547e6d7b501ecb72cb4954abe83de15",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "A8F1E6B9-D0B0-4C96-A642-01556B3746F3.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": true
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-ru-favorites.png",
+    "sha256": "f815504f874c387af2f8be94e0e5d279f5b063d3d6c62f41424c979b5b5a0a3b",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "8A05C2DE-5586-41F9-8E98-1F5401D46784.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-ru-bookmarks.png",
+    "sha256": "c4622caba46fcc4e304af68ba9fcaac84c06370fe471a64c91c8cc710f7f1489",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "52A93908-7F5B-41B6-98C3-E4AAC22BD7D3.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-ru-all.png",
+    "sha256": "747a1c3201b89b58885611f42b778a3e65f1479f2883913960a1429add712993",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "AE30B67E-4EDB-4569-A614-C090903A59E0.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-folder-empty-ar.png",
+    "sha256": "a24486fdf080c9c8569f67ae2d34b053f264258a2bb632f231e626e684969f4e",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "FD09F48F-34A5-460C-AA54-5B938A4D7175.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": true
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-ar-notes.png",
+    "sha256": "c2147d57b1f8aa9f2b6cd217330f3c39a4a6fa513b355e0ed26f17f383e6df0e",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "51B01224-975A-4153-B84D-E4792DBAAD82.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": true
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-ar-favorites.png",
+    "sha256": "9f5979d07f57ba574d18686e11b3db7926ba6306dc97087647b660ecdc157f32",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "690F0F67-C083-485A-9EEA-907E21BDCEE4.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-ar-bookmarks.png",
+    "sha256": "fa74baf528039492a1126d5f8a3dd18d0ed13c47c8af578c0800409565857458",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "0B7E1F0C-70FA-434B-A7E8-CBA87946DED6.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-ar-all.png",
+    "sha256": "b204aa292710bb278d7ca900fb98a0bb598c30521a3a560c651c589ed7dcb69a",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "26859073-A758-43FD-A84F-8CBE1410ADD7.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-folder-empty-en.png",
+    "sha256": "0f11217ac65070267d6cb10d9a596e3af19ecbf561ab89d02e42bd1dcaf88f3d",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "0BBDDB38-9DA2-4F03-B907-E70B367B0CF7.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-en-notes.png",
+    "sha256": "fce740844b241bbbb702124d2fd9b6dab6dbbe357306a79a59c3f480ea660090",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "BB1370D2-4C29-4279-9D50-27E3AB4E9584.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-en-favorites.png",
+    "sha256": "55792699b88786afcdeadd572c50ecac67e65f060b8f5a344fc5faf4c13f1551",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "5DCFBA4F-F0AE-4E11-83FF-97F13F28111D.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-en-bookmarks.png",
+    "sha256": "eca8796bead569ceb2754947755600c0a6fd3922484751332d5efdcb2f0cce4c",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "8F256D02-7659-40DA-A51C-10729879B292.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  },
+  {
+    "platform": "ios",
+    "name": "ios-saved-filter-en-all.png",
+    "sha256": "35f1092e7e5a3187f812f163f93ff96a4d701a2e7dacaf910f432d814ca46aaf",
+    "source": "saved-final-ios.xcresult",
+    "attachment": "84513D37-148B-4EDF-A084-7B312822EA09.png",
+    "test": "VisualPolishUITests/testSavedFiltersUseSelectedLanguage()",
+    "scope": "Shared production Saved empty/filter components in controlled fixture; reader Undo fixture for its capture",
+    "selected": false
+  }
+]

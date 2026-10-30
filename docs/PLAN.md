@@ -59,9 +59,9 @@ product.
 
 ## Owner continuation order, October 31
 
-The owner has now resumed the deferred Saved unit for the next session. Finish
-that bounded unit, including both native checks, refreshed evidence and its
-commit. Then complete the original `PRODUCT_PROGRAM.md` objective: remaining A4,
+The Saved unit's completion record below supersedes its earlier handoff. Continue
+with A4 Settings profile notices using `NEXT_SESSION_PROMPT.md`, in one bounded
+session. Then complete the original `PRODUCT_PROGRAM.md` objective: remaining A4,
 A5–A7/readiness, unfinished A1/A3 acceptance, E and the final full-objective audit.
 A2 stays wrapped; retain B/C/D's local completion and all external gates.
 The newer goals come afterward and are recorded in `POST_GOAL_BACKLOG.md`, with
@@ -77,10 +77,25 @@ local configuration cleanup and project procedures. See `AGENT_WORKFLOW.md`,
 `AGENT_SETUP_AUDIT.md` and `AGENT_WORKFLOW_VIDEO_RESEARCH.md` for the outcome.
 The Saved handoff below remains intact, including its staged/unstaged work and
 pending native reruns. No product, device, content, native-review, cloud, store
-or release gate is closed. The owner continuation order above now resumes Saved;
+or release gate is closed. The owner continuation order above supersedes that pause;
 retain the complete B/C/D/A4–A7/E program and LA4 deferral.
 
-## A4 Saved handoff, October 31
+## A4 Saved completion, October 31
+
+The bounded Saved localization unit passes its final fifteen-locale matrices on
+both apps, including both folder-empty keys. Latest evidence is three iOS and six
+guarded-emulator cases, plus fifteen script checks. Capture review caught an iOS
+partial-visibility assertion; its rerun now requires the entire guidance frame
+inside the scroll viewport. The aggregate, preservation report and selected
+captures are refreshed in `A4_RUNTIME_LOCALIZATION.md` and
+`verification/a4-localization/saved-filters.json`. All seventeen copy keys remain
+drafts with native-speaker review pending. Incoming catalog formatting/extraction
+and project/scheme work remain separate. A4 and every existing external gate stay
+open. Next: A4 Settings profile name/username notices, including Android's raw
+provider-error fallback. Use the exact bounded task in `NEXT_SESSION_PROMPT.md`.
+Stop after this Saved session; retain the original program before the later backlog.
+
+## A4 Saved handoff, October 31, historical
 
 B's available-source research, C's local native refinements and D's local website
 redesign are committed. A4 remains active. The current Saved localization and

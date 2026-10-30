@@ -69,6 +69,69 @@ final class VisualPolishUITests: XCTestCase {
         }
     }
 
+    func testSavedFiltersUseSelectedLanguage() throws {
+        struct Copy: Decodable { let locales: [String: [String]] }
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let copy = try JSONDecoder().decode(Copy.self, from: Data(contentsOf: root.appendingPathComponent("docs/a4-saved-filter-copy.json")))
+        for locale in ["en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn"] {
+            let values = try XCTUnwrap(copy.locales[locale])
+            let app = launchPolish("saved-filters-audit", locale: locale)
+            for (index, filter) in ["all", "bookmarks", "favorites", "notes"].enumerated() {
+                let button = app.buttons["saved.filter." + filter]
+                XCTAssertTrue(button.waitForExistence(timeout: 10))
+                XCTAssertEqual(button.label, values[index])
+                button.tap()
+                XCTAssertTrue(button.isSelected)
+                XCTAssertGreaterThanOrEqual(button.frame.height, 44)
+                XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label == %@", values[5 + index])).firstMatch.isHittable)
+                XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label == %@", values[9 + index])).firstMatch.isHittable)
+                XCTAssertEqual(element("savedAudit.removalMessage", app).label, values[14])
+                capture("saved-filter-" + locale + "-" + filter, app)
+            }
+            let all = app.buttons["saved.filter.all"]
+            let notes = app.buttons["saved.filter.notes"]
+            XCTAssertEqual(all.frame.minX > notes.frame.minX, ["ar", "ur"].contains(locale))
+            app.buttons["savedAudit.folder"].tap()
+            XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label == %@", values[15])).firstMatch.isHittable)
+            XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label == %@", values[16])).firstMatch.isHittable)
+            capture("saved-folder-empty-" + locale, app)
+            app.terminate()
+        }
+    }
+
+    func testSavedFilterMenuLocalizesAtAccessibilityTextSizes() throws {
+        struct Copy: Decodable { let locales: [String: [String]] }
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let copy = try JSONDecoder().decode(Copy.self, from: Data(contentsOf: root.appendingPathComponent("docs/a4-saved-filter-copy.json")))
+        for locale in ["ar", "ru", "bn"] {
+            let values = try XCTUnwrap(copy.locales[locale])
+            let app = launchPolish("saved-filters-audit", locale: locale, large: true)
+            let filter = app.buttons["saved.filter"]
+            XCTAssertTrue(filter.waitForExistence(timeout: 10))
+            XCTAssertEqual(filter.label, values[0])
+            XCTAssertGreaterThanOrEqual(filter.frame.height, 44)
+            filter.tap()
+            let bookmarks = app.buttons[values[1]].firstMatch
+            XCTAssertTrue(bookmarks.waitForExistence(timeout: 5)); bookmarks.tap()
+            XCTAssertEqual(filter.label, values[1])
+            let title = app.staticTexts.matching(NSPredicate(format: "label == %@", values[6])).firstMatch
+            XCTAssertTrue(title.isHittable)
+            capture("saved-filter-menu-" + locale, app)
+            let guidance = app.staticTexts.matching(NSPredicate(format: "label == %@", values[10])).firstMatch
+            let scroll = element("saved.emptyScroll", app)
+            XCTAssertTrue(scroll.exists)
+            for _ in 0..<6 {
+                if guidance.frame.minY >= scroll.frame.minY && guidance.frame.maxY <= scroll.frame.maxY { break }
+                scroll.swipeUp()
+            }
+            XCTAssertTrue(guidance.isHittable)
+            XCTAssertGreaterThanOrEqual(guidance.frame.minY, scroll.frame.minY)
+            XCTAssertLessThanOrEqual(guidance.frame.maxY, scroll.frame.maxY)
+            capture("saved-filter-menu-scrolled-" + locale, app)
+            app.terminate()
+        }
+    }
+
     func testEvidenceIntakeKeepsPrivateProcessingCopyLocalized() throws {
         struct Copy: Decodable { let locales: [String: [String]]; let fixture_labels: [String: [String: String]] }
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()

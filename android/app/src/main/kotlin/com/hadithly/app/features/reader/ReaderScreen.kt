@@ -3575,10 +3575,7 @@ internal fun ReaderSavedSheet(
             Text(nativeText("Saved items could not load"), color = colors.textSecondary)
             TextButton(onClick = library::refresh) { Text(nativeText("Retry")) }
         }
-        else if (visible.isEmpty()) com.hadithly.app.core.theme.QuietEmptyState(
-            title = if (folderId != null) "This folder is empty" else when (tab) { ReaderSavedTab.ALL -> "Nothing saved yet"; ReaderSavedTab.BOOKMARKS -> "No bookmarks yet"; ReaderSavedTab.FAVORITES -> "No favorites yet"; ReaderSavedTab.NOTES -> "No notes yet" },
-            message = "Hold a hadith while reading to bookmark it, favorite it, or add a note.", icon = Icons.Filled.BookmarkBorder,
-            modifier = Modifier.weight(1f).testTag("reader.saved.empty"))
+        else if (visible.isEmpty()) com.hadithly.app.features.saved.SavedEmptyState(tab.ordinal, folderId != null, Icons.Filled.BookmarkBorder, Modifier.weight(1f).testTag("reader.saved.empty"))
         else LazyColumn(Modifier.weight(1f).testTag("reader.saved.rows"), verticalArrangement = Arrangement.spacedBy(10.dp)) { items(visible, key = { it.hadithId }) { item -> com.hadithly.app.features.saved.SharedSavedItemRow(item, folders, folderId == null, onOpen, { facet, saved, ref -> val request = Triple(facet, saved, ref); removalScope = actionScope; if (app.savedSafety.confirmsRemoval) removal = request else remove(request) }, { library.assignFolder(item.hadithId, it, actionScope) }, { ref -> scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(ref.referenceDisplay, listOfNotNull(ref.arabicText, ref.englishText, ref.referenceDisplay).joinToString("\n\n")))) } }, { ref -> context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "https://hadithly.app/hadith/${ref.collectionSlug}/${ref.hadithNumber}"), null)) }, onOpen, { ref -> withContext(Dispatchers.IO) { app.repository.loadSavedPreview(ref) } }) } }
         com.hadithly.app.features.saved.SavedUndoBanner(testTag = "reader.saved.undoBanner")
         com.hadithly.app.features.saved.SavedFilterBar(tab.ordinal, { tab = ReaderSavedTab.entries[it] }, "reader.saved.tab", Modifier.padding(top = 8.dp))

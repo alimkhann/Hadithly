@@ -14,10 +14,10 @@
     <string name="direction_automatic" formatted="false">স্বয়ংক্রিয়</string>
     <string name="direction_right_to_left" formatted="false">ডান থেকে বামে</string>
     <string name="direction_left_to_right" formatted="false">বাম থেকে ডানে</string>
-    <string name="saved_all">All</string>
-    <string name="saved_bookmarks">Bookmarks</string>
-    <string name="saved_favorites">Favorites</string>
-    <string name="saved_notes">Notes</string>
+    <string name="saved_all" formatted="false">সব</string>
+    <string name="saved_bookmarks" formatted="false">বুকমার্ক</string>
+    <string name="saved_favorites" formatted="false">পছন্দের</string>
+    <string name="saved_notes" formatted="false">নোট</string>
     <string name="saved_all_folders" formatted="false">সব ফোল্ডার</string>
     <string name="saved_move_folder" formatted="false">ফোল্ডারে সরান</string>
     <string name="saved_no_folder" formatted="false">কোনো ফোল্ডার নেই</string>
@@ -27,7 +27,7 @@
     <string name="saved_copy" formatted="false">কপি করুন</string>
     <string name="saved_share" formatted="false">শেয়ার করুন</string>
     <string name="saved_suggest_translation" formatted="false">অনুবাদ প্রস্তাব করুন</string>
-    <string name="saved_preview_retry">Preview unavailable. Tap to retry.</string>
+    <string name="saved_preview_retry" formatted="false">প্রিভিউ পাওয়া যাচ্ছে না। আবার চেষ্টা করতে ট্যাপ করুন।</string>
     <string name="saved_show_preview" formatted="false">হাদিসের পূর্বরূপ দেখান</string>
     <string name="saved_hide_preview" formatted="false">হাদিসের পূর্বরূপ লুকান</string>
     <string name="saved_confirm_removal" formatted="false">সংরক্ষিত জিনিস সরানোর আগে নিশ্চিত করুন</string>
@@ -41,11 +41,11 @@
     <string name="saved_folder_name" formatted="false">ফোল্ডারের নাম</string>
     <string name="saved_create" formatted="false">তৈরি করুন</string>
     <string name="saved_cancel" formatted="false">বাতিল করুন</string>
-    <string name="saved_empty_title">Nothing saved yet</string>
+    <string name="saved_empty_title" formatted="false">এখনো কিছু সংরক্ষিত নেই</string>
     <string name="saved_empty_message" formatted="false">পড়ার সময় বুকমার্ক, পছন্দের বা নোট যোগ করে হাদিসটি এখানে রাখুন।</string>
     <string name="saved_delete_folder" formatted="false">ফোল্ডার মুছুন</string>
     <string name="saved_folder_deleted" formatted="false">%s ফোল্ডার মুছে ফেলা হয়েছে</string>
-    <string name="saved_removal_undo_message">You can undo this action for five seconds from the message at the bottom.</string>
+    <string name="saved_removal_undo_message" formatted="false">স্ক্রিনের নিচের বার্তা থেকে পাঁচ সেকেন্ডের মধ্যে এই কাজ পূর্বাবস্থায় ফেরানো যায়।</string>
     <string name="saved_bookmark_removed" formatted="false">বুকমার্ক সরানো হয়েছে</string>
     <string name="saved_favorite_removed" formatted="false">পছন্দের সরানো হয়েছে</string>
     <string name="saved_note_deleted" formatted="false">নোট মুছে ফেলা হয়েছে</string>

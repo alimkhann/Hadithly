@@ -312,4 +312,13 @@
     <string name="native_ea0752e5687d" formatted="false">یہ کوڈ پہلے ہی استعمال ہو چکا ہے۔ براہ کرم نیا کوڈ طلب کریں۔</string>
     <string name="native_0a5150029cc7" formatted="false">السلام علیکم</string>
     <string name="native_abbb755ac1ef" formatted="false">السلام علیکم، %s</string>
+    <string name="native_dac0e576bdef" formatted="false">ابھی کوئی بُک مارک نہیں</string>
+    <string name="native_95c91385659e" formatted="false">ابھی کوئی پسندیدہ مواد نہیں</string>
+    <string name="native_a092ad6b8be0" formatted="false">ابھی کوئی نوٹ نہیں</string>
+    <string name="native_43fded2224ed" formatted="false">پڑھتے وقت حدیث کو دبا کر رکھیں تاکہ بُک مارک، پسندیدہ میں شامل یا نوٹ لکھ سکیں۔</string>
+    <string name="native_8d2542a48de4" formatted="false">حدیث کو دبا کر رکھیں اور اپنی جگہ یہاں محفوظ کرنے کے لیے بُک مارک منتخب کریں۔</string>
+    <string name="native_7dd1e36d2bc3" formatted="false">حدیث کو دبا کر رکھیں اور اسے یہاں تلاش کرنے کے لیے پسندیدہ منتخب کریں۔</string>
+    <string name="native_117d7d125729" formatted="false">حدیث کو دبا کر رکھیں اور اپنے خیالات یہاں محفوظ کرنے کے لیے نوٹ شامل کریں منتخب کریں۔</string>
+    <string name="native_3043f9fa4d31" formatted="false">یہ فولڈر خالی ہے</string>
+    <string name="native_d251a8332a0e" formatted="false">محفوظ احادیث کو ان کے مینو سے اس فولڈر میں منتقل کریں۔</string>
 </resources>

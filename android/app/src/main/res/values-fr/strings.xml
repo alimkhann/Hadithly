@@ -14,10 +14,10 @@
     <string name="direction_automatic" formatted="false">Automatique</string>
     <string name="direction_right_to_left" formatted="false">De droite à gauche</string>
     <string name="direction_left_to_right" formatted="false">De gauche à droite</string>
-    <string name="saved_all">All</string>
-    <string name="saved_bookmarks">Bookmarks</string>
-    <string name="saved_favorites">Favorites</string>
-    <string name="saved_notes">Notes</string>
+    <string name="saved_all" formatted="false">Tout</string>
+    <string name="saved_bookmarks" formatted="false">Marque-pages</string>
+    <string name="saved_favorites" formatted="false">Favoris</string>
+    <string name="saved_notes" formatted="false">Notes</string>
     <string name="saved_all_folders" formatted="false">Tous les dossiers</string>
     <string name="saved_move_folder" formatted="false">Déplacer vers un dossier</string>
     <string name="saved_no_folder" formatted="false">Aucun dossier</string>
@@ -27,7 +27,7 @@
     <string name="saved_copy" formatted="false">Copier</string>
     <string name="saved_share" formatted="false">Partager</string>
     <string name="saved_suggest_translation" formatted="false">Suggérer une traduction</string>
-    <string name="saved_preview_retry">Preview unavailable. Tap to retry.</string>
+    <string name="saved_preview_retry" formatted="false">Aperçu indisponible. Touchez pour réessayer.</string>
     <string name="saved_show_preview" formatted="false">Afficher l’aperçu du hadith</string>
     <string name="saved_hide_preview" formatted="false">Masquer l’aperçu du hadith</string>
     <string name="saved_confirm_removal" formatted="false">Confirmer avant de supprimer des éléments enregistrés</string>
@@ -41,11 +41,11 @@
     <string name="saved_folder_name" formatted="false">Nom du dossier</string>
     <string name="saved_create" formatted="false">Créer</string>
     <string name="saved_cancel" formatted="false">Annuler</string>
-    <string name="saved_empty_title">Nothing saved yet</string>
+    <string name="saved_empty_title" formatted="false">Rien d’enregistré pour le moment</string>
     <string name="saved_empty_message" formatted="false">Ajoutez un signet, un favori ou une note pendant la lecture pour conserver un hadith ici.</string>
     <string name="saved_delete_folder" formatted="false">Supprimer le dossier</string>
     <string name="saved_folder_deleted" formatted="false">Dossier %s supprimé</string>
-    <string name="saved_removal_undo_message">You can undo this action for five seconds from the message at the bottom.</string>
+    <string name="saved_removal_undo_message" formatted="false">Vous pouvez annuler cette action pendant cinq secondes depuis le message en bas de l’écran.</string>
     <string name="saved_bookmark_removed" formatted="false">Signet supprimé</string>
     <string name="saved_favorite_removed" formatted="false">Favori supprimé</string>
     <string name="saved_note_deleted" formatted="false">Note supprimée</string>

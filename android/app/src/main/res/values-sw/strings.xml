@@ -14,10 +14,10 @@
     <string name="direction_automatic" formatted="false">Kiotomatiki</string>
     <string name="direction_right_to_left" formatted="false">Kulia kwenda kushoto</string>
     <string name="direction_left_to_right" formatted="false">Kushoto kwenda kulia</string>
-    <string name="saved_all">All</string>
-    <string name="saved_bookmarks">Bookmarks</string>
-    <string name="saved_favorites">Favorites</string>
-    <string name="saved_notes">Notes</string>
+    <string name="saved_all" formatted="false">Vyote</string>
+    <string name="saved_bookmarks" formatted="false">Alamisho</string>
+    <string name="saved_favorites" formatted="false">Vipendwa</string>
+    <string name="saved_notes" formatted="false">Madokezo</string>
     <string name="saved_all_folders" formatted="false">Folda zote</string>
     <string name="saved_move_folder" formatted="false">Hamisha kwenye folda</string>
     <string name="saved_no_folder" formatted="false">Hakuna folda</string>
@@ -27,7 +27,7 @@
     <string name="saved_copy" formatted="false">Nakili</string>
     <string name="saved_share" formatted="false">Shiriki</string>
     <string name="saved_suggest_translation" formatted="false">Pendekeza tafsiri</string>
-    <string name="saved_preview_retry">Preview unavailable. Tap to retry.</string>
+    <string name="saved_preview_retry" formatted="false">Onyesho la kukagua halipatikani. Gusa ujaribu tena.</string>
     <string name="saved_show_preview" formatted="false">Onyesha hakikisho la hadithi</string>
     <string name="saved_hide_preview" formatted="false">Ficha hakikisho la hadithi</string>
     <string name="saved_confirm_removal" formatted="false">Thibitisha kabla ya kuondoa vipengee vilivyohifadhiwa</string>
@@ -41,11 +41,11 @@
     <string name="saved_folder_name" formatted="false">Jina la folda</string>
     <string name="saved_create" formatted="false">Unda</string>
     <string name="saved_cancel" formatted="false">Ghairi</string>
-    <string name="saved_empty_title">Nothing saved yet</string>
+    <string name="saved_empty_title" formatted="false">Bado hakuna kilichohifadhiwa</string>
     <string name="saved_empty_message" formatted="false">Ongeza alamisho, kipendwa au dokezo unaposoma ili kuweka hadithi hapa.</string>
     <string name="saved_delete_folder" formatted="false">Futa folda</string>
     <string name="saved_folder_deleted" formatted="false">Folda %s imefutwa</string>
-    <string name="saved_removal_undo_message">You can undo this action for five seconds from the message at the bottom.</string>
+    <string name="saved_removal_undo_message" formatted="false">Unaweza kutendua hatua hii ndani ya sekunde tano kupitia ujumbe ulio chini ya skrini.</string>
     <string name="saved_bookmark_removed" formatted="false">Alamisho limeondolewa</string>
     <string name="saved_favorite_removed" formatted="false">Kipendwa kimeondolewa</string>
     <string name="saved_note_deleted" formatted="false">Dokezo limefutwa</string>

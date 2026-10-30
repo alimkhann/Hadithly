@@ -52,7 +52,7 @@ struct SavedView: View {
                     Button("Try again") { library.refresh() }
                 }
             } else if items.isEmpty {
-                QuietEmptyState(title: folderId == nil ? filter.emptyTitle : "This folder is empty", message: folderId == nil ? filter.emptyMessage : "Move saved hadiths into this folder from their menu.", symbol: folderId == nil ? filter.symbol : "folder")
+                SavedEmptyState(filter: filter, isFolder: folderId != nil)
             } else {
                 List(items) { item in
                     if item.hadith != nil {
@@ -109,7 +109,7 @@ struct SavedView: View {
             Button("Remove and don't ask again", role: .destructive) { environment.savedSafety.confirmsRemoval = false; performRemoval(removal); pendingRemoval = nil }
             }
             Button("Cancel", role: .cancel) {}
-        } message: { Text("You can undo this action from the message below.") }
+        } message: { Text("You can undo this action for five seconds from the message at the bottom.") }
         .alert("New folder", isPresented: $showNewFolder) {
             TextField("Folder name", text: $newFolderName)
             Button("Cancel", role: .cancel) { newFolderName = "" }

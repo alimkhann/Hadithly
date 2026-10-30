@@ -219,7 +219,7 @@
     <string name="native_aa69cfa701a6" formatted="false">Com marcador</string>
     <string name="native_86f5562ff32e" formatted="false">Adicionado aos favoritos</string>
     <string name="native_5bfefd244c17" formatted="false">Tem uma nota</string>
-    <string name="native_47ce7f7fb0dd" formatted="false">Filtro de salvos</string>
+    <string name="native_47ce7f7fb0dd" formatted="false">Filtro dos itens salvos</string>
     <string name="native_642030cddde8" formatted="false">Ações do item salvo</string>
     <string name="native_94be6a7413a9" formatted="false">Mostra os detalhes da fonte</string>
     <string name="native_183b1d17b908" formatted="false">Abre este hadith no leitor</string>
@@ -312,4 +312,13 @@
     <string name="native_ea0752e5687d" formatted="false">Este código já foi usado. Solicite um novo.</string>
     <string name="native_0a5150029cc7" formatted="false">As-salamu alaykum</string>
     <string name="native_abbb755ac1ef" formatted="false">As-salamu alaykum, %s</string>
+    <string name="native_dac0e576bdef" formatted="false">Nenhum marcador ainda</string>
+    <string name="native_95c91385659e" formatted="false">Nenhum favorito ainda</string>
+    <string name="native_a092ad6b8be0" formatted="false">Nenhuma nota ainda</string>
+    <string name="native_43fded2224ed" formatted="false">Mantenha um hadith pressionado durante a leitura para adicionar um marcador, favorito ou nota.</string>
+    <string name="native_8d2542a48de4" formatted="false">Mantenha um hadith pressionado e escolha Marcador para guardar sua posição aqui.</string>
+    <string name="native_7dd1e36d2bc3" formatted="false">Mantenha um hadith pressionado e escolha Favorito para encontrá-lo aqui.</string>
+    <string name="native_117d7d125729" formatted="false">Mantenha um hadith pressionado e escolha Adicionar nota para guardar suas reflexões aqui.</string>
+    <string name="native_3043f9fa4d31" formatted="false">Esta pasta está vazia</string>
+    <string name="native_d251a8332a0e" formatted="false">Mova os hadiths salvos para esta pasta pelo menu deles.</string>
 </resources>

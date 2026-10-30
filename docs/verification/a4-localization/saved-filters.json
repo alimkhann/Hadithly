@@ -1,0 +1,210 @@
+{
+  "ios": {
+    "runs": [
+      {
+        "bundle": "hadithly-a4-saved-filters-red-ios.xcresult",
+        "startTime": 1793374067.857,
+        "result": "Failed",
+        "passedTests": 0,
+        "failedTests": 1,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-saved-filters-matrix-ios.xcresult",
+        "startTime": 1793374608.047,
+        "result": "Passed",
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-saved-menu-undo-ios.xcresult",
+        "startTime": 1793375076.17,
+        "result": "Passed",
+        "passedTests": 2,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-saved-large-final-ios.xcresult",
+        "startTime": 1793375467.071,
+        "result": "Passed",
+        "passedTests": 2,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-saved-folder-final-ios.xcresult",
+        "startTime": 1793389950.576,
+        "result": "Passed",
+        "passedTests": 2,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "saved-final-ios.xcresult",
+        "startTime": 1793395723.648,
+        "result": "Passed",
+        "passedTests": 3,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "saved-full-guidance-ios.xcresult",
+        "startTime": 1793396158.131,
+        "result": "Passed",
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0
+      }
+    ],
+    "latestCases": {
+      "HadithlyUITests/VisualPolishUITests/testSavedFiltersUseSelectedLanguage()": {
+        "result": "Passed",
+        "bundle": "saved-final-ios.xcresult"
+      },
+      "HadithlyUITests/NativeFinishingUITests/testReaderUndoStaysAboveBottomControlsAndRestoresBookmark()": {
+        "result": "Passed",
+        "bundle": "saved-final-ios.xcresult"
+      },
+      "HadithlyUITests/VisualPolishUITests/testSavedFilterMenuLocalizesAtAccessibilityTextSizes()": {
+        "result": "Passed",
+        "bundle": "saved-full-guidance-ios.xcresult"
+      }
+    },
+    "latestCounts": {
+      "Passed": 3
+    }
+  },
+  "android": {
+    "ui": {
+      "counts": {
+        "Passed": 6
+      },
+      "cases": {
+        "com.hadithly.app.core.theme.NativeFinishingTest/savedEmptyGuidanceRemainsReachableAtLargeText": "Passed",
+        "com.hadithly.app.core.theme.NativeFinishingTest/savedFiltersUseSelectedLanguage": "Passed",
+        "com.hadithly.app.features.saved.SavedItemRowTest/guestPreviewLoadsBothTextsWithoutNavigating": "Passed",
+        "com.hadithly.app.features.saved.SavedFilterBarTest/dragSelectsFiltersAndKeepsEachNativeHitTargetAccessible": "Passed",
+        "com.hadithly.app.features.saved.SavedFilterBarTest/tappingThenDraggingWithinThePreviousSegmentUpdatesSelection": "Passed",
+        "com.hadithly.app.features.saved.SavedFilterBarTest/dragMapsTheRightToLeftOrderInRtl": "Passed"
+      },
+      "reports": [
+        {
+          "file": "TEST-hadithly(AVD) - 16-_app-.xml",
+          "sha256": "de5c8acda9ad610fbdbb4e38bc629473bc0644918aff06f9701d40cee2689828"
+        }
+      ]
+    },
+    "priorUiEvidence": {
+      "counts": {
+        "Passed": 5
+      },
+      "cases": {
+        "com.hadithly.app.core.theme.NativeFinishingTest/savedFiltersUseSelectedLanguage": "Passed",
+        "com.hadithly.app.features.saved.SavedItemRowTest/guestPreviewLoadsBothTextsWithoutNavigating": "Passed",
+        "com.hadithly.app.features.saved.SavedFilterBarTest/dragSelectsFiltersAndKeepsEachNativeHitTargetAccessible": "Passed",
+        "com.hadithly.app.features.saved.SavedFilterBarTest/tappingThenDraggingWithinThePreviousSegmentUpdatesSelection": "Passed",
+        "com.hadithly.app.features.saved.SavedFilterBarTest/dragMapsTheRightToLeftOrderInRtl": "Passed"
+      },
+      "reports": [
+        {
+          "file": "TEST-locale-0.xml",
+          "sha256": "3ffd6d230939a95b786253bce9223d1787dba55f9515088f7b16b1c5ce98a321"
+        },
+        {
+          "file": "TEST-regression-0.xml",
+          "sha256": "6dd324c00c94525d8fdfcc411d2e18d958b998205179decc523ac9139b8cfd20"
+        }
+      ]
+    }
+  },
+  "verification": {
+    "date": "2026-10-31",
+    "scope": "Final Saved copy and shared empty-state presentation, 17 keys across 15 locales. Controlled simulator/emulator fixtures only. Native review pending.",
+    "ios": {
+      "device": "Hadithly LA2 iPhone 18 Pro",
+      "os": "iOS 27.0",
+      "simulator": "D47D7363-4705-4767-8617-F47DDB6A3241",
+      "scheme": "LA2Verification",
+      "build": "Debug simulator",
+      "theme": "light for Saved copy; dark for reader Undo",
+      "text_sizes": [
+        "default",
+        "Accessibility XXXL for ar/ru/bn"
+      ],
+      "result_bundle": "/tmp/hadithly-saved-session-1031/saved-final-ios.xcresult",
+      "full_guidance_result_bundle": "/tmp/hadithly-saved-session-1031/saved-full-guidance-ios.xcresult",
+      "large_text_visibility": "Guidance is hittable and fully bounded by the ScrollView after scrolling, for ar/ru/bn."
+    },
+    "android": {
+      "serial": "emulator-5554",
+      "device": "hadithly AVD",
+      "os": "Android 16",
+      "build": "debug",
+      "size": "1080x2400",
+      "theme": "light",
+      "text_sizes": [
+        "default",
+        "LocalDensity fontScale 2.0 for ar/ru/bn"
+      ],
+      "runner": "scripts/run-android-ui-tests.py",
+      "system_font_scale_changed": false,
+      "reports": "/tmp/hadithly-saved-session-1031/android-reports"
+    },
+    "checks": {
+      "generator": "17 keys x 15 locales; --check passed",
+      "catalog_staging": "idempotent --repair-existing --stage; staged scope independently compared with HEAD",
+      "focused_script_tests": {
+        "test_generate_ui_polish_copy": 2,
+        "test_catalog_staging": 1,
+        "test_localization_audit": 12
+      },
+      "structural_audit_allow_drafts": {
+        "ios_keys": 481,
+        "ios_draft_locale_entries": 6870,
+        "android_resources": 469,
+        "android_english_identical_units": 29,
+        "failures": 0
+      },
+      "runtime_report_categories": {
+        "debug-fixture": 28,
+        "catalog-backed-runtime-unverified": 598,
+        "example-or-symbol-review": 6,
+        "dynamic-review": 11,
+        "direct-literal-review": 6
+      }
+    },
+    "captures": {
+      "total": 178,
+      "ios": 82,
+      "android": 96,
+      "selected": 28,
+      "manifest": "saved-filters/capture-manifest.json",
+      "ios_archive": "/tmp/hadithly-saved-session-1031/ios-captures",
+      "android_archive": "/tmp/hadithly-saved-session-1031/android-captures",
+      "ios_full_guidance_archive": "/tmp/hadithly-saved-session-1031/ios-full-guidance-captures",
+      "earlier_capture_limit": "Prior iOS large-text tests passed on partial hittability. Final scrolled captures replace those images and require both guidance edges within the viewport."
+    },
+    "limitations": [
+      "No native-speaker approval",
+      "No full VoiceOver/TalkBack or Settings language-change/back-navigation/restart acceptance",
+      "Android large-text proof uses controlled LocalDensity, not a changed system font setting",
+      "iOS preview failure/retry behavior is not exercised by this matrix; existing preview evidence remains separate",
+      "No live authentication, account modification, upload, provider call, generation, physical-device, purchase, release or publication action"
+    ],
+    "reproduce": {
+      "ios_final_command": "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project ios/Hadithly.xcodeproj -scheme LA2Verification -destination \"platform=iOS Simulator,id=D47D7363-4705-4767-8617-F47DDB6A3241\" -derivedDataPath /tmp/hadithly-la1-ios -clonedSourcePackagesDirPath /Users/alim/Library/Developer/Xcode/DerivedData/Hadithly-betzezfbgwsvcjehkzzgdxiskzhx/SourcePackages -disableAutomaticPackageResolution -parallel-testing-enabled NO -collect-test-diagnostics never -resultBundlePath /tmp/hadithly-saved-session-1031/saved-final-ios.xcresult \"-only-testing:HadithlyUITests/VisualPolishUITests/testSavedFiltersUseSelectedLanguage\" \"-only-testing:HadithlyUITests/VisualPolishUITests/testSavedFilterMenuLocalizesAtAccessibilityTextSizes\" \"-only-testing:HadithlyUITests/NativeFinishingUITests/testReaderUndoStaysAboveBottomControlsAndRestoresBookmark\" test",
+      "ios_full_guidance_command": "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project ios/Hadithly.xcodeproj -scheme LA2Verification -destination \"platform=iOS Simulator,id=D47D7363-4705-4767-8617-F47DDB6A3241\" -derivedDataPath /tmp/hadithly-la1-ios -clonedSourcePackagesDirPath /Users/alim/Library/Developer/Xcode/DerivedData/Hadithly-betzezfbgwsvcjehkzzgdxiskzhx/SourcePackages -disableAutomaticPackageResolution -parallel-testing-enabled NO -collect-test-diagnostics never -resultBundlePath /tmp/hadithly-saved-session-1031/saved-full-guidance-ios.xcresult \"-only-testing:HadithlyUITests/VisualPolishUITests/testSavedFilterMenuLocalizesAtAccessibilityTextSizes\" test",
+      "android_command": "JAVA_HOME=/Users/alim/Library/Java/JavaVirtualMachines/openjdk-21.0.1/Contents/Home python3 scripts/run-android-ui-tests.py --serial emulator-5554 --class com.hadithly.app.core.theme.NativeFinishingTest#savedFiltersUseSelectedLanguage --class com.hadithly.app.core.theme.NativeFinishingTest#savedEmptyGuidanceRemainsReachableAtLargeText --class com.hadithly.app.features.saved.SavedItemRowTest#guestPreviewLoadsBothTextsWithoutNavigating --class com.hadithly.app.features.saved.SavedFilterBarTest",
+      "generator": "python3 scripts/generate-ui-polish-copy.py --source docs/a4-saved-filter-copy.json --check",
+      "staging": "python3 scripts/stage-new-catalog-copy.py --source docs/a4-saved-filter-copy.json --repair-existing --stage",
+      "audit": "python3 scripts/localization_audit.py --allow-drafts --runtime-report docs/verification/a4-localization/runtime-candidates.json",
+      "script_tests": [
+        "python3 -m unittest discover -s scripts -p 'test_generate_ui_polish_copy.py'",
+        "python3 -m unittest discover -s scripts -p 'test_catalog_staging.py'",
+        "python3 -m unittest discover -s scripts -p 'test_localization_audit.py'"
+      ]
+    }
+  }
+}

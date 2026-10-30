@@ -312,4 +312,13 @@
     <string name="native_ea0752e5687d" formatted="false">यह कोड पहले ही इस्तेमाल हो चुका है। कृपया नया कोड माँगें।</string>
     <string name="native_0a5150029cc7" formatted="false">अस्सलामु अलैकुम</string>
     <string name="native_abbb755ac1ef" formatted="false">अस्सलामु अलैकुम, %s</string>
+    <string name="native_dac0e576bdef" formatted="false">अभी कोई बुकमार्क नहीं</string>
+    <string name="native_95c91385659e" formatted="false">अभी कोई पसंदीदा नहीं</string>
+    <string name="native_a092ad6b8be0" formatted="false">अभी कोई नोट नहीं</string>
+    <string name="native_43fded2224ed" formatted="false">पढ़ते समय हदीस को दबाकर रखें और बुकमार्क करें, पसंदीदा में जोड़ें या नोट लिखें।</string>
+    <string name="native_8d2542a48de4" formatted="false">हदीस को दबाकर रखें और अपनी जगह यहाँ सहेजने के लिए बुकमार्क चुनें।</string>
+    <string name="native_7dd1e36d2bc3" formatted="false">हदीस को दबाकर रखें और उसे यहाँ पाने के लिए पसंदीदा चुनें।</string>
+    <string name="native_117d7d125729" formatted="false">हदीस को दबाकर रखें और अपने विचार यहाँ सहेजने के लिए नोट जोड़ें चुनें।</string>
+    <string name="native_3043f9fa4d31" formatted="false">यह फ़ोल्डर खाली है</string>
+    <string name="native_d251a8332a0e" formatted="false">सहेजी गई हदीसों के मेन्यू से उन्हें इस फ़ोल्डर में ले जाएँ।</string>
 </resources>

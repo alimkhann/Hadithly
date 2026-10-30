@@ -14,10 +14,10 @@
     <string name="direction_automatic" formatted="false">स्वचालित</string>
     <string name="direction_right_to_left" formatted="false">दाएँ से बाएँ</string>
     <string name="direction_left_to_right" formatted="false">बाएँ से दाएँ</string>
-    <string name="saved_all">All</string>
-    <string name="saved_bookmarks">Bookmarks</string>
-    <string name="saved_favorites">Favorites</string>
-    <string name="saved_notes">Notes</string>
+    <string name="saved_all" formatted="false">सभी</string>
+    <string name="saved_bookmarks" formatted="false">बुकमार्क</string>
+    <string name="saved_favorites" formatted="false">पसंदीदा</string>
+    <string name="saved_notes" formatted="false">नोट्स</string>
     <string name="saved_all_folders" formatted="false">सभी फ़ोल्डर</string>
     <string name="saved_move_folder" formatted="false">फ़ोल्डर में ले जाएँ</string>
     <string name="saved_no_folder" formatted="false">कोई फ़ोल्डर नहीं</string>
@@ -27,7 +27,7 @@
     <string name="saved_copy" formatted="false">कॉपी करें</string>
     <string name="saved_share" formatted="false">साझा करें</string>
     <string name="saved_suggest_translation" formatted="false">अनुवाद सुझाएँ</string>
-    <string name="saved_preview_retry">Preview unavailable. Tap to retry.</string>
+    <string name="saved_preview_retry" formatted="false">पूर्वावलोकन उपलब्ध नहीं है। दोबारा कोशिश करने के लिए टैप करें।</string>
     <string name="saved_show_preview" formatted="false">हदीस का पूर्वावलोकन दिखाएँ</string>
     <string name="saved_hide_preview" formatted="false">हदीस का पूर्वावलोकन छिपाएँ</string>
     <string name="saved_confirm_removal" formatted="false">सहेजी गई चीज़ें हटाने से पहले पुष्टि करें</string>
@@ -41,11 +41,11 @@
     <string name="saved_folder_name" formatted="false">फ़ोल्डर का नाम</string>
     <string name="saved_create" formatted="false">बनाएँ</string>
     <string name="saved_cancel" formatted="false">रद्द करें</string>
-    <string name="saved_empty_title">Nothing saved yet</string>
+    <string name="saved_empty_title" formatted="false">अभी कुछ सहेजा नहीं गया</string>
     <string name="saved_empty_message" formatted="false">पढ़ते समय बुकमार्क, पसंदीदा या नोट जोड़कर हदीस को यहाँ रखें।</string>
     <string name="saved_delete_folder" formatted="false">फ़ोल्डर हटाएँ</string>
     <string name="saved_folder_deleted" formatted="false">फ़ोल्डर %s मिटाया गया</string>
-    <string name="saved_removal_undo_message">You can undo this action for five seconds from the message at the bottom.</string>
+    <string name="saved_removal_undo_message" formatted="false">स्क्रीन के नीचे दिए संदेश से पाँच सेकंड के भीतर यह कार्रवाई वापस ली जा सकती है।</string>
     <string name="saved_bookmark_removed" formatted="false">बुकमार्क हटाया गया</string>
     <string name="saved_favorite_removed" formatted="false">पसंदीदा हटाया गया</string>
     <string name="saved_note_deleted" formatted="false">नोट हटाया गया</string>

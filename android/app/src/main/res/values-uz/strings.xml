@@ -14,10 +14,10 @@
     <string name="direction_automatic" formatted="false">Avtomatik</string>
     <string name="direction_right_to_left" formatted="false">O‘ngdan chapga</string>
     <string name="direction_left_to_right" formatted="false">Chapdan o‘ngga</string>
-    <string name="saved_all">All</string>
-    <string name="saved_bookmarks">Bookmarks</string>
-    <string name="saved_favorites">Favorites</string>
-    <string name="saved_notes">Notes</string>
+    <string name="saved_all" formatted="false">Barchasi</string>
+    <string name="saved_bookmarks" formatted="false">Xatcho‘plar</string>
+    <string name="saved_favorites" formatted="false">Sevimlilar</string>
+    <string name="saved_notes" formatted="false">Qaydlar</string>
     <string name="saved_all_folders" formatted="false">Barcha papkalar</string>
     <string name="saved_move_folder" formatted="false">Papkaga ko‘chirish</string>
     <string name="saved_no_folder" formatted="false">Papka yo‘q</string>
@@ -27,7 +27,7 @@
     <string name="saved_copy" formatted="false">Nusxalash</string>
     <string name="saved_share" formatted="false">Ulashish</string>
     <string name="saved_suggest_translation" formatted="false">Tarjima taklif qilish</string>
-    <string name="saved_preview_retry">Preview unavailable. Tap to retry.</string>
+    <string name="saved_preview_retry" formatted="false">Oldindan ko‘rish mavjud emas. Qayta urinish uchun bosing.</string>
     <string name="saved_show_preview" formatted="false">Hadis ko‘rinishini ko‘rsatish</string>
     <string name="saved_hide_preview" formatted="false">Hadis ko‘rinishini yashirish</string>
     <string name="saved_confirm_removal" formatted="false">Saqlangan narsalarni olib tashlashdan oldin tasdiqlash</string>
@@ -41,11 +41,11 @@
     <string name="saved_folder_name" formatted="false">Jild nomi</string>
     <string name="saved_create" formatted="false">Yaratish</string>
     <string name="saved_cancel" formatted="false">Bekor qilish</string>
-    <string name="saved_empty_title">Nothing saved yet</string>
+    <string name="saved_empty_title" formatted="false">Hozircha hech narsa saqlanmagan</string>
     <string name="saved_empty_message" formatted="false">Hadisni shu yerda saqlash uchun o‘qish paytida xatcho‘p, sevimli yoki qayd qo‘shing.</string>
     <string name="saved_delete_folder" formatted="false">Papka o‘chirish</string>
     <string name="saved_folder_deleted" formatted="false">%s jildi o‘chirildi</string>
-    <string name="saved_removal_undo_message">You can undo this action for five seconds from the message at the bottom.</string>
+    <string name="saved_removal_undo_message" formatted="false">Ekran pastidagi xabar orqali bu amalni besh soniya ichida bekor qilishingiz mumkin.</string>
     <string name="saved_bookmark_removed" formatted="false">Xatcho‘p olib tashlandi</string>
     <string name="saved_favorite_removed" formatted="false">Sevimli olib tashlandi</string>
     <string name="saved_note_deleted" formatted="false">Qayd o‘chirildi</string>

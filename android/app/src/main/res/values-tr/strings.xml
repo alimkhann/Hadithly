@@ -14,10 +14,10 @@
     <string name="direction_automatic" formatted="false">Otomatik</string>
     <string name="direction_right_to_left" formatted="false">Sağdan sola</string>
     <string name="direction_left_to_right" formatted="false">Soldan sağa</string>
-    <string name="saved_all">All</string>
-    <string name="saved_bookmarks">Bookmarks</string>
-    <string name="saved_favorites">Favorites</string>
-    <string name="saved_notes">Notes</string>
+    <string name="saved_all" formatted="false">Tümü</string>
+    <string name="saved_bookmarks" formatted="false">Yer işaretleri</string>
+    <string name="saved_favorites" formatted="false">Favoriler</string>
+    <string name="saved_notes" formatted="false">Notlar</string>
     <string name="saved_all_folders" formatted="false">Tüm klasörler</string>
     <string name="saved_move_folder" formatted="false">Klasöre taşı</string>
     <string name="saved_no_folder" formatted="false">Klasör yok</string>
@@ -27,7 +27,7 @@
     <string name="saved_copy" formatted="false">Kopyala</string>
     <string name="saved_share" formatted="false">Paylaş</string>
     <string name="saved_suggest_translation" formatted="false">Çeviri öner</string>
-    <string name="saved_preview_retry">Preview unavailable. Tap to retry.</string>
+    <string name="saved_preview_retry" formatted="false">Önizleme kullanılamıyor. Tekrar denemek için dokunun.</string>
     <string name="saved_show_preview" formatted="false">Hadis önizlemesini göster</string>
     <string name="saved_hide_preview" formatted="false">Hadis önizlemesini gizle</string>
     <string name="saved_confirm_removal" formatted="false">Kayıtlı öğeleri kaldırmadan önce onayla</string>
@@ -41,11 +41,11 @@
     <string name="saved_folder_name" formatted="false">Klasör adı</string>
     <string name="saved_create" formatted="false">Oluştur</string>
     <string name="saved_cancel" formatted="false">İptal</string>
-    <string name="saved_empty_title">Nothing saved yet</string>
+    <string name="saved_empty_title" formatted="false">Henüz kaydedilen yok</string>
     <string name="saved_empty_message" formatted="false">Bir hadisi burada tutmak için okurken yer imi, favori veya not ekleyin.</string>
     <string name="saved_delete_folder" formatted="false">Klasörü sil</string>
     <string name="saved_folder_deleted" formatted="false">%s klasörü silindi</string>
-    <string name="saved_removal_undo_message">You can undo this action for five seconds from the message at the bottom.</string>
+    <string name="saved_removal_undo_message" formatted="false">Bu işlemi ekranın altındaki mesajdan beş saniye içinde geri alabilirsiniz.</string>
     <string name="saved_bookmark_removed" formatted="false">Yer imi kaldırıldı</string>
     <string name="saved_favorite_removed" formatted="false">Favori kaldırıldı</string>
     <string name="saved_note_deleted" formatted="false">Not silindi</string>

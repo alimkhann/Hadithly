@@ -73,3 +73,22 @@ struct SavedFilterBar: View {
         .animation(reducedMotion ? nil : .easeInOut(duration: InterfaceMotion.step), value: selection)
     }
 }
+
+struct SavedEmptyState: View {
+    let filter: SavedContentFilter
+    var isFolder = false
+    @Environment(\.dynamicTypeSize) private var size
+
+    var body: some View {
+        if size.isAccessibilitySize {
+            ScrollView { content.fixedSize(horizontal: false, vertical: true) }
+                .accessibilityIdentifier("saved.emptyScroll")
+        } else { content }
+    }
+
+    private var content: some View {
+        QuietEmptyState(title: isFolder ? "This folder is empty" : filter.emptyTitle,
+            message: isFolder ? "Move saved hadiths into this folder from their menu." : filter.emptyMessage,
+            symbol: isFolder ? "folder" : filter.symbol)
+    }
+}

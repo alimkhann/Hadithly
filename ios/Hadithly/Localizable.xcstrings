@@ -5514,64 +5514,22 @@
     "Saved filter" : {
       "extractionState": "manual",
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Saved filter"
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "needs_review",
             "value": "تصفية المحفوظات"
           }
         },
-        "ru": {
+        "bn": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Фильтр сохранённого"
+            "value": "সংরক্ষিত বিষয়ের ফিল্টার"
           }
         },
-        "kk": {
+        "en": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Сақталғандарды сүзу"
-          }
-        },
-        "ky": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Сакталгандарды чыпкалоо"
-          }
-        },
-        "uz": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Saqlanganlar filtri"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Kaydedilenler filtresi"
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Filter tersimpan"
-          }
-        },
-        "ur": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "محفوظ مواد کا فلٹر"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Filtre des éléments enregistrés"
+            "state": "translated",
+            "value": "Saved filter"
           }
         },
         "es-419": {
@@ -5580,16 +5538,10 @@
             "value": "Filtro de guardados"
           }
         },
-        "pt-BR": {
+        "fr": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "Filtro de salvos"
-          }
-        },
-        "sw": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Kichujio cha vilivyohifadhiwa"
+            "value": "Filtre des éléments enregistrés"
           }
         },
         "hi": {
@@ -5598,10 +5550,58 @@
             "value": "सहेजे गए आइटम का फ़िल्टर"
           }
         },
-        "bn": {
+        "id": {
           "stringUnit": {
             "state": "needs_review",
-            "value": "সংরক্ষিত বিষয়ের ফিল্টার"
+            "value": "Filter tersimpan"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Сақталғандар сүзгісі"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Сакталган нерселердин чыпкасы"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Filtro dos itens salvos"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Фильтр сохранённого"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Kichujio cha vilivyohifadhiwa"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Kaydedilenler filtresi"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "محفوظ مواد کا فلٹر"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Saqlanganlar filtri"
           }
         }
       }
@@ -22600,6 +22600,1526 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "জমা দিয়ে আপনি Hadithly-কে আপনার প্রস্তাব পর্যালোচনা ও প্রকাশের অনুমতি দেন। প্রমাণের উৎসের জন্য এখনও অনুমতি দরকার।"
+          }
+        }
+      }
+    },
+    "Move saved hadiths into this folder from their menu." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move saved hadiths into this folder from their menu."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "انقل الأحاديث المحفوظة إلى هذا المجلد من قائمة خياراتها."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Переместите сохранённые хадисы в эту папку через их меню."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Сақталған хадистерді олардың мәзірі арқылы осы қалтаға жылжытыңыз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Сакталган хадистерди алардын менюсу аркылуу бул папкага жылдырыңыз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Saqlangan hadislarni ularning menyusi orqali shu jildga ko‘chiring."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Kaydedilen hadisleri menülerinden bu klasöre taşıyın."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Pindahkan hadis tersimpan ke folder ini melalui menunya."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "محفوظ احادیث کو ان کے مینو سے اس فولڈر میں منتقل کریں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Déplacez les hadiths enregistrés vers ce dossier depuis leur menu."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mueve los hadices guardados a esta carpeta desde su menú."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mova os hadiths salvos para esta pasta pelo menu deles."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hamisha hadithi zilizohifadhiwa hadi kwenye folda hii kupitia menyu yake."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "सहेजी गई हदीसों के मेन्यू से उन्हें इस फ़ोल्डर में ले जाएँ।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "সংরক্ষিত হাদিসের মেনু থেকে সেগুলো এই ফোল্ডারে সরান।"
+          }
+        }
+      }
+    },
+    "This folder is empty" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This folder is empty"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "هذا المجلد فارغ"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Эта папка пуста"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бұл қалта бос"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бул папка бош"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bu jild bo‘sh"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bu klasör boş"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Folder ini kosong"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "یہ فولڈر خالی ہے"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ce dossier est vide"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Esta carpeta está vacía"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Esta pasta está vazia"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Folda hii haina kitu"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "यह फ़ोल्डर खाली है"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "এই ফোল্ডার খালি"
+          }
+        }
+      }
+    },
+    "You can undo this action for five seconds from the message at the bottom." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can undo this action for five seconds from the message at the bottom."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "يمكنك التراجع عن هذا الإجراء خلال خمس ثوانٍ من الرسالة أسفل الشاشة."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Вы можете отменить это действие в течение пяти секунд с помощью сообщения внизу экрана."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Экранның төменгі жағындағы хабар арқылы бұл әрекетті бес секунд ішінде кері қайтара аласыз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Экрандын ылдый жагындагы билдирүү аркылуу бул аракетти беш секунд ичинде артка кайтара аласыз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ekran pastidagi xabar orqali bu amalni besh soniya ichida bekor qilishingiz mumkin."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bu işlemi ekranın altındaki mesajdan beş saniye içinde geri alabilirsiniz."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Anda dapat membatalkan tindakan ini dalam lima detik melalui pesan di bagian bawah layar."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "اسکرین کے نیچے پیغام سے پانچ سیکنڈ کے اندر یہ عمل واپس کیا جا سکتا ہے۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Vous pouvez annuler cette action pendant cinq secondes depuis le message en bas de l’écran."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Puedes deshacer esta acción durante cinco segundos desde el mensaje en la parte inferior de la pantalla."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Você pode desfazer esta ação por cinco segundos na mensagem na parte inferior da tela."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Unaweza kutendua hatua hii ndani ya sekunde tano kupitia ujumbe ulio chini ya skrini."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "स्क्रीन के नीचे दिए संदेश से पाँच सेकंड के भीतर यह कार्रवाई वापस ली जा सकती है।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "স্ক্রিনের নিচের বার্তা থেকে পাঁচ সেকেন্ডের মধ্যে এই কাজ পূর্বাবস্থায় ফেরানো যায়।"
+          }
+        }
+      }
+    },
+    "Preview unavailable. Tap to retry." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview unavailable. Tap to retry."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "المعاينة غير متاحة. اضغط لإعادة المحاولة."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Предпросмотр недоступен. Нажмите, чтобы повторить."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Алдын ала қарау қолжетімсіз. Қайталау үшін басыңыз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Алдын ала көрүү жеткиликсиз. Кайталоо үчүн басыңыз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Oldindan ko‘rish mavjud emas. Qayta urinish uchun bosing."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Önizleme kullanılamıyor. Tekrar denemek için dokunun."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Pratinjau tidak tersedia. Ketuk untuk mencoba lagi."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "پیش منظر دستیاب نہیں۔ دوبارہ کوشش کے لیے تھپتھپائیں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Aperçu indisponible. Touchez pour réessayer."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Vista previa no disponible. Toca para reintentar."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Prévia indisponível. Toque para tentar novamente."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Onyesho la kukagua halipatikani. Gusa ujaribu tena."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "पूर्वावलोकन उपलब्ध नहीं है। दोबारा कोशिश करने के लिए टैप करें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "প্রিভিউ পাওয়া যাচ্ছে না। আবার চেষ্টা করতে ট্যাপ করুন।"
+          }
+        }
+      }
+    },
+    "Hold a hadith and choose Add note to keep your thoughts here." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hold a hadith and choose Add note to keep your thoughts here."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "اضغط مطولًا على حديث واختر إضافة ملاحظة للاحتفاظ بأفكارك هنا."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Удерживайте хадис и выберите «Добавить заметку», чтобы сохранить здесь свои мысли."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Хадисті басып ұстап, ойларыңызды осында сақтау үшін Жазба қосу пәрменін таңдаңыз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Хадисти басып кармап, ойлоруңузду бул жерде сактоо үчүн Жазуу кошуу дегенди тандаңыз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hadisni bosib turing va fikrlaringizni shu yerda saqlash uchun Qayd qo‘shish bandini tanlang."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bir hadise basılı tutup düşüncelerinizi burada saklamak için Not ekle seçeneğini seçin."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tekan lama hadis lalu pilih Tambah catatan untuk menyimpan pemikiran Anda di sini."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "حدیث کو دبا کر رکھیں اور اپنے خیالات یہاں محفوظ کرنے کے لیے نوٹ شامل کریں منتخب کریں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Maintenez un hadith et choisissez Ajouter une note pour conserver vos réflexions ici."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mantén presionado un hadiz y elige Agregar nota para guardar tus ideas aquí."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mantenha um hadith pressionado e escolha Adicionar nota para guardar suas reflexões aqui."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bonyeza na ushikilie hadithi na uchague Ongeza dokezo ili kuhifadhi mawazo yako hapa."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "हदीस को दबाकर रखें और अपने विचार यहाँ सहेजने के लिए नोट जोड़ें चुनें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "হাদিস চেপে ধরে নোট যোগ করুন বেছে নিন, যাতে আপনার ভাবনা এখানে থাকে।"
+          }
+        }
+      }
+    },
+    "Hold a hadith and choose Favorite to find it here." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hold a hadith and choose Favorite to find it here."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "اضغط مطولًا على حديث واختر المفضلة للعثور عليه هنا."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Удерживайте хадис и выберите «В избранное», чтобы найти его здесь."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Хадисті басып ұстап, оны осында табу үшін Таңдаулылар пәрменін таңдаңыз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Хадисти басып кармап, аны бул жерден табуу үчүн Тандалмалар дегенди тандаңыз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hadisni bosib turing va uni shu yerdan topish uchun Sevimlilar bandini tanlang."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bir hadise basılı tutup burada bulmak için Favori seçeneğini seçin."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tekan lama hadis lalu pilih Favorit agar dapat menemukannya di sini."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "حدیث کو دبا کر رکھیں اور اسے یہاں تلاش کرنے کے لیے پسندیدہ منتخب کریں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Maintenez un hadith et choisissez Favori pour le retrouver ici."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mantén presionado un hadiz y elige Favorito para encontrarlo aquí."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mantenha um hadith pressionado e escolha Favorito para encontrá-lo aqui."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bonyeza na ushikilie hadithi na uchague Kipendwa ili kuipata hapa."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "हदीस को दबाकर रखें और उसे यहाँ पाने के लिए पसंदीदा चुनें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "হাদিস চেপে ধরে পছন্দের বেছে নিন, যাতে এটি এখানে খুঁজে পান।"
+          }
+        }
+      }
+    },
+    "Hold a hadith and choose Bookmark to keep your place here." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hold a hadith and choose Bookmark to keep your place here."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "اضغط مطولًا على حديث واختر إشارة مرجعية للاحتفاظ بموضعك هنا."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Удерживайте хадис и выберите «Закладка», чтобы сохранить здесь своё место."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Хадисті басып ұстап, орныңызды осында сақтау үшін Бетбелгі пәрменін таңдаңыз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Хадисти басып кармап, ордуңузду бул жерде сактоо үчүн Кыстарма дегенди тандаңыз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hadisni bosib turing va joyingizni shu yerda saqlash uchun Xatcho‘p bandini tanlang."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bir hadise basılı tutup yerinizi burada saklamak için Yer işareti seçeneğini seçin."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tekan lama hadis lalu pilih Penanda untuk menyimpan posisi Anda di sini."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "حدیث کو دبا کر رکھیں اور اپنی جگہ یہاں محفوظ کرنے کے لیے بُک مارک منتخب کریں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Maintenez un hadith et choisissez Marque-page pour retrouver votre position ici."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mantén presionado un hadiz y elige Marcador para conservar tu posición aquí."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mantenha um hadith pressionado e escolha Marcador para guardar sua posição aqui."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bonyeza na ushikilie hadithi na uchague Alamisho ili kuhifadhi nafasi yako hapa."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "हदीस को दबाकर रखें और अपनी जगह यहाँ सहेजने के लिए बुकमार्क चुनें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "হাদিস চেপে ধরে বুকমার্ক বেছে নিন, যাতে আপনার পড়ার স্থান এখানে থাকে।"
+          }
+        }
+      }
+    },
+    "Hold a hadith while reading to bookmark it, favorite it, or add a note." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hold a hadith while reading to bookmark it, favorite it, or add a note."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "اضغط مطولًا على حديث أثناء القراءة لإضافة إشارة مرجعية أو إضافته إلى المفضلة أو كتابة ملاحظة."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Удерживайте хадис во время чтения, чтобы добавить закладку, отметить избранное или написать заметку."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Оқу кезінде хадисті басып ұстап, бетбелгі қойыңыз, таңдаулыларға қосыңыз немесе жазба жазыңыз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Окуп жатканда хадисти басып кармап, кыстарма коюңуз, тандалмаларга кошуңуз же жазуу жазыңыз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "O‘qish paytida hadisni bosib turing va xatcho‘p qo‘ying, sevimlilarga qo‘shing yoki qayd yozing."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Okurken bir hadise basılı tutarak yer işareti ekleyin, favorilere alın veya not yazın."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tekan lama hadis saat membaca untuk menandai, menambahkan ke favorit, atau menulis catatan."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "پڑھتے وقت حدیث کو دبا کر رکھیں تاکہ بُک مارک، پسندیدہ میں شامل یا نوٹ لکھ سکیں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Maintenez un hadith pendant la lecture pour ajouter un marque-page, un favori ou une note."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mantén presionado un hadiz mientras lees para agregar un marcador, marcarlo como favorito o escribir una nota."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mantenha um hadith pressionado durante a leitura para adicionar um marcador, favorito ou nota."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bonyeza na ushikilie hadithi unaposoma ili kuweka alamisho, kuiongeza kwenye vipendwa au kuandika dokezo."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "पढ़ते समय हदीस को दबाकर रखें और बुकमार्क करें, पसंदीदा में जोड़ें या नोट लिखें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "পড়ার সময় হাদিস চেপে ধরে বুকমার্ক করুন, পছন্দের তালিকায় যোগ করুন বা নোট লিখুন।"
+          }
+        }
+      }
+    },
+    "No notes yet" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No notes yet"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "لا توجد ملاحظات بعد"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Пока нет заметок"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Әзірге жазбалар жоқ"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Азырынча жазуулар жок"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hozircha qaydlar yo‘q"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Henüz not yok"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Belum ada catatan"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ابھی کوئی نوٹ نہیں"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Aucune note pour le moment"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Aún no hay notas"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Nenhuma nota ainda"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bado hakuna madokezo"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "अभी कोई नोट नहीं"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "এখনো কোনো নোট নেই"
+          }
+        }
+      }
+    },
+    "No favorites yet" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No favorites yet"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "لا توجد مفضلات بعد"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Пока нет избранного"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Әзірге таңдаулылар жоқ"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Азырынча тандалмалар жок"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hozircha sevimlilar yo‘q"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Henüz favori yok"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Belum ada favorit"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ابھی کوئی پسندیدہ مواد نہیں"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Aucun favori pour le moment"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Aún no hay favoritos"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Nenhum favorito ainda"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bado hakuna vipendwa"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "अभी कोई पसंदीदा नहीं"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "এখনো কোনো পছন্দের বিষয় নেই"
+          }
+        }
+      }
+    },
+    "No bookmarks yet" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No bookmarks yet"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "لا توجد إشارات مرجعية بعد"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Пока нет закладок"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Әзірге бетбелгілер жоқ"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Азырынча кыстармалар жок"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hozircha xatcho‘plar yo‘q"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Henüz yer işareti yok"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Belum ada penanda"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ابھی کوئی بُک مارک نہیں"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Aucun marque-page pour le moment"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Aún no hay marcadores"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Nenhum marcador ainda"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bado hakuna alamisho"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "अभी कोई बुकमार्क नहीं"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "এখনো কোনো বুকমার্ক নেই"
+          }
+        }
+      }
+    },
+    "Nothing saved yet" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing saved yet"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "لا يوجد شيء محفوظ بعد"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Пока ничего не сохранено"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Әзірге ештеңе сақталмаған"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Азырынча эч нерсе сакталган жок"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hozircha hech narsa saqlanmagan"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Henüz kaydedilen yok"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Belum ada yang disimpan"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ابھی کچھ محفوظ نہیں"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Rien d’enregistré pour le moment"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Aún no hay nada guardado"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Nada salvo ainda"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bado hakuna kilichohifadhiwa"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "अभी कुछ सहेजा नहीं गया"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "এখনো কিছু সংরক্ষিত নেই"
+          }
+        }
+      }
+    },
+    "Notes" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notes"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "الملاحظات"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Заметки"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жазбалар"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жазуулар"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Qaydlar"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Notlar"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Catatan"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "نوٹس"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Notes"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Notas"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Notas"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Madokezo"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "नोट्स"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "নোট"
+          }
+        }
+      }
+    },
+    "Favorites" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favorites"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "المفضلة"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Избранное"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Таңдаулылар"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Тандалмалар"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sevimlilar"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Favoriler"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Favorit"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "پسندیدہ"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Favoris"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Favoritos"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Favoritos"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Vipendwa"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "पसंदीदा"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "পছন্দের"
+          }
+        }
+      }
+    },
+    "Bookmarks" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bookmarks"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "الإشارات المرجعية"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Закладки"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бетбелгілер"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Кыстармалар"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Xatcho‘plar"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Yer işaretleri"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Penanda"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "بُک مارکس"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Marque-pages"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Marcadores"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Marcadores"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Alamisho"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "बुकमार्क"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "বুকমার্ক"
+          }
+        }
+      }
+    },
+    "All" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "الكل"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Всё"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Барлығы"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Баары"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Barchasi"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tümü"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Semua"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "سب"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tout"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Todo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tudo"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Vyote"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "सभी"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "সব"
           }
         }
       }

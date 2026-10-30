@@ -741,6 +741,8 @@ struct ReaderSavedShortcutSheet: View {
             Button("Remove and don't ask again", role: .destructive) { environment.savedSafety.confirmsRemoval = false; performRemoval(removal); pendingRemoval = nil }
             }
             Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("You can undo this action for five seconds from the message at the bottom.")
         }
         .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
     }
@@ -783,8 +785,7 @@ struct ReaderSavedShortcutSheet: View {
     }
 
     private var emptyState: some View {
-        QuietEmptyState(title: folderId == nil ? tab.emptyTitle : "This folder is empty",
-            message: folderId == nil ? tab.emptyMessage : "Move saved hadiths into this folder from their menu.", symbol: folderId == nil ? tab.symbol : "folder")
+        SavedEmptyState(filter: tab, isFolder: folderId != nil)
             .accessibilityIdentifier("reader.savedShortcut.empty")
     }
 

@@ -219,7 +219,7 @@
     <string name="native_aa69cfa701a6" formatted="false">Бетбелгі қойылған</string>
     <string name="native_86f5562ff32e" formatted="false">Таңдаулыларға қосылған</string>
     <string name="native_5bfefd244c17" formatted="false">Жазбасы бар</string>
-    <string name="native_47ce7f7fb0dd" formatted="false">Сақталғандарды сүзу</string>
+    <string name="native_47ce7f7fb0dd" formatted="false">Сақталғандар сүзгісі</string>
     <string name="native_642030cddde8" formatted="false">Сақталған элемент әрекеттері</string>
     <string name="native_94be6a7413a9" formatted="false">Дереккөз мәліметтерін көрсетеді</string>
     <string name="native_183b1d17b908" formatted="false">Бұл хадисті оқу үшін ашады</string>
@@ -312,4 +312,13 @@
     <string name="native_ea0752e5687d" formatted="false">Бұл код қолданылған. Жаңа код сұраңыз.</string>
     <string name="native_0a5150029cc7" formatted="false">Ассаламуғалейкум</string>
     <string name="native_abbb755ac1ef" formatted="false">Ассаламуғалейкум, %s</string>
+    <string name="native_dac0e576bdef" formatted="false">Әзірге бетбелгілер жоқ</string>
+    <string name="native_95c91385659e" formatted="false">Әзірге таңдаулылар жоқ</string>
+    <string name="native_a092ad6b8be0" formatted="false">Әзірге жазбалар жоқ</string>
+    <string name="native_43fded2224ed" formatted="false">Оқу кезінде хадисті басып ұстап, бетбелгі қойыңыз, таңдаулыларға қосыңыз немесе жазба жазыңыз.</string>
+    <string name="native_8d2542a48de4" formatted="false">Хадисті басып ұстап, орныңызды осында сақтау үшін Бетбелгі пәрменін таңдаңыз.</string>
+    <string name="native_7dd1e36d2bc3" formatted="false">Хадисті басып ұстап, оны осында табу үшін Таңдаулылар пәрменін таңдаңыз.</string>
+    <string name="native_117d7d125729" formatted="false">Хадисті басып ұстап, ойларыңызды осында сақтау үшін Жазба қосу пәрменін таңдаңыз.</string>
+    <string name="native_3043f9fa4d31" formatted="false">Бұл қалта бос</string>
+    <string name="native_d251a8332a0e" formatted="false">Сақталған хадистерді олардың мәзірі арқылы осы қалтаға жылжытыңыз.</string>
 </resources>

@@ -5,10 +5,10 @@
     <string name="saved_remove" formatted="false">ہٹائیں</string>
     <string name="saved_remove_dont_ask" formatted="false">ہٹائیں اور دوبارہ نہ پوچھیں</string>
     <string name="saved_undo" formatted="false">واپس کریں</string>
-    <string name="saved_all">All</string>
-    <string name="saved_bookmarks">Bookmarks</string>
-    <string name="saved_favorites">Favorites</string>
-    <string name="saved_notes">Notes</string>
+    <string name="saved_all" formatted="false">سب</string>
+    <string name="saved_bookmarks" formatted="false">بُک مارکس</string>
+    <string name="saved_favorites" formatted="false">پسندیدہ</string>
+    <string name="saved_notes" formatted="false">نوٹس</string>
     <string name="saved_all_folders" formatted="false">تمام فولڈرز</string>
     <string name="saved_move_folder" formatted="false">فولڈر میں منتقل کریں</string>
     <string name="saved_no_folder" formatted="false">کوئی فولڈر نہیں</string>
@@ -26,12 +26,12 @@
     <string name="saved_folder_name" formatted="false">فولڈر کا نام</string>
     <string name="saved_create" formatted="false">بنائیں</string>
     <string name="saved_cancel" formatted="false">منسوخ کریں</string>
-    <string name="saved_empty_title">Nothing saved yet</string>
+    <string name="saved_empty_title" formatted="false">ابھی کچھ محفوظ نہیں</string>
     <string name="saved_empty_message" formatted="false">پڑھتے وقت بک مارک، پسندیدہ یا نوٹ شامل کر کے حدیث یہاں محفوظ کریں۔</string>
     <string name="saved_delete_folder" formatted="false">فولڈر حذف کریں</string>
     <string name="saved_folder_deleted" formatted="false">فولڈر %s حذف کر دیا گیا</string>
-    <string name="saved_preview_retry">Preview unavailable. Tap to retry.</string>
-    <string name="saved_removal_undo_message">You can undo this action for five seconds from the message at the bottom.</string>
+    <string name="saved_preview_retry" formatted="false">پیش منظر دستیاب نہیں۔ دوبارہ کوشش کے لیے تھپتھپائیں۔</string>
+    <string name="saved_removal_undo_message" formatted="false">اسکرین کے نیچے پیغام سے پانچ سیکنڈ کے اندر یہ عمل واپس کیا جا سکتا ہے۔</string>
     <string name="saved_bookmark_removed" formatted="false">بک مارک ہٹا دیا گیا</string>
     <string name="saved_favorite_removed" formatted="false">پسندیدہ ہٹا دیا گیا</string>
     <string name="saved_note_deleted" formatted="false">نوٹ حذف ہو گیا</string>

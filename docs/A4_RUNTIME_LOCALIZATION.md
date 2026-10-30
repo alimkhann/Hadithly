@@ -750,3 +750,73 @@ English-identical Android candidates fell from 279 to 126. Source review confirm
 remaining active English Saved filters, preview retry and removal guidance. Those
 and Settings/evidence error wrappers remain next. Full A4/native review, A5–A7/E,
 physical/auth/content/store/production/release gates remain open.
+
+## Saved filters, folder guidance and large text, October 31
+
+The bounded Saved unit now covers 17 keys across all fifteen UI locales. Sixteen
+catalog keys are new; the existing Saved filter entry has a guarded repair of its
+fourteen non-English values. Android's matching resource aliases use the same
+source. `a4-saved-filter-copy.json` records the local GPT-family drafts and pending
+native-speaker review. No language approval is inferred from resource coverage.
+
+Both global Saved and the reader Saved sheet use shared empty-state components.
+Each filter has its own guidance; folder emptiness keeps the folder-specific
+message. Large text can scroll that content. iOS retains its existing menu at
+accessibility sizes, and Android retains its wrapped filter dock. Preview retry
+and five-second Undo guidance are localized. The iOS removal dialogs share that
+Undo wording. Data, sorting, folder membership, callbacks and deadlines are unchanged.
+
+The final fifteen-locale matrices include all four filters and both folder-empty
+keys on both platforms. They check selected state, localized labels and guidance,
+and Arabic/Urdu ordering. Android also forces a local preview failure, retries it
+successfully, and asserts two loads with zero navigation or removal callbacks.
+Existing Android preview and three filter tap/drag/48dp-target regression cases
+pass. The iOS reader Undo fixture confirms the notice stays above bottom controls
+and restores the bookmark. This is controlled native evidence, not live Saved sync.
+
+Capture review found an inadequate iOS large-text assertion: a partially visible
+message was hittable, so the old check skipped scrolling and cropped the final
+Arabic and Russian lines. The final test scrolls the production ScrollView until
+both edges of the guidance fit within its viewport. Refreshed top and scrolled
+captures distinguish the two positions. Android checks the complete guidance text
+at controlled LocalDensity fontScale 2.0. No Android system font setting changes.
+Arabic, Russian and Bengali are the representative large-text locales.
+
+Latest evidence is three iOS and six guarded-emulator cases in
+`verification/a4-localization/saved-filters.json`. That aggregate retains the
+initial failed iOS run and prior successful evidence. The capture manifest covers
+178 fresh captures; 28 selected originals are committed in `saved-filters/`.
+Earlier obstructed Android captures and the older partial iOS scrolled captures
+are not final visibility proof. Full raw attachments and Android reports remain
+under `/tmp/hadithly-saved-session-1031`, with hashes in the committed evidence.
+
+The Saved copy fixture uses iOS 27.0, LA2Verification Debug, light appearance,
+default type and Accessibility XXXL. The reader Undo fixture uses dark appearance.
+Android uses only emulator-5554, Android 16, debug, 1080×2400, light appearance,
+default type and the controlled large-text override. The scoped native review
+found the visibility-test gap above and verified the refreshed representative
+captures. VoiceOver/TalkBack traversal, focus/back-navigation, same-process
+Settings language changes and restarted-state acceptance remain separate.
+
+Generator consistency, guarded catalog staging and fifteen script regressions
+pass. The structural audit with drafts allowed has zero failures across 481 iOS
+keys and 469 Android resources. Its 29 English-identical Android units remain
+visible and match `remaining-identical-review.json`; their classifications are
+source review, not native approval. The refreshed runtime report retains eleven
+dynamic and six direct-literal candidates, plus catalog-backed unverified paths.
+
+`saved-filter-preservation.json` records the exact index scope and source hashes.
+All other indexed entries, existing English/metadata in the repaired entry, the
+incoming working catalog bytes and four project/scheme fingerprints are preserved.
+All thirty changed Android XML files contain only source-declared Saved resources.
+The bounded workflow used one primary writer, existing native checks and scoped
+staging. It did not repeat the setup research or change the agent configuration.
+
+Next, reproduce and repair A4 Settings profile name/username notices on both apps,
+including Android's provider-error fallback, without a real profile update. The
+exact bounded task is in `NEXT_SESSION_PROMPT.md`. A4, native-language approval,
+full accessibility, authenticated/physical-device, A1/A3, A5–A7/E, store/purchase,
+actual annual billing total, production/recovery, publication and LA4 gates remain
+open. A2 stays wrapped and B/C/D retain their recorded local completion. No cloud,
+account, credential, paid generation, deployment, migration, publication or push
+is performed by this unit.

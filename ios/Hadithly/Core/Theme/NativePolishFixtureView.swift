@@ -26,6 +26,7 @@ struct NativePolishFixtureView: View {
                     case "auth-audit": AuthCopyAuditFixture()
                     case "auth-failure-audit": AuthFailureCopyAuditFixture()
                     case "saved-audit": SavedCopyAuditFixture()
+                    case "saved-filters-audit": SavedFiltersCopyAuditFixture()
                     case "reader-translation-settings": ReaderPreferenceDetail(panel: .translation, prefix: "settings")
                     case "app-appearance": AppearanceView()
                     case "app-language": AppLanguageView()
@@ -93,6 +94,25 @@ private struct AuthCopyAuditFixture: View {
             }.buttonStyle(.plain).padding(.vertical, 6)
             SignInView.preview(mode).id(mode)
         }
+    }
+}
+
+private struct SavedFiltersCopyAuditFixture: View {
+    @Environment(\.dynamicTypeSize) private var size
+    @State private var filter: SavedContentFilter = .all
+    @State private var folder = false
+    var body: some View {
+        VStack {
+            if !size.isAccessibilitySize {
+                Button("Folder fixture") { folder.toggle() }.accessibilityIdentifier("savedAudit.folder")
+            }
+            SavedEmptyState(filter: filter, isFolder: folder)
+            if !size.isAccessibilitySize {
+                Text("You can undo this action for five seconds from the message at the bottom.")
+                    .accessibilityIdentifier("savedAudit.removalMessage")
+            }
+            SavedFilterBar(selection: $filter)
+        }.padding(16)
     }
 }
 

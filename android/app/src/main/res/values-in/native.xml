@@ -312,4 +312,13 @@
     <string name="native_ea0752e5687d" formatted="false">Kode ini sudah digunakan. Silakan minta kode baru.</string>
     <string name="native_0a5150029cc7" formatted="false">Assalamu’alaikum</string>
     <string name="native_abbb755ac1ef" formatted="false">Assalamu’alaikum, %s</string>
+    <string name="native_dac0e576bdef" formatted="false">Belum ada penanda</string>
+    <string name="native_95c91385659e" formatted="false">Belum ada favorit</string>
+    <string name="native_a092ad6b8be0" formatted="false">Belum ada catatan</string>
+    <string name="native_43fded2224ed" formatted="false">Tekan lama hadis saat membaca untuk menandai, menambahkan ke favorit, atau menulis catatan.</string>
+    <string name="native_8d2542a48de4" formatted="false">Tekan lama hadis lalu pilih Penanda untuk menyimpan posisi Anda di sini.</string>
+    <string name="native_7dd1e36d2bc3" formatted="false">Tekan lama hadis lalu pilih Favorit agar dapat menemukannya di sini.</string>
+    <string name="native_117d7d125729" formatted="false">Tekan lama hadis lalu pilih Tambah catatan untuk menyimpan pemikiran Anda di sini.</string>
+    <string name="native_3043f9fa4d31" formatted="false">Folder ini kosong</string>
+    <string name="native_d251a8332a0e" formatted="false">Pindahkan hadis tersimpan ke folder ini melalui menunya.</string>
 </resources>

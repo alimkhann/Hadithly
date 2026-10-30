@@ -310,4 +310,13 @@
     <string name="native_ea0752e5687d" formatted="false">This code was already used. Please request a new one.</string>
     <string name="native_0a5150029cc7" formatted="false">As-salamu alaykum</string>
     <string name="native_abbb755ac1ef" formatted="false">As-salamu alaykum, %s</string>
+    <string name="native_dac0e576bdef" formatted="false">No bookmarks yet</string>
+    <string name="native_95c91385659e" formatted="false">No favorites yet</string>
+    <string name="native_a092ad6b8be0" formatted="false">No notes yet</string>
+    <string name="native_43fded2224ed" formatted="false">Hold a hadith while reading to bookmark it, favorite it, or add a note.</string>
+    <string name="native_8d2542a48de4" formatted="false">Hold a hadith and choose Bookmark to keep your place here.</string>
+    <string name="native_7dd1e36d2bc3" formatted="false">Hold a hadith and choose Favorite to find it here.</string>
+    <string name="native_117d7d125729" formatted="false">Hold a hadith and choose Add note to keep your thoughts here.</string>
+    <string name="native_3043f9fa4d31" formatted="false">This folder is empty</string>
+    <string name="native_d251a8332a0e" formatted="false">Move saved hadiths into this folder from their menu.</string>
 </resources>

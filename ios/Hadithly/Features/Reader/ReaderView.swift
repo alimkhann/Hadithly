@@ -1645,6 +1645,8 @@ private struct HadithBlock: View {
             Button("Remove", role: .destructive) { performPendingRemoval(disableFutureConfirmation: false) }
             Button("Remove and don't ask again", role: .destructive) { performPendingRemoval(disableFutureConfirmation: true) }
             Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("You can undo this action for five seconds from the message at the bottom.")
         }
         .sheet(isPresented: $showingSource) {
             HadithSourceSheet(hadith: hadith, translation: activeTranslation)
