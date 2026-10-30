@@ -3,8 +3,10 @@
 Native mobile apps for reading the hadith collections in your language.
 
 **Start every session by reading `docs/PLAN.md`.** It holds the current gate,
-the ordered session list, and the mistakes list. Read the linked session prompt
-from `docs/SESSION_PROMPTS.md` before changing files.
+the ordered session list, and the mistakes list. Start with its current checkpoint
+and mistakes; open historical evidence when the task needs it. Read
+`docs/NEXT_SESSION_PROMPT.md` and the linked prompt in `docs/SESSION_PROMPTS.md`
+before changing files. The owner's current instruction overrides an older next task.
 
 - `backend/`: Convex-only backend for data, providers, webhooks, and crons
 - `ios/`: SwiftUI app for iOS 17+, built with xcodegen from `ios/project.yml`
@@ -83,3 +85,33 @@ use an implicit all-devices run.
 - Separate outstanding work from previous sessions into logical commits. Preserve
   unrelated changes, exclude secrets and build artifacts, and report commit hashes
   and remaining gates in the handoff. Push only when the user requests it.
+
+## Working method
+
+- Agree on one observable outcome, scope boundary, verification and stop point.
+  Target a 30–45 minute unit. If it grows, checkpoint at the next safe boundary
+  and split the remaining work. A timebox is a planning target, not a reason to
+  abandon a running check or claim completion. Preserve the larger program.
+- Use one primary agent by default. Delegate a named question or independent
+  review when requested or required by an applicable skill. Keep writers and
+  native device runs isolated. Review the resulting artifacts yourself.
+- Use GPT-family models only for this repo. Keep the current approved model;
+  delegates inherit it unless an available GPT alternative is justified. Skill
+  defaults never authorize another provider or a paid-model action.
+- Reproduce defects before changing behavior. For performance or cost work,
+  measure the same journey before and after. A build, fixture or passing test
+  cannot close a live-service, device or native-language approval gate.
+- Prefer expressive names, types and assertions to narrating code comments.
+  Keep comments for non-obvious reasons, external constraints and required
+  notices. Review touched comments for accuracy; broad deletion is separate work.
+- Ask at the action boundary for cloud, account, credential, paid-model,
+  deployment, migration or publication changes. Local analysis and reversible
+  edits proceed within the requested scope. Send no external messages by default.
+- Use one relevant procedure at a time. Full poteto/pstack, Superpowers or Osmani
+  pipelines are optional escalations, not automatic dependencies of ordinary work.
+
+For broad product requests use `.agents/skills/hadithly-product-slice/SKILL.md`.
+For one native UX journey use `.agents/skills/hadithly-native-review/SKILL.md`.
+For Convex usage diagnosis use `.agents/skills/hadithly-convex-cost/SKILL.md`.
+The human/agent agreement and current tool decisions are in `docs/AGENT_WORKFLOW.md`;
+read it when choosing or changing the workflow, not at every implementation turn.

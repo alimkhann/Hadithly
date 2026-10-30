@@ -1,0 +1,16 @@
+{
+  "audit_secret_canaries": "pass: URL/header/env/hook/account/project/auth values excluded; disabled server metadata retained",
+  "codex_semantic_scope": "pass: only intended context, MCP, plugin and skill overrides changed",
+  "legacy_and_claude_mcp_scope": "pass: only Relay declaration removed; other account/project state preserved",
+  "incoming_worktree_preservation": "pass: all 69 pre-existing modified/untracked file hashes unchanged",
+  "incoming_index_preservation_before_staging": "pass: original index tree bc6f0442478e45c75e52fd2c0908b801ff54da24",
+  "project_skill_validation": "pass: all three quick_validate.py runs; relative Claude aliases resolve",
+  "codex_configuration_load": "pass: codex features list exit 0; no model request or MCP connection test",
+  "skill_behavior_and_new_session_loading": "not run: first real pilot and client restart still required",
+  "native_and_external_gates": "not run: product work explicitly deferred",
+  "python_syntax": "pass: audit and private restore scripts",
+  "private_restore_fixture": "pass: rejects drift without mutation, restores a matching fixture",
+  "claude_and_opencode_semantic_scope": "pass: only intended hooks, Relay, plugin and skill visibility changes",
+  "reviewed_update_hashes": "pass: all seven installed files match pinned upstream snapshots",
+  "scoped_credential_scan": "pass: no private-key or common provider-token patterns in the 18 workflow files"
+}

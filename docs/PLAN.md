@@ -57,6 +57,17 @@ start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
 
+## Workflow checkpoint, October 31
+
+The owner explicitly deferred Saved completion and the newly reported product
+fixes while settling the agent workflow. The current unit is workflow research,
+local configuration cleanup and project procedures. See `AGENT_WORKFLOW.md`,
+`AGENT_SETUP_AUDIT.md` and `AGENT_WORKFLOW_VIDEO_RESEARCH.md` for the outcome.
+The Saved handoff below remains intact, including its staged/unstaged work and
+pending native reruns. No product, device, content, native-review, cloud, store
+or release gate is closed. Resume product work only after the owner's workflow
+discussion; retain the complete B/C/D/A4–A7/E program and LA4 deferral.
+
 ## A4 Saved handoff, October 31
 
 B's available-source research, C's local native refinements and D's local website

@@ -1,0 +1,55 @@
+{
+  "review_date": "2026-10-31",
+  "timezone": "Asia/Almaty",
+  "versions": {
+    "codex": "0.153.4",
+    "claude_code": "2.1.263",
+    "opencode": "1.18.35",
+    "pi": "0.84.4"
+  },
+  "shared_skill_entries_before": 99,
+  "shared_skills_active_after": [
+    "android-design-guidelines",
+    "apple-hig",
+    "better-accessibility",
+    "better-colors",
+    "better-interface",
+    "better-layout",
+    "better-typography",
+    "better-ui",
+    "better-writing",
+    "blast-radius",
+    "code-review",
+    "codebase-design",
+    "diagnosing-bugs",
+    "find-skills",
+    "prototype",
+    "research",
+    "resolving-merge-conflicts",
+    "tdd",
+    "technical-writing",
+    "typescript-best-practices",
+    "unslop",
+    "writing-for-agents"
+  ],
+  "shared_skills_dormant_after": 77,
+  "codex_extra_disabled_skill_paths": 3,
+  "codex_enabled_mcp_declarations_after": [
+    "apigcp",
+    "context7",
+    "playwright",
+    "node_repl"
+  ],
+  "opencode_enabled_mcp_declarations_after": [
+    "context7"
+  ],
+  "removed_broken_aliases": 2,
+  "relay_hooks_removed": 3,
+  "model_changed": false,
+  "permissions_mode_changed": false,
+  "remote_connections_tested": false,
+  "live_session_reloaded": false,
+  "product_work_performed": false,
+  "private_inventory_location": "~/.config/agent-workflow-backups/20261030T205435Z/",
+  "scope": "Configured local state. Does not certify runtime loading, authentication, provider behavior or product readiness."
+}
