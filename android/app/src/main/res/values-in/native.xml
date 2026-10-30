@@ -321,4 +321,9 @@
     <string name="native_117d7d125729" formatted="false">Tekan lama hadis lalu pilih Tambah catatan untuk menyimpan pemikiran Anda di sini.</string>
     <string name="native_3043f9fa4d31" formatted="false">Folder ini kosong</string>
     <string name="native_d251a8332a0e" formatted="false">Pindahkan hadis tersimpan ke folder ini melalui menunya.</string>
+    <string name="native_555c2551ec77" formatted="false">Nama disimpan.</string>
+    <string name="native_0facc6aa83d5" formatted="false">Nama Anda tidak dapat disimpan. Silakan coba lagi.</string>
+    <string name="native_d6e623ac7380" formatted="false">Nama pengguna harus terdiri dari minimal 3 karakter.</string>
+    <string name="native_c3d0112b1713" formatted="false">Nama pengguna disimpan.</string>
+    <string name="native_a78d77ebb496" formatted="false">Nama pengguna itu tidak tersedia.</string>
 </resources>

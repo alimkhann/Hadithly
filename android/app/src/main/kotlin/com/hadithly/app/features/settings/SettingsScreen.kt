@@ -85,7 +85,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.clerk.api.Clerk
 import com.clerk.api.network.model.error.ClerkErrorResponse
 import com.clerk.api.network.serialization.ClerkResult
-import com.clerk.api.network.serialization.errorMessage
 import com.clerk.api.user.User
 import com.clerk.api.user.update
 import com.hadithly.app.BuildConfig
@@ -372,7 +371,7 @@ private fun ProfileDestination() {
                     scope.launch {
                         val result = Clerk.user?.update(User.UpdateParams(firstName = firstName.trim(), lastName = lastName.trim()))
                         saving = false
-                        notice = if (result is ClerkResult.Success<*>) "Name saved." else (result as? ClerkResult.Failure<ClerkErrorResponse>)?.errorMessage ?: "Could not save your name."
+                        notice = if (result is ClerkResult.Success<*>) ProfileNotice.NAME_SAVED.source else ProfileNotice.NAME_FAILED.source
                     }
                 },
                 modifier = Modifier.fillMaxWidth().testTag("settings.profile.saveName"),
@@ -389,13 +388,13 @@ private fun ProfileDestination() {
                     scope.launch {
                         val result = Clerk.user?.update(User.UpdateParams(username = username.trim()))
                         saving = false
-                        notice = if (result is ClerkResult.Success<*>) "Username saved." else "That username is not available."
+                        notice = if (result is ClerkResult.Success<*>) ProfileNotice.USERNAME_SAVED.source else profileUsernameFailure(result as? ClerkResult.Failure<ClerkErrorResponse>).source
                     }
                 },
                 modifier = Modifier.fillMaxWidth().testTag("settings.profile.saveUsername"),
             ) { Text(nativeText("Save username")) }
         }
-        notice?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
+        notice?.let { ProfileStatusNotice(it) }
     }
 }
 
@@ -1393,3 +1392,24 @@ private fun SettingsDestination.localizedTitle(): String = stringResource(when (
     SettingsDestination.HELP_AND_SUPPORT -> R.string.settings_help_support
     SettingsDestination.ABOUT_AND_LEGAL -> R.string.settings_about_legal
 })
+
+@Composable
+internal fun ProfileStatusNotice(source: String) {
+    Text(nativeText(source), fontSize = 12.sp, color = LocalHadithlyColors.current.textSecondary,
+        modifier = Modifier.testTag("settings.profile.notice"))
+}
+
+internal enum class ProfileNotice(val source: String) {
+    NAME_SAVED("Name saved."),
+    NAME_FAILED("Could not save your name. Please try again."),
+    TOO_SHORT("Usernames need at least 3 characters."),
+    USERNAME_SAVED("Username saved."),
+    UNAVAILABLE("That username is not available."),
+    RETRY("This action could not be completed. Please try again.");
+}
+
+internal fun profileUsernameFailure(failure: ClerkResult.Failure<ClerkErrorResponse>?): ProfileNotice =
+    when (failure?.error?.errors?.firstOrNull()?.code) {
+        "form_username_in_use", "form_identifier_exists" -> ProfileNotice.UNAVAILABLE
+        else -> ProfileNotice.RETRY
+    }

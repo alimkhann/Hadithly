@@ -1,0 +1,49 @@
+{
+  "scope": "Five new profile-notice keys. Existing auth retry translations reused unchanged. No existing catalog entries or incoming catalog bytes staged.",
+  "native_review": "pending",
+  "new_keys": [
+    "Name saved.",
+    "Could not save your name. Please try again.",
+    "Usernames need at least 3 characters.",
+    "Username saved.",
+    "That username is not available."
+  ],
+  "all_other_indexed_entries_preserved": true,
+  "working_catalog_bytes_preserved_after_removing_only_five_new_entries": true,
+  "incoming_catalog_sha256": "fbef4b1249fb2d1a6e5c7542a6d60737383f61503db62e4dc4c8f93b91bbf59c",
+  "unchanged_project_fingerprints": {
+    "ios/Hadithly.xcodeproj/project.pbxproj": "96350e43481804f2d09dfd0e09609f894d7eedcc6a5326a6cb63c16cb9992efb",
+    "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/Hadithly.xcscheme": "4855a090d537eafb377cd99d70425fb44137ad64588059f01727ffbbd0fa95b6",
+    "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/LA2Verification.xcscheme": "74eff6b5902f4989fcf1d4d5d17a9c1c65bb66571cde851e2b932bff7520bfed",
+    "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/Phase4Live.xcscheme": "35c6cbf95690fc03a4497131c41eeb41983b35123116204af04dd0842baa982d"
+  },
+  "android_resource_scope": "All fifteen XML files add only the five declared profile notice resources. Removing only those rows reproduces the original exact bytes.",
+  "incoming_worktree_patch_sha256": "4d54a2899c3ab3ee2bb63e92f48a50f1befc87af4ea5febce3281bd8b8b4b62b",
+  "source_resource_fixture_sha256": {
+    "android/app/src/androidTest/kotlin/com/hadithly/app/core/theme/NativeFinishingTest.kt": "38149e37eca7b55b69cae879cae1440ee9290e3179eefbc90e5a58c5179b980e",
+    "android/app/src/main/kotlin/com/hadithly/app/core/preferences/NativeCopy.kt": "64b43bc0642c60f25d6f50e0a3bb50859b42ec51e1b43e41a2cb9e97e9071ec4",
+    "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt": "7b21d318616bfae2390275bccc68da924fbce114876369116aebc3cdcf766694",
+    "android/app/src/main/res/values-ar/native.xml": "dc82d5224606a9b031d1f6443c531a76d6b40b56580d59d075a3df3ae194c9e1",
+    "android/app/src/main/res/values-b+es+419/native.xml": "bad518f61d4b15806d2a073fe6266b056a175bcecf4d22551fc04bdb3ab02c18",
+    "android/app/src/main/res/values-bn/native.xml": "8fae4dbf4761e130cf2206148fbf1196d409c64e0fc4f5b8558a45edabedc3e9",
+    "android/app/src/main/res/values-fr/native.xml": "91a54031a82b40f2c2e160cabcb4db38ac31ee42200064ede0da53b294a22f10",
+    "android/app/src/main/res/values-hi/native.xml": "c8764f8bbfc2dcd4df3e431a25c65c6815ffd7c56b3069c03dba03691a4f2872",
+    "android/app/src/main/res/values-in/native.xml": "d161882822ba134c5afcfb628212da7bb333b6e533cc10e3e223dbd260e61bc8",
+    "android/app/src/main/res/values-kk/native.xml": "3cb962b130da3f430bde8814ca38873d52f63b971ab494dc2a2d01368692f44b",
+    "android/app/src/main/res/values-ky/native.xml": "95c6ae3fba973cc82ef31df8f715ae3dbf0a7eeeeb7223f9362a74e4a0109dcd",
+    "android/app/src/main/res/values-pt-rBR/native.xml": "f2e90ae60cd597e00148166d3768391beeac3d30b75c70441d6bb722d77c7fab",
+    "android/app/src/main/res/values-ru/native.xml": "eb60b471d6be243b305816791ce14d2ac7daf471e27c6869e310c7f918979761",
+    "android/app/src/main/res/values-sw/native.xml": "757c35e8a5dbb52e239d13850d0edaa0cf4c93bee58f895b15c9cdc5d11b9f01",
+    "android/app/src/main/res/values-tr/native.xml": "c9f96443f03c77be252016cc52a0897f40b0d65dec8c5cdba2eefaed2f3aa812",
+    "android/app/src/main/res/values-ur/native.xml": "4892e7da093fa69d620de51285ecec6a22c470538b819201b9d3dda3947cffc2",
+    "android/app/src/main/res/values-uz/native.xml": "7fabd4ac05afc05644b1b7fcf3ed6ca78ce9d79a859f7a924a028c576b7e449b",
+    "android/app/src/main/res/values/native.xml": "8f5fdc365a1db057b9707b0fcdd2350eb4eed233af58db8be7437497ca8479b3",
+    "android/app/src/test/kotlin/com/hadithly/app/SettingsS1Test.kt": "4be1beb402e2f8f9d4ed5f2eb1831954ce09455756c1e3507d3d1db46d8bf4fc",
+    "ios/Hadithly/Core/Theme/NativePolishFixtureView.swift": "05643e7c9900fd6ed56751c67f21cfb07b7ac4af59760f1f947b26993256ab0a",
+    "ios/Hadithly/Features/Settings/SettingsDestinations.swift": "2e0d320c623a91f5234ec1d819692e4c1d5b1392bff4b83832a711b173b46863",
+    "ios/HadithlyTests/SettingsS1Tests.swift": "54fe9a06304e2a412d795719e2f68e700a6df56499a7d4864706bf7e0725875c",
+    "ios/HadithlyUITests/VisualPolishUITests.swift": "38940dbadc94fd6b3c000477c93855ac9398df05331c086f64597760b4cefe23",
+    "docs/a4-profile-notice-copy.json": "83fec112df5268999b578c18d52bbeea1008330946060b5ba7fad5ab664c86ed",
+    "android/app/src/androidTest/assets/a4-profile-notice-copy.json": "972c6528e6f9c2ecf857bde33c80f6be9dc327ac47070b130d1d199dfeb6cfc3"
+  }
+}

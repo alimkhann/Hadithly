@@ -206,9 +206,7 @@ struct ProfileView: View {
 
             if let notice {
                 Section {
-                    Text(notice)
-                        .font(.footnote)
-                        .foregroundStyle(Theme.textSecondary)
+                    ProfileStatusNotice(source: notice)
                 }
             }
         }
@@ -271,9 +269,9 @@ struct ProfileView: View {
                 firstName: firstName.trimmingCharacters(in: .whitespacesAndNewlines),
                 lastName: lastName.trimmingCharacters(in: .whitespacesAndNewlines)
             ))
-            notice = "Name saved."
+            notice = ProfileNotice.nameSaved.rawValue
         } catch {
-            notice = "Could not save your name. Please try again."
+            notice = ProfileNotice.nameFailed.rawValue
         }
     }
 
@@ -282,16 +280,16 @@ struct ProfileView: View {
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .lowercased()
         guard cleaned.count >= 3 else {
-            notice = "Usernames need at least 3 characters."
+            notice = ProfileNotice.tooShort.rawValue
             return
         }
         isSaving = true
         defer { isSaving = false }
         do {
             _ = try await clerk.user?.update(.init(username: cleaned))
-            notice = "Username saved."
+            notice = ProfileNotice.usernameSaved.rawValue
         } catch {
-            notice = "That username is not available."
+            notice = ProfileNotice.usernameFailure(code: (error as? ClerkAPIError)?.code).rawValue
         }
     }
 
@@ -1296,3 +1294,53 @@ struct AboutLegalView: View {
 
     }
 }
+
+enum ProfileNotice: String, CaseIterable {
+    case nameSaved = "Name saved."
+    case nameFailed = "Could not save your name. Please try again."
+    case tooShort = "Usernames need at least 3 characters."
+    case usernameSaved = "Username saved."
+    case unavailable = "That username is not available."
+    case retry = "This action could not be completed. Please try again."
+
+    static func usernameFailure(code: String?) -> Self {
+        switch code {
+        case "form_username_in_use", "form_identifier_exists": return .unavailable
+        default: return .retry
+        }
+    }
+}
+
+struct ProfileStatusNotice: View {
+    let source: String
+    var body: some View {
+        Group {
+            if ProfileNotice(rawValue: source) != nil {
+                Text(LocalizedStringKey(source))
+            } else {
+                Text(source)
+            }
+        }
+        .font(.footnote)
+        .foregroundStyle(Theme.textSecondary)
+        .accessibilityIdentifier("settings.profile.notice")
+    }
+}
+
+#if DEBUG
+struct ProfileNoticeCopyAuditFixture: View {
+    @State private var index = 0
+    @State private var name = "Original %lld %@ اسم"
+    private let notices = ProfileNotice.allCases.map(\.rawValue)
+    var body: some View {
+        SettingsList("Profile") {
+            Section {
+                TextField("First name", text: $name).accessibilityIdentifier("profileAudit.name")
+                ProfileStatusNotice(source: notices[index])
+                Button("Next fixture notice") { index = (index + 1) % notices.count }
+                    .accessibilityIdentifier("profileAudit.next")
+            }
+        }
+    }
+}
+#endif

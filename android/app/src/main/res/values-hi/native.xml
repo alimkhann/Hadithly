@@ -321,4 +321,9 @@
     <string name="native_117d7d125729" formatted="false">हदीस को दबाकर रखें और अपने विचार यहाँ सहेजने के लिए नोट जोड़ें चुनें।</string>
     <string name="native_3043f9fa4d31" formatted="false">यह फ़ोल्डर खाली है</string>
     <string name="native_d251a8332a0e" formatted="false">सहेजी गई हदीसों के मेन्यू से उन्हें इस फ़ोल्डर में ले जाएँ।</string>
+    <string name="native_555c2551ec77" formatted="false">नाम सहेजा गया।</string>
+    <string name="native_0facc6aa83d5" formatted="false">आपका नाम सहेजा नहीं जा सका। कृपया फिर से कोशिश करें।</string>
+    <string name="native_d6e623ac7380" formatted="false">उपयोगकर्ता नाम में कम से कम 3 अक्षर होने चाहिए।</string>
+    <string name="native_c3d0112b1713" formatted="false">उपयोगकर्ता नाम सहेजा गया।</string>
+    <string name="native_a78d77ebb496" formatted="false">यह उपयोगकर्ता नाम उपलब्ध नहीं है।</string>
 </resources>

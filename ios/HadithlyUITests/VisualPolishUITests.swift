@@ -69,6 +69,44 @@ final class VisualPolishUITests: XCTestCase {
         }
     }
 
+    func testProfileNoticesUseSelectedLanguage() throws {
+        try verifyProfileNotices(large: false)
+    }
+
+    func testProfileNoticesRemainReadableAtLargeText() throws {
+        try verifyProfileNotices(large: true)
+    }
+
+    private func verifyProfileNotices(large: Bool) throws {
+        struct Copy: Decodable { let locales: [String: [String]]; let fixture_labels: [String: [String: String]] }
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let copy = try JSONDecoder().decode(Copy.self, from: Data(contentsOf: root.appendingPathComponent("docs/a4-profile-notice-copy.json")))
+        let locales = large ? ["ar", "ur", "ru", "bn"] : ["en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn"]
+        for locale in locales {
+            let values = try XCTUnwrap(copy.locales[locale]) + [try XCTUnwrap(copy.fixture_labels[locale]?["fallback"])]
+            let app = launchPolish("profile-notice-audit", locale: locale, large: large)
+            let notice = element("settings.profile.notice", app)
+            let next = app.buttons["profileAudit.next"]
+            XCTAssertTrue(notice.waitForExistence(timeout: 10))
+            for (index, expected) in values.enumerated() {
+                for _ in 0..<5 { if !notice.isHittable { app.swipeUp() } }
+                XCTAssertEqual(notice.label, expected, locale)
+                XCTAssertTrue(notice.isHittable)
+                let list = app.collectionViews.firstMatch
+                XCTAssertGreaterThanOrEqual(notice.frame.minY, list.frame.minY)
+                XCTAssertLessThanOrEqual(notice.frame.maxY, list.frame.maxY)
+                capture("profile-" + locale + (large ? "-large-" : "-") + String(index), app)
+                if index < values.count - 1 {
+                    for _ in 0..<5 { if !next.isHittable { app.swipeUp() } }
+                    next.tap()
+                }
+            }
+            let name = app.textFields["profileAudit.name"]
+            XCTAssertEqual(name.value as? String, "Original %lld %@ اسم")
+            app.terminate()
+        }
+    }
+
     func testSavedFiltersUseSelectedLanguage() throws {
         struct Copy: Decodable { let locales: [String: [String]] }
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()

@@ -321,4 +321,9 @@
     <string name="native_117d7d125729" formatted="false">Maintenez un hadith et choisissez Ajouter une note pour conserver vos réflexions ici.</string>
     <string name="native_3043f9fa4d31" formatted="false">Ce dossier est vide</string>
     <string name="native_d251a8332a0e" formatted="false">Déplacez les hadiths enregistrés vers ce dossier depuis leur menu.</string>
+    <string name="native_555c2551ec77" formatted="false">Nom enregistré.</string>
+    <string name="native_0facc6aa83d5" formatted="false">Impossible d’enregistrer votre nom. Réessayez.</string>
+    <string name="native_d6e623ac7380" formatted="false">Le nom d’utilisateur doit contenir au moins 3 caractères.</string>
+    <string name="native_c3d0112b1713" formatted="false">Nom d’utilisateur enregistré.</string>
+    <string name="native_a78d77ebb496" formatted="false">Ce nom d’utilisateur n’est pas disponible.</string>
 </resources>

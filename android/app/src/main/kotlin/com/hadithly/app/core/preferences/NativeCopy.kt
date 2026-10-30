@@ -425,5 +425,10 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "You can undo this action for five seconds from the message at the bottom." -> R.string.saved_removal_undo_message
     "This folder is empty" -> R.string.native_3043f9fa4d31
     "Move saved hadiths into this folder from their menu." -> R.string.native_d251a8332a0e
+    "Name saved." -> R.string.native_555c2551ec77
+    "Could not save your name. Please try again." -> R.string.native_0facc6aa83d5
+    "Usernames need at least 3 characters." -> R.string.native_d6e623ac7380
+    "Username saved." -> R.string.native_c3d0112b1713
+    "That username is not available." -> R.string.native_a78d77ebb496
     else -> null
 }

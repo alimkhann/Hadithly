@@ -25,6 +25,7 @@ struct NativePolishFixtureView: View {
                     case "help-audit": HelpSupportView()
                     case "auth-audit": AuthCopyAuditFixture()
                     case "auth-failure-audit": AuthFailureCopyAuditFixture()
+                    case "profile-notice-audit": ProfileNoticeCopyAuditFixture()
                     case "saved-audit": SavedCopyAuditFixture()
                     case "saved-filters-audit": SavedFiltersCopyAuditFixture()
                     case "reader-translation-settings": ReaderPreferenceDetail(panel: .translation, prefix: "settings")

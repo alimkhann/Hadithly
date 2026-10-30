@@ -1,0 +1,158 @@
+{
+  "source": "docs/a4-profile-notice-copy.json",
+  "native_review": "pending",
+  "locales": {
+    "en": [
+      "Name saved.",
+      "Could not save your name. Please try again.",
+      "Usernames need at least 3 characters.",
+      "Username saved.",
+      "That username is not available."
+    ],
+    "ar": [
+      "تم حفظ الاسم.",
+      "تعذّر حفظ اسمك. يرجى المحاولة مجددًا.",
+      "يجب أن يتكوّن اسم المستخدم من 3 أحرف على الأقل.",
+      "تم حفظ اسم المستخدم.",
+      "اسم المستخدم هذا غير متاح."
+    ],
+    "ru": [
+      "Имя сохранено.",
+      "Не удалось сохранить имя. Попробуйте ещё раз.",
+      "Имя пользователя должно содержать не менее 3 символов.",
+      "Имя пользователя сохранено.",
+      "Это имя пользователя недоступно."
+    ],
+    "kk": [
+      "Атыңыз сақталды.",
+      "Атыңызды сақтау мүмкін болмады. Қайталап көріңіз.",
+      "Пайдаланушы аты кемінде 3 таңбадан тұруы керек.",
+      "Пайдаланушы аты сақталды.",
+      "Бұл пайдаланушы аты қолжетімді емес."
+    ],
+    "ky": [
+      "Атыңыз сакталды.",
+      "Атыңызды сактоо мүмкүн болгон жок. Кайра аракет кылыңыз.",
+      "Колдонуучу аты кеминде 3 белгиден турушу керек.",
+      "Колдонуучу аты сакталды.",
+      "Бул колдонуучу аты жеткиликтүү эмес."
+    ],
+    "uz": [
+      "Ismingiz saqlandi.",
+      "Ismingizni saqlab bo‘lmadi. Qayta urinib ko‘ring.",
+      "Foydalanuvchi nomi kamida 3 ta belgidan iborat bo‘lishi kerak.",
+      "Foydalanuvchi nomi saqlandi.",
+      "Bu foydalanuvchi nomi band."
+    ],
+    "tr": [
+      "Ad kaydedildi.",
+      "Adınız kaydedilemedi. Lütfen tekrar deneyin.",
+      "Kullanıcı adları en az 3 karakter olmalıdır.",
+      "Kullanıcı adı kaydedildi.",
+      "Bu kullanıcı adı kullanılamıyor."
+    ],
+    "id": [
+      "Nama disimpan.",
+      "Nama Anda tidak dapat disimpan. Silakan coba lagi.",
+      "Nama pengguna harus terdiri dari minimal 3 karakter.",
+      "Nama pengguna disimpan.",
+      "Nama pengguna itu tidak tersedia."
+    ],
+    "ur": [
+      "نام محفوظ ہو گیا۔",
+      "آپ کا نام محفوظ نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+      "صارف نام میں کم از کم 3 حروف ہونے چاہئیں۔",
+      "صارف نام محفوظ ہو گیا۔",
+      "یہ صارف نام دستیاب نہیں ہے۔"
+    ],
+    "fr": [
+      "Nom enregistré.",
+      "Impossible d’enregistrer votre nom. Réessayez.",
+      "Le nom d’utilisateur doit contenir au moins 3 caractères.",
+      "Nom d’utilisateur enregistré.",
+      "Ce nom d’utilisateur n’est pas disponible."
+    ],
+    "es-419": [
+      "Nombre guardado.",
+      "No se pudo guardar tu nombre. Inténtalo de nuevo.",
+      "Los nombres de usuario deben tener al menos 3 caracteres.",
+      "Nombre de usuario guardado.",
+      "Ese nombre de usuario no está disponible."
+    ],
+    "pt-BR": [
+      "Nome salvo.",
+      "Não foi possível salvar seu nome. Tente novamente.",
+      "O nome de usuário deve ter pelo menos 3 caracteres.",
+      "Nome de usuário salvo.",
+      "Esse nome de usuário não está disponível."
+    ],
+    "sw": [
+      "Jina limehifadhiwa.",
+      "Jina lako halikuweza kuhifadhiwa. Tafadhali jaribu tena.",
+      "Jina la mtumiaji lazima liwe na angalau herufi 3.",
+      "Jina la mtumiaji limehifadhiwa.",
+      "Jina hilo la mtumiaji halipatikani."
+    ],
+    "hi": [
+      "नाम सहेजा गया।",
+      "आपका नाम सहेजा नहीं जा सका। कृपया फिर से कोशिश करें।",
+      "उपयोगकर्ता नाम में कम से कम 3 अक्षर होने चाहिए।",
+      "उपयोगकर्ता नाम सहेजा गया।",
+      "यह उपयोगकर्ता नाम उपलब्ध नहीं है।"
+    ],
+    "bn": [
+      "নাম সংরক্ষণ করা হয়েছে।",
+      "আপনার নাম সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।",
+      "ব্যবহারকারীর নামে অন্তত 3টি অক্ষর থাকতে হবে।",
+      "ব্যবহারকারীর নাম সংরক্ষণ করা হয়েছে।",
+      "এই ব্যবহারকারীর নামটি উপলব্ধ নয়।"
+    ]
+  },
+  "labels": {
+    "en": {
+      "fallback": "This action could not be completed. Please try again."
+    },
+    "ar": {
+      "fallback": "تعذّر إكمال هذا الإجراء. يرجى المحاولة مجددًا."
+    },
+    "ru": {
+      "fallback": "Не удалось выполнить это действие. Попробуйте ещё раз."
+    },
+    "kk": {
+      "fallback": "Бұл әрекетті аяқтау мүмкін болмады. Қайталап көріңіз."
+    },
+    "ky": {
+      "fallback": "Бул аракетти аяктоо мүмкүн болгон жок. Кайра аракет кылыңыз."
+    },
+    "uz": {
+      "fallback": "Bu amalni bajarib bo‘lmadi. Qayta urinib ko‘ring."
+    },
+    "tr": {
+      "fallback": "Bu işlem tamamlanamadı. Lütfen tekrar deneyin."
+    },
+    "id": {
+      "fallback": "Tindakan ini tidak dapat diselesaikan. Silakan coba lagi."
+    },
+    "ur": {
+      "fallback": "یہ عمل مکمل نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔"
+    },
+    "fr": {
+      "fallback": "Cette action n’a pas pu être effectuée. Réessayez."
+    },
+    "es-419": {
+      "fallback": "No se pudo completar esta acción. Inténtalo de nuevo."
+    },
+    "pt-BR": {
+      "fallback": "Não foi possível concluir esta ação. Tente novamente."
+    },
+    "sw": {
+      "fallback": "Hatua hii haikuweza kukamilika. Tafadhali jaribu tena."
+    },
+    "hi": {
+      "fallback": "यह कार्रवाई पूरी नहीं हो सकी। कृपया दोबारा कोशिश करें।"
+    },
+    "bn": {
+      "fallback": "এই কাজটি সম্পন্ন করা যায়নি। আবার চেষ্টা করুন।"
+    }
+  }
+}

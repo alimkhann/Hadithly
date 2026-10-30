@@ -10,10 +10,11 @@ Their checksums and every research URL are recorded in
 
 ## Current owner continuation, October 31
 
-The bounded Saved localization unit has its local completion record in
-`A4_RUNTIME_LOCALIZATION.md`. Next, repair A4 Settings profile notices using
-`NEXT_SESSION_PROMPT.md`. Then finish this original objective, including remaining
-A4–A7/readiness, unfinished A1/A3 acceptance, E and the final requirement audit. A2 remains wrapped;
+The bounded Saved and Settings profile-notice units have their local completion
+records in `A4_RUNTIME_LOCALIZATION.md`. Next, repair A4 Settings offline-storage
+notices using `NEXT_SESSION_PROMPT.md`. Then finish this original objective,
+including remaining A4–A7/readiness, unfinished A1/A3 acceptance, E and the final
+requirement audit. A2 remains wrapped;
 B/C/D's local completion records and all external gates remain intact. Only after
 this objective is complete, consider the newer goals in `POST_GOAL_BACKLOG.md`.
 Those goals must not replace original acceptance work or expand its scope.

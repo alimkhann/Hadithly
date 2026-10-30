@@ -321,4 +321,9 @@
     <string name="native_117d7d125729" formatted="false">Mantenha um hadith pressionado e escolha Adicionar nota para guardar suas reflexões aqui.</string>
     <string name="native_3043f9fa4d31" formatted="false">Esta pasta está vazia</string>
     <string name="native_d251a8332a0e" formatted="false">Mova os hadiths salvos para esta pasta pelo menu deles.</string>
+    <string name="native_555c2551ec77" formatted="false">Nome salvo.</string>
+    <string name="native_0facc6aa83d5" formatted="false">Não foi possível salvar seu nome. Tente novamente.</string>
+    <string name="native_d6e623ac7380" formatted="false">O nome de usuário deve ter pelo menos 3 caracteres.</string>
+    <string name="native_c3d0112b1713" formatted="false">Nome de usuário salvo.</string>
+    <string name="native_a78d77ebb496" formatted="false">Esse nome de usuário não está disponível.</string>
 </resources>

@@ -321,4 +321,9 @@
     <string name="native_117d7d125729" formatted="false">Hadisni bosib turing va fikrlaringizni shu yerda saqlash uchun Qayd qo‘shish bandini tanlang.</string>
     <string name="native_3043f9fa4d31" formatted="false">Bu jild bo‘sh</string>
     <string name="native_d251a8332a0e" formatted="false">Saqlangan hadislarni ularning menyusi orqali shu jildga ko‘chiring.</string>
+    <string name="native_555c2551ec77" formatted="false">Ismingiz saqlandi.</string>
+    <string name="native_0facc6aa83d5" formatted="false">Ismingizni saqlab bo‘lmadi. Qayta urinib ko‘ring.</string>
+    <string name="native_d6e623ac7380" formatted="false">Foydalanuvchi nomi kamida 3 ta belgidan iborat bo‘lishi kerak.</string>
+    <string name="native_c3d0112b1713" formatted="false">Foydalanuvchi nomi saqlandi.</string>
+    <string name="native_a78d77ebb496" formatted="false">Bu foydalanuvchi nomi band.</string>
 </resources>

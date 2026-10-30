@@ -321,4 +321,9 @@
     <string name="native_117d7d125729" formatted="false">Mantén presionado un hadiz y elige Agregar nota para guardar tus ideas aquí.</string>
     <string name="native_3043f9fa4d31" formatted="false">Esta carpeta está vacía</string>
     <string name="native_d251a8332a0e" formatted="false">Mueve los hadices guardados a esta carpeta desde su menú.</string>
+    <string name="native_555c2551ec77" formatted="false">Nombre guardado.</string>
+    <string name="native_0facc6aa83d5" formatted="false">No se pudo guardar tu nombre. Inténtalo de nuevo.</string>
+    <string name="native_d6e623ac7380" formatted="false">Los nombres de usuario deben tener al menos 3 caracteres.</string>
+    <string name="native_c3d0112b1713" formatted="false">Nombre de usuario guardado.</string>
+    <string name="native_a78d77ebb496" formatted="false">Ese nombre de usuario no está disponible.</string>
 </resources>

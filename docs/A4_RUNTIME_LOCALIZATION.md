@@ -1,6 +1,8 @@
 # A4 runtime localization
 
-## Saved handoff, October 31
+## Saved handoff, October 31, historical
+
+Superseded by the Saved completion section below. Retained as historical evidence.
 
 The current Saved copy/accessibility unit remains uncommitted. Source drafts,
 shared native empty states, filter/preview/Undo copy and focused checks are in the
@@ -820,3 +822,70 @@ actual annual billing total, production/recovery, publication and LA4 gates rema
 open. A2 stays wrapped and B/C/D retain their recorded local completion. No cloud,
 account, credential, paid generation, deployment, migration, publication or push
 is performed by this unit.
+
+## Settings profile notices, October 31
+
+Controlled Arabic fixtures reproduced the English profile notice on both apps.
+The Android renderer also displayed an injected synthetic provider diagnostic.
+The before captures and failed assertions are retained in
+`verification/a4-localization/profile-notices.json`. No profile was saved.
+
+The name and username notices now resolve through the selected UI locale.
+`a4-profile-notice-copy.json` adds five keys across all fifteen locales, with
+native-speaker approval pending. Unknown username failures reuse the indexed
+auth retry draft. Only `form_username_in_use` and `form_identifier_exists` select
+"That username is not available." Android name-save failures always use the fixed
+name retry notice, including absent results. Provider messages never enter that
+assignment. iOS photo notice rendering keeps its earlier plain-string behavior.
+
+The repair changes only notice selection and rendering. Account update arguments,
+name trimming, iOS username lowercasing, busy state and task lifetime are unchanged.
+iOS retains its three-character validation notice. Android retains the disabled
+Save username button below three trimmed characters. Its fixture renders the
+shared validation draft without claiming that the disabled action was invoked.
+
+Both native fixture matrices exercise all six notices in fifteen locales.
+Arabic, Urdu, Russian and Bengali also exercise iOS Accessibility XXXL and an
+Android controlled fontScale of 2.0. Each notice must be fully visible and match
+the expected localized value. The editable opaque name `Original %lld %@ اسم`
+survives every local notice change. These fixtures use the production notice
+renderer, with local controls in place of account callbacks. They do not prove
+actual profile updates, full Profile layout, keyboard behavior or live auth.
+
+The first Android layout assertion used `hasVisualOverflow`. For a short English
+notice, the paragraph retained a 996px layout width while the measured text node
+was 193px wide. The capture showed complete text. The final check measures each
+rendered line, requires the entire expected string and rejects height overflow,
+line limits and ellipsis. No product layout change was needed for that assertion.
+
+Final evidence passes three iOS and three Android cases, including one failure-code
+unit case per platform. Seventeen generator/staging/audit regression checks pass.
+The structural audit with drafts allowed reports zero failures across 486 iOS keys
+and 474 Android resources. Its 29 English-identical Android units remain visible.
+The runtime report retains eleven dynamic and six direct-literal review candidates.
+The capture manifest records 228 final captures and two before captures, with
+18 selected originals committed. Full raw attachments and reports remain under
+`/tmp/hadithly-profile-session-1031`, with hashes in the committed evidence.
+Representative captures on both apps show the full ar/ur/ru/bn large-text notices.
+The native single-line iOS name field truncates visually at Accessibility XXXL;
+its retained value is checked separately. Full input and keyboard acceptance stay
+open.
+
+The native summary, capture manifest, exact commands and preservation report are
+in `verification/a4-localization/profile-notices.json`, `profile-notices/` and
+`profile-notice-preservation.json`. Generator consistency, guarded catalog
+staging and structural checks accompany the native results. Only the five new
+catalog entries are staged. Removing those entries reproduces the incoming
+catalog bytes exactly. All four incoming project/scheme fingerprints and existing
+Android resource bytes are preserved.
+
+Next, take one bounded A4 Settings offline-storage notice unit: temporary-cache
+clearing, pack-removal confirmation and any provider/internal diagnostic that
+reaches those notices. Reproduce first, preserve pack names and local data, and
+use controlled fixtures. Do not start that unit in this session. Remaining A4
+runtime review, native-copy approval, full accessibility, actual account/device,
+A1/A3, A5–A7/readiness, E and the final objective audit remain open. A2 stays wrapped;
+B/C/D retain local completion. All content, store/purchase, annual billing total,
+production, backup/recovery, publication and LA4 gates remain open. The original
+`PRODUCT_PROGRAM.md` still precedes `POST_GOAL_BACKLOG.md`. No cloud, credential,
+paid-model, deployment, migration, publication, external message or push occurred.

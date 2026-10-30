@@ -321,4 +321,9 @@
     <string name="native_117d7d125729" formatted="false">حدیث کو دبا کر رکھیں اور اپنے خیالات یہاں محفوظ کرنے کے لیے نوٹ شامل کریں منتخب کریں۔</string>
     <string name="native_3043f9fa4d31" formatted="false">یہ فولڈر خالی ہے</string>
     <string name="native_d251a8332a0e" formatted="false">محفوظ احادیث کو ان کے مینو سے اس فولڈر میں منتقل کریں۔</string>
+    <string name="native_555c2551ec77" formatted="false">نام محفوظ ہو گیا۔</string>
+    <string name="native_0facc6aa83d5" formatted="false">آپ کا نام محفوظ نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔</string>
+    <string name="native_d6e623ac7380" formatted="false">صارف نام میں کم از کم 3 حروف ہونے چاہئیں۔</string>
+    <string name="native_c3d0112b1713" formatted="false">صارف نام محفوظ ہو گیا۔</string>
+    <string name="native_a78d77ebb496" formatted="false">یہ صارف نام دستیاب نہیں ہے۔</string>
 </resources>

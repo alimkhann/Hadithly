@@ -321,4 +321,9 @@
     <string name="native_117d7d125729" formatted="false">Bonyeza na ushikilie hadithi na uchague Ongeza dokezo ili kuhifadhi mawazo yako hapa.</string>
     <string name="native_3043f9fa4d31" formatted="false">Folda hii haina kitu</string>
     <string name="native_d251a8332a0e" formatted="false">Hamisha hadithi zilizohifadhiwa hadi kwenye folda hii kupitia menyu yake.</string>
+    <string name="native_555c2551ec77" formatted="false">Jina limehifadhiwa.</string>
+    <string name="native_0facc6aa83d5" formatted="false">Jina lako halikuweza kuhifadhiwa. Tafadhali jaribu tena.</string>
+    <string name="native_d6e623ac7380" formatted="false">Jina la mtumiaji lazima liwe na angalau herufi 3.</string>
+    <string name="native_c3d0112b1713" formatted="false">Jina la mtumiaji limehifadhiwa.</string>
+    <string name="native_a78d77ebb496" formatted="false">Jina hilo la mtumiaji halipatikani.</string>
 </resources>

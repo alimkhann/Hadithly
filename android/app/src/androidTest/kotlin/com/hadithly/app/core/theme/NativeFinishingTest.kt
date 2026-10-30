@@ -286,6 +286,49 @@ class NativeFinishingTest {
         }
     }
 
+    @Test fun profileNoticesUseSelectedLanguage() = verifyProfileNotices(false)
+    @Test fun profileNoticesRemainReadableAtLargeText() = verifyProfileNotices(true)
+
+    private fun verifyProfileNotices(large: Boolean) {
+        val copy = org.json.JSONObject(InstrumentationRegistry.getInstrumentation().context.assets.open("a4-profile-notice-copy.json").bufferedReader().use { it.readText() })
+        var locale by mutableStateOf("en")
+        var index by mutableIntStateOf(0)
+        var name by mutableStateOf("Original %lld %@ اسم")
+        compose.setContent { LocalizedPreview(ReaderTheme.LIGHT, locale) {
+            CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, if (large) 2f else 1f)) {
+                Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(16.dp)) {
+                    androidx.compose.material3.OutlinedTextField(name, { name = it }, modifier = Modifier.testTag("profileAudit.name"))
+                    com.hadithly.app.features.settings.ProfileStatusNotice(com.hadithly.app.features.settings.ProfileNotice.entries[index].source)
+                    androidx.compose.material3.Button(onClick = { index = (index + 1) % 6 }, modifier = Modifier.testTag("profileAudit.next")) { androidx.compose.material3.Text("Next fixture notice") }
+                }
+            }
+        } }
+        val locales = if (large) listOf("ar", "ur", "ru", "bn") else listOf("en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn")
+        for (tag in locales) {
+            compose.runOnIdle { locale = tag; index = 0 }
+            val values = copy.getJSONObject("locales").getJSONArray(tag)
+            for (i in 0..5) {
+                val expected = if (i < 5) values.getString(i) else copy.getJSONObject("labels").getJSONObject(tag).getString("fallback")
+                val notice = compose.onNodeWithTag("settings.profile.notice")
+                notice.performScrollTo().assertIsDisplayed().assertTextEquals(expected)
+                val layouts = mutableListOf<androidx.compose.ui.text.TextLayoutResult>()
+                notice.performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.GetTextLayoutResult) { it(layouts) }
+                capture("profile-$tag" + (if (large) "-large-" else "-") + i)
+                val layout = layouts.single()
+                assertFalse("$tag:$i height", layout.didOverflowHeight)
+                assertFalse("$tag:$i lines", layout.multiParagraph.didExceedMaxLines)
+                assertEquals(expected.length, layout.getLineEnd(layout.lineCount - 1))
+                for (line in 0 until layout.lineCount) {
+                    assertFalse("$tag:$i ellipsis", layout.isLineEllipsized(line))
+                    assertTrue("$tag:$i line $line width", layout.getLineRight(line) - layout.getLineLeft(line) <= layout.size.width + 1f)
+                }
+                if (i < 5) compose.onNodeWithTag("profileAudit.next").performScrollTo().performClick()
+            }
+            compose.onNodeWithTag("profileAudit.name").assertTextEquals("Original %lld %@ اسم")
+            compose.runOnIdle { assertEquals("Original %lld %@ اسم", name) }
+        }
+    }
+
     @Test fun savedFiltersUseSelectedLanguage() {
         val copy = org.json.JSONObject(InstrumentationRegistry.getInstrumentation().context.assets.open("a4-saved-filter-copy.json").bufferedReader().use { it.readText() }).getJSONObject("locales")
         var locale by mutableStateOf("en")

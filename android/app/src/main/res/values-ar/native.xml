@@ -321,4 +321,9 @@
     <string name="native_117d7d125729" formatted="false">اضغط مطولًا على حديث واختر إضافة ملاحظة للاحتفاظ بأفكارك هنا.</string>
     <string name="native_3043f9fa4d31" formatted="false">هذا المجلد فارغ</string>
     <string name="native_d251a8332a0e" formatted="false">انقل الأحاديث المحفوظة إلى هذا المجلد من قائمة خياراتها.</string>
+    <string name="native_555c2551ec77" formatted="false">تم حفظ الاسم.</string>
+    <string name="native_0facc6aa83d5" formatted="false">تعذّر حفظ اسمك. يرجى المحاولة مجددًا.</string>
+    <string name="native_d6e623ac7380" formatted="false">يجب أن يتكوّن اسم المستخدم من 3 أحرف على الأقل.</string>
+    <string name="native_c3d0112b1713" formatted="false">تم حفظ اسم المستخدم.</string>
+    <string name="native_a78d77ebb496" formatted="false">اسم المستخدم هذا غير متاح.</string>
 </resources>

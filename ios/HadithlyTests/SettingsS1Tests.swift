@@ -4,6 +4,14 @@ import XCTest
 /// S1 gate: every Settings row resolves to a finished destination, deletion
 /// keeps its separate subscription warning, and export filenames stay stable.
 final class SettingsS1Tests: XCTestCase {
+    func testProfileUsernameFailuresUseCodesAndBoundUnknownDetails() {
+        XCTAssertEqual(ProfileNotice.usernameFailure(code: "form_username_in_use"), .unavailable)
+        XCTAssertEqual(ProfileNotice.usernameFailure(code: "form_identifier_exists"), .unavailable)
+        for code in [nil, "unknown_provider_code", "Private diagnostic %@"] {
+            XCTAssertEqual(ProfileNotice.usernameFailure(code: code), .retry)
+        }
+    }
+
     func testEveryDestinationHasTitleSubtitleIconAndAccessibilityID() {
         for destination in SettingsDestination.allCases {
             XCTAssertFalse(destination.title.isEmpty, destination.rawValue)

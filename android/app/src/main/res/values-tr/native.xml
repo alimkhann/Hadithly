@@ -321,4 +321,9 @@
     <string name="native_117d7d125729" formatted="false">Bir hadise basılı tutup düşüncelerinizi burada saklamak için Not ekle seçeneğini seçin.</string>
     <string name="native_3043f9fa4d31" formatted="false">Bu klasör boş</string>
     <string name="native_d251a8332a0e" formatted="false">Kaydedilen hadisleri menülerinden bu klasöre taşıyın.</string>
+    <string name="native_555c2551ec77" formatted="false">Ad kaydedildi.</string>
+    <string name="native_0facc6aa83d5" formatted="false">Adınız kaydedilemedi. Lütfen tekrar deneyin.</string>
+    <string name="native_d6e623ac7380" formatted="false">Kullanıcı adları en az 3 karakter olmalıdır.</string>
+    <string name="native_c3d0112b1713" formatted="false">Kullanıcı adı kaydedildi.</string>
+    <string name="native_a78d77ebb496" formatted="false">Bu kullanıcı adı kullanılamıyor.</string>
 </resources>

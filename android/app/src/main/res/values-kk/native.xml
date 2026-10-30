@@ -321,4 +321,9 @@
     <string name="native_117d7d125729" formatted="false">Хадисті басып ұстап, ойларыңызды осында сақтау үшін Жазба қосу пәрменін таңдаңыз.</string>
     <string name="native_3043f9fa4d31" formatted="false">Бұл қалта бос</string>
     <string name="native_d251a8332a0e" formatted="false">Сақталған хадистерді олардың мәзірі арқылы осы қалтаға жылжытыңыз.</string>
+    <string name="native_555c2551ec77" formatted="false">Атыңыз сақталды.</string>
+    <string name="native_0facc6aa83d5" formatted="false">Атыңызды сақтау мүмкін болмады. Қайталап көріңіз.</string>
+    <string name="native_d6e623ac7380" formatted="false">Пайдаланушы аты кемінде 3 таңбадан тұруы керек.</string>
+    <string name="native_c3d0112b1713" formatted="false">Пайдаланушы аты сақталды.</string>
+    <string name="native_a78d77ebb496" formatted="false">Бұл пайдаланушы аты қолжетімді емес.</string>
 </resources>

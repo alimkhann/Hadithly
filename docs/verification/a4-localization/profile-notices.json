@@ -1,0 +1,219 @@
+{
+  "date": "2026-10-31",
+  "scope": "Bounded A4 Settings name/username notices. Controlled native fixtures only. Full A4 and external gates remain open.",
+  "native_review": "pending",
+  "locales": [
+    "en",
+    "ar",
+    "ru",
+    "kk",
+    "ky",
+    "uz",
+    "tr",
+    "id",
+    "ur",
+    "fr",
+    "es-419",
+    "pt-BR",
+    "sw",
+    "hi",
+    "bn"
+  ],
+  "notice_count": 6,
+  "new_keys": 5,
+  "reused_key": "This action could not be completed. Please try again.",
+  "ios": {
+    "runs": [
+      {
+        "bundle": "/tmp/hadithly-profile-session-1031/profile-red-ios.xcresult",
+        "result": "Failed",
+        "passedTests": 0,
+        "failedTests": 1,
+        "skippedTests": 0,
+        "startTime": 1793396665.78,
+        "finishTime": 1793396722.502
+      },
+      {
+        "bundle": "/tmp/hadithly-profile-session-1031/profile-green-ios.xcresult",
+        "result": "Passed",
+        "passedTests": 3,
+        "failedTests": 0,
+        "skippedTests": 0,
+        "startTime": 1793396775.788,
+        "finishTime": 1793397135.354
+      }
+    ],
+    "cases": [
+      "SettingsS1Tests/testProfileUsernameFailuresUseCodesAndBoundUnknownDetails",
+      "VisualPolishUITests/testProfileNoticesUseSelectedLanguage",
+      "VisualPolishUITests/testProfileNoticesRemainReadableAtLargeText"
+    ],
+    "device": "Hadithly LA2 iPhone 18 Pro",
+    "os": "iOS 27.0",
+    "simulator": "D47D7363-4705-4767-8617-F47DDB6A3241",
+    "scheme": "LA2Verification",
+    "build": "Debug simulator",
+    "theme": "light",
+    "large_text": "Accessibility XXXL, ar/ur/ru/bn"
+  },
+  "android": {
+    "ui": [
+      {
+        "file": "/tmp/hadithly-profile-session-1031/android-final-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+        "sha256": "7f12e4ab67e325392daa7af5c5edd39b101559c14403468b22d657f963b1a178",
+        "tests": "2",
+        "failures": "0",
+        "errors": "0",
+        "cases": [
+          {
+            "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+            "name": "profileNoticesUseSelectedLanguage",
+            "result": "Passed"
+          },
+          {
+            "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+            "name": "profileNoticesRemainReadableAtLargeText",
+            "result": "Passed"
+          }
+        ]
+      }
+    ],
+    "unit": [
+      {
+        "file": "/Users/alim/Developer/Projects/Apps/Hadithly/android/app/build/test-results/testDebugUnitTest/TEST-com.hadithly.app.SettingsS1Test.xml",
+        "sha256": "54fb8014807608e7b23fdb43e16714f50bb137a5a47f1f7379ab315e0f232449",
+        "tests": "1",
+        "failures": "0",
+        "errors": "0",
+        "cases": [
+          {
+            "class": "com.hadithly.app.SettingsS1Test",
+            "name": "profileFailuresUseCodesAndBoundUnknownDetails",
+            "result": "Passed"
+          }
+        ]
+      }
+    ],
+    "reproduction": [
+      {
+        "file": "/tmp/hadithly-profile-session-1031/android-red-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+        "sha256": "d4bab3267cffde0b0f07983e371bd4ef76519d2dd2a8e996943e8ed7d9c0335c",
+        "tests": "1",
+        "failures": "1",
+        "errors": "0",
+        "cases": [
+          {
+            "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+            "name": "profileNoticeReproduction",
+            "result": "Failed"
+          }
+        ]
+      }
+    ],
+    "prior_invalid_overflow_assertion": [
+      {
+        "file": "/tmp/hadithly-profile-session-1031/android-first-green-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+        "sha256": "ec753359577fc3212b3e20e79b3409d754e63055ef3d298907f4b18ffe6bc2b7",
+        "tests": "2",
+        "failures": "2",
+        "errors": "0",
+        "cases": [
+          {
+            "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+            "name": "profileNoticesUseSelectedLanguage",
+            "result": "Failed"
+          },
+          {
+            "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+            "name": "profileNoticesRemainReadableAtLargeText",
+            "result": "Failed"
+          }
+        ]
+      }
+    ],
+    "layout_diagnostic": [
+      {
+        "file": "/tmp/hadithly-profile-session-1031/android-layout-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+        "sha256": "a26549eb87877a4032eaff415bf34fab395bea0c5ddf675cb11553caa2bb079d",
+        "tests": "1",
+        "failures": "1",
+        "errors": "0",
+        "cases": [
+          {
+            "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+            "name": "profileNoticesUseSelectedLanguage",
+            "result": "Failed"
+          }
+        ]
+      }
+    ],
+    "serial": "emulator-5554",
+    "os": "Android 16",
+    "size": "1080x2400",
+    "build": "debug",
+    "theme": "light",
+    "large_text": "LocalDensity fontScale 2.0, ar/ur/ru/bn; no system setting change"
+  },
+  "state_safeguard": "Opaque editable name Original %lld %@ اسم remains byte-for-byte unchanged after each fixture notice sequence. Actual account callbacks are not invoked.",
+  "behavior_preservation": "Account update calls, input trimming, iOS username lowercasing, busy state, task/cancellation flow and Android short-username disabled state are unchanged by source diff. Full Profile layout and real saves are not claimed.",
+  "reproduction_limit": "Android before fixture injects a synthetic provider diagnostic into the extracted production renderer. The actual raw provider assignment was confirmed in source, without a provider request.",
+  "layout_assertion_correction": "hasVisualOverflow compared retained paragraph width 996px with the short text node width 193px. Final assertions check full text, glyph line widths, no height overflow, no exceeded line limit and no ellipsis. No product layout change.",
+  "structural": {
+    "ios_keys": 486,
+    "android_resources": 474,
+    "ios_failures": 0,
+    "android_failures": 0,
+    "android_english_identical_drafts": 29,
+    "runtime_candidate_counts": {
+      "debug-fixture": 30,
+      "catalog-backed-runtime-unverified": 598,
+      "example-or-symbol-review": 6,
+      "dynamic-review": 11,
+      "direct-literal-review": 6
+    }
+  },
+  "script_checks": {
+    "copy_generator": 4,
+    "catalog_staging": 1,
+    "localization_audit": 12,
+    "total": 17,
+    "result": "Passed"
+  },
+  "capture_counts": {
+    "ios_final": 114,
+    "android_final": 114,
+    "before": 2,
+    "selected_committed": 18
+  },
+  "capture_review": "Reviewed iOS ar/ur/ru/bn large notices and Android ar/ur/ru/bn large notices. Notices fully visible. Standard single-line iOS name input truncates at Accessibility XXXL; its retained value is checked separately. Full input/keyboard acceptance remains open.",
+  "commands": "profile-notices/commands.md",
+  "preservation": "profile-notice-preservation.json",
+  "raw_evidence": "/tmp/hadithly-profile-session-1031",
+  "logs": {
+    "audit-final.log": "c7a30f44af7469b7ee242c86bb898b3fdfcb59da023e95f4cd0132a8b4eb3593",
+    "android-green.log": "9c23fd6e9617b1946a47eeb0e080ebcd4400a29fff2bca0b36ee65c05badaf53",
+    "ios-green.log": "329464a3a4d0d2104cbbbba90495e25ca618ef53198f2ca546a7224121b43dd3",
+    "android-unit.log": "376318c6ef902618a5167e3b420f71b84e2a178e8128735b7515688f41e0ab74",
+    "android-layout-diagnostic.log": "434dadba340764ab7fc566d03d35aeb7f4516d2f56d8c8ee43ee2cfa293acd16",
+    "ios-red.log": "0eabbc2a6bec00b57d43cbc903661df5f6ed565cd5451c5fad2ad6d74f586763",
+    "ios-red-export.log": "566059b2189079b6ba627de8ad2180e3a3c31a8e5e86b0f1910badf8579da0ba",
+    "audit.log": "c7a30f44af7469b7ee242c86bb898b3fdfcb59da023e95f4cd0132a8b4eb3593",
+    "ios-export.log": "91ac41e5810af6bab2ea28bf8551e5de7e790e04b83e0ada94a65aa38841b122",
+    "script-staging-checks.log": "75bec3fb0477d58f96907840af101fb264cda54645aea7caccc3176ada98e6f5",
+    "android-red.log": "3b012288d65fb3a480b0c7769aae2ab751eb62f164d176ffc53dcbf774c392e6",
+    "android-final.log": "dc48dbeb25dcd44057e6a151fdcc0fa85cfbdcf103720a410bf4187c9b3c967a",
+    "script-copy-checks.log": "b1e063398ffffa7b8e0d09f669aa97c0a286e2ea52c95d52d80bf5d7192104a0",
+    "script-audit-checks.log": "22e69128faed2c5b9f76178176222e7a4635dbd31155df18e4fad6455f8ab9ea"
+  },
+  "open_gates": [
+    "Full A4 runtime review",
+    "Exact-copy native-speaker approval",
+    "Full accessibility and actual Settings navigation/keyboard",
+    "Authenticated and physical-device profile updates",
+    "A1/A3 acceptance",
+    "A5-A7/readiness",
+    "E Linear hub and final objective audit",
+    "Existing content, store/purchase, annual total, production, backup/recovery, publication and LA4 gates"
+  ],
+  "continuation": "One bounded A4 offline-storage notice unit. A2 stays wrapped, B/C/D local completion retained. PRODUCT_PROGRAM precedes POST_GOAL_BACKLOG. Stop after this commit without pushing."
+}

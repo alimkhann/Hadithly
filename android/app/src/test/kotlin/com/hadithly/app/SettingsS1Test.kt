@@ -1,5 +1,10 @@
 package com.hadithly.app
 
+import com.clerk.api.network.model.error.ClerkErrorResponse
+import com.clerk.api.network.model.error.Error
+import com.clerk.api.network.serialization.ClerkResult
+import com.hadithly.app.features.settings.ProfileNotice
+import com.hadithly.app.features.settings.profileUsernameFailure
 import com.hadithly.app.features.settings.SettingsDeletionCopy
 import com.hadithly.app.features.settings.SettingsDestination
 import com.hadithly.app.features.settings.SettingsExport
@@ -19,6 +24,18 @@ import org.junit.Test
  * Mirrors iOS SettingsS1Tests.
  */
 class SettingsS1Test {
+    @Test fun profileFailuresUseCodesAndBoundUnknownDetails() {
+        for (code in listOf("form_username_in_use", "form_identifier_exists", "unknown_provider_code")) {
+            val failure = ClerkResult.Failure(error = ClerkErrorResponse(errors = listOf(
+                Error(message = "Synthetic provider diagnostic %@", longMessage = "Private detail", code = code),
+            )))
+            val expected = if (code == "unknown_provider_code") ProfileNotice.RETRY else ProfileNotice.UNAVAILABLE
+            assertEquals(expected, profileUsernameFailure(failure))
+        }
+        assertEquals(ProfileNotice.RETRY, profileUsernameFailure(null))
+        assertEquals(ProfileNotice.RETRY, profileUsernameFailure(ClerkResult.Failure(error = null, throwable = java.io.IOException("Synthetic private detail"))))
+    }
+
 
     @Test
     fun everyDestinationHasTitleSubtitleAndTestTag() {

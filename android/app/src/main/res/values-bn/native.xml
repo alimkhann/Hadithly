@@ -321,4 +321,9 @@
     <string name="native_117d7d125729" formatted="false">হাদিস চেপে ধরে নোট যোগ করুন বেছে নিন, যাতে আপনার ভাবনা এখানে থাকে।</string>
     <string name="native_3043f9fa4d31" formatted="false">এই ফোল্ডার খালি</string>
     <string name="native_d251a8332a0e" formatted="false">সংরক্ষিত হাদিসের মেনু থেকে সেগুলো এই ফোল্ডারে সরান।</string>
+    <string name="native_555c2551ec77" formatted="false">নাম সংরক্ষণ করা হয়েছে।</string>
+    <string name="native_0facc6aa83d5" formatted="false">আপনার নাম সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।</string>
+    <string name="native_d6e623ac7380" formatted="false">ব্যবহারকারীর নামে অন্তত 3টি অক্ষর থাকতে হবে।</string>
+    <string name="native_c3d0112b1713" formatted="false">ব্যবহারকারীর নাম সংরক্ষণ করা হয়েছে।</string>
+    <string name="native_a78d77ebb496" formatted="false">এই ব্যবহারকারীর নামটি উপলব্ধ নয়।</string>
 </resources>

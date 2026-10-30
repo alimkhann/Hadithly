@@ -321,4 +321,9 @@
     <string name="native_117d7d125729" formatted="false">Удерживайте хадис и выберите «Добавить заметку», чтобы сохранить здесь свои мысли.</string>
     <string name="native_3043f9fa4d31" formatted="false">Эта папка пуста</string>
     <string name="native_d251a8332a0e" formatted="false">Переместите сохранённые хадисы в эту папку через их меню.</string>
+    <string name="native_555c2551ec77" formatted="false">Имя сохранено.</string>
+    <string name="native_0facc6aa83d5" formatted="false">Не удалось сохранить имя. Попробуйте ещё раз.</string>
+    <string name="native_d6e623ac7380" formatted="false">Имя пользователя должно содержать не менее 3 символов.</string>
+    <string name="native_c3d0112b1713" formatted="false">Имя пользователя сохранено.</string>
+    <string name="native_a78d77ebb496" formatted="false">Это имя пользователя недоступно.</string>
 </resources>

@@ -20,32 +20,30 @@ used the existing native harness and scoped staging; do not repeat the workflow
 research, setup audit, B/C/D work or the completed Saved matrix without a relevant
 change or failure. No broader client-settings or native-review acceptance is implied.
 
-## Next original-program task: A4 Settings profile notices
+## Next original-program task: A4 Settings offline-storage notices
 
-Verify and repair the Settings profile name/username status notices on both apps.
-This is the next small part of the remaining Settings/evidence error-wrapper work.
+The bounded profile-notice session is complete locally. Read its latest section
+in `A4_RUNTIME_LOCALIZATION.md` and `verification/a4-localization/profile-notices.json`.
+A4 itself remains open. Continue one bounded offline-storage notice unit.
 
-- Inspect `ios/Hadithly/Features/Settings/SettingsDestinations.swift` and
+- Inspect the OfflineStorage destination in
+  `ios/Hadithly/Features/Settings/SettingsDestinations.swift` and
   `android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt`.
-  iOS assigns English strings to dynamic notices. Android's name-save failure
-  can display Clerk's raw provider `errorMessage`; trace the actual rendering
-  before choosing the smallest repair.
-- Reproduce using controlled native fixtures, then route fixed success,
-  validation and failure notices through the selected UI locale. Reuse indexed
-  drafts where correct, preserve opaque user-entered names and existing account,
-  busy, cancellation and validation behavior. Unknown/provider diagnostics need
-  a bounded localized fallback, following the existing auth-error precedent.
-- Verify the changed presentation on both apps across all fifteen UI locales,
-  plus focused RTL/large-text checks and a local callback or state safeguard.
-  Do not save a real profile, sign in, submit credentials or call a provider.
-  Native-speaker approval remains pending against exact copy.
-- Refresh scoped evidence, generator/structural checks and preservation proof;
-  inspect staged and unstaged changes, commit the finished unit without pushing,
-  then stop. Hand off the next specific original-program unit. Do not expand this
-  session to purchase, notification, deletion or evidence wrappers merely because
-  they share the Settings/reader files.
+  Trace temporary-cache clearing, pack-removal confirmations and blocked-reason
+  rendering. Reproduce the English/raw-notice path using controlled fixtures.
+- Localize fixed interface copy and bounded diagnostic fallbacks. Preserve opaque
+  pack names, saved items, reading positions, queue/cancellation and removal
+  behavior. Reuse indexed drafts where correct. Do not clear or remove the owner's
+  actual data, download packs, call providers or expand into purchases, account
+  deletion, notifications or evidence wrappers.
+- Verify all fifteen UI locales on both apps, representative RTL/large text and a
+  local state/callback safeguard. Keep native-speaker review pending and label
+  controlled rendering separately from full Settings or physical-device acceptance.
+- Refresh scoped evidence, generator/structural checks and preservation proof.
+  Inspect both index and worktree. Commit the finished unit without pushing and
+  stop. Keep incoming project/catalog work separate.
 
-After profile notices, continue the remaining A4 Settings/evidence error wrappers
+After offline-storage notices, continue the remaining A4 Settings/evidence error wrappers
 and runtime review in verifiable units. Keep A4 finite and distinguish resource
 structure, controlled rendering, accessibility and native-language approval.
 Then follow the original A5–A7/readiness, A1/A3 and E dependencies and final audit.
@@ -54,8 +52,8 @@ actual E Linear hub remain unfinished.
 
 ## Preserve incoming work and safeguards
 
-The Saved session leaves incoming catalog formatting/extraction differences and
-the four project/scheme files outside its commit. Preserve those bytes. Inspect
+The Saved and profile sessions leave incoming catalog formatting/extraction
+differences and the four project/scheme files outside their commits. Preserve those bytes. Inspect
 the actual next-session status instead of assuming a clean checkout. Keep
 `scripts/__pycache__`, secrets and build outputs out of commits. Use the guarded
 catalog staging helper for any new keys or explicit hash/locale repairs.

@@ -60,14 +60,29 @@ product.
 ## Owner continuation order, October 31
 
 The Saved unit's completion record below supersedes its earlier handoff. Continue
-with A4 Settings profile notices using `NEXT_SESSION_PROMPT.md`, in one bounded
-session. Then complete the original `PRODUCT_PROGRAM.md` objective: remaining A4,
+with one bounded A4 Settings offline-storage notice session using
+`NEXT_SESSION_PROMPT.md`. The profile-notice unit is locally complete as recorded
+below. Then complete the original `PRODUCT_PROGRAM.md` objective: remaining A4,
 A5–A7/readiness, unfinished A1/A3 acceptance, E and the final full-objective audit.
 A2 stays wrapped; retain B/C/D's local completion and all external gates.
 The newer goals come afterward and are recorded in `POST_GOAL_BACKLOG.md`, with
-suggested preparation first. Read `NEXT_SESSION_PROMPT.md` for the exact Saved
+suggested preparation first. Read `NEXT_SESSION_PROMPT.md` for the current bounded
 checklist. Use the new workflow without repeating the setup audit or starting
 an unrelated pilot. This order supersedes the temporary workflow pause below.
+
+## A4 Settings profile notices, October 31
+
+Both native profile-notice renderers now use the selected UI locale. Five new
+fifteen-locale drafts cover name success/failure, username validation/success and
+unavailability. Android no longer displays a raw Clerk name-save diagnostic.
+Known username conflict codes select unavailability; unknown failures reuse the
+localized auth retry draft. Controlled fixtures, focused RTL/large text, synthetic
+SDK-code checks and exact incoming-work preservation are recorded in
+`A4_RUNTIME_LOCALIZATION.md` and `verification/a4-localization/profile-notices.json`.
+Native-speaker review, full A4 and every external gate remain open. A2 stays
+wrapped and B/C/D retain local completion. Next is a bounded A4 offline-storage
+notice unit, then the remaining original `PRODUCT_PROGRAM.md` before the later
+backlog. Stop after committing this profile-notice session without pushing.
 
 ## Workflow checkpoint, October 31
 
