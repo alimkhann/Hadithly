@@ -28,7 +28,7 @@
     <string name="native_58d330f27985">Жеті негізгі хадис жинағына арналған тыныш оқырман. Араб мәтіні дереккөздерінен лицензияланған; AI аудармалары әрдайым белгіленеді.</string>
     <string name="native_61c2709f9d99">AI аудармасы қолжетімсіз · қайта көру</string>
     <string name="native_6a77e7691626">Есеп жеке жіберілді</string>
-    <string name="native_6c6e178ad2a8">Құпиясөздер сәйкес келмейді.</string>
+    <string name="native_6c6e178ad2a8" formatted="false">Құпиясөздер сәйкес келмейді.</string>
     <string name="native_6ef998ee12f7">Қолайлы хадис әлі кэшке сақталған жоқ</string>
     <string name="native_7175517a370b">немесе</string>
     <string name="native_71c7158ec4ea">Кемінде бір мәтін қабаты көрініп тұруы керек.</string>
@@ -296,4 +296,20 @@
     <string name="native_9bbe267eee43" formatted="false">модель қолжетімсіз</string>
     <string name="native_e03c8e3bc5f0" formatted="false">Ағымдағы хадис</string>
     <string name="native_f97dc29342bb" formatted="false">Sunnah.now ағылшынша мәтіні (%s)</string>
+    <string name="native_e649544b2c18" formatted="false">Бұл әрекетті аяқтау мүмкін болмады. Қайталап көріңіз.</string>
+    <string name="native_bc51292ade1f" formatted="false">Құпиясөз қате. Қайталап көріңіз немесе оны қалпына келтіріңіз.</string>
+    <string name="native_3ae6238bbdba" formatted="false">Код қате. Қайталап көріңіз.</string>
+    <string name="native_14b8a6a1513f" formatted="false">Бұл кодтың мерзімі аяқталды. Жаңа код сұраңыз.</string>
+    <string name="native_c8963885a92e" formatted="false">Ұзынырақ құпиясөз қолданыңыз.</string>
+    <string name="native_148022f301c0" formatted="false">Сенімдірек құпиясөз таңдаңыз.</string>
+    <string name="native_70b7249272c4" formatted="false">Басқа құпиясөз таңдаңыз. Бұл құпиясөз деректердің таралуында кездеседі.</string>
+    <string name="native_2b73b51f1f4e" formatted="false">Бұл электрондық пошта немесе пайдаланушы аты қолданылып жатыр. Жүйеге кіріп көріңіз.</string>
+    <string name="native_c89b2e83fcbe" formatted="false">Әрекет тым көп. Біраз күтіп, қайталап көріңіз.</string>
+    <string name="native_481859b689b0" formatted="false">Байланысты тексеріп, қайталап көріңіз.</string>
+    <string name="native_2e1f26571187" formatted="false">Бұл сессияның мерзімі аяқталды. Басынан бастаңыз.</string>
+    <string name="native_a8344c74d8b7" formatted="false">Кіру үшін тағы бір қадам қажет. Басқа кіру тәсілін қолданыңыз.</string>
+    <string name="native_60674257fc54" formatted="false">Бұл идентификатормен аккаунт табылмады. Алдымен аккаунт жасаңыз.</string>
+    <string name="native_ea0752e5687d" formatted="false">Бұл код қолданылған. Жаңа код сұраңыз.</string>
+    <string name="native_0a5150029cc7" formatted="false">Ассаламуғалейкум</string>
+    <string name="native_abbb755ac1ef" formatted="false">Ассаламуғалейкум, %s</string>
 </resources>

@@ -269,7 +269,7 @@ private fun MethodsScreen(
         }
 
         state.errorMessage?.let { message ->
-            ErrorBanner(message = message, modifier = Modifier.padding(top = Spacing.lg))
+            AuthErrorBanner(message = message, modifier = Modifier.padding(top = Spacing.lg))
         }
 
         Spacer(modifier = Modifier.weight(1f))
@@ -336,7 +336,7 @@ private fun PasswordSignInScreen(
         }
 
         state.errorMessage?.let { message ->
-            ErrorBanner(message = message, modifier = Modifier.padding(top = Spacing.lg))
+            AuthErrorBanner(message = message, modifier = Modifier.padding(top = Spacing.lg))
         }
 
         Spacer(modifier = Modifier.weight(1f))
@@ -422,7 +422,7 @@ private fun SignUpScreen(
         LegalLine(modifier = Modifier.padding(top = Spacing.md))
 
         state.errorMessage?.let { message ->
-            ErrorBanner(message = message, modifier = Modifier.padding(top = Spacing.lg))
+            AuthErrorBanner(message = message, modifier = Modifier.padding(top = Spacing.lg))
         }
 
         Spacer(modifier = Modifier.height(Spacing.xl))
@@ -468,7 +468,7 @@ private fun EmailEntryScreen(
         )
 
         state.errorMessage?.let { message ->
-            ErrorBanner(message = message, modifier = Modifier.padding(top = Spacing.lg))
+            AuthErrorBanner(message = message, modifier = Modifier.padding(top = Spacing.lg))
         }
 
         Spacer(modifier = Modifier.weight(1f))
@@ -523,7 +523,7 @@ private fun CodeEntryScreen(
         }
 
         state.errorMessage?.let { message ->
-            ErrorBanner(message = message, modifier = Modifier.padding(top = Spacing.lg))
+            AuthErrorBanner(message = message, modifier = Modifier.padding(top = Spacing.lg))
         }
 
         Spacer(modifier = Modifier.weight(1f))
@@ -569,7 +569,7 @@ private fun ForgotPasswordScreen(
         )
 
         state.errorMessage?.let { message ->
-            ErrorBanner(message = message, modifier = Modifier.padding(top = Spacing.lg))
+            AuthErrorBanner(message = message, modifier = Modifier.padding(top = Spacing.lg))
         }
 
         Spacer(modifier = Modifier.weight(1f))
@@ -631,7 +631,7 @@ private fun ResetPasswordScreen(
         )
 
         state.errorMessage?.let { message ->
-            ErrorBanner(message = message, modifier = Modifier.padding(top = Spacing.lg))
+            AuthErrorBanner(message = message, modifier = Modifier.padding(top = Spacing.lg))
         }
 
         Spacer(modifier = Modifier.weight(1f))
@@ -763,9 +763,9 @@ private fun AccentButton(
 }
 
 @Composable
-private fun ErrorBanner(message: String, modifier: Modifier = Modifier) {
+internal fun AuthErrorBanner(message: String, modifier: Modifier = Modifier) {
     Text(
-        text = message,
+        text = nativeText(AuthFailureMessage.local(message).source),
         color = Color(0xFFFF6B6B),
         fontSize = 14.sp,
         textAlign = TextAlign.Center,

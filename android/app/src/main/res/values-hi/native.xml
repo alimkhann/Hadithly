@@ -28,7 +28,7 @@
     <string name="native_58d330f27985">सात प्रमुख हदीस संग्रहों के लिए शांत रीडर। अरबी पाठ इसके स्रोतों से लाइसेंस प्राप्त है; AI अनुवादों पर हमेशा लेबल लगा होता है।</string>
     <string name="native_61c2709f9d99">AI अनुवाद उपलब्ध नहीं · फिर कोशिश करें</string>
     <string name="native_6a77e7691626">रिपोर्ट निजी रूप से भेजी गई</string>
-    <string name="native_6c6e178ad2a8">पासवर्ड मेल नहीं खाते।</string>
+    <string name="native_6c6e178ad2a8" formatted="false">पासवर्ड मेल नहीं खाते।</string>
     <string name="native_6ef998ee12f7">अभी कोई योग्य हदीस कैश नहीं है</string>
     <string name="native_7175517a370b">या</string>
     <string name="native_71c7158ec4ea">कम से कम एक टेक्स्ट परत दिखाई देती रहनी चाहिए।</string>
@@ -296,4 +296,20 @@
     <string name="native_9bbe267eee43" formatted="false">मॉडल उपलब्ध नहीं है</string>
     <string name="native_e03c8e3bc5f0" formatted="false">मौजूदा हदीस</string>
     <string name="native_f97dc29342bb" formatted="false">Sunnah.now का अंग्रेज़ी पाठ (%s)</string>
+    <string name="native_e649544b2c18" formatted="false">यह कार्रवाई पूरी नहीं हो सकी। कृपया दोबारा कोशिश करें।</string>
+    <string name="native_bc51292ade1f" formatted="false">पासवर्ड गलत है। दोबारा कोशिश करें या उसे रीसेट करें।</string>
+    <string name="native_3ae6238bbdba" formatted="false">यह कोड गलत है। दोबारा कोशिश करें।</string>
+    <string name="native_14b8a6a1513f" formatted="false">इस कोड की समय-सीमा समाप्त हो गई है। नया कोड माँगें।</string>
+    <string name="native_c8963885a92e" formatted="false">लंबा पासवर्ड इस्तेमाल करें।</string>
+    <string name="native_148022f301c0" formatted="false">ज़्यादा मज़बूत पासवर्ड चुनें।</string>
+    <string name="native_70b7249272c4" formatted="false">दूसरा पासवर्ड चुनें। यह पासवर्ड डेटा लीक में पाया गया है।</string>
+    <string name="native_2b73b51f1f4e" formatted="false">यह ईमेल या उपयोगकर्ता नाम पहले से इस्तेमाल हो रहा है। साइन इन करके देखें।</string>
+    <string name="native_c89b2e83fcbe" formatted="false">बहुत अधिक कोशिशें हो चुकी हैं। थोड़ी देर रुककर दोबारा कोशिश करें।</string>
+    <string name="native_481859b689b0" formatted="false">अपना कनेक्शन जाँचें और दोबारा कोशिश करें।</string>
+    <string name="native_2e1f26571187" formatted="false">इस सत्र की समय-सीमा समाप्त हो गई है। कृपया फिर से शुरू करें।</string>
+    <string name="native_a8344c74d8b7" formatted="false">साइन इन के लिए एक और चरण ज़रूरी है। कोई दूसरा तरीका इस्तेमाल करें।</string>
+    <string name="native_60674257fc54" formatted="false">इस पहचान के लिए खाता नहीं मिला। पहले खाता बनाएँ।</string>
+    <string name="native_ea0752e5687d" formatted="false">यह कोड पहले ही इस्तेमाल हो चुका है। कृपया नया कोड माँगें।</string>
+    <string name="native_0a5150029cc7" formatted="false">अस्सलामु अलैकुम</string>
+    <string name="native_abbb755ac1ef" formatted="false">अस्सलामु अलैकुम, %s</string>
 </resources>

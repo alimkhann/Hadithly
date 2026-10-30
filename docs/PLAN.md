@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-10-29. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-10-30. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
 D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its
 simulator/emulator and unit gates; its physical-device gate is open. R4's
@@ -56,6 +56,18 @@ Do not
 start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
+
+## A4 auth-error and greeting checkpoint, October 30
+
+Auth failures now select fixed interface messages from installed Clerk error codes
+or known client states. Unknown responses use a localized retry message; account /
+verification flow branches remain unchanged. Android Today reuses indexed greeting
+drafts, preserving the selected display name. Two iOS, two Android unit and one emulator UI case pass, including all fifteen
+locales. See `A4_RUNTIME_LOCALIZATION.md` for scope and remaining gates.
+No authentication request, environment/configuration or account action is used.
+Continue other Settings/evidence error wrappers, confirmed evidence-intake English
+clones and remaining runtime review, then
+A5–A7/E. Native-review, live auth, physical/store/content/release gates remain open.
 
 ## A4 evidence/search checkpoint, October 29
 

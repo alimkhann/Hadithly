@@ -69,6 +69,32 @@ final class VisualPolishUITests: XCTestCase {
         }
     }
 
+    func testAuthFailureUsesSelectedLanguage() throws {
+        struct Copy: Decodable { let locales: [String: [String]]; let fixture_labels: [String: [String: String]] }
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let copy = try JSONDecoder().decode(Copy.self, from: Data(contentsOf: root.appendingPathComponent("docs/a4-auth-failure-copy.json")))
+        let ids = ["action", "password", "code", "expired", "longer", "stronger", "breached", "existing", "rate", "connection", "session", "step", "missing", "used", "mismatch"]
+        for locale in ["en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn"] {
+            let values = try XCTUnwrap(copy.locales[locale])
+            let greeting = try XCTUnwrap(copy.fixture_labels[locale])
+            let app = launchPolish("auth-failure-audit", locale: locale)
+            let guest = element("authAudit.greetingGuest", app)
+            XCTAssertTrue(guest.waitForExistence(timeout: 10))
+            XCTAssertEqual(guest.label, greeting["greeting_guest"])
+            let expected = String(format: try XCTUnwrap(greeting["greeting_name"]), locale: Locale(identifier: locale), arguments: ["Original %lld %@ اسم"])
+            XCTAssertEqual(withoutDirectionalMarks(element("authAudit.greetingName", app).label), withoutDirectionalMarks(expected))
+            capture("greeting-errors-top-" + locale, app)
+            for (index, id) in ids.enumerated() {
+                let message = element("authAudit.error." + id, app)
+                for _ in 0..<6 { if !message.isHittable { app.swipeUp() } }
+                XCTAssertTrue(message.isHittable)
+                XCTAssertEqual(message.label, values[index])
+            }
+            capture("greeting-errors-bottom-" + locale, app)
+            app.terminate()
+        }
+    }
+
     private struct EvidenceCopyExpectations: Decodable {
         let keys: [String]
         let locales: [String: [String]]

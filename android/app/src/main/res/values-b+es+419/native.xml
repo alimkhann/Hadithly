@@ -28,7 +28,7 @@
     <string name="native_58d330f27985">Un lector tranquilo para las siete grandes colecciones de hadices. El texto árabe tiene licencia de sus fuentes; las traducciones con IA siempre están identificadas.</string>
     <string name="native_61c2709f9d99">Traducción con IA no disponible · reintentar</string>
     <string name="native_6a77e7691626">Informe enviado de forma privada</string>
-    <string name="native_6c6e178ad2a8">Las contraseñas no coinciden.</string>
+    <string name="native_6c6e178ad2a8" formatted="false">Las contraseñas no coinciden.</string>
     <string name="native_6ef998ee12f7">Todavía no hay ningún hadiz apto en caché</string>
     <string name="native_7175517a370b">o</string>
     <string name="native_71c7158ec4ea">Al menos una capa de texto debe permanecer visible.</string>
@@ -296,4 +296,20 @@
     <string name="native_9bbe267eee43" formatted="false">modelo no disponible</string>
     <string name="native_e03c8e3bc5f0" formatted="false">Hadiz actual</string>
     <string name="native_f97dc29342bb" formatted="false">Texto en inglés de Sunnah.now (%s)</string>
+    <string name="native_e649544b2c18" formatted="false">No se pudo completar esta acción. Inténtalo de nuevo.</string>
+    <string name="native_bc51292ade1f" formatted="false">La contraseña es incorrecta. Inténtalo de nuevo o restablécela.</string>
+    <string name="native_3ae6238bbdba" formatted="false">Ese código es incorrecto. Inténtalo de nuevo.</string>
+    <string name="native_14b8a6a1513f" formatted="false">Este código venció. Solicita uno nuevo.</string>
+    <string name="native_c8963885a92e" formatted="false">Usa una contraseña más larga.</string>
+    <string name="native_148022f301c0" formatted="false">Elige una contraseña más segura.</string>
+    <string name="native_70b7249272c4" formatted="false">Elige otra contraseña. Esta aparece en una filtración de datos.</string>
+    <string name="native_2b73b51f1f4e" formatted="false">Ya existe una cuenta con ese correo o nombre de usuario. Intenta iniciar sesión.</string>
+    <string name="native_c89b2e83fcbe" formatted="false">Demasiados intentos. Espera un momento e inténtalo de nuevo.</string>
+    <string name="native_481859b689b0" formatted="false">Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="native_2e1f26571187" formatted="false">Esta sesión venció. Vuelve a empezar.</string>
+    <string name="native_a8344c74d8b7" formatted="false">Se requiere otro paso para iniciar sesión. Usa otro método de inicio de sesión.</string>
+    <string name="native_60674257fc54" formatted="false">No se encontró una cuenta con ese identificador. Primero crea una cuenta.</string>
+    <string name="native_ea0752e5687d" formatted="false">Este código ya se usó. Solicita uno nuevo.</string>
+    <string name="native_0a5150029cc7" formatted="false">As-salamu alaykum</string>
+    <string name="native_abbb755ac1ef" formatted="false">As-salamu alaykum, %s</string>
 </resources>

@@ -11,6 +11,55 @@ extension Error {
     }
 }
 
+enum AuthFailureMessage: String, CaseIterable {
+    case action = "This action could not be completed. Please try again."
+    case password = "The password is incorrect. Try again or reset it."
+    case code = "That code is incorrect. Try again."
+    case expired = "This code has expired. Request a new one."
+    case longer = "Use a longer password."
+    case stronger = "Choose a stronger password."
+    case breached = "Choose a different password. This one appears in a data breach."
+    case existing = "An account already uses that email or username. Try signing in."
+    case rate = "Too many attempts. Wait a moment and try again."
+    case connection = "Check your connection and try again."
+    case session = "This session expired. Please start again."
+    case step = "Another sign-in step is required. Use another sign-in method."
+    case missing = "No account found for that identifier. Create an account first."
+    case used = "This code was already used. Please request a new one."
+    case mismatch = "Passwords do not match."
+
+    static func select(code: String?, status: Int? = nil, network: Bool = false) -> Self {
+        if status == 429 { return .rate }
+        switch code {
+        case "form_password_incorrect": return .password
+        case "form_code_incorrect", "totp_incorrect_code": return .code
+        case "verification_expired": return .expired
+        case "form_password_length_too_short": return .longer
+        case "form_password_not_strong_enough": return .stronger
+        case "form_password_pwned": return .breached
+        case "form_identifier_exists": return .existing
+        case "form_identifier_not_found": return .missing
+        case "too_many_requests", "verification_code_too_many_requests", "verification_code_too_many_attempts": return .rate
+        default: return network ? .connection : .action
+        }
+    }
+
+    static func from(_ error: Error) -> Self {
+        select(code: (error as? ClerkAPIError)?.code,
+               network: error is URLError || (error as NSError).domain == NSURLErrorDomain)
+    }
+
+    static func local(_ source: String) -> Self {
+        if let message = Self(rawValue: source) { return message }
+        switch source {
+        case "The sign-up session expired. Please start again.", "The sign-in session expired. Please start again.", "The reset session expired. Please start again.": return .session
+        case "Sign-in needs another step. This flow is not fully supported yet.", "Sign-in needs another step. Please try again.": return .step
+        case "No account found for that email. Create an account first.": return .missing
+        default: return .action
+        }
+    }
+}
+
 /// Custom sign-in flows (no Clerk hosted UI): Apple via native Sign in with
 /// Apple, Google via the system browser, and email + password for standard
 /// accounts. Sign-up asks for an email and password only; a username is
@@ -228,7 +277,7 @@ struct SignInView: View {
             .padding(.horizontal, 20)
 
             if let errorMessage {
-                ErrorBanner(message: errorMessage)
+                AuthErrorBanner(message: errorMessage)
                     .padding(.horizontal, 20)
                     .padding(.top, 16)
             }
@@ -326,7 +375,7 @@ struct SignInView: View {
             .disabled(isBusy)
 
             if let errorMessage {
-                ErrorBanner(message: errorMessage)
+                AuthErrorBanner(message: errorMessage)
                     .padding(.horizontal, 20)
                     .padding(.top, 16)
             }
@@ -420,7 +469,7 @@ struct SignInView: View {
                     )
 
                     if let errorMessage {
-                        ErrorBanner(message: errorMessage)
+                        AuthErrorBanner(message: errorMessage)
                     }
                 }
                 .padding(.horizontal, 20)
@@ -490,7 +539,7 @@ struct SignInView: View {
             .accessibilityIdentifier("signin.email.send")
 
             if let errorMessage {
-                ErrorBanner(message: errorMessage)
+                AuthErrorBanner(message: errorMessage)
                     .padding(.horizontal, 20)
                     .padding(.top, 16)
             }
@@ -565,7 +614,7 @@ struct SignInView: View {
             .disabled(isBusy)
 
             if let errorMessage {
-                ErrorBanner(message: errorMessage)
+                AuthErrorBanner(message: errorMessage)
                     .padding(.horizontal, 20)
                     .padding(.top, 16)
             }
@@ -627,7 +676,7 @@ struct SignInView: View {
             .disabled(isBusy || normalizedEmail.isEmpty)
 
             if let errorMessage {
-                ErrorBanner(message: errorMessage)
+                AuthErrorBanner(message: errorMessage)
                     .padding(.horizontal, 20)
                     .padding(.top, 16)
             }
@@ -703,7 +752,7 @@ struct SignInView: View {
             .disabled(isBusy || code.count < 6 || newPassword.count < 8)
 
             if let errorMessage {
-                ErrorBanner(message: errorMessage)
+                AuthErrorBanner(message: errorMessage)
                     .padding(.horizontal, 20)
                     .padding(.top, 16)
             }
@@ -1026,19 +1075,34 @@ struct SignInView: View {
     }
     private func present(_ error: Error) {
         onAuthenticationFailure?()
-        if let apiError = error as? ClerkAPIError {
-            errorMessage = apiError.longMessage ?? apiError.errorDescription
-        } else {
-            errorMessage = error.localizedDescription
-        }
+        errorMessage = AuthFailureMessage.from(error).rawValue
     }
 }
 
-private struct ErrorBanner: View {
+#if DEBUG
+struct AuthFailureCopyAuditFixture: View {
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                TodayGreetingText(name: nil)
+                    .accessibilityIdentifier("authAudit.greetingGuest")
+                TodayGreetingText(name: "Original %lld %@ اسم")
+                    .accessibilityIdentifier("authAudit.greetingName")
+                ForEach(AuthFailureMessage.allCases, id: \.self) { message in
+                    AuthErrorBanner(message: message.rawValue)
+                        .accessibilityIdentifier("authAudit.error.\(message)")
+                }
+            }.padding(20)
+        }
+    }
+}
+#endif
+
+struct AuthErrorBanner: View {
     let message: String
 
     var body: some View {
-        Text(message)
+        Text(LocalizedStringKey(AuthFailureMessage.local(message).rawValue))
             .font(.footnote)
             .foregroundStyle(Theme.destructive)
             .multilineTextAlignment(.center)

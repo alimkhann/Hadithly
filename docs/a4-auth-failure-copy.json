@@ -1,0 +1,341 @@
+{
+  "native_review": "pending",
+  "provenance": "Local GPT-family UI drafts selected from structured Clerk error codes or known client states. No auth configuration or requests. Existing mismatch and greeting drafts are reused.",
+  "keys": [
+    "This action could not be completed. Please try again.",
+    "The password is incorrect. Try again or reset it.",
+    "That code is incorrect. Try again.",
+    "This code has expired. Request a new one.",
+    "Use a longer password.",
+    "Choose a stronger password.",
+    "Choose a different password. This one appears in a data breach.",
+    "An account already uses that email or username. Try signing in.",
+    "Too many attempts. Wait a moment and try again.",
+    "Check your connection and try again.",
+    "This session expired. Please start again.",
+    "Another sign-in step is required. Use another sign-in method.",
+    "No account found for that identifier. Create an account first.",
+    "This code was already used. Please request a new one.",
+    "Passwords do not match."
+  ],
+  "locales": {
+    "en": [
+      "This action could not be completed. Please try again.",
+      "The password is incorrect. Try again or reset it.",
+      "That code is incorrect. Try again.",
+      "This code has expired. Request a new one.",
+      "Use a longer password.",
+      "Choose a stronger password.",
+      "Choose a different password. This one appears in a data breach.",
+      "An account already uses that email or username. Try signing in.",
+      "Too many attempts. Wait a moment and try again.",
+      "Check your connection and try again.",
+      "This session expired. Please start again.",
+      "Another sign-in step is required. Use another sign-in method.",
+      "No account found for that identifier. Create an account first.",
+      "This code was already used. Please request a new one.",
+      "Passwords do not match."
+    ],
+    "ar": [
+      "تعذّر إكمال هذا الإجراء. يرجى المحاولة مجددًا.",
+      "كلمة المرور غير صحيحة. أعد المحاولة أو أعد تعيينها.",
+      "الرمز غير صحيح. أعد المحاولة.",
+      "انتهت صلاحية هذا الرمز. اطلب رمزًا جديدًا.",
+      "استخدم كلمة مرور أطول.",
+      "اختر كلمة مرور أقوى.",
+      "اختر كلمة مرور أخرى. ظهرت هذه الكلمة في تسريب بيانات.",
+      "يوجد حساب يستخدم هذا البريد الإلكتروني أو اسم المستخدم. جرّب تسجيل الدخول.",
+      "محاولات كثيرة جدًا. انتظر قليلًا ثم أعد المحاولة.",
+      "تحقّق من اتصالك ثم أعد المحاولة.",
+      "انتهت صلاحية هذه الجلسة. يرجى البدء من جديد.",
+      "يلزم إكمال خطوة أخرى لتسجيل الدخول. استخدم طريقة تسجيل دخول أخرى.",
+      "لم يُعثر على حساب بهذا المعرّف. أنشئ حسابًا أولًا.",
+      "استُخدم هذا الرمز بالفعل. يرجى طلب رمز جديد.",
+      "كلمتا المرور غير متطابقتين."
+    ],
+    "ru": [
+      "Не удалось выполнить это действие. Попробуйте ещё раз.",
+      "Неверный пароль. Попробуйте ещё раз или сбросьте его.",
+      "Неверный код. Попробуйте ещё раз.",
+      "Срок действия кода истёк. Запросите новый.",
+      "Используйте более длинный пароль.",
+      "Выберите более надёжный пароль.",
+      "Выберите другой пароль. Этот пароль встречается в утечке данных.",
+      "Эта почта или имя пользователя уже используются. Попробуйте войти.",
+      "Слишком много попыток. Подождите немного и попробуйте снова.",
+      "Проверьте подключение и попробуйте снова.",
+      "Срок действия сеанса истёк. Начните заново.",
+      "Для входа нужен ещё один шаг. Используйте другой способ входа.",
+      "Аккаунт с таким идентификатором не найден. Сначала создайте аккаунт.",
+      "Этот код уже использован. Запросите новый.",
+      "Пароли не совпадают."
+    ],
+    "kk": [
+      "Бұл әрекетті аяқтау мүмкін болмады. Қайталап көріңіз.",
+      "Құпиясөз қате. Қайталап көріңіз немесе оны қалпына келтіріңіз.",
+      "Код қате. Қайталап көріңіз.",
+      "Бұл кодтың мерзімі аяқталды. Жаңа код сұраңыз.",
+      "Ұзынырақ құпиясөз қолданыңыз.",
+      "Сенімдірек құпиясөз таңдаңыз.",
+      "Басқа құпиясөз таңдаңыз. Бұл құпиясөз деректердің таралуында кездеседі.",
+      "Бұл электрондық пошта немесе пайдаланушы аты қолданылып жатыр. Жүйеге кіріп көріңіз.",
+      "Әрекет тым көп. Біраз күтіп, қайталап көріңіз.",
+      "Байланысты тексеріп, қайталап көріңіз.",
+      "Бұл сессияның мерзімі аяқталды. Басынан бастаңыз.",
+      "Кіру үшін тағы бір қадам қажет. Басқа кіру тәсілін қолданыңыз.",
+      "Бұл идентификатормен аккаунт табылмады. Алдымен аккаунт жасаңыз.",
+      "Бұл код қолданылған. Жаңа код сұраңыз.",
+      "Құпиясөздер сәйкес келмейді."
+    ],
+    "ky": [
+      "Бул аракетти аяктоо мүмкүн болгон жок. Кайра аракет кылыңыз.",
+      "Сырсөз туура эмес. Кайра аракет кылыңыз же аны калыбына келтириңиз.",
+      "Код туура эмес. Кайра аракет кылыңыз.",
+      "Бул коддун мөөнөтү бүттү. Жаңы код сураңыз.",
+      "Узунураак сырсөз колдонуңуз.",
+      "Ишенимдүүрөөк сырсөз тандаңыз.",
+      "Башка сырсөз тандаңыз. Бул сырсөз маалыматтардын сыртка чыгып кетишинде кездешет.",
+      "Бул электрондук почта же колдонуучу аты колдонулуп жатат. Кирип көрүңүз.",
+      "Аракеттер өтө көп болду. Бир аз күтүп, кайра аракет кылыңыз.",
+      "Байланышыңызды текшерип, кайра аракет кылыңыз.",
+      "Бул сессиянын мөөнөтү бүттү. Башынан баштаңыз.",
+      "Кирүү үчүн дагы бир кадам керек. Башка кирүү ыкмасын колдонуңуз.",
+      "Бул идентификатор менен аккаунт табылган жок. Адегенде аккаунт түзүңүз.",
+      "Бул код колдонулган. Жаңы код сураңыз.",
+      "Сырсөздөр дал келбейт."
+    ],
+    "uz": [
+      "Bu amalni bajarib bo‘lmadi. Qayta urinib ko‘ring.",
+      "Parol noto‘g‘ri. Qayta urinib ko‘ring yoki uni tiklang.",
+      "Kod noto‘g‘ri. Qayta urinib ko‘ring.",
+      "Bu kodning muddati tugagan. Yangi kod so‘rang.",
+      "Uzunroq paroldan foydalaning.",
+      "Kuchliroq parol tanlang.",
+      "Boshqa parol tanlang. Bu parol ma’lumotlar sizib chiqishida uchraydi.",
+      "Bu elektron pochta yoki foydalanuvchi nomi allaqachon ishlatilmoqda. Kirib ko‘ring.",
+      "Urinishlar juda ko‘p. Biroz kutib, qayta urinib ko‘ring.",
+      "Ulanishingizni tekshirib, qayta urinib ko‘ring.",
+      "Bu seansning muddati tugagan. Boshidan boshlang.",
+      "Kirish uchun yana bir qadam zarur. Boshqa kirish usulidan foydalaning.",
+      "Bu identifikator bilan hisob topilmadi. Avval hisob yarating.",
+      "Bu kod allaqachon ishlatilgan. Yangi kod so‘rang.",
+      "Parollar mos kelmaydi."
+    ],
+    "tr": [
+      "Bu işlem tamamlanamadı. Lütfen tekrar deneyin.",
+      "Parola yanlış. Tekrar deneyin veya parolayı sıfırlayın.",
+      "Kod yanlış. Tekrar deneyin.",
+      "Bu kodun süresi doldu. Yeni bir kod isteyin.",
+      "Daha uzun bir parola kullanın.",
+      "Daha güçlü bir parola seçin.",
+      "Farklı bir parola seçin. Bu parola bir veri ihlalinde yer alıyor.",
+      "Bu e-posta veya kullanıcı adı zaten kullanılıyor. Oturum açmayı deneyin.",
+      "Çok fazla deneme yapıldı. Biraz bekleyip tekrar deneyin.",
+      "Bağlantınızı kontrol edip tekrar deneyin.",
+      "Bu oturumun süresi doldu. Lütfen baştan başlayın.",
+      "Oturum açmak için başka bir adım gerekiyor. Başka bir oturum açma yöntemi kullanın.",
+      "Bu kimlikle bir hesap bulunamadı. Önce bir hesap oluşturun.",
+      "Bu kod zaten kullanıldı. Lütfen yeni bir kod isteyin.",
+      "Parolalar eşleşmiyor."
+    ],
+    "id": [
+      "Tindakan ini tidak dapat diselesaikan. Silakan coba lagi.",
+      "Kata sandi salah. Coba lagi atau atur ulang kata sandi.",
+      "Kode salah. Coba lagi.",
+      "Kode ini sudah kedaluwarsa. Minta kode baru.",
+      "Gunakan kata sandi yang lebih panjang.",
+      "Pilih kata sandi yang lebih kuat.",
+      "Pilih kata sandi lain. Kata sandi ini ditemukan dalam kebocoran data.",
+      "Email atau nama pengguna ini sudah digunakan. Coba masuk.",
+      "Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.",
+      "Periksa koneksi Anda lalu coba lagi.",
+      "Sesi ini sudah kedaluwarsa. Silakan mulai lagi.",
+      "Diperlukan langkah lain untuk masuk. Gunakan metode masuk lain.",
+      "Tidak ditemukan akun dengan identitas tersebut. Buat akun terlebih dahulu.",
+      "Kode ini sudah digunakan. Silakan minta kode baru.",
+      "Kata sandi tidak cocok."
+    ],
+    "ur": [
+      "یہ عمل مکمل نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+      "پاس ورڈ غلط ہے۔ دوبارہ کوشش کریں یا اسے ری سیٹ کریں۔",
+      "کوڈ غلط ہے۔ دوبارہ کوشش کریں۔",
+      "اس کوڈ کی مدت ختم ہو گئی ہے۔ نیا کوڈ طلب کریں۔",
+      "زیادہ لمبا پاس ورڈ استعمال کریں۔",
+      "زیادہ مضبوط پاس ورڈ منتخب کریں۔",
+      "دوسرا پاس ورڈ منتخب کریں۔ یہ پاس ورڈ ڈیٹا کے افشا میں پایا گیا ہے۔",
+      "یہ ای میل یا صارف نام پہلے سے استعمال ہو رہا ہے۔ سائن اِن کر کے دیکھیں۔",
+      "کوششیں بہت زیادہ ہو گئی ہیں۔ کچھ دیر رک کر دوبارہ کوشش کریں۔",
+      "اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔",
+      "اس سیشن کی مدت ختم ہو گئی ہے۔ براہ کرم دوبارہ شروع کریں۔",
+      "سائن اِن کے لیے ایک اور مرحلہ درکار ہے۔ کوئی دوسرا طریقہ استعمال کریں۔",
+      "اس شناخت کے ساتھ کوئی اکاؤنٹ نہیں ملا۔ پہلے اکاؤنٹ بنائیں۔",
+      "یہ کوڈ پہلے ہی استعمال ہو چکا ہے۔ براہ کرم نیا کوڈ طلب کریں۔",
+      "پاس ورڈز مماثل نہیں۔"
+    ],
+    "fr": [
+      "Cette action n’a pas pu être effectuée. Réessayez.",
+      "Le mot de passe est incorrect. Réessayez ou réinitialisez-le.",
+      "Ce code est incorrect. Réessayez.",
+      "Ce code a expiré. Demandez-en un nouveau.",
+      "Utilisez un mot de passe plus long.",
+      "Choisissez un mot de passe plus sûr.",
+      "Choisissez un autre mot de passe. Celui-ci figure dans une fuite de données.",
+      "Cette adresse e-mail ou ce nom d’utilisateur est déjà utilisé. Essayez de vous connecter.",
+      "Trop de tentatives. Patientez un instant, puis réessayez.",
+      "Vérifiez votre connexion et réessayez.",
+      "Cette session a expiré. Recommencez.",
+      "Une autre étape est nécessaire pour vous connecter. Utilisez une autre méthode.",
+      "Aucun compte ne correspond à cet identifiant. Créez d’abord un compte.",
+      "Ce code a déjà été utilisé. Demandez-en un nouveau.",
+      "Les mots de passe ne correspondent pas."
+    ],
+    "es-419": [
+      "No se pudo completar esta acción. Inténtalo de nuevo.",
+      "La contraseña es incorrecta. Inténtalo de nuevo o restablécela.",
+      "Ese código es incorrecto. Inténtalo de nuevo.",
+      "Este código venció. Solicita uno nuevo.",
+      "Usa una contraseña más larga.",
+      "Elige una contraseña más segura.",
+      "Elige otra contraseña. Esta aparece en una filtración de datos.",
+      "Ya existe una cuenta con ese correo o nombre de usuario. Intenta iniciar sesión.",
+      "Demasiados intentos. Espera un momento e inténtalo de nuevo.",
+      "Revisa tu conexión e inténtalo de nuevo.",
+      "Esta sesión venció. Vuelve a empezar.",
+      "Se requiere otro paso para iniciar sesión. Usa otro método de inicio de sesión.",
+      "No se encontró una cuenta con ese identificador. Primero crea una cuenta.",
+      "Este código ya se usó. Solicita uno nuevo.",
+      "Las contraseñas no coinciden."
+    ],
+    "pt-BR": [
+      "Não foi possível concluir esta ação. Tente novamente.",
+      "A senha está incorreta. Tente novamente ou redefina a senha.",
+      "Esse código está incorreto. Tente novamente.",
+      "Este código expirou. Solicite um novo.",
+      "Use uma senha mais longa.",
+      "Escolha uma senha mais forte.",
+      "Escolha outra senha. Esta aparece em um vazamento de dados.",
+      "Já existe uma conta com esse e-mail ou nome de usuário. Tente entrar.",
+      "Muitas tentativas. Aguarde um momento e tente novamente.",
+      "Verifique sua conexão e tente novamente.",
+      "Esta sessão expirou. Comece novamente.",
+      "É necessária outra etapa para entrar. Use outro método de acesso.",
+      "Nenhuma conta foi encontrada com esse identificador. Crie uma conta primeiro.",
+      "Este código já foi usado. Solicite um novo.",
+      "As senhas não coincidem."
+    ],
+    "sw": [
+      "Hatua hii haikuweza kukamilika. Tafadhali jaribu tena.",
+      "Nenosiri si sahihi. Jaribu tena au uliweke upya.",
+      "Msimbo huo si sahihi. Jaribu tena.",
+      "Muda wa msimbo huu umeisha. Omba mpya.",
+      "Tumia nenosiri refu zaidi.",
+      "Chagua nenosiri imara zaidi.",
+      "Chagua nenosiri tofauti. Hili limeonekana katika uvujaji wa data.",
+      "Barua pepe au jina hili la mtumiaji tayari linatumika. Jaribu kuingia.",
+      "Majaribio ni mengi sana. Subiri kidogo kisha ujaribu tena.",
+      "Angalia muunganisho wako kisha ujaribu tena.",
+      "Muda wa kipindi hiki umeisha. Anza tena.",
+      "Hatua nyingine inahitajika ili kuingia. Tumia njia nyingine ya kuingia.",
+      "Hakuna akaunti iliyopatikana kwa kitambulisho hicho. Fungua akaunti kwanza.",
+      "Msimbo huu umetumika tayari. Tafadhali omba mpya.",
+      "Manenosiri hayalingani."
+    ],
+    "hi": [
+      "यह कार्रवाई पूरी नहीं हो सकी। कृपया दोबारा कोशिश करें।",
+      "पासवर्ड गलत है। दोबारा कोशिश करें या उसे रीसेट करें।",
+      "यह कोड गलत है। दोबारा कोशिश करें।",
+      "इस कोड की समय-सीमा समाप्त हो गई है। नया कोड माँगें।",
+      "लंबा पासवर्ड इस्तेमाल करें।",
+      "ज़्यादा मज़बूत पासवर्ड चुनें।",
+      "दूसरा पासवर्ड चुनें। यह पासवर्ड डेटा लीक में पाया गया है।",
+      "यह ईमेल या उपयोगकर्ता नाम पहले से इस्तेमाल हो रहा है। साइन इन करके देखें।",
+      "बहुत अधिक कोशिशें हो चुकी हैं। थोड़ी देर रुककर दोबारा कोशिश करें।",
+      "अपना कनेक्शन जाँचें और दोबारा कोशिश करें।",
+      "इस सत्र की समय-सीमा समाप्त हो गई है। कृपया फिर से शुरू करें।",
+      "साइन इन के लिए एक और चरण ज़रूरी है। कोई दूसरा तरीका इस्तेमाल करें।",
+      "इस पहचान के लिए खाता नहीं मिला। पहले खाता बनाएँ।",
+      "यह कोड पहले ही इस्तेमाल हो चुका है। कृपया नया कोड माँगें।",
+      "पासवर्ड मेल नहीं खाते।"
+    ],
+    "bn": [
+      "এই কাজটি সম্পন্ন করা যায়নি। আবার চেষ্টা করুন।",
+      "পাসওয়ার্ড ভুল। আবার চেষ্টা করুন বা সেটি রিসেট করুন।",
+      "এই কোডটি ভুল। আবার চেষ্টা করুন।",
+      "এই কোডের মেয়াদ শেষ হয়েছে। নতুন কোড চান।",
+      "আরও লম্বা পাসওয়ার্ড ব্যবহার করুন।",
+      "আরও শক্তিশালী পাসওয়ার্ড বেছে নিন।",
+      "অন্য পাসওয়ার্ড বেছে নিন। এটি একটি ডেটা ফাঁসে পাওয়া গেছে।",
+      "এই ইমেইল বা ব্যবহারকারীর নামে ইতিমধ্যে অ্যাকাউন্ট আছে। সাইন ইন করে দেখুন।",
+      "অনেকবার চেষ্টা করা হয়েছে। কিছুক্ষণ অপেক্ষা করে আবার চেষ্টা করুন।",
+      "আপনার সংযোগ যাচাই করে আবার চেষ্টা করুন।",
+      "এই সেশনের মেয়াদ শেষ হয়েছে। আবার শুরু করুন।",
+      "সাইন ইন করতে আরেকটি ধাপ দরকার। অন্য পদ্ধতি ব্যবহার করুন।",
+      "এই পরিচয়ের জন্য কোনো অ্যাকাউন্ট পাওয়া যায়নি। আগে অ্যাকাউন্ট তৈরি করুন।",
+      "এই কোড আগেই ব্যবহার করা হয়েছে। নতুন কোড চান।",
+      "পাসওয়ার্ড মেলেনি।"
+    ]
+  },
+  "android_test_fixture_asset": "a4-auth-failure-copy.json",
+  "fixture_labels": {
+    "en": {
+      "greeting_guest": "As-salamu alaykum",
+      "greeting_name": "As-salamu alaykum, %@"
+    },
+    "ar": {
+      "greeting_guest": "السلام عليكم",
+      "greeting_name": "السلام عليكم، %@"
+    },
+    "ru": {
+      "greeting_guest": "Ас-саляму алейкум",
+      "greeting_name": "Ас-саляму алейкум, %@"
+    },
+    "kk": {
+      "greeting_guest": "Ассаламуғалейкум",
+      "greeting_name": "Ассаламуғалейкум, %@"
+    },
+    "ky": {
+      "greeting_guest": "Ассаламу алейкум",
+      "greeting_name": "Ассаламу алейкум, %@"
+    },
+    "uz": {
+      "greeting_guest": "Assalomu alaykum",
+      "greeting_name": "Assalomu alaykum, %@"
+    },
+    "tr": {
+      "greeting_guest": "Selamünaleyküm",
+      "greeting_name": "Selamünaleyküm, %@"
+    },
+    "id": {
+      "greeting_guest": "Assalamu’alaikum",
+      "greeting_name": "Assalamu’alaikum, %@"
+    },
+    "ur": {
+      "greeting_guest": "السلام علیکم",
+      "greeting_name": "السلام علیکم، %@"
+    },
+    "fr": {
+      "greeting_guest": "As-salamu alaykum",
+      "greeting_name": "As-salamu alaykum, %@"
+    },
+    "es-419": {
+      "greeting_guest": "As-salamu alaykum",
+      "greeting_name": "As-salamu alaykum, %@"
+    },
+    "pt-BR": {
+      "greeting_guest": "As-salamu alaykum",
+      "greeting_name": "As-salamu alaykum, %@"
+    },
+    "sw": {
+      "greeting_guest": "As-salamu alaykum",
+      "greeting_name": "As-salamu alaykum, %@"
+    },
+    "hi": {
+      "greeting_guest": "अस्सलामु अलैकुम",
+      "greeting_name": "अस्सलामु अलैकुम, %@"
+    },
+    "bn": {
+      "greeting_guest": "আসসালামু আলাইকুম",
+      "greeting_name": "আসসালামু আলাইকুম, %@"
+    }
+  }
+}

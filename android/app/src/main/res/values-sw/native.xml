@@ -28,7 +28,7 @@
     <string name="native_58d330f27985">Msomaji mtulivu wa makusanyo saba makuu ya hadithi. Maandishi ya Kiarabu yana leseni kutoka vyanzo vyake; tafsiri za AI huwekwa alama kila wakati.</string>
     <string name="native_61c2709f9d99">Tafsiri ya AI haipatikani · jaribu tena</string>
     <string name="native_6a77e7691626">Ripoti imetumwa kwa faragha</string>
-    <string name="native_6c6e178ad2a8">Manenosiri hayalingani.</string>
+    <string name="native_6c6e178ad2a8" formatted="false">Manenosiri hayalingani.</string>
     <string name="native_6ef998ee12f7">Hakuna hadithi inayostahiki iliyohifadhiwa bado</string>
     <string name="native_7175517a370b">au</string>
     <string name="native_71c7158ec4ea">Angalau tabaka moja la maandishi lazima libaki linaonekana.</string>
@@ -296,4 +296,20 @@
     <string name="native_9bbe267eee43" formatted="false">modeli haipatikani</string>
     <string name="native_e03c8e3bc5f0" formatted="false">Hadithi ya sasa</string>
     <string name="native_f97dc29342bb" formatted="false">Maandishi ya Kiingereza ya Sunnah.now (%s)</string>
+    <string name="native_e649544b2c18" formatted="false">Hatua hii haikuweza kukamilika. Tafadhali jaribu tena.</string>
+    <string name="native_bc51292ade1f" formatted="false">Nenosiri si sahihi. Jaribu tena au uliweke upya.</string>
+    <string name="native_3ae6238bbdba" formatted="false">Msimbo huo si sahihi. Jaribu tena.</string>
+    <string name="native_14b8a6a1513f" formatted="false">Muda wa msimbo huu umeisha. Omba mpya.</string>
+    <string name="native_c8963885a92e" formatted="false">Tumia nenosiri refu zaidi.</string>
+    <string name="native_148022f301c0" formatted="false">Chagua nenosiri imara zaidi.</string>
+    <string name="native_70b7249272c4" formatted="false">Chagua nenosiri tofauti. Hili limeonekana katika uvujaji wa data.</string>
+    <string name="native_2b73b51f1f4e" formatted="false">Barua pepe au jina hili la mtumiaji tayari linatumika. Jaribu kuingia.</string>
+    <string name="native_c89b2e83fcbe" formatted="false">Majaribio ni mengi sana. Subiri kidogo kisha ujaribu tena.</string>
+    <string name="native_481859b689b0" formatted="false">Angalia muunganisho wako kisha ujaribu tena.</string>
+    <string name="native_2e1f26571187" formatted="false">Muda wa kipindi hiki umeisha. Anza tena.</string>
+    <string name="native_a8344c74d8b7" formatted="false">Hatua nyingine inahitajika ili kuingia. Tumia njia nyingine ya kuingia.</string>
+    <string name="native_60674257fc54" formatted="false">Hakuna akaunti iliyopatikana kwa kitambulisho hicho. Fungua akaunti kwanza.</string>
+    <string name="native_ea0752e5687d" formatted="false">Msimbo huu umetumika tayari. Tafadhali omba mpya.</string>
+    <string name="native_0a5150029cc7" formatted="false">As-salamu alaykum</string>
+    <string name="native_abbb755ac1ef" formatted="false">As-salamu alaykum, %s</string>
 </resources>

@@ -28,7 +28,7 @@
     <string name="native_58d330f27985">Pembaca tenang untuk tujuh koleksi hadis utama. Teks Arab berlisensi dari sumbernya; terjemahan AI selalu diberi label.</string>
     <string name="native_61c2709f9d99">Terjemahan AI tidak tersedia · coba lagi</string>
     <string name="native_6a77e7691626">Laporan dikirim secara pribadi</string>
-    <string name="native_6c6e178ad2a8">Kata sandi tidak cocok.</string>
+    <string name="native_6c6e178ad2a8" formatted="false">Kata sandi tidak cocok.</string>
     <string name="native_6ef998ee12f7">Belum ada hadis yang memenuhi syarat di cache</string>
     <string name="native_7175517a370b">atau</string>
     <string name="native_71c7158ec4ea">Setidaknya satu lapisan teks harus tetap terlihat.</string>
@@ -296,4 +296,20 @@
     <string name="native_9bbe267eee43" formatted="false">model tidak tersedia</string>
     <string name="native_e03c8e3bc5f0" formatted="false">Hadis saat ini</string>
     <string name="native_f97dc29342bb" formatted="false">Teks Inggris Sunnah.now (%s)</string>
+    <string name="native_e649544b2c18" formatted="false">Tindakan ini tidak dapat diselesaikan. Silakan coba lagi.</string>
+    <string name="native_bc51292ade1f" formatted="false">Kata sandi salah. Coba lagi atau atur ulang kata sandi.</string>
+    <string name="native_3ae6238bbdba" formatted="false">Kode salah. Coba lagi.</string>
+    <string name="native_14b8a6a1513f" formatted="false">Kode ini sudah kedaluwarsa. Minta kode baru.</string>
+    <string name="native_c8963885a92e" formatted="false">Gunakan kata sandi yang lebih panjang.</string>
+    <string name="native_148022f301c0" formatted="false">Pilih kata sandi yang lebih kuat.</string>
+    <string name="native_70b7249272c4" formatted="false">Pilih kata sandi lain. Kata sandi ini ditemukan dalam kebocoran data.</string>
+    <string name="native_2b73b51f1f4e" formatted="false">Email atau nama pengguna ini sudah digunakan. Coba masuk.</string>
+    <string name="native_c89b2e83fcbe" formatted="false">Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.</string>
+    <string name="native_481859b689b0" formatted="false">Periksa koneksi Anda lalu coba lagi.</string>
+    <string name="native_2e1f26571187" formatted="false">Sesi ini sudah kedaluwarsa. Silakan mulai lagi.</string>
+    <string name="native_a8344c74d8b7" formatted="false">Diperlukan langkah lain untuk masuk. Gunakan metode masuk lain.</string>
+    <string name="native_60674257fc54" formatted="false">Tidak ditemukan akun dengan identitas tersebut. Buat akun terlebih dahulu.</string>
+    <string name="native_ea0752e5687d" formatted="false">Kode ini sudah digunakan. Silakan minta kode baru.</string>
+    <string name="native_0a5150029cc7" formatted="false">Assalamu’alaikum</string>
+    <string name="native_abbb755ac1ef" formatted="false">Assalamu’alaikum, %s</string>
 </resources>

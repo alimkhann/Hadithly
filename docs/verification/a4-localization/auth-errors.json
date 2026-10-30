@@ -1,0 +1,82 @@
+{
+  "ios": {
+    "runs": [
+      {
+        "bundle": "hadithly-a4-auth-error-red-ios.xcresult",
+        "startTime": 1793284497.525,
+        "result": "Failed",
+        "passedTests": 0,
+        "failedTests": 1,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-auth-error-green-ios.xcresult",
+        "startTime": 1793284757.758,
+        "result": "Passed",
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-auth-error-matrix-ios.xcresult",
+        "startTime": 1793372294.386,
+        "result": "Passed",
+        "passedTests": 2,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      {
+        "bundle": "hadithly-a4-auth-error-visible-ios.xcresult",
+        "startTime": 1793372914.373,
+        "result": "Passed",
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0
+      }
+    ],
+    "latestCases": {
+      "HadithlyUITests/VisualPolishUITests/testAuthFailureUsesSelectedLanguage()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-auth-error-visible-ios.xcresult"
+      },
+      "HadithlyTests/LocalizationCatalogTests/testAuthFailureSelectionUsesCodesAndNeverProviderText()": {
+        "result": "Passed",
+        "bundle": "hadithly-a4-auth-error-matrix-ios.xcresult"
+      }
+    },
+    "latestCounts": {
+      "Passed": 2
+    }
+  },
+  "android": {
+    "unit": {
+      "counts": {
+        "Passed": 2
+      },
+      "cases": {
+        "com.hadithly.app.AuthFailureMessageTest/codesSelectMessagesWithoutProviderText": "Passed",
+        "com.hadithly.app.AuthFailureMessageTest/localStatesAndUnknownDetailsStayBounded": "Passed"
+      },
+      "reports": [
+        {
+          "file": "TEST-com.hadithly.app.AuthFailureMessageTest.xml",
+          "sha256": "c67753c475972abb31ea3a15fcae8e5e513109aa17a3aa5e56f8b77f99f5f802"
+        }
+      ]
+    },
+    "ui": {
+      "counts": {
+        "Passed": 1
+      },
+      "cases": {
+        "com.hadithly.app.core.theme.NativeFinishingTest/authFailureUsesSelectedLanguage": "Passed"
+      },
+      "reports": [
+        {
+          "file": "TEST-hadithly(AVD) - 16-_app-.xml",
+          "sha256": "d87b865c333b08a4c89f5f2725e9bb8e0bb65ef0c4bf5a0b73009f5c3d9c28f5"
+        }
+      ]
+    }
+  }
+}

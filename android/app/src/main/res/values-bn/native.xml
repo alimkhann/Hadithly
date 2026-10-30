@@ -28,7 +28,7 @@
     <string name="native_58d330f27985">সাতটি প্রধান হাদিস সংগ্রহের জন্য শান্ত পাঠক। আরবি লেখা উৎস থেকে লাইসেন্সপ্রাপ্ত; AI অনুবাদে সবসময় লেবেল থাকে।</string>
     <string name="native_61c2709f9d99">AI অনুবাদ উপলব্ধ নয় · আবার চেষ্টা করুন</string>
     <string name="native_6a77e7691626">রিপোর্ট ব্যক্তিগতভাবে পাঠানো হয়েছে</string>
-    <string name="native_6c6e178ad2a8">পাসওয়ার্ড মেলেনি।</string>
+    <string name="native_6c6e178ad2a8" formatted="false">পাসওয়ার্ড মেলেনি।</string>
     <string name="native_6ef998ee12f7">এখনও যোগ্য কোনো হাদিস ক্যাশে নেই</string>
     <string name="native_7175517a370b">অথবা</string>
     <string name="native_71c7158ec4ea">কমপক্ষে একটি লেখা স্তর দৃশ্যমান থাকতে হবে।</string>
@@ -296,4 +296,20 @@
     <string name="native_9bbe267eee43" formatted="false">মডেল পাওয়া যাচ্ছে না</string>
     <string name="native_e03c8e3bc5f0" formatted="false">বর্তমান হাদিস</string>
     <string name="native_f97dc29342bb" formatted="false">Sunnah.now ইংরেজি লেখা (%s)</string>
+    <string name="native_e649544b2c18" formatted="false">এই কাজটি সম্পন্ন করা যায়নি। আবার চেষ্টা করুন।</string>
+    <string name="native_bc51292ade1f" formatted="false">পাসওয়ার্ড ভুল। আবার চেষ্টা করুন বা সেটি রিসেট করুন।</string>
+    <string name="native_3ae6238bbdba" formatted="false">এই কোডটি ভুল। আবার চেষ্টা করুন।</string>
+    <string name="native_14b8a6a1513f" formatted="false">এই কোডের মেয়াদ শেষ হয়েছে। নতুন কোড চান।</string>
+    <string name="native_c8963885a92e" formatted="false">আরও লম্বা পাসওয়ার্ড ব্যবহার করুন।</string>
+    <string name="native_148022f301c0" formatted="false">আরও শক্তিশালী পাসওয়ার্ড বেছে নিন।</string>
+    <string name="native_70b7249272c4" formatted="false">অন্য পাসওয়ার্ড বেছে নিন। এটি একটি ডেটা ফাঁসে পাওয়া গেছে।</string>
+    <string name="native_2b73b51f1f4e" formatted="false">এই ইমেইল বা ব্যবহারকারীর নামে ইতিমধ্যে অ্যাকাউন্ট আছে। সাইন ইন করে দেখুন।</string>
+    <string name="native_c89b2e83fcbe" formatted="false">অনেকবার চেষ্টা করা হয়েছে। কিছুক্ষণ অপেক্ষা করে আবার চেষ্টা করুন।</string>
+    <string name="native_481859b689b0" formatted="false">আপনার সংযোগ যাচাই করে আবার চেষ্টা করুন।</string>
+    <string name="native_2e1f26571187" formatted="false">এই সেশনের মেয়াদ শেষ হয়েছে। আবার শুরু করুন।</string>
+    <string name="native_a8344c74d8b7" formatted="false">সাইন ইন করতে আরেকটি ধাপ দরকার। অন্য পদ্ধতি ব্যবহার করুন।</string>
+    <string name="native_60674257fc54" formatted="false">এই পরিচয়ের জন্য কোনো অ্যাকাউন্ট পাওয়া যায়নি। আগে অ্যাকাউন্ট তৈরি করুন।</string>
+    <string name="native_ea0752e5687d" formatted="false">এই কোড আগেই ব্যবহার করা হয়েছে। নতুন কোড চান।</string>
+    <string name="native_0a5150029cc7" formatted="false">আসসালামু আলাইকুম</string>
+    <string name="native_abbb755ac1ef" formatted="false">আসসালামু আলাইকুম, %s</string>
 </resources>

@@ -2,9 +2,9 @@
   "scope": "Lexical UI-call candidates only. Variable/conditional arguments, custom wrappers, String-backed models, resources and server text still require source and runtime review. Catalog-backed entries are not claimed localized.",
   "counts": {
     "debug-fixture": 24,
-    "catalog-backed-runtime-unverified": 593,
+    "catalog-backed-runtime-unverified": 596,
     "example-or-symbol-review": 6,
-    "dynamic-review": 12,
+    "dynamic-review": 11,
     "direct-literal-review": 6
   },
   "candidates": [
@@ -75,7 +75,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Core/Theme/NativePolishFixtureView.swift",
-      "line": 42,
+      "line": 43,
       "call": "Text",
       "value": "Reading is ready",
       "category": "debug-fixture"
@@ -99,7 +99,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 95,
+      "line": 144,
       "call": "Text",
       "value": "Create account",
       "category": "catalog-backed-runtime-unverified"
@@ -107,7 +107,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 95,
+      "line": 144,
       "call": "Text",
       "value": "Reset password",
       "category": "catalog-backed-runtime-unverified"
@@ -115,7 +115,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 95,
+      "line": 144,
       "call": "Text",
       "value": "Sign in",
       "category": "catalog-backed-runtime-unverified"
@@ -123,7 +123,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 102,
+      "line": 151,
       "call": "Button",
       "value": "Back",
       "category": "catalog-backed-runtime-unverified"
@@ -131,7 +131,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 107,
+      "line": 156,
       "call": "Button",
       "value": "Close",
       "category": "catalog-backed-runtime-unverified"
@@ -139,7 +139,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 146,
+      "line": 195,
       "call": "Text",
       "value": "la2.account_title",
       "category": "catalog-backed-runtime-unverified"
@@ -147,7 +147,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 149,
+      "line": 198,
       "call": "Text",
       "value": "la2.account_body",
       "category": "catalog-backed-runtime-unverified"
@@ -155,7 +155,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 160,
+      "line": 209,
       "call": "Button",
       "value": "Continue with Apple",
       "category": "catalog-backed-runtime-unverified"
@@ -163,7 +163,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 174,
+      "line": 223,
       "call": "Button",
       "value": "Continue with Google",
       "category": "catalog-backed-runtime-unverified"
@@ -171,7 +171,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 182,
+      "line": 231,
       "call": "Text",
       "value": "Google sign-in opens in your browser and returns here.",
       "category": "catalog-backed-runtime-unverified"
@@ -179,7 +179,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 189,
+      "line": 238,
       "call": "Text",
       "value": "or",
       "category": "catalog-backed-runtime-unverified"
@@ -187,7 +187,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 201,
+      "line": 250,
       "call": "Text",
       "value": "Continue with email",
       "category": "catalog-backed-runtime-unverified"
@@ -195,7 +195,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 213,
+      "line": 262,
       "call": "Button",
       "value": "Create account",
       "category": "catalog-backed-runtime-unverified"
@@ -203,7 +203,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 238,
+      "line": 287,
       "call": "Button",
       "value": "Keep reading as a guest",
       "category": "catalog-backed-runtime-unverified"
@@ -211,7 +211,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 254,
+      "line": 303,
       "call": "Text",
       "value": "Welcome back",
       "category": "catalog-backed-runtime-unverified"
@@ -219,7 +219,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 257,
+      "line": 306,
       "call": "Text",
       "value": "Sign in with your email or username.",
       "category": "catalog-backed-runtime-unverified"
@@ -227,7 +227,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 263,
+      "line": 312,
       "call": "TextField",
       "value": "Email or username",
       "category": "catalog-backed-runtime-unverified"
@@ -235,7 +235,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 264,
+      "line": 313,
       "call": "accessibilityLabel",
       "value": "Email or username",
       "category": "catalog-backed-runtime-unverified"
@@ -243,7 +243,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 275,
+      "line": 324,
       "call": "SecureField",
       "value": "Password",
       "category": "catalog-backed-runtime-unverified"
@@ -251,7 +251,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 276,
+      "line": 325,
       "call": "accessibilityLabel",
       "value": "Password",
       "category": "catalog-backed-runtime-unverified"
@@ -259,7 +259,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 295,
+      "line": 344,
       "call": "Text",
       "value": "Sign in",
       "category": "catalog-backed-runtime-unverified"
@@ -267,7 +267,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 310,
+      "line": 359,
       "call": "Button",
       "value": "Forgot password?",
       "category": "catalog-backed-runtime-unverified"
@@ -275,7 +275,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 319,
+      "line": 368,
       "call": "Button",
       "value": "Sign in with a code instead",
       "category": "catalog-backed-runtime-unverified"
@@ -283,7 +283,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 345,
+      "line": 394,
       "call": "Text",
       "value": "Create your account",
       "category": "catalog-backed-runtime-unverified"
@@ -291,7 +291,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 348,
+      "line": 397,
       "call": "Text",
       "value": "Carry your bookmarks and notes across devices.",
       "category": "catalog-backed-runtime-unverified"
@@ -299,7 +299,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 355,
+      "line": 404,
       "call": "TextField",
       "value": "you@example.com",
       "category": "example-or-symbol-review"
@@ -307,7 +307,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 356,
+      "line": 405,
       "call": "accessibilityLabel",
       "value": "Email",
       "category": "catalog-backed-runtime-unverified"
@@ -315,7 +315,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 367,
+      "line": 416,
       "call": "SecureField",
       "value": "Password",
       "category": "catalog-backed-runtime-unverified"
@@ -323,7 +323,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 368,
+      "line": 417,
       "call": "accessibilityLabel",
       "value": "Password",
       "category": "catalog-backed-runtime-unverified"
@@ -331,7 +331,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 378,
+      "line": 427,
       "call": "SecureField",
       "value": "Repeat password",
       "category": "catalog-backed-runtime-unverified"
@@ -339,7 +339,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 379,
+      "line": 428,
       "call": "accessibilityLabel",
       "value": "Repeat password",
       "category": "catalog-backed-runtime-unverified"
@@ -347,7 +347,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 390,
+      "line": 439,
       "call": "Text",
       "value": "Passwords do not match.",
       "category": "catalog-backed-runtime-unverified"
@@ -355,7 +355,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 404,
+      "line": 453,
       "call": "Text",
       "value": "Create account",
       "category": "catalog-backed-runtime-unverified"
@@ -363,7 +363,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 446,
+      "line": 495,
       "call": "Text",
       "value": "What's your email?",
       "category": "catalog-backed-runtime-unverified"
@@ -371,7 +371,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 449,
+      "line": 498,
       "call": "Text",
       "value": "We'll send a six-digit sign-in code.",
       "category": "catalog-backed-runtime-unverified"
@@ -379,7 +379,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 455,
+      "line": 504,
       "call": "TextField",
       "value": "you@example.com",
       "category": "example-or-symbol-review"
@@ -387,7 +387,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 456,
+      "line": 505,
       "call": "accessibilityLabel",
       "value": "Email",
       "category": "catalog-backed-runtime-unverified"
@@ -395,7 +395,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 477,
+      "line": 526,
       "call": "Text",
       "value": "Send code",
       "category": "catalog-backed-runtime-unverified"
@@ -403,7 +403,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 509,
+      "line": 558,
       "call": "Text",
       "value": "Check your email",
       "category": "catalog-backed-runtime-unverified"
@@ -411,7 +411,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 512,
+      "line": 561,
       "call": "Text",
       "value": "Enter the code we sent to \\(email).",
       "category": "dynamic-review"
@@ -419,7 +419,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 519,
+      "line": 568,
       "call": "TextField",
       "value": "000000",
       "category": "example-or-symbol-review"
@@ -427,7 +427,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 520,
+      "line": 569,
       "call": "accessibilityLabel",
       "value": "Verification code",
       "category": "catalog-backed-runtime-unverified"
@@ -435,7 +435,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 544,
+      "line": 593,
       "call": "Text",
       "value": "Verify",
       "category": "catalog-backed-runtime-unverified"
@@ -443,7 +443,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 559,
+      "line": 608,
       "call": "Button",
       "value": "Resend code",
       "category": "catalog-backed-runtime-unverified"
@@ -451,7 +451,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 584,
+      "line": 633,
       "call": "Text",
       "value": "Reset your password",
       "category": "catalog-backed-runtime-unverified"
@@ -459,7 +459,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 587,
+      "line": 636,
       "call": "Text",
       "value": "We'll send a code to your email address.",
       "category": "catalog-backed-runtime-unverified"
@@ -467,7 +467,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 593,
+      "line": 642,
       "call": "TextField",
       "value": "you@example.com",
       "category": "example-or-symbol-review"
@@ -475,7 +475,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 595,
+      "line": 644,
       "call": "accessibilityLabel",
       "value": "Email",
       "category": "catalog-backed-runtime-unverified"
@@ -483,7 +483,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 615,
+      "line": 664,
       "call": "Text",
       "value": "Send code",
       "category": "catalog-backed-runtime-unverified"
@@ -491,7 +491,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 644,
+      "line": 693,
       "call": "Text",
       "value": "Choose a new password",
       "category": "catalog-backed-runtime-unverified"
@@ -499,7 +499,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 647,
+      "line": 696,
       "call": "Text",
       "value": "Enter the code sent to \\(email) and your new password.",
       "category": "dynamic-review"
@@ -507,7 +507,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 654,
+      "line": 703,
       "call": "TextField",
       "value": "000000",
       "category": "example-or-symbol-review"
@@ -515,7 +515,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 656,
+      "line": 705,
       "call": "accessibilityLabel",
       "value": "Verification code",
       "category": "catalog-backed-runtime-unverified"
@@ -523,7 +523,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 670,
+      "line": 719,
       "call": "SecureField",
       "value": "New password",
       "category": "catalog-backed-runtime-unverified"
@@ -531,7 +531,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 672,
+      "line": 721,
       "call": "accessibilityLabel",
       "value": "New password",
       "category": "catalog-backed-runtime-unverified"
@@ -539,7 +539,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 691,
+      "line": 740,
       "call": "Text",
       "value": "Set new password",
       "category": "catalog-backed-runtime-unverified"
@@ -547,7 +547,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 1068,
+      "line": 1132,
       "call": "AppLocalization.string",
       "value": "By continuing, you agree to our %1$@. Read our %2$@.",
       "category": "catalog-backed-runtime-unverified"
@@ -555,7 +555,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 1073,
+      "line": 1137,
       "call": "AppLocalization.string",
       "value": "Terms of Use",
       "category": "catalog-backed-runtime-unverified"
@@ -563,7 +563,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Auth/SignInView.swift",
-      "line": 1073,
+      "line": 1137,
       "call": "AppLocalization.string",
       "value": "Privacy Policy",
       "category": "catalog-backed-runtime-unverified"
@@ -3083,23 +3083,15 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Today/TodayView.swift",
-      "line": 125,
-      "call": "appNavigationTitle",
-      "value": "Today",
+      "line": 84,
+      "call": "AppLocalization.format",
+      "value": "As-salamu alaykum, %@",
       "category": "catalog-backed-runtime-unverified"
     },
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Today/TodayView.swift",
-      "line": 185,
-      "call": "Text",
-      "value": "As-salamu alaykum, \\(username)",
-      "category": "dynamic-review"
-    },
-    {
-      "platform": "ios",
-      "file": "ios/Hadithly/Features/Today/TodayView.swift",
-      "line": 187,
+      "line": 86,
       "call": "Text",
       "value": "As-salamu alaykum",
       "category": "catalog-backed-runtime-unverified"
@@ -3107,7 +3099,15 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Today/TodayView.swift",
-      "line": 214,
+      "line": 137,
+      "call": "appNavigationTitle",
+      "value": "Today",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Today/TodayView.swift",
+      "line": 222,
       "call": "Text",
       "value": "Today's hadith could not load",
       "category": "catalog-backed-runtime-unverified"
@@ -3115,7 +3115,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Today/TodayView.swift",
-      "line": 214,
+      "line": 222,
       "call": "Text",
       "value": "Pull down to try again.",
       "category": "catalog-backed-runtime-unverified"
@@ -3123,7 +3123,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Today/TodayView.swift",
-      "line": 216,
+      "line": 224,
       "call": "QuietEmptyState",
       "value": "Your daily reading",
       "category": "catalog-backed-runtime-unverified"
@@ -3131,7 +3131,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Today/TodayView.swift",
-      "line": 266,
+      "line": 274,
       "call": "AppLocalization.string",
       "value": "Hadith %1$@ of %2$@",
       "category": "catalog-backed-runtime-unverified"
@@ -3139,7 +3139,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Today/TodayView.swift",
-      "line": 268,
+      "line": 276,
       "call": "Text",
       "value": "Not started",
       "category": "catalog-backed-runtime-unverified"
@@ -3147,7 +3147,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Today/TodayView.swift",
-      "line": 391,
+      "line": 399,
       "call": "confirmationDialog",
       "value": "Remove saved item?",
       "category": "catalog-backed-runtime-unverified"
@@ -3155,7 +3155,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Today/TodayView.swift",
-      "line": 392,
+      "line": 400,
       "call": "Button",
       "value": "Remove",
       "category": "catalog-backed-runtime-unverified"
@@ -3163,7 +3163,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Today/TodayView.swift",
-      "line": 393,
+      "line": 401,
       "call": "Button",
       "value": "Remove and don't ask again",
       "category": "catalog-backed-runtime-unverified"
@@ -3171,7 +3171,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Today/TodayView.swift",
-      "line": 394,
+      "line": 402,
       "call": "Button",
       "value": "Cancel",
       "category": "catalog-backed-runtime-unverified"
@@ -3179,7 +3179,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Today/TodayView.swift",
-      "line": 409,
+      "line": 417,
       "call": "Text",
       "value": "Offline",
       "category": "catalog-backed-runtime-unverified"
@@ -3187,7 +3187,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Today/TodayView.swift",
-      "line": 426,
+      "line": 434,
       "call": "Text",
       "value": "No \\(preferences.translationLocale) translation is available yet.",
       "category": "dynamic-review"
@@ -3195,7 +3195,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Today/TodayView.swift",
-      "line": 435,
+      "line": 443,
       "call": "Label",
       "value": "Copy",
       "category": "catalog-backed-runtime-unverified"
@@ -3203,7 +3203,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Today/TodayView.swift",
-      "line": 436,
+      "line": 444,
       "call": "Label",
       "value": "Share",
       "category": "catalog-backed-runtime-unverified"
@@ -3211,7 +3211,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Today/TodayView.swift",
-      "line": 438,
+      "line": 446,
       "call": "Label",
       "value": "Suggest a translation",
       "category": "catalog-backed-runtime-unverified"
@@ -3219,7 +3219,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Today/TodayView.swift",
-      "line": 452,
+      "line": 460,
       "call": "navigationTitle",
       "value": "Note",
       "category": "catalog-backed-runtime-unverified"
@@ -3227,7 +3227,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Today/TodayView.swift",
-      "line": 452,
+      "line": 460,
       "call": "Button",
       "value": "Cancel",
       "category": "catalog-backed-runtime-unverified"
@@ -3235,7 +3235,7 @@
     {
       "platform": "ios",
       "file": "ios/Hadithly/Features/Today/TodayView.swift",
-      "line": 452,
+      "line": 460,
       "call": "Button",
       "value": "Save",
       "category": "catalog-backed-runtime-unverified"
@@ -4987,9 +4987,17 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
-      "line": 201,
+      "line": 111,
       "call": "nativeText",
-      "value": "Bringing today's hadith…",
+      "value": "As-salamu alaykum",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
+      "line": 111,
+      "call": "nativeText",
+      "value": "As-salamu alaykum, %@",
       "category": "catalog-backed-runtime-unverified"
     },
     {
@@ -4997,13 +5005,21 @@
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
       "line": 205,
       "call": "nativeText",
+      "value": "Bringing today's hadith…",
+      "category": "catalog-backed-runtime-unverified"
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
+      "line": 209,
+      "call": "nativeText",
       "value": "Today's hadith could not load",
       "category": "catalog-backed-runtime-unverified"
     },
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
-      "line": 206,
+      "line": 210,
       "call": "nativeText",
       "value": "Try again",
       "category": "catalog-backed-runtime-unverified"
@@ -5011,7 +5027,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
-      "line": 245,
+      "line": 249,
       "call": "nativeText",
       "value": "Hadith %1$@ of %2$@",
       "category": "catalog-backed-runtime-unverified"
@@ -5019,7 +5035,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
-      "line": 246,
+      "line": 250,
       "call": "nativeText",
       "value": "Continue reading",
       "category": "catalog-backed-runtime-unverified"
@@ -5027,7 +5043,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
-      "line": 247,
+      "line": 251,
       "call": "nativeText",
       "value": "Not started",
       "category": "catalog-backed-runtime-unverified"
@@ -5035,7 +5051,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
-      "line": 285,
+      "line": 289,
       "call": "nativeText",
       "value": "Offline",
       "category": "catalog-backed-runtime-unverified"
@@ -5043,7 +5059,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
-      "line": 300,
+      "line": 304,
       "call": "nativeText",
       "value": "No %1$s translation is available yet.",
       "category": "catalog-backed-runtime-unverified"
@@ -5051,7 +5067,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
-      "line": 315,
+      "line": 319,
       "call": "nativeText",
       "value": "Copy",
       "category": "catalog-backed-runtime-unverified"
@@ -5059,7 +5075,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
-      "line": 316,
+      "line": 320,
       "call": "nativeText",
       "value": "Share",
       "category": "catalog-backed-runtime-unverified"
@@ -5067,7 +5083,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
-      "line": 317,
+      "line": 321,
       "call": "nativeText",
       "value": "Suggest translation",
       "category": "catalog-backed-runtime-unverified"
@@ -5075,7 +5091,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
-      "line": 320,
+      "line": 324,
       "call": "nativeText",
       "value": "Remove saved item?",
       "category": "catalog-backed-runtime-unverified"
@@ -5083,7 +5099,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
-      "line": 320,
+      "line": 324,
       "call": "nativeText",
       "value": "You can undo this action from the message at the top.",
       "category": "catalog-backed-runtime-unverified"
@@ -5091,7 +5107,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
-      "line": 320,
+      "line": 324,
       "call": "nativeText",
       "value": "Remove",
       "category": "catalog-backed-runtime-unverified"
@@ -5099,7 +5115,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
-      "line": 320,
+      "line": 324,
       "call": "nativeText",
       "value": "Remove and don't ask again",
       "category": "catalog-backed-runtime-unverified"
@@ -5107,7 +5123,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
-      "line": 320,
+      "line": 324,
       "call": "nativeText",
       "value": "Cancel",
       "category": "catalog-backed-runtime-unverified"
@@ -5115,7 +5131,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
-      "line": 330,
+      "line": 334,
       "call": "nativeText",
       "value": "Note",
       "category": "catalog-backed-runtime-unverified"
@@ -5123,7 +5139,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
-      "line": 330,
+      "line": 334,
       "call": "nativeText",
       "value": "Save",
       "category": "catalog-backed-runtime-unverified"
@@ -5131,7 +5147,7 @@
     {
       "platform": "android",
       "file": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
-      "line": 330,
+      "line": 334,
       "call": "nativeText",
       "value": "Cancel",
       "category": "catalog-backed-runtime-unverified"

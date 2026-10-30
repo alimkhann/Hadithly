@@ -393,5 +393,21 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "model unavailable" -> R.string.native_9bbe267eee43
     "Current hadith" -> R.string.native_e03c8e3bc5f0
     "Sunnah.now English (%@)" -> R.string.native_f97dc29342bb
+    "This action could not be completed. Please try again." -> R.string.native_e649544b2c18
+    "The password is incorrect. Try again or reset it." -> R.string.native_bc51292ade1f
+    "That code is incorrect. Try again." -> R.string.native_3ae6238bbdba
+    "This code has expired. Request a new one." -> R.string.native_14b8a6a1513f
+    "Use a longer password." -> R.string.native_c8963885a92e
+    "Choose a stronger password." -> R.string.native_148022f301c0
+    "Choose a different password. This one appears in a data breach." -> R.string.native_70b7249272c4
+    "An account already uses that email or username. Try signing in." -> R.string.native_2b73b51f1f4e
+    "Too many attempts. Wait a moment and try again." -> R.string.native_c89b2e83fcbe
+    "Check your connection and try again." -> R.string.native_481859b689b0
+    "This session expired. Please start again." -> R.string.native_2e1f26571187
+    "Another sign-in step is required. Use another sign-in method." -> R.string.native_a8344c74d8b7
+    "No account found for that identifier. Create an account first." -> R.string.native_60674257fc54
+    "This code was already used. Please request a new one." -> R.string.native_ea0752e5687d
+    "As-salamu alaykum" -> R.string.native_0a5150029cc7
+    "As-salamu alaykum, %@" -> R.string.native_abbb755ac1ef
     else -> null
 }

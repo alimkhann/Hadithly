@@ -1,0 +1,332 @@
+[
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-bottom-ar.png",
+    "sha256": "5d6f78c58b4fb7bdec7f026290d694bb2e92dd489cccf7f3319bfcc06ef88862"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-bottom-bn.png",
+    "sha256": "72eeb7166a8ccbf41f43888f234e754d7658bf0aed976114ca1422bdd12b0f9e"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-bottom-en.png",
+    "sha256": "8ad3b5b26fe41eee9c284c372cd6919409f4533be4902e7f96918f4d3a2976c6"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-bottom-es-419.png",
+    "sha256": "98b3813cd83c71346c1bf4fc1d2929e38aac0e80744febcb5ca73ffbc07965cb"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-bottom-fr.png",
+    "sha256": "df67718a712197f5e237c7eb51975d4b3ed66be0a40f6fa0e589b85fec5c3fb0"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-bottom-hi.png",
+    "sha256": "d282cf6618d899076288514185ce4d058bdd284feca51afd962a7355e5dbf110"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-bottom-id.png",
+    "sha256": "ddac4b2a6418acc4540aea950eecbefaa9bfc32174736b2f988e94b596706c6c"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-bottom-kk.png",
+    "sha256": "1a1ec1a1302289db2e4576ed7ba0f2c9f22efc2c2493f8a4176a5c53ddc1c5ee"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-bottom-ky.png",
+    "sha256": "e7a22511aa89db4826ff1ba376e1571e1380f71cf089f882fea1d792052abd29"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-bottom-pt-BR.png",
+    "sha256": "b796e15c5ed39542a7c8907b9ac5148d38a902538f591f6ac52074df7a15ec3c"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-bottom-ru.png",
+    "sha256": "6802256a5f6d81bb35336ea73960a30e08c2920464740d2715856117a865d548"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-bottom-sw.png",
+    "sha256": "c0d79f8c0128a9d3d0a65f49b103060c95f408910215d13415a50f3534132329"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-bottom-tr.png",
+    "sha256": "aecd93647b474aaedf5d186ca5ac9bc94af7fbb184cf181d5e3b2be7336415e4"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-bottom-ur.png",
+    "sha256": "90eee8f0d53885ad8e83780bf80ee7bf162e532e0c6394d5ba2c1778e52fc8bc"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-bottom-uz.png",
+    "sha256": "bcecdf5511c5fe1828d755cfbd53d3afed484f4e24d2987599ecb49e3d5c2834"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-top-ar.png",
+    "sha256": "b64964761051b6ff07413126da24b263bfe63c74e5c0f5c2e4805f09fd2f4462"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-top-bn.png",
+    "sha256": "72eeb7166a8ccbf41f43888f234e754d7658bf0aed976114ca1422bdd12b0f9e"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-top-en.png",
+    "sha256": "3e1189bf2627ea0b0226ededac59526ff6d4c618615a546e0beebce739e81ea4"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-top-es-419.png",
+    "sha256": "285272eaeaa45628cb42acac43e6e1997cd36419f3723896c58c5e45cf55eb67"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-top-fr.png",
+    "sha256": "d6fbd444e37ffe84a0a007bb3726101345bfed07a264f268471a7abf9973bdb0"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-top-hi.png",
+    "sha256": "c46e47598b5bb304bb22d48e3dc3c6ed1784769c338f9790381bb27a379b1cba"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-top-id.png",
+    "sha256": "706dc4f6cf1e030d64a796a4a54eb24fda2fec9aa9eabad4805c337ebce4f5e6"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-top-kk.png",
+    "sha256": "6c5a007640099700a8a1aa79c93419367b82f17ce1a509e48b29adb021301fb5"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-top-ky.png",
+    "sha256": "1eea1f8385e2b4c57dfae9e509c04dcccf9b26355c75fcac7002b7b0cb11a345"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-top-pt-BR.png",
+    "sha256": "274942de5de800931a3a31934b7327413607c940231f3f1d0ea0f0642b6281c8"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-top-ru.png",
+    "sha256": "3144215e579534de5515042fc4d6351b10cec0c78065ddc2dea2dbcdbee5992c"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-top-sw.png",
+    "sha256": "a12f75c88a1d175c315b3b67859ac2683be2d06b0e0ad3c7cd047807a37f297a"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-top-tr.png",
+    "sha256": "4bc4d0262881363306ff8a0655028ed2864936e35930c1b1ab9c763ddbda7232"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-top-ur.png",
+    "sha256": "90eee8f0d53885ad8e83780bf80ee7bf162e532e0c6394d5ba2c1778e52fc8bc"
+  },
+  {
+    "platform": "android",
+    "name": "android-greeting-errors-top-uz.png",
+    "sha256": "bcecdf5511c5fe1828d755cfbd53d3afed484f4e24d2987599ecb49e3d5c2834"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-bottom-bn.png",
+    "sha256": "643000d496f747dc2171dbd161fbc66ca39227c58ad645b2bd29acd528468fb7",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-top-bn.png",
+    "sha256": "01f03f95e4a1d775c4fab773d16a8fea3ebe67a421e10bd84297bcca7bf0f7d2",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-bottom-hi.png",
+    "sha256": "0e025bcc0f71dc1a918a054618b86f0f91dfe00fdd5186d8e94db646260feca9",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-top-hi.png",
+    "sha256": "6540d6341651abdd4390997b5c7c0de031845474b60cdabf9a6f8ce135314620",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-bottom-sw.png",
+    "sha256": "9bae24866536aa5b918603af48afff98a55df860fc8e7a4196fe873df47efb7d",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-top-sw.png",
+    "sha256": "324b84229f92605f5326257c054eaae37a34670554afb3c5746ce7ed9d5c6a7f",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-bottom-pt-BR.png",
+    "sha256": "16205e09d45a6aea2882ce982b8c62ec3fd2da7aaa950699c5820b16db10a6ec",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-top-pt-BR.png",
+    "sha256": "de37b7bf1eff23a0ce439d866a677022398f3fe0bb0992531f6a3635a5e80f53",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-bottom-es-419.png",
+    "sha256": "d6c80791367f65a00d485e8fcebc62e86036a1a49e299ba4af987daf5c81b30b",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-top-es-419.png",
+    "sha256": "b36f8ca0ffdc929502a3ab044fa2f01fc095513f6d6feb050b63e68991f2f16f",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-bottom-fr.png",
+    "sha256": "eec17ac682a8768a99535796a7c8a49d8fca1cdcfd956618089ea1cb8e1a92fd",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-top-fr.png",
+    "sha256": "e262b7cdb9d7c22efa572dd348c21c5609d5f1fb393a92f3beb72709409ba4e9",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-bottom-ur.png",
+    "sha256": "b4a62d664b2804e08628976335fc76b97cdaebda55d7e473f00e3bcec1a88815",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-top-ur.png",
+    "sha256": "e27489db3d18d222ef633ddbb29555c6101ca5f4713bbce9fb065ae72548551d",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-bottom-id.png",
+    "sha256": "be96df6b1205a44e920c4f3c200a6c13f25865a3da44b11ab9025997d3e74408",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-top-id.png",
+    "sha256": "af005f675e19f7c75de3b3939b34ce6aec856d5dd95783a51519b41bee24b1e1",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-bottom-tr.png",
+    "sha256": "cf2e7a906a41887856c142de6756a50c5a92684fdc63ba3f5e0d9a363487f4bd",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-top-tr.png",
+    "sha256": "3a1099d26949eb8cd7b783e09a44c14c4ef1f93b9f043a34e6c91b6147be3660",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-bottom-uz.png",
+    "sha256": "c5b1bed125d312ac96b2195b55a0696afe2bfd96a5b43df7f6f6961624673ea1",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-top-uz.png",
+    "sha256": "846264cef8255491495b087501d95a4ca410ee2f0df64c31b4b9025f292ca1d4",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-bottom-ky.png",
+    "sha256": "67f17180869a1ce01d46fbdd7db71e84a2cbda76573350d697f044b21455a774",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-top-ky.png",
+    "sha256": "5620b432c5f46ddb3b89536368925da91ac02dc37e10981bed4a832d5b8bf85c",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-bottom-kk.png",
+    "sha256": "16efa78a39dda60864219c6dc811709ba7b74279302dbfadebb2222190c4cc2d",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-top-kk.png",
+    "sha256": "a700df1fdc957cb4e100ff966a6bad82f34a43eeb437e375b4c90271cab3e4d0",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-bottom-ru.png",
+    "sha256": "c6eb909d8e072809d4ef9660113a51ec1a4b9f506e3ab6d021f6ef2215a898db",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-top-ru.png",
+    "sha256": "4eae565af81e4528337c6c0eae8f818fa345f6771ba582ba4efea584d29349af",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-bottom-ar.png",
+    "sha256": "1eeea57dce31cf0e317597430f8ced2cd3efdfb350e7076d4953dfe0267015cb",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-top-ar.png",
+    "sha256": "088602330f9296ce08fb10e3081ed285ae06d84745c7c124dbf8e50ea0d699be",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-bottom-en.png",
+    "sha256": "8295536be30ccb1d6cbdf8ada8da51001c6d063fa3c02110006dcca250ed40f9",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  },
+  {
+    "platform": "ios",
+    "name": "ios-greeting-errors-top-en.png",
+    "sha256": "07564b6c8ce05f5688fdfff54dd1eae848f1e865656a944c35202b805c9fca52",
+    "scope": "Each error scrolled to hittable before exact comparison"
+  }
+]

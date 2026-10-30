@@ -23,6 +23,51 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+internal enum class AuthFailureMessage(val source: String) {
+    ACTION("This action could not be completed. Please try again."),
+    PASSWORD("The password is incorrect. Try again or reset it."),
+    CODE("That code is incorrect. Try again."),
+    EXPIRED("This code has expired. Request a new one."),
+    LONGER("Use a longer password."),
+    STRONGER("Choose a stronger password."),
+    BREACHED("Choose a different password. This one appears in a data breach."),
+    EXISTING("An account already uses that email or username. Try signing in."),
+    RATE("Too many attempts. Wait a moment and try again."),
+    CONNECTION("Check your connection and try again."),
+    SESSION("This session expired. Please start again."),
+    STEP("Another sign-in step is required. Use another sign-in method."),
+    MISSING("No account found for that identifier. Create an account first."),
+    USED("This code was already used. Please request a new one."),
+    MISMATCH("Passwords do not match.");
+
+    companion object {
+        fun select(code: String?, status: Int? = null, network: Boolean = false): AuthFailureMessage {
+            if (status == 429) return RATE
+            return when (code) {
+                "form_password_incorrect" -> PASSWORD
+                "form_code_incorrect", "totp_incorrect_code" -> CODE
+                "verification_expired" -> EXPIRED
+                "form_password_length_too_short" -> LONGER
+                "form_password_not_strong_enough" -> STRONGER
+                "form_password_pwned" -> BREACHED
+                "form_identifier_exists" -> EXISTING
+                "form_identifier_not_found" -> MISSING
+                "too_many_requests", "verification_code_too_many_requests", "verification_code_too_many_attempts" -> RATE
+                else -> if (network) CONNECTION else ACTION
+            }
+        }
+        fun from(failure: ClerkResult.Failure<com.clerk.api.network.model.error.ClerkErrorResponse>): AuthFailureMessage =
+            select(failure.error?.errors?.firstOrNull()?.code, failure.code, failure.throwable is java.io.IOException)
+
+        fun local(source: String): AuthFailureMessage = entries.firstOrNull { it.source == source } ?: when (source) {
+            "The sign-up session expired. Please start again.", "The sign-in session expired. Please start again.", "The reset session expired. Please start again." -> SESSION
+            "Sign-in needs another step. This flow is not fully supported yet.", "Sign-in needs another step. Please try again." -> STEP
+            "No account found for that email. Create an account first." -> MISSING
+            else -> ACTION
+        }
+    }
+}
+
 enum class SignInMode {
     METHODS,
     PASSWORD_SIGN_IN,
@@ -188,7 +233,7 @@ class SignInViewModel : ViewModel() {
                                 errorMessage = "No account found for that identifier. Create an account first.",
                             )
                         } else {
-                            it.copy(isBusy = false, errorMessage = failure.errorMessage)
+                            it.copy(isBusy = false, errorMessage = AuthFailureMessage.from(failure).source)
                         }
                     }
                 }
@@ -413,7 +458,7 @@ class SignInViewModel : ViewModel() {
             Clerk.auth.setActive(sessionId = createdSessionId)
                 .onSuccess { _state.update { it.copy(isBusy = false, flowComplete = true, completedCreation = created) } }
                 .onFailure { failure ->
-                    _state.update { it.copy(isBusy = false, errorMessage = failure.errorMessage) }
+                    _state.update { it.copy(isBusy = false, errorMessage = AuthFailureMessage.from(failure).source) }
                 }
         }
     }
@@ -442,7 +487,7 @@ class SignInViewModel : ViewModel() {
     }
 
     private fun presentError(failure: ClerkResult.Failure<com.clerk.api.network.model.error.ClerkErrorResponse>) {
-        _state.update { it.copy(isBusy = false, errorMessage = failure.errorMessage) }
+        _state.update { it.copy(isBusy = false, errorMessage = AuthFailureMessage.from(failure).source) }
     }
 
     private fun ClerkResult.Failure<com.clerk.api.network.model.error.ClerkErrorResponse>.isAccountMissing(): Boolean =

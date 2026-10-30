@@ -28,7 +28,7 @@
     <string name="native_58d330f27985">Yetti asosiy hadis to‘plami uchun sokin o‘quvchi. Arabcha matn manbalaridan litsenziyalangan; SI tarjimalari doim belgilanadi.</string>
     <string name="native_61c2709f9d99">SI tarjimasi mavjud emas · qayta urinish</string>
     <string name="native_6a77e7691626">Hisobot maxfiy yuborildi</string>
-    <string name="native_6c6e178ad2a8">Parollar mos kelmaydi.</string>
+    <string name="native_6c6e178ad2a8" formatted="false">Parollar mos kelmaydi.</string>
     <string name="native_6ef998ee12f7">Yaroqli hadis hali keshga saqlanmagan</string>
     <string name="native_7175517a370b">yoki</string>
     <string name="native_71c7158ec4ea">Kamida bitta matn qatlami ko‘rinib turishi kerak.</string>
@@ -296,4 +296,20 @@
     <string name="native_9bbe267eee43" formatted="false">model mavjud emas</string>
     <string name="native_e03c8e3bc5f0" formatted="false">Joriy hadis</string>
     <string name="native_f97dc29342bb" formatted="false">Sunnah.now inglizcha matni (%s)</string>
+    <string name="native_e649544b2c18" formatted="false">Bu amalni bajarib bo‘lmadi. Qayta urinib ko‘ring.</string>
+    <string name="native_bc51292ade1f" formatted="false">Parol noto‘g‘ri. Qayta urinib ko‘ring yoki uni tiklang.</string>
+    <string name="native_3ae6238bbdba" formatted="false">Kod noto‘g‘ri. Qayta urinib ko‘ring.</string>
+    <string name="native_14b8a6a1513f" formatted="false">Bu kodning muddati tugagan. Yangi kod so‘rang.</string>
+    <string name="native_c8963885a92e" formatted="false">Uzunroq paroldan foydalaning.</string>
+    <string name="native_148022f301c0" formatted="false">Kuchliroq parol tanlang.</string>
+    <string name="native_70b7249272c4" formatted="false">Boshqa parol tanlang. Bu parol ma’lumotlar sizib chiqishida uchraydi.</string>
+    <string name="native_2b73b51f1f4e" formatted="false">Bu elektron pochta yoki foydalanuvchi nomi allaqachon ishlatilmoqda. Kirib ko‘ring.</string>
+    <string name="native_c89b2e83fcbe" formatted="false">Urinishlar juda ko‘p. Biroz kutib, qayta urinib ko‘ring.</string>
+    <string name="native_481859b689b0" formatted="false">Ulanishingizni tekshirib, qayta urinib ko‘ring.</string>
+    <string name="native_2e1f26571187" formatted="false">Bu seansning muddati tugagan. Boshidan boshlang.</string>
+    <string name="native_a8344c74d8b7" formatted="false">Kirish uchun yana bir qadam zarur. Boshqa kirish usulidan foydalaning.</string>
+    <string name="native_60674257fc54" formatted="false">Bu identifikator bilan hisob topilmadi. Avval hisob yarating.</string>
+    <string name="native_ea0752e5687d" formatted="false">Bu kod allaqachon ishlatilgan. Yangi kod so‘rang.</string>
+    <string name="native_0a5150029cc7" formatted="false">Assalomu alaykum</string>
+    <string name="native_abbb755ac1ef" formatted="false">Assalomu alaykum, %s</string>
 </resources>

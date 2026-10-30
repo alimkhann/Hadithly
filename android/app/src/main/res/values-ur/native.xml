@@ -28,7 +28,7 @@
     <string name="native_58d330f27985">سات بڑے حدیث مجموعوں کے لیے ایک پُرسکون قاری۔ عربی متن اپنے ذرائع سے لائسنس یافتہ ہے؛ AI تراجم ہمیشہ واضح کیے جاتے ہیں۔</string>
     <string name="native_61c2709f9d99">AI ترجمہ دستیاب نہیں · دوبارہ کوشش کریں</string>
     <string name="native_6a77e7691626">رپورٹ نجی طور پر بھیج دی گئی</string>
-    <string name="native_6c6e178ad2a8">پاس ورڈز مماثل نہیں۔</string>
+    <string name="native_6c6e178ad2a8" formatted="false">پاس ورڈز مماثل نہیں۔</string>
     <string name="native_6ef998ee12f7">ابھی کوئی اہل حدیث کیش نہیں ہوا</string>
     <string name="native_7175517a370b">یا</string>
     <string name="native_71c7158ec4ea">کم از کم ایک متن کی تہہ نظر آنی چاہیے۔</string>
@@ -296,4 +296,20 @@
     <string name="native_9bbe267eee43" formatted="false">ماڈل دستیاب نہیں</string>
     <string name="native_e03c8e3bc5f0" formatted="false">موجودہ حدیث</string>
     <string name="native_f97dc29342bb" formatted="false">Sunnah.now انگریزی متن (%s)</string>
+    <string name="native_e649544b2c18" formatted="false">یہ عمل مکمل نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔</string>
+    <string name="native_bc51292ade1f" formatted="false">پاس ورڈ غلط ہے۔ دوبارہ کوشش کریں یا اسے ری سیٹ کریں۔</string>
+    <string name="native_3ae6238bbdba" formatted="false">کوڈ غلط ہے۔ دوبارہ کوشش کریں۔</string>
+    <string name="native_14b8a6a1513f" formatted="false">اس کوڈ کی مدت ختم ہو گئی ہے۔ نیا کوڈ طلب کریں۔</string>
+    <string name="native_c8963885a92e" formatted="false">زیادہ لمبا پاس ورڈ استعمال کریں۔</string>
+    <string name="native_148022f301c0" formatted="false">زیادہ مضبوط پاس ورڈ منتخب کریں۔</string>
+    <string name="native_70b7249272c4" formatted="false">دوسرا پاس ورڈ منتخب کریں۔ یہ پاس ورڈ ڈیٹا کے افشا میں پایا گیا ہے۔</string>
+    <string name="native_2b73b51f1f4e" formatted="false">یہ ای میل یا صارف نام پہلے سے استعمال ہو رہا ہے۔ سائن اِن کر کے دیکھیں۔</string>
+    <string name="native_c89b2e83fcbe" formatted="false">کوششیں بہت زیادہ ہو گئی ہیں۔ کچھ دیر رک کر دوبارہ کوشش کریں۔</string>
+    <string name="native_481859b689b0" formatted="false">اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔</string>
+    <string name="native_2e1f26571187" formatted="false">اس سیشن کی مدت ختم ہو گئی ہے۔ براہ کرم دوبارہ شروع کریں۔</string>
+    <string name="native_a8344c74d8b7" formatted="false">سائن اِن کے لیے ایک اور مرحلہ درکار ہے۔ کوئی دوسرا طریقہ استعمال کریں۔</string>
+    <string name="native_60674257fc54" formatted="false">اس شناخت کے ساتھ کوئی اکاؤنٹ نہیں ملا۔ پہلے اکاؤنٹ بنائیں۔</string>
+    <string name="native_ea0752e5687d" formatted="false">یہ کوڈ پہلے ہی استعمال ہو چکا ہے۔ براہ کرم نیا کوڈ طلب کریں۔</string>
+    <string name="native_0a5150029cc7" formatted="false">السلام علیکم</string>
+    <string name="native_abbb755ac1ef" formatted="false">السلام علیکم، %s</string>
 </resources>

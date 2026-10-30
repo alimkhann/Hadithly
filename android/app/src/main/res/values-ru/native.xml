@@ -28,7 +28,7 @@
     <string name="native_58d330f27985">Спокойная читалка для семи основных сборников хадисов. Арабский текст используется по лицензии источников; переводы ИИ всегда помечены.</string>
     <string name="native_61c2709f9d99">Перевод ИИ недоступен · повторить</string>
     <string name="native_6a77e7691626">Жалоба отправлена приватно</string>
-    <string name="native_6c6e178ad2a8">Пароли не совпадают.</string>
+    <string name="native_6c6e178ad2a8" formatted="false">Пароли не совпадают.</string>
     <string name="native_6ef998ee12f7">Подходящий хадис ещё не сохранён в кэше</string>
     <string name="native_7175517a370b">или</string>
     <string name="native_71c7158ec4ea">Должен оставаться видимым хотя бы один текстовый слой.</string>
@@ -296,4 +296,20 @@
     <string name="native_9bbe267eee43" formatted="false">модель недоступна</string>
     <string name="native_e03c8e3bc5f0" formatted="false">Текущий хадис</string>
     <string name="native_f97dc29342bb" formatted="false">Английский текст Sunnah.now (%s)</string>
+    <string name="native_e649544b2c18" formatted="false">Не удалось выполнить это действие. Попробуйте ещё раз.</string>
+    <string name="native_bc51292ade1f" formatted="false">Неверный пароль. Попробуйте ещё раз или сбросьте его.</string>
+    <string name="native_3ae6238bbdba" formatted="false">Неверный код. Попробуйте ещё раз.</string>
+    <string name="native_14b8a6a1513f" formatted="false">Срок действия кода истёк. Запросите новый.</string>
+    <string name="native_c8963885a92e" formatted="false">Используйте более длинный пароль.</string>
+    <string name="native_148022f301c0" formatted="false">Выберите более надёжный пароль.</string>
+    <string name="native_70b7249272c4" formatted="false">Выберите другой пароль. Этот пароль встречается в утечке данных.</string>
+    <string name="native_2b73b51f1f4e" formatted="false">Эта почта или имя пользователя уже используются. Попробуйте войти.</string>
+    <string name="native_c89b2e83fcbe" formatted="false">Слишком много попыток. Подождите немного и попробуйте снова.</string>
+    <string name="native_481859b689b0" formatted="false">Проверьте подключение и попробуйте снова.</string>
+    <string name="native_2e1f26571187" formatted="false">Срок действия сеанса истёк. Начните заново.</string>
+    <string name="native_a8344c74d8b7" formatted="false">Для входа нужен ещё один шаг. Используйте другой способ входа.</string>
+    <string name="native_60674257fc54" formatted="false">Аккаунт с таким идентификатором не найден. Сначала создайте аккаунт.</string>
+    <string name="native_ea0752e5687d" formatted="false">Этот код уже использован. Запросите новый.</string>
+    <string name="native_0a5150029cc7" formatted="false">Ас-саляму алейкум</string>
+    <string name="native_abbb755ac1ef" formatted="false">Ас-саляму алейкум, %s</string>
 </resources>

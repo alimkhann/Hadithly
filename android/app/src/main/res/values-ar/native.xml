@@ -28,7 +28,7 @@
     <string name="native_58d330f27985">قارئ هادئ للمجموعات السبعة الكبرى من الأحاديث. النص العربي مرخّص من مصادره، وترجمات الذكاء الاصطناعي مبيّنة دائمًا.</string>
     <string name="native_61c2709f9d99">ترجمة الذكاء الاصطناعي غير متاحة · إعادة المحاولة</string>
     <string name="native_6a77e7691626">أُرسل البلاغ بشكل خاص</string>
-    <string name="native_6c6e178ad2a8">كلمتا المرور غير متطابقتين.</string>
+    <string name="native_6c6e178ad2a8" formatted="false">كلمتا المرور غير متطابقتين.</string>
     <string name="native_6ef998ee12f7">لم يُحفظ حديث مؤهل في ذاكرة التخزين المؤقت بعد</string>
     <string name="native_7175517a370b">أو</string>
     <string name="native_71c7158ec4ea">يجب أن تبقى طبقة نصية واحدة على الأقل ظاهرة.</string>
@@ -296,4 +296,20 @@
     <string name="native_9bbe267eee43" formatted="false">النموذج غير متاح</string>
     <string name="native_e03c8e3bc5f0" formatted="false">الحديث الحالي</string>
     <string name="native_f97dc29342bb" formatted="false">الإنجليزية من Sunnah.now (%s)</string>
+    <string name="native_e649544b2c18" formatted="false">تعذّر إكمال هذا الإجراء. يرجى المحاولة مجددًا.</string>
+    <string name="native_bc51292ade1f" formatted="false">كلمة المرور غير صحيحة. أعد المحاولة أو أعد تعيينها.</string>
+    <string name="native_3ae6238bbdba" formatted="false">الرمز غير صحيح. أعد المحاولة.</string>
+    <string name="native_14b8a6a1513f" formatted="false">انتهت صلاحية هذا الرمز. اطلب رمزًا جديدًا.</string>
+    <string name="native_c8963885a92e" formatted="false">استخدم كلمة مرور أطول.</string>
+    <string name="native_148022f301c0" formatted="false">اختر كلمة مرور أقوى.</string>
+    <string name="native_70b7249272c4" formatted="false">اختر كلمة مرور أخرى. ظهرت هذه الكلمة في تسريب بيانات.</string>
+    <string name="native_2b73b51f1f4e" formatted="false">يوجد حساب يستخدم هذا البريد الإلكتروني أو اسم المستخدم. جرّب تسجيل الدخول.</string>
+    <string name="native_c89b2e83fcbe" formatted="false">محاولات كثيرة جدًا. انتظر قليلًا ثم أعد المحاولة.</string>
+    <string name="native_481859b689b0" formatted="false">تحقّق من اتصالك ثم أعد المحاولة.</string>
+    <string name="native_2e1f26571187" formatted="false">انتهت صلاحية هذه الجلسة. يرجى البدء من جديد.</string>
+    <string name="native_a8344c74d8b7" formatted="false">يلزم إكمال خطوة أخرى لتسجيل الدخول. استخدم طريقة تسجيل دخول أخرى.</string>
+    <string name="native_60674257fc54" formatted="false">لم يُعثر على حساب بهذا المعرّف. أنشئ حسابًا أولًا.</string>
+    <string name="native_ea0752e5687d" formatted="false">استُخدم هذا الرمز بالفعل. يرجى طلب رمز جديد.</string>
+    <string name="native_0a5150029cc7" formatted="false">السلام عليكم</string>
+    <string name="native_abbb755ac1ef" formatted="false">السلام عليكم، %s</string>
 </resources>

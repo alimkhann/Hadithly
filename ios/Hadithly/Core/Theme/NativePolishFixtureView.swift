@@ -24,6 +24,7 @@ struct NativePolishFixtureView: View {
                     case "library-progress": LibraryView(previewLoading: false, progressExamples: true)
                     case "help-audit": HelpSupportView()
                     case "auth-audit": AuthCopyAuditFixture()
+                    case "auth-failure-audit": AuthFailureCopyAuditFixture()
                     case "saved-audit": SavedCopyAuditFixture()
                     case "reader-translation-settings": ReaderPreferenceDetail(panel: .translation, prefix: "settings")
                     case "app-appearance": AppearanceView()

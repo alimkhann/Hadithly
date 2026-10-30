@@ -626,3 +626,62 @@ The lexical report retains twelve dynamic candidates, several of which are user
 or source data rather than interface phrases. Greeting and public error/state
 wrappers still require review. Native wording approval, real processing/auth,
 physical devices, full A4 and A5–A7/E/content/store/release gates remain open.
+
+## Auth failures and Today greeting, October 30
+
+Russian error-banner checks failed on both apps before the repair: a known local
+password-mismatch string remained English. Both banners now resolve one of fifteen
+fixed messages through native locale resources. Structured Clerk codes select the
+password, code, expiry, password-policy, existing-account, missing-account and rate
+messages; native connection errors and known client session/step states have their
+own text. Unknown responses use a generic localized retry message. Provider message,
+long-message, trace and other diagnostic text no longer become custom-banner copy.
+The mapping is bounded; it does not claim every provider error has a specific
+recovery instruction. Existing account-missing and already-verified flow decisions,
+username retry logic, busy state and cancellation paths remain unchanged.
+
+The existing custom Clerk flows and installed source define the integration. iOS
+uses ClerkAPIError.code; Android clerk-android-api 1.1.4 exposes the first structured
+error code, HTTP status and throwable. The official [Clerk API error reference](https://github.com/clerk/clerk-docs/blob/main/data/api_errors.json)
+and installed OTP handling were checked for the mapped codes.
+`auth-error-code-reference.json` records that evidence. Synthetic SDK errors verify
+the selection, including unknown/private diagnostic strings, HTTP 429 on Android,
+native network failures and all known local enum values. No sign-in, code request,
+provider call, configuration change or credential access is part of this unit.
+
+`a4-auth-failure-copy.json` holds fifteen full messages across fifteen locales.
+Fourteen keys are new local GPT-family drafts; the password-mismatch draft reuses
+the indexed catalog. Native review remains pending. `a4-greeting-parity.json`
+reuses both indexed greeting drafts for Android. The Today view keeps the existing
+name choice on each platform and formats it as an opaque argument, with a guest
+fallback. Tests include mixed-script synthetic text containing literal formatter
+syntax. iOS's small greeting view is also used in production Today.
+
+The native fixture shows the shared production banners and greeting components
+without submitting an auth request. Native-copy review, complete custom/hosted-auth
+round trips, large-text/assistive-technology traversal, Settings/evidence error
+wrappers, remaining A4 and A5–A7/E/content/device/store/release gates remain open.
+The previous phone incident remains recorded separately, with prior state unknown.
+All Android UI checks in this unit use the guarded emulator runner.
+
+The follow-up English-identical review confirms seven Russian evidence-intake
+messages still use English drafts, including sign-in guidance, processing/privacy,
+received/withdrawal text and file-removal guidance. Those exact draft payloads need
+repair in addition to the dynamic error wrappers. This unit does not close that
+remaining evidence-copy coverage. No native-review approval is inferred.
+
+The first expanded iOS matrix checked accessibility existence, which includes
+some offscreen static labels. Capture review caught that its bottom capture still
+showed the top. The final check scrolls until each message is hittable before
+comparing it; earlier existence-only captures are not used as final visibility
+proof. Android already scrolls and asserts display for each message.
+
+Final native evidence is two iOS, two Android unit and one emulator UI case in
+`verification/a4-localization/auth-errors.json`. Each platform covers 225 rendered
+message/locale pairs and both guest/named greetings across fifteen locales. The
+sixty-capture manifest and selected images are in `auth-errors/`. The iOS matrix
+uses the final visibility check; prior runs remain in history. The structural audit
+with drafts allowed has zero failures across 465 iOS keys and 460 Android resources,
+with 279 English-identical candidates still listed. `auth-error-preservation.json`
+records the scope: fourteen new keys, existing payloads reused, prior working
+metadata/order edits and project files left separate.

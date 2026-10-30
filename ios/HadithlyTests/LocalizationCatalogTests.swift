@@ -1,3 +1,4 @@
+import ClerkKit
 import XCTest
 @testable import Hadithly
 
@@ -5,6 +6,28 @@ import XCTest
 /// exist with English, Arabic, and Urdu localizations, and the plural fixture
 /// carries the Arabic plural categories.
 final class LocalizationCatalogTests: XCTestCase {
+    func testAuthFailureSelectionUsesCodesAndNeverProviderText() throws {
+        let cases: [(String, AuthFailureMessage)] = [
+            ("form_password_incorrect", .password), ("form_code_incorrect", .code), ("totp_incorrect_code", .code),
+            ("verification_expired", .expired), ("form_password_length_too_short", .longer),
+            ("form_password_not_strong_enough", .stronger), ("form_password_pwned", .breached),
+            ("form_identifier_exists", .existing), ("form_identifier_not_found", .missing),
+            ("too_many_requests", .rate), ("verification_code_too_many_requests", .rate),
+            ("verification_code_too_many_attempts", .rate), ("unknown_code", .action)
+        ]
+        for (code, expected) in cases {
+            let data = try JSONSerialization.data(withJSONObject: ["code":code, "message":"Provider internal text %@", "long_message":"Private diagnostic", "clerk_trace_id":"synthetic-trace"])
+            let error = try JSONDecoder().decode(ClerkAPIError.self, from: data)
+            XCTAssertEqual(AuthFailureMessage.from(error), expected)
+        }
+        XCTAssertEqual(AuthFailureMessage.from(URLError(.notConnectedToInternet)), .connection)
+        XCTAssertEqual(AuthFailureMessage.select(code: nil, status: 429), .rate)
+        XCTAssertEqual(AuthFailureMessage.local("Unknown provider detail with secrets"), .action)
+        XCTAssertEqual(AuthFailureMessage.local("The reset session expired. Please start again."), .session)
+        XCTAssertEqual(AuthFailureMessage.local("Sign-in needs another step. Please try again."), .step)
+        for message in AuthFailureMessage.allCases { XCTAssertEqual(AuthFailureMessage.local(message.rawValue), message) }
+    }
+
     func testFormattedLabelsUseBaseLocaleFallbackAndPreserveSourceArguments() {
         XCTAssertEqual(AppLocalization.format("Next page, %1$@", locale: Locale(identifier: "fr-CA"), "Source %lld %@"), "Page suivante, Source %lld %@")
         XCTAssertEqual(AppLocalization.format("Next page, %1$@", locale: Locale(identifier: "zz-ZZ"), "Source %lld %@"), "Next page, Source %lld %@")

@@ -28,7 +28,7 @@
     <string name="native_58d330f27985">Yedi büyük hadis koleksiyonu için sakin bir okuyucu. Arapça metin kaynaklarından lisanslıdır; AI çevirileri her zaman belirtilir.</string>
     <string name="native_61c2709f9d99">AI çevirisi kullanılamıyor · tekrar dene</string>
     <string name="native_6a77e7691626">Rapor özel olarak gönderildi</string>
-    <string name="native_6c6e178ad2a8">Parolalar eşleşmiyor.</string>
+    <string name="native_6c6e178ad2a8" formatted="false">Parolalar eşleşmiyor.</string>
     <string name="native_6ef998ee12f7">Henüz uygun hadis önbelleğe alınmadı</string>
     <string name="native_7175517a370b">veya</string>
     <string name="native_71c7158ec4ea">En az bir metin katmanı görünür kalmalıdır.</string>
@@ -296,4 +296,20 @@
     <string name="native_9bbe267eee43" formatted="false">model kullanılamıyor</string>
     <string name="native_e03c8e3bc5f0" formatted="false">Geçerli hadis</string>
     <string name="native_f97dc29342bb" formatted="false">Sunnah.now İngilizce metin (%s)</string>
+    <string name="native_e649544b2c18" formatted="false">Bu işlem tamamlanamadı. Lütfen tekrar deneyin.</string>
+    <string name="native_bc51292ade1f" formatted="false">Parola yanlış. Tekrar deneyin veya parolayı sıfırlayın.</string>
+    <string name="native_3ae6238bbdba" formatted="false">Kod yanlış. Tekrar deneyin.</string>
+    <string name="native_14b8a6a1513f" formatted="false">Bu kodun süresi doldu. Yeni bir kod isteyin.</string>
+    <string name="native_c8963885a92e" formatted="false">Daha uzun bir parola kullanın.</string>
+    <string name="native_148022f301c0" formatted="false">Daha güçlü bir parola seçin.</string>
+    <string name="native_70b7249272c4" formatted="false">Farklı bir parola seçin. Bu parola bir veri ihlalinde yer alıyor.</string>
+    <string name="native_2b73b51f1f4e" formatted="false">Bu e-posta veya kullanıcı adı zaten kullanılıyor. Oturum açmayı deneyin.</string>
+    <string name="native_c89b2e83fcbe" formatted="false">Çok fazla deneme yapıldı. Biraz bekleyip tekrar deneyin.</string>
+    <string name="native_481859b689b0" formatted="false">Bağlantınızı kontrol edip tekrar deneyin.</string>
+    <string name="native_2e1f26571187" formatted="false">Bu oturumun süresi doldu. Lütfen baştan başlayın.</string>
+    <string name="native_a8344c74d8b7" formatted="false">Oturum açmak için başka bir adım gerekiyor. Başka bir oturum açma yöntemi kullanın.</string>
+    <string name="native_60674257fc54" formatted="false">Bu kimlikle bir hesap bulunamadı. Önce bir hesap oluşturun.</string>
+    <string name="native_ea0752e5687d" formatted="false">Bu kod zaten kullanıldı. Lütfen yeni bir kod isteyin.</string>
+    <string name="native_0a5150029cc7" formatted="false">Selamünaleyküm</string>
+    <string name="native_abbb755ac1ef" formatted="false">Selamünaleyküm, %s</string>
 </resources>

@@ -285,6 +285,35 @@ class NativeFinishingTest {
         }
     }
 
+    @Test fun authFailureUsesSelectedLanguage() {
+        val copy = org.json.JSONObject(InstrumentationRegistry.getInstrumentation().context.assets.open("a4-auth-failure-copy.json").bufferedReader().use { it.readText() })
+        var locale by mutableStateOf("en")
+        compose.setContent { key(locale) { LocalizedPreview(ReaderTheme.LIGHT, locale) {
+            Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(16.dp)) {
+                androidx.compose.material3.Text(com.hadithly.app.features.today.todayGreeting(null), modifier = Modifier.testTag("authAudit.greetingGuest"))
+                androidx.compose.material3.Text(com.hadithly.app.features.today.todayGreeting("Original %lld %@ اسم"), modifier = Modifier.testTag("authAudit.greetingName"))
+                for (message in com.hadithly.app.features.auth.AuthFailureMessage.entries) {
+                    com.hadithly.app.features.auth.AuthErrorBanner(message.source, Modifier.testTag("authAudit.error.${message.name}"))
+                }
+            }
+        } } }
+        for (tag in listOf("en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn")) {
+            compose.runOnIdle { locale = tag }
+            val labels = copy.getJSONObject("labels").getJSONObject(tag)
+            compose.onNodeWithTag("authAudit.greetingGuest").performScrollTo().assertTextEquals(labels.getString("greeting_guest"))
+            val expected = String.format(java.util.Locale.forLanguageTag(tag), labels.getString("greeting_name").replace("%@", "%s"), "Original %lld %@ اسم")
+            val actual = compose.onNodeWithTag("authAudit.greetingName").fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.Text].single().text
+            val marks = Regex("[\u200e\u200f\u061c\u202a-\u202e\u2066-\u2069]")
+            assertEquals(expected.replace(marks, ""), actual.replace(marks, ""))
+            capture("greeting-errors-top-$tag")
+            val messages = copy.getJSONObject("locales").getJSONArray(tag)
+            for ((index, message) in com.hadithly.app.features.auth.AuthFailureMessage.entries.withIndex()) {
+                compose.onNodeWithTag("authAudit.error.${message.name}").performScrollTo().assertIsDisplayed().assertTextEquals(messages.getString(index))
+            }
+            capture("greeting-errors-bottom-$tag")
+        }
+    }
+
     @Test fun evidenceItemStatesUseSelectedLanguage() {
         val copy = org.json.JSONObject(InstrumentationRegistry.getInstrumentation().context.assets.open("a4-evidence-copy.json").bufferedReader().use { it.readText() })
         val keys = copy.getJSONArray("keys")

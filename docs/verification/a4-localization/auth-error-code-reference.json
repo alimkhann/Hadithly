@@ -1,0 +1,24 @@
+{
+  "official_error_reference": "https://github.com/clerk/clerk-docs/blob/main/data/api_errors.json",
+  "official_reference_sha256": "4b2418d2550589f1ffa64267719574a61754999adc7120dfaeb8bf3d0210eff7",
+  "mapped_codes_verified_in_reference": [
+    "form_password_incorrect",
+    "form_code_incorrect",
+    "verification_expired",
+    "form_password_length_too_short",
+    "form_password_not_strong_enough",
+    "form_password_pwned",
+    "form_identifier_exists",
+    "form_identifier_not_found",
+    "too_many_requests",
+    "verification_code_too_many_requests",
+    "verification_code_too_many_attempts"
+  ],
+  "additional_installed_ios_otp_code": "totp_incorrect_code",
+  "installed_native_contracts": {
+    "ios": "ClerkAPIError.code, Codable; message/longMessage are not displayed",
+    "android": "clerk-android-api 1.1.4 ClerkResult.Failure.error.errors[].code; HTTP status and IOException are handled"
+  },
+  "unknown_response": "localized generic retry message",
+  "verification_scope": "Synthetic SDK errors and local rendered UI only; no auth/environment request or configuration change."
+}

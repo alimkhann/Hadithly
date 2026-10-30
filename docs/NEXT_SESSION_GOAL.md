@@ -22,6 +22,18 @@ browser explanation now pass local native checks. Continue C1 and C2/C3/C7
 verification before D. C8 adds only one scoped catalog entry, preserving all
 incoming catalog bytes. External OAuth and native-copy approval remain open.
 
+## A4 auth-error and greeting checkpoint, October 30
+
+Auth failures now select fixed interface messages from installed Clerk error codes
+or known client states. Unknown responses use a localized retry message; account /
+verification flow branches remain unchanged. Android Today reuses indexed greeting
+drafts, preserving the selected display name. Two iOS, two Android unit and one emulator UI case pass, including all fifteen
+locales. See `A4_RUNTIME_LOCALIZATION.md` for scope and remaining gates.
+No authentication request, environment/configuration or account action is used.
+Continue other Settings/evidence error wrappers, confirmed evidence-intake English
+clones and remaining runtime review, then
+A5–A7/E. Native-review, live auth, physical/store/content/release gates remain open.
+
 ## A4 evidence/search checkpoint, October 29
 
 Evidence item states now use fixed localized labels, with an unavailable fallback

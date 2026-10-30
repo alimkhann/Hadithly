@@ -106,6 +106,12 @@ object TodayContentPolicy {
 private const val DAILY_CACHE_KEY = "today.daily-hadith.cache.v1"
 
 @Composable
+internal fun todayGreeting(name: String?): String {
+    val display = name?.trim()?.takeIf { it.isNotEmpty() }
+    return if (display == null) nativeText("As-salamu alaykum") else nativeText("As-salamu alaykum, %@", display)
+}
+
+@Composable
 fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit, previewState: String? = null) {
     val app = rememberApp()
     val homeColors = LocalHadithlyColors.current
@@ -172,9 +178,7 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit, previewState: String? 
         Column(verticalArrangement = Arrangement.spacedBy(2.dp), modifier = Modifier.padding(horizontal = 16.dp)) {
             Text(stringResource(R.string.app_today), fontSize = 30.sp, fontWeight = FontWeight.Bold, color = homeColors.textPrimary)
             Text(
-                Clerk.user?.username?.takeIf { it.isNotBlank() }?.let { "As-salamu alaykum, $it" }
-                    ?: Clerk.user?.firstName?.takeIf { it.isNotBlank() }?.let { "As-salamu alaykum, $it" }
-                    ?: "As-salamu alaykum",
+                todayGreeting(Clerk.user?.username?.takeIf { it.isNotBlank() } ?: Clerk.user?.firstName?.takeIf { it.isNotBlank() }),
                 fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = homeColors.textPrimary,
             )
         }

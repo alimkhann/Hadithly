@@ -22604,6 +22604,1336 @@
         }
       }
     },
+    "This code was already used. Please request a new one." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This code was already used. Please request a new one."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "استُخدم هذا الرمز بالفعل. يرجى طلب رمز جديد."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Этот код уже использован. Запросите новый."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бұл код қолданылған. Жаңа код сұраңыз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бул код колдонулган. Жаңы код сураңыз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bu kod allaqachon ishlatilgan. Yangi kod so‘rang."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bu kod zaten kullanıldı. Lütfen yeni bir kod isteyin."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Kode ini sudah digunakan. Silakan minta kode baru."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "یہ کوڈ پہلے ہی استعمال ہو چکا ہے۔ براہ کرم نیا کوڈ طلب کریں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ce code a déjà été utilisé. Demandez-en un nouveau."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Este código ya se usó. Solicita uno nuevo."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Este código já foi usado. Solicite um novo."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Msimbo huu umetumika tayari. Tafadhali omba mpya."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "यह कोड पहले ही इस्तेमाल हो चुका है। कृपया नया कोड माँगें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "এই কোড আগেই ব্যবহার করা হয়েছে। নতুন কোড চান।"
+          }
+        }
+      }
+    },
+    "No account found for that identifier. Create an account first." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No account found for that identifier. Create an account first."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "لم يُعثر على حساب بهذا المعرّف. أنشئ حسابًا أولًا."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Аккаунт с таким идентификатором не найден. Сначала создайте аккаунт."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бұл идентификатормен аккаунт табылмады. Алдымен аккаунт жасаңыз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бул идентификатор менен аккаунт табылган жок. Адегенде аккаунт түзүңүз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bu identifikator bilan hisob topilmadi. Avval hisob yarating."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bu kimlikle bir hesap bulunamadı. Önce bir hesap oluşturun."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tidak ditemukan akun dengan identitas tersebut. Buat akun terlebih dahulu."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "اس شناخت کے ساتھ کوئی اکاؤنٹ نہیں ملا۔ پہلے اکاؤنٹ بنائیں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Aucun compte ne correspond à cet identifiant. Créez d’abord un compte."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No se encontró una cuenta con ese identificador. Primero crea una cuenta."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Nenhuma conta foi encontrada com esse identificador. Crie uma conta primeiro."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hakuna akaunti iliyopatikana kwa kitambulisho hicho. Fungua akaunti kwanza."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "इस पहचान के लिए खाता नहीं मिला। पहले खाता बनाएँ।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "এই পরিচয়ের জন্য কোনো অ্যাকাউন্ট পাওয়া যায়নি। আগে অ্যাকাউন্ট তৈরি করুন।"
+          }
+        }
+      }
+    },
+    "Another sign-in step is required. Use another sign-in method." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Another sign-in step is required. Use another sign-in method."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "يلزم إكمال خطوة أخرى لتسجيل الدخول. استخدم طريقة تسجيل دخول أخرى."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Для входа нужен ещё один шаг. Используйте другой способ входа."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Кіру үшін тағы бір қадам қажет. Басқа кіру тәсілін қолданыңыз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Кирүү үчүн дагы бир кадам керек. Башка кирүү ыкмасын колдонуңуз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Kirish uchun yana bir qadam zarur. Boshqa kirish usulidan foydalaning."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Oturum açmak için başka bir adım gerekiyor. Başka bir oturum açma yöntemi kullanın."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Diperlukan langkah lain untuk masuk. Gunakan metode masuk lain."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "سائن اِن کے لیے ایک اور مرحلہ درکار ہے۔ کوئی دوسرا طریقہ استعمال کریں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Une autre étape est nécessaire pour vous connecter. Utilisez une autre méthode."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Se requiere otro paso para iniciar sesión. Usa otro método de inicio de sesión."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "É necessária outra etapa para entrar. Use outro método de acesso."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hatua nyingine inahitajika ili kuingia. Tumia njia nyingine ya kuingia."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "साइन इन के लिए एक और चरण ज़रूरी है। कोई दूसरा तरीका इस्तेमाल करें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "সাইন ইন করতে আরেকটি ধাপ দরকার। অন্য পদ্ধতি ব্যবহার করুন।"
+          }
+        }
+      }
+    },
+    "This session expired. Please start again." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This session expired. Please start again."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "انتهت صلاحية هذه الجلسة. يرجى البدء من جديد."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Срок действия сеанса истёк. Начните заново."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бұл сессияның мерзімі аяқталды. Басынан бастаңыз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бул сессиянын мөөнөтү бүттү. Башынан баштаңыз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bu seansning muddati tugagan. Boshidan boshlang."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bu oturumun süresi doldu. Lütfen baştan başlayın."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sesi ini sudah kedaluwarsa. Silakan mulai lagi."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "اس سیشن کی مدت ختم ہو گئی ہے۔ براہ کرم دوبارہ شروع کریں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cette session a expiré. Recommencez."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Esta sesión venció. Vuelve a empezar."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Esta sessão expirou. Comece novamente."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Muda wa kipindi hiki umeisha. Anza tena."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "इस सत्र की समय-सीमा समाप्त हो गई है। कृपया फिर से शुरू करें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "এই সেশনের মেয়াদ শেষ হয়েছে। আবার শুরু করুন।"
+          }
+        }
+      }
+    },
+    "Check your connection and try again." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check your connection and try again."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "تحقّق من اتصالك ثم أعد المحاولة."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Проверьте подключение и попробуйте снова."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Байланысты тексеріп, қайталап көріңіз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Байланышыңызды текшерип, кайра аракет кылыңыз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ulanishingizni tekshirib, qayta urinib ko‘ring."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bağlantınızı kontrol edip tekrar deneyin."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Periksa koneksi Anda lalu coba lagi."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Vérifiez votre connexion et réessayez."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Revisa tu conexión e inténtalo de nuevo."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Verifique sua conexão e tente novamente."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Angalia muunganisho wako kisha ujaribu tena."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "अपना कनेक्शन जाँचें और दोबारा कोशिश करें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "আপনার সংযোগ যাচাই করে আবার চেষ্টা করুন।"
+          }
+        }
+      }
+    },
+    "Too many attempts. Wait a moment and try again." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Too many attempts. Wait a moment and try again."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "محاولات كثيرة جدًا. انتظر قليلًا ثم أعد المحاولة."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Слишком много попыток. Подождите немного и попробуйте снова."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Әрекет тым көп. Біраз күтіп, қайталап көріңіз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Аракеттер өтө көп болду. Бир аз күтүп, кайра аракет кылыңыз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Urinishlar juda ko‘p. Biroz kutib, qayta urinib ko‘ring."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Çok fazla deneme yapıldı. Biraz bekleyip tekrar deneyin."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "کوششیں بہت زیادہ ہو گئی ہیں۔ کچھ دیر رک کر دوبارہ کوشش کریں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Trop de tentatives. Patientez un instant, puis réessayez."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Demasiados intentos. Espera un momento e inténtalo de nuevo."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Muitas tentativas. Aguarde um momento e tente novamente."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Majaribio ni mengi sana. Subiri kidogo kisha ujaribu tena."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "बहुत अधिक कोशिशें हो चुकी हैं। थोड़ी देर रुककर दोबारा कोशिश करें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "অনেকবার চেষ্টা করা হয়েছে। কিছুক্ষণ অপেক্ষা করে আবার চেষ্টা করুন।"
+          }
+        }
+      }
+    },
+    "An account already uses that email or username. Try signing in." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An account already uses that email or username. Try signing in."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "يوجد حساب يستخدم هذا البريد الإلكتروني أو اسم المستخدم. جرّب تسجيل الدخول."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Эта почта или имя пользователя уже используются. Попробуйте войти."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бұл электрондық пошта немесе пайдаланушы аты қолданылып жатыр. Жүйеге кіріп көріңіз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бул электрондук почта же колдонуучу аты колдонулуп жатат. Кирип көрүңүз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bu elektron pochta yoki foydalanuvchi nomi allaqachon ishlatilmoqda. Kirib ko‘ring."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bu e-posta veya kullanıcı adı zaten kullanılıyor. Oturum açmayı deneyin."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Email atau nama pengguna ini sudah digunakan. Coba masuk."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "یہ ای میل یا صارف نام پہلے سے استعمال ہو رہا ہے۔ سائن اِن کر کے دیکھیں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cette adresse e-mail ou ce nom d’utilisateur est déjà utilisé. Essayez de vous connecter."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ya existe una cuenta con ese correo o nombre de usuario. Intenta iniciar sesión."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Já existe uma conta com esse e-mail ou nome de usuário. Tente entrar."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Barua pepe au jina hili la mtumiaji tayari linatumika. Jaribu kuingia."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "यह ईमेल या उपयोगकर्ता नाम पहले से इस्तेमाल हो रहा है। साइन इन करके देखें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "এই ইমেইল বা ব্যবহারকারীর নামে ইতিমধ্যে অ্যাকাউন্ট আছে। সাইন ইন করে দেখুন।"
+          }
+        }
+      }
+    },
+    "Choose a different password. This one appears in a data breach." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a different password. This one appears in a data breach."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "اختر كلمة مرور أخرى. ظهرت هذه الكلمة في تسريب بيانات."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Выберите другой пароль. Этот пароль встречается в утечке данных."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Басқа құпиясөз таңдаңыз. Бұл құпиясөз деректердің таралуында кездеседі."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Башка сырсөз тандаңыз. Бул сырсөз маалыматтардын сыртка чыгып кетишинде кездешет."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Boshqa parol tanlang. Bu parol ma’lumotlar sizib chiqishida uchraydi."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Farklı bir parola seçin. Bu parola bir veri ihlalinde yer alıyor."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Pilih kata sandi lain. Kata sandi ini ditemukan dalam kebocoran data."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "دوسرا پاس ورڈ منتخب کریں۔ یہ پاس ورڈ ڈیٹا کے افشا میں پایا گیا ہے۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Choisissez un autre mot de passe. Celui-ci figure dans une fuite de données."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Elige otra contraseña. Esta aparece en una filtración de datos."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Escolha outra senha. Esta aparece em um vazamento de dados."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Chagua nenosiri tofauti. Hili limeonekana katika uvujaji wa data."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "दूसरा पासवर्ड चुनें। यह पासवर्ड डेटा लीक में पाया गया है।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "অন্য পাসওয়ার্ড বেছে নিন। এটি একটি ডেটা ফাঁসে পাওয়া গেছে।"
+          }
+        }
+      }
+    },
+    "Choose a stronger password." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a stronger password."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "اختر كلمة مرور أقوى."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Выберите более надёжный пароль."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Сенімдірек құпиясөз таңдаңыз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ишенимдүүрөөк сырсөз тандаңыз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Kuchliroq parol tanlang."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Daha güçlü bir parola seçin."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Pilih kata sandi yang lebih kuat."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "زیادہ مضبوط پاس ورڈ منتخب کریں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Choisissez un mot de passe plus sûr."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Elige una contraseña más segura."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Escolha uma senha mais forte."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Chagua nenosiri imara zaidi."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ज़्यादा मज़बूत पासवर्ड चुनें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "আরও শক্তিশালী পাসওয়ার্ড বেছে নিন।"
+          }
+        }
+      }
+    },
+    "Use a longer password." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use a longer password."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "استخدم كلمة مرور أطول."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Используйте более длинный пароль."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ұзынырақ құпиясөз қолданыңыз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Узунураак сырсөз колдонуңуз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Uzunroq paroldan foydalaning."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Daha uzun bir parola kullanın."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Gunakan kata sandi yang lebih panjang."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "زیادہ لمبا پاس ورڈ استعمال کریں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Utilisez un mot de passe plus long."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Usa una contraseña más larga."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Use uma senha mais longa."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tumia nenosiri refu zaidi."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "लंबा पासवर्ड इस्तेमाल करें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "আরও লম্বা পাসওয়ার্ড ব্যবহার করুন।"
+          }
+        }
+      }
+    },
+    "This code has expired. Request a new one." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This code has expired. Request a new one."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "انتهت صلاحية هذا الرمز. اطلب رمزًا جديدًا."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Срок действия кода истёк. Запросите новый."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бұл кодтың мерзімі аяқталды. Жаңа код сұраңыз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бул коддун мөөнөтү бүттү. Жаңы код сураңыз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bu kodning muddati tugagan. Yangi kod so‘rang."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bu kodun süresi doldu. Yeni bir kod isteyin."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Kode ini sudah kedaluwarsa. Minta kode baru."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "اس کوڈ کی مدت ختم ہو گئی ہے۔ نیا کوڈ طلب کریں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ce code a expiré. Demandez-en un nouveau."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Este código venció. Solicita uno nuevo."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Este código expirou. Solicite um novo."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Muda wa msimbo huu umeisha. Omba mpya."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "इस कोड की समय-सीमा समाप्त हो गई है। नया कोड माँगें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "এই কোডের মেয়াদ শেষ হয়েছে। নতুন কোড চান।"
+          }
+        }
+      }
+    },
+    "That code is incorrect. Try again." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That code is incorrect. Try again."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "الرمز غير صحيح. أعد المحاولة."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Неверный код. Попробуйте ещё раз."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Код қате. Қайталап көріңіз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Код туура эмес. Кайра аракет кылыңыз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Kod noto‘g‘ri. Qayta urinib ko‘ring."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Kod yanlış. Tekrar deneyin."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Kode salah. Coba lagi."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "کوڈ غلط ہے۔ دوبارہ کوشش کریں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ce code est incorrect. Réessayez."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ese código es incorrecto. Inténtalo de nuevo."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Esse código está incorreto. Tente novamente."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Msimbo huo si sahihi. Jaribu tena."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "यह कोड गलत है। दोबारा कोशिश करें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "এই কোডটি ভুল। আবার চেষ্টা করুন।"
+          }
+        }
+      }
+    },
+    "The password is incorrect. Try again or reset it." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The password is incorrect. Try again or reset it."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "كلمة المرور غير صحيحة. أعد المحاولة أو أعد تعيينها."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Неверный пароль. Попробуйте ещё раз или сбросьте его."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Құпиясөз қате. Қайталап көріңіз немесе оны қалпына келтіріңіз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Сырсөз туура эмес. Кайра аракет кылыңыз же аны калыбына келтириңиз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Parol noto‘g‘ri. Qayta urinib ko‘ring yoki uni tiklang."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Parola yanlış. Tekrar deneyin veya parolayı sıfırlayın."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Kata sandi salah. Coba lagi atau atur ulang kata sandi."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "پاس ورڈ غلط ہے۔ دوبارہ کوشش کریں یا اسے ری سیٹ کریں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Le mot de passe est incorrect. Réessayez ou réinitialisez-le."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "La contraseña es incorrecta. Inténtalo de nuevo o restablécela."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "A senha está incorreta. Tente novamente ou redefina a senha."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Nenosiri si sahihi. Jaribu tena au uliweke upya."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "पासवर्ड गलत है। दोबारा कोशिश करें या उसे रीसेट करें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "পাসওয়ার্ড ভুল। আবার চেষ্টা করুন বা সেটি রিসেট করুন।"
+          }
+        }
+      }
+    },
+    "This action could not be completed. Please try again." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action could not be completed. Please try again."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "تعذّر إكمال هذا الإجراء. يرجى المحاولة مجددًا."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Не удалось выполнить это действие. Попробуйте ещё раз."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бұл әрекетті аяқтау мүмкін болмады. Қайталап көріңіз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бул аракетти аяктоо мүмкүн болгон жок. Кайра аракет кылыңыз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bu amalni bajarib bo‘lmadi. Qayta urinib ko‘ring."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bu işlem tamamlanamadı. Lütfen tekrar deneyin."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tindakan ini tidak dapat diselesaikan. Silakan coba lagi."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "یہ عمل مکمل نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cette action n’a pas pu être effectuée. Réessayez."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No se pudo completar esta acción. Inténtalo de nuevo."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Não foi possível concluir esta ação. Tente novamente."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hatua hii haikuweza kukamilika. Tafadhali jaribu tena."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "यह कार्रवाई पूरी नहीं हो सकी। कृपया दोबारा कोशिश करें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "এই কাজটি সম্পন্ন করা যায়নি। আবার চেষ্টা করুন।"
+          }
+        }
+      }
+    },
     "Current hadith" : {
       "extractionState": "manual",
       "localizations": {

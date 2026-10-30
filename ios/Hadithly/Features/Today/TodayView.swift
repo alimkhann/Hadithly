@@ -76,6 +76,18 @@ private enum DailyHadithCache {
     }
 }
 
+struct TodayGreetingText: View {
+    let name: String?
+    @Environment(\.locale) private var locale
+    var body: some View {
+        if let name, !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            Text(AppLocalization.format("As-salamu alaykum, %@", locale: locale, name.trimmingCharacters(in: .whitespacesAndNewlines)))
+        } else {
+            Text("As-salamu alaykum")
+        }
+    }
+}
+
 struct TodayView: View {
     @Environment(\.locale) private var locale
     @Environment(AppEnvironment.self) private var environment
@@ -180,12 +192,8 @@ struct TodayView: View {
         }
     }
 
-    @ViewBuilder private var greeting: some View {
-        if let username = clerk.user?.username?.trimmingCharacters(in: .whitespacesAndNewlines), !username.isEmpty {
-            Text("As-salamu alaykum, \(username)")
-        } else {
-            Text("As-salamu alaykum")
-        }
+    private var greeting: some View {
+        TodayGreetingText(name: clerk.user?.username)
     }
 
     private var continueReadingSection: some View {
