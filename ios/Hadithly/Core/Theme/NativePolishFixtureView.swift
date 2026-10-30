@@ -25,6 +25,7 @@ struct NativePolishFixtureView: View {
                     case "help-audit": HelpSupportView()
                     case "auth-audit": AuthCopyAuditFixture()
                     case "auth-failure-audit": AuthFailureCopyAuditFixture()
+                    case "offline-notice-audit": OfflineNoticeCopyAuditFixture()
                     case "profile-notice-audit": ProfileNoticeCopyAuditFixture()
                     case "saved-audit": SavedCopyAuditFixture()
                     case "saved-filters-audit": SavedFiltersCopyAuditFixture()

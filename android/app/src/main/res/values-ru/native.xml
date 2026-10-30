@@ -326,4 +326,34 @@
     <string name="native_d6e623ac7380" formatted="false">Имя пользователя должно содержать не менее 3 символов.</string>
     <string name="native_c3d0112b1713" formatted="false">Имя пользователя сохранено.</string>
     <string name="native_a78d77ebb496" formatted="false">Это имя пользователя недоступно.</string>
+    <string name="native_8056d31c4182" formatted="false">Временный кэш очищен.</string>
+    <string name="native_034bb5f1d067" formatted="false">Файлы %s удалены. Сохранённые элементы и позиции чтения остаются.</string>
+    <string name="native_5569a4e0a4ce" formatted="false">Не загружено</string>
+    <string name="native_1573e614813b" formatted="false">Ожидание загрузки…</string>
+    <string name="native_1be1bfcc2db0" formatted="false">Загрузка… %d%%</string>
+    <string name="native_6a28117a6b2c" formatted="false">Приостановлено. Продолжится с места остановки.</string>
+    <string name="native_9fd57213b23b" formatted="false">Проверка файла…</string>
+    <string name="native_f0b0738f75b8" formatted="false">Загружено</string>
+    <string name="native_a193f8190f89" formatted="false">доступно обновление</string>
+    <string name="native_8181e7405f85" formatted="false">перевод устарел</string>
+    <string name="native_a437a82b8990" formatted="false">доступен перевод объёмом %s</string>
+    <string name="native_211cd35d567e" formatted="false">Требуется Hadithly %s или новее.</string>
+    <string name="native_27f3dca76cba" formatted="false">Нет подключения. Показан загруженный контент.</string>
+    <string name="native_9e1f197ad752" formatted="false">Не удалось проверить обновления. Загрузки доступны без интернета.</string>
+    <string name="native_8f8cecdaca26" formatted="false">Сначала выберите язык перевода.</string>
+    <string name="native_6d9f1e03a704" formatted="false">Файл этой коллекции для чтения без интернета ещё не опубликован.</string>
+    <string name="native_fe0786458526" formatted="false">Обновите Hadithly, чтобы загрузить эту коллекцию.</string>
+    <string name="native_c9f3c1ce7dba" formatted="false">На сервере файл старее установленного. Ваша копия остаётся активной.</string>
+    <string name="native_f888f0384426" formatted="false">Недостаточно места: нужно %s, свободно %s.</string>
+    <string name="native_a1835fe5b324" formatted="false">Нет подключения. Подключитесь и повторите попытку. Установленная копия работает.</string>
+    <string name="native_e0ab905c4257" formatted="false">Не удалось связаться с сервером. Повторите попытку при подключении к интернету.</string>
+    <string name="native_199185e21e5b" formatted="false">Ссылка для загрузки недействительна. Попробуйте ещё раз.</string>
+    <string name="native_803ecf06d728" formatted="false">Загрузка прервана. Установленная копия работает.</string>
+    <string name="native_036ea3c2e64b" formatted="false">В новом файле не хватает сохранённых хадисов: %d. Ваша копия остаётся активной.</string>
+    <string name="native_1ad300dda173" formatted="false">Контрольная сумма файла не совпала. Установленная копия работает.</string>
+    <string name="native_b3e1f11052f4" formatted="false">Для файла нужна новая версия Hadithly. Обновите приложение и повторите попытку.</string>
+    <string name="native_5fb1ab56889b" formatted="false">Этот перевод не соответствует установленному арабскому файлу.</string>
+    <string name="native_4e46b5060c34" formatted="false">Не удалось проверить лицензию файла.</string>
+    <string name="native_0036733fa321" formatted="false">Файл не прошёл проверку. Установленная копия работает.</string>
+    <string name="native_22edbe1fbf15" formatted="false">Загрузка не удалась.</string>
 </resources>

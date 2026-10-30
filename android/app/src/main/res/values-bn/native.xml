@@ -326,4 +326,34 @@
     <string name="native_d6e623ac7380" formatted="false">ব্যবহারকারীর নামে অন্তত 3টি অক্ষর থাকতে হবে।</string>
     <string name="native_c3d0112b1713" formatted="false">ব্যবহারকারীর নাম সংরক্ষণ করা হয়েছে।</string>
     <string name="native_a78d77ebb496" formatted="false">এই ব্যবহারকারীর নামটি উপলব্ধ নয়।</string>
+    <string name="native_8056d31c4182" formatted="false">অস্থায়ী ক্যাশ মুছে ফেলা হয়েছে।</string>
+    <string name="native_034bb5f1d067" formatted="false">%s-এর ফাইল মুছে ফেলা হয়েছে। আপনার সংরক্ষিত আইটেম ও পড়ার অবস্থান থাকবে।</string>
+    <string name="native_5569a4e0a4ce" formatted="false">ডাউনলোড হয়নি</string>
+    <string name="native_1573e614813b" formatted="false">ডাউনলোডের অপেক্ষায়…</string>
+    <string name="native_1be1bfcc2db0" formatted="false">ডাউনলোড হচ্ছে… %d%%</string>
+    <string name="native_6a28117a6b2c" formatted="false">বিরতিতে আছে। যেখানে থেমেছে সেখান থেকে চলবে।</string>
+    <string name="native_9fd57213b23b" formatted="false">ফাইল পরীক্ষা করা হচ্ছে…</string>
+    <string name="native_f0b0738f75b8" formatted="false">ডাউনলোড হয়েছে</string>
+    <string name="native_a193f8190f89" formatted="false">আপডেট পাওয়া যাচ্ছে</string>
+    <string name="native_8181e7405f85" formatted="false">অনুবাদ পুরোনো</string>
+    <string name="native_a437a82b8990" formatted="false">%s আকারের অনুবাদ পাওয়া যাচ্ছে</string>
+    <string name="native_211cd35d567e" formatted="false">Hadithly %s বা নতুন সংস্করণ দরকার।</string>
+    <string name="native_27f3dca76cba" formatted="false">আপনি অফলাইনে আছেন। ডাউনলোড করা বিষয়বস্তু দেখানো হচ্ছে।</string>
+    <string name="native_9e1f197ad752" formatted="false">আপডেট পরীক্ষা করা যায়নি। ডাউনলোডগুলো অফলাইনে কাজ করবে।</string>
+    <string name="native_8f8cecdaca26" formatted="false">আগে অনুবাদের ভাষা বেছে নিন।</string>
+    <string name="native_6d9f1e03a704" formatted="false">এই সংকলনের অফলাইন ফাইল এখনো প্রকাশিত হয়নি।</string>
+    <string name="native_fe0786458526" formatted="false">এই সংকলন ডাউনলোড করতে Hadithly আপডেট করুন।</string>
+    <string name="native_c9f3c1ce7dba" formatted="false">সার্ভারের ফাইল ইনস্টল করা কপির চেয়ে পুরোনো। আপনার কপি সক্রিয় থাকবে।</string>
+    <string name="native_f888f0384426" formatted="false">যথেষ্ট জায়গা নেই: %s দরকার, %s খালি।</string>
+    <string name="native_a1835fe5b324" formatted="false">ইন্টারনেটে যুক্ত হয়ে আবার চেষ্টা করুন। ইনস্টল করা কপি কাজ করছে।</string>
+    <string name="native_e0ab905c4257" formatted="false">সার্ভারের সঙ্গে যোগাযোগ করা যায়নি। অনলাইনে থাকলে আবার চেষ্টা করুন।</string>
+    <string name="native_199185e21e5b" formatted="false">ডাউনলোড লিংকটি সঠিক নয়। আবার চেষ্টা করুন।</string>
+    <string name="native_803ecf06d728" formatted="false">ডাউনলোড বাধাগ্রস্ত হয়েছে। ইনস্টল করা কপি কাজ করছে।</string>
+    <string name="native_036ea3c2e64b" formatted="false">নতুন ফাইলে আপনার সংরক্ষিত হাদিসের %dটি নেই। আপনার কপি সক্রিয় থাকবে।</string>
+    <string name="native_1ad300dda173" formatted="false">ফাইলের চেকসাম মেলেনি। ইনস্টল করা কপি কাজ করছে।</string>
+    <string name="native_b3e1f11052f4" formatted="false">এই ফাইলের জন্য নতুন Hadithly দরকার। অ্যাপ আপডেট করে আবার চেষ্টা করুন।</string>
+    <string name="native_5fb1ab56889b" formatted="false">এই অনুবাদ ইনস্টল করা আরবি ফাইলের সঙ্গে মেলে না।</string>
+    <string name="native_4e46b5060c34" formatted="false">এই ফাইলের লাইসেন্স যাচাই করা যায়নি।</string>
+    <string name="native_0036733fa321" formatted="false">ফাইল যাচাই ব্যর্থ হয়েছে। ইনস্টল করা কপি কাজ করছে।</string>
+    <string name="native_22edbe1fbf15" formatted="false">ডাউনলোড ব্যর্থ হয়েছে।</string>
 </resources>

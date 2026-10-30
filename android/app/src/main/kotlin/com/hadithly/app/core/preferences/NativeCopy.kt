@@ -12,7 +12,7 @@ fun nativeText(source: String, vararg arguments: Any): String =
 
 fun Context.nativeText(source: String, vararg arguments: Any): String = resources.nativeText(source, *arguments)
 
-private fun android.content.res.Resources.nativeText(source: String, vararg arguments: Any): String {
+internal fun android.content.res.Resources.nativeText(source: String, vararg arguments: Any): String {
     val resource = nativeCopyResource(source) ?: return source
     if (arguments.isEmpty()) return getString(resource)
     val locale = configuration.locales[0]
@@ -430,5 +430,35 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "Usernames need at least 3 characters." -> R.string.native_d6e623ac7380
     "Username saved." -> R.string.native_c3d0112b1713
     "That username is not available." -> R.string.native_a78d77ebb496
+    "Temporary cache cleared." -> R.string.native_8056d31c4182
+    "Deleted the %@ files. Your saved items and positions stay." -> R.string.native_034bb5f1d067
+    "Not downloaded" -> R.string.native_5569a4e0a4ce
+    "Waiting to download…" -> R.string.native_1573e614813b
+    "Downloading… %lld%%" -> R.string.native_1be1bfcc2db0
+    "Paused — resumes where it stopped." -> R.string.native_6a28117a6b2c
+    "Checking the file…" -> R.string.native_9fd57213b23b
+    "Downloaded" -> R.string.native_f0b0738f75b8
+    "update available" -> R.string.native_a193f8190f89
+    "translation outdated" -> R.string.native_8181e7405f85
+    "%@ translation available" -> R.string.native_a437a82b8990
+    "Needs Hadithly %@ or newer." -> R.string.native_211cd35d567e
+    "You're offline. Showing your downloaded content." -> R.string.native_27f3dca76cba
+    "Could not check for updates. Your downloads keep working offline." -> R.string.native_9e1f197ad752
+    "Pick a translation language first." -> R.string.native_8f8cecdaca26
+    "No offline file is published for this collection yet." -> R.string.native_6d9f1e03a704
+    "Update Hadithly to download this collection." -> R.string.native_fe0786458526
+    "The server offers an older file than your installed copy. Your copy stays active." -> R.string.native_c9f3c1ce7dba
+    "Not enough storage: need %@, %@ free." -> R.string.native_f888f0384426
+    "You're offline. Reconnect and retry — your installed copy still works." -> R.string.native_a1835fe5b324
+    "Could not reach the server. Try again when you are online." -> R.string.native_e0ab905c4257
+    "The download link is invalid. Try again." -> R.string.native_199185e21e5b
+    "The download was interrupted. Your installed copy still works." -> R.string.native_803ecf06d728
+    "The new file is missing %lld of your saved hadiths. Your copy stays active." -> R.string.native_036ea3c2e64b
+    "The file failed its checksum. Your installed copy still works." -> R.string.native_1ad300dda173
+    "This file needs a newer Hadithly. Update the app and try again." -> R.string.native_b3e1f11052f4
+    "This translation does not match the installed Arabic file." -> R.string.native_5fb1ab56889b
+    "This file's license could not be verified." -> R.string.native_4e46b5060c34
+    "This file failed validation. Your installed copy still works." -> R.string.native_0036733fa321
+    "Download failed." -> R.string.native_22edbe1fbf15
     else -> null
 }

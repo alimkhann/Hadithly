@@ -4,6 +4,18 @@ import XCTest
 /// S1 gate: every Settings row resolves to a finished destination, deletion
 /// keeps its separate subscription warning, and export filenames stay stable.
 final class SettingsS1Tests: XCTestCase {
+    func testOfflineNoticeBoundaryKeepsArgumentsAndBoundsDiagnostics() {
+        let locale = Locale(identifier: "en")
+        let opaque = "Original %lld %@ اسم"
+        XCTAssertTrue(OfflineCopy.removed(opaque, locale: locale).contains(opaque))
+        XCTAssertEqual(OfflineCopy.message("Not enough storage: need 12 MB, 8 MB free.", locale: locale), "Not enough storage: need 12 MB, 8 MB free.")
+        XCTAssertEqual(OfflineCopy.message("The new file is missing 2 of your saved hadiths. Your copy stays active.", locale: locale), "The new file is missing 2 of your saved hadiths. Your copy stays active.")
+        XCTAssertEqual(OfflineCopy.message("Could not check for updates (Private diagnostic %@). Your downloads keep working offline.", locale: locale), OfflineCopy.keys[13])
+        for source in ["Private diagnostic %@", "Not enough storage: need private, name free.", "The new file is missing 99999999999999999999999 of your saved hadiths. Your copy stays active."] {
+            XCTAssertEqual(OfflineCopy.message(source, locale: locale), "Download failed.")
+        }
+    }
+
     func testProfileUsernameFailuresUseCodesAndBoundUnknownDetails() {
         XCTAssertEqual(ProfileNotice.usernameFailure(code: "form_username_in_use"), .unavailable)
         XCTAssertEqual(ProfileNotice.usernameFailure(code: "form_identifier_exists"), .unavailable)

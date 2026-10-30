@@ -326,4 +326,34 @@
     <string name="native_d6e623ac7380" formatted="false">Kullanıcı adları en az 3 karakter olmalıdır.</string>
     <string name="native_c3d0112b1713" formatted="false">Kullanıcı adı kaydedildi.</string>
     <string name="native_a78d77ebb496" formatted="false">Bu kullanıcı adı kullanılamıyor.</string>
+    <string name="native_8056d31c4182" formatted="false">Geçici önbellek temizlendi.</string>
+    <string name="native_034bb5f1d067" formatted="false">%s dosyaları silindi. Kaydettikleriniz ve okuma konumlarınız korunur.</string>
+    <string name="native_5569a4e0a4ce" formatted="false">İndirilmedi</string>
+    <string name="native_1573e614813b" formatted="false">İndirme bekleniyor…</string>
+    <string name="native_1be1bfcc2db0" formatted="false">İndiriliyor… %d%%</string>
+    <string name="native_6a28117a6b2c" formatted="false">Duraklatıldı. Kaldığı yerden devam eder.</string>
+    <string name="native_9fd57213b23b" formatted="false">Dosya denetleniyor…</string>
+    <string name="native_f0b0738f75b8" formatted="false">İndirildi</string>
+    <string name="native_a193f8190f89" formatted="false">güncelleme var</string>
+    <string name="native_8181e7405f85" formatted="false">çeviri eski</string>
+    <string name="native_a437a82b8990" formatted="false">%s boyutunda çeviri var</string>
+    <string name="native_211cd35d567e" formatted="false">Hadithly %s veya üstü gerekiyor.</string>
+    <string name="native_27f3dca76cba" formatted="false">Çevrimdışısınız. İndirilen içerik gösteriliyor.</string>
+    <string name="native_9e1f197ad752" formatted="false">Güncellemeler denetlenemedi. İndirdikleriniz çevrimdışı çalışır.</string>
+    <string name="native_8f8cecdaca26" formatted="false">Önce bir çeviri dili seçin.</string>
+    <string name="native_6d9f1e03a704" formatted="false">Bu koleksiyon için henüz çevrimdışı dosya yayımlanmadı.</string>
+    <string name="native_fe0786458526" formatted="false">Bu koleksiyonu indirmek için Hadithly\'yi güncelleyin.</string>
+    <string name="native_c9f3c1ce7dba" formatted="false">Sunucudaki dosya kurulu kopyanızdan eski. Kopyanız etkin kalır.</string>
+    <string name="native_f888f0384426" formatted="false">Yeterli alan yok: %s gerekiyor, %s boş.</string>
+    <string name="native_a1835fe5b324" formatted="false">Bağlanıp yeniden deneyin. Kurulu kopyanız çalışmaya devam eder.</string>
+    <string name="native_e0ab905c4257" formatted="false">Sunucuya ulaşılamadı. Çevrimiçi olduğunuzda yeniden deneyin.</string>
+    <string name="native_199185e21e5b" formatted="false">İndirme bağlantısı geçersiz. Yeniden deneyin.</string>
+    <string name="native_803ecf06d728" formatted="false">İndirme kesildi. Kurulu kopyanız çalışmaya devam eder.</string>
+    <string name="native_036ea3c2e64b" formatted="false">Yeni dosyada kayıtlı hadislerinizden %d tanesi eksik. Kopyanız etkin kalır.</string>
+    <string name="native_1ad300dda173" formatted="false">Dosyanın sağlama toplamı eşleşmedi. Kurulu kopyanız çalışmaya devam eder.</string>
+    <string name="native_b3e1f11052f4" formatted="false">Bu dosya daha yeni Hadithly gerektiriyor. Uygulamayı güncelleyip yeniden deneyin.</string>
+    <string name="native_5fb1ab56889b" formatted="false">Bu çeviri kurulu Arapça dosyayla eşleşmiyor.</string>
+    <string name="native_4e46b5060c34" formatted="false">Bu dosyanın lisansı doğrulanamadı.</string>
+    <string name="native_0036733fa321" formatted="false">Dosya doğrulanamadı. Kurulu kopyanız çalışmaya devam eder.</string>
+    <string name="native_22edbe1fbf15" formatted="false">İndirme başarısız.</string>
 </resources>

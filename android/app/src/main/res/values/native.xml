@@ -324,4 +324,34 @@
     <string name="native_d6e623ac7380" formatted="false">Usernames need at least 3 characters.</string>
     <string name="native_c3d0112b1713" formatted="false">Username saved.</string>
     <string name="native_a78d77ebb496" formatted="false">That username is not available.</string>
+    <string name="native_8056d31c4182" formatted="false">Temporary cache cleared.</string>
+    <string name="native_034bb5f1d067" formatted="false">Deleted the %s files. Your saved items and positions stay.</string>
+    <string name="native_5569a4e0a4ce" formatted="false">Not downloaded</string>
+    <string name="native_1573e614813b" formatted="false">Waiting to download…</string>
+    <string name="native_1be1bfcc2db0" formatted="false">Downloading… %d%%</string>
+    <string name="native_6a28117a6b2c" formatted="false">Paused — resumes where it stopped.</string>
+    <string name="native_9fd57213b23b" formatted="false">Checking the file…</string>
+    <string name="native_f0b0738f75b8" formatted="false">Downloaded</string>
+    <string name="native_a193f8190f89" formatted="false">update available</string>
+    <string name="native_8181e7405f85" formatted="false">translation outdated</string>
+    <string name="native_a437a82b8990" formatted="false">%s translation available</string>
+    <string name="native_211cd35d567e" formatted="false">Needs Hadithly %s or newer.</string>
+    <string name="native_27f3dca76cba" formatted="false">You\'re offline. Showing your downloaded content.</string>
+    <string name="native_9e1f197ad752" formatted="false">Could not check for updates. Your downloads keep working offline.</string>
+    <string name="native_8f8cecdaca26" formatted="false">Pick a translation language first.</string>
+    <string name="native_6d9f1e03a704" formatted="false">No offline file is published for this collection yet.</string>
+    <string name="native_fe0786458526" formatted="false">Update Hadithly to download this collection.</string>
+    <string name="native_c9f3c1ce7dba" formatted="false">The server offers an older file than your installed copy. Your copy stays active.</string>
+    <string name="native_f888f0384426" formatted="false">Not enough storage: need %s, %s free.</string>
+    <string name="native_a1835fe5b324" formatted="false">You\'re offline. Reconnect and retry — your installed copy still works.</string>
+    <string name="native_e0ab905c4257" formatted="false">Could not reach the server. Try again when you are online.</string>
+    <string name="native_199185e21e5b" formatted="false">The download link is invalid. Try again.</string>
+    <string name="native_803ecf06d728" formatted="false">The download was interrupted. Your installed copy still works.</string>
+    <string name="native_036ea3c2e64b" formatted="false">The new file is missing %d of your saved hadiths. Your copy stays active.</string>
+    <string name="native_1ad300dda173" formatted="false">The file failed its checksum. Your installed copy still works.</string>
+    <string name="native_b3e1f11052f4" formatted="false">This file needs a newer Hadithly. Update the app and try again.</string>
+    <string name="native_5fb1ab56889b" formatted="false">This translation does not match the installed Arabic file.</string>
+    <string name="native_4e46b5060c34" formatted="false">This file\'s license could not be verified.</string>
+    <string name="native_0036733fa321" formatted="false">This file failed validation. Your installed copy still works.</string>
+    <string name="native_22edbe1fbf15" formatted="false">Download failed.</string>
 </resources>

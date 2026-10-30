@@ -69,6 +69,47 @@ final class VisualPolishUITests: XCTestCase {
         }
     }
 
+    func testOfflineNoticesUseSelectedLanguage() throws { try verifyOfflineNotices(large: false) }
+    func testOfflineNoticesRemainReadableAtLargeText() throws { try verifyOfflineNotices(large: true) }
+
+    private func verifyOfflineNotices(large: Bool) throws {
+        struct Copy: Decodable { let locales: [String: [String]] }
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let copy = try JSONDecoder().decode(Copy.self, from: Data(contentsOf: root.appendingPathComponent("docs/a4-offline-copy.json")))
+        let locales = large ? ["ar", "ur", "ru", "bn"] : ["en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn"]
+        for locale in locales {
+            let values = try XCTUnwrap(copy.locales[locale])
+            let app = launchPolish("offline-notice-audit", locale: locale, large: large)
+            let notice = element("offlineAudit.notice", app)
+            XCTAssertTrue(notice.waitForExistence(timeout: 10))
+            for (index, template) in values.enumerated() {
+                let arguments: [CVarArg]
+                switch index {
+                case 1: arguments = ["\u{2068}Original %lld %@ اسم\u{2069}"]
+                case 4: arguments = [42]
+                case 10: arguments = ["12 MB"]
+                case 11: arguments = ["2.0"]
+                case 18: arguments = ["12 MB", "8 MB"]
+                case 23: arguments = [2]
+                default: arguments = []
+                }
+                let expected = arguments.isEmpty ? template : String(format: template, locale: Locale(identifier: locale), arguments: arguments)
+                XCTAssertEqual(notice.label, expected, "\(locale):\(index)")
+                XCTAssertTrue(notice.isHittable)
+                let list = app.collectionViews.firstMatch
+                XCTAssertGreaterThanOrEqual(notice.frame.minY, list.frame.minY)
+                XCTAssertLessThanOrEqual(notice.frame.maxY, list.frame.maxY)
+                if [0, 1, 18, 23, 29].contains(index) { capture("offline-" + locale + (large ? "-large-" : "-") + String(index), app) }
+                if index < values.count - 1 { app.buttons["offlineAudit.next"].tap() }
+            }
+            XCTAssertEqual(element("offlineAudit.name", app).label, "Original %lld %@ اسم")
+            XCTAssertEqual(element("offlineAudit.callbacks", app).label, "0")
+            app.buttons["offlineAudit.callback"].tap()
+            XCTAssertEqual(element("offlineAudit.callbacks", app).label, "1")
+            app.terminate()
+        }
+    }
+
     func testProfileNoticesUseSelectedLanguage() throws {
         try verifyProfileNotices(large: false)
     }

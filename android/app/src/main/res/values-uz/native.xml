@@ -326,4 +326,34 @@
     <string name="native_d6e623ac7380" formatted="false">Foydalanuvchi nomi kamida 3 ta belgidan iborat bo‘lishi kerak.</string>
     <string name="native_c3d0112b1713" formatted="false">Foydalanuvchi nomi saqlandi.</string>
     <string name="native_a78d77ebb496" formatted="false">Bu foydalanuvchi nomi band.</string>
+    <string name="native_8056d31c4182" formatted="false">Vaqtinchalik kesh tozalandi.</string>
+    <string name="native_034bb5f1d067" formatted="false">%s fayllari oʻchirildi. Saqlangan narsalar va oʻqish joylari qoladi.</string>
+    <string name="native_5569a4e0a4ce" formatted="false">Yuklanmagan</string>
+    <string name="native_1573e614813b" formatted="false">Yuklash kutilmoqda…</string>
+    <string name="native_1be1bfcc2db0" formatted="false">Yuklanmoqda… %d%%</string>
+    <string name="native_6a28117a6b2c" formatted="false">Toʻxtatildi. Toʻxtagan joyidan davom etadi.</string>
+    <string name="native_9fd57213b23b" formatted="false">Fayl tekshirilmoqda…</string>
+    <string name="native_f0b0738f75b8" formatted="false">Yuklandi</string>
+    <string name="native_a193f8190f89" formatted="false">yangilanish mavjud</string>
+    <string name="native_8181e7405f85" formatted="false">tarjima eskirgan</string>
+    <string name="native_a437a82b8990" formatted="false">%s hajmdagi tarjima mavjud</string>
+    <string name="native_211cd35d567e" formatted="false">Hadithly %s yoki yangirogʻi kerak.</string>
+    <string name="native_27f3dca76cba" formatted="false">Internet yoʻq. Yuklangan kontent koʻrsatilmoqda.</string>
+    <string name="native_9e1f197ad752" formatted="false">Yangilanishlarni tekshirib boʻlmadi. Yuklanganlar internetsiz ishlaydi.</string>
+    <string name="native_8f8cecdaca26" formatted="false">Avval tarjima tilini tanlang.</string>
+    <string name="native_6d9f1e03a704" formatted="false">Bu toʻplamning internetsiz oʻqish fayli hali chop etilmagan.</string>
+    <string name="native_fe0786458526" formatted="false">Bu toʻplamni yuklash uchun Hadithly ilovasini yangilang.</string>
+    <string name="native_c9f3c1ce7dba" formatted="false">Serverdagi fayl oʻrnatilgan nusxadan eski. Nusxangiz faol qoladi.</string>
+    <string name="native_f888f0384426" formatted="false">Xotira yetarli emas: %s kerak, %s boʻsh.</string>
+    <string name="native_a1835fe5b324" formatted="false">Internetga ulaning va qayta urining. Oʻrnatilgan nusxa ishlaydi.</string>
+    <string name="native_e0ab905c4257" formatted="false">Serverga ulanib boʻlmadi. Internetga ulanganda qayta urining.</string>
+    <string name="native_199185e21e5b" formatted="false">Yuklash havolasi yaroqsiz. Qayta urining.</string>
+    <string name="native_803ecf06d728" formatted="false">Yuklash uzildi. Oʻrnatilgan nusxa ishlaydi.</string>
+    <string name="native_036ea3c2e64b" formatted="false">Yangi faylda saqlangan hadislaringizdan %d tasi yoʻq. Nusxangiz faol qoladi.</string>
+    <string name="native_1ad300dda173" formatted="false">Faylning nazorat yigʻindisi mos kelmadi. Oʻrnatilgan nusxa ishlaydi.</string>
+    <string name="native_b3e1f11052f4" formatted="false">Bu fayl uchun yangiroq Hadithly kerak. Ilovani yangilab, qayta urining.</string>
+    <string name="native_5fb1ab56889b" formatted="false">Bu tarjima oʻrnatilgan arabcha faylga mos kelmaydi.</string>
+    <string name="native_4e46b5060c34" formatted="false">Bu fayl litsenziyasini tekshirib boʻlmadi.</string>
+    <string name="native_0036733fa321" formatted="false">Fayl tekshiruvdan oʻtmadi. Oʻrnatilgan nusxa ishlaydi.</string>
+    <string name="native_22edbe1fbf15" formatted="false">Yuklab boʻlmadi.</string>
 </resources>

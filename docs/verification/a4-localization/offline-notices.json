@@ -1,0 +1,216 @@
+{
+  "date": "2026-10-31",
+  "scope": "Controlled local rendering and synthetic store/callback evidence only.",
+  "native_review": "pending",
+  "source": "docs/a4-offline-copy.json",
+  "locales": [
+    "en",
+    "ar",
+    "ru",
+    "kk",
+    "ky",
+    "uz",
+    "tr",
+    "id",
+    "ur",
+    "fr",
+    "es-419",
+    "pt-BR",
+    "sw",
+    "hi",
+    "bn"
+  ],
+  "copy_key_count": 30,
+  "ios": [
+    {
+      "bundle": "/tmp/hadithly-a4-finish-1031/offline-red.xcresult",
+      "result": "Failed",
+      "passedTests": 0,
+      "failedTests": 1,
+      "skippedTests": 0,
+      "startTime": 1793397864.459,
+      "finishTime": 1793397920.852
+    },
+    {
+      "bundle": "/tmp/hadithly-a4-finish-1031/offline-green.xcresult",
+      "result": "Passed",
+      "passedTests": 2,
+      "failedTests": 0,
+      "skippedTests": 0,
+      "startTime": 1793398075.093,
+      "finishTime": 1793398771.576
+    }
+  ],
+  "android": [
+    {
+      "file": "/tmp/hadithly-a4-finish-1031/offline-red-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "sha256": "abb472aa51185d4a17d12696929d6b2c28f4e80ffa5daa2ef1f44df644b400eb",
+      "cases": [
+        {
+          "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+          "name": "offlineNoticeReproduction",
+          "result": "Failed"
+        }
+      ]
+    },
+    {
+      "file": "/tmp/hadithly-a4-finish-1031/offline-second-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "sha256": "a79bfeb33009f2aa67105a536deb8270e2812ddc045150cf35301a8c89e1def5",
+      "cases": [
+        {
+          "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+          "name": "offlineNoticesRemainReadableAtLargeText",
+          "result": "Failed"
+        },
+        {
+          "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+          "name": "offlineNoticesUseSelectedLanguage",
+          "result": "Passed"
+        }
+      ]
+    },
+    {
+      "file": "/tmp/hadithly-a4-finish-1031/offline-large-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "sha256": "1c268c276b147e678c4b18b4f205e7b17a1486fa3364cca8edfae1845841872c",
+      "cases": [
+        {
+          "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+          "name": "offlineNoticesRemainReadableAtLargeText",
+          "result": "Passed"
+        }
+      ]
+    },
+    {
+      "file": "/tmp/hadithly-a4-finish-1031/offline-unit-android-reports/TEST-com.hadithly.app.OfflineStoreTest.xml",
+      "sha256": "60d01944df9a3c982c2a6a9cf32b99c19e0c5ee86b92be2de2319c7bf007f9fa",
+      "cases": [
+        {
+          "class": "com.hadithly.app.OfflineStoreTest",
+          "name": "dottedIdOrder",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.OfflineStoreTest",
+          "name": "twoCollectionsDownloadConcurrently",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.OfflineStoreTest",
+          "name": "freshStoreOverSameRootKeepsActiveVersion",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.OfflineStoreTest",
+          "name": "providerRollbackIsBlocked",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.OfflineStoreTest",
+          "name": "corruptUpdateKeepsPreviousVersionActive",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.OfflineStoreTest",
+          "name": "deleteRemovesFilesOnly",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.OfflineStoreTest",
+          "name": "corruptRegistryRebuildsFromDisk",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.OfflineStoreTest",
+          "name": "installedVersionOnePackCannotBypassRevocationIdentity",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.OfflineStoreTest",
+          "name": "offlinePagesCarryLegacyWireValues",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.OfflineStoreTest",
+          "name": "pauseThenRetryCompletesWithoutClobbering",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.OfflineStoreTest",
+          "name": "appUpdateRequiredBlocksDownload",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.OfflineStoreTest",
+          "name": "replacementMissingSavedAnchorsIsRefused",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.OfflineStoreTest",
+          "name": "downloadVerifiesAndActivates",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.OfflineStoreTest",
+          "name": "incompatiblePackIsRefused",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.OfflineStoreTest",
+          "name": "chunkingMirrorsServerPaging",
+          "result": "Passed"
+        }
+      ]
+    }
+  ],
+  "capture_count": 192,
+  "selected_original_captures": 20,
+  "raw_evidence": "/tmp/hadithly-a4-finish-1031",
+  "log_hashes": {
+    "offline-audit.log": "3a761710eba4b4f7eef10c36f99f1b4d0b9c9717da19942fdf88f422cb3ba4b4",
+    "offline-store-android.log": "8dd4e262bdd0623f92cf90f9889ae81e627644f53ab78651ac6ea8bfa2a95117",
+    "offline-red-export.log": "36b1d035edd363c980aad775c78a56d62b612b44cd9b10360481d42d8035da83",
+    "offline-red-android.log": "9b47c75c5f3d8c86804ec64a97388353c74bb0fa30b0a7072a9a09e3053db01d",
+    "runtime-red-ios.log": "865d50de17cc9dc12a75ba390cfb024f5a3c5abe090de701545ef44ed8478e84",
+    "script-staging.log": "eae0a39ea6e39d81fcc185ad547f3f6190d63d2146b9bf40929839e1c4a7781c",
+    "script-copy.log": "218ac3099f9f04d04c0bdb068330f6b8a23883bcbe2bed9e51501a03ebcdebe0",
+    "offline-green-android.log": "661b80cbad53afe30aa502131c00f262cabf024798af7f463aa59bd2300e36fd",
+    "offline-final-android.log": "99e86345ad8c6b7151fd5e31f7346424091fb7d28899f22ef0c7b65b0d92bb51",
+    "offline-green-ios.log": "589ab041a949668bcbb49a9b5cf82ed049f7c35b87830d987740466179e07e74",
+    "runtime-red-android.log": "84402c43ce5bd37db060cf4077fee3ba1b0be5aac0dfca5e8f7cbd014b466beb",
+    "offline-large-diagnostic.log": "7ac161a1292c08f578a6839fbff9fefb26cc018768268916475cc10360870c75",
+    "offline-export.log": "98c4e186954a8289e0402e7e4a290573b0c017971b3c96ceafdc0fa46b31f356",
+    "offline-large-final.log": "5f63f58debb610aec2e0b3a9217b276c7382a201a37ea271c57a15778af94d05",
+    "script-audit.log": "8d792d81c28f14e81434cb2a175feb8a800363e60faf05e9aa008104cb37a9c2",
+    "offline-red-ios.log": "2fef838855d84a3fadc1c29be7b19fa84c6e6b8661b050fb57c1565cfdfedb93"
+  },
+  "device_limits": {
+    "ios": "D47D7363-4705-4767-8617-F47DDB6A3241, iOS 27 simulator, LA2Verification debug, light; Accessibility XXXL ar/ur/ru/bn",
+    "android": "Guarded emulator-5554, Android 16 debug, light; controlled fontScale 2.0 ar/ur/ru/bn"
+  },
+  "open_gates": [
+    "Exact-copy native-speaker approval",
+    "Full accessibility and actual authenticated/physical-device journeys",
+    "A1/A3",
+    "A5-A7/readiness",
+    "E and final original-objective audit",
+    "Existing content, store/purchase, actual annual billing total, production, backup/recovery, publication and LA4 gates"
+  ],
+  "supplemental_ios_units": {
+    "bundle": "/tmp/hadithly-a4-finish-1031/runtime-red.xcresult",
+    "classes": [
+      "OfflineStoreTests",
+      "SettingsS1Tests/testOfflineNoticeBoundaryKeepsArgumentsAndBoundsDiagnostics"
+    ],
+    "passed": 17,
+    "failed": 0,
+    "scope_note": "Bundle also contains the expected unrelated failing wrapper reproduction UI test. The seventeen offline unit cases pass."
+  },
+  "script_checks": {
+    "copy": 4,
+    "catalog_staging": 1,
+    "localization_audit": 12,
+    "total": 17
+  },
+  "preservation": "offline-preservation.json",
+  "state_safeguard": "Opaque name exact, zero callbacks after changing presentations, one callback after an explicit local button; core offline store uses synthetic roots."
+}

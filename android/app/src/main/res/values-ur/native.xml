@@ -326,4 +326,34 @@
     <string name="native_d6e623ac7380" formatted="false">صارف نام میں کم از کم 3 حروف ہونے چاہئیں۔</string>
     <string name="native_c3d0112b1713" formatted="false">صارف نام محفوظ ہو گیا۔</string>
     <string name="native_a78d77ebb496" formatted="false">یہ صارف نام دستیاب نہیں ہے۔</string>
+    <string name="native_8056d31c4182" formatted="false">عارضی کیش صاف ہو گیا۔</string>
+    <string name="native_034bb5f1d067" formatted="false">%s کی فائلیں حذف ہو گئیں۔ محفوظ اشیا اور پڑھنے کے مقامات برقرار ہیں۔</string>
+    <string name="native_5569a4e0a4ce" formatted="false">ڈاؤن لوڈ نہیں ہوا</string>
+    <string name="native_1573e614813b" formatted="false">ڈاؤن لوڈ کا انتظار ہے…</string>
+    <string name="native_1be1bfcc2db0" formatted="false">ڈاؤن لوڈ ہو رہا ہے… %d%%</string>
+    <string name="native_6a28117a6b2c" formatted="false">رکا ہوا ہے۔ وہیں سے دوبارہ شروع ہوگا۔</string>
+    <string name="native_9fd57213b23b" formatted="false">فائل کی جانچ ہو رہی ہے…</string>
+    <string name="native_f0b0738f75b8" formatted="false">ڈاؤن لوڈ ہو گیا</string>
+    <string name="native_a193f8190f89" formatted="false">اپ ڈیٹ دستیاب ہے</string>
+    <string name="native_8181e7405f85" formatted="false">ترجمہ پرانا ہے</string>
+    <string name="native_a437a82b8990" formatted="false">%s کا ترجمہ دستیاب ہے</string>
+    <string name="native_211cd35d567e" formatted="false">Hadithly %s یا نیا ورژن درکار ہے۔</string>
+    <string name="native_27f3dca76cba" formatted="false">آپ آف لائن ہیں۔ ڈاؤن لوڈ شدہ مواد دکھایا جا رہا ہے۔</string>
+    <string name="native_9e1f197ad752" formatted="false">اپ ڈیٹس کی جانچ نہیں ہو سکی۔ ڈاؤن لوڈز آف لائن کام کرتے رہیں گے۔</string>
+    <string name="native_8f8cecdaca26" formatted="false">پہلے ترجمے کی زبان منتخب کریں۔</string>
+    <string name="native_6d9f1e03a704" formatted="false">اس مجموعے کی آف لائن فائل ابھی شائع نہیں ہوئی۔</string>
+    <string name="native_fe0786458526" formatted="false">یہ مجموعہ ڈاؤن لوڈ کرنے کے لیے Hadithly اپ ڈیٹ کریں۔</string>
+    <string name="native_c9f3c1ce7dba" formatted="false">سرور کی فائل نصب شدہ نقل سے پرانی ہے۔ آپ کی نقل فعال رہے گی۔</string>
+    <string name="native_f888f0384426" formatted="false">اسٹوریج ناکافی ہے: %s درکار، %s خالی۔</string>
+    <string name="native_a1835fe5b324" formatted="false">انٹرنیٹ سے جڑ کر دوبارہ کوشش کریں۔ نصب شدہ نقل کام کر رہی ہے۔</string>
+    <string name="native_e0ab905c4257" formatted="false">سرور سے رابطہ نہیں ہو سکا۔ آن لائن ہونے پر دوبارہ کوشش کریں۔</string>
+    <string name="native_199185e21e5b" formatted="false">ڈاؤن لوڈ لنک درست نہیں۔ دوبارہ کوشش کریں۔</string>
+    <string name="native_803ecf06d728" formatted="false">ڈاؤن لوڈ رک گیا۔ نصب شدہ نقل کام کر رہی ہے۔</string>
+    <string name="native_036ea3c2e64b" formatted="false">نئی فائل میں آپ کی محفوظ احادیث میں سے %d موجود نہیں۔ آپ کی نقل فعال رہے گی۔</string>
+    <string name="native_1ad300dda173" formatted="false">فائل کا چیک سم درست نہیں۔ نصب شدہ نقل کام کر رہی ہے۔</string>
+    <string name="native_b3e1f11052f4" formatted="false">اس فائل کے لیے نیا Hadithly درکار ہے۔ ایپ اپ ڈیٹ کر کے دوبارہ کوشش کریں۔</string>
+    <string name="native_5fb1ab56889b" formatted="false">یہ ترجمہ نصب شدہ عربی فائل سے مطابقت نہیں رکھتا۔</string>
+    <string name="native_4e46b5060c34" formatted="false">اس فائل کے لائسنس کی تصدیق نہیں ہو سکی۔</string>
+    <string name="native_0036733fa321" formatted="false">فائل کی توثیق ناکام رہی۔ نصب شدہ نقل کام کر رہی ہے۔</string>
+    <string name="native_22edbe1fbf15" formatted="false">ڈاؤن لوڈ ناکام ہو گیا۔</string>
 </resources>

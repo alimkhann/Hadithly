@@ -22604,6 +22604,2856 @@
         }
       }
     },
+    "Download failed." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download failed."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "فشل التنزيل."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Загрузка не удалась."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жүктеу сәтсіз аяқталды."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жүктөө ишке ашкан жок."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Yuklab boʻlmadi."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "İndirme başarısız."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Unduhan gagal."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ڈاؤن لوڈ ناکام ہو گیا۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Échec du téléchargement."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Error de descarga."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Falha no download."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Upakuaji umeshindikana."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "डाउनलोड विफल हुआ।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ডাউনলোড ব্যর্থ হয়েছে।"
+          }
+        }
+      }
+    },
+    "This file failed validation. Your installed copy still works." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This file failed validation. Your installed copy still works."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "فشل التحقق من صلاحية الملف. النسخة المثبتة ما زالت تعمل."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Файл не прошёл проверку. Установленная копия работает."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Файл тексеруден өтпеді. Орнатылған көшірме жұмыс істейді."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Файл текшерүүдөн өткөн жок. Орнотулган көчүрмө иштейт."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Fayl tekshiruvdan oʻtmadi. Oʻrnatilgan nusxa ishlaydi."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Dosya doğrulanamadı. Kurulu kopyanız çalışmaya devam eder."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Berkas gagal divalidasi. Salinan terpasang tetap berfungsi."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "فائل کی توثیق ناکام رہی۔ نصب شدہ نقل کام کر رہی ہے۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "La validation du fichier a échoué. Votre copie installée fonctionne toujours."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "El archivo no pasó la validación. Tu copia instalada sigue funcionando."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "O arquivo falhou na validação. Sua cópia instalada continua funcionando."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Uthibitishaji wa faili umeshindikana. Nakala iliyosakinishwa bado inafanya kazi."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "फ़ाइल का सत्यापन विफल रहा। स्थापित प्रति काम कर रही है।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ফাইল যাচাই ব্যর্থ হয়েছে। ইনস্টল করা কপি কাজ করছে।"
+          }
+        }
+      }
+    },
+    "This file's license could not be verified." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This file's license could not be verified."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "تعذّر التحقق من ترخيص هذا الملف."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Не удалось проверить лицензию файла."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бұл файлдың лицензиясын тексеру мүмкін болмады."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бул файлдын лицензиясын текшерүү мүмкүн болгон жок."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bu fayl litsenziyasini tekshirib boʻlmadi."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bu dosyanın lisansı doğrulanamadı."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Lisensi berkas ini tidak dapat diverifikasi."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "اس فائل کے لائسنس کی تصدیق نہیں ہو سکی۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "La licence de ce fichier n'a pas pu être vérifiée."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No se pudo verificar la licencia de este archivo."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Não foi possível verificar a licença deste arquivo."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Leseni ya faili hii haikuweza kuthibitishwa."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "इस फ़ाइल के लाइसेंस की पुष्टि नहीं हो सकी।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "এই ফাইলের লাইসেন্স যাচাই করা যায়নি।"
+          }
+        }
+      }
+    },
+    "This translation does not match the installed Arabic file." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This translation does not match the installed Arabic file."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "هذه الترجمة لا تتوافق مع الملف العربي المثبت."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Этот перевод не соответствует установленному арабскому файлу."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бұл аударма орнатылған арабша файлға сәйкес келмейді."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бул котормо орнотулган арабча файлга дал келбейт."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bu tarjima oʻrnatilgan arabcha faylga mos kelmaydi."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bu çeviri kurulu Arapça dosyayla eşleşmiyor."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Terjemahan ini tidak cocok dengan berkas Arab yang terpasang."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "یہ ترجمہ نصب شدہ عربی فائل سے مطابقت نہیں رکھتا۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cette traduction ne correspond pas au fichier arabe installé."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Esta traducción no coincide con el archivo árabe instalado."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Esta tradução não corresponde ao arquivo árabe instalado."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tafsiri hii hailingani na faili ya Kiarabu iliyosakinishwa."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "यह अनुवाद स्थापित अरबी फ़ाइल से मेल नहीं खाता।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "এই অনুবাদ ইনস্টল করা আরবি ফাইলের সঙ্গে মেলে না।"
+          }
+        }
+      }
+    },
+    "This file needs a newer Hadithly. Update the app and try again." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This file needs a newer Hadithly. Update the app and try again."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "يتطلب هذا الملف إصدارًا أحدث من Hadithly. حدّث التطبيق وحاول مجددًا."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Для файла нужна новая версия Hadithly. Обновите приложение и повторите попытку."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бұл файлға Hadithly қолданбасының жаңа нұсқасы қажет. Жаңартып, қайталап көріңіз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бул файлга Hadithly колдонмосунун жаңы нускасы керек. Жаңыртып, кайра аракет кылыңыз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bu fayl uchun yangiroq Hadithly kerak. Ilovani yangilab, qayta urining."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bu dosya daha yeni Hadithly gerektiriyor. Uygulamayı güncelleyip yeniden deneyin."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Berkas ini memerlukan Hadithly yang lebih baru. Perbarui aplikasi dan coba lagi."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "اس فائل کے لیے نیا Hadithly درکار ہے۔ ایپ اپ ڈیٹ کر کے دوبارہ کوشش کریں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ce fichier nécessite une version plus récente de Hadithly. Mettez l'app à jour et réessayez."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Este archivo requiere una versión más reciente de Hadithly. Actualiza la app e inténtalo de nuevo."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Este arquivo requer um Hadithly mais recente. Atualize o app e tente novamente."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Faili hii inahitaji Hadithly mpya zaidi. Sasisha programu na ujaribu tena."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "इस फ़ाइल के लिए नया Hadithly चाहिए। ऐप अपडेट करके फिर कोशिश करें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "এই ফাইলের জন্য নতুন Hadithly দরকার। অ্যাপ আপডেট করে আবার চেষ্টা করুন।"
+          }
+        }
+      }
+    },
+    "The file failed its checksum. Your installed copy still works." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The file failed its checksum. Your installed copy still works."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "فشل التحقق من المجموع الاختباري للملف. النسخة المثبتة ما زالت تعمل."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Контрольная сумма файла не совпала. Установленная копия работает."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Файлдың бақылау сомасы сәйкес келмеді. Орнатылған көшірме жұмыс істейді."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Файлдын текшерүү суммасы дал келген жок. Орнотулган көчүрмө иштейт."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Faylning nazorat yigʻindisi mos kelmadi. Oʻrnatilgan nusxa ishlaydi."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Dosyanın sağlama toplamı eşleşmedi. Kurulu kopyanız çalışmaya devam eder."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Checksum berkas tidak cocok. Salinan terpasang tetap berfungsi."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "فائل کا چیک سم درست نہیں۔ نصب شدہ نقل کام کر رہی ہے۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "La somme de contrôle du fichier est incorrecte. Votre copie installée fonctionne toujours."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "La suma de verificación del archivo no coincide. Tu copia instalada sigue funcionando."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "A soma de verificação do arquivo não confere. Sua cópia instalada continua funcionando."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Jumla ya ukaguzi wa faili haikulingana. Nakala iliyosakinishwa bado inafanya kazi."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "फ़ाइल का चेकसम मेल नहीं खाता। स्थापित प्रति काम कर रही है।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ফাইলের চেকসাম মেলেনি। ইনস্টল করা কপি কাজ করছে।"
+          }
+        }
+      }
+    },
+    "The new file is missing %lld of your saved hadiths. Your copy stays active." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The new file is missing %lld of your saved hadiths. Your copy stays active."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "يفتقد الملف الجديد %lld من أحاديثك المحفوظة. تبقى نسختك فعّالة."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "В новом файле не хватает сохранённых хадисов: %lld. Ваша копия остаётся активной."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жаңа файлда сақталған хадистеріңіздің %lld данасы жоқ. Көшірмеңіз белсенді қалады."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жаңы файлда сакталган хадистериңиздин %lld даанасы жок. Сиздин көчүрмө активдүү калат."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Yangi faylda saqlangan hadislaringizdan %lld tasi yoʻq. Nusxangiz faol qoladi."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Yeni dosyada kayıtlı hadislerinizden %lld tanesi eksik. Kopyanız etkin kalır."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Berkas baru tidak memuat %lld hadis tersimpan Anda. Salinan Anda tetap aktif."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "نئی فائل میں آپ کی محفوظ احادیث میں سے %lld موجود نہیں۔ آپ کی نقل فعال رہے گی۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Des hadiths enregistrés manquent dans le nouveau fichier : %lld. Votre copie reste active."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Al nuevo archivo le faltan %lld de tus hadices guardados. Tu copia sigue activa."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "O novo arquivo não contém %lld dos seus hadiths salvos. Sua cópia continua ativa."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Faili mpya haina hadithi zako ulizohifadhi: %lld. Nakala yako inabaki hai."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "नई फ़ाइल में आपके सहेजे हदीसों में से %lld मौजूद नहीं हैं। आपकी प्रति सक्रिय रहेगी।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "নতুন ফাইলে আপনার সংরক্ষিত হাদিসের %lldটি নেই। আপনার কপি সক্রিয় থাকবে।"
+          }
+        }
+      }
+    },
+    "The download was interrupted. Your installed copy still works." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The download was interrupted. Your installed copy still works."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "انقطع التنزيل. النسخة المثبتة ما زالت تعمل."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Загрузка прервана. Установленная копия работает."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жүктеу үзілді. Орнатылған көшірме жұмыс істейді."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жүктөө үзүлдү. Орнотулган көчүрмө иштейт."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Yuklash uzildi. Oʻrnatilgan nusxa ishlaydi."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "İndirme kesildi. Kurulu kopyanız çalışmaya devam eder."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Unduhan terputus. Salinan terpasang tetap berfungsi."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ڈاؤن لوڈ رک گیا۔ نصب شدہ نقل کام کر رہی ہے۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Le téléchargement a été interrompu. Votre copie installée fonctionne toujours."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Se interrumpió la descarga. Tu copia instalada sigue funcionando."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "O download foi interrompido. Sua cópia instalada continua funcionando."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Upakuaji ulikatizwa. Nakala iliyosakinishwa bado inafanya kazi."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "डाउनलोड रुक गया। स्थापित प्रति काम कर रही है।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ডাউনলোড বাধাগ্রস্ত হয়েছে। ইনস্টল করা কপি কাজ করছে।"
+          }
+        }
+      }
+    },
+    "The download link is invalid. Try again." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The download link is invalid. Try again."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "رابط التنزيل غير صالح. حاول مجددًا."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ссылка для загрузки недействительна. Попробуйте ещё раз."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жүктеу сілтемесі жарамсыз. Қайталап көріңіз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жүктөө шилтемеси жараксыз. Кайра аракет кылыңыз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Yuklash havolasi yaroqsiz. Qayta urining."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "İndirme bağlantısı geçersiz. Yeniden deneyin."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Tautan unduhan tidak valid. Coba lagi."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ڈاؤن لوڈ لنک درست نہیں۔ دوبارہ کوشش کریں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Le lien de téléchargement est invalide. Réessayez."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "El enlace de descarga no es válido. Inténtalo de nuevo."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "O link de download é inválido. Tente novamente."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Kiungo cha kupakua si halali. Jaribu tena."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "डाउनलोड लिंक अमान्य है। फिर कोशिश करें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ডাউনলোড লিংকটি সঠিক নয়। আবার চেষ্টা করুন।"
+          }
+        }
+      }
+    },
+    "Could not reach the server. Try again when you are online." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not reach the server. Try again when you are online."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "تعذّر الاتصال بالخادم. حاول مجددًا عند الاتصال بالإنترنت."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Не удалось связаться с сервером. Повторите попытку при подключении к интернету."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Серверге қосылу мүмкін болмады. Интернетке қосылғанда қайталап көріңіз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Серверге туташуу мүмкүн болгон жок. Интернетке туташканда кайра аракет кылыңыз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Serverga ulanib boʻlmadi. Internetga ulanganda qayta urining."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sunucuya ulaşılamadı. Çevrimiçi olduğunuzda yeniden deneyin."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Server tidak dapat dihubungi. Coba lagi saat online."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "سرور سے رابطہ نہیں ہو سکا۔ آن لائن ہونے پر دوبارہ کوشش کریں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Impossible de joindre le serveur. Réessayez une fois en ligne."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No se pudo contactar al servidor. Inténtalo cuando tengas conexión."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Não foi possível acessar o servidor. Tente novamente quando estiver online."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Imeshindikana kufikia seva. Jaribu tena ukiwa na mtandao."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "सर्वर से संपर्क नहीं हो सका। ऑनलाइन होने पर फिर कोशिश करें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "সার্ভারের সঙ্গে যোগাযোগ করা যায়নি। অনলাইনে থাকলে আবার চেষ্টা করুন।"
+          }
+        }
+      }
+    },
+    "You're offline. Reconnect and retry — your installed copy still works." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're offline. Reconnect and retry — your installed copy still works."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "أنت غير متصل. اتصل وأعد المحاولة، فالنسخة المثبتة ما زالت تعمل."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Нет подключения. Подключитесь и повторите попытку. Установленная копия работает."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Интернетке қосылып, қайталап көріңіз. Орнатылған көшірме жұмыс істейді."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Интернетке туташып, кайра аракет кылыңыз. Орнотулган көчүрмө иштейт."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Internetga ulaning va qayta urining. Oʻrnatilgan nusxa ishlaydi."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bağlanıp yeniden deneyin. Kurulu kopyanız çalışmaya devam eder."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hubungkan ke internet dan coba lagi. Salinan terpasang tetap berfungsi."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "انٹرنیٹ سے جڑ کر دوبارہ کوشش کریں۔ نصب شدہ نقل کام کر رہی ہے۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Reconnectez-vous et réessayez. Votre copie installée fonctionne toujours."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Conéctate y vuelve a intentarlo. Tu copia instalada sigue funcionando."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Conecte-se e tente novamente. Sua cópia instalada continua funcionando."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Unganisha mtandao na ujaribu tena. Nakala iliyosakinishwa bado inafanya kazi."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "इंटरनेट से जुड़कर फिर कोशिश करें। स्थापित प्रति काम कर रही है।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ইন্টারনেটে যুক্ত হয়ে আবার চেষ্টা করুন। ইনস্টল করা কপি কাজ করছে।"
+          }
+        }
+      }
+    },
+    "Not enough storage: need %@, %@ free." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not enough storage: need %@, %@ free."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "مساحة التخزين غير كافية: المطلوب %@، والمتاح %@."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Недостаточно места: нужно %@, свободно %@."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Сақтау орны жеткіліксіз: %@ қажет, %@ бос."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Сактагыч жетишсиз: %@ керек, %@ бош."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Xotira yetarli emas: %@ kerak, %@ boʻsh."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Yeterli alan yok: %@ gerekiyor, %@ boş."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ruang penyimpanan tidak cukup: perlu %@, tersedia %@."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "اسٹوریج ناکافی ہے: %@ درکار، %@ خالی۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Espace insuffisant : %@ nécessaires, %@ libres."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Espacio insuficiente: se necesitan %@, hay %@ libres."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Espaço insuficiente: necessário %@, livre %@."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Nafasi haitoshi: inahitaji %@, nafasi huru %@."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "जगह कम है: %@ चाहिए, %@ खाली है।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "যথেষ্ট জায়গা নেই: %@ দরকার, %@ খালি।"
+          }
+        }
+      }
+    },
+    "The server offers an older file than your installed copy. Your copy stays active." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server offers an older file than your installed copy. Your copy stays active."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "يقدّم الخادم ملفًا أقدم من النسخة المثبتة. تبقى نسختك فعّالة."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "На сервере файл старее установленного. Ваша копия остаётся активной."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Сервердегі файл орнатылған нұсқадан ескі. Көшірмеңіз белсенді қалады."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Сервердеги файл орнотулган нускадан эски. Сиздин көчүрмө активдүү калат."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Serverdagi fayl oʻrnatilgan nusxadan eski. Nusxangiz faol qoladi."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sunucudaki dosya kurulu kopyanızdan eski. Kopyanız etkin kalır."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Server menawarkan berkas yang lebih lama dari salinan terpasang. Salinan Anda tetap aktif."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "سرور کی فائل نصب شدہ نقل سے پرانی ہے۔ آپ کی نقل فعال رہے گی۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Le serveur propose un fichier plus ancien que votre copie. Votre copie reste active."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "El servidor ofrece un archivo anterior al instalado. Tu copia sigue activa."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "O servidor oferece um arquivo mais antigo que sua cópia instalada. Sua cópia continua ativa."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Seva inatoa faili ya zamani kuliko nakala iliyosakinishwa. Nakala yako inabaki hai."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "सर्वर की फ़ाइल स्थापित प्रति से पुरानी है। आपकी प्रति सक्रिय रहेगी।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "সার্ভারের ফাইল ইনস্টল করা কপির চেয়ে পুরোনো। আপনার কপি সক্রিয় থাকবে।"
+          }
+        }
+      }
+    },
+    "Update Hadithly to download this collection." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update Hadithly to download this collection."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "حدّث Hadithly لتنزيل هذه المجموعة."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Обновите Hadithly, чтобы загрузить эту коллекцию."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бұл жинақты жүктеу үшін Hadithly қолданбасын жаңартыңыз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бул жыйнакты жүктөө үчүн Hadithly колдонмосун жаңыртыңыз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bu toʻplamni yuklash uchun Hadithly ilovasini yangilang."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bu koleksiyonu indirmek için Hadithly'yi güncelleyin."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Perbarui Hadithly untuk mengunduh koleksi ini."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "یہ مجموعہ ڈاؤن لوڈ کرنے کے لیے Hadithly اپ ڈیٹ کریں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mettez Hadithly à jour pour télécharger ce recueil."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Actualiza Hadithly para descargar esta colección."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Atualize o Hadithly para baixar esta coleção."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sasisha Hadithly ili kupakua mkusanyo huu."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "यह संग्रह डाउनलोड करने के लिए Hadithly अपडेट करें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "এই সংকলন ডাউনলোড করতে Hadithly আপডেট করুন।"
+          }
+        }
+      }
+    },
+    "No offline file is published for this collection yet." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No offline file is published for this collection yet."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "لم يُنشر ملف لهذه المجموعة للاستخدام دون اتصال بعد."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Файл этой коллекции для чтения без интернета ещё не опубликован."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бұл жинақтың интернетсіз оқуға арналған файлы әлі жарияланбаған."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Бул жыйнактын интернетсиз окуу файлы жарыялана элек."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bu toʻplamning internetsiz oʻqish fayli hali chop etilmagan."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bu koleksiyon için henüz çevrimdışı dosya yayımlanmadı."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Belum ada berkas offline yang diterbitkan untuk koleksi ini."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "اس مجموعے کی آف لائن فائل ابھی شائع نہیں ہوئی۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Aucun fichier hors ligne n'est encore publié pour ce recueil."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Aún no se publicó un archivo sin conexión para esta colección."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ainda não há arquivo offline publicado para esta coleção."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bado hakuna faili ya bila mtandao iliyochapishwa kwa mkusanyo huu."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "इस संग्रह की ऑफ़लाइन फ़ाइल अभी प्रकाशित नहीं हुई है।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "এই সংকলনের অফলাইন ফাইল এখনো প্রকাশিত হয়নি।"
+          }
+        }
+      }
+    },
+    "Pick a translation language first." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick a translation language first."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "اختر لغة الترجمة أولًا."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Сначала выберите язык перевода."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Алдымен аударма тілін таңдаңыз."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Адегенде котормонун тилин тандаңыз."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Avval tarjima tilini tanlang."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Önce bir çeviri dili seçin."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Pilih bahasa terjemahan terlebih dahulu."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "پہلے ترجمے کی زبان منتخب کریں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Choisissez d'abord une langue de traduction."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Primero elige un idioma de traducción."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Primeiro escolha um idioma de tradução."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Chagua lugha ya tafsiri kwanza."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "पहले अनुवाद की भाषा चुनें।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "আগে অনুবাদের ভাষা বেছে নিন।"
+          }
+        }
+      }
+    },
+    "Could not check for updates. Your downloads keep working offline." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not check for updates. Your downloads keep working offline."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "تعذّر البحث عن تحديثات. تظل تنزيلاتك متاحة دون اتصال."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Не удалось проверить обновления. Загрузки доступны без интернета."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жаңартуларды тексеру мүмкін болмады. Жүктелгендер интернетсіз жұмыс істейді."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жаңыртуулар текшерилген жок. Жүктөлгөндөр интернетсиз иштейт."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Yangilanishlarni tekshirib boʻlmadi. Yuklanganlar internetsiz ishlaydi."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Güncellemeler denetlenemedi. İndirdikleriniz çevrimdışı çalışır."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Pembaruan tidak dapat diperiksa. Unduhan tetap berfungsi offline."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "اپ ڈیٹس کی جانچ نہیں ہو سکی۔ ڈاؤن لوڈز آف لائن کام کرتے رہیں گے۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Impossible de vérifier les mises à jour. Vos téléchargements restent disponibles hors ligne."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "No se pudieron buscar actualizaciones. Tus descargas siguen funcionando sin conexión."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Não foi possível verificar atualizações. Seus downloads continuam funcionando offline."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Imeshindikana kukagua masasisho. Vipakuliwa vyako vinaendelea kufanya kazi bila mtandao."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "अपडेट नहीं जाँचे जा सके। आपके डाउनलोड ऑफ़लाइन काम करते रहेंगे।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "আপডেট পরীক্ষা করা যায়নি। ডাউনলোডগুলো অফলাইনে কাজ করবে।"
+          }
+        }
+      }
+    },
+    "You're offline. Showing your downloaded content." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're offline. Showing your downloaded content."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "أنت غير متصل. يُعرض المحتوى الذي نزّلته."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Нет подключения. Показан загруженный контент."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Интернетке қосылмағансыз. Жүктелген мазмұн көрсетіледі."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Интернет жок. Жүктөлгөн мазмун көрсөтүлөт."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Internet yoʻq. Yuklangan kontent koʻrsatilmoqda."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Çevrimdışısınız. İndirilen içerik gösteriliyor."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Anda sedang offline. Konten unduhan ditampilkan."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "آپ آف لائن ہیں۔ ڈاؤن لوڈ شدہ مواد دکھایا جا رہا ہے۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Vous êtes hors ligne. Le contenu téléchargé est affiché."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Estás sin conexión. Se muestra el contenido descargado."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Você está offline. O conteúdo baixado está sendo exibido."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Huna mtandao. Maudhui uliyopakua yanaonyeshwa."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "आप ऑफ़लाइन हैं। डाउनलोड की गई सामग्री दिखाई जा रही है।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "আপনি অফলাইনে আছেন। ডাউনলোড করা বিষয়বস্তু দেখানো হচ্ছে।"
+          }
+        }
+      }
+    },
+    "Needs Hadithly %@ or newer." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Needs Hadithly %@ or newer."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "يتطلب Hadithly %@ أو أحدث."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Требуется Hadithly %@ или новее."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hadithly %@ не одан жаңа нұсқа қажет."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hadithly %@ же андан жаңысы керек."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hadithly %@ yoki yangirogʻi kerak."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hadithly %@ veya üstü gerekiyor."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Memerlukan Hadithly %@ atau lebih baru."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hadithly %@ یا نیا ورژن درکار ہے۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Nécessite Hadithly %@ ou une version ultérieure."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Requiere Hadithly %@ o posterior."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Requer Hadithly %@ ou mais recente."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Inahitaji Hadithly %@ au mpya zaidi."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hadithly %@ या नया संस्करण चाहिए।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hadithly %@ বা নতুন সংস্করণ দরকার।"
+          }
+        }
+      }
+    },
+    "%@ translation available" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ translation available"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "تتوفر ترجمة بحجم %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "доступен перевод объёмом %@"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ көлеміндегі аударма қолжетімді"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ көлөмүндөгү котормо жеткиликтүү"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ hajmdagi tarjima mavjud"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ boyutunda çeviri var"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "terjemahan berukuran %@ tersedia"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ کا ترجمہ دستیاب ہے"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "traduction de %@ disponible"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "traducción de %@ disponible"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "tradução de %@ disponível"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "tafsiri ya ukubwa wa %@ inapatikana"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ का अनुवाद उपलब्ध है"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ আকারের অনুবাদ পাওয়া যাচ্ছে"
+          }
+        }
+      }
+    },
+    "translation outdated" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "translation outdated"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "الترجمة قديمة"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "перевод устарел"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "аударма ескірген"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "котормо эскирген"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "tarjima eskirgan"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "çeviri eski"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "terjemahan kedaluwarsa"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ترجمہ پرانا ہے"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "traduction obsolète"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "traducción desactualizada"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "tradução desatualizada"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "tafsiri imepitwa na wakati"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "अनुवाद पुराना है"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "অনুবাদ পুরোনো"
+          }
+        }
+      }
+    },
+    "update available" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "update available"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "يتوفر تحديث"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "доступно обновление"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "жаңарту қолжетімді"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "жаңыртуу жеткиликтүү"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "yangilanish mavjud"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "güncelleme var"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "pembaruan tersedia"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "اپ ڈیٹ دستیاب ہے"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "mise à jour disponible"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "actualización disponible"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "atualização disponível"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "sasisho linapatikana"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "अपडेट उपलब्ध है"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "আপডেট পাওয়া যাচ্ছে"
+          }
+        }
+      }
+    },
+    "Downloaded" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloaded"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "تم التنزيل"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Загружено"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жүктелді"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жүктөлдү"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Yuklandi"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "İndirildi"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sudah diunduh"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ڈاؤن لوڈ ہو گیا"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Téléchargé"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Descargado"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Baixado"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Imepakuliwa"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "डाउनलोड हो गया"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ডাউনলোড হয়েছে"
+          }
+        }
+      }
+    },
+    "Checking the file…" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking the file…"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "جارٍ فحص الملف…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Проверка файла…"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Файл тексерілуде…"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Файл текшерилүүдө…"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Fayl tekshirilmoqda…"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Dosya denetleniyor…"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Memeriksa berkas…"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "فائل کی جانچ ہو رہی ہے…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Vérification du fichier…"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Comprobando el archivo…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Verificando o arquivo…"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Inakagua faili…"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "फ़ाइल जाँची जा रही है…"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ফাইল পরীক্ষা করা হচ্ছে…"
+          }
+        }
+      }
+    },
+    "Paused — resumes where it stopped." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paused — resumes where it stopped."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "متوقف مؤقتًا، وسيُستأنف من حيث توقف."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Приостановлено. Продолжится с места остановки."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Кідіртілді. Тоқтаған жерінен жалғасады."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Тындырылды. Токтогон жеринен уланат."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Toʻxtatildi. Toʻxtagan joyidan davom etadi."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Duraklatıldı. Kaldığı yerden devam eder."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Dijeda. Akan dilanjutkan dari titik terakhir."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "رکا ہوا ہے۔ وہیں سے دوبارہ شروع ہوگا۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "En pause. Reprendra au même endroit."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "En pausa. Continuará desde donde se detuvo."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Pausado. Continuará de onde parou."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Imesitishwa. Itaendelea ilipoishia."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "रुका हुआ है। वहीं से फिर शुरू होगा।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "বিরতিতে আছে। যেখানে থেমেছে সেখান থেকে চলবে।"
+          }
+        }
+      }
+    },
+    "Downloading… %lld%%" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloading… %lld%%"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "جارٍ التنزيل… %lld%%"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Загрузка… %lld%%"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жүктелуде… %lld%%"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жүктөлүүдө… %lld%%"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Yuklanmoqda… %lld%%"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "İndiriliyor… %lld%%"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mengunduh… %lld%%"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ڈاؤن لوڈ ہو رہا ہے… %lld%%"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Téléchargement… %lld%%"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Descargando… %lld%%"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Baixando… %lld%%"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Inapakua… %lld%%"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "डाउनलोड हो रहा है… %lld%%"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ডাউনলোড হচ্ছে… %lld%%"
+          }
+        }
+      }
+    },
+    "Waiting to download…" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting to download…"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "بانتظار التنزيل…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ожидание загрузки…"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жүктеуді күтуде…"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жүктөөнү күтүүдө…"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Yuklash kutilmoqda…"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "İndirme bekleniyor…"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Menunggu unduhan…"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ڈاؤن لوڈ کا انتظار ہے…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "En attente de téléchargement…"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Esperando la descarga…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Aguardando download…"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Inasubiri kupakuliwa…"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "डाउनलोड की प्रतीक्षा में…"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ডাউনলোডের অপেক্ষায়…"
+          }
+        }
+      }
+    },
+    "Not downloaded" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not downloaded"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "لم يُنزّل"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Не загружено"
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жүктелмеген"
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Жүктөлө элек"
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Yuklanmagan"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "İndirilmedi"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Belum diunduh"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ڈاؤن لوڈ نہیں ہوا"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Non téléchargé"
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sin descargar"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Não baixado"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Haijapakuliwa"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "डाउनलोड नहीं हुआ"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ডাউনলোড হয়নি"
+          }
+        }
+      }
+    },
+    "Deleted the %@ files. Your saved items and positions stay." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleted the %@ files. Your saved items and positions stay."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "تم حذف ملفات %@. تبقى عناصرِك المحفوظة ومواضع القراءة."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Файлы %@ удалены. Сохранённые элементы и позиции чтения остаются."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ файлдары жойылды. Сақталған элементтер мен оқу орындары қалады."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ файлдары өчүрүлдү. Сакталган нерселер жана окуу орундары калат."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ fayllari oʻchirildi. Saqlangan narsalar va oʻqish joylari qoladi."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ dosyaları silindi. Kaydettikleriniz ve okuma konumlarınız korunur."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Berkas %@ dihapus. Item tersimpan dan posisi membaca Anda tetap ada."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ کی فائلیں حذف ہو گئیں۔ محفوظ اشیا اور پڑھنے کے مقامات برقرار ہیں۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Les fichiers de %@ ont été supprimés. Vos éléments enregistrés et positions de lecture sont conservés."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Se eliminaron los archivos de %@. Tus elementos guardados y posiciones de lectura se conservan."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Os arquivos de %@ foram excluídos. Seus itens salvos e posições de leitura permanecem."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Faili za %@ zimefutwa. Vipengee ulivyohifadhi na nafasi za kusoma zinabaki."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ की फ़ाइलें हटा दी गईं। आपके सहेजे गए आइटम और पढ़ने के स्थान बने रहेंगे।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@-এর ফাইল মুছে ফেলা হয়েছে। আপনার সংরক্ষিত আইটেম ও পড়ার অবস্থান থাকবে।"
+          }
+        }
+      }
+    },
+    "Temporary cache cleared." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temporary cache cleared."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "تم مسح ذاكرة التخزين المؤقت."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Временный кэш очищен."
+          }
+        },
+        "kk": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Уақытша кэш тазаланды."
+          }
+        },
+        "ky": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Убактылуу кэш тазаланды."
+          }
+        },
+        "uz": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Vaqtinchalik kesh tozalandi."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Geçici önbellek temizlendi."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cache sementara dihapus."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "عارضی کیش صاف ہو گیا۔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cache temporaire vidé."
+          }
+        },
+        "es-419": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Se borró la caché temporal."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cache temporário limpo."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Kache ya muda imefutwa."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "अस्थायी कैश साफ़ हो गया।"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "অস্থায়ী ক্যাশ মুছে ফেলা হয়েছে।"
+          }
+        }
+      }
+    },
     "That username is not available." : {
       "extractionState": "manual",
       "localizations": {

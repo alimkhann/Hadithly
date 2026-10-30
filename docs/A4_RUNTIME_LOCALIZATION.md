@@ -889,3 +889,43 @@ B/C/D retain local completion. All content, store/purchase, annual billing total
 production, backup/recovery, publication and LA4 gates remain open. The original
 `PRODUCT_PROGRAM.md` still precedes `POST_GOAL_BACKLOG.md`. No cloud, credential,
 paid-model, deployment, migration, publication, external message or push occurred.
+
+
+## Settings offline notices and states, October 31
+
+The controlled Arabic cache-cleared fixture reproduced English output on both apps
+before repair. Thirty new draft keys now cover temporary-cache success, download
+removal, progress and installed/update states, blocked reasons and bounded validation
+failures. Removal formats the opaque collection name as one argument. Unknown diagnostics
+use a fixed localized failure. Android update-check details are reduced to the fixed
+update-check notice. Stored download reasons, queues, cancellation and delete behavior
+are unchanged. The Android conditional delete label remains in the next runtime unit.
+
+Both platforms pass all thirty presentations in all fifteen UI locales and focused
+ar/ur/ru/bn large text. The fixtures preserve `Original %lld %@ اسم` exactly and prove
+that presentation changes invoke no local action callback; one explicit callback
+increments once. These are production formatting/boundary calls in controlled layouts,
+not actual cache clearing, pack deletion, provider calls or complete Settings acceptance.
+The iOS matrix passes two cases. Android's standard matrix and final large-text case
+pass. Fifteen synthetic Android offline-store tests pass. Seventeen iOS unit tests,
+including the offline boundary test and sixteen existing offline-store tests, pass in
+the separate wrapper-reproduction bundle; its expected wrapper UI failure is unrelated.
+
+The first Android boundary read cached Context resources instead of the supplied
+Compose resources. That run failed Arabic and was repaired before the final runs.
+A later Bengali line measurement was 997.3125px for a 996px layout width. The final
+check permits at most two pixels of shaping/rounding overhang, still requires the full
+string and rejects height overflow, exceeded lines and ellipsis. Representative original
+captures show full ar/ur/bn large notices. No product layout workaround was added.
+
+`verification/a4-localization/offline-notices.json` records raw result paths, hashes,
+expected red runs and selected original captures. `offline-preservation.json` proves the
+incoming catalog/project bytes and existing Android resources at scoped staging. Only
+thirty new iOS entries are staged. Generator checks and seventeen script checks pass.
+The reproducible collector and preservation scripts are in `scripts/`.
+
+All thirty keys remain drafts. Full native-copy/accessibility, actual authenticated or
+physical-device, A1/A3, A5–A7/E and all previous external gates remain open. A2 remains
+wrapped and B/C/D retain local completion. Continue the finite Settings/evidence/runtime
+checklist without starting A5 or the later backlog. No cloud/account/store action,
+provider or paid-model call, deployment, publication, external message or push occurred.

@@ -70,6 +70,17 @@ suggested preparation first. Read `NEXT_SESSION_PROMPT.md` for the current bound
 checklist. Use the new workflow without repeating the setup audit or starting
 an unrelated pilot. This order supersedes the temporary workflow pause below.
 
+## A4 offline notices, October 31
+
+The bounded offline unit passes controlled rendering of thirty notices/states in all
+fifteen UI locales on both native apps, plus ar/ur/ru/bn large text, opaque-name/callback
+safeguards and synthetic offline-store checks. See `A4_RUNTIME_LOCALIZATION.md` and
+`verification/a4-localization/offline-notices.json`. No real cache, pack or account
+operation was invoked. Draft language approval and full A4 acceptance remain open.
+Continue the finite `A4_REMAINING_CHECKLIST.md` through Settings/evidence wrappers and
+remaining runtime bindings, then audit A4 and stop before A5. A2's wrap-up, B/C/D local
+completion and every existing open gate remain intact.
+
 ## A4 Settings profile notices, October 31
 
 Both native profile-notice renderers now use the selected UI locale. Five new

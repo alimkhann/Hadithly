@@ -326,4 +326,34 @@
     <string name="native_d6e623ac7380" formatted="false">Nama pengguna harus terdiri dari minimal 3 karakter.</string>
     <string name="native_c3d0112b1713" formatted="false">Nama pengguna disimpan.</string>
     <string name="native_a78d77ebb496" formatted="false">Nama pengguna itu tidak tersedia.</string>
+    <string name="native_8056d31c4182" formatted="false">Cache sementara dihapus.</string>
+    <string name="native_034bb5f1d067" formatted="false">Berkas %s dihapus. Item tersimpan dan posisi membaca Anda tetap ada.</string>
+    <string name="native_5569a4e0a4ce" formatted="false">Belum diunduh</string>
+    <string name="native_1573e614813b" formatted="false">Menunggu unduhan…</string>
+    <string name="native_1be1bfcc2db0" formatted="false">Mengunduh… %d%%</string>
+    <string name="native_6a28117a6b2c" formatted="false">Dijeda. Akan dilanjutkan dari titik terakhir.</string>
+    <string name="native_9fd57213b23b" formatted="false">Memeriksa berkas…</string>
+    <string name="native_f0b0738f75b8" formatted="false">Sudah diunduh</string>
+    <string name="native_a193f8190f89" formatted="false">pembaruan tersedia</string>
+    <string name="native_8181e7405f85" formatted="false">terjemahan kedaluwarsa</string>
+    <string name="native_a437a82b8990" formatted="false">terjemahan berukuran %s tersedia</string>
+    <string name="native_211cd35d567e" formatted="false">Memerlukan Hadithly %s atau lebih baru.</string>
+    <string name="native_27f3dca76cba" formatted="false">Anda sedang offline. Konten unduhan ditampilkan.</string>
+    <string name="native_9e1f197ad752" formatted="false">Pembaruan tidak dapat diperiksa. Unduhan tetap berfungsi offline.</string>
+    <string name="native_8f8cecdaca26" formatted="false">Pilih bahasa terjemahan terlebih dahulu.</string>
+    <string name="native_6d9f1e03a704" formatted="false">Belum ada berkas offline yang diterbitkan untuk koleksi ini.</string>
+    <string name="native_fe0786458526" formatted="false">Perbarui Hadithly untuk mengunduh koleksi ini.</string>
+    <string name="native_c9f3c1ce7dba" formatted="false">Server menawarkan berkas yang lebih lama dari salinan terpasang. Salinan Anda tetap aktif.</string>
+    <string name="native_f888f0384426" formatted="false">Ruang penyimpanan tidak cukup: perlu %s, tersedia %s.</string>
+    <string name="native_a1835fe5b324" formatted="false">Hubungkan ke internet dan coba lagi. Salinan terpasang tetap berfungsi.</string>
+    <string name="native_e0ab905c4257" formatted="false">Server tidak dapat dihubungi. Coba lagi saat online.</string>
+    <string name="native_199185e21e5b" formatted="false">Tautan unduhan tidak valid. Coba lagi.</string>
+    <string name="native_803ecf06d728" formatted="false">Unduhan terputus. Salinan terpasang tetap berfungsi.</string>
+    <string name="native_036ea3c2e64b" formatted="false">Berkas baru tidak memuat %d hadis tersimpan Anda. Salinan Anda tetap aktif.</string>
+    <string name="native_1ad300dda173" formatted="false">Checksum berkas tidak cocok. Salinan terpasang tetap berfungsi.</string>
+    <string name="native_b3e1f11052f4" formatted="false">Berkas ini memerlukan Hadithly yang lebih baru. Perbarui aplikasi dan coba lagi.</string>
+    <string name="native_5fb1ab56889b" formatted="false">Terjemahan ini tidak cocok dengan berkas Arab yang terpasang.</string>
+    <string name="native_4e46b5060c34" formatted="false">Lisensi berkas ini tidak dapat diverifikasi.</string>
+    <string name="native_0036733fa321" formatted="false">Berkas gagal divalidasi. Salinan terpasang tetap berfungsi.</string>
+    <string name="native_22edbe1fbf15" formatted="false">Unduhan gagal.</string>
 </resources>

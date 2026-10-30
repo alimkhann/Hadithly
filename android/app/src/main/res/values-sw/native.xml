@@ -326,4 +326,34 @@
     <string name="native_d6e623ac7380" formatted="false">Jina la mtumiaji lazima liwe na angalau herufi 3.</string>
     <string name="native_c3d0112b1713" formatted="false">Jina la mtumiaji limehifadhiwa.</string>
     <string name="native_a78d77ebb496" formatted="false">Jina hilo la mtumiaji halipatikani.</string>
+    <string name="native_8056d31c4182" formatted="false">Kache ya muda imefutwa.</string>
+    <string name="native_034bb5f1d067" formatted="false">Faili za %s zimefutwa. Vipengee ulivyohifadhi na nafasi za kusoma zinabaki.</string>
+    <string name="native_5569a4e0a4ce" formatted="false">Haijapakuliwa</string>
+    <string name="native_1573e614813b" formatted="false">Inasubiri kupakuliwa…</string>
+    <string name="native_1be1bfcc2db0" formatted="false">Inapakua… %d%%</string>
+    <string name="native_6a28117a6b2c" formatted="false">Imesitishwa. Itaendelea ilipoishia.</string>
+    <string name="native_9fd57213b23b" formatted="false">Inakagua faili…</string>
+    <string name="native_f0b0738f75b8" formatted="false">Imepakuliwa</string>
+    <string name="native_a193f8190f89" formatted="false">sasisho linapatikana</string>
+    <string name="native_8181e7405f85" formatted="false">tafsiri imepitwa na wakati</string>
+    <string name="native_a437a82b8990" formatted="false">tafsiri ya ukubwa wa %s inapatikana</string>
+    <string name="native_211cd35d567e" formatted="false">Inahitaji Hadithly %s au mpya zaidi.</string>
+    <string name="native_27f3dca76cba" formatted="false">Huna mtandao. Maudhui uliyopakua yanaonyeshwa.</string>
+    <string name="native_9e1f197ad752" formatted="false">Imeshindikana kukagua masasisho. Vipakuliwa vyako vinaendelea kufanya kazi bila mtandao.</string>
+    <string name="native_8f8cecdaca26" formatted="false">Chagua lugha ya tafsiri kwanza.</string>
+    <string name="native_6d9f1e03a704" formatted="false">Bado hakuna faili ya bila mtandao iliyochapishwa kwa mkusanyo huu.</string>
+    <string name="native_fe0786458526" formatted="false">Sasisha Hadithly ili kupakua mkusanyo huu.</string>
+    <string name="native_c9f3c1ce7dba" formatted="false">Seva inatoa faili ya zamani kuliko nakala iliyosakinishwa. Nakala yako inabaki hai.</string>
+    <string name="native_f888f0384426" formatted="false">Nafasi haitoshi: inahitaji %s, nafasi huru %s.</string>
+    <string name="native_a1835fe5b324" formatted="false">Unganisha mtandao na ujaribu tena. Nakala iliyosakinishwa bado inafanya kazi.</string>
+    <string name="native_e0ab905c4257" formatted="false">Imeshindikana kufikia seva. Jaribu tena ukiwa na mtandao.</string>
+    <string name="native_199185e21e5b" formatted="false">Kiungo cha kupakua si halali. Jaribu tena.</string>
+    <string name="native_803ecf06d728" formatted="false">Upakuaji ulikatizwa. Nakala iliyosakinishwa bado inafanya kazi.</string>
+    <string name="native_036ea3c2e64b" formatted="false">Faili mpya haina hadithi zako ulizohifadhi: %d. Nakala yako inabaki hai.</string>
+    <string name="native_1ad300dda173" formatted="false">Jumla ya ukaguzi wa faili haikulingana. Nakala iliyosakinishwa bado inafanya kazi.</string>
+    <string name="native_b3e1f11052f4" formatted="false">Faili hii inahitaji Hadithly mpya zaidi. Sasisha programu na ujaribu tena.</string>
+    <string name="native_5fb1ab56889b" formatted="false">Tafsiri hii hailingani na faili ya Kiarabu iliyosakinishwa.</string>
+    <string name="native_4e46b5060c34" formatted="false">Leseni ya faili hii haikuweza kuthibitishwa.</string>
+    <string name="native_0036733fa321" formatted="false">Uthibitishaji wa faili umeshindikana. Nakala iliyosakinishwa bado inafanya kazi.</string>
+    <string name="native_22edbe1fbf15" formatted="false">Upakuaji umeshindikana.</string>
 </resources>

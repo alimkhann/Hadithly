@@ -485,7 +485,7 @@ struct OfflineStorageView: View {
                         .foregroundStyle(Theme.textSecondary)
                 }
                 if let lastError = environment.offline.lastError {
-                    Text(lastError)
+                    OfflineStatusNotice(source: lastError)
                         .font(.caption)
                         .foregroundStyle(Theme.textSecondary)
                 }
@@ -514,7 +514,7 @@ struct OfflineStorageView: View {
                 }
                 .accessibilityIdentifier("settings.offline.clearCache")
                 if let clearNotice {
-                    Text(clearNotice)
+                    OfflineStatusNotice(source: clearNotice)
                         .font(.caption)
                         .foregroundStyle(Theme.textSecondary)
                 }
@@ -602,6 +602,7 @@ struct OfflineStorageView: View {
 /// One collection's download state and actions. Base and translation-pack
 /// rows share the same state machine; deleting either removes files only.
 struct OfflineCollectionRow: View {
+    @Environment(\.locale) private var uiLocale
     @Environment(AppEnvironment.self) private var environment
     let slug: String
     let name: String
@@ -642,31 +643,31 @@ struct OfflineCollectionRow: View {
         switch status {
         case .notInstalled:
             if let manifest = store.baseManifest(for: slug) {
-                return "Not downloaded · \(OfflineModels.format(bytes: Int64(manifest.byteSize)))"
+                return AppLocalization.string("Not downloaded", locale: uiLocale) + " · " + OfflineModels.format(bytes: Int64(manifest.byteSize))
             }
-            return "Not downloaded"
+            return AppLocalization.string("Not downloaded", locale: uiLocale)
         case .queued:
-            return "Waiting to download…"
+            return AppLocalization.string("Waiting to download…", locale: uiLocale)
         case .downloading(let fraction):
-            return "Downloading… \(Int(fraction * 100))%"
+            return AppLocalization.format("Downloading… %lld%%", locale: uiLocale, Int(fraction * 100))
         case .paused:
-            return "Paused — resumes where it stopped."
+            return AppLocalization.string("Paused — resumes where it stopped.", locale: uiLocale)
         case .verifying:
-            return "Checking the file…"
+            return AppLocalization.string("Checking the file…", locale: uiLocale)
         case .failed(let reason):
-            return reason
+            return OfflineCopy.message(reason, locale: uiLocale)
         case .active(_, let updateAvailable, let stalePack):
-            var parts: [String] = ["Downloaded"]
-            if updateAvailable { parts.append("update available") }
-            if stalePack { parts.append("translation outdated") }
+            var parts: [String] = [AppLocalization.string("Downloaded", locale: uiLocale)]
+            if updateAvailable { parts.append(AppLocalization.string("update available", locale: uiLocale)) }
+            if stalePack { parts.append(AppLocalization.string("translation outdated", locale: uiLocale)) }
             if let pack = store.packManifest(for: slug, locale: locale),
                store.registry.record(for: slug).activePacks[locale] == nil
             {
-                parts.append("\(OfflineModels.format(bytes: Int64(pack.byteSize))) translation available")
+                parts.append(AppLocalization.format("%@ translation available", locale: uiLocale, OfflineModels.format(bytes: Int64(pack.byteSize))))
             }
             return parts.joined(separator: " · ")
         case .appUpdateRequired(let minimum):
-            return "Needs Hadithly \(minimum) or newer."
+            return AppLocalization.format("Needs Hadithly %@ or newer.", locale: uiLocale, minimum)
         }
     }
 
@@ -718,7 +719,7 @@ struct OfflineCollectionRow: View {
                 }
                 Button(role: .destructive) {
                     store.delete(slug: slug)
-                    onNotice("Deleted the \(name) files. Your saved items and positions stay.")
+                    onNotice(OfflineCopy.removed(name, locale: uiLocale))
                 } label: { Image(systemName: "trash") }
                 .accessibilityIdentifier("settings.offline.\(slug).delete")
             }
@@ -729,7 +730,7 @@ struct OfflineCollectionRow: View {
 
     private func report(_ result: OfflineEnqueueResult) {
         if case .blocked(let reason) = result {
-            onNotice(reason)
+            onNotice(OfflineCopy.message(reason, locale: uiLocale))
         }
     }
 }
@@ -1340,6 +1341,109 @@ struct ProfileNoticeCopyAuditFixture: View {
                 Button("Next fixture notice") { index = (index + 1) % notices.count }
                     .accessibilityIdentifier("profileAudit.next")
             }
+        }
+    }
+}
+#endif
+
+enum OfflineCopy {
+    static let keys: [String] = [
+        "Temporary cache cleared.",
+        "Deleted the %@ files. Your saved items and positions stay.",
+        "Not downloaded",
+        "Waiting to download…",
+        "Downloading… %lld%%",
+        "Paused — resumes where it stopped.",
+        "Checking the file…",
+        "Downloaded",
+        "update available",
+        "translation outdated",
+        "%@ translation available",
+        "Needs Hadithly %@ or newer.",
+        "You're offline. Showing your downloaded content.",
+        "Could not check for updates. Your downloads keep working offline.",
+        "Pick a translation language first.",
+        "No offline file is published for this collection yet.",
+        "Update Hadithly to download this collection.",
+        "The server offers an older file than your installed copy. Your copy stays active.",
+        "Not enough storage: need %@, %@ free.",
+        "You're offline. Reconnect and retry — your installed copy still works.",
+        "Could not reach the server. Try again when you are online.",
+        "The download link is invalid. Try again.",
+        "The download was interrupted. Your installed copy still works.",
+        "The new file is missing %lld of your saved hadiths. Your copy stays active.",
+        "The file failed its checksum. Your installed copy still works.",
+        "This file needs a newer Hadithly. Update the app and try again.",
+        "This translation does not match the installed Arabic file.",
+        "This file's license could not be verified.",
+        "This file failed validation. Your installed copy still works.",
+        "Download failed."
+    ]
+    static func removed(_ name: String, locale: Locale) -> String {
+        AppLocalization.format("Deleted the %@ files. Your saved items and positions stay.", locale: locale, "\u{2068}" + name + "\u{2069}")
+    }
+    static func message(_ source: String, locale: Locale) -> String {
+        if keys.contains(source), !source.contains("%@"), !source.contains("%lld") {
+            return AppLocalization.string(source, locale: locale)
+        }
+        if source.hasPrefix("Could not check for updates ("), source.hasSuffix("). Your downloads keep working offline.") {
+            return AppLocalization.string("Could not check for updates. Your downloads keep working offline.", locale: locale)
+        }
+        let storage = #"^Not enough storage: need ([0-9.]+ [A-Z]+), ([0-9.]+ [A-Z]+) free\.$"#
+        if let values = captures(storage, source), values.count == 2 {
+            return AppLocalization.format("Not enough storage: need %@, %@ free.", locale: locale, values[0], values[1])
+        }
+        if let values = captures(#"^The new file is missing ([0-9]+) of your saved hadiths\. Your copy stays active\.$"#, source),
+           let count = Int(values[0]) {
+            return AppLocalization.format("The new file is missing %lld of your saved hadiths. Your copy stays active.", locale: locale, count)
+        }
+        return AppLocalization.string("Download failed.", locale: locale)
+    }
+    private static func captures(_ pattern: String, _ source: String) -> [String]? {
+        guard let regex = try? NSRegularExpression(pattern: pattern),
+              let match = regex.firstMatch(in: source, range: NSRange(source.startIndex..., in: source)) else { return nil }
+        return (1..<match.numberOfRanges).compactMap { Range(match.range(at: $0), in: source).map { String(source[$0]) } }
+    }
+}
+
+struct OfflineStatusNotice: View {
+    @Environment(\.locale) private var locale
+    let source: String
+    var body: some View {
+        Text(OfflineCopy.message(source, locale: locale)).font(.caption).foregroundStyle(Theme.textSecondary)
+            .accessibilityIdentifier("settings.offline.notice")
+    }
+}
+
+#if DEBUG
+struct OfflineNoticeCopyAuditFixture: View {
+    @Environment(\.locale) private var locale
+    @State private var index = 0
+    @State private var callbacks = 0
+    private let name = "Original %lld %@ اسم"
+    var body: some View {
+        SettingsList("Offline storage") {
+            Section {
+                Text(name).accessibilityIdentifier("offlineAudit.name")
+                Text(rendered).font(.caption).foregroundStyle(Theme.textSecondary).accessibilityIdentifier("offlineAudit.notice")
+                Button("Next fixture notice") { index = (index + 1) % OfflineCopy.keys.count }
+                    .accessibilityIdentifier("offlineAudit.next")
+                Button("Local callback") { callbacks += 1 }.accessibilityIdentifier("offlineAudit.callback")
+                Text(String(callbacks)).accessibilityIdentifier("offlineAudit.callbacks")
+            }
+        }
+    }
+    private var rendered: String {
+        let key = OfflineCopy.keys[index]
+        switch index {
+        case 0: return OfflineCopy.message(key, locale: locale)
+        case 1: return OfflineCopy.removed(name, locale: locale)
+        case 4: return AppLocalization.format(key, locale: locale, 42)
+        case 10: return AppLocalization.format(key, locale: locale, "12 MB")
+        case 11: return AppLocalization.format(key, locale: locale, "2.0")
+        case 18: return OfflineCopy.message("Not enough storage: need 12 MB, 8 MB free.", locale: locale)
+        case 23: return OfflineCopy.message("The new file is missing 2 of your saved hadiths. Your copy stays active.", locale: locale)
+        default: return OfflineCopy.message(key, locale: locale)
         }
     }
 }

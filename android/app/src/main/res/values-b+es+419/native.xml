@@ -326,4 +326,34 @@
     <string name="native_d6e623ac7380" formatted="false">Los nombres de usuario deben tener al menos 3 caracteres.</string>
     <string name="native_c3d0112b1713" formatted="false">Nombre de usuario guardado.</string>
     <string name="native_a78d77ebb496" formatted="false">Ese nombre de usuario no está disponible.</string>
+    <string name="native_8056d31c4182" formatted="false">Se borró la caché temporal.</string>
+    <string name="native_034bb5f1d067" formatted="false">Se eliminaron los archivos de %s. Tus elementos guardados y posiciones de lectura se conservan.</string>
+    <string name="native_5569a4e0a4ce" formatted="false">Sin descargar</string>
+    <string name="native_1573e614813b" formatted="false">Esperando la descarga…</string>
+    <string name="native_1be1bfcc2db0" formatted="false">Descargando… %d%%</string>
+    <string name="native_6a28117a6b2c" formatted="false">En pausa. Continuará desde donde se detuvo.</string>
+    <string name="native_9fd57213b23b" formatted="false">Comprobando el archivo…</string>
+    <string name="native_f0b0738f75b8" formatted="false">Descargado</string>
+    <string name="native_a193f8190f89" formatted="false">actualización disponible</string>
+    <string name="native_8181e7405f85" formatted="false">traducción desactualizada</string>
+    <string name="native_a437a82b8990" formatted="false">traducción de %s disponible</string>
+    <string name="native_211cd35d567e" formatted="false">Requiere Hadithly %s o posterior.</string>
+    <string name="native_27f3dca76cba" formatted="false">Estás sin conexión. Se muestra el contenido descargado.</string>
+    <string name="native_9e1f197ad752" formatted="false">No se pudieron buscar actualizaciones. Tus descargas siguen funcionando sin conexión.</string>
+    <string name="native_8f8cecdaca26" formatted="false">Primero elige un idioma de traducción.</string>
+    <string name="native_6d9f1e03a704" formatted="false">Aún no se publicó un archivo sin conexión para esta colección.</string>
+    <string name="native_fe0786458526" formatted="false">Actualiza Hadithly para descargar esta colección.</string>
+    <string name="native_c9f3c1ce7dba" formatted="false">El servidor ofrece un archivo anterior al instalado. Tu copia sigue activa.</string>
+    <string name="native_f888f0384426" formatted="false">Espacio insuficiente: se necesitan %s, hay %s libres.</string>
+    <string name="native_a1835fe5b324" formatted="false">Conéctate y vuelve a intentarlo. Tu copia instalada sigue funcionando.</string>
+    <string name="native_e0ab905c4257" formatted="false">No se pudo contactar al servidor. Inténtalo cuando tengas conexión.</string>
+    <string name="native_199185e21e5b" formatted="false">El enlace de descarga no es válido. Inténtalo de nuevo.</string>
+    <string name="native_803ecf06d728" formatted="false">Se interrumpió la descarga. Tu copia instalada sigue funcionando.</string>
+    <string name="native_036ea3c2e64b" formatted="false">Al nuevo archivo le faltan %d de tus hadices guardados. Tu copia sigue activa.</string>
+    <string name="native_1ad300dda173" formatted="false">La suma de verificación del archivo no coincide. Tu copia instalada sigue funcionando.</string>
+    <string name="native_b3e1f11052f4" formatted="false">Este archivo requiere una versión más reciente de Hadithly. Actualiza la app e inténtalo de nuevo.</string>
+    <string name="native_5fb1ab56889b" formatted="false">Esta traducción no coincide con el archivo árabe instalado.</string>
+    <string name="native_4e46b5060c34" formatted="false">No se pudo verificar la licencia de este archivo.</string>
+    <string name="native_0036733fa321" formatted="false">El archivo no pasó la validación. Tu copia instalada sigue funcionando.</string>
+    <string name="native_22edbe1fbf15" formatted="false">Error de descarga.</string>
 </resources>

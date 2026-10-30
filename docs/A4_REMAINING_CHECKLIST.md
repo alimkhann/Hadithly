@@ -1,0 +1,24 @@
+# A4 finite local checklist, October 31
+
+This list is bounded to localization of the existing product. It does not start
+A5 or the later backlog. A2's agreed wrap-up, B/C/D's local completion and every
+existing external gate remain intact. Draft copy requires exact-text native review.
+
+The source inventory is the current native Features directories, their String-backed
+models, the localization catalog and every Android string/plural XML file. The lexical
+report is supplemented with variable notice consumers and conditional UI calls;
+resource presence alone does not prove runtime lookup.
+
+| Unit | Confirmed source gap | Required local proof | Status |
+| --- | --- | --- | --- |
+| Offline notices and states | Cache success, removal interpolation, failed/blocked reasons, update diagnostics, download state composition | Both native renderers in 15 UI locales; ar/ur/ru/bn large text; opaque name and callback checks; synthetic offline store deletion/cancel/replacement tests | Complete locally; exact-copy review pending |
+| Settings notices | Profile photo, notification status, subscription failure, export result and deletion error | Exact selected-locale output; bounded diagnostic fallback; controlled fixtures without account, store, notification or export actions | Pending |
+| Evidence/report errors | Intake and processing String errors, raw server diagnostics, report failure and conditional appeal/submit labels | Known file/link guidance, localized fallback, unchanged source/user inputs and callbacks in 15 locales | Pending |
+| Remaining runtime bindings | Fixed conditional Today/menu/busy labels, library accessibility, reader failure and wrappers | Reproduce the affected binding class, reuse indexed drafts, verify changed copy on both platforms; classify opaque content and symbols explicitly | Pending |
+| Closure audit | Fallback, placeholder multiplicity, plural categories, all XML, source inventory and incoming-work preservation | Generator checks, resource/runtime reports, native evidence and staged/unstaged review | Pending |
+
+A4 acceptance also requires full accessibility and exact-copy critical native-language
+review. Controlled rendering closes neither. Authenticated/physical-device, widgets,
+notifications, store/purchase, actual annual billing total, A1/A3 content, production,
+backup/recovery, publication and LA4 retain their own gates. A5–A7 and E remain later
+original-program work. Nothing here authorizes an external action.

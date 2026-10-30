@@ -608,7 +608,7 @@ private fun OfflineStorageDestination() {
                 modifier = Modifier.testTag("settings.offline.learnMore"),
             ) { Text(nativeText("How offline works"), color = colors.accent) }
             actionNotice?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
-            store.lastError?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
+            store.lastError?.let { OfflineStatusNotice(it) }
             Text(
                 nativeText("Base Arabic files plus a translation pack for your language. Every file is checksummed and licensed before it activates. The previous copy stays readable until the replacement and your saved positions check out."),
                 fontSize = 12.sp,
@@ -645,7 +645,7 @@ private fun OfflineStorageDestination() {
                 },
                 modifier = Modifier.testTag("settings.offline.clearCache"),
             ) { Text(nativeText("Clear temporary cache"), color = colors.accent) }
-            notice?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
+            notice?.let { OfflineStatusNotice(it) }
             Text(nativeText("Clearing never deletes bookmarks, favorites, notes, reading progress, or downloaded collections."), fontSize = 12.sp, color = colors.textSecondary)
         }
         CardColumn {
@@ -691,6 +691,7 @@ private fun OfflineCollectionRow(
     val colors = LocalHadithlyColors.current
     val app = rememberApp()
     val store = app.offline
+    val resources = androidx.compose.ui.platform.LocalResources.current
     val status = store.status(slug, locale)
     Column(modifier = Modifier.testTag("settings.offline.$slug.row")) {
         Text(name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
@@ -716,7 +717,7 @@ private fun OfflineCollectionRow(
                     TextButton(
                         onClick = {
                             when (val result = store.enqueue(slug, "base", locale)) {
-                                is OfflineEnqueueResult.Blocked -> onNotice(result.reason)
+                                is OfflineEnqueueResult.Blocked -> onNotice(resources.offlineNoticeText(result.reason))
                                 else -> Unit
                             }
                         },
@@ -768,7 +769,7 @@ private fun OfflineCollectionRow(
                         TextButton(
                             onClick = {
                                 when (val result = store.enqueue(slug, "pack", locale)) {
-                                    is OfflineEnqueueResult.Blocked -> onNotice(result.reason)
+                                    is OfflineEnqueueResult.Blocked -> onNotice(resources.offlineNoticeText(result.reason))
                                     else -> Unit
                                 }
                             },
@@ -778,7 +779,7 @@ private fun OfflineCollectionRow(
                     TextButton(
                         onClick = {
                             store.delete(slug)
-                            onNotice("Deleted the $name files. Your saved items and positions stay.")
+                            onNotice(resources.nativeText("Deleted the %@ files. Your saved items and positions stay.", name))
                         },
                         modifier = Modifier.testTag("settings.offline.$slug.delete"),
                     ) { Text(if (status.updateAvailable) "Delete" else "Delete download", color = colors.accent) }
@@ -789,6 +790,7 @@ private fun OfflineCollectionRow(
     }
 }
 
+@Composable
 private fun offlineStatusLine(
     status: OfflineCollectionStatus,
     store: com.hadithly.app.core.offline.OfflineStore,
@@ -797,25 +799,25 @@ private fun offlineStatusLine(
 ): String = when (status) {
     is OfflineCollectionStatus.NotInstalled -> {
         val manifest = store.baseManifest(slug)
-        if (manifest != null) "Not downloaded · ${OfflineModels.formatBytes(manifest.byteSize.toLong())}"
-        else "Not downloaded"
+        if (manifest != null) nativeText("Not downloaded") + " · " + OfflineModels.formatBytes(manifest.byteSize.toLong())
+        else nativeText("Not downloaded")
     }
-    is OfflineCollectionStatus.Queued -> "Waiting to download…"
-    is OfflineCollectionStatus.Downloading -> "Downloading… ${(status.progress * 100).toInt()}%"
-    is OfflineCollectionStatus.Paused -> "Paused — resumes where it stopped."
-    is OfflineCollectionStatus.Verifying -> "Checking the file…"
-    is OfflineCollectionStatus.Failed -> status.reason
+    is OfflineCollectionStatus.Queued -> nativeText("Waiting to download…")
+    is OfflineCollectionStatus.Downloading -> nativeText("Downloading… %lld%%", (status.progress * 100).toInt())
+    is OfflineCollectionStatus.Paused -> nativeText("Paused — resumes where it stopped.")
+    is OfflineCollectionStatus.Verifying -> nativeText("Checking the file…")
+    is OfflineCollectionStatus.Failed -> androidx.compose.ui.platform.LocalResources.current.offlineNoticeText(status.reason)
     is OfflineCollectionStatus.Active -> {
-        val parts = mutableListOf("Downloaded")
-        if (status.updateAvailable) parts.add("update available")
-        if (status.stalePack) parts.add("translation outdated")
+        val parts = mutableListOf(nativeText("Downloaded"))
+        if (status.updateAvailable) parts.add(nativeText("update available"))
+        if (status.stalePack) parts.add(nativeText("translation outdated"))
         val pack = store.packManifest(slug, locale)
         if (pack != null && store.recordFor(slug).activePacks[locale] == null) {
-            parts.add("${OfflineModels.formatBytes(pack.byteSize.toLong())} translation available")
+            parts.add(nativeText("%@ translation available", OfflineModels.formatBytes(pack.byteSize.toLong())))
         }
         parts.joinToString(" · ")
     }
-    is OfflineCollectionStatus.AppUpdateRequired -> "Needs Hadithly ${status.minVersion} or newer."
+    is OfflineCollectionStatus.AppUpdateRequired -> nativeText("Needs Hadithly %@ or newer.", status.minVersion)
 }
 
 // ── Notifications (ported from the pre-S1 card) ────────────────────────────
@@ -1413,3 +1415,54 @@ internal fun profileUsernameFailure(failure: ClerkResult.Failure<ClerkErrorRespo
         "form_username_in_use", "form_identifier_exists" -> ProfileNotice.UNAVAILABLE
         else -> ProfileNotice.RETRY
     }
+
+internal val offlineCopyKeys = listOf(
+    "Temporary cache cleared.",
+    "Deleted the %@ files. Your saved items and positions stay.",
+    "Not downloaded",
+    "Waiting to download…",
+    "Downloading… %lld%%",
+    "Paused — resumes where it stopped.",
+    "Checking the file…",
+    "Downloaded",
+    "update available",
+    "translation outdated",
+    "%@ translation available",
+    "Needs Hadithly %@ or newer.",
+    "You're offline. Showing your downloaded content.",
+    "Could not check for updates. Your downloads keep working offline.",
+    "Pick a translation language first.",
+    "No offline file is published for this collection yet.",
+    "Update Hadithly to download this collection.",
+    "The server offers an older file than your installed copy. Your copy stays active.",
+    "Not enough storage: need %@, %@ free.",
+    "You're offline. Reconnect and retry — your installed copy still works.",
+    "Could not reach the server. Try again when you are online.",
+    "The download link is invalid. Try again.",
+    "The download was interrupted. Your installed copy still works.",
+    "The new file is missing %lld of your saved hadiths. Your copy stays active.",
+    "The file failed its checksum. Your installed copy still works.",
+    "This file needs a newer Hadithly. Update the app and try again.",
+    "This translation does not match the installed Arabic file.",
+    "This file's license could not be verified.",
+    "This file failed validation. Your installed copy still works.",
+    "Download failed."
+)
+
+internal fun android.content.res.Resources.offlineNoticeText(source: String): String {
+    if (source in offlineCopyKeys && "%@" !in source && "%lld" !in source) return nativeText(source)
+    if (source.startsWith("Could not check for updates (") && source.endsWith("). Your downloads keep working offline.")) return nativeText("Could not check for updates. Your downloads keep working offline.")
+    Regex("""^Not enough storage: need ([0-9.]+ [A-Z]+), ([0-9.]+ [A-Z]+) free\.$""").matchEntire(source)?.let {
+        return nativeText("Not enough storage: need %@, %@ free.", it.groupValues[1], it.groupValues[2])
+    }
+    Regex("""^The new file is missing ([0-9]+) of your saved hadiths\. Your copy stays active\.$""").matchEntire(source)?.groupValues?.get(1)?.toLongOrNull()?.let {
+        return nativeText("The new file is missing %lld of your saved hadiths. Your copy stays active.", it)
+    }
+    return nativeText("Download failed.")
+}
+
+@Composable
+internal fun OfflineStatusNotice(source: String) {
+    Text(androidx.compose.ui.platform.LocalResources.current.offlineNoticeText(source), fontSize = 12.sp, color = LocalHadithlyColors.current.textSecondary,
+        modifier = Modifier.testTag("settings.offline.notice"))
+}

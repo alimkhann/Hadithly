@@ -1,6 +1,7 @@
 package com.hadithly.app.core.theme
 
 import com.hadithly.app.core.preferences.nativeText
+import com.hadithly.app.features.settings.offlineNoticeText
 
 import androidx.compose.material.icons.filled.Bookmark
 import android.graphics.Bitmap
@@ -283,6 +284,66 @@ class NativeFinishingTest {
             compose.onNodeWithTag("settings.appearance.light").assertTextContains(labels[3]).assertIsSelected()
             compose.onNodeWithTag("settings.appearance.reader.system").assertDoesNotExist()
             capture("app-appearance-" + language)
+        }
+    }
+
+    @Test fun offlineNoticesUseSelectedLanguage() = verifyOfflineNotices(false)
+    @Test fun offlineNoticesRemainReadableAtLargeText() = verifyOfflineNotices(true)
+
+    private fun verifyOfflineNotices(large: Boolean) {
+        val copy = org.json.JSONObject(InstrumentationRegistry.getInstrumentation().context.assets.open("a4-offline-copy.json").bufferedReader().use { it.readText() }).getJSONObject("locales")
+        var locale by mutableStateOf("en")
+        var index by mutableIntStateOf(0)
+        var callbacks = 0
+        val name = "Original %lld %@ اسم"
+        compose.setContent { LocalizedPreview(ReaderTheme.LIGHT, locale) {
+            CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, if (large) 2f else 1f)) {
+                val resources = androidx.compose.ui.platform.LocalResources.current
+                val key = com.hadithly.app.features.settings.offlineCopyKeys[index]
+                val rendered = when (index) {
+                    1 -> nativeText(key, name)
+                    4 -> nativeText(key, 42)
+                    10 -> nativeText(key, "12 MB")
+                    11 -> nativeText(key, "2.0")
+                    18 -> resources.offlineNoticeText("Not enough storage: need 12 MB, 8 MB free.")
+                    23 -> resources.offlineNoticeText("The new file is missing 2 of your saved hadiths. Your copy stays active.")
+                    else -> resources.offlineNoticeText(key)
+                }
+                Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(16.dp)) {
+                    androidx.compose.material3.Text(name, modifier = Modifier.testTag("offlineAudit.name"))
+                    androidx.compose.material3.Text(rendered, modifier = Modifier.testTag("offlineAudit.notice"), fontSize = androidx.compose.ui.unit.TextUnit(12f, androidx.compose.ui.unit.TextUnitType.Sp))
+                    androidx.compose.material3.Button(onClick = { index = (index + 1) % 30 }, modifier = Modifier.testTag("offlineAudit.next")) { androidx.compose.material3.Text("Next fixture notice") }
+                    androidx.compose.material3.Button(onClick = { callbacks++ }, modifier = Modifier.testTag("offlineAudit.callback")) { androidx.compose.material3.Text("Local callback") }
+                }
+            }
+        } }
+        val locales = if (large) listOf("ar", "ur", "ru", "bn") else listOf("en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn")
+        for (tag in locales) {
+            compose.runOnIdle { locale = tag; index = 0; callbacks = 0 }
+            val values = copy.getJSONArray(tag)
+            for (i in 0 until values.length()) {
+                val args: Array<Any> = when (i) { 1 -> arrayOf(name); 4 -> arrayOf(42); 10 -> arrayOf("12 MB"); 11 -> arrayOf("2.0"); 18 -> arrayOf("12 MB", "8 MB"); 23 -> arrayOf(2); else -> emptyArray() }
+                val textLocale = java.util.Locale.forLanguageTag(tag)
+                val bidi = androidx.core.text.BidiFormatter.getInstance(textLocale)
+                val expected = if (args.isEmpty()) values.getString(i) else String.format(textLocale, values.getString(i).replace("%@", "%s").replace("%lld", "%d"), *args.map { if (it is String) bidi.unicodeWrap(it) else it }.toTypedArray())
+                val notice = compose.onNodeWithTag("offlineAudit.notice")
+                notice.performScrollTo().assertIsDisplayed().assertTextEquals(expected)
+                val layouts = mutableListOf<androidx.compose.ui.text.TextLayoutResult>()
+                notice.performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.GetTextLayoutResult) { it(layouts) }
+                val layout = layouts.single()
+                assertFalse(layout.didOverflowHeight); assertFalse(layout.multiParagraph.didExceedMaxLines)
+                assertEquals(expected.length, layout.getLineEnd(layout.lineCount - 1))
+                for (line in 0 until layout.lineCount) {
+                    assertFalse(layout.isLineEllipsized(line))
+                    assertTrue("$tag:$i line=$line left=${layout.getLineLeft(line)} right=${layout.getLineRight(line)} width=${layout.size.width}", layout.getLineRight(line) - layout.getLineLeft(line) <= layout.size.width + 2f)
+                }
+                if (i in listOf(0,1,18,23,29)) capture("offline-$tag" + (if (large) "-large-" else "-") + i)
+                if (i < values.length() - 1) compose.onNodeWithTag("offlineAudit.next").performScrollTo().performClick()
+            }
+            compose.onNodeWithTag("offlineAudit.name").assertTextEquals(name)
+            compose.runOnIdle { assertEquals(0, callbacks) }
+            compose.onNodeWithTag("offlineAudit.callback").performScrollTo().performClick()
+            compose.runOnIdle { assertEquals(1, callbacks) }
         }
     }
 

@@ -326,4 +326,34 @@
     <string name="native_d6e623ac7380" formatted="false">يجب أن يتكوّن اسم المستخدم من 3 أحرف على الأقل.</string>
     <string name="native_c3d0112b1713" formatted="false">تم حفظ اسم المستخدم.</string>
     <string name="native_a78d77ebb496" formatted="false">اسم المستخدم هذا غير متاح.</string>
+    <string name="native_8056d31c4182" formatted="false">تم مسح ذاكرة التخزين المؤقت.</string>
+    <string name="native_034bb5f1d067" formatted="false">تم حذف ملفات %s. تبقى عناصرِك المحفوظة ومواضع القراءة.</string>
+    <string name="native_5569a4e0a4ce" formatted="false">لم يُنزّل</string>
+    <string name="native_1573e614813b" formatted="false">بانتظار التنزيل…</string>
+    <string name="native_1be1bfcc2db0" formatted="false">جارٍ التنزيل… %d%%</string>
+    <string name="native_6a28117a6b2c" formatted="false">متوقف مؤقتًا، وسيُستأنف من حيث توقف.</string>
+    <string name="native_9fd57213b23b" formatted="false">جارٍ فحص الملف…</string>
+    <string name="native_f0b0738f75b8" formatted="false">تم التنزيل</string>
+    <string name="native_a193f8190f89" formatted="false">يتوفر تحديث</string>
+    <string name="native_8181e7405f85" formatted="false">الترجمة قديمة</string>
+    <string name="native_a437a82b8990" formatted="false">تتوفر ترجمة بحجم %s</string>
+    <string name="native_211cd35d567e" formatted="false">يتطلب Hadithly %s أو أحدث.</string>
+    <string name="native_27f3dca76cba" formatted="false">أنت غير متصل. يُعرض المحتوى الذي نزّلته.</string>
+    <string name="native_9e1f197ad752" formatted="false">تعذّر البحث عن تحديثات. تظل تنزيلاتك متاحة دون اتصال.</string>
+    <string name="native_8f8cecdaca26" formatted="false">اختر لغة الترجمة أولًا.</string>
+    <string name="native_6d9f1e03a704" formatted="false">لم يُنشر ملف لهذه المجموعة للاستخدام دون اتصال بعد.</string>
+    <string name="native_fe0786458526" formatted="false">حدّث Hadithly لتنزيل هذه المجموعة.</string>
+    <string name="native_c9f3c1ce7dba" formatted="false">يقدّم الخادم ملفًا أقدم من النسخة المثبتة. تبقى نسختك فعّالة.</string>
+    <string name="native_f888f0384426" formatted="false">مساحة التخزين غير كافية: المطلوب %s، والمتاح %s.</string>
+    <string name="native_a1835fe5b324" formatted="false">أنت غير متصل. اتصل وأعد المحاولة، فالنسخة المثبتة ما زالت تعمل.</string>
+    <string name="native_e0ab905c4257" formatted="false">تعذّر الاتصال بالخادم. حاول مجددًا عند الاتصال بالإنترنت.</string>
+    <string name="native_199185e21e5b" formatted="false">رابط التنزيل غير صالح. حاول مجددًا.</string>
+    <string name="native_803ecf06d728" formatted="false">انقطع التنزيل. النسخة المثبتة ما زالت تعمل.</string>
+    <string name="native_036ea3c2e64b" formatted="false">يفتقد الملف الجديد %d من أحاديثك المحفوظة. تبقى نسختك فعّالة.</string>
+    <string name="native_1ad300dda173" formatted="false">فشل التحقق من المجموع الاختباري للملف. النسخة المثبتة ما زالت تعمل.</string>
+    <string name="native_b3e1f11052f4" formatted="false">يتطلب هذا الملف إصدارًا أحدث من Hadithly. حدّث التطبيق وحاول مجددًا.</string>
+    <string name="native_5fb1ab56889b" formatted="false">هذه الترجمة لا تتوافق مع الملف العربي المثبت.</string>
+    <string name="native_4e46b5060c34" formatted="false">تعذّر التحقق من ترخيص هذا الملف.</string>
+    <string name="native_0036733fa321" formatted="false">فشل التحقق من صلاحية الملف. النسخة المثبتة ما زالت تعمل.</string>
+    <string name="native_22edbe1fbf15" formatted="false">فشل التنزيل.</string>
 </resources>

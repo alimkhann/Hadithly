@@ -326,4 +326,34 @@
     <string name="native_d6e623ac7380" formatted="false">Пайдаланушы аты кемінде 3 таңбадан тұруы керек.</string>
     <string name="native_c3d0112b1713" formatted="false">Пайдаланушы аты сақталды.</string>
     <string name="native_a78d77ebb496" formatted="false">Бұл пайдаланушы аты қолжетімді емес.</string>
+    <string name="native_8056d31c4182" formatted="false">Уақытша кэш тазаланды.</string>
+    <string name="native_034bb5f1d067" formatted="false">%s файлдары жойылды. Сақталған элементтер мен оқу орындары қалады.</string>
+    <string name="native_5569a4e0a4ce" formatted="false">Жүктелмеген</string>
+    <string name="native_1573e614813b" formatted="false">Жүктеуді күтуде…</string>
+    <string name="native_1be1bfcc2db0" formatted="false">Жүктелуде… %d%%</string>
+    <string name="native_6a28117a6b2c" formatted="false">Кідіртілді. Тоқтаған жерінен жалғасады.</string>
+    <string name="native_9fd57213b23b" formatted="false">Файл тексерілуде…</string>
+    <string name="native_f0b0738f75b8" formatted="false">Жүктелді</string>
+    <string name="native_a193f8190f89" formatted="false">жаңарту қолжетімді</string>
+    <string name="native_8181e7405f85" formatted="false">аударма ескірген</string>
+    <string name="native_a437a82b8990" formatted="false">%s көлеміндегі аударма қолжетімді</string>
+    <string name="native_211cd35d567e" formatted="false">Hadithly %s не одан жаңа нұсқа қажет.</string>
+    <string name="native_27f3dca76cba" formatted="false">Интернетке қосылмағансыз. Жүктелген мазмұн көрсетіледі.</string>
+    <string name="native_9e1f197ad752" formatted="false">Жаңартуларды тексеру мүмкін болмады. Жүктелгендер интернетсіз жұмыс істейді.</string>
+    <string name="native_8f8cecdaca26" formatted="false">Алдымен аударма тілін таңдаңыз.</string>
+    <string name="native_6d9f1e03a704" formatted="false">Бұл жинақтың интернетсіз оқуға арналған файлы әлі жарияланбаған.</string>
+    <string name="native_fe0786458526" formatted="false">Бұл жинақты жүктеу үшін Hadithly қолданбасын жаңартыңыз.</string>
+    <string name="native_c9f3c1ce7dba" formatted="false">Сервердегі файл орнатылған нұсқадан ескі. Көшірмеңіз белсенді қалады.</string>
+    <string name="native_f888f0384426" formatted="false">Сақтау орны жеткіліксіз: %s қажет, %s бос.</string>
+    <string name="native_a1835fe5b324" formatted="false">Интернетке қосылып, қайталап көріңіз. Орнатылған көшірме жұмыс істейді.</string>
+    <string name="native_e0ab905c4257" formatted="false">Серверге қосылу мүмкін болмады. Интернетке қосылғанда қайталап көріңіз.</string>
+    <string name="native_199185e21e5b" formatted="false">Жүктеу сілтемесі жарамсыз. Қайталап көріңіз.</string>
+    <string name="native_803ecf06d728" formatted="false">Жүктеу үзілді. Орнатылған көшірме жұмыс істейді.</string>
+    <string name="native_036ea3c2e64b" formatted="false">Жаңа файлда сақталған хадистеріңіздің %d данасы жоқ. Көшірмеңіз белсенді қалады.</string>
+    <string name="native_1ad300dda173" formatted="false">Файлдың бақылау сомасы сәйкес келмеді. Орнатылған көшірме жұмыс істейді.</string>
+    <string name="native_b3e1f11052f4" formatted="false">Бұл файлға Hadithly қолданбасының жаңа нұсқасы қажет. Жаңартып, қайталап көріңіз.</string>
+    <string name="native_5fb1ab56889b" formatted="false">Бұл аударма орнатылған арабша файлға сәйкес келмейді.</string>
+    <string name="native_4e46b5060c34" formatted="false">Бұл файлдың лицензиясын тексеру мүмкін болмады.</string>
+    <string name="native_0036733fa321" formatted="false">Файл тексеруден өтпеді. Орнатылған көшірме жұмыс істейді.</string>
+    <string name="native_22edbe1fbf15" formatted="false">Жүктеу сәтсіз аяқталды.</string>
 </resources>
