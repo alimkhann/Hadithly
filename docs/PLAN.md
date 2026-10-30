@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-Last updated: 2026-10-30. Phases 0 through 5 are complete. Phase 6 code is
+Last updated: 2026-10-31. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
 D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its
 simulator/emulator and unit gates; its physical-device gate is open. R4's
@@ -56,6 +56,17 @@ Do not
 start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
+
+## A4 Saved handoff, October 31
+
+B's available-source research, C's local native refinements and D's local website
+redesign are committed. A4 remains active. The current Saved localization and
+large-text repair is uncommitted, with a partial scoped catalog patch staged.
+The final two folder-empty keys and fixture branches still need native reruns;
+the Saved aggregate and selected large-text captures need refreshing. Read
+`NEXT_SESSION_PROMPT.md` and the latest section of `A4_RUNTIME_LOCALIZATION.md`.
+This handoff does not close the Saved unit, A4, native-review or content/device/
+store/release gates. A5–A7 and the actual E Linear hub remain open.
 
 ## A4 evidence-intake checkpoint, October 30
 

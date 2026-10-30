@@ -1,5 +1,23 @@
 # A4 runtime localization
 
+## Saved handoff, October 31
+
+The current Saved copy/accessibility unit remains uncommitted. Source drafts,
+shared native empty states, filter/preview/Undo copy and focused checks are in the
+worktree. The initial normal fifteen-locale filter matrix and subsequent
+Arabic/Russian/Bengali large-text repairs passed their recorded native runs.
+The final two folder-empty entries and fixture branches were added afterward;
+they still need native reruns. See `NEXT_SESSION_PROMPT.md` for exact targets.
+
+`verification/a4-localization/saved-filters.json` predates the final large-text
+repair. Refresh its aggregate, preservation report and selected captures before
+using it as final evidence. Earlier Android captures obscured by System UI are
+not rendering proof. The final repair bundles remain in `/tmp` as listed in the
+focused prompt. All new copy remains draft/native-review pending. Preserve the
+partial staged catalog patch and unrelated incoming project/catalog work.
+
+## Scope
+
 October 27, 2026. A4 is active. B, C and D local work is committed. A4–A7 and E
 remain in scope; native review and all existing release gates remain open.
 

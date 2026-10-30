@@ -1,5 +1,11 @@
 # Next session goal
 
+October 31: start with `NEXT_SESSION_PROMPT.md` for the focused continuation.
+B's available-source review, C's local refinements and D's local redesign are
+committed. A4 is active; the Saved copy/accessibility unit remains uncommitted
+and needs final folder checks and an evidence refresh. Older checkpoints below
+are history, not an instruction to repeat completed B/C/D work.
+
 Continue Hadithly in `/Users/alim/Developer/Projects/Apps/Hadithly`. Pursue the
 existing product objective in `docs/PRODUCT_PROGRAM.md`, with this latest owner
 order: **B research → C native refinements → D website redesign → remaining A4–A7
