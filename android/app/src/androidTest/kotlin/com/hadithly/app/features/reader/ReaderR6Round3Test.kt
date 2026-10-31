@@ -345,11 +345,12 @@ class ReaderR6Round3Test {
 
     @Test
     fun menuBookmarkShowsPositionedReference() {
+        var bookmarked by androidx.compose.runtime.mutableStateOf(false)
         compose.setContent {
             HadithlyTheme {
                 ReaderMenuStack(
                     positionedReference = "Sahih al-Bukhari · Hadith 57",
-                    isPositionedBookmarked = true,
+                    isPositionedBookmarked = bookmarked,
                     onContents = {},
                     onSaved = {},
                     onSettings = {},
@@ -359,10 +360,10 @@ class ReaderR6Round3Test {
             }
         }
 
-        // The bottom-row bookmark names the positioned hadith; its filled
-        // amber state is pinned structurally in the placement sheet test.
         compose.onNodeWithTag("reader.menu.bookmark").assertIsDisplayed()
         compose.onNodeWithContentDescription("Bookmark Sahih al-Bukhari · Hadith 57").assertIsDisplayed()
+        compose.runOnIdle { bookmarked = true }
+        compose.onNodeWithContentDescription("Remove bookmark for positioned hadith").assertIsDisplayed()
     }
 
     // Bookmark placement
@@ -612,7 +613,7 @@ class ReaderR6Round3Test {
         compose.onNodeWithTag("reader.saved.tab.notes").assertIsDisplayed()
         compose.onNodeWithTag("saved.row.h-b1").assertIsDisplayed()
         compose.onNodeWithText("Sahih al-Bukhari · Hadith 57").assertIsDisplayed()
-        compose.onNodeWithText("Added 5m ago").assertIsDisplayed()
+        compose.onNodeWithText("5 minutes ago").assertIsDisplayed()
 
         compose.onNodeWithTag("reader.saved.tab.favorites").performClick()
         compose.onNodeWithTag("reader.saved.empty").assertIsDisplayed()

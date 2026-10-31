@@ -6,14 +6,14 @@ Never use Relay.
 
 ## Product continuation: B research, C native refinements, D website
 
-Use `docs/NEXT_SESSION_PROMPT.md` for the exact next goal: one bounded A5 Contents
-Go-tap navigation reproduction and confirmed repair. Read the current `docs/PLAN.md`,
-`docs/PRODUCT_PROGRAM.md` and `docs/A4_REQUIREMENT_AUDIT.md` first. A4's finite local
-checklist is complete; exact-copy native review and full accessibility/authenticated/
-physical acceptance remain open. A5 has not started. The original program and final
-audit precede `docs/POST_GOAL_BACKLOG.md`. Keep A2 wrapped with row mode off and
-preserve B/C/D local completion and all existing gates. Historical D0/D1 release IDs
-below are distinct from the product program's D website track.
+Use `docs/NEXT_SESSION_PROMPT.md` for the next bounded A5 goal: reproduce the
+captured Android large-text top source/page-control clipping and check iOS parity.
+The completed Contents navigation unit is recorded in `docs/A5_CONTENTS_NAVIGATION.md`.
+Read the current PLAN, PRODUCT_PROGRAM and A4 requirement audit first. Full A5,
+A4 exact-copy/native accessibility/authenticated/physical acceptance and all prior
+gates stay open. Keep A2 wrapped with row mode off and B/C/D locally complete.
+The original program, remaining A1/A3/A4–A7/readiness, E and final audit precede
+POST_GOAL_BACKLOG. Historical release IDs below remain a separate track.
 
 ## D0: restore browser control
 

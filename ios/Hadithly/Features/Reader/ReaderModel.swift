@@ -46,6 +46,8 @@ final class ReaderModel {
     private var automaticVisibleHadiths: [ReaderHadith] = []
     private var automaticRequests = ReaderAutomaticTranslationLedger()
 #if DEBUG
+    var navigationTraceForUITest: ((String) -> Void)?
+    var pageFetchForUITest: ((Int, String, String?) async throws -> ReaderPageResult)?
     var automaticRequestForUITest: ((ReaderHadith) -> Void)?
 #endif
     var offlineStore: OfflineStore?
@@ -168,6 +170,7 @@ final class ReaderModel {
 
     private var outlineTask: Task<Void, Never>?
     private var pageTask: Task<Void, Never>?
+    private var pageGeneration = 0
     private var translationTask: Task<Void, Never>?
     private var publicationTask: Task<Void, Never>?
     private var publicationDeadlineTask: Task<Void, Never>?
@@ -266,6 +269,8 @@ final class ReaderModel {
     }
 
     func stop() {
+        pageGeneration += 1
+        isLoadingPage = false
         automaticTranslationTask?.cancel()
         automaticVisibleHadiths = []
         outlineTask?.cancel()
@@ -427,7 +432,7 @@ final class ReaderModel {
         collapseToFocused()
         selectedVolumeId = volumeId
         resetReading()
-        Task { await loadPage(0, volumeId: volumeId) }
+        pageTask = Task { await loadPage(0, volumeId: volumeId) }
     }
 
     /// Volumes in outline order around the selection, for the bottom pills
@@ -518,19 +523,18 @@ final class ReaderModel {
     private func loadVolumeEdge(_ volumeId: String, edge: VolumeEdge) async {
         if isLoadingPage { return }
         isLoadingPage = true
+        let generation = pageGeneration
         var shouldPrefetchNeighbor = false
         defer {
-            isLoadingPage = false
-            // The next page must be fetched only after the edge request
-            // releases its single-flight lock. That gives the first page a
-            // real in-volume swipe preview instead of a loading slot.
-            if shouldPrefetchNeighbor {
-                prefetchForwardIfNeeded()
+            if generation == pageGeneration {
+                isLoadingPage = false
+                // Prefetch only after this request releases its loading state.
+                if shouldPrefetchNeighbor { prefetchForwardIfNeeded() }
             }
         }
         do {
             let first = try await fetchReaderPage(0, volumeId: volumeId)
-            guard !Task.isCancelled else { return }
+            guard generation == pageGeneration, !Task.isCancelled else { return }
             let total = max(1, first.totalPages)
             switch edge {
             case .first:
@@ -545,7 +549,7 @@ final class ReaderModel {
                     pages = [first]
                 } else {
                     let last = try await fetchReaderPage(landingIndex, volumeId: volumeId)
-                    guard !Task.isCancelled else { return }
+                    guard generation == pageGeneration, !Task.isCancelled else { return }
                     var filled = (0..<landingIndex).map { _ in emptyPage() }
                     filled.append(last)
                     _ = first
@@ -561,23 +565,33 @@ final class ReaderModel {
         } catch is CancellationError {
             // A newer page or volume target replaces this fetch.
         } catch {
-            if !Task.isCancelled, pages.isEmpty {
+            if generation == pageGeneration, !Task.isCancelled, pages.isEmpty {
                 phase = .failed(ReaderModels.errorMessage(of: error))
             }
         }
     }
 
-    /// One Convex reader-page fetch without publishing, shared by the
-    /// edge loader. `loadPage` keeps its own publish path unchanged.
-    private func fetchReaderPage(_ index: Int, volumeId: String) async throws -> ReaderPageResult {
-        try await convex.action(
-            "actions/hadithData:getReaderPage",
-            with: [
-                "collectionSlug": collectionSlug as ConvexEncodable?,
-                "volumeId": volumeId as ConvexEncodable?,
-                "page": Double(index + 1) as ConvexEncodable?,
-            ]
-        )
+    private func timedReaderPage(_ index: Int, volumeId: String, targetHadithNumber: String?) async throws -> ReaderPageResult {
+#if DEBUG
+        if let pageFetchForUITest { return try await pageFetchForUITest(index, volumeId, targetHadithNumber) }
+#endif
+        return try await OfflineModels.withFetchTimeout(seconds: Self.fetchTimeoutSeconds) {
+            try await self.fetchReaderPage(index, volumeId: volumeId, targetHadithNumber: targetHadithNumber)
+        }
+    }
+
+    /// Fetches a page without publishing reader state.
+    private func fetchReaderPage(_ index: Int, volumeId: String, targetHadithNumber: String? = nil) async throws -> ReaderPageResult {
+#if DEBUG
+        if let pageFetchForUITest { return try await pageFetchForUITest(index, volumeId, targetHadithNumber) }
+#endif
+        var args: [String: ConvexEncodable?] = [
+            "collectionSlug": collectionSlug as ConvexEncodable?,
+            "volumeId": volumeId as ConvexEncodable?,
+            "page": Double(index + 1) as ConvexEncodable?,
+        ]
+        if let targetHadithNumber { args["targetHadithNumber"] = targetHadithNumber as ConvexEncodable? }
+        return try await convex.action("actions/hadithData:getReaderPage", with: args)
     }
 
 #if DEBUG
@@ -629,7 +643,7 @@ final class ReaderModel {
         collapseToFocused()
         landingHadithNumber = chapter.firstProviderHadithId
         restoredPosition = nil
-        Task { await loadPage(0, volumeId: volumeId, jumpToHadithNumber: chapter.firstProviderHadithId) }
+        pageTask = Task { await loadPage(0, volumeId: volumeId, jumpToHadithNumber: chapter.firstProviderHadithId) }
     }
 
     /// R5 jump-to-reference: validates the number against the canonical
@@ -640,6 +654,9 @@ final class ReaderModel {
     /// inline error.
     @discardableResult
     func jumpToReference(_ number: String) -> Bool {
+#if DEBUG
+        navigationTraceForUITest?("jump:" + number)
+#endif
         let trimmed = number.trimmingCharacters(in: .whitespacesAndNewlines)
         guard ReaderShare.isValidReferenceNumber(trimmed) else { return false }
         collapseToFocused()
@@ -648,14 +665,14 @@ final class ReaderModel {
             resetReading()
             landingHadithNumber = trimmed
             restoredPosition = nil
-            Task { await loadPage(0, volumeId: volume, jumpToHadithNumber: trimmed) }
+            pageTask = Task { await loadPage(0, volumeId: volume, jumpToHadithNumber: trimmed) }
         } else {
             landingHadithNumber = nil
             restoredPosition = nil
             guard let first = volumes.first?.volumeId else { return true }
             selectedVolumeId = first
             resetReading()
-            Task { await loadPage(0, volumeId: first) }
+            pageTask = Task { await loadPage(0, volumeId: first) }
         }
         return true
     }
@@ -674,7 +691,7 @@ final class ReaderModel {
             resetReading()
             landingHadithNumber = trimmed
             restoredPosition = nil
-            Task { [weak self] in await self?.loadPage(0, volumeId: volumeId, jumpToHadithNumber: trimmed) }
+            pageTask = Task { [weak self] in await self?.loadPage(0, volumeId: volumeId, jumpToHadithNumber: trimmed) }
         } else {
             jumpToReference(trimmed)
         }
@@ -712,7 +729,9 @@ final class ReaderModel {
     // MARK: - Adjacent-volume prefetch (R6 round 3)
 
     private func resetReading() {
+        pageGeneration += 1
         pageTask?.cancel()
+        isLoadingPage = false
         translationTask?.cancel()
         publicationTask?.cancel()
         publicationDeadlineTask?.cancel()
@@ -753,14 +772,12 @@ final class ReaderModel {
     private func loadPage(_ index: Int, volumeId: String, jumpToHadithNumber: String? = nil) async {
         if isLoadingPage { return }
         isLoadingPage = true
+        let generation = pageGeneration
         var shouldPrefetchNeighbor = false
         defer {
-            isLoadingPage = false
-            // `prefetchForwardIfNeeded` used to run while this request still
-            // held `isLoadingPage`, so the reader always exposed a loading
-            // neighbor. Run it after publication and lock release instead.
-            if shouldPrefetchNeighbor {
-                prefetchForwardIfNeeded()
+            if generation == pageGeneration {
+                isLoadingPage = false
+                if shouldPrefetchNeighbor { prefetchForwardIfNeeded() }
             }
         }
         do {
@@ -769,7 +786,9 @@ final class ReaderModel {
                 throw OfflineFetchTimeout.timedOut
             }
 #endif
-            if await backendUnreachable() {
+            let unreachable = await backendUnreachable()
+            guard generation == pageGeneration, !Task.isCancelled else { return }
+            if unreachable {
                 if !useOfflinePage(index, volumeId: volumeId, jumpToHadithNumber: jumpToHadithNumber),
                    pages.isEmpty
                 {
@@ -777,22 +796,8 @@ final class ReaderModel {
                 }
                 return
             }
-            var mutableArgs: [String: ConvexEncodable?] = [
-                "collectionSlug": collectionSlug as ConvexEncodable?,
-                "volumeId": volumeId as ConvexEncodable?,
-                "page": Double(index + 1) as ConvexEncodable?,
-            ]
-            if let jumpToHadithNumber {
-                mutableArgs["targetHadithNumber"] = jumpToHadithNumber as ConvexEncodable?
-            }
-            let args = mutableArgs
-            let result: ReaderPageResult = try await OfflineModels.withFetchTimeout(seconds: Self.fetchTimeoutSeconds) {
-                try await self.convex.action(
-                    "actions/hadithData:getReaderPage",
-                    with: args
-                )
-            }
-
+            let result = try await timedReaderPage(index, volumeId: volumeId, targetHadithNumber: jumpToHadithNumber)
+            guard generation == pageGeneration, !Task.isCancelled else { return }
             if jumpToHadithNumber != nil {
                 // The server picked the page; slot it at its real position
                 // and land there. Earlier pages load on demand when the
@@ -828,6 +833,7 @@ final class ReaderModel {
                 }
             }
         } catch {
+            guard generation == pageGeneration, !Task.isCancelled else { return }
             if !useOfflinePage(index, volumeId: volumeId, jumpToHadithNumber: jumpToHadithNumber),
                pages.isEmpty
             {

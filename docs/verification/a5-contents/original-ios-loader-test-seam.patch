@@ -1,0 +1,49 @@
+--- a/ios/Hadithly/Features/Reader/ReaderModel.swift
++++ b/ios/Hadithly/Features/Reader/ReaderModel.swift
+@@ -46,6 +46,8 @@
+     private var automaticVisibleHadiths: [ReaderHadith] = []
+     private var automaticRequests = ReaderAutomaticTranslationLedger()
+ #if DEBUG
++    var navigationTraceForUITest: ((String) -> Void)?
++    var pageFetchForUITest: ((Int, String, String?) async throws -> ReaderPageResult)?
+     var automaticRequestForUITest: ((ReaderHadith) -> Void)?
+ #endif
+     var offlineStore: OfflineStore?
+@@ -640,6 +642,9 @@
+     /// inline error.
+     @discardableResult
+     func jumpToReference(_ number: String) -> Bool {
++#if DEBUG
++        navigationTraceForUITest?("jump:" + number)
++#endif
+         let trimmed = number.trimmingCharacters(in: .whitespacesAndNewlines)
+         guard ReaderShare.isValidReferenceNumber(trimmed) else { return false }
+         collapseToFocused()
+@@ -786,13 +791,20 @@
+                 mutableArgs["targetHadithNumber"] = jumpToHadithNumber as ConvexEncodable?
+             }
+             let args = mutableArgs
+-            let result: ReaderPageResult = try await OfflineModels.withFetchTimeout(seconds: Self.fetchTimeoutSeconds) {
+-                try await self.convex.action(
+-                    "actions/hadithData:getReaderPage",
+-                    with: args
+-                )
+-            }
+-
++            let result: ReaderPageResult
++#if DEBUG
++            if let pageFetchForUITest {
++                result = try await pageFetchForUITest(index, volumeId, jumpToHadithNumber)
++            } else {
++                result = try await OfflineModels.withFetchTimeout(seconds: Self.fetchTimeoutSeconds) {
++                    try await self.convex.action("actions/hadithData:getReaderPage", with: args)
++                }
++            }
++#else
++            result = try await OfflineModels.withFetchTimeout(seconds: Self.fetchTimeoutSeconds) {
++                try await self.convex.action("actions/hadithData:getReaderPage", with: args)
++            }
++#endif
+             if jumpToHadithNumber != nil {
+                 // The server picked the page; slot it at its real position
+                 // and land there. Earlier pages load on demand when the

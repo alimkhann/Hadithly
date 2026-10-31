@@ -11,6 +11,73 @@ final class ReaderR5UITests: XCTestCase {
         continueAfterFailure = false
     }
 
+    func testGoOwnsTargetWhilePrefetchIsInFlight() { goJourney(locale: "en", large: false) }
+
+    func testGoAtLargeTextInRTLAndLongLocales() {
+        for locale in ["ar", "ur", "ru", "bn"] { goJourney(locale: locale, large: true) }
+    }
+
+    func testGoThenCloseReturnsWithoutRetargeting() { goJourney(locale: "en", large: false, returning: true) }
+
+    private func goJourney(locale: String, large: Bool, returning: Bool = false) {
+        let app = XCUIApplication()
+        app.launchArguments = ["-A5ContentsNavigationFixture"]
+        if large { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
+        app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "A5_LOCALE": locale, "A5_LARGE_TEXT": large ? "1" : "0", "A5_RETURN": returning ? "1" : "0"]
+        app.launch()
+        defer { app.terminate() }
+        XCTAssertTrue(app.buttons["a5.release"].waitForExistence(timeout: 10))
+        app.buttons["reader.menu"].tap()
+        app.buttons["reader.menu.contents"].tap()
+        let jump = app.textFields["reader.contents.jump"]
+        XCTAssertTrue(jump.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Original %@ مصدر"].firstMatch.exists)
+        XCTAssertFalse(app.buttons["reader.contents.jumpGo"].isEnabled)
+        jump.tap(); jump.typeText("abc")
+        tapSettledGo(in: app)
+        let invalid = element("reader.contents.jumpError", in: app).waitForExistence(timeout: 5)
+        let diagnostic = XCTAttachment(screenshot: app.screenshot()); diagnostic.name = "a5-invalid-" + locale; diagnostic.lifetime = .keepAlways; add(diagnostic)
+        XCTAssertTrue(invalid, "Input: \(jump.value ?? "nil"); Go: \(app.buttons["reader.contents.jumpGo"].debugDescription); Trace: " + app.staticTexts["a5.requests"].label)
+        XCTAssertEqual(app.staticTexts["a5.requests"].label, "prefetch|submit:abc")
+        jump.tap(); jump.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: 3) + "57")
+        tapSettledGo(in: app)
+        XCTAssertTrue(jump.waitForNonExistence(timeout: 5), "Go did not dismiss Contents")
+        XCTAssertTrue(app.buttons["a5.releaseTarget"].waitForExistence(timeout: 5))
+        app.buttons["a5.release"].tap()
+        XCTAssertEqual(app.staticTexts["a5.loading"].label, "loading:true")
+        app.buttons["a5.releaseTarget"].tap()
+        let target = app.buttons.matching(identifier: "reader.hadithLabel").matching(NSPredicate(format: "label CONTAINS '57'")).firstMatch
+        let landed = target.waitForExistence(timeout: 10)
+        let attachment = XCTAttachment(screenshot: app.screenshot()); attachment.name = "a5-go-landing-" + locale; attachment.lifetime = .keepAlways; add(attachment)
+        XCTAssertTrue(landed, "Go lost target 57. Requests: " + app.staticTexts["a5.requests"].label)
+        XCTAssertTrue(target.isHittable)
+        XCTAssertTrue(app.frame.contains(target.frame))
+        let trace = app.staticTexts["a5.requests"].label
+        XCTAssertEqual(trace.components(separatedBy: "jump:57").count - 1, 1)
+        XCTAssertTrue(trace.contains("dismissed"))
+        if returning {
+            if !app.buttons["reader.close"].isHittable {
+                element("reader.page", in: app).coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.6)).tap()
+            }
+            app.buttons["reader.close"].tap()
+            XCTAssertTrue(app.staticTexts["a5.returned"].waitForExistence(timeout: 5))
+            XCTAssertTrue(app.staticTexts["a5.returned"].isHittable)
+        }
+    }
+
+    private func tapSettledGo(in app: XCUIApplication) {
+        let go = app.buttons["reader.contents.jumpGo"]
+        var previous = CGRect.null
+        var stableSince = Date()
+        let stable = NSPredicate { _, _ in
+            let frame = go.frame
+            if frame != previous { previous = frame; stableSince = Date(); return false }
+            return go.isHittable && Date().timeIntervalSince(stableSince) >= 0.5
+        }
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: stable, object: nil)], timeout: 5), .completed)
+        go.tap()
+    }
+
     // MARK: - Fixture: chapters render from source-provided data
 
     func testContentsGuidanceAndValidationLocalizeAtRuntime() {

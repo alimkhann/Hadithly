@@ -15,12 +15,17 @@ and `A4_RUNTIME_LOCALIZATION.md`. Full A4 remains open for exact-copy native-spe
 review, full accessibility and authenticated/physical acceptance. The original A4
 checkbox below stays open. Controlled fixtures do not close those gates.
 
-`NEXT_SESSION_PROMPT.md` gives the exact next goal: one bounded A5 Contents Go-tap
-navigation reproduction and confirmed repair. A5 has not started. Then finish this
-original objective, including A5–A7/readiness, unfinished A1/A3/A4 acceptance, E and
-the final requirement audit. A2 remains wrapped with row mode off; B/C/D's local
-completion and every external gate remain intact. Only afterward consider
-`POST_GOAL_BACKLOG.md`. Its goals must not replace original acceptance work.
+The bounded A5 Contents navigation repair has controlled native evidence in
+`A5_CONTENTS_NAVIGATION.md`. Full A5 remains open, including live/authenticated and
+physical acceptance. `NEXT_SESSION_PROMPT.md` gives the next exact goal: one A5
+large-text top-control clipping reproduction and confirmed repair, with iOS parity.
+Stop at the navigation unit's verified commit before starting that next unit.
+
+Finish this original objective, including remaining A5–A7/readiness, unfinished
+A1/A3/A4 acceptance, E and the final requirement audit. A2 remains wrapped with row
+mode off; B/C/D's local completion and every external gate remain intact. Only
+afterward consider `POST_GOAL_BACKLOG.md`. Its goals must not replace original
+acceptance work.
 
 ## Owner order, October 26
 

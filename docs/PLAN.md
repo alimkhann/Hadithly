@@ -59,17 +59,22 @@ product.
 
 ## Owner continuation order, October 31
 
-A4's finite local localization checklist is complete. See `A4_REQUIREMENT_AUDIT.md`
-for each requirement, controlled native evidence and acceptance limits. Full A4 remains
-open for exact-copy native-speaker review and full accessibility/authenticated/physical
-acceptance. `NEXT_SESSION_PROMPT.md` contains the exact next goal: one bounded A5
-Contents Go-tap navigation reproduction and confirmed repair. A5 has not started.
+A5's bounded Contents navigation unit repairs the confirmed page-fetch ownership
+race on both native apps. Controlled native Go/dismissal/target/header and focused
+RTL/large-text/state/return checks are recorded in `A5_CONTENTS_NAVIGATION.md`.
+The iOS button-style hypothesis was rejected after tracing keyboard-driven geometry;
+the original control is retained. Full A5 and live/authenticated/physical acceptance
+remain open. `NEXT_SESSION_PROMPT.md` gives the next exact bounded A5 goal: reproduce
+the captured Android large-text top-control clipping and check iOS parity.
+Stop after committing the navigation unit without pushing. Do not start that next
+unit in the same goal.
 
-Continue the original `PRODUCT_PROGRAM.md` objective: A5–A7/readiness, unfinished
-A1/A3 and A4 acceptance, E and the final full-objective audit. A2 stays wrapped with
-row mode off; retain B/C/D's local completion and every existing external gate.
-`POST_GOAL_BACKLOG.md` comes afterward. Do not repeat the setup audit or start an
-unrelated pilot. This order supersedes the temporary workflow pause below.
+A4's finite local checklist remains complete in `A4_REQUIREMENT_AUDIT.md`; exact-copy
+native-speaker review and full accessibility/authenticated/physical acceptance stay
+open. A2 stays wrapped with row mode off; retain B/C/D's local completion and every
+existing gate. Continue `PRODUCT_PROGRAM.md`, including remaining A5–A7/readiness,
+unfinished A1/A3/A4 acceptance, E and the final full-objective audit, before
+`POST_GOAL_BACKLOG.md`. Do not expand A2 storage or start an unrelated pilot.
 
 ## A4 local closure, October 31
 

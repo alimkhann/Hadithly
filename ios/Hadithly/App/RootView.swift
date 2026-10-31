@@ -31,7 +31,11 @@ struct RootView: View {
 
     @ViewBuilder
     var body: some View {
-        if AutomationContext.allows("-NativeFinishingFixture") {
+        if AutomationContext.allows("-A5ContentsNavigationFixture") {
+#if DEBUG
+            ContentsNavigationFixture()
+#endif
+        } else if AutomationContext.allows("-NativeFinishingFixture") {
 #if DEBUG
             NativeFinishingFixtureView()
 #endif

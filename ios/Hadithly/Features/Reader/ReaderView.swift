@@ -150,7 +150,11 @@ struct ReaderView: View {
         .onChange(of: scenePhase) { _, phase in
             if phase != .active { model?.saveCurrentProgress() }
         }
-        .sheet(isPresented: $showIndex) {
+        .sheet(isPresented: $showIndex, onDismiss: {
+#if DEBUG
+            model?.navigationTraceForUITest?("dismissed")
+#endif
+        }) {
             readerSheet {
                 if let model {
                     CollectionOutlineSheet(
@@ -3237,6 +3241,67 @@ struct ChromeCopyAuditFixture: View {
         .overlay(alignment: .topTrailing) {
             Text(String(callbacks)).font(.caption2).accessibilityIdentifier("chromeAudit.callbacks").allowsHitTesting(false)
         }
+    }
+}
+#endif
+
+#if DEBUG
+@MainActor
+struct ContentsNavigationFixture: View {
+    @State private var showReader = true
+    @State private var model: ReaderModel
+    @State private var release: (() -> Void)?
+    @State private var releaseTarget: (() -> Void)?
+    @State private var requests = ""
+
+    init() {
+        let convex = ConvexClientWithAuth(deploymentUrl: "https://example.invalid", authProvider: ClerkConvexAuthProvider())
+        let model = ReaderModel(convex: convex, collectionSlug: "bukhari", collectionName: "Original %@ مصدر", language: "en", isSignedIn: { false })
+        model.seedForUITest(volumes: [OutlineVolume(volumeId: "1", title: "Original %@ مصدر", hadithCount: 100)], selectedVolumeId: "1")
+        model.seedPagesForUITest([Self.page("1", more: true)])
+        _model = State(initialValue: model)
+    }
+
+    static func page(_ number: String, more: Bool = false) -> ReaderPageResult {
+        let hadith = ReaderHadith(_id: "fixture-" + number, provider: "sunnah_now", canonicalId: "sunnah_now:bukhari:" + number, providerHadithId: number, collectionSlug: "bukhari", volumeId: "1", chapterId: nil, arabicText: "نص تجريبي %@", englishText: "Controlled original %@ text " + number, narrator: nil, referenceDisplay: "Original %@ " + number, collectionName: "Original %@ مصدر", chapterName: nil, authenticity: ReaderAuthenticity(kind: "unknown", normalizedGrade: "unknown", claimScope: "hadith", sourceLabel: "Original %@", sourceName: "Fixture", sourceUrl: "", verificationMethod: "fixture"))
+        return ReaderPageResult(items: [hadith], page: number == "57" ? 3 : number == "2" ? 2 : 1, pageSize: 1, totalPages: 3, hasMore: more, contentVersion: nil, paginationVersion: nil, pageKey: nil)
+    }
+
+    var body: some View {
+        if ProcessInfo.processInfo.environment["A5_RETURN"] == "1" {
+            Text("Controlled reader return").accessibilityIdentifier("a5.returned")
+                .fullScreenCover(isPresented: $showReader) { reader }
+        } else { reader }
+    }
+
+    private var reader: some View {
+        ReaderView.fixture(model: model)
+            .environment(\.locale, Locale(identifier: ProcessInfo.processInfo.environment["A5_LOCALE"] ?? "en"))
+            .environment(\.layoutDirection, LocaleFallback.isRTL(ProcessInfo.processInfo.environment["A5_LOCALE"] ?? "en") ? .rightToLeft : .leftToRight)
+            .dynamicTypeSize(ProcessInfo.processInfo.environment["A5_LARGE_TEXT"] == "1" ? .accessibility5 : .large)
+            .overlay(alignment: .bottomTrailing) {
+                VStack {
+                    Text(requests).accessibilityIdentifier("a5.requests")
+                    Text("loading:\(model.isLoadingPage)").accessibilityIdentifier("a5.loading")
+                    if let releaseTarget { Button("Release target") { releaseTarget() }.accessibilityIdentifier("a5.releaseTarget") }
+                    if let release { Button("Release old page") { release() }.accessibilityIdentifier("a5.release") }
+                }.font(.caption2).dynamicTypeSize(.large).padding(.bottom, 160)
+            }
+            .task {
+                model.navigationTraceForUITest = { requests += "|" + $0 }
+                model.pageFetchForUITest = { _, _, target in
+                    requests += target ?? "prefetch"
+                    if let target {
+                        return await withCheckedContinuation { continuation in
+                            releaseTarget = { continuation.resume(returning: Self.page(target)); releaseTarget = nil }
+                        }
+                    }
+                    return await withCheckedContinuation { continuation in
+                        release = { continuation.resume(returning: Self.page("2")); release = nil }
+                    }
+                }
+                model.prefetchForwardIfNeeded()
+            }
     }
 }
 #endif

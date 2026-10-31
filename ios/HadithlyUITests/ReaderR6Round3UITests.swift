@@ -148,7 +148,7 @@ final class ReaderR6Round3UITests: XCTestCase {
         XCTAssertTrue(element("reader.savedShortcut.title", in: notes).waitForExistence(timeout: timeout))
         notes.buttons["reader.savedShortcut.filter.notes"].tap()
         XCTAssertTrue(notes.staticTexts["Fixture note"].exists)
-        XCTAssertTrue(notes.staticTexts["just now"].exists)
+        XCTAssertTrue(notes.staticTexts["now"].exists)
 
         // EDIT opens the Saved tab destination.
         element("reader.savedShortcut.edit", in: notes).tap()

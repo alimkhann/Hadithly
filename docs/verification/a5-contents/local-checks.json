@@ -1,0 +1,56 @@
+{
+  "android_unit": [
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-com.hadithly.app.ReaderPagingTest.xml",
+      "sha256": "d9d793294f2e5f30a541d307c5c21e26782ebda5bfc5c81d8e3299ac5d60cdfd",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-com.hadithly.app.ReaderR4Test.xml",
+      "sha256": "11aca2a85a5a77c1307b9d6c829f481fcbdc848cf9f3aac2ec7a4cd8e5e4af1c",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-com.hadithly.app.ReaderR5Test.xml",
+      "sha256": "86ea1a6ca4e8ca9b06db07b2afc41d97c21281c515922f5316ca78b0d0d5cabd",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-com.hadithly.app.ReaderR6Round3Test.xml",
+      "sha256": "397d3c2933d4b8132a146680f70c6e6a1888d66f6f89ee8c3c0348bb2406719a",
+      "tests": 29,
+      "failures": 0,
+      "errors": 0
+    }
+  ],
+  "localization": {
+    "ios_keys": 594,
+    "ios_draft_locale_entries": 8452,
+    "android_resources": 589,
+    "android_english_identical_candidates": 48,
+    "structural_failures": 0,
+    "script_tests": 13,
+    "script_failures": 0,
+    "draft_native_review": "pending"
+  },
+  "logs": [
+    {
+      "path": "/tmp/hadithly-a5-go/localization-tests.log",
+      "sha256": "f1f13abad0113a87f764e7a23cb3bd05ed2b3921bcfde1d822ab688df8c43004"
+    },
+    {
+      "path": "/tmp/hadithly-a5-go/localization-audit.log",
+      "sha256": "8909309955d9b7ddf6c65009238215a16b0c29ba6b394d3b6de2918e3d6ad67c"
+    },
+    {
+      "path": "/tmp/hadithly-a5-go/android-unit.log",
+      "sha256": "8dd4e262bdd0623f92cf90f9889ae81e627644f53ab78651ac6ea8bfa2a95117"
+    }
+  ]
+}

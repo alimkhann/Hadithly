@@ -157,6 +157,9 @@ struct CollectionOutlineSheet: View {
 
     private func submitJump() {
         let input = jumpText.trimmingCharacters(in: .whitespacesAndNewlines)
+#if DEBUG
+        model.navigationTraceForUITest?("submit:" + input)
+#endif
         guard ReaderShare.isValidReferenceNumber(input) else {
             jumpError = "Enter a hadith number like 57 or 4.5."
             return

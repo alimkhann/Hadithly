@@ -23,6 +23,8 @@ import com.hadithly.app.core.data.ReaderTargetResolver
 import com.hadithly.app.core.data.ReaderTargetSource
 import com.hadithly.app.core.data.TranslationFailure
 import com.hadithly.app.core.links.CanonicalHadithLink
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -53,6 +55,11 @@ class ReaderViewModel(
     private val openHadithNumber: String?,
     private val openPosition: ReadingPosition?,
     private val targetSource: ReaderTargetSource,
+    val library: com.hadithly.app.core.data.UserLibraryModel = app.library,
+    private val outlineLoader: suspend () -> CollectionOutlineResult = { app.repository.getCollectionOutline(collectionSlug) },
+    private val pageLoader: suspend (String, Int, String?) -> ReaderPageResult = { volume, page, target ->
+        app.repository.getReaderPage(collectionSlug, volume, page, target)
+    },
 ) : ViewModel() {
     private val measurement = com.hadithly.app.core.analytics.ReaderMeasurement()
     private var usedOfflineForEntry = false
@@ -112,6 +119,15 @@ class ReaderViewModel(
     val state: StateFlow<ReaderState> = _state
 
     private var pageJob: Job? = null
+    private var pageGeneration = 0
+
+    private fun cancelPageLoad() {
+        pageGeneration += 1
+        pageJob?.cancel()
+        pageJob = null
+        _state.update { it.copy(isLoadingPage = false) }
+    }
+
     private var translationJob: Job? = null
     private val automaticRequests = com.hadithly.app.core.preferences.ReaderAutomaticTranslationLedger()
     private val generationJobs = mutableMapOf<String, Job>()
@@ -131,8 +147,6 @@ class ReaderViewModel(
 
     var landingHadithNumber: String? = null
         private set
-
-    val library = app.library
 
     init {
         viewModelScope.launch { _state.collect { if (it.phase is Phase.Failed) emitMeasurement(measurement.failure()) } }
@@ -272,7 +286,7 @@ class ReaderViewModel(
         viewModelScope.launch {
             try {
                 val result = withTimeout(FETCH_TIMEOUT_MS) {
-                    app.repository.getCollectionOutline(collectionSlug)
+                    outlineLoader()
                 }
                 // Explicit deep links (Today/Saved) name a volume; a canonical
                 // link carries only the hadith number, so the volume holding
@@ -422,6 +436,7 @@ class ReaderViewModel(
     fun selectVolume(volumeId: String) {
         if (volumeId == _state.value.selectedVolumeId) return
         saveCurrentProgress()
+        cancelPageLoad()
         _state.update {
             it.copy(
                 selectedVolumeId = volumeId,
@@ -455,7 +470,7 @@ class ReaderViewModel(
         if (volumeId == _state.value.selectedVolumeId) return
         if (_state.value.volumes.none { it.volumeId == volumeId }) return
         saveCurrentProgress()
-        pageJob?.cancel()
+        cancelPageLoad()
         cancelTranslationRun()
         landingHadithNumber = null
         restoredPosition = null
@@ -469,6 +484,7 @@ class ReaderViewModel(
                 verticalLanding = null,
             )
         }
+        val generation = pageGeneration
         pageJob = viewModelScope.launch {
             try {
                 val first = app.repository.getReaderPage(collectionSlug, volumeId, 0)
@@ -476,6 +492,7 @@ class ReaderViewModel(
                 val last = if (landing == 0) first else {
                     app.repository.getReaderPage(collectionSlug, volumeId, landing)
                 }
+                if (generation != pageGeneration) return@launch
                 val pages = if (landing == 0) listOf(first) else {
                     List(landing) { emptyPage() } + last
                 }
@@ -489,11 +506,11 @@ class ReaderViewModel(
             } catch (_: CancellationException) {
                 // A newer page or volume target replaced this fetch.
             } catch (error: Exception) {
-                if (_state.value.pages.isEmpty()) {
+                if (generation == pageGeneration && _state.value.pages.isEmpty()) {
                     _state.update { it.copy(phase = Phase.Failed(errorMessage(error))) }
                 }
             } finally {
-                _state.update { it.copy(isLoadingPage = false) }
+                if (generation == pageGeneration) _state.update { it.copy(isLoadingPage = false) }
             }
         }
     }
@@ -532,6 +549,7 @@ class ReaderViewModel(
     }
 
     private fun selectVolumeFallback(volumeId: String) {
+        cancelPageLoad()
         landingHadithNumber = null
         restoredPosition = null
         _state.update {
@@ -549,6 +567,7 @@ class ReaderViewModel(
 
     /** Resets onto [volumeId] and lands the pager on the page holding [hadithNumber]. */
     private fun jumpToHadith(volumeId: String, hadithNumber: String) {
+        cancelPageLoad()
         landingHadithNumber = hadithNumber
         restoredPosition = null
         cancelTranslationRun()
@@ -583,17 +602,14 @@ class ReaderViewModel(
     private fun loadPage(index: Int, volumeId: String, jumpToHadithNumber: String? = null) {
         if (_state.value.isLoadingPage) return
         _state.update { it.copy(isLoadingPage = true) }
+        val generation = pageGeneration
         pageJob = viewModelScope.launch {
             var shouldPrefetchNeighbor = false
             try {
                 val result = withTimeout(FETCH_TIMEOUT_MS) {
-                    app.repository.getReaderPage(
-                        collectionSlug = collectionSlug,
-                        volumeId = volumeId,
-                        page = index,
-                        targetHadithNumber = jumpToHadithNumber,
-                    )
+                    pageLoader(volumeId, index, jumpToHadithNumber)
                 }
+                if (generation != pageGeneration) return@launch
                 _state.update { s ->
                     val landingIndex = if (jumpToHadithNumber != null) maxOf(0, result.pageNumber - 1) else index
                     val pages = s.pages.toMutableList()
@@ -613,18 +629,16 @@ class ReaderViewModel(
                 }
                 cacheAdjacentVolumes()
             } catch (error: Exception) {
-                if (!useOfflinePage(index, volumeId, jumpToHadithNumber) &&
+                if (generation == pageGeneration && currentCoroutineContext().isActive && !useOfflinePage(index, volumeId, jumpToHadithNumber) &&
                     _state.value.pages.isEmpty()
                 ) {
                     _state.update { it.copy(phase = Phase.Failed(errorMessage(error))) }
                 }
             } finally {
-                _state.update { it.copy(isLoadingPage = false) }
-                // Publish the current page first, then release the
-                // single-flight gate before asking for its next neighbor.
-                // Otherwise every fresh reader starts with a loading page
-                // beside it instead of a real drag preview.
-                if (shouldPrefetchNeighbor) prefetchForwardIfNeeded()
+                if (generation == pageGeneration) {
+                    _state.update { it.copy(isLoadingPage = false) }
+                    if (shouldPrefetchNeighbor) prefetchForwardIfNeeded()
+                }
             }
         }
     }
