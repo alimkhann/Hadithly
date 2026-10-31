@@ -153,17 +153,30 @@ struct ReadingLayout: Equatable, Sendable {
     let arabicFontSize: Double
     let widthClass: ReadingWidthClass
     let paginationVersion: Double
+    let translationFontSize: Double
+
+    init(locale: String, arabicVisible: Bool, translationVisible: Bool, arabicFontId: String, arabicFontSize: Double, widthClass: ReadingWidthClass, paginationVersion: Double, translationFontSize: Double = 16) {
+        self.locale = locale
+        self.arabicVisible = arabicVisible
+        self.translationVisible = translationVisible
+        self.arabicFontId = arabicFontId
+        self.arabicFontSize = arabicFontSize
+        self.widthClass = widthClass
+        self.paginationVersion = paginationVersion
+        self.translationFontSize = translationFontSize
+    }
 
     var signature: String {
         let sizeMilliPoints = Int((arabicFontSize * 1_000).rounded())
         let pagination = Int(paginationVersion)
         let canonical = [
-            "v1",
+            "v2",
             "locale=\(locale)",
             "arabic=\(arabicVisible ? 1 : 0)",
             "translation=\(translationVisible ? 1 : 0)",
             "font=\(arabicFontId)",
             "size=\(sizeMilliPoints)",
+            "translationSize=\(Int((translationFontSize * 1_000).rounded()))",
             "width=\(widthClass.rawValue)",
             "pagination=\(pagination)",
         ].joined(separator: "|")
@@ -179,7 +192,8 @@ struct ReadingLayout: Equatable, Sendable {
             arabicFontId: arabicFontId,
             arabicFontSize: arabicFontSize,
             widthClass: widthClass,
-            paginationVersion: version
+            paginationVersion: version,
+            translationFontSize: translationFontSize
         )
     }
 }

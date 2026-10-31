@@ -59,22 +59,27 @@ product.
 
 ## Owner continuation order, October 31
 
-A5's bounded Contents navigation unit repairs the confirmed page-fetch ownership
-race on both native apps. Controlled native Go/dismissal/target/header and focused
-RTL/large-text/state/return checks are recorded in `A5_CONTENTS_NAVIGATION.md`.
-The iOS button-style hypothesis was rejected after tracing keyboard-driven geometry;
-the original control is retained. Full A5 and live/authenticated/physical acceptance
-remain open. `NEXT_SESSION_PROMPT.md` gives the next exact bounded A5 goal: reproduce
-the captured Android large-text top-control clipping and check iOS parity.
-Stop after committing the navigation unit without pushing. Do not start that next
-unit in the same goal.
+The owner expanded the bounded A5 follow-up into finishing A5. Its original
+engineering criterion is now complete: the confirmed Contents page-ownership race,
+large-text reader-control overlap/clipping, ineffective translation type size and
+iOS Settings mirroring after RTL → LTR are repaired. Controlled native reading,
+Saved/Undo/note/folder/return, direction, state and callback evidence is audited in
+`A5_REQUIREMENT_AUDIT.md`, with exact per-case outcomes and rejected attempts.
+Native render review caught the mirrored Settings ink that semantic checks missed;
+only that hidden List is recreated, keeping its navigation owner stable.
+
+This closes A5's engineering checkbox, not actual live/authenticated/physical,
+exact-copy/native accessibility or release acceptance. `NEXT_SESSION_PROMPT.md`
+gives the next exact goal: one A6 local readiness/gate audit. Stop after the A5
+verified commit without pushing; do not start A6 in this goal.
 
 A4's finite local checklist remains complete in `A4_REQUIREMENT_AUDIT.md`; exact-copy
 native-speaker review and full accessibility/authenticated/physical acceptance stay
 open. A2 stays wrapped with row mode off; retain B/C/D's local completion and every
-existing gate. Continue `PRODUCT_PROGRAM.md`, including remaining A5–A7/readiness,
-unfinished A1/A3/A4 acceptance, E and the final full-objective audit, before
-`POST_GOAL_BACKLOG.md`. Do not expand A2 storage or start an unrelated pilot.
+existing external gate. Continue `PRODUCT_PROGRAM.md`, including unfinished
+A1/A3/A4 acceptance, A6–A7/readiness, E and the final full-objective audit, before
+`POST_GOAL_BACKLOG.md`. The font-size and Settings reports overlapped the original
+A5 requirement; no A2 storage, later backlog redesign or unrelated pilot was started.
 
 ## A4 local closure, October 31
 

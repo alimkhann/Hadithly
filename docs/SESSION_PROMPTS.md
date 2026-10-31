@@ -6,14 +6,15 @@ Never use Relay.
 
 ## Product continuation: B research, C native refinements, D website
 
-Use `docs/NEXT_SESSION_PROMPT.md` for the next bounded A5 goal: reproduce the
-captured Android large-text top source/page-control clipping and check iOS parity.
-The completed Contents navigation unit is recorded in `docs/A5_CONTENTS_NAVIGATION.md`.
-Read the current PLAN, PRODUCT_PROGRAM and A4 requirement audit first. Full A5,
-A4 exact-copy/native accessibility/authenticated/physical acceptance and all prior
-gates stay open. Keep A2 wrapped with row mode off and B/C/D locally complete.
-The original program, remaining A1/A3/A4–A7/readiness, E and final audit precede
-POST_GOAL_BACKLOG. Historical release IDs below remain a separate track.
+Use `docs/NEXT_SESSION_PROMPT.md` for the next bounded A6 local readiness/gate
+audit. The owner expanded the preceding A5 follow-up into finishing its original
+engineering criterion. Read `docs/A5_REQUIREMENT_AUDIT.md` for the confirmed
+repairs, accepted native scopes, rejected attempts and remaining external gates.
+A4 retains local closure and pending exact-copy/native accessibility acceptance.
+A2 stays wrapped with row mode off; B/C/D retain local completion. Unfinished
+A1/A3/A4, A6–A7/readiness, E and the final original-program audit precede
+`POST_GOAL_BACKLOG.md`. Stop after the verified A5 commit without pushing; do not
+start that next audit in the same goal.
 
 ## D0: restore browser control
 

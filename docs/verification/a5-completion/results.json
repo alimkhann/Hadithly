@@ -1,0 +1,2195 @@
+{
+  "baseline": "694081c6e855bf163540f55ded57388eee89da84",
+  "incoming_working_bytes_preserved": {
+    "ios/Hadithly.xcodeproj/project.pbxproj": "96350e43481804f2d09dfd0e09609f894d7eedcc6a5326a6cb63c16cb9992efb",
+    "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/Hadithly.xcscheme": "4855a090d537eafb377cd99d70425fb44137ad64588059f01727ffbbd0fa95b6",
+    "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/LA2Verification.xcscheme": "74eff6b5902f4989fcf1d4d5d17a9c1c65bb66571cde851e2b932bff7520bfed",
+    "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/Phase4Live.xcscheme": "35c6cbf95690fc03a4497131c41eeb41983b35123116204af04dd0842baa982d",
+    "ios/Hadithly/Localizable.xcstrings": "ea0844bf22fb7cf83805a3600a1de6a0d4a2b1b8142021d2465724d1316dcf15"
+  },
+  "incoming_files_unstaged": true,
+  "source_scope": [
+    "android/app/src/androidTest/kotlin/com/hadithly/app/features/reader/ContentsNavigationTest.kt",
+    "android/app/src/androidTest/kotlin/com/hadithly/app/features/reader/ReaderProgressObservationTest.kt",
+    "android/app/src/androidTest/kotlin/com/hadithly/app/features/reader/ReaderR6AQuietTest.kt",
+    "android/app/src/androidTest/kotlin/com/hadithly/app/features/settings/LanguageSwitchTest.kt",
+    "android/app/src/main/kotlin/com/hadithly/app/core/data/ReadingPosition.kt",
+    "android/app/src/main/kotlin/com/hadithly/app/core/preferences/ReaderPreferences.kt",
+    "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+    "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderViewModel.kt",
+    "android/app/src/main/kotlin/com/hadithly/app/features/saved/SavedUndoBanner.kt",
+    "android/app/src/test/kotlin/com/hadithly/app/ReaderR4Test.kt",
+    "android/app/src/test/kotlin/com/hadithly/app/ReaderR6ATest.kt",
+    "android/app/src/test/kotlin/com/hadithly/app/ReadingPositionTest.kt",
+    "docs/A5_CONTENTS_NAVIGATION.md",
+    "docs/A5_READER_CONTROLS.md",
+    "docs/A5_REQUIREMENT_AUDIT.md",
+    "docs/NEXT_SESSION_PROMPT.md",
+    "docs/PLAN.md",
+    "docs/PRODUCT_PROGRAM.md",
+    "docs/SESSION_PROMPTS.md",
+    "docs/verification/a5-completion/attempts.json",
+    "docs/verification/a5-completion/baseline.json",
+    "docs/verification/a5-completion/capture-manifest.json",
+    "docs/verification/a5-completion/captures/android-ar-after.png",
+    "docs/verification/a5-completion/captures/android-ar-before.png",
+    "docs/verification/a5-completion/captures/android-bn-after.png",
+    "docs/verification/a5-completion/captures/android-settings-english-return.png",
+    "docs/verification/a5-completion/captures/ios-ar-after.png",
+    "docs/verification/a5-completion/captures/ios-ar-before.png",
+    "docs/verification/a5-completion/captures/ios-bn-after.png",
+    "docs/verification/a5-completion/captures/ios-settings-english-after.png",
+    "docs/verification/a5-completion/captures/ios-settings-english-before.png",
+    "docs/verification/a5-completion/captures/ios-settings-relaunch-after.png",
+    "docs/verification/a5-completion/captures/ios-type-14.png",
+    "docs/verification/a5-completion/captures/ios-type-22.png",
+    "docs/verification/a5-completion/commands.md",
+    "docs/verification/a5-completion/local-checks.json",
+    "docs/verification/a5-completion/rejected-russian-coordinate-hierarchy.txt",
+    "docs/verification/a5-completion/results.json",
+    "docs/verification/a5-completion/run-classification.json",
+    "ios/Hadithly/App/RootView.swift",
+    "ios/Hadithly/Core/ReadingPosition/ReadingPosition.swift",
+    "ios/Hadithly/Core/Theme/ReaderPalette.swift",
+    "ios/Hadithly/Features/Reader/ReaderModel.swift",
+    "ios/Hadithly/Features/Reader/ReaderSheets.swift",
+    "ios/Hadithly/Features/Reader/ReaderView.swift",
+    "ios/Hadithly/Features/Settings/SettingsView.swift",
+    "ios/HadithlyTests/ReaderR4Tests.swift",
+    "ios/HadithlyTests/ReadingPositionTests.swift",
+    "ios/HadithlyUITests/LanguageSwitchUITests.swift",
+    "ios/HadithlyUITests/NativeFinishingUITests.swift",
+    "ios/HadithlyUITests/ReaderPagingUITests.swift",
+    "ios/HadithlyUITests/ReaderR5UITests.swift",
+    "ios/HadithlyUITests/ReaderR6AUITests.swift",
+    "scripts/verify-a5-program.py"
+  ],
+  "source_sha256": {
+    "android/app/src/androidTest/kotlin/com/hadithly/app/features/reader/ContentsNavigationTest.kt": "511aee1397d2e3c25cb2619b837a555407894a45b6c09acf64291372e1ded183",
+    "android/app/src/androidTest/kotlin/com/hadithly/app/features/reader/ReaderProgressObservationTest.kt": "dd480e07db97f301b247734a98db11ce58b8a3689eb550c141bcc4c734c0f8dd",
+    "android/app/src/androidTest/kotlin/com/hadithly/app/features/reader/ReaderR6AQuietTest.kt": "3d57b3f6ad807298214631b52da2f554849fea93786e792b9ebcf99ada943bd5",
+    "android/app/src/androidTest/kotlin/com/hadithly/app/features/settings/LanguageSwitchTest.kt": "ba36599b8aeb340e772e807aa62094f0b370d1eee0560c7fc87d2bd231e84e78",
+    "android/app/src/main/kotlin/com/hadithly/app/core/data/ReadingPosition.kt": "28bbb574f2bbb8e28e8e6371f9164c118f92a895a60639baf032e528f3f25021",
+    "android/app/src/main/kotlin/com/hadithly/app/core/preferences/ReaderPreferences.kt": "1084b42383587a9cfcea15a3caec5095c87b8786d1d3ca65a0c08107697bebf1",
+    "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt": "bad65c79205e529e90666b11949222809816037cfe8b3866c32a983a3306a5e3",
+    "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderViewModel.kt": "c74fb7364f380558f874ac57f8a28850a9c8b861cb4c6d004aa71e000d893c48",
+    "android/app/src/main/kotlin/com/hadithly/app/features/saved/SavedUndoBanner.kt": "a28c4d143614cd47ea8ba57f61681614d993746de087dede32ffd412952aa177",
+    "android/app/src/test/kotlin/com/hadithly/app/ReaderR4Test.kt": "04b85d68a7aa2def4b65c6412b1ee7ac2a368b2b60b5c69daa049c95b7fc29a9",
+    "android/app/src/test/kotlin/com/hadithly/app/ReaderR6ATest.kt": "bcbd694825874e5fec9d526bbb3efce71816f18fbb862973421697b417a27763",
+    "android/app/src/test/kotlin/com/hadithly/app/ReadingPositionTest.kt": "f885453d9abe9eccca8a9672ec257c2af93b507af7b75e3f02f329ec169cd3d3",
+    "docs/A5_CONTENTS_NAVIGATION.md": "8af523e279caade768e9faa816471a27523b1048e4164159eff4d41d2e2eaf13",
+    "docs/A5_READER_CONTROLS.md": "3490e0860f8cccc2dfcb5117efc2d9abaed0c34ab223861884e09caa7c47bcb2",
+    "docs/A5_REQUIREMENT_AUDIT.md": "4b67e3e18802d8dde9c5c185a00d8683f92408f63083714ef010a4c68f84334f",
+    "docs/NEXT_SESSION_PROMPT.md": "29b61dbfba0373b49c30caa2c2c3f03474194b06203b4885fd65f8734b227640",
+    "docs/PLAN.md": "6201e42a7d4b6b7b8ffc375faadd7302b1208617fde81e8e4d6fef83e984c252",
+    "docs/PRODUCT_PROGRAM.md": "0a8e272555e8f7d2b2bbcf367a0cc73d042969b015f90d8612117618d837de55",
+    "docs/SESSION_PROMPTS.md": "8d8396c1899a70a35b6d54d73de56f45b941207e1c334583740ac281515a4e1e",
+    "ios/Hadithly/App/RootView.swift": "4c88b616f6f8e386963ecd65aa2b6c197aee665b9f4b7e5edbee14e550e8c2d4",
+    "ios/Hadithly/Core/ReadingPosition/ReadingPosition.swift": "bfdb9638b6ca0bb27d33ed0cf3477f3c77b656ac4f75e8bcd367ad32a5fe6acc",
+    "ios/Hadithly/Core/Theme/ReaderPalette.swift": "c829303e5926b454ac99ba49293d1212f95083e4339b206ab0358ad8791f5536",
+    "ios/Hadithly/Features/Reader/ReaderModel.swift": "6294ad74182520314fa5018f230bdfb2361f71eff4f2cbf10138fbda0b3741c2",
+    "ios/Hadithly/Features/Reader/ReaderSheets.swift": "2b33dc123e918e31c4d09444cdc8952e12c8339802cf1bcdad07f70b7b86b535",
+    "ios/Hadithly/Features/Reader/ReaderView.swift": "8892b06d729395d1325747b6e048e6d9349b672252ccc332e316775226abee67",
+    "ios/Hadithly/Features/Settings/SettingsView.swift": "e8fa37099d4c93ed507261e1f31db1215bc35b8523b5f78cfdff5d706d1ff267",
+    "ios/HadithlyTests/ReaderR4Tests.swift": "18f4555350470ee37c1121bd2ffa4b58ed751103b10a7fff4e82a5e7749bbbdc",
+    "ios/HadithlyTests/ReadingPositionTests.swift": "68dd18f53def67aca91ffb9118bd8715ff5aba4883f52e367a14ec9f49dc834f",
+    "ios/HadithlyUITests/LanguageSwitchUITests.swift": "81d2b97c50bae9efdb0beff6a2d7db4ebc7a829a1d53f832429f5262d2f25baf",
+    "ios/HadithlyUITests/NativeFinishingUITests.swift": "7f750731aed3c688e1c5b2660fafa3c0029bc44688fbe5f783712f6bd68a3035",
+    "ios/HadithlyUITests/ReaderPagingUITests.swift": "b573db68da0d924e4c03dc6a6c4ac5a2bb1178f60f5ac966c232781bd56d2919",
+    "ios/HadithlyUITests/ReaderR5UITests.swift": "9d239f29c2482e52bce6f2267fa2802a07aa0a744798a442ed1a94fcec067efa",
+    "ios/HadithlyUITests/ReaderR6AUITests.swift": "caa53716e45bb8b6ec4493244c1b6fa11b898bef524b6509c728ed0e4257b0ab",
+    "scripts/verify-a5-program.py": "aa4fe6d4d14ff249e198cbcd4b56a4fb6805cdae724433f10e885e1123bcb1b7"
+  },
+  "preserved": {
+    "backend": true,
+    "android/app/src/main/res": true,
+    "ios/Hadithly/Features/Saved": true,
+    "android/app/src/main/kotlin/com/hadithly/app/features/sync": true,
+    "docs/A2_WRAP_UP.md": "00329d5ca9434e7d1fc26319de82ca2305f67e4cacd48cf52fc790a2c6ea9e84",
+    "docs/A4_REQUIREMENT_AUDIT.md": "9fc776dc26e777a01a80826a5e47e3552cf2092ae05c5bbd65a77aa251869693",
+    "docs/OPEN_GATES.md": "bf38670ec0c74ed787a015e31e7f4395c5bd8a649d89466fe4136359ee9803ae",
+    "docs/C_NATIVE_REFINEMENTS.md": "850bf4ee71721e5836b3b6bb114cefb895fc54cc44c3ee0f4dfeaa82632a7fc1",
+    "docs/D_WEBSITE_REDESIGN.md": "a8669c0087af9379461400ebd14df41b04f0b248b0913af4b805cf72f50a7edf",
+    "docs/POST_GOAL_BACKLOG.md": "f1845968abef9fb7fb4ceb1b0a116e5fcafda31e73670b8b06cab252bba0cd2c"
+  },
+  "historical_requirements_preserved_except_authorized_A5_checkbox": true,
+  "native_results": [
+    {
+      "platform": "ios",
+      "path": "/tmp/hadithly-a5-finish/ios-controls-before.xcresult",
+      "summary": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "D47D7363-4705-4767-8617-F47DDB6A3241",
+              "deviceName": "Hadithly LA2 iPhone 18 Pro",
+              "modelName": "iPhone 18 Pro",
+              "osBuildNumber": "24A434",
+              "osVersion": "27.0",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 1,
+            "passedTests": 0,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "LA2Verification · Built with macOS 27.0",
+        "expectedFailures": 0,
+        "failedTests": 1,
+        "finishTime": 1793440344.582,
+        "passedTests": 0,
+        "result": "Failed",
+        "runtimeWarnings": [],
+        "skippedTests": 0,
+        "startTime": 1793440274.232,
+        "statistics": [],
+        "testFailures": [
+          {
+            "failureText": "XCTAssertLessThanOrEqual failed: (\"100.0\") is greater than (\"94.0\") - Top pills overlap source: (93.0, 70.0, 216.0, 30.0), (61.666666666666686, 94.0, 318.3333333333333, 48.0)",
+            "targetName": "HadithlyUITests",
+            "testIdentifier": 1,
+            "testIdentifierString": "ReaderR5UITests/testTopControlsDoNotOverlapAtLargeText()",
+            "testIdentifierURL": "test://com.apple.xcode/Hadithly/HadithlyUITests/ReaderR5UITests/testTopControlsDoNotOverlapAtLargeText",
+            "testName": "testTopControlsDoNotOverlapAtLargeText()"
+          }
+        ],
+        "title": "Test - LA2Verification",
+        "topInsights": [],
+        "totalTestCount": 1
+      },
+      "cases": [
+        {
+          "name": "ReaderR5UITests/testTopControlsDoNotOverlapAtLargeText()",
+          "result": "Failed"
+        }
+      ]
+    },
+    {
+      "platform": "ios",
+      "path": "/tmp/hadithly-a5-finish/ios-type-before.xcresult",
+      "summary": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "D47D7363-4705-4767-8617-F47DDB6A3241",
+              "deviceName": "Hadithly LA2 iPhone 18 Pro",
+              "modelName": "iPhone 18 Pro",
+              "osBuildNumber": "24A434",
+              "osVersion": "27.0",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 1,
+            "passedTests": 0,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "LA2Verification · Built with macOS 27.0",
+        "expectedFailures": 0,
+        "failedTests": 1,
+        "finishTime": 1793441596.451,
+        "passedTests": 0,
+        "result": "Failed",
+        "runtimeWarnings": [],
+        "skippedTests": 0,
+        "startTime": 1793441556.457,
+        "statistics": [],
+        "testFailures": [
+          {
+            "failureText": "XCTAssertEqual failed: (\"XCTWaiterResult(rawValue: 2)\") is not equal to (\"XCTWaiterResult(rawValue: 1)\") - Actual reader translation ignores selected type size",
+            "targetName": "HadithlyUITests",
+            "testIdentifier": 1,
+            "testIdentifierString": "ReaderR5UITests/testTranslationSizeChangesActualReaderText()",
+            "testIdentifierURL": "test://com.apple.xcode/Hadithly/HadithlyUITests/ReaderR5UITests/testTranslationSizeChangesActualReaderText",
+            "testName": "testTranslationSizeChangesActualReaderText()"
+          }
+        ],
+        "title": "Test - LA2Verification",
+        "topInsights": [],
+        "totalTestCount": 1
+      },
+      "cases": [
+        {
+          "name": "ReaderR5UITests/testTranslationSizeChangesActualReaderText()",
+          "result": "Failed"
+        }
+      ]
+    },
+    {
+      "platform": "ios",
+      "path": "/tmp/hadithly-a5-finish/ios-core-regressions.xcresult",
+      "summary": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "D47D7363-4705-4767-8617-F47DDB6A3241",
+              "deviceName": "Hadithly LA2 iPhone 18 Pro",
+              "modelName": "iPhone 18 Pro",
+              "osBuildNumber": "24A434",
+              "osVersion": "27.0",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 6,
+            "passedTests": 61,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "LA2Verification · Built with macOS 27.0",
+        "expectedFailures": 0,
+        "failedTests": 6,
+        "finishTime": 1793456125.541,
+        "passedTests": 61,
+        "result": "Failed",
+        "runtimeWarnings": [],
+        "skippedTests": 0,
+        "startTime": 1793455457.317,
+        "statistics": [],
+        "testFailures": [
+          {
+            "failureText": "XCTAssertTrue failed - Arabic-only auto",
+            "targetName": "HadithlyUITests",
+            "testIdentifier": 28,
+            "testIdentifierString": "ReaderPagingUITests/testBehavioralDirectionAndVisibilityMatrix()",
+            "testIdentifierURL": "test://com.apple.xcode/Hadithly/HadithlyUITests/ReaderPagingUITests/testBehavioralDirectionAndVisibilityMatrix",
+            "testName": "testBehavioralDirectionAndVisibilityMatrix()"
+          },
+          {
+            "failureText": "XCTAssertTrue failed - fast LTR",
+            "targetName": "HadithlyUITests",
+            "testIdentifier": 29,
+            "testIdentifierString": "ReaderPagingUITests/testFastSwipeAndCancelledGestureContract()",
+            "testIdentifierURL": "test://com.apple.xcode/Hadithly/HadithlyUITests/ReaderPagingUITests/testFastSwipeAndCancelledGestureContract",
+            "testName": "testFastSwipeAndCancelledGestureContract()"
+          },
+          {
+            "failureText": "XCTAssertTrue failed - a loading reader renders a native progress indicator",
+            "targetName": "HadithlyUITests",
+            "testIdentifier": 39,
+            "testIdentifierString": "ReaderR6AUITests/testLoadingStateOnFirstVolumeVisit()",
+            "testIdentifierURL": "test://com.apple.xcode/Hadithly/HadithlyUITests/ReaderR6AUITests/testLoadingStateOnFirstVolumeVisit",
+            "testName": "testLoadingStateOnFirstVolumeVisit()"
+          },
+          {
+            "failureText": "XCTAssertTrue failed - first page",
+            "targetName": "HadithlyUITests",
+            "testIdentifier": 30,
+            "testIdentifierString": "ReaderPagingUITests/testOneLineBoundariesAndAccessibleEndControls()",
+            "testIdentifierURL": "test://com.apple.xcode/Hadithly/HadithlyUITests/ReaderPagingUITests/testOneLineBoundariesAndAccessibleEndControls",
+            "testName": "testOneLineBoundariesAndAccessibleEndControls()"
+          },
+          {
+            "failureText": "XCTAssertTrue failed - matrix en-system",
+            "targetName": "HadithlyUITests",
+            "testIdentifier": 31,
+            "testIdentifierString": "ReaderPagingUITests/testR4LanguageThemeAndAccessibilityMatrix()",
+            "testIdentifierURL": "test://com.apple.xcode/Hadithly/HadithlyUITests/ReaderPagingUITests/testR4LanguageThemeAndAccessibilityMatrix",
+            "testName": "testR4LanguageThemeAndAccessibilityMatrix()"
+          },
+          {
+            "failureText": "XCTAssertTrue failed - long RTL",
+            "targetName": "HadithlyUITests",
+            "testIdentifier": 32,
+            "testIdentifierString": "ReaderPagingUITests/testVerticalScrollOnLongPageDoesNotTurnPage()",
+            "testIdentifierURL": "test://com.apple.xcode/Hadithly/HadithlyUITests/ReaderPagingUITests/testVerticalScrollOnLongPageDoesNotTurnPage",
+            "testName": "testVerticalScrollOnLongPageDoesNotTurnPage()"
+          }
+        ],
+        "title": "Test - LA2Verification",
+        "topInsights": [
+          {
+            "category": "Longest Test Runs",
+            "impact": "16% of duration",
+            "text": "1 longest test run with outlier durations exceeding 64.18s (three standard deviations)"
+          },
+          {
+            "category": "Longest Test Runs",
+            "impact": "41% of duration",
+            "text": "1 longest test run with outlier durations exceeding 0.19s (three standard deviations)"
+          }
+        ],
+        "totalTestCount": 67
+      },
+      "cases": [
+        {
+          "name": "GuestMergePlannerTests/testActualFacadeRejectsOversizedNoteAndExplicitRemoveNeverAddsAnAbsentBookmark()",
+          "result": "Passed"
+        },
+        {
+          "name": "GuestMergePlannerTests/testActualLibraryFacadeKeepsAcceptedNoteUntilOwnedQueryRevisionCatchesUp()",
+          "result": "Passed"
+        },
+        {
+          "name": "GuestMergePlannerTests/testActualLibraryFacadePersistsOfflineIntentsAndRestoresProjectionAfterReopen()",
+          "result": "Passed"
+        },
+        {
+          "name": "GuestMergePlannerTests/testActualLibraryFacadeRejectsLateAccountReadsAndUndoAfterSwitchAndSignOut()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testAppPaletteResolutionMatrix()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testChapterOpeningsHandleUnnamedPageStart()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testChapterOpeningsOnlyFromSourceNames()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testInteractiveTintMeetsContrastOnEveryPalette()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testLayoutProjectionIgnoresThemeAndDirection()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testLayoutProjectionTracksLayoutAffectingPreferences()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testPaletteSchemeAndInteractivePairsStayAligned()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testPaperAndLightPalettesHaveAccessibleContrast()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testPreferredColorSchemeMapping()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testReanchoredPositionCarriesNewSignatureAndStableOffset()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testResolvedPalettesPerTheme()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testTranslationSizeInvalidatesLayoutProjection()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testTypeSizeLadderStaysInsidePreferenceClamp()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testTypeSizeStepping()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReadingPositionTests/testContentAndLayoutChangesUseSemanticAnchor()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReadingPositionTests/testDecoderRejectsAnUnsupportedVersion()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReadingPositionTests/testGuestMergeCarriesTheCompleteNewestV1Position()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReadingPositionTests/testLayoutSignatureGoldenVectorAndPaginationChange()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReadingPositionTests/testLegacyGuestProgressMigratesAtOffsetZero()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReadingPositionTests/testMissingAnchorChoosesNearestAndResetsOffset()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReadingPositionTests/testOldGeometryAndTranslationSizeUseSemanticAnchorWithoutRewritingPosition()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReadingPositionTests/testTargetResolverRestoresOnlyTheMatchingPrivatePosition()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReadingPositionTests/testWireRoundTripUsesDoubleNumbers()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderPagingUITests/testBehavioralDirectionAndVisibilityMatrix()",
+          "result": "Failed"
+        },
+        {
+          "name": "ReaderPagingUITests/testFastSwipeAndCancelledGestureContract()",
+          "result": "Failed"
+        },
+        {
+          "name": "ReaderPagingUITests/testOneLineBoundariesAndAccessibleEndControls()",
+          "result": "Failed"
+        },
+        {
+          "name": "ReaderPagingUITests/testR4LanguageThemeAndAccessibilityMatrix()",
+          "result": "Failed"
+        },
+        {
+          "name": "ReaderPagingUITests/testVerticalScrollOnLongPageDoesNotTurnPage()",
+          "result": "Failed"
+        },
+        {
+          "name": "ReaderR6AUITests/testAbsoluteEndsHaveNoOutwardPill()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6AUITests/testChapterLineIsNameOnlyWithArabicSubtitle()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6AUITests/testCornerLabelStaysTitleOnlyUntilFullyCached()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6AUITests/testFreshVolumePageShowsItsHeaderAboveTheFirstHadith()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6AUITests/testGreenNoteMarkerOnNotedHadith()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6AUITests/testHorizontalDragTurnsPage()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6AUITests/testLoadingStateOnFirstVolumeVisit()",
+          "result": "Failed"
+        },
+        {
+          "name": "ReaderR6AUITests/testLongPressMenuStillOpensWithFullActions()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6AUITests/testNarratorShowsAboveArabicInArabicOnlyMode()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6AUITests/testNarratorShowsInTranslationOnlyMode()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6AUITests/testNarratorShowsWithTranslationLayer()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6AUITests/testP1VerticalLandingMatrix()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6AUITests/testQuietPageHasHeadersMarkersAndNoEllipsis()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6AUITests/testRTLPillsMirrorWithLogicalLabels()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6AUITests/testSavedStateMiniMarkers()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6AUITests/testShortHorizontalDragCancelsBack()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6AUITests/testSourceSheetOmitsURLWhenAbsent()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6AUITests/testSourceSheetShowsNameScopeAndURL()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6AUITests/testSwipeAcrossVolumesBothWays()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6AUITests/testTapAcrossBoundaryBackwardLandsOnPreviousVolumeLastPage()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6AUITests/testTapAcrossBoundaryForwardLandsOnNextVolumeFirstPage()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6AUITests/testTwoPillsAtVolumeEdgeNameNeighborVolume()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6AUITests/testVerticalDragNeverTurnsPage()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3UITests/testContentsSheetAesthetic()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3UITests/testMenuBookmarkFilledWhenPositionedHadithBookmarked()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3UITests/testMenuOrderContentsSavedSettingsThenBookmarkSearch()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3UITests/testPlacementChoiceNavigates()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3UITests/testSavedShortcutTabsRowsAndEdit()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3UITests/testSearchEmptyStateWithoutStub()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3UITests/testSearchResultsNavigateExact()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderSettingsUITests/testBothEntryPointsKeepSettingsAndNativeNavigation()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderSettingsUITests/testMainAppearanceKeepsAppToggleAndReaderInSeparateGroups()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderSettingsUITests/testSelectingPaperChangesRenderedSheetBackground()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderSettingsUITests/testThemeCycleDoesNotRetainPaperDividers()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderSettingsUITests/testThemesAndLargeTextRemainScrollable()",
+          "result": "Passed"
+        }
+      ]
+    },
+    {
+      "platform": "ios",
+      "path": "/tmp/hadithly-a5-finish/ios-saved-journey.xcresult",
+      "summary": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "D47D7363-4705-4767-8617-F47DDB6A3241",
+              "deviceName": "Hadithly LA2 iPhone 18 Pro",
+              "modelName": "iPhone 18 Pro",
+              "osBuildNumber": "24A434",
+              "osVersion": "27.0",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 1,
+            "passedTests": 0,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "LA2Verification · Built with macOS 27.0",
+        "expectedFailures": 0,
+        "failedTests": 1,
+        "finishTime": 1793442827.745,
+        "passedTests": 0,
+        "result": "Failed",
+        "runtimeWarnings": [],
+        "skippedTests": 0,
+        "startTime": 1793442472.252,
+        "statistics": [],
+        "testFailures": [
+          {
+            "failureText": "XCTAssertTrue failed",
+            "targetName": "HadithlyUITests",
+            "testIdentifier": 1,
+            "testIdentifierString": "ReaderR5UITests/testGuestSavingNoteUndoAndSavedReaderReturn()",
+            "testIdentifierURL": "test://com.apple.xcode/Hadithly/HadithlyUITests/ReaderR5UITests/testGuestSavingNoteUndoAndSavedReaderReturn",
+            "testName": "testGuestSavingNoteUndoAndSavedReaderReturn()"
+          }
+        ],
+        "title": "Test - LA2Verification",
+        "topInsights": [],
+        "totalTestCount": 1
+      },
+      "cases": [
+        {
+          "name": "ReaderR5UITests/testGuestSavingNoteUndoAndSavedReaderReturn()",
+          "result": "Failed"
+        }
+      ]
+    },
+    {
+      "platform": "ios",
+      "path": "/tmp/hadithly-a5-finish/ios-saved-journey2.xcresult",
+      "summary": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "D47D7363-4705-4767-8617-F47DDB6A3241",
+              "deviceName": "Hadithly LA2 iPhone 18 Pro",
+              "modelName": "iPhone 18 Pro",
+              "osBuildNumber": "24A434",
+              "osVersion": "27.0",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 0,
+            "passedTests": 2,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "LA2Verification · Built with macOS 27.0",
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "finishTime": 1793455354.996,
+        "passedTests": 2,
+        "result": "Passed",
+        "runtimeWarnings": [],
+        "skippedTests": 0,
+        "startTime": 1793455268.617,
+        "statistics": [],
+        "testFailures": [],
+        "title": "Test - LA2Verification",
+        "topInsights": [],
+        "totalTestCount": 2
+      },
+      "cases": [
+        {
+          "name": "NativeFinishingUITests/testReaderScrollingDoesNotRebuildThePageStrip()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR5UITests/testGuestSavingNoteUndoAndSavedReaderReturn()",
+          "result": "Passed"
+        }
+      ]
+    },
+    {
+      "platform": "ios",
+      "path": "/tmp/hadithly-a5-finish/ios-completion.xcresult",
+      "summary": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "D47D7363-4705-4767-8617-F47DDB6A3241",
+              "deviceName": "Hadithly LA2 iPhone 18 Pro",
+              "modelName": "iPhone 18 Pro",
+              "osBuildNumber": "24A434",
+              "osVersion": "27.0",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 2,
+            "passedTests": 131,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "LA2Verification · Built with macOS 27.0",
+        "expectedFailures": 0,
+        "failedTests": 2,
+        "finishTime": 1793456782.92,
+        "passedTests": 131,
+        "result": "Failed",
+        "runtimeWarnings": [],
+        "skippedTests": 0,
+        "startTime": 1793456152.015,
+        "statistics": [],
+        "testFailures": [
+          {
+            "failureText": "XCTAssertTrue failed",
+            "targetName": "HadithlyUITests",
+            "testIdentifier": 127,
+            "testIdentifierString": "ReaderR5UITests/testGoAtLargeTextInRTLAndLongLocales()",
+            "testIdentifierURL": "test://com.apple.xcode/Hadithly/HadithlyUITests/ReaderR5UITests/testGoAtLargeTextInRTLAndLongLocales",
+            "testName": "testGoAtLargeTextInRTLAndLongLocales()"
+          },
+          {
+            "failureText": "XCTAssertEqual failed: (\"XCTWaiterResult(rawValue: 2)\") is not equal to (\"XCTWaiterResult(rawValue: 1)\") - Actual reader translation ignores selected type size",
+            "targetName": "HadithlyUITests",
+            "testIdentifier": 132,
+            "testIdentifierString": "ReaderR5UITests/testTranslationSizeChangesActualReaderText()",
+            "testIdentifierURL": "test://com.apple.xcode/Hadithly/HadithlyUITests/ReaderR5UITests/testTranslationSizeChangesActualReaderText",
+            "testName": "testTranslationSizeChangesActualReaderText()"
+          }
+        ],
+        "title": "Test - LA2Verification",
+        "topInsights": [],
+        "totalTestCount": 133
+      },
+      "cases": [
+        {
+          "name": "ReaderModelsTests/testCollectionListMatchesBackendOrder()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderModelsTests/testDailyHadithDecodesCanonicalIdentityAndCollectionScope()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderModelsTests/testOutlineDecodes()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderModelsTests/testReaderHadithInternalIdShape()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderModelsTests/testReaderPageDecodes()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderModelsTests/testServerErrorMessageExtraction()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderModelsTests/testSubmissionVerdictDecodesAndCollectsReviewNotes()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderModelsTests/testTranslationDecodes()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderModelsTests/testTranslationFailureClassification()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderPagingTests/testBehavioralDirectionMatrix()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderPagingTests/testFirstAndLastPageBoundariesAndEndControlOrder()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderPagingTests/testOneLineAndMultiScreenRestorationAnchors()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderPagingTests/testPanHandlerLocksAxisTracksFingerAndCancelsBack()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderPagingTests/testPanRecognizerObservesScrollViewsSimultaneouslyAndNeverCancelsTouches()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderPagingTests/testReleaseOwnsOffsetAfterEndedSoCommitAnimationSurvives()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderPreferencesTests/testCodableRoundTripPreservesEveryField()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderPreferencesTests/testDecodingUnknownFontIdAndMissingFieldsFallsBackSafely()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderPreferencesTests/testDefaultsMatchTheContract()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderPreferencesTests/testDirectionMetadataMatrix()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderPreferencesTests/testValidatedCanonicalizesLocalesAndRejectsMalformedOnes()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderPreferencesTests/testValidatedClampsTheArabicFontSize()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderPreferencesTests/testValidatedRejectsTheAllHiddenVisibilityState()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testAppPaletteResolutionMatrix()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testChapterOpeningsHandleUnnamedPageStart()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testChapterOpeningsOnlyFromSourceNames()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testInteractiveTintMeetsContrastOnEveryPalette()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testLayoutProjectionIgnoresThemeAndDirection()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testLayoutProjectionTracksLayoutAffectingPreferences()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testPaletteSchemeAndInteractivePairsStayAligned()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testPaperAndLightPalettesHaveAccessibleContrast()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testPreferredColorSchemeMapping()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testReanchoredPositionCarriesNewSignatureAndStableOffset()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testResolvedPalettesPerTheme()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testTranslationSizeInvalidatesLayoutProjection()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testTypeSizeLadderStaysInsidePreferenceClamp()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR4Tests/testTypeSizeStepping()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR5Tests/testCanonicalURLBuilderProducesCleanURL()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR5Tests/testCanonicalURLBuilderRejectsMalformedInput()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR5Tests/testCanonicalURLBuilderRoundTripsThroughParser()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR5Tests/testChapterDecodeWithDoubleCounts()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR5Tests/testChapterMissingKeepsPreR5BackCompat()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR5Tests/testChapterWithoutIdDecodes()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR5Tests/testCopyAddsAILabelOnlyForAITranslations()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR5Tests/testCopyArabicOnly()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR5Tests/testCopyMixedArabicAndProviderEnglish()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR5Tests/testCopyNeverIncludesURL()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR5Tests/testCopyTranslationOnlyOmitsArabic()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR5Tests/testJumpValidationAcceptsWellFormedNumbers()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR5Tests/testJumpValidationRejectsMalformedNumbers()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR5Tests/testLocalizedCopyKeepsOpaqueBodyAndFolderNames()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testAllSevenActionsWithLoadedTranslation()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testArabicSubtitleOnlyWhenDifferent()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testArabicTitleLookupNeverSynthesizes()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testCornerTextAppendsRangeOnlyWhenCached()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testFullyCachedRequiresCompletePages()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testGradeDotsAreDistinctAndThemeAware()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testGradeMappingCoversKnownGrades()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testGradeMappingIsCaseInsensitiveAndTrims()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testGradeMappingUnknownIsUnverified()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testHeaderTextIsCompactLabelWithoutBrackets()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testNarratorHiddenWithoutTextOrWithoutLayers()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testNarratorPlacementAboveArabicOnlyInArabicOnlyMode()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testNarratorShowsInAllThreeVisibilityModes()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testPillChevronsMirrorInRTL()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testPillsAtVolumeEdgesNameTheNeighborVolume()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testPillsFollowOutlineOrderWithFullTitles()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testPillsHideCrossVolumeTargetsUntilLoaded()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testPillsMidVolumeShowNeighborPageNumbers()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testPillsMissingAtAbsoluteEnds()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testReanchorPreservesAnchorAcrossRestyle()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testReportGatedWithoutLoadedTranslation()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testSavedMarkersBookmarkThenFavorite()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testScrollRestorationMathUnchanged()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testShortNameFallsBackToCollectionName()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testShortNamesForAllSevenCollections()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testSourceLabelTextIsCompact()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testVolumeCountPluralEntryExists()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6ATests/testVolumeHeaderOnlyOnFirstPage()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testAdjacentVolumesAreNearestFirstAndBounded()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testChapterDisplayUsesArabicTitleInArabicOnlyMode()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testCommitDragOffsetRevealsNeighborAndRejectsEdges()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testConfirmedTapWithinMovementAndDuration()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testDragSwipeOrHoldNeverConfirms()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testEntryTargetNeedsProgressWithHadith()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testHapticDispatcherReachesInjectedPlayer()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testHapticStylesAreRestrained()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testLockDeclaresDominantAxis()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testLockIsStickyMidGesture()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testLockStaysUndecidedBelowTravelThreshold()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testManualPageTurnsAlwaysResetToTheirHeader()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testMixedAndTranslationOnlyKeepEnglishNarrator()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testNarratorArDecodesTolerantly()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testNarratorArShowsInArabicOnlyMode()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testNarratorHidesInArabicOnlyModeWhenArAbsent()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testNoteMarkerRendersAfterFavorite()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testPageFractionIsPageWithinVolume()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testPillFillsMirrorAndroid()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testPlacementResolvesToPageStartOrPositioned()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testRelativeTimeBuckets()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testRelativeTimeLocalePluralAndBucketBoundaries()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testReleaseCommitsOnlyWhenHorizontallyLocked()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testReleaseRespectsReadingDirection()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testScrollFractionFillsWithPageScroll()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testSearchRowsMapAndDropUnnavigable()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testSourceLabelsRenderAsReturned()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testStripSlotsMirrorInRTL()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testVolumeFractionFollowsOutlineOrder()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testVolumeHeaderTitlePrefersActualName()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testVolumeNumberParsesOnlyVolumeN()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testVolumePositionFollowsOutlineOrder()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR6Round3Tests/testVolumeTitleLocalizesOnlyInArabicOnlyMode()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReadingPositionTests/testContentAndLayoutChangesUseSemanticAnchor()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReadingPositionTests/testDecoderRejectsAnUnsupportedVersion()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReadingPositionTests/testGuestMergeCarriesTheCompleteNewestV1Position()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReadingPositionTests/testLayoutSignatureGoldenVectorAndPaginationChange()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReadingPositionTests/testLegacyGuestProgressMigratesAtOffsetZero()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReadingPositionTests/testMissingAnchorChoosesNearestAndResetsOffset()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReadingPositionTests/testOldGeometryAndTranslationSizeUseSemanticAnchorWithoutRewritingPosition()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReadingPositionTests/testTargetResolverRestoresOnlyTheMatchingPrivatePosition()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReadingPositionTests/testWireRoundTripUsesDoubleNumbers()",
+          "result": "Passed"
+        },
+        {
+          "name": "LanguageSwitchUITests/testLiveLanguageSwitchKeepsEnglishLTRAndArabicLabels()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderPagingUITests/testBehavioralDirectionAndVisibilityMatrix()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderPagingUITests/testFastSwipeAndCancelledGestureContract()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderPagingUITests/testOneLineBoundariesAndAccessibleEndControls()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderPagingUITests/testR4LanguageThemeAndAccessibilityMatrix()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderPagingUITests/testVerticalScrollOnLongPageDoesNotTurnPage()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR5UITests/testGoAtLargeTextInRTLAndLongLocales()",
+          "result": "Failed"
+        },
+        {
+          "name": "ReaderR5UITests/testGoOwnsTargetWhilePrefetchIsInFlight()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR5UITests/testGoThenCloseReturnsWithoutRetargeting()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR5UITests/testGuestSavingNoteUndoAndSavedReaderReturn()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR5UITests/testProgressControlsPreserveFifteenLocaleBindings()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR5UITests/testTranslationSizeChangesActualReaderText()",
+          "result": "Failed"
+        },
+        {
+          "name": "ReaderR6AUITests/testLoadingStateOnFirstVolumeVisit()",
+          "result": "Passed"
+        }
+      ]
+    },
+    {
+      "platform": "ios",
+      "path": "/tmp/hadithly-a5-finish/ios-final-taps.xcresult",
+      "summary": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "D47D7363-4705-4767-8617-F47DDB6A3241",
+              "deviceName": "Hadithly LA2 iPhone 18 Pro",
+              "modelName": "iPhone 18 Pro",
+              "osBuildNumber": "24A434",
+              "osVersion": "27.0",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 0,
+            "passedTests": 4,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "LA2Verification · Built with macOS 27.0",
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "finishTime": 1793457193.85,
+        "passedTests": 4,
+        "result": "Passed",
+        "runtimeWarnings": [],
+        "skippedTests": 0,
+        "startTime": 1793457012.678,
+        "statistics": [],
+        "testFailures": [],
+        "title": "Test - LA2Verification",
+        "topInsights": [],
+        "totalTestCount": 4
+      },
+      "cases": [
+        {
+          "name": "NativeFinishingUITests/testReaderFocusRemovesGlassControlsAndSystemStatusBar()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR5UITests/testGoAtLargeTextInRTLAndLongLocales()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR5UITests/testGoThenCloseReturnsWithoutRetargeting()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderR5UITests/testTranslationSizeChangesActualReaderText()",
+          "result": "Passed"
+        }
+      ]
+    },
+    {
+      "platform": "ios",
+      "path": "/tmp/hadithly-a5-finish/ios-language-ink-before.xcresult",
+      "summary": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "D47D7363-4705-4767-8617-F47DDB6A3241",
+              "deviceName": "Hadithly LA2 iPhone 18 Pro",
+              "modelName": "iPhone 18 Pro",
+              "osBuildNumber": "24A434",
+              "osVersion": "27.0",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 1,
+            "passedTests": 0,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "LA2Verification · Built with macOS 27.0",
+        "expectedFailures": 0,
+        "failedTests": 1,
+        "finishTime": 1793457252.672,
+        "passedTests": 0,
+        "result": "Failed",
+        "runtimeWarnings": [],
+        "skippedTests": 0,
+        "startTime": 1793457212.448,
+        "statistics": [],
+        "testFailures": [
+          {
+            "failureText": "XCTAssertLessThan failed: (\"668028\") is not less than (\"22368\") - English Settings ink is mirrored after returning: direct=668028, flipped=22368",
+            "targetName": "HadithlyUITests",
+            "testIdentifier": 1,
+            "testIdentifierString": "LanguageSwitchUITests/testLiveLanguageSwitchKeepsEnglishLTRAndArabicLabels()",
+            "testIdentifierURL": "test://com.apple.xcode/Hadithly/HadithlyUITests/LanguageSwitchUITests/testLiveLanguageSwitchKeepsEnglishLTRAndArabicLabels",
+            "testName": "testLiveLanguageSwitchKeepsEnglishLTRAndArabicLabels()"
+          }
+        ],
+        "title": "Test - LA2Verification",
+        "topInsights": [],
+        "totalTestCount": 1
+      },
+      "cases": [
+        {
+          "name": "LanguageSwitchUITests/testLiveLanguageSwitchKeepsEnglishLTRAndArabicLabels()",
+          "result": "Failed"
+        }
+      ]
+    },
+    {
+      "platform": "ios",
+      "path": "/tmp/hadithly-a5-finish/ios-language-ink-after.xcresult",
+      "summary": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "D47D7363-4705-4767-8617-F47DDB6A3241",
+              "deviceName": "Hadithly LA2 iPhone 18 Pro",
+              "modelName": "iPhone 18 Pro",
+              "osBuildNumber": "24A434",
+              "osVersion": "27.0",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 0,
+            "passedTests": 2,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "LA2Verification · Built with macOS 27.0",
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "finishTime": 1793457412.861,
+        "passedTests": 2,
+        "result": "Passed",
+        "runtimeWarnings": [],
+        "skippedTests": 0,
+        "startTime": 1793457316.245,
+        "statistics": [],
+        "testFailures": [],
+        "title": "Test - LA2Verification",
+        "topInsights": [],
+        "totalTestCount": 2
+      },
+      "cases": [
+        {
+          "name": "LanguageSwitchUITests/testLiveLanguageSwitchKeepsEnglishLTRAndArabicLabels()",
+          "result": "Passed"
+        },
+        {
+          "name": "ReaderSettingsUITests/testBothEntryPointsKeepSettingsAndNativeNavigation()",
+          "result": "Passed"
+        }
+      ]
+    },
+    {
+      "platform": "android",
+      "path": "/tmp/hadithly-a5-finish/android-controls-before.xml",
+      "sha256": "157599ee870ed7e6cf44c08ebda0971c88834f2dcda0ee59e1eea3e5bc336528",
+      "tests": 1,
+      "cases": [
+        {
+          "class": "com.hadithly.app.features.reader.ContentsNavigationTest",
+          "name": "topControlsDoNotOverlapAtLargeText",
+          "passed": false,
+          "failure": null
+        }
+      ]
+    },
+    {
+      "platform": "android",
+      "path": "/tmp/hadithly-a5-finish/android-type-before.xml",
+      "sha256": "58311b17c3d1d884e50f5f17f6fcf642be0f2c2b7d534f8a1e9f9952a8e27781",
+      "tests": 1,
+      "cases": [
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "translationSizeChangesActualReaderText",
+          "passed": false,
+          "failure": null
+        }
+      ]
+    },
+    {
+      "platform": "android",
+      "path": "/tmp/hadithly-a5-finish/android-saved-journey2.xml",
+      "sha256": "dc17efbc6804e443c43738b95f309a3a123180a1867987fff4cfacd6786649e5",
+      "tests": 1,
+      "cases": [
+        {
+          "class": "com.hadithly.app.features.reader.ContentsNavigationTest",
+          "name": "guestSavingNoteUndoAndSavedReaderReturn",
+          "passed": true,
+          "failure": null
+        }
+      ]
+    },
+    {
+      "platform": "android",
+      "path": "/tmp/hadithly-a5-finish/android-saved-core2.xml",
+      "sha256": "6d643b8914d6a390b4f24d8dab501d3089dac6f8e4ce7097e34c2c80cac58ec8",
+      "tests": 12,
+      "cases": [
+        {
+          "class": "com.hadithly.app.features.settings.ReaderPreferenceContentTest",
+          "name": "readerControlsPreserveSelectionsSizesAndLastVisibleLayer",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.settings.ReaderPreferenceContentTest",
+          "name": "globalControlsPreserveSelectionsSizesAndLastVisibleLayer",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.saved.SavedItemRowTest",
+          "name": "previewAndActionMenuDoNotNavigate",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.saved.SavedItemRowTest",
+          "name": "moveRemainsAvailableOnlyThroughContextMenu",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.saved.SavedItemRowTest",
+          "name": "guestPreviewLoadsBothTextsWithoutNavigating",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.GuestMergeRaceTest",
+          "name": "actualLibraryFacadeKeepsAcceptedNoteUntilOwnedQueryRevisionCatchesUp",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.GuestMergeRaceTest",
+          "name": "actualFacadeRejectsOversizedNoteAndExplicitRemoveNeverAddsAnAbsentBookmark",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.GuestMergeRaceTest",
+          "name": "actualLibraryFacadeRejectsLateAccountReadsAndUndoAfterSwitchAndSignOut",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.GuestMergeRaceTest",
+          "name": "actualLibraryFacadePersistsOfflineIntentsAndRestoresProjectionAfterReopen",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.saved.SavedFilterBarTest",
+          "name": "dragSelectsFiltersAndKeepsEachNativeHitTargetAccessible",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.saved.SavedFilterBarTest",
+          "name": "tappingThenDraggingWithinThePreviousSegmentUpdatesSelection",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.saved.SavedFilterBarTest",
+          "name": "dragMapsTheRightToLeftOrderInRtl",
+          "passed": true,
+          "failure": null
+        }
+      ]
+    },
+    {
+      "platform": "android",
+      "path": "/tmp/hadithly-a5-finish/android-core-regressions2.xml",
+      "sha256": "097379b47eefdb86240e923c6efd2965fe83d45bf1a62a03053ce57b913c1c50",
+      "tests": 58,
+      "cases": [
+        {
+          "class": "com.hadithly.app.features.settings.LanguageSwitchTest",
+          "name": "liveLocaleSwitchUpdatesLabelsAndDirectionWithoutChangingTranslation",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR5SheetTest",
+          "name": "contentsKeepsNoncontiguousSourceVolumeNumbers",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR5SheetTest",
+          "name": "overflowOpensIdenticalMenuAndCopyInvokes",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR5SheetTest",
+          "name": "volumeNameSelectsItsVolumeDirectly",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR5SheetTest",
+          "name": "malformedJumpShowsInlineErrorAndKeepsSheetOpen",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR5SheetTest",
+          "name": "menuWithoutReportOmitsIt",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR5SheetTest",
+          "name": "wellFormedJumpDismissesSheet",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR5SheetTest",
+          "name": "longPressOpensMenuWithAllActions",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR5SheetTest",
+          "name": "contentsShowsSourceProvidedChapters",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR5SheetTest",
+          "name": "chapterTapSelectsVolumeAndChapterTarget",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "countCategoriesPreserveArabicDualAndRussianEndings",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "pagePillsHideAbsoluteOutwardEdge",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "translationSizeChangesActualReaderText",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "quietBlockHasNoOverflowOrLegacyLines",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "translationSourcesShareTheHadithHeaderSheet",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "chapterHeaderOmitsArabicWhenSame",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "savedFavoriteMiniMarkAppearsWhenFavorited",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "savedBookmarkMiniMarkAppearsWhenBookmarked",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "volumeCountsAndLanguageTotalsRenderInEveryLocale",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "pagePillsKeepChevronsAdjacentAndNameVolumeAtEdge",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "volumeCornerAppendsCachedRange",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "volumeCornerShowsTitleOnly",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "sourceSheetShowsNameScopeAndUrl",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "pagePillsFollowReadingDirectionIndependentOfUILanguage",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "arabicOnlyNarratorHidesWhenAbsent",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "sourceSheetOmitsMissingUrl",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "translationWithoutCitationsDoesNotClaimExternalGrounding",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "longPressOpensMenuWithAllActions",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "formattedLabelsUseBaseLocaleFallbackAndPreserveSourceArguments",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "narratorShowsAboveArabicWhenTranslationLayerHidden",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "volumeCountUsesRussianPluralForms",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "headerShowsBracketedLabelAtTop",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "pageControlsUseSelectedLanguage",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "narratorShowsAtLeadingEdgeWhenTranslationVisible",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "chapterHeaderIsQuietNameOnly",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "chapterHeaderOmitsArabicWhenMissing",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "headerTapOpensSource",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "arabicOnlyVolumeTitlesUseUILocaleAndPreserveSourceNames",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "volumeHeaderShowsLocalizedCount",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6AQuietTest",
+          "name": "noMiniMarksOrNoteIconWhenUnsaved",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6Round3Test",
+          "name": "canceledSwipeSettlesBackWithContentIntact",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6Round3Test",
+          "name": "verticalScrollNeverReportsPagerDrag",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6Round3Test",
+          "name": "neighborPagesStayRenderedAroundCurrent",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6Round3Test",
+          "name": "bookmarkPlacementOffersPageStartAndPositioned",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6Round3Test",
+          "name": "contentsSheetKeepsTagsAndClose",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6Round3Test",
+          "name": "readerSavedSheetTabsRowsAndEdit",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6Round3Test",
+          "name": "menuFollowsVideoOrderWithNoExcess",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6Round3Test",
+          "name": "menuBookmarkShowsPositionedReference",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6Round3Test",
+          "name": "mostlyHorizontalDragPagesAndReportsUserDrag",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6Round3Test",
+          "name": "menuBottomRowHasEqualHeights",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6Round3Test",
+          "name": "settingsSheetRenamedWithNoQuranModes",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6Round3Test",
+          "name": "searchFlowShowsLabeledResultsAndNavigates",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6Round3Test",
+          "name": "mostlyVerticalDragNeverPagesOrCollapsesSideways",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6Round3Test",
+          "name": "p1VerticalLandingMatrixShowsHeaderIdentifiersAfterManualTurns",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6Round3Test",
+          "name": "searchBlankQueryShowsNoResults",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6Round3Test",
+          "name": "noteMarkerShowsInlineByHeader",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6Round3Test",
+          "name": "searchScopeAndCountLocalizeWithoutChangingTargets",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderR6Round3Test",
+          "name": "noteMarkerHidesWithoutNote",
+          "passed": true,
+          "failure": null
+        }
+      ]
+    },
+    {
+      "platform": "android",
+      "path": "/tmp/hadithly-a5-finish/android-completion.xml",
+      "sha256": "e5ff8b561e548cbd3c48e45199a9617f3407f913e2bb6a0f69596cdf62650724",
+      "tests": 11,
+      "cases": [
+        {
+          "class": "com.hadithly.app.features.settings.LanguageSwitchTest",
+          "name": "liveLocaleSwitchUpdatesLabelsAndDirectionWithoutChangingTranslation",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ContentsNavigationTest",
+          "name": "goOwnsTargetWhilePrefetchIsInFlight",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ContentsNavigationTest",
+          "name": "guestSavingNoteUndoAndSavedReaderReturn",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ContentsNavigationTest",
+          "name": "urduLargeText",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ContentsNavigationTest",
+          "name": "arabicLargeText",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ContentsNavigationTest",
+          "name": "topControlsDoNotOverlapAtLargeText",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ContentsNavigationTest",
+          "name": "russianLargeText",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ContentsNavigationTest",
+          "name": "bengaliLargeText",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderProgressObservationTest",
+          "name": "focusKeepsThinProgressAcrossToggleAndUnknownTotal",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderProgressObservationTest",
+          "name": "scrollUpdatesTheRenderedHudWithoutRecomposingItsHost",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.features.reader.ReaderProgressObservationTest",
+          "name": "progressControlsFitFifteenLocales",
+          "passed": true,
+          "failure": null
+        }
+      ]
+    },
+    {
+      "platform": "android",
+      "path": "/tmp/hadithly-a5-finish/android-language-capture.xml",
+      "sha256": "51fd8aefa0fcf28dbb3f66d57a6c222d1ae08c01554f2ff6f4b3b704da4548b6",
+      "tests": 1,
+      "cases": [
+        {
+          "class": "com.hadithly.app.features.settings.LanguageSwitchTest",
+          "name": "liveLocaleSwitchUpdatesLabelsAndDirectionWithoutChangingTranslation",
+          "passed": true,
+          "failure": null
+        }
+      ]
+    },
+    {
+      "platform": "android",
+      "path": "/tmp/hadithly-a5-finish/android-unit-r6a-before.xml",
+      "sha256": "19730c2e2dcc65c56bd5fe149251502d5710b7a5d6cf55dd2217b9f1fb853022",
+      "tests": 25,
+      "cases": [
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "grade mapping is case-insensitive and trims",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "talkback invocation delegates and returns true",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "header label is short name and id without brackets",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "hadith count plurals cover en, ar, and ur",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "two page pills use neighbor pages volume titles and absolute ends",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "volume title number parses only the Volume N shape",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "volume title string is localized and formatted",
+          "passed": false,
+          "failure": "java.lang.AssertionError: values template needs a number slot: Volume %d"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "range accumulates across volumes from outline counts",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "talkback actions mirror the menu label for label",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "fully cached gate needs every page loaded",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "corner text is title-only until computable",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "corner text shows the whole volume range only when fully cached",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "short names cover every collection slug",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "saved mini markers follow bookmark favorite and note",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "arabic title returns only when present and different",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "menu labels follow saved state",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "grade dots resolve from the palette in every reader theme",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "narrator shows in every valid visibility mode",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "grade display names mirror the source label",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "menu invocations delegate to the right callbacks",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "range is null when not computable",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "menu carries all seven actions with stable tags",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "unknown and absent grades map to other",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "report is gated on a loaded translation",
+          "passed": true,
+          "failure": null
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "Arabic chapter name follows Arabic text visibility",
+          "passed": true,
+          "failure": null
+        }
+      ]
+    }
+  ],
+  "targets": {
+    "ios_simulator": "D47D7363-4705-4767-8617-F47DDB6A3241",
+    "android_serial": "emulator-5554"
+  },
+  "limits": "Controlled native simulator/emulator fixtures and isolated local stores/fake transports. No live, authenticated, physical, language-review or full accessibility acceptance."
+}

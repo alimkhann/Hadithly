@@ -15,6 +15,13 @@ import org.junit.Test
  * and the layout projection that recomputes layout signatures.
  */
 class ReaderR4Test {
+    @org.junit.Test fun translationSizeInvalidatesLayoutProjection() {
+        org.junit.Assert.assertNotEquals(
+            com.hadithly.app.core.preferences.ReaderPreferences(translationFontSize = 14f).layoutProjection,
+            com.hadithly.app.core.preferences.ReaderPreferences(translationFontSize = 22f).layoutProjection,
+        )
+    }
+
 
     // Themes
 

@@ -5,6 +5,12 @@ import XCTest
 /// R4: reader themes, Arabic type ladder, source-provided chapter
 /// boundaries, layout projections, and the layout-change re-anchor.
 final class ReaderR4Tests: XCTestCase {
+    func testTranslationSizeInvalidatesLayoutProjection() {
+        var small = ReaderPreferences(); small.translationFontSize = 14
+        var large = small; large.translationFontSize = 22
+        XCTAssertNotEqual(small.layoutProjection, large.layoutProjection)
+    }
+
     // MARK: Themes
 
     func testResolvedPalettesPerTheme() {

@@ -1,5 +1,6 @@
 package com.hadithly.app.features.reader
 
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.fillMaxSize
@@ -120,6 +121,18 @@ class ReaderR6AQuietTest {
                 onShowPaywall = {},
             )
         }
+    }
+
+    @Test fun translationSizeChangesActualReaderText() {
+        val size = androidx.compose.runtime.mutableStateOf(14f)
+        val opaque = "Controlled original %@ text 57"
+        compose.setContent { block(hadith = hadith().copy(englishText = opaque), preferences = ReaderPreferences(arabicVisible = false, translationFontSize = size.value)) }
+        val text = compose.onNodeWithText(opaque, useUnmergedTree = true)
+        val small = text.fetchSemanticsNode().boundsInRoot.height
+        compose.runOnIdle { size.value = 22f }
+        compose.waitForIdle()
+        assertTrue("Actual reader translation ignores selected type size: $small / ${text.fetchSemanticsNode().boundsInRoot.height}", text.fetchSemanticsNode().boundsInRoot.height > small + 2f)
+        text.assertTextEquals(opaque)
     }
 
     @Test fun translationSourcesShareTheHadithHeaderSheet() {

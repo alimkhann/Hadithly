@@ -71,8 +71,24 @@ class ReadingPositionTest {
             widthClass = ReadingWidthClass.COMPACT,
             paginationVersion = 1.0,
         )
-        assertEquals("ls1:7bfbec6f3b66f12f662f28de140565cff6e4b521c0cd3f1c6deac9fb49b31b0d", base.signature)
+        assertEquals("ls1:324f02d0222d25b14b33ac33e3f409d48d042d041e38bdf9b987b93a29ba7442", base.signature)
         assertNotEquals(base.signature, base.copy(paginationVersion = 2.0).signature)
+    }
+
+    @Test fun oldGeometryAndTranslationSizeUseSemanticAnchorWithoutRewritingPosition() {
+        val small = ReadingLayout("ur-PK", true, true, "noto-naskh-arabic", 26.0, ReadingWidthClass.COMPACT, 1.0, 14.0)
+        val large = small.copy(translationFontSize = 22.0)
+        assertNotEquals(small.signature, large.signature)
+        val legacy = position(layoutSignature = "ls1:7bfbec6f3b66f12f662f28de140565cff6e4b521c0cd3f1c6deac9fb49b31b0d")
+        val page = ReadingPositionPage(legacy.pageKey, legacy.displayPageIndex, listOf(ReadingPositionAnchorLocation(legacy.anchor, "1", "10")))
+        for (signature in listOf(small.signature, large.signature)) {
+            val result = ReadingPositionResolver.resolve(legacy, ReadingPositionTopology(legacy.contentVersion, signature, listOf(page)))
+            assertEquals(ReadingPositionResolver.Kind.SEMANTIC, result.kind)
+            assertEquals(legacy.anchor, result.anchor)
+            assertEquals(legacy.normalizedOffset, result.normalizedOffset, 0.0)
+            assertEquals(0.0, result.rawPageOffset, 0.0)
+        }
+        assertEquals(144.5, legacy.rawPageOffset, 0.0)
     }
 
     @Test

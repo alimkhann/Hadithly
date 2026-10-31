@@ -51,8 +51,25 @@ final class ReadingPositionTests: XCTestCase {
             widthClass: .compact,
             paginationVersion: 1
         )
-        XCTAssertEqual(base.signature, "ls1:7bfbec6f3b66f12f662f28de140565cff6e4b521c0cd3f1c6deac9fb49b31b0d")
+        XCTAssertEqual(base.signature, "ls1:324f02d0222d25b14b33ac33e3f409d48d042d041e38bdf9b987b93a29ba7442")
         XCTAssertNotEqual(base.signature, base.withPaginationVersion(2).signature)
+    }
+
+    func testOldGeometryAndTranslationSizeUseSemanticAnchorWithoutRewritingPosition() {
+        let small = ReadingLayout(locale: "ur-PK", arabicVisible: true, translationVisible: true, arabicFontId: "noto-naskh-arabic", arabicFontSize: 26, widthClass: .compact, paginationVersion: 1, translationFontSize: 14)
+        let large = ReadingLayout(locale: "ur-PK", arabicVisible: true, translationVisible: true, arabicFontId: "noto-naskh-arabic", arabicFontSize: 26, widthClass: .compact, paginationVersion: 1, translationFontSize: 22)
+        XCTAssertNotEqual(small.signature, large.signature)
+        XCTAssertEqual(large.withPaginationVersion(2).translationFontSize, 22)
+        let legacy = position(layoutSignature: "ls1:7bfbec6f3b66f12f662f28de140565cff6e4b521c0cd3f1c6deac9fb49b31b0d")
+        let page = ReadingPositionPage(pageKey: legacy.pageKey, displayPageIndex: legacy.displayPageIndex, anchors: [.init(anchor: legacy.anchor, volumeId: "1", chapterId: "10")])
+        for signature in [small.signature, large.signature] {
+            let result = ReadingPositionResolver.resolve(legacy, topology: .init(contentVersion: legacy.contentVersion, layoutSignature: signature, pages: [page]))
+            XCTAssertEqual(result.kind, .semantic)
+            XCTAssertEqual(result.anchor, legacy.anchor)
+            XCTAssertEqual(result.normalizedOffset, legacy.normalizedOffset)
+            XCTAssertEqual(result.rawPageOffset, 0)
+        }
+        XCTAssertEqual(legacy.rawPageOffset, 144.5)
     }
 
     func testContentAndLayoutChangesUseSemanticAnchor() {

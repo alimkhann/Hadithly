@@ -1,0 +1,13 @@
+{
+  "baseline": "694081c6e855bf163540f55ded57388eee89da84",
+  "incoming_sha256": {
+    "ios/Hadithly.xcodeproj/project.pbxproj": "96350e43481804f2d09dfd0e09609f894d7eedcc6a5326a6cb63c16cb9992efb",
+    "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/Hadithly.xcscheme": "4855a090d537eafb377cd99d70425fb44137ad64588059f01727ffbbd0fa95b6",
+    "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/LA2Verification.xcscheme": "74eff6b5902f4989fcf1d4d5d17a9c1c65bb66571cde851e2b932bff7520bfed",
+    "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/Phase4Live.xcscheme": "35c6cbf95690fc03a4497131c41eeb41983b35123116204af04dd0842baa982d",
+    "ios/Hadithly/Localizable.xcstrings": "ea0844bf22fb7cf83805a3600a1de6a0d4a2b1b8142021d2465724d1316dcf15"
+  },
+  "initial_status": " M ios/Hadithly.xcodeproj/project.pbxproj\n M ios/Hadithly.xcodeproj/xcshareddata/xcschemes/Hadithly.xcscheme\n M ios/Hadithly.xcodeproj/xcshareddata/xcschemes/LA2Verification.xcscheme\n M ios/Hadithly.xcodeproj/xcshareddata/xcschemes/Phase4Live.xcscheme\n M ios/Hadithly/Localizable.xcstrings\n?? scripts/__pycache__/\n",
+  "ios_simulator": "D47D7363-4705-4767-8617-F47DDB6A3241",
+  "android_serial": "emulator-5554"
+}

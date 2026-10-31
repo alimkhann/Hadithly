@@ -294,9 +294,10 @@ final class ReaderR6AUITests: XCTestCase {
     func testLoadingStateOnFirstVolumeVisit() {
         let app = launchFixture(environment: ["R6A_LOADING_FIXTURE": "true"])
         XCTAssertTrue(
-            app.activityIndicators.firstMatch.waitForExistence(timeout: timeout),
-            "a loading reader renders a native progress indicator"
+            element("reader.pageLoading", in: app).waitForExistence(timeout: timeout),
+            "a loading reader renders the shared article loading presentation"
         )
+        XCTAssertFalse(app.buttons["reader.hadithLabel"].exists)
     }
 
     // MARK: - Long-press menu intact

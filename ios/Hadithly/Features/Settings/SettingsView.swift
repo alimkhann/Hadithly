@@ -111,6 +111,9 @@ struct SettingsView: View {
             .listRowBackground(palette.surface)
 
         }
+        // UIKit can retain the hidden list's RTL cell transform after a live switch.
+        // Keep the navigation owner stable while replacing that native list.
+        .id(LocaleFallback.isRTL(locale.identifier))
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .background(palette.background)

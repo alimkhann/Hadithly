@@ -1072,6 +1072,7 @@ class ReaderViewModel(
             arabicFontSize = preferences.arabicFontSize.toDouble(),
             widthClass = readingWidthClass,
             paginationVersion = page.paginationVersion,
+            translationFontSize = preferences.translationFontSize.toDouble(),
         )
     }
 

@@ -42,10 +42,11 @@ import com.hadithly.app.core.theme.rememberMotionAllowed
 import com.hadithly.app.features.main.rememberApp
 
 @Composable
-fun SavedUndoBanner(modifier: Modifier = Modifier, testTag: String = "saved.undoBanner") {
+fun SavedUndoBanner(modifier: Modifier = Modifier, testTag: String = "saved.undoBanner", controller: com.hadithly.app.core.data.SavedUndoController? = null) {
     val app = rememberApp()
+    val undo = controller ?: app.library.undo
     val colors = LocalHadithlyColors.current
-    val notice by app.library.undo.notice.collectAsStateWithLifecycle()
+    val notice by undo.notice.collectAsStateWithLifecycle()
     val motionAllowed = rememberMotionAllowed()
     var displayedNotice by remember { mutableStateOf(notice) }
     LaunchedEffect(notice) {
@@ -58,11 +59,11 @@ fun SavedUndoBanner(modifier: Modifier = Modifier, testTag: String = "saved.undo
     ) {
         val current = notice ?: displayedNotice ?: return@AnimatedVisibility
         val countdown = remember(current) {
-            Animatable(app.library.undo.remainingFraction(current))
+            Animatable(undo.remainingFraction(current))
         }
         LaunchedEffect(current, motionAllowed) {
-            val remainingMillis = (current.deadlineElapsedMillis - app.library.undo.now()).coerceAtLeast(0L)
-            countdown.snapTo(current.remainingFraction(app.library.undo.now()))
+            val remainingMillis = (current.deadlineElapsedMillis - undo.now()).coerceAtLeast(0L)
+            countdown.snapTo(current.remainingFraction(undo.now()))
             if (remainingMillis == 0L) {
                 countdown.snapTo(0f)
             } else if (motionAllowed) {
@@ -88,7 +89,7 @@ fun SavedUndoBanner(modifier: Modifier = Modifier, testTag: String = "saved.undo
             Text(current.message, color = colors.textPrimary, modifier = Modifier.weight(1f), fontSize = 13.sp)
             CountdownRing(progress = countdown, tint = colors.textSecondary)
             Spacer(Modifier.size(6.dp))
-            TextButton(onClick = { app.library.undo.undo() }) {
+            TextButton(onClick = { undo.undo() }) {
                 Text(stringResource(R.string.saved_undo), color = colors.accent)
             }
         }

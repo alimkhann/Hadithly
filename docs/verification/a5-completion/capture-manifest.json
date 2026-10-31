@@ -1,0 +1,93 @@
+{
+  "captures": [
+    {
+      "path": "docs/verification/a5-completion/captures/android-ar-after.png",
+      "sha256": "824a4ad5a6f07d40ed55d3801e5ecb654dc65940305d07b0c37974fb395eaa86",
+      "test": "ContentsNavigationTest",
+      "classification": "accepted controlled Android rendering",
+      "source": "/data/local/tmp/a5-controls-ar.png",
+      "serial": "emulator-5554"
+    },
+    {
+      "path": "docs/verification/a5-completion/captures/android-ar-before.png",
+      "sha256": "925cee8f1e5fdde1828cde8ba6eff9c8c83e1647e479b6f86c281f5cb9c78b38",
+      "test": "ContentsNavigationTest",
+      "classification": "reproduced overlap; rejected",
+      "source": "/tmp/hadithly-a5-finish/android-controls-before.png",
+      "serial": "emulator-5554"
+    },
+    {
+      "path": "docs/verification/a5-completion/captures/android-bn-after.png",
+      "sha256": "42836a5c3a07ac80f513a185bb1602811f70bd2d9ffa06c3c8db146b9b479e95",
+      "test": "ContentsNavigationTest",
+      "classification": "accepted controlled Android rendering",
+      "source": "/data/local/tmp/a5-controls-bn.png",
+      "serial": "emulator-5554"
+    },
+    {
+      "path": "docs/verification/a5-completion/captures/android-settings-english-return.png",
+      "sha256": "2a24a86affa47f0edb96b433153a7fa9b0abab73509862f40dfdecd011af50fc",
+      "test": "LanguageSwitchTest",
+      "classification": "accepted controlled Android rendering",
+      "source": "/data/local/tmp/a5-language-english-return.png",
+      "serial": "emulator-5554"
+    },
+    {
+      "path": "docs/verification/a5-completion/captures/ios-ar-after.png",
+      "sha256": "ffbd46f9e335c90fb08b59e7121fbc3388cd20c435fc17aef86f9fe776b02c8d",
+      "raw_attachment": "/tmp/hadithly-a5-finish/ios-final-taps-captures/8882AFFC-9F78-45D9-BE48-5537C530E66E.png",
+      "test": "ReaderR5UITests/testGoAtLargeTextInRTLAndLongLocales()",
+      "classification": "accepted large-text Go/viewport/focus"
+    },
+    {
+      "path": "docs/verification/a5-completion/captures/ios-ar-before.png",
+      "sha256": "77c42055c8f0675156cee78d3ea85ae2a4e5fc3e668d3bf8d9db64e99fdddccf",
+      "raw_attachment": "/tmp/hadithly-a5-finish/ios-before-captures/1071674D-811B-4C51-B8FD-3AA0AFA5062C.png",
+      "test": "ReaderR5UITests/testTopControlsDoNotOverlapAtLargeText()",
+      "classification": "reproduced overlap; rejected"
+    },
+    {
+      "path": "docs/verification/a5-completion/captures/ios-bn-after.png",
+      "sha256": "1cbf8b7e538bc8346541495b7393251752ba1955d843127d70a3661f08b738cc",
+      "raw_attachment": "/tmp/hadithly-a5-finish/ios-final-taps-captures/9B491B0F-0463-4706-9C4F-8234237F48C0.png",
+      "test": "ReaderR5UITests/testGoAtLargeTextInRTLAndLongLocales()",
+      "classification": "accepted large-text Go/viewport/focus"
+    },
+    {
+      "path": "docs/verification/a5-completion/captures/ios-settings-english-after.png",
+      "sha256": "caa4970f2811b13d34ce5291e345993ebb45c5f0a42d36a65b368bfb75143b62",
+      "raw_attachment": "/tmp/hadithly-a5-finish/ios-language-after-captures/2C0737ED-6560-4049-A7B4-471D1183B8F9.png",
+      "test": "LanguageSwitchUITests/testLiveLanguageSwitchKeepsEnglishLTRAndArabicLabels()",
+      "classification": "accepted normal English ink after return"
+    },
+    {
+      "path": "docs/verification/a5-completion/captures/ios-settings-english-before.png",
+      "sha256": "f42c2a91ac010e8e2d2e5bdf36fb6579d3d4adbc32529e61e0b3ea3eb8e5b519",
+      "raw_attachment": "/tmp/hadithly-a5-finish/ios-language-before-captures/EDFE03BB-68E5-4F8A-8A93-229961C1461E.png",
+      "test": "LanguageSwitchUITests/testLiveLanguageSwitchKeepsEnglishLTRAndArabicLabels()",
+      "classification": "reproduced mirrored ink; rejected"
+    },
+    {
+      "path": "docs/verification/a5-completion/captures/ios-settings-relaunch-after.png",
+      "sha256": "90a04105152eb45a42cbb89e6a2b5e2828f8c922884388f820534c9d8bae3fe0",
+      "raw_attachment": "/tmp/hadithly-a5-finish/ios-language-after-captures/6B96F7E9-ED94-417A-BE8C-7F9FB5BEF3CC.png",
+      "test": "LanguageSwitchUITests/testLiveLanguageSwitchKeepsEnglishLTRAndArabicLabels()",
+      "classification": "accepted normal English ink after relaunch"
+    },
+    {
+      "path": "docs/verification/a5-completion/captures/ios-type-14.png",
+      "sha256": "e6b786153162fe86a93f21797dd7a46d4896f54e10d0860434cbb54ee84740b1",
+      "raw_attachment": "/tmp/hadithly-a5-finish/ios-final-taps-captures/E77E4C20-71B8-4E3B-8C3B-C10921D5F480.png",
+      "test": "ReaderR5UITests/testTranslationSizeChangesActualReaderText()",
+      "classification": "accepted text size 14"
+    },
+    {
+      "path": "docs/verification/a5-completion/captures/ios-type-22.png",
+      "sha256": "277bc6c1c926121a0da3e2e6d37a9673456e510d77eebc7e190815eadea1e393",
+      "raw_attachment": "/tmp/hadithly-a5-finish/ios-final-taps-captures/410A4D86-93F8-4C12-A552-C945142ADB23.png",
+      "test": "ReaderR5UITests/testTranslationSizeChangesActualReaderText()",
+      "classification": "accepted text size 22"
+    }
+  ],
+  "note": "Synthetic page/body and guest-only Settings. Arabic/Bengali reader captures use fontScale 2.0 or Accessibility XXXL. Pixel appearance is not native-speaker/full accessibility acceptance."
+}

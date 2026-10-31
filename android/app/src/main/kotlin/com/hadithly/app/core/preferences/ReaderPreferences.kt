@@ -168,6 +168,7 @@ data class ReaderPreferences(
             if (translationVisible) "1" else "0",
             arabicFont.wire,
             (arabicFontSize * 1000).toInt().toString(),
+            (translationFontSize * 1000).toInt().toString(),
         ).joinToString("|")
 }
 

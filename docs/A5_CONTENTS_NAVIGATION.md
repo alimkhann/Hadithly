@@ -1,7 +1,12 @@
 # A5 Contents navigation
 
+Historical bounded-unit record. Current A5 engineering closure and the resolved
+large-text/Settings follow-ups are audited in `A5_REQUIREMENT_AUDIT.md` and
+`A5_READER_CONTROLS.md`. The next-unit boundary below records the earlier handoff.
+
 October 31, 2026. One bounded A5 unit covers the Contents Go tap and replacement
-of an in-flight page fetch. Full A5 and the original product program remain open.
+of an in-flight page fetch. At this checkpoint full A5 and the original product
+program remained open.
 
 ## Reproduction and ownership trace
 

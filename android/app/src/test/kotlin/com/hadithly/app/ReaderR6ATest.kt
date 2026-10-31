@@ -234,10 +234,13 @@ class ReaderR6ATest {
 
     @Test
     fun `volume title string is localized and formatted`() {
-        for (dir in listOf("values", "values-ar", "values-ur")) {
+        for ((dir, language) in listOf("values" to "en", "values-ar" to "ar", "values-ur" to "ur")) {
             val template = stringValue(dir, "reader_volume_title")
             assertTrue("$dir template is blank", template.isNotBlank())
-            assertTrue("$dir template needs a number slot: $template", template.contains("%1\$d"))
+            assertTrue("$dir template needs a number slot: $template", template.contains("%d") || template.contains("%1\$d"))
+            val locale = java.util.Locale.forLanguageTag(language)
+            val number = java.text.NumberFormat.getIntegerInstance(locale).format(7)
+            assertEquals(template.replace("%1\$d", "%d").replace("%d", number), String.format(locale, template, 7))
         }
     }
 

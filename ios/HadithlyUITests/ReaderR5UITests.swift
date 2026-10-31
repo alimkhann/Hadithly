@@ -11,15 +11,97 @@ final class ReaderR5UITests: XCTestCase {
         continueAfterFailure = false
     }
 
+    func testGuestSavingNoteUndoAndSavedReaderReturn() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-A5ContentsNavigationFixture", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL"]
+        app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "A5_LOCALE": "en", "A5_CONTROLS_ONLY": "1", "A5_CORE_SAVED": "1"]
+        app.launch()
+        defer { app.terminate() }
+        let arabic = app.staticTexts["reader.arabic"].firstMatch
+        XCTAssertTrue(arabic.waitForExistence(timeout: 10))
+        arabic.press(forDuration: 0.8)
+        app.buttons["reader.bookmark"].tap()
+        XCTAssertTrue(element("reader.savedBookmark", in: app).waitForExistence(timeout: 5))
+        arabic.press(forDuration: 0.8)
+        app.buttons["reader.favorite"].tap()
+        XCTAssertTrue(element("reader.savedFavorite", in: app).waitForExistence(timeout: 5))
+        arabic.press(forDuration: 0.8)
+        app.buttons["reader.note"].tap()
+        let editor = app.textViews.firstMatch
+        XCTAssertTrue(editor.waitForExistence(timeout: 5))
+        editor.typeText("Private %@ note اسم")
+        app.buttons["note.save"].tap()
+        XCTAssertTrue(editor.waitForNonExistence(timeout: 5))
+        XCTAssertTrue(element("reader.savedNote", in: app).waitForExistence(timeout: 5))
+        XCTAssertEqual(app.staticTexts["a5.savedState"].label, "b:1|f:1|n:1|rows:1|note:Private %@ note اسم")
+        arabic.press(forDuration: 0.8)
+        app.buttons["reader.bookmark"].tap()
+        if app.buttons["Remove"].waitForExistence(timeout: 1) { app.buttons["Remove"].tap() }
+        let undo = app.buttons["saved.undoButton"]
+        XCTAssertTrue(undo.waitForExistence(timeout: 3))
+        undo.tap()
+        XCTAssertTrue(element("reader.savedBookmark", in: app).waitForExistence(timeout: 5))
+        if !app.buttons["reader.close"].isHittable { arabic.tap() }
+        app.buttons["reader.close"].tap()
+        let saved = app.staticTexts["Original %@ 57"].firstMatch
+        XCTAssertTrue(saved.waitForExistence(timeout: 5))
+        saved.tap()
+        XCTAssertTrue(app.buttons["a5.releaseTarget"].waitForExistence(timeout: 5))
+        app.buttons["a5.releaseTarget"].tap()
+        let target = app.buttons.matching(identifier: "reader.hadithLabel").matching(NSPredicate(format: "label CONTAINS '57'")).firstMatch
+        XCTAssertTrue(target.waitForExistence(timeout: 10))
+        XCTAssertTrue(target.isHittable)
+        XCTAssertTrue(app.staticTexts["a5.savedState"].label.contains("Private %@ note اسم"))
+    }
+
+    func testProgressControlsPreserveFifteenLocaleBindings() {
+        for locale in ["en","ar","ru","kk","ky","uz","tr","id","ur","fr","es-419","pt-BR","sw","hi","bn"] {
+            let app = XCUIApplication()
+            app.launchArguments = ["-A5ContentsNavigationFixture", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL"]
+            app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "A5_LOCALE": locale, "A5_CONTROLS_ONLY": "1"]
+            app.launch()
+            let progress = element("reader.unfocusedProgress", in: app)
+            XCTAssertTrue(progress.waitForExistence(timeout: 10))
+            XCTAssertTrue(progress.label.contains(3.formatted(.number.locale(Locale(identifier: locale)))))
+            let viewport = element("reader.page", in: app)
+            XCTAssertLessThanOrEqual(progress.frame.maxY, viewport.frame.minY)
+            let source = element("reader.volumeCorner", in: app)
+            XCTAssertTrue(source.label.contains("Original %@ مصدر"))
+            if source.isHittable { XCTAssertGreaterThanOrEqual(source.frame.minY, progress.frame.maxY) }
+            app.terminate()
+        }
+    }
+
+    func testTranslationSizeChangesActualReaderText() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-A5ReaderTypeFixture"]
+        app.launchEnvironment["HADITHLY_UI_TESTING"] = "1"
+        app.launch()
+        defer { app.terminate() }
+        let text = app.staticTexts["reader.translation"]
+        XCTAssertTrue(text.waitForExistence(timeout: 10))
+        app.buttons["a5.type.small"].tap()
+        let small = text.frame.height
+        let smallCapture = XCTAttachment(screenshot: app.screenshot()); smallCapture.name = "a5-type-14"; smallCapture.lifetime = .keepAlways; add(smallCapture)
+        app.buttons["a5.type.large"].tap()
+        XCTAssertEqual(app.staticTexts["a5.type.value"].label, "22.0")
+        let largeCapture = XCTAttachment(screenshot: app.screenshot()); largeCapture.name = "a5-type-22"; largeCapture.lifetime = .keepAlways; add(largeCapture)
+        let grows = NSPredicate { _, _ in text.frame.height > small + 2 }
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: grows, object: nil)], timeout: 5), .completed, "Actual reader translation ignores selected type size: 14=\(small), 22=\(text.frame)")
+        XCTAssertEqual(text.label, "Controlled original %@ text 57")
+    }
+
     func testGoOwnsTargetWhilePrefetchIsInFlight() { goJourney(locale: "en", large: false) }
 
     func testGoAtLargeTextInRTLAndLongLocales() {
-        for locale in ["ar", "ur", "ru", "bn"] { goJourney(locale: locale, large: true) }
+        for locale in ["ar", "ur", "ru", "bn"] { goJourney(locale: locale, large: true, controls: true) }
     }
 
     func testGoThenCloseReturnsWithoutRetargeting() { goJourney(locale: "en", large: false, returning: true) }
 
-    private func goJourney(locale: String, large: Bool, returning: Bool = false) {
+    func testTopControlsDoNotOverlapAtLargeText() { goJourney(locale: "ar", large: true, controls: true) }
+
+    private func goJourney(locale: String, large: Bool, returning: Bool = false, controls: Bool = false) {
         let app = XCUIApplication()
         app.launchArguments = ["-A5ContentsNavigationFixture"]
         if large { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
@@ -55,10 +137,36 @@ final class ReaderR5UITests: XCTestCase {
         let trace = app.staticTexts["a5.requests"].label
         XCTAssertEqual(trace.components(separatedBy: "jump:57").count - 1, 1)
         XCTAssertTrue(trace.contains("dismissed"))
+        if controls {
+            if !app.buttons["reader.close"].isHittable {
+                app.staticTexts["reader.arabic"].firstMatch.tap()
+            }
+            let pills = element("reader.unfocusedProgress", in: app)
+            XCTAssertTrue(pills.waitForExistence(timeout: 5))
+            let corner = element("reader.volumeCorner", in: app)
+            let capture = XCTAttachment(screenshot: app.screenshot()); capture.name = "a5-controls-" + locale; capture.lifetime = .keepAlways; add(capture)
+            let viewport = element("reader.page", in: app)
+            XCTAssertLessThanOrEqual(pills.frame.maxY, viewport.frame.minY, "Top pills overlap reader viewport: \(pills.frame), \(viewport.frame)")
+            if corner.isHittable {
+                XCTAssertLessThanOrEqual(pills.frame.maxY, corner.frame.minY, "Visible source overlaps progress")
+            }
+            XCTAssertGreaterThanOrEqual(target.frame.minY + 0.5, viewport.frame.minY)
+            XCTAssertGreaterThanOrEqual(pills.frame.height, 44, "Scaled caption must fit its progress capsule")
+            let headerBefore = target.frame
+            let arabic = app.staticTexts["reader.arabic"].firstMatch
+            arabic.tap()
+            XCTAssertTrue(app.buttons["reader.close"].waitForNonExistence(timeout: 5))
+            XCTAssertTrue(target.exists)
+            XCTAssertEqual(target.frame.minY, headerBefore.minY, accuracy: 1, "Focus must preserve the reading anchor")
+            arabic.tap()
+            XCTAssertTrue(app.buttons["reader.close"].waitForExistence(timeout: 5))
+            XCTAssertEqual(target.frame.minY, headerBefore.minY, accuracy: 1, "Revealing controls must preserve the reading anchor")
+        }
         if returning {
             if !app.buttons["reader.close"].isHittable {
-                element("reader.page", in: app).coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.6)).tap()
+                app.staticTexts["reader.arabic"].firstMatch.tap()
             }
+            XCTAssertTrue(target.isHittable)
             app.buttons["reader.close"].tap()
             XCTAssertTrue(app.staticTexts["a5.returned"].waitForExistence(timeout: 5))
             XCTAssertTrue(app.staticTexts["a5.returned"].isHittable)

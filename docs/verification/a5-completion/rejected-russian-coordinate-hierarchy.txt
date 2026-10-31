@@ -1,0 +1,25 @@
+Application, 0x109c2f200, pid: 6663, label: 'Hadithly' <App element pid: 6663>
+  Window (Main), 0x109c2ef80, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 6663, elementOrHash.elementID: 4373431296.4>
+    Other, 0x109c2f5c0, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 6663, elementOrHash.elementID: 4373908992.5>
+      Other, 0x109c2f980, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 6663, elementOrHash.elementID: 4417133440.6>
+        Other, 0x109c2cc80, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 6663, elementOrHash.elementID: 4373430272.7>
+          Other, 0x109c2f340, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 6663, elementOrHash.elementID: 4455572704.8>
+            Other, 0x109c2f0c0, {{157.0, 68.0}, {88.0, 4.0}}, identifier: 'reader.focusedProgress' <AX element pid: 6663, elementOrHash.elementID: 4905225824.220>
+            Other, 0x109c2d680, {{-378.0, 96.0}, {343.3, 437.7}}, identifier: 'reader.neighborLoading', label: 'Загрузка страницы' <AX element pid: 6663, elementOrHash.elementID: 4905232224.238>
+              StaticText, 0x109c2e580, {{-378.0, 96.0}, {214.0, 116.7}}, label: 'Загрузка страницы' <AX element pid: 6663, elementOrHash.elementID: 4905231104.240>
+              Other, 0x109c2fac0, {{-378.0, 240.7}, {343.3, 293.0}}, identifier: 'loading.skeleton', label: 'Загрузка страницы' <AX element pid: 6663, elementOrHash.elementID: 4905232064.241>
+            Other, 0x109c2d180, {{24.0, 96.0}, {343.3, 437.7}}, identifier: 'reader.neighborLoading', label: 'Загрузка страницы' <AX element pid: 6663, elementOrHash.elementID: 4905229024.224>
+              StaticText, 0x109c2f840, {{24.0, 96.0}, {214.0, 116.7}}, label: 'Загрузка страницы' <AX element pid: 6663, elementOrHash.elementID: 4905228544.226>
+              Other, 0x109c2ee40, {{24.0, 240.7}, {343.3, 293.0}}, identifier: 'loading.skeleton', label: 'Загрузка страницы' <AX element pid: 6663, elementOrHash.elementID: 4905228864.227>
+            ScrollView, 0x109c2e800, {{402.0, 229.0}, {402.0, 645.0}}, identifier: 'reader.page' <AX element pid: 6663, elementOrHash.elementID: 4847294464.225>
+              Other, 0x109c2d7c0, {{402.0, 229.0}, {402.0, 491.0}} <AX element pid: 6663, elementOrHash.elementID: 4416995840.228>
+            Other, 0x109c2fd40, {{201.0, 437.0}, {0.0, 0.0}} <AX element pid: 6663, elementOrHash.elementID: 4419460544.12>
+            Other, 0x109c2ca00, {{201.0, 451.0}, {0.0, 0.0}} <AX element pid: 6663, elementOrHash.elementID: 4419459648.13>
+            Other, 0x109c2f480, {{201.0, 451.0}, {0.0, 0.0}} <AX element pid: 6663, elementOrHash.elementID: 4419460096.14>
+            StaticText, 0x109c2ea80, {{84.0, 640.0}, {318.0, 13.3}}, identifier: 'a5.requests', label: 'prefetch|submit:abc|submit:57|jump:5757|dismissedprefetch' <AX element pid: 6663, elementOrHash.elementID: 4455572224.15>
+            StaticText, 0x109c2c8c0, {{211.5, 653.3}, {63.0, 13.3}}, identifier: 'a5.loading', label: 'loading:true' <AX element pid: 6663, elementOrHash.elementID: 4455572384.16>
+            Button, 0x109c2cf00, {{198.3, 666.7}, {89.7, 13.3}}, identifier: 'a5.release', label: 'Release old page' <AX element pid: 6663, elementOrHash.elementID: 4905225504.239>
+            Other, 0x109c2cdc0, {{0.0, 0.0}, {0.0, 0.0}} <AX element pid: 6663, elementOrHash.elementID: 4455571904.20>
+  Window, 0x109c2dcc0, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 6663, elementOrHash.elementID: 4455063040.100>
+    Other, 0x109c2e940, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 6663, elementOrHash.elementID: 4417446912.102>
+      Other, 0x109c2fc00, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 6663, elementOrHash.elementID: 4880475328.104>

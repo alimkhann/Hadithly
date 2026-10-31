@@ -1370,7 +1370,8 @@ final class ReaderModel {
             arabicFontId: preferences.arabicFont.rawValue,
             arabicFontSize: preferences.arabicFontSize,
             widthClass: widthClass,
-            paginationVersion: paginationVersion
+            paginationVersion: paginationVersion,
+            translationFontSize: preferences.translationFontSize
         )
     }
 

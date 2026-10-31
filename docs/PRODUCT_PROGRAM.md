@@ -15,17 +15,21 @@ and `A4_RUNTIME_LOCALIZATION.md`. Full A4 remains open for exact-copy native-spe
 review, full accessibility and authenticated/physical acceptance. The original A4
 checkbox below stays open. Controlled fixtures do not close those gates.
 
-The bounded A5 Contents navigation repair has controlled native evidence in
-`A5_CONTENTS_NAVIGATION.md`. Full A5 remains open, including live/authenticated and
-physical acceptance. `NEXT_SESSION_PROMPT.md` gives the next exact goal: one A5
-large-text top-control clipping reproduction and confirmed repair, with iOS parity.
-Stop at the navigation unit's verified commit before starting that next unit.
+The owner expanded the bounded A5 follow-up into completing A5's original
+engineering criterion. The Contents ownership race, large-text reader controls,
+translation-size rendering and iOS RTL → LTR Settings mirroring are repaired.
+`A5_REQUIREMENT_AUDIT.md` maps direct native evidence, retained regressions and
+rejected attempts to the criterion. Its checkbox below is complete. Controlled
+fixtures and guest UI do not close actual live/authenticated/physical, exact-copy,
+full accessibility or release acceptance; those existing gates remain open.
 
-Finish this original objective, including remaining A5–A7/readiness, unfinished
-A1/A3/A4 acceptance, E and the final requirement audit. A2 remains wrapped with row
+`NEXT_SESSION_PROMPT.md` gives the next exact goal: an A6 local readiness/gate
+audit. Stop at A5's verified commit without push before starting that audit.
+Finish this original objective, including unfinished A1/A3/A4 acceptance,
+A6–A7/readiness, E and the final requirement audit. A2 remains wrapped with row
 mode off; B/C/D's local completion and every external gate remain intact. Only
-afterward consider `POST_GOAL_BACKLOG.md`. Its goals must not replace original
-acceptance work.
+afterward consider `POST_GOAL_BACKLOG.md`. Overlapping font-size/Settings reports
+were handled only to fulfill A5; no broader backlog work was started.
 
 ## Owner order, October 26
 
@@ -154,7 +158,7 @@ activation, or user-study participant cannot be silently represented as verified
   - [ ] A4. Audit all runtime copy and Android XML files, repair localization gaps
     across the fifteen supported locales, and verify fallback, placeholders,
     pluralization, RTL, accessibility, and critical-copy review status.
-  - [ ] A5. Resolve reproduced architecture, system, behavior, and UI defects that
+  - [x] A5. Resolve reproduced architecture, system, behavior, and UI defects that
     prevent the core reading/saving/return journeys. Retain the RTL regressions.
   - [ ] A6. Execute or explicitly retain every existing content, store, purchase,
     physical-device, disclosure, production, backup/recovery, and integration gate.

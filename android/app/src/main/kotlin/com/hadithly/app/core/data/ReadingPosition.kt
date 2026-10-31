@@ -90,16 +90,18 @@ data class ReadingLayout(
     val arabicFontSize: Double,
     val widthClass: ReadingWidthClass,
     val paginationVersion: Double,
+    val translationFontSize: Double = 16.0,
 ) {
     val signature: String
         get() {
             val canonical = listOf(
-                "v1",
+                "v2",
                 "locale=$locale",
                 "arabic=${if (arabicVisible) 1 else 0}",
                 "translation=${if (translationVisible) 1 else 0}",
                 "font=$arabicFontId",
                 "size=${(arabicFontSize * 1_000).roundToInt()}",
+                "translationSize=${(translationFontSize * 1_000).roundToInt()}",
                 "width=${widthClass.wire}",
                 "pagination=${paginationVersion.toInt()}",
             ).joinToString("|")

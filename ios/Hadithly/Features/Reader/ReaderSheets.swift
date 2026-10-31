@@ -836,11 +836,13 @@ struct ReaderStoredTranslationView: View {
     let text: String
     let translation: ReaderTranslation?
     let palette: ReaderPalette
+    var fontSize: Double = 16
+    @ScaledMetric(relativeTo: .body) private var textScale = 1.0
 
     var body: some View {
         VStack(spacing: 10) {
             Text(text)
-                .font(.system(size: 16, weight: .regular)).lineSpacing(7)
+                .font(.system(size: fontSize * textScale, weight: .regular)).lineSpacing(7)
                 .multilineTextAlignment(.leading).foregroundStyle(palette.textPrimary.opacity(0.92))
                 .fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityIdentifier(translation?.source == "gemini_ai" ? "reader.aiTranslation" : "reader.translation")

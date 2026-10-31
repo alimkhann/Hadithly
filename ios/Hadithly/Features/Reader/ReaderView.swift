@@ -15,6 +15,8 @@ struct ReaderView: View {
     @Environment(\.colorScheme) private var systemColorScheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var uiLocale
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     let collectionSlug: String
     let collectionName: String
@@ -44,6 +46,9 @@ struct ReaderView: View {
     @State private var horizontalDragging = false
     @State private var readerUndoNotice: SavedUndoNotice?
     @State private var scrollProgress = ReaderScrollProgress()
+    @State private var progressPillsHeights: [String: CGFloat] = [:]
+    private var progressLayoutID: String { "\(uiLocale.identifier)|\(dynamicTypeSize)|\(Int(dragViewportWidth))" }
+    private var progressPillsHeight: CGFloat { progressPillsHeights[progressLayoutID] ?? 30 }
     /// Latest viewport width, for the drag-settle target. Written from the
     /// GeometryReader; the gesture may outlive any single body evaluation.
     @State private var dragViewportWidth: CGFloat = 0
@@ -282,11 +287,23 @@ struct ReaderView: View {
                     if model.chromeVisible {
                         ReaderGlassGroup {
                             chromeOverlay(model, topInset: windowSafeAreaInsets.top, bottomInset: windowSafeAreaInsets.bottom)
+                                .frame(width: viewport.size.width)
                         }
                         .transition(.opacity.combined(with: .scale(scale: reduceMotion ? 1 : 0.98)))
                     }
                 }
                 .animation(chromeAnimation, value: model.chromeVisible)
+
+                ReaderUnfocusedProgressPills(
+                    pageNumber: model.pageIndex + 1, pageFill: 0,
+                    volumeNumber: ReaderProgressBars.volumePosition(selectedVolumeId: model.selectedVolumeId, volumes: model.volumes),
+                    volumeCount: model.volumes.count, volumeFill: 0, palette: palette
+                )
+                .frame(width: viewport.size.width)
+                .hidden().allowsHitTesting(false).accessibilityHidden(true)
+                .background(GeometryReader { proxy in
+                    Color.clear.preference(key: ReaderProgressHeaderHeightKey.self, value: [progressLayoutID: proxy.size.height])
+                })
 
                 // Bookmark placement (round 7): a centered modal dialog
                 // over a dimmed backdrop, not a bottom sheet. Same options
@@ -301,6 +318,14 @@ struct ReaderView: View {
                         },
                         onCancel: { showBookmarkPlacement = false }
                     )
+                }
+            }
+        }
+        .onPreferenceChange(ReaderProgressHeaderHeightKey.self) { heights in
+            for (context, height) in heights {
+                let reserved = height.rounded(.up)
+                if reserved > (progressPillsHeights[context] ?? 30) {
+                    progressPillsHeights[context] = reserved
                 }
             }
         }
@@ -435,13 +460,15 @@ struct ReaderView: View {
                             verticalLanding: page == index ? model.verticalLanding : nil,
                             currentPageIndex: page,
                             pageCount: model.pages.count,
-                            topContentInset: windowSafeAreaInsets.top + 12,
+                            topContentInset: 0,
                             palette: palette,
                             onTurn: { turnPage(model, turn: $0) },
                             onTap: { toggleChrome(model) },
                             onShowPaywall: { showQuotaPaywall = true },
                             onScrollFraction: page == index ? { scrollProgress.fraction = $0 } : nil
                         )
+                        .clipped()
+                        .padding(.top, windowSafeAreaInsets.top + 8 + progressPillsHeight + 24)
                         .scrollDisabled(page != index || horizontalDragging || pageSettling)
                         .allowsHitTesting(page == index && !pageSettling)
                         .accessibilityHidden(page != index)
@@ -573,6 +600,9 @@ struct ReaderView: View {
                 volumeCount: model.volumes.count,
                 palette: palette
             )
+            .background(GeometryReader { proxy in
+                Color.clear.preference(key: ReaderProgressHeaderHeightKey.self, value: [progressLayoutID: proxy.size.height])
+            })
             .padding(.top, topInset + 8)
             Spacer()
             if showReaderMenu {
@@ -916,45 +946,40 @@ private struct ReaderUnfocusedProgressPills: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        HStack(spacing: 8) {
-            progressPill(number: pageNumber.formatted(.number.locale(locale)), suffix: AppLocalization.string("page", locale: locale), fill: pageFill)
-            if let volumeNumber {
-                progressPill(number: volumeNumber.formatted(.number.locale(locale)), suffix: AppLocalization.string("volume", locale: locale), fill: volumeFill ?? 0)
-            }
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 8) { pills }.fixedSize(horizontal: true, vertical: false)
+            VStack(spacing: 8) { pills }
         }
+        .padding(.horizontal, 20)
         .frame(maxWidth: .infinity, alignment: .center)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityText)
         .accessibilityIdentifier("reader.unfocusedProgress")
     }
 
-    private func progressPill(number: String, suffix: String, fill: Double) -> some View {
-        // The fill occupies the FULL pill height (no vertical margins) and
-        // glides horizontally to the fraction; the outer capsule clip keeps
-        // the ends round at every value. The fill glides to the new
-        // fraction on a page switch (~250ms ease-out, snap under Reduce
-        // Motion) instead of jumping instantly.
-        let clamped = min(1, max(0, fill))
-        return ZStack {
-            GeometryReader { proxy in
-                Capsule()
-                    .fill(palette.textSecondary.opacity(0.35))
-                    .frame(width: proxy.size.width * clamped, height: proxy.size.height)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                    .animation(reduceMotion ? nil : .easeOut(duration: 0.25), value: clamped)
-            }
-            .clipShape(Capsule())
-            HStack(spacing: 4) {
-                Text(number)
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(palette.textPrimary)
-                Text(suffix)
-                    .font(.caption)
-                    .foregroundStyle(palette.textSecondary)
-            }
-            .frame(maxWidth: .infinity, alignment: .center)
+    @ViewBuilder private var pills: some View {
+        progressPill(number: pageNumber.formatted(.number.locale(locale)), suffix: AppLocalization.string("page", locale: locale), fill: pageFill)
+        if let volumeNumber {
+            progressPill(number: volumeNumber.formatted(.number.locale(locale)), suffix: AppLocalization.string("volume", locale: locale), fill: volumeFill ?? 0)
         }
-        .frame(width: 104, height: 30)
+    }
+
+    private func progressPill(number: String, suffix: String, fill: Double) -> some View {
+        let clamped = min(1, max(0, fill))
+        return HStack(spacing: 4) {
+            Text(number).font(.caption.weight(.bold)).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
+            Text(suffix).font(.caption).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 6)
+        .frame(minWidth: 104, minHeight: 30)
+        .background(GeometryReader { proxy in
+            Capsule()
+                .fill(palette.textSecondary.opacity(0.35))
+                .frame(width: proxy.size.width * clamped, height: proxy.size.height)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                .animation(reduceMotion ? nil : .easeOut(duration: 0.25), value: clamped)
+        })
         .clipShape(Capsule())
         .readerControlSurface(in: Capsule())
         .accessibilityHidden(true)
@@ -970,6 +995,13 @@ private struct ReaderUnfocusedProgressPills: View {
 }
 
 // MARK: - One reader page
+
+private struct ReaderProgressHeaderHeightKey: PreferenceKey {
+    static var defaultValue: [String: CGFloat] = [:]
+    static func reduce(value: inout [String: CGFloat], nextValue: () -> [String: CGFloat]) {
+        value.merge(nextValue(), uniquingKeysWith: max)
+    }
+}
 
 private struct ReaderAnchorFramesKey: PreferenceKey {
     static var defaultValue: [String: ReaderAnchorFrame] = [:]
@@ -2049,7 +2081,7 @@ private struct HadithBlock: View {
     }
 
     private func translationText(_ text: String, storedTranslation: ReaderTranslation? = nil) -> some View {
-        ReaderStoredTranslationView(text: text, translation: storedTranslation, palette: palette)
+        ReaderStoredTranslationView(text: text, translation: storedTranslation, palette: palette, fontSize: preferences.translationFontSize)
     }
 
     private func glossaryNotes(_ notes: [String]) -> some View {
@@ -3250,15 +3282,25 @@ struct ChromeCopyAuditFixture: View {
 struct ContentsNavigationFixture: View {
     @State private var showReader = true
     @State private var model: ReaderModel
+    @State private var library: UserLibraryModel
     @State private var release: (() -> Void)?
     @State private var releaseTarget: (() -> Void)?
     @State private var requests = ""
 
     init() {
         let convex = ConvexClientWithAuth(deploymentUrl: "https://example.invalid", authProvider: ClerkConvexAuthProvider())
-        let model = ReaderModel(convex: convex, collectionSlug: "bukhari", collectionName: "Original %@ مصدر", language: "en", isSignedIn: { false })
+        let library = UserLibraryModel(guestData: GuestDataStore(inMemory: true))
+        library.refresh()
+        let model = ReaderModel(convex: convex, collectionSlug: "bukhari", collectionName: "Original %@ مصدر", language: "en", isSignedIn: { false }, library: library)
+        _library = State(initialValue: library)
         model.seedForUITest(volumes: [OutlineVolume(volumeId: "1", title: "Original %@ مصدر", hadithCount: 100)], selectedVolumeId: "1")
-        model.seedPagesForUITest([Self.page("1", more: true)])
+        if ProcessInfo.processInfo.environment["A5_CONTROLS_ONLY"] == "1" {
+            model.seedPagesForUITest([Self.page("1"), Self.page("2"), Self.page("57")])
+            model.pageIndex = 2
+            model.chromeVisible = true
+        } else {
+            model.seedPagesForUITest([Self.page("1", more: true)])
+        }
         _model = State(initialValue: model)
     }
 
@@ -3268,7 +3310,15 @@ struct ContentsNavigationFixture: View {
     }
 
     var body: some View {
-        if ProcessInfo.processInfo.environment["A5_RETURN"] == "1" {
+        if ProcessInfo.processInfo.environment["A5_CORE_SAVED"] == "1" {
+            ReaderSavedShortcutSheet(onOpen: { ref in
+                model.jumpToHadith(volumeId: ref.volumeId, hadithNumber: ref.hadithNumber ?? "57")
+                showReader = true
+            }, onEdit: {})
+            .environment(library)
+            .environment(\.locale, Locale(identifier: "en"))
+            .fullScreenCover(isPresented: $showReader) { reader }
+        } else if ProcessInfo.processInfo.environment["A5_RETURN"] == "1" {
             Text("Controlled reader return").accessibilityIdentifier("a5.returned")
                 .fullScreenCover(isPresented: $showReader) { reader }
         } else { reader }
@@ -3276,12 +3326,16 @@ struct ContentsNavigationFixture: View {
 
     private var reader: some View {
         ReaderView.fixture(model: model)
+            .environment(library)
             .environment(\.locale, Locale(identifier: ProcessInfo.processInfo.environment["A5_LOCALE"] ?? "en"))
             .environment(\.layoutDirection, LocaleFallback.isRTL(ProcessInfo.processInfo.environment["A5_LOCALE"] ?? "en") ? .rightToLeft : .leftToRight)
             .dynamicTypeSize(ProcessInfo.processInfo.environment["A5_LARGE_TEXT"] == "1" ? .accessibility5 : .large)
             .overlay(alignment: .bottomTrailing) {
                 VStack {
                     Text(requests).accessibilityIdentifier("a5.requests")
+                    if ProcessInfo.processInfo.environment["A5_CORE_SAVED"] == "1" {
+                        Text(verbatim: "b:\(library.bookmarks.count)|f:\(library.favorites.count)|n:\(library.notes.count)|rows:\(library.savedItems.count)|note:\(library.notes.first?.noteContent ?? "")").accessibilityIdentifier("a5.savedState")
+                    }
                     Text("loading:\(model.isLoadingPage)").accessibilityIdentifier("a5.loading")
                     if let releaseTarget { Button("Release target") { releaseTarget() }.accessibilityIdentifier("a5.releaseTarget") }
                     if let release { Button("Release old page") { release() }.accessibilityIdentifier("a5.release") }
@@ -3302,6 +3356,30 @@ struct ContentsNavigationFixture: View {
                 }
                 model.prefetchForwardIfNeeded()
             }
+    }
+}
+#endif
+
+#if DEBUG
+@MainActor
+struct ReaderTypeSizingFixture: View {
+    @State private var preferences = ReaderPreferences()
+    @State private var model: ReaderModel
+    init() {
+        let convex = ConvexClientWithAuth(deploymentUrl: "https://example.invalid", authProvider: ClerkConvexAuthProvider())
+        let model = ReaderModel(convex: convex, collectionSlug: "bukhari", collectionName: "Controlled", language: "en", isSignedIn: { false })
+        _model = State(initialValue: model)
+    }
+    var body: some View {
+        VStack {
+            HadithBlock(model: model, hadith: ContentsNavigationFixture.page("57").items[0], translationState: nil, language: "en", arabicFontSize: 26, preferences: preferences, palette: .dark, onRetry: {}, onShowPaywall: {})
+            HStack {
+                Button("14") { preferences.translationFontSize = 14 }.accessibilityIdentifier("a5.type.small")
+                Button("22") { preferences.translationFontSize = 22 }.accessibilityIdentifier("a5.type.large")
+                Text(String(preferences.translationFontSize)).accessibilityIdentifier("a5.type.value")
+            }
+        }.padding(22).background(Color.black)
+            .onAppear { preferences.arabicVisible = false; preferences.translationFontSize = 14 }
     }
 }
 #endif

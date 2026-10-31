@@ -135,6 +135,7 @@ extension ReaderPreferences {
             translationVisible ? "1" : "0",
             arabicFont.rawValue,
             String(Int(arabicFontSize * 1000)),
+            String(Int(translationFontSize * 1000)),
         ].joined(separator: "|")
     }
 }

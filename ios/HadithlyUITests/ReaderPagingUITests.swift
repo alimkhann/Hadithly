@@ -150,6 +150,7 @@ final class ReaderPagingUITests: XCTestCase {
             ]
         }
         app.launchEnvironment = [
+            "HADITHLY_UI_TESTING": "1",
             "R3_TRANSLATION_LOCALE": fixture.locale,
             "R3_ARABIC_VISIBLE": String(fixture.arabic),
             "R3_TRANSLATION_VISIBLE": String(fixture.translation),

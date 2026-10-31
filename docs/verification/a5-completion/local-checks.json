@@ -1,0 +1,685 @@
+{
+  "android_unit": [
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-com.hadithly.app.ReaderAutomaticTranslationTest.xml",
+      "sha256": "0e7189f6e5691cf5670ac053959850977358c8e26dbdacfaebbb3ff727f205cc",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        {
+          "class": "com.hadithly.app.ReaderAutomaticTranslationTest",
+          "name": "requestsArePerLocaleAndDoNotReplaceAvailablePendingOrFailedText",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-com.hadithly.app.ReaderLinkVolumeTest.xml",
+      "sha256": "d28774e7cd4c98c4108f5daa4babc899e927f888afe10e5ce082aea358755165",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        {
+          "class": "com.hadithly.app.ReaderLinkVolumeTest",
+          "name": "dottedSubreferenceUsesIntegerPart",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderLinkVolumeTest",
+          "name": "resolvesVolumeBoundaries",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderLinkVolumeTest",
+          "name": "staleNumbersFallBackToStart",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-com.hadithly.app.ReaderMeasurementTest.xml",
+      "sha256": "ed885e458e15f81a7824f2ed1819e9bb8514e9c4136200f195a027f1f6ed4b22",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        {
+          "class": "com.hadithly.app.ReaderMeasurementTest",
+          "name": "closingPendingWorkIsAbandonmentAndCannotBecomeAnError",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderMeasurementTest",
+          "name": "recoveryIsSeparateAndAnInitialFallbackCannotBecomeExactLater",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-com.hadithly.app.ReaderPagingTest.xml",
+      "sha256": "5fdaf03a75cd3a76c1f98609e5a57cc6cd37857e55662b2d30833352d9b8a9b6",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        {
+          "class": "com.hadithly.app.ReaderPagingTest",
+          "name": "first and last page boundaries and end control order",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderPagingTest",
+          "name": "behavioral direction matrix matches iOS",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-com.hadithly.app.ReaderPreferencesTest.xml",
+      "sha256": "f0cd22f56aa2347826796660f5f5f006912d382e12aa681db337159bbbce3bd9",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        {
+          "class": "com.hadithly.app.ReaderPreferencesTest",
+          "name": "validated rejects the all-hidden visibility state",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderPreferencesTest",
+          "name": "json round trip preserves every field",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderPreferencesTest",
+          "name": "wire encoding uses Double for every number",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderPreferencesTest",
+          "name": "defaults match the contract",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderPreferencesTest",
+          "name": "validated canonicalizes locales and rejects malformed ones",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderPreferencesTest",
+          "name": "validated clamps the Arabic font size",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderPreferencesTest",
+          "name": "direction metadata matrix",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderPreferencesTest",
+          "name": "ownedPreferenceReadAcceptsIntegralConvexNumbersWithoutTruncatingVersions",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderPreferencesTest",
+          "name": "decoding unknown font id falls back to system",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-com.hadithly.app.ReaderR4Test.xml",
+      "sha256": "1defc3cd45aeda99d3e4a6ac369812d3cc11bc730ec44dd2b9bf8e000e4fc92b",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        {
+          "class": "com.hadithly.app.ReaderR4Test",
+          "name": "light and paper palettes differ from the dark default",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR4Test",
+          "name": "type size ladder stays inside the preference clamp",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR4Test",
+          "name": "layout projection tracks layout-affecting preferences",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR4Test",
+          "name": "translationSizeInvalidatesLayoutProjection",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR4Test",
+          "name": "chapter openings handle an unnamed page start",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR4Test",
+          "name": "layout projection ignores theme and direction",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR4Test",
+          "name": "chapter openings only come from source names",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR4Test",
+          "name": "app palette resolution matrix remains stable for every settings language",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR4Test",
+          "name": "light and paper app chrome uses the semantic interactive token",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR4Test",
+          "name": "type size stepping is clamped at both ends",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR4Test",
+          "name": "interactive tint meets contrast on every palette",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR4Test",
+          "name": "resolved palettes follow the theme preference",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-com.hadithly.app.ReaderR5Test.xml",
+      "sha256": "fdbaf00a769ba9e1b64aa353a7ac09e4c46e4fee91907455b0605cae92696cbc",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        {
+          "class": "com.hadithly.app.ReaderR5Test",
+          "name": "copy formatter mixes arabic, translation, and source line",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR5Test",
+          "name": "chapters decode from source-provided outlines",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR5Test",
+          "name": "copy formatter labels ai translations only",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR5Test",
+          "name": "url builder produces the canonical shape",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR5Test",
+          "name": "jump validation rejects malformed input",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR5Test",
+          "name": "chapter volumes reuse the canonical volume locator",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR5Test",
+          "name": "localized copy keeps opaque body and source fields",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR5Test",
+          "name": "copy formatter never includes the url",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR5Test",
+          "name": "missing chapters decode as empty for pre-R5 caches",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR5Test",
+          "name": "copy formatter supports arabic-only pages",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR5Test",
+          "name": "built urls round-trip through the inbound parser",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR5Test",
+          "name": "url builder rejects malformed slugs and ids",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR5Test",
+          "name": "jump validation accepts plain and dotted numbers",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-com.hadithly.app.ReaderR6ATest.xml",
+      "sha256": "59ed97b654dd64995be6db33b7b7ce328fe90c94674bfb9097859e4065ac8d23",
+      "tests": 25,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "grade mapping is case-insensitive and trims",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "talkback invocation delegates and returns true",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "header label is short name and id without brackets",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "hadith count plurals cover en, ar, and ur",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "two page pills use neighbor pages volume titles and absolute ends",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "volume title number parses only the Volume N shape",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "volume title string is localized and formatted",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "range accumulates across volumes from outline counts",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "talkback actions mirror the menu label for label",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "fully cached gate needs every page loaded",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "corner text is title-only until computable",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "corner text shows the whole volume range only when fully cached",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "short names cover every collection slug",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "saved mini markers follow bookmark favorite and note",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "arabic title returns only when present and different",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "menu labels follow saved state",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "grade dots resolve from the palette in every reader theme",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "narrator shows in every valid visibility mode",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "grade display names mirror the source label",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "menu invocations delegate to the right callbacks",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "range is null when not computable",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "menu carries all seven actions with stable tags",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "unknown and absent grades map to other",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "report is gated on a loaded translation",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6ATest",
+          "name": "Arabic chapter name follows Arabic text visibility",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-com.hadithly.app.ReaderR6Round3Test.xml",
+      "sha256": "271d59b385cfa87333b3e4489ca8b253a7356398d2887d67571183ebdebcc413",
+      "tests": 29,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "focused page fraction fills with page scroll",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "page pill fills with intra-page scroll only",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "copy source line renders the backend-owned source name",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "volume pill fills with the page fraction within the volume",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "dialog rows always render start positioned and cancel",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "present narratorAr decodes and leads arabic-only mode",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "adjacent volumes are bounded to immediate neighbors",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "placement targets page start and positioned hadith",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "missing narratorAr decodes tolerant and stays hidden",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "long hold release never confirms a tap",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "most recent progress wins the page fetch",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "manual page turns land on the header even after a cached revisit",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "haptic triggers map to native constants",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "confirmed tap needs minimal movement and short duration",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "executor is silent and bounded",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "arabic-only volumes use the localized name",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "narrator falls back to hidden when the mode line is absent",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "volume fraction is static over the outline",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "per-page pills match settled pills and never depend on settle",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "swipe drag never confirms a tap",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "volume header falls back through first chapter to outline title",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "volume header prefers the source first chapter title",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "entry plan is bounded to seven outlines plus one page",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "relative time labels cover the quiet rows",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "placement enum covers both choices",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "entry plan without progress fetches outlines only",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "captured header and footer are never hadith anchors",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "arabic-only chapters prefer the arabic title",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "search hits decode with tolerant defaults",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-com.hadithly.app.ReadingPositionTest.xml",
+      "sha256": "fb7d7b54ab73759b587ba0f61bdf3980bfe9eda2a67af266abecd52f0d6f6a14",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        {
+          "class": "com.hadithly.app.ReadingPositionTest",
+          "name": "content and layout changes use the semantic anchor",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReadingPositionTest",
+          "name": "missing anchor chooses nearest and resets offset",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReadingPositionTest",
+          "name": "wire round trip uses Double numbers",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReadingPositionTest",
+          "name": "decoder rejects an unsupported version",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReadingPositionTest",
+          "name": "oldGeometryAndTranslationSizeUseSemanticAnchorWithoutRewritingPosition",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReadingPositionTest",
+          "name": "legacy guest progress migrates at offset zero",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReadingPositionTest",
+          "name": "layout signature matches golden vector and changes with pagination",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReadingPositionTest",
+          "name": "target resolver restores only a matching private position",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.ReadingPositionTest",
+          "name": "guest merge carries the complete newest V1 position",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "path": "android/app/build/test-results/testDebugUnitTest/TEST-com.hadithly.app.SavedUndoControllerTest.xml",
+      "sha256": "785a77e281ab18dbedaed80be889b05adb1a9ec011aa36c773033ee288258276",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        {
+          "class": "com.hadithly.app.SavedUndoControllerTest",
+          "name": "undo before the deadline runs the action once",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.SavedUndoControllerTest",
+          "name": "notice survives past its deadline until the expiry job runs",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.SavedUndoControllerTest",
+          "name": "remaining fraction counts down from one to zero",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.SavedUndoControllerTest",
+          "name": "undo after the deadline clears the notice without running the action",
+          "passed": true
+        },
+        {
+          "class": "com.hadithly.app.SavedUndoControllerTest",
+          "name": "a new notice replaces the previous deadline and action",
+          "passed": true
+        }
+      ]
+    }
+  ],
+  "android_unit_total": 110,
+  "ios_unique_accepted_cases": 173,
+  "android_unique_accepted_device_cases": 80,
+  "localization": {
+    "ios_keys": 594,
+    "ios_draft_locale_entries": 8452,
+    "android_resources": 589,
+    "android_english_copy_drafts": 48,
+    "structural_failures": 0,
+    "script_tests_passed": 13,
+    "native_speaker_and_exact_copy_approval": false,
+    "audit_log_sha256": "01376dfba6b0ceda9a445b06e97334d62cb15043457eba13dc36533ee010059f",
+    "test_log_sha256": "fc924f6e1fea3cec579bda3420051891bdf01c960fe5ca7e49fdfc8005bd9c0c"
+  },
+  "catalog_incoming_semantic_diff": {
+    "added_keys": 2,
+    "removed_keys": 0,
+    "changed_existing_entries": 18,
+    "all_incoming_bytes_preserved": true
+  },
+  "limits": "Scoped local controlled evidence. Guest root UI may perform ordinary development feed loads/caching. No live content/provider, real authenticated, physical, full accessibility or release acceptance."
+}

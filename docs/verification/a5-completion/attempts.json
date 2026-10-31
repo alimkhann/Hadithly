@@ -1,0 +1,197 @@
+{
+  "raw_log_location": "/tmp/hadithly-a5-finish",
+  "note": "Diagnostic history. Runs are not wholly passing acceptance scopes. Passing cases from mixed bundles are classified separately in run-classification.json.",
+  "logs": [
+    {
+      "log": "/tmp/hadithly-a5-finish/android-controls-before.log",
+      "sha256": "10f95277b063131c4f270e43fffc42a2451320f578028963a7d222a95646d51f",
+      "findings": [
+        "\tjava.lang.AssertionError: Top pills overlap source: page=Rect.fromLTRB(689.0, 152.0, 950.0, 236.0) volume=Rect.fromLTRB(131.0, 152.0, 668.0, 236.0) source=Rect.fromLTRB(58.0, 147.0, 1022.0, 273.0)",
+        "java.lang.AssertionError: java.lang.AssertionError: Top pills overlap source: page=Rect.fromLTRB(689.0, 152.0, 950.0, 236.0) volume=Rect.fromLTRB(131.0, 152.0, 668.0, 236.0) source=Rect.fromLTRB(58.0, 147.0, 1022.0, 273.0)",
+        "java.lang.AssertionError: Top pills overlap source: page=Rect.fromLTRB(689.0, 152.0, 950.0, 236.0) volume=Rect.fromLTRB(131.0, 152.0, 668.0, 236.0) source=Rect.fromLTRB(58.0, 147.0, 1022.0, 273.0)"
+      ]
+    },
+    {
+      "log": "/tmp/hadithly-a5-finish/android-type-before.log",
+      "sha256": "dd376a0a82cee3bec76cd50c6ea2fcec9924dee227b3c5133ea7d229bbb10334",
+      "findings": [
+        "\tjava.lang.AssertionError: Actual reader translation ignores selected type size: 61.0 / 61.0",
+        "java.lang.AssertionError: java.lang.AssertionError: Actual reader translation ignores selected type size: 61.0 / 61.0",
+        "java.lang.AssertionError: Actual reader translation ignores selected type size: 61.0 / 61.0"
+      ]
+    },
+    {
+      "log": "/tmp/hadithly-a5-finish/projection-before.log",
+      "sha256": "5bd6c2b35b76cbb71792e4e4575dc46150e93deb8a89cc8796f26d23d4c10278",
+      "findings": []
+    },
+    {
+      "log": "/tmp/hadithly-a5-finish/android-controls-after.log",
+      "sha256": "a2c71c25d6be4e16bd617ff9ce3e061c2fae1dac42af766f531fde6c00892e3c",
+      "findings": [
+        "\tjava.lang.AssertionError: Top pills overlap source: page=Rect.fromLTRB(536.0, 152.0, 797.0, 310.0) volume=Rect.fromLTRB(283.0, 152.0, 515.0, 310.0) source=Rect.fromLTRB(58.0, 190.0, 1022.0, 316.0)",
+        "java.lang.AssertionError: java.lang.AssertionError: Top pills overlap source: page=Rect.fromLTRB(536.0, 152.0, 797.0, 310.0) volume=Rect.fromLTRB(283.0, 152.0, 515.0, 310.0) source=Rect.fromLTRB(58.0, 190.0, 1022.0, 316.0)",
+        "java.lang.AssertionError: Top pills overlap source: page=Rect.fromLTRB(536.0, 152.0, 797.0, 310.0) volume=Rect.fromLTRB(283.0, 152.0, 515.0, 310.0) source=Rect.fromLTRB(58.0, 190.0, 1022.0, 316.0)"
+      ]
+    },
+    {
+      "log": "/tmp/hadithly-a5-finish/android-controls-after2.log",
+      "sha256": "8d200d93f6af46e1b4e521d698895b60e60744bba200328d79e9e2d0c6605c84",
+      "findings": []
+    },
+    {
+      "log": "/tmp/hadithly-a5-finish/android-controls-matrix.log",
+      "sha256": "b394bf48ba3aae2416f4a360dd5e9d902e18a5933de165893d7b92d59f0aefda",
+      "findings": [
+        "e: file:///Users/alim/Developer/Projects/Apps/Hadithly/android/app/src/androidTest/kotlin/com/hadithly/app/features/reader/ContentsNavigationTest.kt:122:88 Unresolved reference 'hasTextLayoutResult'."
+      ]
+    },
+    {
+      "log": "/tmp/hadithly-a5-finish/android-controls-matrix2.log",
+      "sha256": "fda65963673aacc2da63e901c81eb86fb389ec63a05b0682140ca3b6b30d08e4",
+      "findings": [
+        "\tjava.lang.AssertionError: en:reader.unfocusedPageBar clipped text",
+        "\tjava.lang.AssertionError: ur:reader.unfocusedPageBar clipped text",
+        "\tjava.lang.AssertionError: ar:reader.unfocusedPageBar clipped text",
+        "\tjava.lang.AssertionError: ru:reader.unfocusedPageBar clipped text",
+        "\tjava.lang.AssertionError: bn:reader.unfocusedPageBar clipped text",
+        "java.lang.AssertionError: java.lang.AssertionError: en:reader.unfocusedPageBar clipped text",
+        "java.lang.AssertionError: en:reader.unfocusedPageBar clipped text",
+        "java.lang.AssertionError: java.lang.AssertionError: ur:reader.unfocusedPageBar clipped text"
+      ]
+    },
+    {
+      "log": "/tmp/hadithly-a5-finish/android-controls-matrix3.log",
+      "sha256": "6eea66122edfd84e8ef949df61d6df08b8927274ec11783a34dcf767cd962f0a",
+      "findings": [
+        "\tjava.lang.AssertionError: en:reader.unfocusedPageBar clipped text",
+        "\tjava.lang.AssertionError: ur:reader.unfocusedPageBar clipped text",
+        "\tjava.lang.AssertionError: ar:reader.unfocusedPageBar clipped text",
+        "\tjava.lang.AssertionError: ru:reader.unfocusedPageBar clipped text",
+        "\tjava.lang.AssertionError: bn:reader.unfocusedPageBar clipped text",
+        "java.lang.AssertionError: java.lang.AssertionError: en:reader.unfocusedPageBar clipped text",
+        "java.lang.AssertionError: en:reader.unfocusedPageBar clipped text",
+        "java.lang.AssertionError: java.lang.AssertionError: ur:reader.unfocusedPageBar clipped text"
+      ]
+    },
+    {
+      "log": "/tmp/hadithly-a5-finish/android-controls-matrix4.log",
+      "sha256": "591e939fbf0688c5b465fc031661cb6c0ccec5ab91845845132811e4e4ce00f1",
+      "findings": [
+        "\tjava.lang.AssertionError: Focus must not move the reading anchor expected:<405.0> but was:<273.0>",
+        "\tjava.lang.AssertionError: Focus must not move the reading anchor expected:<531.0> but was:<395.0>",
+        "java.lang.AssertionError: java.lang.AssertionError: Focus must not move the reading anchor expected:<405.0> but was:<273.0>",
+        "java.lang.AssertionError: Focus must not move the reading anchor expected:<405.0> but was:<273.0>",
+        "java.lang.AssertionError: java.lang.AssertionError: Focus must not move the reading anchor expected:<531.0> but was:<395.0>",
+        "java.lang.AssertionError: Focus must not move the reading anchor expected:<531.0> but was:<395.0>"
+      ]
+    },
+    {
+      "log": "/tmp/hadithly-a5-finish/android-saved-journey.log",
+      "sha256": "1949d4816b32c025cd2a658ba0c5a61f06e217a2643ddb5ef645ce1fdf6a5218",
+      "findings": [
+        "\tjava.lang.AssertionError: Failed to inject touch input.",
+        "java.lang.AssertionError: java.lang.AssertionError: Failed to inject touch input.",
+        "java.lang.AssertionError: Failed to inject touch input."
+      ]
+    },
+    {
+      "log": "/tmp/hadithly-a5-finish/android-core-regressions.log",
+      "sha256": "5d435b7e41bd0ba81581875f156030398051c1c8ab741082090067961aea1442",
+      "findings": [
+        "e: file:///Users/alim/Developer/Projects/Apps/Hadithly/android/app/src/androidTest/kotlin/com/hadithly/app/features/settings/LanguageSwitchTest.kt:34:27 Unresolved reference 'espresso'.",
+        "e: file:///Users/alim/Developer/Projects/Apps/Hadithly/android/app/src/androidTest/kotlin/com/hadithly/app/features/settings/LanguageSwitchTest.kt:37:27 Unresolved reference 'espresso'."
+      ]
+    },
+    {
+      "log": "/tmp/hadithly-a5-finish/android-saved-core.log",
+      "sha256": "edcd29b3b9700d1749c9fd5fd470b0060da08c1bf461887b415592b8e46e0fe7",
+      "findings": [
+        "error: device 'emulator-5554' not found"
+      ]
+    },
+    {
+      "log": "/tmp/hadithly-a5-finish/android-unit-final.log",
+      "sha256": "bd4b00a271f883fb15c2b5773d839c9d25bf6769a9cb0fe93fcf7619dcd698fd",
+      "findings": []
+    },
+    {
+      "log": "/tmp/hadithly-a5-finish/ios-controls-before.log",
+      "sha256": "19abcd21829a069fd9052972ca7b0ee73e7b16c008ebba472989884e1a621bb9",
+      "findings": [
+        "/Users/alim/Developer/Projects/Apps/Hadithly/ios/HadithlyUITests/ReaderR5UITests.swift:68: error: -[HadithlyUITests.ReaderR5UITests testTopControlsDoNotOverlapAtLargeText] : XCTAssertLessThanOrEqual failed: (\"100.0\") is greater than (\"94.0\") - Top pills overlap source: (93.0, 70.0, 216.0, 30.0), (61.666666666666686, 94.0, 318.3333333333333, 48.0)"
+      ]
+    },
+    {
+      "log": "/tmp/hadithly-a5-finish/ios-type-before.log",
+      "sha256": "803b852435363dad9d16d8c60f146b5dcd3d39443618ae7ecb1a56c4775a5076",
+      "findings": [
+        "/Users/alim/Developer/Projects/Apps/Hadithly/ios/HadithlyUITests/ReaderR5UITests.swift:27: error: -[HadithlyUITests.ReaderR5UITests testTranslationSizeChangesActualReaderText] : XCTAssertEqual failed: (\"XCTWaiterResult(rawValue: 2)\") is not equal to (\"XCTWaiterResult(rawValue: 1)\") - Actual reader translation ignores selected type size"
+      ]
+    },
+    {
+      "log": "/tmp/hadithly-a5-finish/ios-controls-after.log",
+      "sha256": "f59dfa8920e7deb45b6da961c21af74769185eb19730e99490b425699f7f1a74",
+      "findings": []
+    },
+    {
+      "log": "/tmp/hadithly-a5-finish/ios-controls-matrix.log",
+      "sha256": "03a8d30e1cd70fa8e8eadf9473c00fd56132b9b02fb58451a4292a62e13261ba",
+      "findings": [
+        "/Users/alim/Developer/Projects/Apps/Hadithly/ios/HadithlyUITests/NativeFinishingUITests.swift:358: error: -[HadithlyUITests.NativeFinishingUITests testReaderFocusRemovesGlassControlsAndSystemStatusBar] : XCTAssertEqual failed: (\"XCTWaiterResult(rawValue: 2)\") is not equal to (\"XCTWaiterResult(rawValue: 1)\")",
+        "/Users/alim/Developer/Projects/Apps/Hadithly/ios/HadithlyUITests/ReaderR5UITests.swift:68: error: -[HadithlyUITests.ReaderR5UITests testGoAtLargeTextInRTLAndLongLocales] : XCTAssertLessThanOrEqual failed: (\"204.6666717529297\") is greater than (\"202.33333333333334\") - Top pills overlap source: (79.66666412353516, 70.0, 242.66668701171875, 134.6666717529297), (22.0, 202.33333333333334, 318.3333333333333, 47.99999999999994)"
+      ]
+    },
+    {
+      "log": "/tmp/hadithly-a5-finish/ios-controls-matrix2.log",
+      "sha256": "b10b27ea0491e4e6585e4be543290ebfbfac1e34ca04fbb2eceaf61bee3b9e4e",
+      "findings": [
+        "/Users/alim/Developer/Projects/Apps/Hadithly/ios/HadithlyUITests/ReaderR5UITests.swift:68: error: -[HadithlyUITests.ReaderR5UITests testGoAtLargeTextInRTLAndLongLocales] : XCTAssertLessThanOrEqual failed: (\"204.6666717529297\") is greater than (\"202.33333333333334\") - Top pills overlap source: (79.66666412353516, 70.0, 242.66668701171875, 134.6666717529297), (22.0, 202.33333333333334, 318.3333333333333, 47.99999999999994)"
+      ]
+    },
+    {
+      "log": "/tmp/hadithly-a5-finish/ios-controls-matrix3.log",
+      "sha256": "226c3a7d617b3ead3f8dc9d03c990b388be4d39362a6b5b52a89d28d4ec5418d",
+      "findings": [
+        "/Users/alim/Developer/Projects/Apps/Hadithly/ios/HadithlyUITests/ReaderR5UITests.swift:68: error: -[HadithlyUITests.ReaderR5UITests testGoAtLargeTextInRTLAndLongLocales] : XCTAssertLessThanOrEqual failed: (\"204.6666717529297\") is greater than (\"202.33333333333334\") - Top pills overlap source: (79.66666412353516, 70.0, 242.66668701171875, 134.6666717529297), (22.0, 202.33333333333334, 318.3333333333333, 47.99999999999994)"
+      ]
+    },
+    {
+      "log": "/tmp/hadithly-a5-finish/ios-controls-type4.log",
+      "sha256": "40b45645e564fe56b649d50de297045fa554e70abe3552e79eb7e49ceafa78d0",
+      "findings": [
+        "/Users/alim/Developer/Projects/Apps/Hadithly/ios/HadithlyUITests/ReaderR5UITests.swift:85: error: -[HadithlyUITests.ReaderR5UITests testGoAtLargeTextInRTLAndLongLocales] : XCTAssertLessThanOrEqual failed: (\"133.3333282470703\") is greater than (\"35.66666666666664\") - Top pills overlap source: (43.33333206176758, 70.0, 315.6666564941406, 63.33332824707031), (61.666666666666686, 35.66666666666664, 318.3333333333333, 48.0)",
+        "/Users/alim/Developer/Projects/Apps/Hadithly/ios/HadithlyUITests/ReaderR5UITests.swift:85: error: -[HadithlyUITests.ReaderR5UITests testTopControlsDoNotOverlapAtLargeText] : XCTAssertLessThanOrEqual failed: (\"133.3333282470703\") is greater than (\"35.66666666666664\") - Top pills overlap source: (43.33333206176758, 70.0, 315.6666564941406, 63.33332824707031), (61.666666666666686, 35.66666666666664, 318.3333333333333, 48.0)"
+      ]
+    },
+    {
+      "log": "/tmp/hadithly-a5-finish/ios-viewport5.log",
+      "sha256": "d1db8eca9070bf5c0f6cba5085a50f50f419b049a25b8d91d0996691fb4fb969",
+      "findings": [
+        "/Users/alim/Developer/Projects/Apps/Hadithly/ios/HadithlyUITests/ReaderR5UITests.swift:90: error: -[HadithlyUITests.ReaderR5UITests testGoAtLargeTextInRTLAndLongLocales] : XCTAssertGreaterThanOrEqual failed: (\"157.3333282470703\") is less than (\"157.33333333333331\")"
+      ]
+    },
+    {
+      "log": "/tmp/hadithly-a5-finish/ios-saved-journey.log",
+      "sha256": "99e3232681cee06800a4eb8a397dd9436920e544ffb34e94095fb0dddb2ed95b",
+      "findings": [
+        "/Users/alim/Developer/Projects/Apps/Hadithly/ios/HadithlyUITests/ReaderR5UITests.swift:36: error: -[HadithlyUITests.ReaderR5UITests testGuestSavingNoteUndoAndSavedReaderReturn] : XCTAssertTrue failed"
+      ]
+    },
+    {
+      "log": "/tmp/hadithly-a5-finish/ios-completion.log",
+      "sha256": "a305bb3d4ea12152ca2325f0ee8cd0eec6e4e7c17ebb0d90473b03bbf2c91d3e",
+      "findings": [
+        "/Users/alim/Developer/Projects/Apps/Hadithly/ios/HadithlyUITests/ReaderR5UITests.swift:143: error: -[HadithlyUITests.ReaderR5UITests testGoAtLargeTextInRTLAndLongLocales] : XCTAssertTrue failed",
+        "/Users/alim/Developer/Projects/Apps/Hadithly/ios/HadithlyUITests/ReaderR5UITests.swift:88: error: -[HadithlyUITests.ReaderR5UITests testTranslationSizeChangesActualReaderText] : XCTAssertEqual failed: (\"XCTWaiterResult(rawValue: 2)\") is not equal to (\"XCTWaiterResult(rawValue: 1)\") - Actual reader translation ignores selected type size"
+      ]
+    },
+    {
+      "log": "/tmp/hadithly-a5-finish/ios-language-ink-before.log",
+      "sha256": "8489893ed279a66239e69002384692b4e86a045455dea2314c69fe95c5e27104",
+      "findings": [
+        "/Users/alim/Developer/Projects/Apps/Hadithly/ios/HadithlyUITests/LanguageSwitchUITests.swift:107: error: -[HadithlyUITests.LanguageSwitchUITests testLiveLanguageSwitchKeepsEnglishLTRAndArabicLabels] : XCTAssertLessThan failed: (\"668028\") is not less than (\"22368\") - English Settings ink is mirrored after returning: direct=668028, flipped=22368"
+      ]
+    }
+  ]
+}

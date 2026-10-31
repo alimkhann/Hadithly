@@ -31,7 +31,11 @@ struct RootView: View {
 
     @ViewBuilder
     var body: some View {
-        if AutomationContext.allows("-A5ContentsNavigationFixture") {
+        if AutomationContext.allows("-A5ReaderTypeFixture") {
+#if DEBUG
+            ReaderTypeSizingFixture()
+#endif
+        } else if AutomationContext.allows("-A5ContentsNavigationFixture") {
 #if DEBUG
             ContentsNavigationFixture()
 #endif

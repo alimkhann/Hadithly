@@ -30,6 +30,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -108,6 +110,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -380,6 +384,9 @@ private fun ReadingView(
     var readerMenuExpanded by remember { mutableStateOf(false) }
     var showSearch by remember { mutableStateOf(false) }
     var showReaderSaved by remember { mutableStateOf(false) }
+    val headerConfiguration = LocalConfiguration.current
+    val headerDensity = LocalDensity.current
+    var progressHeaderHeight by remember(headerConfiguration.locales[0].toLanguageTag(), headerConfiguration.screenWidthDp, headerDensity.fontScale) { mutableStateOf(56.dp) }
     var showBookmarkPlacement by remember { mutableStateOf(false) }
     val bookmarks by viewModel.library.bookmarks.collectAsStateWithLifecycle()
     val favorites by viewModel.library.favorites.collectAsStateWithLifecycle()
@@ -614,6 +621,7 @@ private fun ReadingView(
                         pageIndex = pageIndex,
                         pillState = pagePillState,
                         verticalLanding = state.verticalLanding,
+                        topContentPadding = progressHeaderHeight,
                         isSentinel = pageIndex >= pages.size,
                         // Round 7: the inline corner label rides the chrome
                         // fade+scale through graphicsLayer — always composed,
@@ -650,12 +658,13 @@ private fun ReadingView(
                 if (!readerMenuExpanded) ReaderActionHint(experience, Modifier.fillMaxWidth())
                 com.hadithly.app.features.saved.SavedUndoBanner(
                     testTag = "reader.undoBanner",
+                    controller = viewModel.library.undo,
                 )
             }
         }
 
         ReaderProgressHUD(pageScroll, state.pageIndex, totalPages, unfocusedVolumeNumber, volumeFraction,
-            state.chromeVisible, reduceMotion)
+            state.chromeVisible, reduceMotion, onHeaderHeight = { progressHeaderHeight = maxOf(progressHeaderHeight, it + 12.dp) })
 
         AnimatedVisibility(
             visible = state.chromeVisible,
@@ -842,7 +851,9 @@ internal fun ReaderProgressHUD(
     volumeFraction: Double?,
     chromeVisible: Boolean,
     reduceMotion: Boolean,
+    onHeaderHeight: (androidx.compose.ui.unit.Dp) -> Unit = {},
 ) {
+    val density = LocalDensity.current
     val focused = !chromeVisible
     val chromeAnim: FiniteAnimationSpec<Float> = if (reduceMotion) snap() else tween(200)
     val intraPageFraction = if (pageScroll.value.first == pageIndex) pageScroll.value.second else 0f
@@ -887,16 +898,19 @@ internal fun ReaderProgressHUD(
         // Volume pill filled by the page fraction within the volume. The
         // status bar is visible here, so the row sits below it. Fades +
         // scales with the toggle; the page underneath never moves.
-        AnimatedVisibility(
-            visible = chromeVisible,
-            enter = fadeIn(chromeAnim) + scaleIn(chromeAnim, initialScale = 0.96f),
-            exit = fadeOut(chromeAnim) + scaleOut(chromeAnim, targetScale = 0.96f),
-            modifier = Modifier.align(Alignment.TopCenter),
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.statusBarsPadding().padding(top = 6.dp),
+        val pillAlpha by animateFloatAsState(if (chromeVisible) 1f else 0f, chromeAnim, label = "progressPillsVisibility")
+        Box(Modifier.align(Alignment.TopCenter).graphicsLayer {
+            alpha = pillAlpha
+            scaleX = 0.96f + 0.04f * pillAlpha
+            scaleY = 0.96f + 0.04f * pillAlpha
+        }.then(if (chromeVisible) Modifier else Modifier.clearAndSetSemantics {})) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                maxItemsInEachRow = 2,
+                modifier = Modifier.fillMaxWidth()
+                    .onSizeChanged { onHeaderHeight(with(density) { it.height.toDp() }) }
+                    .statusBarsPadding().padding(start = 20.dp, end = 20.dp, top = 6.dp),
             ) {
                 ReaderProgressPill(
                     number = java.text.NumberFormat.getIntegerInstance(LocalConfiguration.current.locales[0]).format(pageIndex + 1),
@@ -1185,6 +1199,7 @@ private fun ReaderPage(
     pillState: ReaderPagePills.State,
     verticalLanding: ReaderVerticalLandingRequest?,
     isSentinel: Boolean,
+    topContentPadding: androidx.compose.ui.unit.Dp,
     // Round 7: the animated chrome fade+scale driven in ReadingView. The
     // inline corner label rides these through graphicsLayer — always
     // composed, so page layout never moves.
@@ -1378,6 +1393,8 @@ private fun ReaderPage(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .padding(top = topContentPadding)
+            .testTag("reader.pageViewport")
             .confirmedTapGesture { onTap() },
     ) {
         if (isSentinel || hadiths.isEmpty()) {
@@ -1400,10 +1417,7 @@ private fun ReaderPage(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(
                     start = 22.dp, end = 22.dp,
-                    // Reader pages never sit below an iPhone/Android cutout.
-                    // Keep this stable across chrome states so page turns do
-                    // not shift the reading position.
-                    top = 56.dp,
+                    top = 0.dp,
                     bottom = 80.dp,
                 ),
             ) {
@@ -1493,6 +1507,7 @@ private fun ReaderPage(
                             onSuggest = { translation -> submissionTarget = hadith to translation },
                             onReport = { translation -> reportTarget = hadith to translation },
                             onShowPaywall = onShowPaywall,
+                            library = viewModel.library,
                             // R6A fix: whitespace separates hadiths — no dividers.
                             // Calm rhythm: modest inter-hadith padding with
                             // generous space kept above chapter lines.
@@ -1858,7 +1873,8 @@ private fun ReaderProgressPill(
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .height(32.dp)
+            .width(IntrinsicSize.Max)
+            .heightIn(min = 32.dp)
             .clip(RoundedCornerShape(50))
             .background(colors.surface.copy(alpha = 0.84f))
             .border(
@@ -1872,15 +1888,17 @@ private fun ReaderProgressPill(
         // inset, only a small horizontal inset — clipped to the pill
         // capsule, so low fills stay a rounded nub and never show square
         // corners. The fill fraction still animates (see above).
-        Box(
-            modifier = Modifier
+        Box(Modifier.matchParentSize()) {
+            Box(
+                modifier = Modifier
                 .align(Alignment.CenterStart)
                 .fillMaxHeight()
                 .padding(horizontal = 3.dp)
                 .fillMaxWidth(animatedFraction)
                 .clip(RoundedCornerShape(50))
                 .background(colors.textSecondary.copy(alpha = 0.22f)),
-        )
+            )
+        }
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -2232,6 +2250,7 @@ internal fun HadithBlock(
     onSuggest: (ReaderTranslation?) -> Unit,
     onReport: (ReaderTranslation) -> Unit,
     onShowPaywall: () -> Unit,
+    library: UserLibraryModel? = null,
 ) {
     val colors = LocalHadithlyColors.current
     val arabicFamily = com.hadithly.app.core.theme.ArabicTypefaces.forFont(preferences.arabicFont)
@@ -2241,6 +2260,7 @@ internal fun HadithBlock(
     val hapticView = LocalView.current
     var menuExpanded by remember { mutableStateOf(false) }
     val app = com.hadithly.app.HadithlyApplication.instance()
+    val savedLibrary = library ?: app.library
     var pendingRemoval by remember { mutableStateOf<String?>(null) }
     val bookmarkRemovedLabel = stringResource(R.string.saved_bookmark_removed)
     val favoriteRemovedLabel = stringResource(R.string.saved_favorite_removed)
@@ -2248,16 +2268,16 @@ internal fun HadithBlock(
 
     fun toggleBookmarkSafely() {
         if (deps.isBookmarked) {
-            val createdAt = app.library.savedItems.value.firstOrNull { it.hadithId == hadith._id }?.bookmarkCreatedAt
+            val createdAt = savedLibrary.savedItems.value.firstOrNull { it.hadithId == hadith._id }?.bookmarkCreatedAt
             deps.onToggleBookmark()
-            if (createdAt != null) app.library.undo.show(bookmarkRemovedLabel) { app.library.restoreBookmark(savedRef, createdAt) }
+            if (createdAt != null) savedLibrary.undo.show(bookmarkRemovedLabel) { savedLibrary.restoreBookmark(savedRef, createdAt) }
         } else deps.onToggleBookmark()
     }
     fun toggleFavoriteSafely() {
         if (deps.isFavorite) {
-            val createdAt = app.library.savedItems.value.firstOrNull { it.hadithId == hadith._id }?.favoriteCreatedAt
+            val createdAt = savedLibrary.savedItems.value.firstOrNull { it.hadithId == hadith._id }?.favoriteCreatedAt
             deps.onToggleFavorite()
-            if (createdAt != null) app.library.undo.show(favoriteRemovedLabel) { app.library.restoreFavorite(savedRef, createdAt) }
+            if (createdAt != null) savedLibrary.undo.show(favoriteRemovedLabel) { savedLibrary.restoreFavorite(savedRef, createdAt) }
         } else deps.onToggleFavorite()
     }
 
@@ -2411,6 +2431,7 @@ internal fun HadithBlock(
                     hadith = hadith,
                     translationState = translationState,
                     language = language,
+                    fontSize = preferences.translationFontSize,
                     onRetry = onRetry,
                     onShowPaywall = onShowPaywall,
                     allowance = allowance,
@@ -2755,18 +2776,19 @@ internal fun TranslationSection(
     onRetry: () -> Unit,
     onShowPaywall: () -> Unit,
     allowance: com.hadithly.app.core.data.TranslationAllowance? = null,
+    fontSize: Float = 16f,
 ) {
     val colors = LocalHadithlyColors.current
     val stored = (translationState as? TranslationUiState.Loaded)?.translation
     if (stored != null) {
         com.hadithly.app.core.theme.TranslationReveal(com.hadithly.app.core.theme.TranslationPresentationPhase.Available) {
-            TranslationText(text = stored.translation, storedTranslation = stored)
+            TranslationText(text = stored.translation, storedTranslation = stored, fontSize = fontSize)
         }
         GlossaryNotes(stored.glossaryNotes)
         return
     }
     if (language == "en" && !hadith.englishText.isNullOrEmpty()) {
-        TranslationText(text = hadith.englishText, storedTranslation = null)
+        TranslationText(text = hadith.englishText, storedTranslation = null, fontSize = fontSize)
         return
     }
 
@@ -2843,13 +2865,14 @@ private fun TranslationAction(title: String, tag: String, enabled: Boolean = tru
 private fun TranslationText(
     text: String,
     storedTranslation: ReaderTranslation?,
+    fontSize: Float,
 ) {
     val colors = LocalHadithlyColors.current
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(
             text = text,
-            fontSize = 16.sp,
-            lineHeight = 23.sp,
+            fontSize = fontSize.sp,
+            lineHeight = (fontSize + 7).sp,
             color = colors.textPrimary.copy(alpha = 0.92f),
         )
     }
@@ -3592,7 +3615,7 @@ internal fun ReaderSavedSheet(
         }
         else if (visible.isEmpty()) com.hadithly.app.features.saved.SavedEmptyState(tab.ordinal, folderId != null, Icons.Filled.BookmarkBorder, Modifier.weight(1f).testTag("reader.saved.empty"))
         else LazyColumn(Modifier.weight(1f).testTag("reader.saved.rows"), verticalArrangement = Arrangement.spacedBy(10.dp)) { items(visible, key = { it.hadithId }) { item -> com.hadithly.app.features.saved.SharedSavedItemRow(item, folders, folderId == null, onOpen, { facet, saved, ref -> val request = Triple(facet, saved, ref); removalScope = actionScope; if (app.savedSafety.confirmsRemoval) removal = request else remove(request) }, { library.assignFolder(item.hadithId, it, actionScope) }, { ref -> scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(ref.referenceDisplay, listOfNotNull(ref.arabicText, ref.englishText, ref.referenceDisplay).joinToString("\n\n")))) } }, { ref -> context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "https://hadithly.app/hadith/${ref.collectionSlug}/${ref.hadithNumber}"), null)) }, onOpen, { ref -> withContext(Dispatchers.IO) { app.repository.loadSavedPreview(ref) } }) } }
-        com.hadithly.app.features.saved.SavedUndoBanner(testTag = "reader.saved.undoBanner")
+        com.hadithly.app.features.saved.SavedUndoBanner(testTag = "reader.saved.undoBanner", controller = library.undo)
         com.hadithly.app.features.saved.SavedFilterBar(tab.ordinal, { tab = ReaderSavedTab.entries[it] }, "reader.saved.tab", Modifier.padding(top = 8.dp))
     }
     removal?.let { request -> AlertDialog(onDismissRequest = { removal = null }, title = { Text(nativeText("Remove saved item?")) }, text = { Text(stringResource(R.string.saved_removal_undo_message)) }, confirmButton = { TextButton(onClick = { remove(request); removal = null }) { Text(nativeText("Remove")) } }, dismissButton = { Column { TextButton(onClick = { app.savedSafety.confirmsRemoval = false; remove(request); removal = null }) { Text(nativeText("Remove and don't ask again")) }; TextButton(onClick = { removal = null }) { Text(nativeText("Cancel")) } } }) }
