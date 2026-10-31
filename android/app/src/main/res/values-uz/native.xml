@@ -356,4 +356,62 @@
     <string name="native_4e46b5060c34" formatted="false">Bu fayl litsenziyasini tekshirib boʻlmadi.</string>
     <string name="native_0036733fa321" formatted="false">Fayl tekshiruvdan oʻtmadi. Oʻrnatilgan nusxa ishlaydi.</string>
     <string name="native_22edbe1fbf15" formatted="false">Yuklab boʻlmadi.</string>
+    <string name="native_b8ee348d475f" formatted="false">Bu suratni oʻqib boʻlmadi.</string>
+    <string name="native_8df1b37d7485" formatted="false">Profil surati yangilandi.</string>
+    <string name="native_a522262150fb" formatted="false">Suratingizni yangilab boʻlmadi. Qayta urining.</string>
+    <string name="native_ca70de723b2b" formatted="false">Hozir eksport qilish imkoni yoʻq.</string>
+    <string name="native_18885decd18a" formatted="false">Eksport bekor qilindi: qurilma tekshiruvi oʻtmadi.</string>
+    <string name="native_b3fd59293017" formatted="false">Eksport bajarilmadi. Qayta urining.</string>
+    <string name="native_866149828181" formatted="false">Eksport saqlandi. Saqlangan narsalar: %d. Oʻqish joylari: %d.</string>
+    <string name="native_ba45fbd4965b" formatted="false">Xaridni tugatish yoki tiklash uchun asl Hadithly hisobingizdan foydalaning.</string>
+    <string name="native_cabfb05e7965" formatted="false">Xarid qilish yoki tiklashdan oldin Hadithly hisobingizga kiring.</string>
+    <string name="native_62b98d8b7580" formatted="false">Rejalarni yuklab boʻlmadi. Qayta urining.</string>
+    <string name="native_22c5a063d631" formatted="false">Hozir obuna rejalari mavjud emas.</string>
+    <string name="native_c8496fa28c59" formatted="false">Xaridni yakunlab boʻlmadi. Qayta urining.</string>
+    <string name="native_92fdb74afecf" formatted="false">Tiklab boʻlmadi. Asl Hadithly va doʻkon hisoblaridan foydalanib, qayta urining.</string>
+    <string name="native_11825b8342af" formatted="false">Bu Hadithly hisobida faol Pro xaridi topilmadi. Pro sotib olingan hisobdan foydalaning.</string>
+    <string name="native_76d71b7e58ff" formatted="false">Obunangizni tekshirib boʻlmadi. Xaridlarni tiklashni birozdan soʻng qaytaring.</string>
+    <string name="native_ccc99c31e5d2" formatted="false">Xarid holatini oʻqib boʻlmadi. Yordam xizmatiga murojaat qiling; oʻqish mumkin.</string>
+    <string name="native_8f225162c5a6" formatted="false">Bu yigʻilmada obunalar sozlanmagan.</string>
+    <string name="native_8c35068a83c2" formatted="false">Tizim sozlamalarida bildirishnomalarga ruxsat yoʻq.</string>
+    <string name="native_a5301f62f31c" formatted="false">Bu qurilma roʻyxatdan oʻtkazilmoqda…</string>
+    <string name="native_6fae3dfb454b" formatted="false">Bu qurilma roʻyxatdan oʻtgan.</string>
+    <string name="native_543b256ddc64" formatted="false">Bildirishnoma sozlamalarini saqlab boʻlmadi.</string>
+    <string name="native_036f9512f597" formatted="false">Qurilmani roʻyxatdan oʻtkazib boʻlmadi. Ulanishni tekshirib, qayta urining.</string>
+    <string name="native_b7c6d1d0fa20" formatted="false">Uchtadan koʻp dalil tanlamang.</string>
+    <string name="native_5ed9f28d77f4" formatted="false">Har bir fayl 10 MB yoki kichikroq boʻlishi kerak.</string>
+    <string name="native_e786c341c703" formatted="false">JPEG, PNG, WebP yoki PDF tanlang.</string>
+    <string name="native_792abfe7e9b8" formatted="false">Yuklashni qaytarish uchun bu faylni qayta tanlang.</string>
+    <string name="native_8739873a8669" formatted="false">Dalillarni yuborib boʻlmadi. Qayta urining.</string>
+    <string name="native_dd583b3d0c06" formatted="false">Yuklash toʻxtatildi. Tayyor boʻlganingizda qayta urining.</string>
+    <string name="native_98bd5a460fdb" formatted="false">Foydalanuvchi nomi va parolsiz HTTPS manba havolasini kiriting.</string>
+    <string name="native_f983f16dffba" formatted="false">Bu qoralamani yuklab boʻlmadi. Ulanish tiklanganda qayta urining.</string>
+    <string name="native_5eb9f3a3450e" formatted="false">Dalil holati mavjud emas. Ulanganda qayta urining.</string>
+    <string name="native_64c5c59d8d4e" formatted="false">Hozir dalillarni qayta ishlash imkoni boʻlmadi.</string>
+    <string name="native_545610d5c266" formatted="false">Bu taklifni qaytarib olib boʻlmadi.</string>
+    <string name="native_be54b4b25c7a" formatted="false">Bu qoralamani oʻchirib boʻlmadi.</string>
+    <string name="native_108342f648f2" formatted="false">Dalillarni yuklash uchun qayta kiring.</string>
+    <string name="native_0a72668f5d1f" formatted="false">Yuklash manzili mavjud emas.</string>
+    <string name="native_0a2632d6ec98" formatted="false">Bu faylni qoʻshib boʻlmadi.</string>
+    <string name="native_15c7d5fc55c7" formatted="false">Yuklanganlarni oʻchirish</string>
+    <string name="native_5d1fa38bcf0d" formatted="false">Tayyorlanmoqda…</string>
+    <string name="native_5a4918e0201c" formatted="false">Tiklanmoqda…</string>
+    <string name="native_43b5894c3e4e" formatted="false">Oʻchirilmoqda…</string>
+    <string name="native_b8ed5279e897" formatted="false">Yuborilmoqda…</string>
+    <string name="native_fddb7f9c69fe" formatted="false">Maʼlumotlarimni eksport qilish</string>
+    <string name="native_a23a24484b10" formatted="false">Dalillar bilan yuborish</string>
+    <string name="native_5ddb26291449" formatted="false">Dalil yuklashni qaytarish</string>
+    <string name="native_b74e53451109" formatted="false">Shaxsiy shikoyat yuborish</string>
+    <string name="native_5d5c3f64367e" formatted="false">Profil, surat va ismni koʻrish</string>
+    <string name="native_130011756125" formatted="false">Yoqilgan</string>
+    <string name="native_ca7981b46ecf" formatted="false">Oʻchirilgan</string>
+    <string name="native_94ea9b1d33a0" formatted="false">Kamroq koʻrsatish</string>
+    <string name="native_83b794145c0c" formatted="false">Davomini oʻqish</string>
+    <string name="native_f411a1fb6275" formatted="false">Bepul</string>
+    <string name="native_4324e45c8fce" formatted="false">Pro sinovi</string>
+    <string name="native_7e1b0d5641f2" formatted="false">Hisob</string>
+    <string name="native_babf2e231130" formatted="false">Maʼlumotlarni eksport qilishdan oldin shaxsingizni tasdiqlang.</string>
+    <string name="native_8feb4f467a2d" formatted="false">Bu yigʻilmada bildirishnomalar sozlanmagan.</string>
+    <string name="native_b4836106f489" formatted="false">Xatcho‘pni olib tashlash</string>
+    <string name="native_5bc0aa08d678" formatted="false">Sevimlilardan olib tashlash</string>
 </resources>

@@ -356,4 +356,62 @@
     <string name="native_4e46b5060c34" formatted="false">Бул файлдын лицензиясын текшерүү мүмкүн болгон жок.</string>
     <string name="native_0036733fa321" formatted="false">Файл текшерүүдөн өткөн жок. Орнотулган көчүрмө иштейт.</string>
     <string name="native_22edbe1fbf15" formatted="false">Жүктөө ишке ашкан жок.</string>
+    <string name="native_b8ee348d475f" formatted="false">Бул сүрөттү окуу мүмкүн болгон жок.</string>
+    <string name="native_8df1b37d7485" formatted="false">Профиль сүрөтү жаңыртылды.</string>
+    <string name="native_a522262150fb" formatted="false">Сүрөтүңүздү жаңыртуу мүмкүн болгон жок. Кайра аракет кылыңыз.</string>
+    <string name="native_ca70de723b2b" formatted="false">Экспорт азыр жеткиликсиз.</string>
+    <string name="native_18885decd18a" formatted="false">Экспорт токтотулду: түзмөк текшерүүсү өткөн жок.</string>
+    <string name="native_b3fd59293017" formatted="false">Экспорт ишке ашкан жок. Кайра аракет кылыңыз.</string>
+    <string name="native_866149828181" formatted="false">Экспорт сакталды. Сакталган нерселер: %d. Окуу орундары: %d.</string>
+    <string name="native_ba45fbd4965b" formatted="false">Сатып алууну бүтүрүү же калыбына келтирүү үчүн баштапкы Hadithly аккаунтуңузду колдонуңуз.</string>
+    <string name="native_cabfb05e7965" formatted="false">Сатып алуу же калыбына келтирүү алдында Hadithly аккаунтуңузга кириңиз.</string>
+    <string name="native_62b98d8b7580" formatted="false">Пландар жүктөлгөн жок. Кайра аракет кылыңыз.</string>
+    <string name="native_22c5a063d631" formatted="false">Азыр жазылуу пландары жеткиликсиз.</string>
+    <string name="native_c8496fa28c59" formatted="false">Сатып алуу аяктаган жок. Кайра аракет кылыңыз.</string>
+    <string name="native_92fdb74afecf" formatted="false">Калыбына келтирүү ишке ашкан жок. Баштапкы Hadithly жана дүкөн аккаунттары менен кайра аракет кылыңыз.</string>
+    <string name="native_11825b8342af" formatted="false">Бул Hadithly аккаунту үчүн активдүү Pro сатып алуусу табылган жок. Pro сатып алган аккаунтту колдонуңуз.</string>
+    <string name="native_76d71b7e58ff" formatted="false">Жазылууңузду текшерүү мүмкүн болгон жок. Сатып алууларды калыбына келтирүүнү бир аздан кийин кайталаңыз.</string>
+    <string name="native_ccc99c31e5d2" formatted="false">Сатып алуу абалы окулган жок. Колдоо кызматына кайрылыңыз; окуу жеткиликтүү.</string>
+    <string name="native_8f225162c5a6" formatted="false">Бул түзүмдө жазылуулар жөндөлгөн эмес.</string>
+    <string name="native_8c35068a83c2" formatted="false">Системанын жөндөөлөрүндө эскертмелерге уруксат жок.</string>
+    <string name="native_a5301f62f31c" formatted="false">Бул түзмөк катталууда…</string>
+    <string name="native_6fae3dfb454b" formatted="false">Бул түзмөк катталган.</string>
+    <string name="native_543b256ddc64" formatted="false">Эскертме жөндөөлөрү сакталган жок.</string>
+    <string name="native_036f9512f597" formatted="false">Түзмөк катталган жок. Байланышты текшерип, кайра аракет кылыңыз.</string>
+    <string name="native_b7c6d1d0fa20" formatted="false">Үчтөн ашпаган далил элементин тандаңыз.</string>
+    <string name="native_5ed9f28d77f4" formatted="false">Ар бир файл 10 МБ же андан кичине болушу керек.</string>
+    <string name="native_e786c341c703" formatted="false">JPEG, PNG, WebP же PDF тандаңыз.</string>
+    <string name="native_792abfe7e9b8" formatted="false">Жүктөп берүүнү кайталоо үчүн бул файлды кайра тандаңыз.</string>
+    <string name="native_8739873a8669" formatted="false">Далилдер жөнөтүлгөн жок. Кайра аракет кылыңыз.</string>
+    <string name="native_dd583b3d0c06" formatted="false">Жүктөп берүү тындырылды. Даяр болгондо кайталаңыз.</string>
+    <string name="native_98bd5a460fdb" formatted="false">Колдонуучу аты жана сырсөзү жок HTTPS булак шилтемесин киргизиңиз.</string>
+    <string name="native_f983f16dffba" formatted="false">Бул каралама жүктөлгөн жок. Байланыш кайтып келгенде кайталаңыз.</string>
+    <string name="native_5eb9f3a3450e" formatted="false">Далил абалы жеткиликсиз. Туташканда кайталаңыз.</string>
+    <string name="native_64c5c59d8d4e" formatted="false">Далилдерди азыр кайра иштетүү мүмкүн болгон жок.</string>
+    <string name="native_545610d5c266" formatted="false">Бул сунушту кайтарып алуу мүмкүн болгон жок.</string>
+    <string name="native_be54b4b25c7a" formatted="false">Бул караламаны өчүрүү мүмкүн болгон жок.</string>
+    <string name="native_108342f648f2" formatted="false">Далил жүктөп берүү үчүн кайра кириңиз.</string>
+    <string name="native_0a72668f5d1f" formatted="false">Жүктөп берүү дареги жеткиликсиз.</string>
+    <string name="native_0a2632d6ec98" formatted="false">Бул файл кошулган жок.</string>
+    <string name="native_15c7d5fc55c7" formatted="false">Жүктөлгөндү өчүрүү</string>
+    <string name="native_5d1fa38bcf0d" formatted="false">Даярдалууда…</string>
+    <string name="native_5a4918e0201c" formatted="false">Калыбына келтирилүүдө…</string>
+    <string name="native_43b5894c3e4e" formatted="false">Өчүрүлүүдө…</string>
+    <string name="native_b8ed5279e897" formatted="false">Жөнөтүлүүдө…</string>
+    <string name="native_fddb7f9c69fe" formatted="false">Маалыматтарымды экспорттоо</string>
+    <string name="native_a23a24484b10" formatted="false">Далилдер менен жөнөтүү</string>
+    <string name="native_5ddb26291449" formatted="false">Далил жүктөп берүүнү кайталоо</string>
+    <string name="native_b74e53451109" formatted="false">Жеке арыз жөнөтүү</string>
+    <string name="native_5d5c3f64367e" formatted="false">Профиль, сүрөт жана ат</string>
+    <string name="native_130011756125" formatted="false">Күйүк</string>
+    <string name="native_ca7981b46ecf" formatted="false">Өчүк</string>
+    <string name="native_94ea9b1d33a0" formatted="false">Азыраак көрсөтүү</string>
+    <string name="native_83b794145c0c" formatted="false">Кененирээк окуу</string>
+    <string name="native_f411a1fb6275" formatted="false">Акысыз</string>
+    <string name="native_4324e45c8fce" formatted="false">Pro сыноосу</string>
+    <string name="native_7e1b0d5641f2" formatted="false">Аккаунт</string>
+    <string name="native_babf2e231130" formatted="false">Маалыматты экспорттоодон мурун өзүңүз экениңизди ырастаңыз.</string>
+    <string name="native_8feb4f467a2d" formatted="false">Бул түзүмдө эскертмелер жөндөлгөн эмес.</string>
+    <string name="native_b4836106f489" formatted="false">Кыстарманы алып салуу</string>
+    <string name="native_5bc0aa08d678" formatted="false">Тандалмалардан алып салуу</string>
 </resources>

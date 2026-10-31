@@ -1,6 +1,7 @@
 package com.hadithly.app.features.reader
 
 import com.hadithly.app.core.preferences.nativeText
+import com.hadithly.app.core.preferences.runtimeNoticeText
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -65,7 +66,7 @@ fun TranslationReportSheet(
     Column(verticalArrangement = Arrangement.spacedBy(14.dp), modifier = Modifier.fillMaxWidth().padding(20.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Text(nativeText("Report translation"), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary, modifier = Modifier.weight(1f))
-            TextButton(onClick = onDone) { Text(if (submitted) "Done" else "Cancel", color = colors.interactive) }
+            TextButton(onClick = onDone) { Text(nativeText(if (submitted) "Done" else "Cancel"), color = colors.interactive) }
         }
         if (submitted) {
             Column(
@@ -87,7 +88,7 @@ fun TranslationReportSheet(
                 colors = editorColors(),
                 modifier = Modifier.fillMaxWidth().height(130.dp).testTag("report.editor"),
             )
-            error?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
+            error?.let { Text(runtimeNoticeText(it), fontSize = 12.sp, color = colors.textSecondary) }
             Button(
                 enabled = !submitting && reason.isNotBlank(),
                 onClick = {
@@ -113,7 +114,7 @@ fun TranslationReportSheet(
                 ),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth().testTag("report.submit"),
-            ) { Text(if (submitting) "Sending…" else "Send private report", fontWeight = FontWeight.SemiBold) }
+            ) { Text(nativeText(if (submitting) "Sending…" else "Send private report"), fontWeight = FontWeight.SemiBold) }
         }
     }
 }

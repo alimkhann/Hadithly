@@ -135,7 +135,7 @@ struct EvidenceProcessingStatusView: View {
                     }.accessibilityIdentifier("submission.retryProcessing")
                 }
             }
-            if let errorMessage { Text(errorMessage).font(.caption).foregroundStyle(palette.textSecondary).accessibilityIdentifier("submission.error") }
+            if let errorMessage { RuntimeStatusNotice(source: errorMessage).font(.caption).foregroundStyle(palette.textSecondary).accessibilityIdentifier("submission.error") }
             EvidenceAppealContent(appeal: appeal, onAppeal: onAppeal)
             if !citations.isEmpty {
                 Text("e3.sources").font(.headline)
@@ -204,7 +204,7 @@ struct EvidenceAppealContent: View {
                     .disabled(reason.trimmingCharacters(in: .whitespacesAndNewlines).count < 8 || reason.count > 2000)
                     .accessibilityIdentifier("submission.appeal")
             } else if appeal.status != "not_requested" {
-                Text(appeal.status == "processing" ? "e4.appeal_processing" : "e4.appeal_resolved")
+                Text(LocalizedStringKey(appeal.status == "processing" ? "e4.appeal_processing" : "e4.appeal_resolved"))
                     .font(.subheadline).accessibilityIdentifier("submission.appealStatus")
             }
         }
@@ -497,7 +497,7 @@ struct TranslationSubmissionSheet: View {
                 EvidenceUploadProgressView(progress: progress)
             }
             if let errorMessage {
-                Text(errorMessage).font(.caption).foregroundStyle(palette.textSecondary)
+                RuntimeStatusNotice(source: errorMessage).font(.caption).foregroundStyle(palette.textSecondary)
                     .accessibilityIdentifier("submission.error")
             }
             if isSubmitting {
@@ -511,7 +511,7 @@ struct TranslationSubmissionSheet: View {
                     .foregroundStyle(palette.textSecondary)
                     .accessibilityIdentifier("submission.deleteDraft")
             }
-            Button(draft == nil ? "Submit with evidence" : "Retry evidence upload") {
+            Button(LocalizedStringKey(draft == nil ? "Submit with evidence" : "Retry evidence upload")) {
                 activeUpload = Task { await submit() }
             }
             .frame(minHeight: 44)
@@ -537,7 +537,7 @@ struct TranslationSubmissionSheet: View {
             let _: EvidenceSubmitResult = try await environment.convex.mutation("evidenceCases:requestAppeal", with: ["submissionId": submissionId as ConvexEncodable?, "reason": reason as ConvexEncodable?])
             draft = try await fetchDraft(submissionId)
             errorMessage = nil
-        } catch { errorMessage = String(localized: "e4.appeal_error") }
+        } catch { errorMessage = "e4.appeal_error" }
     }
 
     private func observeProcessing(_ submissionId: String, owner: String) async {

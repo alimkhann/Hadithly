@@ -2,6 +2,7 @@ package com.hadithly.app.core.theme
 
 import com.hadithly.app.core.preferences.nativeText
 import com.hadithly.app.features.settings.offlineNoticeText
+import com.hadithly.app.core.preferences.runtimeNoticeText
 
 import androidx.compose.material.icons.filled.Bookmark
 import android.graphics.Bitmap
@@ -344,6 +345,79 @@ class NativeFinishingTest {
             compose.runOnIdle { assertEquals(0, callbacks) }
             compose.onNodeWithTag("offlineAudit.callback").performScrollTo().performClick()
             compose.runOnIdle { assertEquals(1, callbacks) }
+        }
+    }
+
+    @Test fun runtimeNoticesUseSelectedLanguage() = verifyRuntimeNotices(false)
+    @Test fun runtimeNoticesRemainReadableAtLargeText() = verifyRuntimeNotices(true)
+
+    private fun verifyRuntimeNotices(large: Boolean) {
+        fun load(name: String) = org.json.JSONObject(InstrumentationRegistry.getInstrumentation().context.assets.open(name).bufferedReader().use { it.readText() })
+        val copy = load("a4-runtime-notice-copy.json")
+        val binding = load("a4-runtime-binding-copy.json")
+        val newKeys = com.hadithly.app.core.preferences.runtimeCopyKeys
+        val extra = listOf("This action could not be completed. Please try again.","Check your connection and try again.","Done","Cancel","Show Library list","Show Library grid","Remove bookmark","Remove favorite","Add to favorites","Add note","Edit note")
+        val sources = newKeys + extra + "Synthetic private diagnostic %@"
+        var locale by mutableStateOf("en")
+        var index by mutableIntStateOf(0)
+        var callbacks = 0
+        val opaque = "Original %lld %@ اسم"
+        compose.setContent { LocalizedPreview(ReaderTheme.LIGHT, locale) {
+            CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, if (large) 2f else 1f)) {
+                Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(24.dp)) {
+                    androidx.compose.material3.Text(opaque, modifier = Modifier.testTag("runtimeAudit.opaque"))
+                    val text = if (index < newKeys.size || index == sources.lastIndex) com.hadithly.app.core.preferences.runtimeNoticeText(if (index == 6) "Export saved: 2 saved items, 3 reading positions." else sources[index]) else nativeText(sources[index])
+                    androidx.compose.material3.Text(text, modifier = Modifier.testTag("runtimeAudit.notice"))
+                    androidx.compose.material3.Button(onClick = { index = (index + 1) % sources.size }, modifier = Modifier.testTag("runtimeAudit.next")) { androidx.compose.material3.Text("Next fixture notice") }
+                    androidx.compose.material3.Button(onClick = { callbacks++ }, modifier = Modifier.testTag("runtimeAudit.callback")) { androidx.compose.material3.Text("Local callback") }
+                }
+            }
+        } }
+        val locales = if (large) listOf("ar", "ur", "ru", "bn") else listOf("en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn")
+        for (tag in locales) {
+            compose.runOnIdle { locale = tag; index = 0; callbacks = 0 }
+            val values = copy.getJSONObject("locales").getJSONArray(tag)
+            val reused = binding.getJSONObject("locales").getJSONArray(tag)
+            for (i in sources.indices) {
+                val expected = when {
+                    i == 6 -> String.format(java.util.Locale.forLanguageTag(tag), values.getString(i).replace("%lld", "%d"), 2, 3)
+                    i < newKeys.size -> values.getString(i)
+                    i < sources.lastIndex -> reused.getString(i - newKeys.size)
+                    else -> copy.getJSONObject("labels").getJSONObject(tag).getString("fallback")
+                }
+                val notice = compose.onNodeWithTag("runtimeAudit.notice")
+                notice.performScrollTo().assertIsDisplayed().assertTextEquals(expected)
+                val layouts = mutableListOf<androidx.compose.ui.text.TextLayoutResult>()
+                notice.performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.GetTextLayoutResult) { it(layouts) }
+                val layout = layouts.single()
+                assertFalse("$tag:$i height", layout.didOverflowHeight); assertFalse(layout.multiParagraph.didExceedMaxLines)
+                assertEquals(expected.length, layout.getLineEnd(layout.lineCount - 1))
+                for (line in 0 until layout.lineCount) {
+                    assertFalse(layout.isLineEllipsized(line))
+                    assertTrue("$tag:$i line $line", layout.getLineRight(line) - layout.getLineLeft(line) <= layout.size.width + 2f)
+                }
+                if ((!large && i in listOf(0,21,66)) || (large && i in listOf(1,6,12,23,28,55,sources.lastIndex))) capture("runtime-$tag" + (if (large) "-large-" else "-") + i)
+                if (i < sources.lastIndex) compose.onNodeWithTag("runtimeAudit.next").performScrollTo().performClick()
+            }
+            compose.onNodeWithTag("runtimeAudit.opaque").performScrollTo().assertTextEquals(opaque)
+            compose.runOnIdle { assertEquals(0, callbacks) }
+            compose.onNodeWithTag("runtimeAudit.callback").performScrollTo().performClick()
+            compose.runOnIdle { assertEquals(1, callbacks) }
+        }
+    }
+
+    @Test fun runtimeNoticeBoundariesUseKnownCopyAndBoundDiagnostics() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        for (tag in listOf("en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn")) {
+            val configuration = android.content.res.Configuration(context.resources.configuration).apply { setLocale(java.util.Locale.forLanguageTag(tag)) }
+            val resources = context.createConfigurationContext(configuration).resources
+            val fallback = resources.nativeText("This action could not be completed. Please try again.")
+            for (source in listOf("Private diagnostic %@", "Export saved: 999999999999999999999999 saved items, 1 reading positions.")) assertEquals(tag, fallback, resources.runtimeNoticeText(source))
+            assertEquals(resources.nativeText("Use your original Hadithly account to finish or restore this purchase."), resources.runtimeNoticeText("Sign in to your original Hadithly account before restoring."))
+            assertEquals(resources.nativeText("Each file must be 10 MB or smaller."), resources.runtimeNoticeText("Each file must be 10 MB or smaller."))
+            assertEquals(resources.getString(com.hadithly.app.R.string.e4_appeal_error), resources.runtimeNoticeText("e4.appeal_error"))
+            assertEquals(resources.nativeText("Could not check for updates. Your downloads keep working offline."), resources.offlineNoticeText("Could not check for updates (Private diagnostic %@). Your downloads keep working offline."))
+            assertEquals(resources.nativeText("Download failed."), resources.offlineNoticeText("Private diagnostic %@"))
         }
     }
 

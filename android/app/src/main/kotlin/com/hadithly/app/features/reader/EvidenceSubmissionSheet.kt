@@ -1,6 +1,7 @@
 package com.hadithly.app.features.reader
 
 import com.hadithly.app.core.preferences.nativeText
+import com.hadithly.app.core.preferences.runtimeNoticeText
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -383,7 +384,7 @@ fun TranslationSubmissionSheet(
                     onAppeal = { reason -> draft?.submissionId?.let { id -> scope.launch {
                         runCatching { repository.requestEvidenceAppeal(id, reason) }
                             .onSuccess { draft = repository.getOwnEvidenceDraft(id); error = null }
-                            .onFailure { error = context.getString(R.string.e4_appeal_error) }
+                            .onFailure { error = "e4.appeal_error" }
                     } } },
                     onRetry = { itemId ->
                         draft?.submissionId?.let { submissionId -> scope.launch {
@@ -392,7 +393,7 @@ fun TranslationSubmissionSheet(
                         } }
                     },
                 )
-                error?.let { Text(it, color = colors.textSecondary, modifier = Modifier.testTag("submission.error")) }
+                error?.let { Text(runtimeNoticeText(it), color = colors.textSecondary, modifier = Modifier.testTag("submission.error")) }
                 if (draft?.status != "approved") TextButton(onClick = {
                     draft?.submissionId?.let { id -> scope.launch {
                         runCatching { repository.deleteEvidenceDraft(id) }
@@ -440,7 +441,7 @@ fun TranslationSubmissionSheet(
                     }
                 }
                 if (uploading) EvidenceUploadProgress(progress)
-                error?.let { Text(it, color = colors.textSecondary, modifier = Modifier.testTag("submission.error")) }
+                error?.let { Text(runtimeNoticeText(it), color = colors.textSecondary, modifier = Modifier.testTag("submission.error")) }
                 if (uploading) TextButton(onClick = { uploadJob?.cancel() }, modifier = Modifier.testTag("submission.cancelUpload")) { Text(nativeText("Cancel upload")) }
                 if (draft != null && !uploading) TextButton(onClick = {
                     draft?.submissionId?.let { id -> scope.launch {
@@ -508,7 +509,7 @@ fun TranslationSubmissionSheet(
                     modifier = Modifier.fillMaxWidth().testTag("submission.submit"),
                 ) {
                     if (uploading) CircularProgressIndicator(modifier = Modifier.padding(end = 8.dp))
-                    Text(if (draft == null) "Submit with evidence" else "Retry evidence upload")
+                    Text(nativeText(if (draft == null) "Submit with evidence" else "Retry evidence upload"))
                 }
                 Text(stringResource(R.string.e3_consent), color = colors.textSecondary)
             }

@@ -16,6 +16,21 @@ final class SettingsS1Tests: XCTestCase {
         }
     }
 
+    func testRuntimeNoticeBoundaryPreservesKnownGuidanceAndBoundsDetails() {
+        for tag in ["en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn"] {
+            let locale = Locale(identifier: tag)
+            for (source, key) in RuntimeCopy.aliases {
+                XCTAssertEqual(RuntimeCopy.text(source, locale: locale), AppLocalization.string(key, locale: locale), tag)
+            }
+            for source in ["Private diagnostic %@", "Export saved: 999999999999999999999999 saved items, 1 reading positions."] {
+                XCTAssertEqual(RuntimeCopy.text(source, locale: locale), AppLocalization.string("This action could not be completed. Please try again.", locale: locale), tag)
+            }
+            XCTAssertEqual(RuntimeCopy.text("Each file must be 10 MB or smaller.", locale: locale), AppLocalization.string("Each file must be 10 MB or smaller.", locale: locale))
+            XCTAssertEqual(RuntimeCopy.text("e4.appeal_error", locale: locale), AppLocalization.string("e4.appeal_error", locale: locale))
+        }
+        XCTAssertEqual(AppLocalization.string("Export failed. Please try again.", locale: Locale(identifier: "xx-YY")), "Export failed. Please try again.")
+    }
+
     func testProfileUsernameFailuresUseCodesAndBoundUnknownDetails() {
         XCTAssertEqual(ProfileNotice.usernameFailure(code: "form_username_in_use"), .unavailable)
         XCTAssertEqual(ProfileNotice.usernameFailure(code: "form_identifier_exists"), .unavailable)

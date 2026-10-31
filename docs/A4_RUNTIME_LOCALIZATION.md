@@ -929,3 +929,50 @@ physical-device, A1/A3, A5–A7/E and all previous external gates remain open. A
 wrapped and B/C/D retain local completion. Continue the finite Settings/evidence/runtime
 checklist without starting A5 or the later backlog. No cloud/account/store action,
 provider or paid-model call, deployment, publication, external message or push occurred.
+
+
+## Settings/evidence wrappers and fixed runtime bindings, October 31
+
+Controlled Arabic fixtures reproduced English export errors on both apps and the
+iOS fixed conditional export label. The before results and original captures are in
+`verification/a4-localization/runtime-notices.json`. The iOS red bundle also contains
+seventeen passing offline unit checks. No real account, export, evidence or purchase
+action was invoked.
+
+The diagnostic boundary now localizes an explicit set of known fixed messages and
+bounds unknown diagnostic text with the indexed action-retry draft. Known photo,
+export, notification, purchase, evidence-file/link and draft/status guidance uses
+56 new fifteen-locale drafts. Four original-account purchase notices share the
+canonical instruction to use the original account to finish or restore the purchase.
+Export success keeps both numeric counts. Appeal errors remain keys until rendering.
+The locale is resolved at presentation time. No opaque input, citation, name, note,
+price or provider content is passed through this diagnostic whitelist.
+
+Fixed conditional labels now use explicit localized keys. This covers Settings
+busy states, evidence submit/retry and appeal states, Today expand/Saved menu labels,
+Library layout actions, report send/done and the paywall period label. Subscription
+Free/trial names and the profile fallback are localized. Existing runtime strings
+reuse eleven exact indexed drafts. The export device-check reason also uses the UI
+locale. Account captures, session fences, cancellation, retry, deletion, entitlement,
+export cleanup, notification and evidence-upload control flow remain intact.
+
+Both native matrices pass 68 presentations in each UI locale: 56 new entries,
+eleven reused bindings and one synthetic unknown diagnostic. Focused ar/ur/ru/bn
+large text also passes. The opaque fixture value stays exact; changing presentation
+invokes zero local callbacks, and an explicit button invokes one. These are controlled
+production-boundary/lookup presentations, not actual full screens, SDK operations,
+purchases, notifications, export, deletion or native-language approval.
+Four iOS unit cases additionally pass alias/fallback/oversized-count, compiled
+fallback and plural-category checks. One guarded Android boundary case passes all
+fifteen locales, including known guidance, appeal, unknown and offline diagnostics.
+The Android emulator disappeared before that supplemental run. Restarting only the
+existing `hadithly` AVD on explicit port 5554 allowed the guard and check to pass.
+The physical-phone incident remains unresolved and no physical target was used.
+
+The generator, guarded staging and exact incoming-work preservation checks pass.
+See `runtime-notice-preservation.json` for the original snapshot, new key list and
+unchanged project/Android fingerprints. Native-copy approval stays pending for new
+and reused drafts. Remaining local source paths are finite: email-code interpolation,
+Today/reader action labels, the Saved folder fallback, and clipboard attribution.
+Close those and perform the A4 requirement audit; do not begin A5. Every prior
+content/device/store/production gate, A2's wrap-up and B/C/D local completion stays.

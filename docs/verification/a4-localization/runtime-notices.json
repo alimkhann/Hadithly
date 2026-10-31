@@ -1,0 +1,144 @@
+{
+  "date": "2026-10-31",
+  "scope": "Controlled local rendering and synthetic store/callback evidence only.",
+  "native_review": "pending",
+  "source": "docs/a4-runtime-notice-copy.json",
+  "locales": [
+    "en",
+    "ar",
+    "ru",
+    "kk",
+    "ky",
+    "uz",
+    "tr",
+    "id",
+    "ur",
+    "fr",
+    "es-419",
+    "pt-BR",
+    "sw",
+    "hi",
+    "bn"
+  ],
+  "copy_key_count": 56,
+  "ios": [
+    {
+      "bundle": "/tmp/hadithly-a4-finish-1031/runtime-red.xcresult",
+      "result": "Failed",
+      "passedTests": 17,
+      "failedTests": 1,
+      "skippedTests": 0,
+      "startTime": 1793398798.818,
+      "finishTime": 1793398843.282
+    },
+    {
+      "bundle": "/tmp/hadithly-a4-finish-1031/runtime-final.xcresult",
+      "result": "Passed",
+      "passedTests": 2,
+      "failedTests": 0,
+      "skippedTests": 0,
+      "startTime": 1793399039.516,
+      "finishTime": 1793399698.913
+    },
+    {
+      "bundle": "/tmp/hadithly-a4-finish-1031/boundary-units.xcresult",
+      "result": "Passed",
+      "passedTests": 4,
+      "failedTests": 0,
+      "skippedTests": 0,
+      "startTime": 1793408892.855,
+      "finishTime": 1793408914.862
+    }
+  ],
+  "android": [
+    {
+      "file": "/tmp/hadithly-a4-finish-1031/runtime-red-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "sha256": "be30e6870622e9f288fadd8223891a8806f062e162ec74d7a7ef52a299ae97e6",
+      "cases": [
+        {
+          "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+          "name": "runtimeNoticeReproduction",
+          "result": "Failed"
+        }
+      ]
+    },
+    {
+      "file": "/tmp/hadithly-a4-finish-1031/runtime-green-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "sha256": "3e57255fa5d55ac2785cb65d159fa09dcc7c6590ff8c8fe9f712f374736a5519",
+      "cases": [
+        {
+          "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+          "name": "runtimeNoticesRemainReadableAtLargeText",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+          "name": "runtimeNoticesUseSelectedLanguage",
+          "result": "Passed"
+        }
+      ]
+    },
+    {
+      "file": "/tmp/hadithly-a4-finish-1031/boundary-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "sha256": "5b39095ff9a99bf54d2b3b09e69b1f7625911c25e741019eb2a92df762519592",
+      "cases": [
+        {
+          "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+          "name": "runtimeNoticeBoundariesUseKnownCopyAndBoundDiagnostics",
+          "result": "Passed"
+        }
+      ]
+    }
+  ],
+  "capture_count": 148,
+  "selected_original_captures": 24,
+  "raw_evidence": "/tmp/hadithly-a4-finish-1031",
+  "log_hashes": {
+    "offline-audit.log": "3a761710eba4b4f7eef10c36f99f1b4d0b9c9717da19942fdf88f422cb3ba4b4",
+    "offline-store-android.log": "8dd4e262bdd0623f92cf90f9889ae81e627644f53ab78651ac6ea8bfa2a95117",
+    "offline-red-export.log": "36b1d035edd363c980aad775c78a56d62b612b44cd9b10360481d42d8035da83",
+    "offline-red-android.log": "9b47c75c5f3d8c86804ec64a97388353c74bb0fa30b0a7072a9a09e3053db01d",
+    "runtime-red-ios.log": "3d0f7c6e3be74578b1ea80165ece55bc31577676527ec3569e0cf1824b7c8d00",
+    "boundary-units-android.log": "edcd29b3b9700d1749c9fd5fd470b0060da08c1bf461887b415592b8e46e0fe7",
+    "boundary-final-android.log": "249e3a05d03dbce43802fbeddf37cc61d293f9609ec4d5988fd001a38df983a8",
+    "script-staging.log": "eae0a39ea6e39d81fcc185ad547f3f6190d63d2146b9bf40929839e1c4a7781c",
+    "runtime-green-android.log": "77571feab4fb5edebedc89d3d58d8e1713f7b88e2c939eae466ecf4e1d7ac4b0",
+    "script-copy.log": "218ac3099f9f04d04c0bdb068330f6b8a23883bcbe2bed9e51501a03ebcdebe0",
+    "runtime-red-export.log": "f06304bfa1a6d1c2587f0670a6ac402cf5e427134ba743cb3d781d0faf958b89",
+    "runtime-export.log": "ded623d953abed48787b0c6d7512627fec5790b77fcb0bd1cf55d1702c1d29cd",
+    "offline-green-android.log": "661b80cbad53afe30aa502131c00f262cabf024798af7f463aa59bd2300e36fd",
+    "offline-final-android.log": "99e86345ad8c6b7151fd5e31f7346424091fb7d28899f22ef0c7b65b0d92bb51",
+    "offline-green-ios.log": "589ab041a949668bcbb49a9b5cf82ed049f7c35b87830d987740466179e07e74",
+    "runtime-red-android.log": "84402c43ce5bd37db060cf4077fee3ba1b0be5aac0dfca5e8f7cbd014b466beb",
+    "runtime-audit.log": "4583ae78fc211ac0008d5c903288b7b213c74e37b5559f7220cf99983fdc9550",
+    "offline-large-diagnostic.log": "7ac161a1292c08f578a6839fbff9fefb26cc018768268916475cc10360870c75",
+    "offline-export.log": "98c4e186954a8289e0402e7e4a290573b0c017971b3c96ceafdc0fa46b31f356",
+    "offline-large-final.log": "5f63f58debb610aec2e0b3a9217b276c7382a201a37ea271c57a15778af94d05",
+    "runtime-green-ios.log": "4d99208d491730de23a2ae97e219a1f840977c6f5ba73bd8e0b27d9e5fa4159c",
+    "runtime-final-ios.log": "04877683456a1dbd3d54a6bf8aa362fbd2883bd01db28881f7b257ead4aeadd8",
+    "script-audit.log": "8d792d81c28f14e81434cb2a175feb8a800363e60faf05e9aa008104cb37a9c2",
+    "boundary-units-ios.log": "a49a6e5dd933d98e6c2ce6768313cee291814b33447f166f402759f5bf340d67",
+    "emulator-restart.log": "a76b74f04bf4cd22e03d18377bbc292db87749f6f720b7f3b022352ea74857ce",
+    "offline-red-ios.log": "2fef838855d84a3fadc1c29be7b19fa84c6e6b8661b050fb57c1565cfdfedb93"
+  },
+  "device_limits": {
+    "ios": "D47D7363-4705-4767-8617-F47DDB6A3241, iOS 27 simulator, LA2Verification debug, light; Accessibility XXXL ar/ur/ru/bn",
+    "android": "Guarded emulator-5554, Android 16 debug, light; controlled fontScale 2.0 ar/ur/ru/bn"
+  },
+  "open_gates": [
+    "Exact-copy native-speaker approval",
+    "Full accessibility and actual authenticated/physical-device journeys",
+    "A1/A3",
+    "A5-A7/readiness",
+    "E and final original-objective audit",
+    "Existing content, store/purchase, actual annual billing total, production, backup/recovery, publication and LA4 gates"
+  ],
+  "reused_indexed_bindings": 11,
+  "presentations_per_locale": 68,
+  "preservation": "runtime-notice-preservation.json",
+  "state_safeguard": "Opaque value retained exactly. Zero callbacks during presentation changes, one after explicit local button. Account/evidence/store callbacks replaced by local fixture controls.",
+  "known_alias_policy": "Four original-account purchase messages share original-account finish/restore guidance. Known file/link, draft/status and export guidance remain localized. Unknown diagnostics use bounded retry copy.",
+  "capture_review": "Reviewed original ar restore, ur HTTPS and bn file-size large captures. Full notices visible. Fixture controls are deliberately English.",
+  "initial_build_correction": "A LanguageList footer was already LocalizedStringKey. Removed its redundant conversion after compiler rejection; no product behavior change.",
+  "emulator_restart": "The emulator was absent before the supplemental boundary run. Restarted existing hadithly AVD explicitly on port 5554 without wiping data. Guarded rerun passed. No physical target was used."
+}

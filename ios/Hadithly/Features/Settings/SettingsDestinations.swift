@@ -53,10 +53,10 @@ private struct SettingsToggleRow: View {
     var body: some View {
         Toggle(isOn: $isOn) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(title)
+                Text(LocalizedStringKey(title))
                     .foregroundStyle(Theme.textPrimary)
                 if let footnote {
-                    Text(footnote)
+                    Text(LocalizedStringKey(footnote))
                         .font(.caption)
                         .foregroundStyle(Theme.textSecondary)
                 }
@@ -86,7 +86,7 @@ private struct SettingsToggleStyle: ToggleStyle {
                     }
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(configuration.isOn ? "On" : "Off")
+            .accessibilityLabel(Text(LocalizedStringKey(configuration.isOn ? "On" : "Off")))
         }
     }
 }
@@ -124,6 +124,7 @@ private struct SettingsLinkRow: View {
 // MARK: - Profile
 
 struct ProfileView: View {
+    @Environment(\.locale) private var uiLocale
     @Environment(AppEnvironment.self) private var environment
     @Environment(Clerk.self) private var clerk
 
@@ -222,7 +223,7 @@ struct ProfileView: View {
             .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
             .joined(separator: " ")
-        return full.isEmpty ? (clerk.user?.username ?? "Account") : full
+        return full.isEmpty ? (clerk.user?.username ?? AppLocalization.string("Account", locale: uiLocale)) : full
     }
 
     @ViewBuilder
@@ -761,7 +762,7 @@ struct NotificationsView: View {
                             Text("Daily hadith")
                                 .foregroundStyle(Theme.textPrimary)
                             if let statusLine {
-                                Text(statusLine)
+                                RuntimeStatusNotice(source: statusLine, fallback: "Could not register this device. Check your connection and try again.")
                                     .font(.caption)
                                     .foregroundStyle(Theme.textSecondary)
                             }
@@ -880,6 +881,7 @@ struct NotificationsView: View {
 // MARK: - Subscription
 
 struct SubscriptionView: View {
+    @Environment(\.locale) private var locale
     @Environment(AppEnvironment.self) private var environment
     @Environment(Clerk.self) private var clerk
 
@@ -898,7 +900,7 @@ struct SubscriptionView: View {
                         Text("Subscription details could not load").foregroundStyle(Theme.textSecondary)
                         Button("Try again") { Task { await loadStatus() } }
                     } else {
-                        LabeledContent("Plan", value: SettingsSubscription.displayName(tier: status?.subscriptionTier))
+                        LabeledContent("Plan", value: AppLocalization.string(SettingsSubscription.displayName(tier: status?.subscriptionTier), locale: locale))
                     }
                     if let expires = status?.entitlementExpiresAt, expires > 0 {
                         LabeledContent(
@@ -923,14 +925,14 @@ struct SubscriptionView: View {
                             await loadStatus()
                         }
                     } label: {
-                        Text(isRestoring ? "Restoring…" : "Restore purchases")
+                        Text(isRestoring ? LocalizedStringKey("Restoring…") : LocalizedStringKey("la2.restore"))
                     }
                     .disabled(isRestoring)
                     .accessibilityIdentifier("settings.subscription.restore")
                     Link("Manage subscription", destination: status?.store == "play_store" ? URL(string: "https://play.google.com/store/account/subscriptions")! : SettingsLinks.appleSubscriptions)
                     Text("q2.manage")
                         .font(.footnote)
-                    if let message = environment.purchases.errorMessage { Text(message).font(.footnote) }
+                    if let message = environment.purchases.errorMessage { RuntimeStatusNotice(source: message).font(.footnote) }
                 }
             } else {
                 Section {
@@ -1013,6 +1015,7 @@ struct AccountDeletionCopyAuditFixture: View {
 #endif
 
 struct PrivacyDataView: View {
+    @Environment(\.locale) private var locale
     @Environment(AppEnvironment.self) private var environment
     @Environment(Clerk.self) private var clerk
 
@@ -1053,7 +1056,7 @@ struct PrivacyDataView: View {
                             showExportConfirm = true
                         } catch { exportError = "Export failed. Please try again." }
                     } label: {
-                        Text(isExporting ? "Preparing…" : "Export my data")
+                        Text(LocalizedStringKey(isExporting ? "Preparing…" : "Export my data"))
                     }
                     .disabled(isExporting)
                     .accessibilityIdentifier("settings.export")
@@ -1064,7 +1067,7 @@ struct PrivacyDataView: View {
                         .accessibilityIdentifier("settings.export.share")
                     }
                     if let exportError {
-                        Text(exportError)
+                        RuntimeStatusNotice(source: exportError)
                             .font(.caption)
                             .foregroundStyle(.red)
                     }
@@ -1153,7 +1156,7 @@ struct PrivacyDataView: View {
         ) {
             Button("OK") { deletionError = nil }
         } message: {
-            Text(deletionError ?? "Please try again.")
+            RuntimeStatusNotice(source: deletionError ?? "Please try again.")
         }
     }
 
@@ -1185,7 +1188,7 @@ struct PrivacyDataView: View {
                 do {
                     _ = try await context.evaluatePolicy(
                         .deviceOwnerAuthentication,
-                        localizedReason: "Confirm it is you before exporting your data."
+                        localizedReason: AppLocalization.string("Confirm it is you before exporting your data.", locale: locale)
                     )
                 } catch {
                     exportError = "Export cancelled: device check did not pass."
@@ -1319,7 +1322,7 @@ struct ProfileStatusNotice: View {
             if ProfileNotice(rawValue: source) != nil {
                 Text(LocalizedStringKey(source))
             } else {
-                Text(source)
+                RuntimeStatusNotice(source: source)
             }
         }
         .font(.footnote)

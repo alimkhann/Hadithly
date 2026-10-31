@@ -8,6 +8,7 @@ import ConvexMobile
 /// their destinations and reuse the F2 preference contracts; the admin queue
 /// no longer ships in the consumer app (E4 owns the secured exception tool).
 struct SettingsView: View {
+    @Environment(\.locale) private var locale
     @Binding var showSignIn: Bool
 
     @Environment(AppEnvironment.self) private var environment
@@ -77,7 +78,7 @@ struct SettingsView: View {
                 SettingsLinkRow(destination: .notifications)
                 SettingsLinkRow(
                     destination: .subscription,
-                    value: SettingsSubscription.displayName(tier: subscriptionTier)
+                    value: AppLocalization.string(SettingsSubscription.displayName(tier: subscriptionTier), locale: locale)
                 )
             }
 

@@ -65,7 +65,7 @@ struct QuotaPaywallView: View {
                     outcomeNotice
                     if environment.purchases.outcome != .pending && environment.purchases.outcome != .cancelled,
                        let message = environment.purchases.errorMessage {
-                        Text(message).font(.subheadline).foregroundStyle(palette.textSecondary).multilineTextAlignment(.center)
+                        RuntimeStatusNotice(source: message).font(.subheadline).foregroundStyle(palette.textSecondary).multilineTextAlignment(.center)
                     }
                     if !environment.purchases.isLoading && displayedPackages.isEmpty {
                         Button("la2.retry") { Task { await loadPlans() } }
@@ -213,7 +213,7 @@ struct PaywallPlanOption: View {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack(spacing: 8) {
                         Image(systemName: isSelected ? "largecircle.fill.circle" : "circle").accessibilityHidden(true)
-                        Text(annual ? "la2.annual" : "la2.monthly").font(.headline)
+                        Text(LocalizedStringKey(annual ? "la2.annual" : "la2.monthly")).font(.headline)
                         Spacer()
                     }
                     if typeSize.isAccessibilitySize {

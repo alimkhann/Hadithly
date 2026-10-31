@@ -433,13 +433,13 @@ private struct DailyHadithCard: View {
             if preferences.translationVisible && hadith.translation == nil {
                 Text("No \(preferences.translationLocale) translation is available yet.").font(.caption).foregroundStyle(palette.textSecondary)
             }
-            if shouldCollapse { Button(expanded ? "Show less" : "Read more") { expanded.toggle() }.font(.caption.weight(.semibold)).foregroundStyle(Theme.accent).accessibilityIdentifier("today.expand") }
+            if shouldCollapse { Button(LocalizedStringKey(expanded ? "Show less" : "Read more")) { expanded.toggle() }.font(.caption.weight(.semibold)).foregroundStyle(Theme.accent).accessibilityIdentifier("today.expand") }
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
     @ViewBuilder private var menuContents: some View {
-        Button(action: requestBookmark) { Label(isBookmarked ? "Remove bookmark" : "Bookmark", systemImage: isBookmarked ? "bookmark.fill" : "bookmark") }
-        Button(action: requestFavorite) { Label(isFavorited ? "Remove favorite" : "Add to favorites", systemImage: isFavorited ? "heart.fill" : "heart") }
-        Button(action: onNote) { Label(hasNote ? "Edit note" : "Add note", systemImage: "square.and.pencil") }
+        Button(action: requestBookmark) { Label(LocalizedStringKey(isBookmarked ? "Remove bookmark" : "Bookmark"), systemImage: isBookmarked ? "bookmark.fill" : "bookmark") }
+        Button(action: requestFavorite) { Label(LocalizedStringKey(isFavorited ? "Remove favorite" : "Add to favorites"), systemImage: isFavorited ? "heart.fill" : "heart") }
+        Button(action: onNote) { Label(LocalizedStringKey(hasNote ? "Edit note" : "Add note"), systemImage: "square.and.pencil") }
         Button(action: onCopy) { Label("Copy", systemImage: "doc.on.doc") }
         if let url = ReaderShare.canonicalURL(collectionSlug: hadith.collectionSlug, providerHadithId: hadith.providerHadithId) { ShareLink(item: url) { Label("Share", systemImage: "square.and.arrow.up") } }
         Divider()

@@ -34,6 +34,8 @@ for directory in args.android:
             for c in root.iter('testcase')]})
 manifest = []
 selected = {'en-1', 'ar-1', 'ur-1', 'ar-large-1', 'ur-large-1', 'ru-large-1', 'bn-large-1', 'bn-large-18', 'ar-large-18'}
+if args.capture_prefix == 'runtime':
+    selected.update({'en-0', 'ar-21', 'ar-large-12', 'ur-large-28', 'ru-large-6', 'bn-large-23', 'ar-large-67'})
 for directory in sorted(args.work_dir.glob(args.capture_prefix + '*ios-captures')):
     source_manifest = directory / 'manifest.json'
     if not source_manifest.exists(): continue

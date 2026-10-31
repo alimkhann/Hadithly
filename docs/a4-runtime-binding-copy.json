@@ -1,0 +1,284 @@
+{
+  "native_review": "pending",
+  "provenance": "Exact indexed iOS draft reuse for runtime bindings; approval remains separate.",
+  "reuse_indexed_ios": true,
+  "android_test_fixture_asset": "a4-runtime-binding-copy.json",
+  "keys": [
+    "This action could not be completed. Please try again.",
+    "Check your connection and try again.",
+    "Done",
+    "Cancel",
+    "Show Library list",
+    "Show Library grid",
+    "Remove bookmark",
+    "Remove favorite",
+    "Add to favorites",
+    "Add note",
+    "Edit note"
+  ],
+  "locales": {
+    "en": [
+      "This action could not be completed. Please try again.",
+      "Check your connection and try again.",
+      "Done",
+      "Cancel",
+      "Show Library list",
+      "Show Library grid",
+      "Remove bookmark",
+      "Remove favorite",
+      "Add to favorites",
+      "Add note",
+      "Edit note"
+    ],
+    "ar": [
+      "تعذّر إكمال هذا الإجراء. يرجى المحاولة مجددًا.",
+      "تحقّق من اتصالك ثم أعد المحاولة.",
+      "تم",
+      "إلغاء",
+      "عرض المكتبة كقائمة",
+      "عرض المكتبة كشبكة",
+      "إزالة الإشارة المرجعية",
+      "إزالة من المفضلة",
+      "إضافة إلى المفضلة",
+      "إضافة ملاحظة",
+      "تعديل الملاحظة"
+    ],
+    "ru": [
+      "Не удалось выполнить это действие. Попробуйте ещё раз.",
+      "Проверьте подключение и попробуйте снова.",
+      "Готово",
+      "Отмена",
+      "Показать библиотеку списком",
+      "Показать библиотеку сеткой",
+      "Убрать закладку",
+      "Убрать из избранного",
+      "Добавить в избранное",
+      "Добавить заметку",
+      "Изменить заметку"
+    ],
+    "kk": [
+      "Бұл әрекетті аяқтау мүмкін болмады. Қайталап көріңіз.",
+      "Байланысты тексеріп, қайталап көріңіз.",
+      "Дайын",
+      "Бас тарту",
+      "Кітапхананы тізім түрінде көрсету",
+      "Кітапхананы тор түрінде көрсету",
+      "Бетбелгіні алып тастау",
+      "Таңдаулылардан алып тастау",
+      "Таңдаулыларға қосу",
+      "Жазба қосу",
+      "Жазбаны өңдеу"
+    ],
+    "ky": [
+      "Бул аракетти аяктоо мүмкүн болгон жок. Кайра аракет кылыңыз.",
+      "Байланышыңызды текшерип, кайра аракет кылыңыз.",
+      "Даяр",
+      "Жокко чыгаруу",
+      "Китепкананы тизме түрүндө көрсөтүү",
+      "Китепкананы тор түрүндө көрсөтүү",
+      "Кыстарманы алып салуу",
+      "Тандалмалардан алып салуу",
+      "Тандалмаларга кошуу",
+      "Жазуу кошуу",
+      "Жазууну түзөтүү"
+    ],
+    "uz": [
+      "Bu amalni bajarib bo‘lmadi. Qayta urinib ko‘ring.",
+      "Ulanishingizni tekshirib, qayta urinib ko‘ring.",
+      "Tayyor",
+      "Bekor qilish",
+      "Kutubxonani roʻyxat shaklida koʻrsatish",
+      "Kutubxonani katak shaklida koʻrsatish",
+      "Xatcho‘pni olib tashlash",
+      "Sevimlilardan olib tashlash",
+      "Sevimlilarga qoʻshish",
+      "Qayd qoʻshish",
+      "Qaydni tahrirlash"
+    ],
+    "tr": [
+      "Bu işlem tamamlanamadı. Lütfen tekrar deneyin.",
+      "Bağlantınızı kontrol edip tekrar deneyin.",
+      "Bitti",
+      "İptal",
+      "Kitaplığı liste olarak göster",
+      "Kitaplığı ızgara olarak göster",
+      "Yer imini kaldır",
+      "Favorilerden kaldır",
+      "Favorilere ekle",
+      "Not ekle",
+      "Notu düzenle"
+    ],
+    "id": [
+      "Tindakan ini tidak dapat diselesaikan. Silakan coba lagi.",
+      "Periksa koneksi Anda lalu coba lagi.",
+      "Selesai",
+      "Batal",
+      "Tampilkan pustaka sebagai daftar",
+      "Tampilkan pustaka sebagai kisi",
+      "Hapus penanda",
+      "Hapus dari favorit",
+      "Tambahkan ke favorit",
+      "Tambah catatan",
+      "Edit catatan"
+    ],
+    "ur": [
+      "یہ عمل مکمل نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+      "اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔",
+      "مکمل",
+      "منسوخ کریں",
+      "لائبریری فہرست میں دکھائیں",
+      "لائبریری جالی کی صورت میں دکھائیں",
+      "بُک مارک ہٹائیں",
+      "پسندیدہ سے ہٹائیں",
+      "پسندیدہ میں شامل کریں",
+      "نوٹ شامل کریں",
+      "نوٹ میں ترمیم کریں"
+    ],
+    "fr": [
+      "Cette action n’a pas pu être effectuée. Réessayez.",
+      "Vérifiez votre connexion et réessayez.",
+      "Terminé",
+      "Annuler",
+      "Afficher la bibliothèque en liste",
+      "Afficher la bibliothèque en grille",
+      "Retirer le marque-page",
+      "Retirer des favoris",
+      "Ajouter aux favoris",
+      "Ajouter une note",
+      "Modifier la note"
+    ],
+    "es-419": [
+      "No se pudo completar esta acción. Inténtalo de nuevo.",
+      "Revisa tu conexión e inténtalo de nuevo.",
+      "Listo",
+      "Cancelar",
+      "Mostrar biblioteca como lista",
+      "Mostrar biblioteca como cuadrícula",
+      "Quitar marcador",
+      "Quitar de favoritos",
+      "Agregar a favoritos",
+      "Agregar nota",
+      "Editar nota"
+    ],
+    "pt-BR": [
+      "Não foi possível concluir esta ação. Tente novamente.",
+      "Verifique sua conexão e tente novamente.",
+      "Concluído",
+      "Cancelar",
+      "Mostrar biblioteca em lista",
+      "Mostrar biblioteca em grade",
+      "Remover marcador",
+      "Remover dos favoritos",
+      "Adicionar aos favoritos",
+      "Adicionar nota",
+      "Editar nota"
+    ],
+    "sw": [
+      "Hatua hii haikuweza kukamilika. Tafadhali jaribu tena.",
+      "Angalia muunganisho wako kisha ujaribu tena.",
+      "Imekamilika",
+      "Ghairi",
+      "Onyesha maktaba kama orodha",
+      "Onyesha maktaba kama gridi",
+      "Ondoa alamisho",
+      "Ondoa kwenye vipendwa",
+      "Ongeza kwenye vipendwa",
+      "Ongeza dokezo",
+      "Hariri dokezo"
+    ],
+    "hi": [
+      "यह कार्रवाई पूरी नहीं हो सकी। कृपया दोबारा कोशिश करें।",
+      "अपना कनेक्शन जाँचें और दोबारा कोशिश करें।",
+      "हो गया",
+      "रद्द करें",
+      "लाइब्रेरी सूची में दिखाएँ",
+      "लाइब्रेरी ग्रिड में दिखाएँ",
+      "बुकमार्क हटाएँ",
+      "पसंदीदा से हटाएँ",
+      "पसंदीदा में जोड़ें",
+      "नोट जोड़ें",
+      "नोट बदलें"
+    ],
+    "bn": [
+      "এই কাজটি সম্পন্ন করা যায়নি। আবার চেষ্টা করুন।",
+      "আপনার সংযোগ যাচাই করে আবার চেষ্টা করুন।",
+      "সম্পন্ন",
+      "বাতিল করুন",
+      "লাইব্রেরি তালিকা আকারে দেখান",
+      "লাইব্রেরি ছক আকারে দেখান",
+      "বুকমার্ক সরান",
+      "পছন্দের তালিকা থেকে সরান",
+      "পছন্দের তালিকায় যোগ করুন",
+      "নোট যোগ করুন",
+      "নোট সম্পাদনা করুন"
+    ]
+  },
+  "android_resources": {
+    "This action could not be completed. Please try again.": [
+      {
+        "name": "native_e649544b2c18",
+        "file": "native.xml"
+      }
+    ],
+    "Check your connection and try again.": [
+      {
+        "name": "native_481859b689b0",
+        "file": "native.xml"
+      }
+    ],
+    "Done": [
+      {
+        "name": "native_11a6767d5674",
+        "file": "native.xml"
+      }
+    ],
+    "Cancel": [
+      {
+        "name": "native_19766ed6ccb2",
+        "file": "native.xml"
+      }
+    ],
+    "Show Library list": [
+      {
+        "name": "native_86524e24e26a",
+        "file": "native.xml"
+      }
+    ],
+    "Show Library grid": [
+      {
+        "name": "native_fea264d716d3",
+        "file": "native.xml"
+      }
+    ],
+    "Remove bookmark": [
+      {
+        "name": "native_b4836106f489",
+        "file": "native.xml"
+      }
+    ],
+    "Remove favorite": [
+      {
+        "name": "native_5bc0aa08d678",
+        "file": "native.xml"
+      }
+    ],
+    "Add to favorites": [
+      {
+        "name": "native_7f3c0782afd7",
+        "file": "native.xml"
+      }
+    ],
+    "Add note": [
+      {
+        "name": "native_63565c0485fe",
+        "file": "native.xml"
+      }
+    ],
+    "Edit note": [
+      {
+        "name": "native_299e604ccff3",
+        "file": "native.xml"
+      }
+    ]
+  }
+}

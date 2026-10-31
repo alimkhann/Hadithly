@@ -248,7 +248,7 @@ struct ReaderView: View {
             Text("Could not open this collection")
                 .font(.headline)
                 .foregroundStyle(palette.textPrimary)
-            Text(message)
+            RuntimeStatusNotice(source: message)
                 .font(.footnote)
                 .foregroundStyle(palette.textSecondary)
                 .multilineTextAlignment(.center)

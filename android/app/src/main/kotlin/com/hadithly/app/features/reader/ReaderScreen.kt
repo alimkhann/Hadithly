@@ -4,6 +4,7 @@ package com.hadithly.app.features.reader
 
 import com.hadithly.app.core.data.UserLibraryModel
 import com.hadithly.app.core.preferences.nativeText
+import com.hadithly.app.core.preferences.runtimeNoticeText
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -351,7 +352,7 @@ private fun FailureView(message: String) {
     ) {
         Text(nativeText("Could not open this collection"), fontSize = 17.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
         Text(
-            text = message,
+            text = runtimeNoticeText(message),
             fontSize = 13.sp,
             color = colors.textSecondary,
             textAlign = TextAlign.Center,

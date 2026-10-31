@@ -12,9 +12,9 @@ resource presence alone does not prove runtime lookup.
 | Unit | Confirmed source gap | Required local proof | Status |
 | --- | --- | --- | --- |
 | Offline notices and states | Cache success, removal interpolation, failed/blocked reasons, update diagnostics, download state composition | Both native renderers in 15 UI locales; ar/ur/ru/bn large text; opaque name and callback checks; synthetic offline store deletion/cancel/replacement tests | Complete locally; exact-copy review pending |
-| Settings notices | Profile photo, notification status, subscription failure, export result and deletion error | Exact selected-locale output; bounded diagnostic fallback; controlled fixtures without account, store, notification or export actions | Pending |
-| Evidence/report errors | Intake and processing String errors, raw server diagnostics, report failure and conditional appeal/submit labels | Known file/link guidance, localized fallback, unchanged source/user inputs and callbacks in 15 locales | Pending |
-| Remaining runtime bindings | Fixed conditional Today/menu/busy labels, library accessibility, reader failure and wrappers | Reproduce the affected binding class, reuse indexed drafts, verify changed copy on both platforms; classify opaque content and symbols explicitly | Pending |
+| Settings notices | Profile photo, notification status, subscription failure, export result and deletion error | Exact selected-locale output; bounded diagnostic fallback; controlled fixtures without account, store, notification or export actions | Complete locally; exact-copy review pending |
+| Evidence/report errors | Intake and processing String errors, raw server diagnostics, report failure and conditional appeal/submit labels | Known file/link guidance, localized fallback, unchanged source/user inputs and callbacks in 15 locales | Complete locally; exact-copy review pending |
+| Remaining runtime bindings | Fixed conditional labels are repaired. Final source paths: auth email-code interpolation, Today/reader action labels, Saved folder fallback and clipboard attribution | Reproduce the affected binding class, reuse indexed drafts, verify changed copy on both platforms; classify opaque content and symbols explicitly | Pending |
 | Closure audit | Fallback, placeholder multiplicity, plural categories, all XML, source inventory and incoming-work preservation | Generator checks, resource/runtime reports, native evidence and staged/unstaged review | Pending |
 
 A4 acceptance also requires full accessibility and exact-copy critical native-language

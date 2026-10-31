@@ -60,7 +60,7 @@ struct LibraryView: View {
                 } label: {
                     Image(systemName: presentation == .grid ? "list.bullet" : "square.grid.2x2")
                 }
-                .accessibilityLabel(presentation == .grid ? "Show Library list" : "Show Library grid")
+                .accessibilityLabel(Text(LocalizedStringKey(presentation == .grid ? "Show Library list" : "Show Library grid")))
                 .accessibilityIdentifier("library.layoutToggle")
             }
         }

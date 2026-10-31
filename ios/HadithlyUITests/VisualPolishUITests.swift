@@ -110,6 +110,44 @@ final class VisualPolishUITests: XCTestCase {
         }
     }
 
+    func testRuntimeNoticesUseSelectedLanguage() throws { try verifyRuntimeNotices(large: false) }
+    func testRuntimeNoticesRemainReadableAtLargeText() throws { try verifyRuntimeNotices(large: true) }
+
+    private func verifyRuntimeNotices(large: Bool) throws {
+        struct Copy: Decodable { let locales: [String: [String]]; let fixture_labels: [String: [String: String]]? }
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let copy = try JSONDecoder().decode(Copy.self, from: Data(contentsOf: root.appendingPathComponent("docs/a4-runtime-notice-copy.json")))
+        let binding = try JSONDecoder().decode(Copy.self, from: Data(contentsOf: root.appendingPathComponent("docs/a4-runtime-binding-copy.json")))
+        let locales = large ? ["ar", "ur", "ru", "bn"] : ["en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn"]
+        for locale in locales {
+            var values = try XCTUnwrap(copy.locales[locale]) + XCTUnwrap(binding.locales[locale])
+            values.append(try XCTUnwrap(copy.fixture_labels?[locale]?["fallback"]))
+            values[6] = String(format: values[6], locale: Locale(identifier: locale), 2, 3)
+            let app = launchPolish("runtime-notice-audit", locale: locale, large: large)
+            let step = large ? 1 : 3
+            XCTAssertTrue(element("runtimeAudit.notice.0", app).waitForExistence(timeout: 10))
+            for start in stride(from: 0, to: values.count, by: step) {
+                for index in start..<min(start + step, values.count) {
+                    let notice = element("runtimeAudit.notice." + String(index), app)
+                    XCTAssertEqual(notice.label, values[index], "\(locale):\(index)")
+                    XCTAssertTrue(notice.isHittable)
+                    let viewport = app.scrollViews.firstMatch.frame
+                    XCTAssertGreaterThanOrEqual(notice.frame.minY, viewport.minY)
+                    XCTAssertLessThanOrEqual(notice.frame.maxY, viewport.maxY)
+                }
+                if (large && [1, 6, 12, 23, 28, 55, values.count - 1].contains(start)) || (!large && [0, 21, values.count - 2].contains(start)) {
+                    capture("runtime-" + locale + (large ? "-large-" : "-") + String(start), app)
+                }
+                if start + step < values.count { app.buttons["runtimeAudit.next"].tap() }
+            }
+            XCTAssertEqual(element("runtimeAudit.opaque", app).label, "Original %lld %@ اسم")
+            XCTAssertEqual(element("runtimeAudit.callbacks", app).label, "0")
+            app.buttons["runtimeAudit.callback"].tap()
+            XCTAssertEqual(element("runtimeAudit.callbacks", app).label, "1")
+            app.terminate()
+        }
+    }
+
     func testProfileNoticesUseSelectedLanguage() throws {
         try verifyProfileNotices(large: false)
     }

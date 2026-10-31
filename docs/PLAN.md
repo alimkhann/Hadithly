@@ -70,6 +70,17 @@ suggested preparation first. Read `NEXT_SESSION_PROMPT.md` for the current bound
 checklist. Use the new workflow without repeating the setup audit or starting
 an unrelated pilot. This order supersedes the temporary workflow pause below.
 
+## A4 runtime wrappers, October 31
+
+Settings/evidence diagnostic wrappers and fixed conditional labels pass controlled
+fifteen-locale matrices and focused large text on both native apps. Known guidance
+uses explicit drafts; unknown diagnostics use bounded localized retry copy. See
+`A4_RUNTIME_LOCALIZATION.md` and `verification/a4-localization/runtime-notices.json`.
+The finite final local paths are auth email-code interpolation, Today/reader actions,
+Saved folder fallback and clipboard attribution. Close those, audit A4 and stop before
+A5. Exact-copy native review, full accessibility and every previous external gate stay
+open. A2 stays wrapped and B/C/D retain local completion.
+
 ## A4 offline notices, October 31
 
 The bounded offline unit passes controlled rendering of thirty notices/states in all

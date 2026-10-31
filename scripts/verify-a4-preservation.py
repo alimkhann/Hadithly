@@ -38,12 +38,13 @@ projects = {path: digest for path, digest in fingerprints.items() if path != cat
 assert all(sha(Path(path).read_bytes()) == digest for path, digest in projects.items())
 baseline = (args.snapshot / 'baseline').read_text().strip()
 resources = subprocess.check_output(['git', 'ls-tree', '-r', '--name-only', baseline, 'android/app/src/main/res'], text=True).splitlines()
-names = {'native_' + sha(key.encode())[:12] for key in added}
+names = {'native_' + sha(key.encode())[:12] for key in keys}
 for path in resources:
     if not path.endswith('.xml'): continue
     before = subprocess.check_output(['git', 'show', baseline + ':' + path]).decode()
     after = Path(path).read_text()
     for name in names:
+        if re.search(r'<string\b[^>]*name="' + name + r'"', before): continue
         after = re.sub(r'^    <string name="' + name + r'"[^>]*>.*?</string>\n', '', after, flags=re.M)
     assert after == before, path
 report = {'baseline': baseline, 'sources': args.source, 'new_catalog_keys': sorted(added),

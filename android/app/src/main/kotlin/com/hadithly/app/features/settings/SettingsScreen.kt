@@ -3,6 +3,7 @@
 package com.hadithly.app.features.settings
 
 import com.hadithly.app.core.preferences.nativeText
+import com.hadithly.app.core.preferences.runtimeNoticeText
 
 import android.Manifest
 import android.content.Intent
@@ -203,7 +204,7 @@ private fun SettingsRoot(onOpen: (SettingsDestination) -> Unit, onShowSignIn: ()
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(accountName(), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
                     val email = Clerk.user?.emailAddresses?.firstOrNull { it.id == Clerk.user?.primaryEmailAddressId }?.emailAddress
-                    Text(email ?: "View profile, picture, and name", fontSize = 12.sp, color = colors.textSecondary)
+                    Text(email ?: nativeText("View profile, picture, and name"), fontSize = 12.sp, color = colors.textSecondary)
                 }
                 Icon(Icons.AutoMirrored.Filled.NavigateNext, null, tint = colors.textSecondary)
             }
@@ -782,7 +783,7 @@ private fun OfflineCollectionRow(
                             onNotice(resources.nativeText("Deleted the %@ files. Your saved items and positions stay.", name))
                         },
                         modifier = Modifier.testTag("settings.offline.$slug.delete"),
-                    ) { Text(if (status.updateAvailable) "Delete" else "Delete download", color = colors.accent) }
+                    ) { Text(nativeText(if (status.updateAvailable) "Delete" else "Delete download"), color = colors.accent) }
                 }
                 is OfflineCollectionStatus.AppUpdateRequired -> Unit
             }
@@ -886,7 +887,7 @@ private fun NotificationDestination() {
                             is PushRegistrationState.Failed -> currentPushState.message
                             else -> null
                         }
-                        stateLine?.let { Text(it, fontSize = 11.sp, color = colors.textSecondary) }
+                        stateLine?.let { Text(runtimeNoticeText(it, "Could not register this device. Check your connection and try again."), fontSize = 11.sp, color = colors.textSecondary) }
                     }
                     Switch(
                         checked = enabled,
@@ -976,7 +977,7 @@ private fun SubscriptionDestination() {
                     TextButton(onClick = { scope.launch { loading = true; status = runCatching { app.repository.getSubscriptionStatus() }.getOrNull(); loading = false; loadFailed = status == null } }) { Text(nativeText("Try again"), color = colors.interactive) }
                 } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(SettingsSubscription.displayName(status?.subscriptionTier), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary, modifier = Modifier.weight(1f))
+                    Text(nativeText(SettingsSubscription.displayName(status?.subscriptionTier)), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary, modifier = Modifier.weight(1f))
                     if (status?.subscriptionTier == "pro") {
                         Text(nativeText("Active"), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.accent)
                     }
@@ -995,12 +996,12 @@ private fun SubscriptionDestination() {
                         if (!purchaseState.configured) restoring = false
                     },
                     modifier = Modifier.testTag("settings.subscription.restore"),
-                ) { Text(if (restoring) "Restoring…" else "Restore purchases", color = colors.textPrimary) }
+                ) { Text(nativeText(if (restoring) "Restoring…" else "la2.restore"), color = colors.textPrimary) }
                 TextButton(onClick = { uriHandler.openUri(if (status?.store == "app_store") "https://apps.apple.com/account/subscriptions" else SettingsLinks.PLAY_SUBSCRIPTIONS) }) {
                     Text(nativeText("Manage subscription"), color = colors.textSecondary)
                 }
                 Text(androidx.compose.ui.res.stringResource(com.hadithly.app.R.string.q2_manage), fontSize = 12.sp, color = colors.textSecondary)
-                purchaseState.errorMessage?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
+                purchaseState.errorMessage?.let { Text(runtimeNoticeText(it), fontSize = 12.sp, color = colors.textSecondary) }
 
             }
         }
@@ -1112,8 +1113,8 @@ internal fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = colors.surfaceElevated, contentColor = colors.textPrimary),
                     modifier = Modifier.fillMaxWidth().testTag("settings.export"),
-                ) { Text(if (exporting) "Preparing…" else "Export my data", fontWeight = FontWeight.SemiBold) }
-                exportNotice?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
+                ) { Text(nativeText(if (exporting) "Preparing…" else "Export my data"), fontWeight = FontWeight.SemiBold) }
+                exportNotice?.let { Text(runtimeNoticeText(it), fontSize = 12.sp, color = colors.textSecondary) }
             } else {
                 Text(nativeText("Sign in to export your synced data. Guest data never leaves this device."), fontSize = 14.sp, color = colors.textSecondary)
                 Button(
@@ -1143,7 +1144,7 @@ internal fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
                         showDeleteConfirmation = deletionSession != null
                     },
                     modifier = Modifier.testTag("settings.deleteAccount"),
-                ) { Text(if (deletingAccount) "Deleting…" else "Delete account", color = Color(0xFFFF6B6B)) }
+                ) { Text(nativeText(if (deletingAccount) "Deleting…" else "Delete account"), color = Color(0xFFFF6B6B)) }
             }
         }
     }
@@ -1198,7 +1199,7 @@ internal fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
         AlertDialog(
             onDismissRequest = { deletionError = null },
             title = { Text(nativeText("Account deletion failed")) },
-            text = { Text(message) },
+            text = { Text(runtimeNoticeText(message)) },
             confirmButton = { TextButton(onClick = { deletionError = null }) { Text(nativeText("OK")) } },
             containerColor = colors.surface,
         )

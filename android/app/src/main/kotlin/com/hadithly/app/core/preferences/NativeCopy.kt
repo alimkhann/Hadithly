@@ -1,6 +1,7 @@
 package com.hadithly.app.core.preferences
 
 import android.content.Context
+import androidx.compose.ui.platform.testTag
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.text.BidiFormatter
@@ -272,8 +273,8 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "Folder name" -> R.string.saved_folder_name
     "New folder" -> R.string.saved_new_folder
     "Saved folders" -> R.string.native_c3f1f692d679
-    "Remove bookmark" -> R.string.saved_remove_bookmark
-    "Remove favorite" -> R.string.saved_remove_favorite
+    "Remove bookmark" -> R.string.native_b4836106f489
+    "Remove favorite" -> R.string.native_5bc0aa08d678
     "Folder %@ deleted" -> R.string.saved_folder_deleted
     "Jump to hadith number" -> R.string.native_235f71ee67ab
     "Enter a hadith number like 57 or 4.5." -> R.string.native_c6e7ce247beb
@@ -460,5 +461,157 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "This file's license could not be verified." -> R.string.native_4e46b5060c34
     "This file failed validation. Your installed copy still works." -> R.string.native_0036733fa321
     "Download failed." -> R.string.native_22edbe1fbf15
+    "Could not read that photo." -> R.string.native_b8ee348d475f
+    "Profile photo updated." -> R.string.native_8df1b37d7485
+    "Could not update your photo. Please try again." -> R.string.native_a522262150fb
+    "Export is unavailable right now." -> R.string.native_ca70de723b2b
+    "Export cancelled: device check did not pass." -> R.string.native_18885decd18a
+    "Export failed. Please try again." -> R.string.native_b3fd59293017
+    "Export saved. Saved items: %lld. Reading positions: %lld." -> R.string.native_866149828181
+    "Use your original Hadithly account to finish or restore this purchase." -> R.string.native_ba45fbd4965b
+    "Sign in to your Hadithly account before purchasing or restoring." -> R.string.native_cabfb05e7965
+    "Plans could not be loaded. Try again." -> R.string.native_62b98d8b7580
+    "No subscription plans are available right now." -> R.string.native_22c5a063d631
+    "Purchase could not be completed. Try again." -> R.string.native_c8496fa28c59
+    "Restore failed. Use the original Hadithly account and store account, then try again." -> R.string.native_92fdb74afecf
+    "No active Pro purchase was found for this Hadithly account. Use the account that purchased Pro." -> R.string.native_11825b8342af
+    "Your subscription could not be checked. Try Restore purchases again shortly." -> R.string.native_76d71b7e58ff
+    "Purchase state could not be read. Contact support; reading remains available." -> R.string.native_ccc99c31e5d2
+    "Subscriptions are not configured for this build." -> R.string.native_8f225162c5a6
+    "Notifications are not allowed in system settings." -> R.string.native_8c35068a83c2
+    "Registering this device…" -> R.string.native_a5301f62f31c
+    "This device is registered." -> R.string.native_6fae3dfb454b
+    "Could not save notification settings." -> R.string.native_543b256ddc64
+    "Could not register this device. Check your connection and try again." -> R.string.native_036f9512f597
+    "Choose no more than three evidence items." -> R.string.native_b7c6d1d0fa20
+    "Each file must be 10 MB or smaller." -> R.string.native_5ed9f28d77f4
+    "Choose a JPEG, PNG, WebP, or PDF." -> R.string.native_e786c341c703
+    "Select this file again to retry the upload." -> R.string.native_792abfe7e9b8
+    "Evidence could not be submitted. Please retry." -> R.string.native_8739873a8669
+    "Upload paused. Retry when you are ready." -> R.string.native_dd583b3d0c06
+    "Enter an HTTPS source link without a username or password." -> R.string.native_98bd5a460fdb
+    "This draft could not be loaded. Retry after the connection returns." -> R.string.native_f983f16dffba
+    "Evidence status is unavailable. Try again when connected." -> R.string.native_5eb9f3a3450e
+    "Evidence could not be retried right now." -> R.string.native_64c5c59d8d4e
+    "Could not withdraw this suggestion." -> R.string.native_545610d5c266
+    "Could not delete this draft." -> R.string.native_be54b4b25c7a
+    "Sign in again to upload evidence." -> R.string.native_108342f648f2
+    "Upload endpoint is unavailable." -> R.string.native_0a72668f5d1f
+    "Could not add this file." -> R.string.native_0a2632d6ec98
+    "Delete download" -> R.string.native_15c7d5fc55c7
+    "Preparing…" -> R.string.native_5d1fa38bcf0d
+    "Restoring…" -> R.string.native_5a4918e0201c
+    "Deleting…" -> R.string.native_43b5894c3e4e
+    "Sending…" -> R.string.native_b8ed5279e897
+    "Export my data" -> R.string.native_fddb7f9c69fe
+    "Submit with evidence" -> R.string.native_a23a24484b10
+    "Retry evidence upload" -> R.string.native_5ddb26291449
+    "Send private report" -> R.string.native_b74e53451109
+    "View profile, picture, and name" -> R.string.native_5d5c3f64367e
+    "On" -> R.string.native_130011756125
+    "Off" -> R.string.native_ca7981b46ecf
+    "Show less" -> R.string.native_94ea9b1d33a0
+    "Read more" -> R.string.native_83b794145c0c
+    "Free" -> R.string.native_f411a1fb6275
+    "Pro trial" -> R.string.native_4324e45c8fce
+    "Account" -> R.string.native_7e1b0d5641f2
+    "Confirm it is you before exporting your data." -> R.string.native_babf2e231130
+    "Notifications are not configured for this build." -> R.string.native_8feb4f467a2d
+    "la2.restore" -> R.string.la2_restore
     else -> null
+}
+
+internal val runtimeCopyKeys = listOf(
+    "Could not read that photo.",
+    "Profile photo updated.",
+    "Could not update your photo. Please try again.",
+    "Export is unavailable right now.",
+    "Export cancelled: device check did not pass.",
+    "Export failed. Please try again.",
+    "Export saved. Saved items: %lld. Reading positions: %lld.",
+    "Use your original Hadithly account to finish or restore this purchase.",
+    "Sign in to your Hadithly account before purchasing or restoring.",
+    "Plans could not be loaded. Try again.",
+    "No subscription plans are available right now.",
+    "Purchase could not be completed. Try again.",
+    "Restore failed. Use the original Hadithly account and store account, then try again.",
+    "No active Pro purchase was found for this Hadithly account. Use the account that purchased Pro.",
+    "Your subscription could not be checked. Try Restore purchases again shortly.",
+    "Purchase state could not be read. Contact support; reading remains available.",
+    "Subscriptions are not configured for this build.",
+    "Notifications are not allowed in system settings.",
+    "Registering this device…",
+    "This device is registered.",
+    "Could not save notification settings.",
+    "Could not register this device. Check your connection and try again.",
+    "Choose no more than three evidence items.",
+    "Each file must be 10 MB or smaller.",
+    "Choose a JPEG, PNG, WebP, or PDF.",
+    "Select this file again to retry the upload.",
+    "Evidence could not be submitted. Please retry.",
+    "Upload paused. Retry when you are ready.",
+    "Enter an HTTPS source link without a username or password.",
+    "This draft could not be loaded. Retry after the connection returns.",
+    "Evidence status is unavailable. Try again when connected.",
+    "Evidence could not be retried right now.",
+    "Could not withdraw this suggestion.",
+    "Could not delete this draft.",
+    "Sign in again to upload evidence.",
+    "Upload endpoint is unavailable.",
+    "Could not add this file.",
+    "Delete download",
+    "Preparing…",
+    "Restoring…",
+    "Deleting…",
+    "Sending…",
+    "Export my data",
+    "Submit with evidence",
+    "Retry evidence upload",
+    "Send private report",
+    "View profile, picture, and name",
+    "On",
+    "Off",
+    "Show less",
+    "Read more",
+    "Free",
+    "Pro trial",
+    "Account",
+    "Confirm it is you before exporting your data.",
+    "Notifications are not configured for this build."
+)
+private val runtimeCopyAliases = mapOf(
+    "A store operation is pending for another Hadithly account. Sign in to the account that started it, then restore." to "Use your original Hadithly account to finish or restore this purchase.",
+    "Sign in to your original Hadithly account to use this purchase." to "Use your original Hadithly account to finish or restore this purchase.",
+    "Finish or restore the pending purchase with your original Hadithly account first." to "Use your original Hadithly account to finish or restore this purchase.",
+    "Sign in to your original Hadithly account before restoring." to "Use your original Hadithly account to finish or restore this purchase.",
+    "Could not save notification settings. Please try again." to "Could not save notification settings.",
+    "Enter an HTTPS source link without credentials." to "Enter an HTTPS source link without a username or password.",
+    "Draft status is unavailable. Retry when connected." to "This draft could not be loaded. Retry after the connection returns.",
+    "Draft status is unavailable" to "This draft could not be loaded. Retry after the connection returns.",
+    "Select this file again to retry." to "Select this file again to retry the upload.",
+    "Could not open the selected file." to "Could not add this file.",
+    "Sign-in is reconnecting. Retry in a moment." to "Sign in again to upload evidence.",
+    "Add Firebase configuration to enable FCM in this build." to "Notifications are not configured for this build.",
+    "Restore purchases" to "la2.restore"
+)
+
+internal fun android.content.res.Resources.runtimeNoticeText(source: String, fallback: String = "This action could not be completed. Please try again."): String {
+    if (source == "e4.appeal_error") return getString(R.string.e4_appeal_error)
+    runtimeCopyAliases[source]?.let { return nativeText(it) }
+    if (source in runtimeCopyKeys && "%lld" !in source) return nativeText(source)
+    Regex("""^Export saved: ([0-9]+) saved items, ([0-9]+) reading positions\.$""").matchEntire(source)?.let {
+        val saved = it.groupValues[1].toLongOrNull()
+        val positions = it.groupValues[2].toLongOrNull()
+        if (saved != null && positions != null) return nativeText("Export saved. Saved items: %lld. Reading positions: %lld.", saved, positions)
+    }
+    return nativeText(fallback)
+}
+
+@Composable
+internal fun runtimeNoticeText(source: String, fallback: String = "This action could not be completed. Please try again."): String =
+    androidx.compose.ui.platform.LocalResources.current.runtimeNoticeText(source, fallback)
+
+@Composable
+internal fun RuntimeStatusNotice(source: String) {
+    androidx.compose.material3.Text(runtimeNoticeText(source), modifier = androidx.compose.ui.Modifier.testTag("runtimeAudit.notice"))
 }

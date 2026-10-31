@@ -303,7 +303,7 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit, previewState: String? 
                 if (preferences.translationVisible && hadith.translation == null) {
                     Text(nativeText("No %1\$s translation is available yet.", preferences.translationLocale), fontSize = 12.sp, color = colors.textSecondary)
                 }
-                if (collapse) TextButton(onClick = { expanded = !expanded }, modifier = Modifier.testTag("today.expand")) { Text(if (expanded) "Show less" else "Read more", color = colors.accent) }
+                if (collapse) TextButton(onClick = { expanded = !expanded }, modifier = Modifier.testTag("today.expand")) { Text(nativeText(if (expanded) "Show less" else "Read more"), color = colors.accent) }
             }
         }
         val motionAllowed = com.hadithly.app.core.theme.rememberMotionAllowed()
@@ -313,9 +313,9 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit, previewState: String? 
             if (expanded && collapse) Box(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) { inner() } else inner()
         }
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-            DropdownMenuItem(text = { Text(if (library.isBookmarked(hadith._id)) "Remove Bookmark" else "Bookmark") }, onClick = { requestBookmark(); menu = false })
-            DropdownMenuItem(text = { Text(if (library.isFavorite(hadith._id)) "Remove Favorite" else "Favorite") }, onClick = { requestFavorite(); menu = false })
-            DropdownMenuItem(text = { Text(if (library.noteContentFor(hadith._id) == null) "Add Note" else "Edit Note") }, onClick = { note = true; menu = false })
+            DropdownMenuItem(text = { Text(nativeText(if (library.isBookmarked(hadith._id)) "Remove bookmark" else "Bookmark")) }, onClick = { requestBookmark(); menu = false })
+            DropdownMenuItem(text = { Text(nativeText(if (library.isFavorite(hadith._id)) "Remove favorite" else "Add to favorites")) }, onClick = { requestFavorite(); menu = false })
+            DropdownMenuItem(text = { Text(nativeText(if (library.noteContentFor(hadith._id) == null) "Add note" else "Edit note")) }, onClick = { note = true; menu = false })
             DropdownMenuItem(text = { Text(nativeText("Copy")) }, onClick = { copy(); menu = false })
             DropdownMenuItem(text = { Text(nativeText("Share")) }, onClick = { share(); menu = false })
             DropdownMenuItem(text = { Text(nativeText("Suggest translation")) }, onClick = { open(); menu = false })

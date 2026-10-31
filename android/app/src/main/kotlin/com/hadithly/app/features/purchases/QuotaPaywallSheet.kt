@@ -2,6 +2,7 @@
 package com.hadithly.app.features.purchases
 
 import com.hadithly.app.core.preferences.nativeText
+import com.hadithly.app.core.preferences.runtimeNoticeText
 
 import android.app.Activity
 import android.content.Context
@@ -183,7 +184,7 @@ fun QuotaPaywallSheet(purchases: PurchaseManager, onDismiss: () -> Unit, onUnloc
                     PurchaseManager.Outcome.CANCELLED -> Text(stringResource(R.string.la2_cancelled), color = colors.textSecondary)
                     PurchaseManager.Outcome.PENDING -> Text(stringResource(R.string.la2_pending), color = colors.textSecondary)
                     PurchaseManager.Outcome.SYNCING -> Text(stringResource(R.string.q2_wait), color = colors.textSecondary)
-                    else -> state.errorMessage?.let { Text(it, color = colors.textSecondary, textAlign = TextAlign.Center) }
+                    else -> state.errorMessage?.let { Text(runtimeNoticeText(it), color = colors.textSecondary, textAlign = TextAlign.Center) }
                 }
                 if (!state.loading && displayPackages.isEmpty()) TextButton(onClick = { purchases.loadOffering() }, modifier = Modifier.testTag("paywall.retryPlans")) {
                     Text(stringResource(R.string.la2_retry))

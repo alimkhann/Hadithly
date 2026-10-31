@@ -454,14 +454,14 @@ struct TranslationReportSheet: View {
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                             .accessibilityIdentifier("report.editor")
                         if let errorMessage {
-                            Text(errorMessage)
+                            RuntimeStatusNotice(source: errorMessage)
                                 .font(.caption)
                                 .foregroundStyle(palette.textSecondary)
                         }
                         Button {
                             Task { await submit() }
                         } label: {
-                            Text(isSubmitting ? "Sending…" : "Send private report")
+                            Text(LocalizedStringKey(isSubmitting ? "Sending…" : "Send private report"))
                                 .font(.subheadline.weight(.semibold))
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 13)
@@ -482,7 +482,7 @@ struct TranslationReportSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button(wasSubmitted ? "Done" : "Cancel") { dismiss() }
+                    Button(LocalizedStringKey(wasSubmitted ? "Done" : "Cancel")) { dismiss() }
                         .foregroundStyle(palette.interactive)
                 }
             }

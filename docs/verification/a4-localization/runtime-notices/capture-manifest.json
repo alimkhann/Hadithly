@@ -1,0 +1,1038 @@
+[
+  {
+    "platform": "ios",
+    "name": "runtime-bn-large-67",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/6D76EE58-EFC4-4CB2-8FB0-723DD33A407F.png",
+    "sha256": "ea01e63a9d50cc1a37c6e323b336a3aa49cdc7ec17d548a935aa77a4ef98c3a5",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-bn-large-55",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/EC71FBAE-92A7-47AD-8537-3B0A5556487B.png",
+    "sha256": "87cd222cf0d4ef600136bdcbffa28291a225c9f35426e1ff4ae1bc519ec91bae",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-bn-large-28",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/AA62E4D4-1D1B-4C4A-89D7-C9C255144E23.png",
+    "sha256": "3322331d551664572cb15eb9ac112778feeba513a8c962214941e3d2d25fe0a1",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-bn-large-23",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/6288A296-33AC-4E53-9F5C-2DBC8AA9BA2C.png",
+    "sha256": "6f7803e4f88504a1c0be3c95bb2ca3aefe8777755d2faa279ded2bee55400de2",
+    "committed": "docs/verification/a4-localization/runtime-notices/ios-runtime-bn-large-23.png"
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-bn-large-12",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/CF6F0697-C33A-4691-AD4C-671CBBB2DAFE.png",
+    "sha256": "6fe7581877985bcb00e5a72eefd66dc676a1ab951edf6c0b5d5dbf2b5dceac68",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-bn-large-6",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/293C63D2-72EE-40CA-BE14-6522A8791AAD.png",
+    "sha256": "870bbac3159ebdad3dab098efde3a553177d16a53ee3b96e4dbd2cf5426d0b68",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-bn-large-1",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/AF960403-5F5F-4F7E-98C7-2687C4211C53.png",
+    "sha256": "b6168602d051382c41abe27a2b90664fe95c9b659bbe23899c45253c60dbf091",
+    "committed": "docs/verification/a4-localization/runtime-notices/ios-runtime-bn-large-1.png"
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ru-large-67",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/61A4A464-2A04-4280-814C-6E7C90E33A02.png",
+    "sha256": "3dfc00eda4e1f46317bfed1667fd35cb3749d117fb2c75bfa52a8e1bf966e281",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ru-large-55",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/3BAB017D-CEE0-4B08-BDD0-47FF5D4FBA05.png",
+    "sha256": "e757e9fdae69f84c19b9c0360dbdabb5380c7053a6ef12387568209d273654e4",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ru-large-28",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/1C709835-F3AE-48E9-AE1F-565B2142E713.png",
+    "sha256": "c2a9fce11c8841698c62d46d1f65e21af822c58f0ed13d9d38166560dd0451ec",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ru-large-23",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/3B6B4DC3-0FF2-4B7D-B1D8-DC56E9BB5EC6.png",
+    "sha256": "9e7c115bb545cd360d296a5c7424a16b01761ed86ae4fb8a5ad2fb902e28bb51",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ru-large-12",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/0BA0D854-B692-48D4-B5A5-CE35735183DD.png",
+    "sha256": "6d183780624e557575b17902f1761188cb768f23800eb691652b9a2d16efc963",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ru-large-6",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/D88DB9DF-3DA1-46A1-B889-AC96F893913E.png",
+    "sha256": "48e0a79f2a1160e48f952dffb93ac08263b956998a29459229f7aa64d4aba77f",
+    "committed": "docs/verification/a4-localization/runtime-notices/ios-runtime-ru-large-6.png"
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ru-large-1",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/C420ECFC-850F-40F2-9447-3094E8281F61.png",
+    "sha256": "580a3f7104fab57f7f093820b26d568397642c50a8f157ed4b1fcd11666ff25f",
+    "committed": "docs/verification/a4-localization/runtime-notices/ios-runtime-ru-large-1.png"
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ur-large-67",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/069EFD38-4F54-459D-85A5-59FADAA045F5.png",
+    "sha256": "5bafcce6fc5a6508bf02d8b7556a30e5c499e3c1244285164a2702b096df31df",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ur-large-55",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/C0AE9F5A-FF8A-4ADB-828D-0A2103303A47.png",
+    "sha256": "d77a43a510b472d7438d8a629c37ff70a513d085a388edbc3d04470ae82f2c20",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ur-large-28",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/15DD5036-347B-4FE0-B930-F098CDFD617F.png",
+    "sha256": "5f8fba2a2ec920f695f6b8ab987776d4404f3906686ab04dec57c73f69f47521",
+    "committed": "docs/verification/a4-localization/runtime-notices/ios-runtime-ur-large-28.png"
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ur-large-23",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/354C8889-0B7B-46F6-8E88-9E8B421A37F6.png",
+    "sha256": "ad8fbf860fafdb37970ca3f1669e6d87b7f90871362278936d01079bd27653be",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ur-large-12",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/5959B98F-CBED-492F-A7B1-CFA4C5362A32.png",
+    "sha256": "24f3ad101580323f9bc3591ccfcc5dedd9cfd4ff57b5bac1fc42cbcb78725421",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ur-large-6",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/D28C2896-0CFC-46D9-9010-9EF8E07FEE1F.png",
+    "sha256": "25ccdbec176e104673ca802131a200588e4ac4b4b77562d807606f5c179dfee0",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ur-large-1",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/7A0C6A64-FC1F-4020-8E31-4C29B423A5B3.png",
+    "sha256": "41adbe08ce709381e04d3ca1f1e62f3700257d1d7718d193fedc83aaf6537282",
+    "committed": "docs/verification/a4-localization/runtime-notices/ios-runtime-ur-large-1.png"
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ar-large-67",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/63253397-DE8F-4B01-BE7A-4276FDD90DDA.png",
+    "sha256": "fb5dee639e1fdc55a8d8a31d092f44c1bf0e7f033c740a6cce8a27f92cb649bf",
+    "committed": "docs/verification/a4-localization/runtime-notices/ios-runtime-ar-large-67.png"
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ar-large-55",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/D15A9888-1646-4D9C-9E27-8A87D8AE72C4.png",
+    "sha256": "754dfae9236ec9bf6a07dde7fa8ea48ec5ee1dab8300ad580d8c1a1b92156dd3",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ar-large-28",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/14314649-CDD8-40F2-8E63-8F342CDB35D0.png",
+    "sha256": "d1595d48e7c72745087be7ed9156cd89a34859dafbc7036f1ba6a3b3d62ab629",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ar-large-23",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/1BDAA305-3DBE-4689-AD0F-97FCE47307EE.png",
+    "sha256": "6fb4ef6adbfd2b6701ce5bd15c766447f62efde61a6a44364ef5b44c7afb3dc3",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ar-large-12",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/797A3333-8BB8-4DBD-BD48-3F2FAAF9F485.png",
+    "sha256": "cf4616ab057d3c4cc4e8715d9792d5b3450586c864fbb91cb36619032ed08557",
+    "committed": "docs/verification/a4-localization/runtime-notices/ios-runtime-ar-large-12.png"
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ar-large-6",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/F89BC5E8-425F-4220-8335-B92448C4AAD5.png",
+    "sha256": "3a2ba4787f9614930b44932cab82ff5f88fa4af961bec517ed002c73d92b80c7",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ar-large-1",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/61DB5774-0412-4041-85EF-FB35293C965F.png",
+    "sha256": "5e96998d18ba1d9d3444e68c62a2944ce0f43883875c8cb2a609c6acdcc444e4",
+    "committed": "docs/verification/a4-localization/runtime-notices/ios-runtime-ar-large-1.png"
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-bn-66",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/A20F3E84-2589-4070-96E8-540A3D294001.png",
+    "sha256": "edfa74f49b060ce1f660e2533e2c7abce2470fc6b92ef1fe0b39a5eefe213e43",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-bn-21",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/2DFCDA7A-66D7-4736-8152-DAF96D0B3409.png",
+    "sha256": "533b1930af695922f61f7f05fa586cd7e167ddd67b53e9fed0e84564061dfaf7",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-bn-0",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/62B8ED1F-639D-4EA6-AFAB-760128E46C0A.png",
+    "sha256": "8c337270f130d914fc7976ea5554c6f9aacc8602713760ef7ecdd309b032e263",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-hi-66",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/25F1D9DE-73D9-426B-BCF9-FAAF277AA860.png",
+    "sha256": "69ad27c6ae5767459ae0804148512a4490b21dad19b8b4c68cf5222d3f94ba4c",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-hi-21",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/5074E9DB-C787-45C5-AB51-601E8535F812.png",
+    "sha256": "b30d192f1d37138fe65ab0ca801120257a42165b0acc65cc75e8304d38fa7200",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-hi-0",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/7BEFC6CB-E33C-4C5D-8E6E-231A8A40E316.png",
+    "sha256": "0d35291fbb2993c280832720a6e0348a8d59715524226687ac8e9112b68d75d0",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-sw-66",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/4923DF36-7C68-4DA0-B8C7-A5A37158FB54.png",
+    "sha256": "bdab05c6fbdc14e940204c1f2a474a553f427076b2d0b18194ae25720597892c",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-sw-21",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/BEEF1E47-C055-471A-BC94-CB4068DA05BE.png",
+    "sha256": "c8b6437bbf063033fa0388a8352dad34ba99c534ed50c1a9383f713433ac9ed4",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-sw-0",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/F4B80357-6226-4C8B-8DBC-ABF6BA42FE2B.png",
+    "sha256": "a1135a98c312842d316193a7b254ccd63d294599005eed2ff48e827230053a62",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-pt-BR-66",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/479401AE-35B0-4FAC-B8C3-92637A46B7FD.png",
+    "sha256": "e49a3b6e0914252215c5cf3ffd1371afc396bb56c92120c30f3071cfe90c1438",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-pt-BR-21",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/CD30EF99-B590-48B3-93FB-5CAC206EB2B9.png",
+    "sha256": "a2cd7fff1272b438d0131704c5d05d28b7522c82b9c53f263e685b03685681ea",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-pt-BR-0",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/20C92894-7F63-44E1-910A-D1EE310AF91C.png",
+    "sha256": "89b3443ed4c58e7de615d4e0c4d55717c4b256a4117fe69b6c42107571d6c435",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-es-419-66",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/49BE3CBF-504B-4412-A49A-738F94B00643.png",
+    "sha256": "e49eb504bb78c0538a4ae6c113e51823dc074ae458162d84bfc73f5bdf8b7496",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-es-419-21",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/3289D080-86DF-4405-A148-FF5D437C3C81.png",
+    "sha256": "ab395c6c3e22bc8e7c707ece281cc179b80118228aea90f25e5011eebeac6469",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-es-419-0",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/61B6A27A-1486-4D32-AED5-DAA8476A0179.png",
+    "sha256": "f6bf6265816dafbf9676eff99123d90bcfa060c690b45c94fcae4c4beac86f70",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-fr-66",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/8E107E6B-7009-4A2F-B314-F092DE4651F8.png",
+    "sha256": "67de52b542edc71f9f668b40c6f3ed12dfd4ad2e322232d20aa205abacd282aa",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-fr-21",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/B1F2B4E7-3902-42A0-B145-404B2E44F8D2.png",
+    "sha256": "4530bef1aff90f21c914529f59147ce33f0f9db10968df18b33b05cabed75f9c",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-fr-0",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/4E49C372-61BA-4CAC-9EF2-7BDE17123296.png",
+    "sha256": "a69c28b68d3a4601eed276800c29108d5a3ef1254a0b8e7bb63fe8506c4534f1",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ur-66",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/6C80DBCC-25AF-4773-A6E7-AC91595452E2.png",
+    "sha256": "08da6457723e6b994e8f819091c13069bc98c002cd6b23f689b8deb7e1d3df5d",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ur-21",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/BE7840CA-515B-440D-A6CC-8BB91E741A66.png",
+    "sha256": "a88ff0d67ae3ba0492837bdc15470e1ff3fc9faca72ea5a97c4216953b10f88f",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ur-0",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/D94824A0-4743-4DB2-9664-6138C5765016.png",
+    "sha256": "6a3263772b9c31e837da294ceff863245d5a234bbc5f2273d408d71d5ebb12e0",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-id-66",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/43A8F3CD-C26D-4631-81A3-36C57A191687.png",
+    "sha256": "e824ad4afcb9b0e345c44582f0661697e9de9ead4df2eed5ae8bba2f89805cf6",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-id-21",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/6EF00EA0-3687-42BA-84F2-467B6A4E2A65.png",
+    "sha256": "57ed77f8f5650fcb185b13dd53787964f7b57f922d1eea7e68407835bc1d2708",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-id-0",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/FA796F4C-ED1D-4C4A-AEF3-A7DADCD1AB95.png",
+    "sha256": "0e8a84b77f00336a3a8a99b52f86577eef008089a2fae10c1a2159b7821e20b9",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-tr-66",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/0306B966-E901-4FC2-BC47-189A27FB8DD9.png",
+    "sha256": "4bebb62941c027b7dc72f532a716b5c3bdade406f7c9ea0bf58d52f39690f33c",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-tr-21",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/B6B606B2-55EC-484B-A19F-8900B8DE53DC.png",
+    "sha256": "55fe0ede5477f0e508ee48e0c504b20858282004d1f1c69e4c1f2b57570440f2",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-tr-0",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/8E3C7E5F-975D-4CBB-8327-F9D535A8861F.png",
+    "sha256": "f66351d7b1f76a067a7f5238ef5af422b931e766f80ef73b8c3f5ec2ef12f575",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-uz-66",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/8155FAA8-99A4-44F5-84E5-83A1C7E7B883.png",
+    "sha256": "00f97ffbf0e9b0e259f47fbca7b3cb460f2556f35e274fda8bdd499fed22a37c",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-uz-21",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/000744CF-BFED-4FE5-A836-7494BBFB8F42.png",
+    "sha256": "046253637ef56995e327bd7ec26e3ce3e26ca8d8b354f67e484463662f7c3d7f",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-uz-0",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/E9F594E5-B196-4210-B8A7-71EB8D1C9C49.png",
+    "sha256": "019cf1d283dd7a6040c89f7d55da8bd14772cec1e49636c054fe21bdcf54aa56",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ky-66",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/A0587046-35BE-4E02-8DC8-2F622D214F56.png",
+    "sha256": "8ea3c4e1d8c3973f3d00c1dccede81374cc19fff63c4e807fc2ea32e63c263a4",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ky-21",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/DD8C87E8-75C3-4771-99F1-574379BB93C0.png",
+    "sha256": "b776329c65aa8dd0ed46d5e7f5e40eeeec6f86e13661ed686861d8dfa9545054",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ky-0",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/AA8C86AF-8CC7-4832-A04E-A5DF1B00CABE.png",
+    "sha256": "abdaaffe56d62fe2ee3138e392501a189234e9325183179ecf6373d8cc161b2a",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-kk-66",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/E4783541-F5B7-4A9D-AAE0-27E7AA2D1985.png",
+    "sha256": "644d38780b25a271bc322b1029bc3c6dd9b7a505e9bf9b2203f396241f60e96c",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-kk-21",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/AE182E96-265A-430D-8393-26E8C4DB5D27.png",
+    "sha256": "cb51fa2e6dbc25f0041373430d1218a45be9ad1c7554b9d3b6332f7696df1851",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-kk-0",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/09E4830A-A187-476E-966D-5B3D481AC2BB.png",
+    "sha256": "53ce36b0b5816d06acd4143ed9f149abfc2122b792a290c46d65504218c16d48",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ru-66",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/22764DA0-930B-4E53-BCD0-04082EFC9AEE.png",
+    "sha256": "132a57c9b4f5bd4ab7df4f3f4171682e44a8d854779727af7b396bffd63a59e1",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ru-21",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/2ADB289A-51A9-4AD6-95B6-608A1DDE26DB.png",
+    "sha256": "1f5b9fd75fafe33c4875e51106260f663da97554fda7d97a3ce5b7228d3924df",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ru-0",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/099E4645-38E4-405B-8D3F-28CA7EE75A93.png",
+    "sha256": "6943e9c4069e2c7f820104b3f4248af17656d9bc0ae10fc6cacc9b388e579793",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ar-66",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/E97CC031-38FB-48F0-BF62-201ACE980F48.png",
+    "sha256": "f496984fe5fcf8039f9d002a1b6aff4023459ecf065fd28e22fe9110a0f8e1b6",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ar-21",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/944500F9-597C-471E-B5F1-8A519F7DFB75.png",
+    "sha256": "2ead201f99ffcb17f72d774248b1eb432f07d545def4d6e7c9b476fc013ce9b1",
+    "committed": "docs/verification/a4-localization/runtime-notices/ios-runtime-ar-21.png"
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-ar-0",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/93443D0E-41E9-40FD-B2D8-76DB80306379.png",
+    "sha256": "ba9a33319278128f510430ddc199f80b839b1f4c4641ca7344c78175e413b091",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-en-66",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/25EAFE1B-1637-4779-A8AD-ECFAE3266F03.png",
+    "sha256": "b86d4c950ad3bf7baf15eaa15f3ac2972db02e8e928ea5fc93dbfea521dda15f",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-en-21",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/B9E727C3-8B8B-40AD-A9B2-FF8FF0EA56A0.png",
+    "sha256": "66a9ca2c7a3182130e8c0ac2df3d43399562eea41dcc742be6b041d944205ad9",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-en-0",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-ios-captures/7B9B6E23-656C-4839-A197-722B4056C22D.png",
+    "sha256": "e2a3dc3b05f995e1662fc6f398660dd81e428928d9b84f9b2e29aeeece12423f",
+    "committed": "docs/verification/a4-localization/runtime-notices/ios-runtime-en-0.png"
+  },
+  {
+    "platform": "ios",
+    "name": "runtime-before-ar",
+    "original": "/tmp/hadithly-a4-finish-1031/runtime-red-ios-captures/10E6293B-133B-416F-8ECE-775265D65D0A.png",
+    "sha256": "29b07fcb9ca3433001852a252940ab8a00f25887d7b7e4f58649708fcb2803ae",
+    "committed": "docs/verification/a4-localization/runtime-notices/ios-runtime-before-ar.png"
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ar-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ar-0.png",
+    "sha256": "8d22c80876b807e72f58d60ce9e7675680a37e93fd478d37e4bfb8c307d05493",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ar-21",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ar-21.png",
+    "sha256": "abe6408a9d6171d537c244aea1162d9a5662db393ef00cecc11af494e26c8545",
+    "committed": "docs/verification/a4-localization/runtime-notices/android-runtime-ar-21.png"
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ar-66",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ar-66.png",
+    "sha256": "a59efe57f48d83be0b48154ed7e548aaa52774c2162e958e7317291f4be8287f",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ar-large-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ar-large-1.png",
+    "sha256": "7478275395b3c02e2ec08e83bfa7f68c9af35af2abaf47b0b8b62a3fc3b5f0e7",
+    "committed": "docs/verification/a4-localization/runtime-notices/android-runtime-ar-large-1.png"
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ar-large-12",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ar-large-12.png",
+    "sha256": "5eaad465b95c3c7be0f93768a385609d2815891d6fc0b7008bc2e777ea492e76",
+    "committed": "docs/verification/a4-localization/runtime-notices/android-runtime-ar-large-12.png"
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ar-large-23",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ar-large-23.png",
+    "sha256": "c7e8d29c0905c437d98375fdbd455a034379a3f3d8debb0fb7ec3e0139f402f2",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ar-large-28",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ar-large-28.png",
+    "sha256": "bbf97b51fb36233c25762bb0edc36c2d2c8add53acde9753269994e905929002",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ar-large-55",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ar-large-55.png",
+    "sha256": "2d47c64ddc74bbd504b94aa4b33c66ae13c9d5b60e1bd42c6821171c8c169fc2",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ar-large-6",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ar-large-6.png",
+    "sha256": "92089247616469761ed2bbd468b4739c37bf36729eb2f018aa9ae6a27a190110",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ar-large-67",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ar-large-67.png",
+    "sha256": "f1f4269b99e6803e6e57753dccd38dc6c5ddc26c30e67ab7938f773776777a6e",
+    "committed": "docs/verification/a4-localization/runtime-notices/android-runtime-ar-large-67.png"
+  },
+  {
+    "platform": "android",
+    "name": "runtime-before-ar",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-before-ar.png",
+    "sha256": "7f0db0a576138ff9254af2121da94168ae58ac90087adce2d46dda825b104cd0",
+    "committed": "docs/verification/a4-localization/runtime-notices/android-runtime-before-ar.png"
+  },
+  {
+    "platform": "android",
+    "name": "runtime-bn-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-bn-0.png",
+    "sha256": "8efbd82dcf1de7b4cba990b491ce00ac8b7e2e3691feae6d7b3148b03b2a8e58",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-bn-21",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-bn-21.png",
+    "sha256": "2c24dc3d4a00dd6d0c4563c2aa9cd902411a17ecaf9573ed7b7faf808a5e16a2",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-bn-66",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-bn-66.png",
+    "sha256": "72237e17ac19275b16c57dae3a7db164f046a937ad1597d2fb6f018e4aec4a39",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-bn-large-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-bn-large-1.png",
+    "sha256": "fe22ad506fe4ae407533e54509b76891e44a33c64ba18526c52aa660e0f28ea1",
+    "committed": "docs/verification/a4-localization/runtime-notices/android-runtime-bn-large-1.png"
+  },
+  {
+    "platform": "android",
+    "name": "runtime-bn-large-12",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-bn-large-12.png",
+    "sha256": "1b4678f071108f69a876e93d98abaa285e850e3f77eeb5bbfba7390eb7569c5a",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-bn-large-23",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-bn-large-23.png",
+    "sha256": "39b82d56a574fee8b167f3512ca963ca42d9b89965b97a7350797143a43af8e5",
+    "committed": "docs/verification/a4-localization/runtime-notices/android-runtime-bn-large-23.png"
+  },
+  {
+    "platform": "android",
+    "name": "runtime-bn-large-28",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-bn-large-28.png",
+    "sha256": "bfa5e41e6d61a39099e755516f449f8d5b603f3a7b9c529c74c5b9ad0ad077b0",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-bn-large-55",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-bn-large-55.png",
+    "sha256": "4d053d5f2a158a7c885f8a23a64be82b6d695d31281e246f1283234a9ad4b1fa",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-bn-large-6",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-bn-large-6.png",
+    "sha256": "90982c6922bdfc94f2c755c3d84bd4ccccb281411d0c96cd8b0d48edbd0c211b",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-bn-large-67",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-bn-large-67.png",
+    "sha256": "e193e9b655351c1de78d594bb143c4234e48e81ba10c2da5d2dbe19a92443476",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-en-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-en-0.png",
+    "sha256": "c6c953c6a638b8197de7a702e384dabef181023c687bef7a3b9968177e5cec68",
+    "committed": "docs/verification/a4-localization/runtime-notices/android-runtime-en-0.png"
+  },
+  {
+    "platform": "android",
+    "name": "runtime-en-21",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-en-21.png",
+    "sha256": "305683be92ef2213fe69352da85d7accb14439963716e40a3ceb4caa1a829435",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-en-66",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-en-66.png",
+    "sha256": "e80ffcf92a4c8ef46ca3c0767fb5561255cb93c97871fef533e3cecdb8ceb461",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-es-419-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-es-419-0.png",
+    "sha256": "8a33ee763665557b7f2c1e2a45ca4d55fe56a0fca5b158b5ed4de9e6225a8277",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-es-419-21",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-es-419-21.png",
+    "sha256": "47a5e330f37e9a96b9b7d16d3fa3c83bd83539945a32bb0c82b7164ebce47957",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-es-419-66",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-es-419-66.png",
+    "sha256": "adf0740e953ea29c6ec4caaf12592df4256fe8fddce0aed914225ef9740a2b98",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-fr-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-fr-0.png",
+    "sha256": "7151a7bee567c928cabc959ccc78c9ecbe9ce11eb5aabcb82ff153764189e012",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-fr-21",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-fr-21.png",
+    "sha256": "8a81a83f4bcd70c8498ca9043f4878e26cff0d38efd10f64a902e1b63299e125",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-fr-66",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-fr-66.png",
+    "sha256": "0a3044edb5960fd59be84a85cf42b18de3f78db15892113d4adf26d7fe6f8e78",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-hi-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-hi-0.png",
+    "sha256": "e0d5fe2bf2ce6b1b5fed3260bceddb41972ccab1128393a4395c049f5ab9dd8e",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-hi-21",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-hi-21.png",
+    "sha256": "6bd005a151f2d2db516e4f5d4a348d9882bd958aceb85e5b73dc2c3b098fd33f",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-hi-66",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-hi-66.png",
+    "sha256": "eebba34d7f231d50d00f89830821486513cd6982c2ff8c3c474ebd6ee949b3f4",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-id-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-id-0.png",
+    "sha256": "5eb25e95694e581d752f59cc90a9aaf9e09f9b5f999a6512a34f277d9d628f42",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-id-21",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-id-21.png",
+    "sha256": "97fbd17d31551e44b42d5063ccf2156cd15d6b1a50ed15e374eac874d09c2328",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-id-66",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-id-66.png",
+    "sha256": "c39586734763dc4e16e486906216dc59cdd7de8bacc60a482f73d3c9160a1de5",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-kk-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-kk-0.png",
+    "sha256": "62142add391cdff9420a08ebbab8d64224c7d089c2233ddfa6f013197c1601d0",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-kk-21",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-kk-21.png",
+    "sha256": "052777df35fb3621e1d24b9e5f2eeb140b4701bfcec7fd79b13e6cb0047e1104",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-kk-66",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-kk-66.png",
+    "sha256": "d2a8353cc17b82382285659b18cbbde09c29324a58fa528a747951aa29841f08",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ky-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ky-0.png",
+    "sha256": "4ebb6adc36df89aa35b1874ea444c519317c1fefd7a3e103c4c53331efb110e3",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ky-21",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ky-21.png",
+    "sha256": "8bc60edcd75e2a0ef785614ceb5fca120d42b452728f60526bb2143d83b2389c",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ky-66",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ky-66.png",
+    "sha256": "2a1e3b818d732069c51d9fb0cb959e7c78f055fe065a4d6c70b35c7898eae05f",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-pt-BR-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-pt-BR-0.png",
+    "sha256": "6580c594b0e8e6b1825121a0a6f8d6851b95d6c1520182608e94a37f7badce17",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-pt-BR-21",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-pt-BR-21.png",
+    "sha256": "1afd17d9d0a42547e6a4c80fbcfecb2238c3a7e0bf40dc12122e6fba5fc1a08a",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-pt-BR-66",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-pt-BR-66.png",
+    "sha256": "adf0740e953ea29c6ec4caaf12592df4256fe8fddce0aed914225ef9740a2b98",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ru-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ru-0.png",
+    "sha256": "bdc1c8b36325d9558493b16693d9c7bffacd007e9e7dfbcaaf82da48bdc8f3ec",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ru-21",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ru-21.png",
+    "sha256": "913790b05c6f61ebba8235e9a3b5cca7d8de5d127a097867c6eb789062b9d246",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ru-66",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ru-66.png",
+    "sha256": "d75b3b5adc3433725a9a3b3e5822bc072ade1c0c853c693442d7283a71b5509f",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ru-large-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ru-large-1.png",
+    "sha256": "1d0d56e2369bdb95bbfb46e35c0f79274956f44b64e9986712bf8d38b94c9b92",
+    "committed": "docs/verification/a4-localization/runtime-notices/android-runtime-ru-large-1.png"
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ru-large-12",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ru-large-12.png",
+    "sha256": "caa91e691fe37945ce658ba12318b264551b03a539b5d286b435daf869850730",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ru-large-23",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ru-large-23.png",
+    "sha256": "14f2f82d88b1c66032493ca37bc6703976e5a652d504939bb49a054cbdfb2df2",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ru-large-28",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ru-large-28.png",
+    "sha256": "01aab4e42e0909736b83125a0ffd153047ec59ba2959f126f52048715e613508",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ru-large-55",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ru-large-55.png",
+    "sha256": "32a4c207353f50873264699b386ce859aed25b83da4dbb3a7f79360d5ec626a0",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ru-large-6",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ru-large-6.png",
+    "sha256": "149899941a9a10b71ffdd59222258c6ce907b3097396939c9ea75b8499490c92",
+    "committed": "docs/verification/a4-localization/runtime-notices/android-runtime-ru-large-6.png"
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ru-large-67",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ru-large-67.png",
+    "sha256": "ed2786b19d05b243127824459cdc1f71e0a9211dd537d8731430db60882c7a62",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-sw-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-sw-0.png",
+    "sha256": "0b62feba28d94a8f108b5238d44676c193d6a7807e9a0435332152ef9ad5f477",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-sw-21",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-sw-21.png",
+    "sha256": "a40368a80c7f7b83fd5bbc723b3faf2abcf6747db02bdf83450dade8c3c798c3",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-sw-66",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-sw-66.png",
+    "sha256": "84cd9ba80b5807d3d907e7950d77eb1f3f0bab1c072a0d4afb6a8b8f16410336",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-tr-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-tr-0.png",
+    "sha256": "97c133d068225286349c3ce3d7eaf262d086e7860614ff803bf8fe98bd5ee92d",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-tr-21",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-tr-21.png",
+    "sha256": "0cb75a17c02f533315df29fa33a3241b3c326e22427fc406fd7e0f8d2a1c3f18",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-tr-66",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-tr-66.png",
+    "sha256": "bd5a4e52326f62d98cd97d80e4b0cac9608ad8c0600cf9a0c7de79bdb280e437",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ur-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ur-0.png",
+    "sha256": "631d7c62e85aed972c4b41e17d20b2a2b76eaf7cd01b7776dfde8a815e04fc95",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ur-21",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ur-21.png",
+    "sha256": "ddf06998e18c22514fd814ec5798f241a19ce9268252263387e3dda87767715a",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ur-66",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ur-66.png",
+    "sha256": "fb46c0311a39bfdc84c4c270ffbce8a4db8b97d53d1ec5298ac05a3da9b1d255",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ur-large-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ur-large-1.png",
+    "sha256": "ed6fba218de423156e24419a0db50d1fc6e10f3990122d5defc5876b685c662e",
+    "committed": "docs/verification/a4-localization/runtime-notices/android-runtime-ur-large-1.png"
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ur-large-12",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ur-large-12.png",
+    "sha256": "e0d588ea2e913d4e081fa9eb766d2dab2f036da4254e137ca49931d4d5912f61",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ur-large-23",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ur-large-23.png",
+    "sha256": "140fcd914af4fb24bc1cc440d51365e23994cca4b6f9af9aca18a6ced670b45f",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ur-large-28",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ur-large-28.png",
+    "sha256": "b919ccb5c795bc0b37c1d355031952bffb6e2bb05a2e20384b83f11de745813f",
+    "committed": "docs/verification/a4-localization/runtime-notices/android-runtime-ur-large-28.png"
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ur-large-55",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ur-large-55.png",
+    "sha256": "bd91b2ea2e33c9ee1faaff2812d48b92602adc61a173a07b841bed440130f2ee",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ur-large-6",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ur-large-6.png",
+    "sha256": "0508a70582fcc28475d5635b24d02c11ab750858e927f6d802eb1fba36a02c58",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-ur-large-67",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-ur-large-67.png",
+    "sha256": "a656c6bf3c2fe25c916c1706df856abd6046d87f8b2f8263e93fa65d2cdd0c00",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-uz-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-uz-0.png",
+    "sha256": "eca75f2e3c665aa291c0dfb5acd427173dc8434c96f242ac582f30a1b70f25d9",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-uz-21",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-uz-21.png",
+    "sha256": "113dc140b6c128fca7f4c395251c75479522b8463dd5ec7f89c7a726fc32e5d0",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "runtime-uz-66",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-runtime-uz-66.png",
+    "sha256": "12a52b4aa33f6b7dc4065646cfa587d829c38674a06877942ecd624b6b035a24",
+    "committed": null
+  }
+]
