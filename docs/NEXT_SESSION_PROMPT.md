@@ -1,39 +1,41 @@
-# Current boundary: A7 reader study deferred
+# Next unit: Convex cost diagnostic
 
-The owner selected "Defer the study" on October 31, 2026 because cross-platform
-participants are unavailable in the proposed period. Read
-[A7_STUDY_DEFERRAL.md](A7_STUDY_DEFERRAL.md). This answer supersedes the pending
-A7-R1 design request. Its November/December calendar is retired, without new dates.
+The owner selected the app-experience destination with release dependencies
+deferred, prioritizing staying free while permitting low cost. This supersedes
+the previous stop with no replacement unit. Preparation is complete; no current
+live baseline, native run, repair or saving has been established.
 
 ```text
-Continue Hadithly from the owner's A7 study deferral, not the old approval request.
-Read AGENTS.md, docs/PLAN.md, docs/A7_STUDY_DEFERRAL.md,
-docs/PRODUCT_PROGRAM.md and docs/A7_GATE_CARRY_FORWARD.md.
+Continue Hadithly with one Convex cost diagnostic. Read AGENTS.md, the current
+checkpoint and mistakes in docs/PLAN.md, the Convex cost diagnostic entry in
+docs/SESSION_PROMPTS.md and docs/CONVEX_COST_DIAGNOSTIC.md.
 
-No replacement implementation unit was selected by the deferral. Stop study work.
-Do not recruit, send messages, schedule, observe, collect, install, create/sign into
-accounts, activate analytics or keep asking for participants/reviewer/setup choices.
-Do not automatically move dates or create reminders. No observation clock started
-and no study records exist. The packet and blank templates remain historical.
+Apply .agents/skills/hadithly-convex-cost/SKILL.md. Build a repeatable measurement
+loop using diagnosing-bugs Phase 1. Refresh a narrow current dashboard interval
+through authorized read-only access, then distinguish idle infrastructure work
+from cold launch -> Library -> first reading -> ten page moves on both native
+apps. Pin deployment/build/auth/cache/locale and UTC windows. Use cached content
+without generation. Label local measurements and unavailable live values.
 
-A7's original checkbox and G38 actual evidence remain open and deferred. All
-G01-G41 keep their dated evidence, missing receipts, dependencies and open status,
-including A1/A3/A4, actual auth/device/store/payment/disclosure/production/backup,
-G37 phone incident, G39 E actual Linear and G40 independent final program audit.
-Deferral is not acceptance or cancellation of the larger product program.
+Deliver the baseline, resource attribution with uncertainty and one recommended
+optimization with the same before/after workload and correctness checks. Stop
+there. If live access is unavailable, record the missing readback and useful
+local evidence without claiming billed savings or free-plan capacity.
 
-Follow the owner's next selected bounded original-program unit. Follow
-PRODUCT_PROGRAM.md before POST_GOAL_BACKLOG.md. Preserve A5 fixes, incoming
-catalog/project/index, opaque data, RTL and fifteen-locale bindings. A2 stays
-wrapped with row mode off; B/C/D local completion remains. Keep GPT-only, no Relay.
-No A2 storage, E setup, release operations or broader redesign is authorized by
-this decision. External actions still require their exact action-time approval.
+No app/backend behavior change, cloud configuration, deployment, migration,
+entitlement change, paid generation, external message, remote issue, publication,
+physical-device action or release operation is authorized by this unit. Ask at
+the exact action boundary if a later step needs one. Low cost has no numeric
+spending approval. Keep GPT-only, no Relay and the existing local tracking.
 
-If the owner explicitly resumes the study when suitable adults across both
-platforms are available, revalidate rights/content, language-reviewed consent,
-actual contact/withdrawal route, exact artifacts/explicit phones, private encrypted
-storage/deletion and current analytics/crash collection-off evidence. Prepare a
-new complete calendar and handout dates, then request specific contact/observation
-approval. Never reuse the old unapproved dates/consent as authorization.
-Commit completed scoped local work without pushing and retain every open gate.
+This is an owner-selected sequencing exception for the Convex diagnostic only.
+Retain PRODUCT_PROGRAM.md, all G01-G41 and A1/A3/A4 acceptance, A7/G38 deferred,
+E actual Linear and the independent final audit. Keep the A7 calendar retired;
+do not recruit, contact, observe, collect or request study setup choices. The
+study's reopening conditions remain in docs/A7_STUDY_DEFERRAL.md.
+
+Preserve A2 wrapped with row mode off, A5 repairs, B/C/D local completion,
+incoming iOS catalog/project/scheme edits, opaque data and RTL/locale bindings.
+Commit finished scoped evidence/documentation without pushing. Hand off the
+recommended next change and every unresolved measurement or acceptance gate.
 ```

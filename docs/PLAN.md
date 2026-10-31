@@ -4,6 +4,22 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
+## Current owner priority: Convex diagnostic, October 31
+
+The owner selected Convex preparation next, prioritizing free operation while
+allowing low cost, and a finished app experience with release dependencies
+deferred. [CONVEX_COST_DIAGNOSTIC.md](CONVEX_COST_DIAGNOSTIC.md) records the scope,
+measurement procedure and stop point. This explicit sequencing exception permits
+the named backlog diagnostic before original-program acceptance; it does not
+complete or waive that program. No spending ceiling or paid action was approved.
+
+Pre-implementation skill application and the local brief are complete. Next is
+the bounded diagnostic, not a repair or rollout. No new live baseline or saving
+is claimed. All G01-G41, A1/A3/A4 acceptance, A7's deferral, E Linear and the final
+audit remain open as recorded. Preserve A2/A5 and B/C/D local completion and
+incoming work. `NEXT_SESSION_PROMPT.md` controls continuation; older next-task
+instructions below are historical. No push.
+
 Last updated: 2026-10-31. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
 D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its

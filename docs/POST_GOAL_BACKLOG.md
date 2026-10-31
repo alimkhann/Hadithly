@@ -1,10 +1,14 @@
 # Goals after the original product program
 
-Owner reports received October 31, 2026. Finish the original objective in
-`PRODUCT_PROGRAM.md` and its final acceptance audit before starting this backlog.
-The next session first finishes the already-started Saved localization unit using
-`NEXT_SESSION_PROMPT.md`. This document preserves later work without adding it
-to the original completion criteria.
+Owner reports received October 31, 2026. The owner has now prioritized one bounded
+Convex diagnostic before the original program's remaining acceptance. See
+`CONVEX_COST_DIAGNOSTIC.md` and `NEXT_SESSION_PROMPT.md`. Staying free is important;
+low cost is permissible but has no approved numeric spending ceiling. The current
+destination is a finished app experience with release dependencies deferred.
+
+This exception changes only the named unit's order. Preserve the original
+objective in `PRODUCT_PROGRAM.md`, its final audit and every open gate. Other
+backlog work remains later. Saved/A5 repairs already completed are not new work.
 
 The reports below are not yet reproduced findings. Existing cloud/account/model,
 device, rights and release gates still apply. If a symptom also blocks an original
@@ -32,8 +36,8 @@ delay the original objective.
    testing. Preserve production quota enforcement and distinguish test overrides
    from actual store/RevenueCat lifecycle proof.
 
-Use one bounded unit at a time. Suggested first priority after the original goal
-is Convex measurement, followed by functional reader defects and translation
+Use one bounded unit at a time. Convex measurement is now selected by the owner.
+The later priority proposal is functional reader defects and translation
 reliability, then broader native polish. No extra vendor, task database or large
 architecture rewrite is needed before a measured gap justifies it.
 

@@ -4,6 +4,16 @@ Paste one prompt into a fresh task. Use the named model and effort when it is
 available. Each prompt is self-contained and authorizes only its named session.
 Never use Relay.
 
+## Convex cost diagnostic
+
+The owner's October 31 choice prioritizes this bounded diagnostic over the older
+backlog ordering. Follow the exact prompt in `NEXT_SESSION_PROMPT.md` and the
+procedure in `CONVEX_COST_DIAGNOSTIC.md`. Use `hadithly-convex-cost` and build a
+repeatable measurement loop before choosing a repair. Keep the app-experience
+destination, free-first preference, deferred release dependencies and all open
+gates. Stop after the evidence and one recommended change. No rollout or spending
+is authorized. The preparation session changed documentation only.
+
 ## Product continuation with A7 study deferred
 
 The owner deferred the study because cross-platform participants are unavailable.
