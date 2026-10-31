@@ -1,10 +1,13 @@
 # Current next goal
 
-Use the exact A7 local planning goal in [NEXT_SESSION_PROMPT.md](NEXT_SESSION_PROMPT.md).
-[A6 requirement audit](A6_REQUIREMENT_AUDIT.md) completes local explicit retention,
-with every external gate still open in [A6 gate matrix](A6_GATE_MATRIX.md).
-A5 engineering and A4 local closure are preserved. Full A4 acceptance remains open.
-The historical A4 handoffs below cannot override that prompt or close existing gates.
+Use the exact A7 consented-observation readiness goal in
+[NEXT_SESSION_PROMPT.md](NEXT_SESSION_PROMPT.md). The local
+[measurement plan](A7_MEASUREMENT_PLAN.md) and
+[draft protocol](A7_READER_SESSION_PROTOCOL.md) are prepared; actual observation
+and original A7 acceptance remain open. See the [A7 audit](A7_REQUIREMENT_AUDIT.md)
+and [all carried gates](A7_GATE_CARRY_FORWARD.md). No contact or analytics was
+activated. A5 engineering, A4 local closure and every acceptance/external gate
+remain intact. Historical next-task text below cannot override the current prompt.
 
 ## A4 evidence-intake checkpoint, October 30
 

@@ -10,26 +10,35 @@ Their checksums and every research URL are recorded in
 
 ## Current owner continuation, October 31
 
-A6's original execute-or-explicitly-retain criterion is complete locally.
-`A6_REQUIREMENT_AUDIT.md` and `A6_GATE_MATRIX.md` map 41 retained-open gate groups
-and all 74 baseline entries to their dated evidence, missing receipts/readbacks,
-owner dependencies and next exact actions. No external gate is closed by this audit.
-Its checkbox below records that retention outcome, not release readiness.
+A7's bounded local planning unit is complete, with actual acceptance still open.
+`A7_MEASUREMENT_PLAN.md` defines fourteen measures and their required real
+readbacks. `A7_READER_SESSION_PROTOCOL.md` supplies draft consent, facilitator,
+task/diary/withdrawal/deletion templates, start/stop gates and a three-week study
+schedule. No reader was recruited, contacted or observed; no account or analytics
+was activated. Existing clipped LA2 totals and controlled fixtures cannot prove
+cohort retention, unique active people, paying customers or conversion.
 
-A5 engineering remains complete, with its ownership/landing, large-text viewport,
-translation-size, iOS Settings direction and reader/Saved/return fixes intact.
-A4 keeps finite local closure; its original checkbox remains open for exact-copy
-native-speaker review, full accessibility and authenticated/physical acceptance.
-A2 stays wrapped with row mode off; B/C/D keep local completion and incoming
-catalog/project work remains separate.
+`A7_GATE_CARRY_FORWARD.md` retains every G01-G41 group with original dated evidence,
+missing receipts, owner dependencies and next actions. A6 remains complete for its
+execute-or-explicitly-retain criterion, with zero external gates closed. The new
+G38 planning record does not pass actual observation. `A7_REQUIREMENT_AUDIT.md`
+records scoped local verification and preservation.
 
-`NEXT_SESSION_PROMPT.md` gives one bounded A7 local measurement/consented-session
-plan as the next original-program goal. Actual A7 observation remains open.
-Unfinished A1/A3 content and semantic acceptance, A4 acceptance, all 41 retained
-content/store/purchase/device/disclosure/production/backup/recovery/integration
-gate groups, E's actual Linear hub and the final original-objective audit remain.
-Follow this program before `POST_GOAL_BACKLOG.md`. Stop after committing A6 without
-pushing; no A7 observation, E setup, A2 storage or later redesign was started here.
+A5 engineering remains complete, including ownership/landing, large-text viewport,
+translation-size, iOS Settings direction and reader/Saved/return fixes. A4 keeps
+finite local closure with exact-copy/native-speaker and full native accessibility
+acceptance open. Incoming catalog/project bytes, opaque data, RTL and fifteen-locale
+bindings are preserved. A2 stays wrapped with row mode off; B/C/D keep local
+completion.
+
+`NEXT_SESSION_PROMPT.md` gives the next bounded A7 observation-readiness packet.
+Prepare the exact reviewable contact/session/collection-off/storage/calendar plan
+before requesting specific action-time approval. Actual consented observation,
+A1/A3/A4 acceptance, all G01-G41, E's actual Linear hub and the independent final
+original-program audit remain. Keep the original A7 checkbox unchecked until real
+required evidence exists. Follow this program before `POST_GOAL_BACKLOG.md`.
+Stop at the verified local planning commit without pushing. No observation, E setup,
+A2 storage, release operations or later redesign starts in this unit.
 
 ## Owner order, October 26
 

@@ -1,0 +1,279 @@
+{
+  "read_at": "2026-10-31",
+  "source": "A6 verifier --raw-native run before A7 edits",
+  "limits": "Fresh local gate/source checks and re-read historical artifacts only. No new native run, live/authenticated/physical/provider/store/policy/backup/account readback or acceptance.",
+  "native_artifact_readbacks": [
+    {
+      "record": "A5",
+      "path": "/tmp/hadithly-a5-finish/ios-controls-before.xcresult",
+      "cases": 1,
+      "passed": 0,
+      "failed": 1,
+      "scope": "Historical per-case outcomes unchanged, including rejected attempts"
+    },
+    {
+      "record": "A5",
+      "path": "/tmp/hadithly-a5-finish/ios-type-before.xcresult",
+      "cases": 1,
+      "passed": 0,
+      "failed": 1,
+      "scope": "Historical per-case outcomes unchanged, including rejected attempts"
+    },
+    {
+      "record": "A5",
+      "path": "/tmp/hadithly-a5-finish/ios-core-regressions.xcresult",
+      "cases": 67,
+      "passed": 61,
+      "failed": 6,
+      "scope": "Historical per-case outcomes unchanged, including rejected attempts"
+    },
+    {
+      "record": "A5",
+      "path": "/tmp/hadithly-a5-finish/ios-saved-journey.xcresult",
+      "cases": 1,
+      "passed": 0,
+      "failed": 1,
+      "scope": "Historical per-case outcomes unchanged, including rejected attempts"
+    },
+    {
+      "record": "A5",
+      "path": "/tmp/hadithly-a5-finish/ios-saved-journey2.xcresult",
+      "cases": 2,
+      "passed": 2,
+      "failed": 0,
+      "scope": "Historical per-case outcomes unchanged, including rejected attempts"
+    },
+    {
+      "record": "A5",
+      "path": "/tmp/hadithly-a5-finish/ios-completion.xcresult",
+      "cases": 133,
+      "passed": 131,
+      "failed": 2,
+      "scope": "Historical per-case outcomes unchanged, including rejected attempts"
+    },
+    {
+      "record": "A5",
+      "path": "/tmp/hadithly-a5-finish/ios-final-taps.xcresult",
+      "cases": 4,
+      "passed": 4,
+      "failed": 0,
+      "scope": "Historical per-case outcomes unchanged, including rejected attempts"
+    },
+    {
+      "record": "A5",
+      "path": "/tmp/hadithly-a5-finish/ios-language-ink-before.xcresult",
+      "cases": 1,
+      "passed": 0,
+      "failed": 1,
+      "scope": "Historical per-case outcomes unchanged, including rejected attempts"
+    },
+    {
+      "record": "A5",
+      "path": "/tmp/hadithly-a5-finish/ios-language-ink-after.xcresult",
+      "cases": 2,
+      "passed": 2,
+      "failed": 0,
+      "scope": "Historical per-case outcomes unchanged, including rejected attempts"
+    },
+    {
+      "record": "A5",
+      "path": "/tmp/hadithly-a5-finish/android-controls-before.xml",
+      "sha256": "157599ee870ed7e6cf44c08ebda0971c88834f2dcda0ee59e1eea3e5bc336528",
+      "cases": 1,
+      "scope": "Historical XML bytes unchanged"
+    },
+    {
+      "record": "A5",
+      "path": "/tmp/hadithly-a5-finish/android-type-before.xml",
+      "sha256": "58311b17c3d1d884e50f5f17f6fcf642be0f2c2b7d534f8a1e9f9952a8e27781",
+      "cases": 1,
+      "scope": "Historical XML bytes unchanged"
+    },
+    {
+      "record": "A5",
+      "path": "/tmp/hadithly-a5-finish/android-saved-journey2.xml",
+      "sha256": "dc17efbc6804e443c43738b95f309a3a123180a1867987fff4cfacd6786649e5",
+      "cases": 1,
+      "scope": "Historical XML bytes unchanged"
+    },
+    {
+      "record": "A5",
+      "path": "/tmp/hadithly-a5-finish/android-saved-core2.xml",
+      "sha256": "6d643b8914d6a390b4f24d8dab501d3089dac6f8e4ce7097e34c2c80cac58ec8",
+      "cases": 12,
+      "scope": "Historical XML bytes unchanged"
+    },
+    {
+      "record": "A5",
+      "path": "/tmp/hadithly-a5-finish/android-core-regressions2.xml",
+      "sha256": "097379b47eefdb86240e923c6efd2965fe83d45bf1a62a03053ce57b913c1c50",
+      "cases": 58,
+      "scope": "Historical XML bytes unchanged"
+    },
+    {
+      "record": "A5",
+      "path": "/tmp/hadithly-a5-finish/android-completion.xml",
+      "sha256": "e5ff8b561e548cbd3c48e45199a9617f3407f913e2bb6a0f69596cdf62650724",
+      "cases": 11,
+      "scope": "Historical XML bytes unchanged"
+    },
+    {
+      "record": "A5",
+      "path": "/tmp/hadithly-a5-finish/android-language-capture.xml",
+      "sha256": "51fd8aefa0fcf28dbb3f66d57a6c222d1ae08c01554f2ff6f4b3b704da4548b6",
+      "cases": 1,
+      "scope": "Historical XML bytes unchanged"
+    },
+    {
+      "record": "A5",
+      "path": "/tmp/hadithly-a5-finish/android-unit-r6a-before.xml",
+      "sha256": "19730c2e2dcc65c56bd5fe149251502d5710b7a5d6cf55dd2217b9f1fb853022",
+      "cases": 25,
+      "scope": "Historical XML bytes unchanged"
+    },
+    {
+      "record": "A4",
+      "path": "/tmp/hadithly-a4-finish-1031/offline-green.xcresult",
+      "selected_passed": 2,
+      "overall_bundle_result": "Passed",
+      "scope": "Entire bundle"
+    },
+    {
+      "record": "A4",
+      "path": "/tmp/hadithly-a4-finish-1031/runtime-red.xcresult",
+      "selected_passed": 16,
+      "overall_bundle_result": "Failed",
+      "scope": {
+        "path": "/tmp/hadithly-a4-finish-1031/runtime-red.xcresult",
+        "prefixes": [
+          "OfflineStoreTests/"
+        ]
+      }
+    },
+    {
+      "record": "A4",
+      "path": "/tmp/hadithly-a4-finish-1031/runtime-final.xcresult",
+      "selected_passed": 2,
+      "overall_bundle_result": "Passed",
+      "scope": "Entire bundle"
+    },
+    {
+      "record": "A4",
+      "path": "/tmp/hadithly-a4-finish-1031/boundary-units.xcresult",
+      "selected_passed": 4,
+      "overall_bundle_result": "Passed",
+      "scope": "Entire bundle"
+    },
+    {
+      "record": "A4",
+      "path": "/tmp/hadithly-a4-finish-1031/edge-green.xcresult",
+      "selected_passed": 15,
+      "overall_bundle_result": "Passed",
+      "scope": "Entire bundle"
+    },
+    {
+      "record": "A4",
+      "path": "/tmp/hadithly-a4-finish-1031/chrome-final.xcresult",
+      "selected_passed": 23,
+      "overall_bundle_result": "Failed",
+      "scope": {
+        "path": "/tmp/hadithly-a4-finish-1031/chrome-final.xcresult",
+        "prefixes": [
+          "ReaderR5Tests/",
+          "LocaleFallbackTests/"
+        ],
+        "cases": [
+          "VisualPolishUITests/testFinalWrappersUseSelectedLanguage()",
+          "VisualPolishUITests/testFinalWrappersRemainReadableAtLargeText()",
+          "VisualPolishUITests/testChromeUsesSelectedLanguage()"
+        ]
+      }
+    },
+    {
+      "record": "A4",
+      "path": "/tmp/hadithly-a4-finish-1031/chrome-large-wide.xcresult",
+      "selected_passed": 1,
+      "overall_bundle_result": "Passed",
+      "scope": "Entire bundle"
+    },
+    {
+      "record": "A4",
+      "path": "/tmp/hadithly-a4-finish-1031/authenticity-final-copy.xcresult",
+      "selected_passed": 2,
+      "overall_bundle_result": "Passed",
+      "scope": "Entire bundle"
+    },
+    {
+      "record": "A4",
+      "path": "/tmp/hadithly-a4-finish-1031/offline-second-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "sha256": "a79bfeb33009f2aa67105a536deb8270e2812ddc045150cf35301a8c89e1def5",
+      "scope": "Historical selected XML bytes unchanged"
+    },
+    {
+      "record": "A4",
+      "path": "/tmp/hadithly-a4-finish-1031/offline-large-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "sha256": "1c268c276b147e678c4b18b4f205e7b17a1486fa3364cca8edfae1845841872c",
+      "scope": "Historical selected XML bytes unchanged"
+    },
+    {
+      "record": "A4",
+      "path": "/tmp/hadithly-a4-finish-1031/offline-unit-android-reports/TEST-com.hadithly.app.OfflineStoreTest.xml",
+      "sha256": "60d01944df9a3c982c2a6a9cf32b99c19e0c5ee86b92be2de2319c7bf007f9fa",
+      "scope": "Historical selected XML bytes unchanged"
+    },
+    {
+      "record": "A4",
+      "path": "/tmp/hadithly-a4-finish-1031/runtime-green-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "sha256": "3e57255fa5d55ac2785cb65d159fa09dcc7c6590ff8c8fe9f712f374736a5519",
+      "scope": "Historical selected XML bytes unchanged"
+    },
+    {
+      "record": "A4",
+      "path": "/tmp/hadithly-a4-finish-1031/boundary-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "sha256": "5b39095ff9a99bf54d2b3b09e69b1f7625911c25e741019eb2a92df762519592",
+      "scope": "Historical selected XML bytes unchanged"
+    },
+    {
+      "record": "A4",
+      "path": "/tmp/hadithly-a4-finish-1031/edge-green-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "sha256": "0a74833124a6a2cb189dd55f50acb1a2dc590cdcf12178115686d1dac8ffb3ed",
+      "scope": "Historical selected XML bytes unchanged"
+    },
+    {
+      "record": "A4",
+      "path": "/tmp/hadithly-a4-finish-1031/chrome-first-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "sha256": "d49b5ac28d27ea02e7afbe5eec5acfdabb56809b54be378e5862c01bab5e142c",
+      "scope": "Historical selected XML bytes unchanged"
+    },
+    {
+      "record": "A4",
+      "path": "/tmp/hadithly-a4-finish-1031/chrome-menu-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "sha256": "33a0bb68e6fc96ab78e611e2a4f826fff5755b336e9f7b4786b72df63aa919f9",
+      "scope": "Historical selected XML bytes unchanged"
+    },
+    {
+      "record": "A4",
+      "path": "/tmp/hadithly-a4-finish-1031/edge-unit-android-reports/TEST-com.hadithly.app.LocaleFallbackTest.xml",
+      "sha256": "7412c721efc1b28d7cd2885d63315f402e3f28e80574e7622259feddb181ec89",
+      "scope": "Historical selected XML bytes unchanged"
+    },
+    {
+      "record": "A4",
+      "path": "/tmp/hadithly-a4-finish-1031/edge-unit-android-reports/TEST-com.hadithly.app.ReaderR5Test.xml",
+      "sha256": "374c3b3456d6b4d1309c9960e02f4689dadca0ce3b630fcc35fcc27b7bf2c44c",
+      "scope": "Historical selected XML bytes unchanged"
+    },
+    {
+      "record": "A4",
+      "path": "/tmp/hadithly-a4-finish-1031/edge-unit-android-reports/TEST-com.hadithly.app.ReaderR6Round3Test.xml",
+      "sha256": "fc1d536249d6ac08327c68745eda5d34f5f12c0638205e07921db0ee58b4afde",
+      "scope": "Historical selected XML bytes unchanged"
+    },
+    {
+      "record": "A4",
+      "path": "/tmp/hadithly-a4-finish-1031/authenticity-final-copy-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "sha256": "b44492bf78ee765c86c8cb4b05cd4df8caf4db754721d703d39baab084b69386",
+      "scope": "Historical selected XML bytes unchanged"
+    }
+  ]
+}

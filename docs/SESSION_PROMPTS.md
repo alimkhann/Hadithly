@@ -4,16 +4,20 @@ Paste one prompt into a fresh task. Use the named model and effort when it is
 available. Each prompt is self-contained and authorizes only its named session.
 Never use Relay.
 
-## Product continuation after A6
+## Product continuation after A7 local planning
 
-Use `docs/NEXT_SESSION_PROMPT.md` for one bounded A7 local measurement/consented-session
-plan. A6 is complete as an explicit-retention audit, with zero external gates closed.
-Read `docs/A6_REQUIREMENT_AUDIT.md` and `docs/A6_GATE_MATRIX.md` for all remaining
-gates and exact dependencies/actions. A5 engineering remains complete; A4 local
-closure retains exact-copy/full accessibility acceptance. A2 stays wrapped with row
-mode off; B/C/D keep local completion. A1/A3/A4 acceptance, actual A7 observation,
-E's actual Linear hub and the final original-program audit precede the later backlog.
-Stop after the verified A6 commit without pushing; do not begin that next goal here.
+Use `docs/NEXT_SESSION_PROMPT.md` for one bounded A7 consented-observation readiness
+packet. Read `A7_MEASUREMENT_PLAN.md`, `A7_READER_SESSION_PROTOCOL.md` and
+`A7_REQUIREMENT_AUDIT.md`. Planning is complete, actual A7 acceptance is open.
+Prepare the concrete external step before asking for action-time approval. Do not
+contact readers, observe sessions, create accounts or activate collection on the
+strength of the plan. All G01-G41 remain open in `A7_GATE_CARRY_FORWARD.md` with
+A6's dated evidence preserved. Keep A5 fixes, A4 local closure and its acceptance
+gates, A2 wrapped with row mode off, B/C/D local completion and incoming work intact.
+Actual observation, A1/A3/A4 acceptance, E's actual Linear hub and the final
+independent original-program audit precede `POST_GOAL_BACKLOG.md`. GPT-only, no
+Relay. Stop after this local planning commit without pushing; the next task does
+not start here.
 
 ## D0: restore browser control
 

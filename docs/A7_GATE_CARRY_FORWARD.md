@@ -1,0 +1,548 @@
+# A7 carried gates
+
+October 31, 2026. All G01-G41 remain OPEN. Retention is not acceptance.
+This table carries the complete A6 evidence, missing receipts, dependencies and actions.
+Dates below belong to the underlying records, not new account or device readbacks.
+The only new G38 evidence is the local measurement plan and draft session protocol.
+Actual consented observation and conversion evidence remain unavailable.
+A6 historical wording is retained; the G38 action below advances to preparation for approval.
+Source: [A6 matrix](A6_GATE_MATRIX.md) and its unchanged structured inventory.
+Regenerate with `python3 scripts/verify-a7-planning.py --render-gates`.
+
+## G01 A1 exact-locale first reading and maintenance
+
+Status: OPEN, retained.
+
+Recorded evidence: [FIRST_READING_VERIFICATION.md](FIRST_READING_VERIFICATION.md)
+as of 2026-10-18, with October 25 historical addendum. Approved development query/native evidence for en/ar/ru/kk; eleven locales unavailable. Invalid references fail closed.
+
+Missing receipt/readback: Current authorized text/provenance in ky/uz/tr/id/ur/fr/es-419/pt-BR/sw/hi/bn; automatic replenishment/repair; independently reviewed semantic samples.
+
+Owner dependency: Owner supplies or authorizes exact scoped rights/content; qualified language reviewers.
+
+Next exact action: Prepare a local inventory of missing exact-locale text and a maintenance design; obtain action-time approval before content writes, new grants or paid calls. Re-read all fifteen public outcomes after any approved change; opening onboarding must make no paid call or quota bypass.
+
+## G02 A3 real grounding, free/Pro quality and historical citations
+
+Status: OPEN, retained.
+
+Recorded evidence: [A3_GROUNDING_VERIFICATION.md](A3_GROUNDING_VERIFICATION.md)
+as of 2026-10-26. 73a520e deployed to development; 53 translations, zero non-AI defaults or published revisions; 0/4 checks, $0/$0.10 used then. Local selector/expiry/citation tests pass.
+
+Missing receipt/readback: Eligible authorized comparisons; real provider IDs/provenance, relevance and failure/cache/cost receipts for both tiers; independent semantic review; audit of legacy guessed citations.
+
+Owner dependency: Rights holder/content supplier and language reviewer; owner approves any new paid action at its boundary. Old budget is historical, not blanket permission.
+
+Next exact action: Prepare exact canonical/language samples and permission/hash bindings; after eligible inventory and specific approval, run at most the newly approved checks and retain provider usage, cache reuse, expiry/revocation and native source readback. Do not publish synthetic content to manufacture proof.
+
+## G03 O1/E3 corpus, adaptation, display, comparison and redistribution rights
+
+Status: OPEN, retained.
+
+Recorded evidence: [OPEN_GATES.md](OPEN_GATES.md)
+as of 2026-10-26 inventory; older O1/E3 records linked there. Development dumps and E3 automated provenance/licensing checks exist. MIT API documentation is insufficient for every downstream use.
+
+Missing receipt/readback: Affirmative per-source and exact-text permissions for production display, adaptation/model processing and offline/public redistribution where used, with attribution and expiry.
+
+Owner dependency: Rights holder permission and owner legal/content decisions.
+
+Next exact action: Prepare a source/use/territory/expiry permission packet; obtain affirmative evidence before enabling that use. Feed grants into existing automated reassessment without a routine operator approval queue.
+
+## G04 O2 translation packs and offline lifecycle
+
+Status: OPEN, retained.
+
+Recorded evidence: [OPEN_GATES.md](OPEN_GATES.md)
+as of 2026-10-26 inventory; historical O2 evidence. Base downloads, checksum/rollback fixtures and physical iOS stalled-network recovery recorded; v1 translation export blocked by E3 licensing.
+
+Missing receipt/readback: Versioned per-entry rights/attribution/citations and real download, read, update, corruption, rollback and revoked/deleted-pack proof on both native apps.
+
+Owner dependency: G03 rights and explicitly selected test devices; approval before production artifact/export changes.
+
+Next exact action: Prepare a rights-complete pack/manifest specimen locally, then request only the exact artifact/device test action when dependencies exist; retain hashes and actual installed read/update/rollback results.
+
+## G05 A4 exact-copy approval in all fifteen locales
+
+Status: OPEN, retained.
+
+Recorded evidence: [A4_REQUIREMENT_AUDIT.md](A4_REQUIREMENT_AUDIT.md)
+as of 2026-10-31. Finite local audit complete: 594 iOS keys, 589 Android resources; drafts and critical-copy ledger remain review-pending/unassigned.
+
+Missing receipt/readback: Named native-speaker approval tied to exact copy/version for reading, authenticity, AI labels, quotas, purchase, privacy, evidence, export and deletion across en/ar/ru/kk/ky/uz/tr/id/ur/fr/es-419/pt-BR/sw/hi/bn.
+
+Owner dependency: Owner identifies qualified reviewers and approves any external contact.
+
+Next exact action: Prepare exact-copy review packets from the existing ledger; record reviewer, locale, source hash, accepted wording and unresolved issues. Resource presence, generated drafts and fixture renders confer no approval.
+
+## G06 R3/F2/R4/A4/C physical reading and full accessibility
+
+Status: OPEN, retained.
+
+Recorded evidence: [A5_REQUIREMENT_AUDIT.md](A5_REQUIREMENT_AUDIT.md)
+as of 2026-10-31. A5 core engineering complete with controlled native ownership, viewport, type-size, Settings direction and reader/Saved/return evidence. A4/C local matrices pass.
+
+Missing receipt/readback: Physical iPhone/Android direction, paging, long-content/boundaries, preferences, visibility, small-screen Urdu, large text, VoiceOver/TalkBack, focus/keyboard, Reduced Motion/Transparency and older-OS fallback results.
+
+Owner dependency: Owner-selected physical devices and participant/operator availability.
+
+Next exact action: Prepare the retained R3/F2/R4/LA2/C journey matrix with build/OS/locale/account state and expected results. Explicitly select each physical device before running; retain rendered and assistive-technology outcomes without broad redesign.
+
+## G07 D2/LA2/C8 actual auth, interruptions and iOS re-login
+
+Status: OPEN, retained.
+
+Recorded evidence: [A2_WRAP_UP.md](A2_WRAP_UP.md)
+as of 2026-10-26. Real development two-way sync and iOS second-account isolation after relaunch pass. Same-process iOS direct-SDK re-login returned resource_not_found; hosted flow not exercised there. D2 earlier simulator production auth is historical.
+
+Missing receipt/readback: Fresh sign-up/sign-in, Apple full round trip, Google/email-code, cancel/recovery/failure, pending link/notification through restart/auth and iOS same-process SDK/account switching on required platforms/devices.
+
+Owner dependency: Owner present for credentials/OTP/provider consent; test-account authorization and G06 devices.
+
+Next exact action: Prepare exact account-state and interruption cases; reproduce the direct-SDK failure before changes, verify actual hosted/native routes separately. No real-account operation is authorized by A6 or by a fixture pass.
+
+## G08 H3/A2 installed compatibility and physical/production sync
+
+Status: OPEN, retained.
+
+Recorded evidence: [A2_WRAP_UP.md](A2_WRAP_UP.md)
+as of 2026-10-26. Normal-use development sync, Undo, sign-out and account isolation pass; row mode remains off. Controlled A5 guest/fake-scope checks add local regression coverage.
+
+Missing receipt/readback: Installed-release schema/endpoint compatibility, actual process death/cancellation/offline retry and physical/production two-way Saved/progress isolation.
+
+Owner dependency: Approved release pair, dedicated accounts and devices; owner approval for deployment/private writes.
+
+Next exact action: Prepare a normal-use old-installed/new-build matrix and fresh ephemeral account configuration. Preserve the coordinator, queues and row-mode-off wrap-up; do not restart large-library storage or scale work.
+
+## G09 Deletion propagation, retention and SDK/installed lifecycle
+
+Status: OPEN, retained.
+
+Recorded evidence: [LIBRARY_SYNC_DELETION_VERIFICATION.md](LIBRARY_SYNC_DELETION_VERIFICATION.md)
+as of historical A2 local record; later maintenance addendum. Durable deletion phases and server recreation guard tested locally. Preparation-grant maintenance implemented locally; actual cron/retention gates remain.
+
+Missing receipt/readback: Real identity failure/re-login, other-device local erasure propagation, physical confirmation, process/installed compatibility and retention/revocation proof. Other-device local erasure is not implemented/proved in this record.
+
+Owner dependency: Owner approves bounded dedicated-account deletion, retention policy and any cron/deployment; G07/G08.
+
+Next exact action: Prepare a disposable two-device deletion case and retained-marker/preparation-grant policy, including newer-than-backup deletion replay. Reproduce missing propagation before repair; do not revive deferred scale/storage work or delete a real reader account.
+
+## G10 D1/N1 actual push receipt and exact open
+
+Status: OPEN, retained.
+
+Recorded evidence: [OPEN_GATES.md](OPEN_GATES.md)
+as of 2026-10-26 inventory; earlier D1/N1 receipts. Old sunnad FCM delivery does not prove hadithlyapp delivery. APNs Apple acceptance and earlier production delivery exist; N1 owner receipt/exact-open remains open.
+
+Missing receipt/readback: Physical Android hadithlyapp FCM delivery plus both-platform locale/timezone/DST, retry, stale target, selected-language, foreground/background/terminated receipt and exact landing.
+
+Owner dependency: Selected phones and owner-visible delivery/open confirmation; authorization before sending.
+
+Next exact action: Prepare one canonical exact-locale target per app state and timestamp expectations. After specific send approval, record safe message IDs, receipt/open outcome and cleanup, never device tokens.
+
+## G11 W1/W2 full installed widget lifecycle
+
+Status: OPEN, retained.
+
+Recorded evidence: [OPEN_GATES.md](OPEN_GATES.md)
+as of 2026-10-26 inventory; A4 October 29 copy evidence is narrower. iOS gallery/tap and Android guest offset/stale checks exist; A4 fifteen-locale presentation adds local coverage.
+
+Missing receipt/readback: iOS locked/empty-first-install/stale cases and exact nonzero restoration; synced widgets, offline/deleted downloads, compact/large and physical behavior on both platforms.
+
+Owner dependency: G06 devices, G08 accounts, G04 pack availability.
+
+Next exact action: Prepare install/lock/sync/offline/delete/stale/exact-target cases with actual widget sizes. Record installed widgets and actual tap destinations; copy fixtures cannot close lifecycle acceptance.
+
+## G12 Evidence E1 intake, E2-E4 physical and production lifecycle
+
+Status: OPEN, retained.
+
+Recorded evidence: [OPEN_GATES.md](OPEN_GATES.md)
+as of 2026-10-26 inventory; E2 refresh October 12. Development safe processing, private cloud, authenticated native upload/OCR/publication/report/appeal paths passed historically. E3/E4 development complete; no mandatory human queue.
+
+Missing receipt/readback: E1 iOS progress/cancel/account-switch, RTL/assistive-technology devices; E3 production rights; E2-E4 release rollout and real production lifecycle/retention readbacks.
+
+Owner dependency: G03/G06/G07 and specific production/private-file authorization.
+
+Next exact action: Prepare harmless owned input, cancellation/account-switch and publication/revocation/report/appeal/retention expected outcomes. Keep processing automatic, then seek approval for the exact production smoke and cleanup only after release prerequisites.
+
+## G13 Q1 authenticated generation and Play Integrity
+
+Status: OPEN, retained.
+
+Recorded evidence: [Q1_VERIFICATION.md](Q1_VERIFICATION.md)
+as of 2026-10-12. Development quotas and physical Apple attestation/assertion/replay pass; cached guest and authenticated simulator checks are narrower.
+
+Missing receipt/readback: Authenticated Android generation/cache/allowance; physical iPhone Clerk-to-generation; Play Integrity decode/native round trip; release configuration.
+
+Owner dependency: Dedicated signed-in accounts/devices, G19 Play setup and action-time model-call approval.
+
+Next exact action: Prepare one exact-locale Free and Pro request, expected cache/allowance/replay outcomes and bounded cost. After approval, retain actual SDK-to-Convex-to-provider results; cached guest text does not prove authenticated generation.
+
+## G14 D3A financial activation
+
+Status: OPEN, retained.
+
+Recorded evidence: [Q2_VERIFICATION.md](Q2_VERIFICATION.md)
+as of 2026-10-13 latest recorded Business readback. Paid Apps Agreement/banking Processing; both U.S. tax forms Active. Two earlier physical product lookups returned zero; later retry disconnected.
+
+Missing receipt/readback: Current Active agreement and accepted banking/tax readback; actual nonempty StoreKit products and RevenueCat offering for monthly/annual.
+
+Owner dependency: Owner legal/financial form takeover and connected unlocked iPhone.
+
+Next exact action: Prepare bundle/product IDs and the read-only Q2 test methods. Owner completes pending financial steps; after explicit device/account approval rerun testRegisteredAppleProductsAreAvailable and testRealAppleOfferingLoadsForVerifiedHadithlyAccount with a current built artifact, no local StoreKit configuration.
+
+## G15 D3A listing, legal and compliance
+
+Status: OPEN, retained.
+
+Recorded evidence: [LAUNCH_DASHBOARD_CHECKLIST.md](LAUNCH_DASHBOARD_CHECKLIST.md)
+as of 2026-09-07 plus Q2 October 13 updates. App record, product identifiers, categories/version/public URLs and manual release have historical setup evidence. DSA trader declaration unfinished in Q2.
+
+Missing receipt/readback: Fresh app-record/SKU/category/version/copyright/URL readback; privacy, age rating, content rights, encryption/export and EU trader declarations; final territories/legal decisions.
+
+Owner dependency: Owner seller/legal declarations and G03/G25 disclosure facts.
+
+Next exact action: Prepare exact answers from actual data flows and rights, unresolved questions and affected territories. Owner takes over sensitive declarations; request approval only for concrete final submissions and retain saved readback.
+
+## G16 App Review access and instructions
+
+Status: OPEN, retained.
+
+Recorded evidence: [LAUNCH_DASHBOARD_CHECKLIST.md](LAUNCH_DASHBOARD_CHECKLIST.md)
+as of 2026-09-07. Review account/instructions remain unchecked.
+
+Missing receipt/readback: Working review account and precise guest reading, source, quota/paywall, purchase/restore and deletion instructions without secrets in repo.
+
+Owner dependency: Owner approves account creation/access and submission; G07/G22.
+
+Next exact action: Draft review instructions and expected states locally. When authorized, provision dedicated access privately and verify reviewer route; never put credentials in committed evidence.
+
+## G17 Apple Streamlined Purchasing
+
+Status: OPEN, retained.
+
+Recorded evidence: [Q2_VERIFICATION.md](Q2_VERIFICATION.md)
+as of 2026-10-12/13. Apple rejected disabling it because latest approved binary lacks required StoreKit APIs.
+
+Missing receipt/readback: Approved updated binary with required APIs and saved dashboard setting readback.
+
+Owner dependency: Owner approves binary upload/review and setting action.
+
+Next exact action: Prepare current release artifact/API capability and exact setting change with rollback; request action-time approval for submission before revisiting the saved setting. No upload to work around the gate in A6.
+
+## G18 Actual annual total and commission receipts
+
+Status: OPEN, retained.
+
+Recorded evidence: [C_NATIVE_REFINEMENTS.md](C_NATIVE_REFINEMENTS.md)
+as of 2026-10-27 local C1; Q2 October 12/13 economics. Owner monthly-equivalent-only prototype exception retained. Apple regional tiers approved in Q2; Small Business approval/effective date not established.
+
+Missing receipt/readback: Real storefront annual billing total plus monthly equivalent; current 175-region Apple receipt/pricing readback, Google regional export/approval, actual membership/renewal invoice and commission enrollment/effective date.
+
+Owner dependency: Owner pricing/legal/associated-account decisions; G14/G19/G20.
+
+Next exact action: Prepare store-sourced annual-total display and regional net-proceeds comparison with conservative 30% stress assumptions retained. Obtain actual store totals and Apple program approval before claiming savings or reduced commission; ask at final enrollment/pricing action.
+
+## G19 D3G account and release configuration
+
+Status: OPEN, retained.
+
+Recorded evidence: [LAUNCH_DASHBOARD_CHECKLIST.md](LAUNCH_DASHBOARD_CHECKLIST.md)
+as of 2026-09-07; deferred in October 13 Q2. Play Console account/store work explicitly owner-deferred.
+
+Missing receipt/readback: Developer profile, agreements, payment/tax setup, app record, signing fingerprint/App Links, subscriptions/base plans, RevenueCat Android production SDK key and pro/offering bindings.
+
+Owner dependency: Owner chooses when to create/purchase account and handles financial/credential details.
+
+Next exact action: Prepare package/product/entitlement/signing checklist locally. On explicit resumption obtain current account readback, then propose each exact account, product and credential action at its boundary; keep deferred until then.
+
+## G20 D3G compliance and regional pricing
+
+Status: OPEN, retained.
+
+Recorded evidence: [LAUNCH_DASHBOARD_CHECKLIST.md](LAUNCH_DASHBOARD_CHECKLIST.md)
+as of 2026-09-07; Q2 Google prerequisites still unavailable. No Google store regional export/approval or compliance pass recorded.
+
+Missing receipt/readback: Data safety, rating/audience, app access, ads, content rights, privacy/deletion URLs and complete regional pricing export with approved net margins.
+
+Owner dependency: G19 account, G03 rights, G25 disclosure and owner declarations/pricing approval.
+
+Next exact action: Prepare answers and tier-analysis input requirements locally; after account access read actual exported tiers, reconcile cost/tax/commission and seek approval for concrete saved declarations/prices.
+
+## G21 D3G internal distribution and testers
+
+Status: OPEN, retained.
+
+Recorded evidence: [LAUNCH_DASHBOARD_CHECKLIST.md](LAUNCH_DASHBOARD_CHECKLIST.md)
+as of 2026-09-07. Tracks/testers/signed artifact remain deferred.
+
+Missing receipt/readback: Signed release upload, internal track/test access, license testers and actual device install readback.
+
+Owner dependency: G19/G20 and owner approval for upload/test-account actions.
+
+Next exact action: Prepare exact signed artifact hash/package/version, track audience, tester plan and rollback. Request action-time approval before upload/invitations; record installed build/device without assuming emulator evidence is physical proof.
+
+## G22 Q2 real Apple sandbox lifecycle
+
+Status: OPEN, retained.
+
+Recorded evidence: [Q2_VERIFICATION.md](Q2_VERIFICATION.md)
+as of 2026-10-13. Local SDK/transport and signed development HTTP/reconciliation/replay pass; vendor TEST 200 grants no access. Last physical product lookup zero; no purchase attempted.
+
+Missing receipt/readback: Purchase, renewal, cancel, grace, hold where supported, expiry, refund/revoke, restore, interrupted purchase/relaunch, account/shared-device ownership and backend Pro/100 quota retry receipts.
+
+Owner dependency: G14, connected phone, owner present with sandbox tester; action-time purchase/account approval.
+
+Next exact action: Prepare each lifecycle expected store/RevenueCat/Convex/native state and safe correlation IDs. After product read succeeds and approval, run bounded real sandbox monthly purchase/restore first, then remaining supported cases. Mark platform-inapplicable hold explicitly with evidence, never silently pass it.
+
+## G23 Q2 real Google sandbox lifecycle
+
+Status: OPEN, retained.
+
+Recorded evidence: [Q2_VERIFICATION.md](Q2_VERIFICATION.md)
+as of 2026-10-13. Implementation and local lifecycle fixtures pass; Play products/account unavailable.
+
+Missing receipt/readback: Real Google purchase/renew/cancel/grace/hold/expiry/refund/revoke/restore, pending/interrupted/relaunch and account/shared-device receipts plus backend quota retry.
+
+Owner dependency: G19-G21 and owner-approved dedicated tester/device purchase actions.
+
+Next exact action: Prepare matching store/RevenueCat/Convex/native state cases. After Play setup approval, run one real license-tester purchase and restore before extending to hold/pending/expiry/refund; retain signed event and entitlement readback.
+
+## G24 Cross-platform ownership, quota retry and production Q2
+
+Status: OPEN, retained.
+
+Recorded evidence: [Q2_VERIFICATION.md](Q2_VERIFICATION.md)
+as of 2026-10-13. Development exact app/environment reconciliation and original-user ownership policy recorded; production webhook unchanged by Q2.
+
+Missing receipt/readback: Real Apple-to-Android and Google-to-iOS entitlement/restore/ownership and quota retry; approved production code/webhook activation and end-to-end receipts.
+
+Owner dependency: G22/G23, G08, separate production approval.
+
+Next exact action: Prepare exact account/store-identity pairs, stale-event/replay and shared-device expectations; read both clients and Convex after real receipts. Prepare production diff/environment/rollback separately; do not equate a TEST event with a paid entitlement.
+
+## G25 LA1/LA2 privacy, consent and store declarations
+
+Status: OPEN, retained.
+
+Recorded evidence: [LA2_VERIFICATION.md](LA2_VERIFICATION.md)
+as of 2026-10-14; A4 October 31 draft copy. Consent controls and serialized allowlists have local/development proof. Published privacy HTML candidate predates later disclosures; localized text remains draft. Development analytics disabled after proof.
+
+Missing receipt/readback: Published effective policy matching crash/analytics/support/evidence/export/deletion/retention, distribution-specific consent, request-log/IP assessment, App Privacy/Data safety answers and exact-copy approval.
+
+Owner dependency: Owner policy/legal/territory decisions, G05 reviewers and explicit publication/activation approval.
+
+Next exact action: Diff current local policy candidate against actual runtime flows and prepare final URLs/effective date plus store answers. Later verify actual published bytes and consent states after separately approved publication; this local audit does not refresh the live page.
+
+## G26 LA1 crash release reliability and Android coverage gaps
+
+Status: OPEN, retained.
+
+Recorded evidence: [LA1_VERIFICATION.md](LA1_VERIFICATION.md)
+as of 2026-10-13. Four redacted reports, neutral source-free symbols and development alert delivery recorded.
+
+Missing receipt/readback: Physical 429/offline timing, cached crash across upgrade, revoked-consent restart/re-opt-in, Android 12+ ANR/converted tombstone and explicit Android 8-11 C/C++ gap disposition.
+
+Owner dependency: Owner-selected release devices/builds and controlled crash authorization.
+
+Next exact action: Prepare one cache/retry/upgrade/consent-revocation matrix and safe crash/ANR case. Retain serialized allowlists, no raw dumps, source-free dSYMs and no local paths; record coverage limits instead of claiming full native crash support.
+
+## G27 Production monitoring and aggregate analytics activation
+
+Status: OPEN, retained.
+
+Recorded evidence: [LA1_OPERATIONS.md](LA1_OPERATIONS.md)
+as of 2026-10-13; LA2 October 14. Development Sentry/uptime/alert and exact 62-row PostHog proof exist historically. Production DSNs/alerts/analytics separate; analytics collection/export off.
+
+Missing receipt/readback: Production environment/DSN/alert delivery, retention/hard limits, consent/disclosure and production serialized-export/canary readback. No cohort retention or conversion inferred from clipped totals.
+
+Owner dependency: G25, owner approval for settings, credential transmission and bounded synthetic reports.
+
+Next exact action: Prepare exact production config diff, allowlist/caps, recipients, expected test event counts and disable/rollback. Request approval at activation, then read actual delivery/count/retention results; do not start A7 observation here.
+
+## G28 LA3 support/mail/status production integration
+
+Status: OPEN, retained.
+
+Recorded evidence: [LA3_VERIFICATION.md](LA3_VERIFICATION.md)
+as of 2026-10-14. Approved support form/Turnstile, forwarding, three received SPF/DKIM/DMARC-PASS messages and published synthetic incident passed. Three-message allowance exhausted.
+
+Missing receipt/readback: Production Convex routing/config, physical browser/accessibility/localized form proof and fresh production end-to-end received headers/status/cleanup where rollout changes them. Engagement mail has no sending/consent chain.
+
+Owner dependency: G25/G32 and fresh bounded owner send/deployment/publication approval.
+
+Next exact action: Prepare fixed-recipient/hostname/action, suppression/limits, webhook and rollback diff. Ask for a specified number of synthetic messages only at approved activation; API delivered or TEST success cannot replace received-message/header evidence.
+
+## G29 Provider invoices, allowance, alerts and commercial hosting
+
+Status: OPEN, retained.
+
+Recorded evidence: [LA3_COST_LEDGER.json](LA3_COST_LEDGER.json)
+as of 2026-10-14 only. Ledger allProvidersVerified=false. Historical Convex Free, Google scope/recipient, Resend Free, Vercel Hobby and app caps recorded; no current usage/invoice audit.
+
+Missing receipt/readback: Current Clerk plan/MRU; RevenueCat MTR/invoice/recipient; Sentry shared plan/products/quota; Convex log-retention/hard limits; Google/Cloud Run alert delivery/current usage; PostHog caps; Resend shared usage; Porkbun renewal and Apple membership invoices; Vercel commercial eligibility; Sunnah.now expanded catalog/production contract.
+
+Owner dependency: Owner account access/contracts and explicit approval before plan, billing, permission or credential changes.
+
+Next exact action: Prepare per-provider readback fields: plan, period, whole-account usage, invoice/renewal, recipient, hard limit versus alert, shared-project exposure and fallback. Resolve commercial hosting/expanded source contract before launch. Optional R2/Better Stack/TelemetryDeck/OpenRouter remain unconfigured, no automatic upgrade or extra provider.
+
+## G30 Sunnah.now waived rotation and conflicting provider evidence
+
+Status: OPEN, retained.
+
+Recorded evidence: [LAUNCH_DASHBOARD_CHECKLIST.md](LAUNCH_DASHBOARD_CHECKLIST.md)
+as of 2026-09-02/03 historical conflict; OPEN_GATES October 26 retains unverified. D1 explicitly owner-waives rotation and says no production key/read; D2 later checks provider read from cached Bukhari, without a reconciled direct upstream receipt. Shared legacy APNs key waiver belongs to other projects.
+
+Missing receipt/readback: Direct sanitized production upstream request/response and installed credential provenance reconciling D1/D2, plus current rights/contract scope. Rotation stays owner-waived, not passed.
+
+Owner dependency: Owner decides the credential/waiver boundary and authorizes any provider/secret action; G03/G29.
+
+Next exact action: Prepare exact production action and expected provider identity/status/canonical response with no secret output. Obtain action-time approval before provider/credential changes; retain the existing waiver and do not revoke shared adat/sunnad APNs credentials.
+
+## G31 LA3 production backup, RPO/RTO and deletion replay
+
+Status: OPEN, retained.
+
+Recorded evidence: [LA3_OPERATIONS.md](LA3_OPERATIONS.md)
+as of 2026-10-14. Isolated anonymous synthetic export/wipe/import restored five records and one file in 2.131 seconds. productionRestoreTested=false; secrets/code/schedules excluded.
+
+Missing receipt/readback: First encrypted daily off-device production copy, authorized scheduler/retention/key custody, successful restore with production-scale timing, 24h RPO/4h RTO and post-snapshot deletion/revocation replay plus subscription reconciliation.
+
+Owner dependency: Owner chooses/approves managed backup or export scheduler, isolated destination, key custody and production data handling.
+
+Next exact action: Prepare exact source/destination, matching code/config recovery, seven-day retention, encryption/key separation, quiet crons/mail/push/models, newer deletion ledger and rollback. Seek approval before export/job/data restore. Prove isolated authorized restore and both signed-in native reads; obtain separate specific approval before destructive production import/cutover.
+
+## G32 D4 full production release matrix and storage smoke
+
+Status: OPEN, retained.
+
+Recorded evidence: [LAUNCH_DASHBOARD_CHECKLIST.md](LAUNCH_DASHBOARD_CHECKLIST.md)
+as of 2026-09-07 checklist; later development exceptions do not close D4. Production September simulator/emulator checks are historical. D4 blocked by D3A release handoffs and D3G; Phase 6 production/device gate open.
+
+Missing receipt/readback: Both physical release apps: install/onboarding/public reading, real auth/merge/sync, provider/AI labels, actual current quota/paywall behavior, purchases/restore/cancel/grace/expiry/revoke, exact push, deletion and sanitized logs; authorized private storage upload/read/unauthorized denial/delete and egress.
+
+Owner dependency: G03/G06-G10/G14-G25/G29-G31; owner action-time deployment, private-file, purchase/deletion/send and cleanup approval.
+
+Next exact action: Prepare dated row-by-row build/OS/account/expected/actual/evidence/cleanup matrix and deployment diff/rollback. Apply current C behavior: quota errors show explicit Upgrade, automatic paywall only on intended action. Resolve stale D4 automatic-paywall wording before execution. Execute only after prerequisites and approval; never mark Phase 6 from local A6.
+
+## G33 L1 localized store artifacts and release candidate
+
+Status: OPEN, retained.
+
+Recorded evidence: [PRODUCT_PROGRAM.md](PRODUCT_PROGRAM.md)
+as of 2026-10-31 program; L1 unstarted in PLAN. Native fifteen-locale scaffolding/local A4 proof exists. Scratch store/policy drafts and preview pages are not submitted or approved store metadata.
+
+Missing receipt/readback: All fifteen native-speaker-approved listings/keywords/screenshots, canonical paragraph/policy fidelity, final binaries/store metadata and release candidate after D4/LA3.
+
+Owner dependency: G05/G14-G25/G31/G32, owner reviewer and publication approval.
+
+Next exact action: Keep L1 unstarted. After prerequisites prepare exact locale/artifact hashes and final store URLs, validate field lengths/UTF-8 keywords and native screenshots; seek approval before upload/publication. Earlier scratch drafts require regeneration/readback, never publish them by assumption.
+
+## G34 D local redesign publication, rights and live routing/forms
+
+Status: OPEN, retained.
+
+Recorded evidence: [D_WEBSITE_REDESIGN.md](D_WEBSITE_REDESIGN.md)
+as of 2026-10-27. D local responsive/routes/forms/keyboard checks pass, with blocked external services and mocked support transport. No D redesign publication recorded.
+
+Missing receipt/readback: Approved website/assets/content rights and actual public route/legal/form/accessibility/native-link readbacks after publication, matching actual app claims.
+
+Owner dependency: Owner asset/content rights and publication/hosting approval; G03/G25/G28/G29/G35.
+
+Next exact action: Prepare exact static site diff/assets and route/form/legal claim checklist, including support/Turnstile config and rollback. Ask for publication only with reviewable output; read real URLs/form receipt afterward. Preserve noindex fallback and LA4 deferral.
+
+## G35 F3 live fallback and release Universal/App Links
+
+Status: OPEN, retained.
+
+Recorded evidence: [OPEN_GATES.md](OPEN_GATES.md)
+as of 2026-10-26 inventory. Local fallback/native routing pass. D3 earlier domain/association HTTP success is narrower than current fallback/release proof; Android assetlinks absent pending Play fingerprint.
+
+Missing receipt/readback: Current public fallback noindex/canonical routes, Apple association and actual installed native open; Play signing fingerprint/assetlinks/release Android verified links and target preservation.
+
+Owner dependency: G19 fingerprint, G34 approved publication and selected release devices.
+
+Next exact action: Prepare exact association/fallback bytes and target/negative/stale route cases; after approval publish only reviewed files and verify HTTP/content type plus both actual release-app link openings. A local route test cannot close production links.
+
+## G36 LA4 post-launch web-reader decision
+
+Status: OPEN, retained.
+
+Recorded evidence: [LA4_VERIFICATION.md](LA4_VERIFICATION.md)
+as of 2026-10-14 pre-launch deferral. Old noindex route and unavailable Vercel analytics recorded; unavailable measurement is not zero demand. No reader code authorized.
+
+Missing receipt/readback: Native launch plus full 28-day real demand window, affirmative corpus/translation rights, commercial hosting/shared invoices, privacy/accessibility and cache purge/revocation proof.
+
+Owner dependency: Native launch and G03/G25/G29/G32/G33 plus owner decision at reopening.
+
+Next exact action: Retain DEFER and no implementation. After launch/window collect honest demand and operating evidence, then request only a bounded decision review; any reader implementation needs a separate approved session.
+
+## G37 Android physical-phone incident
+
+Status: OPEN, retained.
+
+Recorded evidence: [ANDROID_UI_TARGET_INCIDENT.md](ANDROID_UI_TARGET_INCIDENT.md)
+as of 2026-10-29. Unscoped Gradle included phone; fixture failed. Later package query found app absent, prior install/data state unknown. Guarded emulator runner verified.
+
+Missing receipt/readback: Owner account of pre-test install/local data and any explicitly authorized recovery assessment; no phone recovery or physical acceptance established.
+
+Owner dependency: Owner supplies prior state and approves any phone install/data access/recovery.
+
+Next exact action: Keep incident unresolved; record owner context first. Do not reinstall or inspect private phone data to manufacture a pass. All emulator tests use guarded runner; any future physical work names device and gate explicitly.
+
+## G38 A7 honest activation, return and conversion
+
+Status: OPEN, retained.
+
+Recorded evidence: [PRODUCT_PROGRAM.md](PRODUCT_PROGRAM.md)
+as of 2026-10-31. Requirement retained; existing LA2 clipped anonymous totals and fixtures are not cohorts, customers, purchases or retention.
+
+Missing receipt/readback: Privacy-preserving measurement plan, consented reader sessions and genuine dated activation/return/conversion observation with explicit populations, windows and unavailable measures.
+
+Owner dependency: Owner participant/consent decisions, G01/G02 content and G25/G27 measurement readiness; contacts/actions separately authorized.
+
+New local evidence, 2026-10-31: [measurement plan](A7_MEASUREMENT_PLAN.md),
+[draft protocol](A7_READER_SESSION_PROTOCOL.md) and [audit](A7_REQUIREMENT_AUDIT.md).
+The plan/protocol portion of the A6 missing list is now supplied locally.
+Planning only. No consent, participant, observation, payment or production receipt exists.
+
+Next exact action: Prepare one private-study readiness and approval packet with exact invitation, audience, facilitator, safe content/build/device, collection-off readback plan, storage/deletion dates and proposed calendar. Keep contact, accounts, sessions and activation unstarted until their specific approval. Then conduct only the approved consented study and reconcile actual evidence; A7 stays unchecked.
+
+## G39 E actual Linear hub
+
+Status: OPEN, retained.
+
+Recorded evidence: [PRODUCT_PROGRAM.md](PRODUCT_PROGRAM.md)
+as of 2026-10-31. E1 unchecked; local proposals/docs are not a configured workspace. Distinct from evidence E1-E4 development work.
+
+Missing receipt/readback: Actual Linear workspace/team/project/issues/docs/agent-plan evidence links and direct readback across full original program.
+
+Owner dependency: Owner chooses existing workspace, account/access and approves creation/integration actions.
+
+Next exact action: Prepare program issue/doc/link structure only when E is selected; request approval for exact workspace mutations, then read actual created objects and links. Do not set up Linear, install a connector or create a replacement local hub in A6.
+
+## G40 Final original-objective independent audit
+
+Status: OPEN, retained.
+
+Recorded evidence: [PRODUCT_PROGRAM.md](PRODUCT_PROGRAM.md)
+as of 2026-10-31. B research, C native refinements, D local redesign, A2 normal-use and A5 engineering complete. A4 local audit complete with acceptance pending.
+
+Missing receipt/readback: Full objective requirement-by-requirement evidence and independent decision-trail review, unresolved gate report and committed finished units. Original readiness/C aggregate checkboxes stay open.
+
+Owner dependency: G01-G39 as applicable, A7/E completion and independent reviewer when final audit is requested.
+
+Next exact action: After original units, compare original goal-objective/pasted-text/research manifest against actual native/site/Linear/readiness evidence; retain unmet criteria explicitly. Do not treat A6 retention as full product completion or start POST_GOAL_BACKLOG.
+
+## G41 Repository/toolchain recovery versus production data recovery
+
+Status: OPEN, retained.
+
+Recorded evidence: [REPOSITORY_AND_DISK_PLAYBOOK.md](REPOSITORY_AND_DISK_PLAYBOOK.md)
+as of 2026-09-02 historical recovery record. M0 cold builds and recovery recipes were recorded. Old branch/hash/disk/simulator inventory is historical; no archive push or current backup receipt inferred.
+
+Missing receipt/readback: When needed, current checkout/toolchain inventory and restoration proof for exact known-good release code/config alongside G31 data; private remote archival/public history cleanup unperformed.
+
+Owner dependency: Owner approves any remote archival/publication, deletion or history change.
+
+Next exact action: Use git commit/object verification and fresh local inventory for the exact future recovery task; prepare private archive/rollback before asking for remote approval. Do not delete caches/devices, push archives, rewrite history or expose secrets during this audit.

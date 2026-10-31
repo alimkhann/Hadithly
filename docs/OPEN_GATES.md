@@ -1,5 +1,25 @@
 # Open gates
 
+## A7 planning reconciliation, October 31
+
+The [A7 measurement plan](A7_MEASUREMENT_PLAN.md) and
+[draft reader-session protocol](A7_READER_SESSION_PROTOCOL.md) are complete locally.
+Actual A7 consented observation and activation/return/conversion evidence remain
+open. There were no participants, contacts, accounts, sessions or analytics
+activation. Counts from the October 14 LA2 development proof are historical mixed
+fixture/guest-operation evidence, not people, cohort retention or paying customers.
+Current deployment/vendor state was not read back.
+
+The [A7 carried gates](A7_GATE_CARRY_FORWARD.md) explicitly retain all G01-G41,
+including G38 actual observation, G39 E's actual Linear hub and G40 independent
+final audit. No retained gate passed. A6's evidence dates, missing receipts and
+dependencies remain unchanged; G38 adds dated planning evidence only. A1/A3/A4
+acceptance and every external/device/store/production/recovery/release gate below
+remain open. The [A7 audit](A7_REQUIREMENT_AUDIT.md) records local checks without
+claiming a new native run or external readback. Next is a bounded observation-
+readiness packet, then specific approval before any actual contact or collection.
+The A6 next-planning sentence below is historical. Preserve all other records.
+
 ## A6 reconciliation, October 31
 
 All external gates remain open. The current local index is

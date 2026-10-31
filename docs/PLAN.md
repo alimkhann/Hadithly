@@ -57,6 +57,36 @@ start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
 
+## A7 local planning checkpoint, October 31
+
+The bounded A7 local planning unit is complete in `A7_MEASUREMENT_PLAN.md` and
+`A7_READER_SESSION_PROTOCOL.md`. Fourteen measures define populations, numerators,
+denominators, windows, sources, coverage limits and required real readbacks.
+The draft protocol provides consent, facilitator/task/diary/withdrawal/deletion
+records, participant requirements, a 21-day observation schedule and day-28 note
+removal. No contact, consent, session, observation, account or analytics activation
+occurred. A7's original checkbox remains open. Plans and controlled fixtures do
+not establish retention, paying customers or conversion.
+
+`A7_GATE_CARRY_FORWARD.md` explicitly retains all G01-G41 with original evidence
+dates/scopes, missing receipts, owner dependencies and next actions. Only G38 adds
+new local planning evidence, never acceptance. A5 ownership/landing, large-text
+viewport, translation-size, Settings direction and reader/Saved/return source
+bytes are preserved, as are incoming catalog/project work, opaque data, RTL and
+fifteen-locale bindings. A2 remains wrapped with row mode off; B/C/D retain local
+completion. See `A7_REQUIREMENT_AUDIT.md` for fresh local preservation checks and
+historical artifact readbacks, not newly executed native or external tests.
+
+Next is one A7 consented-observation readiness packet using the exact prompt in
+`NEXT_SESSION_PROMPT.md`. Prepare concrete audience/invitation, facilitator,
+content/build/device, collection-off verification, private storage, deletion dates
+and calendar before requesting action-time approval for contact/observation.
+Actual observation, new collection, all external gates, E's actual Linear hub and
+the independent final original-program audit remain pending. Keep GPT-only and no
+Relay. Follow `PRODUCT_PROGRAM.md` before `POST_GOAL_BACKLOG.md`. Stop after the
+verified local planning commit without pushing; no A2 storage, release operations,
+E setup or later redesign is authorized. Older next-task sentences are historical.
+
 ## A6 local readiness audit, October 31
 
 A6 is complete for its original execute-or-explicitly-retain criterion. The local

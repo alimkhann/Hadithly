@@ -1,0 +1,72 @@
+{
+  "date": "2026-10-31",
+  "checks": [
+    {
+      "name": "all_in_one_la2_audit",
+      "command": "node scripts/audit-la2.mjs",
+      "exit_code": 1,
+      "log_sha256": "edfdf3266eb9f1141211aec1865c64475624a39fb6a462a1abc75846e23b28a8",
+      "summary": [
+        "Generated LA2 resource is out of date: ios/Hadithly/Localizable.xcstrings"
+      ]
+    },
+    {
+      "name": "resource_audit",
+      "command": "python3 scripts/localization_audit.py --allow-drafts",
+      "exit_code": 0,
+      "log_sha256": "01376dfba6b0ceda9a445b06e97334d62cb15043457eba13dc36533ee010059f",
+      "summary": [
+        "iOS: 594 keys, 8452 draft locale entries, 0 failures",
+        "Android: 589 resources, 48 English-copy drafts, 0 failures",
+        "hardcoded candidates: Swift 285, Kotlin 295"
+      ]
+    },
+    {
+      "name": "analytics_backend_tests",
+      "command": "cd backend && npm test -- convex/analytics.test.ts",
+      "exit_code": 0,
+      "log_sha256": "06f99655c5db74aa474fdef089b0a1ae30c4eb591f5451ce5e38975c14014891",
+      "summary": [
+        "> vitest run convex/analytics.test.ts",
+        "",
+        "",
+        " RUN  v4.1.11 /Users/alim/Developer/Projects/Apps/Hadithly/backend",
+        "",
+        "",
+        " Test Files  1 passed (1)",
+        "      Tests  12 passed (12)",
+        "   Start at  20:26:55",
+        "   Duration  563ms (transform 176ms, setup 0ms, import 230ms, tests 243ms, environment 0ms)"
+      ]
+    },
+    {
+      "name": "closed_catalog_check",
+      "command": "python3 scripts/generate-analytics-catalog.py --check",
+      "exit_code": 0,
+      "log_sha256": "c5a630a42377d52b466353c1270256caea7e14e1333a1c76af4e16dc882c6a5b",
+      "summary": [
+        "Validated 77 variants in ten event families"
+      ]
+    },
+    {
+      "name": "dashboard_parity",
+      "command": "Compare create-analytics-dashboard.mjs output without --apply to LA2_DASHBOARD.json",
+      "exit_code": 0,
+      "log_sha256": "73d65ea5a8578ba683ad951652598ec535590c2fd62686cf30aa67a0fadfee9d",
+      "summary": [
+        "Dashboard definition parity: six unchanged panels; no apply flag or provider request."
+      ]
+    }
+  ],
+  "preexisting_copy_generator_failure": {
+    "exit_code": 1,
+    "message": "Generated LA2 resource is out of date: ios/Hadithly/Localizable.xcstrings",
+    "scope": "Same failure reproduced using only committed a447fec generator/copy/catalog in isolated temporary directory; no working catalog modified."
+  },
+  "incoming_catalog_semantic_delta": {
+    "added_keys": 2,
+    "removed_keys": 0,
+    "changed_existing_entries": 18
+  },
+  "limits": "Local checks only. Combined LA2 audit blocked at historical copy-generator check; remaining relevant measurement checks run separately. No live flags, current account state, participants or native/device acceptance."
+}
