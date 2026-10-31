@@ -59,18 +59,32 @@ product.
 
 ## Owner continuation order, October 31
 
-The Saved unit's completion record below supersedes its earlier handoff. Continue
-with one bounded A4 Settings offline-storage notice session using
-`NEXT_SESSION_PROMPT.md`. The profile-notice unit is locally complete as recorded
-below. Then complete the original `PRODUCT_PROGRAM.md` objective: remaining A4,
-A5–A7/readiness, unfinished A1/A3 acceptance, E and the final full-objective audit.
-A2 stays wrapped; retain B/C/D's local completion and all external gates.
-The newer goals come afterward and are recorded in `POST_GOAL_BACKLOG.md`, with
-suggested preparation first. Read `NEXT_SESSION_PROMPT.md` for the current bounded
-checklist. Use the new workflow without repeating the setup audit or starting
-an unrelated pilot. This order supersedes the temporary workflow pause below.
+A4's finite local localization checklist is complete. See `A4_REQUIREMENT_AUDIT.md`
+for each requirement, controlled native evidence and acceptance limits. Full A4 remains
+open for exact-copy native-speaker review and full accessibility/authenticated/physical
+acceptance. `NEXT_SESSION_PROMPT.md` contains the exact next goal: one bounded A5
+Contents Go-tap navigation reproduction and confirmed repair. A5 has not started.
+
+Continue the original `PRODUCT_PROGRAM.md` objective: A5–A7/readiness, unfinished
+A1/A3 and A4 acceptance, E and the final full-objective audit. A2 stays wrapped with
+row mode off; retain B/C/D's local completion and every existing external gate.
+`POST_GOAL_BACKLOG.md` comes afterward. Do not repeat the setup audit or start an
+unrelated pilot. This order supersedes the temporary workflow pause below.
+
+## A4 local closure, October 31
+
+Offline notices, Settings/evidence wrappers, runtime actions, auth interpolation,
+folder/clipboard boundaries, root Settings, reader chrome and authenticity templates
+have before/after evidence. Both apps pass the changed presentations in all fifteen
+UI locales, with focused ar/ur/ru/bn large text and synthetic state/callback checks.
+The all-XML/resource, fallback, placeholder, plural and exact incoming-work checks
+pass. `A4_REQUIREMENT_AUDIT.md` separates these local results from native-language,
+full accessibility and external acceptance. No real account action was invoked.
+The original checklist and historical gates below remain intact.
 
 ## A4 runtime wrappers, October 31
+
+Historical unit handoff; superseded by the A4 local closure above.
 
 Settings/evidence diagnostic wrappers and fixed conditional labels pass controlled
 fifteen-locale matrices and focused large text on both native apps. Known guidance
@@ -82,6 +96,8 @@ A5. Exact-copy native review, full accessibility and every previous external gat
 open. A2 stays wrapped and B/C/D retain local completion.
 
 ## A4 offline notices, October 31
+
+Historical unit handoff; superseded by the A4 local closure above.
 
 The bounded offline unit passes controlled rendering of thirty notices/states in all
 fifteen UI locales on both native apps, plus ar/ur/ru/bn large text, opaque-name/callback

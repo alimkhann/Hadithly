@@ -1,38 +1,8 @@
-# Next session goal
+# Current next goal
 
-October 31 latest owner order: resume and finish Saved using
-`NEXT_SESSION_PROMPT.md`, then finish the original `PRODUCT_PROGRAM.md` objective
-and its acceptance audit before the newer `POST_GOAL_BACKLOG.md` goals. Use
-bounded sessions and preserve every external gate. The checkpoints below are
-history where their next steps conflict with that current prompt.
-
-October 31: start with `NEXT_SESSION_PROMPT.md` for the focused continuation.
-B's available-source review, C's local refinements and D's local redesign are
-committed. A4 is active; the Saved copy/accessibility unit remains uncommitted
-and needs final folder checks and an evidence refresh. Older checkpoints below
-are history, not an instruction to repeat completed B/C/D work.
-
-Continue Hadithly in `/Users/alim/Developer/Projects/Apps/Hadithly`. Pursue the
-existing product objective in `docs/PRODUCT_PROGRAM.md`, with this latest owner
-order: **B research → C native refinements → D website redesign → remaining A4–A7
-and other unfinished readiness work**. Keep E Linear in the program, without
-making it a prerequisite to B–D. Start useful B work immediately after the brief
-context check. A2 is wrapped. Do not restart its storage project.
-
-October 27 checkpoint: B's available-source review is complete. The manifest has
-34 reviewed caption/frame video records and 26 resource records with their exact
-access limits. Read `docs/product-program/research-decisions.md`, then continue
-C1–C8 and D before A4–A7. No blocked resource is counted as read, and no retention,
-release or content gate is closed by the research.
-
-C5/C6 checkpoint: Daily appearance and numbered Contents are repaired and locally
-verified on both apps. Read `C_NATIVE_REFINEMENTS.md` and continue C4/C8 plus the
-remaining C checks before D. Preserve the incoming five Xcode/catalog files.
-
-C4/C8 checkpoint: separate glass menu controls, official Google artwork and the
-browser explanation now pass local native checks. Continue C1 and C2/C3/C7
-verification before D. C8 adds only one scoped catalog entry, preserving all
-incoming catalog bytes. External OAuth and native-copy approval remain open.
+Use the exact A5 goal in [NEXT_SESSION_PROMPT.md](NEXT_SESSION_PROMPT.md).
+A4 local evidence is in [A4_REQUIREMENT_AUDIT.md](A4_REQUIREMENT_AUDIT.md); full A4 acceptance remains open.
+The historical A4 handoffs below do not override the current prompt or close existing gates.
 
 ## A4 evidence-intake checkpoint, October 30
 

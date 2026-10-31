@@ -1,0 +1,455 @@
+{
+  "baseline": "858fda51f9deeadfcd1c8095bba3d97b424a55bd",
+  "locales": [
+    "en",
+    "ar",
+    "ru",
+    "kk",
+    "ky",
+    "uz",
+    "tr",
+    "id",
+    "ur",
+    "fr",
+    "es-419",
+    "pt-BR",
+    "sw",
+    "hi",
+    "bn"
+  ],
+  "source_contracts": [
+    {
+      "path": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "required": [
+        "Text(LocalizedStringKey(title)).font(.headline)",
+        "Text(LocalizedStringKey(subtitle)).font(.caption)",
+        ".accessibilityLabel(Text(LocalizedStringKey(label)))",
+        "if textSize.isAccessibilitySize"
+      ]
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "required": [
+        "Text(nativeText(title), fontSize = 16.sp",
+        "Text(nativeText(subtitle), fontSize = 12.sp",
+        "localizedHadithMenuActions(hadithMenuActions(",
+        "val gradeLabel = nativeText(grade.displayName)",
+        "nativeText(if (bookmarked) \"Bookmarked\" else \"Not bookmarked\")",
+        "if (pageStartRow.target == null) nativeText(\"This page\")"
+      ]
+    },
+    {
+      "path": "ios/Hadithly/Features/Reader/ReaderModels.swift",
+      "required": [
+        "name ?? AppLocalization.string(\"All folders\", locale: locale)",
+        "AppLocalization.string(\"AI translation\", locale: locale)"
+      ]
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt",
+      "required": [
+        "nativeText(\"Enter the code we sent to %@.\", email)"
+      ]
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "required": [
+        "name ?: nativeText(\"Account\")",
+        "Text(nativeText(\"Saved items could not load\")",
+        "to nativeText(SettingsSubscription.displayName(subscriptionTier))",
+        "notificationTime else nativeText(\"Off\")"
+      ]
+    },
+    {
+      "path": "ios/Hadithly/Features/Settings/SettingsView.swift",
+      "required": [
+        "clerk.user?.username ?? AppLocalization.string(\"Account\", locale: locale)"
+      ]
+    },
+    {
+      "path": "ios/Hadithly/Core/Preferences/AppLocalization.swift",
+      "required": [
+        "static let aliases: [String: String]",
+        "return AppLocalization.string(fallback, locale: locale)"
+      ]
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/hadithly/app/core/preferences/NativeCopy.kt",
+      "required": [
+        "return nativeText(fallback)",
+        "\"la2.restore\" -> R.string.la2_restore"
+      ]
+    },
+    {
+      "path": "ios/Hadithly/Core/Preferences/AppLocalization.swift",
+      "required": [
+        "static func authenticity(scope: String, grade: String?, sourceName: String, locale: Locale)",
+        "guard (scope == \"hadith\" || scope == \"collection\"), let grade else"
+      ]
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/hadithly/app/core/preferences/NativeCopy.kt",
+      "required": [
+        "internal fun authenticityText(scope: String, grade: String?, sourceName: String)",
+        "if ((scope != \"hadith\" && scope != \"collection\") || grade == null)"
+      ]
+    },
+    {
+      "path": "ios/Hadithly/Features/Onboarding/OnboardingFlowView.swift",
+      "required": [
+        "AppLocalization.authenticity("
+      ]
+    },
+    {
+      "path": "ios/Hadithly/Features/Today/TodayView.swift",
+      "required": [
+        "HadithSourceSheet(hadith: dailyHadith.readerHadith)"
+      ]
+    },
+    {
+      "path": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "required": [
+        "AppLocalization.authenticity("
+      ]
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/hadithly/app/features/onboarding/OnboardingScreens.kt",
+      "required": [
+        "core.preferences.authenticityText("
+      ]
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/hadithly/app/features/today/TodayScreen.kt",
+      "required": [
+        "core.preferences.authenticityText("
+      ]
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "required": [
+        "core.preferences.authenticityText("
+      ]
+    }
+  ],
+  "lexical_dispositions": [
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "call": "TextField",
+      "value": "you@example.com",
+      "category": "example-or-symbol-review",
+      "disposition": "Numeric, email or URL example. Preserve the source value."
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "call": "TextField",
+      "value": "you@example.com",
+      "category": "example-or-symbol-review",
+      "disposition": "Numeric, email or URL example. Preserve the source value."
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "call": "Text",
+      "value": "Enter the code we sent to \\(email).",
+      "category": "dynamic-review",
+      "disposition": "SwiftUI localized interpolation uses the existing email template. Email is one opaque argument."
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "call": "TextField",
+      "value": "000000",
+      "category": "example-or-symbol-review",
+      "disposition": "Numeric, email or URL example. Preserve the source value."
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "call": "TextField",
+      "value": "you@example.com",
+      "category": "example-or-symbol-review",
+      "disposition": "Numeric, email or URL example. Preserve the source value."
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "call": "Text",
+      "value": "Enter the code sent to \\(email) and your new password.",
+      "category": "dynamic-review",
+      "disposition": "SwiftUI localized interpolation uses the existing email template. Email is one opaque argument."
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Auth/SignInView.swift",
+      "call": "TextField",
+      "value": "000000",
+      "category": "example-or-symbol-review",
+      "disposition": "Numeric, email or URL example. Preserve the source value."
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/EvidenceSubmissionSheet.swift",
+      "call": "TextField",
+      "value": "https://source.example/page",
+      "category": "example-or-symbol-review",
+      "disposition": "Numeric, email or URL example. Preserve the source value."
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/LibraryView.swift",
+      "call": "accessibilityLabel",
+      "value": "\\(position). \\(name)",
+      "category": "dynamic-review",
+      "disposition": "Ordinal plus opaque collection title, or a numeric ordinal alone. No fixed interface words."
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/LibraryView.swift",
+      "call": "accessibilityLabel",
+      "value": "\\(position). \\(name)",
+      "category": "dynamic-review",
+      "disposition": "Ordinal plus opaque collection title, or a numeric ordinal alone. No fixed interface words."
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/LibraryView.swift",
+      "call": "Text",
+      "value": "\\(number)",
+      "category": "dynamic-review",
+      "disposition": "Ordinal plus opaque collection title, or a numeric ordinal alone. No fixed interface words."
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "call": "accessibilityLabel",
+      "value": "\\(ReaderSourceLabel.text(for: hadith)), \\(AppLocalization.string(kind.accessibilityName, locale: locale))",
+      "category": "dynamic-review",
+      "disposition": "Opaque source label joined to an explicitly localized grade name."
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Reader/ReaderView.swift",
+      "call": "Text",
+      "value": "· \\(note)",
+      "category": "dynamic-review",
+      "disposition": "User note with a separator. Preserve user content."
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Settings/SettingsDestinations.swift",
+      "call": "Text",
+      "value": "\\(language.flag)  \\(language.name)",
+      "category": "dynamic-review",
+      "disposition": "Flag and native language autonym. Preserve the registered language name."
+    },
+    {
+      "platform": "ios",
+      "file": "ios/Hadithly/Features/Today/TodayView.swift",
+      "call": "Text",
+      "value": "No \\(preferences.translationLocale) translation is available yet.",
+      "category": "dynamic-review",
+      "disposition": "SwiftUI localized interpolation uses No %@ translation is available yet. Translation locale is one argument."
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/onboarding/OnboardingScreens.kt",
+      "call": "Text",
+      "value": "Hadithly",
+      "category": "direct-literal-review",
+      "disposition": "Brand name or structural whitespace. No interface sentence to translate."
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "call": "Text",
+      "value": " ",
+      "category": "direct-literal-review",
+      "disposition": "Brand name or structural whitespace. No interface sentence to translate."
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "call": "Text",
+      "value": " ",
+      "category": "direct-literal-review",
+      "disposition": "Brand name or structural whitespace. No interface sentence to translate."
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "call": "Text",
+      "value": " ",
+      "category": "direct-literal-review",
+      "disposition": "Brand name or structural whitespace. No interface sentence to translate."
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "call": "Text",
+      "value": " ",
+      "category": "direct-literal-review",
+      "disposition": "Brand name or structural whitespace. No interface sentence to translate."
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt",
+      "call": "Text",
+      "value": "· $note",
+      "category": "dynamic-review",
+      "disposition": "User note with a separator. Preserve user content."
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "call": "Text",
+      "value": "Hadithly",
+      "category": "direct-literal-review",
+      "disposition": "Brand name or structural whitespace. No interface sentence to translate."
+    },
+    {
+      "platform": "android",
+      "file": "android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt",
+      "call": "Text",
+      "value": "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
+      "category": "dynamic-review",
+      "disposition": "Build version and build number. Preserve identifiers."
+    }
+  ],
+  "source_review": [
+    {
+      "surface": "Auth",
+      "result": "Static copy uses typed keys or nativeText. Email-code interpolation is repaired. SDK error text is bounded. Inputs remain opaque."
+    },
+    {
+      "surface": "Onboarding",
+      "result": "Titles and buttons use typed keys/resources. Authenticity claim templates use the selected UI locale at presentation; existing hadith/collection/unverified decisions are unchanged. Autonyms, source text, attribution, license names and source names stay opaque. A1/A3 content gates remain open."
+    },
+    {
+      "surface": "Today and Library",
+      "result": "Greeting, progress, counts, conditionals and action names resolve the UI locale. Dates use locale formatters. Reference/title data and user names stay opaque."
+    },
+    {
+      "surface": "Reader",
+      "result": "Loading, navigation/menu cards, icon names, bookmark fallbacks, accessibility markers/grades and report/evidence errors are traced to localized boundaries. Volume/chapter/source/user text stays opaque. The unused ReaderSheetSectionLabel has no runtime caller. Authenticity templates are localized at presentation; the legacy model formatter is not a product UI caller."
+    },
+    {
+      "surface": "Saved",
+      "result": "Filters, empty guidance, confirmation/Undo and timestamps retain earlier native evidence. Folder names, notes and preview content remain opaque."
+    },
+    {
+      "surface": "Settings",
+      "result": "Root headers/summaries/account fallbacks and destination notices are traced to selected-locale renderers. Autonyms, time strings, cache sizes, names, emails and external price fields remain data. Store/export/account callbacks and fences are unchanged."
+    },
+    {
+      "surface": "Evidence and reports",
+      "result": "Own guidance and status use fixed keys. Known error guidance is localized; arbitrary diagnostics use a bounded fallback. Source citations and filenames remain verbatim."
+    },
+    {
+      "surface": "Purchase",
+      "result": "Owned labels and failure notices are localized. Store-provided prices and purchase/account state are preserved. Actual store/annual-total acceptance stays open."
+    },
+    {
+      "surface": "Widgets and notifications",
+      "result": "Retain previous A4 fifteen-locale dictionaries, plural and backend-notification evidence. Physical scheduling/widget acceptance stays open."
+    },
+    {
+      "surface": "Core UI wrappers and variable text",
+      "result": "Typed SwiftUI labels, nativeText helpers, prelocalized values and opaque data cover remaining variable Text arguments. Root/model-backed wrappers and semantic names were reviewed separately from the lexical report."
+    }
+  ],
+  "unchanged_paths": [
+    "backend",
+    "ios/Hadithly/Core/Saved",
+    "android/app/src/main/kotlin/com/hadithly/app/core/data",
+    "ios/Hadithly/App/AppEnvironment.swift",
+    "android/app/src/main/kotlin/com/hadithly/app/core/session/SessionManager.kt",
+    "docs/A2_WRAP_UP.md",
+    "docs/ANDROID_UI_TARGET_INCIDENT.md"
+  ],
+  "ios_final_bundles": [
+    "/tmp/hadithly-a4-finish-1031/offline-green.xcresult",
+    {
+      "path": "/tmp/hadithly-a4-finish-1031/runtime-red.xcresult",
+      "prefixes": [
+        "OfflineStoreTests/"
+      ]
+    },
+    "/tmp/hadithly-a4-finish-1031/runtime-final.xcresult",
+    "/tmp/hadithly-a4-finish-1031/boundary-units.xcresult",
+    "/tmp/hadithly-a4-finish-1031/edge-green.xcresult",
+    {
+      "path": "/tmp/hadithly-a4-finish-1031/chrome-final.xcresult",
+      "prefixes": [
+        "ReaderR5Tests/",
+        "LocaleFallbackTests/"
+      ],
+      "cases": [
+        "VisualPolishUITests/testFinalWrappersUseSelectedLanguage()",
+        "VisualPolishUITests/testFinalWrappersRemainReadableAtLargeText()",
+        "VisualPolishUITests/testChromeUsesSelectedLanguage()"
+      ]
+    },
+    "/tmp/hadithly-a4-finish-1031/chrome-large-wide.xcresult",
+    "/tmp/hadithly-a4-finish-1031/authenticity-final-copy.xcresult"
+  ],
+  "android_final_reports": [
+    {
+      "path": "/tmp/hadithly-a4-finish-1031/offline-second-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "cases": [
+        "offlineNoticesUseSelectedLanguage"
+      ]
+    },
+    {
+      "path": "/tmp/hadithly-a4-finish-1031/offline-large-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "cases": []
+    },
+    {
+      "path": "/tmp/hadithly-a4-finish-1031/offline-unit-android-reports/TEST-com.hadithly.app.OfflineStoreTest.xml",
+      "cases": []
+    },
+    {
+      "path": "/tmp/hadithly-a4-finish-1031/runtime-green-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "cases": []
+    },
+    {
+      "path": "/tmp/hadithly-a4-finish-1031/boundary-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "cases": []
+    },
+    {
+      "path": "/tmp/hadithly-a4-finish-1031/edge-green-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "cases": []
+    },
+    {
+      "path": "/tmp/hadithly-a4-finish-1031/chrome-first-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "cases": [
+        "finalWrappersUseSelectedLanguage",
+        "finalWrappersRemainReadableAtLargeText"
+      ]
+    },
+    {
+      "path": "/tmp/hadithly-a4-finish-1031/chrome-menu-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "cases": []
+    },
+    {
+      "path": "/tmp/hadithly-a4-finish-1031/edge-unit-android-reports/TEST-com.hadithly.app.LocaleFallbackTest.xml",
+      "cases": []
+    },
+    {
+      "path": "/tmp/hadithly-a4-finish-1031/edge-unit-android-reports/TEST-com.hadithly.app.ReaderR5Test.xml",
+      "cases": []
+    },
+    {
+      "path": "/tmp/hadithly-a4-finish-1031/edge-unit-android-reports/TEST-com.hadithly.app.ReaderR6Round3Test.xml",
+      "cases": []
+    },
+    {
+      "path": "/tmp/hadithly-a4-finish-1031/authenticity-final-copy-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "cases": [
+        "authenticityCopyUsesSelectedLanguage",
+        "authenticityCopyRemainsReadableAtLargeText"
+      ]
+    }
+  ]
+}

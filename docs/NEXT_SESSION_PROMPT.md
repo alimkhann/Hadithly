@@ -1,71 +1,33 @@
-# Focused continuation, October 31
+# Next goal: one A5 reader-navigation repair
 
-Continue Hadithly in `/Users/alim/Developer/Projects/Apps/Hadithly`.
-Do one bounded A4 session, then hand off in a fresh chat. The continuing objective
-is `PRODUCT_PROGRAM.md`, including unfinished A1/A3 acceptance, remaining
-A4–A7/readiness, E and the final requirement-by-requirement audit. A2 stays wrapped;
-retain B/C/D's recorded local completion and every external gate. Row mode stays off.
-Only after that objective is complete may `POST_GOAL_BACKLOG.md` begin.
+A4's finite local work has its requirement audit in `A4_REQUIREMENT_AUDIT.md`.
+Full A4 remains open for exact-copy native-speaker review and full accessibility,
+authenticated, physical-device and external acceptance. Fixtures do not close those gates.
 
-## Read what the next decision needs
+Read the current checkpoint and mistakes in `PLAN.md`, then the Product continuation
+paragraph in `SESSION_PROMPTS.md`. Inspect both the index and worktree. Incoming
+catalog formatting/extraction and four project/scheme files remain separate. Preserve
+their bytes. Keep Python cache files and build outputs out of commits.
 
-Start with `AGENTS.md`, the current checkpoint and mistakes in `PLAN.md`, the
-Product continuation paragraph in `SESSION_PROMPTS.md`, and this file. Check
-`git status`, both index and worktree, recent commits and the product checklist.
-Read the latest Saved completion section in `A4_RUNTIME_LOCALIZATION.md`.
-Open implementation or older evidence only when it answers the next question.
+The exact next goal is:
 
-Use `AGENT_WORKFLOW.md`'s bounded loop with one primary writer. The Saved pilot
-used the existing native harness and scoped staging; do not repeat the workflow
-research, setup audit, B/C/D work or the completed Saved matrix without a relevant
-change or failure. No broader client-settings or native-review acceptance is implied.
+```text
+/goal Continue Hadithly in /Users/alim/Developer/Projects/Apps/Hadithly. Read AGENTS.md, docs/PLAN.md, docs/NEXT_SESSION_PROMPT.md, docs/A4_REQUIREMENT_AUDIT.md and the A5 requirements in docs/PRODUCT_PROGRAM.md first.
 
-## Next original-program task: A4 Settings offline-storage notices
+Do one bounded A5 unit. Start by reproducing the reported Contents Go-tap navigation failure on both native apps. Trace the actual tap, dismissal, target ownership and reader landing before repairing a confirmed cause. Preserve the existing reader, Saved and return behavior, opaque source/user data, RTL regressions and fifteen-locale bindings. If this failure cannot be reproduced, record the exact attempted journey and evidence before choosing the next confirmed core reading/saving/return defect.
 
-The bounded profile-notice session is complete locally. Read its latest section
-in `A4_RUNTIME_LOCALIZATION.md` and `verification/a4-localization/profile-notices.json`.
-A4 itself remains open. Continue one bounded offline-storage notice unit.
+Verify the repaired journey on both native apps with explicit guarded emulator targeting and focused RTL/large-text/state/callback safeguards. Distinguish controlled fixtures from actual live, authenticated and physical-device evidence. Do not invoke real account actions. Obtain action-time approval before cloud, account, credential, paid-model, deployment, migration or publication changes.
 
-- Inspect the OfflineStorage destination in
-  `ios/Hadithly/Features/Settings/SettingsDestinations.swift` and
-  `android/app/src/main/kotlin/com/hadithly/app/features/settings/SettingsScreen.kt`.
-  Trace temporary-cache clearing, pack-removal confirmations and blocked-reason
-  rendering. Reproduce the English/raw-notice path using controlled fixtures.
-- Localize fixed interface copy and bounded diagnostic fallbacks. Preserve opaque
-  pack names, saved items, reading positions, queue/cancellation and removal
-  behavior. Reuse indexed drafts where correct. Do not clear or remove the owner's
-  actual data, download packs, call providers or expand into purchases, account
-  deletion, notifications or evidence wrappers.
-- Verify all fifteen UI locales on both apps, representative RTL/large text and a
-  local state/callback safeguard. Keep native-speaker review pending and label
-  controlled rendering separately from full Settings or physical-device acceptance.
-- Refresh scoped evidence, generator/structural checks and preservation proof.
-  Inspect both index and worktree. Commit the finished unit without pushing and
-  stop. Keep incoming project/catalog work separate.
+Preserve incoming project/catalog work, A2's agreed wrap-up with row mode off, B/C/D local completion, A4's local audit and pending exact-copy/native accessibility acceptance, and every existing open gate. Keep unfinished A1/A3 acceptance, A6-A7/readiness, E and the final original-program audit in scope. Follow PRODUCT_PROGRAM.md before POST_GOAL_BACKLOG.md. Keep GPT-only and no Relay.
 
-After offline-storage notices, continue the remaining A4 Settings/evidence error wrappers
-and runtime review in verifiable units. Keep A4 finite and distinguish resource
-structure, controlled rendering, accessibility and native-language approval.
-Then follow the original A5–A7/readiness, A1/A3 and E dependencies and final audit.
-A5 includes the live Contents Go-tap navigation failure; A7 measurement and the
-actual E Linear hub remain unfinished.
+Refresh scoped evidence and preservation checks, inspect staged and unstaged changes, and commit the finished A5 unit without pushing. Stop at that verified boundary and leave the next exact goal prompt. Do not expand into A2 storage, A6, the later backlog, or a broader redesign.
+```
 
-## Preserve incoming work and safeguards
+The root Android runner must keep explicit `--serial emulator-5554` and `--class`.
+The physical-phone incident remains unresolved. No implicit all-device run is allowed.
 
-The Saved and profile sessions leave incoming catalog formatting/extraction
-differences and the four project/scheme files outside their commits. Preserve those bytes. Inspect
-the actual next-session status instead of assuming a clean checkout. Keep
-`scripts/__pycache__`, secrets and build outputs out of commits. Use the guarded
-catalog staging helper for any new keys or explicit hash/locale repairs.
-
-Connected Android UI checks must use the root runner with explicit
-`--serial emulator-5554` and `--class`. Never use bare connected Gradle tests.
-The physical-phone incident in `ANDROID_UI_TARGET_INCIDENT.md` remains unresolved;
-do not touch or claim recovery of that phone without a separate instruction.
-
-Keep GPT-only and no-Relay. Obtain action-time approval for cloud, account,
-credential, paid-model, deployment, migration and publication changes. Native-copy,
-full accessibility, authenticated/physical-device, content, store/purchase, actual
-annual billing total, production, backup/recovery, publication and LA4 gates stay
-open unless their own real evidence closes them. No Saved result completes A4 or
-the overall program.
+A2 stays wrapped and B/C/D retain local completion. A1/A3, exact-copy review, full
+accessibility, authenticated/physical-device, content, stores/purchases, actual annual
+billing total, production, backup/recovery, publication and LA4 gates remain open.
+A7 measurement and E's actual Linear hub remain unfinished. The original program
+precedes the later backlog.

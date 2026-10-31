@@ -460,9 +460,22 @@ def write_runtime_report(path: Path) -> None:
 
 def write_ledger() -> None:
     ios_catalog = json.loads(IOS_CATALOG.read_text())["strings"]
-    android_strings, android_plurals = android_nodes(ANDROID_RES / "values/strings.xml")
+    android_sources = {}
+    localized_android = {locale: {} for locale in WAVE1}
+    for path in sorted((ANDROID_RES / "values").glob("*.xml")):
+        strings, plurals = android_nodes(path)
+        sources = {key: node for key, node in {**strings, **plurals}.items()
+                   if node.attrib.get("translatable") != "false"}
+        if not sources:
+            continue
+        android_sources.update(sources)
+        for locale in WAVE1:
+            target = ANDROID_RES / android_qualifier(locale) / path.name
+            if target.exists():
+                strings, plurals = android_nodes(target)
+                localized_android[locale].update({**strings, **plurals})
     rows = ["platform\tlocale\tcategory\tkeys\tgenerated_drafts\tnative_reviewer\tstatus"]
-    for platform, locale_map in (("ios", ios_catalog), ("android", {**android_strings, **android_plurals})):
+    for platform, locale_map in (("ios", ios_catalog), ("android", android_sources)):
         for locale in WAVE1:
             for category in ("reading", "authenticity", "ai-quota", "purchase", "privacy", "evidence", "export", "deletion"):
                 keys = [key for key in locale_map if category_for(key) == category]
@@ -470,22 +483,14 @@ def write_ledger() -> None:
                 if platform == "ios":
                     for key in keys:
                         loc = locale_map[key].get("localizations", {}).get(locale, {})
-                        units = [loc.get("stringUnit", {})] + list(loc.get("variations", {}).get("plural", {}).values())
-                        generated += sum(unit.get("state") == "needs_review" for unit in units if isinstance(unit, dict))
+                        generated += sum(unit.get("state") == "needs_review" for unit in ios_units(loc).values())
                 elif locale != "en":
-                    path = ANDROID_RES / android_qualifier(locale) / "strings.xml"
-                    if path.exists():
-                        strings, plurals = android_nodes(path)
-                        for key in keys:
-                            target = strings.get(key)
-                            if target is None:
-                                target = plurals.get(key)
-                            source = android_strings.get(key)
-                            if source is None:
-                                source = android_plurals.get(key)
-                            if target is not None and source is not None and ET.tostring(target, encoding="unicode") == ET.tostring(source, encoding="unicode"):
-                                generated += 1
-                rows.append("\t".join((platform, locale, category, str(len(keys)), str(generated), "native speaker", "draft" if generated else "review required")))
+                    for key in keys:
+                        target = localized_android[locale].get(key)
+                        source = android_sources[key]
+                        if target is not None and ET.tostring(target, encoding="unicode") == ET.tostring(source, encoding="unicode"):
+                            generated += 1
+                rows.append("\t".join((platform, locale, category, str(len(keys)), str(generated), "unassigned", "pending exact-copy review")))
     LEDGER.write_text("\n".join(rows) + "\n")
 
 

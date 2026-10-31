@@ -6,13 +6,14 @@ Never use Relay.
 
 ## Product continuation: B research, C native refinements, D website
 
-Use `docs/NEXT_SESSION_PROMPT.md` for the current focused continuation. Read the
-current `docs/PLAN.md` and `docs/PRODUCT_PROGRAM.md` first. The owner's October 31
-order proceeds from the completed Saved and profile-notice units to A4 Settings
-offline-storage notices, then the remaining original program and final audit, before the newer goals in
-`docs/POST_GOAL_BACKLOG.md`. Keep A2 wrapped; B/C/D local work
-is recorded. The historical D0/D1 release-session IDs below are distinct from
-the product program's D website track.
+Use `docs/NEXT_SESSION_PROMPT.md` for the exact next goal: one bounded A5 Contents
+Go-tap navigation reproduction and confirmed repair. Read the current `docs/PLAN.md`,
+`docs/PRODUCT_PROGRAM.md` and `docs/A4_REQUIREMENT_AUDIT.md` first. A4's finite local
+checklist is complete; exact-copy native review and full accessibility/authenticated/
+physical acceptance remain open. A5 has not started. The original program and final
+audit precede `docs/POST_GOAL_BACKLOG.md`. Keep A2 wrapped with row mode off and
+preserve B/C/D local completion and all existing gates. Historical D0/D1 release IDs
+below are distinct from the product program's D website track.
 
 ## D0: restore browser control
 

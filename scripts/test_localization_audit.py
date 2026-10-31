@@ -9,6 +9,22 @@ import localization_audit as audit
 
 
 class PlaceholderAuditTests(unittest.TestCase):
+    def test_review_ledger_covers_native_xml_and_nested_plural_drafts(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            catalog = root / "Localizable.xcstrings"
+            catalog.write_text(json.dumps({'strings': {'count': {'localizations': {'ar': {'variations': {'plural': {'one': {'stringUnit': {'state': 'needs_review', 'value': 'واحد'}}, 'other': {'stringUnit': {'state': 'needs_review', 'value': 'عدة'}}}}}}}}}))
+            for folder in ['values', 'values-ar']:
+                (root / folder).mkdir()
+                (root / folder / 'strings.xml').write_text('<resources><string name="one">One</string></resources>')
+                (root / folder / 'native.xml').write_text('<resources><string name="two">Two</string></resources>')
+            ledger = root / 'ledger.tsv'
+            with patch.object(audit, 'IOS_CATALOG', catalog), patch.object(audit, 'ANDROID_RES', root), patch.object(audit, 'LEDGER', ledger), patch.object(audit, 'WAVE1', ('en', 'ar')):
+                audit.write_ledger()
+            rows = [line.split('\t') for line in ledger.read_text().splitlines()[1:]]
+            self.assertEqual(sum(int(row[3]) for row in rows if row[:2] == ['android', 'ar']), 2)
+            self.assertEqual(sum(int(row[4]) for row in rows if row[:2] == ['ios', 'ar']), 2)
+
     def test_runtime_candidates_distinguish_missing_keys_and_debug_fixtures(self):
         rows = audit.runtime_literal_candidates('Text("Saved")\nButton("Missing") {}\n#if DEBUG\nText("Preview")\n#endif', 'ios', {'Saved'})
         self.assertEqual([row['category'] for row in rows], ['catalog-backed-runtime-unverified', 'missing-catalog-key', 'debug-fixture'])

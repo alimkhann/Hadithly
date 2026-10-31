@@ -10,14 +10,17 @@ Their checksums and every research URL are recorded in
 
 ## Current owner continuation, October 31
 
-The bounded Saved and Settings profile-notice units have their local completion
-records in `A4_RUNTIME_LOCALIZATION.md`. Next, repair A4 Settings offline-storage
-notices using `NEXT_SESSION_PROMPT.md`. Then finish this original objective,
-including remaining A4–A7/readiness, unfinished A1/A3 acceptance, E and the final
-requirement audit. A2 remains wrapped;
-B/C/D's local completion records and all external gates remain intact. Only after
-this objective is complete, consider the newer goals in `POST_GOAL_BACKLOG.md`.
-Those goals must not replace original acceptance work or expand its scope.
+A4's finite locally verifiable checklist is complete; see `A4_REQUIREMENT_AUDIT.md`
+and `A4_RUNTIME_LOCALIZATION.md`. Full A4 remains open for exact-copy native-speaker
+review, full accessibility and authenticated/physical acceptance. The original A4
+checkbox below stays open. Controlled fixtures do not close those gates.
+
+`NEXT_SESSION_PROMPT.md` gives the exact next goal: one bounded A5 Contents Go-tap
+navigation reproduction and confirmed repair. A5 has not started. Then finish this
+original objective, including A5–A7/readiness, unfinished A1/A3/A4 acceptance, E and
+the final requirement audit. A2 remains wrapped with row mode off; B/C/D's local
+completion and every external gate remain intact. Only afterward consider
+`POST_GOAL_BACKLOG.md`. Its goals must not replace original acceptance work.
 
 ## Owner order, October 26
 
