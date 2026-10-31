@@ -8,12 +8,12 @@ for this program, not session names supplied by the owner.
 Their checksums and every research URL are recorded in
 `product-program/research-manifest.json`. No later phase replaces unfinished work.
 
-## Current owner priority: Convex diagnostic, October 31
+## Current owner priority: Convex usage reduction, November 1
 
-The owner selected one Convex diagnostic from the later backlog before remaining
-program acceptance. The agreed destination is a finished app experience with
-release dependencies deferred. See `CONVEX_COST_DIAGNOSTIC.md` for the bounded
-scope and `NEXT_SESSION_PROMPT.md` for continuation. This sequencing exception
+The owner selected Convex diagnosis and subsequent local usage reduction before
+remaining program acceptance. The destination is a finished app experience with
+release dependencies deferred. See `CONVEX_COST_VERIFICATION.md` for current proof
+and remaining work, and `NEXT_SESSION_PROMPT.md` for continuation. This exception
 preserves all unfinished requirements and gates, including A7's study deferral,
 E Linear and the final audit. It does not authorize other backlog work or rollout.
 Earlier statements that no replacement unit was selected are historical.

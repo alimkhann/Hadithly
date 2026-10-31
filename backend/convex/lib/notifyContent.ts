@@ -81,19 +81,6 @@ export function normalizeDeliveryBucket(dailyTime: string): string | null {
   return `${hh}:${String(floored).padStart(2, "0")}`;
 }
 
-/** All 96 quarter-hour bucket labels in a day. */
-export function allDeliveryBuckets(): string[] {
-  const buckets: string[] = [];
-  for (let hour = 0; hour < 24; hour += 1) {
-    for (const minute of [0, 15, 30, 45]) {
-      buckets.push(
-        `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`,
-      );
-    }
-  }
-  return buckets;
-}
-
 /** Throws unless `timezone` is a valid IANA zone name. */
 export function assertIanaTimezone(timezone: string): void {
   try {

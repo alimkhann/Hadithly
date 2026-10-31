@@ -1,41 +1,42 @@
-# Next unit: Convex cost diagnostic
+# Next unit: verify deployed notification savings, then reader I/O
 
-The owner selected the app-experience destination with release dependencies
-deferred, prioritizing staying free while permitting low cost. This supersedes
-the previous stop with no replacement unit. Preparation is complete; no current
-live baseline, native run, repair or saving has been established.
+The owner expanded the diagnostic into reducing Convex usage. The local
+notification repair has executable before/after proof; it is not deployed and
+no billed reduction is claimed. The app-experience destination and deferred
+release dependencies remain. Low cost has no numeric spending approval.
 
 ```text
-Continue Hadithly with one Convex cost diagnostic. Read AGENTS.md, the current
-checkpoint and mistakes in docs/PLAN.md, the Convex cost diagnostic entry in
-docs/SESSION_PROMPTS.md and docs/CONVEX_COST_DIAGNOSTIC.md.
+Continue Hadithly's Convex cost goal. Read AGENTS.md, the current checkpoint
+and mistakes in docs/PLAN.md, the Convex usage reduction entry in
+SESSION_PROMPTS.md and docs/CONVEX_COST_VERIFICATION.md. Keep the measurement
+contract in docs/CONVEX_COST_DIAGNOSTIC.md and use hadithly-convex-cost.
 
-Apply .agents/skills/hadithly-convex-cost/SKILL.md. Build a repeatable measurement
-loop using diagnosing-bugs Phase 1. Refresh a narrow current dashboard interval
-through authorized read-only access, then distinguish idle infrastructure work
-from cold launch -> Library -> first reading -> ten page moves on both native
-apps. Pin deployment/build/auth/cache/locale and UTC windows. Use cached content
-without generation. Label local measurements and unavailable live values.
+The local notification change replaces 96 bucket queries per tick with one
+bounded indexed scan. Tests and the real local backend preserve delivery,
+retry, deletion, legacy exclusions and attempt caps. Inspect current code and
+artifacts before relying on that evidence. Commit any completed remaining local
+work without pushing and preserve incoming iOS catalog/project/scheme changes.
 
-Deliver the baseline, resource attribution with uncertainty and one recommended
-optimization with the same before/after workload and correctness checks. Stop
-there. If live access is unavailable, record the missing readback and useful
-local evidence without claiming billed savings or free-plan capacity.
+Before cloud deployment, obtain exact action-time approval to push the verified
+change to development festive-cobra-664 from backend/. Do not infer approval
+from the cost goal or this prompt. No production, migration, paid generation or
+manual notification send is authorized. Retain existing cron timing and policy.
 
-No app/backend behavior change, cloud configuration, deployment, migration,
-entitlement change, paid generation, external message, remote issue, publication,
-physical-device action or release operation is authorized by this unit. Ask at
-the exact action boundary if a later step needs one. Low cost has no numeric
-spending approval. Keep GPT-only, no Relay and the existing local tracking.
+After approved development rollout, passively capture complete scheduled runs
+and per-function logs, confirm the old bucket endpoint is removed and the new
+paged scan is used, and compare matching windows. No deploy-only savings claim.
 
-This is an owner-selected sequencing exception for the Convex diagnostic only.
-Retain PRODUCT_PROGRAM.md, all G01-G41 and A1/A3/A4 acceptance, A7/G38 deferred,
-E actual Linear and the independent final audit. Keep the A7 calendar retired;
-do not recruit, contact, observe, collect or request study setup choices. The
-study's reopening conditions remain in docs/A7_STUDY_DEFERRAL.md.
+The original paired native workload remains open: fixed build/auth/cache/locale,
+cold launch -> Library -> first reading -> ten page moves on both platforms,
+with an equal-duration controlled idle window spanning a cron tick. Use cached
+content without generation. Measure dimensions separately and mark unavailable
+values. Whole-volume reader reads remain a candidate, not a proven current defect.
+Choose the next optimization from that measurement before changing architecture.
 
-Preserve A2 wrapped with row mode off, A5 repairs, B/C/D local completion,
-incoming iOS catalog/project/scheme edits, opaque data and RTL/locale bindings.
-Commit finished scoped evidence/documentation without pushing. Hand off the
-recommended next change and every unresolved measurement or acceptance gate.
+Retain all G01-G41, A1/A3/A4 acceptance, A7/G38 deferred with its retired calendar,
+E actual Linear and the independent final audit. Keep A2 wrapped with row mode
+off, A5 repairs, B/C/D local completion, opaque data and RTL/locale bindings.
+No study recruitment, contact, observation, collection or setup questions.
+Keep GPT-only, no Relay, existing local tracking and action-time approvals.
+The cost-reduction goal stays open until its actual live evidence is established.
 ```

@@ -1,0 +1,199 @@
+{
+  "capturedAtUtc": "2026-10-31T19:55:51.767Z",
+  "baselineRef": "d872913",
+  "scope": "real isolated anonymous local Convex, synthetic data, record-only senders, no provider calls",
+  "billedUsageMeasured": false,
+  "nativeJourneyMeasured": false,
+  "cloudDeployed": false,
+  "convexVersion": "1.45.0",
+  "measurements": {
+    "before": {
+      "empty": {
+        "deliveryDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "result": {
+          "apnsConfigured": true,
+          "failed": 0,
+          "fcmConfigured": true,
+          "removedStale": 0,
+          "sent": 0,
+          "skipped": 0,
+          "skippedReasons": {}
+        },
+        "sends": 0,
+        "tokenQueries": 96,
+        "tokenRows": 0
+      },
+      "sparse": {
+        "deliveryDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "result": {
+          "apnsConfigured": true,
+          "failed": 0,
+          "fcmConfigured": true,
+          "removedStale": 0,
+          "sent": 0,
+          "skipped": 205,
+          "skippedReasons": {
+            "outside-window": 205
+          }
+        },
+        "sends": 0,
+        "tokenQueries": 96,
+        "tokenRows": 205
+      },
+      "stale": {
+        "deliveryDigest": "eaf996b9ed5d6fcb926aef27b25eeb9edc00ff1e08aa4869e215be17ecfbf635",
+        "result": {
+          "apnsConfigured": true,
+          "failed": 0,
+          "fcmConfigured": true,
+          "removedStale": 200,
+          "sent": 1,
+          "skipped": 0,
+          "skippedReasons": {}
+        },
+        "sends": 1,
+        "tokenQueries": 97,
+        "tokenRows": 201
+      },
+      "permanent": {
+        "deliveryDigest": "c53f8399d0dee12ff58e53d51355cb3355c9e9d5b56b1fe7491d831d64883f0c",
+        "result": {
+          "apnsConfigured": true,
+          "failed": 201,
+          "fcmConfigured": true,
+          "removedStale": 201,
+          "sent": 0,
+          "skipped": 0,
+          "skippedReasons": {}
+        },
+        "sends": 201,
+        "tokenQueries": 97,
+        "tokenRows": 201
+      },
+      "cap": {
+        "deliveryDigest": "579f808f3de822dccf08361f11063eaede44c5899cafb05f625fead0b1d29a2c",
+        "result": {
+          "apnsConfigured": true,
+          "failed": 0,
+          "fcmConfigured": true,
+          "removedStale": 0,
+          "sent": 500,
+          "skipped": 0,
+          "skippedReasons": {}
+        },
+        "sends": 500,
+        "tokenQueries": 35,
+        "tokenRows": 501
+      },
+      "invalid-page": {
+        "deliveryDigest": "eaf996b9ed5d6fcb926aef27b25eeb9edc00ff1e08aa4869e215be17ecfbf635",
+        "result": {
+          "apnsConfigured": true,
+          "failed": 0,
+          "fcmConfigured": true,
+          "removedStale": 0,
+          "sent": 1,
+          "skipped": 0,
+          "skippedReasons": {}
+        },
+        "sends": 1,
+        "tokenQueries": 96,
+        "tokenRows": 1
+      }
+    },
+    "after": {
+      "empty": {
+        "deliveryDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "result": {
+          "apnsConfigured": true,
+          "failed": 0,
+          "fcmConfigured": true,
+          "removedStale": 0,
+          "sent": 0,
+          "skipped": 0,
+          "skippedReasons": {}
+        },
+        "sends": 0,
+        "tokenQueries": 1,
+        "tokenRows": 0
+      },
+      "sparse": {
+        "deliveryDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "result": {
+          "apnsConfigured": true,
+          "failed": 0,
+          "fcmConfigured": true,
+          "removedStale": 0,
+          "sent": 0,
+          "skipped": 205,
+          "skippedReasons": {
+            "outside-window": 205
+          }
+        },
+        "sends": 0,
+        "tokenQueries": 2,
+        "tokenRows": 205
+      },
+      "stale": {
+        "deliveryDigest": "eaf996b9ed5d6fcb926aef27b25eeb9edc00ff1e08aa4869e215be17ecfbf635",
+        "result": {
+          "apnsConfigured": true,
+          "failed": 0,
+          "fcmConfigured": true,
+          "removedStale": 200,
+          "sent": 1,
+          "skipped": 0,
+          "skippedReasons": {}
+        },
+        "sends": 1,
+        "tokenQueries": 2,
+        "tokenRows": 201
+      },
+      "permanent": {
+        "deliveryDigest": "c53f8399d0dee12ff58e53d51355cb3355c9e9d5b56b1fe7491d831d64883f0c",
+        "result": {
+          "apnsConfigured": true,
+          "failed": 201,
+          "fcmConfigured": true,
+          "removedStale": 201,
+          "sent": 0,
+          "skipped": 0,
+          "skippedReasons": {}
+        },
+        "sends": 201,
+        "tokenQueries": 2,
+        "tokenRows": 201
+      },
+      "cap": {
+        "deliveryDigest": "579f808f3de822dccf08361f11063eaede44c5899cafb05f625fead0b1d29a2c",
+        "result": {
+          "apnsConfigured": true,
+          "failed": 0,
+          "fcmConfigured": true,
+          "removedStale": 0,
+          "sent": 500,
+          "skipped": 0,
+          "skippedReasons": {}
+        },
+        "sends": 500,
+        "tokenQueries": 3,
+        "tokenRows": 501
+      },
+      "invalid-page": {
+        "deliveryDigest": "eaf996b9ed5d6fcb926aef27b25eeb9edc00ff1e08aa4869e215be17ecfbf635",
+        "result": {
+          "apnsConfigured": true,
+          "failed": 0,
+          "fcmConfigured": true,
+          "removedStale": 0,
+          "sent": 1,
+          "skipped": 0,
+          "skippedReasons": {}
+        },
+        "sends": 1,
+        "tokenQueries": 2,
+        "tokenRows": 1
+      }
+    }
+  }
+}

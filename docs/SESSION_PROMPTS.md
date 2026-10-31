@@ -4,15 +4,15 @@ Paste one prompt into a fresh task. Use the named model and effort when it is
 available. Each prompt is self-contained and authorizes only its named session.
 Never use Relay.
 
-## Convex cost diagnostic
+## Convex usage reduction
 
-The owner's October 31 choice prioritizes this bounded diagnostic over the older
-backlog ordering. Follow the exact prompt in `NEXT_SESSION_PROMPT.md` and the
-procedure in `CONVEX_COST_DIAGNOSTIC.md`. Use `hadithly-convex-cost` and build a
-repeatable measurement loop before choosing a repair. Keep the app-experience
-destination, free-first preference, deferred release dependencies and all open
-gates. Stop after the evidence and one recommended change. No rollout or spending
-is authorized. The preparation session changed documentation only.
+The owner expanded the diagnostic into reducing usage. Follow the exact prompt
+in `NEXT_SESSION_PROMPT.md`, current proof in `CONVEX_COST_VERIFICATION.md` and the
+measurement contract in `CONVEX_COST_DIAGNOSTIC.md`. The local notification repair
+needs development rollout approval and passive readback; paired native reader/
+idle measurement remains open. Keep `hadithly-convex-cost`, the app-experience
+destination, free-first preference and all existing gates. Local implementation
+does not authorize cloud deployment, migrations, paid actions or production work.
 
 ## Product continuation with A7 study deferred
 

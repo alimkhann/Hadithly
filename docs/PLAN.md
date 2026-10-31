@@ -4,23 +4,27 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-## Current owner priority: Convex diagnostic, October 31
+## Current owner priority: Convex usage reduction, November 1
 
-The owner selected Convex preparation next, prioritizing free operation while
-allowing low cost, and a finished app experience with release dependencies
-deferred. [CONVEX_COST_DIAGNOSTIC.md](CONVEX_COST_DIAGNOSTIC.md) records the scope,
-measurement procedure and stop point. This explicit sequencing exception permits
-the named backlog diagnostic before original-program acceptance; it does not
-complete or waive that program. No spending ceiling or paid action was approved.
+The owner expanded the Convex diagnostic into usage reduction, prioritizing free
+operation while allowing low cost and a finished app experience with release
+dependencies deferred. [CONVEX_COST_VERIFICATION.md](CONVEX_COST_VERIFICATION.md)
+records the local repair, live baseline, executable proof and remaining work.
+This sequencing exception preserves original-program acceptance. No spending
+ceiling, cloud deployment or paid action was approved.
 
-Pre-implementation skill application and the local brief are complete. Next is
-the bounded diagnostic, not a repair or rollout. No new live baseline or saving
-is claimed. All G01-G41, A1/A3/A4 acceptance, A7's deferral, E Linear and the final
-audit remain open as recorded. Preserve A2/A5 and B/C/D local completion and
-incoming work. `NEXT_SESSION_PROMPT.md` controls continuation; older next-task
-instructions below are historical. No push.
+The fixed 96-bucket notification fan-out is replaced locally with one bounded
+indexed cursor scan. Real local before/after cases and 546 backend tests pass;
+the empty tick uses 1 rather than 96 token queries. This is not a billed-saving
+claim. Development rollout and passive scheduled-run readback need action-time
+approval. Paired native reader/idle I/O measurement remains pending.
 
-Last updated: 2026-10-31. Phases 0 through 5 are complete. Phase 6 code is
+All G01-G41, A1/A3/A4 acceptance, A7's deferral, E Linear and the final audit remain
+open. Preserve A2/A5 and B/C/D local completion and incoming work. The current
+`NEXT_SESSION_PROMPT.md` controls continuation; earlier next tasks are historical.
+Commit finished scoped work without pushing. The larger cost goal remains open.
+
+Last updated: 2026-11-01. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,
 D2, F1, F2, F3, R1, R2, and R4 are complete. R3 passed its
 simulator/emulator and unit gates; its physical-device gate is open. R4's

@@ -1,0 +1,72 @@
+{
+  "deployment": "festive-cobra-664",
+  "scope": "live deployment aggregate, not a reader journey or team allowance",
+  "startedAtUtc": "2026-10-31T16:56:02.192716+00:00",
+  "completedAtUtc": "2026-10-31T16:56:03.723031+00:00",
+  "seedStatus": "complete",
+  "metrics": {
+    "functionCalls": {
+      "unit": "calls",
+      "usage": {
+        "current_day": 12418,
+        "current_month": 458064
+      }
+    },
+    "databaseIoGb": {
+      "unit": "GB",
+      "usage": {
+        "current_day": 0.00916257780045271,
+        "current_month": 1.0611704681068659
+      }
+    },
+    "dataEgressGb": {
+      "unit": "GB",
+      "usage": {
+        "current_day": 0.006368333473801613,
+        "current_month": 0.2592014167457819
+      }
+    },
+    "searchQueryGb": {
+      "unit": "Query-GB",
+      "usage": {
+        "current_day": 0,
+        "current_month": 0.006428
+      }
+    },
+    "actionComputeConvexGbHours": {
+      "unit": "GB-hours",
+      "usage": {
+        "current_day": 0.0009697743055555552,
+        "current_month": 1.4499040687499998
+      }
+    },
+    "actionComputeNodeJsGbHours": {
+      "unit": "GB-hours",
+      "usage": {
+        "current_day": 0.037807361111111104,
+        "current_month": 1.6752112499999998
+      }
+    },
+    "actionComputeCpuGbHours": {
+      "unit": "GB-hours",
+      "usage": {
+        "current_day": 0.000724548611111111,
+        "current_month": 0.020426492222222217
+      }
+    },
+    "queryMutationComputeGbHours": {
+      "unit": "GB-hours",
+      "usage": {
+        "current_day": 0.003977743055555558,
+        "current_month": 0.10298504347222065
+      }
+    },
+    "aiGatewayCostDollars": {
+      "unit": "dollars",
+      "usage": {
+        "current_day": 0,
+        "current_month": 0
+      }
+    }
+  }
+}

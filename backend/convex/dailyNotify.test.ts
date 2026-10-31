@@ -2,7 +2,7 @@
 
 import { convexTest } from "convex-test";
 import type { WithoutSystemFields } from "convex/server";
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { api, internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
 import schema from "./schema";
@@ -236,7 +236,7 @@ describe("N1 daily notification preferences", () => {
 });
 
 describe("N1 bucket paging and retry bookkeeping", () => {
-  test("listBucketPage serves only enabled rows in the bucket", async () => {
+  test("delivery pages include enabled scheduled tokens across buckets", async () => {
     const t = convexTest(schema, modules);
     const userId = await seedUser(t, "notify_bucket_user");
     const tokenIds = await t.run(async (ctx) => {
@@ -265,14 +265,23 @@ describe("N1 bucket paging and retry bookkeeping", () => {
         token: "disabled-bucket",
         enabled: false,
       });
+      await ctx.db.insert("pushTokens", {
+        ...base,
+        token: "legacy-no-bucket",
+        deliveryBucket: undefined,
+      });
+      await ctx.db.insert("pushTokens", {
+        ...base,
+        token: "legacy-invalid-bucket",
+        deliveryBucket: "08:07",
+      });
       return inBucket;
     });
     void tokenIds;
-    const page = await t.query(internal.library.listBucketPage, {
-      bucket: "08:00",
+    const page = await t.query(internal.library.listPushDeliveryPage, {
       limit: 200,
     });
-    expect(page.rows.map((r) => r.token)).toEqual(["in-bucket"]);
+    expect(page.rows.map((r) => r.token)).toEqual(["in-bucket", "other-bucket"]);
     expect(page.isDone).toBe(true);
   });
 
@@ -345,6 +354,50 @@ describe("N1 migration", () => {
 });
 
 describe("N1 cron loop", () => {
+  test("an idle tick uses one bounded token query instead of 96 empty buckets", async () => {
+    const t = convexTest(schema, modules);
+    const io = stubIo(t);
+    const queries = vi.spyOn(io, "runQuery");
+    const result = await runDuePushes(io, NOW, recordingSenders(), {
+      hasApns: true,
+      hasFcm: true,
+    });
+    expect(result.sent).toBe(0);
+    expect(result.failed).toBe(0);
+    expect(queries).toHaveBeenCalledTimes(1);
+  });
+
+  test("a sparse scan crosses buckets and pages without querying empty buckets", async () => {
+    const t = convexTest(schema, modules);
+    const userId = await seedUser(t, "notify_sparse_scan");
+    await t.run(async (ctx) => {
+      for (let i = 0; i < 205; i += 1) {
+        const dailyTime = i % 2 === 0 ? "00:00" : "23:45";
+        await ctx.db.insert("pushTokens", {
+          userId,
+          token: `sparse-${i}`,
+          platform: "android",
+          dailyTime,
+          deliveryBucket: dailyTime,
+          timezone: "Asia/Almaty",
+          enabled: true,
+          lastSeenAt: NOW,
+          updatedAt: NOW,
+        });
+      }
+    });
+    const io = stubIo(t);
+    const queries = vi.spyOn(io, "runQuery");
+    const result = await runDuePushes(io, NOW, recordingSenders(), {
+      hasApns: true,
+      hasFcm: true,
+    });
+    expect(result.skippedReasons["outside-window"]).toBe(205);
+    expect(result.sent).toBe(0);
+    expect(result.failed).toBe(0);
+    expect(queries).toHaveBeenCalledTimes(2);
+  });
+
   test("sends English to a due device and never duplicates the local date", async () => {
     const t = convexTest(schema, modules);
     const asUser = t.withIdentity(identity("notify_loop_en"));

@@ -381,12 +381,11 @@ export const setDailyNotification = mutation({
 });
 
 /**
- * Internal: one bounded page of enabled tokens in a delivery bucket, for
- * the daily send cron. Indexed — never scans the whole table.
+ * Internal: one bounded page of scheduled, enabled tokens for the daily cron.
+ * Bucket order stays stable while delivery and retry state change during a run.
  */
-export const listBucketPage = internalQuery({
+export const listPushDeliveryPage = internalQuery({
   args: {
-    bucket: v.string(),
     cursor: v.optional(v.string()),
     limit: v.number(),
   },
@@ -395,12 +394,17 @@ export const listBucketPage = internalQuery({
     const page = await ctx.db
       .query("pushTokens")
       .withIndex("by_enabled_bucket", (q) =>
-        q.eq("enabled", true).eq("deliveryBucket", args.bucket),
+        q.eq("enabled", true)
+          .gte("deliveryBucket", "00:00")
+          .lte("deliveryBucket", "23:45"),
       )
       .order("asc")
       .paginate({ cursor: args.cursor ?? null, numItems: take });
     return {
-      rows: page.page,
+      // Preserve pre-N1 behavior: unnormalized legacy buckets are unscheduled.
+      rows: page.page.filter((row) =>
+        row.deliveryBucket === normalizeDeliveryBucket(row.deliveryBucket ?? ""),
+      ),
       isDone: page.isDone,
       cursor: page.continueCursor ?? undefined,
     };

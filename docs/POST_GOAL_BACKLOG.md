@@ -1,8 +1,8 @@
 # Goals after the original product program
 
 Owner reports received October 31, 2026. The owner has now prioritized one bounded
-Convex diagnostic before the original program's remaining acceptance. See
-`CONVEX_COST_DIAGNOSTIC.md` and `NEXT_SESSION_PROMPT.md`. Staying free is important;
+Convex diagnostic and then local usage reduction before original acceptance. See
+`CONVEX_COST_VERIFICATION.md` and `NEXT_SESSION_PROMPT.md`. Staying free is important;
 low cost is permissible but has no approved numeric spending ceiling. The current
 destination is a finished app experience with release dependencies deferred.
 

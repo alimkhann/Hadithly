@@ -1,6 +1,5 @@
 import { describe, expect, test } from "vitest";
 import {
-  allDeliveryBuckets,
   buildNotificationPayload,
   classifyPushError,
   localDateInIanaZone,
@@ -37,11 +36,6 @@ describe("normalizeDeliveryBucket", () => {
     expect(normalizeDeliveryBucket("24:00")).toBeNull();
     expect(normalizeDeliveryBucket("08:60")).toBeNull();
     expect(normalizeDeliveryBucket("morning")).toBeNull();
-  });
-  test("covers all 96 slots", () => {
-    expect(allDeliveryBuckets()).toHaveLength(96);
-    expect(allDeliveryBuckets()[0]).toBe("00:00");
-    expect(allDeliveryBuckets()[95]).toBe("23:45");
   });
 });
 

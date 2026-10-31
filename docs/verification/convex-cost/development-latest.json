@@ -1,0 +1,235 @@
+{
+  "deployment": "festive-cobra-664",
+  "scope": "live deployment aggregate, not a reader journey or team allowance",
+  "startedAtUtc": "2026-10-31T19:53:02.698118+00:00",
+  "completedAtUtc": "2026-10-31T19:53:04.238546+00:00",
+  "seedStatus": "complete",
+  "metrics": {
+    "functionCalls": {
+      "unit": "calls",
+      "usage": {
+        "current_day": 14362,
+        "current_month": 460008
+      }
+    },
+    "databaseIoGb": {
+      "unit": "GB",
+      "usage": {
+        "current_day": 0.009387662634253502,
+        "current_month": 1.0613955529406667
+      }
+    },
+    "dataEgressGb": {
+      "unit": "GB",
+      "usage": {
+        "current_day": 0.007306220009922981,
+        "current_month": 0.26013930328190327
+      }
+    },
+    "searchQueryGb": {
+      "unit": "Query-GB",
+      "usage": {
+        "current_day": 0,
+        "current_month": 0.006428
+      }
+    },
+    "actionComputeConvexGbHours": {
+      "unit": "GB-hours",
+      "usage": {
+        "current_day": 0.0011023611111111108,
+        "current_month": 1.4500366555555555
+      }
+    },
+    "actionComputeNodeJsGbHours": {
+      "unit": "GB-hours",
+      "usage": {
+        "current_day": 0.04246583333333333,
+        "current_month": 1.6798697222222219
+      }
+    },
+    "actionComputeCpuGbHours": {
+      "unit": "GB-hours",
+      "usage": {
+        "current_day": 0.0008437499999999998,
+        "current_month": 0.020545693611111103
+      }
+    },
+    "queryMutationComputeGbHours": {
+      "unit": "GB-hours",
+      "usage": {
+        "current_day": 0.004380625000000001,
+        "current_month": 0.10338792541666503
+      }
+    },
+    "aiGatewayCostDollars": {
+      "unit": "dollars",
+      "usage": {
+        "current_day": 0,
+        "current_month": 0
+      }
+    }
+  },
+  "sampledExecutionLogs": {
+    "scope": "ambient logs including requested history; not a controlled idle or native workload",
+    "captureSeconds": 20,
+    "requestedHistoryEvents": 2000,
+    "firstEventUtc": "2026-10-31T18:18:23.662485+00:00",
+    "lastEventUtc": "2026-10-31T19:53:23.495921+00:00",
+    "functions": {
+      "diagnostics:health": {
+        "completionEvents": 115,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 30935,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0
+      },
+      "evidenceReview:dispatch": {
+        "completionEvents": 19,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 73853,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0
+      },
+      "librarySync:pruneFolderManifests": {
+        "completionEvents": 19,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0
+      },
+      "librarySync:recoverFolderManifests": {
+        "completionEvents": 19,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0
+      },
+      "evidenceProcessing:dispatchPending": {
+        "completionEvents": 19,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0
+      },
+      "evidenceProcessing:recoverStalled": {
+        "completionEvents": 19,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0
+      },
+      "evidenceCases:reassessPublished": {
+        "completionEvents": 19,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0
+      },
+      "evidenceCases:dispatch": {
+        "completionEvents": 19,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0
+      },
+      "evidenceProcessing:retryFailedAutomatically": {
+        "completionEvents": 19,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0
+      },
+      "actions/analytics:exportDaily": {
+        "completionEvents": 19,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 430
+      },
+      "library:listBucketPage": {
+        "completionEvents": 576,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 12030,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0
+      },
+      "diagnostics:heartbeat": {
+        "completionEvents": 6,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 3228,
+        "databaseIoWriteBytes": 1614,
+        "networkEgressBytes": 0
+      },
+      "actions/daily:sendDueDailyPushes": {
+        "completionEvents": 6,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 503064
+      },
+      "support:budgetWarnings": {
+        "completionEvents": 2,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 406,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0
+      },
+      "support:dispatch": {
+        "completionEvents": 2,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0
+      },
+      "support:retain": {
+        "completionEvents": 2,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0
+      },
+      "evidenceCases:retain": {
+        "completionEvents": 2,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0
+      },
+      "users:pruneExpiredDeletionAuthorizations": {
+        "completionEvents": 1,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0
+      },
+      "subscriptions:recoverDeliveries": {
+        "completionEvents": 1,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0
+      },
+      "evidence:sweepStorageOrphans": {
+        "completionEvents": 1,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 4250,
+        "databaseIoWriteBytes": 197,
+        "networkEgressBytes": 0
+      },
+      "evidence:expireEvidence": {
+        "completionEvents": 1,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0
+      },
+      "analytics:retain": {
+        "completionEvents": 1,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0
+      }
+    }
+  }
+}

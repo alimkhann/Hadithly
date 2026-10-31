@@ -1,5 +1,11 @@
 # Convex cost diagnostic
 
+The owner's continuation expands this preparation into reducing Convex usage.
+The November 1 local notification repair and remaining live/native evidence are
+recorded in [CONVEX_COST_VERIFICATION.md](CONVEX_COST_VERIFICATION.md). Local
+implementation is authorized; earlier diagnosis-only stop wording below records
+the preparation boundary. Cloud/paid approvals and all acceptance gates remain.
+
 ## Agreed outcome
 
 Owner decisions on October 31, 2026: staying free is important, low cost is

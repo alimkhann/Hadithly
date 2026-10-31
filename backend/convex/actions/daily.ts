@@ -28,7 +28,6 @@ import { fcmConfigured, sendFcmPush } from "../lib/fcm";
 import {
   MAX_SENDS_PER_RUN,
   STALE_TOKEN_DAYS,
-  allDeliveryBuckets,
   buildNotificationPayload,
   classifyPushError,
   retryDelayMs,
@@ -437,150 +436,145 @@ export async function runDuePushes(
     const translations = new Map<string, NotificationTranslation | null>();
 
     let stopped = false;
-    for (const bucket of allDeliveryBuckets()) {
-      if (stopped || result.sent + result.failed >= MAX_SENDS_PER_RUN) break;
-      let cursor: string | null | undefined = undefined;
-      let isDone = false;
-      while (
-        !stopped &&
-        !isDone &&
-        result.sent + result.failed < MAX_SENDS_PER_RUN
-      ) {
-        const page: {
-          rows: PushTokenDoc[];
-          isDone: boolean;
-          cursor: string | null | undefined;
-        } = await io.runQuery(internal.library.listBucketPage, {
-          bucket,
-          cursor: cursor ?? undefined,
-          limit: 200,
+    let cursor: string | null | undefined = undefined;
+    let isDone = false;
+    while (
+      !stopped &&
+      !isDone &&
+      result.sent + result.failed < MAX_SENDS_PER_RUN
+    ) {
+      const page: {
+        rows: PushTokenDoc[];
+        isDone: boolean;
+        cursor: string | null | undefined;
+      } = await io.runQuery(internal.library.listPushDeliveryPage, {
+        cursor: cursor ?? undefined,
+        limit: 200,
+      });
+      cursor = page.cursor;
+      isDone = page.isDone;
+      const { due, skipped } = selectDueTokens(page.rows, now);
+      for (const { token, reason } of skipped) {
+        // Reuse this indexed scan for stale-token hygiene.
+        if (
+          token.lastSeenAt !== undefined &&
+          token.lastSeenAt < staleCutoff
+        ) {
+          await io.runMutation(internal.library.removeStaleToken, {
+            tokenId: token._id,
+            reason: "unseen",
+          });
+          result.removedStale += 1;
+          continue;
+        }
+        skip(reason);
+      }
+      for (const { token, localDate } of due) {
+        if (result.sent + result.failed >= MAX_SENDS_PER_RUN) break;
+        const timezone = token.timezone as string;
+        const locale = (token.translationLocale ?? "en").trim() || "en";
+        if (!picks.has(timezone)) {
+          picks.set(
+            timezone,
+            await pickDailyHadith(
+              { runQuery: io.runQuery, runMutation: io.runMutation },
+              timezone,
+              now,
+            ),
+          );
+        }
+        const picked = picks.get(timezone);
+        if (!picked) {
+          skip("missing-content");
+          continue;
+        }
+        const cacheKey = `${picked._id}:${locale}`;
+        if (!translations.has(cacheKey)) {
+          translations.set(
+            cacheKey,
+            await resolveNotificationTranslation(
+              {
+                runQuery: io.runQuery,
+                runMutation: io.runMutation,
+                runAction: io.runAction,
+              },
+              picked,
+              locale,
+            ),
+          );
+        }
+        const translation = translations.get(cacheKey);
+        if (!translation) {
+          skip(
+            locale === "en" ? "missing-content" : "unresolved-translation",
+          );
+          continue;
+        }
+        const payload = buildNotificationPayload({
+          collectionName: picked.collectionName,
+          referenceDisplay: picked.referenceDisplay,
+          translation,
+          hadithId: picked._id as string,
+          collectionSlug: picked.collectionSlug,
+          providerHadithId: picked.providerHadithId,
+          volumeId: picked.volumeId,
         });
-        cursor = page.cursor;
-        isDone = page.isDone;
-        const { due, skipped } = selectDueTokens(page.rows, now);
-        for (const { token, reason } of skipped) {
-          // Opportunistic hygiene: a bucket read is the only indexed way
-          // to find tokens whose app was uninstalled long ago.
-          if (
-            token.lastSeenAt !== undefined &&
-            token.lastSeenAt < staleCutoff
-          ) {
+        const providerOk =
+          (token.platform === "ios" && hasApns) ||
+          (token.platform === "android" && hasFcm);
+        if (!providerOk) {
+          skip("provider-unconfigured");
+          continue;
+        }
+        try {
+          if (token.platform === "ios") {
+            await senders.sendApns(token.token, {
+              alert: { title: payload.title, body: payload.body },
+              custom: payload.data,
+            });
+          } else {
+            await senders.sendFcm(token.token, {
+              title: payload.title,
+              body: payload.body,
+              data: payload.data,
+            });
+          }
+          await io.runMutation(internal.library.markPushSent, {
+            tokenId: token._id,
+            sentDate: localDate,
+          });
+          result.sent += 1;
+        } catch (error) {
+          const kind = classifyPushError(error);
+          await reportFailure(io, "daily_push");
+          if (kind === "permanent") {
             await io.runMutation(internal.library.removeStaleToken, {
               tokenId: token._id,
-              reason: "unseen",
+              reason: "permanent",
             });
             result.removedStale += 1;
-            continue;
-          }
-          skip(reason);
-        }
-        for (const { token, localDate } of due) {
-          if (result.sent + result.failed >= MAX_SENDS_PER_RUN) break;
-          const timezone = token.timezone as string;
-          const locale = (token.translationLocale ?? "en").trim() || "en";
-          if (!picks.has(timezone)) {
-            picks.set(
-              timezone,
-              await pickDailyHadith(
-                { runQuery: io.runQuery, runMutation: io.runMutation },
-                timezone,
-                now,
-              ),
-            );
-          }
-          const picked = picks.get(timezone);
-          if (!picked) {
-            skip("missing-content");
-            continue;
-          }
-          const cacheKey = `${picked._id}:${locale}`;
-          if (!translations.has(cacheKey)) {
-            translations.set(
-              cacheKey,
-              await resolveNotificationTranslation(
-                {
-                  runQuery: io.runQuery,
-                  runMutation: io.runMutation,
-                  runAction: io.runAction,
-                },
-                picked,
-                locale,
-              ),
-            );
-          }
-          const translation = translations.get(cacheKey);
-          if (!translation) {
-            skip(
-              locale === "en" ? "missing-content" : "unresolved-translation",
-            );
-            continue;
-          }
-          const payload = buildNotificationPayload({
-            collectionName: picked.collectionName,
-            referenceDisplay: picked.referenceDisplay,
-            translation,
-            hadithId: picked._id as string,
-            collectionSlug: picked.collectionSlug,
-            providerHadithId: picked.providerHadithId,
-            volumeId: picked.volumeId,
-          });
-          const providerOk =
-            (token.platform === "ios" && hasApns) ||
-            (token.platform === "android" && hasFcm);
-          if (!providerOk) {
-            skip("provider-unconfigured");
-            continue;
-          }
-          try {
-            if (token.platform === "ios") {
-              await senders.sendApns(token.token, {
-                alert: { title: payload.title, body: payload.body },
-                custom: payload.data,
-              });
-            } else {
-              await senders.sendFcm(token.token, {
-                title: payload.title,
-                body: payload.body,
-                data: payload.data,
-              });
-            }
-            await io.runMutation(internal.library.markPushSent, {
+            result.failed += 1;
+          } else if (kind === "backpressure") {
+            await io.runMutation(internal.library.recordPushFailure, {
               tokenId: token._id,
-              sentDate: localDate,
+              error: "push_provider_failure",
+              nextRetryAt: now + retryDelayMs(
+                (token.consecutiveFailures ?? 0) + 1,
+              ),
             });
-            result.sent += 1;
-          } catch (error) {
-            const kind = classifyPushError(error);
-            await reportFailure(io, "daily_push");
-            if (kind === "permanent") {
-              await io.runMutation(internal.library.removeStaleToken, {
-                tokenId: token._id,
-                reason: "permanent",
-              });
-              result.removedStale += 1;
-              result.failed += 1;
-            } else if (kind === "backpressure") {
-              await io.runMutation(internal.library.recordPushFailure, {
-                tokenId: token._id,
-                error: "push_provider_failure",
-                nextRetryAt: now + retryDelayMs(
-                  (token.consecutiveFailures ?? 0) + 1,
-                ),
-              });
-              result.failed += 1;
-              // Stop this run; the next tick resumes the remainder.
-              stopped = true;
-              break;
-            } else {
-              await io.runMutation(internal.library.recordPushFailure, {
-                tokenId: token._id,
-                error: "push_provider_failure",
-                nextRetryAt: now + retryDelayMs(
-                  (token.consecutiveFailures ?? 0) + 1,
-                ),
-              });
-              result.failed += 1;
-            }
+            result.failed += 1;
+            // Stop this run; the next tick resumes the remainder.
+            stopped = true;
+            break;
+          } else {
+            await io.runMutation(internal.library.recordPushFailure, {
+              tokenId: token._id,
+              error: "push_provider_failure",
+              nextRetryAt: now + retryDelayMs(
+                (token.consecutiveFailures ?? 0) + 1,
+              ),
+            });
+            result.failed += 1;
           }
         }
       }
