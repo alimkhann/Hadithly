@@ -4,17 +4,16 @@ Paste one prompt into a fresh task. Use the named model and effort when it is
 available. Each prompt is self-contained and authorizes only its named session.
 Never use Relay.
 
-## Product continuation: B research, C native refinements, D website
+## Product continuation after A6
 
-Use `docs/NEXT_SESSION_PROMPT.md` for the next bounded A6 local readiness/gate
-audit. The owner expanded the preceding A5 follow-up into finishing its original
-engineering criterion. Read `docs/A5_REQUIREMENT_AUDIT.md` for the confirmed
-repairs, accepted native scopes, rejected attempts and remaining external gates.
-A4 retains local closure and pending exact-copy/native accessibility acceptance.
-A2 stays wrapped with row mode off; B/C/D retain local completion. Unfinished
-A1/A3/A4, A6–A7/readiness, E and the final original-program audit precede
-`POST_GOAL_BACKLOG.md`. Stop after the verified A5 commit without pushing; do not
-start that next audit in the same goal.
+Use `docs/NEXT_SESSION_PROMPT.md` for one bounded A7 local measurement/consented-session
+plan. A6 is complete as an explicit-retention audit, with zero external gates closed.
+Read `docs/A6_REQUIREMENT_AUDIT.md` and `docs/A6_GATE_MATRIX.md` for all remaining
+gates and exact dependencies/actions. A5 engineering remains complete; A4 local
+closure retains exact-copy/full accessibility acceptance. A2 stays wrapped with row
+mode off; B/C/D keep local completion. A1/A3/A4 acceptance, actual A7 observation,
+E's actual Linear hub and the final original-program audit precede the later backlog.
+Stop after the verified A6 commit without pushing; do not begin that next goal here.
 
 ## D0: restore browser control
 

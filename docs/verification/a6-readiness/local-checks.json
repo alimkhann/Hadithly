@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-31",
+  "resource_audit": {
+    "command": "python3 scripts/localization_audit.py --allow-drafts",
+    "exit_code": 0,
+    "log_sha256": "01376dfba6b0ceda9a445b06e97334d62cb15043457eba13dc36533ee010059f",
+    "tail": [
+      "  android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt:Continue with Google",
+      "  android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt:Continue with email",
+      "  android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt:Create account",
+      "  android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt:Create your account",
+      "  android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt:Email",
+      "  android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt:Enter the code sent to %@ and your new password.",
+      "  android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt:Enter the code we sent to %@.",
+      "  android/app/src/main/kotlin/com/hadithly/app/features/auth/SignInScreen.kt:Forgot password?"
+    ],
+    "summary": [
+      "iOS: 594 keys, 8452 draft locale entries, 0 failures",
+      "Android: 589 resources, 48 English-copy drafts, 0 failures",
+      "hardcoded candidates: Swift 285, Kotlin 295"
+    ]
+  },
+  "script_tests": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts -p test_localization_audit.py",
+    "exit_code": 0,
+    "log_sha256": "fc924f6e1fea3cec579bda3420051891bdf01c960fe5ca7e49fdfc8005bd9c0c",
+    "output": ".............\n----------------------------------------------------------------------\nRan 13 tests in 0.008s\n\nOK\n"
+  },
+  "verifier_negative_checks": [
+    {
+      "case": "missing gate mapping",
+      "rejected": true
+    },
+    {
+      "case": "false external closure",
+      "rejected": true
+    },
+    {
+      "case": "missing required receipt",
+      "rejected": true
+    }
+  ],
+  "incoming_semantic_diff": {
+    "added_keys": 2,
+    "removed_keys": 0,
+    "changed_existing_entries": 18
+  },
+  "limits": "Resource/script checks run now. Native results were only re-read from historical local artifacts; no new device/account/external acceptance.",
+  "delivery_checks": {
+    "local_markdown_links_checked": 52,
+    "staged_scoped_files": 14,
+    "staged_utf8_credential_artifact_scan": "passed",
+    "staged_and_unstaged_whitespace": "passed",
+    "incoming_project_diffs_and_catalog_semantic_delta": "inspected; preserved and unstaged"
+  }
+}

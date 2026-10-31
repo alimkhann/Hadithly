@@ -1,5 +1,35 @@
 # Open gates
 
+## A6 reconciliation, October 31
+
+All external gates remain open. The current local index is
+[A6 gate matrix](A6_GATE_MATRIX.md), with dated evidence, missing receipt/readback,
+owner dependency and next exact action for every gate group. The
+[A6 requirement audit](A6_REQUIREMENT_AUDIT.md) distinguishes a completed local
+retention audit from external acceptance. It maps every table row below and every
+unchecked dashboard/program entry at the A6 baseline.
+
+Read the remainder as historical evidence. In particular, the October 25/26 A3
+local checkpoint below was superseded by the approved October 26 development
+rollout in `A3_GROUNDING_VERIFICATION.md`: 73a520e deployed, zero eligible published
+comparisons, no model calls. Provider grounding and semantic acceptance remain open.
+A1's ordinary-reader deployment note in `FIRST_READING_VERIFICATION.md` is likewise
+superseded by that rollout, without semantic approval or production acceptance.
+A4's local audit and A5 engineering are complete as recorded in their requirement
+audits; their controlled results do not close full accessibility, exact-copy,
+authenticated/physical or release gates. The old LA2/A5 auth label below retains
+its unresolved SDK/hosted-auth work on A6/LA2; it does not reopen completed A5.
+
+D1's waived Sunnah.now rotation/read and D2's later checked provider-read summary
+lack a reconciled direct upstream receipt; G30 retains that conflict and waiver.
+The old D4 automatic-quota-paywall wording must be checked against current C's
+explicit Upgrade behavior before execution. Local D redesign and policy candidates
+have no publication receipt. Existing Apple financial statuses, provider plans,
+invoices and device availability have not been refreshed from accounts here.
+The A4/A5 audits' former next-task sentences are historical. A6 is now locally
+complete; A7 planning is next, with observation, actual E Linear hub and the final
+original-program audit still open. The original records below are retained intact.
+
 Updated 2026-10-26 for A2's normal-use development acceptance. The external dashboard
 facts below remain from the October 14 LA3/LA4 records.
 This is a record of outstanding proof, not a fresh production dashboard audit.

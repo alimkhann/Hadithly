@@ -10,26 +10,26 @@ Their checksums and every research URL are recorded in
 
 ## Current owner continuation, October 31
 
-A4's finite locally verifiable checklist is complete; see `A4_REQUIREMENT_AUDIT.md`
-and `A4_RUNTIME_LOCALIZATION.md`. Full A4 remains open for exact-copy native-speaker
-review, full accessibility and authenticated/physical acceptance. The original A4
-checkbox below stays open. Controlled fixtures do not close those gates.
+A6's original execute-or-explicitly-retain criterion is complete locally.
+`A6_REQUIREMENT_AUDIT.md` and `A6_GATE_MATRIX.md` map 41 retained-open gate groups
+and all 74 baseline entries to their dated evidence, missing receipts/readbacks,
+owner dependencies and next exact actions. No external gate is closed by this audit.
+Its checkbox below records that retention outcome, not release readiness.
 
-The owner expanded the bounded A5 follow-up into completing A5's original
-engineering criterion. The Contents ownership race, large-text reader controls,
-translation-size rendering and iOS RTL → LTR Settings mirroring are repaired.
-`A5_REQUIREMENT_AUDIT.md` maps direct native evidence, retained regressions and
-rejected attempts to the criterion. Its checkbox below is complete. Controlled
-fixtures and guest UI do not close actual live/authenticated/physical, exact-copy,
-full accessibility or release acceptance; those existing gates remain open.
+A5 engineering remains complete, with its ownership/landing, large-text viewport,
+translation-size, iOS Settings direction and reader/Saved/return fixes intact.
+A4 keeps finite local closure; its original checkbox remains open for exact-copy
+native-speaker review, full accessibility and authenticated/physical acceptance.
+A2 stays wrapped with row mode off; B/C/D keep local completion and incoming
+catalog/project work remains separate.
 
-`NEXT_SESSION_PROMPT.md` gives the next exact goal: an A6 local readiness/gate
-audit. Stop at A5's verified commit without push before starting that audit.
-Finish this original objective, including unfinished A1/A3/A4 acceptance,
-A6–A7/readiness, E and the final requirement audit. A2 remains wrapped with row
-mode off; B/C/D's local completion and every external gate remain intact. Only
-afterward consider `POST_GOAL_BACKLOG.md`. Overlapping font-size/Settings reports
-were handled only to fulfill A5; no broader backlog work was started.
+`NEXT_SESSION_PROMPT.md` gives one bounded A7 local measurement/consented-session
+plan as the next original-program goal. Actual A7 observation remains open.
+Unfinished A1/A3 content and semantic acceptance, A4 acceptance, all 41 retained
+content/store/purchase/device/disclosure/production/backup/recovery/integration
+gate groups, E's actual Linear hub and the final original-objective audit remain.
+Follow this program before `POST_GOAL_BACKLOG.md`. Stop after committing A6 without
+pushing; no A7 observation, E setup, A2 storage or later redesign was started here.
 
 ## Owner order, October 26
 
@@ -160,7 +160,7 @@ activation, or user-study participant cannot be silently represented as verified
     pluralization, RTL, accessibility, and critical-copy review status.
   - [x] A5. Resolve reproduced architecture, system, behavior, and UI defects that
     prevent the core reading/saving/return journeys. Retain the RTL regressions.
-  - [ ] A6. Execute or explicitly retain every existing content, store, purchase,
+  - [x] A6. Execute or explicitly retain every existing content, store, purchase,
     physical-device, disclosure, production, backup/recovery, and integration gate.
     Real receipt/readback evidence is required to close an external gate.
   - [ ] A7. Establish honest activation/return/conversion evidence through a

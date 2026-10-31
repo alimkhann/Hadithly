@@ -1,28 +1,19 @@
-# Next goal: A6 local readiness and gate audit
+# Next goal: A7 local measurement and consented-session plan
 
-A5's reproduced core reading/saving/return defects are repaired and have controlled
-native evidence in `A5_REQUIREMENT_AUDIT.md`, `A5_CONTENTS_NAVIGATION.md` and
-`A5_READER_CONTROLS.md`. This closes A5's engineering criterion. It does not close
-actual live/authenticated/physical, exact-copy/native accessibility or release
-acceptance. A4's local audit remains complete and its original checkbox stays open.
-
-The owner expanded the preceding bounded follow-up into completing A5. That goal
-stops at its verified commit without push. A2 remains wrapped with row mode off;
-B/C/D retain local completion. The original program precedes the later backlog.
+A6 is complete for its explicit-retention criterion. All 41 gate groups remain
+open in `A6_GATE_MATRIX.md`; no external state was refreshed or passed. A5
+engineering is complete and A4 has local closure with acceptance still pending.
+This prompt follows the original program. It does not authorize observation,
+account operations, participant contact, telemetry activation or Linear setup.
 
 ```text
-/goal Continue Hadithly in /Users/alim/Developer/Projects/Apps/Hadithly. Read AGENTS.md, docs/PLAN.md, docs/NEXT_SESSION_PROMPT.md, docs/PRODUCT_PROGRAM.md, docs/A5_REQUIREMENT_AUDIT.md, docs/A4_REQUIREMENT_AUDIT.md and docs/OPEN_GATES.md first.
+/goal Continue Hadithly in /Users/alim/Developer/Projects/Apps/Hadithly. Read AGENTS.md, docs/PLAN.md, docs/NEXT_SESSION_PROMPT.md, docs/PRODUCT_PROGRAM.md, docs/A6_REQUIREMENT_AUDIT.md, docs/A6_GATE_MATRIX.md, docs/OPEN_GATES.md, docs/LA2_VERIFICATION.md and docs/LA2_OPERATIONS.md first.
 
-Do one bounded A6 local readiness/gate audit. Map every existing content, store, purchase, physical-device, disclosure, production, backup/recovery and integration gate to its current evidence, missing receipt/readback, owner dependency and next exact action. Preserve the unfinished A1/A3 content and semantic acceptance, A4 exact-copy/native accessibility acceptance, A7 observation, E's actual Linear hub and the final original-program audit. Reconcile current local records without treating old evidence as fresh or controlled fixtures as live/authenticated/physical proof. Do not close an external gate without its actual required evidence.
+Do one bounded A7 local planning unit. Prepare a privacy-preserving activation/return/conversion measurement plan and a concrete consented-reader-session protocol from the existing LA2 contract. Define each population, numerator, denominator, time window, source, clipping/unavailable-data limits and required real readback. Distinguish rendered first reading, return, guest readers, registered accounts, active users and confirmed paying customers. Current clipped anonymous totals and controlled fixtures cannot establish cohort retention or conversion. Explain what cannot be measured honestly without new approved collection. Prepare consent wording, a facilitator script, task/observation and withdrawal/deletion templates, participant requirements, a bounded 2-4 week observation schedule and explicit start/stop gates. Do not recruit, send messages, run sessions, observe users, create accounts or activate analytics in this unit. Keep A7's original acceptance checkbox open until actual required evidence exists.
 
-Keep the completed A5 ownership/landing, large-text viewport, translation-size, iOS Settings direction and reader/Saved/return fixes intact. Preserve incoming catalog/project work, opaque user/source data, RTL and fifteen-locale bindings, A2's agreed wrap-up with row mode off, B/C/D local completion and every existing open gate. Follow PRODUCT_PROGRAM.md before POST_GOAL_BACKLOG.md. Keep GPT-only and no Relay.
+Carry all G01-G41 gate groups from A6_GATE_MATRIX.md forward explicitly: A1/A3 exact-locale content, maintenance, rights and semantic/provider acceptance; A4 exact-copy/native-speaker and full native accessibility; real auth/SDK/hosted-account and installed sync/deletion/retention; physical reader/push/widget/intake/generation/attestation; Apple legal/compliance/review/Streamlined Purchasing and Play account/products/signing/tracks/testers/regional approval; actual two-store receipts, shared-device/cross-platform quota retry, annual billing total/commission; published consent/disclosures and production observability/support/provider invoices/contracts/hosting; encrypted scheduled off-device backup, RPO/RTO/deletion replay and production D4/storage; L1, D website publication, F3 links, LA4 post-launch deferral; Android physical-phone incident and repository/recovery limits; actual A7 observation, E's actual Linear hub and the final independent original-program audit. Do not count a retained gate as passed. Reconcile new evidence by its actual date and scope, never by inference from an old dashboard record.
 
-Local read-only inspection and reversible documentation proceed. Do not invoke real account actions. Do not make cloud, account, credential, paid-model, deployment, migration or publication changes without action-time approval. Prepare any proposed external step concretely before requesting approval. Do not start A2 storage, A7 observation, E setup, the later backlog or a broader redesign in this unit.
+Preserve completed A5 ownership/landing, large-text viewport, translation-size, iOS Settings direction and reader/Saved/return fixes. Keep incoming catalog/project work, opaque user/source data, RTL and fifteen-locale bindings intact. A2 remains wrapped with row mode off; B/C/D keep local completion and all gates remain recorded. Follow PRODUCT_PROGRAM.md before POST_GOAL_BACKLOG.md. Keep GPT-only and no Relay. Do not start A2 storage, E setup, release operations, later backlog or broader redesign.
 
-Refresh the scoped gate/evidence and preservation checks, inspect staged and unstaged changes, and commit the finished local audit without pushing. Stop at that verified boundary and leave the next exact original-program goal prompt, including all remaining gates.
+Local read-only inspection and reversible documentation proceed. No real account actions. Cloud, account, credential, paid-model, deployment, migration and publication changes require action-time approval; prepare the exact reviewable external step before requesting it. Refresh scoped evidence/preservation checks, inspect staged and unstaged changes, commit the finished local planning unit without pushing, and stop. Leave the next exact original-program prompt with observation and every remaining gate explicit. Completing the plan does not complete A7 or the full original program.
 ```
-
-No actual annual billing total, physical/authenticated/store/purchase/content/
-disclosure/production/backup/recovery acceptance, publication, LA4 demand/rights
-proof, Android physical-phone incident closure, A7 cohort observation or E hub
-is inferred from A5. Those gates remain visible and require their own evidence.

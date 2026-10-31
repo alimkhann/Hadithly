@@ -1,0 +1,370 @@
+{
+  "date": "2026-10-31",
+  "baseline": "48f0794121b1641b221eedf89fafefa1f276d050",
+  "initial_status": " M ios/Hadithly.xcodeproj/project.pbxproj\n M ios/Hadithly.xcodeproj/xcshareddata/xcschemes/Hadithly.xcscheme\n M ios/Hadithly.xcodeproj/xcshareddata/xcschemes/LA2Verification.xcscheme\n M ios/Hadithly.xcodeproj/xcshareddata/xcschemes/Phase4Live.xcscheme\n M ios/Hadithly/Localizable.xcstrings\n?? scripts/__pycache__/\n",
+  "incoming": {
+    "ios/Hadithly.xcodeproj/project.pbxproj": {
+      "working_sha256": "96350e43481804f2d09dfd0e09609f894d7eedcc6a5326a6cb63c16cb9992efb",
+      "index_blob": "3c1f486f77e83e1251d7f83dacf898dceeb96a2b"
+    },
+    "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/Hadithly.xcscheme": {
+      "working_sha256": "4855a090d537eafb377cd99d70425fb44137ad64588059f01727ffbbd0fa95b6",
+      "index_blob": "3d30d4760068be31b1be24090c1e37e2dd6f7d41"
+    },
+    "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/LA2Verification.xcscheme": {
+      "working_sha256": "74eff6b5902f4989fcf1d4d5d17a9c1c65bb66571cde851e2b932bff7520bfed",
+      "index_blob": "debc75ed9843cf672608a81993c15cad3b66fba9"
+    },
+    "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/Phase4Live.xcscheme": {
+      "working_sha256": "35c6cbf95690fc03a4497131c41eeb41983b35123116204af04dd0842baa982d",
+      "index_blob": "502575b59d16db562d2b9af1d66e5284ec286c25"
+    },
+    "ios/Hadithly/Localizable.xcstrings": {
+      "working_sha256": "ea0844bf22fb7cf83805a3600a1de6a0d4a2b1b8142021d2465724d1316dcf15",
+      "index_blob": "0bd43b393c5fd7f4308f621ef7da39c0f56029f4"
+    }
+  },
+  "initial_untracked": [
+    "scripts/__pycache__/collect-a4-local-evidence.cpython-312.pyc",
+    "scripts/__pycache__/localization_audit.cpython-312.pyc",
+    "scripts/__pycache__/test_catalog_staging.cpython-312.pyc",
+    "scripts/__pycache__/test_generate_ui_polish_copy.cpython-312.pyc",
+    "scripts/__pycache__/test_localization_audit.cpython-312.pyc"
+  ],
+  "evidence_sha256": {
+    "docs/PLAN.md": "6201e42a7d4b6b7b8ffc375faadd7302b1208617fde81e8e4d6fef83e984c252",
+    "docs/NEXT_SESSION_PROMPT.md": "29b61dbfba0373b49c30caa2c2c3f03474194b06203b4885fd65f8734b227640",
+    "docs/NEXT_SESSION_GOAL.md": "0a4b2a91b4bd8852042ce7b90721ced9e4219df01436f612cbcf5eda9da69b80",
+    "docs/SESSION_PROMPTS.md": "8d8396c1899a70a35b6d54d73de56f45b941207e1c334583740ac281515a4e1e",
+    "docs/PRODUCT_PROGRAM.md": "0a8e272555e8f7d2b2bbcf367a0cc73d042969b015f90d8612117618d837de55",
+    "docs/A5_REQUIREMENT_AUDIT.md": "4b67e3e18802d8dde9c5c185a00d8683f92408f63083714ef010a4c68f84334f",
+    "docs/A4_REQUIREMENT_AUDIT.md": "9fc776dc26e777a01a80826a5e47e3552cf2092ae05c5bbd65a77aa251869693",
+    "docs/OPEN_GATES.md": "bf38670ec0c74ed787a015e31e7f4395c5bd8a649d89466fe4136359ee9803ae",
+    "docs/LAUNCH_DASHBOARD_CHECKLIST.md": "dda2e81aa23410c36959fcb15ea725531ca3c66b0f1de142624ab19cf7d45330",
+    "docs/FIRST_READING_VERIFICATION.md": "f173834b1fc9461599b55947335699ccff6ced8d40b254817a5d9e1f5b770d70",
+    "docs/A3_GROUNDING_VERIFICATION.md": "7c65d6666556b32ee49e08adc6b73b232d75d2d86788825ca9383418233eb746",
+    "docs/A2_WRAP_UP.md": "00329d5ca9434e7d1fc26319de82ca2305f67e4cacd48cf52fc790a2c6ea9e84",
+    "docs/Q1_VERIFICATION.md": "1fc1cedfd540e68e037f0520af05b0b94ab222a7115e6fcd86d7d129b48efeaa",
+    "docs/Q2_VERIFICATION.md": "8d8b3402f370198e99a531792012e8d14ed68c2d0764c84519716a6e8f643466",
+    "docs/Q2_PRICING.md": "be01af9d518f8a5cd25b7a052be5358bf44964df5a5d63a5edc86c115d9b523f",
+    "docs/LA1_VERIFICATION.md": "185fcaea04394bb9f2a7d416b47873cb930c112ece78a0d365b6115123f56657",
+    "docs/LA1_OPERATIONS.md": "35c52b4ce6e9618cdfc346304257882eb273950b953eb0dbe547d85a4943e021",
+    "docs/LA2_VERIFICATION.md": "7769cd66c5d625b497498c1df110b18e079139d9fbb49a6812190a9e3f79bf6e",
+    "docs/LA2_OPERATIONS.md": "51b5b4b32ddec018657aac3ab7f78903d75464db1a59ae173ec46cf2ca564afd",
+    "docs/LA3_VERIFICATION.md": "4448591ff9f00ab80b4293b011e8b5100decb66e47fe7528509fb359e8c966f1",
+    "docs/LA3_OPERATIONS.md": "5972de005e505051e1c034c03c617dbf7521bf8143321153318461ab178f53e8",
+    "docs/LA3_COST_LEDGER.json": "6860f4be3786d474a23d461fa64a008e4612563cc08ccf75c776865f18b82ddd",
+    "docs/LA3_RECOVERY_EVIDENCE.json": "18e84074f7a1c4c5fe5997753c759e6213743b6f9eda10d62d8b241f55b840e4",
+    "docs/LA3_LIVE_EVIDENCE.json": "bd53224fdb3142cd6caed61a5063068ec1df9f29e1e87d938e120a9410a0b2b4",
+    "docs/LA4_VERIFICATION.md": "c5a3494bc1e6748f8868fbd943bebab443d93909b1472b9cee16fbcd8f6a827e",
+    "docs/LA4_DECISION.md": "40c66718a52110fe1332d79b66fd98aa9235142f2905aa97b1890fb217d8a288",
+    "docs/C_NATIVE_REFINEMENTS.md": "850bf4ee71721e5836b3b6bb114cefb895fc54cc44c3ee0f4dfeaa82632a7fc1",
+    "docs/D_WEBSITE_REDESIGN.md": "a8669c0087af9379461400ebd14df41b04f0b248b0913af4b805cf72f50a7edf",
+    "docs/ANDROID_UI_TARGET_INCIDENT.md": "dd684b7d1552f65f84d18fd739379edd4bdc4fa11ea4dabe8cad284c8d9afeb4",
+    "docs/REPOSITORY_AND_DISK_PLAYBOOK.md": "3103e201834c5cd3856e2b377c160e6d8ebab9d434cfc86760f9fd1fc09cbcf6",
+    "docs/LIBRARY_SYNC_DELETION_VERIFICATION.md": "7ff83cf614e8ff186336c2c4adeecd9940826758e067fc563f078331cde9f4ea",
+    "docs/ACCOUNT_DELETION_MAINTENANCE_VERIFICATION.md": "ddf5dd2b39fb815a41a8888fb41c51dcefbfd845a8504e1e5feb6943021ba701",
+    "docs/POST_GOAL_BACKLOG.md": "f1845968abef9fb7fb4ceb1b0a116e5fcafda31e73670b8b06cab252bba0cd2c",
+    "docs/verification/a5-completion/results.json": "58ec2769a0e4f3af109ca4766ea448840579da09f8a9e17f3f670c5307535424",
+    "docs/verification/a5-completion/local-checks.json": "a8533ccfc937fe57c2b8db233ae585cd5b1fe1005641c21533e62e2d7f8ccb3e",
+    "docs/verification/a4-localization/final-local-audit.json": "739fb5ed2af0eb0469ad6f544bea59ba53c938d6ad2453711708f64b13ebc347"
+  },
+  "gate_inventory": [
+    {
+      "key": "OPEN_GATES.md:12",
+      "text": "| D1 / D2 | Physical Android FCM retest against `hadithlyapp`; Apple sign-in full round trip and the remaining physical auth matrix roll into D4. Sunnah.now production read is still recorded as unverified and its rotation is owner-waived. | Production Gemini, FCM credential minting, and Apple-accepted APNs passed. The old provider rotation waiver is not reopened here. |"
+    },
+    {
+      "key": "OPEN_GATES.md:13",
+      "text": "| D3A | Apple agreements, tax/banking, compliance/content-rights answers, review account/instructions, and store sandbox purchase/restore/expiry/refund/quota retry. Screenshots and listings remain for L1. | Domain, Apple product setup, RevenueCat offering/webhook, and operational Apple wiring passed. |"
+    },
+    {
+      "key": "OPEN_GATES.md:14",
+      "text": "| D3G | Play Console account and store setup, signing/App Links fingerprint, Play subscriptions, RevenueCat Android production key, test tracks/testers, and sandbox lifecycle. | Explicitly deferred by the owner until a Play developer account is available. |"
+    },
+    {
+      "key": "OPEN_GATES.md:15",
+      "text": "| F3 | Production fallback deployment/readback and release Android App Links verification. | Native routing and local fallback tests passed. The record still carries the live fallback deployment handoff; D3G supplies the Play signing fingerprint. |"
+    },
+    {
+      "key": "OPEN_GATES.md:16",
+      "text": "| R3 | Reader direction, paging, long-content, boundary, and accessibility matrix on physical iPhone and Android. | Simulator/emulator matrices passed. Later reader work continued under the owner's exceptions. |"
+    },
+    {
+      "key": "OPEN_GATES.md:17",
+      "text": "| F2 / R4 | Physical-device confirmation of preferences, typography, visibility, RTL, and accessibility through D4. | Native unit and simulator/emulator checks passed. R4's named review passed. |"
+    },
+    {
+      "key": "OPEN_GATES.md:18",
+      "text": "| H3 / private sync follow-up | Physical/production and installed release compatibility remain open; iOS direct-SDK re-login and the hosted-auth matrix remain on LA2/A5. | A2's October 26 approved development rollout and real native two-way Saved/progress, Undo, sign-out and scoped-account readbacks pass. See `A2_WRAP_UP.md` for the iOS relaunch limit. |"
+    },
+    {
+      "key": "OPEN_GATES.md:19",
+      "text": "| O1 | Production-grade confirmation of content permission scope, including adaptation and redistribution where used. | Licensed development dumps and checksum/schema tests passed. The earlier MIT/local-use wording is not treated as blanket rights for every later use. |"
+    },
+    {
+      "key": "OPEN_GATES.md:20",
+      "text": "| O2 | Translation packs need a versioned per-entry rights, attribution, and citations format before export, plus a real download/read/update/rollback proof. Version 1 pack generation is now blocked by E3 licensing checks; base dumps remain available. | Base collection downloads, offline reading, corruption/rollback fixtures, and physical iOS stalled-network recovery passed. |"
+    },
+    {
+      "key": "OPEN_GATES.md:21",
+      "text": "| N1 | Physical locale/timezone/DST, retry, stale-target, selected-language, receipt, and exact-open matrix; physical Android FCM retest. | The development APNs request was Apple-accepted. Owner receipt/exact-open confirmation and the broader device matrix remain open. |"
+    },
+    {
+      "key": "OPEN_GATES.md:22",
+      "text": "| W1 / W2 | iOS locked rendering, empty first install, exact nonzero restoration; synced widgets; offline and deleted-download behavior on both platforms; remaining iOS stale cases. | Installed iOS gallery/tap and Android guest offset/stale behavior have evidence. The full widget gate is not passed. |"
+    },
+    {
+      "key": "OPEN_GATES.md:23",
+      "text": "| E1 | iOS progress/cancellation and account-switch tests; RTL and assistive-technology device matrix. | Signed-in native intake, private upload, withdrawal, and local recovery passed. E2 proceeded under an explicit owner exception. |"
+    },
+    {
+      "key": "OPEN_GATES.md:24",
+      "text": "| E3 | Production provider-rights coverage and release rollout remain with O1/D4. | Development passed: 232 backend tests, 219 iOS units, both native upload/OCR/review/publication/readback paths, production status/source UI fixtures, private cloud controls, 14 Linux tests, and two final clean adversarial reviews. |"
+    },
+    {
+      "key": "OPEN_GATES.md:25",
+      "text": "| Q1 | Authenticated Android generation/cache/allowance and physical iPhone Clerk-to-generation journey need a development login. Play Integrity decode/native round trip is explicitly deferred until Play Console exists. Production remains release work. | Development deploy/migrations, preserved existing rows, actual five-free/reject/upgrade retry and service quotas, iOS authenticated simulator, Android live guest cache, real physical Apple attestation/assertion/replay checks pass. Ten global generations produced ten unique events and ten ungrounded calls. Backend 293 tests; iOS 225 local passes; Android 195 units. See `Q1_VERIFICATION.md`. |"
+    },
+    {
+      "key": "OPEN_GATES.md:26",
+      "text": "| Q2 | Actual Apple/Google sandbox purchase/renewal/cancellation/grace/hold/expiry/refund/revocation/restore, interrupted purchase/relaunch, account-switch/shared-device and cross-platform quota retry receipts. October 13 Apple readback: Paid Apps Agreement and banking **Processing**, both U.S. tax forms **Active**, DSA declaration unfinished; both earlier physical product lookups returned zero and today's retry needs the disconnected iPhone. Play account/products/SDK key/regional export and approval are unavailable. Apple Streamlined Purchasing needs an updated approved binary. Production activation remains separate. | Approved 175 Apple regional tiers pass the 60% paid-unit floor; approved $2 free/$10 total translation cap deployed in development. Backend 314 tests, Android 198 units/two installed Q2 tests, iOS final four purchase/five UI checks, six Swift manager transport checks and signed development HTTP/reconciliation/replay pass. Owner's physical Hadithly sign-in is verified; one US sandbox tester exists. Approved sandbox-only RevenueCat webhook saved. See `Q2_VERIFICATION.md`. |"
+    },
+    {
+      "key": "OPEN_GATES.md:27",
+      "text": "| E4 | Production rollout remains with the release track. | Development passed: owner-approved deployment and idempotent legacy revocation; backend 257, iOS 222 unit plus three UI, Android 194 unit plus five UI tests; both real signed-in native report/appeal flows and fixture cleanup passed. No mandatory human queue. |"
+    },
+    {
+      "key": "OPEN_GATES.md:28",
+      "text": "| LA4 | Native launch and a real post-launch demand window; affirmative scoped corpus/translation rights; commercial hosting eligibility, shared usage/invoices, accessibility and cache-purge proof. Post-launch acceptance gate remains open. | Pre-launch defer only: live old noindex routing page and unavailable Vercel analytics readback. No reader code, telemetry changes or implementation sessions. See `LA4_DECISION.md` and `LA4_VERIFICATION.md`. |"
+    },
+    {
+      "key": "OPEN_GATES.md:29",
+      "text": "| LA3 | Production Convex activation, encrypted daily off-device backup/schedule and production RPO/RTO/deletion replay; remaining provider invoice/contract readbacks, Sunnah.now broader allowance and commercial hosting eligibility. | Approved live support route/form/Turnstile and three received synthetic emails, SPF/DKIM/DMARC PASS, public synthetic incident, $30 all-services Google alarm across both projects; typecheck/346 tests and real isolated Convex export/wipe/import restored five synthetic records and a file exactly. See `LA3_VERIFICATION.md`, `LA3_LIVE_EVIDENCE.json` and the cost ledger. |"
+    },
+    {
+      "key": "OPEN_GATES.md:30",
+      "text": "| LA2 | Full fresh sign-up/sign-in and interruption/link matrix; VoiceOver/TalkBack, large-text/Reduced Motion, Urdu/small-screen physical proof; offline/update/corruption, exact restoration and notification device matrix; real two-store receipts; published consent/disclosures and production activation. Development analytics is disabled after verification. | Ten-family contracts, 333 backend tests, both native serialized transport fixtures, actual guest onboarding\u2192visible reading, exact 62-row PostHog readback, strict canaries and expiry/deletion queue checks; separate privacy/deletion review. See `LA2_VERIFICATION.md`. |"
+    },
+    {
+      "key": "OPEN_GATES.md:31",
+      "text": "| LA1 | Production DSNs/alerts/disclosures/store privacy; physical cache/retry/upgrade/revoked-restart matrix; Android ANR/converted tombstone proof and Android 8\u201311 C/C++ gap; Convex plan/log-retention/hard-limit readback. H3/O2/W2/Q2 gates stay open under the owner's entry exception. | Development passed: four readable redacted reports with one release, source-free neutral Apple symbols, four live Google checks/two-region ten-minute policies, owner-confirmed alert, recorded admission/configuration caps, backend 321 tests, Android 199 units, iOS 238 executed/seven earlier opt-in skips/zero failures. See `LA1_VERIFICATION.md`. |"
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:237",
+      "text": "- [ ] Rotate the historically exposed Sunnah.now key."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:238",
+      "text": "- [ ] Install only the replacement as `SUNNAH_NOW_API_KEY` in production Convex."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:239",
+      "text": "- [ ] Complete one production provider read."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:469",
+      "text": "- [ ] Configure Android App Links prerequisites for F3 after D3G supplies the"
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:476",
+      "text": "- [ ] Create or connect monthly and annual Play products."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:479",
+      "text": "- [ ] Attach the monthly and annual Play products to `pro` and the current"
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:487",
+      "text": "- [ ] Install the production Android public SDK key after D3G."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:488",
+      "text": "- [ ] Verify purchase, restore, cancellation, grace, expiration, refund or"
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:493",
+      "text": "- [ ] Finish the app record for `com.hadithly.app`."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:494",
+      "text": "- [ ] Confirm the SKU, categories, version, copyright, and public URLs."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:496",
+      "text": "- [ ] Complete agreements, tax, and banking with user takeover."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:497",
+      "text": "- [ ] Complete privacy, age rating, content rights, encryption, and export"
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:500",
+      "text": "- [ ] Add an App Review account and exact quota-paywall instructions."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:501",
+      "text": "- [ ] Keep screenshots open for L1."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:505",
+      "text": "- [ ] Create or finish the app record for `com.hadithly.app`."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:506",
+      "text": "- [ ] Complete developer profile, agreements, payments profile, and tax details."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:507",
+      "text": "- [ ] Create monthly and annual subscriptions and base plans."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:508",
+      "text": "- [ ] Complete Data safety, content rating, target audience, app access, ads,"
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:510",
+      "text": "- [ ] Configure internal testing and upload a signed release artifact when the"
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:512",
+      "text": "- [ ] Add test accounts and purchase-license testers."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:513",
+      "text": "- [ ] Keep final screenshots and localized listings open for L1."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:543",
+      "text": "- [ ] Activate Apple Paid Apps Agreement and required legal/tax/banking setup."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:549",
+      "text": "- [ ] Complete actual Apple purchase/restore/renewal/cancel/grace/expiry/refund,"
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:551",
+      "text": "- [ ] Complete Google products, regional export/approval and sandbox journeys"
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:553",
+      "text": "- [ ] Disable Apple Streamlined Purchasing after an updated approved binary"
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:556",
+      "text": "- [ ] Approve production Q2 activation at action time. Production code and the"
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:558",
+      "text": "- [ ] Finish App Store Small Business enrollment and verify Apple's approval"
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:574",
+      "text": "- [ ] Fresh install and signed-out onboarding."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:575",
+      "text": "- [ ] Signed-out collection and reader access."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:576",
+      "text": "- [ ] Apple, Google, and email-code authentication where supported."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:577",
+      "text": "- [ ] Guest bookmark, favorite, note, and progress merge."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:578",
+      "text": "- [ ] Cross-device sync."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:579",
+      "text": "- [ ] Provider read and AI translation with source label."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:580",
+      "text": "- [ ] Free quota failure opens the paywall and no other route does."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:581",
+      "text": "- [ ] Purchase and restore activate `pro`."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:582",
+      "text": "- [ ] Cancellation keeps access until expiry."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:583",
+      "text": "- [ ] Grace keeps access. Expiry or revocation removes access."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:584",
+      "text": "- [ ] Daily push arrives and opens the target."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:585",
+      "text": "- [ ] Account deletion removes app data and the Clerk identity while preserving"
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:587",
+      "text": "- [ ] Production logging contains no token, email, private key, note, or proposal"
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:592",
+      "text": "- [ ] Upload a harmless private test file through the chosen production Convex"
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:594",
+      "text": "- [ ] Read it through authorized code."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:595",
+      "text": "- [ ] Reject an unauthorized read."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:596",
+      "text": "- [ ] Delete the test artifact after action-time confirmation."
+    },
+    {
+      "key": "LAUNCH_DASHBOARD_CHECKLIST.md:597",
+      "text": "- [ ] Record storage and egress observations without user content."
+    },
+    {
+      "key": "PRODUCT_PROGRAM.md:144",
+      "text": "- [ ] Frame and verify the readiness gaps before later redesign work."
+    },
+    {
+      "key": "PRODUCT_PROGRAM.md:145",
+      "text": "  - [ ] A1. Guest first reading delivers actual exact-locale text and provenance,"
+    },
+    {
+      "key": "PRODUCT_PROGRAM.md:155",
+      "text": "  - [ ] A3. Improve real grounding and citation provenance for both free and paid"
+    },
+    {
+      "key": "PRODUCT_PROGRAM.md:158",
+      "text": "  - [ ] A4. Audit all runtime copy and Android XML files, repair localization gaps"
+    },
+    {
+      "key": "PRODUCT_PROGRAM.md:163",
+      "text": "  - [ ] A6. Execute or explicitly retain every existing content, store, purchase,"
+    },
+    {
+      "key": "PRODUCT_PROGRAM.md:166",
+      "text": "  - [ ] A7. Establish honest activation/return/conversion evidence through a"
+    },
+    {
+      "key": "PRODUCT_PROGRAM.md:179",
+      "text": "- [ ] Apply the research to the requested native experience."
+    },
+    {
+      "key": "PRODUCT_PROGRAM.md:210",
+      "text": "- [ ] E1. Configure Linear as the hub for agents, plans, issues, bugs and docs."
+    },
+    {
+      "key": "PRODUCT_PROGRAM.md:213",
+      "text": "- [ ] Audit the full objective requirement by requirement, review the decision"
+    }
+  ]
+}

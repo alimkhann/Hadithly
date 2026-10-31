@@ -57,6 +57,28 @@ start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
 
+## A6 local readiness audit, October 31
+
+A6 is complete for its original execute-or-explicitly-retain criterion. The local
+inventory in `A6_GATE_MATRIX.md` maps 41 retained-open gate groups to evidence dates,
+missing receipts/readbacks, owner dependencies and next exact actions. All 74
+baseline program/dashboard/open-gate entries are mapped. No external gate passed.
+`A6_REQUIREMENT_AUDIT.md` records scoped checks and the historical-artifact boundary.
+
+A5 engineering and its native source bytes remain intact; A4 keeps finite local
+closure with exact-copy/full accessibility acceptance open. Incoming catalog and
+four project/scheme files remain byte-identical and unstaged. A2 stays wrapped with
+row mode off; B/C/D retain local completion. No account, cloud, credential, model,
+deployment, migration, publication, message, physical-device or push action occurred.
+
+The next exact original-program goal in `NEXT_SESSION_PROMPT.md` is a bounded A7
+local measurement/consented-session plan. Actual observation and all 41 gates stay
+open, including A1/A3 content/semantics, A4 acceptance, authenticated/physical/store/
+purchase/disclosure/production/backup/integration, actual annual totals, LA4 and the
+Android phone incident. E's actual Linear hub and the final full-objective audit
+remain pending before `POST_GOAL_BACKLOG.md`. Stop at this verified local A6 commit
+without pushing. Earlier next-task text below is historical and cannot restart A5/A6.
+
 ## Owner continuation order, October 31
 
 The owner expanded the bounded A5 follow-up into finishing A5. Its original

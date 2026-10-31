@@ -1,8 +1,10 @@
 # Current next goal
 
-Use the exact A5 goal in [NEXT_SESSION_PROMPT.md](NEXT_SESSION_PROMPT.md).
-A4 local evidence is in [A4_REQUIREMENT_AUDIT.md](A4_REQUIREMENT_AUDIT.md); full A4 acceptance remains open.
-The historical A4 handoffs below do not override the current prompt or close existing gates.
+Use the exact A7 local planning goal in [NEXT_SESSION_PROMPT.md](NEXT_SESSION_PROMPT.md).
+[A6 requirement audit](A6_REQUIREMENT_AUDIT.md) completes local explicit retention,
+with every external gate still open in [A6 gate matrix](A6_GATE_MATRIX.md).
+A5 engineering and A4 local closure are preserved. Full A4 acceptance remains open.
+The historical A4 handoffs below cannot override that prompt or close existing gates.
 
 ## A4 evidence-intake checkpoint, October 30
 
