@@ -1,5 +1,14 @@
 # Open gates
 
+## A7 owner deferral, October 31
+
+[The reader study is deferred](A7_STUDY_DEFERRAL.md) because cross-platform
+participants are unavailable during the proposed period. A7-R1 dates and its
+pending design request are superseded. No study clock, participants or records
+exist. G38 remains open and deferred. All G01-G41 retain their evidence dates,
+missing receipts and open status; no gate passed. No new study schedule or
+external action is authorized. The owner selects the next bounded program unit.
+
 ## A7 readiness reconciliation, October 31
 
 The [authorization packet](A7_OBSERVATION_READINESS.md) now supplies proposed

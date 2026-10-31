@@ -57,6 +57,23 @@ start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
 
+## A7 owner deferral, October 31
+
+The owner deferred the reader study because cross-platform participants are not
+available during the proposed period. See `A7_STUDY_DEFERRAL.md`. A7-R1's proposed
+November/December dates are retired, with no replacement schedule. Do not recruit,
+contact, observe, collect or keep requesting study setup choices while deferred.
+The packet remains historical local preparation; its pending approval request is
+superseded by the owner's deferral. No observation clock started or study record
+was created. A7/G38 stays open and deferred, not passed.
+
+All G01-G41, A1/A3/A4 acceptance, E actual Linear and the independent final audit
+remain open with their existing evidence scopes. A5, A2 wrapped with row mode off,
+B/C/D local completion and incoming work remain intact. No next implementation
+unit was selected by this answer. `NEXT_SESSION_PROMPT.md` records the stop and
+reopening conditions. Commit this local decision without pushing. Older requests
+for study approval or calendar preparation below are historical.
+
 ## A7 observation-readiness packet, October 31
 
 The bounded local packet is prepared in `A7_OBSERVATION_READINESS.md`, audited in

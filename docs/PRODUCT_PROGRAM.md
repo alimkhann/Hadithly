@@ -8,6 +8,16 @@ for this program, not session names supplied by the owner.
 Their checksums and every research URL are recorded in
 `product-program/research-manifest.json`. No later phase replaces unfinished work.
 
+## Current owner decision: A7 study deferred, October 31
+
+The owner cannot provide cross-platform participants in the proposed period and
+selected deferral. [The decision](A7_STUDY_DEFERRAL.md) retires the A7-R1 calendar
+and pending design request. No recruitment, contact, observation, collection or
+new dates are authorized. A7/G38 remains open and deferred. All G01-G41, E actual
+Linear and final independent audit remain pending. Preserve all completed local
+work and follow this program before later backlog. The owner has not selected a
+replacement work unit. Earlier requests to approve the study are historical.
+
 ## Current A7 readiness handoff, October 31
 
 The local [observation packet](A7_OBSERVATION_READINESS.md) and

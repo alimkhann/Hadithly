@@ -1,0 +1,15 @@
+{
+  "decision_date": "2026-10-31",
+  "owner_decision": "defer_study",
+  "reason": "Cross-platform participants unavailable in the proposed period",
+  "supersedes": "A7-R1 pending design request and provisional November/December calendar",
+  "replacement_dates": null,
+  "study_status": "DEFERRED_NOT_STARTED",
+  "A7_acceptance": "OPEN",
+  "G38": "OPEN_DEFERRED",
+  "all_gate_groups": "G01-G41 remain OPEN",
+  "contact_or_observation_authorized": false,
+  "study_records_created": 0,
+  "next_unit_selected": null,
+  "reopening": "Explicit owner resumption, suitable cross-platform adults, fresh prerequisites/calendar and separate action-time approval"
+}

@@ -4,16 +4,15 @@ Paste one prompt into a fresh task. Use the named model and effort when it is
 available. Each prompt is self-contained and authorizes only its named session.
 Never use Relay.
 
-## Product continuation after A7 readiness packet
+## Product continuation with A7 study deferred
 
-Use `NEXT_SESSION_PROMPT.md`. The local packet in `A7_OBSERVATION_READINESS.md`
-is prepared, not approved. Stop at the named owner choices and exact action
-boundary; do not repeat planning, contact readers, observe, install, create accounts
-or activate analytics. Consent language review and current prerequisites are
-missing. Retain all G01-G41 and their original dates/scopes, A5 fixes, incoming
-work, A2 wrapped with row mode off and B/C/D local completion. A7, A1/A3/A4,
-E actual Linear and final independent audit remain open before later backlog.
-Keep GPT-only and no Relay. Local packet commit only, without pushing.
+The owner deferred the study because cross-platform participants are unavailable.
+Read `A7_STUDY_DEFERRAL.md` and `NEXT_SESSION_PROMPT.md`. Retire A7-R1's dates and
+approval request. Do not recruit, contact, observe, collect or keep asking for
+setup choices. A7/G38 stays open and deferred; all G01-G41 remain open. Preserve
+completed work and the larger original program. No replacement unit is selected.
+Reopen only on explicit owner resumption with participants and fresh prerequisites.
+Keep GPT-only and no Relay. No push or external action.
 
 ## D0: restore browser control
 

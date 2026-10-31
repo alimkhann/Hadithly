@@ -1,13 +1,13 @@
-# Current next goal
+# Current state: A7 study deferred
 
-The local [A7 readiness packet](A7_OBSERVATION_READINESS.md) is committed for
-review. Read the [audit](A7_READINESS_AUDIT.md) and [exact current prompt](NEXT_SESSION_PROMPT.md).
-Stop at the owner design/choice decision; missing consent review, actual contact
-route, safe content/rights, approved builds/phones, private storage and current
-collection-off evidence prevent contact/observation approval. All G01-G41, A7,
-E actual Linear and final independent audit remain open. No observation clock
-started. Keep A5/incoming bytes and A2/B/C/D scope. Historical next-task text
-below cannot restart completed preparation or authorize external work.
+The owner deferred the study because cross-platform participants are unavailable
+in the proposed period. Read [the decision](A7_STUDY_DEFERRAL.md) and
+[continuation boundary](NEXT_SESSION_PROMPT.md). A7-R1's proposed dates and pending
+design request are superseded. No contact, collection or observation starts.
+A7/G38 and all G01-G41 remain open. No replacement unit has been selected.
+Preserve completed work and wait for the owner's next bounded original-program
+instruction or explicit study resumption. Historical next-task text below does
+not restart the deferred study.
 
 ## A4 evidence-intake checkpoint, October 30
 
