@@ -251,7 +251,7 @@ internal fun FirstReadingContent(phase: FirstReadingPhase, onRetry: () -> Unit, 
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(nativeText(if (result.origin == com.hadithly.app.core.data.FirstReadingOrigin.DAILY) "Today's hadith" else "A first reading"), style = MaterialTheme.typography.labelMedium, color = colors.textSecondary, modifier = Modifier.testTag("onboarding.readingOrigin"))
                         TextButton(onClick = { onOpen(item) }, modifier = Modifier.heightIn(min = 48.dp).testTag("onboarding.openReading")) { Text(item.referenceDisplay, style = MaterialTheme.typography.labelMedium, color = colors.textSecondary) }
-                        Text(item.authenticity.displayLabel, style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+                        Text(com.hadithly.app.core.preferences.authenticityText(item.authenticity.claimScope, item.authenticity.normalizedGrade, item.authenticity.sourceName), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
                     }
                     HadithReadingText(arabicText = item.arabicText,
                         translation = if (item.text.kind == FirstReadingTextKind.TRANSLATION) item.text.text else null,

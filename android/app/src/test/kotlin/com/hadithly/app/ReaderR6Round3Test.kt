@@ -324,6 +324,7 @@ class ReaderR6Round3Test {
             collectionName = "Sahih al-Bukhari",
             providerHadithId = "57",
             sourceName = "Sunnah.now",
+            hadithLabel = "Hadith", aiLabel = "AI translation",
         )
         assertEquals(
             "حَدَّثَنَا\n\nHe said:\n\n— Sahih al-Bukhari · Hadith 57 · Sunnah.now",

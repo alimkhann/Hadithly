@@ -86,7 +86,10 @@ for locale,values in locales.items():
             name=resource['name']
             row=f'    <string name="{name}" formatted="false">{raw}</string>'
             pattern=re.compile(r'^[ \t]*<string\b[^>]*name="'+name+r'"[^>]*>.*?</string>',re.M|re.S)
-            if pattern.search(text): text=pattern.sub(lambda _:row,text)
+            existing = pattern.search(text)
+            if existing:
+                if ET.fromstring(existing.group()).text != ET.fromstring(row).text:
+                    text=pattern.sub(lambda _:row,text)
             else: text=text.replace('</resources>',row+'\n</resources>')
             updates[path]=text
     for path,text in updates.items():

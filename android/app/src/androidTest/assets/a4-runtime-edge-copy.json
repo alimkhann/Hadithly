@@ -1,0 +1,52 @@
+{
+  "source": "docs/a4-runtime-edge-copy.json",
+  "native_review": "pending",
+  "locales": {
+    "en": [
+      "Hadith"
+    ],
+    "ar": [
+      "حديث"
+    ],
+    "ru": [
+      "Хадис"
+    ],
+    "kk": [
+      "Хадис"
+    ],
+    "ky": [
+      "Хадис"
+    ],
+    "uz": [
+      "Hadis"
+    ],
+    "tr": [
+      "Hadis"
+    ],
+    "id": [
+      "Hadis"
+    ],
+    "ur": [
+      "حدیث"
+    ],
+    "fr": [
+      "Hadith"
+    ],
+    "es-419": [
+      "Hadiz"
+    ],
+    "pt-BR": [
+      "Hadith"
+    ],
+    "sw": [
+      "Hadithi"
+    ],
+    "hi": [
+      "हदीस"
+    ],
+    "bn": [
+      "হাদিস"
+    ]
+  },
+  "labels": {}
+}

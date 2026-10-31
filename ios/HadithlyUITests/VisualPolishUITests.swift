@@ -148,6 +148,146 @@ final class VisualPolishUITests: XCTestCase {
         }
     }
 
+    func testEdgeCopyUsesSelectedLanguage() throws { try verifyEdgeCopy(large: false) }
+    func testEdgeCopyRemainsReadableAtLargeText() throws { try verifyEdgeCopy(large: true) }
+
+    private func verifyEdgeCopy(large: Bool) throws {
+        struct Copy: Decodable { let locales: [String: [String]] }
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let copy = try JSONDecoder().decode(Copy.self, from: Data(contentsOf: root.appendingPathComponent("docs/a4-runtime-edge-copy.json")))
+        let reuse = try JSONDecoder().decode(Copy.self, from: Data(contentsOf: root.appendingPathComponent("docs/a4-runtime-edge-reuse.json")))
+        for locale in large ? ["ar", "ur", "ru", "bn"] : ["en", "ar", "ru", "kk", "ky", "uz", "tr", "id", "ur", "fr", "es-419", "pt-BR", "sw", "hi", "bn"] {
+            let labels = try XCTUnwrap(reuse.locales[locale])
+            let hadith = try XCTUnwrap(copy.locales[locale]?.first)
+            let expected = [String(format: labels[0], locale: Locale(identifier: locale), "name%lld+%@person@example.test"), labels[1], "— Original %lld %@ اسم · " + hadith + " 57 · Source %@ %lld · " + labels[2]] + [4,5,6,7,8,9,10,11,12,13,3].map { labels[$0] }
+            let app = launchPolish("edge-copy-audit", locale: locale, large: large)
+            let notice = element("edgeAudit.notice", app)
+            XCTAssertTrue(notice.waitForExistence(timeout: 10))
+            for (index, text) in expected.enumerated() {
+                XCTAssertEqual(notice.label, text, "\(locale):\(index)")
+                XCTAssertTrue(notice.isHittable)
+                let viewport = app.scrollViews.firstMatch.frame
+                XCTAssertGreaterThanOrEqual(notice.frame.minY, viewport.minY)
+                XCTAssertLessThanOrEqual(notice.frame.maxY, viewport.maxY)
+                if [0,1,2].contains(index) { capture("edge-" + locale + (large ? "-large-" : "-") + String(index), app) }
+                if index < expected.count - 1 { app.buttons["edgeAudit.next"].tap() }
+            }
+            XCTAssertEqual(element("edgeAudit.opaque", app).label, "Original %lld %@ اسم")
+            XCTAssertEqual(element("edgeAudit.callbacks", app).label, "0")
+            app.buttons["edgeAudit.callback"].tap()
+            XCTAssertEqual(element("edgeAudit.callbacks", app).label, "1")
+            app.terminate()
+        }
+    }
+
+    func testFinalWrappersUseSelectedLanguage() throws { try verifyFinalWrappers(large: false) }
+    func testFinalWrappersRemainReadableAtLargeText() throws { try verifyFinalWrappers(large: true) }
+    private func verifyFinalWrappers(large: Bool) throws {
+        struct Copy: Decodable { let locales: [String: [String]] }
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let copy = try JSONDecoder().decode(Copy.self, from: Data(contentsOf: root.appendingPathComponent("docs/a4-final-wrapper-copy.json")))
+        let reuse = try JSONDecoder().decode(Copy.self, from: Data(contentsOf: root.appendingPathComponent("docs/a4-final-wrapper-reuse.json")))
+        for locale in large ? ["ar","ur","ru","bn"] : ["en","ar","ru","kk","ky","uz","tr","id","ur","fr","es-419","pt-BR","sw","hi","bn"] {
+            let values = try XCTUnwrap(copy.locales[locale]) + XCTUnwrap(reuse.locales[locale])
+            let app = launchPolish("final-wrapper-audit", locale: locale, large: large)
+            let step = large ? 1 : 3
+            XCTAssertTrue(element("finalAudit.notice.0", app).waitForExistence(timeout: 10))
+            for start in stride(from: 0, to: values.count, by: step) {
+                for i in start..<min(start + step, values.count) {
+                    let notice = element("finalAudit.notice." + String(i), app)
+                    let expected = values[i].contains("%@") ? String(format: values[i], locale: Locale(identifier: locale), "Original %lld %@ اسم") : values[i]
+                    XCTAssertEqual(notice.label, expected, "\(locale):\(i)")
+                    XCTAssertTrue(notice.isHittable)
+                    XCTAssertGreaterThanOrEqual(notice.frame.minY, app.scrollViews.firstMatch.frame.minY)
+                    XCTAssertLessThanOrEqual(notice.frame.maxY, app.scrollViews.firstMatch.frame.maxY)
+                }
+                if (large && [1,5,9,15].contains(start)) || (!large && start == 0) { capture("final-" + locale + (large ? "-large-" : "-") + String(start), app) }
+                if start + step < values.count { app.buttons["finalAudit.next"].tap() }
+            }
+            app.terminate()
+        }
+    }
+
+    func testChromeUsesSelectedLanguage() throws { try verifyChrome(large: false) }
+    func testChromeRemainsReadableAtLargeText() throws { try verifyChrome(large: true) }
+    private func verifyChrome(large: Bool) throws {
+        struct Copy: Decodable { let locales: [String: [String]] }
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let copy = try JSONDecoder().decode(Copy.self, from: Data(contentsOf: root.appendingPathComponent("docs/a4-final-wrapper-copy.json")))
+        let reuse = try JSONDecoder().decode(Copy.self, from: Data(contentsOf: root.appendingPathComponent("docs/a4-final-wrapper-reuse.json")))
+        for locale in large ? ["ar","ur","ru","bn"] : ["en","ar","ru","kk","ky","uz","tr","id","ur","fr","es-419","pt-BR","sw","hi","bn"] {
+            let values = try XCTUnwrap(copy.locales[locale])
+            let labels = try XCTUnwrap(reuse.locales[locale])
+            let app = launchPolish("chrome-copy-audit", locale: locale, large: large)
+            let menu = element("reader.menuStack", app)
+            XCTAssertTrue(menu.waitForExistence(timeout: 10))
+            let content = app.buttons["reader.menu.contents"]
+            let saved = app.buttons["reader.menu.saved"]
+            let settings = app.buttons["reader.menu.settings"]
+            for (i,button) in [content,saved,settings].enumerated() {
+                for _ in 0..<5 {
+                    let scroll = menu.scrollViews.firstMatch
+                    let viewport = scroll.exists ? scroll.frame : menu.frame
+                    if button.isHittable && button.frame.minY >= viewport.minY && button.frame.maxY <= viewport.maxY { break }
+                    let delta = button.frame.minY < viewport.minY ? viewport.minY - button.frame.minY : viewport.maxY - button.frame.maxY
+                    let drag = delta + (delta < 0 ? -16 : 16)
+                    let distance = max(-viewport.height * 0.4, min(viewport.height * 0.4, drag))
+                    let start = (scroll.exists ? scroll : menu).coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+                    start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: distance)), withVelocity: .slow, thenHoldForDuration: 0.2)
+                }
+                let scroll = menu.scrollViews.firstMatch
+                let viewport = scroll.exists ? scroll.frame : menu.frame
+                XCTAssertTrue(button.label.contains(labels[8+i]), locale)
+                XCTAssertTrue(button.label.contains(values[7+i]), locale)
+                XCTAssertTrue(button.isHittable)
+                XCTAssertGreaterThanOrEqual(button.frame.minY, viewport.minY)
+                XCTAssertLessThanOrEqual(button.frame.maxY, viewport.maxY)
+                capture("chrome-" + locale + (large ? "-large-" : "-") + String(i), app)
+            }
+            XCTAssertEqual(element("chromeAudit.callbacks", app).label, "0")
+            let bookmark = app.buttons["reader.menu.bookmark"]
+            for _ in 0..<5 { if bookmark.isHittable { break }; menu.swipeUp() }
+            XCTAssertEqual(bookmark.label, values[3]); bookmark.tap()
+            XCTAssertEqual(bookmark.label, values[4])
+            XCTAssertEqual(element("chromeAudit.callbacks", app).label, "1")
+            XCTAssertEqual(app.buttons["reader.close"].label, values[12])
+            let toggle = app.buttons["reader.menu"]
+            XCTAssertEqual(toggle.label, values[14]); toggle.tap()
+            XCTAssertEqual(toggle.label, values[13])
+            XCTAssertEqual(element("chromeAudit.callbacks", app).label, "2")
+            app.terminate()
+        }
+    }
+
+    func testAuthenticityCopyUsesSelectedLanguage() throws { try verifyAuthenticityCopy(large: false) }
+    func testAuthenticityCopyRemainsReadableAtLargeText() throws { try verifyAuthenticityCopy(large: true) }
+    private func verifyAuthenticityCopy(large: Bool) throws {
+        struct Copy: Decodable { let locales: [String: [String]] }
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let copy = try JSONDecoder().decode(Copy.self, from: Data(contentsOf: root.appendingPathComponent("docs/a4-authenticity-copy.json")))
+        let grades = try JSONDecoder().decode(Copy.self, from: Data(contentsOf: root.appendingPathComponent("docs/a4-final-wrapper-copy.json")))
+        for locale in large ? ["ar","ur","ru","bn"] : ["en","ar","ru","kk","ky","uz","tr","id","ur","fr","es-419","pt-BR","sw","hi","bn"] {
+            let templates = try XCTUnwrap(copy.locales[locale])
+            let labels = try XCTUnwrap(grades.locales[locale])
+            let app = launchPolish("authenticity-copy-audit", locale: locale, large: large)
+            let notice = element("authenticityAudit.notice", app)
+            XCTAssertTrue(notice.waitForExistence(timeout: 10))
+            for i in 0..<6 {
+                let template = templates[i == 0 || i == 3 ? 0 : i == 1 ? 1 : 2]
+                let expected = i == 0 || i == 1 || i == 3
+                    ? String(format: template, locale: Locale(identifier: locale), i == 3 ? "Custom" : labels[i == 0 ? 15 : 16], "Original %lld %@ اسم")
+                    : String(format: template, locale: Locale(identifier: locale), "Original %lld %@ اسم")
+                XCTAssertEqual(notice.label, expected, "\(locale):\(i)")
+                XCTAssertTrue(notice.isHittable)
+                XCTAssertLessThanOrEqual(notice.frame.maxY, app.scrollViews.firstMatch.frame.maxY)
+                XCTAssertGreaterThanOrEqual(notice.frame.minY, app.scrollViews.firstMatch.frame.minY)
+                if i < 3 { capture("authenticity-" + locale + (large ? "-large-" : "-") + String(i), app) }
+                if i < 5 { app.buttons["authenticityAudit.next"].tap() }
+            }
+            app.terminate()
+        }
+    }
+
     func testProfileNoticesUseSelectedLanguage() throws {
         try verifyProfileNotices(large: false)
     }

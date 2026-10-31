@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Exercise indexed-copy reuse in an isolated Git repository."""
 import json
+import hashlib
 from pathlib import Path
 import shutil
 import subprocess
@@ -20,15 +21,22 @@ class IndexedCopyTests(unittest.TestCase):
             entry={'comment':'Keep metadata','localizations':{locale:{'stringUnit':{'state':'new' if locale=='en' else 'needs_review','value':'Existing' if locale=='en' else locale+' value'}} for locale in LOCALES}}
             catalog=write('ios/Hadithly/Localizable.xcstrings',json.dumps({'strings':{'Existing':entry}},ensure_ascii=False,indent=2,separators=(',', ' : ')))
             before=catalog.read_bytes()
+            android_before={}
             for locale in LOCALES:
                 folder={'en':'values','es-419':'values-b+es+419','pt-BR':'values-pt-rBR','id':'values-in'}.get(locale,'values-'+locale)
-                write('android/app/src/main/res/'+folder+'/native.xml','<resources>\n</resources>\n')
+                name = 'native_' + hashlib.sha256(b'Existing').hexdigest()[:12]
+                note = '' if locale == 'en' else '    <!-- UI-polish locale entries are generated drafts; native review pending. -->\n'
+                value = entry['localizations'][locale]['stringUnit']['value']
+                raw = '<resources>\n    <string translatable="true" name="' + name + '">' + value + '</string>\n' + note + '</resources>\n'
+                xml = write('android/app/src/main/res/'+folder+'/native.xml',raw)
+                android_before[xml] = xml.read_bytes()
             write('android/app/src/main/kotlin/com/hadithly/app/core/preferences/NativeCopy.kt','when(source) {\n    else -> null\n}\n')
             write('copy.json',json.dumps({'keys':['Existing'],'locales':{locale:[entry['localizations'][locale]['stringUnit']['value']] for locale in LOCALES}}))
             script=write('scripts/generate-ui-polish-copy.py',SCRIPT.read_text())
             result=subprocess.run(['python3',str(script),'--source','copy.json'],cwd=root,capture_output=True,text=True)
             self.assertEqual(result.returncode,0,result.stderr)
             self.assertEqual(catalog.read_bytes(),before)
+            self.assertTrue(all(path.read_bytes() == raw for path, raw in android_before.items()))
 
     def test_reuse_preserves_working_catalog_updates_aliases_and_escapes_kotlin(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -1,5 +1,10 @@
 # A4 runtime localization
 
+Current October 31 status: the finite local checklist is complete. See
+[A4_REQUIREMENT_AUDIT.md](A4_REQUIREMENT_AUDIT.md) for final evidence and open
+acceptance gates. The final section below supersedes older inventory counts and
+next-task wording. Full A4 and exact-copy native review remain open.
+
 ## Saved handoff, October 31, historical
 
 Superseded by the Saved completion section below. Retained as historical evidence.
@@ -976,3 +981,62 @@ and reused drafts. Remaining local source paths are finite: email-code interpola
 Today/reader action labels, the Saved folder fallback, and clipboard attribution.
 Close those and perform the A4 requirement audit; do not begin A5. Every prior
 content/device/store/production gate, A2's wrap-up and B/C/D local completion stays.
+
+## Final runtime bindings and reader wrappers, October 31
+
+The finite source review expanded the lexical inventory with model-backed and
+variable-text consumers. Reproductions cover the Arabic folder fallback, Android
+email-code prompt and menu action, actual reader menu wrappers/root Settings, and
+the English authenticity notice on both platforms. Individual drafts were also
+verified through the controlled lookup matrices; those checks are not a claim that
+every draft had a separate before failure.
+
+Email interpolation, Today/reader menus and accessibility action names, the Saved
+folder fallback and clipboard attribution now use selected-locale copy. The folder
+helper preserves every non-nil name, including a user name equal to `All folders`.
+Clipboard formatting translates only Hadith and AI-translation labels; source,
+collection, ID and body values retain the existing inclusion rules and exact bytes.
+Fourteen indexed drafts are reused for these paths, with one new Hadith label.
+
+The final wrapper inventory covers root Settings headers/summary/account fallback,
+reader menus, chapter expansion, bookmark state and icon/grade semantic labels.
+Eighteen new drafts and nineteen indexed entries have controlled fifteen-locale
+coverage. The actual reader menu uses wrapping and bounded scrolling at large text.
+iOS allows the available width in accessibility sizes; normal menu width stays 280.
+Android retains its existing width fraction. Its action and accessibility labels
+share the same localized values and closures. Synthetic callback counters prove
+that presentation/locale changes invoke zero actions; explicit controls invoke the
+expected local callbacks. No account, Saved persistence or reader-landing operation
+is performed by these fixtures.
+
+The last model trace identified `authenticity.displayLabel` as app-owned English
+composition, rather than opaque source text. Three templates now use the UI locale
+in onboarding, Reader source details and Today source details. Known grade labels
+reuse the new grade drafts; arbitrary grade capitalization retains each platform's
+existing behavior. Hadith/collection/unknown scope decisions, nil-grade handling,
+source names and wire fields are unchanged. Six claim cases per locale cover
+scoped, unverified, unknown-grade, unknown-scope and missing-grade presentations.
+The source field deliberately contains `%lld`, `%@` and Arabic text. The old raw
+formatter remains outside product UI callers; Android core data is unchanged.
+
+Both platforms pass the edge, final-wrapper, actual-menu and authenticity matrices
+in all fifteen UI locales, plus ar/ur/ru/bn at Accessibility XXXL/fontScale 2.0.
+iOS ReaderR5 and locale fallback units pass; Android ReaderR5, R6 Round3 and locale
+fallback JVM tests pass. These are controlled presenters and selected components,
+not full authenticated/device/screen-reader or linguistic acceptance. Menu tests
+measure the complete visible card after scrolling. An early merged-semantics
+assertion and an iOS gesture that stopped at touch slop were corrected; rejected
+runs remain failures. Original captures and selected final scopes are recorded in
+`runtime-edges.json`, `reader-chrome.json` and `authenticity.json` under
+`verification/a4-localization`. The final iOS large-menu result is
+`chrome-large-wide.xcresult`; earlier captures do not substitute for it.
+
+The XML generator now preserves equal-text existing rows, including their metadata.
+A red/green temporary resource fixture proves that rule. The review ledger now
+covers every Android string/plural XML file and nested iOS plural draft units;
+a two-resource/nested-plural fixture reproduced the earlier omission. Eighteen
+script checks pass. Every review row remains pending with no assigned reviewer.
+The final source/resource, raw native and preservation readbacks are recorded in
+`final-local-audit.json` and `final-preservation.json`. See `A4_REQUIREMENT_AUDIT.md`
+for the requirement audit and unresolved acceptance gates. A5 has not started;
+its exact next goal is in `NEXT_SESSION_PROMPT.md`.

@@ -414,4 +414,31 @@
     <string name="native_8feb4f467a2d" formatted="false">Arifa hazijawekwa kwa toleo hili.</string>
     <string name="native_b4836106f489" formatted="false">Ondoa alamisho</string>
     <string name="native_5bc0aa08d678" formatted="false">Ondoa kwenye vipendwa</string>
+    <string name="native_7c0687eee9a4" formatted="false">Hadithi</string>
+    <string name="native_226fd0e51f77" formatted="false">Folda zote</string>
+    <string name="native_b5255f4dadf0" formatted="false">Ongeza alamisho</string>
+    <string name="native_85274c1bb397" formatted="false">Haina alamisho</string>
+    <string name="native_0c7230d914bf" formatted="false">Weka alamisho kwa %s</string>
+    <string name="native_d374d9f1feb4" formatted="false">Weka alamisho kwenye hadithi ya sasa</string>
+    <string name="native_644f142a1e34" formatted="false">Weka alamisho kwenye hadithi ya nafasi ya kusoma</string>
+    <string name="native_a93ab5779049" formatted="false">Ondoa alamisho la hadithi ya nafasi ya kusoma</string>
+    <string name="native_efb40625e113" formatted="false">Panua sura za %s</string>
+    <string name="native_5ef45beba417" formatted="false">Kunja sura za %s</string>
+    <string name="native_6ec2652bc24c" formatted="false">Juzuu na sura</string>
+    <string name="native_086fccaefc56" formatted="false">Masomo yako ya faragha yaliyohifadhiwa</string>
+    <string name="native_f2e27a5a504b" formatted="false">Fonti, mwonekano na maandishi</string>
+    <string name="native_ebf2023c7ca0" formatted="false">Ukurasa huu</string>
+    <string name="native_d8a1f2dac6b3" formatted="false">Hadithi ya nafasi ya kusoma</string>
+    <string name="native_99a9610178ce" formatted="false">Funga kisomaji</string>
+    <string name="native_2c1364b40d55" formatted="false">Funga menyu ya kisomaji</string>
+    <string name="native_92885473ab8f" formatted="false">Fungua menyu ya kisomaji</string>
+    <string name="native_25cc13987a9c" formatted="false">Sahih</string>
+    <string name="native_003925188bc7" formatted="false">Hasan</string>
+    <string name="native_18c060b336af" formatted="false">Dhaifu</string>
+    <string name="native_463816d07097" formatted="false">Kusoma</string>
+    <string name="native_dc20b3d5d2cd" formatted="false">Maktaba</string>
+    <string name="native_be91940b79f4" formatted="false">Msaada</string>
+    <string name="native_0a7d4ed72060" formatted="false">Hadithi %1$s · %2$s</string>
+    <string name="native_483c235d8e7c" formatted="false">Tathmini ya mkusanyiko: %1$s · %2$s</string>
+    <string name="native_70958858fdfc" formatted="false">Uhalisi haujathibitishwa · %s</string>
 </resources>

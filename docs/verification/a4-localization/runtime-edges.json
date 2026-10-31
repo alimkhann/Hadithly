@@ -1,0 +1,430 @@
+{
+  "date": "2026-10-31",
+  "scope": "Controlled local rendering and synthetic store/callback evidence only.",
+  "native_review": "pending",
+  "source": "docs/a4-runtime-edge-copy.json",
+  "locales": [
+    "en",
+    "ar",
+    "ru",
+    "kk",
+    "ky",
+    "uz",
+    "tr",
+    "id",
+    "ur",
+    "fr",
+    "es-419",
+    "pt-BR",
+    "sw",
+    "hi",
+    "bn"
+  ],
+  "copy_key_count": 1,
+  "ios": [
+    {
+      "bundle": "/tmp/hadithly-a4-finish-1031/edge-red.xcresult",
+      "result": "Failed",
+      "passedTests": 13,
+      "failedTests": 1,
+      "skippedTests": 0,
+      "startTime": 1793409155.741,
+      "finishTime": 1793409209.347
+    },
+    {
+      "bundle": "/tmp/hadithly-a4-finish-1031/edge-green.xcresult",
+      "result": "Passed",
+      "passedTests": 15,
+      "failedTests": 0,
+      "skippedTests": 0,
+      "startTime": 1793409390.242,
+      "finishTime": 1793409696.667
+    }
+  ],
+  "android": [
+    {
+      "file": "/tmp/hadithly-a4-finish-1031/edge-red-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "sha256": "4ca08fb7a1ca41a0a8533030c6abd012256cc4ab72b8d6c8a96649d51a8d0dea",
+      "cases": [
+        {
+          "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+          "name": "edgeMenuReproduction",
+          "result": "Failed"
+        },
+        {
+          "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+          "name": "edgeCopyReproduction",
+          "result": "Failed"
+        }
+      ]
+    },
+    {
+      "file": "/tmp/hadithly-a4-finish-1031/edge-green-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "sha256": "0a74833124a6a2cb189dd55f50acb1a2dc590cdcf12178115686d1dac8ffb3ed",
+      "cases": [
+        {
+          "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+          "name": "edgeCopyUsesSelectedLanguage",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+          "name": "edgeMenusUseSelectedLanguage",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+          "name": "edgeMenusRemainReadableAtLargeText",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+          "name": "edgeCopyRemainsReadableAtLargeText",
+          "result": "Passed"
+        }
+      ]
+    },
+    {
+      "file": "/tmp/hadithly-a4-finish-1031/edge-unit-android-reports/TEST-com.hadithly.app.LocaleFallbackTest.xml",
+      "sha256": "7412c721efc1b28d7cd2885d63315f402e3f28e80574e7622259feddb181ec89",
+      "cases": [
+        {
+          "class": "com.hadithly.app.LocaleFallbackTest",
+          "name": "resolve walks the chain",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.LocaleFallbackTest",
+          "name": "RTL metadata covers Arabic Urdu and Persian",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.LocaleFallbackTest",
+          "name": "canonicalize rejects malformed tags",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.LocaleFallbackTest",
+          "name": "canonicalizes BCP 47 casing and separators",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.LocaleFallbackTest",
+          "name": "pseudolocales resolve without crashing",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.LocaleFallbackTest",
+          "name": "fallback chains end at English",
+          "result": "Passed"
+        }
+      ]
+    },
+    {
+      "file": "/tmp/hadithly-a4-finish-1031/edge-unit-android-reports/TEST-com.hadithly.app.ReaderR5Test.xml",
+      "sha256": "374c3b3456d6b4d1309c9960e02f4689dadca0ce3b630fcc35fcc27b7bf2c44c",
+      "cases": [
+        {
+          "class": "com.hadithly.app.ReaderR5Test",
+          "name": "copy formatter mixes arabic, translation, and source line",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR5Test",
+          "name": "chapters decode from source-provided outlines",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR5Test",
+          "name": "copy formatter labels ai translations only",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR5Test",
+          "name": "url builder produces the canonical shape",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR5Test",
+          "name": "jump validation rejects malformed input",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR5Test",
+          "name": "chapter volumes reuse the canonical volume locator",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR5Test",
+          "name": "localized copy keeps opaque body and source fields",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR5Test",
+          "name": "copy formatter never includes the url",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR5Test",
+          "name": "missing chapters decode as empty for pre-R5 caches",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR5Test",
+          "name": "copy formatter supports arabic-only pages",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR5Test",
+          "name": "built urls round-trip through the inbound parser",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR5Test",
+          "name": "url builder rejects malformed slugs and ids",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR5Test",
+          "name": "jump validation accepts plain and dotted numbers",
+          "result": "Passed"
+        }
+      ]
+    },
+    {
+      "file": "/tmp/hadithly-a4-finish-1031/edge-unit-android-reports/TEST-com.hadithly.app.ReaderR6Round3Test.xml",
+      "sha256": "fc1d536249d6ac08327c68745eda5d34f5f12c0638205e07921db0ee58b4afde",
+      "cases": [
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "focused page fraction fills with page scroll",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "page pill fills with intra-page scroll only",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "copy source line renders the backend-owned source name",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "volume pill fills with the page fraction within the volume",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "dialog rows always render start positioned and cancel",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "present narratorAr decodes and leads arabic-only mode",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "adjacent volumes are bounded to immediate neighbors",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "placement targets page start and positioned hadith",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "missing narratorAr decodes tolerant and stays hidden",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "long hold release never confirms a tap",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "most recent progress wins the page fetch",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "manual page turns land on the header even after a cached revisit",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "haptic triggers map to native constants",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "confirmed tap needs minimal movement and short duration",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "executor is silent and bounded",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "arabic-only volumes use the localized name",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "narrator falls back to hidden when the mode line is absent",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "volume fraction is static over the outline",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "per-page pills match settled pills and never depend on settle",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "swipe drag never confirms a tap",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "volume header falls back through first chapter to outline title",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "volume header prefers the source first chapter title",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "entry plan is bounded to seven outlines plus one page",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "relative time labels cover the quiet rows",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "placement enum covers both choices",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "entry plan without progress fetches outlines only",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "captured header and footer are never hadith anchors",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "arabic-only chapters prefer the arabic title",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.ReaderR6Round3Test",
+          "name": "search hits decode with tolerant defaults",
+          "result": "Passed"
+        }
+      ]
+    }
+  ],
+  "capture_count": 155,
+  "selected_original_captures": 31,
+  "raw_evidence": "/tmp/hadithly-a4-finish-1031",
+  "log_hashes": {
+    "offline-audit.log": "3a761710eba4b4f7eef10c36f99f1b4d0b9c9717da19942fdf88f422cb3ba4b4",
+    "edge-red-android.log": "18d43d91aa7dccf2547a418497cac3d60c901cf0d4c173fd6aef3f275fdaec8d",
+    "offline-store-android.log": "8dd4e262bdd0623f92cf90f9889ae81e627644f53ab78651ac6ea8bfa2a95117",
+    "script-final-staging.log": "605d2d10735daa60610b4522a1735826c11f80d808ca98f4a80684a6c7bea637",
+    "offline-red-export.log": "36b1d035edd363c980aad775c78a56d62b612b44cd9b10360481d42d8035da83",
+    "edge-export.log": "84b7a079bb7d1167a4dd4d9ee838c7b8a40fd0c2e64d94bef85e30e00dc1cabf",
+    "edge-red-ios.log": "6f2109a1bc1624a33d25ca422ebc8c99ed524131bc3177885afd5a3aa3eee74f",
+    "xml-metadata-red.log": "1f1febe0db01bf3eac5a09ce9c1804b5c0cf341f01d91acb15588be1dd42ea2d",
+    "offline-red-android.log": "9b47c75c5f3d8c86804ec64a97388353c74bb0fa30b0a7072a9a09e3053db01d",
+    "chrome-large-verified-ios.log": "458a575bedea77a2e1b424991bd7db0c0fafc6f1cc446911d246e4c1e1ff540c",
+    "chrome-partial-export.log": "091cb262a787fb7c8e5a160d2399f372ff29dacada50efa6fa3f5780d0ad0f48",
+    "runtime-red-ios.log": "3d0f7c6e3be74578b1ea80165ece55bc31577676527ec3569e0cf1824b7c8d00",
+    "boundary-units-android.log": "edcd29b3b9700d1749c9fd5fd470b0060da08c1bf461887b415592b8e46e0fe7",
+    "boundary-final-android.log": "249e3a05d03dbce43802fbeddf37cc61d293f9609ec4d5988fd001a38df983a8",
+    "script-staging.log": "eae0a39ea6e39d81fcc185ad547f3f6190d63d2146b9bf40929839e1c4a7781c",
+    "chrome-red-ios.log": "d029feff810fbcf391859b505ec0d0decc66334fcec039c808e0bdf57e502db8",
+    "chrome-final-ios.log": "fa58998cc8892525f5ec6f7190e5b5f4bd244252e547d7a26f45a41c1d6f4582",
+    "script-final-copy.log": "80aec0646cfabbf8b3aa7167c7bd3ab70b0cc32bba3115320809e6217edfa61d",
+    "edge-red-export.log": "38e63efc0378e58550e257b332928e6a480c8cef30b8145b3ff4f9026efd0160",
+    "runtime-green-android.log": "77571feab4fb5edebedc89d3d58d8e1713f7b88e2c939eae466ecf4e1d7ac4b0",
+    "script-copy.log": "218ac3099f9f04d04c0bdb068330f6b8a23883bcbe2bed9e51501a03ebcdebe0",
+    "runtime-red-export.log": "f06304bfa1a6d1c2587f0670a6ac402cf5e427134ba743cb3d781d0faf958b89",
+    "edge-final-units-android.log": "5ed381f20d9b40585d3329e211ba5c0734c0663fc9736348bca77c0e5fed8bd2",
+    "chrome-green-ios.log": "cb98ae56ddd981b701e646866c9cefd7a66bef122ef98a48f1918266ade2a93e",
+    "chrome-large-passed-export.log": "d887523a93fbdb9aa7ec30c1f1ccac4559355d230b96c6bd71e501db7d181f0c",
+    "edge-green-android.log": "9f4d4d71d303bdb58b7d87d8f4951cbbd96d3272806e87918b2806edd9807de9",
+    "runtime-export.log": "ded623d953abed48787b0c6d7512627fec5790b77fcb0bd1cf55d1702c1d29cd",
+    "edge-units-android.log": "8c7e76b1af39f0d3934d15b027bc7c116fa72b2f81c97f487e23a2d4d1710b09",
+    "chrome-large-failed-export.log": "0c65be79c460d27bd25dcfd7a1efd7e80ffe9bbcac3e47899e83e1c6f891810a",
+    "chrome-first-export.log": "20902409ef1bfb0107350ae17ca0802a23ccfbb22f01443a6cc066a93998ce68",
+    "chrome-red-export.log": "dda72827d419e6fcc0e42d6520f5f7cfb233155424b68d9277f04fa0aa66301c",
+    "ledger-red.log": "2ab2b3a6890874d7fc5ae3686bbe8ec97a837921f9391e9ddc315fa43ab91cfb",
+    "offline-green-android.log": "661b80cbad53afe30aa502131c00f262cabf024798af7f463aa59bd2300e36fd",
+    "offline-final-android.log": "99e86345ad8c6b7151fd5e31f7346424091fb7d28899f22ef0c7b65b0d92bb51",
+    "offline-green-ios.log": "589ab041a949668bcbb49a9b5cf82ed049f7c35b87830d987740466179e07e74",
+    "runtime-red-android.log": "84402c43ce5bd37db060cf4077fee3ba1b0be5aac0dfca5e8f7cbd014b466beb",
+    "final-audit-initial.log": "5e13165abdbc4a08785e32a24b06aa78dd02b48e7d558e235d0a04315d3da4ee",
+    "chrome-large-passed-ios.log": "a82a613da9a0109b614b3791a03852c7ff8287c94aaf44a371c4e2a74c733fda",
+    "runtime-audit.log": "4583ae78fc211ac0008d5c903288b7b213c74e37b5559f7220cf99983fdc9550",
+    "chrome-menu-final-android.log": "e770e32e5863a2c956f0cff1173c46bb88615295b804c1c1c01e899a34856567",
+    "offline-large-diagnostic.log": "7ac161a1292c08f578a6839fbff9fefb26cc018768268916475cc10360870c75",
+    "chrome-layout-screenshot.log": "3bfd782ceddfa7f7f0922740a168308d5934b67c9a2761ad4913173ce28718e3",
+    "offline-export.log": "98c4e186954a8289e0402e7e4a290573b0c017971b3c96ceafdc0fa46b31f356",
+    "chrome-final-android.log": "4924fe61124d4d0ce43222db4094948c0e13e70fabbc7fcec203b53f8083dd35",
+    "xml-metadata-green.log": "ee418d127985fd3640da88bc44520263be50a70739afc1825322c861da577715",
+    "chrome-green-android.log": "dc443d2032d8f7f2424fdb941ef04b92fae82d474ceb23d69b4b7d1b1abfef3f",
+    "offline-large-final.log": "5f63f58debb610aec2e0b3a9217b276c7382a201a37ea271c57a15778af94d05",
+    "runtime-green-ios.log": "4d99208d491730de23a2ae97e219a1f840977c6f5ba73bd8e0b27d9e5fa4159c",
+    "final-structural.log": "80beedd54267b9d14c6c96865aa7b7ab22fa5d77419df18194ed04a500c52468",
+    "runtime-final-ios.log": "04877683456a1dbd3d54a6bf8aa362fbd2883bd01db28881f7b257ead4aeadd8",
+    "script-audit.log": "8d792d81c28f14e81434cb2a175feb8a800363e60faf05e9aa008104cb37a9c2",
+    "edge-green-ios.log": "7cf30fd04fcff925daf52141c5edd4e9dee61e7dfe99e6c03eea1be0435f7a70",
+    "boundary-units-ios.log": "a49a6e5dd933d98e6c2ce6768313cee291814b33447f166f402759f5bf340d67",
+    "chrome-red-android.log": "71b56d7a79d1fc4bb791cd4e3b598a68b30f1d07bc7c09bd51962897b15bd61c",
+    "chrome-large-final-ios.log": "f0cff0ef949a067db8fc35f059ae0ee948ea98e11e9b6795c15038a2da6d6d65",
+    "ledger-green.log": "21b2edaafb65a0502fab9b56b42580528e39a225900a579715d35a6e05729506",
+    "root-red-android.log": "fc3a0b56a30d166028b391425ae3b013f15728445b9f0fe4aea7a67b9c7d3f2a",
+    "emulator-restart.log": "088df94ee93c13f16d98df30e9c395b76c07747a9723a588a2d887eabd64eeda",
+    "script-final-audit.log": "eb55bdeb232a5345b812b14974fa3803a4265c20b50cb28f1fb75acf884da36e",
+    "offline-red-ios.log": "2fef838855d84a3fadc1c29be7b19fa84c6e6b8661b050fb57c1565cfdfedb93",
+    "edge-audit.log": "61c8cd8c9d6291c6e7d4597dd20e6407c26e00551605d909767624f2109ec8f3"
+  },
+  "device_limits": {
+    "ios": "D47D7363-4705-4767-8617-F47DDB6A3241, iOS 27 simulator, LA2Verification debug, light; Accessibility XXXL ar/ur/ru/bn",
+    "android": "Guarded emulator-5554, Android 16 debug, light; controlled fontScale 2.0 ar/ur/ru/bn"
+  },
+  "open_gates": [
+    "Exact-copy native-speaker approval",
+    "Full accessibility and actual authenticated/physical-device journeys",
+    "A1/A3",
+    "A5-A7/readiness",
+    "E and final original-objective audit",
+    "Existing content, store/purchase, actual annual billing total, production, backup/recovery, publication and LA4 gates"
+  ],
+  "presentations": {
+    "normal": "Fourteen edge presentations per locale; Android actual menu and TalkBack action labels cover saved and unsaved states.",
+    "large": "Same presenters in ar/ur/ru/bn at Accessibility XXXL/fontScale 2.0.",
+    "data_and_callback_safeguards": "Opaque email/folder/body/source strings retained; zero presentation callbacks, explicit local actions only. Copy inclusion rules retain R5/R6 unit coverage."
+  },
+  "reuse_source": "docs/a4-runtime-edge-reuse.json"
+}

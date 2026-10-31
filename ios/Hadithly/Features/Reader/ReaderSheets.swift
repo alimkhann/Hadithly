@@ -650,6 +650,7 @@ struct ReaderSearchSheet: View {
 /// destination. Full folders and filters stay H3 in the Saved tab — this
 /// sheet never duplicates them.
 struct ReaderSavedShortcutSheet: View {
+    @Environment(\.locale) private var locale
     typealias Tab = SavedContentFilter
     let onOpen: (HadithRef) -> Void
     let onEdit: () -> Void
@@ -764,7 +765,7 @@ struct ReaderSavedShortcutSheet: View {
                 }
             }
         } label: {
-            Label(library.folders.first(where: { $0.id == folderId })?.name ?? String(localized: "All folders"), systemImage: "folder")
+            Label(savedFolderFilterTitle(library.folders.first(where: { $0.id == folderId })?.name, locale: locale), systemImage: "folder")
                 .font(.subheadline).frame(minHeight: 44)
         }
         .tint(palette.textSecondary)

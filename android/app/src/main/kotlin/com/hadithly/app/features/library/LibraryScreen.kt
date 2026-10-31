@@ -74,6 +74,7 @@ fun LibraryScreen(onOpenCollection: (String, String) -> Unit, onOpenTarget: (com
         }
     }
 
+    val layoutToggleLabel = nativeText(if (grid) "Show Library list" else "Show Library grid")
     Column(Modifier.fillMaxSize().background(colors.background)) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -83,7 +84,7 @@ fun LibraryScreen(onOpenCollection: (String, String) -> Unit, onOpenTarget: (com
             IconButton(
                 onClick = { grid = !grid },
                 modifier = Modifier.testTag("library.layoutToggle").semantics {
-                    contentDescription = if (grid) "Show Library list" else "Show Library grid"
+                    contentDescription = layoutToggleLabel
                 },
             ) {
                 Icon(if (grid) Icons.AutoMirrored.Filled.ViewList else Icons.Filled.GridView, null, tint = colors.textPrimary)            }

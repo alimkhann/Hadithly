@@ -62,13 +62,29 @@ final class ReaderR5Tests: XCTestCase {
         )
     }
 
+    func testLocalizedCopyKeepsOpaqueBodyAndFolderNames() {
+        let opaque = "Original %lld %@ اسم"
+        for tag in ["en","ar","ru","kk","ky","uz","tr","id","ur","fr","es-419","pt-BR","sw","hi","bn"] {
+            let locale = Locale(identifier: tag)
+            let copied = ReaderShare.copyText(for: hadith(), arabicVisible: true, translationVisible: true, translationText: opaque, translationIsAI: true, locale: locale)
+            XCTAssertTrue(copied.hasPrefix("نَصّ الحديث\n\n" + opaque + "\n\n"), tag)
+            XCTAssertTrue(copied.contains("Sahih al-Bukhari")); XCTAssertTrue(copied.contains("Sunnah.now"))
+            XCTAssertEqual(savedFolderFilterTitle(opaque, locale: locale), opaque)
+            XCTAssertEqual(savedFolderFilterTitle("All folders", locale: locale), "All folders")
+            XCTAssertEqual(savedFolderFilterTitle(nil, locale: locale), AppLocalization.string("All folders", locale: locale))
+            let line = CopyAttribution.line(collection: opaque, id: "4.5", source: opaque, isAI: false, locale: locale)
+            XCTAssertTrue(line.contains(opaque)); XCTAssertTrue(line.contains("4.5"))
+        }
+    }
+
     func testCopyArabicOnly() {
         let text = ReaderShare.copyText(
             for: hadith(),
             arabicVisible: true,
             translationVisible: false,
             translationText: nil,
-            translationIsAI: false
+            translationIsAI: false,
+            locale: Locale(identifier: "en")
         )
         XCTAssertEqual(text, "نَصّ الحديث\n\n— Sahih al-Bukhari · Hadith 57 · Sunnah.now")
     }
@@ -79,7 +95,8 @@ final class ReaderR5Tests: XCTestCase {
             arabicVisible: true,
             translationVisible: true,
             translationText: "Deeds are by intentions.",
-            translationIsAI: false
+            translationIsAI: false,
+            locale: Locale(identifier: "en")
         )
         XCTAssertEqual(
             text,
@@ -93,7 +110,8 @@ final class ReaderR5Tests: XCTestCase {
             arabicVisible: true,
             translationVisible: true,
             translationText: "Taten richten sich nach Absichten.",
-            translationIsAI: true
+            translationIsAI: true,
+            locale: Locale(identifier: "en")
         )
         XCTAssertTrue(ai.hasSuffix("· AI translation"), ai)
 
@@ -102,7 +120,8 @@ final class ReaderR5Tests: XCTestCase {
             arabicVisible: true,
             translationVisible: true,
             translationText: "Deeds are by intentions.",
-            translationIsAI: false
+            translationIsAI: false,
+            locale: Locale(identifier: "en")
         )
         XCTAssertFalse(provider.contains("AI translation"), provider)
     }
@@ -113,7 +132,8 @@ final class ReaderR5Tests: XCTestCase {
             arabicVisible: true,
             translationVisible: true,
             translationText: "Deeds are by intentions.",
-            translationIsAI: false
+            translationIsAI: false,
+            locale: Locale(identifier: "en")
         )
         XCTAssertFalse(text.contains("hadithly.app"))
         XCTAssertFalse(text.contains("https://"))
@@ -125,7 +145,8 @@ final class ReaderR5Tests: XCTestCase {
             arabicVisible: false,
             translationVisible: true,
             translationText: "Deeds are by intentions.",
-            translationIsAI: false
+            translationIsAI: false,
+            locale: Locale(identifier: "en")
         )
         XCTAssertEqual(text, "Deeds are by intentions.\n\n— Sahih al-Bukhari · Hadith 57 · Sunnah.now")
     }

@@ -15,6 +15,9 @@ parser.add_argument('--source', required=True)
 parser.add_argument('--ios', action='append', default=[], help='Completed xcresult bundle')
 parser.add_argument('--android', action='append', default=[], help='Preserved result XML directory')
 parser.add_argument('--capture-prefix', required=True)
+parser.add_argument('--extra-capture-prefix', action='append', default=[])
+parser.add_argument('--ios-capture-dir', action='append', default=[])
+parser.add_argument('--exclude-ios-test', action='append', default=[], help='Directory name|test method for a rejected capture scope')
 args = parser.parse_args()
 output = Path('docs/verification/a4-localization')
 captures = output / args.unit
@@ -33,25 +36,41 @@ for directory in args.android:
              'result': 'Failed' if c.find('failure') is not None or c.find('error') is not None else 'Skipped' if c.find('skipped') is not None else 'Passed'}
             for c in root.iter('testcase')]})
 manifest = []
+prefixes = [args.capture_prefix] + args.extra_capture_prefix
+seen = {}
 selected = {'en-1', 'ar-1', 'ur-1', 'ar-large-1', 'ur-large-1', 'ru-large-1', 'bn-large-1', 'bn-large-18', 'ar-large-18'}
 if args.capture_prefix == 'runtime':
     selected.update({'en-0', 'ar-21', 'ar-large-12', 'ur-large-28', 'ru-large-6', 'bn-large-23', 'ar-large-67'})
-for directory in sorted(args.work_dir.glob(args.capture_prefix + '*ios-captures')):
+directories = [Path(path) for path in args.ios_capture_dir] if args.ios_capture_dir else sorted(args.work_dir.glob(args.capture_prefix + '*ios-captures'))
+if 'edge' in prefixes:
+    selected.update({'en-2', 'ar-2', 'ar-large-0', 'ar-large-2', 'ur-large-2', 'bn-large-2', 'menu-ar-large-false', 'menu-ur-large-true'})
+if 'authenticity' in prefixes:
+    selected.update({'en-0', 'ar-0', 'ar-2', 'ar-large-2', 'ur-large-2', 'ru-large-1', 'bn-large-0'})
+if 'final' in prefixes:
+    selected.update({'en-0', 'ar-0', 'ar-large-9', 'ur-large-5', 'ru-large-15', 'bn-large-1'})
+for directory in directories:
     source_manifest = directory / 'manifest.json'
     if not source_manifest.exists(): continue
     for block in json.loads(source_manifest.read_text()):
+        if any(directory.name == value.split('|', 1)[0] and value.split('|', 1)[1] in str(block) for value in args.exclude_ios_test): continue
         for attachment in block['attachments']:
             name = attachment['suggestedHumanReadableName'].split('_0_')[0]
-            if not name.startswith(args.capture_prefix): continue
+            if not any(name.startswith(prefix + '-') for prefix in prefixes): continue
             path = directory / attachment['exportedFileName']
             target = captures / ('ios-' + name + '.png')
-            keep = 'before' in name or name.removeprefix(args.capture_prefix + '-') in selected
-            if keep: shutil.copy(path, target)
+            suffix = next(name.removeprefix(prefix + '-') for prefix in prefixes if name.startswith(prefix + '-'))
+            keep = 'before' in name or suffix in selected
+            if keep:
+                assert target not in seen or seen[target] == sha(path), 'Conflicting capture: ' + str(target)
+                seen[target] = sha(path)
+                shutil.copy(path, target)
             manifest.append({'platform': 'ios', 'name': name, 'original': str(path), 'sha256': sha(path), 'committed': str(target) if keep else None})
-for path in sorted((args.work_dir / 'android-captures').glob('finishing-' + args.capture_prefix + '*.png')):
+for path in sorted((args.work_dir / 'android-captures').glob('finishing-*.png')):
+    if not any(path.stem.startswith('finishing-' + prefix + '-') for prefix in prefixes): continue
     name = path.stem.removeprefix('finishing-')
     target = captures / ('android-' + name + '.png')
-    keep = 'before' in name or name.removeprefix(args.capture_prefix + '-') in selected
+    suffix = next(name.removeprefix(prefix + '-') for prefix in prefixes if name.startswith(prefix + '-'))
+    keep = 'before' in name or suffix in selected
     if keep: shutil.copy(path, target)
     manifest.append({'platform': 'android', 'name': name, 'original': str(path), 'sha256': sha(path), 'committed': str(target) if keep else None})
 (captures / 'capture-manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n')

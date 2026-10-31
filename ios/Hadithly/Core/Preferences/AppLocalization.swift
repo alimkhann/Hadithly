@@ -13,6 +13,14 @@ enum AppLocalization {
         return String(format: key, locale: locale, arguments: arguments)
     }
 
+    static func authenticity(scope: String, grade: String?, sourceName: String, locale: Locale) -> String {
+        guard (scope == "hadith" || scope == "collection"), let grade else {
+            return format("Authenticity not verified · %@", locale: locale, sourceName)
+        }
+        let label = ["sahih", "hasan", "daif"].contains(grade) ? string(grade.capitalized, locale: locale) : grade.capitalized
+        return format(scope == "hadith" ? "%1$@ hadith · %2$@" : "%1$@ collection scope · %2$@", locale: locale, label, sourceName)
+    }
+
     static func string(_ key: String, locale: Locale) -> String {
         for code in LocaleFallback.fallbackChain(for: locale.identifier) {
             guard let path = Bundle.main.path(forResource: code, ofType: "lproj"),
@@ -162,6 +170,66 @@ struct RuntimeNoticeCopyAuditFixture: View {
                 Text(String(callbacks)).accessibilityIdentifier("runtimeAudit.callbacks")
             }.padding(24)
         }
+    }
+}
+#endif
+
+#if DEBUG
+struct EdgeCopyAuditFixture: View {
+    @Environment(\.locale) private var locale
+    @State private var index = 0
+    @State private var callbacks = 0
+    let opaque = "Original %lld %@ اسم"
+    var body: some View {
+        ScrollView { VStack(alignment: .leading, spacing: 16) {
+            Text(opaque).accessibilityIdentifier("edgeAudit.opaque")
+            Group {
+                switch index {
+                case 0: Text("Enter the code we sent to \("name%lld+%@person@example.test").")
+                case 1: Text(savedFolderFilterTitle(nil, locale: locale))
+                case 2: Text(CopyAttribution.line(collection: opaque, id: "57", source: "Source %@ %lld", isAI: true, locale: locale))
+                default: Text(LocalizedStringKey(["Add bookmark", "Remove bookmark", "Add to favorites", "Remove favorite", "Add note", "Edit note", "Copy", "Share", "Suggest a translation", "Report translation", "Open in reader"][index - 3]))
+                }
+            }.accessibilityIdentifier("edgeAudit.notice")
+            Button("Next fixture notice") { index = (index + 1) % 14 }.accessibilityIdentifier("edgeAudit.next")
+            Button("Local callback") { callbacks += 1 }.accessibilityIdentifier("edgeAudit.callback")
+            Text(String(callbacks)).accessibilityIdentifier("edgeAudit.callbacks")
+        }.padding(24) }
+    }
+}
+#endif
+
+#if DEBUG
+struct FinalWrapperCopyAuditFixture: View {
+    @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var textSize
+    @State private var index = 0
+    private let keys: [String] = ["Not bookmarked", "Bookmark %@", "Bookmark current hadith", "Bookmark positioned hadith", "Remove bookmark for positioned hadith", "Expand chapters in %@", "Collapse chapters in %@", "Volumes and chapters", "Your private saved reading", "Type, appearance, and text", "This page", "Positioned hadith", "Close reader", "Close reader menu", "Open reader menu", "Sahih", "Hasan", "Daif", "Reading", "Library", "Support", "Account", "Saved items could not load", "Free", "Pro trial", "Off", "Contents", "Bookmarks & Notes", "Settings", "Search", "Back", "Show Library list", "Show Library grid", "Bookmarked", "Favorited", "Has note", "Unverified"]
+    private var step: Int { textSize.isAccessibilitySize ? 1 : 3 }
+    var body: some View {
+        ScrollView { VStack(alignment: .leading, spacing: 16) {
+            ForEach(index..<min(index + step, keys.count), id: \.self) { item in
+                Text(keys[item].contains("%@") ? AppLocalization.format(keys[item], locale: locale, "Original %lld %@ اسم") : AppLocalization.string(keys[item], locale: locale))
+                    .accessibilityIdentifier("finalAudit.notice." + String(item))
+            }
+            Button("Next fixture notice") { index = (index + step) % keys.count }.accessibilityIdentifier("finalAudit.next")
+        }.padding(24) }
+    }
+}
+#endif
+
+#if DEBUG
+struct AuthenticityCopyAuditFixture: View {
+    @Environment(\.locale) private var locale
+    @State private var index = 0
+    private let grades: [String?] = ["sahih", "hasan", nil, "custom", "sahih", nil]
+    private let scopes = ["hadith", "collection", "unknown", "hadith", "unknown", "hadith"]
+    var body: some View {
+        ScrollView { VStack(alignment: .leading, spacing: 20) {
+            Text(AppLocalization.authenticity(scope: scopes[index], grade: grades[index], sourceName: "Original %lld %@ اسم", locale: locale))
+                .accessibilityIdentifier("authenticityAudit.notice")
+            Button("Next fixture notice") { index = (index + 1) % scopes.count }.accessibilityIdentifier("authenticityAudit.next")
+        }.padding(24) }
     }
 }
 #endif

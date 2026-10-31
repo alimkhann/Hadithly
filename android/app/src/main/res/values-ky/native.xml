@@ -414,4 +414,31 @@
     <string name="native_8feb4f467a2d" formatted="false">Бул түзүмдө эскертмелер жөндөлгөн эмес.</string>
     <string name="native_b4836106f489" formatted="false">Кыстарманы алып салуу</string>
     <string name="native_5bc0aa08d678" formatted="false">Тандалмалардан алып салуу</string>
+    <string name="native_7c0687eee9a4" formatted="false">Хадис</string>
+    <string name="native_226fd0e51f77" formatted="false">Бардык папкалар</string>
+    <string name="native_b5255f4dadf0" formatted="false">Кыстарма кошуу</string>
+    <string name="native_85274c1bb397" formatted="false">Кыстарма коюлган эмес</string>
+    <string name="native_0c7230d914bf" formatted="false">%s үчүн кыстарма коюу</string>
+    <string name="native_d374d9f1feb4" formatted="false">Учурдагы хадиске кыстарма коюу</string>
+    <string name="native_644f142a1e34" formatted="false">Окуу ордундагы хадиске кыстарма коюу</string>
+    <string name="native_a93ab5779049" formatted="false">Окуу ордундагы хадистин кыстармасын алып салуу</string>
+    <string name="native_efb40625e113" formatted="false">%s бөлүмдөрүн ачуу</string>
+    <string name="native_5ef45beba417" formatted="false">%s бөлүмдөрүн жыйноо</string>
+    <string name="native_6ec2652bc24c" formatted="false">Томдор жана бөлүмдөр</string>
+    <string name="native_086fccaefc56" formatted="false">Өзүңүз сактаган окуулар</string>
+    <string name="native_f2e27a5a504b" formatted="false">Арип, көрүнүш жана текст</string>
+    <string name="native_ebf2023c7ca0" formatted="false">Бул бет</string>
+    <string name="native_d8a1f2dac6b3" formatted="false">Окуу ордундагы хадис</string>
+    <string name="native_99a9610178ce" formatted="false">Окууну жабуу</string>
+    <string name="native_2c1364b40d55" formatted="false">Окуу менюсун жабуу</string>
+    <string name="native_92885473ab8f" formatted="false">Окуу менюсун ачуу</string>
+    <string name="native_25cc13987a9c" formatted="false">Сахих</string>
+    <string name="native_003925188bc7" formatted="false">Хасан</string>
+    <string name="native_18c060b336af" formatted="false">Даиф</string>
+    <string name="native_463816d07097" formatted="false">Окуу</string>
+    <string name="native_dc20b3d5d2cd" formatted="false">Китепкана</string>
+    <string name="native_be91940b79f4" formatted="false">Колдоо</string>
+    <string name="native_0a7d4ed72060" formatted="false">%1$s хадис · %2$s</string>
+    <string name="native_483c235d8e7c" formatted="false">Жыйнак деңгээлиндеги баа: %1$s · %2$s</string>
+    <string name="native_70958858fdfc" formatted="false">Ишенимдүүлүгү текшерилген эмес · %s</string>
 </resources>

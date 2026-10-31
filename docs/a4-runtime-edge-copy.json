@@ -1,0 +1,55 @@
+{
+  "native_review": "pending",
+  "provenance": "Local GPT-family draft for the existing clipboard hadith label. Opaque source/body values remain untouched.",
+  "android_test_fixture_asset": "a4-runtime-edge-copy.json",
+  "keys": [
+    "Hadith"
+  ],
+  "locales": {
+    "en": [
+      "Hadith"
+    ],
+    "ar": [
+      "حديث"
+    ],
+    "ru": [
+      "Хадис"
+    ],
+    "kk": [
+      "Хадис"
+    ],
+    "ky": [
+      "Хадис"
+    ],
+    "uz": [
+      "Hadis"
+    ],
+    "tr": [
+      "Hadis"
+    ],
+    "id": [
+      "Hadis"
+    ],
+    "ur": [
+      "حدیث"
+    ],
+    "fr": [
+      "Hadith"
+    ],
+    "es-419": [
+      "Hadiz"
+    ],
+    "pt-BR": [
+      "Hadith"
+    ],
+    "sw": [
+      "Hadithi"
+    ],
+    "hi": [
+      "हदीस"
+    ],
+    "bn": [
+      "হাদিস"
+    ]
+  }
+}

@@ -19,6 +19,13 @@ import org.junit.Test
  * with pre-R5 back-compat, and jump-to-reference validation.
  */
 class ReaderR5Test {
+    @Test fun `localized copy keeps opaque body and source fields`() {
+        val opaque = "Original %lld %@ اسم"
+        val copied = ReaderShare.formatCopyText("نَصّ الحديث", opaque, true, opaque, "4.5", opaque, "حديث", "ترجمة آلية")
+        assertTrue(copied.startsWith("نَصّ الحديث\n\n$opaque\n\n"))
+        assertTrue(copied.contains("— $opaque · حديث 4.5 · $opaque · ترجمة آلية"))
+    }
+
 
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -74,6 +81,7 @@ class ReaderR5Test {
             collectionName = "Sahih al-Bukhari",
             providerHadithId = "57",
             sourceName = "Sunnah.now",
+            hadithLabel = "Hadith", aiLabel = "AI translation",
         )
         assertEquals(
             "حَدَّثَنَا\n\nHe said:\n\n— Sahih al-Bukhari · Hadith 57 · Sunnah.now",
@@ -90,6 +98,7 @@ class ReaderR5Test {
             collectionName = "Sahih al-Bukhari",
             providerHadithId = "57",
             sourceName = "Sunnah.now",
+            hadithLabel = "Hadith", aiLabel = "AI translation",
         )
         assertEquals("حَدَّثَنَا\n\n— Sahih al-Bukhari · Hadith 57 · Sunnah.now", text)
     }
@@ -103,6 +112,7 @@ class ReaderR5Test {
             collectionName = "Sahih al-Bukhari",
             providerHadithId = "57",
             sourceName = "Sunnah.now",
+            hadithLabel = "Hadith", aiLabel = "AI translation",
         )
         assertTrue(ai.endsWith("· AI translation"))
         val providerEnglish = ReaderShare.formatCopyText(
@@ -112,6 +122,7 @@ class ReaderR5Test {
             collectionName = "Sahih al-Bukhari",
             providerHadithId = "57",
             sourceName = "Sunnah.now",
+            hadithLabel = "Hadith", aiLabel = "AI translation",
         )
         assertFalse(providerEnglish.contains("AI translation"))
     }
@@ -125,6 +136,7 @@ class ReaderR5Test {
             collectionName = "Sahih al-Bukhari",
             providerHadithId = "57",
             sourceName = "Sunnah.now",
+            hadithLabel = "Hadith", aiLabel = "AI translation",
         )
         assertFalse(text.contains("https://"))
         assertFalse(text.contains("hadithly.app"))

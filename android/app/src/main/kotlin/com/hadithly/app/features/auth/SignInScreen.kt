@@ -492,7 +492,7 @@ private fun CodeEntryScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(modifier = Modifier.height(Spacing.xl))
-        AuthHeader(title = "Check your email", subtitle = "Enter the code we sent to ${state.email}.")
+        AuthHeader(title = "Check your email", subtitle = authEmailCodePrompt(state.email))
 
         Spacer(modifier = Modifier.height(Spacing.xl))
 
@@ -775,3 +775,6 @@ internal fun AuthErrorBanner(message: String, modifier: Modifier = Modifier) {
             .padding(vertical = 10.dp, horizontal = 12.dp),
     )
 }
+
+@Composable
+internal fun authEmailCodePrompt(email: String): String = nativeText("Enter the code we sent to %@.", email)

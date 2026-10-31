@@ -301,8 +301,7 @@ struct TodayView: View {
         var parts: [String] = []
         if preferences.arabicVisible { parts.append(hadith.arabicText) }
         if preferences.translationVisible, let text = hadith.translation?.text, !text.isEmpty { parts.append(text) }
-        var source = "— \(hadith.collectionName) · Hadith \(hadith.providerHadithId) · \(hadith.authenticity.sourceName)"
-        if preferences.translationVisible, hadith.translation?.isAI == true { source += " · AI translation" }
+        let source = CopyAttribution.line(collection: hadith.collectionName, id: hadith.providerHadithId, source: hadith.authenticity.sourceName, isAI: preferences.translationVisible && hadith.translation?.isAI == true, locale: locale)
         UIPasteboard.general.string = parts.isEmpty ? source : parts.joined(separator: "\n\n") + "\n\n\(source)"
     }
     private func loadDailyHadith() async {
@@ -402,9 +401,9 @@ private struct DailyHadithCard: View {
                 Button("Cancel", role: .cancel) {}
             }
             .accessibilityElement(children: .contain).accessibilityAction(named: "Open in reader") { onOpen() }
-            .accessibilityAction(named: isBookmarked ? "Remove bookmark" : "Bookmark") { requestBookmark() }
-            .accessibilityAction(named: isFavorited ? "Remove favorite" : "Add to favorites") { requestFavorite() }
-            .accessibilityAction(named: hasNote ? "Edit note" : "Add note") { onNote() }
+            .accessibilityAction(named: Text(LocalizedStringKey(isBookmarked ? "Remove bookmark" : "Add bookmark"))) { requestBookmark() }
+            .accessibilityAction(named: Text(LocalizedStringKey(isFavorited ? "Remove favorite" : "Add to favorites"))) { requestFavorite() }
+            .accessibilityAction(named: Text(LocalizedStringKey(hasNote ? "Edit note" : "Add note"))) { onNote() }
             .accessibilityAction(named: "Copy") { onCopy() }
     }
     private var readingUnit: some View {
@@ -437,7 +436,7 @@ private struct DailyHadithCard: View {
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
     @ViewBuilder private var menuContents: some View {
-        Button(action: requestBookmark) { Label(LocalizedStringKey(isBookmarked ? "Remove bookmark" : "Bookmark"), systemImage: isBookmarked ? "bookmark.fill" : "bookmark") }
+        Button(action: requestBookmark) { Label(LocalizedStringKey(isBookmarked ? "Remove bookmark" : "Add bookmark"), systemImage: isBookmarked ? "bookmark.fill" : "bookmark") }
         Button(action: requestFavorite) { Label(LocalizedStringKey(isFavorited ? "Remove favorite" : "Add to favorites"), systemImage: isFavorited ? "heart.fill" : "heart") }
         Button(action: onNote) { Label(LocalizedStringKey(hasNote ? "Edit note" : "Add note"), systemImage: "square.and.pencil") }
         Button(action: onCopy) { Label("Copy", systemImage: "doc.on.doc") }

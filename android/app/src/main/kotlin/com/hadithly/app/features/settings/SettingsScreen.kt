@@ -175,7 +175,7 @@ private fun SettingsRoot(onOpen: (SettingsDestination) -> Unit, onShowSignIn: ()
     var subscriptionTier by remember(signedIn) { mutableStateOf<String?>(null) }
     val notificationsOn by app.settings.dailyNotificationEnabled.collectAsStateWithLifecycle()
     val notificationTime by app.settings.dailyNotificationTime.collectAsStateWithLifecycle()
-    val notificationsStatus = if (!signedIn) null else if (notificationsOn) notificationTime else "Off"
+    val notificationsStatus = if (!signedIn) null else if (notificationsOn) notificationTime else nativeText("Off")
     LaunchedEffect(signedIn) {
         subscriptionTier = if (signedIn) {
             runCatching { app.repository.getSubscriptionStatus()?.subscriptionTier }.getOrNull()
@@ -208,7 +208,7 @@ private fun SettingsRoot(onOpen: (SettingsDestination) -> Unit, onShowSignIn: ()
                 }
                 Icon(Icons.AutoMirrored.Filled.NavigateNext, null, tint = colors.textSecondary)
             }
-            syncSummary?.let { Text(it, fontSize = 12.sp, color = colors.textSecondary) }
+            syncSummary?.let { SettingsSyncNotice() }
         } else {
             CardColumn {
                 Row(Modifier.fillMaxWidth().clickable(onClick = onShowSignIn).padding(vertical = 8.dp).testTag("settings.signin"),
@@ -238,7 +238,7 @@ private fun SettingsRoot(onOpen: (SettingsDestination) -> Unit, onShowSignIn: ()
             rows = listOf(
                 SettingsDestination.OFFLINE_STORAGE to null,
                 SettingsDestination.NOTIFICATIONS to notificationsStatus,
-                SettingsDestination.SUBSCRIPTION to SettingsSubscription.displayName(subscriptionTier),
+                SettingsDestination.SUBSCRIPTION to nativeText(SettingsSubscription.displayName(subscriptionTier)),
             ),
             onOpen,
         )
@@ -262,11 +262,12 @@ private fun SettingsRoot(onOpen: (SettingsDestination) -> Unit, onShowSignIn: ()
     }
 }
 
+@Composable
 private fun accountName(): String {
     val user = Clerk.user
     val full = listOfNotNull(user?.firstName?.trim(), user?.lastName?.trim())
         .filter { it.isNotEmpty() }.joinToString(" ")
-    return full.ifEmpty { user?.username ?: "Account" }
+    return settingsAccountLabel(full.ifEmpty { user?.username })
 }
 
 private fun languageName(code: String): String? =
@@ -276,13 +277,7 @@ private fun languageName(code: String): String? =
 private fun SettingsGroup(header: String, rows: List<Pair<SettingsDestination, String?>>, onOpen: (SettingsDestination) -> Unit) {
     val colors = LocalHadithlyColors.current
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            header,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Medium,
-            color = colors.textSecondary,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-        )
+        SettingsGroupHeader(header)
         Column(modifier = Modifier.fillMaxWidth().background(colors.surface, RoundedCornerShape(16.dp))) {
             rows.forEachIndexed { index, (destination, detail) ->
                 Row(
@@ -1466,4 +1461,18 @@ internal fun android.content.res.Resources.offlineNoticeText(source: String): St
 internal fun OfflineStatusNotice(source: String) {
     Text(androidx.compose.ui.platform.LocalResources.current.offlineNoticeText(source), fontSize = 12.sp, color = LocalHadithlyColors.current.textSecondary,
         modifier = Modifier.testTag("settings.offline.notice"))
+}
+
+@Composable
+internal fun settingsAccountLabel(name: String?): String = name ?: nativeText("Account")
+
+@Composable
+internal fun SettingsGroupHeader(source: String) {
+    Text(nativeText(source), fontSize = 13.sp, fontWeight = FontWeight.Medium, color = LocalHadithlyColors.current.textSecondary,
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp).testTag("settings.group.header"))
+}
+
+@Composable
+internal fun SettingsSyncNotice() {
+    Text(nativeText("Saved items could not load"), fontSize = 12.sp, color = LocalHadithlyColors.current.textSecondary, modifier = Modifier.testTag("settings.sync.notice"))
 }

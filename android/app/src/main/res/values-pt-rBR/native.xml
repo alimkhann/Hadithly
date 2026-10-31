@@ -414,4 +414,31 @@
     <string name="native_8feb4f467a2d" formatted="false">As notificações não estão configuradas nesta compilação.</string>
     <string name="native_b4836106f489" formatted="false">Remover marcador</string>
     <string name="native_5bc0aa08d678" formatted="false">Remover dos favoritos</string>
+    <string name="native_7c0687eee9a4" formatted="false">Hadith</string>
+    <string name="native_226fd0e51f77" formatted="false">Todas as pastas</string>
+    <string name="native_b5255f4dadf0" formatted="false">Adicionar marcador</string>
+    <string name="native_85274c1bb397" formatted="false">Sem marcador</string>
+    <string name="native_0c7230d914bf" formatted="false">Marcar %s</string>
+    <string name="native_d374d9f1feb4" formatted="false">Marcar o hadith atual</string>
+    <string name="native_644f142a1e34" formatted="false">Marcar o hadith na posição de leitura</string>
+    <string name="native_a93ab5779049" formatted="false">Remover o marcador do hadith na posição de leitura</string>
+    <string name="native_efb40625e113" formatted="false">Expandir capítulos de %s</string>
+    <string name="native_5ef45beba417" formatted="false">Recolher capítulos de %s</string>
+    <string name="native_6ec2652bc24c" formatted="false">Volumes e capítulos</string>
+    <string name="native_086fccaefc56" formatted="false">Suas leituras salvas privadas</string>
+    <string name="native_f2e27a5a504b" formatted="false">Fonte, aparência e texto</string>
+    <string name="native_ebf2023c7ca0" formatted="false">Esta página</string>
+    <string name="native_d8a1f2dac6b3" formatted="false">Hadith na posição de leitura</string>
+    <string name="native_99a9610178ce" formatted="false">Fechar o leitor</string>
+    <string name="native_2c1364b40d55" formatted="false">Fechar o menu do leitor</string>
+    <string name="native_92885473ab8f" formatted="false">Abrir o menu do leitor</string>
+    <string name="native_25cc13987a9c" formatted="false">Sahih</string>
+    <string name="native_003925188bc7" formatted="false">Hasan</string>
+    <string name="native_18c060b336af" formatted="false">Daif</string>
+    <string name="native_463816d07097" formatted="false">Leitura</string>
+    <string name="native_dc20b3d5d2cd" formatted="false">Biblioteca</string>
+    <string name="native_be91940b79f4" formatted="false">Suporte</string>
+    <string name="native_0a7d4ed72060" formatted="false">Hadith %1$s · %2$s</string>
+    <string name="native_483c235d8e7c" formatted="false">Avaliação da coleção: %1$s · %2$s</string>
+    <string name="native_70958858fdfc" formatted="false">Autenticidade não verificada · %s</string>
 </resources>

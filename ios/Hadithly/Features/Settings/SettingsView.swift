@@ -144,7 +144,7 @@ struct SettingsView: View {
             .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
             .joined(separator: " ")
-        return full.isEmpty ? (clerk.user?.username ?? "Account") : full
+        return full.isEmpty ? (clerk.user?.username ?? AppLocalization.string("Account", locale: locale)) : full
     }
 
     @ViewBuilder

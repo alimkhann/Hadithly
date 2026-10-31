@@ -11,6 +11,13 @@ import com.hadithly.app.R
 fun nativeText(source: String, vararg arguments: Any): String =
     androidx.compose.ui.platform.LocalResources.current.nativeText(source, *arguments)
 
+@Composable
+internal fun authenticityText(scope: String, grade: String?, sourceName: String): String {
+    if ((scope != "hadith" && scope != "collection") || grade == null) return nativeText("Authenticity not verified · %@", sourceName)
+    val label = grade.replaceFirstChar { it.uppercase() }.let { if (grade in listOf("sahih", "hasan", "daif")) nativeText(it) else it }
+    return nativeText(if (scope == "hadith") "%1$@ hadith · %2$@" else "%1$@ collection scope · %2$@", label, sourceName)
+}
+
 fun Context.nativeText(source: String, vararg arguments: Any): String = resources.nativeText(source, *arguments)
 
 internal fun android.content.res.Resources.nativeText(source: String, vararg arguments: Any): String {
@@ -39,7 +46,7 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "Private reason" -> R.string.native_1ddc2d9a1a21
     "Avatar is set by your sign-in method." -> R.string.native_21d749165449
     "VOLUMES" -> R.string.native_258de606097f
-    "Share" -> R.string.saved_share
+    "Share" -> R.string.native_29887a5ff984
     "Processing evidence. Your suggestion stays private and has not been reviewed or published." -> R.string.native_2f4412f8bb6a
     "Send me a hadith every day" -> R.string.native_30b8238e7f5b
     "Forgot password?" -> R.string.native_30c1d8d3e912
@@ -80,11 +87,11 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "No eligible hadith is cached yet" -> R.string.native_6ef998ee12f7
     "First name" -> R.string.native_702ef921ed1d
     "At least one layer stays visible." -> R.string.native_709e31254bdd
-    "Suggest a translation" -> R.string.native_3c707d34de67
+    "Suggest a translation" -> R.string.native_71223a24948d
     "or" -> R.string.native_7175517a370b
     "At least one text layer stays visible." -> R.string.native_71c7158ec4ea
     "Settings" -> R.string.native_74a883a037bc
-    "Back" -> R.string.la2_back
+    "Back" -> R.string.native_76900f1bfd16
     "HTTPS source link" -> R.string.native_76a282009ba8
     "Bookmarks & Notes" -> R.string.native_77889b3bab7e
     "Create account" -> R.string.native_798ca2ce18bf
@@ -144,7 +151,7 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "%1\$s pt" -> R.string.native_de60e9e3043d
     "Add link" -> R.string.native_dfe9ca4d0f96
     "Download translation" -> R.string.native_e05372bd9e28
-    "Copy" -> R.string.saved_copy
+    "Copy" -> R.string.native_e21f935f11d7
     "Username" -> R.string.native_e3b89e9d33f8
     "Reading as a guest" -> R.string.native_e820440bb043
     "Temporary cache" -> R.string.native_ec0c8dea1a19
@@ -201,7 +208,7 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "Position unavailable" -> R.string.native_fefb28790fd7
     "Progress unavailable" -> R.string.native_563b460c3f26
     "About & legal" -> R.string.settings_about_legal
-    "All folders" -> R.string.saved_all_folders
+    "All folders" -> R.string.native_226fd0e51f77
     "Appearance" -> R.string.settings_appearance
     "Arabic text" -> R.string.settings_visibility_arabic
     "Arabic type size" -> R.string.settings_arabic_type_size
@@ -227,7 +234,7 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "Optional. Sends redacted failures and build information to Sentry. No reading text or account details. Reports expire after 30 days. Turning off clears pending reports on this device." -> R.string.diagnostics_privacy
     "Privacy & data" -> R.string.settings_privacy_data
     "Profile" -> R.string.settings_profile
-    "Reading" -> R.string.settings_reading
+    "Reading" -> R.string.native_463816d07097
     "Reading & type" -> R.string.settings_reading_type
     "Reading direction" -> R.string.settings_reading_direction
     "Right to left" -> R.string.direction_right_to_left
@@ -518,6 +525,31 @@ private fun nativeCopyResource(source: String): Int? = when (source) {
     "Confirm it is you before exporting your data." -> R.string.native_babf2e231130
     "Notifications are not configured for this build." -> R.string.native_8feb4f467a2d
     "la2.restore" -> R.string.la2_restore
+    "Hadith" -> R.string.native_7c0687eee9a4
+    "Add bookmark" -> R.string.native_b5255f4dadf0
+    "Not bookmarked" -> R.string.native_85274c1bb397
+    "Bookmark %@" -> R.string.native_0c7230d914bf
+    "Bookmark current hadith" -> R.string.native_d374d9f1feb4
+    "Bookmark positioned hadith" -> R.string.native_644f142a1e34
+    "Remove bookmark for positioned hadith" -> R.string.native_a93ab5779049
+    "Expand chapters in %@" -> R.string.native_efb40625e113
+    "Collapse chapters in %@" -> R.string.native_5ef45beba417
+    "Volumes and chapters" -> R.string.native_6ec2652bc24c
+    "Your private saved reading" -> R.string.native_086fccaefc56
+    "Type, appearance, and text" -> R.string.native_f2e27a5a504b
+    "This page" -> R.string.native_ebf2023c7ca0
+    "Positioned hadith" -> R.string.native_d8a1f2dac6b3
+    "Close reader" -> R.string.native_99a9610178ce
+    "Close reader menu" -> R.string.native_2c1364b40d55
+    "Open reader menu" -> R.string.native_92885473ab8f
+    "Sahih" -> R.string.native_25cc13987a9c
+    "Hasan" -> R.string.native_003925188bc7
+    "Daif" -> R.string.native_18c060b336af
+    "Library" -> R.string.native_dc20b3d5d2cd
+    "Support" -> R.string.native_be91940b79f4
+    "%1\$@ hadith · %2\$@" -> R.string.native_0a7d4ed72060
+    "%1\$@ collection scope · %2\$@" -> R.string.native_483c235d8e7c
+    "Authenticity not verified · %@" -> R.string.native_70958858fdfc
     else -> null
 }
 

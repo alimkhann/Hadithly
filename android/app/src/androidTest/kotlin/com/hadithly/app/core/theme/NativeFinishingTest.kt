@@ -13,6 +13,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Density
@@ -418,6 +421,230 @@ class NativeFinishingTest {
             assertEquals(resources.getString(com.hadithly.app.R.string.e4_appeal_error), resources.runtimeNoticeText("e4.appeal_error"))
             assertEquals(resources.nativeText("Could not check for updates. Your downloads keep working offline."), resources.offlineNoticeText("Could not check for updates (Private diagnostic %@). Your downloads keep working offline."))
             assertEquals(resources.nativeText("Download failed."), resources.offlineNoticeText("Private diagnostic %@"))
+        }
+    }
+
+    @Test fun edgeCopyUsesSelectedLanguage() = verifyEdgeCopy(false)
+    @Test fun edgeCopyRemainsReadableAtLargeText() = verifyEdgeCopy(true)
+    private fun verifyEdgeCopy(large: Boolean) {
+        fun load(name: String) = org.json.JSONObject(InstrumentationRegistry.getInstrumentation().context.assets.open(name).bufferedReader().use { it.readText() }).getJSONObject("locales")
+        val copy = load("a4-runtime-edge-copy.json")
+        val reuse = load("a4-runtime-edge-reuse.json")
+        var locale by mutableStateOf("en")
+        var index by mutableIntStateOf(0)
+        var callbacks = 0
+        val opaque = "Original %lld %@ اسم"
+        compose.setContent { LocalizedPreview(ReaderTheme.LIGHT, locale) {
+            CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, if (large) 2f else 1f)) {
+                Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(24.dp)) {
+                    androidx.compose.material3.Text(opaque, modifier = Modifier.testTag("edgeAudit.opaque"))
+                    val text = when (index) {
+                        0 -> com.hadithly.app.features.auth.authEmailCodePrompt("name%lld+%@person@example.test")
+                        1 -> nativeText("All folders")
+                        else -> com.hadithly.app.features.reader.CopyAttribution.line(opaque, "57", "Source %@ %lld", true, nativeText("Hadith"), nativeText("AI translation"))
+                    }
+                    androidx.compose.material3.Text(text, modifier = Modifier.testTag("edgeAudit.notice"))
+                    androidx.compose.material3.Button(onClick = { index = (index + 1) % 3 }, modifier = Modifier.testTag("edgeAudit.next")) { androidx.compose.material3.Text("Next fixture notice") }
+                    androidx.compose.material3.Button(onClick = { callbacks++ }, modifier = Modifier.testTag("edgeAudit.callback")) { androidx.compose.material3.Text("Local callback") }
+                }
+            }
+        } }
+        for (tag in if (large) listOf("ar","ur","ru","bn") else listOf("en","ar","ru","kk","ky","uz","tr","id","ur","fr","es-419","pt-BR","sw","hi","bn")) {
+            compose.runOnIdle { locale = tag; index = 0; callbacks = 0 }
+            val labels = reuse.getJSONArray(tag)
+            val wrapped = androidx.core.text.BidiFormatter.getInstance(java.util.Locale.forLanguageTag(tag)).unicodeWrap("name%lld+%@person@example.test")
+            val expected = listOf(String.format(java.util.Locale.forLanguageTag(tag), labels.getString(0).replace("%@","%s"), wrapped), labels.getString(1), "— $opaque · " + copy.getJSONArray(tag).getString(0) + " 57 · Source %@ %lld · " + labels.getString(2))
+            for (i in 0..2) {
+                val notice = compose.onNodeWithTag("edgeAudit.notice")
+                notice.performScrollTo().assertIsDisplayed().assertTextEquals(expected[i])
+                val layouts = mutableListOf<androidx.compose.ui.text.TextLayoutResult>()
+                notice.performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.GetTextLayoutResult) { it(layouts) }
+                val layout = layouts.single()
+                assertFalse(layout.didOverflowHeight); assertFalse(layout.multiParagraph.didExceedMaxLines)
+                assertEquals(expected[i].length, layout.getLineEnd(layout.lineCount - 1))
+                for (line in 0 until layout.lineCount) { assertFalse(layout.isLineEllipsized(line)); assertTrue(layout.getLineRight(line) - layout.getLineLeft(line) <= layout.size.width + 2f) }
+                capture("edge-$tag" + (if (large) "-large-" else "-") + i)
+                if (i < 2) compose.onNodeWithTag("edgeAudit.next").performScrollTo().performClick()
+            }
+            compose.onNodeWithTag("edgeAudit.opaque").assertTextEquals(opaque)
+            compose.runOnIdle { assertEquals(0, callbacks) }
+            compose.onNodeWithTag("edgeAudit.callback").performScrollTo().performClick()
+            compose.runOnIdle { assertEquals(1, callbacks) }
+        }
+    }
+
+    @Test fun edgeMenusUseSelectedLanguage() = verifyEdgeMenus(false)
+    @Test fun edgeMenusRemainReadableAtLargeText() = verifyEdgeMenus(true)
+    private fun verifyEdgeMenus(large: Boolean) {
+        val copy = org.json.JSONObject(InstrumentationRegistry.getInstrumentation().context.assets.open("a4-runtime-edge-reuse.json").bufferedReader().use { it.readText() }).getJSONObject("locales")
+        var locale by mutableStateOf("en")
+        var saved by mutableStateOf(false)
+        var expanded by mutableStateOf(true)
+        var callbacks = 0
+        var actions = emptyList<com.hadithly.app.features.reader.HadithMenuAction>()
+        var today = emptyList<String>()
+        compose.setContent { LocalizedPreview(ReaderTheme.LIGHT, locale) {
+            CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, if (large) 2f else 1f)) {
+                actions = com.hadithly.app.features.reader.localizedHadithMenuActions(com.hadithly.app.features.reader.hadithMenuActions(saved, saved, saved,
+                    com.hadithly.app.core.data.ReaderTranslation("prepared", "Prepared user content", source = "fixture", sourceLabel = "Fixture"), { callbacks++ }, { callbacks++ }, { callbacks++ }, { callbacks++ }, { callbacks++ }, { callbacks++ }, { callbacks++ }))
+                today = com.hadithly.app.features.today.todayAccessibilityActionLabels(saved,saved,saved)
+                Box(Modifier.fillMaxSize().statusBarsPadding().padding(24.dp)) {
+                    com.hadithly.app.features.reader.HadithContextMenu("Original %lld %@ اسم", actions, expanded, { expanded = false })
+                }
+            }
+        } }
+        for (tag in if (large) listOf("ar","ur","ru","bn") else listOf("en","ar","ru","kk","ky","uz","tr","id","ur","fr","es-419","pt-BR","sw","hi","bn")) for (selected in listOf(false,true)) {
+            compose.runOnIdle { locale = tag; saved = selected; expanded = true; callbacks = 0 }
+            val values = copy.getJSONArray(tag)
+            val indices = listOf(if (selected) 5 else 4, if (selected) 7 else 6, if (selected) 9 else 8, 10,11,13,12)
+            for ((i,name) in listOf("bookmark","favorite","note","copy","share","reportTranslation","suggestTranslation").withIndex()) {
+                val node = compose.onNodeWithTag("reader.$name")
+                node.performScrollTo().assertIsDisplayed().assertTextContains(values.getString(indices[i]))
+            }
+            capture("edge-menu-$tag" + (if (large) "-large-" else "-") + selected)
+            compose.runOnIdle {
+                assertEquals(indices.map { values.getString(it) }, actions.map { it.label })
+                assertEquals(actions.map { it.label }, com.hadithly.app.features.reader.customActionsFor(actions).map { it.label })
+                assertEquals(listOf(3,indices[0],indices[1],indices[2],10,11,12).map { values.getString(it) }, today)
+                assertEquals(0, callbacks)
+                assertTrue(com.hadithly.app.features.reader.customActionsFor(actions)[3].action())
+                assertEquals(1, callbacks)
+            }
+            compose.onNodeWithTag("reader.copy").performScrollTo().performClick()
+            compose.runOnIdle { assertFalse(expanded); assertEquals(2, callbacks) }
+        }
+    }
+
+    @Test fun finalWrappersUseSelectedLanguage() = verifyFinalWrappers(false)
+    @Test fun finalWrappersRemainReadableAtLargeText() = verifyFinalWrappers(true)
+    private fun verifyFinalWrappers(large: Boolean) {
+        fun load(name: String) = org.json.JSONObject(InstrumentationRegistry.getInstrumentation().context.assets.open(name).bufferedReader().use { it.readText() }).getJSONObject("locales")
+        val copy = load("a4-final-wrapper-copy.json")
+        val reuse = load("a4-final-wrapper-reuse.json")
+        val keys = listOf("Not bookmarked","Bookmark %@","Bookmark current hadith","Bookmark positioned hadith","Remove bookmark for positioned hadith","Expand chapters in %@","Collapse chapters in %@","Volumes and chapters","Your private saved reading","Type, appearance, and text","This page","Positioned hadith","Close reader","Close reader menu","Open reader menu","Sahih","Hasan","Daif","Reading","Library","Support","Account","Saved items could not load","Free","Pro trial","Off","Contents","Bookmarks & Notes","Settings","Search","Back","Show Library list","Show Library grid","Bookmarked","Favorited","Has note","Unverified")
+        var locale by mutableStateOf("en")
+        var index by mutableIntStateOf(0)
+        compose.setContent { LocalizedPreview(ReaderTheme.LIGHT, locale) {
+            CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, if (large) 2f else 1f)) {
+                Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(24.dp)) {
+                    Box(Modifier.testTag("finalAudit.notice").semantics(mergeDescendants = true) {}) {
+                        when (index) {
+                            in 18..20 -> com.hadithly.app.features.settings.SettingsGroupHeader(keys[index])
+                            21 -> androidx.compose.material3.Text(com.hadithly.app.features.settings.settingsAccountLabel(null))
+                            22 -> com.hadithly.app.features.settings.SettingsSyncNotice()
+                            else -> androidx.compose.material3.Text(if (keys[index].contains("%@")) nativeText(keys[index], "Original %lld %@ اسم") else nativeText(keys[index]))
+                        }
+                    }
+                    androidx.compose.material3.Button(onClick = { index = (index + 1) % keys.size }, modifier = Modifier.testTag("finalAudit.next")) { androidx.compose.material3.Text("Next fixture notice") }
+                    androidx.compose.material3.Text(com.hadithly.app.features.settings.settingsAccountLabel("Original %lld %@ اسم"), modifier = Modifier.testTag("finalAudit.opaque"))
+                }
+            }
+        } }
+        for (tag in if (large) listOf("ar","ur","ru","bn") else listOf("en","ar","ru","kk","ky","uz","tr","id","ur","fr","es-419","pt-BR","sw","hi","bn")) {
+            compose.runOnIdle { locale = tag; index = 0 }
+            val values = copy.getJSONArray(tag)
+            val labels = reuse.getJSONArray(tag)
+            for (i in keys.indices) {
+                val template = if (i < 18) values.getString(i) else labels.getString(i-18)
+                val expected = if (template.contains("%@")) String.format(java.util.Locale.forLanguageTag(tag), template.replace("%@","%s"), androidx.core.text.BidiFormatter.getInstance(java.util.Locale.forLanguageTag(tag)).unicodeWrap("Original %lld %@ اسم")) else template
+                val notice = compose.onNodeWithTag("finalAudit.notice")
+                notice.performScrollTo().assertIsDisplayed().assertTextEquals(expected)
+                val layouts = mutableListOf<androidx.compose.ui.text.TextLayoutResult>()
+                notice.performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.GetTextLayoutResult) { it(layouts) }
+                val layout = layouts.single()
+                assertFalse(layout.didOverflowHeight); assertFalse(layout.multiParagraph.didExceedMaxLines)
+                assertEquals(expected.length, layout.getLineEnd(layout.lineCount - 1))
+                for (line in 0 until layout.lineCount) { assertFalse(layout.isLineEllipsized(line)); assertTrue("$tag:$i", layout.getLineRight(line)-layout.getLineLeft(line) <= layout.size.width+2f) }
+                if ((large && i in listOf(1,5,9,15)) || (!large && i == 0)) capture("final-$tag" + (if (large) "-large-" else "-") + i)
+                if (i < keys.lastIndex) compose.onNodeWithTag("finalAudit.next").performScrollTo().performClick()
+            }
+            compose.onNodeWithTag("finalAudit.opaque").performScrollTo().assertTextEquals("Original %lld %@ اسم")
+        }
+    }
+
+    @Test fun chromeUsesSelectedLanguage() = verifyChrome(false)
+    @Test fun chromeRemainsReadableAtLargeText() = verifyChrome(true)
+    private fun verifyChrome(large: Boolean) {
+        fun load(name: String) = org.json.JSONObject(InstrumentationRegistry.getInstrumentation().context.assets.open(name).bufferedReader().use { it.readText() }).getJSONObject("locales")
+        val copy = load("a4-final-wrapper-copy.json"); val reuse = load("a4-final-wrapper-reuse.json")
+        var locale by mutableStateOf("en"); var bookmarked by mutableStateOf(false); var open by mutableStateOf(false)
+        var callbacks = 0
+        compose.setContent { LocalizedPreview(ReaderTheme.LIGHT, locale) {
+            CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, if (large) 2f else 1f)) {
+                Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(24.dp)) {
+                    Box(Modifier.weight(1f, fill = false)) {
+                        com.hadithly.app.features.reader.ReaderMenuStack("Original %lld %@ اسم", bookmarked, { callbacks++ }, { callbacks++ }, { callbacks++ }, { bookmarked = !bookmarked; callbacks++ }, { callbacks++ })
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        com.hadithly.app.features.reader.ReaderChromeCircle(androidx.compose.material.icons.Icons.AutoMirrored.Filled.ArrowBack, "Back", { callbacks++ })
+                        com.hadithly.app.features.reader.ReaderChromeCircle(androidx.compose.material.icons.Icons.Filled.Close, if (open) "Close reader menu" else "Open reader menu", { open = !open; callbacks++ })
+                    }
+                }
+            }
+        } }
+        for (tag in if (large) listOf("ar","ur","ru","bn") else listOf("en","ar","ru","kk","ky","uz","tr","id","ur","fr","es-419","pt-BR","sw","hi","bn")) {
+            compose.runOnIdle { locale = tag; bookmarked = false; open = false; callbacks = 0 }
+            val values = copy.getJSONArray(tag); val labels = reuse.getJSONArray(tag)
+            for ((i,name) in listOf("contents","saved","settings").withIndex()) {
+                val row = compose.onNodeWithTag("reader.menu.$name")
+                row.performScrollTo().assertIsDisplayed().assertTextContains(labels.getString(8+i)).assertTextContains(values.getString(7+i))
+                for (text in listOf(labels.getString(8+i), values.getString(7+i))) {
+                    val layouts = mutableListOf<androidx.compose.ui.text.TextLayoutResult>()
+                    compose.onNodeWithText(text, useUnmergedTree = true).performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.GetTextLayoutResult) { it(layouts) }
+                    val layout = layouts.single()
+                    assertFalse(layout.didOverflowHeight); assertFalse(layout.multiParagraph.didExceedMaxLines)
+                    assertEquals(text.length, layout.getLineEnd(layout.lineCount-1))
+                    for (line in 0 until layout.lineCount) assertFalse(layout.isLineEllipsized(line))
+                }
+                capture("chrome-$tag" + (if (large) "-large-" else "-") + i)
+            }
+            compose.runOnIdle { assertEquals(0,callbacks) }
+            val wrapped = androidx.core.text.BidiFormatter.getInstance(java.util.Locale.forLanguageTag(tag)).unicodeWrap("Original %lld %@ اسم")
+            compose.onNodeWithTag("reader.menu.bookmark").performScrollTo().assertContentDescriptionEquals(String.format(values.getString(1).replace("%@","%s"),wrapped)).performClick()
+            compose.onNodeWithTag("reader.menu.bookmark").assertContentDescriptionEquals(values.getString(4))
+            compose.runOnIdle { assertTrue(bookmarked); assertEquals(1,callbacks) }
+            compose.onNodeWithContentDescription(values.getString(14)).performClick()
+            compose.onNodeWithContentDescription(values.getString(13)).assertIsDisplayed()
+            compose.runOnIdle { assertTrue(open); assertEquals(2,callbacks) }
+        }
+    }
+
+    @Test fun authenticityCopyUsesSelectedLanguage() = verifyAuthenticityCopy(false)
+    @Test fun authenticityCopyRemainsReadableAtLargeText() = verifyAuthenticityCopy(true)
+    private fun verifyAuthenticityCopy(large: Boolean) {
+        fun load(name: String) = org.json.JSONObject(InstrumentationRegistry.getInstrumentation().context.assets.open(name).bufferedReader().use { it.readText() }).getJSONObject("locales")
+        val copy = load("a4-authenticity-copy.json"); val grades = load("a4-final-wrapper-copy.json")
+        var locale by mutableStateOf("en"); var index by mutableIntStateOf(0)
+        val scopes = listOf("hadith", "collection", "unknown", "hadith", "unknown", "hadith")
+        val values = listOf("sahih", "hasan", null, "custom", "sahih", null)
+        compose.setContent { LocalizedPreview(ReaderTheme.LIGHT, locale) {
+            CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, if (large) 2f else 1f)) {
+                Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(24.dp)) {
+                    androidx.compose.material3.Text(com.hadithly.app.core.preferences.authenticityText(scopes[index], values[index], "Original %lld %@ اسم"), modifier = Modifier.testTag("authenticityAudit.notice"))
+                    androidx.compose.material3.Button(onClick = { index = (index + 1) % scopes.size }, modifier = Modifier.testTag("authenticityAudit.next")) { androidx.compose.material3.Text("Next fixture notice") }
+                }
+            }
+        } }
+        for (tag in if (large) listOf("ar","ur","ru","bn") else listOf("en","ar","ru","kk","ky","uz","tr","id","ur","fr","es-419","pt-BR","sw","hi","bn")) {
+            compose.runOnIdle { locale = tag; index = 0 }
+            val templates = copy.getJSONArray(tag); val labels = grades.getJSONArray(tag)
+            val bidi = androidx.core.text.BidiFormatter.getInstance(java.util.Locale.forLanguageTag(tag))
+            for (i in scopes.indices) {
+                val template = templates.getString(if (i == 0 || i == 3) 0 else if (i == 1) 1 else 2).replace("%@","%s").replace("\$@","\$s")
+                val source = bidi.unicodeWrap("Original %lld %@ اسم")
+                val expected = if (i == 0 || i == 1 || i == 3) String.format(java.util.Locale.forLanguageTag(tag), template, bidi.unicodeWrap(if (i == 3) "Custom" else labels.getString(if (i == 0) 15 else 16)), source) else String.format(java.util.Locale.forLanguageTag(tag), template, source)
+                val notice = compose.onNodeWithTag("authenticityAudit.notice")
+                notice.performScrollTo().assertIsDisplayed().assertTextEquals(expected)
+                val layouts = mutableListOf<androidx.compose.ui.text.TextLayoutResult>()
+                notice.performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.GetTextLayoutResult) { it(layouts) }
+                val layout = layouts.single()
+                assertFalse(layout.didOverflowHeight); assertFalse(layout.multiParagraph.didExceedMaxLines)
+                assertEquals(expected.length, layout.getLineEnd(layout.lineCount - 1))
+                for (line in 0 until layout.lineCount) { assertFalse(layout.isLineEllipsized(line)); assertTrue("$tag:$i", layout.getLineRight(line)-layout.getLineLeft(line) <= layout.size.width+2f) }
+                if (i < 3) capture("authenticity-$tag" + (if (large) "-large-" else "-") + i)
+                if (i < scopes.lastIndex) compose.onNodeWithTag("authenticityAudit.next").performScrollTo().performClick()
+            }
+            compose.runOnIdle { assertEquals(listOf("hadith", "collection", "unknown", "hadith", "unknown", "hadith"), scopes); assertEquals(listOf("sahih", "hasan", null, "custom", "sahih", null), values) }
         }
     }
 

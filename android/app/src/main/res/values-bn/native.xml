@@ -414,4 +414,31 @@
     <string name="native_8feb4f467a2d" formatted="false">এই বিল্ডে বিজ্ঞপ্তি কনফিগার করা হয়নি।</string>
     <string name="native_b4836106f489" formatted="false">বুকমার্ক সরান</string>
     <string name="native_5bc0aa08d678" formatted="false">পছন্দের তালিকা থেকে সরান</string>
+    <string name="native_7c0687eee9a4" formatted="false">হাদিস</string>
+    <string name="native_226fd0e51f77" formatted="false">সব ফোল্ডার</string>
+    <string name="native_b5255f4dadf0" formatted="false">বুকমার্ক যোগ করুন</string>
+    <string name="native_85274c1bb397" formatted="false">বুকমার্ক করা হয়নি</string>
+    <string name="native_0c7230d914bf" formatted="false">%s বুকমার্ক করুন</string>
+    <string name="native_d374d9f1feb4" formatted="false">বর্তমান হাদিস বুকমার্ক করুন</string>
+    <string name="native_644f142a1e34" formatted="false">পড়ার অবস্থানের হাদিস বুকমার্ক করুন</string>
+    <string name="native_a93ab5779049" formatted="false">পড়ার অবস্থানের হাদিসের বুকমার্ক সরান</string>
+    <string name="native_efb40625e113" formatted="false">%s-এর অধ্যায় খুলুন</string>
+    <string name="native_5ef45beba417" formatted="false">%s-এর অধ্যায় গুটিয়ে নিন</string>
+    <string name="native_6ec2652bc24c" formatted="false">খণ্ড ও অধ্যায়</string>
+    <string name="native_086fccaefc56" formatted="false">আপনার ব্যক্তিগত সংরক্ষিত পড়া</string>
+    <string name="native_f2e27a5a504b" formatted="false">ফন্ট, রূপ ও পাঠ</string>
+    <string name="native_ebf2023c7ca0" formatted="false">এই পৃষ্ঠা</string>
+    <string name="native_d8a1f2dac6b3" formatted="false">পড়ার অবস্থানের হাদিস</string>
+    <string name="native_99a9610178ce" formatted="false">রিডার বন্ধ করুন</string>
+    <string name="native_2c1364b40d55" formatted="false">রিডার মেনু বন্ধ করুন</string>
+    <string name="native_92885473ab8f" formatted="false">রিডার মেনু খুলুন</string>
+    <string name="native_25cc13987a9c" formatted="false">সহিহ</string>
+    <string name="native_003925188bc7" formatted="false">হাসান</string>
+    <string name="native_18c060b336af" formatted="false">দয়িফ</string>
+    <string name="native_463816d07097" formatted="false">পড়া</string>
+    <string name="native_dc20b3d5d2cd" formatted="false">লাইব্রেরি</string>
+    <string name="native_be91940b79f4" formatted="false">সহায়তা</string>
+    <string name="native_0a7d4ed72060" formatted="false">%1$s হাদিস · %2$s</string>
+    <string name="native_483c235d8e7c" formatted="false">সংকলন পর্যায়ের মূল্যায়ন: %1$s · %2$s</string>
+    <string name="native_70958858fdfc" formatted="false">বিশুদ্ধতা যাচাই করা হয়নি · %s</string>
 </resources>

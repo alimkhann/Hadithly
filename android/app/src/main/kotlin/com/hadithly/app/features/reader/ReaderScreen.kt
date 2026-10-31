@@ -28,6 +28,7 @@ import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -814,8 +815,9 @@ internal fun ReaderActionHint(experience: com.hadithly.app.core.preferences.Read
 }
 
 @Composable
-private fun ReaderChromeCircle(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit) {
+internal fun ReaderChromeCircle(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit) {
     val colors = LocalHadithlyColors.current
+    val accessibleLabel = nativeText(label)
     Surface(
         onClick = onClick,
         shape = CircleShape,
@@ -824,7 +826,7 @@ private fun ReaderChromeCircle(icon: androidx.compose.ui.graphics.vector.ImageVe
         tonalElevation = 3.dp,
         shadowElevation = 3.dp,
         border = androidx.compose.foundation.BorderStroke(.5.dp, colors.divider.copy(alpha = .65f)),
-        modifier = Modifier.size(52.dp).semantics { contentDescription = label },
+        modifier = Modifier.size(52.dp).semantics { contentDescription = accessibleLabel },
     ) {
         Box(contentAlignment = Alignment.Center) { Icon(icon, null, modifier = Modifier.size(24.dp)) }
     }
@@ -938,6 +940,7 @@ internal fun ReaderMenuStack(
         ReaderHaptics.perform(view, ReaderHapticKind.MENU_ITEM)
         item()
     }
+    BoxWithConstraints {
     Surface(
         shape = RoundedCornerShape(24.dp),
         color = colors.surface.copy(alpha = 0.36f),
@@ -945,9 +948,9 @@ internal fun ReaderMenuStack(
         tonalElevation = 2.dp,
         shadowElevation = 4.dp,
         border = androidx.compose.foundation.BorderStroke(0.5.dp, colors.divider.copy(alpha = 0.62f)),
-        modifier = Modifier.fillMaxWidth(0.66f).testTag("reader.menu"),
+        modifier = Modifier.fillMaxWidth(0.66f).heightIn(max = minOf(maxHeight, LocalConfiguration.current.screenHeightDp.dp)).testTag("reader.menu"),
     ) {
-        Column(Modifier.padding(4.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(Modifier.verticalScroll(rememberScrollState()).padding(4.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             ReaderMenuCard(
                 title = "Contents",
                 subtitle = "Volumes and chapters",
@@ -974,11 +977,7 @@ internal fun ReaderMenuStack(
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 ReaderMenuIconButton(
                     icon = if (isPositionedBookmarked) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder,
-                    contentDescription = if (positionedReference != null) {
-                        "Bookmark $positionedReference"
-                    } else {
-                        "Bookmark current hadith"
-                    },
+                    contentDescription = if (isPositionedBookmarked) nativeText("Remove bookmark for positioned hadith") else if (positionedReference != null) nativeText("Bookmark %@", positionedReference) else nativeText("Bookmark current hadith"),
                     iconTint = if (isPositionedBookmarked) colors.bookmark else null,
                     onClick = { tapped(onBookmark) },
                     modifier = Modifier.weight(1f).height(56.dp),
@@ -994,6 +993,7 @@ internal fun ReaderMenuStack(
             }
         }
     }
+}
 }
 
 @Composable
@@ -1047,11 +1047,9 @@ private fun ReaderMenuCard(
     ) {
         Row(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold,
-                    color = colors.textPrimary, maxLines = 1,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                Text(subtitle, fontSize = 12.sp, color = colors.textSecondary,
-                    maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                Text(nativeText(title), fontSize = 16.sp, fontWeight = FontWeight.SemiBold,
+                    color = colors.textPrimary)
+                Text(nativeText(subtitle), fontSize = 12.sp, color = colors.textSecondary)
             }
             Icon(icon, null, tint = iconTint ?: colors.textSecondary, modifier = Modifier.size(22.dp))
         }
@@ -2275,6 +2273,8 @@ internal fun HadithBlock(
         visibleTranslationIsAi = loadedTranslation?.source == "gemini_ai"
     }
 
+    val copyHadithLabel = nativeText("Hadith")
+    val copyAiLabel = nativeText("AI translation")
     fun doCopy() {
         val text = ReaderShare.formatCopyText(
             arabicText = visibleArabic,
@@ -2283,6 +2283,8 @@ internal fun HadithBlock(
             collectionName = hadith.collectionName,
             providerHadithId = hadith.providerHadithId,
             sourceName = hadith.authenticity.sourceName,
+            hadithLabel = copyHadithLabel,
+            aiLabel = copyAiLabel,
         )
         clipboardScope.launch {
             clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(hadith.referenceDisplay, text)))
@@ -2304,7 +2306,7 @@ internal fun HadithBlock(
     // One code path: the long-press menu opens the shared DropdownMenu
     // content. The R5 overflow button is deleted with no visual replacement;
     // TalkBack custom actions below are the screen-reader equivalent.
-    val menuActions = hadithMenuActions(
+    val menuActions = localizedHadithMenuActions(hadithMenuActions(
         isBookmarked = deps.isBookmarked,
         isFavorite = deps.isFavorite,
         hasNote = deps.hasNote,
@@ -2324,7 +2326,7 @@ internal fun HadithBlock(
         onShare = { doShare() },
         onReport = onReport,
         onSuggest = onSuggest,
-    )
+    ))
 
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -2503,6 +2505,7 @@ internal fun HadithHeader(
 ) {
     val colors = LocalHadithlyColors.current
     val grade = ReaderGrade.from(hadith.authenticity.normalizedGrade)
+    val gradeLabel = nativeText(grade.displayName)
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth(),
@@ -2514,7 +2517,7 @@ internal fun HadithHeader(
                 .testTag("reader.hadithLabel")
                 .semantics {
                     contentDescription =
-                        "${ReaderViewModel.shortCollectionName(hadith.collectionSlug, hadith.collectionName)} – ${hadith.providerHadithId}, ${grade.displayName}"
+                        "${ReaderViewModel.shortCollectionName(hadith.collectionSlug, hadith.collectionName)} – ${hadith.providerHadithId}, ${gradeLabel}"
                 },
         ) {
             Box(
@@ -2538,11 +2541,11 @@ internal fun HadithHeader(
                     SavedMiniMarker.FAVORITE -> Icons.Filled.Favorite
                     SavedMiniMarker.NOTE -> Icons.Filled.Note
                 },
-                contentDescription = when (marker) {
+                contentDescription = nativeText(when (marker) {
                     SavedMiniMarker.BOOKMARK -> "Bookmarked"
                     SavedMiniMarker.FAVORITE -> "Favorited"
                     SavedMiniMarker.NOTE -> "Has note"
-                },
+                }),
                 tint = when (marker) {
                     SavedMiniMarker.BOOKMARK -> colors.bookmark
                     SavedMiniMarker.FAVORITE -> colors.favorite
@@ -2584,7 +2587,7 @@ internal fun HadithSourceSheet(hadith: ReaderHadith, translation: ReaderTranslat
             color = colors.textPrimary,
         )
         Text(
-            text = hadith.authenticity.displayLabel,
+            text = com.hadithly.app.core.preferences.authenticityText(hadith.authenticity.claimScope, hadith.authenticity.normalizedGrade, hadith.authenticity.sourceName),
             fontSize = 13.sp,
             color = colors.textSecondary,
         )
@@ -2666,6 +2669,17 @@ internal fun hadithMenuActions(
             secondary = true,
         ) { onSuggest(loadedTranslation) },
     )
+}
+
+@Composable
+internal fun localizedHadithMenuActions(actions: List<HadithMenuAction>): List<HadithMenuAction> = actions.map { action ->
+    val key = when (action.label) {
+        "Bookmark" -> "Add bookmark"
+        "Remove from favorites" -> "Remove favorite"
+        "Suggest translation" -> "Suggest a translation"
+        else -> action.label
+    }
+    action.copy(label = nativeText(key))
 }
 
 /**
@@ -3057,7 +3071,7 @@ internal fun ContentsSheet(
                                 ) {
                                     Icon(
                                         imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                                        contentDescription = if (expanded) "Collapse chapters in ${volume.title}" else "Expand chapters in ${volume.title}",
+                                        contentDescription = nativeText(if (expanded) "Collapse chapters in %@" else "Expand chapters in %@", volume.title),
                                         tint = colors.textSecondary,
                                     )
                                 }
@@ -3282,12 +3296,12 @@ internal fun BookmarkPlacementSheet(
         containerColor = colors.surface,
         titleContentColor = colors.textPrimary,
         textContentColor = colors.textSecondary,
-        title = { Text(nativeText("Bookmark")) },
+        title = { Text(nativeText("Add bookmark")) },
         text = {
             Column(Modifier.testTag("reader.bookmarkSheet")) {
-                PlacementRow(pageStartRow.title, pageStartRow.subtitle, pageStartRow.enabled, pageStartRow.bookmarked, pageStartRow.testTag) { pageStartRow.target?.let(onChoose) }
+                PlacementRow(pageStartRow.title, if (pageStartRow.target == null) nativeText("This page") else pageStartRow.subtitle, pageStartRow.enabled, pageStartRow.bookmarked, pageStartRow.testTag) { pageStartRow.target?.let(onChoose) }
                 HorizontalDivider(color = colors.divider)
-                PlacementRow(positionedRow.title, positionedRow.subtitle, positionedRow.enabled, positionedRow.bookmarked, positionedRow.testTag) { positionedRow.target?.let(onChoose) }
+                PlacementRow(positionedRow.title, if (positionedRow.target == null) nativeText("Positioned hadith") else positionedRow.subtitle, positionedRow.enabled, positionedRow.bookmarked, positionedRow.testTag) { positionedRow.target?.let(onChoose) }
             }
         },
         confirmButton = {},
@@ -3329,7 +3343,7 @@ private fun PlacementRow(
         }
         Icon(
             imageVector = if (bookmarked) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder,
-            contentDescription = if (bookmarked) "Bookmarked" else "Not bookmarked",
+            contentDescription = nativeText(if (bookmarked) "Bookmarked" else "Not bookmarked"),
             tint = if (bookmarked) colors.bookmark else colors.textSecondary,
             modifier = Modifier.size(22.dp),
         )

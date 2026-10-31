@@ -316,6 +316,16 @@ enum TranslationFailure: Equatable {
     }
 }
 
+enum CopyAttribution {
+    static func line(collection: String, id: String, source: String, isAI: Bool, locale: Locale) -> String {
+        "— \(collection) · \(AppLocalization.string("Hadith", locale: locale)) \(id) · \(source)" + (isAI ? " · " + AppLocalization.string("AI translation", locale: locale) : "")
+    }
+}
+
+func savedFolderFilterTitle(_ name: String?, locale: Locale) -> String {
+    name ?? AppLocalization.string("All folders", locale: locale)
+}
+
 /// R5 share/copy helpers. The canonical URL contract is
 /// `https://hadithly.app/hadith/{collectionSlug}/{providerHadithId}` (F3);
 /// validation reuses `CanonicalHadithLink.parse` so the builder and the
@@ -354,7 +364,8 @@ enum ReaderShare {
         arabicVisible: Bool,
         translationVisible: Bool,
         translationText: String?,
-        translationIsAI: Bool
+        translationIsAI: Bool,
+        locale: Locale
     ) -> String {
         var parts: [String] = []
         if arabicVisible {
@@ -365,12 +376,9 @@ enum ReaderShare {
            !translation.isEmpty {
             parts.append(translation)
         }
-        var sourceLine = "— \(hadith.collectionName) · Hadith \(hadith.providerHadithId) · \(hadith.authenticity.sourceName)"
         let translationIncluded = translationVisible
             && !(translationText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
-        if translationIncluded && translationIsAI {
-            sourceLine += " · AI translation"
-        }
+        let sourceLine = CopyAttribution.line(collection: hadith.collectionName, id: hadith.providerHadithId, source: hadith.authenticity.sourceName, isAI: translationIncluded && translationIsAI, locale: locale)
         if parts.isEmpty { return sourceLine }
         return parts.joined(separator: "\n\n") + "\n\n" + sourceLine
     }

@@ -414,4 +414,31 @@
     <string name="native_8feb4f467a2d" formatted="false">اس بلڈ میں اطلاعات ترتیب نہیں دی گئیں۔</string>
     <string name="native_b4836106f489" formatted="false">بُک مارک ہٹائیں</string>
     <string name="native_5bc0aa08d678" formatted="false">پسندیدہ سے ہٹائیں</string>
+    <string name="native_7c0687eee9a4" formatted="false">حدیث</string>
+    <string name="native_226fd0e51f77" formatted="false">تمام فولڈرز</string>
+    <string name="native_b5255f4dadf0" formatted="false">بک مارک شامل کریں</string>
+    <string name="native_85274c1bb397" formatted="false">بک مارک نہیں ہے</string>
+    <string name="native_0c7230d914bf" formatted="false">%s کو بک مارک کریں</string>
+    <string name="native_d374d9f1feb4" formatted="false">موجودہ حدیث کو بک مارک کریں</string>
+    <string name="native_644f142a1e34" formatted="false">پڑھنے کے مقام والی حدیث کو بک مارک کریں</string>
+    <string name="native_a93ab5779049" formatted="false">پڑھنے کے مقام والی حدیث کا بک مارک ہٹائیں</string>
+    <string name="native_efb40625e113" formatted="false">%s کے ابواب کھولیں</string>
+    <string name="native_5ef45beba417" formatted="false">%s کے ابواب سمیٹیں</string>
+    <string name="native_6ec2652bc24c" formatted="false">جلدیں اور ابواب</string>
+    <string name="native_086fccaefc56" formatted="false">آپ کی نجی محفوظ قرأت</string>
+    <string name="native_f2e27a5a504b" formatted="false">فونٹ، ظاہری شکل اور متن</string>
+    <string name="native_ebf2023c7ca0" formatted="false">یہ صفحہ</string>
+    <string name="native_d8a1f2dac6b3" formatted="false">پڑھنے کے مقام والی حدیث</string>
+    <string name="native_99a9610178ce" formatted="false">قاری بند کریں</string>
+    <string name="native_2c1364b40d55" formatted="false">قاری کا مینو بند کریں</string>
+    <string name="native_92885473ab8f" formatted="false">قاری کا مینو کھولیں</string>
+    <string name="native_25cc13987a9c" formatted="false">صحیح</string>
+    <string name="native_003925188bc7" formatted="false">حسن</string>
+    <string name="native_18c060b336af" formatted="false">ضعیف</string>
+    <string name="native_463816d07097" formatted="false">پڑھنا</string>
+    <string name="native_dc20b3d5d2cd" formatted="false">کتب خانہ</string>
+    <string name="native_be91940b79f4" formatted="false">معاونت</string>
+    <string name="native_0a7d4ed72060" formatted="false">%1$s حدیث · %2$s</string>
+    <string name="native_483c235d8e7c" formatted="false">مجموعے کی سطح پر درجہ: %1$s · %2$s</string>
+    <string name="native_70958858fdfc" formatted="false">صحت کی تصدیق نہیں ہوئی · %s</string>
 </resources>

@@ -265,11 +265,13 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit, previewState: String? 
     val collapse = TodayContentPolicy.needsCollapsedPreview(hadith.arabicText, hadith.translation?.text)
     val reference = HadithRef(hadith._id, hadith.collectionSlug, hadith.collectionName, hadith.volumeId, hadith.providerHadithId, hadith.arabicText, hadith.translation?.text, hadith.referenceDisplay)
     fun open() = onOpenTarget(ReaderOpenTarget(hadith.collectionSlug, hadith.collectionName, hadith.volumeId, hadith.providerHadithId, ReaderTargetSource.TODAY))
+    val copyHadithLabel = nativeText("Hadith")
+    val copyAiLabel = nativeText("AI translation")
     fun copy() {
         clipboardScope.launch {
             clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(
                 hadith.referenceDisplay,
-                ReaderShare.formatCopyText(if (preferences.arabicVisible) hadith.arabicText else null, if (preferences.translationVisible) hadith.translation?.text else null, preferences.translationVisible && hadith.translation?.isAI == true, hadith.collectionName, hadith.providerHadithId, hadith.authenticity.sourceName),
+                ReaderShare.formatCopyText(if (preferences.arabicVisible) hadith.arabicText else null, if (preferences.translationVisible) hadith.translation?.text else null, preferences.translationVisible && hadith.translation?.isAI == true, hadith.collectionName, hadith.providerHadithId, hadith.authenticity.sourceName, copyHadithLabel, copyAiLabel),
             )))
         }
     }
@@ -278,7 +280,9 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit, previewState: String? 
     fun toggleFavorite() { val date = library.savedItems.value.firstOrNull { it.hadithId == hadith._id }?.favoriteCreatedAt; val removing = library.isFavorite(hadith._id); library.toggleFavorite(reference); if (removing && date != null) library.undo.show(favoriteRemovedLabel) { library.restoreFavorite(reference, date) } }
     fun requestBookmark() { if (library.isBookmarked(hadith._id) && app.savedSafety.confirmsRemoval) pendingRemoval = "bookmark" else toggleBookmark() }
     fun requestFavorite() { if (library.isFavorite(hadith._id) && app.savedSafety.confirmsRemoval) pendingRemoval = "favorite" else toggleFavorite() }
-    val actions = listOf(CustomAccessibilityAction("Open in reader") { open(); true }, CustomAccessibilityAction(if (library.isBookmarked(hadith._id)) "Remove Bookmark" else "Bookmark") { requestBookmark(); true }, CustomAccessibilityAction(if (library.isFavorite(hadith._id)) "Remove Favorite" else "Favorite") { requestFavorite(); true }, CustomAccessibilityAction(if (library.noteContentFor(hadith._id) == null) "Add Note" else "Edit Note") { note = true; true }, CustomAccessibilityAction("Copy") { copy(); true }, CustomAccessibilityAction("Share") { share(); true }, CustomAccessibilityAction("Suggest translation") { open(); true })
+    val actionLabels = todayAccessibilityActionLabels(library.isBookmarked(hadith._id), library.isFavorite(hadith._id), library.noteContentFor(hadith._id) != null)
+    val actions = listOf(CustomAccessibilityAction(actionLabels[0]) { open(); true }, CustomAccessibilityAction(actionLabels[1]) { requestBookmark(); true }, CustomAccessibilityAction(actionLabels[2]) { requestFavorite(); true }, CustomAccessibilityAction(actionLabels[3]) { note = true; true }, CustomAccessibilityAction(actionLabels[4]) { copy(); true }, CustomAccessibilityAction(actionLabels[5]) { share(); true }, CustomAccessibilityAction(actionLabels[6]) { open(); true })
+
     Box {
         val inner: @Composable () -> Unit = {
             Column(verticalArrangement = Arrangement.spacedBy(13.dp), modifier = Modifier.fillMaxWidth().padding(18.dp)) {
@@ -313,12 +317,12 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit, previewState: String? 
             if (expanded && collapse) Box(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) { inner() } else inner()
         }
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-            DropdownMenuItem(text = { Text(nativeText(if (library.isBookmarked(hadith._id)) "Remove bookmark" else "Bookmark")) }, onClick = { requestBookmark(); menu = false })
+            DropdownMenuItem(text = { Text(nativeText(if (library.isBookmarked(hadith._id)) "Remove bookmark" else "Add bookmark")) }, onClick = { requestBookmark(); menu = false })
             DropdownMenuItem(text = { Text(nativeText(if (library.isFavorite(hadith._id)) "Remove favorite" else "Add to favorites")) }, onClick = { requestFavorite(); menu = false })
             DropdownMenuItem(text = { Text(nativeText(if (library.noteContentFor(hadith._id) == null) "Add note" else "Edit note")) }, onClick = { note = true; menu = false })
             DropdownMenuItem(text = { Text(nativeText("Copy")) }, onClick = { copy(); menu = false })
             DropdownMenuItem(text = { Text(nativeText("Share")) }, onClick = { share(); menu = false })
-            DropdownMenuItem(text = { Text(nativeText("Suggest translation")) }, onClick = { open(); menu = false })
+            DropdownMenuItem(text = { Text(nativeText("Suggest a translation")) }, onClick = { open(); menu = false })
         }
     }
     if (pendingRemoval != null) AlertDialog(onDismissRequest = { pendingRemoval = null }, title = { Text(nativeText("Remove saved item?")) }, text = { Text(nativeText("You can undo this action from the message at the top.")) }, confirmButton = { TextButton(onClick = { if (pendingRemoval == "bookmark") toggleBookmark() else toggleFavorite(); pendingRemoval = null }) { Text(nativeText("Remove")) } }, dismissButton = { Column { TextButton(onClick = { app.savedSafety.confirmsRemoval = false; if (pendingRemoval == "bookmark") toggleBookmark() else toggleFavorite(); pendingRemoval = null }) { Text(nativeText("Remove and don't ask again")) }; TextButton(onClick = { pendingRemoval = null }) { Text(nativeText("Cancel")) } } })
@@ -326,7 +330,7 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit, previewState: String? 
         ModalBottomSheet(onDismissRequest = { sourceSheet = false }, containerColor = colors.surface) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth().padding(20.dp).testTag("today.sourceSheet")) {
                 Text(hadith.authenticity.sourceName, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
-                Text(hadith.authenticity.displayLabel, fontSize = 13.sp, color = colors.textSecondary)
+                Text(com.hadithly.app.core.preferences.authenticityText(hadith.authenticity.claimScope, hadith.authenticity.normalizedGrade, hadith.authenticity.sourceName), fontSize = 13.sp, color = colors.textSecondary)
                 if (hadith.authenticity.sourceUrl.isNotBlank()) Text(hadith.authenticity.sourceUrl, fontSize = 12.sp, color = colors.accent)
             }
         }
@@ -353,4 +357,13 @@ private fun dailyInterfaceExample(): DailyHadith = DailyHadith(
         language = "en", source = "fixture", sourceLabel = "Prepared example", isAI = false),
     referenceDisplay = "Prepared interface preview",
     authenticity = com.hadithly.app.core.data.AuthenticityClaim("unknown", claimScope = "unknown", sourceLabel = "Prepared example", sourceName = "Interface preview", sourceUrl = "", verificationMethod = "unverified"),
+)
+
+@Composable
+internal fun todayAccessibilityActionLabels(bookmarked: Boolean, favorite: Boolean, hasNote: Boolean): List<String> = listOf(
+    nativeText("Open in reader"),
+    nativeText(if (bookmarked) "Remove bookmark" else "Add bookmark"),
+    nativeText(if (favorite) "Remove favorite" else "Add to favorites"),
+    nativeText(if (hasNote) "Edit note" else "Add note"),
+    nativeText("Copy"), nativeText("Share"), nativeText("Suggest a translation"),
 )

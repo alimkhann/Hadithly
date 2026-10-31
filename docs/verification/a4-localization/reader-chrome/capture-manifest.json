@@ -1,0 +1,1262 @@
+[
+  {
+    "platform": "ios",
+    "name": "final--[VisualPolishUITests testChromeCopyReproduction]",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-red-ios-captures/FB5EE509-4488-4CE6-9428-D9721329E7A8.png",
+    "sha256": "32ff380e54b57eccdaa02ff60a2885b3169cd658f3399757b66f7ce71c3060b1",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-before-ar",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-red-ios-captures/4924B49A-159F-4465-8108-70EF0AD9A1B5.png",
+    "sha256": "32ff380e54b57eccdaa02ff60a2885b3169cd658f3399757b66f7ce71c3060b1",
+    "committed": "docs/verification/a4-localization/reader-chrome/ios-chrome-before-ar.png"
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-bn-2",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/955B5946-90DE-45DE-9C6C-7099C1260862.png",
+    "sha256": "202614fd4cd160b04dab5cbc01afaaf722fe5e9f8b922f82dc6285ab9b6cb548",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-bn-1",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/9A09F2F6-6D4E-406B-834A-4876E4A4B4F3.png",
+    "sha256": "202614fd4cd160b04dab5cbc01afaaf722fe5e9f8b922f82dc6285ab9b6cb548",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-bn-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/DBC23711-F531-4057-B090-781A5EDDEEE5.png",
+    "sha256": "202614fd4cd160b04dab5cbc01afaaf722fe5e9f8b922f82dc6285ab9b6cb548",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-hi-2",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/EE5683F5-FA29-4D2F-9B92-7EF581667FE9.png",
+    "sha256": "8e0ac639439c02d02f285cdf4855f87adb79a2dd936e7c25256242128b55bd2a",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-hi-1",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/E77A4E5D-7896-4380-A179-34BA02DE86DE.png",
+    "sha256": "8e0ac639439c02d02f285cdf4855f87adb79a2dd936e7c25256242128b55bd2a",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-hi-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/08802390-3A1F-4358-BEE1-2540DE14656C.png",
+    "sha256": "8e0ac639439c02d02f285cdf4855f87adb79a2dd936e7c25256242128b55bd2a",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-sw-2",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/1775C1B2-96FA-42BC-9E27-BA32C5F319CE.png",
+    "sha256": "b7b3cacc95bccf333a11900202cf45643082907d82855f00cc0be9c10baa7c63",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-sw-1",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/5576AC04-28B1-4AF9-BB1A-302BB8D9C63A.png",
+    "sha256": "b7b3cacc95bccf333a11900202cf45643082907d82855f00cc0be9c10baa7c63",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-sw-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/776E138A-41ED-47DE-AC3D-6740BD43C3E6.png",
+    "sha256": "b7b3cacc95bccf333a11900202cf45643082907d82855f00cc0be9c10baa7c63",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-pt-BR-2",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/9E10A9CD-A10D-4F28-953B-C1C762B9F0A1.png",
+    "sha256": "c716ac97d7c7101669fe9a8f9315e117b34d350681b40c9ef36db5460d80d04b",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-pt-BR-1",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/97E640B5-41F5-4D41-9F4C-5F30903CB77D.png",
+    "sha256": "c716ac97d7c7101669fe9a8f9315e117b34d350681b40c9ef36db5460d80d04b",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-pt-BR-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/D43E89DB-561F-49CB-BD7D-695B790A2DA1.png",
+    "sha256": "c716ac97d7c7101669fe9a8f9315e117b34d350681b40c9ef36db5460d80d04b",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-es-419-2",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/CF201521-F51B-46BF-8E24-31CFB7266761.png",
+    "sha256": "95e3255e469187283ee14328f97178c37d843a6713baa9ed981d026a12a83024",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-es-419-1",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/A2139059-B02B-40C2-B232-B3671C4CD9F9.png",
+    "sha256": "95e3255e469187283ee14328f97178c37d843a6713baa9ed981d026a12a83024",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-es-419-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/51C15EAA-AE69-4447-B311-988C427AE1E6.png",
+    "sha256": "95e3255e469187283ee14328f97178c37d843a6713baa9ed981d026a12a83024",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-fr-2",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/5EF1F678-ED92-4E00-A41D-AD2371DC4300.png",
+    "sha256": "2ddf4f5a428bf167ff6f60ebaf098898b8208bf3568b77bbb302f03b3e474e56",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-fr-1",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/C6AF38CE-3225-4916-B570-AE68A9CC2EE2.png",
+    "sha256": "2ddf4f5a428bf167ff6f60ebaf098898b8208bf3568b77bbb302f03b3e474e56",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-fr-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/46747E6B-DE66-403E-B2DB-F42847EB5697.png",
+    "sha256": "2ddf4f5a428bf167ff6f60ebaf098898b8208bf3568b77bbb302f03b3e474e56",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-ur-2",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/E897D995-EB22-4DF8-94F5-00F911515822.png",
+    "sha256": "3a7549c4856a28623ae62decf4d3b0a3bde1380a1654072a997d3ad9abaa30f1",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-ur-1",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/26E098C1-8F14-4C16-AE3A-1A9CA40040A9.png",
+    "sha256": "3a7549c4856a28623ae62decf4d3b0a3bde1380a1654072a997d3ad9abaa30f1",
+    "committed": "docs/verification/a4-localization/reader-chrome/ios-chrome-ur-1.png"
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-ur-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/6B896DDF-DBD5-462D-8775-30C9D9CDDD48.png",
+    "sha256": "3a7549c4856a28623ae62decf4d3b0a3bde1380a1654072a997d3ad9abaa30f1",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-id-2",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/4351EB86-92B6-4C0A-9302-2FD22E037C07.png",
+    "sha256": "a9fdcdc5efdd0b353b3d36efe2ca28e6e0205a34cc145c789acfc792436e253b",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-id-1",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/4DB038CB-7E9C-4CFE-BD1D-86F66C4F4D46.png",
+    "sha256": "a9fdcdc5efdd0b353b3d36efe2ca28e6e0205a34cc145c789acfc792436e253b",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-id-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/F412D145-9319-49B5-9B28-39EC8DD854D7.png",
+    "sha256": "a9fdcdc5efdd0b353b3d36efe2ca28e6e0205a34cc145c789acfc792436e253b",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-tr-2",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/EB28DE29-C361-4531-BEC1-68F48812083C.png",
+    "sha256": "798a1247a6ca2edbce99dbaab028b0d33ff7a0fa21cbddb6f8cc99a885b2810b",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-tr-1",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/84965FEF-4814-41F5-B19F-A05872761E4F.png",
+    "sha256": "798a1247a6ca2edbce99dbaab028b0d33ff7a0fa21cbddb6f8cc99a885b2810b",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-tr-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/9C7B077B-13F7-4823-BFF0-FC5F2C4C1E52.png",
+    "sha256": "798a1247a6ca2edbce99dbaab028b0d33ff7a0fa21cbddb6f8cc99a885b2810b",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-uz-2",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/1BC282F3-894C-4315-B062-4A5F4E8BE83F.png",
+    "sha256": "bdf4ea8faa4ac13b88da094883df2a3280d73988945029a40903241e8b516bc9",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-uz-1",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/B449ADD7-DA53-41A7-9F90-E06E9DE5C63F.png",
+    "sha256": "bdf4ea8faa4ac13b88da094883df2a3280d73988945029a40903241e8b516bc9",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-uz-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/F31FAB80-7D68-4D0B-9E43-BDD7B87FCB32.png",
+    "sha256": "bdf4ea8faa4ac13b88da094883df2a3280d73988945029a40903241e8b516bc9",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-ky-2",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/06DECFD0-214E-4EAD-80F6-5A8BAD419942.png",
+    "sha256": "dc985fe139d32959fa783086d38e7ecf8d35a92ca9a236c0d9ecb94267d64a14",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-ky-1",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/3BE08EAA-5C67-4C97-AEF3-73C84F9DD28C.png",
+    "sha256": "dc985fe139d32959fa783086d38e7ecf8d35a92ca9a236c0d9ecb94267d64a14",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-ky-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/75EE1955-3966-4B24-826A-3743B45A24AD.png",
+    "sha256": "dc985fe139d32959fa783086d38e7ecf8d35a92ca9a236c0d9ecb94267d64a14",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-kk-2",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/0DFFA5FE-FD6F-4B10-964A-54029C5F270B.png",
+    "sha256": "cb9de6bac7b42dc4d10f03049449a6738edb7a5551c34c29f5a1a0a795419fbf",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-kk-1",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/A9FEAB95-DBAB-4D7D-8748-C03A27EA0E56.png",
+    "sha256": "cb9de6bac7b42dc4d10f03049449a6738edb7a5551c34c29f5a1a0a795419fbf",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-kk-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/604E8DCF-0417-4EB8-BF17-FA82701D8A2D.png",
+    "sha256": "cb9de6bac7b42dc4d10f03049449a6738edb7a5551c34c29f5a1a0a795419fbf",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-ru-2",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/4391CFA3-872F-4535-9CE0-5BDA355FCFC4.png",
+    "sha256": "a6a00b58a763d355de146570ea04c4da29b76531eaaa7e6fdf8526a268376536",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-ru-1",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/6481E515-36C9-4D42-8C2B-A19AED5A1211.png",
+    "sha256": "a6a00b58a763d355de146570ea04c4da29b76531eaaa7e6fdf8526a268376536",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-ru-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/9EAF87B6-BE77-4B24-8DB9-E115194DD8E5.png",
+    "sha256": "a6a00b58a763d355de146570ea04c4da29b76531eaaa7e6fdf8526a268376536",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-ar-2",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/D1E77841-0B8B-4668-9399-02F242901BD4.png",
+    "sha256": "d7ef8352b06708024a0b5de6e2a30e665a1ee442128c324ed1996d023600d16e",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-ar-1",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/22DF3C04-F854-472B-B1F4-81C6C8694C13.png",
+    "sha256": "d7ef8352b06708024a0b5de6e2a30e665a1ee442128c324ed1996d023600d16e",
+    "committed": "docs/verification/a4-localization/reader-chrome/ios-chrome-ar-1.png"
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-ar-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/58407772-FFD9-45F6-8D32-E5CB5840980C.png",
+    "sha256": "d7ef8352b06708024a0b5de6e2a30e665a1ee442128c324ed1996d023600d16e",
+    "committed": "docs/verification/a4-localization/reader-chrome/ios-chrome-ar-0.png"
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-en-2",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/EE6708B8-EF78-48D2-95B5-E8D493B4FAA4.png",
+    "sha256": "7480235f27ab41e1424af2f846075efefc5d95bc2e6497a14ac53e3a78a00e71",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-en-1",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/EF5647A0-7BAA-4819-BEBC-356739CC933F.png",
+    "sha256": "7480235f27ab41e1424af2f846075efefc5d95bc2e6497a14ac53e3a78a00e71",
+    "committed": "docs/verification/a4-localization/reader-chrome/ios-chrome-en-1.png"
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-en-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/D9C62E89-5394-4CE2-88FD-3F23830A7DAB.png",
+    "sha256": "7480235f27ab41e1424af2f846075efefc5d95bc2e6497a14ac53e3a78a00e71",
+    "committed": "docs/verification/a4-localization/reader-chrome/ios-chrome-en-0.png"
+  },
+  {
+    "platform": "ios",
+    "name": "final-bn-large-15",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/36884B45-9878-4DFB-B56D-DA7E10C940CF.png",
+    "sha256": "9a1e308000a09be22262f6ffbdf6cbb11e26df48a1523d4961833ef2a96e7297",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "final-bn-large-9",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/AE90BE95-D01A-4303-8A2E-77ACB62777C6.png",
+    "sha256": "22a68a492a88d1f07e0da91d89658c4fffd94e9e1ae7455dc2824bbcd35f91d5",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "final-bn-large-5",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/AC0AB25A-7CF7-4590-BBA6-C5DE6CD9C537.png",
+    "sha256": "238904098cb864066663260a5a94f8a04270ef1a0bd216a9b69a80bb9d48a0bd",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "final-bn-large-1",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/9D94F4CA-866C-4597-AC7B-E0DDDD96D962.png",
+    "sha256": "d139ee192c087db037d9314845601c82dad34bbdd5f970d9f5a1917398d6b4e8",
+    "committed": "docs/verification/a4-localization/reader-chrome/ios-final-bn-large-1.png"
+  },
+  {
+    "platform": "ios",
+    "name": "final-ru-large-15",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/AAB7062B-2B62-4EE7-B361-C0144F1F2D85.png",
+    "sha256": "9b7f3fe8bb154ee680da56ab64c5b7f4f5a4c510fe5d14e0d838d6e539dc8557",
+    "committed": "docs/verification/a4-localization/reader-chrome/ios-final-ru-large-15.png"
+  },
+  {
+    "platform": "ios",
+    "name": "final-ru-large-9",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/EE6CFEA0-D069-49B5-B89A-756E8F31EA2B.png",
+    "sha256": "aa2d88901d5034dff55a6a474d58ea62b2caba4d3f8750889343d35f573012a5",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "final-ru-large-5",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/DF1D2878-CA44-4F29-A000-D901E2A134A8.png",
+    "sha256": "95d7ef218534822fbebc6d24d9fd98abf07704dab9459ae1fc1581e30ded208b",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "final-ru-large-1",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/3D2D3560-8CD5-4626-B1A5-D62F5EB0F224.png",
+    "sha256": "03d5e9b9688a68886f096f738a8d59a4bfea694193559e546bb640c2eff8c7bf",
+    "committed": "docs/verification/a4-localization/reader-chrome/ios-final-ru-large-1.png"
+  },
+  {
+    "platform": "ios",
+    "name": "final-ur-large-15",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/4C256E99-6C05-4401-957A-7068A5B07973.png",
+    "sha256": "ad7fb7a71d180fba80149ade3f170b6740312778fd32704fb3707a71bb2f32cc",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "final-ur-large-9",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/2BB761F2-7AF1-43CE-B176-272A71F6E12F.png",
+    "sha256": "30828b385c71b972c1c9855ad74459db7c75e8c765f761f8680dcf5afc55d6c6",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "final-ur-large-5",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/AF2F821A-3A8C-4000-BCA8-BA886467ED77.png",
+    "sha256": "fdec71e8084db659ae941ccc1ec382e83d0fc5b1197206d855fea0204a59be1d",
+    "committed": "docs/verification/a4-localization/reader-chrome/ios-final-ur-large-5.png"
+  },
+  {
+    "platform": "ios",
+    "name": "final-ur-large-1",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/14B97AF1-C031-4C9F-8156-C28491E4E9BC.png",
+    "sha256": "26c83b23e0d368b2db8786c6fdf1f0a386f5fdab83409c3b00e70a96f4bb321d",
+    "committed": "docs/verification/a4-localization/reader-chrome/ios-final-ur-large-1.png"
+  },
+  {
+    "platform": "ios",
+    "name": "final-ar-large-15",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/8E0DD179-4601-44F4-BC69-E0AC688CA81A.png",
+    "sha256": "45bdde81622ae0de719ac5601d15d52efeb642c41b72ef1f3878389d39e2beb3",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "final-ar-large-9",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/064B080B-76C7-4E34-A35C-FE0DCD51A447.png",
+    "sha256": "4563fb1fa525641afa07dcea364e47fffdb4cde3a8bba10206d1c285213ac7e9",
+    "committed": "docs/verification/a4-localization/reader-chrome/ios-final-ar-large-9.png"
+  },
+  {
+    "platform": "ios",
+    "name": "final-ar-large-5",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/33713F99-ECF8-4F4D-9C6B-5023E8FEB822.png",
+    "sha256": "d2df84a38545c9dde4ca026d9d499494f00128ca01564de029231a0e3ba2ed7a",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "final-ar-large-1",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/B24DF83B-49A7-40C8-90DA-CE9707C22EA1.png",
+    "sha256": "97042c6fcc8d81e5e308258db24f0b03422c2a33c004c31826a547fbba5ebcc9",
+    "committed": "docs/verification/a4-localization/reader-chrome/ios-final-ar-large-1.png"
+  },
+  {
+    "platform": "ios",
+    "name": "final-bn-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/1D032D6A-E84C-4791-8C93-59251958D395.png",
+    "sha256": "c337ac3300fb5730b165cec966d893402fe32e11fea5a0da6ad09fec7c1456c7",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "final-hi-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/7C54A6C3-B900-43D0-8190-664AAAFDFAEC.png",
+    "sha256": "5f684002714ee6ca531edf8379f999026052b4d9b8c14148be5d1cc30fee8e81",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "final-sw-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/AE2481F8-9B17-439F-BC36-3CD1105DB7F4.png",
+    "sha256": "6ac6414e9e9f33d9c947bdaefe360d0e458cd4e2dd67feff807f1f6f15d46b24",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "final-pt-BR-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/EEE8FE5A-F05D-4223-ADFC-77E6C1822371.png",
+    "sha256": "b4b449e8fa13fb15205a0482b0c15f434ca1bb7d644534d1da5818ea9ef025e4",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "final-es-419-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/3DAD0D8D-C62A-402D-B47C-4E3BEF050CD0.png",
+    "sha256": "9ae0570b237123882c8ac5fe349e7a89c0b91b68a7d317d029d5577b6f8d5389",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "final-fr-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/F49E4984-C909-4521-8336-D9716408EC0A.png",
+    "sha256": "ef15518b44fc3f239a275c72d77aa7e891102c5a42bbf6c462e3e5b6640fd5a8",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "final-ur-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/8FEADD0C-C715-4817-A430-D64BF8E7FBF1.png",
+    "sha256": "e781475cd23eb7a75c20c2ab599911c4ac7b864efc8dc38f0bed45287dd50f61",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "final-id-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/FAECE1C0-4672-4128-8399-D60B97413A63.png",
+    "sha256": "2c395b33b7c2533610ecfd47211c5630fea1c5f033a0354bacd4c36865efdaab",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "final-tr-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/1373EC1C-84A2-4BEE-8B5E-B9D9177BF633.png",
+    "sha256": "6d4f15d53b1bd4ae15dc5ca4df02373eafff2ea1011eea55ce4006987301ade0",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "final-uz-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/2684AE48-76FF-41DE-97E8-ECD26C76744F.png",
+    "sha256": "6223591d1796bf396732ff386e3b3c7414c2efc01b3690172a81a584eaf8ad59",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "final-ky-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/A95E217A-A36E-4F43-ACFB-45C3FF3FCA2C.png",
+    "sha256": "ee6364963263900787227d333c92f744f1c1283f25fcd09596dbdc8b901482a0",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "final-kk-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/AA3B6FE3-7CB2-45B1-AA54-63DBB7A21BC3.png",
+    "sha256": "907262f8e5582010d2025a3ee9876235da9579ae4b118e4dcb52b97cd2a70dd5",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "final-ru-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/71B0BBA8-8A63-4E46-BF07-8DA10E48495C.png",
+    "sha256": "0bd22530027c7b19dd232b0f1f708358b2715c6492b0203b7c5c341023695083",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "final-ar-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/CD2AE7E6-55ED-4F7A-B9AB-FD01AAFA3258.png",
+    "sha256": "d8ce321996148680172b822aca02935c594bff5aefe4cbc6af78f39298da37fe",
+    "committed": "docs/verification/a4-localization/reader-chrome/ios-final-ar-0.png"
+  },
+  {
+    "platform": "ios",
+    "name": "final-en-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-first-ios-captures/59C16F11-A2AF-454B-B2D6-8BD2826DD384.png",
+    "sha256": "fa9b9ff3fea0da0f3448d2dd41dfeab387058cd57252897905b86c00568e81c1",
+    "committed": "docs/verification/a4-localization/reader-chrome/ios-final-en-0.png"
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-bn-large-2",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-wide-ios-captures/B154782A-BA4A-46B6-BA2E-17DB904D7161.png",
+    "sha256": "4caf4fb133a4da3e406e425c18ebb836dc7ec7c32d0ec98c3d2060c65928633f",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-bn-large-1",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-wide-ios-captures/49AEF786-2033-4E4E-9F74-28D8C7340F06.png",
+    "sha256": "4caf4fb133a4da3e406e425c18ebb836dc7ec7c32d0ec98c3d2060c65928633f",
+    "committed": "docs/verification/a4-localization/reader-chrome/ios-chrome-bn-large-1.png"
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-bn-large-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-wide-ios-captures/0C45D4E1-72AA-4B19-8725-1F42B7AD84D2.png",
+    "sha256": "4caf4fb133a4da3e406e425c18ebb836dc7ec7c32d0ec98c3d2060c65928633f",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-ru-large-2",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-wide-ios-captures/0EFE25BF-743C-42B0-B169-6182833D1196.png",
+    "sha256": "90c4662f8ad532f69f3cace59ab44af3538ab49a4ce670f38036665fc50dbb19",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-ru-large-1",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-wide-ios-captures/50EDF406-BD62-4D39-9781-F17EE0C915B5.png",
+    "sha256": "7ebf89ad09e2fe6356844085d9ac5b744c63b0cd78393ee6c538821b6f62b737",
+    "committed": "docs/verification/a4-localization/reader-chrome/ios-chrome-ru-large-1.png"
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-ru-large-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-wide-ios-captures/4AD1F91E-9F13-4729-B371-465AFEED5FEA.png",
+    "sha256": "18c0cab8b828ae864473cd3d1879136fb372f2cd0fc570cf883b3f0f91a5db3b",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-ur-large-2",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-wide-ios-captures/9CAB047F-ECDF-4E9F-BCD3-0DDAFE856762.png",
+    "sha256": "74ce59972c700d05e2a4129c3cc971a09443f069fcd11f70c46f37e359b1806e",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-ur-large-1",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-wide-ios-captures/2C2DA5A1-DF17-4004-A4D8-40B5ACB16EE8.png",
+    "sha256": "74ce59972c700d05e2a4129c3cc971a09443f069fcd11f70c46f37e359b1806e",
+    "committed": "docs/verification/a4-localization/reader-chrome/ios-chrome-ur-large-1.png"
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-ur-large-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-wide-ios-captures/2A82C1C9-8C0A-417E-AC0B-DAFB9E7631A6.png",
+    "sha256": "74ce59972c700d05e2a4129c3cc971a09443f069fcd11f70c46f37e359b1806e",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-ar-large-2",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-wide-ios-captures/2B8B2FD1-2F05-44E5-BD5C-B10835DF435F.png",
+    "sha256": "49801f40eda857ad456a917156bb65bd6bbc3a849461e6cc14910d4e134b4886",
+    "committed": null
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-ar-large-1",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-wide-ios-captures/6CF2326A-8C63-45C1-A9DA-F1360EB2C440.png",
+    "sha256": "080952f26a004ba1a0767b35fa9911bb5e5aeab0830903ee714bcf4cc9998117",
+    "committed": "docs/verification/a4-localization/reader-chrome/ios-chrome-ar-large-1.png"
+  },
+  {
+    "platform": "ios",
+    "name": "chrome-ar-large-0",
+    "original": "/tmp/hadithly-a4-finish-1031/chrome-wide-ios-captures/D6EB6471-9869-4CCA-BFD9-366BCA6C97DE.png",
+    "sha256": "080952f26a004ba1a0767b35fa9911bb5e5aeab0830903ee714bcf4cc9998117",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-ar-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-ar-0.png",
+    "sha256": "b7af33919bc009440e2a0fdc39150a0df4e74fd0074351ce0b24922d993e3331",
+    "committed": "docs/verification/a4-localization/reader-chrome/android-chrome-ar-0.png"
+  },
+  {
+    "platform": "android",
+    "name": "chrome-ar-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-ar-1.png",
+    "sha256": "b7af33919bc009440e2a0fdc39150a0df4e74fd0074351ce0b24922d993e3331",
+    "committed": "docs/verification/a4-localization/reader-chrome/android-chrome-ar-1.png"
+  },
+  {
+    "platform": "android",
+    "name": "chrome-ar-2",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-ar-2.png",
+    "sha256": "b7af33919bc009440e2a0fdc39150a0df4e74fd0074351ce0b24922d993e3331",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-ar-large-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-ar-large-0.png",
+    "sha256": "06a32f73c7d3e69a1422b3f9c3e56a07aff3d9d9c2654e032106a95cabc25982",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-ar-large-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-ar-large-1.png",
+    "sha256": "06a32f73c7d3e69a1422b3f9c3e56a07aff3d9d9c2654e032106a95cabc25982",
+    "committed": "docs/verification/a4-localization/reader-chrome/android-chrome-ar-large-1.png"
+  },
+  {
+    "platform": "android",
+    "name": "chrome-ar-large-2",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-ar-large-2.png",
+    "sha256": "06a32f73c7d3e69a1422b3f9c3e56a07aff3d9d9c2654e032106a95cabc25982",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-before-ar",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-before-ar.png",
+    "sha256": "159f5a657ce990ec561598b75bc72a0aa28f7360f146bf6be3ab1555ca455369",
+    "committed": "docs/verification/a4-localization/reader-chrome/android-chrome-before-ar.png"
+  },
+  {
+    "platform": "android",
+    "name": "chrome-bn-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-bn-0.png",
+    "sha256": "fecd30588f0ab49413d351e56202b04bc34dc09fe28f8de4e2d2e2e8a19b833f",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-bn-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-bn-1.png",
+    "sha256": "fecd30588f0ab49413d351e56202b04bc34dc09fe28f8de4e2d2e2e8a19b833f",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-bn-2",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-bn-2.png",
+    "sha256": "fecd30588f0ab49413d351e56202b04bc34dc09fe28f8de4e2d2e2e8a19b833f",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-bn-large-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-bn-large-0.png",
+    "sha256": "6f4b257b32c339e172eed2187e5b66f545969e34f14ea48624d1b5a17d7dd0d9",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-bn-large-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-bn-large-1.png",
+    "sha256": "6f4b257b32c339e172eed2187e5b66f545969e34f14ea48624d1b5a17d7dd0d9",
+    "committed": "docs/verification/a4-localization/reader-chrome/android-chrome-bn-large-1.png"
+  },
+  {
+    "platform": "android",
+    "name": "chrome-bn-large-2",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-bn-large-2.png",
+    "sha256": "6f4b257b32c339e172eed2187e5b66f545969e34f14ea48624d1b5a17d7dd0d9",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-en-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-en-0.png",
+    "sha256": "ad16d20d66262115f9b8c9e248f1505bca3304fc42f4e6a5e175d4b1c1595eb2",
+    "committed": "docs/verification/a4-localization/reader-chrome/android-chrome-en-0.png"
+  },
+  {
+    "platform": "android",
+    "name": "chrome-en-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-en-1.png",
+    "sha256": "ad16d20d66262115f9b8c9e248f1505bca3304fc42f4e6a5e175d4b1c1595eb2",
+    "committed": "docs/verification/a4-localization/reader-chrome/android-chrome-en-1.png"
+  },
+  {
+    "platform": "android",
+    "name": "chrome-en-2",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-en-2.png",
+    "sha256": "ad16d20d66262115f9b8c9e248f1505bca3304fc42f4e6a5e175d4b1c1595eb2",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-es-419-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-es-419-0.png",
+    "sha256": "5c4326bc8a7eaf65b74b221987fe0da50656f4fd3a9babf99e68832307572488",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-es-419-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-es-419-1.png",
+    "sha256": "5c4326bc8a7eaf65b74b221987fe0da50656f4fd3a9babf99e68832307572488",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-es-419-2",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-es-419-2.png",
+    "sha256": "5c4326bc8a7eaf65b74b221987fe0da50656f4fd3a9babf99e68832307572488",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-fr-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-fr-0.png",
+    "sha256": "db1c7cef57596f2bcd1c288cb5eb2034be2744599d0370781b99bd23582f12ea",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-fr-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-fr-1.png",
+    "sha256": "db1c7cef57596f2bcd1c288cb5eb2034be2744599d0370781b99bd23582f12ea",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-fr-2",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-fr-2.png",
+    "sha256": "db1c7cef57596f2bcd1c288cb5eb2034be2744599d0370781b99bd23582f12ea",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-hi-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-hi-0.png",
+    "sha256": "a4936571ea6579b2500b2703e65475900f98a5326e5ad712b0f5d4107bc51383",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-hi-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-hi-1.png",
+    "sha256": "a4936571ea6579b2500b2703e65475900f98a5326e5ad712b0f5d4107bc51383",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-hi-2",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-hi-2.png",
+    "sha256": "a4936571ea6579b2500b2703e65475900f98a5326e5ad712b0f5d4107bc51383",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-id-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-id-0.png",
+    "sha256": "f6417f2f02db5d19d2a9fa75e470fb1d901c8268015ec7bd41d27f52d3c45b66",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-id-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-id-1.png",
+    "sha256": "f6417f2f02db5d19d2a9fa75e470fb1d901c8268015ec7bd41d27f52d3c45b66",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-id-2",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-id-2.png",
+    "sha256": "f6417f2f02db5d19d2a9fa75e470fb1d901c8268015ec7bd41d27f52d3c45b66",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-kk-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-kk-0.png",
+    "sha256": "e8424c2c1670809b82f6b76fd22be58f3c26f912a6286f1fc82b804a21ef90e8",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-kk-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-kk-1.png",
+    "sha256": "e8424c2c1670809b82f6b76fd22be58f3c26f912a6286f1fc82b804a21ef90e8",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-kk-2",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-kk-2.png",
+    "sha256": "e8424c2c1670809b82f6b76fd22be58f3c26f912a6286f1fc82b804a21ef90e8",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-ky-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-ky-0.png",
+    "sha256": "1eddd470b8f951f764025311a3d888a9ca70e3231a4302f1da636fffc57edbd7",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-ky-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-ky-1.png",
+    "sha256": "1eddd470b8f951f764025311a3d888a9ca70e3231a4302f1da636fffc57edbd7",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-ky-2",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-ky-2.png",
+    "sha256": "1eddd470b8f951f764025311a3d888a9ca70e3231a4302f1da636fffc57edbd7",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-pt-BR-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-pt-BR-0.png",
+    "sha256": "ed0612d9405ec551fec9ceace9be9b890977fa6634539678f5286a6404d77185",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-pt-BR-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-pt-BR-1.png",
+    "sha256": "ed0612d9405ec551fec9ceace9be9b890977fa6634539678f5286a6404d77185",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-pt-BR-2",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-pt-BR-2.png",
+    "sha256": "ed0612d9405ec551fec9ceace9be9b890977fa6634539678f5286a6404d77185",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-ru-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-ru-0.png",
+    "sha256": "2732a94423bc345147db7269d1e4b7134a01fc1e51ea212774cc82ce70638a76",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-ru-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-ru-1.png",
+    "sha256": "2732a94423bc345147db7269d1e4b7134a01fc1e51ea212774cc82ce70638a76",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-ru-2",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-ru-2.png",
+    "sha256": "2732a94423bc345147db7269d1e4b7134a01fc1e51ea212774cc82ce70638a76",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-ru-large-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-ru-large-0.png",
+    "sha256": "3b4187a1ecc9f902adcc53b04ec873efafb3dd924acbfa57554275f53ef071f3",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-ru-large-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-ru-large-1.png",
+    "sha256": "3b4187a1ecc9f902adcc53b04ec873efafb3dd924acbfa57554275f53ef071f3",
+    "committed": "docs/verification/a4-localization/reader-chrome/android-chrome-ru-large-1.png"
+  },
+  {
+    "platform": "android",
+    "name": "chrome-ru-large-2",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-ru-large-2.png",
+    "sha256": "3b4187a1ecc9f902adcc53b04ec873efafb3dd924acbfa57554275f53ef071f3",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-sw-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-sw-0.png",
+    "sha256": "c6c82dce70cb98118e28a27ec15af1d539bf403f9c8e24949eb647e3324e3e65",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-sw-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-sw-1.png",
+    "sha256": "c6c82dce70cb98118e28a27ec15af1d539bf403f9c8e24949eb647e3324e3e65",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-sw-2",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-sw-2.png",
+    "sha256": "c6c82dce70cb98118e28a27ec15af1d539bf403f9c8e24949eb647e3324e3e65",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-tr-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-tr-0.png",
+    "sha256": "021c272966beb7b018c96ae5c85b19ec71170564df61af66f6fb48aba94d2f11",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-tr-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-tr-1.png",
+    "sha256": "ea1e9baa38a2843ae9c5b99040d39a216d489187ef86bdf0df15735c0d1bb5a3",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-tr-2",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-tr-2.png",
+    "sha256": "ea1e9baa38a2843ae9c5b99040d39a216d489187ef86bdf0df15735c0d1bb5a3",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-ur-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-ur-0.png",
+    "sha256": "239542a949cfbd43aa0ecc9f7ede84ad69e9947483fbd15f43b10c4f0a027c12",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-ur-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-ur-1.png",
+    "sha256": "239542a949cfbd43aa0ecc9f7ede84ad69e9947483fbd15f43b10c4f0a027c12",
+    "committed": "docs/verification/a4-localization/reader-chrome/android-chrome-ur-1.png"
+  },
+  {
+    "platform": "android",
+    "name": "chrome-ur-2",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-ur-2.png",
+    "sha256": "239542a949cfbd43aa0ecc9f7ede84ad69e9947483fbd15f43b10c4f0a027c12",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-ur-large-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-ur-large-0.png",
+    "sha256": "39644211b5da9eda99dbb0d0a878368e96978a90f480ffdafa3b13c33ae47fe4",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-ur-large-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-ur-large-1.png",
+    "sha256": "39644211b5da9eda99dbb0d0a878368e96978a90f480ffdafa3b13c33ae47fe4",
+    "committed": "docs/verification/a4-localization/reader-chrome/android-chrome-ur-large-1.png"
+  },
+  {
+    "platform": "android",
+    "name": "chrome-ur-large-2",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-ur-large-2.png",
+    "sha256": "39644211b5da9eda99dbb0d0a878368e96978a90f480ffdafa3b13c33ae47fe4",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-uz-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-uz-0.png",
+    "sha256": "7aeafa912cd3a428e6ff21853eaa6c032967eff6426ef9f71f8e7be928c0b260",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-uz-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-uz-1.png",
+    "sha256": "7aeafa912cd3a428e6ff21853eaa6c032967eff6426ef9f71f8e7be928c0b260",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "chrome-uz-2",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-chrome-uz-2.png",
+    "sha256": "7aeafa912cd3a428e6ff21853eaa6c032967eff6426ef9f71f8e7be928c0b260",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "final-ar-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-ar-0.png",
+    "sha256": "766dba40720d73a08f66d6f02306482a968ec7bad7ced336abfcdf23cc000527",
+    "committed": "docs/verification/a4-localization/reader-chrome/android-final-ar-0.png"
+  },
+  {
+    "platform": "android",
+    "name": "final-ar-large-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-ar-large-1.png",
+    "sha256": "c020510d6d0a5df640f2ac77acab4b1eef13523411b43d1d54cfb4043e91dd2e",
+    "committed": "docs/verification/a4-localization/reader-chrome/android-final-ar-large-1.png"
+  },
+  {
+    "platform": "android",
+    "name": "final-ar-large-15",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-ar-large-15.png",
+    "sha256": "06a51c476843cd9d20321bc25252090c36064d255f1dd8814022ec37cfdacb44",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "final-ar-large-5",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-ar-large-5.png",
+    "sha256": "99a2115f403e9b25bd2ed1e5f2147114eccd164f59b0e6cb90eb8f9fb6bb1757",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "final-ar-large-9",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-ar-large-9.png",
+    "sha256": "18735df6e0e2c8973e05251c9a0bf31e2a250a276c18e1a4c5c3633b98186587",
+    "committed": "docs/verification/a4-localization/reader-chrome/android-final-ar-large-9.png"
+  },
+  {
+    "platform": "android",
+    "name": "final-bn-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-bn-0.png",
+    "sha256": "6798be9dc30b28f68da6b109f75d4471589fb827f67f299f2c10cc9be1a70e7d",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "final-bn-large-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-bn-large-1.png",
+    "sha256": "0a37279cd0f4fa221d2366a36b5a09d78cf237c9e512a2ed451908ef48b20bc6",
+    "committed": "docs/verification/a4-localization/reader-chrome/android-final-bn-large-1.png"
+  },
+  {
+    "platform": "android",
+    "name": "final-bn-large-15",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-bn-large-15.png",
+    "sha256": "90f738134d31bf157c6005b713914a601f31653a925a3b398a2f6001d9589c62",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "final-bn-large-5",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-bn-large-5.png",
+    "sha256": "2b5ac8548410774bfd42e39f581591b8444bbcd3c9ac999bfa2b9cacff162772",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "final-bn-large-9",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-bn-large-9.png",
+    "sha256": "c507f08a84dd88d6d161f0fb9cf13f660fbf669611801a0a63a1b633fd10e924",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "final-en-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-en-0.png",
+    "sha256": "ba3090f17aae1c51f5b285b6f60e6c4508063105b873434128d7770dd0f227c2",
+    "committed": "docs/verification/a4-localization/reader-chrome/android-final-en-0.png"
+  },
+  {
+    "platform": "android",
+    "name": "final-es-419-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-es-419-0.png",
+    "sha256": "466a30b62158f10be977dee507bc95d8b814c02621be2898c864205c7d47da33",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "final-fr-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-fr-0.png",
+    "sha256": "a05bb38ceef214c6aa011e837bbb8fe6f3b69aa70a28bf4472f9783a696878bd",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "final-hi-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-hi-0.png",
+    "sha256": "5050d8e573b58ceba712d57f4a07c5e3e49907371b457f9be6f7c6d302fff0c0",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "final-id-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-id-0.png",
+    "sha256": "58a5fb551931e5d9c8971337dd9abaf4c793926fe686d92e2d8d6c9ce3ace4a3",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "final-kk-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-kk-0.png",
+    "sha256": "b94497f473053663ab033aea61f75d30db9646a3bbce3e7cf3c92160684fc0c8",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "final-ky-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-ky-0.png",
+    "sha256": "cd1925125f9e0b3d110734c3b06d83962a8a9337d1d2ddb096976c7ee730573a",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "final-pt-BR-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-pt-BR-0.png",
+    "sha256": "77ab5bc7e5a8a925df6cc01747f76a89397f9d179ed483c2a7f4891b92451659",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "final-ru-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-ru-0.png",
+    "sha256": "99fc64af000a090a785d8c9402381ff3dba05b461049e651f424bc4444278472",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "final-ru-large-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-ru-large-1.png",
+    "sha256": "1c326eb377eec17b93a42c81a713466b1d85350a7b741c39ab39a99e58136936",
+    "committed": "docs/verification/a4-localization/reader-chrome/android-final-ru-large-1.png"
+  },
+  {
+    "platform": "android",
+    "name": "final-ru-large-15",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-ru-large-15.png",
+    "sha256": "5873b75fb463924a1fccdbb36b527843a74859670bd40ec485805ace736b8321",
+    "committed": "docs/verification/a4-localization/reader-chrome/android-final-ru-large-15.png"
+  },
+  {
+    "platform": "android",
+    "name": "final-ru-large-5",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-ru-large-5.png",
+    "sha256": "5aa1a528abb6a0c0b908bd4fe58676e305fb96c03c29cac4f89ecedb6b7e4aff",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "final-ru-large-9",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-ru-large-9.png",
+    "sha256": "f29b3184674eb62c37921b535940e13ac0dcd56e89563fa7bd48c92c3e036234",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "final-sw-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-sw-0.png",
+    "sha256": "6ee54ab2c1c50f413f39a86ee5ff05c82adc54ad58893d5623f640b2a00c8c58",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "final-tr-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-tr-0.png",
+    "sha256": "db211ec6807a88b04c35351bc69f2d23ab422c0593e1018b87068a0cd6332036",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "final-ur-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-ur-0.png",
+    "sha256": "71e8b89fc23a86879c85aa15fae333d8c72766083c6ffa2f20de212033a78193",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "final-ur-large-1",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-ur-large-1.png",
+    "sha256": "97dd955974d64ba0a65e5daaf377ddd298bf3f5c0f745078bb54e4213a22f836",
+    "committed": "docs/verification/a4-localization/reader-chrome/android-final-ur-large-1.png"
+  },
+  {
+    "platform": "android",
+    "name": "final-ur-large-15",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-ur-large-15.png",
+    "sha256": "06a51c476843cd9d20321bc25252090c36064d255f1dd8814022ec37cfdacb44",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "final-ur-large-5",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-ur-large-5.png",
+    "sha256": "70ffd2ff23537076a8afa3db8f3a64fe3396fd001ceab904fa84077f781e792e",
+    "committed": "docs/verification/a4-localization/reader-chrome/android-final-ur-large-5.png"
+  },
+  {
+    "platform": "android",
+    "name": "final-ur-large-9",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-ur-large-9.png",
+    "sha256": "0318ec8fc0f022d94a91d1078e5c27815e16653431d38d28330d56dbba3cd5ad",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "final-uz-0",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-final-uz-0.png",
+    "sha256": "94d8748e2c1828ed85a7b57a0b088d83c900039ee7f6ec4a6e264dcc4412e89e",
+    "committed": null
+  },
+  {
+    "platform": "android",
+    "name": "root-before-ar",
+    "original": "/tmp/hadithly-a4-finish-1031/android-captures/finishing-root-before-ar.png",
+    "sha256": "48967c424f3e5c8f694e093dfb37e804f0a8ee4a392289e6f7e6fdc9a540204b",
+    "committed": "docs/verification/a4-localization/reader-chrome/android-root-before-ar.png"
+  }
+]

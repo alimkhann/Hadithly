@@ -709,7 +709,7 @@ private struct ReaderChromeCircle: View {
                 .readerControlSurface(in: Circle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(label)
+        .accessibilityLabel(Text(LocalizedStringKey(label)))
     }
 }
 
@@ -745,6 +745,7 @@ struct ReaderBottomCircles: View {
 /// padding and heights. The bookmark button keeps default contrast when
 /// active: ONLY its icon turns amber, never the whole card.
 private struct ReaderMenuStack: View {
+    @Environment(\.dynamicTypeSize) private var textSize
     let bookmarked: Bool
     let positionedReference: String
     let palette: ReaderPalette
@@ -757,7 +758,20 @@ private struct ReaderMenuStack: View {
     var body: some View {
         HStack(spacing: 0) {
             Spacer(minLength: 0)
-            VStack(spacing: 6) {
+            Group {
+                if textSize.isAccessibilitySize {
+                    ScrollView { menuContent }.scrollIndicators(.hidden)
+                } else {
+                    menuContent
+                }
+            }.frame(maxWidth: textSize.isAccessibilitySize ? .infinity : 280)
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("reader.menuStack")
+    }
+
+    private var menuContent: some View {
+        VStack(spacing: 6) {
                 menuCard(title: "Contents", subtitle: "Volumes and chapters", image: "list.bullet", action: onContents)
                     .accessibilityIdentifier("reader.menu.contents")
                 menuCard(
@@ -788,10 +802,6 @@ private struct ReaderMenuStack: View {
                     )
                 }
             }
-            .frame(maxWidth: 280)
-        }
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("reader.menuStack")
     }
 
     /// One equal-size icon-only menu button for the bottom row.
@@ -811,7 +821,7 @@ private struct ReaderMenuStack: View {
         }
         .buttonStyle(.plain)
         .frame(maxWidth: .infinity)
-        .accessibilityLabel(label)
+        .accessibilityLabel(Text(LocalizedStringKey(label)))
         .accessibilityIdentifier(identifier)
     }
 
@@ -819,8 +829,8 @@ private struct ReaderMenuStack: View {
         Button(action: action) {
             HStack(spacing: 10) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(title).font(.headline).foregroundStyle(palette.textPrimary)
-                    Text(subtitle).font(.caption).foregroundStyle(palette.textSecondary).lineLimit(1)
+                    Text(LocalizedStringKey(title)).font(.headline).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
+                    Text(LocalizedStringKey(subtitle)).font(.caption).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer()
                 Image(systemName: image).font(.title3).foregroundStyle(palette.textSecondary)
@@ -1721,13 +1731,13 @@ private struct HadithBlock: View {
             .accessibilityIdentifier("reader.hadithLabel")
             .accessibilityLabel("\(ReaderSourceLabel.text(for: hadith)), \(AppLocalization.string(kind.accessibilityName, locale: locale))")
             .accessibilityHint("Shows source details")
-            .accessibilityAction(named: bookmarked ? "Remove bookmark" : "Bookmark") {
+            .accessibilityAction(named: Text(LocalizedStringKey(bookmarked ? "Remove bookmark" : "Add bookmark"))) {
                 requestBookmarkToggle()
             }
-            .accessibilityAction(named: favorited ? "Remove favorite" : "Add to favorites") {
+            .accessibilityAction(named: Text(LocalizedStringKey(favorited ? "Remove favorite" : "Add to favorites"))) {
                 requestFavoriteToggle()
             }
-            .accessibilityAction(named: model.noteContent(for: hadith) != nil ? "Edit note" : "Add note") {
+            .accessibilityAction(named: Text(LocalizedStringKey(model.noteContent(for: hadith) != nil ? "Edit note" : "Add note"))) {
                 isEditingNote = true
             }
             .accessibilityAction(named: "Copy") {
@@ -1805,7 +1815,7 @@ private struct HadithBlock: View {
             requestBookmarkToggle()
         } label: {
             Label(
-                model.isBookmarked(hadith) ? "Remove bookmark" : "Bookmark",
+                LocalizedStringKey(model.isBookmarked(hadith) ? "Remove bookmark" : "Add bookmark"),
                 systemImage: model.isBookmarked(hadith) ? "bookmark.fill" : "bookmark"
             )
         }
@@ -1815,7 +1825,7 @@ private struct HadithBlock: View {
             requestFavoriteToggle()
         } label: {
             Label(
-                model.isFavorite(hadith) ? "Remove favorite" : "Add to favorites",
+                LocalizedStringKey(model.isFavorite(hadith) ? "Remove favorite" : "Add to favorites"),
                 systemImage: model.isFavorite(hadith) ? "heart.fill" : "heart"
             )
         }
@@ -1825,7 +1835,7 @@ private struct HadithBlock: View {
             isEditingNote = true
         } label: {
             Label(
-                model.noteContent(for: hadith) != nil ? "Edit note" : "Add note",
+                LocalizedStringKey(model.noteContent(for: hadith) != nil ? "Edit note" : "Add note"),
                 systemImage: "square.and.pencil"
             )
         }
@@ -1870,7 +1880,8 @@ private struct HadithBlock: View {
             arabicVisible: preferences.arabicVisible,
             translationVisible: preferences.translationVisible,
             translationText: displayedTranslation,
-            translationIsAI: activeTranslation?.source == "gemini_ai"
+            translationIsAI: activeTranslation?.source == "gemini_ai",
+            locale: locale
         )
     }
 
@@ -2086,6 +2097,7 @@ private struct HadithReportAction: ViewModifier {
 /// name left the page but stays one tap away; copy/share keep the full
 /// source line unchanged.
 struct HadithSourceSheet: View {
+    @Environment(\.locale) private var locale
     @Environment(\.readerPalette) private var palette
     @Environment(\.readerTheme) private var readerTheme
     @Environment(\.openURL) private var openURL
@@ -2102,7 +2114,7 @@ struct HadithSourceSheet: View {
                     .font(.headline)
                     .foregroundStyle(palette.textPrimary)
                     .accessibilityIdentifier("reader.sourceSheet.name")
-                Text(hadith.authenticity.displayLabel)
+                Text(AppLocalization.authenticity(scope: hadith.authenticity.claimScope, grade: hadith.authenticity.normalizedGrade, sourceName: hadith.authenticity.sourceName, locale: locale))
                     .font(.subheadline)
                     .foregroundStyle(palette.textSecondary)
                     .accessibilityIdentifier("reader.sourceSheet.scope")
@@ -3208,3 +3220,23 @@ private final class ReaderPagingHostView: UIView {
         if let window { onWindowAvailable?(window) }
     }
 }
+
+#if DEBUG
+struct ChromeCopyAuditFixture: View {
+    @Environment(\.readerPalette) private var palette
+    @State private var callbacks = 0
+    @State private var open = false
+    @State private var bookmarked = false
+    var body: some View {
+        VStack {
+            ReaderMenuStack(bookmarked: bookmarked, positionedReference: "Original %lld %@ اسم", palette: palette,
+                onContents: { callbacks += 1 }, onSaved: { callbacks += 1 }, onSettings: { callbacks += 1 },
+                onBookmark: { bookmarked.toggle(); callbacks += 1 }, onSearch: { callbacks += 1 })
+            ReaderBottomCircles(menuOpen: open, palette: palette, onClose: { callbacks += 1 }, onMenu: { open.toggle(); callbacks += 1 })
+        }.padding(24)
+        .overlay(alignment: .topTrailing) {
+            Text(String(callbacks)).font(.caption2).accessibilityIdentifier("chromeAudit.callbacks").allowsHitTesting(false)
+        }
+    }
+}
+#endif

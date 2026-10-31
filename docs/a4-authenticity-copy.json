@@ -1,0 +1,87 @@
+{
+  "native_review": "pending",
+  "provenance": "Local GPT-family drafts for existing authenticity claim templates. Existing scope and grade decisions retained. Source names remain opaque. Native-speaker approval pending.",
+  "android_test_fixture_asset": "a4-authenticity-copy.json",
+  "keys": [
+    "%1$@ hadith · %2$@",
+    "%1$@ collection scope · %2$@",
+    "Authenticity not verified · %@"
+  ],
+  "locales": {
+    "en": [
+      "%1$@ hadith · %2$@",
+      "%1$@ collection scope · %2$@",
+      "Authenticity not verified · %@"
+    ],
+    "ar": [
+      "حديث %1$@ · %2$@",
+      "نطاق المجموعة: %1$@ · %2$@",
+      "لم يتم التحقق من صحة الحديث · %@"
+    ],
+    "ru": [
+      "Хадис: %1$@ · %2$@",
+      "Оценка сборника: %1$@ · %2$@",
+      "Достоверность не проверена · %@"
+    ],
+    "kk": [
+      "%1$@ хадис · %2$@",
+      "Жинақ деңгейіндегі баға: %1$@ · %2$@",
+      "Сенімділігі тексерілмеген · %@"
+    ],
+    "ky": [
+      "%1$@ хадис · %2$@",
+      "Жыйнак деңгээлиндеги баа: %1$@ · %2$@",
+      "Ишенимдүүлүгү текшерилген эмес · %@"
+    ],
+    "uz": [
+      "%1$@ hadis · %2$@",
+      "To‘plam doirasidagi baho: %1$@ · %2$@",
+      "Ishonchliligi tekshirilmagan · %@"
+    ],
+    "tr": [
+      "%1$@ hadis · %2$@",
+      "Koleksiyon kapsamındaki değerlendirme: %1$@ · %2$@",
+      "Sıhhati doğrulanmadı · %@"
+    ],
+    "id": [
+      "Hadis %1$@ · %2$@",
+      "Penilaian tingkat koleksi: %1$@ · %2$@",
+      "Kesahihan belum diverifikasi · %@"
+    ],
+    "ur": [
+      "%1$@ حدیث · %2$@",
+      "مجموعے کی سطح پر درجہ: %1$@ · %2$@",
+      "صحت کی تصدیق نہیں ہوئی · %@"
+    ],
+    "fr": [
+      "Hadith %1$@ · %2$@",
+      "Évaluation du recueil : %1$@ · %2$@",
+      "Authenticité non vérifiée · %@"
+    ],
+    "es-419": [
+      "Hadiz %1$@ · %2$@",
+      "Evaluación de la colección: %1$@ · %2$@",
+      "Autenticidad sin verificar · %@"
+    ],
+    "pt-BR": [
+      "Hadith %1$@ · %2$@",
+      "Avaliação da coleção: %1$@ · %2$@",
+      "Autenticidade não verificada · %@"
+    ],
+    "sw": [
+      "Hadithi %1$@ · %2$@",
+      "Tathmini ya mkusanyiko: %1$@ · %2$@",
+      "Uhalisi haujathibitishwa · %@"
+    ],
+    "hi": [
+      "%1$@ हदीस · %2$@",
+      "संग्रह के स्तर पर दर्जा: %1$@ · %2$@",
+      "प्रामाणिकता सत्यापित नहीं है · %@"
+    ],
+    "bn": [
+      "%1$@ হাদিস · %2$@",
+      "সংকলন পর্যায়ের মূল্যায়ন: %1$@ · %2$@",
+      "বিশুদ্ধতা যাচাই করা হয়নি · %@"
+    ]
+  }
+}

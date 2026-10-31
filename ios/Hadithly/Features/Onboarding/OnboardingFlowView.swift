@@ -297,6 +297,7 @@ struct OnboardingTranslationView: View {
 }
 
 struct FirstReadingContent: View {
+    @Environment(\.locale) private var locale
     let phase: FirstReadingPhase
     let onRetry: () -> Void
     let onChooseLanguage: () -> Void
@@ -327,7 +328,7 @@ struct FirstReadingContent: View {
                         Button(item.referenceDisplay) { onOpen(item) }
                             .font(.caption.weight(.semibold)).frame(minHeight: 44)
                             .accessibilityIdentifier("onboarding.openReading")
-                        Text(item.authenticity.displayLabel).font(.caption)
+                        Text(AppLocalization.authenticity(scope: item.authenticity.claimScope, grade: item.authenticity.normalizedGrade, sourceName: item.authenticity.sourceName, locale: locale)).font(.caption)
                     }.foregroundStyle(palette.textSecondary)
                     HadithReadingText(arabicText: item.arabicText,
                                       translation: item.text.kind == .translation ? item.text.text : nil,

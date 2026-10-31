@@ -1,0 +1,212 @@
+{
+  "date": "2026-10-31",
+  "scope": "Controlled local rendering and synthetic store/callback evidence only.",
+  "native_review": "pending",
+  "source": "docs/a4-final-wrapper-copy.json",
+  "locales": [
+    "en",
+    "ar",
+    "ru",
+    "kk",
+    "ky",
+    "uz",
+    "tr",
+    "id",
+    "ur",
+    "fr",
+    "es-419",
+    "pt-BR",
+    "sw",
+    "hi",
+    "bn"
+  ],
+  "copy_key_count": 18,
+  "ios": [
+    {
+      "bundle": "/tmp/hadithly-a4-finish-1031/chrome-red.xcresult",
+      "result": "Failed",
+      "passedTests": 0,
+      "failedTests": 1,
+      "skippedTests": 0,
+      "startTime": 1793410033.094,
+      "finishTime": 1793410075.48
+    },
+    {
+      "bundle": "/tmp/hadithly-a4-finish-1031/chrome-final.xcresult",
+      "result": "Failed",
+      "passedTests": 23,
+      "failedTests": 1,
+      "skippedTests": 0,
+      "startTime": 1793410504.668,
+      "finishTime": 1793411061.383
+    },
+    {
+      "bundle": "/tmp/hadithly-a4-finish-1031/chrome-large-wide.xcresult",
+      "result": "Passed",
+      "passedTests": 1,
+      "failedTests": 0,
+      "skippedTests": 0,
+      "startTime": 1793411770.187,
+      "finishTime": 1793411851.3
+    }
+  ],
+  "android": [
+    {
+      "file": "/tmp/hadithly-a4-finish-1031/chrome-red-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "sha256": "8bfd87995aae7c931a226d3eb42fd437c1b2da1fd59dee1e829439b90d81091c",
+      "cases": [
+        {
+          "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+          "name": "chromeCopyReproduction",
+          "result": "Failed"
+        }
+      ]
+    },
+    {
+      "file": "/tmp/hadithly-a4-finish-1031/root-red-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "sha256": "219fa2eed05ecf4d5a5848b3ec2f137cbee8271bda13e6a98c88008937a3d602",
+      "cases": [
+        {
+          "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+          "name": "settingsRootCopyReproduction",
+          "result": "Failed"
+        }
+      ]
+    },
+    {
+      "file": "/tmp/hadithly-a4-finish-1031/chrome-first-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "sha256": "d49b5ac28d27ea02e7afbe5eec5acfdabb56809b54be378e5862c01bab5e142c",
+      "cases": [
+        {
+          "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+          "name": "chromeRemainsReadableAtLargeText",
+          "result": "Failed"
+        },
+        {
+          "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+          "name": "finalWrappersUseSelectedLanguage",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+          "name": "finalWrappersRemainReadableAtLargeText",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+          "name": "chromeUsesSelectedLanguage",
+          "result": "Failed"
+        }
+      ]
+    },
+    {
+      "file": "/tmp/hadithly-a4-finish-1031/chrome-menu-android-reports/TEST-hadithly(AVD) - 16-_app-.xml",
+      "sha256": "33a0bb68e6fc96ab78e611e2a4f826fff5755b336e9f7b4786b72df63aa919f9",
+      "cases": [
+        {
+          "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+          "name": "chromeRemainsReadableAtLargeText",
+          "result": "Passed"
+        },
+        {
+          "class": "com.hadithly.app.core.theme.NativeFinishingTest",
+          "name": "chromeUsesSelectedLanguage",
+          "result": "Passed"
+        }
+      ]
+    }
+  ],
+  "capture_count": 180,
+  "selected_original_captures": 39,
+  "raw_evidence": "/tmp/hadithly-a4-finish-1031",
+  "log_hashes": {
+    "offline-audit.log": "3a761710eba4b4f7eef10c36f99f1b4d0b9c9717da19942fdf88f422cb3ba4b4",
+    "edge-red-android.log": "18d43d91aa7dccf2547a418497cac3d60c901cf0d4c173fd6aef3f275fdaec8d",
+    "offline-store-android.log": "8dd4e262bdd0623f92cf90f9889ae81e627644f53ab78651ac6ea8bfa2a95117",
+    "script-final-staging.log": "605d2d10735daa60610b4522a1735826c11f80d808ca98f4a80684a6c7bea637",
+    "offline-red-export.log": "36b1d035edd363c980aad775c78a56d62b612b44cd9b10360481d42d8035da83",
+    "edge-export.log": "84b7a079bb7d1167a4dd4d9ee838c7b8a40fd0c2e64d94bef85e30e00dc1cabf",
+    "edge-red-ios.log": "6f2109a1bc1624a33d25ca422ebc8c99ed524131bc3177885afd5a3aa3eee74f",
+    "xml-metadata-red.log": "1f1febe0db01bf3eac5a09ce9c1804b5c0cf341f01d91acb15588be1dd42ea2d",
+    "offline-red-android.log": "9b47c75c5f3d8c86804ec64a97388353c74bb0fa30b0a7072a9a09e3053db01d",
+    "chrome-large-verified-ios.log": "458a575bedea77a2e1b424991bd7db0c0fafc6f1cc446911d246e4c1e1ff540c",
+    "chrome-partial-export.log": "091cb262a787fb7c8e5a160d2399f372ff29dacada50efa6fa3f5780d0ad0f48",
+    "runtime-red-ios.log": "3d0f7c6e3be74578b1ea80165ece55bc31577676527ec3569e0cf1824b7c8d00",
+    "boundary-units-android.log": "edcd29b3b9700d1749c9fd5fd470b0060da08c1bf461887b415592b8e46e0fe7",
+    "authenticity-red-ios.log": "020d24299e7301882cd8ca83f64256f8d3db276c1a0f6b5ed77f5b9632e11d35",
+    "boundary-final-android.log": "249e3a05d03dbce43802fbeddf37cc61d293f9609ec4d5988fd001a38df983a8",
+    "script-staging.log": "eae0a39ea6e39d81fcc185ad547f3f6190d63d2146b9bf40929839e1c4a7781c",
+    "chrome-red-ios.log": "d029feff810fbcf391859b505ec0d0decc66334fcec039c808e0bdf57e502db8",
+    "chrome-final-ios.log": "fa58998cc8892525f5ec6f7190e5b5f4bd244252e547d7a26f45a41c1d6f4582",
+    "script-final-copy.log": "80aec0646cfabbf8b3aa7167c7bd3ab70b0cc32bba3115320809e6217edfa61d",
+    "edge-red-export.log": "38e63efc0378e58550e257b332928e6a480c8cef30b8145b3ff4f9026efd0160",
+    "runtime-green-android.log": "77571feab4fb5edebedc89d3d58d8e1713f7b88e2c939eae466ecf4e1d7ac4b0",
+    "script-copy.log": "218ac3099f9f04d04c0bdb068330f6b8a23883bcbe2bed9e51501a03ebcdebe0",
+    "runtime-red-export.log": "f06304bfa1a6d1c2587f0670a6ac402cf5e427134ba743cb3d781d0faf958b89",
+    "edge-final-units-android.log": "5ed381f20d9b40585d3329e211ba5c0734c0663fc9736348bca77c0e5fed8bd2",
+    "chrome-green-ios.log": "cb98ae56ddd981b701e646866c9cefd7a66bef122ef98a48f1918266ade2a93e",
+    "chrome-large-passed-export.log": "d887523a93fbdb9aa7ec30c1f1ccac4559355d230b96c6bd71e501db7d181f0c",
+    "edge-green-android.log": "9f4d4d71d303bdb58b7d87d8f4951cbbd96d3272806e87918b2806edd9807de9",
+    "runtime-export.log": "ded623d953abed48787b0c6d7512627fec5790b77fcb0bd1cf55d1702c1d29cd",
+    "edge-units-android.log": "8c7e76b1af39f0d3934d15b027bc7c116fa72b2f81c97f487e23a2d4d1710b09",
+    "final-resource-audit.log": "c578b65262ae6cfb36fc4a1c1f5c98abec54da1ed3b1ef9b48009f9cfb332b0e",
+    "authenticity-final-ios.log": "a6d80bbbad6af6c8233adee074297bbf8a0e7e0bf40b3931f23245f26d3328a5",
+    "chrome-large-failed-export.log": "0c65be79c460d27bd25dcfd7a1efd7e80ffe9bbcac3e47899e83e1c6f891810a",
+    "chrome-wide-export.log": "1a8e2d461a439b30f113a94b89c1bddea0e0247492dde68b7126fd000b16d27d",
+    "authenticity-red-export.log": "0dd8bd1a9a48a4b737042e136943dd76dbaf777a998a9c51120f500ad56f7a7c",
+    "chrome-first-export.log": "20902409ef1bfb0107350ae17ca0802a23ccfbb22f01443a6cc066a93998ce68",
+    "chrome-red-export.log": "dda72827d419e6fcc0e42d6520f5f7cfb233155424b68d9277f04fa0aa66301c",
+    "ledger-red.log": "2ab2b3a6890874d7fc5ae3686bbe8ec97a837921f9391e9ddc315fa43ab91cfb",
+    "offline-green-android.log": "661b80cbad53afe30aa502131c00f262cabf024798af7f463aa59bd2300e36fd",
+    "authenticity-green-ios.log": "6d22ba3e839978ce75e1d3482a4a2484728a08f2d0fd1fa4ee1029ca263a319d",
+    "offline-final-android.log": "99e86345ad8c6b7151fd5e31f7346424091fb7d28899f22ef0c7b65b0d92bb51",
+    "offline-green-ios.log": "589ab041a949668bcbb49a9b5cf82ed049f7c35b87830d987740466179e07e74",
+    "authenticity-green-android.log": "825ebfa60d9dc2539cea9e3f789da5ad245db771870398cfe1bbc5dfbf77b4ca",
+    "runtime-red-android.log": "84402c43ce5bd37db060cf4077fee3ba1b0be5aac0dfca5e8f7cbd014b466beb",
+    "final-audit-initial.log": "5e13165abdbc4a08785e32a24b06aa78dd02b48e7d558e235d0a04315d3da4ee",
+    "chrome-large-passed-ios.log": "a82a613da9a0109b614b3791a03852c7ff8287c94aaf44a371c4e2a74c733fda",
+    "runtime-audit.log": "4583ae78fc211ac0008d5c903288b7b213c74e37b5559f7220cf99983fdc9550",
+    "chrome-menu-final-android.log": "e770e32e5863a2c956f0cff1173c46bb88615295b804c1c1c01e899a34856567",
+    "offline-large-diagnostic.log": "7ac161a1292c08f578a6839fbff9fefb26cc018768268916475cc10360870c75",
+    "chrome-large-wide-ios.log": "a94868bdda49d13fea903f9bd74606ffb8a9e54f30ea5d5e9370f6ccc39662ac",
+    "chrome-layout-screenshot.log": "3bfd782ceddfa7f7f0922740a168308d5934b67c9a2761ad4913173ce28718e3",
+    "offline-export.log": "98c4e186954a8289e0402e7e4a290573b0c017971b3c96ceafdc0fa46b31f356",
+    "chrome-final-android.log": "4924fe61124d4d0ce43222db4094948c0e13e70fabbc7fcec203b53f8083dd35",
+    "xml-metadata-green.log": "ee418d127985fd3640da88bc44520263be50a70739afc1825322c861da577715",
+    "chrome-green-android.log": "dc443d2032d8f7f2424fdb941ef04b92fae82d474ceb23d69b4b7d1b1abfef3f",
+    "offline-large-final.log": "5f63f58debb610aec2e0b3a9217b276c7382a201a37ea271c57a15778af94d05",
+    "runtime-green-ios.log": "4d99208d491730de23a2ae97e219a1f840977c6f5ba73bd8e0b27d9e5fa4159c",
+    "final-structural.log": "80beedd54267b9d14c6c96865aa7b7ab22fa5d77419df18194ed04a500c52468",
+    "runtime-final-ios.log": "04877683456a1dbd3d54a6bf8aa362fbd2883bd01db28881f7b257ead4aeadd8",
+    "script-audit.log": "8d792d81c28f14e81434cb2a175feb8a800363e60faf05e9aa008104cb37a9c2",
+    "edge-green-ios.log": "7cf30fd04fcff925daf52141c5edd4e9dee61e7dfe99e6c03eea1be0435f7a70",
+    "boundary-units-ios.log": "a49a6e5dd933d98e6c2ce6768313cee291814b33447f166f402759f5bf340d67",
+    "chrome-red-android.log": "71b56d7a79d1fc4bb791cd4e3b598a68b30f1d07bc7c09bd51962897b15bd61c",
+    "chrome-large-final-ios.log": "f0cff0ef949a067db8fc35f059ae0ee948ea98e11e9b6795c15038a2da6d6d65",
+    "authenticity-red-android.log": "01b57ea46c40cf8c2dea003026f0faf52dc7115ab31e2f3edab66eb1dce3ba46",
+    "ledger-green.log": "21b2edaafb65a0502fab9b56b42580528e39a225900a579715d35a6e05729506",
+    "root-red-android.log": "fc3a0b56a30d166028b391425ae3b013f15728445b9f0fe4aea7a67b9c7d3f2a",
+    "emulator-restart.log": "af52b88c92fb6c553832ad7a09e19a04ce5ed60fe00bbce4d7ac6c9a1d198aef",
+    "script-final-audit.log": "eb55bdeb232a5345b812b14974fa3803a4265c20b50cb28f1fb75acf884da36e",
+    "offline-red-ios.log": "2fef838855d84a3fadc1c29be7b19fa84c6e6b8661b050fb57c1565cfdfedb93",
+    "edge-audit.log": "61c8cd8c9d6291c6e7d4597dd20e6407c26e00551605d909767624f2109ec8f3"
+  },
+  "device_limits": {
+    "ios": "D47D7363-4705-4767-8617-F47DDB6A3241, iOS 27 simulator, LA2Verification debug, light; Accessibility XXXL ar/ur/ru/bn",
+    "android": "Guarded emulator-5554, Android 16 debug, light; controlled fontScale 2.0 ar/ur/ru/bn"
+  },
+  "open_gates": [
+    "Exact-copy native-speaker approval",
+    "Full accessibility and actual authenticated/physical-device journeys",
+    "A1/A3",
+    "A5-A7/readiness",
+    "E and final original-objective audit",
+    "Existing content, store/purchase, actual annual billing total, production, backup/recovery, publication and LA4 gates"
+  ],
+  "reuse_source": "docs/a4-final-wrapper-reuse.json",
+  "final_passing_scopes": {
+    "ios": "chrome-final.xcresult: ReaderR5Tests, LocaleFallbackTests, final wrappers normal/large and chrome normal pass; its large chrome case failed. chrome-large-wide.xcresult is the final passing large chrome rerun.",
+    "android": "chrome-first-android-reports: final wrapper normal/large pass; its chrome cases fail. chrome-menu-android-reports: final chrome normal/large pass.",
+    "limits": "37 wrapper lookups and actual menu/circles, local callbacks only. No full reader landing, authenticated or physical-device acceptance."
+  }
+}
