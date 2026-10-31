@@ -57,6 +57,26 @@ start D4 until the D3A release handoffs and D3G pass. Keep store, sandbox, and
 submission work on the release track while the feature track builds the
 product.
 
+## A7 observation-readiness packet, October 31
+
+The bounded local packet is prepared in `A7_OBSERVATION_READINESS.md`, audited in
+`A7_READINESS_AUDIT.md`. It proposes Alim as facilitator, six to eight adult
+English readers across both apps, exact invitation/consent drafts, private storage
+and a November 9–30 calendar with December 7 note deletion. All dates and roles
+are proposals. Qualified consent review, actual contact/withdrawal route,
+content/rights, artifact/phone/install approval, storage/deletion feasibility and
+current collection-off readbacks remain missing. No contact, consent, observation,
+account action, installation, storage setup or analytics activation occurred.
+
+All G01-G41 retain original evidence dates/scopes, receipts, dependencies and
+next actions. No gate passed; A7 remains unchecked. A5 fixes and incoming bytes
+are preserved, A2 stays wrapped with row mode off, and B/C/D keep local completion.
+E's actual Linear hub and the independent final original-program audit remain
+pending before `POST_GOAL_BACKLOG.md`. Stop after the verified local commit without
+pushing. `NEXT_SESSION_PROMPT.md` now stops at the owner design/choice decision,
+then prerequisite preparation and a separate exact action approval before contact
+or collection. GPT-only, no Relay. Older next-packet sentences are historical.
+
 ## A7 local planning checkpoint, October 31
 
 The bounded A7 local planning unit is complete in `A7_MEASUREMENT_PLAN.md` and

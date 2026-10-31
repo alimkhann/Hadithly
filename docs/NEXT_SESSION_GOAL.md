@@ -1,13 +1,13 @@
 # Current next goal
 
-Use the exact A7 consented-observation readiness goal in
-[NEXT_SESSION_PROMPT.md](NEXT_SESSION_PROMPT.md). The local
-[measurement plan](A7_MEASUREMENT_PLAN.md) and
-[draft protocol](A7_READER_SESSION_PROTOCOL.md) are prepared; actual observation
-and original A7 acceptance remain open. See the [A7 audit](A7_REQUIREMENT_AUDIT.md)
-and [all carried gates](A7_GATE_CARRY_FORWARD.md). No contact or analytics was
-activated. A5 engineering, A4 local closure and every acceptance/external gate
-remain intact. Historical next-task text below cannot override the current prompt.
+The local [A7 readiness packet](A7_OBSERVATION_READINESS.md) is committed for
+review. Read the [audit](A7_READINESS_AUDIT.md) and [exact current prompt](NEXT_SESSION_PROMPT.md).
+Stop at the owner design/choice decision; missing consent review, actual contact
+route, safe content/rights, approved builds/phones, private storage and current
+collection-off evidence prevent contact/observation approval. All G01-G41, A7,
+E actual Linear and final independent audit remain open. No observation clock
+started. Keep A5/incoming bytes and A2/B/C/D scope. Historical next-task text
+below cannot restart completed preparation or authorize external work.
 
 ## A4 evidence-intake checkpoint, October 30
 

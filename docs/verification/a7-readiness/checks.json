@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-31",
+  "baseline_commit": "157def42324c8e4fdde3ddb082aa754111300688",
+  "immutable_tracked_paths_preserved": 1747,
+  "incoming_working_and_index_paths_preserved": [
+    "ios/Hadithly.xcodeproj/project.pbxproj",
+    "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/Hadithly.xcscheme",
+    "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/LA2Verification.xcscheme",
+    "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/Phase4Live.xcscheme",
+    "ios/Hadithly/Localizable.xcstrings"
+  ],
+  "retained_open_gates": 41,
+  "baseline_gate_entries": 74,
+  "external_gates_closed": 0,
+  "calendar_capacity_slots_checked": 8,
+  "latest_D14_precedes_each_followup": true,
+  "day21_close_and_day28_deletion_checked": true,
+  "original_checkboxes_history_and_blank_templates_preserved": true,
+  "consent_review_and_action_approval_pending": true,
+  "local_links_checked": 31,
+  "staged_paths": [
+    "docs/A7_OBSERVATION_READINESS.md",
+    "docs/A7_READINESS_AUDIT.md",
+    "docs/NEXT_SESSION_GOAL.md",
+    "docs/NEXT_SESSION_PROMPT.md",
+    "docs/OPEN_GATES.md",
+    "docs/PLAN.md",
+    "docs/PRODUCT_PROGRAM.md",
+    "docs/SESSION_PROMPTS.md",
+    "docs/product-program/decisions.tsv",
+    "docs/verification/a7-readiness/baseline.json",
+    "docs/verification/a7-readiness/checks.json",
+    "docs/verification/a7-readiness/commands.md",
+    "docs/verification/a7-readiness/inherited-check.json",
+    "docs/verification/a7-readiness/local-checks.json",
+    "docs/verification/a7-readiness/proposal.json",
+    "scripts/verify-a7-readiness.py"
+  ],
+  "limits": "Local packet/source/calendar checks only. No native run, participant, contact, language approval, encryption drill, current service readback or release acceptance."
+}

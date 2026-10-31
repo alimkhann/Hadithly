@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-31",
+  "checks": [
+    {
+      "name": "resource_audit",
+      "command": "python3 scripts/localization_audit.py --allow-drafts",
+      "exit_code": 0,
+      "summary": [
+        "iOS: 594 keys, 8452 draft locale entries, 0 failures",
+        "Android: 589 resources, 48 English-copy drafts, 0 failures",
+        "hardcoded candidates: Swift 285, Kotlin 295"
+      ]
+    },
+    {
+      "name": "closed_catalog_check",
+      "command": "python3 scripts/generate-analytics-catalog.py --check",
+      "exit_code": 0,
+      "summary": [
+        "Validated 77 variants in ten event families"
+      ]
+    }
+  ],
+  "combined_la2_audit": "Not rerun. Prior reproduced copy-generator failure remains in frozen docs/verification/a7-planning/local-checks.json; no generator write or passing claim.",
+  "limits": "Local unchanged-source checks only; no native/device/service/consent/participant/encryption acceptance."
+}

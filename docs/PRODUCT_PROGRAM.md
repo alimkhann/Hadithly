@@ -8,6 +8,21 @@ for this program, not session names supplied by the owner.
 Their checksums and every research URL are recorded in
 `product-program/research-manifest.json`. No later phase replaces unfinished work.
 
+## Current A7 readiness handoff, October 31
+
+The local [observation packet](A7_OBSERVATION_READINESS.md) and
+[readiness audit](A7_READINESS_AUDIT.md) are complete for review, with owner design,
+contact and observation decisions pending. The November 9–30 schedule and
+December 7 deletion date are provisional. No real participants/results exist.
+The exact missing reviewer, reachable withdrawal route, rights/content,
+artifact/phone/install, current collection-off and private storage prerequisites
+must be resolved before a separate contact/observation authorization. All G01-G41,
+A7 acceptance, A1/A3/A4, E actual Linear and final independent audit stay open.
+Preserve A5, incoming work, A2 wrapped with row mode off and B/C/D local completion.
+Stop for the owner decision after this local commit without pushing. No later
+backlog, release operations, E setup or collection starts. The prior next-packet
+instructions below are historical; the current prompt controls continuation.
+
 ## Current owner continuation, October 31
 
 A7's bounded local planning unit is complete, with actual acceptance still open.

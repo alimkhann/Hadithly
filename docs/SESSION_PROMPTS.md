@@ -4,20 +4,16 @@ Paste one prompt into a fresh task. Use the named model and effort when it is
 available. Each prompt is self-contained and authorizes only its named session.
 Never use Relay.
 
-## Product continuation after A7 local planning
+## Product continuation after A7 readiness packet
 
-Use `docs/NEXT_SESSION_PROMPT.md` for one bounded A7 consented-observation readiness
-packet. Read `A7_MEASUREMENT_PLAN.md`, `A7_READER_SESSION_PROTOCOL.md` and
-`A7_REQUIREMENT_AUDIT.md`. Planning is complete, actual A7 acceptance is open.
-Prepare the concrete external step before asking for action-time approval. Do not
-contact readers, observe sessions, create accounts or activate collection on the
-strength of the plan. All G01-G41 remain open in `A7_GATE_CARRY_FORWARD.md` with
-A6's dated evidence preserved. Keep A5 fixes, A4 local closure and its acceptance
-gates, A2 wrapped with row mode off, B/C/D local completion and incoming work intact.
-Actual observation, A1/A3/A4 acceptance, E's actual Linear hub and the final
-independent original-program audit precede `POST_GOAL_BACKLOG.md`. GPT-only, no
-Relay. Stop after this local planning commit without pushing; the next task does
-not start here.
+Use `NEXT_SESSION_PROMPT.md`. The local packet in `A7_OBSERVATION_READINESS.md`
+is prepared, not approved. Stop at the named owner choices and exact action
+boundary; do not repeat planning, contact readers, observe, install, create accounts
+or activate analytics. Consent language review and current prerequisites are
+missing. Retain all G01-G41 and their original dates/scopes, A5 fixes, incoming
+work, A2 wrapped with row mode off and B/C/D local completion. A7, A1/A3/A4,
+E actual Linear and final independent audit remain open before later backlog.
+Keep GPT-only and no Relay. Local packet commit only, without pushing.
 
 ## D0: restore browser control
 

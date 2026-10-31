@@ -1,25 +1,62 @@
-# Next goal: A7 consented-observation readiness packet
+# Next decision: approve or revise the A7 proposal
 
-A7 local planning is complete. Actual sessions, observation and acceptance are
-still open. This prompt prepares a reviewable next step; it does not authorize
-recruitment, contact, sessions, accounts, collection, purchases or publication.
-The three-week observation clock starts only after approval and real consent.
-All G01-G41 remain open; no retained gate counts as passed.
-
-The combined LA2 audit has a reproduced pre-existing copy-generator failure.
-Use the scoped checks and limits in the A7 audit; do not regenerate the catalog
-or label the combined audit passing to prepare this packet.
+The bounded local readiness packet is complete. Read
+[A7_OBSERVATION_READINESS.md](A7_OBSERVATION_READINESS.md) and
+[A7_READINESS_AUDIT.md](A7_READINESS_AUDIT.md). Owner design, contact and observation
+answers remain PENDING. A7 is unchecked. Do not redo the packet or start contact.
 
 ```text
-/goal Continue Hadithly in /Users/alim/Developer/Projects/Apps/Hadithly. Read AGENTS.md, docs/PLAN.md, docs/NEXT_SESSION_PROMPT.md, docs/PRODUCT_PROGRAM.md, docs/A7_REQUIREMENT_AUDIT.md, docs/A7_MEASUREMENT_PLAN.md, docs/A7_READER_SESSION_PROTOCOL.md, docs/A7_GATE_CARRY_FORWARD.md, docs/A6_REQUIREMENT_AUDIT.md, docs/A6_GATE_MATRIX.md, docs/OPEN_GATES.md and docs/LA2_OPERATIONS.md first.
+Continue Hadithly from the committed A7-R1 observation-readiness packet.
+Read AGENTS.md, docs/PLAN.md, docs/A7_OBSERVATION_READINESS.md,
+docs/A7_READINESS_AUDIT.md, docs/A7_READER_SESSION_PROTOCOL.md,
+docs/A7_MEASUREMENT_PLAN.md, docs/A7_GATE_CARRY_FORWARD.md,
+docs/A6_GATE_MATRIX.md and docs/PRODUCT_PROGRAM.md.
 
-Do one bounded A7 consented-observation readiness packet. The local plan is prepared, but original A7 acceptance remains unchecked. Prepare the exact proposed facilitator, six-to-eight adult participant audience with both platforms, invitation wording/contact route, language-reviewed consent version, safe exact-locale content/rights/build/explicit physical-device prerequisites, collection-off verification steps, private encrypted note location with separate contact map, withdrawal route, actual proposed 21-day observation calendar and day-28 deletion dates. Identify missing owner choices from connected context without opening private account data or contacting anyone. No real session result may be filled in from fixtures or memory. Keep all templates blank until approved actual consented collection.
+First resolve the owner's design decision and missing choices: proposed Alim
+facilitator availability, six-to-eight adult English-reader audience with minimum
+three per platform, actual private contact/withdrawal route and retention limits,
+qualified English consent reviewer, private meeting location, encrypted local
+storage/key/deletion feasibility, explicit physical phones and exact build/artifact
+hashes/approved installation route. Do not ask for private contacts, keys or
+participant records in chat. The packet contains proposed paths and dates, not
+verified storage, reviewed consent or signed artifacts.
 
-Prepare an exact reviewable authorization packet with audience, actions, counts, dates, data fields/recipients, retention/deletion, costs, expected readback and stop/rollback. Ask for specific approval only after the packet is concrete; explain any required missing choice. Keep contact/observation pending until the owner answers. Do not recruit, send messages, run sessions, observe users, create or sign into accounts, buy, install on a phone, activate analytics or make cloud/account/credential/paid-model/deployment/migration/publication changes in this local packet unit. Do not start the observation clock. After a later explicitly approved execution unit, actual consented baseline and mature D1/D7/D14 observations, unknown/nonresponse/withdrawal accounting and a real conversion readout or explicit unavailable finding must still be reviewed. Do not mark absent payment/cohort evidence passed or check A7 just because documents are complete.
+No contact or observation is authorized. Do not recruit, message, observe, buy,
+install, sign in/create accounts or activate analytics. Prepare the precise missing
+prerequisite step locally. Before cloud, account, credential, paid-model,
+deployment, migration, publication, distribution or physical-device actions,
+obtain action-time approval for that exact reviewable action, cost, recipients,
+expected readback and stop/rollback. Do not list secrets or open private account
+data under a generic study approval. Contact/collection approvals remain separate.
+Require exact rights/content/known-block and network-disclosure receipts, accepted
+consent text/hash/reviewer, approved artifact/phones and current native analytics
+AND crash reporting off/queue/no-export checks plus backend enabled=false before
+requesting contact or starting sessions. Never loosen older frozen verifiers.
 
-Carry all G01-G41 explicitly from A7_GATE_CARRY_FORWARD.md and A6_GATE_MATRIX.md with their actual evidence dates and scopes. G01 A1 exact-locale first reading and maintenance; G02 A3 real grounding/free-Pro semantic/provider/historical-citation acceptance; G03 corpus/model/display/adaptation/redistribution rights; G04 O2 real translation-pack lifecycle; G05 A4 exact-copy/native-speaker approval in fifteen locales; G06 physical reading and full native accessibility; G07 actual auth/SDK/hosted flow and interruption; G08 installed sync/compatibility; G09 deletion propagation/retention; G10 real push receipt/exact open; G11 full installed widgets; G12 physical/production intake/evidence lifecycle; G13 authenticated generation and attestation; G14 Apple financial activation; G15 Apple legal/listing/compliance; G16 review access/instructions; G17 Streamlined Purchasing; G18 actual annual billing total, regional economics and commission; G19 Play account/products/signing/keys; G20 Play compliance/regional approval; G21 Play tracks/testers/installed artifact; G22 actual Apple receipts; G23 actual Google receipts; G24 shared-device/cross-platform ownership/quota retry and production purchase integration; G25 published consent/disclosures; G26 crash/ANR/device coverage; G27 production observability and analytics; G28 production support/mail/status; G29 current provider invoices/contracts/hosting; G30 waived Sunnah.now rotation and conflicting upstream evidence; G31 encrypted scheduled off-device backup, RPO/RTO/deletion replay; G32 production D4/storage; G33 L1; G34 D website publication; G35 F3 live links; G36 LA4 post-launch deferral; G37 Android physical-phone incident; G38 actual A7 consented observation; G39 E's actual Linear hub; G40 final independent original-program audit; G41 repository/toolchain/recovery limits. Retention never means passed. Reconcile evidence by actual date/scope, never an old dashboard inference.
+Calendar proposal: invitations November 5–6, 2026; baselines November 9–11;
+individual D1/D7/D14 windows; follow-up November 24–26 strictly after each mature
+D14; observation closes November 30 at 18:00 Asia/Almaty, contact deletion by
+then, coded-note deletion December 7 at 18:00. If readiness misses the deadline,
+redate the whole batch and consent together before enrollment. No clock starts
+from approval alone. No participant/result template may be filled from fixtures
+or memory, and no actual study data enters git, Codex, analytics or Linear.
 
-Preserve A5 ownership/landing, large-text viewport, translation-size, iOS Settings direction and reader/Saved/return fixes. Keep incoming catalog/project work, opaque user/source data, RTL and fifteen-locale bindings intact. A2 remains wrapped with row mode off; B/C/D keep local completion. A1/A3/A4 acceptance and all listed external gates remain. Follow PRODUCT_PROGRAM.md before POST_GOAL_BACKLOG.md. Keep GPT-only and no Relay. Do not start A2 storage, E setup, release operations, later backlog or broader redesign.
+Carry every G01-G41 OPEN with actual historical evidence dates/scopes, missing
+receipts/dependencies/actions in A7_GATE_CARRY_FORWARD.md and A6_GATE_MATRIX.md.
+G38 actual consented observation is pending; G39 E's actual Linear hub and G40
+final independent original-program audit remain pending. A1/A3/A4 acceptance,
+all physical/auth/store/payment/disclosure/production/provider/backup/release
+and phone-incident gates remain. Retention is never a pass. A7 remains unchecked
+until real baseline, mature return/unknown/nonresponse/withdrawal accounting,
+conversion readout or explicit unavailable finding and owner acceptance review.
+Unavailable payment evidence never passes conversion.
 
-Local read-only inspection and reversible documentation proceed. No real account actions. Cloud, account, credential, paid-model, deployment, migration and publication changes require action-time approval after the exact step is reviewable. Refresh scoped evidence/preservation checks without loosening old frozen verifiers, inspect staged/unstaged changes, commit the finished local packet without pushing, and stop at the next required human decision. Keep actual A7 observation, all remaining gates, E and the independent final audit explicit in the handoff. Completing this packet does not complete A7 or the full original program.
+Preserve A5 ownership/landing, viewport, translation-size, Settings direction,
+reader/Saved/return fixes; incoming catalog/project/index, opaque data, RTL and
+fifteen-locale bindings. A2 stays wrapped with row mode off; B/C/D local completion
+remains. Follow PRODUCT_PROGRAM.md before POST_GOAL_BACKLOG.md. Keep GPT-only,
+no Relay. Do not start A2 storage, E setup, release operations or broader redesign.
+Commit any completed bounded local prerequisite work with scoped verification,
+without pushing, and stop at the next required human decision. If no owner choice
+has arrived, report the concrete pending decision and stop; do not invent consent.
 ```

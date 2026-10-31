@@ -1,5 +1,16 @@
 # Open gates
 
+## A7 readiness reconciliation, October 31
+
+The [authorization packet](A7_OBSERVATION_READINESS.md) now supplies proposed
+roles, audience, exact draft wording, calendar, private storage and collection-off
+preflight. [Local checks](A7_READINESS_AUDIT.md) preserve the complete G01-G41
+inventory and dates. No contact, observation, consent, installation, account or
+current service readback occurred. Consent language review and owner choices
+remain missing. A7/G38, E/G39 and final audit/G40 stay open, along with every other
+group. Next is the owner design/choice decision, then specific prerequisite and
+execution approvals. No packet completion is an external pass.
+
 ## A7 planning reconciliation, October 31
 
 The [A7 measurement plan](A7_MEASUREMENT_PLAN.md) and
