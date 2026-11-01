@@ -1,0 +1,139 @@
+{
+  "deployment": "festive-cobra-664",
+  "scope": "two sequential public queries per verified conversion window; query arguments are not exposed in logs",
+  "results": [
+    {
+      "collectionSlug": "ibn-majah",
+      "queryStartedAtUtc": "2026-11-01T09:20:12.370Z",
+      "queryCompletedAtUtc": "2026-11-01T09:20:14.631Z",
+      "completions": [
+        {
+          "cachedResult": false,
+          "executionSeconds": 0.02455473,
+          "databaseIoReadBytes": 2524,
+          "databaseReadDocuments": 1
+        },
+        {
+          "cachedResult": true,
+          "executionSeconds": 3.2197e-05,
+          "databaseIoReadBytes": 0,
+          "databaseReadDocuments": 0
+        }
+      ]
+    },
+    {
+      "collectionSlug": "bukhari",
+      "queryStartedAtUtc": "2026-11-01T09:20:17.175Z",
+      "queryCompletedAtUtc": "2026-11-01T09:20:20.876Z",
+      "completions": [
+        {
+          "cachedResult": false,
+          "executionSeconds": 0.178112341,
+          "databaseIoReadBytes": 232323,
+          "databaseReadDocuments": 1
+        },
+        {
+          "cachedResult": true,
+          "executionSeconds": 3.1696e-05,
+          "databaseIoReadBytes": 0,
+          "databaseReadDocuments": 0
+        }
+      ]
+    },
+    {
+      "collectionSlug": "muslim",
+      "queryStartedAtUtc": "2026-11-01T09:20:23.243Z",
+      "queryCompletedAtUtc": "2026-11-01T09:20:25.942Z",
+      "completions": [
+        {
+          "cachedResult": false,
+          "executionSeconds": 0.016013312,
+          "databaseIoReadBytes": 3757,
+          "databaseReadDocuments": 1
+        },
+        {
+          "cachedResult": true,
+          "executionSeconds": 2.1506e-05,
+          "databaseIoReadBytes": 0,
+          "databaseReadDocuments": 0
+        }
+      ]
+    },
+    {
+      "collectionSlug": "tirmidhi",
+      "queryStartedAtUtc": "2026-11-01T09:20:28.329Z",
+      "queryCompletedAtUtc": "2026-11-01T09:20:30.778Z",
+      "completions": [
+        {
+          "cachedResult": false,
+          "executionSeconds": 0.012452748,
+          "databaseIoReadBytes": 2853,
+          "databaseReadDocuments": 1
+        },
+        {
+          "cachedResult": true,
+          "executionSeconds": 2.245e-05,
+          "databaseIoReadBytes": 0,
+          "databaseReadDocuments": 0
+        }
+      ]
+    },
+    {
+      "collectionSlug": "sunan-nasai",
+      "queryStartedAtUtc": "2026-11-01T09:20:33.214Z",
+      "queryCompletedAtUtc": "2026-11-01T09:20:35.625Z",
+      "completions": [
+        {
+          "cachedResult": false,
+          "executionSeconds": 0.011918753,
+          "databaseIoReadBytes": 3317,
+          "databaseReadDocuments": 1
+        },
+        {
+          "cachedResult": true,
+          "executionSeconds": 2.2318e-05,
+          "databaseIoReadBytes": 0,
+          "databaseReadDocuments": 0
+        }
+      ]
+    },
+    {
+      "collectionSlug": "abu-dawood",
+      "queryStartedAtUtc": "2026-11-01T09:20:38.116Z",
+      "queryCompletedAtUtc": "2026-11-01T09:20:40.531Z",
+      "completions": [
+        {
+          "cachedResult": false,
+          "executionSeconds": 0.010929526,
+          "databaseIoReadBytes": 2795,
+          "databaseReadDocuments": 1
+        },
+        {
+          "cachedResult": true,
+          "executionSeconds": 3.3928e-05,
+          "databaseIoReadBytes": 0,
+          "databaseReadDocuments": 0
+        }
+      ]
+    },
+    {
+      "collectionSlug": "mishkat-al-masabih",
+      "queryStartedAtUtc": "2026-11-01T09:20:42.928Z",
+      "queryCompletedAtUtc": "2026-11-01T09:20:45.493Z",
+      "completions": [
+        {
+          "cachedResult": false,
+          "executionSeconds": 0.012829671,
+          "databaseIoReadBytes": 1936,
+          "databaseReadDocuments": 1
+        },
+        {
+          "cachedResult": true,
+          "executionSeconds": 2.4862e-05,
+          "databaseIoReadBytes": 0,
+          "databaseReadDocuments": 0
+        }
+      ]
+    }
+  ]
+}

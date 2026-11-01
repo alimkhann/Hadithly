@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-## Current owner priority: Convex usage reduction, November 1
+## Current checkpoint: Convex usage reduction verified, November 1
 
 The owner expanded the Convex diagnostic into usage reduction, prioritizing free
 operation while allowing low cost and a finished app experience with release
@@ -12,7 +12,9 @@ dependencies deferred. [CONVEX_COST_VERIFICATION.md](CONVEX_COST_VERIFICATION.md
 records the local repair, live baseline, executable proof and remaining work.
 This sequencing exception preserves original-program acceptance. The owner
 approved deployment of fe8742c to development festive-cobra-664 and passive
-readback. No production, migration or paid action was approved.
+readback. A later separate approval covers ed93a19 development deployment,
+seven outline conversions and both native readbacks. Production and paid actions
+remain outside scope.
 
 The fixed 96-bucket notification fan-out is replaced with one bounded
 indexed cursor scan. Real local before/after cases and 546 backend tests pass;
@@ -43,15 +45,23 @@ query took 83 ms versus 35 ms, so the I/O reduction has a decoding cost. All 557
 backend tests and type checking pass. Independent standards/spec reviews passed
 after fixes for malformed compression, expansion bounds and document-size limits.
 See [CONVEX_OUTLINE_STORAGE_VERIFICATION.md](CONVEX_OUTLINE_STORAGE_VERIFICATION.md).
-This new schema/deployment and seven-row conversion still require separate owner
-approval. Only fe8742c is approved for cloud rollout. No outline change has been
-deployed, and no live billing saving is established. Do not restart completed
-notification, native prefetch or local outline work.
+The owner separately approved ed93a19 development deployment and the seven-row
+conversion. Deployment succeeded around 09:19 UTC November 1; all seven conversions
+and exact-response/freshness/idempotence checks passed by 09:20:47 UTC. Live cold
+read bytes match the local packed results and warm repeats remain zero. Stored
+outline size falls 73.39%. Both native ten-page journeys and live contents jumps
+pass with generation off. The iOS contents test reused its existing settled-tap
+helper after an initial direct-tap failure; no product change was needed.
+[CONVEX_USAGE_REDUCTION_AUDIT.md](CONVEX_USAGE_REDUCTION_AUDIT.md) maps the requested
+cost continuation to its evidence. This continuation is verified; no live bill
+reduction or free-plan reader capacity is claimed. Do not restart completed
+notification, prefetch, local outline or development rollout work.
 
 All G01-G41, A1/A3/A4 acceptance, A7's deferral, E Linear and the final audit remain
 open. Preserve A2/A5 and B/C/D local completion and incoming work. The current
 `NEXT_SESSION_PROMPT.md` controls continuation; earlier next tasks are historical.
-Commit finished scoped work without pushing. The larger cost goal remains open.
+Commit finished scoped work without pushing. The original app program remains
+open; this cost continuation does not close its external or acceptance gates.
 
 Last updated: 2026-11-01. Phases 0 through 5 are complete. Phase 6 code is
 implemented; its production dashboard gate is open. Sessions D0, G0, M0, D1,

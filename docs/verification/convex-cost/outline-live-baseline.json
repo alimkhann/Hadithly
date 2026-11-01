@@ -1,0 +1,43 @@
+{
+  "deployment": "festive-cobra-664",
+  "scope": "read-only live public outline baseline",
+  "startedAtUtc": "2026-11-01T09:19:22.142Z",
+  "completedAtUtc": "2026-11-01T09:19:34.513Z",
+  "outlines": [
+    {
+      "collectionSlug": "ibn-majah",
+      "storedDocumentBytes": 6378,
+      "publicPayloadSha256": "de678b176996b91cb7c0db414d5a862c454029b7550ed1b38a951205976ee2e6"
+    },
+    {
+      "collectionSlug": "bukhari",
+      "storedDocumentBytes": 889523,
+      "publicPayloadSha256": "4177dcbde2b6bbc681ed449f02b36f18b423ce93c83df8b6f1b2db9f5f95240f"
+    },
+    {
+      "collectionSlug": "muslim",
+      "storedDocumentBytes": 10151,
+      "publicPayloadSha256": "0737d80a0d2f1c25f81d0fd4fd1cbeb12afef02e9f32adbae187c54aeb748aba"
+    },
+    {
+      "collectionSlug": "tirmidhi",
+      "storedDocumentBytes": 10273,
+      "publicPayloadSha256": "1348f7230f9fc027a45752bf81e5a00a4ab427b3b726a6caacc19871b3077e05"
+    },
+    {
+      "collectionSlug": "sunan-nasai",
+      "storedDocumentBytes": 8574,
+      "publicPayloadSha256": "5f210cdcc7fa22d3dc1b9cfa291d1cfb9e551ad11e685fab01eeb1afa1305434"
+    },
+    {
+      "collectionSlug": "abu-dawood",
+      "storedDocumentBytes": 7111,
+      "publicPayloadSha256": "aeb74afdef67dca62e3718c38ab74919e9adbcedc7680dc51a8f039074a552cd"
+    },
+    {
+      "collectionSlug": "mishkat-al-masabih",
+      "storedDocumentBytes": 4276,
+      "publicPayloadSha256": "ebfc7e680107b70759636ca1ff935205e2a93d08f8aae6769ed941e525f41d6e"
+    }
+  ]
+}

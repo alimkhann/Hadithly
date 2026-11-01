@@ -159,6 +159,7 @@ The CLI exposes recent events without installing a paid log-stream integration.
 The following unit implemented lossless outline storage compression and measured
 all seven cached outlines on a real isolated local Convex backend. See
 [CONVEX_OUTLINE_STORAGE_VERIFICATION.md](CONVEX_OUTLINE_STORAGE_VERIFICATION.md).
-Its local I/O reduction does not establish native behavior against the new live
-backend or billed savings. Development deployment and conversion need separate
-approval; the native evidence above predates that backend change.
+The owner subsequently approved its development deployment and conversion. All
+seven exact public responses and new native reader/contents checks pass, as
+recorded there. The native evidence above predates that backend change and stays
+separate from its later readback. No billed-saving claim is made.

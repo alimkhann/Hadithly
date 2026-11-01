@@ -1,0 +1,21 @@
+{
+  "auth": "existing task-owned simulator guest, not a fresh installation",
+  "automaticGeneration": false,
+  "endedAtUtc": "2026-11-01T09:25:00Z",
+  "locale": "en",
+  "pageMoves": 10,
+  "platform": "ios",
+  "startedAtUtc": "2026-11-01T09:23:04Z",
+  "deployment": "festive-cobra-664",
+  "backendRevision": "ed93a19, seven outlines converted",
+  "device": "task-owned 5EF04509-2CE0-4FBA-9341-F407EBDE8045 iOS 27 simulator",
+  "arabicFontSize": 26,
+  "translationFontSize": 16,
+  "readingPreferencesVerifiedFromLocalAppStore": true,
+  "tenPageJourneyPassed": true,
+  "contentsJump57Passed": true,
+  "contentsCheckStatus": "passed after reusing existing tapSettledGo helper; initial direct tap failed during keyboard transition",
+  "finalContentsResultBundle": "/tmp/hadithly-outline-ios-contents-recheck.xcresult",
+  "readerResultBundle": "/tmp/hadithly-outline-native-ios.xcresult",
+  "finalHarnessSha256": "be27b9f99e3c78f337f01a704072fddca20c54abf009864e53615923f087d99e"
+}

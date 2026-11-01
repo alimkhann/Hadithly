@@ -151,8 +151,9 @@ Both platforms have equal-duration stopped-app idle controls containing a
 scheduled notification tick and no reader calls. Shared cache and timestamp
 limits remain explicit in the reader verification record.
 
-The next database-I/O unit should address the large chapter-rich outline from
-the measured reader journey. Whole-volume reads remain a separate candidate;
+The subsequent database-I/O unit addressed the large chapter-rich outline from
+the measured reader journey. Its separately approved development conversion and
+both native readbacks pass; see CONVEX_OUTLINE_STORAGE_VERIFICATION.md. Whole-volume reads remain a separate candidate;
 this repair does not claim they are fixed. Keep A1/A3/A4,
 all G01-G41, A7/G38, E Linear and final original-program acceptance open. Preserve
 A2's wrap-up, A5 fixes, B/C/D local completion and unrelated incoming work.
@@ -172,5 +173,8 @@ unresolved concrete concern.
 The requirements review found no concrete production behavior defect. Its paging,
 permanent-deletion, attempt-cap and invalid-only-page evidence gaps are covered
 by the extended real-backend scenarios and result/delivery-digest comparisons.
-The broader native, controlled-idle and deployed savings requirements remain
-open. The final requirements rereview reports no concrete spec defect.
+At that review, native, controlled-idle and deployment readbacks were still
+open. The later native/idle and approved development evidence is recorded in
+CONVEX_READER_COST_VERIFICATION.md and CONVEX_OUTLINE_STORAGE_VERIFICATION.md.
+Billed savings remain unproven. The final requirements rereview reports no
+concrete spec defect.

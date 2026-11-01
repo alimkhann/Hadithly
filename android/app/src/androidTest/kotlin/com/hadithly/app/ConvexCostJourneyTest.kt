@@ -19,6 +19,51 @@ import org.junit.Test
 class ConvexCostJourneyTest {
     @get:Rule val compose = createAndroidComposeRule<MainActivity>()
 
+    @Test fun liveContentsJumpWithGenerationOff() {
+        val app = compose.activity.application as HadithlyApplication
+        assertTrue(BuildConfig.CONVEX_URL.contains("festive-cobra-664"))
+        assertNull("Use the task-owned guest emulator", Clerk.user)
+        val original = app.preferences.preferences.value
+        val automatic = app.readerExperience.automaticallyTranslates.value
+        val onboarded = app.settings.onboardingCompleted.value
+        try {
+            compose.runOnIdle {
+                app.readerExperience.setAutomaticTranslation(false)
+                app.preferences.setUILocale("en")
+                app.preferences.setTranslationLocale("en")
+                app.settings.setOnboardingCompleted(true)
+            }
+            compose.onNodeWithTag("tabs.library").performClick()
+            compose.waitUntil(30_000) { compose.onAllNodesWithTag("library.collection.bukhari").fetchSemanticsNodes().isNotEmpty() }
+            compose.onNodeWithTag("library.collection.bukhari").performClick()
+            compose.waitUntil(30_000) { compose.onAllNodesWithTag("reader.pageViewport").fetchSemanticsNodes().isNotEmpty() }
+            val hiddenControls = SemanticsMatcher("hidden reader controls") { node ->
+                node.config.getOrNull(SemanticsActions.CustomActions)?.any { it.label == "Show reader controls" } == true
+            }
+            if (compose.onAllNodes(hiddenControls).fetchSemanticsNodes().isNotEmpty()) {
+                compose.onNode(hiddenControls).performCustomAccessibilityActionWithLabel("Show reader controls")
+            }
+            compose.onNodeWithContentDescription("Open reader menu").performClick()
+            compose.onNodeWithTag("reader.menu.contents").performClick()
+            compose.onNodeWithTag("reader.contents.volume.1").assertIsDisplayed()
+            compose.onNodeWithTag("reader.contents.jump").performTextReplacement("57")
+            compose.onNodeWithTag("reader.contents.go").performClick()
+            compose.waitUntil(30_000) { compose.onAllNodesWithTag("reader.contents.sheet").fetchSemanticsNodes().isEmpty() }
+            compose.waitUntil(30_000) {
+                compose.onAllNodes(hasTestTag("reader.hadithLabel") and hasContentDescription("Bukhari – 57", substring = true))
+                    .fetchSemanticsNodes().isNotEmpty()
+            }
+            assertNull(Clerk.user)
+        } finally {
+            compose.runOnIdle {
+                app.preferences.setUILocale(original.uiLocale)
+                app.preferences.setTranslationLocale(original.translationLocale)
+                app.readerExperience.setAutomaticTranslation(automatic)
+                app.settings.setOnboardingCompleted(onboarded)
+            }
+        }
+    }
+
     @Test fun coldLaunchLibraryAndTenPageMoves() {
         val app = compose.activity.application as HadithlyApplication
         assertTrue(BuildConfig.CONVEX_URL.contains("festive-cobra-664"))

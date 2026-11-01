@@ -1,0 +1,9 @@
+{
+  "deployment": "festive-cobra-664",
+  "readbackAtUtc": "2026-11-01T09:21:22.189411+00:00",
+  "endpoint": "migrations.js:rewriteCollectionOutlineStorage",
+  "functionType": "Mutation",
+  "visibility": "internal",
+  "approvedSourceCommit": "ed93a19",
+  "productionChanged": false
+}

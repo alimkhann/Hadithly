@@ -6,16 +6,14 @@ Never use Relay.
 
 ## Convex usage reduction
 
-The owner expanded the diagnostic into reducing usage. Follow the exact prompt
-in `NEXT_SESSION_PROMPT.md`, current proof in `CONVEX_COST_VERIFICATION.md` and the
-measurement contract in `CONVEX_COST_DIAGNOSTIC.md`. The notification repair is
-approved, deployed and verified in two scheduled development runs. The Android
-resume-only prefetch repair and paired native reading baselines pass. The next
-unit has locally verified lossless outline compression. See
-`CONVEX_OUTLINE_STORAGE_VERIFICATION.md`; the next boundary is explicit approval
-for its development deployment and seven-row conversion, then live verification. Keep `hadithly-convex-cost`, the app-experience
-destination, free-first preference and all existing gates. Local implementation
-does not authorize cloud deployment, migrations, paid actions or production work.
+The requested continuation is verified on development. Notification fan-out,
+Android resume-only prefetch and lossless outline storage each have measured
+before/after proof. The owner separately approved both backend deployments and
+the outline conversion. All seven public outline responses match, and both
+native ten-page/contents journeys pass. See `CONVEX_USAGE_REDUCTION_AUDIT.md` and
+`CONVEX_OUTLINE_STORAGE_VERIFICATION.md`. No invoice or free-capacity claim is
+made. Follow `NEXT_SESSION_PROMPT.md`; preserve all original app gates. Do not
+repeat the completed deployments, observer or measurements.
 
 ## Product continuation with A7 study deferred
 

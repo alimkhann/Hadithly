@@ -1,44 +1,44 @@
-# Next boundary: approve and verify development outline compression
+# Convex continuation complete; preserve the original app program
 
-The notification repair is approved, deployed and verified. Android resume-only
-prefetch and paired native/idle baselines pass. Lossless outline storage is now
-implemented and verified locally. The cost goal remains active; staying free
-matters and no numeric spending ceiling has been approved.
+The requested usage-reduction continuation has passed local and approved
+development verification. Read `CONVEX_USAGE_REDUCTION_AUDIT.md` for the evidence
+map and `CONVEX_OUTLINE_STORAGE_VERIFICATION.md` for the latest rollout.
 
 ```text
-Continue Hadithly's Convex cost goal. Read AGENTS.md, the current checkpoint and
-mistakes in PLAN.md, the Convex entry in SESSION_PROMPTS.md, and
-CONVEX_OUTLINE_STORAGE_VERIFICATION.md. Use hadithly-convex-cost.
+Continue Hadithly from the current checkpoint in docs/PLAN.md. The Convex
+continuation is complete for its requested outcome, with no billed-saving or
+free-plan capacity claim. Do not restart the completed notification deployment,
+scheduled observer, native prefetch repair, outline compression or seven-row
+development conversion.
 
-Do not restart completed work:
-- fe8742c notification repair deployed to development festive-cobra-664 at
-  19:58 UTC October 31. Two scheduled runs each used one token query, not 96.
-- db216a6 Android entry prefetch matches iOS resume-only behavior. Native
-  before/after pages match, outline actions fell nine to one and reader-page
-  actions remained 21. Paired native/idle captures pass with cache limitations.
-- Local outline compression measured seven cold reads falling from 936,670
-  to 249,505 bytes. Full responses and rollback match. Warm reads stay zero.
-  All 557 backend tests and type checking pass. Largest cold local query took
-  83 ms versus 35 ms. Review the artifact and its limits, not just percentages.
+Completed:
+- fe8742c notification scan and two real scheduled-run checks: one token query
+  instead of 96 on the measured small/empty tick, with delivery rules preserved.
+- db216a6 Android resume-only entry prefetch: nine to one outline actions,
+  identical eleven positions and unchanged 21 reader-page actions. Both native
+  baselines and matched idle controls are recorded.
+- ed93a19 outline storage: controlled local cold reads 936,670 to 249,505 bytes;
+  approved development rollout and all seven conversions pass. Full responses,
+  identity and freshness match; retries are idempotent. Live packed cold reads
+  match local values; cached repeats read zero bytes. Both native ten-page
+  journeys and live contents jumps pass with generation off. The iOS contents
+  test uses the existing settled-tap helper after an initial interaction failure.
 
-The next dependent work needs explicit approval for the exact new commit:
-development schema/function deployment, conversion of the seven cached outline
-rows, public-payload/freshness readback and both native reader/contents checks.
-The earlier approval covers only fe8742c. Do not infer new authorization from it.
-Prepare no further optimization while this concrete approval is pending.
-
-After approval, follow the deployment/rollback procedure in the verification
-record. Verify the target before mutation. Preserve before/after public-response
-digests, row identity and freshness. Stop on any mismatch. Automatic generation
-stays off; no provider probe or manual notification. Keep production unchanged.
-
-Preserve incoming iOS catalog/project/scheme bytes and scripts/__pycache__.
-Commit completed work and evidence without pushing. Use bounded jobs and poll
-existing handles; report actual failures promptly. Do not leave checks unchecked.
+No additional implementation unit is selected by this checkpoint. The original
+PRODUCT_PROGRAM.md and independent final audit remain unfinished. Any later
+cost optimization needs new measured evidence rather than repeating this work.
+For a new product request, choose one observable outcome and its actual native
+verification using hadithly-product-slice. Do not automatically move through the
+later POST_GOAL_BACKLOG.md items or start release operations.
 
 Retain all G01-G41, A1/A3/A4 acceptance, A7/G38 deferred with retired dates,
 E actual Linear and final audit. Preserve A2 wrapped with row mode off, A5,
 B/C/D local completion, opaque identity and RTL/locale bindings. No study
-recruitment, contact, observation, collection or setup questions. GPT-only,
-no Relay. No billed saving or free-plan capacity claim has been established.
+recruitment, contact, observation, collection or repeated setup questions.
+
+Preserve incoming iOS catalog/project/scheme bytes and scripts/__pycache__.
+Commit completed work and evidence without pushing. Cloud/account/credential,
+paid-model, deployment, migration and publication changes need exact action-time
+approval. This completed approval does not cover production or another rollout.
+Use bounded jobs and poll existing handles. Keep GPT-only and no Relay.
 ```

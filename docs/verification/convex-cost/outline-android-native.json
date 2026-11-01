@@ -1,0 +1,30 @@
+{
+  "platform": "android",
+  "startedAtUtc": "2026-11-01T09:21:20.795Z",
+  "endedAtUtc": "2026-11-01T09:21:34.819720Z",
+  "pageMoves": 10,
+  "locale": "en",
+  "auth": "existing task-owned guest, asserted before and after",
+  "automaticGeneration": false,
+  "deployment": "festive-cobra-664",
+  "backendRevision": "ed93a19, seven outlines converted",
+  "device": "task-owned emulator-5554 Android 16",
+  "initialClientState": "existing task-owned app installation and guest data; not a fresh-install comparison",
+  "renderedPositions": [
+    "Page 1|Volume 1",
+    "Page 2|Volume 1",
+    "Page 3|Volume 1",
+    "Page 4|Volume 1",
+    "Page 1|Volume 2",
+    "Page 2|Volume 2",
+    "Page 3|Volume 2",
+    "Page 4|Volume 2",
+    "Page 5|Volume 2",
+    "Page 6|Volume 2",
+    "Page 7|Volume 2"
+  ],
+  "contentsJump57Passed": true,
+  "testCount": 2,
+  "failures": 0,
+  "harnessSha256": "795b405f58ef0a114235f82860061d69dd1c5d4e4a07f50b89567826f73bbf0a"
+}

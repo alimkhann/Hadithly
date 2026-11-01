@@ -337,6 +337,34 @@ final class ReaderR5UITests: XCTestCase {
         print("COST_JOURNEY_JSON " + String(decoding: data, as: UTF8.self))
     }
 
+    func testConvexCostContentsJumpWithGenerationOff() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-onboarding.completed", "YES", "-reader.automaticTranslation", "NO", "-AppleLanguages", "(en)"]
+        app.launch()
+        defer { app.terminate() }
+        XCTAssertTrue(app.tabBars.buttons["Library"].waitForExistence(timeout: 30))
+        app.tabBars.buttons["Library"].tap()
+        let collection = app.buttons["library.collection.bukhari"]
+        XCTAssertTrue(collection.waitForExistence(timeout: 30))
+        collection.tap()
+        XCTAssertTrue(element("reader.page", in: app).waitForExistence(timeout: 30))
+        revealChrome(app)
+        app.buttons["reader.menu"].tap()
+        let contents = app.buttons["reader.menu.contents"]
+        XCTAssertTrue(contents.waitForExistence(timeout: 10))
+        contents.tap()
+        let jump = field("reader.contents.jump", in: app)
+        XCTAssertTrue(jump.waitForExistence(timeout: 10))
+        XCTAssertTrue(element("reader.volume.1", in: app).waitForExistence(timeout: 10))
+        jump.tap()
+        jump.typeText("57")
+        tapSettledGo(in: app)
+        XCTAssertTrue(jump.waitForNonExistence(timeout: 10))
+        let target = app.buttons.matching(identifier: "reader.hadithLabel")
+            .matching(NSPredicate(format: "label CONTAINS '57'")).firstMatch
+        XCTAssertTrue(target.waitForExistence(timeout: 30), "Live contents jump did not reach Hadith 57")
+    }
+
     /// Opens Bukhari live, jumps to Hadith 57 through the contents field,
     /// and proves the quiet page (no ellipsis), the grade dot plus source
     /// label, the long-press menu with its gating, and tap-to-toggle

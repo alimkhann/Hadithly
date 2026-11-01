@@ -1,9 +1,9 @@
-# Lossless outline storage, local verification
+# Lossless outline storage verification
 
 November 1, 2026. This unit reduces the database bytes read by
-`collections.getOutline` while preserving its full public response. It is local
-implementation and verification. Development deployment and conversion are
-pending separate approval; production is outside scope.
+`collections.getOutline` while preserving its full public response. Evidence
+covers the local comparison and development rollout. The owner approved
+deployment of ed93a19 and conversion of seven cached outlines on November 1. Production is outside scope.
 
 ## Decision
 
@@ -96,23 +96,93 @@ The verifier boots its own anonymous local backend, seeds only the snapshot,
 measures both formats, checks retry and rollback, then cleans up. It refuses an
 unrelated legacy anonymous deployment and records no raw response or log payload.
 
-## Next boundary and rollback
+## Approved development rollout and rollback
 
-After approval for the exact new commit, deploy only to development
-`festive-cobra-664`. Verify the deployed function/schema, capture public response
-digests, then invoke `migrations:rewriteCollectionOutlineStorage` once for each
-of these seven collection slugs with `format: "packed"`. Repeat each conversion
-to check idempotence. Compare full public response digests and freshness/system
-fields against the pre-conversion values. Inspect query completions and verify
-both native contents/reader journeys against the changed development backend.
-Use existing cached content with automatic generation off.
+The approved ed93a19 deployment succeeded on development `festive-cobra-664`
+at approximately 09:19 UTC, 14:19 Asia/Almaty. Deployed function metadata confirms
+`migrations.js:rewriteCollectionOutlineStorage` is internal. The private baseline
+captured all seven original public documents and remains outside the repository.
+The conversion completed at 09:20:47 UTC. Every full public response, identity and
+freshness timestamp matched before and after. All seven retry calls returned
+`already_packed`. Stored documents fell from 936,286 to 249,121 bytes, 73.39%.
+
+Live completion logs contain exactly two public queries in each sequential
+post-conversion window. The first query was uncached and the repeat was cached.
+Cold database read bytes match the local packed results above, totaling 249,505;
+all seven repeats used zero database bytes. Bukhari's live cold execution took
+178 ms. Local before/after samples are the controlled latency comparison; this
+single live sample has different runtime conditions. The rollout's one-time
+conversion reads and writes are included separately in `outline-rollout-usage.json`.
+There were fourteen mutation completions, seven document writes and no failures.
+These are measured resource reductions, not invoice or free-capacity estimates.
+
+Artifacts under `verification/convex-cost/` are `outline-live-baseline.json`,
+`outline-deployed-function.json`, `outline-live-conversion.json`,
+`outline-live-query-completions.json` and `outline-rollout-usage.json`.
+They retain only public-payload digests and allowlisted metadata, not chapters,
+user records, tokens or raw logs. The deployment verifier stops on any content
+mismatch and keeps partial conversion progress reviewable. Production-target
+rejection was verified locally before any CLI call.
+
+The approved one-shot rollout is reproducible with a new private baseline and
+new evidence paths. Run the baseline before converting any row; deployment
+requires its own action-time approval when repeated:
+
+```sh
+node scripts/verify-convex-outline-deployment.mjs --mode baseline --deployment festive-cobra-664 --baseline /tmp/hadithly-private-outline-baseline.json --output /tmp/outline-baseline-metadata.json
+# Deploy the approved code from backend with the existing development target verified.
+node scripts/verify-convex-outline-deployment.mjs --mode convert --deployment festive-cobra-664 --baseline /tmp/hadithly-private-outline-baseline.json --output /tmp/outline-conversion-metadata.json
+```
 
 The internal mutation also accepts `format: "legacy"`. Restore rows using that
 format before attempting an older schema deployment. Stop on a mismatch or
 failed query; do not continue converting other collections until diagnosed.
 No manual notification, paid generation or production action is included.
 
-The owner's earlier approval covered only fe8742c and its completed notification
-readback. This new deployment and data conversion are not yet authorized. All
-G01-G41, A1/A3/A4 acceptance, A7/G38 deferral, E Linear and final audit stay open.
-The larger cost goal remains active.
+The owner separately approved ed93a19, the seven-record development conversion
+and native verification. No manual notification, paid generation or production
+action occurred. All G01-G41, A1/A3/A4 acceptance, A7/G38 deferral, E Linear and
+final audit stay open. The original app and release program retains those gates.
+
+
+## Native development readback
+
+Android's guarded runner passed both `ConvexCostJourneyTest` methods on the
+existing task-owned guest emulator-5554. The ten page moves produced the same
+eleven page/volume positions as the prior fresh baseline. The second method
+opened live contents, displayed volume 1, jumped to Hadith 57 and retained guest
+state. Generation was disabled in both methods. This was an existing app
+installation, so its aggregate action counts are not a fresh-install cost pair.
+
+On the task-owned iOS 27 simulator 5EF04509-2CE0-4FBA-9341-F407EBDE8045, the
+existing ten-page reading method passed in 117.6 seconds. The new live contents
+method then passed in 43.3 seconds, displaying volume 1 and reaching Hadith 57.
+Its first attempt failed because a direct Go tap occurred while the keyboard
+was moving. Reusing the existing `tapSettledGo` test helper fixed the interaction;
+no app source or backend change was needed. The initial failure remains recorded
+and is not counted as a passing run. The final single-test xcresult summary is
+Passed, one passed and zero failed. The original ten-page test already passed
+and was not needlessly repeated.
+
+Both iOS methods launch with automatic generation off and English UI. The local
+app-store readback confirms 26/16 reading sizes. The simulator retains its prior
+task-owned guest data; the harness's old literal "fresh simulator guest" is
+corrected to existing guest in the saved evidence. Neither platform test resets
+an account or changes physical devices. All five incoming iOS files remain
+byte-identical and unstaged.
+
+`outline-android-native.json` and `outline-ios-native.json` record the checks and
+source hashes. `outline-android-usage.json`, `outline-ios-reader-usage.json` and
+`outline-ios-contents-usage.json` capture their bounded development windows.
+No generation function completed in the captured native windows. Direct provider
+request counters are unavailable. The contents window includes ambient scheduled
+traffic; these captures do not attribute the whole deployment's activity to one
+reader or establish a bill reduction.
+
+Repeat the native checks using the guarded Android runner and the task-owned
+iOS simulator, with normal simulator signing:
+
+```sh
+JAVA_HOME=/Users/alim/Library/Java/JavaVirtualMachines/openjdk-21.0.1/Contents/Home python3 scripts/run-android-ui-tests.py --serial emulator-5554 --class com.hadithly.app.ConvexCostJourneyTest
+xcodebuild -project ios/Hadithly.xcodeproj -scheme Phase4Live -destination 'platform=iOS Simulator,id=5EF04509-2CE0-4FBA-9341-F407EBDE8045' -only-testing:HadithlyUITests/ReaderR5UITests/testConvexCostColdLaunchLibraryAndTenPageMoves -only-testing:HadithlyUITests/ReaderR5UITests/testConvexCostContentsJumpWithGenerationOff -parallel-testing-enabled NO test
+```
