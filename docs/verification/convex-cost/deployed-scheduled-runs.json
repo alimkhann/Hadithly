@@ -1,0 +1,27 @@
+{
+  "deployment": "festive-cobra-664",
+  "sinceUtc": "2026-10-31T19:58:14Z",
+  "scope": "passive deployed execution logs, no manual dispatch or provider activation",
+  "runs": [
+    {
+      "completedAtUtc": "2026-10-31T20:12:29.340903+00:00",
+      "newTokenPageQueries": 1,
+      "oldBucketQueries": 0,
+      "actionExecutionSeconds": 0.803579471,
+      "schedulerCallerRecognized": true,
+      "actionNetworkEgressBytes": 2976,
+      "tokenDatabaseIoReadBytes": 2005,
+      "success": true
+    },
+    {
+      "completedAtUtc": "2026-10-31T20:27:28.884724+00:00",
+      "newTokenPageQueries": 1,
+      "oldBucketQueries": 0,
+      "actionExecutionSeconds": 0.346795858,
+      "schedulerCallerRecognized": true,
+      "actionNetworkEgressBytes": 2890,
+      "tokenDatabaseIoReadBytes": 2005,
+      "success": true
+    }
+  ]
+}

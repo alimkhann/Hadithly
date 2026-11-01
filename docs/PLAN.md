@@ -10,14 +10,24 @@ The owner expanded the Convex diagnostic into usage reduction, prioritizing free
 operation while allowing low cost and a finished app experience with release
 dependencies deferred. [CONVEX_COST_VERIFICATION.md](CONVEX_COST_VERIFICATION.md)
 records the local repair, live baseline, executable proof and remaining work.
-This sequencing exception preserves original-program acceptance. No spending
-ceiling, cloud deployment or paid action was approved.
+This sequencing exception preserves original-program acceptance. The owner
+approved deployment of fe8742c to development festive-cobra-664 and passive
+readback. No production, migration or paid action was approved.
 
-The fixed 96-bucket notification fan-out is replaced locally with one bounded
+The fixed 96-bucket notification fan-out is replaced with one bounded
 indexed cursor scan. Real local before/after cases and 546 backend tests pass;
 the empty tick uses 1 rather than 96 token queries. This is not a billed-saving
-claim. Development rollout and passive scheduled-run readback need action-time
-approval. Paired native reader/idle I/O measurement remains pending.
+claim. Development rollout succeeded on October 31 at 19:58 UTC after the
+owner approval. Deployed metadata shows the new endpoint and no old bucket
+endpoint. Two successful scheduled runs at 20:12 and 20:27 UTC each used one new
+token-page query and zero old bucket calls. Notification dispatch reduction is
+verified on development. Paired native reader/idle I/O measurement remains open.
+
+The reader baseline is a separate unfinished unit. Its first Android attempt
+took 2h 36m and failed on an ambiguous Library text selector; it produced no
+valid journey baseline. The selector now uses tabs.library. Its bounded rerun finished in 46 seconds
+and timed out waiting for reader.nextPage after entering the reader. The iOS
+test is drafted but unrun. Do not count either native baseline as passed.
 
 All G01-G41, A1/A3/A4 acceptance, A7's deferral, E Linear and the final audit remain
 open. Preserve A2/A5 and B/C/D local completion and incoming work. The current

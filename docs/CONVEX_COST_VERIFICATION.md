@@ -115,16 +115,39 @@ substitute for those measurements.
 
 ## Remaining goal and action boundary
 
-The local repair is ready for development rollout after final checks and commit.
-Deployment to `festive-cobra-664` requires the owner's exact action-time approval
-under AGENTS.md. Production is outside this unit. Do not manually invoke the live
-notification action or enable paid generation to prove this optimization.
+The owner approved fe8742c for development festive-cobra-664 and passive readback.
+The push succeeded on October 31 at 19:58 UTC. The first push attempt stopped
+before deployment because strict CLI typecheck expected convex/tsconfig.json;
+this repo uses backend/tsconfig.json. Running npm run typecheck explicitly, then
+pushing with CLI typecheck disabled, passed. No new config or SDK upgrade was
+needed. Deployed function metadata confirms the new endpoint and removal of the
+old one; see verification/convex-cost/deployed-function-readback.json. Production
+is outside this unit. No manual live notification or paid generation was invoked.
 
-After approval, push the verified functions from `backend/`, then passively
-observe complete scheduled cron runs and read back per-function usage. Compare
-matching windows and account for caches and traffic. Confirm the old bucket
-endpoint is absent and the new scan is used. A cloud deploy without that readback
-does not close the cost-reduction goal.
+The passive observer completed successfully. Both scheduled calls were recognized
+as scheduler-originated and correlated with their child queries. The artifact is
+`verification/convex-cost/deployed-scheduled-runs.json`.
+
+| Completion UTC on October 31 | New token-page queries | Old bucket calls | Action seconds | Action egress bytes | Token DB read bytes |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 20:12:29 | 1 | 0 | 0.804 | 2,976 | 2,005 |
+| 20:27:28 | 1 | 0 | 0.347 | 2,890 | 2,005 |
+
+Both executions succeeded. This closes the development notification-dispatch
+readback. The old 96-query empty/single-page fan-out is absent. It does not prove
+reader I/O savings or an invoice reduction; returned token bytes remain present.
+
+## Native baseline checkpoint
+
+The first Android reader attempt ran 2h 36m and failed before reading because a
+Library text selector matched two UI nodes. No valid baseline resulted. The test
+now selects the stable `tabs.library` tag. Its rerun had a ten-minute host limit
+and finished in 46 seconds, timing out at line 42 while waiting for
+`reader.nextPage` after entering the reader. Both Android jobs have finished.
+The iOS reader method is drafted but unrun. Both platforms remain unfinished
+verification work. The long unchecked run was a workflow failure, not evidence
+that more optimization was needed. Poll live handles and record outcomes before
+starting or expanding another unit.
 
 Next investigate reader I/O with the pinned native journey: whole-volume reads
 remain a source-based candidate, not a measured current defect. Keep A1/A3/A4,

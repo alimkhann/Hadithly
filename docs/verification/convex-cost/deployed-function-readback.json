@@ -1,0 +1,6 @@
+{
+  "deployment": "festive-cobra-664",
+  "oldBucketEndpointPresent": false,
+  "newDeliveryPageEndpoint": "library.js:listPushDeliveryPage",
+  "productionInspectedOrChanged": false
+}

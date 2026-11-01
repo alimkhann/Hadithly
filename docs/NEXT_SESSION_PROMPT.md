@@ -1,9 +1,11 @@
-# Next unit: verify deployed notification savings, then reader I/O
+# Next unit: finish the paired native reader I/O baseline
 
 The owner expanded the diagnostic into reducing Convex usage. The local
-notification repair has executable before/after proof; it is not deployed and
-no billed reduction is claimed. The app-experience destination and deferred
-release dependencies remain. Low cost has no numeric spending approval.
+notification repair has executable before/after proof and approved development
+rollout. Two scheduled runs each used one page query and no old bucket queries.
+No invoice saving or reader I/O reduction is claimed. The app-experience
+destination and deferred release dependencies remain. Low cost has no numeric
+spending approval.
 
 ```text
 Continue Hadithly's Convex cost goal. Read AGENTS.md, the current checkpoint
@@ -17,14 +19,24 @@ retry, deletion, legacy exclusions and attempt caps. Inspect current code and
 artifacts before relying on that evidence. Commit any completed remaining local
 work without pushing and preserve incoming iOS catalog/project/scheme changes.
 
-Before cloud deployment, obtain exact action-time approval to push the verified
-change to development festive-cobra-664 from backend/. Do not infer approval
-from the cost goal or this prompt. No production, migration, paid generation or
-manual notification send is authorized. Retain existing cron timing and policy.
+The owner approved fe8742c for development festive-cobra-664 and passive readback.
+The push succeeded on October 31 at 19:58 UTC. Deployed metadata confirms the
+new endpoint and removal of the old bucket endpoint. Do not request the same
+approval again or redeploy. The observer finished successfully and its output
+is docs/verification/convex-cost/deployed-scheduled-runs.json. No production, migration,
+paid generation or manual notification send is authorized.
 
-After approved development rollout, passively capture complete scheduled runs
-and per-function logs, confirm the old bucket endpoint is removed and the new
-paged scan is used, and compare matching windows. No deploy-only savings claim.
+The two successful scheduled runs completed at October 31 20:12 and 20:27 UTC,
+with one page query and zero old calls each. Deployed notification dispatch is
+verified; do not restart the completed observer or repeat that work.
+
+The first Android native attempt failed before reading: a Library text selector
+matched two nodes. It ran 2h 36m without a useful checkpoint. The test now uses
+tabs.library and a ten-minute host deadline. Its rerun finished in 46 seconds,
+failing after entering the reader while waiting for reader.nextPage. Both
+Android jobs have finished. Diagnose the actual reader state before another run;
+do not repeat the launch blindly. The iOS method is drafted but unrun. Neither
+native baseline passes yet. Native test changes remain a separate work unit.
 
 The original paired native workload remains open: fixed build/auth/cache/locale,
 cold launch -> Library -> first reading -> ten page moves on both platforms,
