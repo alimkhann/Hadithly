@@ -375,9 +375,7 @@ final class GuestDataStore {
         if let cached = decodedPartitions.object(forKey: key), cached.owner == owner, cached.data == data { return cached.state }
         do {
             let state = try JSONDecoder().decode(LibraryPartitionState.self, from: data)
-            if data.count <= 8 * 1_024 * 1_024 {
-                decodedPartitions.setObject(DecodedPartition(owner: owner, data: data, state: state), forKey: key, cost: data.count)
-            } else { decodedPartitions.removeObject(forKey: key) }
+            cachePartition(state, data: data, owner: owner)
             return state
         } catch {
             decodedPartitions.removeObject(forKey: key)
@@ -386,6 +384,14 @@ final class GuestDataStore {
     }
     func syncPartition(_ owner: LibrarySyncOwner) throws -> LibraryPartitionState? {
         try syncPartition(owner, in: outcomeContext())
+    }
+    private func cachePartition(_ state: LibraryPartitionState, data: Data, owner: LibrarySyncOwner) {
+        let key = "partition" as NSString
+        if data.count <= 8 * 1_024 * 1_024 {
+            decodedPartitions.setObject(DecodedPartition(owner: owner, data: data, state: state), forKey: key, cost: data.count)
+        } else {
+            decodedPartitions.removeObject(forKey: key)
+        }
     }
     private func withAccount<T>(_ owner: LibrarySyncOwner, _ body: (inout LibraryPartitionState, ModelContext) throws -> T) throws -> T {
         let db = outcomeContext()
@@ -400,6 +406,7 @@ final class GuestDataStore {
                 try bumpOutcomeClock(subject: owner.subject, namespace: owner.namespace, in: db)
             }
             if db.hasChanges { try saveOutcomeContext(db) }
+            cachePartition(state, data: row.stateData, owner: owner)
             return result
         } catch { db.rollback(); throw error }
     }

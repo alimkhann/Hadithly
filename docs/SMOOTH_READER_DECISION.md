@@ -143,3 +143,21 @@ windows, not whole-app resource guarantees. Retain this interruption repair,
 but do not claim the target passes or expand the full matrix while this case
 still fails. Remaining hitches do not overlap the save intervals or their joined
 app updates. A separate CPU diagnostic is running to attribute the remaining work.
+
+## Post-commit reuse and the remaining preference path
+
+The account store now reuses the exactly committed decoded state only after a
+successful durable write. Fresh-row owner/byte checks, the existing 8 MiB bound,
+rollback and erasure behavior remain. The real write-followed-by-read benchmark
+was red at 177.53 ms for 20 reads and passes at 20.21 ms. All 161 safety tests
+pass. Its first matched large-type run remains 9.59 ms/s, so no hitch benefit is
+claimed. See [the record](smooth-reader-verification/committed-cache-local.json).
+
+A focused SwiftUI trace succeeded when attaching by process name. It records
+253,111 update events, with preference propagation prominent. One high-severity
+7.24 ms update names `PreferenceBinder<ReaderScrollStateKey>` among its causes.
+Nested update times overlap; the diagnostic does not measure acceptance hitches.
+This new evidence supports retesting bounded viewport tracking after quiet-period
+persistence. Earlier geometry tests ran with 42 saves per workload, so they did
+not isolate the remaining post-repair preference cost. Keep the same renderer,
+typography, single landing writer and semantic restoration during that test.

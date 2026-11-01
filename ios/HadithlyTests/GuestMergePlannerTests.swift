@@ -29,6 +29,20 @@ final class GuestMergePlannerTests: XCTestCase {
         let elapsed = ProcessInfo.processInfo.systemUptime - start
         print("READER_PARTITION_READ_SECONDS \(elapsed)")
         XCTAssertLessThan(elapsed, 0.1, "Sync and library reads of unchanged durable bytes must not repeatedly decode the entire partition on the main thread")
+        var postWriteReadSeconds = 0.0
+        for index in 0..<20 {
+            let timestamp = Double(2_000 + index)
+            let change = LibraryLocalChange(command: .bookmarkAdd(.init(hadithId: "jn7fxd3z54153q9j13kmhgzkv18df2zd", createdAt: timestamp)),
+                at: timestamp, source: .account(nil))
+            try store.enqueueSyncChange(change, owner: owner)
+            state.pending.append(change)
+            let readStarted = ProcessInfo.processInfo.systemUptime
+            let committed = try store.syncPartition(owner)
+            postWriteReadSeconds += ProcessInfo.processInfo.systemUptime - readStarted
+            XCTAssertEqual(committed, state)
+        }
+        print("READER_PARTITION_POST_WRITE_READ_SECONDS \(postWriteReadSeconds)")
+        XCTAssertLessThan(postWriteReadSeconds, 0.1, "Sync and projection reads immediately after committed writes must stay within the same bounded read budget")
     }
 
     @MainActor func testWarmPartitionReadChecksFreshBytesOwnerAndDeletion() throws {

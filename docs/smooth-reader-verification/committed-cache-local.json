@@ -1,0 +1,158 @@
+{
+  "candidate": "Reuse the exactly committed decoded account snapshot after successful writes",
+  "before_post_write_read_seconds": 0.177531500114128,
+  "after_post_write_read_seconds": 0.020208125468343496,
+  "post_write_reads": 20,
+  "budget_seconds": 0.1,
+  "fixture_pending_notes": 1000,
+  "ios_safety_tests": 161,
+  "failures": 0,
+  "freshness_rule": "Fetch durable row on every read; owner and exact bytes must match before reuse",
+  "rollback_rule": "Populate cache only after successful durable commit; existing corruption, external-writer and erasure checks remain",
+  "physical_target": "First matched large-type run still fails strict target; no hitch improvement claimed",
+  "build": {
+    "configuration": "Debug with optimized Swift and C compilation",
+    "swiftOptimization": "-O",
+    "swiftCompilation": "wholemodule",
+    "bundleIdentifier": "com.hadithly.app",
+    "developmentURL": "https://festive-cobra-664.eu-west-1.convex.cloud",
+    "diagnosticsEnvironment": "development",
+    "appAttestEnvironment": "development",
+    "debuggerAttachAllowed": true,
+    "binarySHA256": "31eb7e56e6759f216ec0d25e58b5f19a7f2750a3ecad014c48c18c40043dba65",
+    "iosTrackedSourceSHA256": "6dfd4b2eca851d52e7223ace11357ce1e452ff7547fe3009ebb11942fd495233",
+    "gitHead": "7774dcd1e340d87713f02851c3b15fb5ebd1ef87",
+    "note": "Retains DEBUG compilation conditions and development entitlements. No app installation or project regeneration."
+  },
+  "workload": {
+    "automaticGenerationEnabled": false,
+    "collection": "bukhari",
+    "contentVersion": "cv1:2fa67689c3fda0749574b5d2a2790f36778377446bc9f14b3cff0585dab44330",
+    "hadiths": [
+      "7188",
+      "7189",
+      "7190",
+      "7191",
+      "7192"
+    ],
+    "lowPowerMode": false,
+    "maximumFramesPerSecond": 120,
+    "pageIndex": 26,
+    "pageKey": "pg1:8d20cc6ff8d418d358aa7ecddf5102625c43b74500113ff2630119c90a53a09b",
+    "preferences": {
+      "appTheme": "system",
+      "arabicFont": "amiri",
+      "arabicFontSize": 40,
+      "arabicVisible": true,
+      "readerTheme": "system",
+      "readingDirection": "auto",
+      "schemaVersion": 2,
+      "translationFontSize": 22,
+      "translationLocale": "en",
+      "translationVisible": true,
+      "uiLocale": "en",
+      "usesSeparateReaderTheme": false
+    },
+    "textBytes": 5266,
+    "textSHA256": "70602abc1b4796922a8fd8f426ec3d10b682b37c8ea6e53fbe47d41fa96c91a1",
+    "thermalState": 0,
+    "volume": "97",
+    "connectionTransport": "wired"
+  },
+  "summary": {
+    "runs": [
+      {
+        "run": 0,
+        "clock_seconds": 30.096858208,
+        "active_scroll_seconds": 18.681387751,
+        "display_presentations": 1662,
+        "app_frame_updates": 1703,
+        "verified_scroll_gestures": 14,
+        "active_hitch_ms_per_second": 9.592276729570465,
+        "app_hitch_events": 15,
+        "active_hitch_union_ms": 179.197041,
+        "max_app_hitch_ms": 12.502125,
+        "hitch_intervals_ns": [
+          [
+            10678733041.0,
+            10691235166.0
+          ],
+          [
+            15066972000.0,
+            15079474125.0
+          ],
+          [
+            15154486791.0,
+            15166988916.0
+          ],
+          [
+            17225668916.0,
+            17238171041.0
+          ],
+          [
+            17417367833.0,
+            17429869958.0
+          ],
+          [
+            21605573041.0,
+            21618075166.0
+          ],
+          [
+            21734761583.0,
+            21743096249.0
+          ],
+          [
+            23664253125.0,
+            23676755250.0
+          ],
+          [
+            25489560291.0,
+            25502062416.0
+          ],
+          [
+            25564573125.0,
+            25577075250.0
+          ],
+          [
+            25752104708.0,
+            25760439458.0
+          ],
+          [
+            30044494166.0,
+            30056996291.0
+          ],
+          [
+            32069835291.0,
+            32082337416.0
+          ],
+          [
+            34370222625.0,
+            34382724750.0
+          ],
+          [
+            38791800500.0,
+            38804302625.0
+          ]
+        ],
+        "operations": {
+          "ReaderAnchorGeometry": {
+            "count": 1717,
+            "max_ms": 0.676042,
+            "overlaps_hitch": 18
+          },
+          "ScrollProgressPersistence": {
+            "count": 14,
+            "max_ms": 5.472042,
+            "overlaps_hitch": 0
+          }
+        },
+        "observed_cpu_seconds": 11.669934708,
+        "resource_sample_window_seconds": 28.626855625,
+        "peak_sampled_footprint_mib": 162.9395751953125
+      }
+    ],
+    "worst_hitch_ms_per_second": 9.592276729570465,
+    "note": "App-attributed hitch intervals intersect native scrolling, with overlaps merged. Presentation counts describe the shared phone display, not app FPS. CPU and footprint are sampled within each run.",
+    "budget_passed": false
+  }
+}

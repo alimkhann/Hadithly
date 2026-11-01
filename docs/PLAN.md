@@ -34,8 +34,11 @@ The new real-path regression reproduced writes during continuous motion before
 the repair. The optimized installed candidate passes 161 iOS safety and two UI checks. Its
 first matched large-type run improves to 8.04 ms/s with 11 remaining hitches,
 still above the target. Geometry callbacks now peak at 0.42 ms and saves fall
-from 42 to 14. Retain this measured repair; attribute the remaining stalls before
-expanding the full matrix. Owner acceptance remains open. Preparation also has
+from 42 to 14. Retain this measured repair. Post-commit decoded reuse reduces 20 real reads
+from 177.53 to 20.21 ms and passes all 161 safety tests, but its first physical
+run remains 9.59 ms/s. A successful SwiftUI trace now implicates the scroll-state
+preference path, including a 7.24 ms update. Retest bounded viewport tracking
+with quiet-period persistence before expanding the full matrix. Owner acceptance remains open. Preparation also has
 eight unchanged-Android parity and twelve capture checks. Preserve incoming files, all original gates, A2 row mode off,
 and deferred page-cache/priority-4 work. Commit completed units without pushing.
 
