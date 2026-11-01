@@ -1,0 +1,322 @@
+{
+  "date": "2026-11-01",
+  "base_commit": "10c1083d9b1fbcc9a6a559024e2d2fb899e6dc5b",
+  "product_or_test_changes": false,
+  "automated_totals": {
+    "passed": 19,
+    "failed": 0,
+    "skipped": 0,
+    "ios_ui": 3,
+    "ios_unit": 2,
+    "android_ui": 4,
+    "android_unit": 10
+  },
+  "ios_device": {
+    "architecture": "arm64",
+    "deviceId": "D47D7363-4705-4767-8617-F47DDB6A3241",
+    "deviceName": "Hadithly LA2 iPhone 18 Pro",
+    "modelName": "iPhone 18 Pro",
+    "osBuildNumber": "24A434",
+    "osVersion": "27.0",
+    "platform": "iOS Simulator"
+  },
+  "android_device": {
+    "serial": "emulator-5554",
+    "avd": "hadithly",
+    "os": "Android 16",
+    "model": "sdk_gphone64_arm64"
+  },
+  "ios": [
+    {
+      "name": "ReaderR4Tests/testTranslationSizeInvalidatesLayoutProjection()",
+      "result": "Passed",
+      "seconds": 0.003321051597595215
+    },
+    {
+      "name": "ReadingPositionTests/testOldGeometryAndTranslationSizeUseSemanticAnchorWithoutRewritingPosition()",
+      "result": "Passed",
+      "seconds": 0.002001047134399414
+    },
+    {
+      "name": "LanguageSwitchUITests/testLiveLanguageSwitchKeepsEnglishLTRAndArabicLabels()",
+      "result": "Passed",
+      "seconds": 46.01365101337433
+    },
+    {
+      "name": "ReaderR5UITests/testTranslationSizeChangesActualReaderText()",
+      "result": "Passed",
+      "seconds": 9.57202696800232
+    },
+    {
+      "name": "ReaderSettingsUITests/testBothEntryPointsKeepSettingsAndNativeNavigation()",
+      "result": "Passed",
+      "seconds": 40.02959108352661
+    }
+  ],
+  "android": [
+    {
+      "suite": "UI",
+      "name": "com.hadithly.app.features.settings.LanguageSwitchTest.liveLocaleSwitchUpdatesLabelsAndDirectionWithoutChangingTranslation",
+      "result": "Passed",
+      "seconds": 4.933,
+      "raw_artifact": "/tmp/hadithly-priority2-20261101/android-ui-TEST-hadithly(AVD) - 16-_app-.xml"
+    },
+    {
+      "suite": "UI",
+      "name": "com.hadithly.app.features.settings.ReaderPreferenceContentTest.readerControlsPreserveSelectionsSizesAndLastVisibleLayer",
+      "result": "Passed",
+      "seconds": 3.048,
+      "raw_artifact": "/tmp/hadithly-priority2-20261101/android-ui-TEST-hadithly(AVD) - 16-_app-.xml"
+    },
+    {
+      "suite": "UI",
+      "name": "com.hadithly.app.features.settings.ReaderPreferenceContentTest.globalControlsPreserveSelectionsSizesAndLastVisibleLayer",
+      "result": "Passed",
+      "seconds": 3.07,
+      "raw_artifact": "/tmp/hadithly-priority2-20261101/android-ui-TEST-hadithly(AVD) - 16-_app-.xml"
+    },
+    {
+      "suite": "UI",
+      "name": "com.hadithly.app.features.reader.ReaderR6AQuietTest.translationSizeChangesActualReaderText",
+      "result": "Passed",
+      "seconds": 0.634,
+      "raw_artifact": "/tmp/hadithly-priority2-20261101/android-ui-TEST-hadithly(AVD) - 16-_app-.xml"
+    },
+    {
+      "suite": "unit",
+      "name": "com.hadithly.app.ReaderR4Test.translationSizeInvalidatesLayoutProjection",
+      "result": "Passed",
+      "seconds": 0.023,
+      "raw_artifact": "/tmp/hadithly-priority2-20261101/android-unit-TEST-com.hadithly.app.ReaderR4Test.xml"
+    },
+    {
+      "suite": "unit",
+      "name": "com.hadithly.app.ReadingPositionTest.content and layout changes use the semantic anchor",
+      "result": "Passed",
+      "seconds": 0.013,
+      "raw_artifact": "/tmp/hadithly-priority2-20261101/android-unit-TEST-com.hadithly.app.ReadingPositionTest.xml"
+    },
+    {
+      "suite": "unit",
+      "name": "com.hadithly.app.ReadingPositionTest.missing anchor chooses nearest and resets offset",
+      "result": "Passed",
+      "seconds": 0.003,
+      "raw_artifact": "/tmp/hadithly-priority2-20261101/android-unit-TEST-com.hadithly.app.ReadingPositionTest.xml"
+    },
+    {
+      "suite": "unit",
+      "name": "com.hadithly.app.ReadingPositionTest.wire round trip uses Double numbers",
+      "result": "Passed",
+      "seconds": 0.026,
+      "raw_artifact": "/tmp/hadithly-priority2-20261101/android-unit-TEST-com.hadithly.app.ReadingPositionTest.xml"
+    },
+    {
+      "suite": "unit",
+      "name": "com.hadithly.app.ReadingPositionTest.decoder rejects an unsupported version",
+      "result": "Passed",
+      "seconds": 0.001,
+      "raw_artifact": "/tmp/hadithly-priority2-20261101/android-unit-TEST-com.hadithly.app.ReadingPositionTest.xml"
+    },
+    {
+      "suite": "unit",
+      "name": "com.hadithly.app.ReadingPositionTest.oldGeometryAndTranslationSizeUseSemanticAnchorWithoutRewritingPosition",
+      "result": "Passed",
+      "seconds": 0.006,
+      "raw_artifact": "/tmp/hadithly-priority2-20261101/android-unit-TEST-com.hadithly.app.ReadingPositionTest.xml"
+    },
+    {
+      "suite": "unit",
+      "name": "com.hadithly.app.ReadingPositionTest.legacy guest progress migrates at offset zero",
+      "result": "Passed",
+      "seconds": 0.001,
+      "raw_artifact": "/tmp/hadithly-priority2-20261101/android-unit-TEST-com.hadithly.app.ReadingPositionTest.xml"
+    },
+    {
+      "suite": "unit",
+      "name": "com.hadithly.app.ReadingPositionTest.layout signature matches golden vector and changes with pagination",
+      "result": "Passed",
+      "seconds": 0.001,
+      "raw_artifact": "/tmp/hadithly-priority2-20261101/android-unit-TEST-com.hadithly.app.ReadingPositionTest.xml"
+    },
+    {
+      "suite": "unit",
+      "name": "com.hadithly.app.ReadingPositionTest.target resolver restores only a matching private position",
+      "result": "Passed",
+      "seconds": 0.001,
+      "raw_artifact": "/tmp/hadithly-priority2-20261101/android-unit-TEST-com.hadithly.app.ReadingPositionTest.xml"
+    },
+    {
+      "suite": "unit",
+      "name": "com.hadithly.app.ReadingPositionTest.guest merge carries the complete newest V1 position",
+      "result": "Passed",
+      "seconds": 0.004,
+      "raw_artifact": "/tmp/hadithly-priority2-20261101/android-unit-TEST-com.hadithly.app.ReadingPositionTest.xml"
+    }
+  ],
+  "android_manual_cold_process": {
+    "utc": "2026-11-01T09:57:29.617237+00:00",
+    "result": "Passed",
+    "target": "emulator-5554",
+    "checks": [
+      {
+        "artifact": "android-manual-return.xml",
+        "guest": true,
+        "ui_and_translation_values": "English",
+        "today_left_of_settings": true
+      },
+      {
+        "artifact": "android-settings-cold-relaunch.xml",
+        "guest": true,
+        "ui_and_translation_values": "English",
+        "today_left_of_settings": true
+      }
+    ],
+    "steps": [
+      "Installed current Debug APK after guarded Gradle test teardown removed it",
+      "Completed onboarding as guest",
+      "Settings > App language > Arabic > Back",
+      "App language > English > Back",
+      "Verified English Settings and captured UI",
+      "Force-stopped process, relaunched MainActivity, reopened Settings",
+      "Verified fresh English Settings hierarchy and captured rendered UI"
+    ],
+    "unaccepted_attempts": [
+      "Initial optional launch found package removed by Gradle teardown",
+      "Startup hierarchy was null; early helper could retain an older dump; those observations rejected",
+      "An attempted Settings tap matched two labels in the old dump and was rejected before tapping"
+    ],
+    "accepted_observation": "Removed old remote dump before reading a freshly successful UiAutomator dump; assertions use the fresh hierarchy"
+  },
+  "reviewed_captures": [
+    {
+      "file": "ios-settings-relaunch.png",
+      "sha256": "934eb1e486bcd3bc0465e3bf5cf776815d67fcdff8fb76fef4c9e516d8726172",
+      "raw_file": "/tmp/hadithly-priority2-20261101/ios-captures/D0737A12-9A38-4781-8E47-D3CD142088DF.png",
+      "test": "LanguageSwitchUITests/testLiveLanguageSwitchKeepsEnglishLTRAndArabicLabels()",
+      "utc": "2026-11-01T09:50:41.009000+00:00",
+      "visually_reviewed": true
+    },
+    {
+      "file": "ios-settings-return.png",
+      "sha256": "a24b72bd01b070130b918bd77227d3f7593584802cf24cf82195bad4a05a7d09",
+      "raw_file": "/tmp/hadithly-priority2-20261101/ios-captures/2A129901-A370-4986-848B-3870D48366E3.png",
+      "test": "LanguageSwitchUITests/testLiveLanguageSwitchKeepsEnglishLTRAndArabicLabels()",
+      "utc": "2026-11-01T09:50:31.200000+00:00",
+      "visually_reviewed": true
+    },
+    {
+      "file": "ios-type-22.png",
+      "sha256": "884360e635ac6cd8cc1d5ff12978628bc2762c35276c1922be7ef166fc8fd06c",
+      "raw_file": "/tmp/hadithly-priority2-20261101/ios-captures/5F13A042-5E97-414A-B34E-2526568284F3.png",
+      "test": "ReaderR5UITests/testTranslationSizeChangesActualReaderText()",
+      "utc": "2026-11-01T09:50:49.006000+00:00",
+      "visually_reviewed": true
+    },
+    {
+      "file": "ios-type-14.png",
+      "sha256": "2da0c66eb1a84714100278f8a8b60181b6a272be117d45b712c890d4d048c5ba",
+      "raw_file": "/tmp/hadithly-priority2-20261101/ios-captures/0FBA2A27-7CE7-408D-A4C8-BFC5FC7BE6F8.png",
+      "test": "ReaderR5UITests/testTranslationSizeChangesActualReaderText()",
+      "utc": "2026-11-01T09:50:48.530000+00:00",
+      "visually_reviewed": true
+    },
+    {
+      "file": "android-settings-return.png",
+      "sha256": "2a24a86affa47f0edb96b433153a7fa9b0abab73509862f40dfdecd011af50fc",
+      "raw_file": "/tmp/hadithly-priority2-20261101/android-settings-return.png",
+      "scope": "guarded instrumentation return",
+      "visually_reviewed": true
+    },
+    {
+      "file": "android-settings-cold-relaunch.png",
+      "sha256": "194b33e14d66731c5666d9dc1a03e25a73318c6d2e76275a2b30564c1d3464f0",
+      "raw_file": "/tmp/hadithly-priority2-20261101/android-settings-cold-relaunch.png",
+      "scope": "separate manual cold-process return",
+      "visually_reviewed": true
+    }
+  ],
+  "raw_artifacts": [
+    {
+      "path": "/tmp/hadithly-priority2-20261101/android-unit-TEST-com.hadithly.app.ReadingPositionTest.xml",
+      "sha256": "6d07b949db714f7f3e38af89dc2055239d8dbd73fc3029a08dd867bb511990c5"
+    },
+    {
+      "path": "/tmp/hadithly-priority2-20261101/android-ui-TEST-hadithly(AVD) - 16-_app-.xml",
+      "sha256": "a3aaa45758a2f3a9e8032e9ccb35829322267ccaee4b3e5450d090bf19393081"
+    },
+    {
+      "path": "/tmp/hadithly-priority2-20261101/android-unit-TEST-com.hadithly.app.ReaderR4Test.xml",
+      "sha256": "b735ae5f50ea9061a8d3231e38b39573c622d1c4b3a7d72e49bb04dfdceb103e"
+    },
+    {
+      "path": "/tmp/hadithly-priority2-20261101/ios-summary.json",
+      "sha256": "de64806848a260ea142f4d3ad4c6f5cf42a44f144b79b9bbfb3fa0e97ed56fe2"
+    },
+    {
+      "path": "/tmp/hadithly-priority2-20261101/ios-tests.json",
+      "sha256": "1a53129b6c98b5f9f0c07af3f7d4ce1c5215642bd92157ca9bc3b425623243c3"
+    },
+    {
+      "path": "/tmp/hadithly-priority2-20261101/ios-captures/manifest.json",
+      "sha256": "7933eb53d436dd1d67cbf99fd662da67621ec21e00ad63999ef5284f74c70d03"
+    },
+    {
+      "path": "/tmp/hadithly-priority2-20261101/android-cold-result.json",
+      "sha256": "0af76848b64b47851081705c0ab2125ccc29ccb806ed7659514cc2bd91aca402"
+    },
+    {
+      "path": "/tmp/hadithly-priority2-20261101/android-settings-cold-relaunch.xml",
+      "sha256": "7e5a081179d0af31679e779f75f2bfeefbc75686ef80b48110e40a7eb3d923b4"
+    },
+    {
+      "path": "/tmp/hadithly-priority2-20261101/android-manual-return.xml",
+      "sha256": "7e5a081179d0af31679e779f75f2bfeefbc75686ef80b48110e40a7eb3d923b4"
+    }
+  ],
+  "verified_source_sha256": {
+    "ios/Hadithly/Features/Reader/ReaderView.swift": "8892b06d729395d1325747b6e048e6d9349b672252ccc332e316775226abee67",
+    "ios/Hadithly/Features/Reader/ReaderSheets.swift": "2b33dc123e918e31c4d09444cdc8952e12c8339802cf1bcdad07f70b7b86b535",
+    "ios/HadithlyUITests/ReaderR5UITests.swift": "be27b9f99e3c78f337f01a704072fddca20c54abf009864e53615923f087d99e",
+    "ios/HadithlyUITests/ReaderSettingsUITests.swift": "32a62ab6cfeaacdb9a647a72703f6315c5b32498a5c044a1b31fade40510b7e2",
+    "ios/HadithlyUITests/LanguageSwitchUITests.swift": "81d2b97c50bae9efdb0beff6a2d7db4ebc7a829a1d53f832429f5262d2f25baf",
+    "ios/HadithlyTests/ReaderR4Tests.swift": "18f4555350470ee37c1121bd2ffa4b58ed751103b10a7fff4e82a5e7749bbbdc",
+    "ios/HadithlyTests/ReadingPositionTests.swift": "68dd18f53def67aca91ffb9118bd8715ff5aba4883f52e367a14ec9f49dc834f",
+    "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt": "bad65c79205e529e90666b11949222809816037cfe8b3866c32a983a3306a5e3",
+    "android/app/src/androidTest/kotlin/com/hadithly/app/features/reader/ReaderR6AQuietTest.kt": "3d57b3f6ad807298214631b52da2f554849fea93786e792b9ebcf99ada943bd5",
+    "android/app/src/androidTest/kotlin/com/hadithly/app/features/settings/ReaderPreferenceContentTest.kt": "952e56357366ce3e200f3978db21b339a035f4dbbf03e554581b265626d17da9",
+    "android/app/src/androidTest/kotlin/com/hadithly/app/features/settings/LanguageSwitchTest.kt": "ba36599b8aeb340e772e807aa62094f0b370d1eee0560c7fc87d2bd231e84e78",
+    "android/app/src/test/kotlin/com/hadithly/app/ReaderR4Test.kt": "04b85d68a7aa2def4b65c6412b1ee7ac2a368b2b60b5c69daa049c95b7fc29a9",
+    "android/app/src/test/kotlin/com/hadithly/app/ReadingPositionTest.kt": "f885453d9abe9eccca8a9672ec257c2af93b507af7b75e3f02f329ec169cd3d3"
+  },
+  "preservation": {
+    "snapshot_path": "/tmp/hadithly-priority2-20261101/before.json",
+    "files_checked": 674,
+    "unchanged": 673,
+    "intentional_document_changes": [
+      "docs/PRODUCT_PROGRAM.md"
+    ],
+    "unexpected_changes": [],
+    "index_unchanged_before_staging": true,
+    "incoming_sha256": {
+      "ios/Hadithly.xcodeproj/project.pbxproj": "96350e43481804f2d09dfd0e09609f894d7eedcc6a5326a6cb63c16cb9992efb",
+      "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/Hadithly.xcscheme": "4855a090d537eafb377cd99d70425fb44137ad64588059f01727ffbbd0fa95b6",
+      "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/LA2Verification.xcscheme": "74eff6b5902f4989fcf1d4d5d17a9c1c65bb66571cde851e2b932bff7520bfed",
+      "ios/Hadithly.xcodeproj/xcshareddata/xcschemes/Phase4Live.xcscheme": "35c6cbf95690fc03a4497131c41eeb41983b35123116204af04dd0842baa982d",
+      "ios/Hadithly/Localizable.xcstrings": "ea0844bf22fb7cf83805a3600a1de6a0d4a2b1b8142021d2465724d1316dcf15"
+    },
+    "incoming_cache_sha256": {
+      "scripts/__pycache__/test_generate_ui_polish_copy.cpython-312.pyc": "1c6089cccc3420a6ad4cee9138a8b34aaba65786290639e8b265070d50fce5de",
+      "scripts/__pycache__/capture-convex-cost-baseline.cpython-312.pyc": "21d93798ace1421e9bf9cb8fbfa1f389289c144bdb7042e4dc71d75e1d85b573",
+      "scripts/__pycache__/collect-a4-local-evidence.cpython-312.pyc": "1c7b02d47ca5aba1c1fdb850d9d664ee499eb794336da2d7fba21195673113a7",
+      "scripts/__pycache__/test_catalog_staging.cpython-312.pyc": "5a7144baf32c08e7c21f9e9433dd61091977cd992fb5e736c0111b1b4f96d09e",
+      "scripts/__pycache__/localization_audit.cpython-312.pyc": "97c21562ebe4fdeb9c371a696ef97d2323a0e0a545da7aeb53e0344673703caf",
+      "scripts/__pycache__/test_localization_audit.cpython-312.pyc": "21e76acc3edfda6c481cbe977e030648d2ef1bb4f7599def05291abdf127bca6"
+    }
+  },
+  "limits": [
+    "Synthetic English renderer text and controlled settings hosts",
+    "Guest Settings journeys; no authenticated operation or generation proof",
+    "Physical-device, content/provider, native-speaker, full accessibility, store and release gates remain open",
+    "No performance work started"
+  ]
+}

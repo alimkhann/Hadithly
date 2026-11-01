@@ -8,7 +8,19 @@ for this program, not session names supplied by the owner.
 Their checksums and every research URL are recorded in
 `product-program/research-manifest.json`. No later phase replaces unfinished work.
 
-## Current owner priority: Convex usage reduction, November 1
+## Current owner priority: verify backlog priority 2, November 1
+
+The owner selected one goal to verify the A5 translation-size and Settings
+direction repairs before proposed priorities 3–4. Fresh verification passes
+19 automated cases across both apps. No regression reproduced and no product
+code changed. See `PRIORITY2_VERIFICATION.md`. This exception changes the order
+of only this named verification unit. All unfinished original requirements and
+gates remain open, including the A7 study deferral, E Linear and final audit.
+Stop after the evidence commit without pushing; performance work has not begun.
+The proposed next goal is scrolling measurement, as recorded in
+`NEXT_SESSION_PROMPT.md`. Earlier no-replacement-task statements are historical.
+
+## Convex usage reduction, November 1
 
 The owner selected Convex diagnosis and subsequent local usage reduction before
 remaining program acceptance. The destination is a finished app experience with

@@ -4,7 +4,25 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-## Current checkpoint: Convex usage reduction verified, November 1
+## Current checkpoint: priority-2 native verification, November 1
+
+The owner selected priority-2 translation font size and Arabic-to-English
+Settings direction as the first goal in the proposed backlog 2–4 sequence.
+Fresh verification retains both A5 repairs: 19 automated cases pass across the
+two native apps, with rendered text-growth and Settings-orientation evidence.
+No product code or test changed because no regression reproduced. See
+[PRIORITY2_VERIFICATION.md](PRIORITY2_VERIFICATION.md) and its result manifest.
+
+This is a bounded sequencing exception, not original-program acceptance.
+Preserve incoming iOS catalog/project/scheme bytes and scripts/__pycache__,
+the completed Convex continuation, A2 wrapped with row mode off, A5, B/C/D and
+all G01-G41, A1/A3/A4 acceptance, A7/G38 deferred with retired dates, E actual
+Linear and final audit. Commit this goal's evidence without pushing, then stop.
+Priority-3 scrolling measurement is proposed next; no performance, page-cache,
+free/pro override or translation-reliability work starts in this goal.
+`NEXT_SESSION_PROMPT.md` records that stop and the proposed next goal.
+
+## Convex usage reduction verified, November 1
 
 The owner expanded the Convex diagnostic into usage reduction, prioritizing free
 operation while allowing low cost and a finished app experience with release

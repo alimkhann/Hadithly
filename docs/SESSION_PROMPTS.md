@@ -4,6 +4,16 @@ Paste one prompt into a fresh task. Use the named model and effort when it is
 available. Each prompt is self-contained and authorizes only its named session.
 Never use Relay.
 
+## Priority-2 native verification
+
+The owner's first goal in the proposed backlog 2–4 sequence is verified locally.
+The existing font-size and Settings direction repairs pass 19 fresh automated
+cases across both apps; no product repair was necessary. See
+`PRIORITY2_VERIFICATION.md` and `NEXT_SESSION_PROMPT.md`. Stop after the scoped
+evidence commit without pushing. Priority-3 scrolling measurement is proposed
+next and has not started. Preserve the completed Convex continuation and all
+original-program acceptance gates and owner deferrals.
+
 ## Convex usage reduction
 
 The requested continuation is verified on development. Notification fan-out,
