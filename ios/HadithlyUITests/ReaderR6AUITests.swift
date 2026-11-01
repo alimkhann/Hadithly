@@ -1,4 +1,5 @@
 import XCTest
+import os
 
 /// Slice A (R6) gate plus round-2 corrections, offline: the Sajda-quiet
 /// page renders from the deterministic `-R6AReaderFixture` with no
@@ -31,16 +32,91 @@ final class ReaderR6AUITests: XCTestCase {
         let lower = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.65))
         let upper = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25))
         let velocity: XCUIGestureVelocity = ProcessInfo.processInfo.environment["HADITHLY_SCROLL_GESTURE"] == "fast" ? .fast : .slow
+        let seconds = Double(ProcessInfo.processInfo.environment["HADITHLY_SCROLL_SECONDS"] ?? "0") ?? 0
+        XCTAssertTrue(seconds == 0 || (30...60).contains(seconds))
+        let metadata = app.staticTexts["reader.profile.metadata"]
+        var motionAnchor: XCUIElement?
+        var initialMetadata = ""
+        if seconds > 0 {
+            XCTAssertTrue(metadata.waitForExistence(timeout: 10), "Long-form measurements require pinned profile metadata")
+            let data = try XCTUnwrap(metadata.label.data(using: .utf8))
+            var workload = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+            XCTAssertEqual(workload["automaticGenerationEnabled"] as? Bool, false, "Performance runs require automatic generation off")
+            workload["thermalState"] = ProcessInfo.processInfo.thermalState.rawValue
+            workload["lowPowerMode"] = ProcessInfo.processInfo.isLowPowerModeEnabled
+            if var preferences = workload["preferences"] as? [String: Any] {
+                preferences.removeValue(forKey: "updatedAt")
+                workload["preferences"] = preferences
+            }
+            let pinned = try JSONSerialization.data(withJSONObject: workload, options: [.sortedKeys])
+            print("READER_WORKLOAD_METADATA=\(String(decoding: pinned, as: UTF8.self))")
+            let attachment = XCTAttachment(data: pinned, uniformTypeIdentifier: "public.json")
+            attachment.name = "reader-workload-metadata"; attachment.lifetime = .keepAlways; add(attachment)
+            let candidates = app.staticTexts.matching(identifier: "reader.arabic").allElementsBoundByIndex
+                + app.buttons.matching(identifier: "reader.hadithLabel").allElementsBoundByIndex
+            let anchor = try XCTUnwrap(candidates.first { $0.frame.intersects(app.frame.insetBy(dx: 0, dy: 100)) })
+            motionAnchor = anchor
+            initialMetadata = metadata.label
+            let before = anchor.frame.minY
+            lower.press(forDuration: 0.02, thenDragTo: upper, withVelocity: .slow, thenHoldForDuration: 0)
+            let movement = abs(anchor.frame.minY - before)
+            XCTAssertGreaterThan(movement, 20, "The workload must move reader content")
+            upper.press(forDuration: 0.02, thenDragTo: lower, withVelocity: .slow, thenHoldForDuration: 0)
+            print("READER_SCROLL_MOVEMENT_POINTS=\(movement)")
+        }
+        if ProcessInfo.processInfo.environment["HADITHLY_SCROLL_TRACE"] == "1" {
+            XCTAssertEqual(seconds, 30)
+            let repetitions = Int(ProcessInfo.processInfo.environment["HADITHLY_SCROLL_REPETITIONS"] ?? "3") ?? 0
+            XCTAssertTrue(repetitions == 1 || repetitions == 3)
+            guard repetitions == 1 || repetitions == 3 else { return }
+            let log = OSLog(subsystem: "com.hadithly.reader.driver", category: .pointsOfInterest)
+            let thermalState = ProcessInfo.processInfo.thermalState
+            for iteration in 0..<repetitions {
+                XCTAssertFalse(ProcessInfo.processInfo.isLowPowerModeEnabled)
+                XCTAssertEqual(ProcessInfo.processInfo.thermalState, thermalState)
+                let id = OSSignpostID(log: log)
+                os_signpost(.begin, log: log, name: "ReaderMeasuredRun", signpostID: id, "iteration=%d", iteration)
+                let started = ProcessInfo.processInfo.systemUptime
+                var verifiedMovement = false
+                repeat {
+                    let before = verifiedMovement ? 0 : motionAnchor?.frame.minY ?? 0
+                    lower.press(forDuration: 0.02, thenDragTo: upper, withVelocity: velocity, thenHoldForDuration: 0)
+                    let afterUp = verifiedMovement ? 0 : motionAnchor?.frame.minY ?? 0
+                    upper.press(forDuration: 0.02, thenDragTo: lower, withVelocity: velocity, thenHoldForDuration: 0)
+                    if !verifiedMovement {
+                        let afterDown = motionAnchor?.frame.minY ?? 0
+                        XCTAssertGreaterThan(max(abs(afterUp - before), abs(afterDown - afterUp)), 20)
+                        verifiedMovement = true
+                    }
+                } while ProcessInfo.processInfo.systemUptime - started < seconds
+                os_signpost(.end, log: log, name: "ReaderMeasuredRun", signpostID: id)
+                XCTAssertFalse(ProcessInfo.processInfo.isLowPowerModeEnabled)
+                XCTAssertEqual(ProcessInfo.processInfo.thermalState, thermalState)
+                XCTAssertEqual(metadata.label, initialMetadata, "The page content or display settings changed during the run")
+                print("READER_TRACE_ITERATION=\(iteration) THERMAL=\(thermalState.rawValue)")
+            }
+            return
+        }
         let options = XCTMeasureOptions()
         options.iterationCount = 3
         options.invocationOptions = [.manuallyStart, .manuallyStop]
-        measure(metrics: [XCTHitchMetric(application: app), XCTCPUMetric(application: app), XCTClockMetric(),
-                          XCTOSSignpostMetric.scrollingAndDecelerationMetric], options: options) {
+        let thermalState = ProcessInfo.processInfo.thermalState
+        measure(metrics: [XCTHitchMetric(application: app), XCTCPUMetric(application: app), XCTMemoryMetric(application: app), XCTClockMetric(),
+                          XCTOSSignpostMetric.scrollingAndDecelerationMetric,
+                          XCTOSSignpostMetric(subsystem: "com.hadithly.app.reader", category: "PointsOfInterest", name: "ReaderActiveScroll")], options: options) {
+            if seconds > 0 {
+                XCTAssertFalse(ProcessInfo.processInfo.isLowPowerModeEnabled)
+                XCTAssertEqual(ProcessInfo.processInfo.thermalState, thermalState, "Thermal conditions changed within the workload")
+                print("READER_SCROLL_THERMAL_STATE=\(thermalState.rawValue)")
+            }
             startMeasuring()
-            for _ in 0..<3 {
+            let started = ProcessInfo.processInfo.systemUptime
+            var pairs = 0
+            repeat {
                 lower.press(forDuration: 0.02, thenDragTo: upper, withVelocity: velocity, thenHoldForDuration: 0)
                 upper.press(forDuration: 0.02, thenDragTo: lower, withVelocity: velocity, thenHoldForDuration: 0)
-            }
+                pairs += 1
+            } while seconds > 0 ? ProcessInfo.processInfo.systemUptime - started < seconds : pairs < 3
             stopMeasuring()
         }
     }

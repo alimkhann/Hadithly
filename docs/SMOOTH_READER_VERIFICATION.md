@@ -1,0 +1,155 @@
+# Consistently smooth iPhone reader
+
+Status: Goal 1 in progress. The owner approved this continuation on November 1,
+2026. The earlier bounded repair remains verified only against its recorded
+5 ms/s mean target in `SCROLLING_VERIFICATION.md`.
+
+## Contract and ordered goals
+
+Preserve typography, floating controls, safe-area text, gestures, source actions,
+accessibility and semantic reading positions. Work iPhone-first, with Android
+behavioral parity. Do not start page-transition caching or priority-4 translation
+work. Keep A2 row mode off and all original product acceptance gates open.
+
+1. Establish matched optimized-development physical baselines and attribute
+   remaining hitches. Record passage, text digest, settings and device conditions.
+2. Remove only the interruptions supported by those measurements. Preserve
+   durable final saves, scope fencing, ordering, rollback and lifecycle behavior.
+3. If text creation/layout still fails, compare bounded SwiftUI with reusable
+   UIKit/TextKit 2 rendering. Keep SwiftUI if both pass. Replace only the text
+   surface if UIKit alone passes the performance and behavioral requirements.
+
+The warm scrolling target is strictly below **1 ms/s in every retained run**,
+three 30-second repetitions for each slow/flick workload and content condition.
+This is a project quality target, not an Apple threshold. Report individual
+hitches and investigate recurring stalls. Owner confirmation on the optimized
+installed app is required. Average-only results, zero unsupported SDK fields,
+simulator timing and builds cannot close that gate.
+
+## Primary-source research and architectural constraints
+
+- [Apple responsiveness guidance](https://developer.apple.com/documentation/xcode/improving-app-responsiveness)
+  recommends keeping non-UI work off the main actor and profiling actual hitches.
+- [SwiftUI Instruments](https://developer.apple.com/videos/play/wwdc2025/306/)
+  traces update causes and observable dependencies. Inspect many short updates
+  as well as individual long updates.
+- [Scroll geometry](https://developer.apple.com/documentation/swiftui/view/onscrollgeometrychange(for:of:action:))
+  changes frequently; avoid broad app updates from every geometry callback.
+- [TextKit 2](https://developer.apple.com/videos/play/wwdc2021/10061/) provides
+  viewport-based layout. A fully measured text view inside another scrolling
+  container can defeat that advantage.
+- [Collection reuse/prefetching](https://developer.apple.com/videos/play/wwdc2021/10252/)
+  bounds creation and prepares content ahead of display. Very large individual
+  cells still need investigation.
+- [TextKit compatibility](https://developer.apple.com/videos/play/wwdc2022/10090/)
+  explains why accessing `layoutManager` can force TextKit 1 fallback.
+- [ProMotion](https://developer.apple.com/documentation/quartzcore/optimizing-iphone-and-ipad-apps-to-support-promotion-displays)
+  adapts frame pacing. Hardware maximum refresh is not observed display FPS.
+
+The phone reference is Sajda 6.7.1. Its reader visibly places page/juz pills over
+full-bleed text. Static mirrored screenshots establish appearance only; they do
+not establish frame timing or the proprietary renderer. No Sajda setting,
+account or audio action is part of this investigation.
+
+## Reproduction and instrumentation
+
+The previous installed-app result `[6.285142, 0, 0]` ms/s fails the new
+`--each-scroll-hitch-below 1` check. Its 2.095 mean cannot conceal the failing
+run. Executable checks cover this distinction, the strict boundary, empty
+scrolling, non-finite values, zero frame counts and incomplete trace windows.
+
+`scripts/build-reader-profile.py` builds locally for generic iOS using Debug's
+development configuration with Swift `-O`, whole-module compilation, C `-Os`
+and dSYMs. It retains DEBUG conditions and development entitlements. It verifies
+the explicit development URL, app identity and diagnostics environment and does
+not install or regenerate Xcode files. Existing Release uses Production.xcconfig.
+
+`HADITHLY_READER_PROFILE=1` enables fixed-name signposts for geometry handling,
+scroll persistence and native interacting/decelerating phases, plus a DEBUG-only
+metadata snapshot. Metadata contains
+public passage identity, a text digest, display preferences and initial
+power/thermal conditions. It excludes account identifiers and text contents.
+
+`prepare-reader-profile-run.py` selects the destination-only physical test and
+removes the generated injected `libRPAC` profiler, PERFC environment variables
+and performance/main-thread checkers. Code coverage and verbose performance
+diagnostics are disabled; automatic attachments are discarded. Incoming scheme
+files remain unchanged. These are measurement controls, not a claimed cause of
+the owner's original lag.
+
+The physical test activates the installed reader without launch/reset arguments.
+`HADITHLY_SCROLL_SECONDS=30` requires a metadata snapshot and actual content
+movement before measuring. In trace mode it drives three runs, verifies movement
+in each and emits measured-run boundaries without invoking XCTest metrics.
+`run-reader-device-scroll.py --trace` collects Hitches, Core Animation activity,
+commits, server work, frame lifetimes, display presentations, Points of Interest
+and Activity Monitor. It uses deferred recording and waits for Instruments'
+capture-ready notification before driving gestures. It rejects a disconnect or incomplete run and
+exports native data for `summarize-reader-scroll-trace.py`.
+
+The summary intersects app-attributed hitch intervals with native active-scroll
+intervals, merges overlaps and checks every run against 1 ms/s. The capture must
+contain app frame-update events, display presentation events and app CPU/footprint samples. Presentation
+counts belong to the shared display and do not establish app FPS. CPU deltas
+and peak footprint describe the observed resource-sampling windows.
+
+Raw results remain local under `/tmp/hadithly-smooth-reader-20261101`.
+No whole-app FPS claim follows from unsupported zero frame counts.
+
+The optimized development app and updated test runner were built and installed;
+the installation URL and bundle identity were read back. Subsequent launch
+timed out while the phone displayed its lock screen. After the owner unlocked
+it, the SDK metric service disconnected during the long run. Only one sample
+and zero frame counts remained, so the capture was rejected. The native and SDK
+scroll-duration fields both described about 1.33 seconds despite the 33-second
+loop; they do not establish whole-loop coverage.
+
+The first gesture-only Instruments attempt was also rejected. The test host
+reported Low Power Mode and the trace ended after its network connection dropped.
+The owner connected USB, disabled Low Power Mode and unlocked the phone. The
+validated optimized app and runner were installed again, with matching app
+installation readback and binary digest. The clean wired capture stayed
+connected, verified 333 points of content movement and completed its first
+30-second repetition. The second repetition changed from nominal to fair
+thermal state, so the test rejected the set. It is diagnostic evidence only.
+The unfinished device-wide trace was terminated after excessive data growth and
+removed to recover local space; logs and rejection metadata remain. A five-second
+wired PID-attachment probe then completed and finalized at 55 MB. The final
+baseline capture uses the lighter instruments above without CPU stack sampling,
+and retains all-process signposts so the test driver's measured boundaries are
+present. A capture-ready notification avoids the earlier truncated first
+interval. Driver identity uses its fixed subsystem because Instruments may name
+the newly started runner `Process (pid)`. Finalization is limited to two minutes.
+
+Rolling-window captures produced display presentations but no app frame updates.
+Their apparent zero-hitch results are rejected. Removing the rolling window
+restored app frame-update and hitch records. Three matched optimized ordinary slow runs establish a repeatable failure:
+26.35, 24.33 and 27.59 ms/s, with 35, 37 and 45 active hitch events and individual
+hitches up to 25 ms. Measured windows are 30.35, 30.15 and 34.15 seconds, with
+18.66, 18.67 and 21.30 seconds of active scrolling. Low Power Mode is off and
+thermal state remains fair throughout each retained run. The portable record is
+[smooth-reader-verification/ordinary-slow-baseline.json](smooth-reader-verification/ordinary-slow-baseline.json).
+The remaining speed/content workloads are pending.
+
+All 35 active hitches in the first run map by display/swap identity to app-update
+work. Fourteen associated app-update intervals overlap progress persistence;
+all overlap geometry callbacks. The matched updates have median duration 14.53 ms
+and maximum 20.49 ms. Temporal overlap is correlation, not causal attribution.
+The first run includes 28 persistence operations up to 13.51 ms. The geometry
+callback's inclusive maximum is 9.57 ms. No product repair or renderer decision
+has been selected. Raw device traces stay outside git.
+
+The preparation passes 160 iOS safety cases, two iOS simulator checks for
+full-bleed controls and semantic reanchoring, eight Android emulator parity cases
+and eleven focused Python checks. The final diagnostic additions also build for
+optimized development iOS. These checks do not close the physical frame gate.
+
+## Remaining proof
+
+- Optimized ordinary, long bilingual and large-type slow/flick repetitions.
+- Per-event hitch attribution and the resulting repair/renderer decision.
+- Matched post-change runs and owner confirmation.
+- Continue/Saved restoration, manual header landing, translation growth,
+  VoiceOver, account/lifecycle safety, repeated visits and Android parity.
+- Goal commits and current handoff updates. Preserve the incoming five iOS
+  project/scheme/catalog files and existing Python cache; never push unrequested.

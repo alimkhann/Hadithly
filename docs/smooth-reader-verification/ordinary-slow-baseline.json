@@ -1,0 +1,143 @@
+{
+  "status": "Valid ordinary slow baseline only; full Goal 1 remains open",
+  "device_class": "iPhone 16 Pro",
+  "os_version": "27.0.1",
+  "capture": "Deferred; Hitches, Core Animation, Display, Points of Interest, Activity Monitor; no CPU stack sampling or live mirroring",
+  "warm_state": "Resident reader with loaded content; preflight verifies movement and warms the same page; metadata unchanged during each measured window",
+  "workload": {
+    "automaticGenerationEnabled": false,
+    "collection": "bukhari",
+    "contentVersion": "cv1:2fa67689c3fda0749574b5d2a2790f36778377446bc9f14b3cff0585dab44330",
+    "hadiths": [
+      "7188",
+      "7189",
+      "7190",
+      "7191",
+      "7192"
+    ],
+    "lowPowerMode": false,
+    "maximumFramesPerSecond": 120,
+    "pageIndex": 26,
+    "pageKey": "pg1:8d20cc6ff8d418d358aa7ecddf5102625c43b74500113ff2630119c90a53a09b",
+    "preferences": {
+      "appTheme": "system",
+      "arabicFont": "amiri",
+      "arabicFontSize": 18,
+      "arabicVisible": false,
+      "readerTheme": "system",
+      "readingDirection": "auto",
+      "schemaVersion": 2,
+      "translationFontSize": 18,
+      "translationLocale": "en",
+      "translationVisible": true,
+      "uiLocale": "en",
+      "usesSeparateReaderTheme": false
+    },
+    "textBytes": 5266,
+    "textSHA256": "70602abc1b4796922a8fd8f426ec3d10b682b37c8ea6e53fbe47d41fa96c91a1",
+    "thermalState": 1,
+    "volume": "97"
+  },
+  "build": {
+    "configuration": "Debug with optimized Swift and C compilation",
+    "swiftOptimization": "-O",
+    "swiftCompilation": "wholemodule",
+    "bundleIdentifier": "com.hadithly.app",
+    "developmentURL": "https://festive-cobra-664.eu-west-1.convex.cloud",
+    "diagnosticsEnvironment": "development",
+    "appAttestEnvironment": "development",
+    "debuggerAttachAllowed": true,
+    "binarySHA256": "28f74c3ba9eaa345fa4d897c19eda1e96d80328df32ac6d4c1b518b322b6dd38",
+    "iosTrackedSourceSHA256": "ef375a0479eabaa93be210ce57d0c980ac507bcd8d909256a904371d15193bb5",
+    "gitHead": "67b24f1c60047b333da7a35790e60844ed0c9de4",
+    "note": "Retains DEBUG compilation conditions and development entitlements. No app installation or project regeneration."
+  },
+  "strict_target_ms_per_second": 1,
+  "ordinary_slow_runs": [
+    {
+      "run": 1,
+      "clock_seconds": 30.349806958,
+      "active_scroll_seconds": 18.663196873,
+      "display_presentations": 1629,
+      "app_frame_updates": 1694,
+      "active_hitch_ms_per_second": 26.348661129509587,
+      "app_hitch_events": 35,
+      "active_hitch_union_ms": 491.75025,
+      "max_app_hitch_ms": 25.00425,
+      "operations": {
+        "ReaderAnchorGeometry": {
+          "count": 1709,
+          "max_ms": 9.570333,
+          "overlaps_hitch": 47
+        },
+        "ScrollProgressPersistence": {
+          "count": 28,
+          "max_ms": 13.508125,
+          "overlaps_hitch": 0
+        }
+      },
+      "observed_cpu_seconds": 11.581100209,
+      "resource_sample_window_seconds": 27.855203167,
+      "peak_sampled_footprint_mib": 113.92385864257812
+    },
+    {
+      "run": 2,
+      "clock_seconds": 30.147108792,
+      "active_scroll_seconds": 18.669881043,
+      "display_presentations": 1622,
+      "app_frame_updates": 1696,
+      "active_hitch_ms_per_second": 24.33030135295437,
+      "app_hitch_events": 37,
+      "active_hitch_union_ms": 454.243832,
+      "max_app_hitch_ms": 25.00425,
+      "operations": {
+        "ReaderAnchorGeometry": {
+          "count": 1699,
+          "max_ms": 8.66225,
+          "overlaps_hitch": 48
+        },
+        "ScrollProgressPersistence": {
+          "count": 28,
+          "max_ms": 12.672417,
+          "overlaps_hitch": 0
+        }
+      },
+      "observed_cpu_seconds": 11.706602041,
+      "resource_sample_window_seconds": 27.94942625,
+      "peak_sampled_footprint_mib": 113.84573364257812
+    },
+    {
+      "run": 3,
+      "clock_seconds": 34.148440833,
+      "active_scroll_seconds": 21.29882575,
+      "display_presentations": 1858,
+      "app_frame_updates": 1936,
+      "active_hitch_ms_per_second": 27.588361625992455,
+      "app_hitch_events": 45,
+      "active_hitch_union_ms": 587.599707,
+      "max_app_hitch_ms": 25.00425,
+      "operations": {
+        "ReaderAnchorGeometry": {
+          "count": 1945,
+          "max_ms": 8.963459,
+          "overlaps_hitch": 64
+        },
+        "ScrollProgressPersistence": {
+          "count": 32,
+          "max_ms": 15.159209,
+          "overlaps_hitch": 0
+        }
+      },
+      "observed_cpu_seconds": 13.665844292,
+      "resource_sample_window_seconds": 32.7896815,
+      "peak_sampled_footprint_mib": 114.01760864257812
+    }
+  ],
+  "budget_passed": false,
+  "limitations": [
+    "Stable fair thermal state, not nominal",
+    "Shared-display presentation counts do not establish app FPS",
+    "Hitch operation overlap alone does not prove causation",
+    "Other content and speed conditions remain open"
+  ]
+}

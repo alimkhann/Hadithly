@@ -1,0 +1,42 @@
+{
+  "stage": "Goal 1 preparation only; physical smoothness gate remains open",
+  "ios_safety": {
+    "tests": 160,
+    "failures": 0,
+    "suites": [
+      "GuestMergePlannerTests",
+      "ReadingPositionTests",
+      "ReaderR4Tests"
+    ]
+  },
+  "android_emulator_parity": {
+    "tests": 8,
+    "failures": 0,
+    "errors": 0,
+    "cases": [
+      "com.hadithly.app.features.reader.ContentsNavigationTest#goOwnsTargetWhilePrefetchIsInFlight",
+      "com.hadithly.app.features.reader.ContentsNavigationTest#guestSavingNoteUndoAndSavedReaderReturn",
+      "com.hadithly.app.features.reader.ContentsNavigationTest#urduLargeText",
+      "com.hadithly.app.features.reader.ContentsNavigationTest#arabicLargeText",
+      "com.hadithly.app.features.reader.ContentsNavigationTest#topControlsDoNotOverlapAtLargeText",
+      "com.hadithly.app.features.reader.ContentsNavigationTest#russianLargeText",
+      "com.hadithly.app.features.reader.ContentsNavigationTest#bengaliLargeText",
+      "com.hadithly.app.features.reader.ReaderScrollingPerformanceTest#loadedProductionReaderScrollingPerformance"
+    ]
+  },
+  "python_guard_tests": {
+    "tests": 11,
+    "failures": 0
+  },
+  "optimized_development_build": "validated; -O wholemodule; development services; no Xcode project regeneration",
+  "physical_baseline": "Valid optimized ordinary slow baseline fails in all three repetitions: 26.35, 24.33 and 27.59 ms/s. Other conditions remain open.",
+  "renderer_decision": "pending valid baseline and attribution",
+  "ios_simulator_ui": {
+    "tests": 2,
+    "failures": 0,
+    "cases": [
+      "testLoadedReaderScrollsBehindFloatingControls",
+      "testLoadedReaderSemanticReanchorPreservesScrolledPosition"
+    ]
+  }
+}

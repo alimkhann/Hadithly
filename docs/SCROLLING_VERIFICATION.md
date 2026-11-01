@@ -2,6 +2,11 @@
 
 Status: bounded scrolling goal verified on the installed iPhone build; original acceptance gates remain open. November 1, 2026.
 
+The owner subsequently approved a stricter optimized-development continuation.
+Its current evidence and open gates are in
+[SMOOTH_READER_VERIFICATION.md](SMOOTH_READER_VERIFICATION.md). The earlier
+measurements below do not establish that continuation's acceptance.
+
 The owner started this goal after priority-2 verification. Scope is loaded-page
 vertical scrolling and the owner-reported blank-header regression. Page turns,
 page-cache changes, development Free/Pro controls and translation reliability remain

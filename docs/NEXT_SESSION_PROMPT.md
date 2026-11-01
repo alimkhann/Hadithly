@@ -1,44 +1,52 @@
-# Reader scrolling verified; stop before page transitions
+# Optimized iPhone reader smoothness: Goal 1 active
 
-Priority-2 passed as `85adf64`. The first scrolling repair is `ea04f6e`; the
-subsequent decoded-partition repair completes the bounded scrolling goal. See
-`SCROLLING_VERIFICATION.md` and `scrolling-verification/results.json`.
+The owner approved implementing the stricter plan. Follow `docs/PLAN.md` and
+`docs/SMOOTH_READER_VERIFICATION.md`. The earlier bounded repair remains recorded
+in `docs/SCROLLING_VERIFICATION.md`.
 
 ```text
-Continue Hadithly from docs/PLAN.md. Loaded-page scrolling and the blank-header
-regression are verified in their recorded scope. iOS batches progress saves and
-reuses decoded account data only after validating freshly read owner/data bytes.
-The one-entry Foundation cache admits at most 8 MiB encoded data and clears on
-library scope changes. No schema, API or A2 row-mode change occurred.
+Continue the active smooth-reader goal. Preserve the current appearance and
+single landing owner. Goal 1 must establish valid optimized-development physical
+baselines and attribute remaining hitches before selecting a product repair or
+renderer rewrite. The target is below 1 ms/s in every retained warm run and owner
+confirmation. Three 30-second repetitions are required for ordinary, long
+bilingual and large-type slow/flick workloads. Android is behavioral parity.
 
-Both native readers again draw text behind floating controls and into safe areas,
-with measured explicit-target clearance, stable focus and the single landing
-owner preserved. All 160 focused iOS safety cases pass. The first repair's five
-iOS UI and eight Android native cases retain their recorded proof.
+Use build-reader-profile.py and prepare-reader-profile-run.py. The former builds
+optimized Debug development artifacts without project regeneration or installing
+Release's production configuration. The latter removes injected runtime/performance
+checkers and selects only the opted-in, destination-only gesture test. Trace mode
+uses Instruments and a gesture-only XCTest rather than the failed SDK metric
+helper. Ordinary slow coverage is now valid; the remaining conditions and causal
+attribution are open.
+Raw device artifacts stay local under /tmp/hadithly-smooth-reader-20261101.
 
-The final Debug build is installed on the named iPhone. An opted-in destination-
-only XCTest drives actual loaded-reader gestures without app reinstall/reset.
-Its matched slow scrolling hitch ratio falls from 10.47 to 2.10 ms/s; a separate
-750-point/s flick check averages 4.72 ms/s. Both meet the 5 ms/s target. The slow
-CPU non-regression budget passes. Zero SDK frame-count/app-wide fields are not
-used as proof; Android emulator timings do not close physical Android or release
-performance acceptance. Do not restart completed scrolling work without a fresh
-reproduction. Preserve the raw-trace privacy boundary and incoming files.
+The validated optimized development app and latest runner are installed, with
+source/binary manifests under the local evidence directory. The clean capture
+uses deferred mode, a capture-ready notification and lightweight Core Animation
+instruments. Rolling-window output with empty app frame updates is invalid,
+even if it reports zero hitches. The parser also requires actual app updates,
+complete driver boundaries, native scrolling and resource samples. Driver process
+names may be unresolved, so identify its fixed subsystem.
 
-Stop here. The proposed next goal is page-transition/loading/cache measurement,
-with the same public-content identity, locale/type settings and generation-off
-scope pinned before changes. Start it only as its own goal after the owner says
-to continue. Preserve semantic Continue/Saved restoration and manual header
-landing; page caching must not reintroduce a competing scroll owner. Free/Pro
-development controls and translation reliability remain later priority-4 goals.
+Three matched ordinary slow runs fail at 26.35, 24.33 and 27.59 ms/s, with hitches
+up to 25 ms. Complete the ordinary fast, long bilingual and
+large-type workloads. Stable fair thermal state and Low Power Mode off are pinned
+for the retained runs. Capture one 30-second repetition at a time and allow
+cooling between the three required matched repetitions. The owner connected USB
+and unlocked the phone; check live readiness before dependent device work.
 
-Preserve completed Convex reductions, A2 wrapped with row mode off, A5, B/C/D,
-G01-G41, A1/A3/A4 acceptance, A7/G38 deferred with retired dates, E actual Linear
-and the original final audit. No study recruitment/contact/observation/collection.
-Keep incoming iOS project/scheme/catalog bytes and scripts/__pycache__ intact.
-Commit scoped work without pushing. Cloud/account/credential, paid-model,
-deployment, migration and publication still need exact action-time approval.
-Existing physical installation/profiling/scrolling authorization persists for its
-named scope; coordinate readiness if the owner is interacting with the phone.
-Keep GPT-only and no Relay.
+160 iOS safety, two iOS reader UI, eight Android parity and eleven Python checks
+pass. Device-wide CPU stack sampling overheated and generated large temporary
+streams, so use a separate brief app-specific diagnostic if needed. Two failed
+capture streams were removed to recover 25 GB; older artifacts were preserved.
+
+No new performance repair or renderer decision is established. Do not lower the
+target or treat the earlier mean-5-ms/s result as this goal's acceptance. Preserve
+the incoming five iOS project/scheme/catalog files and existing Python cache,
+A2 row mode off, completed Convex/A5/B/C/D work and all original program gates.
+Finish scoped implementation/verification/docs commits without pushing. Keep
+page caching and priority-4 translation work separate. Existing named physical
+scope remains authorized; coordinate readiness. Cloud/account/credential,
+paid-model, deployment, migration and publication changes retain their gates.
 ```

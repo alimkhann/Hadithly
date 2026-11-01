@@ -2,6 +2,31 @@ import ClerkKit
 import ConvexMobile
 import Foundation
 import Observation
+import os
+
+enum ReaderScrollProfile {
+    static let enabled = ProcessInfo.processInfo.environment["HADITHLY_READER_PROFILE"] == "1"
+    private static let log = OSLog(subsystem: "com.hadithly.app.reader", category: .pointsOfInterest)
+
+    static func begin(_ name: StaticString) -> OSSignpostID? {
+        guard enabled else { return nil }
+        let id = OSSignpostID(log: log)
+        os_signpost(.begin, log: log, name: name, signpostID: id)
+        return id
+    }
+
+    static func beginAnimation(_ name: StaticString) -> OSSignpostID? {
+        guard enabled else { return nil }
+        let id = OSSignpostID(log: log)
+        os_signpost(.animationBegin, log: log, name: name, signpostID: id)
+        return id
+    }
+
+    static func end(_ name: StaticString, _ id: OSSignpostID?) {
+        guard let id else { return }
+        os_signpost(.end, log: log, name: name, signpostID: id)
+    }
+}
 
 /// Drives the reader: loads the collection outline, pages hadiths by content
 /// size through `actions/hadithData:getReaderPage`, prefetches forward, and
@@ -1442,6 +1467,8 @@ final class ReaderModel {
         let snapshot = pendingScrollProgress
         cancelScrollProgress()
         guard let snapshot, let library, library.isActionCurrent(snapshot.scope) else { return }
+        let interval = ReaderScrollProfile.begin("ScrollProgressPersistence")
+        defer { ReaderScrollProfile.end("ScrollProgressPersistence", interval) }
         lastProgressSavedUptime = ProcessInfo.processInfo.systemUptime
         library.saveProgress(snapshot.position, ref: snapshot.reference)
     }

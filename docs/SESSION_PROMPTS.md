@@ -4,6 +4,14 @@ Paste one prompt into a fresh task. Use the named model and effort when it is
 available. Each prompt is self-contained and authorizes only its named session.
 Never use Relay.
 
+## Optimized iPhone reader smoothness
+
+The owner approved the stricter smooth-reader plan. Goal 1 is active; use the
+current `NEXT_SESSION_PROMPT.md` and `SMOOTH_READER_VERIFICATION.md`. Require
+valid optimized physical frame measurements and attribution before selecting a
+repair. The below-1-ms/s-per-run target and owner confirmation supersede the
+earlier bounded goal's mean-5-ms/s acceptance for this continuation only.
+
 ## Reader scrolling and floating controls
 
 The owner started the next goal after priority-2 verification and approved

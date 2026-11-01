@@ -4,7 +4,27 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-## Current checkpoint: reader scrolling goal verified, November 1
+## Current checkpoint: optimized iPhone smoothness investigation, November 1
+
+The owner approved implementing the stricter smooth-reader plan after the
+bounded repair below. Goal 1 is active: optimized development builds, three
+30-second repetitions per workload, native hitch/frame attribution and a
+renderer decision before product changes. The new target is below 1 ms/s in
+every retained warm run plus owner confirmation. Follow
+[SMOOTH_READER_VERIFICATION.md](SMOOTH_READER_VERIFICATION.md).
+
+Optimized development app/runner installation, 160 iOS safety cases, two iOS
+reader UI checks, eight Android parity cases and eleven capture checks pass.
+Physical acceptance is open. After rejecting disconnected, thermal-changing and
+empty-frame captures, deferred recording now produces valid app frame updates
+and hitches. Three matched ordinary slow runs fail at 26.35, 24.33 and 27.59 ms/s, with
+individual stalls up to 25 ms. Complete the remaining speed/content
+workloads, then attribute the delayed app-update frames before selecting a
+repair. The owner provided wired USB, Low Power Mode off and unlock. Preserve
+incoming files and all original gates. Page-transition caching and priority 4
+remain subsequent goals.
+
+## Prior checkpoint: bounded reader scrolling goal verified, November 1
 
 The owner started scrolling work after priority-2 verification (`85adf64`),
 approved physical profiling/installing the latest app, and then requested

@@ -1,8 +1,10 @@
 import ClerkConvex
+import CryptoKit
 import ClerkKit
 import ConvexMobile
 import SwiftUI
 import UIKit
+import os
 
 /// The reader: a quiet dark page. Chrome (top bar, floating pills) hides on
 /// tap; swiping turns pages. No edge-swipe back — closing is an explicit
@@ -108,6 +110,9 @@ struct ReaderView: View {
         .overlay(alignment: .topLeading) {
             if ProcessInfo.processInfo.environment["READER_PERFORMANCE_PROBE"] == "1" {
                 ReaderPerformanceProbe(progress: scrollProgress)
+            }
+            if ReaderScrollProfile.enabled, let model {
+                ReaderProfileMetadata(model: model, preferences: environment.preferences.preferences)
             }
         }
 #endif
@@ -703,6 +708,73 @@ private struct ReaderProgressPillsObserver: View {
 }
 
 #if DEBUG
+private struct ReaderProfileInput: Equatable {
+    let preferences: ReaderPreferences
+    let items: [ReaderHadith]
+    let loadedTranslations: [String: String]
+    let pageKey: String?
+    let contentVersion: String?
+    let pageIndex: Int
+    let volumeId: String?
+    let automaticGenerationEnabled: Bool
+}
+
+private struct ReaderProfileMetadata: View {
+    let model: ReaderModel
+    let preferences: ReaderPreferences
+    @State private var snapshot = ""
+
+    private var profileInput: ReaderProfileInput {
+        let page = model.pages.indices.contains(model.pageIndex) ? model.pages[model.pageIndex] : nil
+        var layoutPreferences = preferences
+        layoutPreferences.updatedAt = 0
+        return ReaderProfileInput(preferences: layoutPreferences, items: page?.items ?? [],
+            loadedTranslations: model.translations.compactMapValues { state -> String? in
+                if case .loaded(let value) = state { return value.translation }; return nil
+            }, pageKey: page?.pageKey, contentVersion: page?.contentVersion,
+            pageIndex: model.pageIndex, volumeId: model.selectedVolumeId,
+            automaticGenerationEnabled: model.automaticTranslationEnabled())
+    }
+
+    var body: some View {
+        Text(verbatim: snapshot)
+            .font(.system(size: 1))
+            .foregroundStyle(.clear)
+            .frame(width: 1, height: 1)
+            .allowsHitTesting(false)
+            .accessibilityIdentifier("reader.profile.metadata")
+            .task(id: profileInput) {
+                guard model.pages.indices.contains(model.pageIndex) else { return }
+                let page = model.pages[model.pageIndex]
+                let texts = page.items.map { hadith -> String in
+                    let translation: String
+                    if case .loaded(let value) = model.translations[hadith.internalId] { translation = value.translation }
+                    else { translation = hadith.englishText ?? "" }
+                    return hadith.providerHadithId + "\u{0}" + hadith.arabicText + "\u{0}" + translation
+                }.joined(separator: "\u{0}")
+                var displayPreferences = (try? JSONSerialization.jsonObject(with: JSONEncoder().encode(preferences))) as? [String: Any] ?? [:]
+                displayPreferences.removeValue(forKey: "updatedAt")
+                let fields: [String: Any] = [
+                    "collection": model.collectionSlug,
+                    "volume": model.selectedVolumeId ?? "",
+                    "pageIndex": model.pageIndex,
+                    "pageKey": page.pageKey ?? "",
+                    "contentVersion": page.contentVersion ?? "",
+                    "hadiths": page.items.map(\.providerHadithId),
+                    "textSHA256": SHA256.hash(data: Data(texts.utf8)).map { String(format: "%02x", $0) }.joined(),
+                    "textBytes": texts.utf8.count,
+                    "automaticGenerationEnabled": model.automaticTranslationEnabled(),
+                    "preferences": displayPreferences,
+                    "thermalState": ProcessInfo.processInfo.thermalState.rawValue,
+                    "lowPowerMode": ProcessInfo.processInfo.isLowPowerModeEnabled,
+                    "maximumFramesPerSecond": UIScreen.main.maximumFramesPerSecond,
+                ]
+                if let data = try? JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys]),
+                   let value = String(data: data, encoding: .utf8) { snapshot = value }
+            }
+    }
+}
+
 private struct ReaderPerformanceProbe: View {
     let progress: ReaderScrollProgress
     var body: some View {
@@ -1024,6 +1096,36 @@ private struct ReaderScrollStateKey: PreferenceKey {
     }
 }
 
+private final class ReaderActiveScrollProfile {
+    private var interval: OSSignpostID?
+
+    func setActive(_ active: Bool) {
+        if active, interval == nil {
+            interval = ReaderScrollProfile.beginAnimation("ReaderActiveScroll")
+        } else if !active, let interval {
+            ReaderScrollProfile.end("ReaderActiveScroll", interval)
+            self.interval = nil
+        }
+    }
+}
+
+private struct ReaderScrollProfileModifier: ViewModifier {
+    @State private var profile: ReaderActiveScrollProfile?
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(iOS 18, *), ReaderScrollProfile.enabled {
+            content.onScrollPhaseChange { _, phase in
+                profile?.setActive(phase == .interacting || phase == .decelerating)
+            }
+            .onAppear { if profile == nil { profile = ReaderActiveScrollProfile() } }
+            .onDisappear { profile?.setActive(false) }
+        } else {
+            content
+        }
+    }
+}
+
 struct ReaderPageView: View {
     @Environment(\.locale) private var locale
     let model: ReaderModel
@@ -1143,6 +1245,8 @@ struct ReaderPageView: View {
         GeometryReader { viewport in
             ScrollViewReader { proxy in
                 let handleFrames: ([String: ReaderAnchorFrame]) -> Void = { frames in
+                    let interval = ReaderScrollProfile.begin("ReaderAnchorGeometry")
+                    defer { ReaderScrollProfile.end("ReaderAnchorGeometry", interval) }
                     latestAnchorFrames = frames
                     let readingHeight = max(1, viewport.size.height - topContentInset)
                     let readingFrames = framesInReadingArea(frames)
@@ -1301,6 +1405,7 @@ struct ReaderPageView: View {
                 }
                 .onPreferenceChange(ReaderAnchorFramesKey.self, perform: handleFrames)
                 .onChange(of: verticalLanding?.id) { _, _ in handleFrames(latestAnchorFrames) }
+                .modifier(ReaderScrollProfileModifier())
 
             }
         }
