@@ -23,6 +23,8 @@ def require_same_workload(actual, expected):
         return {key: item for key, item in value['preferences'].items() if key != 'updatedAt'}
     if preferences(actual) != preferences(expected):
         changed.append('preferences')
+    if actual.get('connectionTransport') != expected.get('connectionTransport'):
+        changed.append('connectionTransport')
     if changed:
         raise ValueError('Workload changed: ' + ', '.join(changed))
 
@@ -42,6 +44,8 @@ def run(args):
             or environment.get('DYLD_INSERT_LIBRARIES')
             or any(key.startswith('PERFC_') for key in environment)):
         raise ValueError('Performance captures must disable runtime checkers and injected profilers')
+    if args.stack_profile and not args.trace:
+        raise ValueError('Stack profiling requires trace mode and is diagnostic only')
     args.output.mkdir(parents=True, exist_ok=False)
     log_path = args.output / 'scroll-test.log'
     print('Measuring repeated vertical drags in the installed reader; app reinstall is disabled.', flush=True)
@@ -55,6 +59,10 @@ def run(args):
                 or target['EnvironmentVariables'].get('HADITHLY_SCROLL_SECONDS') != '30'):
             raise ValueError('Trace mode requires the 30-second driver without XCTest measurements')
         process_path = args.output / 'device-processes.json'
+        details_path = args.output / 'device-details.json'
+        subprocess.run(['xcrun', 'devicectl', 'device', 'info', 'details', '--device', args.device,
+                        '--json-output', str(details_path)], stdout=subprocess.DEVNULL, check=True)
+        transport = json.loads(details_path.read_text())['result']['connectionProperties']['transportType']
         subprocess.run(['xcrun', 'devicectl', 'device', 'info', 'processes', '--device', args.device,
                         '--json-output', str(process_path)], stdout=subprocess.DEVNULL, check=True)
         processes = json.loads(process_path.read_text())['result']['runningProcesses']
@@ -65,15 +73,23 @@ def run(args):
         trace_log = (args.output / 'trace.log').open('w')
         notification = f'com.hadithly.reader.trace.ready.{os.getpid()}'
         ready = subprocess.Popen(['/usr/bin/notifyutil', '-1', notification], stdout=subprocess.DEVNULL)
-        trace = subprocess.Popen([
-            'xcrun', 'xctrace', 'record', '--template', 'Activity Monitor',
-            '--instrument', 'Hitches', '--instrument', 'Points of Interest', '--instrument', 'Display',
-            '--instrument', 'Core Animation Activity', '--instrument', 'Core Animation Commits',
-            '--instrument', 'Core Animation Server', '--instrument', 'Frame Lifetimes',
-            '--device', args.device, '--all-processes',
+        trace_command = [
+            'xcrun', 'xctrace', 'record', '--template', 'Time Profiler' if args.stack_profile else 'Activity Monitor',
+            '--instrument', 'Points of Interest',
+        ]
+        if not args.stack_profile:
+            trace_command += ['--instrument', 'Hitches', '--instrument', 'Display',
+                '--instrument', 'Core Animation Activity', '--instrument', 'Core Animation Commits',
+                '--instrument', 'Core Animation Server', '--instrument', 'Frame Lifetimes']
+        trace_command += [
+            '--device', args.device,
             '--notify-tracing-started', notification,
-            '--time-limit', '240s', '--output', str(args.output / 'scroll.trace'),
-        ], stdout=trace_log, stderr=subprocess.STDOUT)
+            '--time-limit', '20s' if args.stack_profile else '240s',
+            '--output', str(args.output / 'scroll.trace'),
+        ]
+        trace_command += (['--attach', str(readers[0])]
+                          if args.stack_profile else ['--all-processes'])
+        trace = subprocess.Popen(trace_command, stdout=trace_log, stderr=subprocess.STDOUT)
         try:
             ready.wait(timeout=30)
         except subprocess.TimeoutExpired:
@@ -111,23 +127,40 @@ def run(args):
         metadata = re.findall(r'READER_WORKLOAD_METADATA=(\{[^\n]+\})', text)
         movement = re.findall(r'READER_SCROLL_MOVEMENT_POINTS=([\d.]+)', text)
         iterations = re.findall(r'READER_TRACE_ITERATION=(\d+) THERMAL=(\d+)', text)
+        counts = [int(value) for value in re.findall(r'READER_TRACE_ITERATION=\d+ THERMAL=\d+ GESTURES=(\d+)', text)]
         if (trace.returncode or not metadata or not movement or float(movement[0]) <= 20
-                or [int(value[0]) for value in iterations] != list(range(repetitions))):
+                or [int(value[0]) for value in iterations] != list(range(repetitions))
+                or len(counts) != repetitions or min(counts, default=0) < 2):
             raise RuntimeError('Trace, workload identity or requested movement iterations are incomplete')
         if 'disconnected' in (args.output / 'trace.log').read_text(errors='replace').lower():
             raise RuntimeError('Device tracing disconnected; capture is not accepted')
-        (args.output / 'workload.json').write_text(json.dumps(json.loads(metadata[0]), indent=2) + '\n')
+        workload = json.loads(metadata[0])
+        workload['connectionTransport'] = transport
+        (args.output / 'workload.json').write_text(json.dumps(workload, indent=2) + '\n')
         if args.match_workload:
-            require_same_workload(json.loads(metadata[0]), json.loads(args.match_workload.read_text()))
+            require_same_workload(workload, json.loads(args.match_workload.read_text()))
         subprocess.run(['xcrun', 'xctrace', 'export', '--input', str(args.output / 'scroll.trace'),
                         '--toc', '--output', str(args.output / 'trace-toc.xml')], check=True)
+        if args.stack_profile:
+            subprocess.run(['xcrun', 'xctrace', 'export', '--input', str(args.output / 'scroll.trace'),
+                            '--xpath', '/trace-toc/run[@number="1"]/data/table[@schema="time-profile"]',
+                            '--output', str(args.output / 'profile.xml')], check=True)
+            subprocess.run(['xcrun', 'xctrace', 'export', '--input', str(args.output / 'scroll.trace'),
+                            '--xpath', '/trace-toc/run[@number="1"]/data/table[@schema="os-signpost" and @category="PointsOfInterest" and not(@dynamic-tracing-enabled-subsystems)]',
+                            '--output', str(args.output / 'signposts.xml')], check=True)
+            (args.output / 'diagnostic-only.json').write_text(json.dumps({
+                'acceptance_capture': False,
+                'reason': 'Twenty-second app-only stack sampling; does not cover complete measured runs',
+            }, indent=2) + '\n')
+            print('App-only stack diagnostic completed; no acceptance result is produced.', flush=True)
+            return 0
         schemas = {
             'signposts': 'os-signpost', 'hitches': 'hitches',
             'presentations': 'display-surface-swap', 'activity': 'activity-monitor-process-live',
             'updates': 'hitches-updates',
         }
         command = [sys.executable, str(Path(__file__).with_name('summarize-reader-scroll-trace.py')),
-                   '--expected-runs', str(repetitions)]
+                   '--expected-runs', str(repetitions), '--gesture-counts', *map(str, counts)]
         with (args.output / 'exports.log').open('w') as log:
             for key, schema in schemas.items():
                 selector = f'@schema="{schema}"'
@@ -185,6 +218,8 @@ if __name__ == '__main__':
                         help='Reject a comparison with different content or display settings')
     parser.add_argument('--trace', action='store_true',
                         help='Use Instruments frame capture and a gesture-only XCTest driver')
+    parser.add_argument('--stack-profile', action='store_true',
+                        help='Capture a short app-only CPU stack diagnostic, never an acceptance result')
     parser.add_argument('--allow-physical-scroll', action='store_true', required=True,
                         help='Only use within the session-approved physical-device scope')
     raise SystemExit(run(parser.parse_args()))

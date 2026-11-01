@@ -74,7 +74,7 @@ def signpost_intervals(path):
     return completed
 
 
-def summarize(signposts, hitches, presentations, activity, updates, expected_runs=3):
+def summarize(signposts, hitches, presentations, activity, updates, gesture_counts, expected_runs=3):
     intervals = signpost_intervals(signposts)
     measured = sorted((start, end) for process, name, start, end in intervals
                       if name == 'ReaderMeasuredRun')
@@ -84,6 +84,8 @@ def summarize(signposts, hitches, presentations, activity, updates, expected_run
         raise ValueError(f'Require {expected_runs} complete measured intervals of at least 30 seconds')
     if len({process for process, name, _, _ in intervals if name == 'ReaderMeasuredRun'}) != 1:
         raise ValueError('Require one test driver process')
+    if len(gesture_counts) != expected_runs or any(count < 1 for count in gesture_counts):
+        raise ValueError('Require the actual gesture count for every measured run')
     app_processes = {process for process, name, _, _ in intervals if name == 'ReaderActiveScroll'}
     if len(app_processes) != 1:
         raise ValueError('Require one continuously running reader process')
@@ -100,12 +102,17 @@ def summarize(signposts, hitches, presentations, activity, updates, expected_run
     result = []
     for index, bounds in enumerate(measured):
         scrolling = intersection(active, [bounds])
+        if len(scrolling) != gesture_counts[index]:
+            raise ValueError('Native scroll intervals do not cover every driven gesture')
         seconds = sum(end - start for start, end in scrolling) / 1e9
         frames = [time for time in displayed if any(start <= time <= end for start, end in scrolling)]
         frame_updates = [time for time in app_updates if any(start <= time <= end for start, end in scrolling)]
         observations = sorted(sample for sample in samples if bounds[0] <= sample[0] <= bounds[1])
         if seconds <= 0 or len(frames) < 2 or len(frame_updates) < 2 or len(observations) < 2:
             raise ValueError('Missing native scroll, app frame-update, presentation or resource evidence')
+        for start, end in scrolling:
+            if sum(start <= time <= end for time in app_updates) < 2 or sum(start <= time <= end for time in displayed) < 2:
+                raise ValueError('Missing frame evidence inside a driven gesture')
         lateness = intersection(app_hitches, scrolling)
         total_ms = sum(end - start for start, end in lateness) / 1e6
         relevant = [(start, end) for start, end in app_hitches if intersection([(start, end)], scrolling)]
@@ -128,6 +135,7 @@ def summarize(signposts, hitches, presentations, activity, updates, expected_run
             'run': index, 'clock_seconds': (bounds[1] - bounds[0]) / 1e9,
             'active_scroll_seconds': seconds, 'display_presentations': len(frames),
             'app_frame_updates': len(frame_updates),
+            'verified_scroll_gestures': len(scrolling),
             'active_hitch_ms_per_second': total_ms / seconds,
             'app_hitch_events': len(relevant), 'active_hitch_union_ms': total_ms,
             'max_app_hitch_ms': max(((end - start) / 1e6 for start, end in relevant), default=0),
@@ -146,10 +154,11 @@ def main():
         parser.add_argument('--' + name, type=Path, required=True)
     parser.add_argument('--each-hitch-below', type=float, default=1)
     parser.add_argument('--expected-runs', type=int, choices=[1, 3], default=3)
+    parser.add_argument('--gesture-counts', type=int, nargs='+', required=True)
     args = parser.parse_args()
     if not math.isfinite(args.each_hitch_below) or args.each_hitch_below <= 0:
         parser.error('The strict per-run target must be positive and finite')
-    result = summarize(args.signposts, args.hitches, args.presentations, args.activity, args.updates, args.expected_runs)
+    result = summarize(args.signposts, args.hitches, args.presentations, args.activity, args.updates, args.gesture_counts, args.expected_runs)
     result['budget_passed'] = result['worst_hitch_ms_per_second'] < args.each_hitch_below
     print(json.dumps(result, indent=2))
     return 0 if result['budget_passed'] else 1

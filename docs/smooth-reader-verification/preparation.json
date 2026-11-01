@@ -25,11 +25,11 @@
     ]
   },
   "python_guard_tests": {
-    "tests": 11,
+    "tests": 12,
     "failures": 0
   },
   "optimized_development_build": "validated; -O wholemodule; development services; no Xcode project regeneration",
-  "physical_baseline": "Valid optimized ordinary slow baseline fails in all three repetitions: 26.35, 24.33 and 27.59 ms/s. Other conditions remain open.",
+  "physical_baseline": "Initial 18-run matrix valid; every condition fails. Ordinary is also being repeated at nominal thermal state for a controlled repair comparison.",
   "renderer_decision": "pending valid baseline and attribution",
   "ios_simulator_ui": {
     "tests": 2,

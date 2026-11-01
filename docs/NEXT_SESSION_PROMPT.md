@@ -1,52 +1,53 @@
-# Optimized iPhone reader smoothness: Goal 1 active
+# Optimized iPhone reader: controlled repair next
 
-The owner approved implementing the stricter plan. Follow `docs/PLAN.md` and
-`docs/SMOOTH_READER_VERIFICATION.md`. The earlier bounded repair remains recorded
-in `docs/SCROLLING_VERIFICATION.md`.
+Follow `docs/PLAN.md`, `docs/SMOOTH_READER_VERIFICATION.md` and
+`docs/SMOOTH_READER_DECISION.md`. The stricter owner-approved plan remains active.
 
 ```text
-Continue the active smooth-reader goal. Preserve the current appearance and
-single landing owner. Goal 1 must establish valid optimized-development physical
-baselines and attribute remaining hitches before selecting a product repair or
-renderer rewrite. The target is below 1 ms/s in every retained warm run and owner
-confirmation. Three 30-second repetitions are required for ordinary, long
-bilingual and large-type slow/flick workloads. Android is behavioral parity.
+Complete the smooth-reader goal against below 1 ms/s in every retained warm run
+and owner confirmation. Preserve the appearance, typography, gestures, full-bleed
+controls and the model-owned single vertical landing writer.
 
-Use build-reader-profile.py and prepare-reader-profile-run.py. The former builds
-optimized Debug development artifacts without project regeneration or installing
-Release's production configuration. The latter removes injected runtime/performance
-checkers and selects only the opted-in, destination-only gesture test. Trace mode
-uses Instruments and a gesture-only XCTest rather than the failed SDK metric
-helper. Ordinary slow coverage is now valid; the remaining conditions and causal
-attribution are open.
-Raw device artifacts stay local under /tmp/hadithly-smooth-reader-20261101.
+The initial 18-run baseline matrix is valid and all conditions fail. Its public
+record is docs/smooth-reader-verification/baseline-matrix.json; raw device data
+stays under /tmp/hadithly-smooth-reader-20261101. The controlled nominal cohort is complete in controlled-baseline-matrix.json.
+Inspect active native/build jobs before restarting anything. Initial ordinary was stable fair; the later cases
+were nominal. Do not mix thermal conditions into a matched improvement claim.
 
-The validated optimized development app and latest runner are installed, with
-source/binary manifests under the local evidence directory. The clean capture
-uses deferred mode, a capture-ready notification and lightweight Core Animation
-instruments. Rolling-window output with empty app frame updates is invalid,
-even if it reports zero hitches. The parser also requires actual app updates,
-complete driver boundaries, native scrolling and resource samples. Driver process
-names may be unresolved, so identify its fixed subsystem.
+The current iPhone still runs the original optimized development app, binary
+SHA 28f74c3ba9eaa345fa4d897c19eda1e96d80328df32ac6d4c1b518b322b6dd38.
+The baseline-artifact directory holds a later same-source app build and dSYMs;
+its binary differs from the installed baseline, so do not claim exact-binary rollback. The
+latest installed runner includes settings/Contents preparation and reports the
+actual gesture count. No app reset, sign-in or generation is authorized by a
+fixture shortcut. The owner reconnected USB, disabled Low Power Mode and left
+the phone unlocked; coordinate if it becomes occupied.
 
-Three matched ordinary slow runs fail at 26.35, 24.33 and 27.59 ms/s, with hitches
-up to 25 ms. Complete the ordinary fast, long bilingual and
-large-type workloads. Stable fair thermal state and Low Power Mode off are pinned
-for the retained runs. Capture one 30-second repetition at a time and allow
-cooling between the three required matched repetitions. The owner connected USB
-and unlocked the phone; check live readiness before dependent device work.
+ReaderView.swift has an uninstalled first candidate: ReaderLiveAnchorFrames
+replaces the per-pixel @State dictionary with a non-observed field while retaining
+all capture/restoration calculations. Before measurements are complete; the candidate build is now running. Run the existing full-bleed and semantic-reanchor UI checks, then compare
+the largest failing case and the complete matrix. Keep only supported changes.
+This candidate does not move persistence off the main actor. If I/O remains a
+cause, preserve shared-writer ordering, scopes, rollback and final/lifecycle saves.
+Do not assume Task alone provides background execution or add a competing context.
 
-160 iOS safety, two iOS reader UI, eight Android parity and eleven Python checks
-pass. Device-wide CPU stack sampling overheated and generated large temporary
-streams, so use a separate brief app-specific diagnostic if needed. Two failed
-capture streams were removed to recover 25 GB; older artifacts were preserved.
+Use optimized Debug/development services through build-reader-profile.py; never
+install Release's production configuration unchanged. Capture uses deferred Core
+Animation/Hitches data, a readiness handshake and one 30-second run per trace.
+A native interval and app frame/presentation stream are required for every
+gesture. Keep CPU stack diagnostics separate. A valid ordinary CPU diagnostic
+points at SwiftUI graph and library storage, with little CoreText sampling;
+a view-specific SwiftUI template could not resolve the running PID.
 
-No new performance repair or renderer decision is established. Do not lower the
-target or treat the earlier mean-5-ms/s result as this goal's acceptance. Preserve
-the incoming five iOS project/scheme/catalog files and existing Python cache,
-A2 row mode off, completed Convex/A5/B/C/D work and all original program gates.
-Finish scoped implementation/verification/docs commits without pushing. Keep
-page caching and priority-4 translation work separate. Existing named physical
-scope remains authorized; coordinate readiness. Cloud/account/credential,
-paid-model, deployment, migration and publication changes retain their gates.
+Sajda 6.7.1 was inspected live without changing settings/account/audio. It scrolls
+text beneath fixed pills and toggles floating controls on tap. No renderer or
+FPS inference is authorized by that visual comparison. Hadithly was returned to
+the foreground and live mirroring detached before profiling.
+
+Preparation has 160 iOS safety, two iOS reader UI, eight Android parity and twelve
+Python checks. The candidate's post-change checks are pending. Commit completed
+logical units and evidence without pushing. Preserve the five incoming iOS
+project/scheme/catalog files and the existing Python cache, completed Convex,
+A5/B/C/D work, A2 row mode off and every original-program gate. Page-transition
+caching and priority-4 translation reliability remain separate subsequent goals.
 ```

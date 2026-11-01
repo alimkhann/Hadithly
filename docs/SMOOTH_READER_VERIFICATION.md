@@ -1,6 +1,6 @@
 # Consistently smooth iPhone reader
 
-Status: Goal 1 in progress. The owner approved this continuation on November 1,
+Status: Initial 18-run baseline complete; controlled repair experiment prepared. The owner approved this continuation on November 1,
 2026. The earlier bounded repair remains verified only against its recorded
 5 ms/s mean target in `SCROLLING_VERIFICATION.md`.
 
@@ -46,10 +46,11 @@ simulator timing and builds cannot close that gate.
 - [ProMotion](https://developer.apple.com/documentation/quartzcore/optimizing-iphone-and-ipad-apps-to-support-promotion-displays)
   adapts frame pacing. Hardware maximum refresh is not observed display FPS.
 
-The phone reference is Sajda 6.7.1. Its reader visibly places page/juz pills over
-full-bleed text. Static mirrored screenshots establish appearance only; they do
-not establish frame timing or the proprietary renderer. No Sajda setting,
-account or audio action is part of this investigation.
+The phone reference is Sajda 6.7.1, build 5325. Live inspection confirms text
+scrolling beneath fixed page/juz pills, tap-to-hide floating controls and page-end
+navigation within the reading surface. Page 263 remained selected. This establishes
+observable interaction and appearance, not measured FPS or a proprietary renderer.
+No Sajda setting, account or audio action was changed.
 
 ## Reproduction and instrumentation
 
@@ -79,7 +80,7 @@ the owner's original lag.
 
 The physical test activates the installed reader without launch/reset arguments.
 `HADITHLY_SCROLL_SECONDS=30` requires a metadata snapshot and actual content
-movement before measuring. In trace mode it drives three runs, verifies movement
+movement before measuring. In trace mode it drives one run per capture, verifies movement
 in each and emits measured-run boundaries without invoking XCTest metrics.
 `run-reader-device-scroll.py --trace` collects Hitches, Core Animation activity,
 commits, server work, frame lifetimes, display presentations, Points of Interest
@@ -129,25 +130,64 @@ hitches up to 25 ms. Measured windows are 30.35, 30.15 and 34.15 seconds, with
 18.66, 18.67 and 21.30 seconds of active scrolling. Low Power Mode is off and
 thermal state remains fair throughout each retained run. The portable record is
 [smooth-reader-verification/ordinary-slow-baseline.json](smooth-reader-verification/ordinary-slow-baseline.json).
-The remaining speed/content workloads are pending.
+The full initial matrix is now complete; see the controlled-baseline section below.
 
 All 35 active hitches in the first run map by display/swap identity to app-update
 work. Fourteen associated app-update intervals overlap progress persistence;
 all overlap geometry callbacks. The matched updates have median duration 14.53 ms
 and maximum 20.49 ms. Temporal overlap is correlation, not causal attribution.
 The first run includes 28 persistence operations up to 13.51 ms. The geometry
-callback's inclusive maximum is 9.57 ms. No product repair or renderer decision
-has been selected. Raw device traces stay outside git.
+callback's inclusive maximum is 9.57 ms. The first controlled repair is selected in
+[SMOOTH_READER_DECISION.md](SMOOTH_READER_DECISION.md). Its non-observed live
+geometry holder is prepared locally but has not been built or installed yet. Raw device traces stay outside git.
 
 The preparation passes 160 iOS safety cases, two iOS simulator checks for
 full-bleed controls and semantic reanchoring, eight Android emulator parity cases
-and eleven focused Python checks. The final diagnostic additions also build for
+and twelve focused Python checks. The final diagnostic additions also build for
 optimized development iOS. These checks do not close the physical frame gate.
+
+## Complete initial baseline and repair direction
+
+[smooth-reader-verification/baseline-matrix.json](smooth-reader-verification/baseline-matrix.json)
+contains all 18 valid runs, individual hitch durations, active-scroll coverage,
+CPU and sampled footprint. All six conditions fail the strict target.
+
+| Condition | Slow runs, ms/s | Fast runs, ms/s |
+| --- | --- | --- |
+| Ordinary English 18 pt | 26.35, 24.33, 27.59 | 16.59, 12.61, 20.10 |
+| Single Hadith 7, bilingual 18 pt | 10.37, 11.35, 10.34 | 15.54, 18.53, 15.27 |
+| Original page, Arabic 40 / English 22 pt | 52.94, 36.83, 32.89 | 28.92, 32.61, 28.10 |
+
+The long condition is one 22,032-byte narration. The large-type condition uses
+multiple hadiths so one oversized row does not hide multi-row update costs.
+Every retained gesture now requires both a native scrolling interval and app
+frame/presentation evidence. Historical ordinary captures were revalidated
+against the actual gesture counts in their driver logs.
+
+The initial ordinary cohort was stable fair thermal state; later cohorts are
+stable nominal. The nominal ordinary repeat from a known header entry is complete. Its slow runs
+are 14.92, 19.01 and 20.99 ms/s; fast runs are 24.93, 12.12 and 27.44. The
+[controlled matrix](smooth-reader-verification/controlled-baseline-matrix.json)
+contains all 18 nominal-temperature comparison runs. An incomplete final fast
+trace was rejected and repeated. Do not merge thermal conditions into one
+before/after improvement claim.
+
+A separate 20-second app-only CPU trace completed. The reproducible
+`summarize-reader-cpu-profile.py` report attributes leaf CPU predominantly to
+SwiftUI/AttributeGraph, with library synchronization/storage also present.
+CoreText is a small sampled share in this ordinary workload. A combined
+stack/hitch diagnostic failed on an Instruments backtrace type mismatch; the
+simpler Time Profiler capture succeeded. A focused SwiftUI template did not
+resolve the running PID, so no view-specific cause graph is claimed.
+
+The architecture decision retains SwiftUI for a small geometry-state experiment.
+It preserves capture/restoration math and the single native scroll writer.
+Persistence remains on the main actor in this candidate. Full physical acceptance
+and a causal result are still open.
 
 ## Remaining proof
 
-- Optimized ordinary, long bilingual and large-type slow/flick repetitions.
-- Per-event hitch attribution and the resulting repair/renderer decision.
+- Verify the selected geometry repair against the attributed update bottleneck.
 - Matched post-change runs and owner confirmation.
 - Continue/Saved restoration, manual header landing, translation growth,
   VoiceOver, account/lifecycle safety, repeated visits and Android parity.

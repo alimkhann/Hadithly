@@ -46,7 +46,7 @@ class ReaderScrollTraceTests(unittest.TestCase):
         table(path / 'frames.xml', ['timestamp'], frames if presentations else [])
         table(path / 'updates.xml', ['start', 'process'], [(row[0], 'Hadithly (1)') for row in frames] if app_updates else [])
         table(path / 'resources.xml', ['start', 'duration', 'process', 'cpu-total', 'memory-physical-footprint'], resources)
-        return [path / name for name in ['points.xml', 'hitches.xml', 'frames.xml', 'resources.xml', 'updates.xml']]
+        return [path / name for name in ['points.xml', 'hitches.xml', 'frames.xml', 'resources.xml', 'updates.xml']] + [[1] * runs]
 
     def test_widget_hitches_do_not_contaminate_the_reader(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -77,6 +77,13 @@ class ReaderScrollTraceTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 SUMMARIZE(*paths)
             self.assertEqual(len(SUMMARIZE(*paths, expected_runs=1)['runs']), 1)
+
+    def test_partial_native_scroll_stream_cannot_pass_with_positive_frames(self):
+        with tempfile.TemporaryDirectory() as folder:
+            paths = self.fixture(folder)
+            paths[-1] = [2, 1, 1]
+            with self.assertRaisesRegex(ValueError, 'every driven gesture'):
+                SUMMARIZE(*paths)
 
 
 if __name__ == '__main__':

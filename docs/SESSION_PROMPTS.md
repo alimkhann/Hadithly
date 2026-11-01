@@ -6,7 +6,7 @@ Never use Relay.
 
 ## Optimized iPhone reader smoothness
 
-The owner approved the stricter smooth-reader plan. Goal 1 is active; use the
+The owner approved the stricter smooth-reader plan. Goal 1 baseline and decision are complete; use the
 current `NEXT_SESSION_PROMPT.md` and `SMOOTH_READER_VERIFICATION.md`. Require
 valid optimized physical frame measurements and attribution before selecting a
 repair. The below-1-ms/s-per-run target and owner confirmation supersede the

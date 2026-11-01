@@ -19,6 +19,94 @@ final class ReaderR6AUITests: XCTestCase {
         continueAfterFailure = false
     }
 
+    func testPhysicalPrepareReaderProfileWorkload() throws {
+        let environment = ProcessInfo.processInfo.environment
+        guard environment["HADITHLY_PHYSICAL_SCROLL"] == "1",
+              let preset = environment["HADITHLY_READER_PROFILE_PRESET"],
+              ["ordinary", "bilingual", "large"].contains(preset) else {
+            throw XCTSkip("Requires the explicitly selected physical reader preset")
+        }
+        let app = XCUIApplication()
+        XCTAssertNotEqual(app.state, .notRunning)
+        guard app.state != .notRunning else { return }
+        app.activate()
+        let metadata = app.staticTexts["reader.profile.metadata"]
+        XCTAssertTrue(metadata.waitForExistence(timeout: 10))
+        func workload() throws -> [String: Any] {
+            try XCTUnwrap(JSONSerialization.jsonObject(with: Data(metadata.label.utf8)) as? [String: Any])
+        }
+        XCTAssertEqual(try workload()["automaticGenerationEnabled"] as? Bool, false)
+        if !app.buttons["reader.menu"].isHittable {
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        }
+        app.buttons["reader.menu"].tap()
+        let settings = app.buttons["reader.menu.settings"]
+        XCTAssertTrue(settings.waitForExistence(timeout: 5))
+        settings.tap()
+        let arabic = app.switches["reader.visibility.arabic"]
+        XCTAssertTrue(arabic.waitForExistence(timeout: 5))
+        if (arabic.value as? String == "1") != (preset != "ordinary") {
+            arabic.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
+        }
+        XCTAssertEqual(arabic.value as? String, preset == "ordinary" ? "0" : "1")
+        XCTAssertEqual(app.switches["reader.visibility.translation"].value as? String, "1")
+        for (panel, identifier, target) in [
+            ("Arabic type", "arabic", preset == "large" ? 40.0 : 18.0),
+            ("Translation", "translation", preset == "large" ? 22.0 : 18.0),
+        ] {
+            app.buttons["reader.settings.\(identifier)"].tap()
+            let stepper = app.steppers["reader.\(identifier)Size"]
+            XCTAssertTrue(stepper.waitForExistence(timeout: 5))
+            let size = app.staticTexts.matching(NSPredicate(format: "label MATCHES %@", "[0-9]+ pt")).firstMatch
+            XCTAssertTrue(size.waitForExistence(timeout: 5))
+            func displayedSize() throws -> Double {
+                try XCTUnwrap(Double(size.label.split(separator: " ").first.map(String.init) ?? ""))
+            }
+            for _ in 0..<8 {
+                let current = try displayedSize()
+                if current == target { break }
+                let direction = current < target ? "Increment" : "Decrement"
+                stepper.buttons["reader.\(identifier)Size-\(direction)"].tap()
+            }
+            XCTAssertEqual(try displayedSize(), target)
+            app.navigationBars[panel].buttons.element(boundBy: 0).tap()
+        }
+        app.buttons["reader.settings.close"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["reader.page"].firstMatch.waitForExistence(timeout: 5))
+        if let hadith = environment["HADITHLY_READER_PROFILE_HADITH"] {
+            if !app.buttons["reader.menu"].isHittable {
+                app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            }
+            app.buttons["reader.menu"].tap()
+            let contents = app.buttons["reader.menu.contents"]
+            XCTAssertTrue(contents.waitForExistence(timeout: 5)); contents.tap()
+            let jump = app.textFields["reader.contents.jump"]
+            XCTAssertTrue(jump.waitForExistence(timeout: 5)); jump.tap(); jump.typeText(hadith)
+            let go = app.buttons["reader.contents.jumpGo"]
+            var previous = CGRect.null
+            var stableSince = Date()
+            let stable = NSPredicate { _, _ in
+                let frame = go.frame
+                if frame != previous { previous = frame; stableSince = Date() }
+                return go.isHittable && Date().timeIntervalSince(stableSince) >= 0.25
+            }
+            XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: stable, object: nil)], timeout: 5), .completed)
+            go.tap()
+            XCTAssertTrue(jump.waitForNonExistence(timeout: 5))
+            let loaded = NSPredicate { _, _ in
+                guard let current = try? workload(), let ids = current["hadiths"] as? [String] else { return false }
+                return ids.contains { $0 == hadith || $0.hasPrefix(hadith + ".") }
+            }
+            XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: loaded, object: nil)], timeout: 30), .completed)
+        }
+        let preferences = try XCTUnwrap(workload()["preferences"] as? [String: Any])
+        print("READER_PREPARED_WORKLOAD=\(metadata.label)")
+        XCTAssertEqual(preferences["arabicVisible"] as? Bool, preset != "ordinary")
+        XCTAssertEqual(preferences["arabicFontSize"] as? Double, preset == "large" ? 40 : 18)
+        XCTAssertEqual(preferences["translationFontSize"] as? Double, preset == "large" ? 22 : 18)
+        print("READER_PRESET_APPLIED=\(preset)")
+    }
+
     func testPhysicalLoadedReaderScrollingPerformance() throws {
         guard ProcessInfo.processInfo.environment["HADITHLY_PHYSICAL_SCROLL"] == "1" else {
             throw XCTSkip("Requires explicit physical scrolling opt-in and an already-running reader")
@@ -78,11 +166,13 @@ final class ReaderR6AUITests: XCTestCase {
                 os_signpost(.begin, log: log, name: "ReaderMeasuredRun", signpostID: id, "iteration=%d", iteration)
                 let started = ProcessInfo.processInfo.systemUptime
                 var verifiedMovement = false
+                var gesturePairs = 0
                 repeat {
                     let before = verifiedMovement ? 0 : motionAnchor?.frame.minY ?? 0
                     lower.press(forDuration: 0.02, thenDragTo: upper, withVelocity: velocity, thenHoldForDuration: 0)
                     let afterUp = verifiedMovement ? 0 : motionAnchor?.frame.minY ?? 0
                     upper.press(forDuration: 0.02, thenDragTo: lower, withVelocity: velocity, thenHoldForDuration: 0)
+                    gesturePairs += 1
                     if !verifiedMovement {
                         let afterDown = motionAnchor?.frame.minY ?? 0
                         XCTAssertGreaterThan(max(abs(afterUp - before), abs(afterDown - afterUp)), 20)
@@ -93,7 +183,7 @@ final class ReaderR6AUITests: XCTestCase {
                 XCTAssertFalse(ProcessInfo.processInfo.isLowPowerModeEnabled)
                 XCTAssertEqual(ProcessInfo.processInfo.thermalState, thermalState)
                 XCTAssertEqual(metadata.label, initialMetadata, "The page content or display settings changed during the run")
-                print("READER_TRACE_ITERATION=\(iteration) THERMAL=\(thermalState.rawValue)")
+                print("READER_TRACE_ITERATION=\(iteration) THERMAL=\(thermalState.rawValue) GESTURES=\(gesturePairs * 2)")
             }
             return
         }

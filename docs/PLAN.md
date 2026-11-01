@@ -4,25 +4,32 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-## Current checkpoint: optimized iPhone smoothness investigation, November 1
+## Current checkpoint: optimized iPhone baseline and first repair candidate, November 2
 
 The owner approved implementing the stricter smooth-reader plan after the
-bounded repair below. Goal 1 is active: optimized development builds, three
+bounded repair below. Goal 1 baseline and decision are complete: optimized development builds, three
 30-second repetitions per workload, native hitch/frame attribution and a
 renderer decision before product changes. The new target is below 1 ms/s in
 every retained warm run plus owner confirmation. Follow
 [SMOOTH_READER_VERIFICATION.md](SMOOTH_READER_VERIFICATION.md).
 
-Optimized development app/runner installation, 160 iOS safety cases, two iOS
-reader UI checks, eight Android parity cases and eleven capture checks pass.
-Physical acceptance is open. After rejecting disconnected, thermal-changing and
-empty-frame captures, deferred recording now produces valid app frame updates
-and hitches. Three matched ordinary slow runs fail at 26.35, 24.33 and 27.59 ms/s, with
-individual stalls up to 25 ms. Complete the remaining speed/content
-workloads, then attribute the delayed app-update frames before selecting a
-repair. The owner provided wired USB, Low Power Mode off and unlock. Preserve
-incoming files and all original gates. Page-transition caching and priority 4
-remain subsequent goals.
+The initial 18-run physical matrix is complete and every condition fails the
+1 ms/s target. Ordinary slow runs are 24.33–27.59 ms/s, long bilingual slow
+10.34–11.35, and large-type slow 32.89–52.94. Frame evidence covers every driven
+gesture. The controlled ordinary cohort at nominal temperature and a known header entry
+is also complete: slow 14.92–20.99 ms/s, fast 12.12–27.44. CPU/frame evidence
+attributes delays to app-update work, with SwiftUI graph and library storage hot
+paths. Sajda's scrolling, full-bleed pills and tap-to-hide controls were inspected;
+its private implementation and FPS are not claimed.
+
+[SMOOTH_READER_DECISION.md](SMOOTH_READER_DECISION.md) keeps SwiftUI for a small
+controlled repair: retain live anchor geometry without publishing each pixel
+change to the page. That candidate is building locally and is not installed. Build/test and measure
+the candidate before keeping it. Persistence remains on the main actor at this stage.
+160 iOS safety, two iOS UI, eight Android parity and twelve capture checks pass
+for preparation. Full post-change behavior/performance and owner confirmation
+remain open. Preserve incoming files, all original gates, A2 row mode off, and
+the deferred page-cache/priority-4 work. Commit completed units without pushing.
 
 ## Prior checkpoint: bounded reader scrolling goal verified, November 1
 

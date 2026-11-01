@@ -1,5 +1,5 @@
 {
-  "status": "Valid ordinary slow baseline only; full Goal 1 remains open",
+  "status": "Valid ordinary slow and fast baseline; full Goal 1 remains open",
   "device_class": "iPhone 16 Pro",
   "os_version": "27.0.1",
   "capture": "Deferred; Hitches, Core Animation, Display, Points of Interest, Activity Monitor; no CPU stack sampling or live mirroring",
@@ -138,6 +138,86 @@
     "Stable fair thermal state, not nominal",
     "Shared-display presentation counts do not establish app FPS",
     "Hitch operation overlap alone does not prove causation",
-    "Other content and speed conditions remain open"
+    "Long bilingual and large-type conditions remain open"
+  ],
+  "ordinary_fast_runs": [
+    {
+      "run": 1,
+      "clock_seconds": 35.340825,
+      "active_scroll_seconds": 28.129740666,
+      "display_presentations": 2062,
+      "app_frame_updates": 2124,
+      "active_hitch_ms_per_second": 16.59261354528408,
+      "app_hitch_events": 34,
+      "active_hitch_union_ms": 466.745916,
+      "max_app_hitch_ms": 37.506375,
+      "operations": {
+        "ReaderAnchorGeometry": {
+          "count": 2080,
+          "max_ms": 11.030667,
+          "overlaps_hitch": 37
+        },
+        "ScrollProgressPersistence": {
+          "count": 24,
+          "max_ms": 14.17375,
+          "overlaps_hitch": 2
+        }
+      },
+      "observed_cpu_seconds": 13.16067275,
+      "resource_sample_window_seconds": 33.797313666,
+      "peak_sampled_footprint_mib": 115.42385864257812
+    },
+    {
+      "run": 2,
+      "clock_seconds": 35.51950125,
+      "active_scroll_seconds": 28.09071475,
+      "display_presentations": 2074,
+      "app_frame_updates": 2128,
+      "active_hitch_ms_per_second": 12.610097968404311,
+      "app_hitch_events": 29,
+      "active_hitch_union_ms": 354.226665,
+      "max_app_hitch_ms": 25.00425,
+      "operations": {
+        "ReaderAnchorGeometry": {
+          "count": 2074,
+          "max_ms": 8.554792,
+          "overlaps_hitch": 27
+        },
+        "ScrollProgressPersistence": {
+          "count": 24,
+          "max_ms": 14.349833,
+          "overlaps_hitch": 0
+        }
+      },
+      "observed_cpu_seconds": 12.979268584,
+      "resource_sample_window_seconds": 33.795839042,
+      "peak_sampled_footprint_mib": 114.18948364257812
+    },
+    {
+      "run": 3,
+      "clock_seconds": 35.269184958,
+      "active_scroll_seconds": 28.192319748,
+      "display_presentations": 2054,
+      "app_frame_updates": 2120,
+      "active_hitch_ms_per_second": 20.103443457866106,
+      "app_hitch_events": 36,
+      "active_hitch_union_ms": 566.762706,
+      "max_app_hitch_ms": 33.339,
+      "operations": {
+        "ReaderAnchorGeometry": {
+          "count": 2061,
+          "max_ms": 9.70475,
+          "overlaps_hitch": 51
+        },
+        "ScrollProgressPersistence": {
+          "count": 24,
+          "max_ms": 16.99675,
+          "overlaps_hitch": 1
+        }
+      },
+      "observed_cpu_seconds": 13.424399709,
+      "resource_sample_window_seconds": 34.947304459,
+      "peak_sampled_footprint_mib": 114.50198364257812
+    }
   ]
 }
