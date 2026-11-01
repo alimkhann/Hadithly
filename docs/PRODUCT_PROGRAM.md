@@ -13,10 +13,12 @@ Their checksums and every research URL are recorded in
 Priority-2 verification passed 19 native cases and was committed as `85adf64`.
 The owner started the next goal, approved a physical iPhone trace and latest-build
 installation, then reported continuous low-frame-rate scrolling and the blank
-header introduced by A5. The active repair batches iOS scroll persistence and
-restores full-bleed text behind floating controls on both apps, while retaining
-measured target clearance and account ownership. See `SCROLLING_VERIFICATION.md`.
-Local proof does not close the pending paired physical timing/owner readback.
+header introduced by A5. The completed bounded repair batches iOS scroll
+persistence, reuses unchanged
+decoded account state, and restores full-bleed text behind floating controls on
+both apps. Installed-iPhone slow/faster tests meet the hitch target; all 160
+focused safety cases pass. See `SCROLLING_VERIFICATION.md` for exact scope and
+measurement limitations. Broader original acceptance remains open.
 Page-transition/cache and priority-4 goals have not started. This ordering
 exception retains every original requirement, A7 deferral, E Linear and final
 audit. `NEXT_SESSION_PROMPT.md` controls continuation.

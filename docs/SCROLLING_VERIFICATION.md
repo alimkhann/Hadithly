@@ -1,10 +1,10 @@
 # Reader scrolling and floating controls
 
-Status: active; first repair improves physical scrolling but residual microjitters remain. November 1, 2026.
+Status: bounded scrolling goal verified on the installed iPhone build; original acceptance gates remain open. November 1, 2026.
 
 The owner started this goal after priority-2 verification. Scope is loaded-page
 vertical scrolling and the owner-reported blank-header regression. Page turns,
-cache changes, development Free/Pro controls and translation reliability remain
+page-cache changes, development Free/Pro controls and translation reliability remain
 later goals. The approved physical work includes installing the latest build and
 profiling the explicitly selected iPhone without reset, sign-in or model calls.
 
@@ -39,7 +39,8 @@ the fix at both the burst limit (31 > 1) and final-save limit (32 > 2). The targ
 is at least 90% fewer synchronous writes in that burst, exact final semantic and
 raw position, no delayed overwrite after explicit save, bounded idle flush, and
 no write into a different account. This is a causal work reduction target, not
-an FPS claim. Physical before/after timing and owner acceptance remain required.
+an FPS claim. Physical before/after timing remains required; the subsequent owner request
+selects agent-driven scrolling for the remaining diagnosis.
 
 ## Paired physical frame capture
 
@@ -125,27 +126,100 @@ Raw logs, xcresults, traces and screenshots remain local under
 `/tmp/hadithly-scroll-20261101`. Raw traces include local/device metadata and are
 excluded from git. Portable selected results will be added after verification.
 
-## Current verification and remaining work
+## Second repair: reuse unchanged decoded account data
 
-All local repair checks pass: 33 distinct iOS unit tests, five iOS UI cases
-including the four-locale large-text iteration, and eight Android instrumentation
-tests. Real semantic re-anchoring returns to the same scrolled fraction; source
-clearance, glyph/capsule sizing, focus stability, guest Saved return, translation
-text growth and vertical/no-page-turn behavior pass. The first production-view
-geometry checks fail before the full-bleed repair on both apps.
+The repeated main-thread partition reads in the physical stacks are reproduced
+through the actual durable GuestDataStore. Fifty warmed reads of a partition
+with 1,000 fixture note intents take 565.53 ms before the change. The executable
+100 ms budget fails. With bounded decoded-data reuse the same loop takes
+64.68 ms in the complete safety suite. Every read still creates a fresh database
+context, validates the row/account and compares the full durable bytes before
+reuse; this is not a stale revision-only or process-only cache.
+
+The Foundation cache holds one account entry, admits at most 8 MiB of encoded
+data, allows memory-pressure eviction and is cleared when the library scope is
+unsubscribed. Value state is copied before mutation. A changed payload is decoded
+again; malformed bytes still fail; a missing/deleted row returns nil. The warm
+corruption test changes bytes without updating the row revision and proves the
+read cannot return the old value. Cross-instance write, rollback, account and
+erasure cases are included in the 160 passing tests. No schema, wire format,
+backend behavior, migration or A2 row-mode change is involved.
+
+Agent-driven scrolling now works on the physical phone through an explicitly
+opted-in XCTest. It activates the installed loaded reader and injects only
+vertical drags at 250 points/second. Destination-only xctestrun settings prevent
+app reinstallation during repeated measurements. The first functional 50-second
+driver passes, but separate xctrace attachment cannot resolve the app process
+in these automated sessions. Two rejected attachment attempts and a one-second
+lookup probe are retained locally; they produce no accepted frame result.
+
+The replacement uses XCTest's own CPU, clock and scroll-signpost metrics. Three
+measured iterations each contain six matching drags after a warm-up. Before the
+second repair, scroll hitch ratios are 12.565, 12.570 and 6.284 ms/s, averaging
+10.473 ms/s. CPU times average 5.774 seconds. The explicit acceptance budgets are
+mean scroll hitch ratio at most 5 ms/s and mean CPU at most 6.35 seconds. The
+replayable checker fails the baseline on the hitch budget. The device reports
+zero frame-count and app-wide hitch fields alongside positive scroll-duration,
+scroll-hitch and frame-rate signpost metrics; zero fields are excluded from proof.
+No full-app FPS or universal zero-hitch claim follows from this run. See
+[Apple's scroll metric](https://developer.apple.com/documentation/xctest/xctossignpostmetric/scrollinganddecelerationmetric)
+and [hitch interpretation](https://developer.apple.com/documentation/xcode/understanding-hitches-in-your-app).
+
+After local safety checks the second build is installed and matched to its
+installed-app record. The existing `com.hadithly.app://continue` route reopens the
+latest persisted position without a reset, fresh-install arguments or a human
+navigation step. The same installed test runner measures the updated build.
+
+The second repair's slow-drag repeat passes: scroll hitch ratios are 6.285, 0
+and 0 ms/s, averaging 2.095 ms/s against the 5 ms/s budget. CPU averages 5.891
+seconds against the 6.35-second non-regression budget. The measured scroll hitch
+ratio is approximately 80% lower than the three-sample baseline. This comparison
+uses the same test runner, installed-account reader, gesture coordinates and
+velocity; it does not compare a manual full-trace ratio with a signpost ratio.
+The faster-flick check at 750 points/second also passes the preset 5 ms/s hitch
+budget: 10.599, 3.558 and 0 ms/s, averaging 4.719 ms/s. Its clock average is
+16.688 seconds, compared with 12.152 seconds for slow drags. A first checker
+invocation incorrectly reused the slow-run 6.35-second absolute CPU cap and
+rejected the fast run's 6.379 seconds. That cap compares different workloads;
+no fast CPU-regression claim is made. The fast acceptance check uses the preset
+scroll hitch budget only, retaining the raw CPU values. No budget was raised.
+These results describe the measured gestures, not a guarantee of zero hitches
+across all reading content or release conditions.
+
+## Final verification and scope
+
+The second repair passes all 160 selected iOS account/storage, reading-position
+and layout tests. This includes the first repair's four persistence cases and
+the two new durable-read cases. The first repair also passed five distinct iOS
+UI cases, including ar/ur/ru/bn large-type iterations, and eight Android native
+instrumentation cases. Real semantic re-anchoring, source clearance, caption
+bounds, focus stability, guest Saved return, translation growth and vertical
+no-page-turn behavior retain their recorded evidence. Android is a no-change
+parity check for the subsequent iOS-only decoded-state optimization.
 
 The Android repeat records 132 frames, median 32.11 ms, p95 80.89 ms and 20 frames
 at/over deadline. Hardware acceleration is enabled; emulator refresh is 60 Hz.
-Manual setup and host/emulator variation preclude attributing these differences
-to a performance repair. Both runs fetch exactly one page and report no dropped
-frame callbacks. No Android 60 FPS or release acceptance is claimed.
+Setup and host/emulator variation preclude attributing those differences to a
+performance repair. Both runs fetch exactly one page and report no dropped frame
+callbacks. Physical Android and release-performance acceptance remain open.
 
-Portable aggregate results and synthetic captures are in `scrolling-verification/`.
-The iPhone repair bundle build, installation and installed-app readback pass.
-Temporary page-body counters and abandoned simulator CPU/trace driver tests were
-removed. Incoming five iOS files and the existing Python cache match the initial
-hashes; backend files remain unchanged.
+The final iPhone repair bundle is installed and matched to its installed-app
+record. The agent reopens the persisted passage and runs the same slow-drag
+measurements, then a faster-flick acceptance check, without manual scrolling,
+app resets, sign-in, generation controls or backend changes. Slow and fast scroll
+hitch means pass the 5 ms/s target, and the matched slow CPU result passes its
+non-regression budget. The owner had confirmed restored appearance after the
+first repair; the second repair changes storage reuse only. That completes this
+bounded goal. Page-transition/cache and priority-4 work remain separate goals.
 
-Checkpoint the verified first repair, then continue the same goal for residual
-microjitters with agent-driven physical scrolling. Do not begin page caching or
-priority 4. Preserve every original-program gate and deferral in PLAN.md.
+Portable aggregates and synthetic captures are in `scrolling-verification/`.
+Temporary page-body counters and abandoned simulator CPU drivers were removed.
+Raw traces, recordings, owner app data, device identifiers, generated test-run
+configuration and signing artifacts remain outside git. Incoming five iOS files
+and the existing Python cache retain their initial bytes. Backend/API/provider,
+quota, content and Convex-cost implementations did not change.
+
+Retain every original-program gate and deferral in PLAN.md, including full
+physical-device, language, accessibility, store and release acceptance. The
+measurements here do not close those broader gates. Stop before page-transition
+and cache work; do not start priority 4 automatically.

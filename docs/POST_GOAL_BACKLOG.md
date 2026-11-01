@@ -12,9 +12,10 @@ The owner subsequently selected priority-2 font-size and Settings-direction
 verification as the first goal in a proposed priority 2–4 sequence. Both existing
 A5 repairs pass fresh native checks on November 1; no product change was needed.
 See `PRIORITY2_VERIFICATION.md`, committed as `85adf64`. The owner then started
-priority-3 scrolling and approved physical profiling and installation. The active
-repair addresses iOS progress writes and full-bleed controls on both apps; see
-`SCROLLING_VERIFICATION.md`. Paired physical repair acceptance is open. Page
+priority-3 scrolling and approved physical profiling and installation. The bounded repair addresses iOS progress writes, repeated partition decoding
+and full-bleed controls on both apps. The installed iPhone passes agent-driven
+slow/faster hitch targets; see `SCROLLING_VERIFICATION.md`. Broader original
+acceptance remains open. Page
 transitions and priority 4 remain subsequent goals.
 
 These exceptions change only the named units' order. Preserve the original
@@ -23,7 +24,8 @@ backlog work remains later. Saved/A5 repairs already completed are not new work.
 
 The table retains the original reports with their current first-unit status.
 Priority-2 defects were reproduced and repaired in A5, then freshly checked here.
-Other reports are not established findings. Existing cloud/account/model,
+The scrolling findings and verification are recorded below; unmeasured reports
+remain unconfirmed. Existing cloud/account/model,
 device, rights and release gates still apply. If a symptom also blocks an original
 A5 requirement, fix only the original requirement's necessary scope and record
 the overlap. Avoid duplicate work or using overlap to authorize a broad redesign.
@@ -62,7 +64,7 @@ architecture rewrite is needed before a measured gap justifies it.
 | 1 | Convex usage is far too high for one reader. Support many readers within the free plan where practical, using sound practices. | Measure the baseline above and trace the largest repeated work to its caller before proposing an optimization. |
 | 2 | Reader translation font size does not work. | A5 repair freshly verified on both apps November 1. Actual 14→22 rendered text growth and both settings entry points pass; see PRIORITY2_VERIFICATION.md. |
 | 2 | Switching Arabic → English and returning to Settings leaves it RTL/upside down. | A5 repair freshly verified on both apps November 1. Same-process root Settings return and reopening checks pass; see PRIORITY2_VERIFICATION.md for exact scopes. |
-| 3 | Reader scrolling is laggy on iOS; Android performance is unknown. | Active: approved physical baseline identifies synchronous progress/account work; local iOS batching and both native full-bleed repairs are being verified. Paired physical timing/owner readback remains open; see SCROLLING_VERIFICATION.md. |
+| 3 | Reader scrolling is laggy on iOS; Android performance is unknown. | Verified bounded goal: installed-iPhone slow/faster scrolling passes the 5 ms/s hitch target after batching and exact-byte decoded reuse; both native full-bleed controls pass. Android Debug emulator measurements are recorded separately; physical/release acceptance stays open. See SCROLLING_VERIFICATION.md. |
 | 3 | Page swipes have loading jerks and insufficient caching. | Measure transition latency, cache behavior and visible position under the same workload. |
 | 4 | Free-account AI translations have a low success rate and fail inconsistently. | Classify failures by quota, attestation/auth, provider, exact-locale content and cache, without unapproved paid probes. |
 | 4 | Make switching free/pro behavior easy for testing paid features and limits. | Design the explicit development-only test contract above; never create a production quota bypass. |

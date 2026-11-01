@@ -8,10 +8,10 @@ Never use Relay.
 
 The owner started the next goal after priority-2 verification and approved
 physical profiling and installing the latest build. Follow `NEXT_SESSION_PROMPT.md`
-and `SCROLLING_VERIFICATION.md`. Local account write coalescing and full-bleed
-viewport repairs have automated native evidence; paired physical timing and
-owner acceptance remain open. Continue that goal before page caching or priority
-4. Preserve all original-program gates and incoming work.
+and `SCROLLING_VERIFICATION.md`. The bounded goal passes: progress-save batching, exact-byte decoded reuse and
+full-bleed controls have local/native and installed-iPhone proof. Agent-driven
+slow/faster scrolling meets the 5 ms/s hitch target. Stop before page-transition
+measurement and priority 4; preserve original-program gates and incoming work.
 
 ## Priority-2 native verification
 

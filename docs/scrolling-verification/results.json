@@ -35,7 +35,7 @@
   "uniqueIOSUnitTests": 33,
   "uniqueIOSUITests": 5,
   "androidInstrumentationTests": 8,
-  "physicalAcceptance": "improved, residual microjitters reported; target not met; goal active",
+  "physicalAcceptance": "Bounded scrolling target passes on installed Debug iPhone build; broader original acceptance remains open",
   "notes": [
     "Repeated cases are counted once in unique totals.",
     "Large-type iOS UI case has ar, ur, ru and bn iterations.",
@@ -56,5 +56,48 @@
     "ios/Hadithly/Features/Reader/ReaderModel.swift": "8e43e72723a224bc12d34b3ae88cdc26a57f80cd259040a5e10c8b858a51a69a",
     "ios/Hadithly/Features/Reader/ReaderView.swift": "92142f9c452f93bcd06b9a21490ff217f61c143bfbd0c37966795250d14db265",
     "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt": "9fc4d2f4e13d769f78cc8b3603713aa9bedb26f6126468d35c93eec393f41afc"
-  }
+  },
+  "secondRepair": {
+    "safetySuite": {
+      "tests": 160,
+      "passed": true,
+      "logSHA256": "2c78573d07eef4fba9cb5fb3f82a321cc36860f6dfc103bbbb2ff17fd56a2edc"
+    },
+    "durableReadBenchmarkSeconds": {
+      "before": 0.565532541833818,
+      "after": 0.06467762496322393,
+      "budget": 0.1
+    },
+    "slowScrollBudgets": {
+      "hitchMsPerSecond": 5,
+      "cpuSeconds": 6.35
+    },
+    "slowScrollPassed": true,
+    "fastScroll": {
+      "hitchSamplesMsPerSecond": [
+        10.598936,
+        3.557907,
+        0.0
+      ],
+      "meanHitchMsPerSecond": 4.718947666666667,
+      "hitchBudgetMsPerSecond": 5,
+      "passed": true,
+      "cpuCompared": false
+    },
+    "slowScrollBefore": {
+      "meanHitchMsPerSecond": 10.47301,
+      "meanCPUSeconds": 5.774268666666667
+    },
+    "slowScrollAfter": {
+      "meanHitchMsPerSecond": 2.095047333333333,
+      "meanCPUSeconds": 5.890656
+    },
+    "sourceSHA256": {
+      "ios/Hadithly/Core/GuestData/GuestDataStore.swift": "330f8b289375ee89964b522d990546cc77c193eb2a030ed71271db41704b0080",
+      "ios/Hadithly/Core/Saved/UserLibraryModel.swift": "8b49033249da1fba0858a0def4fa2b80d31edbecab75cfc4a73b9d9a24c9e41b",
+      "ios/HadithlyTests/GuestMergePlannerTests.swift": "ee7210864b9eec7ad9cf5ebbd465d4c548ac45d2a483b82f32e1c7bc0f724597",
+      "ios/HadithlyUITests/ReaderR6AUITests.swift": "c504249bd573edd994e60e2dcad9e6a7e2787790a7a2ff1c2ca10d86be87cc6a"
+    }
+  },
+  "status": "verified in recorded bounded scope"
 }

@@ -1,0 +1,67 @@
+{
+  "Hitch Time Ratio (Scroll_DraggingAndDeceleration), ms per s": [
+    12.564768,
+    12.570129,
+    6.284133
+  ],
+  "Hitch Time Ratio (app), ms per s": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "Hitches Total Duration (app), s": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "CPU Instructions Retired (app), kI": [
+    31098583.079,
+    30915303.025,
+    31710618.384
+  ],
+  "Number of Hitches (Scroll_DraggingAndDeceleration), hitches": [
+    1.0,
+    2.0,
+    1.0
+  ],
+  "Hitches Total Duration (Scroll_DraggingAndDeceleration), ms": [
+    16.669458,
+    16.669457,
+    8.334749
+  ],
+  "Frame Count (Scroll_DraggingAndDeceleration), frames": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "CPU Cycles (app), kC": [
+    13865232.055,
+    13670569.348,
+    14067177.53
+  ],
+  "Number of Hitches (app), hitches": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "CPU Time (app), s": [
+    5.764821,
+    5.72938,
+    5.828605
+  ],
+  "Frame Rate (Scroll_DraggingAndDeceleration), fps": [
+    107.787666,
+    115.374466,
+    114.603096
+  ],
+  "Duration (Scroll_DraggingAndDeceleration), s": [
+    1.326682,
+    1.326117,
+    1.326317
+  ],
+  "Clock Monotonic Time, s": [
+    11.991094,
+    12.032666,
+    12.395624
+  ]
+}

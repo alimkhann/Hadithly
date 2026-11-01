@@ -9,6 +9,54 @@ import zlib
 @testable import Hadithly
 
 final class GuestMergePlannerTests: XCTestCase {
+    @MainActor func testRepeatedUnchangedAccountPartitionReadsStayWithinScrollBudget() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("scroll-account.store")
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        var state = LibraryPartitionState()
+        state.pending = (0..<1_000).map { _ in
+            LibraryLocalChange(command: .notePut(.init(hadithId: "jn7fxd3z54153q9j13kmhgzkv18df2zd",
+                content: String(repeating: "Fixture original paragraph. ", count: 40), createdAt: 1_000, updatedAt: 1_000)),
+                at: 1_000, source: .account(nil))
+        }
+        try seedPartitionFixture(state, owner: owner, url: url)
+        let store = GuestDataStore(storeURL: url)
+        XCTAssertEqual(try store.syncPartition(owner), state)
+        let start = ProcessInfo.processInfo.systemUptime
+        for _ in 0..<50 { XCTAssertEqual(try store.syncPartition(owner), state) }
+        let elapsed = ProcessInfo.processInfo.systemUptime - start
+        print("READER_PARTITION_READ_SECONDS \(elapsed)")
+        XCTAssertLessThan(elapsed, 0.1, "Sync and library reads of unchanged durable bytes must not repeatedly decode the entire partition on the main thread")
+    }
+
+    @MainActor func testWarmPartitionReadChecksFreshBytesOwnerAndDeletion() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("warm-partition.store")
+        let owner = LibrarySyncOwner(key: "owner-a", subject: "subject-a")
+        let initial = LibraryPartitionState()
+        try seedPartitionFixture(initial, owner: owner, url: url)
+        let store = GuestDataStore(storeURL: url)
+        XCTAssertEqual(try store.syncPartition(owner), initial)
+        XCTAssertThrowsError(try store.syncPartition(.init(key: owner.key, subject: "different-subject")))
+        let container = try ModelContainer(for: GuestDataStore.schema, configurations: [ModelConfiguration(schema: GuestDataStore.schema, url: url)])
+        let context = ModelContext(container)
+        let row = try XCTUnwrap(context.fetch(FetchDescriptor<GuestLibraryPartition>()).first)
+        row.stateData = Data("invalid durable bytes".utf8)
+        try context.save()
+        XCTAssertThrowsError(try store.syncPartition(owner), "A warm value must never hide externally corrupted durable state")
+        var repaired = initial
+        repaired.pending = [.init(command: .bookmarkAdd(.init(hadithId: "jn7fxd3z54153q9j13kmhgzkv18df2zd", createdAt: 1_000)), at: 1_000, source: .account(nil))]
+        row.stateData = try JSONEncoder().encode(repaired)
+        try context.save()
+        XCTAssertEqual(try store.syncPartition(owner), repaired, "Fresh bytes must win even if the row revision is unchanged")
+        try store.resetSyncPartitionForTesting(owner)
+        XCTAssertNil(try store.syncPartition(owner), "A warm value must not resurrect an erased partition")
+    }
+
     @MainActor func testReaderScrollCoalescesAccountWritesAndFlushesExactFinalPosition() async throws {
         let fixture = LibraryFacadeFixture(store: GuestDataStore(inMemory: true))
         await fixture.start()

@@ -37,6 +37,23 @@ final class GuestDataStore {
     private(set) var lastWriteFailed = false
     var onGuestChanged: (() -> Void)?
 
+    private final class DecodedPartition: NSObject {
+        let owner: LibrarySyncOwner
+        let data: Data
+        let state: LibraryPartitionState
+        init(owner: LibrarySyncOwner, data: Data, state: LibraryPartitionState) {
+            self.owner = owner; self.data = data; self.state = state
+        }
+    }
+    @ObservationIgnored private let decodedPartitions: NSCache<NSString, DecodedPartition> = {
+        let cache = NSCache<NSString, DecodedPartition>()
+        cache.countLimit = 1
+        cache.totalCostLimit = 8 * 1_024 * 1_024
+        return cache
+    }()
+
+    func discardDecodedPartitions() { decodedPartitions.removeAllObjects() }
+
     private let container: ModelContainer
     private let context: ModelContext
     private let exportDirectory: URL
@@ -349,9 +366,23 @@ final class GuestDataStore {
         return rows.first
     }
     private func syncPartition(_ owner: LibrarySyncOwner, in db: ModelContext) throws -> LibraryPartitionState? {
-        guard let row = try partitionRow(owner, in: db) else { return nil }
-        do { return try JSONDecoder().decode(LibraryPartitionState.self, from: row.stateData) }
-        catch { throw LibrarySyncFailure.storeUnavailable }
+        let key = "partition" as NSString
+        guard let row = try partitionRow(owner, in: db) else {
+            decodedPartitions.removeObject(forKey: key)
+            return nil
+        }
+        let data = row.stateData
+        if let cached = decodedPartitions.object(forKey: key), cached.owner == owner, cached.data == data { return cached.state }
+        do {
+            let state = try JSONDecoder().decode(LibraryPartitionState.self, from: data)
+            if data.count <= 8 * 1_024 * 1_024 {
+                decodedPartitions.setObject(DecodedPartition(owner: owner, data: data, state: state), forKey: key, cost: data.count)
+            } else { decodedPartitions.removeObject(forKey: key) }
+            return state
+        } catch {
+            decodedPartitions.removeObject(forKey: key)
+            throw LibrarySyncFailure.storeUnavailable
+        }
     }
     func syncPartition(_ owner: LibrarySyncOwner) throws -> LibraryPartitionState? {
         try syncPartition(owner, in: outcomeContext())

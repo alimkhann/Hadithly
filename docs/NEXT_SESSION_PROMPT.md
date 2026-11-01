@@ -1,48 +1,44 @@
-# Continue the active reader scrolling goal
+# Reader scrolling verified; stop before page transitions
 
-Priority-2 verification was committed as `85adf64`. The owner then started loaded
-reader scrolling diagnosis, approved a physical trace and requested installing
-the latest build first. The first repair Debug build is installed and has paired physical evidence. The owner's
-low-frame-rate report and blank-header complaint are the current scope.
+Priority-2 passed as `85adf64`. The first scrolling repair is `ea04f6e`; the
+subsequent decoded-partition repair completes the bounded scrolling goal. See
+`SCROLLING_VERIFICATION.md` and `scrolling-verification/results.json`.
 
 ```text
-Continue Hadithly from docs/PLAN.md and docs/SCROLLING_VERIFICATION.md. The active
-goal is loaded-page scrolling and restoring full-bleed text behind floating
-progress controls. Do not begin page-transition/cache or priority-4 work.
+Continue Hadithly from docs/PLAN.md. Loaded-page scrolling and the blank-header
+regression are verified in their recorded scope. iOS batches progress saves and
+reuses decoded account data only after validating freshly read owner/data bytes.
+The one-entry Foundation cache admits at most 8 MiB encoded data and clears on
+library scope changes. No schema, API or A2 row-mode change occurred.
 
-The physical Time Profiler baseline exposes synchronous progress/account-library
-work. The real local account-facade regression originally produced 31 immediate
-writes for 31 captures. The iOS repair batches scroll saves within 500 ms while
-keeping immediate final/navigation saves and fencing delayed writes by account
-scope. Both native readers move top clearance into scroll content so text can
-pass behind controls, while explicit targets retain measured clearance. Preserve
-the single landing owner and reading-area coordinate mapping.
+Both native readers again draw text behind floating controls and into safe areas,
+with measured explicit-target clearance, stable focus and the single landing
+owner preserved. All 160 focused iOS safety cases pass. The first repair's five
+iOS UI and eight Android native cases retain their recorded proof.
 
-Read the verification record for exact passing suites and rejected attempts.
-The initial simulator CPU loop had no account library and does not prove this
-repair. Android's normal-runtime frame test provides independent Debug emulator
-timings, not release/physical 60 FPS proof. Temporary page-body counters and the
-abandoned simulator performance-driver tests were removed.
+The final Debug build is installed on the named iPhone. An opted-in destination-
+only XCTest drives actual loaded-reader gestures without app reinstall/reset.
+Its matched slow scrolling hitch ratio falls from 10.47 to 2.10 ms/s; a separate
+750-point/s flick check averages 4.72 ms/s. Both meet the 5 ms/s target. The slow
+CPU non-regression budget passes. Zero SDK frame-count/app-wide fields are not
+used as proof; Android emulator timings do not close physical Android or release
+performance acceptance. Do not restart completed scrolling work without a fresh
+reproduction. Preserve the raw-trace privacy boundary and incoming files.
 
-The repair is installed and verified on the named iPhone. Both 30-second
-Animation Hitches runs are complete on the owner-confirmed same passage/settings.
-Hitches fall 227→102 and their time ratio 8.012%→5.400%, missing the proposed
-50% reduction target. The owner confirms smoother motion and restored appearance,
-but reports microjitters and explicitly requests agent-driven scrolling and a
-root-cause repair. The same goal remains active. Next build a guarded physical UI
-test that activates the already-loaded reader, injects only vertical gestures,
-and requires an explicit test-host opt-in. Use existing device artifacts or
-install only the test runner; do not reset data, sign in or generate text.
-The same physical profiling and latest-build installation approvals persist.
-Inspect the remaining sync/partition-decoding work against reader updates and
-render stalls using repeated gestures; do not infer causality from unmatched
-manual CPU totals. Keep exact settings metadata unknown where not captured.
+Stop here. The proposed next goal is page-transition/loading/cache measurement,
+with the same public-content identity, locale/type settings and generation-off
+scope pinned before changes. Start it only as its own goal after the owner says
+to continue. Preserve semantic Continue/Saved restoration and manual header
+landing; page caching must not reintroduce a competing scroll owner. Free/Pro
+development controls and translation reliability remain later priority-4 goals.
 
-Preserve incoming iOS catalog/project/scheme bytes and scripts/__pycache__, the
-completed Convex continuation, A2 wrapped with row mode off, A5, B/C/D and all
+Preserve completed Convex reductions, A2 wrapped with row mode off, A5, B/C/D,
 G01-G41, A1/A3/A4 acceptance, A7/G38 deferred with retired dates, E actual Linear
 and the original final audit. No study recruitment/contact/observation/collection.
-No backend/API/cost implementation changed. Cloud/account/credential, paid-model,
+Keep incoming iOS project/scheme/catalog bytes and scripts/__pycache__ intact.
+Commit scoped work without pushing. Cloud/account/credential, paid-model,
 deployment, migration and publication still need exact action-time approval.
-Commit verified scoped work without pushing. Keep GPT-only and no Relay.
+Existing physical installation/profiling/scrolling authorization persists for its
+named scope; coordinate readiness if the owner is interacting with the phone.
+Keep GPT-only and no Relay.
 ```

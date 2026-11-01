@@ -4,34 +4,33 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-## Current checkpoint: reader scrolling diagnosis and floating controls, November 1
+## Current checkpoint: reader scrolling goal verified, November 1
 
-The owner started the next goal after priority-2 verification, approved a physical
-30-second Time Profiler capture, and explicitly requested installing the latest
-build first. The current Debug worktree was installed without resetting the
-phone. The physical trace identifies synchronous progress/account-partition work
-on the main thread. The owner describes continuous low-frame-rate scrolling and
-also reports the blank header introduced by A5's reserved viewport.
+The owner started scrolling work after priority-2 verification (`85adf64`),
+approved physical profiling/installing the latest app, and then requested
+agent-driven scrolling to resolve residual microjitters. The first repair
+(`ea04f6e`) batches progress saves and restores full-bleed text behind floating
+controls on both apps while preserving measured source/target clearance.
 
-The active repair batches iOS scroll persistence while retaining immediate
-navigation/lifecycle saves and account ownership. The real local account-facade
-reproduction originally makes 31 synchronous writes for 31 captures. A separate
-red UI check reproduces the blank header. Both native readers are being changed
-to retain measured content clearance inside a full-screen scrolling viewport.
-See [SCROLLING_VERIFICATION.md](SCROLLING_VERIFICATION.md) for current evidence,
-rejected measurement attempts and the still-open paired physical verification.
-The first repair is installed: physical hitch ratio improves from 8.012% to
-5.400%, but misses the 50% reduction target. The owner confirms improvement and
-restored appearance, with residual microjitters, and requests agent-driven
-scrolling/root-cause work. This goal is not complete. Page-transition/cache and priority-4 work have not
-started. Priority-2 passed 19 cases and was committed as `85adf64`.
+The subsequent root-cause repair reuses decoded iOS account data only when the
+owner and freshly fetched durable bytes match exactly. The real repeated-read
+case falls from 565.53 to 64.68 ms. All 160 focused safety tests pass, including
+cross-instance writes, corruption, account fences, rollback and erasure. The
+installed iPhone build passes repeated agent-driven slow drags and faster flicks:
+mean scroll hitch ratios are 2.10 and 4.72 ms/s against a 5 ms/s target. The
+matched slow baseline was 10.47 ms/s; the second repair reduces that measured
+ratio by about 80%. Its CPU non-regression budget passes. See
+[SCROLLING_VERIFICATION.md](SCROLLING_VERIFICATION.md) for precise scopes,
+limitations, rejected loops and portable evidence. This bounded goal is verified;
+no universal zero-hitch, full-app FPS or release-performance claim is made.
 
-Preserve incoming iOS catalog/project/scheme bytes and scripts/__pycache__,
-the completed Convex continuation, A2 wrapped with row mode off, A5, B/C/D and
-all G01-G41, A1/A3/A4 acceptance, A7/G38 deferred with retired dates, E actual
-Linear and final audit. Commit verified scoped work without pushing. No new
-cloud, account, paid-model, deployment, migration or publication action is
-covered by the physical-device approval.
+Stop before the proposed next goal: page-transition/loading/cache measurement.
+Priority-4 development Free/Pro testing and translation reliability remain later
+separate goals. Preserve incoming iOS catalog/project/scheme bytes and
+scripts/__pycache__, completed Convex reductions, A2 wrapped with row mode off,
+A5, B/C/D, all G01-G41, A1/A3/A4 acceptance, A7/G38 deferred with retired dates,
+E actual Linear and the original final audit. Commit verified work without
+pushing. No backend, schema, migration, paid-model or deployment change occurred.
 
 ## Convex usage reduction verified, November 1
 

@@ -9,12 +9,40 @@ import XCTest
 /// (neighbor pages mid-volume, full neighbor-volume titles at the edges,
 /// nothing at the absolute ends), tap and swipe across volume boundaries
 /// both ways, the cross-volume loading state, and the narrator in all
-/// three visibility modes.
+/// three visibility modes. The physical performance method separately requires
+/// an explicit test-host opt-in and never launches a fixture or resets app data.
 final class ReaderR6AUITests: XCTestCase {
     private let timeout: TimeInterval = 10
 
     override func setUpWithError() throws {
         continueAfterFailure = false
+    }
+
+    func testPhysicalLoadedReaderScrollingPerformance() throws {
+        guard ProcessInfo.processInfo.environment["HADITHLY_PHYSICAL_SCROLL"] == "1" else {
+            throw XCTSkip("Requires explicit physical scrolling opt-in and an already-running reader")
+        }
+        guard #available(iOS 26, *) else { throw XCTSkip("Physical hitch metrics require iOS 26") }
+        let app = XCUIApplication()
+        XCTAssertNotEqual(app.state, .notRunning)
+        guard app.state != .notRunning else { return }
+        app.activate()
+        XCTAssertTrue(app.descendants(matching: .any)["reader.page"].firstMatch.waitForExistence(timeout: 10))
+        let lower = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.65))
+        let upper = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25))
+        let velocity: XCUIGestureVelocity = ProcessInfo.processInfo.environment["HADITHLY_SCROLL_GESTURE"] == "fast" ? .fast : .slow
+        let options = XCTMeasureOptions()
+        options.iterationCount = 3
+        options.invocationOptions = [.manuallyStart, .manuallyStop]
+        measure(metrics: [XCTHitchMetric(application: app), XCTCPUMetric(application: app), XCTClockMetric(),
+                          XCTOSSignpostMetric.scrollingAndDecelerationMetric], options: options) {
+            startMeasuring()
+            for _ in 0..<3 {
+                lower.press(forDuration: 0.02, thenDragTo: upper, withVelocity: velocity, thenHoldForDuration: 0)
+                upper.press(forDuration: 0.02, thenDragTo: lower, withVelocity: velocity, thenHoldForDuration: 0)
+            }
+            stopMeasuring()
+        }
     }
 
     // MARK: - Quiet page

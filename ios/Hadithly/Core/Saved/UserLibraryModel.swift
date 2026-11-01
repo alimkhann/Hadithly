@@ -480,6 +480,7 @@ final class UserLibraryModel {
     }
 
     private func unsubscribe() {
+        guestData.discardDecodedPartitions()
         epoch = UUID(); retryTask?.cancel(); retryTask = nil
         cancellables.removeAll(); subscriptionsActive = false
         savedItems = []; folders = []; bookmarks = []; favorites = []; notes = []; progress = []
